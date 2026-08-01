@@ -47,7 +47,16 @@ export type MarketingCampaignStatus = "draft" | "scheduled" | "active" | "paused
 export type MarketingItemStatus = "draft" | "scheduled" | "running" | "published" | "completed" | "failed" | "cancelled" | "blocked_configuration";
 export type MarketingAudienceKind = "restaurant" | "client" | "mixed";
 export type MarketingProspectStatus = "new" | "qualified" | "contacted" | "follow_up" | "converted" | "opted_out";
+export const MARKETING_PROSPECT_STATUSES: readonly MarketingProspectStatus[] = [
+  "new",
+  "qualified",
+  "contacted",
+  "follow_up",
+  "converted",
+  "opted_out",
+];
 export type MarketingContactType = "registered_user" | "restaurant_prospect" | "restaurant_lead" | "manual";
+export type MarketingLawfulBasis = "consent" | "existing_customer" | "legitimate_interest";
 export type MarketingAutomationStatus = "draft" | "active" | "paused" | "disabled" | "error";
 export type MarketingDeliveryStatus =
   | "queued"
@@ -67,6 +76,26 @@ export type MarketingDeliveryStatus =
   | "cancelled"
   | "blocked_configuration"
   | "manual_required";
+
+export const MARKETING_DELIVERY_STATUSES: readonly MarketingDeliveryStatus[] = [
+  "queued",
+  "leased",
+  "processing",
+  "retrying",
+  "sent",
+  "delivered",
+  "opened",
+  "clicked",
+  "converted",
+  "bounced",
+  "complained",
+  "unsubscribed",
+  "skipped",
+  "failed",
+  "cancelled",
+  "blocked_configuration",
+  "manual_required",
+];
 
 export type MarketingChannel = {
   id: MarketingChannelId;
@@ -162,10 +191,79 @@ export type MarketingProspect = {
   lastContactAt: string | null;
   nextActionAt: string | null;
   tags: string[];
+  hasEmail: boolean;
+  hasPhone: boolean;
   emailMasked: string | null;
   phoneMasked: string | null;
   lawfulBasis: string | null;
   updatedAt: string;
+};
+
+export type MarketingRestaurantContactDraft = {
+  id?: string;
+  expectedUpdatedAt?: string;
+  displayName: string;
+  email: string;
+  phone: string;
+  city: string;
+  canton: string;
+  category: string;
+  lawfulBasis: MarketingLawfulBasis;
+  evidenceSource: string;
+  evidenceNote: string;
+  evidenceAt: string;
+};
+
+export type MarketingManualTarget = {
+  deliveryId: string;
+  channel: "manual_call" | "manual_email";
+  target: string;
+  revealedAt: string;
+};
+
+export type MarketingOffsetPage<T> = {
+  items: T[];
+  total: number;
+};
+
+export type MarketingContactListParams = {
+  query: string;
+  status: MarketingProspectStatus | null;
+  channel: MarketingChannelId | null;
+  limit: number;
+  offset: number;
+};
+
+export type MarketingDeliveryListParams = {
+  query: string;
+  status: MarketingDeliveryStatus | null;
+  channel: MarketingChannelId | null;
+  limit: number;
+  offset: number;
+};
+
+export type MarketingSourceSyncBatch = {
+  processed: number;
+  inserted: number;
+  updated: number;
+  suppressed: number;
+  reconsented: number;
+  nextCursor: string | null;
+  watermark: string | null;
+  hasMore: boolean;
+  complete: boolean;
+};
+
+export type MarketingSourceSyncResume = {
+  catalog: {
+    afterSourceObjectId: string | null;
+    untilSourceObjectId: string | null;
+  } | null;
+  consents: {
+    cursor: string | null;
+  } | null;
+  catalogComplete: boolean;
+  consentsComplete: boolean;
 };
 
 export type MarketingAutomation = {

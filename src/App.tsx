@@ -43,7 +43,9 @@ import CommercialDemoHostSecurityBoundary from "@/components/commercial/Commerci
 import CommercialDemoSafeEffectsBoundary from "@/components/commercial/CommercialDemoSafeEffectsBoundary";
 import CommercialHostBoundary from "@/components/commercial/CommercialHostBoundary";
 import MarketingHostBoundary from "@/components/marketing/MarketingHostBoundary";
+import MarketingProtectedRoute from "@/components/marketing/MarketingProtectedRoute";
 import { isMarketingAppHost, isMarketingPath } from "@/lib/marketingDomains";
+import MarketingSessionProvider from "@/marketing/MarketingSessionProvider";
 import { isCommercialDemoClientPathAllowed } from "@/lib/commercialDemoClientRoutes";
 import { getCommercialDemoFrameConfig, type CommercialDemoFrameConfig } from "@/lib/commercialDemoFrame";
 
@@ -164,6 +166,7 @@ const AdminSinistres = lazy(() => import("./pages/admin/AdminSinistres"));
 const AdminSupportResolution = lazy(() => import("./pages/admin/AdminSupportResolution"));
 const AdminGuardian = lazy(() => import("./pages/admin/AdminGuardian"));
 const AdminTokConnect = lazy(() => import("./pages/admin/AdminTokConnect"));
+const MarketingLogin = lazy(() => import("./pages/marketing/MarketingLogin"));
 const MarketingWorkspace = lazy(() => import("./pages/marketing/MarketingWorkspace"));
 
 const queryClient = new QueryClient({
@@ -512,7 +515,6 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const adminSupportResolutionEnabled = hasFeature("admin-support-resolution");
   const adminGuardianEnabled = hasFeature("admin-guardian");
   const adminTokConnectEnabled = hasFeature("admin-tok-connect");
-  const adminMarketingOperationsEnabled = hasFeature("admin-marketing-operations");
   const deliveryEnabled = hasFeature("livraison");
   const isMarketingSurface = isMarketingExecutionLocation(pathname);
   const showGlobalClientChrome = !commercialDemoFrame && !oauthConsentFrame && !isMarketingSurface;
@@ -625,7 +627,6 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/courier/notifications" element={<ProtectedRoute requiredRole="courier"><CourierNotifications /></ProtectedRoute>} />
           <Route path="/courier/earnings" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEarningsEnabled} fallback="/courier"><CourierEarnings /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/profile" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierProfileEnabled} fallback="/courier"><CourierProfile /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/marketing" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminMarketingOperationsEnabled} fallback="/admin"><MarketingWorkspace /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin" element={<AdminDashboardRoute />} />
           <Route path="/admin/platform" element={<AdminProtectedRoute><FeatureSwitch enabled={adminPlatformConfigEnabled} fallback="/admin"><AdminPlatformConfig /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/restaurants" element={<AdminProtectedRoute><FeatureSwitch enabled={adminRestaurantsEnabled} fallback="/admin"><AdminRestaurants /></FeatureSwitch></AdminProtectedRoute>} />
@@ -678,12 +679,6 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
 }
 
 function AppRuntime({ commercialDemoFrame }: { commercialDemoFrame: CommercialDemoFrameConfig | null }) {
-  const { pathname } = useLocation();
-
-  if (isMarketingExecutionLocation(pathname)) {
-    return <AppShell commercialDemoFrame={commercialDemoFrame} />;
-  }
-
   return (
     <>
       <NativeIntegration />
@@ -694,9 +689,64 @@ function AppRuntime({ commercialDemoFrame }: { commercialDemoFrame: CommercialDe
   );
 }
 
+function MarketingApplication() {
+  return (
+    <MarketingSessionProvider>
+      <Suspense
+        fallback={(
+          <AppLoadingScreen
+            fullScreen
+            title="Ouverture de l’espace marketing"
+            description="Chargement de la surface administrateur isolée…"
+          />
+        )}
+      >
+        <Routes>
+          <Route path="/marketing/login" element={<MarketingLogin />} />
+          <Route
+            path="/marketing"
+            element={(
+              <MarketingProtectedRoute>
+                <MarketingWorkspace />
+              </MarketingProtectedRoute>
+            )}
+          />
+          <Route path="/marketing/*" element={<Navigate to="/marketing" replace />} />
+        </Routes>
+      </Suspense>
+    </MarketingSessionProvider>
+  );
+}
+
+function ApplicationBoundary({ commercialDemoFrame }: { commercialDemoFrame: CommercialDemoFrameConfig | null }) {
+  const { pathname } = useLocation();
+
+  if (isMarketingExecutionLocation(pathname)) {
+    return <MarketingApplication />;
+  }
+
+  const shell = <AppRuntime commercialDemoFrame={commercialDemoFrame} />;
+  return (
+    <CommercialDemoHostSecurityBoundary>
+      <AuthProvider>
+        <CanonicalWorkspaceHostBoundary>
+          {commercialDemoFrame ? (
+            <CommercialDemoFrameAuthBoundary config={commercialDemoFrame}>
+              <CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>
+                <CommercialDemoFrameProvider config={commercialDemoFrame}>
+                  {shell}
+                </CommercialDemoFrameProvider>
+              </CommercialDemoFrameRouteBoundary>
+            </CommercialDemoFrameAuthBoundary>
+          ) : shell}
+        </CanonicalWorkspaceHostBoundary>
+      </AuthProvider>
+    </CommercialDemoHostSecurityBoundary>
+  );
+}
+
 const App = () => {
   const commercialDemoFrame = getCommercialDemoFrameConfig();
-  const shell = <AppRuntime commercialDemoFrame={commercialDemoFrame} />;
 
   return (
     <ErrorBoundary>
@@ -708,21 +758,7 @@ const App = () => {
             <MarketingHostBoundary>
               <ScrollToTop />
               <RouteSeoFallback />
-              <CommercialDemoHostSecurityBoundary>
-                <AuthProvider>
-                  <CanonicalWorkspaceHostBoundary>
-                    {commercialDemoFrame ? (
-                      <CommercialDemoFrameAuthBoundary config={commercialDemoFrame}>
-                        <CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>
-                          <CommercialDemoFrameProvider config={commercialDemoFrame}>
-                            {shell}
-                          </CommercialDemoFrameProvider>
-                        </CommercialDemoFrameRouteBoundary>
-                      </CommercialDemoFrameAuthBoundary>
-                    ) : shell}
-                  </CanonicalWorkspaceHostBoundary>
-                </AuthProvider>
-              </CommercialDemoHostSecurityBoundary>
+              <ApplicationBoundary commercialDemoFrame={commercialDemoFrame} />
             </MarketingHostBoundary>
           </BrowserRouter>
         </TooltipProvider>

@@ -20,6 +20,7 @@ describe("marketing domain isolation", () => {
     expect(isMarketingAppHost("marketing.thetok.ch")).toBe(true);
     expect(isMarketingAppHost("marketing.thetok.ch.evil.example")).toBe(false);
     expect(isMarketingPath("/marketing")).toBe(true);
+    expect(isMarketingPath("/marketing/login")).toBe(true);
     expect(isMarketingPath("/marketing/campaigns")).toBe(true);
     expect(isMarketingPath("/marketing-public")).toBe(false);
   });
@@ -71,5 +72,11 @@ describe("marketing domain isolation", () => {
     expect(source).toContain("getSanitizedMarketingHostRedirectTarget");
     expect(source).toContain("window.location.replace(resolvedTarget)");
   });
-});
 
+  it("uses a fixed same-origin login route for expired BFF sessions", () => {
+    const source = readFileSync(resolve(process.cwd(), "src/marketing/marketingBffClient.ts"), "utf8");
+    expect(source).toContain('MARKETING_LOGIN_PATH = "/marketing/login"');
+    expect(source).toContain("window.location.replace(MARKETING_LOGIN_PATH)");
+    expect(source).not.toMatch(/redirect(?:Url|To|_to)\s*:/i);
+  });
+});

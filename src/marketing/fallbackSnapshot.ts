@@ -66,18 +66,25 @@ export function createFallbackMarketingSnapshot(): MarketingSnapshot {
         costModel: "provider_free_tier" as const,
         lastCheckedAt,
       })),
-    ...(["manual_call", "manual_email", "manual_visit"] as const).map((id) => ({
+    ...(["manual_call", "manual_email"] as const).map((id) => ({
       id,
       label: ({
         manual_call: "Appel manuel",
         manual_email: "E-mail individuel manuel",
-        manual_visit: "Visite terrain",
       })[id],
       availability: "manual" as const,
       reason: "Action humaine disponible ; aucune exécution automatique n'est déclenchée.",
       costModel: "manual" as const,
       lastCheckedAt,
     })),
+    {
+      id: "manual_visit",
+      label: "Visite terrain",
+      availability: "blocked_configuration",
+      reason: "Adresse structurée et vérifiée absente ; aucune tâche de visite n'est autorisée.",
+      costModel: "manual",
+      lastCheckedAt,
+    },
   ];
 
   const integrations: MarketingIntegration[] = channels.map((channel) => ({

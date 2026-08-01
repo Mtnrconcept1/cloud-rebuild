@@ -10,13 +10,18 @@ import {
   completeManualMarketingItem,
   createMarketingCampaignBundle,
   estimateMarketingAudience,
+  listMarketingContactsPage,
+  listMarketingDeliveriesPage,
   loadMarketingSnapshot,
+  revealManualMarketingDeliveryTarget,
   retryMarketingDelivery,
   runMarketingOrchestrator,
   setMarketingGlobalPause,
+  suppressMarketingContact,
   syncMarketingClientConsents,
   syncMarketingProspectCatalog,
   upsertMarketingAutomation,
+  upsertMarketingRestaurantContact,
 } from "@/marketing/marketingClient";
 import {
   isPublicMarketingChannel,
@@ -24,6 +29,11 @@ import {
   type MarketingAutomationDraft,
   type MarketingCampaignDraft,
   type MarketingChannelId,
+  type MarketingContactListParams,
+  type MarketingDeliveryListParams,
+  type MarketingRestaurantContactDraft,
+  type MarketingSourceSyncBatch,
+  type MarketingSourceSyncResume,
 } from "@/marketing/types";
 
 export type MarketingActionNotice = {
@@ -36,11 +46,138 @@ function safeActionMessage(error: unknown) {
   return message.replace(/[\r\n]+/g, " ").slice(0, 180);
 }
 
+const SOURCE_SYNC_BATCH_SIZE = 500;
+const MAX_SOURCE_SYNC_BATCHES = 20;
+
+type BoundedSourceSyncResult<Resume> = {
+  processed: number;
+  inserted: number;
+  updated: number;
+  suppressed: number;
+  reconsented: number;
+  batches: number;
+  complete: boolean;
+  resume: Resume | null;
+  error: string | null;
+};
+
+function emptyBoundedSourceSync<Resume>(): BoundedSourceSyncResult<Resume> {
+  return {
+    processed: 0,
+    inserted: 0,
+    updated: 0,
+    suppressed: 0,
+    reconsented: 0,
+    batches: 0,
+    complete: false,
+    resume: null,
+    error: null,
+  };
+}
+
+function addSyncBatch<Resume>(
+  current: BoundedSourceSyncResult<Resume>,
+  batch: MarketingSourceSyncBatch,
+) {
+  return {
+    ...current,
+    processed: current.processed + batch.processed,
+    inserted: current.inserted + batch.inserted,
+    updated: current.updated + batch.updated,
+    suppressed: current.suppressed + batch.suppressed,
+    reconsented: current.reconsented + batch.reconsented,
+    batches: current.batches + 1,
+  };
+}
+
+async function syncProspectCatalogBounded(
+  resume: MarketingSourceSyncResume["catalog"],
+): Promise<BoundedSourceSyncResult<NonNullable<MarketingSourceSyncResume["catalog"]>>> {
+  let progress = emptyBoundedSourceSync<NonNullable<MarketingSourceSyncResume["catalog"]>>();
+  let afterSourceObjectId = resume?.afterSourceObjectId || null;
+  let untilSourceObjectId = resume?.untilSourceObjectId || null;
+
+  for (let batchIndex = 0; batchIndex < MAX_SOURCE_SYNC_BATCHES; batchIndex += 1) {
+    try {
+      const batch = await syncMarketingProspectCatalog({
+        limit: SOURCE_SYNC_BATCH_SIZE,
+        afterSourceObjectId,
+        untilSourceObjectId,
+      });
+      progress = addSyncBatch(progress, batch);
+      untilSourceObjectId ||= batch.watermark;
+      if (batch.complete) return { ...progress, complete: true, resume: null };
+      if (batch.hasMore !== true) throw new Error("État de reprise du catalogue incohérent.");
+      if (!batch.nextCursor || !untilSourceObjectId || batch.nextCursor === afterSourceObjectId) {
+        throw new Error("Le catalogue n'a pas fourni de curseur de reprise progressif.");
+      }
+      afterSourceObjectId = batch.nextCursor;
+    } catch (error) {
+      return {
+        ...progress,
+        complete: false,
+        resume: { afterSourceObjectId, untilSourceObjectId },
+        error: safeActionMessage(error),
+      };
+    }
+  }
+
+  return {
+    ...progress,
+    complete: false,
+    resume: { afterSourceObjectId, untilSourceObjectId },
+  };
+}
+
+async function syncClientConsentsBounded(
+  resume: MarketingSourceSyncResume["consents"],
+): Promise<BoundedSourceSyncResult<NonNullable<MarketingSourceSyncResume["consents"]>>> {
+  let progress = emptyBoundedSourceSync<NonNullable<MarketingSourceSyncResume["consents"]>>();
+  let cursor = resume?.cursor || null;
+
+  for (let batchIndex = 0; batchIndex < MAX_SOURCE_SYNC_BATCHES; batchIndex += 1) {
+    try {
+      const batch = await syncMarketingClientConsents({
+        limit: SOURCE_SYNC_BATCH_SIZE,
+        cursor,
+      });
+      progress = addSyncBatch(progress, batch);
+      if (batch.complete) return { ...progress, complete: true, resume: null };
+      if (batch.hasMore !== true) throw new Error("État de reprise des consentements incohérent.");
+      if (!batch.nextCursor || batch.nextCursor === cursor) {
+        throw new Error("Les consentements n'ont pas fourni de curseur de reprise progressif.");
+      }
+      cursor = batch.nextCursor;
+    } catch (error) {
+      return {
+        ...progress,
+        complete: false,
+        resume: { cursor },
+        error: safeActionMessage(error),
+      };
+    }
+  }
+
+  return {
+    ...progress,
+    complete: false,
+    resume: { cursor },
+  };
+}
+
 export function useMarketingOperations(calendarRange?: { from: string; to: string }) {
   const initialSnapshot = useRef(createFallbackMarketingSnapshot());
   const [snapshot, setSnapshot] = useState(initialSnapshot.current);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [notice, setNotice] = useState<MarketingActionNotice>(null);
+  const [contactsRevision, setContactsRevision] = useState(0);
+  const [deliveriesRevision, setDeliveriesRevision] = useState(0);
+  const [sourceSyncResume, setSourceSyncResume] = useState<MarketingSourceSyncResume>({
+    catalog: null,
+    consents: null,
+    catalogComplete: false,
+    consentsComplete: false,
+  });
 
   const snapshotQuery = useQuery({
     queryKey: [
@@ -74,6 +211,14 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
       setPendingAction(null);
     }
   }, []);
+
+  const loadContactsPage = useCallback((params: MarketingContactListParams) => (
+    listMarketingContactsPage(params)
+  ), []);
+
+  const loadDeliveriesPage = useCallback((params: MarketingDeliveryListParams) => (
+    listMarketingDeliveriesPage(params)
+  ), []);
 
   const saveCampaign = useCallback(async (draft: MarketingCampaignDraft) => {
     if (snapshot.source === "fallback") {
@@ -260,35 +405,53 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
       return null;
     }
     return runAction("sync-sources", async () => {
-      const [catalogResult, consentsResult] = await Promise.allSettled([
-        syncMarketingProspectCatalog(),
-        syncMarketingClientConsents(),
+      const [catalogResult, consentsResult] = await Promise.all([
+        sourceSyncResume.catalogComplete
+          ? Promise.resolve({
+              ...emptyBoundedSourceSync<NonNullable<MarketingSourceSyncResume["catalog"]>>(),
+              complete: true,
+            })
+          : syncProspectCatalogBounded(sourceSyncResume.catalog),
+        sourceSyncResume.consentsComplete
+          ? Promise.resolve({
+              ...emptyBoundedSourceSync<NonNullable<MarketingSourceSyncResume["consents"]>>(),
+              complete: true,
+            })
+          : syncClientConsentsBounded(sourceSyncResume.consents),
       ]);
+      setContactsRevision((current) => current + 1);
       await snapshotQuery.refetch();
-      if (catalogResult.status === "rejected" && consentsResult.status === "rejected") {
-        throw new Error(`Aucune source synchronisée : ${safeActionMessage(catalogResult.reason)}.`);
+      const complete = catalogResult.complete && consentsResult.complete;
+      setSourceSyncResume(complete ? {
+        catalog: null,
+        consents: null,
+        catalogComplete: false,
+        consentsComplete: false,
+      } : {
+        catalog: catalogResult.resume,
+        consents: consentsResult.resume,
+        catalogComplete: catalogResult.complete,
+        consentsComplete: consentsResult.complete,
+      });
+
+      const processed = catalogResult.processed + consentsResult.processed;
+      if (processed === 0 && catalogResult.error && consentsResult.error) {
+        throw new Error(`Aucune source synchronisée : ${catalogResult.error}. Relancez l'action pour réessayer.`);
       }
 
-      const catalogInserted = catalogResult.status === "fulfilled"
-        ? Number(catalogResult.value.inserted) || 0
-        : 0;
-      const clientsInserted = consentsResult.status === "fulfilled"
-        ? Number(consentsResult.value.inserted) || 0
-        : 0;
-      const clientsUpdated = consentsResult.status === "fulfilled"
-        ? Number(consentsResult.value.updated) || 0
-        : 0;
-      const suppressed = consentsResult.status === "fulfilled"
-        ? Number(consentsResult.value.suppressed) || 0
-        : 0;
-      const complete = catalogResult.status === "fulfilled" && consentsResult.status === "fulfilled";
+      const catalogInserted = catalogResult.inserted;
+      const clientsInserted = consentsResult.inserted;
+      const clientsUpdated = consentsResult.updated;
+      const suppressed = consentsResult.suppressed;
+      const reconsented = consentsResult.reconsented;
+      const batches = catalogResult.batches + consentsResult.batches;
       setNotice({
         tone: complete ? "success" : "warning",
-        message: `${complete ? "Sources synchronisées" : "Synchronisation partielle"} : ${catalogInserted} prospect(s) ajouté(s), ${clientsInserted} client(s) ajouté(s), ${clientsUpdated} client(s) mis à jour, ${suppressed} opposition(s) appliquée(s). Aucune donnée personnelle brute n'est retournée.`,
+        message: `${complete ? "Sources synchronisées" : "Synchronisation bornée ou interrompue"} en ${batches} lot(s) : ${catalogInserted} prospect(s) ajouté(s), ${clientsInserted} client(s) ajouté(s), ${clientsUpdated} client(s) mis à jour, ${suppressed} opposition(s) et ${reconsented} réactivation(s) appliquée(s). ${complete ? "Le cycle est terminé." : "Relancez Synchroniser les sources pour reprendre depuis le dernier curseur confirmé."} Aucune donnée personnelle brute n'est retournée.`,
       });
-      return { complete, catalogInserted, clientsInserted, clientsUpdated, suppressed };
+      return { complete, batches, catalogInserted, clientsInserted, clientsUpdated, suppressed, reconsented };
     });
-  }, [runAction, snapshot.source, snapshotQuery]);
+  }, [runAction, snapshot.source, snapshotQuery, sourceSyncResume]);
 
   const retryDelivery = useCallback(async (deliveryId: string) => {
     if (snapshot.source === "fallback") {
@@ -298,10 +461,55 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
     return runAction(`retry-${deliveryId}`, async () => {
       await retryMarketingDelivery(deliveryId);
       setNotice({ tone: "success", message: "Nouvelle tentative mise en file de façon idempotente." });
+      setDeliveriesRevision((current) => current + 1);
       await snapshotQuery.refetch();
       return true;
     });
   }, [runAction, snapshot.source, snapshotQuery]);
+
+  const qualifyRestaurantContact = useCallback(async (draft: MarketingRestaurantContactDraft) => {
+    if (snapshot.source === "fallback") {
+      setNotice({ tone: "error", message: "Qualification impossible sans backend marketing." });
+      return null;
+    }
+    return runAction(`qualify-contact-${draft.id || "new"}`, async () => {
+      const contact = await upsertMarketingRestaurantContact(draft);
+      setContactsRevision((current) => current + 1);
+      await snapshotQuery.refetch();
+      setNotice({
+        tone: "success",
+        message: "Restaurant qualifié et preuve juridique journalisée. Aucun envoi n'a été déclenché.",
+      });
+      return contact;
+    });
+  }, [runAction, snapshot.source, snapshotQuery]);
+
+  const suppressContact = useCallback(async (contactId: string, reason: string) => {
+    if (snapshot.source === "fallback") {
+      setNotice({ tone: "error", message: "Opposition impossible sans backend marketing." });
+      return false;
+    }
+    return runAction(`suppress-contact-${contactId}`, async () => {
+      await suppressMarketingContact(contactId, reason);
+      setContactsRevision((current) => current + 1);
+      await snapshotQuery.refetch();
+      setNotice({
+        tone: "warning",
+        message: "Opposition enregistrée : les tâches encore en attente ont été annulées.",
+      });
+      return true;
+    });
+  }, [runAction, snapshot.source, snapshotQuery]);
+
+  const revealManualTarget = useCallback(async (deliveryId: string, reason: string) => {
+    if (snapshot.source === "fallback") {
+      setNotice({ tone: "error", message: "Révélation impossible sans backend marketing." });
+      return undefined;
+    }
+    return runAction(`reveal-manual-${deliveryId}`, () => (
+      revealManualMarketingDeliveryTarget(deliveryId, reason)
+    ));
+  }, [runAction, snapshot.source]);
 
   const completeManualDelivery = useCallback(async (
     deliveryId: string,
@@ -337,6 +545,7 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
           ? "Action terrain marquée effectuée et journalisée."
           : "Action terrain marquée en échec avec sa note de suivi.",
       });
+      setDeliveriesRevision((current) => current + 1);
       await snapshotQuery.refetch();
       return true;
     });
@@ -415,10 +624,18 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
     return runAction("run-due", async () => {
       await runMarketingOrchestrator("run_due", undefined, 25);
       setNotice({ tone: "success", message: "Traitement des éléments dus lancé, dans la limite de 25." });
+      setDeliveriesRevision((current) => current + 1);
       await snapshotQuery.refetch();
       return true;
     });
   }, [runAction, snapshot.overview.globalPaused, snapshot.overview.schedulerReady, snapshot.source, snapshotQuery]);
+
+  const refresh = useCallback(async () => {
+    const result = await snapshotQuery.refetch();
+    setContactsRevision((current) => current + 1);
+    setDeliveriesRevision((current) => current + 1);
+    return result;
+  }, [snapshotQuery]);
 
   return {
     snapshot,
@@ -427,7 +644,11 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
     pendingAction,
     notice,
     clearNotice: () => setNotice(null),
-    refresh: snapshotQuery.refetch,
+    refresh,
+    loadContactsPage,
+    loadDeliveriesPage,
+    contactsRevision,
+    deliveriesRevision,
     saveCampaign,
     recommendChannels,
     approveCampaign,
@@ -435,7 +656,10 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
     toggleGlobalPause,
     saveAutomation,
     syncSources,
+    qualifyRestaurantContact,
+    suppressContact,
     retryDelivery,
+    revealManualTarget,
     completeManualDelivery,
     cancelItem,
     completeManualItem,

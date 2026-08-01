@@ -20,6 +20,14 @@ describe("marketing Edge Function security", () => {
     expect(orchestrator).toContain("writeAuditLog");
   });
 
+  it("attributes BFF-triggered runs only to a revalidated admin identity", () => {
+    expect(orchestrator).toContain('actor.authMode !== "service_role"');
+    expect(orchestrator).toContain('req.headers.get("x-marketing-actor-user-id")');
+    expect(orchestrator).toContain('.from("user_roles")');
+    expect(orchestrator).toContain('.eq("role", "admin")');
+    expect(orchestrator).toContain("actor = await attachDelegatedAdminIdentity(actor, req)");
+  });
+
   it("verifies a timestamped HMAC before recording provider events", () => {
     expect(webhook).toContain("verifyMarketingWebhookSignature");
     expect(webhook).toContain("x-marketing-timestamp");

@@ -93,27 +93,37 @@ describe("marketing subdomain integration contract", () => {
     expect(config).toMatch(/\[functions\.marketing-provider-webhook\]\s+verify_jwt\s*=\s*false/);
   });
 
-  it("wires /marketing through an admin role guard and an active feature flag", () => {
+  it("wires marketing through an isolated BFF session without mounting AuthProvider", () => {
     const app = read("src/App.tsx");
     const catalog = read("src/lib/featureCatalog.ts");
     const compactApp = app.replace(/\s+/g, " ");
     const featureStart = catalog.indexOf('name: "admin-marketing-operations"');
     const featureEnd = catalog.indexOf("\n  },", featureStart);
     const marketingFeature = catalog.slice(featureStart, featureEnd > featureStart ? featureEnd : undefined);
-    const routeStart = compactApp.indexOf('<Route path="/marketing"');
-    const nextRoute = compactApp.indexOf("<Route path=", routeStart + 1);
-    const marketingRoute = compactApp.slice(routeStart, nextRoute > routeStart ? nextRoute : undefined);
+    const applicationBoundaryStart = compactApp.indexOf("function ApplicationBoundary");
+    const applicationBoundaryEnd = compactApp.indexOf("const App =", applicationBoundaryStart);
+    const applicationBoundary = compactApp.slice(applicationBoundaryStart, applicationBoundaryEnd);
+    const marketingApplicationStart = compactApp.indexOf("function MarketingApplication");
+    const marketingApplicationEnd = compactApp.indexOf("function ApplicationBoundary", marketingApplicationStart);
+    const marketingApplication = compactApp.slice(marketingApplicationStart, marketingApplicationEnd);
+    const routeStart = marketingApplication.indexOf('<Route path="/marketing"');
+    const nextRoute = marketingApplication.indexOf("<Route path=", routeStart + 1);
+    const marketingRoute = marketingApplication.slice(routeStart, nextRoute > routeStart ? nextRoute : undefined);
 
     expect(app).toContain("MarketingHostBoundary");
     expect(app).toContain("<MarketingHostBoundary>");
     expect(app).toContain("function CanonicalWorkspaceHostBoundary");
     expect(app).toContain("marketingExecutionLocation ? children");
-    expect(app.indexOf("<MarketingHostBoundary>")).toBeLessThan(app.indexOf("<AuthProvider>"));
-    expect(app).toContain('const adminMarketingOperationsEnabled = hasFeature("admin-marketing-operations")');
+    expect(marketingApplication).toContain("<MarketingSessionProvider>");
+    expect(marketingApplication).toContain('<Route path="/marketing/login" element={<MarketingLogin />} />');
+    expect(applicationBoundary).toContain("if (isMarketingExecutionLocation(pathname))");
+    expect(applicationBoundary).toContain("return <MarketingApplication />");
+    expect(applicationBoundary.indexOf("return <MarketingApplication />"))
+      .toBeLessThan(applicationBoundary.indexOf("<AuthProvider>"));
     expect(routeStart).toBeGreaterThanOrEqual(0);
-    expect(marketingRoute).toContain('<ProtectedRoute requiredRole="admin">');
-    expect(marketingRoute).toContain("<FeatureSwitch enabled={adminMarketingOperationsEnabled}");
+    expect(marketingRoute).toContain("<MarketingProtectedRoute>");
     expect(marketingRoute).toContain("<MarketingWorkspace />");
+    expect(marketingRoute).not.toContain("<ProtectedRoute");
     expect(marketingRoute).not.toContain("<AdminProtectedRoute>");
     expect(app).toMatch(/isMarketingPath\(pathname\)|pathname\s*===\s*"\/marketing"/);
     expect(featureStart).toBeGreaterThanOrEqual(0);
@@ -122,10 +132,28 @@ describe("marketing subdomain integration contract", () => {
     expect(marketingFeature).toContain('group: "admin_tools"');
   });
 
+  it("fails closed if the generic Supabase client is ever initialized on the marketing host", () => {
+    const authStorage = read("src/integrations/supabase/authStorage.ts");
+    const start = authStorage.indexOf("const isolatedMarketingAuthStorage");
+    const end = authStorage.indexOf("const nativeAuthStorage", start);
+    const marketingStorage = authStorage.slice(start, end);
+
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(marketingStorage).toContain("return null");
+    expect(marketingStorage).not.toContain("localStorage.setItem");
+    expect(authStorage).toContain("mustIsolateMarketingSession()");
+  });
+
   it("ships no literal credentials in the new integration files", () => {
     const source = [
       "src/lib/marketingDomains.ts",
       "src/components/marketing/MarketingHostBoundary.tsx",
+      "src/components/marketing/MarketingProtectedRoute.tsx",
+      "src/pages/marketing/MarketingLogin.tsx",
+      "src/marketing/MarketingSessionContext.tsx",
+      "src/marketing/MarketingSessionProvider.tsx",
+      "src/marketing/marketingBffClient.ts",
+      "src/marketing/marketingClient.ts",
       "vercel.json",
       "supabase/functions/_shared/cors.ts",
       "supabase/config.toml",

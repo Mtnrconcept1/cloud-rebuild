@@ -8,7 +8,7 @@ const migration = readFileSync(
 );
 
 describe("marketing operations schema", () => {
-  it("creates the seven isolated marketing tables with RLS", () => {
+  it("creates isolated marketing data and BFF authentication tables with RLS", () => {
     for (const table of [
       "marketing_campaigns",
       "marketing_calendar_items",
@@ -20,7 +20,20 @@ describe("marketing operations schema", () => {
     ]) {
       expect(migration).toContain(`CREATE TABLE IF NOT EXISTS public.${table}`);
       expect(migration).toContain(`ALTER TABLE public.${table} ENABLE ROW LEVEL SECURITY`);
-      expect(migration).toContain(`REVOKE ALL ON public.${table} FROM anon, authenticated`);
+      expect(migration).toContain(`REVOKE ALL ON public.${table} FROM PUBLIC, anon, authenticated`);
+    }
+    for (const table of [
+      "marketing_admin_auth_challenges",
+      "marketing_admin_web_sessions",
+      "marketing_admin_login_limits",
+      "marketing_lawful_basis_evidence",
+    ]) {
+      expect(migration).toContain(`CREATE TABLE IF NOT EXISTS public.${table}`);
+      expect(migration).toContain(`ALTER TABLE public.${table} ENABLE ROW LEVEL SECURITY`);
+      expect(migration).toContain(`ALTER TABLE public.${table} FORCE ROW LEVEL SECURITY`);
+      expect(migration).toContain(
+        `REVOKE ALL ON public.${table} FROM PUBLIC, anon, authenticated, service_role`,
+      );
     }
   });
 
@@ -42,11 +55,16 @@ describe("marketing operations schema", () => {
     expect(migration).not.toMatch(/eyJ[A-Za-z0-9_-]{20,}\./);
   });
 
-  it("keeps admin and worker execution privileges separated", () => {
+  it("routes browser administration through the service-role BFF dispatcher", () => {
     expect(migration).toContain("marketing_require_admin()");
     expect(migration).toContain("marketing_require_service_role()");
     expect(migration).toContain("FROM PUBLIC, anon, authenticated, service_role");
-    expect(migration).toMatch(/GRANT EXECUTE ON FUNCTION[\s\S]+admin_get_marketing_overview[\s\S]+TO authenticated;/);
+    expect(migration).toMatch(
+      /GRANT EXECUTE ON FUNCTION[\s\S]+service_execute_marketing_admin_operation\(text, text, text, jsonb\)[\s\S]+TO service_role;/,
+    );
+    expect(migration).not.toMatch(
+      /GRANT EXECUTE ON FUNCTION[\s\S]+admin_get_marketing_overview[\s\S]+TO authenticated;/,
+    );
     expect(migration).toMatch(/GRANT EXECUTE ON FUNCTION[\s\S]+claim_due_marketing_items[\s\S]+TO service_role;/);
   });
 });

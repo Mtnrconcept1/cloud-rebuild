@@ -47,11 +47,11 @@ export default function MarketingWorkspace() {
       case "campaigns":
         return <MarketingCampaignsView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} savePending={operations.pendingAction === "save-campaign"} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onSave={operations.saveCampaign} onApprove={operations.approveCampaign} onRecommendChannels={operations.recommendChannels} />;
       case "audiences":
-        return <MarketingAudiencesView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onNavigate={setView} onSyncSources={operations.syncSources} />;
+        return <MarketingAudiencesView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onNavigate={setView} onSyncSources={operations.syncSources} onLoadContactsPage={operations.loadContactsPage} contactsRevision={operations.contactsRevision} onQualifyContact={operations.qualifyRestaurantContact} onSuppressContact={operations.suppressContact} />;
       case "automations":
         return <MarketingAutomationsView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onSave={operations.saveAutomation} />;
       case "activity":
-        return <MarketingActivityView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onRetry={operations.retryDelivery} onCompleteManual={operations.completeManualDelivery} />;
+        return <MarketingActivityView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onLoadDeliveriesPage={operations.loadDeliveriesPage} deliveriesRevision={operations.deliveriesRevision} onRetry={operations.retryDelivery} onRevealManualTarget={operations.revealManualTarget} onCompleteManual={operations.completeManualDelivery} />;
       case "results":
         return <MarketingResultsView snapshot={operations.snapshot} filters={filters} onFiltersChange={updateFilters} />;
       case "integrations":

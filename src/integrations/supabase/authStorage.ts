@@ -15,6 +15,7 @@ const SHARED_AUTH_COOKIE_DOMAIN = ".thetok.ch";
 const SHARED_AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 const SHARED_AUTH_COOKIE_CHUNK_SIZE = 3_000;
 const SHARED_AUTH_COOKIE_MAX_CHUNKS = 8;
+const MARKETING_AUTH_HOST = "marketing.thetok.ch";
 
 let secureStorageReady: Promise<void> | null = null;
 
@@ -33,6 +34,11 @@ function canUseSharedAuthCookies() {
   if (typeof window === "undefined") return false;
   const hostname = window.location.hostname.toLowerCase().replace(/\.$/, "");
   return hostname === "thetok.ch" || hostname.endsWith(".thetok.ch");
+}
+
+function mustIsolateMarketingSession() {
+  if (typeof window === "undefined") return false;
+  return window.location.hostname.toLowerCase().replace(/\.$/, "") === MARKETING_AUTH_HOST;
 }
 
 function sharedCookieBaseName(key: string) {
@@ -154,6 +160,26 @@ const webAuthStorage: AuthStorage = {
   },
 };
 
+// The marketing console never persists a Supabase bearer token in browser
+// storage. Its only credential is an opaque, host-only, HttpOnly BFF cookie.
+// Keeping this adapter fail-closed also prevents a future generic AuthProvider
+// mount from silently reintroducing a JavaScript-readable admin session.
+const isolatedMarketingAuthStorage: AuthStorage = {
+  getItem(key) {
+    localStorage.removeItem(key);
+    localStorage.removeItem(`tok_marketing_auth_${key}`);
+    return null;
+  },
+  setItem(key, _value) {
+    localStorage.removeItem(key);
+    localStorage.removeItem(`tok_marketing_auth_${key}`);
+  },
+  removeItem(key) {
+    localStorage.removeItem(key);
+    localStorage.removeItem(`tok_marketing_auth_${key}`);
+  },
+};
+
 const nativeAuthStorage: AuthStorage = {
   async getItem(key) {
     await ensureSecureStorageReady();
@@ -188,4 +214,6 @@ const nativeAuthStorage: AuthStorage = {
 
 export const authStorage: AuthStorage = isNative()
   ? nativeAuthStorage
-  : webAuthStorage;
+  : mustIsolateMarketingSession()
+    ? isolatedMarketingAuthStorage
+    : webAuthStorage;

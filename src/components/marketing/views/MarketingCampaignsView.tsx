@@ -42,8 +42,8 @@ const PAGE_SIZE = 8;
 const CANTONS = ["CH", "GE", "VD", "VS", "FR", "NE", "JU", "BE", "ZH", "BS", "LU", "AG", "SG", "TI"];
 const CHANNEL_PRIORITY: Record<MarketingAudienceKind, MarketingChannelId[]> = {
   client: ["in_app", "push", "email", "tok_news"],
-  restaurant: ["manual_call", "manual_visit", "manual_email", "tok_news"],
-  mixed: ["in_app", "manual_call", "email", "manual_visit", "manual_email", "tok_news"],
+  restaurant: ["manual_call", "manual_email", "tok_news"],
+  mixed: ["in_app", "manual_call", "email", "manual_email", "tok_news"],
 };
 
 type WizardState = {

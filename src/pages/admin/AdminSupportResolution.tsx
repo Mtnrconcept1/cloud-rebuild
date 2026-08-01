@@ -5,10 +5,12 @@ import {
   Bot,
   CheckCircle2,
   ClipboardCheck,
+  ExternalLink,
   Loader2,
   RefreshCcw,
   ShieldAlert,
   UserCheck,
+  Wrench,
   XCircle,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
@@ -23,8 +25,10 @@ import {
   executeSupportResolutionAction,
   listSupportResolutionWorkspace,
   rejectSupportResolutionAction,
+  type OpsIncidentSummary,
   type SupportIncidentSummary,
   type SupportResolutionAction,
+  type SupportOpsIncidentLink,
 } from "@/lib/tokIntelligence";
 
 function formatDate(value: string | null | undefined) {
@@ -106,12 +110,25 @@ export default function AdminSupportResolution() {
   );
   const latestRun = selectedRuns[0] || null;
   const selectedActions = useMemo(
-    () =>
-      (workspaceQuery.data?.actions || []).filter(
-        (action) => action.run_id === latestRun?.id,
-      ),
-    [workspaceQuery.data?.actions, latestRun?.id],
+  () =>
+    (workspaceQuery.data?.actions || []).filter(
+      (action) => action.run_id === latestRun?.id,
+    ),
+  [workspaceQuery.data?.actions, latestRun?.id],
+);
+const selectedLinks = useMemo<SupportOpsIncidentLink[]>(
+  () =>
+    (workspaceQuery.data?.links || []).filter(
+      (link) => link.support_incident_id === selectedIncident?.id,
+    ),
+  [workspaceQuery.data?.links, selectedIncident?.id],
+);
+const linkedOpsIncidents = useMemo<OpsIncidentSummary[]>(() => {
+  const ids = new Set(selectedLinks.map((link) => link.ops_incident_id));
+  return (workspaceQuery.data?.ops_incidents || []).filter((incident) =>
+    ids.has(incident.id)
   );
+}, [workspaceQuery.data?.ops_incidents, selectedLinks]);
 
   const refresh = async () => {
     await queryClient.invalidateQueries({
@@ -346,10 +363,57 @@ export default function AdminSupportResolution() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Nouveau diagnostic</CardTitle>
-                </CardHeader>
+              {linkedOpsIncidents.length ? (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wrench className="h-5 w-5" />
+            Incident technique lié
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {linkedOpsIncidents.map((incident) => (
+            <div key={incident.id} className="rounded-2xl border p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold">{incident.title}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Badge variant="outline">{incident.status}</Badge>
+                    <Badge variant="secondary">
+                      {incident.repairability || "unknown"}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href={`/admin/guardian?incident=${encodeURIComponent(incident.id)}`}
+                    className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted"
+                  >
+                    Ouvrir dans Guardian
+                  </a>
+                  {incident.github_pr_url ? (
+                    <a
+                      href={incident.github_pr_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted"
+                    >
+                      PR #{incident.github_pr_number || ""}
+                      <ExternalLink className="ml-1 h-4 w-4" />
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    ) : null}
+
+    <Card>
+          <CardHeader>
+            <CardTitle>Nouveau diagnostic</CardTitle>
+          </CardHeader>
                 <CardContent className="space-y-4">
                   <Textarea
                     value={analysisPrompt}

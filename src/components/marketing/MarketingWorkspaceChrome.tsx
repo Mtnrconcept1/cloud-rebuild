@@ -10,6 +10,7 @@ import {
   Gauge,
   Link2,
   ListChecks,
+  LogOut,
   Menu,
   Megaphone,
   Play,
@@ -18,7 +19,6 @@ import {
   Users,
 } from "lucide-react";
 
-import SignOutButton from "@/components/auth/SignOutButton";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +40,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { getAdminNavigationHref } from "@/lib/adminDomains";
 import { cn } from "@/lib/utils";
+import { useMarketingSession } from "@/marketing/MarketingSessionContext";
 import type { MarketingSnapshot, MarketingView } from "@/marketing/types";
 
 const NAV_ITEMS: Array<{
@@ -125,6 +126,7 @@ export default function MarketingWorkspaceChrome({
   onTogglePause: (paused: boolean, reason: string) => Promise<unknown>;
   children: ReactNode;
 }) {
+  const { logout, submitting: sessionPending } = useMarketingSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
   const [pauseReason, setPauseReason] = useState("");
@@ -226,7 +228,16 @@ export default function MarketingWorkspaceChrome({
               <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
             </Button>
             <ThemeToggleButton className="h-10 w-10" />
-            <SignOutButton iconOnly />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => void logout()}
+              disabled={sessionPending}
+              aria-label="Se déconnecter du centre marketing"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+            </Button>
             <Button
               type="button"
               variant={snapshot.overview.globalPaused ? "outline" : "destructive"}

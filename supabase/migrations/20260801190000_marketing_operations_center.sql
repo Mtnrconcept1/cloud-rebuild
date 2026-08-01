@@ -4,6 +4,61 @@
 
 BEGIN;
 
+-- Marketing administration never trusts the browser Supabase session. The BFF
+-- sets this transaction-local actor only after validating an opaque, host-only
+-- web session. Outside that context the helper falls back to auth.uid() for
+-- service/worker compatibility, while marketing_require_admin() still fails
+-- closed unless the BFF session context is present.
+CREATE OR REPLACE FUNCTION public.marketing_actor_user_id()
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SET search_path = ''
+AS $$
+  SELECT COALESCE(
+    NULLIF(current_setting('app.marketing_actor_user_id', true), '')::uuid,
+    auth.uid()
+  );
+$$;
+
+-- A telephone number is a durable suppression and frequency-cap identity.
+-- Accept the three Swiss dialing forms used by operators, but persist a
+-- generated E.164 value so formatting can never create a second identity.
+CREATE OR REPLACE FUNCTION public.marketing_normalize_swiss_phone(p_phone text)
+RETURNS text
+LANGUAGE plpgsql
+IMMUTABLE
+SET search_path = ''
+AS $$
+DECLARE
+  v_compact text;
+  v_national text;
+BEGIN
+  IF p_phone IS NULL OR NULLIF(btrim(p_phone), '') IS NULL THEN
+    RETURN NULL;
+  END IF;
+  IF char_length(p_phone) > 64
+     OR regexp_replace(p_phone, '[-0-9+ ()./]', '', 'g') <> '' THEN
+    RAISE EXCEPTION 'Invalid Swiss contact phone'
+      USING ERRCODE = '22023';
+  END IF;
+
+  v_compact := regexp_replace(p_phone, '[- ()./]', '', 'g');
+  IF v_compact ~ '^\+41[2-9][0-9]{8}$' THEN
+    v_national := substring(v_compact FROM 4);
+  ELSIF v_compact ~ '^0041[2-9][0-9]{8}$' THEN
+    v_national := substring(v_compact FROM 5);
+  ELSIF v_compact ~ '^0[2-9][0-9]{8}$' THEN
+    v_national := substring(v_compact FROM 2);
+  ELSE
+    RAISE EXCEPTION 'Invalid Swiss contact phone'
+      USING ERRCODE = '22023';
+  END IF;
+
+  RETURN '+41' || v_national;
+END;
+$$;
+
 CREATE TABLE IF NOT EXISTS public.marketing_campaigns (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL CHECK (char_length(btrim(name)) BETWEEN 1 AND 160),
@@ -22,7 +77,7 @@ CREATE TABLE IF NOT EXISTS public.marketing_campaigns (
   requires_approval boolean NOT NULL DEFAULT true CHECK (requires_approval IS TRUE),
   approved_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   approved_at timestamptz,
-  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL DEFAULT auth.uid(),
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL DEFAULT public.marketing_actor_user_id(),
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(metadata) = 'object'),
   version integer NOT NULL DEFAULT 1 CHECK (version > 0),
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -49,7 +104,7 @@ CREATE TABLE IF NOT EXISTS public.marketing_integrations (
   configured_at timestamptz,
   last_checked_at timestamptz,
   last_error text,
-  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL DEFAULT auth.uid(),
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL DEFAULT public.marketing_actor_user_id(),
   version integer NOT NULL DEFAULT 1 CHECK (version > 0),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
@@ -75,7 +130,7 @@ CREATE TABLE IF NOT EXISTS public.marketing_automations (
   last_run_at timestamptz,
   next_run_at timestamptz,
   last_error text,
-  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL DEFAULT auth.uid(),
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL DEFAULT public.marketing_actor_user_id(),
   version integer NOT NULL DEFAULT 1 CHECK (version > 0),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
@@ -117,7 +172,7 @@ CREATE TABLE IF NOT EXISTS public.marketing_calendar_items (
   lease_expires_at timestamptz,
   last_error text,
   result_summary jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(result_summary) = 'object'),
-  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL DEFAULT auth.uid(),
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL DEFAULT public.marketing_actor_user_id(),
   version integer NOT NULL DEFAULT 1 CHECK (version > 0),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -140,6 +195,7 @@ CREATE TABLE IF NOT EXISTS public.marketing_contacts (
   email text,
   email_normalized text GENERATED ALWAYS AS (NULLIF(lower(btrim(email)), '')) STORED,
   phone text,
+  phone_normalized text GENERATED ALWAYS AS (public.marketing_normalize_swiss_phone(phone)) STORED,
   target_fingerprint text,
   locale text NOT NULL DEFAULT 'fr-CH',
   canton text,
@@ -160,13 +216,13 @@ CREATE TABLE IF NOT EXISTS public.marketing_contacts (
   last_contact_at timestamptz,
   next_action_at timestamptz,
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(metadata) = 'object'),
-  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL DEFAULT auth.uid(),
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL DEFAULT public.marketing_actor_user_id(),
   version integer NOT NULL DEFAULT 1 CHECK (version > 0),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT marketing_contact_identifier_present CHECK (
     user_id IS NOT NULL OR source_objectid IS NOT NULL OR restaurant_lead_id IS NOT NULL
-    OR email_normalized IS NOT NULL OR NULLIF(btrim(phone), '') IS NOT NULL
+    OR email_normalized IS NOT NULL OR phone_normalized IS NOT NULL
   ),
   CONSTRAINT marketing_contact_consent_evidence CHECK (
     lawful_basis <> 'consent' OR (consent_at IS NOT NULL AND NULLIF(btrim(consent_source), '') IS NOT NULL)
@@ -233,16 +289,127 @@ CREATE TABLE IF NOT EXISTS public.marketing_events (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- Immutable, typed proof of every lawful-basis grant, reaffirmation or
+-- revocation. Contact metadata remains useful operational context, but is no
+-- longer the authoritative legal record and may be safely redacted in the
+-- generic audit log.
+CREATE TABLE IF NOT EXISTS public.marketing_lawful_basis_evidence (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  contact_id uuid NOT NULL REFERENCES public.marketing_contacts(id) ON DELETE RESTRICT,
+  event_type text NOT NULL CHECK (event_type IN (
+    'granted', 'changed', 'reaffirmed', 'revoked', 'opposed'
+  )),
+  lawful_basis_before text NOT NULL CHECK (lawful_basis_before IN (
+    'none', 'consent', 'existing_customer', 'legitimate_interest'
+  )),
+  lawful_basis_after text NOT NULL CHECK (lawful_basis_after IN (
+    'none', 'consent', 'existing_customer', 'legitimate_interest'
+  )),
+  evidence_source text NOT NULL CHECK (char_length(btrim(evidence_source)) BETWEEN 3 AND 200),
+  evidence_note text NOT NULL CHECK (char_length(btrim(evidence_note)) BETWEEN 10 AND 1000),
+  evidence_recorded_at timestamptz NOT NULL,
+  evidence_quality text NOT NULL DEFAULT 'verified' CHECK (evidence_quality IN (
+    'verified', 'system_event', 'migration_snapshot'
+  )),
+  source_system text NOT NULL CHECK (char_length(btrim(source_system)) BETWEEN 2 AND 80),
+  source_reference text,
+  actor_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  evidence_fingerprint text NOT NULL CHECK (evidence_fingerprint ~ '^[0-9a-f]{64}$'),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT marketing_lawful_basis_evidence_recorded_at_valid CHECK (
+    evidence_recorded_at <= created_at + interval '5 minutes'
+  ),
+  CONSTRAINT marketing_lawful_basis_evidence_source_reference_size CHECK (
+    source_reference IS NULL OR char_length(source_reference) BETWEEN 1 AND 200
+  ),
+  UNIQUE (contact_id, evidence_fingerprint)
+);
+
+-- Opaque BFF authentication state. Only SECURITY DEFINER service-role RPCs may
+-- touch these tables; neither PostgREST authenticated users nor browser code
+-- receive direct privileges. Hashes are SHA-256 hex values computed by the BFF.
+CREATE TABLE IF NOT EXISTS public.marketing_admin_auth_challenges (
+  pending_sid_hash text PRIMARY KEY CHECK (pending_sid_hash ~ '^[0-9a-f]{64}$'),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  access_token_ciphertext bytea NOT NULL,
+  refresh_token_ciphertext bytea NOT NULL,
+  factor_id uuid NOT NULL,
+  challenge_id uuid NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  last_used_at timestamptz,
+  expires_at timestamptz NOT NULL DEFAULT (now() + interval '10 minutes'),
+  CONSTRAINT marketing_admin_auth_challenge_lifetime CHECK (
+    expires_at > created_at AND expires_at <= created_at + interval '10 minutes'
+  )
+);
+
+CREATE TABLE IF NOT EXISTS public.marketing_admin_web_sessions (
+  sid_hash text PRIMARY KEY CHECK (sid_hash ~ '^[0-9a-f]{64}$'),
+  csrf_hash text NOT NULL CHECK (csrf_hash ~ '^[0-9a-f]{64}$'),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  mfa_verified_at timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  last_seen_at timestamptz NOT NULL DEFAULT now(),
+  expires_at timestamptz NOT NULL,
+  revoked_at timestamptz,
+  revoke_reason text,
+  CONSTRAINT marketing_admin_web_session_lifetime CHECK (
+    expires_at > created_at AND expires_at <= created_at + interval '4 hours'
+  ),
+  CONSTRAINT marketing_admin_web_session_mfa_time CHECK (
+    mfa_verified_at >= created_at - interval '1 minute'
+    AND mfa_verified_at <= created_at + interval '1 minute'
+  ),
+  CONSTRAINT marketing_admin_web_session_revocation CHECK (
+    revoked_at IS NULL OR NULLIF(btrim(revoke_reason), '') IS NOT NULL
+  )
+);
+
+CREATE TABLE IF NOT EXISTS public.marketing_admin_login_limits (
+  key_hash text PRIMARY KEY CHECK (key_hash ~ '^[0-9a-f]{64}$'),
+  window_started_at timestamptz NOT NULL DEFAULT now(),
+  attempt_count integer NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
+  blocked_until timestamptz,
+  last_attempt_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS marketing_admin_auth_challenges_user_expiry_idx
+  ON public.marketing_admin_auth_challenges(user_id, expires_at);
+CREATE INDEX IF NOT EXISTS marketing_admin_auth_challenges_expiry_idx
+  ON public.marketing_admin_auth_challenges(expires_at);
+CREATE INDEX IF NOT EXISTS marketing_admin_web_sessions_user_expiry_idx
+  ON public.marketing_admin_web_sessions(user_id, expires_at)
+  WHERE revoked_at IS NULL;
+CREATE INDEX IF NOT EXISTS marketing_admin_web_sessions_expiry_idx
+  ON public.marketing_admin_web_sessions(expires_at)
+  WHERE revoked_at IS NULL;
+CREATE INDEX IF NOT EXISTS marketing_admin_login_limits_cleanup_idx
+  ON public.marketing_admin_login_limits(last_attempt_at);
+
 CREATE UNIQUE INDEX IF NOT EXISTS marketing_contacts_user_unique
   ON public.marketing_contacts(user_id) WHERE user_id IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS marketing_contacts_email_unique
   ON public.marketing_contacts(email_normalized) WHERE email_normalized IS NOT NULL;
+-- Deliberately includes opted-out contacts: changing formatting or suppressing
+-- a row never frees its telephone identity for a new marketing contact.
+CREATE UNIQUE INDEX IF NOT EXISTS marketing_contacts_phone_unique
+  ON public.marketing_contacts(phone_normalized) WHERE phone_normalized IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS marketing_contacts_source_unique
   ON public.marketing_contacts(source_system, source_reference) WHERE source_reference IS NOT NULL;
 CREATE INDEX IF NOT EXISTS marketing_contacts_eligibility_idx
   ON public.marketing_contacts(lawful_basis, canton, contact_type) WHERE opted_out_at IS NULL;
 CREATE INDEX IF NOT EXISTS marketing_contacts_next_action_idx
   ON public.marketing_contacts(next_action_at, id) WHERE next_action_at IS NOT NULL AND opted_out_at IS NULL;
+CREATE INDEX IF NOT EXISTS marketing_contacts_list_idx
+  ON public.marketing_contacts(updated_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS marketing_contacts_status_list_idx
+  ON public.marketing_contacts(lifecycle_status, updated_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS marketing_contacts_display_name_prefix_idx
+  ON public.marketing_contacts(lower(display_name) text_pattern_ops);
+CREATE INDEX IF NOT EXISTS marketing_contacts_city_prefix_idx
+  ON public.marketing_contacts(lower(city) text_pattern_ops) WHERE city IS NOT NULL;
+CREATE INDEX IF NOT EXISTS marketing_contacts_category_prefix_idx
+  ON public.marketing_contacts(lower(category) text_pattern_ops) WHERE category IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS marketing_calendar_campaign_schedule_idx
   ON public.marketing_calendar_items(campaign_id, scheduled_at DESC, id);
@@ -268,6 +435,16 @@ CREATE INDEX IF NOT EXISTS marketing_deliveries_due_idx
   WHERE status IN ('queued', 'retrying');
 CREATE INDEX IF NOT EXISTS marketing_deliveries_item_status_idx
   ON public.marketing_deliveries(item_id, status, created_at DESC, id);
+CREATE INDEX IF NOT EXISTS marketing_deliveries_list_idx
+  ON public.marketing_deliveries(created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS marketing_deliveries_status_channel_list_idx
+  ON public.marketing_deliveries(status, channel, created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS marketing_deliveries_contact_status_idx
+  ON public.marketing_deliveries(contact_id, status) WHERE contact_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS marketing_deliveries_provider_prefix_idx
+  ON public.marketing_deliveries(lower(provider) text_pattern_ops);
+CREATE INDEX IF NOT EXISTS marketing_deliveries_error_code_prefix_idx
+  ON public.marketing_deliveries(lower(error_code) text_pattern_ops) WHERE error_code IS NOT NULL;
 
 CREATE UNIQUE INDEX IF NOT EXISTS marketing_events_provider_unique
   ON public.marketing_events(provider, provider_event_id)
@@ -276,6 +453,20 @@ CREATE INDEX IF NOT EXISTS marketing_events_campaign_time_idx
   ON public.marketing_events(campaign_id, occurred_at DESC, id);
 CREATE INDEX IF NOT EXISTS marketing_events_delivery_time_idx
   ON public.marketing_events(delivery_id, occurred_at DESC, id);
+
+CREATE INDEX IF NOT EXISTS marketing_lawful_basis_evidence_contact_time_idx
+  ON public.marketing_lawful_basis_evidence(contact_id, evidence_recorded_at DESC, id DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS marketing_lawful_basis_evidence_source_unique
+  ON public.marketing_lawful_basis_evidence(contact_id, source_system, source_reference, event_type)
+  WHERE source_reference IS NOT NULL;
+
+-- Cursor and latest-per-user indexes keep each BFF synchronization batch
+-- bounded independently of the total source-table size.
+CREATE INDEX IF NOT EXISTS commercial_prospect_catalog_marketing_cursor_idx
+  ON public.commercial_prospect_catalog(source_objectid);
+CREATE INDEX IF NOT EXISTS consent_receipts_marketing_user_latest_idx
+  ON public.consent_receipts(user_id, recorded_at DESC, created_at DESC, id DESC)
+  WHERE user_id IS NOT NULL;
 
 -- Existing notification workers gain database-level idempotence and efficient claims.
 CREATE UNIQUE INDEX IF NOT EXISTS notification_deliveries_notification_channel_unique
@@ -287,57 +478,10 @@ CREATE INDEX IF NOT EXISTS notification_campaigns_due_idx
   ON public.notification_campaigns(scheduled_at, id)
   WHERE status = 'scheduled';
 
--- Non-PII bootstrap from the existing commercial catalog. These records are
--- market entities only: no contactability or lawful basis is inferred.
-INSERT INTO public.marketing_contacts (
-  contact_type, source_objectid, source_system, source_reference, display_name,
-  target_fingerprint, lawful_basis, lifecycle_status, metadata
-)
-SELECT
-  'restaurant_prospect', c.source_objectid, 'commercial_prospect_catalog', c.source_objectid::text,
-  'Restaurant #' || c.source_objectid::text,
-  encode(extensions.digest('commercial_prospect_catalog:' || c.source_objectid::text, 'sha256'), 'hex'),
-  'none', 'new', jsonb_build_object('dataset_version', c.dataset_version)
-FROM public.commercial_prospect_catalog c
-ON CONFLICT (source_system, source_reference) WHERE source_reference IS NOT NULL DO NOTHING;
-
-WITH latest_receipt AS (
-  SELECT DISTINCT ON (r.user_id)
-    r.id, r.user_id, r.consent_version, r.marketing, r.source, r.recorded_at
-  FROM public.consent_receipts r
-  WHERE r.user_id IS NOT NULL
-  ORDER BY r.user_id, r.recorded_at DESC, r.created_at DESC, r.id DESC
-)
-INSERT INTO public.marketing_contacts (
-  contact_type, user_id, source_system, source_reference, display_name,
-  target_fingerprint, lawful_basis, lifecycle_status, consent_source, consent_at,
-  opted_out_at, suppression_reason, metadata
-)
-SELECT
-  'registered_user', r.user_id, 'consent_receipts', r.id::text, 'Client TheTOK',
-  encode(extensions.digest('consent_receipts:' || r.user_id::text, 'sha256'), 'hex'),
-  CASE WHEN r.marketing THEN 'consent' ELSE 'none' END,
-  CASE WHEN r.marketing THEN 'new' ELSE 'opted_out' END,
-  CASE WHEN r.marketing THEN 'consent_receipts:' || r.source ELSE NULL END,
-  CASE WHEN r.marketing THEN r.recorded_at ELSE NULL END,
-  CASE WHEN r.marketing THEN NULL ELSE r.recorded_at END,
-  CASE WHEN r.marketing THEN NULL ELSE 'consent_receipt_opt_out' END,
-  jsonb_build_object('receipt_id', r.id, 'consent_version', r.consent_version)
-FROM latest_receipt r
-ON CONFLICT (user_id) WHERE user_id IS NOT NULL DO NOTHING;
-
-CREATE OR REPLACE FUNCTION public.marketing_require_admin()
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-BEGIN
-  IF COALESCE(public.auth_is_admin(), false) IS NOT TRUE THEN
-    RAISE EXCEPTION 'Administrator role required' USING ERRCODE = '42501';
-  END IF;
-END;
-$$;
+-- Source data is intentionally not copied during deployment. Prospect and
+-- consent imports run only through the bounded, resumable BFF operations
+-- defined below, so a large production catalogue cannot make this migration
+-- unbounded or bypass per-batch auditing.
 
 CREATE OR REPLACE FUNCTION public.marketing_require_service_role()
 RETURNS void
@@ -352,6 +496,455 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.marketing_bff_encryption_secret()
+RETURNS text
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_secret text;
+BEGIN
+  SELECT NULLIF(btrim(s.decrypted_secret), '')
+    INTO v_secret
+  FROM vault.decrypted_secrets s
+  WHERE s.name = 'marketing_bff_encryption_secret'
+  ORDER BY s.updated_at DESC
+  LIMIT 1;
+
+  IF v_secret IS NULL OR octet_length(v_secret) < 32 THEN
+    RAISE EXCEPTION 'Marketing BFF encryption secret is not configured'
+      USING ERRCODE = '55000';
+  END IF;
+  RETURN v_secret;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.service_store_marketing_auth_challenge(
+  p_pending_sid_hash text,
+  p_user_id uuid,
+  p_access_token text,
+  p_refresh_token text,
+  p_factor_id uuid,
+  p_challenge_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_now timestamptz := clock_timestamp();
+  v_expires_at timestamptz := v_now + interval '10 minutes';
+  v_secret text;
+BEGIN
+  PERFORM public.marketing_require_service_role();
+  IF COALESCE(p_pending_sid_hash ~ '^[0-9a-f]{64}$', false) IS NOT TRUE
+     OR p_user_id IS NULL OR p_factor_id IS NULL OR p_challenge_id IS NULL
+     OR NULLIF(p_access_token, '') IS NULL OR NULLIF(p_refresh_token, '') IS NULL THEN
+    RAISE EXCEPTION 'Invalid marketing authentication challenge'
+      USING ERRCODE = '22023';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM auth.users u WHERE u.id = p_user_id) THEN
+    RAISE EXCEPTION 'Marketing authentication user not found'
+      USING ERRCODE = 'P0002';
+  END IF;
+
+  v_secret := public.marketing_bff_encryption_secret();
+  DELETE FROM public.marketing_admin_auth_challenges c
+  WHERE c.expires_at <= v_now;
+
+  INSERT INTO public.marketing_admin_auth_challenges (
+    pending_sid_hash, user_id, access_token_ciphertext,
+    refresh_token_ciphertext, factor_id, challenge_id,
+    created_at, expires_at
+  ) VALUES (
+    p_pending_sid_hash, p_user_id,
+    extensions.pgp_sym_encrypt(
+      p_access_token,
+      v_secret,
+      'cipher-algo=aes256, compress-algo=0'
+    ),
+    extensions.pgp_sym_encrypt(
+      p_refresh_token,
+      v_secret,
+      'cipher-algo=aes256, compress-algo=0'
+    ),
+    p_factor_id, p_challenge_id, v_now, v_expires_at
+  )
+  ON CONFLICT (pending_sid_hash) DO UPDATE SET
+    user_id = EXCLUDED.user_id,
+    access_token_ciphertext = EXCLUDED.access_token_ciphertext,
+    refresh_token_ciphertext = EXCLUDED.refresh_token_ciphertext,
+    factor_id = EXCLUDED.factor_id,
+    challenge_id = EXCLUDED.challenge_id,
+    created_at = v_now,
+    last_used_at = NULL,
+    expires_at = v_expires_at;
+
+  RETURN jsonb_build_object(
+    'user_id', p_user_id,
+    'factor_id', p_factor_id,
+    'challenge_id', p_challenge_id,
+    'expires_at', v_expires_at
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.service_get_marketing_auth_challenge(
+  p_pending_sid_hash text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_challenge public.marketing_admin_auth_challenges%ROWTYPE;
+  v_secret text;
+BEGIN
+  PERFORM public.marketing_require_service_role();
+  IF COALESCE(p_pending_sid_hash ~ '^[0-9a-f]{64}$', false) IS NOT TRUE THEN
+    RETURN NULL;
+  END IF;
+
+  SELECT * INTO v_challenge
+  FROM public.marketing_admin_auth_challenges c
+  WHERE c.pending_sid_hash = p_pending_sid_hash
+  FOR UPDATE;
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  IF v_challenge.expires_at <= clock_timestamp() THEN
+    DELETE FROM public.marketing_admin_auth_challenges c
+    WHERE c.pending_sid_hash = p_pending_sid_hash;
+    RETURN NULL;
+  END IF;
+
+  v_secret := public.marketing_bff_encryption_secret();
+  UPDATE public.marketing_admin_auth_challenges c
+  SET last_used_at = clock_timestamp()
+  WHERE c.pending_sid_hash = p_pending_sid_hash;
+
+  RETURN jsonb_build_object(
+    'user_id', v_challenge.user_id,
+    'access_token', extensions.pgp_sym_decrypt(v_challenge.access_token_ciphertext, v_secret),
+    'refresh_token', extensions.pgp_sym_decrypt(v_challenge.refresh_token_ciphertext, v_secret),
+    'factor_id', v_challenge.factor_id,
+    'challenge_id', v_challenge.challenge_id,
+    'expires_at', v_challenge.expires_at
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.service_finalize_marketing_web_session(
+  p_pending_sid_hash text,
+  p_sid_hash text,
+  p_csrf_hash text,
+  p_expires_at timestamptz
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_challenge public.marketing_admin_auth_challenges%ROWTYPE;
+  v_now timestamptz := clock_timestamp();
+  v_email text;
+BEGIN
+  PERFORM public.marketing_require_service_role();
+  IF COALESCE(p_pending_sid_hash ~ '^[0-9a-f]{64}$', false) IS NOT TRUE
+     OR COALESCE(p_sid_hash ~ '^[0-9a-f]{64}$', false) IS NOT TRUE
+     OR COALESCE(p_csrf_hash ~ '^[0-9a-f]{64}$', false) IS NOT TRUE
+     OR p_expires_at IS NULL OR p_expires_at <= v_now
+     OR p_expires_at > v_now + interval '4 hours' THEN
+    RAISE EXCEPTION 'Invalid marketing web session parameters'
+      USING ERRCODE = '22023';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.feature_flags f
+    WHERE f.name = 'admin-marketing-operations'
+      AND f.is_active IS TRUE
+  ) THEN
+    RAISE EXCEPTION 'Marketing operations feature is disabled'
+      USING ERRCODE = '42501';
+  END IF;
+
+  DELETE FROM public.marketing_admin_auth_challenges c
+  WHERE c.pending_sid_hash = p_pending_sid_hash
+    AND c.expires_at > v_now
+  RETURNING * INTO v_challenge;
+  IF NOT FOUND THEN
+    DELETE FROM public.marketing_admin_auth_challenges c
+    WHERE c.pending_sid_hash = p_pending_sid_hash;
+    RAISE EXCEPTION 'Marketing authentication challenge not found or expired'
+      USING ERRCODE = 'P0002';
+  END IF;
+
+  -- The trusted BFF calls this only after a fresh Supabase MFA verification.
+  -- Role membership is nevertheless read again here and on every operation.
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_roles ur
+    WHERE ur.user_id = v_challenge.user_id AND ur.role::text = 'admin'
+  ) THEN
+    RAISE EXCEPTION 'Administrator role required'
+      USING ERRCODE = '42501';
+  END IF;
+
+  INSERT INTO public.marketing_admin_web_sessions (
+    sid_hash, csrf_hash, user_id, mfa_verified_at,
+    created_at, last_seen_at, expires_at
+  ) VALUES (
+    p_sid_hash, p_csrf_hash, v_challenge.user_id, v_now,
+    v_now, v_now, p_expires_at
+  );
+
+  SELECT u.email INTO v_email FROM auth.users u WHERE u.id = v_challenge.user_id;
+  RETURN jsonb_build_object(
+    'user_id', v_challenge.user_id,
+    'email', v_email,
+    'expires_at', p_expires_at
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.service_get_marketing_web_session(
+  p_sid_hash text,
+  p_csrf_hash text DEFAULT NULL,
+  p_touch boolean DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_session public.marketing_admin_web_sessions%ROWTYPE;
+  v_email text;
+  v_now timestamptz := clock_timestamp();
+BEGIN
+  PERFORM public.marketing_require_service_role();
+  IF COALESCE(p_sid_hash ~ '^[0-9a-f]{64}$', false) IS NOT TRUE
+     OR (p_csrf_hash IS NOT NULL AND COALESCE(p_csrf_hash ~ '^[0-9a-f]{64}$', false) IS NOT TRUE) THEN
+    RETURN NULL;
+  END IF;
+
+  SELECT * INTO v_session
+  FROM public.marketing_admin_web_sessions s
+  WHERE s.sid_hash = p_sid_hash;
+  IF NOT FOUND THEN RETURN NULL; END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.feature_flags f
+    WHERE f.name = 'admin-marketing-operations'
+      AND f.is_active IS TRUE
+  ) THEN
+    UPDATE public.marketing_admin_web_sessions s
+    SET revoked_at = COALESCE(s.revoked_at, v_now),
+        revoke_reason = COALESCE(s.revoke_reason, 'feature_disabled')
+    WHERE s.sid_hash = p_sid_hash;
+    RETURN NULL;
+  END IF;
+
+  IF v_session.revoked_at IS NOT NULL OR v_session.expires_at <= v_now THEN
+    IF v_session.revoked_at IS NULL THEN
+      UPDATE public.marketing_admin_web_sessions s
+      SET revoked_at = v_now, revoke_reason = 'expired'
+      WHERE s.sid_hash = p_sid_hash;
+    END IF;
+    RETURN NULL;
+  END IF;
+  IF p_csrf_hash IS NOT NULL AND v_session.csrf_hash <> p_csrf_hash THEN
+    RETURN NULL;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_roles ur
+    WHERE ur.user_id = v_session.user_id AND ur.role::text = 'admin'
+  ) THEN
+    UPDATE public.marketing_admin_web_sessions s
+    SET revoked_at = v_now, revoke_reason = 'admin_role_removed'
+    WHERE s.sid_hash = p_sid_hash;
+    RETURN NULL;
+  END IF;
+
+  IF COALESCE(p_touch, false) THEN
+    UPDATE public.marketing_admin_web_sessions s
+    SET last_seen_at = GREATEST(s.last_seen_at, v_now)
+    WHERE s.sid_hash = p_sid_hash
+      AND s.revoked_at IS NULL
+      AND s.expires_at > v_now;
+    v_session.last_seen_at := v_now;
+  END IF;
+  SELECT u.email INTO v_email FROM auth.users u WHERE u.id = v_session.user_id;
+
+  RETURN jsonb_build_object(
+    'user_id', v_session.user_id,
+    'email', v_email,
+    'mfa_verified_at', v_session.mfa_verified_at,
+    'last_seen_at', v_session.last_seen_at,
+    'expires_at', v_session.expires_at
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.service_revoke_marketing_web_session(
+  p_sid_hash text
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_updated integer;
+BEGIN
+  PERFORM public.marketing_require_service_role();
+  IF COALESCE(p_sid_hash ~ '^[0-9a-f]{64}$', false) IS NOT TRUE THEN
+    RETURN false;
+  END IF;
+  UPDATE public.marketing_admin_web_sessions s
+  SET revoked_at = COALESCE(s.revoked_at, clock_timestamp()),
+      revoke_reason = COALESCE(s.revoke_reason, 'logout')
+  WHERE s.sid_hash = p_sid_hash;
+  GET DIAGNOSTICS v_updated = ROW_COUNT;
+  RETURN v_updated = 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.service_consume_marketing_auth_attempt(
+  p_key_hash text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_limit public.marketing_admin_login_limits%ROWTYPE;
+  v_now timestamptz := clock_timestamp();
+  v_retry_after integer;
+  v_max_attempts constant integer := 5;
+  v_window constant interval := interval '15 minutes';
+BEGIN
+  PERFORM public.marketing_require_service_role();
+  IF COALESCE(p_key_hash ~ '^[0-9a-f]{64}$', false) IS NOT TRUE THEN
+    RAISE EXCEPTION 'Invalid marketing authentication limit key'
+      USING ERRCODE = '22023';
+  END IF;
+
+  INSERT INTO public.marketing_admin_login_limits (
+    key_hash, window_started_at, attempt_count, last_attempt_at
+  ) VALUES (p_key_hash, v_now, 0, v_now)
+  ON CONFLICT (key_hash) DO NOTHING;
+
+  SELECT * INTO v_limit
+  FROM public.marketing_admin_login_limits l
+  WHERE l.key_hash = p_key_hash
+  FOR UPDATE;
+
+  IF v_limit.blocked_until IS NOT NULL AND v_limit.blocked_until > v_now THEN
+    v_retry_after := GREATEST(
+      1,
+      ceil(extract(epoch FROM (v_limit.blocked_until - v_now)))::integer
+    );
+    RETURN jsonb_build_object(
+      'allowed', false,
+      'retry_after_seconds', v_retry_after
+    );
+  END IF;
+
+  IF v_limit.window_started_at <= v_now - v_window THEN
+    v_limit.window_started_at := v_now;
+    v_limit.attempt_count := 0;
+    v_limit.blocked_until := NULL;
+  END IF;
+  v_limit.attempt_count := v_limit.attempt_count + 1;
+
+  IF v_limit.attempt_count > v_max_attempts THEN
+    v_limit.blocked_until := v_now + v_window;
+    UPDATE public.marketing_admin_login_limits l
+    SET window_started_at = v_limit.window_started_at,
+        attempt_count = v_limit.attempt_count,
+        blocked_until = v_limit.blocked_until,
+        last_attempt_at = v_now
+    WHERE l.key_hash = p_key_hash;
+    RETURN jsonb_build_object(
+      'allowed', false,
+      'retry_after_seconds', extract(epoch FROM v_window)::integer
+    );
+  END IF;
+
+  UPDATE public.marketing_admin_login_limits l
+  SET window_started_at = v_limit.window_started_at,
+      attempt_count = v_limit.attempt_count,
+      blocked_until = NULL,
+      last_attempt_at = v_now
+  WHERE l.key_hash = p_key_hash;
+  RETURN jsonb_build_object(
+    'allowed', true,
+    'retry_after_seconds', 0,
+    'attempts_remaining', v_max_attempts - v_limit.attempt_count
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.service_clear_marketing_auth_attempt(
+  p_key_hash text
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  PERFORM public.marketing_require_service_role();
+  IF COALESCE(p_key_hash ~ '^[0-9a-f]{64}$', false) IS NOT TRUE THEN
+    RETURN;
+  END IF;
+  DELETE FROM public.marketing_admin_login_limits l WHERE l.key_hash = p_key_hash;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.marketing_require_admin()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_actor_user_id uuid := public.marketing_actor_user_id();
+  v_sid_hash text := NULLIF(current_setting('app.marketing_web_session_sid_hash', true), '');
+BEGIN
+  PERFORM public.marketing_require_service_role();
+  IF v_actor_user_id IS NULL
+     OR COALESCE(v_sid_hash ~ '^[0-9a-f]{64}$', false) IS NOT TRUE
+     OR NOT EXISTS (
+       SELECT 1
+       FROM public.feature_flags f
+       WHERE f.name = 'admin-marketing-operations'
+         AND f.is_active IS TRUE
+     )
+     OR NOT EXISTS (
+       SELECT 1
+       FROM public.marketing_admin_web_sessions s
+       WHERE s.sid_hash = v_sid_hash
+         AND s.user_id = v_actor_user_id
+         AND s.revoked_at IS NULL
+         AND s.expires_at > clock_timestamp()
+     )
+     OR NOT EXISTS (
+       SELECT 1 FROM public.user_roles ur
+       WHERE ur.user_id = v_actor_user_id AND ur.role::text = 'admin'
+     ) THEN
+    RAISE EXCEPTION 'Active marketing BFF administrator session required'
+      USING ERRCODE = '42501';
+  END IF;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.marketing_redact_audit_record(p_record jsonb)
 RETURNS jsonb
 LANGUAGE sql
@@ -359,7 +952,7 @@ IMMUTABLE
 SET search_path = ''
 AS $$
   SELECT COALESCE(p_record, '{}'::jsonb)
-    - 'email' - 'email_normalized' - 'phone' - 'target_fingerprint'
+    - 'email' - 'email_normalized' - 'phone' - 'phone_normalized' - 'target_fingerprint'
     - 'secret_ref' - 'lease_token' - 'provider_message_id' - 'metadata'
     - 'last_error' - 'content' - 'targeting' - 'public_configuration'
     - 'result_summary';
@@ -401,7 +994,7 @@ BEGIN
   INSERT INTO public.audit_log (
     id, user_id, action, entity_type, entity_id, old_data, new_data, created_at
   ) VALUES (
-    gen_random_uuid(), auth.uid(), lower(TG_OP), TG_TABLE_NAME, v_entity_id,
+    gen_random_uuid(), public.marketing_actor_user_id(), lower(TG_OP), TG_TABLE_NAME, v_entity_id,
     CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN public.marketing_redact_audit_record(to_jsonb(OLD)) END,
     CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN public.marketing_redact_audit_record(to_jsonb(NEW)) END,
     now()
@@ -417,6 +1010,188 @@ SET search_path = ''
 AS $$
 BEGIN
   RAISE EXCEPTION 'marketing_events is append-only' USING ERRCODE = '55000';
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.marketing_lawful_basis_evidence_append_only()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  RAISE EXCEPTION 'marketing_lawful_basis_evidence is append-only'
+    USING ERRCODE = '55000';
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.marketing_capture_lawful_basis_evidence()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_context jsonb := '{}'::jsonb;
+  v_context_text text := NULLIF(current_setting('app.marketing_lawful_basis_context', true), '');
+  v_payload jsonb := CASE
+    WHEN jsonb_typeof(NEW.metadata -> 'lawful_basis_evidence') = 'object'
+      THEN NEW.metadata -> 'lawful_basis_evidence'
+    ELSE '{}'::jsonb
+  END;
+  v_old_payload jsonb := '{}'::jsonb;
+  v_before text;
+  v_after text := NEW.lawful_basis;
+  v_event_type text;
+  v_source text;
+  v_note text;
+  v_recorded_at timestamptz;
+  v_quality text;
+  v_source_system text;
+  v_source_reference text;
+  v_fingerprint text;
+  v_evidence_id uuid;
+BEGIN
+  IF v_context_text IS NOT NULL THEN
+    BEGIN
+      v_context := v_context_text::jsonb;
+    EXCEPTION WHEN OTHERS THEN
+      RAISE EXCEPTION 'Invalid lawful-basis evidence context' USING ERRCODE = '22023';
+    END;
+    IF jsonb_typeof(v_context) <> 'object' THEN
+      RAISE EXCEPTION 'Invalid lawful-basis evidence context' USING ERRCODE = '22023';
+    END IF;
+  END IF;
+
+  IF TG_OP = 'INSERT' THEN
+    v_before := 'none';
+    IF NEW.lawful_basis = 'none' AND NEW.opted_out_at IS NULL THEN RETURN NEW; END IF;
+  ELSE
+    v_before := OLD.lawful_basis;
+    v_old_payload := CASE
+      WHEN jsonb_typeof(OLD.metadata -> 'lawful_basis_evidence') = 'object'
+        THEN OLD.metadata -> 'lawful_basis_evidence'
+      ELSE '{}'::jsonb
+    END;
+    IF NEW.lawful_basis IS NOT DISTINCT FROM OLD.lawful_basis
+       AND NEW.consent_source IS NOT DISTINCT FROM OLD.consent_source
+       AND NEW.consent_at IS NOT DISTINCT FROM OLD.consent_at
+       AND NEW.opted_out_at IS NOT DISTINCT FROM OLD.opted_out_at
+       AND (v_payload = '{}'::jsonb OR v_payload IS NOT DISTINCT FROM v_old_payload) THEN
+      RETURN NEW;
+    END IF;
+  END IF;
+
+  IF TG_OP = 'INSERT' THEN
+    v_event_type := CASE WHEN NEW.opted_out_at IS NOT NULL THEN 'opposed' ELSE 'granted' END;
+  ELSE
+    v_event_type := CASE
+      WHEN NEW.opted_out_at IS NOT NULL AND OLD.opted_out_at IS NULL THEN 'opposed'
+      WHEN v_after = 'none' AND v_before <> 'none' THEN 'revoked'
+      WHEN v_before = 'none' AND v_after <> 'none' THEN 'granted'
+      WHEN v_before <> v_after THEN 'changed'
+      ELSE 'reaffirmed'
+    END;
+  END IF;
+
+  IF v_event_type IN ('revoked','opposed') THEN
+    v_source := COALESCE(
+      NULLIF(btrim(v_context ->> 'source'), ''),
+      CASE WHEN NEW.metadata ? 'receipt_id' THEN 'consent_receipts' END,
+      CASE WHEN NEW.suppression_reason LIKE 'provider_%' THEN NEW.suppression_reason END,
+      'marketing_admin_suppression'
+    );
+    v_note := COALESCE(
+      NULLIF(btrim(v_context ->> 'note'), ''),
+      CASE WHEN NULLIF(btrim(NEW.suppression_reason), '') IS NOT NULL THEN
+        'Lawful basis revoked following recorded suppression: ' || left(btrim(NEW.suppression_reason), 900) END,
+      'Lawful basis revoked following a recorded opposition or suppression event.'
+    );
+    v_recorded_at := COALESCE(
+      NULLIF(v_context ->> 'recorded_at', '')::timestamptz,
+      NEW.opted_out_at,
+      clock_timestamp()
+    );
+  ELSE
+    v_source := COALESCE(
+      NULLIF(btrim(v_context ->> 'source'), ''),
+      NULLIF(btrim(v_payload ->> 'source'), ''),
+      NULLIF(btrim(NEW.consent_source), ''),
+      NULLIF(btrim(NEW.source_system), '')
+    );
+    v_note := COALESCE(
+      NULLIF(btrim(v_context ->> 'note'), ''),
+      NULLIF(btrim(v_payload ->> 'note'), ''),
+      CASE WHEN NEW.lawful_basis = 'consent' AND NEW.consent_source IS NOT NULL THEN
+        'Explicit marketing consent receipt synchronized from the authoritative source.' END
+    );
+    v_recorded_at := COALESCE(
+      NULLIF(v_context ->> 'recorded_at', '')::timestamptz,
+      NULLIF(v_payload ->> 'recorded_at', '')::timestamptz,
+      NEW.consent_at,
+      clock_timestamp()
+    );
+  END IF;
+  v_quality := COALESCE(NULLIF(v_context ->> 'quality', ''), 'verified');
+  v_source_system := COALESCE(
+    NULLIF(btrim(v_context ->> 'source_system'), ''),
+    CASE WHEN NEW.metadata ? 'receipt_id' THEN 'consent_receipts' END,
+    CASE WHEN NEW.suppression_reason LIKE 'provider_%' THEN 'provider_event' END,
+    NULLIF(btrim(NEW.source_system), ''),
+    'marketing_admin'
+  );
+  v_source_reference := COALESCE(
+    NULLIF(v_context ->> 'source_reference', ''),
+    NULLIF(NEW.metadata ->> 'receipt_id', '')
+  );
+
+  IF v_source IS NULL OR char_length(v_source) NOT BETWEEN 3 AND 200
+     OR v_note IS NULL OR char_length(v_note) NOT BETWEEN 10 AND 1000
+     OR v_recorded_at IS NULL OR v_recorded_at > clock_timestamp() + interval '5 minutes'
+     OR v_quality NOT IN ('verified','system_event','migration_snapshot')
+     OR char_length(v_source_system) NOT BETWEEN 2 AND 80
+     OR (v_source_reference IS NOT NULL AND char_length(v_source_reference) > 200) THEN
+    RAISE EXCEPTION 'Complete lawful-basis evidence is required before changing contact eligibility'
+      USING ERRCODE = '22023';
+  END IF;
+
+  v_fingerprint := encode(extensions.digest(concat_ws('|',
+    NEW.id::text, v_event_type, v_before, v_after, v_source_system,
+    COALESCE(v_source_reference, ''), v_source, v_note,
+    v_recorded_at::text, v_quality
+  ), 'sha256'), 'hex');
+
+  INSERT INTO public.marketing_lawful_basis_evidence (
+    contact_id, event_type, lawful_basis_before, lawful_basis_after,
+    evidence_source, evidence_note, evidence_recorded_at, evidence_quality,
+    source_system, source_reference, actor_user_id, evidence_fingerprint
+  ) VALUES (
+    NEW.id, v_event_type, v_before, v_after,
+    v_source, v_note, v_recorded_at, v_quality,
+    v_source_system, v_source_reference, public.marketing_actor_user_id(), v_fingerprint
+  )
+  ON CONFLICT DO NOTHING
+  RETURNING id INTO v_evidence_id;
+
+  IF v_evidence_id IS NOT NULL THEN
+    INSERT INTO public.audit_log (
+      id, user_id, action, entity_type, entity_id, old_data, new_data, created_at
+    ) VALUES (
+      gen_random_uuid(), public.marketing_actor_user_id(),
+      'marketing_lawful_basis_evidence_recorded', 'marketing_lawful_basis_evidence',
+      v_evidence_id, NULL,
+      jsonb_build_object(
+        'contact_id', NEW.id,
+        'event_type', v_event_type,
+        'lawful_basis_before', v_before,
+        'lawful_basis_after', v_after,
+        'evidence_quality', v_quality,
+        'source_system', v_source_system,
+        'evidence_fingerprint', v_fingerprint
+      ),
+      clock_timestamp()
+    );
+  END IF;
+  RETURN NEW;
 END;
 $$;
 
@@ -494,6 +1269,98 @@ FOR EACH ROW EXECUTE FUNCTION public.marketing_log_delivery_transition();
 DROP TRIGGER IF EXISTS marketing_events_no_update ON public.marketing_events;
 CREATE TRIGGER marketing_events_no_update BEFORE UPDATE OR DELETE ON public.marketing_events
 FOR EACH ROW EXECUTE FUNCTION public.marketing_events_append_only();
+DROP TRIGGER IF EXISTS marketing_lawful_basis_evidence_no_update ON public.marketing_lawful_basis_evidence;
+CREATE TRIGGER marketing_lawful_basis_evidence_no_update
+BEFORE UPDATE OR DELETE ON public.marketing_lawful_basis_evidence
+FOR EACH ROW EXECUTE FUNCTION public.marketing_lawful_basis_evidence_append_only();
+DROP TRIGGER IF EXISTS marketing_contacts_lawful_basis_evidence ON public.marketing_contacts;
+CREATE TRIGGER marketing_contacts_lawful_basis_evidence
+AFTER INSERT OR UPDATE OF lawful_basis, consent_source, consent_at, opted_out_at, metadata
+ON public.marketing_contacts
+FOR EACH ROW EXECUTE FUNCTION public.marketing_capture_lawful_basis_evidence();
+
+-- Defensive backfill for an installation where the table already existed.
+-- Capture its current authoritative state once, explicitly marking incomplete
+-- legacy context instead of presenting it as verified proof.
+WITH evidence_rows AS (
+  SELECT
+    c.id AS contact_id,
+    CASE WHEN c.opted_out_at IS NOT NULL THEN 'opposed' ELSE 'granted' END AS event_type,
+    'none'::text AS lawful_basis_before,
+    c.lawful_basis AS lawful_basis_after,
+    COALESCE(
+      NULLIF(btrim(c.metadata -> 'lawful_basis_evidence' ->> 'source'), ''),
+      NULLIF(btrim(c.consent_source), ''),
+      NULLIF(btrim(c.suppression_reason), ''),
+      c.source_system
+    ) AS evidence_source,
+    COALESCE(
+      NULLIF(btrim(c.metadata -> 'lawful_basis_evidence' ->> 'note'), ''),
+      CASE WHEN c.lawful_basis = 'consent' THEN
+        'Explicit marketing consent receipt imported from the authoritative source.' END,
+      CASE WHEN c.opted_out_at IS NOT NULL THEN
+        'Recorded opposition imported from the authoritative suppression state.' END,
+      'Existing lawful-basis state migrated; supporting details require review.'
+    ) AS evidence_note,
+    COALESCE(
+      NULLIF(c.metadata -> 'lawful_basis_evidence' ->> 'recorded_at', '')::timestamptz,
+      c.consent_at, c.opted_out_at, c.created_at
+    ) AS evidence_recorded_at,
+    CASE
+      WHEN c.lawful_basis = 'consent' AND c.consent_source IS NOT NULL AND c.consent_at IS NOT NULL
+        THEN 'verified'
+      WHEN c.metadata -> 'lawful_basis_evidence' ? 'source'
+       AND c.metadata -> 'lawful_basis_evidence' ? 'note'
+       AND c.metadata -> 'lawful_basis_evidence' ? 'recorded_at'
+        THEN 'verified'
+      WHEN c.opted_out_at IS NOT NULL THEN 'system_event'
+      ELSE 'migration_snapshot'
+    END AS evidence_quality,
+    c.source_system,
+    left(COALESCE(c.metadata ->> 'receipt_id', c.source_reference), 200) AS source_reference,
+    c.created_by AS actor_user_id
+  FROM public.marketing_contacts c
+  WHERE c.lawful_basis <> 'none' OR c.opted_out_at IS NOT NULL
+), prepared AS (
+  SELECT e.*,
+    encode(extensions.digest(concat_ws('|',
+      e.contact_id::text, e.event_type, e.lawful_basis_before, e.lawful_basis_after,
+      e.source_system, COALESCE(e.source_reference, ''), e.evidence_source,
+      e.evidence_note, e.evidence_recorded_at::text, e.evidence_quality
+    ), 'sha256'), 'hex') AS evidence_fingerprint
+  FROM evidence_rows e
+), inserted AS (
+  INSERT INTO public.marketing_lawful_basis_evidence (
+    contact_id, event_type, lawful_basis_before, lawful_basis_after,
+    evidence_source, evidence_note, evidence_recorded_at, evidence_quality,
+    source_system, source_reference, actor_user_id, evidence_fingerprint
+  )
+  SELECT
+    contact_id, event_type, lawful_basis_before, lawful_basis_after,
+    evidence_source, evidence_note, evidence_recorded_at, evidence_quality,
+    source_system, source_reference, actor_user_id, evidence_fingerprint
+  FROM prepared
+  ON CONFLICT DO NOTHING
+  RETURNING id, contact_id, event_type, lawful_basis_before, lawful_basis_after,
+    evidence_quality, source_system, evidence_fingerprint
+)
+INSERT INTO public.audit_log (
+  id, user_id, action, entity_type, entity_id, old_data, new_data, created_at
+)
+SELECT
+  gen_random_uuid(), NULL, 'marketing_lawful_basis_evidence_recorded',
+  'marketing_lawful_basis_evidence', i.id, NULL,
+  jsonb_build_object(
+    'contact_id', i.contact_id,
+    'event_type', i.event_type,
+    'lawful_basis_before', i.lawful_basis_before,
+    'lawful_basis_after', i.lawful_basis_after,
+    'evidence_quality', i.evidence_quality,
+    'source_system', i.source_system,
+    'evidence_fingerprint', i.evidence_fingerprint
+  ),
+  clock_timestamp()
+FROM inserted i;
 
 DO $$
 DECLARE
@@ -519,33 +1386,35 @@ ALTER TABLE public.marketing_calendar_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.marketing_contacts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.marketing_deliveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.marketing_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_lawful_basis_evidence ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_lawful_basis_evidence FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_admin_auth_challenges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_admin_auth_challenges FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_admin_web_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_admin_web_sessions FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_admin_login_limits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_admin_login_limits FORCE ROW LEVEL SECURITY;
 
-REVOKE ALL ON public.marketing_campaigns FROM anon, authenticated;
-REVOKE ALL ON public.marketing_integrations FROM anon, authenticated;
-REVOKE ALL ON public.marketing_automations FROM anon, authenticated;
-REVOKE ALL ON public.marketing_calendar_items FROM anon, authenticated;
-REVOKE ALL ON public.marketing_contacts FROM anon, authenticated;
-REVOKE ALL ON public.marketing_deliveries FROM anon, authenticated;
-REVOKE ALL ON public.marketing_events FROM anon, authenticated;
+REVOKE ALL ON public.marketing_campaigns FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.marketing_integrations FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.marketing_automations FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.marketing_calendar_items FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.marketing_contacts FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.marketing_deliveries FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.marketing_events FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.marketing_lawful_basis_evidence FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON public.marketing_admin_auth_challenges FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON public.marketing_admin_web_sessions FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON public.marketing_admin_login_limits FROM PUBLIC, anon, authenticated, service_role;
 
-GRANT SELECT ON public.marketing_campaigns, public.marketing_integrations,
-  public.marketing_automations, public.marketing_calendar_items TO authenticated;
 GRANT ALL ON public.marketing_campaigns, public.marketing_integrations,
   public.marketing_automations, public.marketing_calendar_items,
   public.marketing_contacts, public.marketing_deliveries, public.marketing_events TO service_role;
 
 DROP POLICY IF EXISTS marketing_campaigns_admin_select ON public.marketing_campaigns;
-CREATE POLICY marketing_campaigns_admin_select ON public.marketing_campaigns
-FOR SELECT TO authenticated USING (COALESCE(public.auth_is_admin(), false));
 DROP POLICY IF EXISTS marketing_integrations_admin_select ON public.marketing_integrations;
-CREATE POLICY marketing_integrations_admin_select ON public.marketing_integrations
-FOR SELECT TO authenticated USING (COALESCE(public.auth_is_admin(), false));
 DROP POLICY IF EXISTS marketing_automations_admin_select ON public.marketing_automations;
-CREATE POLICY marketing_automations_admin_select ON public.marketing_automations
-FOR SELECT TO authenticated USING (COALESCE(public.auth_is_admin(), false));
 DROP POLICY IF EXISTS marketing_calendar_admin_select ON public.marketing_calendar_items;
-CREATE POLICY marketing_calendar_admin_select ON public.marketing_calendar_items
-FOR SELECT TO authenticated USING (COALESCE(public.auth_is_admin(), false));
 
 INSERT INTO public.marketing_integrations (
   provider, name, channel, status, capabilities, description, last_checked_at
@@ -554,7 +1423,7 @@ INSERT INTO public.marketing_integrations (
   ('tok-notifications', 'Notifications internes', 'in_app', 'connected', '{"send":true,"adapter_deployed":true}'::jsonb, 'Notifications in-app déjà disponibles.', now()),
   ('manual-call', 'Appels manuels', 'manual_call', 'manual', '{"manual":true}'::jsonb, 'Tâches d’appel sans coût fournisseur.', now()),
   ('manual-email', 'E-mails manuels', 'manual_email', 'manual', '{"manual":true}'::jsonb, 'Tâches e-mail à valider manuellement.', now()),
-  ('manual-visit', 'Visites manuelles', 'manual_visit', 'manual', '{"manual":true}'::jsonb, 'Tâches de visite terrain.', now()),
+  ('manual-visit', 'Visites manuelles', 'manual_visit', 'blocked_configuration', '{"manual":true,"requires_structured_address":true}'::jsonb, 'Bloqué tant qu’une adresse structurée et vérifiée n’est pas disponible.', now()),
   ('resend', 'Resend', 'email', 'blocked_configuration', '{"send":true,"webhook":true,"adapter_deployed":false}'::jsonb, 'Connexion, domaine vérifié et adaptateur déployé requis.', now()),
   ('firebase', 'Firebase Cloud Messaging', 'push', 'blocked_configuration', '{"send":true,"adapter_deployed":false}'::jsonb, 'Configuration, jetons actifs et adaptateur déployé requis.', now()),
   ('instagram', 'Instagram', 'instagram', 'disconnected', '{"publish":true,"adapter_deployed":false}'::jsonb, 'API Meta non connectée.', now()),
@@ -566,6 +1435,15 @@ INSERT INTO public.marketing_integrations (
   ('google-business', 'Google Business Profile', 'google_business', 'disconnected', '{"publish":true,"adapter_deployed":false}'::jsonb, 'API Google non connectée.', now()),
   ('website', 'Site TheTOK', 'website', 'disconnected', '{"publish":true,"adapter_deployed":false}'::jsonb, 'Publication site à connecter explicitement.', now())
 ON CONFLICT (provider) DO NOTHING;
+
+-- A phone number is not a safe substitute for a visit address. Keep the
+-- channel fail-closed even if an earlier seed or manual edit marked it active.
+UPDATE public.marketing_integrations SET
+  status = 'blocked_configuration',
+  capabilities = capabilities || '{"requires_structured_address":true}'::jsonb,
+  description = 'Bloqué tant qu’une adresse structurée et vérifiée n’est pas disponible.',
+  last_checked_at = now()
+WHERE channel = 'manual_visit';
 
 INSERT INTO public.marketing_automations (
   automation_key, name, description, trigger_type, status, is_system, conditions, actions
@@ -624,7 +1502,8 @@ BEGIN
   WHERE i.channel = p_channel
   ORDER BY (i.status = 'connected') DESC, i.updated_at DESC
   LIMIT 1;
-  IF p_channel IN ('manual_call', 'manual_email', 'manual_visit') THEN
+  IF p_channel = 'manual_visit' THEN RETURN 'blocked_configuration'; END IF;
+  IF p_channel IN ('manual_call', 'manual_email') THEN
     RETURN CASE WHEN v_status = 'manual' THEN 'manual' ELSE 'disconnected' END;
   END IF;
   IF v_status = 'connected' AND (p_channel = 'in_app' OR v_adapter_deployed) THEN RETURN 'available'; END IF;
@@ -685,9 +1564,10 @@ AS $$
               AND COALESCE((p.categories ->> 'marketing')::boolean, false)
               AND COALESCE((p.channels ->> p_channel)::boolean, true)
           )
-        WHEN p_channel IN ('manual_call','manual_visit') THEN
-          NULLIF(btrim(c.phone), '') IS NOT NULL
+        WHEN p_channel = 'manual_call' THEN
+          c.phone_normalized IS NOT NULL
           AND c.lawful_basis IN ('consent','existing_customer','legitimate_interest')
+        WHEN p_channel = 'manual_visit' THEN false
         -- Public/editorial channels never create individual deliveries.
         WHEN p_channel IN ('tok_news','instagram','facebook','linkedin','tiktok','youtube',
           'telegram','google_business','website') THEN false
@@ -898,7 +1778,7 @@ BEGIN
       NULLIF(p_payload ->> 'ends_at', '')::timestamptz,
       v_requires_approval,
       NULL, NULL,
-      COALESCE(p_payload -> 'metadata', '{}'::jsonb), auth.uid()
+      COALESCE(p_payload -> 'metadata', '{}'::jsonb), public.marketing_actor_user_id()
     ) RETURNING * INTO v_row;
   ELSE
     SELECT * INTO v_existing FROM public.marketing_campaigns WHERE id = v_id FOR UPDATE;
@@ -1001,13 +1881,13 @@ BEGIN
     RAISE EXCEPTION 'At least one campaign channel is required' USING ERRCODE = '22023';
   END IF;
   UPDATE public.marketing_campaigns SET
-    approved_by = auth.uid(), approved_at = now(),
+    approved_by = public.marketing_actor_user_id(), approved_at = now(),
     metadata = jsonb_set(metadata, '{approval_reason}', to_jsonb(left(btrim(p_reason), 500)), true)
   WHERE id = p_campaign_id RETURNING * INTO v_row;
   INSERT INTO public.audit_log (
     id, user_id, action, entity_type, entity_id, old_data, new_data, created_at
   ) VALUES (
-    gen_random_uuid(), auth.uid(), 'marketing_campaign_approved', 'marketing_campaigns', v_row.id,
+    gen_random_uuid(), public.marketing_actor_user_id(), 'marketing_campaign_approved', 'marketing_campaigns', v_row.id,
     NULL, jsonb_build_object('reason', left(btrim(p_reason), 500), 'approved_at', v_row.approved_at), now()
   );
   RETURN jsonb_build_object(
@@ -1142,7 +2022,7 @@ BEGIN
       COALESCE((p_payload ->> 'audience_size')::integer, 0),
       COALESCE(p_payload -> 'content', '{}'::jsonb), COALESCE(p_payload -> 'targeting', '{}'::jsonb),
       NULL, NULL, NULL,
-      LEAST(GREATEST(COALESCE((p_payload ->> 'max_attempts')::integer, 3), 1), 10), auth.uid()
+      LEAST(GREATEST(COALESCE((p_payload ->> 'max_attempts')::integer, 3), 1), 10), public.marketing_actor_user_id()
     ) RETURNING * INTO v_row;
   ELSE
     SELECT * INTO v_existing FROM public.marketing_calendar_items WHERE id = v_id FOR UPDATE;
@@ -1415,13 +2295,87 @@ DECLARE
   v_user_id uuid := NULLIF(p_payload ->> 'user_id', '')::uuid;
   v_email text := NULLIF(btrim(p_payload ->> 'email'), '');
   v_phone text := NULLIF(btrim(p_payload ->> 'phone'), '');
+  v_phone_normalized text;
+  v_contact_type text := COALESCE(NULLIF(p_payload ->> 'contact_type', ''), 'manual');
   v_lawful_basis text := COALESCE(NULLIF(p_payload ->> 'lawful_basis', ''), 'none');
   v_requested_opted_out_at timestamptz := NULLIF(p_payload ->> 'opted_out_at', '')::timestamptz;
+  v_evidence jsonb := COALESCE(p_payload -> 'metadata' -> 'lawful_basis_evidence', 'null'::jsonb);
+  v_evidence_source text := NULLIF(btrim(v_evidence ->> 'source'), '');
+  v_evidence_note text := NULLIF(btrim(v_evidence ->> 'note'), '');
+  v_evidence_at timestamptz := NULLIF(v_evidence ->> 'recorded_at', '')::timestamptz;
+  v_display_name text;
   v_fingerprint text;
 BEGIN
   PERFORM public.marketing_require_admin();
+  IF p_payload IS NULL OR jsonb_typeof(p_payload) <> 'object' THEN
+    RAISE EXCEPTION 'Contact payload must be an object' USING ERRCODE = '22023';
+  END IF;
   IF v_lawful_basis NOT IN ('none','consent','existing_customer','legitimate_interest') THEN
     RAISE EXCEPTION 'Invalid lawful basis' USING ERRCODE = '22023';
+  END IF;
+  IF v_contact_type NOT IN ('registered_user','restaurant_prospect','restaurant_lead','manual') THEN
+    RAISE EXCEPTION 'Invalid marketing contact type' USING ERRCODE = '22023';
+  END IF;
+  IF v_id IS NOT NULL THEN
+    SELECT * INTO v_existing FROM public.marketing_contacts WHERE id = v_id FOR UPDATE;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Marketing contact not found' USING ERRCODE = 'P0002'; END IF;
+    IF p_expected_updated_at IS NOT NULL AND v_existing.updated_at <> p_expected_updated_at THEN
+      RAISE EXCEPTION 'Contact was modified by another administrator' USING ERRCODE = '40001';
+    END IF;
+    IF v_existing.contact_type = 'registered_user'
+       AND COALESCE(NULLIF(p_payload ->> 'contact_type', ''), v_existing.contact_type)
+         IN ('restaurant_prospect','restaurant_lead') THEN
+      RAISE EXCEPTION 'Registered client contacts cannot be converted into restaurant leads' USING ERRCODE = '42501';
+    END IF;
+    IF NOT (p_payload ? 'lawful_basis') THEN v_lawful_basis := v_existing.lawful_basis; END IF;
+    v_email := CASE WHEN p_payload ? 'email' THEN v_email ELSE v_existing.email END;
+    v_phone := CASE WHEN p_payload ? 'phone' THEN v_phone ELSE v_existing.phone END;
+    v_user_id := CASE WHEN p_payload ? 'user_id' THEN v_user_id ELSE v_existing.user_id END;
+    v_contact_type := COALESCE(NULLIF(p_payload ->> 'contact_type', ''), v_existing.contact_type);
+  END IF;
+  v_display_name := COALESCE(NULLIF(btrim(p_payload ->> 'display_name'), ''), v_existing.display_name);
+  IF char_length(COALESCE(v_display_name, '')) NOT BETWEEN 2 AND 200 THEN
+    RAISE EXCEPTION 'Restaurant name must contain between 2 and 200 characters' USING ERRCODE = '22023';
+  END IF;
+  IF v_email IS NOT NULL AND (
+    char_length(v_email) > 320 OR v_email !~* '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'
+  ) THEN
+    RAISE EXCEPTION 'Invalid contact email' USING ERRCODE = '22023';
+  END IF;
+  v_phone_normalized := public.marketing_normalize_swiss_phone(v_phone);
+  IF v_existing.opted_out_at IS NOT NULL
+     AND v_phone_normalized IS DISTINCT FROM v_existing.phone_normalized THEN
+    RAISE EXCEPTION 'Suppressed contact phone identity cannot be changed or removed'
+      USING ERRCODE = '42501';
+  END IF;
+  IF v_phone_normalized IS NOT NULL THEN
+    -- Serialize the friendly duplicate check; the partial unique index remains
+    -- the final database guard for writes outside this governed RPC.
+    PERFORM pg_catalog.pg_advisory_xact_lock(
+      pg_catalog.hashtextextended('marketing-phone:' || v_phone_normalized, 0)
+    );
+    IF EXISTS (
+      SELECT 1
+      FROM public.marketing_contacts c
+      WHERE c.phone_normalized = v_phone_normalized
+        AND c.id IS DISTINCT FROM v_id
+    ) THEN
+      RAISE EXCEPTION 'Marketing phone identity already exists, including suppressed contacts'
+        USING ERRCODE = '23505';
+    END IF;
+  END IF;
+  IF v_contact_type IN ('restaurant_prospect','restaurant_lead') AND v_lawful_basis <> 'none' THEN
+    IF v_email IS NULL AND v_phone IS NULL THEN
+      RAISE EXCEPTION 'A qualified restaurant requires an email or phone' USING ERRCODE = '22023';
+    END IF;
+    IF v_lawful_basis = 'legitimate_interest' AND v_phone IS NULL THEN
+      RAISE EXCEPTION 'Legitimate interest is restricted to a manual phone task' USING ERRCODE = '22023';
+    END IF;
+    IF v_evidence_source IS NULL OR char_length(v_evidence_source) NOT BETWEEN 3 AND 200
+       OR v_evidence_note IS NULL OR char_length(v_evidence_note) NOT BETWEEN 10 AND 1000
+       OR v_evidence_at IS NULL OR v_evidence_at > clock_timestamp() + interval '5 minutes' THEN
+      RAISE EXCEPTION 'Lawful basis requires a dated source and an evidence note' USING ERRCODE = '22023';
+    END IF;
   END IF;
   IF v_lawful_basis = 'consent' AND (
     NULLIF(btrim(p_payload ->> 'consent_source'), '') IS NULL
@@ -1431,8 +2385,9 @@ BEGIN
   END IF;
 
   v_fingerprint := encode(extensions.digest(COALESCE(
-    lower(v_email), regexp_replace(v_phone, '\D', '', 'g'), v_user_id::text,
-    p_payload ->> 'source_reference', p_payload ->> 'source_objectid'
+    lower(v_email), v_phone_normalized, v_user_id::text,
+    NULLIF(p_payload ->> 'source_reference', ''), v_existing.source_reference,
+    NULLIF(p_payload ->> 'source_objectid', ''), v_existing.source_objectid::text
   ), 'sha256'), 'hex');
 
   IF v_id IS NULL THEN
@@ -1442,11 +2397,11 @@ BEGIN
       lifecycle_status, lawful_basis, consent_source, consent_at, opted_out_at, suppression_reason,
       last_verified_at, last_contact_at, next_action_at, metadata, created_by
     ) VALUES (
-      COALESCE(NULLIF(p_payload ->> 'contact_type', ''), 'manual'), v_user_id,
+      v_contact_type, v_user_id,
       NULLIF(p_payload ->> 'source_objectid', '')::bigint,
       NULLIF(p_payload ->> 'restaurant_lead_id', '')::uuid,
       COALESCE(NULLIF(p_payload ->> 'source_system', ''), 'manual'),
-      NULLIF(p_payload ->> 'source_reference', ''), COALESCE(p_payload ->> 'display_name', ''),
+      NULLIF(p_payload ->> 'source_reference', ''), v_display_name,
       v_email, v_phone, v_fingerprint, COALESCE(NULLIF(p_payload ->> 'locale', ''), 'fr-CH'),
       NULLIF(p_payload ->> 'canton', ''), NULLIF(p_payload ->> 'city', ''),
       NULLIF(p_payload ->> 'category', ''), LEAST(GREATEST(COALESCE((p_payload ->> 'lead_score')::integer, 0), 0), 100),
@@ -1458,19 +2413,9 @@ BEGIN
       NULLIF(p_payload ->> 'last_verified_at', '')::timestamptz,
       NULLIF(p_payload ->> 'last_contact_at', '')::timestamptz,
       NULLIF(p_payload ->> 'next_action_at', '')::timestamptz,
-      COALESCE(p_payload -> 'metadata', '{}'::jsonb), auth.uid()
+      COALESCE(p_payload -> 'metadata', '{}'::jsonb), public.marketing_actor_user_id()
     ) RETURNING * INTO v_row;
   ELSE
-    SELECT * INTO v_existing FROM public.marketing_contacts WHERE id = v_id FOR UPDATE;
-    IF NOT FOUND THEN RAISE EXCEPTION 'Marketing contact not found' USING ERRCODE = 'P0002'; END IF;
-    IF p_expected_updated_at IS NOT NULL AND v_existing.updated_at <> p_expected_updated_at THEN
-      RAISE EXCEPTION 'Contact was modified by another administrator' USING ERRCODE = '40001';
-    END IF;
-
-    IF NOT (p_payload ? 'lawful_basis') THEN
-      v_lawful_basis := v_existing.lawful_basis;
-    END IF;
-
     -- An ordinary admin edit can never turn an opt-out back into an opt-in.
     IF v_existing.opted_out_at IS NOT NULL AND p_payload ? 'opted_out_at' AND v_requested_opted_out_at IS NULL THEN
       RAISE EXCEPTION 'Opt-out cannot be cleared by contact upsert' USING ERRCODE = '42501';
@@ -1479,14 +2424,6 @@ BEGIN
       RAISE EXCEPTION 'Suppressed contact cannot regain a lawful basis through upsert' USING ERRCODE = '42501';
     END IF;
 
-    v_email := CASE WHEN p_payload ? 'email' THEN v_email ELSE v_existing.email END;
-    v_phone := CASE WHEN p_payload ? 'phone' THEN v_phone ELSE v_existing.phone END;
-    v_user_id := CASE WHEN p_payload ? 'user_id' THEN v_user_id ELSE v_existing.user_id END;
-    v_fingerprint := encode(extensions.digest(COALESCE(
-      lower(v_email), regexp_replace(v_phone, '\D', '', 'g'), v_user_id::text,
-      v_existing.source_reference, v_existing.source_objectid::text
-    ), 'sha256'), 'hex');
-
     UPDATE public.marketing_contacts SET
       contact_type = COALESCE(NULLIF(p_payload ->> 'contact_type', ''), contact_type),
       user_id = v_user_id,
@@ -1494,7 +2431,7 @@ BEGIN
       restaurant_lead_id = CASE WHEN p_payload ? 'restaurant_lead_id' THEN NULLIF(p_payload ->> 'restaurant_lead_id', '')::uuid ELSE restaurant_lead_id END,
       source_system = COALESCE(NULLIF(p_payload ->> 'source_system', ''), source_system),
       source_reference = CASE WHEN p_payload ? 'source_reference' THEN NULLIF(p_payload ->> 'source_reference', '') ELSE source_reference END,
-      display_name = COALESCE(p_payload ->> 'display_name', display_name),
+      display_name = v_display_name,
       email = v_email, phone = v_phone, target_fingerprint = v_fingerprint,
       locale = COALESCE(NULLIF(p_payload ->> 'locale', ''), locale),
       canton = CASE WHEN p_payload ? 'canton' THEN NULLIF(p_payload ->> 'canton', '') ELSE canton END,
@@ -1504,8 +2441,10 @@ BEGIN
       lifecycle_status = CASE WHEN opted_out_at IS NOT NULL OR v_requested_opted_out_at IS NOT NULL THEN 'opted_out'
         ELSE COALESCE(NULLIF(p_payload ->> 'lifecycle_status', ''), lifecycle_status) END,
       lawful_basis = CASE WHEN opted_out_at IS NOT NULL OR v_requested_opted_out_at IS NOT NULL THEN 'none' ELSE v_lawful_basis END,
-      consent_source = CASE WHEN p_payload ? 'consent_source' THEN NULLIF(p_payload ->> 'consent_source', '') ELSE consent_source END,
-      consent_at = CASE WHEN p_payload ? 'consent_at' THEN NULLIF(p_payload ->> 'consent_at', '')::timestamptz ELSE consent_at END,
+      consent_source = CASE WHEN v_lawful_basis <> 'consent' THEN NULL
+        WHEN p_payload ? 'consent_source' THEN NULLIF(p_payload ->> 'consent_source', '') ELSE consent_source END,
+      consent_at = CASE WHEN v_lawful_basis <> 'consent' THEN NULL
+        WHEN p_payload ? 'consent_at' THEN NULLIF(p_payload ->> 'consent_at', '')::timestamptz ELSE consent_at END,
       opted_out_at = COALESCE(opted_out_at, v_requested_opted_out_at),
       suppression_reason = CASE WHEN p_payload ? 'suppression_reason' THEN NULLIF(p_payload ->> 'suppression_reason', '') ELSE suppression_reason END,
       last_verified_at = CASE WHEN p_payload ? 'last_verified_at' THEN NULLIF(p_payload ->> 'last_verified_at', '')::timestamptz ELSE last_verified_at END,
@@ -1513,19 +2452,31 @@ BEGIN
       next_action_at = CASE WHEN p_payload ? 'next_action_at' THEN NULLIF(p_payload ->> 'next_action_at', '')::timestamptz ELSE next_action_at END,
       metadata = CASE
         WHEN COALESCE((metadata ->> 'email_suppressed')::boolean, false) THEN
-          COALESCE(p_payload -> 'metadata', metadata) || '{"email_suppressed":true}'::jsonb
-        ELSE COALESCE(p_payload -> 'metadata', metadata)
+          metadata || COALESCE(p_payload -> 'metadata', '{}'::jsonb) || '{"email_suppressed":true}'::jsonb
+        ELSE metadata || COALESCE(p_payload -> 'metadata', '{}'::jsonb)
       END
     WHERE id = v_id RETURNING * INTO v_row;
   END IF;
 
   RETURN jsonb_build_object(
-    'id', v_row.id, 'display_name', v_row.display_name,
-    'email_masked', public.marketing_mask_target(v_row.email),
-    'phone_masked', public.marketing_mask_target(v_row.phone),
+    'id', v_row.id, 'contact_type', v_row.contact_type, 'display_name', v_row.display_name,
+    'email_masked', CASE WHEN v_row.email_normalized IS NULL THEN NULL
+      ELSE public.marketing_mask_target(v_row.email) END,
+    'phone_masked', CASE WHEN v_row.phone_normalized IS NULL THEN NULL
+      ELSE public.marketing_mask_target(v_row.phone) END,
+    'has_email', v_row.email_normalized IS NOT NULL,
+    'has_phone', v_row.phone_normalized IS NOT NULL,
     'city', v_row.city, 'canton', v_row.canton, 'category', v_row.category,
     'status', v_row.lifecycle_status, 'lead_score', v_row.lead_score,
+    'contactability', CASE WHEN v_row.opted_out_at IS NOT NULL THEN 'opted_out'
+      WHEN public.marketing_contact_is_eligible(v_row.id, 'email')
+        OR public.marketing_contact_is_eligible(v_row.id, 'manual_email')
+        OR public.marketing_contact_is_eligible(v_row.id, 'push')
+        OR public.marketing_contact_is_eligible(v_row.id, 'in_app')
+        OR public.marketing_contact_is_eligible(v_row.id, 'manual_call')
+        THEN 'ready' ELSE 'manual_research' END,
     'lawful_basis', v_row.lawful_basis, 'opted_out_at', v_row.opted_out_at,
+    'last_contact_at', v_row.last_contact_at, 'next_action_at', v_row.next_action_at,
     'updated_at', v_row.updated_at
   );
 END;
@@ -1540,9 +2491,21 @@ AS $$
 DECLARE v_row public.marketing_contacts%ROWTYPE;
 BEGIN
   PERFORM public.marketing_require_admin();
-  IF NULLIF(btrim(p_reason), '') IS NULL THEN
-    RAISE EXCEPTION 'Suppression reason is required' USING ERRCODE = '22023';
+  IF p_contact_id IS NULL OR NULLIF(btrim(p_reason), '') IS NULL
+     OR char_length(btrim(p_reason)) NOT BETWEEN 8 AND 500 THEN
+    RAISE EXCEPTION 'Suppression reason must contain between 8 and 500 characters' USING ERRCODE = '22023';
   END IF;
+  PERFORM set_config(
+    'app.marketing_lawful_basis_context',
+    jsonb_build_object(
+      'source', 'marketing_admin_suppression',
+      'note', 'Administrator recorded marketing suppression: ' || left(btrim(p_reason), 500),
+      'recorded_at', clock_timestamp(),
+      'quality', 'verified',
+      'source_system', 'marketing_admin'
+    )::text,
+    true
+  );
   UPDATE public.marketing_contacts SET
     opted_out_at = COALESCE(opted_out_at, now()), lifecycle_status = 'opted_out', lawful_basis = 'none',
     suppression_reason = left(btrim(p_reason), 500), next_action_at = NULL
@@ -1556,11 +2519,11 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.admin_list_marketing_contacts(
+  p_query text DEFAULT NULL,
   p_status text DEFAULT NULL,
-  p_canton text DEFAULT NULL,
+  p_channel text DEFAULT NULL,
   p_limit integer DEFAULT 100,
-  p_cursor_updated_at timestamptz DEFAULT NULL,
-  p_cursor_id uuid DEFAULT NULL
+  p_offset integer DEFAULT 0
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -1569,58 +2532,150 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-  v_limit integer := LEAST(GREATEST(COALESCE(p_limit, 100), 1), 300);
+  v_query text := NULLIF(lower(btrim(p_query)), '');
+  v_status text := NULLIF(btrim(p_status), '');
+  v_channel text := NULLIF(btrim(p_channel), '');
+  v_limit integer := LEAST(GREATEST(COALESCE(p_limit, 100), 1), 200);
+  v_offset integer := COALESCE(p_offset, 0);
   v_items jsonb;
-  v_has_more boolean;
+  v_total bigint;
 BEGIN
   PERFORM public.marketing_require_admin();
-  WITH page AS (
-    SELECT * FROM public.marketing_contacts c
-    WHERE (p_status IS NULL OR c.lifecycle_status = p_status)
-      AND (p_canton IS NULL OR c.canton = p_canton)
-      AND (p_cursor_updated_at IS NULL OR p_cursor_id IS NULL OR (c.updated_at, c.id) < (p_cursor_updated_at, p_cursor_id))
-    ORDER BY c.updated_at DESC, c.id DESC LIMIT v_limit + 1
-  ), visible AS (
-    SELECT * FROM page ORDER BY updated_at DESC, id DESC LIMIT v_limit
-  )
-  SELECT COALESCE(jsonb_agg(jsonb_build_object(
-    'id', id, 'contact_type', contact_type, 'display_name', display_name,
-    'email_masked', public.marketing_mask_target(email),
-    'phone_masked', public.marketing_mask_target(phone),
-    'city', city, 'canton', canton, 'category', category, 'status', lifecycle_status,
-    'lead_score', lead_score, 'contactability', CASE WHEN opted_out_at IS NOT NULL THEN 'opted_out'
-      WHEN email IS NOT NULL OR phone IS NOT NULL OR user_id IS NOT NULL THEN 'ready' ELSE 'manual_research' END,
-    'lawful_basis', lawful_basis, 'last_contact_at', last_contact_at, 'next_action_at', next_action_at,
-    'updated_at', updated_at
-  ) ORDER BY updated_at DESC, id DESC), '[]'::jsonb),
-  (SELECT count(*) > v_limit FROM page)
-  INTO v_items, v_has_more FROM visible;
+  IF v_query IS NOT NULL AND (
+    char_length(v_query) > 80 OR position('%' IN v_query) > 0
+    OR position('_' IN v_query) > 0 OR position(chr(92) IN v_query) > 0
+  ) THEN
+    RAISE EXCEPTION 'Contact search query is invalid' USING ERRCODE = '22023';
+  END IF;
+  IF v_status IS NOT NULL AND v_status NOT IN (
+    'new','qualified','contacted','follow_up','converted','opted_out'
+  ) THEN
+    RAISE EXCEPTION 'Contact status filter is invalid' USING ERRCODE = '22023';
+  END IF;
+  IF v_channel IS NOT NULL AND v_channel NOT IN (
+    'tok_news','in_app','email','push','instagram','facebook','linkedin',
+    'tiktok','youtube','telegram','google_business','website',
+    'manual_call','manual_email','manual_visit'
+  ) THEN
+    RAISE EXCEPTION 'Contact channel filter is invalid' USING ERRCODE = '22023';
+  END IF;
+  IF v_offset < 0 OR v_offset > 100000 THEN
+    RAISE EXCEPTION 'Contact offset is invalid' USING ERRCODE = '22023';
+  END IF;
+
+  SELECT count(*) INTO v_total
+  FROM public.marketing_contacts c
+  WHERE (v_status IS NULL OR c.lifecycle_status = v_status)
+    AND (v_channel IS NULL OR public.marketing_contact_is_eligible(c.id, v_channel))
+    AND (v_query IS NULL OR
+      lower(c.display_name) LIKE v_query || '%'
+      OR lower(COALESCE(c.city, '')) LIKE v_query || '%'
+      OR lower(COALESCE(c.canton, '')) LIKE v_query || '%'
+      OR lower(COALESCE(c.category, '')) LIKE v_query || '%'
+      OR lower(c.contact_type) LIKE v_query || '%'
+      OR lower(c.lifecycle_status) LIKE v_query || '%'
+      OR lower(c.lawful_basis) LIKE v_query || '%'
+    );
+
+  SELECT COALESCE(jsonb_agg(page.item ORDER BY page.updated_at DESC, page.id DESC), '[]'::jsonb)
+  INTO v_items
+  FROM (
+    SELECT c.updated_at, c.id, jsonb_build_object(
+      'id', c.id, 'contact_type', c.contact_type, 'display_name', c.display_name,
+      'email_masked', CASE WHEN c.email_normalized IS NULL THEN NULL
+        ELSE public.marketing_mask_target(c.email) END,
+      'phone_masked', CASE WHEN c.phone_normalized IS NULL THEN NULL
+        ELSE public.marketing_mask_target(c.phone) END,
+      'has_email', c.email_normalized IS NOT NULL,
+      'has_phone', c.phone_normalized IS NOT NULL,
+      'city', c.city, 'canton', c.canton, 'category', c.category, 'status', c.lifecycle_status,
+      'lead_score', c.lead_score, 'contactability', CASE WHEN c.opted_out_at IS NOT NULL THEN 'opted_out'
+        WHEN public.marketing_contact_is_eligible(c.id, 'email')
+          OR public.marketing_contact_is_eligible(c.id, 'manual_email')
+          OR public.marketing_contact_is_eligible(c.id, 'push')
+          OR public.marketing_contact_is_eligible(c.id, 'in_app')
+          OR public.marketing_contact_is_eligible(c.id, 'manual_call')
+          THEN 'ready' ELSE 'manual_research' END,
+      'lawful_basis', c.lawful_basis, 'last_contact_at', c.last_contact_at,
+      'next_action_at', c.next_action_at, 'updated_at', c.updated_at
+    ) AS item
+    FROM public.marketing_contacts c
+    WHERE (v_status IS NULL OR c.lifecycle_status = v_status)
+      AND (v_channel IS NULL OR public.marketing_contact_is_eligible(c.id, v_channel))
+      AND (v_query IS NULL OR
+        lower(c.display_name) LIKE v_query || '%'
+        OR lower(COALESCE(c.city, '')) LIKE v_query || '%'
+        OR lower(COALESCE(c.canton, '')) LIKE v_query || '%'
+        OR lower(COALESCE(c.category, '')) LIKE v_query || '%'
+        OR lower(c.contact_type) LIKE v_query || '%'
+        OR lower(c.lifecycle_status) LIKE v_query || '%'
+        OR lower(c.lawful_basis) LIKE v_query || '%'
+      )
+    ORDER BY c.updated_at DESC, c.id DESC
+    LIMIT v_limit OFFSET v_offset
+  ) page;
+
   RETURN jsonb_build_object(
-    'items', v_items,
-    'next_cursor', CASE WHEN v_has_more AND jsonb_array_length(v_items) > 0 THEN jsonb_build_object(
-      'updated_at', v_items -> (jsonb_array_length(v_items) - 1) ->> 'updated_at',
-      'id', v_items -> (jsonb_array_length(v_items) - 1) ->> 'id'
-    ) ELSE NULL END
+    'items', v_items, 'total', v_total, 'limit', v_limit, 'offset', v_offset,
+    'has_more', v_offset::bigint + jsonb_array_length(v_items) < v_total
   );
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.admin_sync_marketing_prospect_catalog(p_limit integer DEFAULT 10000)
+CREATE OR REPLACE FUNCTION public.admin_sync_marketing_prospect_catalog(
+  p_limit integer DEFAULT 500,
+  p_after_source_objectid bigint DEFAULT NULL,
+  p_until_source_objectid bigint DEFAULT NULL
+)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
+  v_limit integer := LEAST(GREATEST(COALESCE(p_limit, 500), 1), 500);
+  v_watermark bigint := p_until_source_objectid;
+  v_next_cursor bigint;
+  v_processed integer := 0;
   v_inserted integer := 0;
-  v_catalog_total bigint := 0;
+  v_updated integer := 0;
+  v_has_more boolean := false;
 BEGIN
   PERFORM public.marketing_require_admin();
-  WITH candidates AS (
+
+  -- The first request freezes a high-water mark. Subsequent batches keep the
+  -- same value so inserts arriving during a run cannot make it endless.
+  IF v_watermark IS NULL THEN
+    SELECT max(c.source_objectid) INTO v_watermark
+    FROM public.commercial_prospect_catalog c;
+  END IF;
+  IF v_watermark IS NOT NULL AND p_after_source_objectid IS NOT NULL
+     AND p_after_source_objectid > v_watermark THEN
+    RAISE EXCEPTION 'Prospect synchronization cursor exceeds its watermark'
+      USING ERRCODE = '22023';
+  END IF;
+
+  WITH page AS MATERIALIZED (
     SELECT c.source_objectid, c.dataset_version
     FROM public.commercial_prospect_catalog c
+    WHERE v_watermark IS NOT NULL
+      AND (p_after_source_objectid IS NULL OR c.source_objectid > p_after_source_objectid)
+      AND c.source_objectid <= v_watermark
     ORDER BY c.source_objectid
-    LIMIT LEAST(GREATEST(COALESCE(p_limit, 10000), 1), 25000)
+    LIMIT v_limit + 1
+  ), batch AS MATERIALIZED (
+    SELECT p.source_objectid, p.dataset_version
+    FROM page p
+    ORDER BY p.source_objectid
+    LIMIT v_limit
+  ), updated AS (
+    UPDATE public.marketing_contacts m SET
+      metadata = jsonb_set(m.metadata, '{dataset_version}', to_jsonb(b.dataset_version), true)
+    FROM batch b
+    WHERE m.source_system = 'commercial_prospect_catalog'
+      AND m.source_reference = b.source_objectid::text
+      AND (m.metadata -> 'dataset_version') IS DISTINCT FROM to_jsonb(b.dataset_version)
+    RETURNING m.id
   ), inserted AS (
     INSERT INTO public.marketing_contacts (
       contact_type, source_objectid, source_system, source_reference, display_name,
@@ -1630,52 +2685,173 @@ BEGIN
       'restaurant_prospect', c.source_objectid, 'commercial_prospect_catalog', c.source_objectid::text,
       'Restaurant #' || c.source_objectid::text,
       encode(extensions.digest('commercial_prospect_catalog:' || c.source_objectid::text, 'sha256'), 'hex'),
-      'none', 'new', jsonb_build_object('dataset_version', c.dataset_version), auth.uid()
-    FROM candidates c
+      'none', 'new', jsonb_build_object('dataset_version', c.dataset_version), public.marketing_actor_user_id()
+    FROM batch c
     ON CONFLICT (source_system, source_reference) WHERE source_reference IS NOT NULL DO NOTHING
     RETURNING id
-  ) SELECT count(*) INTO v_inserted FROM inserted;
-  SELECT count(*) INTO v_catalog_total FROM public.commercial_prospect_catalog;
+  )
+  SELECT
+    count(*)::integer,
+    max(batch.source_objectid),
+    (SELECT count(*)::integer FROM inserted),
+    (SELECT count(*)::integer FROM updated),
+    (SELECT count(*) > v_limit FROM page)
+  INTO v_processed, v_next_cursor, v_inserted, v_updated, v_has_more
+  FROM batch;
+
   INSERT INTO public.audit_log (
     id, user_id, action, entity_type, old_data, new_data, created_at
   ) VALUES (
-    gen_random_uuid(), auth.uid(), 'marketing_prospect_catalog_synced', 'marketing_contacts', NULL,
-    jsonb_build_object('inserted', v_inserted, 'catalog_total', v_catalog_total), now()
+    gen_random_uuid(), public.marketing_actor_user_id(), 'marketing_prospect_catalog_synced', 'marketing_contacts', NULL,
+    jsonb_build_object(
+      'cursor_from', p_after_source_objectid::text,
+      'cursor_to', v_next_cursor::text,
+      'watermark', v_watermark::text,
+      'processed', v_processed,
+      'inserted', v_inserted,
+      'updated', v_updated,
+      'has_more', v_has_more
+    ), now()
   );
   RETURN jsonb_build_object(
-    'inserted', v_inserted, 'catalog_total', v_catalog_total,
-    'synced_total', (SELECT count(*) FROM public.marketing_contacts WHERE source_system = 'commercial_prospect_catalog'),
-    'contains_pii', false, 'synced_at', now()
+    'processed', v_processed,
+    'inserted', v_inserted,
+    'updated', v_updated,
+    -- Lookahead keeps the request bounded: when true, at least one row remains.
+    'remaining', CASE WHEN v_has_more THEN 1 ELSE 0 END,
+    'remaining_is_exact', NOT v_has_more,
+    'has_more', v_has_more,
+    'complete', NOT v_has_more,
+    'next_cursor', CASE WHEN v_processed > 0 THEN v_next_cursor::text ELSE NULL END,
+    'watermark', v_watermark::text,
+    'contains_pii', false,
+    'synced_at', now()
   );
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.admin_sync_marketing_client_consents(p_limit integer DEFAULT 10000)
+CREATE OR REPLACE FUNCTION public.admin_sync_marketing_client_consents(
+  p_limit integer DEFAULT 250,
+  p_cursor text DEFAULT NULL
+)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
+  v_limit integer := LEAST(GREATEST(COALESCE(p_limit, 250), 1), 250);
   v_receipt record;
   v_contact public.marketing_contacts%ROWTYPE;
+  v_contact_exists boolean;
+  v_processed integer := 0;
   v_inserted integer := 0;
   v_updated integer := 0;
+  v_skipped integer := 0;
   v_suppressed integer := 0;
   v_reconsented integer := 0;
+  v_has_more boolean := false;
+  v_after_user_id uuid;
+  v_next_cursor uuid;
+  v_opaque_cursor text;
+  v_cursor_payload text;
+  v_cursor_parts text[];
+  v_secret text;
+  v_actor_user_id uuid;
 BEGIN
   PERFORM public.marketing_require_admin();
+  v_actor_user_id := public.marketing_actor_user_id();
+  IF v_actor_user_id IS NULL THEN
+    RAISE EXCEPTION 'Marketing actor context is required' USING ERRCODE = '42501';
+  END IF;
+
+  -- The browser receives only an encrypted, actor-bound continuation token;
+  -- the underlying auth.users UUID never crosses the BFF boundary.
+  IF p_cursor IS NOT NULL THEN
+    IF char_length(p_cursor) NOT BETWEEN 40 AND 512
+       OR p_cursor !~ '^[A-Za-z0-9+/]+={0,2}$' THEN
+      RAISE EXCEPTION 'Consent synchronization cursor is invalid' USING ERRCODE = '22023';
+    END IF;
+    BEGIN
+      v_secret := public.marketing_bff_encryption_secret();
+      v_cursor_payload := extensions.pgp_sym_decrypt(
+        decode(p_cursor, 'base64'),
+        v_secret
+      );
+      v_cursor_parts := string_to_array(v_cursor_payload, '|');
+      IF cardinality(v_cursor_parts) <> 3
+         OR v_cursor_parts[1] <> 'marketing-consent-v1'
+         OR v_cursor_parts[2]::uuid IS DISTINCT FROM v_actor_user_id THEN
+        RAISE EXCEPTION 'Consent synchronization cursor is invalid' USING ERRCODE = '22023';
+      END IF;
+      v_after_user_id := v_cursor_parts[3]::uuid;
+    EXCEPTION WHEN OTHERS THEN
+      RAISE EXCEPTION 'Consent synchronization cursor is invalid' USING ERRCODE = '22023';
+    END;
+  END IF;
+
   FOR v_receipt IN
-    SELECT DISTINCT ON (r.user_id)
-      r.id, r.user_id, r.consent_version, r.marketing, r.source, r.recorded_at
-    FROM public.consent_receipts r
-    WHERE r.user_id IS NOT NULL
-    ORDER BY r.user_id, r.recorded_at DESC, r.created_at DESC, r.id DESC
-    LIMIT LEAST(GREATEST(COALESCE(p_limit, 10000), 1), 25000)
+    WITH users AS MATERIALIZED (
+      SELECT DISTINCT r.user_id
+      FROM public.consent_receipts r
+      WHERE r.user_id IS NOT NULL
+        AND (v_after_user_id IS NULL OR r.user_id > v_after_user_id)
+      ORDER BY r.user_id
+      LIMIT v_limit + 1
+    )
+    SELECT latest.id, users.user_id, latest.consent_version, latest.marketing,
+      latest.source, latest.recorded_at,
+      row_number() OVER (ORDER BY users.user_id) AS batch_position
+    FROM users
+    CROSS JOIN LATERAL (
+      SELECT r.id, r.consent_version, r.marketing, r.source, r.recorded_at
+      FROM public.consent_receipts r
+      WHERE r.user_id = users.user_id
+      ORDER BY r.recorded_at DESC, r.created_at DESC, r.id DESC
+      LIMIT 1
+    ) latest
+    ORDER BY users.user_id
   LOOP
+    IF v_receipt.batch_position > v_limit THEN
+      v_has_more := true;
+      EXIT;
+    END IF;
+
+    v_processed := v_processed + 1;
+    v_next_cursor := v_receipt.user_id;
+    -- Two administrators may start the same resumable run. Serialize only the
+    -- current user, never the whole catalogue.
+    PERFORM pg_catalog.pg_advisory_xact_lock(
+      pg_catalog.hashtextextended('marketing-consent:' || v_receipt.user_id::text, 0)
+    );
     SELECT * INTO v_contact FROM public.marketing_contacts
     WHERE user_id = v_receipt.user_id FOR UPDATE;
-    IF NOT FOUND THEN
+    v_contact_exists := FOUND;
+
+    IF v_contact_exists
+       AND v_contact.source_system = 'consent_receipts'
+       AND v_contact.source_reference = v_receipt.id::text
+       AND v_contact.metadata ->> 'receipt_id' = v_receipt.id::text THEN
+      v_skipped := v_skipped + 1;
+      CONTINUE;
+    END IF;
+
+    PERFORM set_config(
+      'app.marketing_lawful_basis_context',
+      jsonb_build_object(
+        'source', left('consent_receipts:' || COALESCE(NULLIF(v_receipt.source, ''), 'unknown'), 200),
+        'note', CASE WHEN v_receipt.marketing IS TRUE
+          THEN 'Explicit marketing consent synchronized from the authoritative consent receipt.'
+          ELSE 'Marketing opposition synchronized from the authoritative consent receipt.' END,
+        'recorded_at', COALESCE(v_receipt.recorded_at, clock_timestamp()),
+        'quality', 'verified',
+        'source_system', 'consent_receipts',
+        'source_reference', v_receipt.id::text
+      )::text,
+      true
+    );
+
+    IF NOT v_contact_exists THEN
       INSERT INTO public.marketing_contacts (
         contact_type, user_id, source_system, source_reference, display_name,
         target_fingerprint, lawful_basis, lifecycle_status, consent_source, consent_at,
@@ -1683,27 +2859,34 @@ BEGIN
       ) VALUES (
         'registered_user', v_receipt.user_id, 'consent_receipts', v_receipt.id::text, 'Client TheTOK',
         encode(extensions.digest('consent_receipts:' || v_receipt.user_id::text, 'sha256'), 'hex'),
-        CASE WHEN v_receipt.marketing THEN 'consent' ELSE 'none' END,
-        CASE WHEN v_receipt.marketing THEN 'new' ELSE 'opted_out' END,
-        CASE WHEN v_receipt.marketing THEN 'consent_receipts:' || v_receipt.source ELSE NULL END,
-        CASE WHEN v_receipt.marketing THEN v_receipt.recorded_at ELSE NULL END,
-        CASE WHEN v_receipt.marketing THEN NULL ELSE v_receipt.recorded_at END,
-        CASE WHEN v_receipt.marketing THEN NULL ELSE 'consent_receipt_opt_out' END,
-        jsonb_build_object('receipt_id', v_receipt.id, 'consent_version', v_receipt.consent_version), auth.uid()
+        CASE WHEN v_receipt.marketing IS TRUE THEN 'consent' ELSE 'none' END,
+        CASE WHEN v_receipt.marketing IS TRUE THEN 'new' ELSE 'opted_out' END,
+        CASE WHEN v_receipt.marketing IS TRUE THEN
+          'consent_receipts:' || COALESCE(NULLIF(v_receipt.source, ''), 'unknown') ELSE NULL END,
+        CASE WHEN v_receipt.marketing IS TRUE THEN
+          COALESCE(v_receipt.recorded_at, clock_timestamp()) ELSE NULL END,
+        CASE WHEN v_receipt.marketing IS TRUE THEN NULL
+          ELSE COALESCE(v_receipt.recorded_at, clock_timestamp()) END,
+        CASE WHEN v_receipt.marketing IS TRUE THEN NULL ELSE 'consent_receipt_opt_out' END,
+        jsonb_build_object('receipt_id', v_receipt.id, 'consent_version', v_receipt.consent_version), public.marketing_actor_user_id()
       );
       v_inserted := v_inserted + 1;
-    ELSIF v_receipt.marketing IS FALSE THEN
+      IF v_receipt.marketing IS NOT TRUE THEN v_suppressed := v_suppressed + 1; END IF;
+    ELSIF v_receipt.marketing IS NOT TRUE THEN
       UPDATE public.marketing_contacts SET
         source_system = 'consent_receipts', source_reference = v_receipt.id::text,
         lawful_basis = 'none', lifecycle_status = 'opted_out',
-        opted_out_at = GREATEST(COALESCE(opted_out_at, v_receipt.recorded_at), v_receipt.recorded_at),
+        opted_out_at = GREATEST(
+          COALESCE(opted_out_at, v_receipt.recorded_at, clock_timestamp()),
+          COALESCE(v_receipt.recorded_at, clock_timestamp())
+        ),
         suppression_reason = 'consent_receipt_opt_out', consent_source = NULL, consent_at = NULL,
         next_action_at = NULL,
         metadata = metadata || jsonb_build_object('receipt_id', v_receipt.id, 'consent_version', v_receipt.consent_version)
       WHERE id = v_contact.id;
       UPDATE public.marketing_deliveries SET
         status = 'cancelled', last_error = 'Contact opted out through consent receipt',
-        unsubscribed_at = COALESCE(unsubscribed_at, v_receipt.recorded_at)
+        unsubscribed_at = COALESCE(unsubscribed_at, v_receipt.recorded_at, clock_timestamp())
       WHERE contact_id = v_contact.id AND status IN ('queued','leased','processing','retrying','manual_required');
       v_updated := v_updated + 1;
       v_suppressed := v_suppressed + 1;
@@ -1714,23 +2897,50 @@ BEGIN
       UPDATE public.marketing_contacts SET
         source_system = 'consent_receipts', source_reference = v_receipt.id::text,
         lawful_basis = 'consent', lifecycle_status = CASE WHEN lifecycle_status = 'opted_out' THEN 'new' ELSE lifecycle_status END,
-        consent_source = 'consent_receipts:' || v_receipt.source, consent_at = v_receipt.recorded_at,
+        consent_source = 'consent_receipts:' || COALESCE(NULLIF(v_receipt.source, ''), 'unknown'),
+        consent_at = COALESCE(v_receipt.recorded_at, clock_timestamp()),
         opted_out_at = NULL, suppression_reason = NULL,
         metadata = metadata || jsonb_build_object('receipt_id', v_receipt.id, 'consent_version', v_receipt.consent_version)
       WHERE id = v_contact.id;
       v_updated := v_updated + 1;
+    ELSE
+      -- An opt-out is never cleared by a non-settings receipt. The user is
+      -- advanced in this run, but the protected suppression state is retained.
+      v_skipped := v_skipped + 1;
     END IF;
   END LOOP;
+  IF v_has_more AND v_next_cursor IS NOT NULL THEN
+    v_secret := COALESCE(v_secret, public.marketing_bff_encryption_secret());
+    v_opaque_cursor := replace(encode(extensions.pgp_sym_encrypt(
+      concat_ws('|', 'marketing-consent-v1', v_actor_user_id::text, v_next_cursor::text),
+      v_secret,
+      'cipher-algo=aes256, compress-algo=0'
+    ), 'base64'), E'\n', '');
+  END IF;
   INSERT INTO public.audit_log (
     id, user_id, action, entity_type, old_data, new_data, created_at
   ) VALUES (
-    gen_random_uuid(), auth.uid(), 'marketing_client_consents_synced', 'marketing_contacts', NULL,
-    jsonb_build_object('inserted', v_inserted, 'updated', v_updated,
-      'suppressed', v_suppressed, 'reconsented', v_reconsented), now()
+    gen_random_uuid(), public.marketing_actor_user_id(), 'marketing_client_consents_synced', 'marketing_contacts', NULL,
+    jsonb_build_object(
+      'processed', v_processed, 'inserted', v_inserted, 'updated', v_updated,
+      'skipped', v_skipped, 'suppressed', v_suppressed,
+      'reconsented', v_reconsented, 'has_more', v_has_more
+    ), now()
   );
   RETURN jsonb_build_object(
-    'inserted', v_inserted, 'updated', v_updated, 'suppressed', v_suppressed,
-    'reconsented', v_reconsented, 'contains_email', false, 'synced_at', now()
+    'processed', v_processed,
+    'inserted', v_inserted,
+    'updated', v_updated,
+    'skipped', v_skipped,
+    'suppressed', v_suppressed,
+    'reconsented', v_reconsented,
+    'remaining', CASE WHEN v_has_more THEN 1 ELSE 0 END,
+    'remaining_is_exact', NOT v_has_more,
+    'has_more', v_has_more,
+    'complete', NOT v_has_more,
+    'next_cursor', v_opaque_cursor,
+    'contains_email', false,
+    'synced_at', now()
   );
 END;
 $$;
@@ -1871,7 +3081,7 @@ BEGIN
   END IF;
 
   UPDATE public.marketing_calendar_items SET
-    approval_status = 'approved', approved_by = auth.uid(), approved_at = now(), status = 'scheduled',
+    approval_status = 'approved', approved_by = public.marketing_actor_user_id(), approved_at = now(), status = 'scheduled',
     audience_size = v_computed_audience_size,
     scheduled_at = v_effective_scheduled_at,
     lease_token = NULL, lease_expires_at = NULL, next_attempt_at = NULL, last_error = NULL
@@ -2002,7 +3212,7 @@ BEGIN
       COALESCE(NULLIF(p_payload ->> 'trigger_type', ''), 'manual'),
       NULLIF(p_payload ->> 'channel', ''), 'paused',
       COALESCE(p_payload -> 'conditions', '{}'::jsonb), COALESCE(p_payload -> 'actions', '[]'::jsonb),
-      NULLIF(p_payload ->> 'next_run_at', '')::timestamptz, auth.uid()
+      NULLIF(p_payload ->> 'next_run_at', '')::timestamptz, public.marketing_actor_user_id()
     ) RETURNING * INTO v_row;
   ELSE
     SELECT * INTO v_existing FROM public.marketing_automations WHERE id = v_id FOR UPDATE;
@@ -2180,12 +3390,11 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.admin_list_marketing_deliveries(
-  p_item_id uuid DEFAULT NULL,
+  p_query text DEFAULT NULL,
   p_status text DEFAULT NULL,
   p_channel text DEFAULT NULL,
   p_limit integer DEFAULT 100,
-  p_cursor_created_at timestamptz DEFAULT NULL,
-  p_cursor_id uuid DEFAULT NULL
+  p_offset integer DEFAULT 0
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -2194,42 +3403,184 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-  v_limit integer := LEAST(GREATEST(COALESCE(p_limit, 100), 1), 300);
+  v_query text := NULLIF(lower(btrim(p_query)), '');
+  v_status text := NULLIF(btrim(p_status), '');
+  v_channel text := NULLIF(btrim(p_channel), '');
+  v_limit integer := LEAST(GREATEST(COALESCE(p_limit, 100), 1), 200);
+  v_offset integer := COALESCE(p_offset, 0);
   v_items jsonb;
-  v_has_more boolean;
+  v_total bigint;
 BEGIN
   PERFORM public.marketing_require_admin();
-  WITH page AS (
-    SELECT d.*, COALESCE(c.name, 'Campagne') AS campaign_name
+  IF v_query IS NOT NULL AND (
+    char_length(v_query) > 80 OR position('%' IN v_query) > 0
+    OR position('_' IN v_query) > 0 OR position(chr(92) IN v_query) > 0
+  ) THEN
+    RAISE EXCEPTION 'Delivery search query is invalid' USING ERRCODE = '22023';
+  END IF;
+  IF v_status IS NOT NULL AND v_status NOT IN (
+    'queued','leased','processing','retrying','sent','delivered','opened','clicked',
+    'converted','bounced','complained','unsubscribed','skipped',
+    'blocked_configuration','manual_required','failed','cancelled'
+  ) THEN
+    RAISE EXCEPTION 'Delivery status filter is invalid' USING ERRCODE = '22023';
+  END IF;
+  IF v_channel IS NOT NULL AND v_channel NOT IN (
+    'tok_news','in_app','email','push','instagram','facebook','linkedin',
+    'tiktok','youtube','telegram','google_business','website',
+    'manual_call','manual_email','manual_visit'
+  ) THEN
+    RAISE EXCEPTION 'Delivery channel filter is invalid' USING ERRCODE = '22023';
+  END IF;
+  IF v_offset < 0 OR v_offset > 100000 THEN
+    RAISE EXCEPTION 'Delivery offset is invalid' USING ERRCODE = '22023';
+  END IF;
+
+  WITH filtered AS MATERIALIZED (
+    SELECT d.*, i.title AS item_title, COALESCE(c.name, 'Campagne') AS campaign_name
     FROM public.marketing_deliveries d
     JOIN public.marketing_calendar_items i ON i.id = d.item_id
     LEFT JOIN public.marketing_campaigns c ON c.id = i.campaign_id
-    WHERE (p_item_id IS NULL OR d.item_id = p_item_id)
-      AND (p_status IS NULL OR d.status = p_status)
-      AND (p_channel IS NULL OR d.channel = p_channel)
-      AND (p_cursor_created_at IS NULL OR p_cursor_id IS NULL OR (d.created_at, d.id) < (p_cursor_created_at, p_cursor_id))
-    ORDER BY d.created_at DESC, d.id DESC LIMIT v_limit + 1
-  ), visible AS (
-    SELECT * FROM page ORDER BY created_at DESC, id DESC LIMIT v_limit
+    WHERE (v_status IS NULL OR d.status = v_status)
+      AND (v_channel IS NULL OR d.channel = v_channel)
+      AND (v_query IS NULL OR
+        lower(COALESCE(c.name, 'Campagne')) LIKE v_query || '%'
+        OR lower(i.title) LIKE v_query || '%'
+        OR lower(d.provider) LIKE v_query || '%'
+        OR lower(COALESCE(d.error_code, '')) LIKE v_query || '%'
+        OR lower(d.status) LIKE v_query || '%'
+        OR lower(d.channel) LIKE v_query || '%'
+      )
+  ), page AS (
+    SELECT * FROM filtered
+    ORDER BY created_at DESC, id DESC
+    LIMIT v_limit OFFSET v_offset
   )
-  SELECT COALESCE(jsonb_agg(jsonb_build_object(
-    'id', id, 'item_id', item_id, 'campaign_name', campaign_name,
-    'target_masked', target_masked, 'channel', channel,
-    'status', status, 'provider', provider, 'attempt', attempt_count,
-    'scheduled_at', scheduled_at, 'sent_at', sent_at, 'delivered_at', delivered_at,
-    'opened_at', opened_at, 'clicked_at', clicked_at, 'converted_at', converted_at,
-    'manual_outcome', metadata ->> 'manual_outcome',
-    'manual_note', left(metadata ->> 'manual_note', 2000),
-    'created_at', created_at, 'updated_at', updated_at, 'error_code', error_code
-  ) ORDER BY created_at DESC, id DESC), '[]'::jsonb),
-  (SELECT count(*) > v_limit FROM page)
-  INTO v_items, v_has_more FROM visible;
+  SELECT
+    COALESCE(jsonb_agg(jsonb_build_object(
+      'id', page.id, 'item_id', page.item_id, 'item_title', page.item_title,
+      'campaign_name', page.campaign_name,
+      'target_masked', page.target_masked, 'channel', page.channel,
+      'status', page.status, 'provider', page.provider, 'attempt', page.attempt_count,
+      'scheduled_at', page.scheduled_at, 'sent_at', page.sent_at,
+      'delivered_at', page.delivered_at, 'opened_at', page.opened_at,
+      'clicked_at', page.clicked_at, 'converted_at', page.converted_at,
+      'manual_outcome', page.metadata ->> 'manual_outcome',
+      'manual_note', left(page.metadata ->> 'manual_note', 2000),
+      'created_at', page.created_at, 'updated_at', page.updated_at,
+      'error_code', page.error_code
+    ) ORDER BY page.created_at DESC, page.id DESC), '[]'::jsonb),
+    (SELECT count(*) FROM filtered)
+  INTO v_items, v_total
+  FROM page;
+
   RETURN jsonb_build_object(
-    'items', v_items,
-    'next_cursor', CASE WHEN v_has_more AND jsonb_array_length(v_items) > 0 THEN jsonb_build_object(
-      'created_at', v_items -> (jsonb_array_length(v_items) - 1) ->> 'created_at',
-      'id', v_items -> (jsonb_array_length(v_items) - 1) ->> 'id'
-    ) ELSE NULL END
+    'items', v_items, 'total', v_total, 'limit', v_limit, 'offset', v_offset,
+    'has_more', v_offset::bigint + jsonb_array_length(v_items) < v_total
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_reveal_manual_delivery_target(
+  p_delivery_id uuid,
+  p_reason text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_delivery public.marketing_deliveries%ROWTYPE;
+  v_item public.marketing_calendar_items%ROWTYPE;
+  v_campaign public.marketing_campaigns%ROWTYPE;
+  v_contact public.marketing_contacts%ROWTYPE;
+  v_target text;
+  v_revealed_at timestamptz := clock_timestamp();
+BEGIN
+  PERFORM public.marketing_require_admin();
+  IF p_delivery_id IS NULL OR NULLIF(btrim(p_reason), '') IS NULL
+     OR char_length(btrim(p_reason)) NOT BETWEEN 8 AND 500 THEN
+    RAISE EXCEPTION 'A reveal reason between 8 and 500 characters is required' USING ERRCODE = '22023';
+  END IF;
+  IF public.marketing_runtime_enabled() IS NOT TRUE THEN
+    RAISE EXCEPTION 'Marketing runtime or feature kill-switch is disabled' USING ERRCODE = '55000';
+  END IF;
+  IF (v_revealed_at AT TIME ZONE 'Europe/Zurich')::time < time '08:00'
+     OR (v_revealed_at AT TIME ZONE 'Europe/Zurich')::time >= time '20:00' THEN
+    RAISE EXCEPTION 'Manual marketing access is outside quiet hours' USING ERRCODE = '55000';
+  END IF;
+
+  SELECT * INTO v_delivery
+  FROM public.marketing_deliveries d
+  WHERE d.id = p_delivery_id
+  FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Delivery not found' USING ERRCODE = 'P0002'; END IF;
+  IF v_delivery.status <> 'manual_required' THEN
+    RAISE EXCEPTION 'Only manual_required deliveries can reveal a target' USING ERRCODE = '22023';
+  END IF;
+  IF v_delivery.channel NOT IN ('manual_call','manual_email') THEN
+    RAISE EXCEPTION 'Only manual call or email targets can be revealed' USING ERRCODE = '22023';
+  END IF;
+  IF v_delivery.contact_id IS NULL THEN
+    RAISE EXCEPTION 'Manual delivery has no governed contact' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT * INTO v_item
+  FROM public.marketing_calendar_items i
+  WHERE i.id = v_delivery.item_id
+  FOR SHARE;
+  IF NOT FOUND OR v_item.approval_status <> 'approved' OR v_item.approved_at IS NULL
+     OR v_item.approved_at IS DISTINCT FROM v_delivery.item_approved_at
+     OR v_item.status IN ('draft','cancelled','failed','blocked_configuration') THEN
+    RAISE EXCEPTION 'Parent item is not approved for this delivery revision' USING ERRCODE = '42501';
+  END IF;
+  IF v_item.campaign_id IS NOT NULL THEN
+    SELECT * INTO v_campaign
+    FROM public.marketing_campaigns c
+    WHERE c.id = v_item.campaign_id
+    FOR SHARE;
+    IF NOT FOUND OR v_campaign.approved_at IS NULL
+       OR v_campaign.status IN ('paused','completed','cancelled','failed') THEN
+      RAISE EXCEPTION 'Parent campaign is not approved' USING ERRCODE = '42501';
+    END IF;
+  END IF;
+
+  SELECT * INTO v_contact
+  FROM public.marketing_contacts c
+  WHERE c.id = v_delivery.contact_id
+  FOR SHARE;
+  IF NOT FOUND OR public.marketing_contact_is_eligible(v_delivery.contact_id, v_delivery.channel) IS NOT TRUE THEN
+    RAISE EXCEPTION 'Contact opted out or is no longer eligible' USING ERRCODE = '42501';
+  END IF;
+  v_target := CASE
+    WHEN v_delivery.channel = 'manual_call' THEN v_contact.phone_normalized
+    WHEN v_delivery.channel = 'manual_email' THEN v_contact.email_normalized
+  END;
+  IF v_target IS NULL THEN
+    RAISE EXCEPTION 'Manual target is unavailable' USING ERRCODE = '42501';
+  END IF;
+
+  -- Never persist or audit the raw target. Every reveal is still attributable
+  -- to the active MFA-backed administrator session and its stated purpose.
+  INSERT INTO public.audit_log (
+    id, user_id, action, entity_type, entity_id, old_data, new_data, created_at
+  ) VALUES (
+    gen_random_uuid(), public.marketing_actor_user_id(), 'marketing_manual_target_revealed',
+    'marketing_deliveries', v_delivery.id, NULL,
+    jsonb_build_object(
+      'channel', v_delivery.channel,
+      'reason', left(btrim(p_reason), 500),
+      'revealed_at', v_revealed_at
+    ),
+    v_revealed_at
+  );
+
+  RETURN jsonb_build_object(
+    'delivery_id', v_delivery.id,
+    'channel', v_delivery.channel,
+    'target', v_target,
+    'revealed_at', v_revealed_at
   );
 END;
 $$;
@@ -2308,7 +3659,7 @@ BEGIN
   END IF;
   SELECT * INTO v_delivery FROM public.marketing_deliveries WHERE id = p_delivery_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Delivery not found' USING ERRCODE = 'P0002'; END IF;
-  IF v_delivery.channel NOT IN ('manual_call','manual_email','manual_visit') THEN
+  IF v_delivery.channel NOT IN ('manual_call','manual_email') THEN
     RAISE EXCEPTION 'Delivery is not a manual task' USING ERRCODE = '22023';
   END IF;
   IF v_delivery.status IN ('sent','failed')
@@ -2330,7 +3681,7 @@ BEGIN
     last_error = CASE WHEN p_outcome = 'failed' THEN left(btrim(p_note), 1000) ELSE NULL END,
     metadata = metadata || jsonb_build_object(
       'manual_outcome', p_outcome, 'manual_note', left(btrim(p_note), 2000),
-      'completed_by', auth.uid(), 'completed_at', now()
+      'completed_by', public.marketing_actor_user_id(), 'completed_at', now()
     )
   WHERE id = p_delivery_id RETURNING * INTO v_delivery;
 
@@ -2349,7 +3700,7 @@ BEGIN
   INSERT INTO public.audit_log (
     id, user_id, action, entity_type, entity_id, old_data, new_data, created_at
   ) VALUES (
-    gen_random_uuid(), auth.uid(), 'marketing_manual_delivery_completed', 'marketing_deliveries',
+    gen_random_uuid(), public.marketing_actor_user_id(), 'marketing_manual_delivery_completed', 'marketing_deliveries',
     v_delivery.id, NULL, jsonb_build_object('outcome', p_outcome), now()
   );
   RETURN jsonb_build_object(
@@ -2416,14 +3767,14 @@ BEGIN
     last_error = CASE WHEN p_outcome = 'failed' THEN left(btrim(p_note), 1000) ELSE NULL END,
     result_summary = result_summary || jsonb_build_object(
       'manual_outcome', p_outcome, 'manual_note', left(btrim(p_note), 2000),
-      'completed_by', auth.uid(), 'completed_at', now()
+      'completed_by', public.marketing_actor_user_id(), 'completed_at', now()
     )
   WHERE id = p_item_id RETURNING * INTO v_item;
 
   INSERT INTO public.audit_log (
     id, user_id, action, entity_type, entity_id, old_data, new_data, created_at
   ) VALUES (
-    gen_random_uuid(), auth.uid(), 'marketing_manual_item_completed', 'marketing_calendar_items',
+    gen_random_uuid(), public.marketing_actor_user_id(), 'marketing_manual_item_completed', 'marketing_calendar_items',
     v_item.id, NULL, jsonb_build_object('outcome', p_outcome), now()
   );
   RETURN jsonb_build_object(
@@ -2582,7 +3933,7 @@ BEGIN
       ))
       AND (
         g.status = 'connected'
-        OR (g.status = 'manual' AND i.channel IN ('manual_call','manual_email','manual_visit'))
+        OR (g.status = 'manual' AND i.channel IN ('manual_call','manual_email'))
       )
     ORDER BY COALESCE(i.next_attempt_at, i.scheduled_at), i.id
     FOR UPDATE OF i SKIP LOCKED
@@ -2649,7 +4000,7 @@ BEGIN
       ))
       AND (
         g.status = 'connected'
-        OR (g.status = 'manual' AND i.channel IN ('manual_call','manual_email','manual_visit'))
+        OR (g.status = 'manual' AND i.channel IN ('manual_call','manual_email'))
       )
     FOR UPDATE OF i SKIP LOCKED
   ), claimed AS (
@@ -2828,7 +4179,7 @@ BEGIN
     SELECT c.*,
       CASE
         WHEN v_item.channel IN ('email','manual_email') THEN c.email_normalized
-        WHEN v_item.channel IN ('manual_call','manual_visit') THEN c.phone
+        WHEN v_item.channel IN ('manual_call','manual_visit') THEN c.phone_normalized
         ELSE c.user_id::text
       END AS raw_target
     FROM public.marketing_contacts c
@@ -2986,7 +4337,7 @@ BEGIN
   )
   SELECT d.id, d.item_id, d.contact_id, d.user_id, d.channel, d.provider,
     CASE WHEN d.channel = 'email' THEN c.email_normalized
-         WHEN d.channel IN ('manual_call','manual_visit') THEN c.phone
+         WHEN d.channel IN ('manual_call','manual_visit') THEN c.phone_normalized
          ELSE c.user_id::text END AS raw_target,
     i.content, d.attempt_count, d.max_attempts, d.lease_token, d.idempotency_key
   FROM claimed d
@@ -3299,6 +4650,18 @@ BEGIN
     WHERE id = v_delivery.id;
   END IF;
   IF v_status IN ('unsubscribed','complained') AND v_delivery.contact_id IS NOT NULL THEN
+    PERFORM set_config(
+      'app.marketing_lawful_basis_context',
+      jsonb_build_object(
+        'source', left('provider_event:' || p_provider, 200),
+        'note', 'Marketing suppression recorded from provider event: ' || v_status || '.',
+        'recorded_at', COALESCE(p_occurred_at, clock_timestamp()),
+        'quality', 'system_event',
+        'source_system', 'provider_event',
+        'source_reference', left(p_provider_event_id, 200)
+      )::text,
+      true
+    );
     UPDATE public.marketing_contacts SET
       opted_out_at = COALESCE(opted_out_at, p_occurred_at, now()), lifecycle_status = 'opted_out',
       lawful_basis = 'none', suppression_reason = 'provider_' || v_status, next_action_at = NULL
@@ -3369,6 +4732,271 @@ BEGIN
 END;
 $$;
 
+-- Single BFF entrypoint for browser-driven marketing administration. The
+-- service role remains server-side; operation names and argument casts are
+-- explicit so callers cannot turn this function into an arbitrary RPC proxy.
+CREATE OR REPLACE FUNCTION public.service_execute_marketing_admin_operation(
+  p_sid_hash text,
+  p_csrf_hash text,
+  p_operation text,
+  p_args jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_session jsonb;
+  v_actor_user_id uuid;
+  v_args jsonb := COALESCE(p_args, '{}'::jsonb);
+  v_result jsonb;
+BEGIN
+  PERFORM public.marketing_require_service_role();
+  IF jsonb_typeof(v_args) <> 'object' THEN
+    RAISE EXCEPTION 'Marketing operation arguments must be an object'
+      USING ERRCODE = '22023';
+  END IF;
+
+  v_session := public.service_get_marketing_web_session(
+    p_sid_hash,
+    p_csrf_hash,
+    true
+  );
+  IF v_session IS NULL THEN
+    RAISE EXCEPTION 'Active marketing BFF session and CSRF proof required'
+      USING ERRCODE = '42501';
+  END IF;
+  v_actor_user_id := NULLIF(v_session ->> 'user_id', '')::uuid;
+
+  -- Re-evaluate authorization from the database instead of trusting a stale
+  -- JWT or an actor identifier supplied by the browser.
+  IF v_actor_user_id IS NULL OR NOT EXISTS (
+    SELECT 1 FROM public.user_roles ur
+    WHERE ur.user_id = v_actor_user_id AND ur.role::text = 'admin'
+  ) THEN
+    UPDATE public.marketing_admin_web_sessions s
+    SET revoked_at = COALESCE(s.revoked_at, clock_timestamp()),
+        revoke_reason = COALESCE(s.revoke_reason, 'admin_role_removed')
+    WHERE s.sid_hash = p_sid_hash;
+    RAISE EXCEPTION 'Administrator role required' USING ERRCODE = '42501';
+  END IF;
+
+  PERFORM set_config('app.marketing_actor_user_id', v_actor_user_id::text, true);
+  PERFORM set_config('app.marketing_web_session_sid_hash', p_sid_hash, true);
+  PERFORM set_config('app.marketing_operation', COALESCE(p_operation, ''), true);
+
+  CASE p_operation
+    WHEN 'admin_get_marketing_overview' THEN
+      v_result := public.admin_get_marketing_overview(
+        COALESCE(NULLIF(v_args ->> 'p_from', '')::timestamptz, now() - interval '30 days'),
+        COALESCE(NULLIF(v_args ->> 'p_to', '')::timestamptz, now() + interval '60 days')
+      );
+    WHEN 'admin_list_marketing_campaigns' THEN
+      v_result := public.admin_list_marketing_campaigns(
+        NULLIF(v_args ->> 'p_status', ''),
+        COALESCE(NULLIF(v_args ->> 'p_limit', '')::integer, 50),
+        NULLIF(v_args ->> 'p_cursor_updated_at', '')::timestamptz,
+        NULLIF(v_args ->> 'p_cursor_id', '')::uuid
+      );
+    WHEN 'admin_list_marketing_calendar' THEN
+      v_result := public.admin_list_marketing_calendar(
+        NULLIF(v_args ->> 'p_from', '')::timestamptz,
+        NULLIF(v_args ->> 'p_to', '')::timestamptz,
+        NULLIF(v_args ->> 'p_status', ''),
+        NULLIF(v_args ->> 'p_channel', ''),
+        COALESCE(NULLIF(v_args ->> 'p_limit', '')::integer, 100),
+        NULLIF(v_args ->> 'p_cursor_scheduled_at', '')::timestamptz,
+        NULLIF(v_args ->> 'p_cursor_id', '')::uuid
+      );
+    WHEN 'admin_list_marketing_deliveries' THEN
+      v_result := public.admin_list_marketing_deliveries(
+        NULLIF(v_args ->> 'p_query', ''),
+        NULLIF(v_args ->> 'p_status', ''),
+        NULLIF(v_args ->> 'p_channel', ''),
+        COALESCE(NULLIF(v_args ->> 'p_limit', '')::integer, 100),
+        COALESCE(NULLIF(v_args ->> 'p_offset', '')::integer, 0)
+      );
+    WHEN 'admin_list_marketing_automations' THEN
+      v_result := public.admin_list_marketing_automations(
+        NULLIF(v_args ->> 'p_status', ''),
+        COALESCE(NULLIF(v_args ->> 'p_limit', '')::integer, 50),
+        NULLIF(v_args ->> 'p_cursor_updated_at', '')::timestamptz,
+        NULLIF(v_args ->> 'p_cursor_id', '')::uuid
+      );
+    WHEN 'admin_list_marketing_integrations' THEN
+      v_result := public.admin_list_marketing_integrations(
+        NULLIF(v_args ->> 'p_channel', ''),
+        COALESCE(NULLIF(v_args ->> 'p_limit', '')::integer, 100),
+        NULLIF(v_args ->> 'p_cursor_id', '')::uuid
+      );
+    WHEN 'admin_list_marketing_contacts' THEN
+      v_result := public.admin_list_marketing_contacts(
+        NULLIF(v_args ->> 'p_query', ''),
+        NULLIF(v_args ->> 'p_status', ''),
+        NULLIF(v_args ->> 'p_channel', ''),
+        COALESCE(NULLIF(v_args ->> 'p_limit', '')::integer, 100),
+        COALESCE(NULLIF(v_args ->> 'p_offset', '')::integer, 0)
+      );
+    WHEN 'admin_upsert_marketing_contact' THEN
+      IF EXISTS (
+        SELECT 1 FROM jsonb_object_keys(v_args) AS arg(k)
+        WHERE arg.k NOT IN ('p_payload','p_expected_updated_at')
+      ) OR jsonb_typeof(v_args -> 'p_payload') <> 'object' OR EXISTS (
+        SELECT 1 FROM jsonb_object_keys(v_args -> 'p_payload') AS field(k)
+        WHERE field.k NOT IN (
+          'id','display_name','email','phone','city','canton','category',
+          'lawful_basis','evidence_source','evidence_note','evidence_at'
+        )
+      ) THEN
+        RAISE EXCEPTION 'Restaurant qualification contains unsupported fields' USING ERRCODE = '22023';
+      END IF;
+      IF NULLIF(btrim(v_args -> 'p_payload' ->> 'display_name'), '') IS NULL
+         OR NULLIF(btrim(v_args -> 'p_payload' ->> 'city'), '') IS NULL
+         OR COALESCE(v_args -> 'p_payload' ->> 'canton', '') !~ '^[A-Za-z]{2}$'
+         OR COALESCE(v_args -> 'p_payload' ->> 'lawful_basis', '')
+           NOT IN ('consent','existing_customer','legitimate_interest') THEN
+        RAISE EXCEPTION 'Restaurant identity, location and positive lawful basis are required' USING ERRCODE = '22023';
+      END IF;
+      v_result := public.admin_upsert_marketing_contact(
+        jsonb_strip_nulls(jsonb_build_object(
+          'id', NULLIF(v_args -> 'p_payload' ->> 'id', ''),
+          'contact_type', 'restaurant_lead',
+          'display_name', NULLIF(btrim(v_args -> 'p_payload' ->> 'display_name'), ''),
+          'email', NULLIF(btrim(v_args -> 'p_payload' ->> 'email'), ''),
+          'phone', NULLIF(btrim(v_args -> 'p_payload' ->> 'phone'), ''),
+          'city', NULLIF(btrim(v_args -> 'p_payload' ->> 'city'), ''),
+          'canton', upper(v_args -> 'p_payload' ->> 'canton'),
+          'category', COALESCE(NULLIF(btrim(v_args -> 'p_payload' ->> 'category'), ''), 'Restaurant'),
+          'lifecycle_status', 'qualified',
+          'lawful_basis', v_args -> 'p_payload' ->> 'lawful_basis',
+          'consent_source', CASE
+            WHEN v_args -> 'p_payload' ->> 'lawful_basis' = 'consent'
+              THEN NULLIF(btrim(v_args -> 'p_payload' ->> 'evidence_source'), '')
+          END,
+          'consent_at', CASE
+            WHEN v_args -> 'p_payload' ->> 'lawful_basis' = 'consent'
+              THEN NULLIF(v_args -> 'p_payload' ->> 'evidence_at', '')
+          END,
+          'last_verified_at', NULLIF(v_args -> 'p_payload' ->> 'evidence_at', ''),
+          'metadata', jsonb_build_object(
+            'lawful_basis_evidence', jsonb_build_object(
+              'source', NULLIF(btrim(v_args -> 'p_payload' ->> 'evidence_source'), ''),
+              'note', NULLIF(btrim(v_args -> 'p_payload' ->> 'evidence_note'), ''),
+              'recorded_at', NULLIF(v_args -> 'p_payload' ->> 'evidence_at', '')
+            ),
+            'qualified_manually', true
+          )
+        )),
+        NULLIF(v_args ->> 'p_expected_updated_at', '')::timestamptz
+      );
+    WHEN 'admin_suppress_marketing_contact' THEN
+      IF EXISTS (
+        SELECT 1 FROM jsonb_object_keys(v_args) AS arg(k)
+        WHERE arg.k NOT IN ('p_contact_id','p_reason')
+      ) THEN
+        RAISE EXCEPTION 'Contact suppression contains unsupported fields' USING ERRCODE = '22023';
+      END IF;
+      v_result := public.admin_suppress_marketing_contact(
+        NULLIF(v_args ->> 'p_contact_id', '')::uuid,
+        v_args ->> 'p_reason'
+      );
+    WHEN 'admin_upsert_marketing_campaign' THEN
+      v_result := public.admin_upsert_marketing_campaign(
+        v_args -> 'p_payload',
+        NULLIF(v_args ->> 'p_expected_updated_at', '')::timestamptz
+      );
+    WHEN 'admin_create_marketing_campaign_bundle' THEN
+      v_result := public.admin_create_marketing_campaign_bundle(
+        v_args -> 'p_payload',
+        NULLIF(v_args ->> 'p_client_request_id', '')::uuid
+      );
+    WHEN 'admin_upsert_marketing_calendar_item' THEN
+      v_result := public.admin_upsert_marketing_calendar_item(
+        v_args -> 'p_payload',
+        NULLIF(v_args ->> 'p_expected_updated_at', '')::timestamptz
+      );
+    WHEN 'admin_cancel_marketing_item' THEN
+      v_result := public.admin_cancel_marketing_item(
+        NULLIF(v_args ->> 'p_item_id', '')::uuid,
+        v_args ->> 'p_reason'
+      );
+    WHEN 'admin_complete_manual_marketing_item' THEN
+      v_result := public.admin_complete_manual_marketing_item(
+        NULLIF(v_args ->> 'p_item_id', '')::uuid,
+        v_args ->> 'p_outcome',
+        v_args ->> 'p_note'
+      );
+    WHEN 'admin_estimate_marketing_audience' THEN
+      v_result := public.admin_estimate_marketing_audience(
+        COALESCE(v_args -> 'p_filter', '{}'::jsonb),
+        CASE
+          WHEN jsonb_typeof(v_args -> 'p_channels') = 'array' THEN
+            ARRAY(SELECT jsonb_array_elements_text(v_args -> 'p_channels'))
+          ELSE '{}'::text[]
+        END
+      );
+    WHEN 'admin_approve_marketing_campaign' THEN
+      v_result := public.admin_approve_marketing_campaign(
+        NULLIF(v_args ->> 'p_campaign_id', '')::uuid,
+        v_args ->> 'p_reason'
+      );
+    WHEN 'admin_approve_marketing_item' THEN
+      v_result := public.admin_approve_marketing_item(
+        NULLIF(v_args ->> 'p_item_id', '')::uuid,
+        NULLIF(v_args ->> 'p_scheduled_at', '')::timestamptz
+      );
+    WHEN 'admin_retry_marketing_delivery' THEN
+      v_result := public.admin_retry_marketing_delivery(
+        NULLIF(v_args ->> 'p_delivery_id', '')::uuid
+      );
+    WHEN 'admin_complete_manual_marketing_delivery' THEN
+      v_result := public.admin_complete_manual_marketing_delivery(
+        NULLIF(v_args ->> 'p_delivery_id', '')::uuid,
+        v_args ->> 'p_outcome',
+        v_args ->> 'p_note'
+      );
+    WHEN 'admin_reveal_manual_delivery_target' THEN
+      IF EXISTS (
+        SELECT 1 FROM jsonb_object_keys(v_args) AS arg(k)
+        WHERE arg.k NOT IN ('p_delivery_id','p_reason')
+      ) THEN
+        RAISE EXCEPTION 'Manual target reveal contains unsupported fields' USING ERRCODE = '22023';
+      END IF;
+      v_result := public.admin_reveal_manual_delivery_target(
+        NULLIF(v_args ->> 'p_delivery_id', '')::uuid,
+        v_args ->> 'p_reason'
+      );
+    WHEN 'admin_set_marketing_global_pause' THEN
+      v_result := public.admin_set_marketing_global_pause(
+        NULLIF(v_args ->> 'p_paused', '')::boolean,
+        v_args ->> 'p_reason'
+      );
+    WHEN 'admin_sync_marketing_prospect_catalog' THEN
+      v_result := public.admin_sync_marketing_prospect_catalog(
+        COALESCE(NULLIF(v_args ->> 'p_limit', '')::integer, 500),
+        NULLIF(v_args ->> 'p_after_source_objectid', '')::bigint,
+        NULLIF(v_args ->> 'p_until_source_objectid', '')::bigint
+      );
+    WHEN 'admin_sync_marketing_client_consents' THEN
+      v_result := public.admin_sync_marketing_client_consents(
+        COALESCE(NULLIF(v_args ->> 'p_limit', '')::integer, 250),
+        NULLIF(v_args ->> 'p_cursor', '')
+      );
+    WHEN 'admin_upsert_marketing_automation' THEN
+      v_result := public.admin_upsert_marketing_automation(
+        v_args -> 'p_payload',
+        NULLIF(v_args ->> 'p_expected_updated_at', '')::timestamptz
+      );
+    ELSE
+      RAISE EXCEPTION 'Marketing operation is not allowlisted'
+        USING ERRCODE = '22023';
+  END CASE;
+
+  RETURN v_result;
+END;
+$$;
+
 -- Revoke the default PUBLIC EXECUTE privilege from every new marketing helper.
 DO $marketing_acl$
 DECLARE v_function record;
@@ -3385,33 +5013,14 @@ END;
 $marketing_acl$;
 
 GRANT EXECUTE ON FUNCTION
-  public.admin_upsert_marketing_campaign(jsonb, timestamptz),
-  public.admin_create_marketing_campaign_bundle(jsonb, uuid),
-  public.admin_approve_marketing_campaign(uuid, text),
-  public.admin_list_marketing_campaigns(text, integer, timestamptz, uuid),
-  public.admin_upsert_marketing_calendar_item(jsonb, timestamptz),
-  public.admin_approve_marketing_item(uuid, timestamptz),
-  public.admin_cancel_marketing_item(uuid, text),
-  public.admin_list_marketing_calendar(timestamptz, timestamptz, text, text, integer, timestamptz, uuid),
-  public.admin_upsert_marketing_contact(jsonb, timestamptz),
-  public.admin_suppress_marketing_contact(uuid, text),
-  public.admin_list_marketing_contacts(text, text, integer, timestamptz, uuid),
-  public.admin_sync_marketing_prospect_catalog(integer),
-  public.admin_sync_marketing_client_consents(integer),
-  public.admin_estimate_marketing_audience(jsonb, text[]),
-  public.admin_set_marketing_global_pause(boolean, text),
-  public.admin_upsert_marketing_automation(jsonb, timestamptz),
-  public.admin_list_marketing_automations(text, integer, timestamptz, uuid),
-  public.admin_list_marketing_integrations(text, integer, uuid),
-  public.admin_update_marketing_integration(uuid, jsonb, timestamptz),
-  public.admin_list_marketing_deliveries(uuid, text, text, integer, timestamptz, uuid),
-  public.admin_retry_marketing_delivery(uuid),
-  public.admin_complete_manual_marketing_delivery(uuid, text, text),
-  public.admin_complete_manual_marketing_item(uuid, text, text),
-  public.admin_get_marketing_overview(timestamptz, timestamptz)
-TO authenticated;
-
-GRANT EXECUTE ON FUNCTION
+  public.service_store_marketing_auth_challenge(text, uuid, text, text, uuid, uuid),
+  public.service_get_marketing_auth_challenge(text),
+  public.service_finalize_marketing_web_session(text, text, text, timestamptz),
+  public.service_get_marketing_web_session(text, text, boolean),
+  public.service_revoke_marketing_web_session(text),
+  public.service_consume_marketing_auth_attempt(text),
+  public.service_clear_marketing_auth_attempt(text),
+  public.service_execute_marketing_admin_operation(text, text, text, jsonb),
   public.claim_due_marketing_items(integer, text, integer),
   public.claim_marketing_item(uuid, text, integer),
   public.complete_marketing_item(uuid, uuid, text, jsonb, text),

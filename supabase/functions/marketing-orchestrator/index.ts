@@ -32,6 +32,41 @@ type ClaimedDelivery = {
   max_attempts: number;
 };
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+async function attachDelegatedAdminIdentity(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  req: Request,
+) {
+  if (actor.authMode !== "service_role") return actor;
+
+  const delegatedUserId = req.headers.get("x-marketing-actor-user-id")?.trim() || "";
+  if (!delegatedUserId) return actor;
+  if (!UUID_PATTERN.test(delegatedUserId)) {
+    throw new HttpError(403, "Invalid delegated marketing actor");
+  }
+
+  // A delegated identity never grants service access: the request is already
+  // authenticated with the service role. This lookup only proves that the
+  // human identity recorded in the audit trail is still an administrator.
+  const { data, error } = await actor.adminClient
+    .from("user_roles")
+    .select("user_id")
+    .eq("user_id", delegatedUserId)
+    .eq("role", "admin")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new HttpError(503, "Delegated administrator check unavailable");
+  if (!data) throw new HttpError(403, "Delegated administrator required");
+
+  return {
+    ...actor,
+    userId: delegatedUserId,
+    roles: [...new Set([...actor.roles, "admin"])],
+    isAdmin: true,
+  };
+}
+
 async function invokeRpc<T>(client: AdminClient, name: string, args: Record<string, unknown>) {
   const { data, error } = await client.rpc(name, args);
   if (error) throw error;
@@ -74,7 +109,7 @@ async function materializeAll(client: AdminClient, itemId: string) {
 
 async function processItem(client: AdminClient, item: ClaimedItem) {
   try {
-    if (item.channel === "in_app" || ["manual_call", "manual_email", "manual_visit"].includes(item.channel)) {
+    if (item.channel === "in_app" || ["manual_call", "manual_email"].includes(item.channel)) {
       const materialized = await materializeAll(client, item.id);
       const nextStatus = !materialized.batchComplete
         ? "retrying"
@@ -170,6 +205,13 @@ Deno.serve(async (req) => {
   try {
     if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
     actor = await authenticateRequest(req, { allowSchedulerSecret: true, allowServiceRole: true });
+    // Browser/admin bearer tokens are deliberately insufficient here. Interactive
+    // requests must first cross the marketing BFF, which validates the isolated
+    // opaque session, MFA and CSRF before invoking this function as service_role.
+    if (actor.authMode === "user_jwt") {
+      throw new HttpError(403, "Marketing service session required");
+    }
+    actor = await attachDelegatedAdminIdentity(actor, req);
     requireRole(actor, ["admin"]);
     const payload = asRecord(await req.json().catch(() => ({})));
     const action = parseMarketingAction(payload.action);

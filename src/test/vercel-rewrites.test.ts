@@ -95,7 +95,7 @@ describe("vercel config", () => {
     }
   });
 
-  it("defines a SPA rewrite so deep links resolve to index.html", () => {
+  it("limits SPA rewrites to private application surfaces so unknown public URLs stay 404", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
 
     expect(existsSync(configPath)).toBe(true);
@@ -104,13 +104,21 @@ describe("vercel config", () => {
       rewrites?: Array<{ source?: string; destination?: string }>;
     };
 
-    expect(config.rewrites).toContainEqual({
+    const privateSurfacePattern = "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)";
+
+    expect(config.rewrites).not.toContainEqual({
       source: "/(.*)",
       destination: "/index.html",
     });
+    expect(config.rewrites).toEqual(expect.arrayContaining([
+      { source: privateSurfacePattern, destination: "/index.html" },
+      { source: `${privateSurfacePattern}/:path*`, destination: "/index.html" },
+      { source: "/tok-connect/developer", destination: "/index.html" },
+      { source: "/tok-connect/developer/:path*", destination: "/index.html" },
+    ]));
   });
 
-  it("proxies Supabase Edge Functions before the SPA fallback", () => {
+  it("proxies Supabase Edge Functions before private SPA rewrites", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
     const config = JSON.parse(readFileSync(configPath, "utf8")) as {
       rewrites?: Array<{ source?: string; destination?: string }>;
@@ -120,19 +128,23 @@ describe("vercel config", () => {
       entry.source === "/functions/v1/:path*" &&
       entry.destination === "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/:path*",
     );
-    const spaFallbackIndex = rewrites.findIndex((entry) => entry.source === "/(.*)" && entry.destination === "/index.html");
+    const spaFallbackIndex = rewrites.findIndex((entry) =>
+      entry.source?.startsWith("/:surface(") && entry.destination === "/index.html"
+    );
 
     expect(edgeFunctionIndex).toBeGreaterThan(-1);
     expect(spaFallbackIndex).toBeGreaterThan(edgeFunctionIndex);
   });
 
-  it("keeps legacy public image aliases ahead of the SPA fallback", () => {
+  it("keeps legacy public image aliases ahead of private SPA rewrites", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
     const config = JSON.parse(readFileSync(configPath, "utf8")) as {
       rewrites?: Array<{ source?: string; destination?: string }>;
     };
     const rewrites = config.rewrites || [];
-    const spaFallbackIndex = rewrites.findIndex((entry) => entry.source === "/(.*)" && entry.destination === "/index.html");
+    const spaFallbackIndex = rewrites.findIndex((entry) =>
+      entry.source?.startsWith("/:surface(") && entry.destination === "/index.html"
+    );
 
     for (const alias of [
       ["/images/fondue moitié moitié.jpg", "/images/fondue-moitie-moitie.jpg"],
@@ -214,7 +226,7 @@ describe("vercel config", () => {
     const noindexSources = (config.headers || [])
       .filter((entry) => entry.headers?.some((header) => header.key === "X-Robots-Tag"))
       .map((entry) => entry.source);
-    const privateSurfacePattern = "/:surface(admin|marketing|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)";
+    const privateSurfacePattern = "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)";
 
     expect(noindexSources).toContain(privateSurfacePattern);
     expect(noindexSources).toContain(`${privateSurfacePattern}/:path*`);
@@ -257,4 +269,3 @@ describe("vercel config", () => {
     expect(workflow).toContain("VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}");
   });
 });
-

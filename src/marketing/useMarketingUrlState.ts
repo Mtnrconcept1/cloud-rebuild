@@ -56,7 +56,7 @@ export function useMarketingUrlState() {
     const rawChannel = searchParams.get("channel");
     return {
       view: validView(searchParams.get("view")),
-      query: (searchParams.get("q") || "").slice(0, 120),
+      query: (searchParams.get("q") || "").slice(0, 80),
       status: (searchParams.get("status") || "all").slice(0, 48),
       channel: rawChannel && CHANNELS.has(rawChannel as MarketingChannelId)
         ? rawChannel as MarketingChannelId

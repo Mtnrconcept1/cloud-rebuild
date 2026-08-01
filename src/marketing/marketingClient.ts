@@ -1,8 +1,14 @@
 import { addDays, subDays } from "date-fns";
 
-import { getSupabase } from "@/integrations/supabase/client";
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
-import { marketingZurichDateBoundaryToIso } from "@/marketing/zurichTime";
+import {
+  MARKETING_BFF_ENDPOINTS,
+  marketingBffRequest,
+} from "@/marketing/marketingBffClient";
+import {
+  marketingZurichDateBoundaryToIso,
+  marketingZurichLocalDateTimeToIso,
+} from "@/marketing/zurichTime";
 import type {
   CursorPage,
   MarketingAudienceEstimate,
@@ -13,21 +19,23 @@ import type {
   MarketingCampaignDraft,
   MarketingChannel,
   MarketingChannelId,
+  MarketingContactListParams,
   MarketingContactType,
   MarketingDelivery,
+  MarketingDeliveryListParams,
   MarketingIntegration,
   MarketingOverview,
   MarketingProspect,
+  MarketingManualTarget,
+  MarketingOffsetPage,
+  MarketingRestaurantContactDraft,
   MarketingAudience,
   MarketingResultPoint,
+  MarketingSourceSyncBatch,
   MarketingSnapshot,
 } from "@/marketing/types";
 
 type UnknownRecord = Record<string, unknown>;
-type RpcResponse = { data: unknown; error: unknown };
-type RpcInvoker = (name: string, args: UnknownRecord) => PromiseLike<RpcResponse>;
-
-const supabase = getSupabase();
 
 function asRecord(value: unknown): UnknownRecord {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -83,10 +91,14 @@ function safeErrorMessage(error: unknown) {
 }
 
 async function invokeRpc<T>(name: string, args: UnknownRecord): Promise<T> {
-  const invoke = supabase.rpc as unknown as RpcInvoker;
-  const { data, error } = await invoke(name, args);
-  if (error) throw error;
-  return data as T;
+  const payload = await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.rpc, {
+    method: "POST",
+    body: { operation: name, args },
+  });
+  const envelope = asRecord(payload);
+  if (Object.prototype.hasOwnProperty.call(envelope, "data")) return envelope.data as T;
+  if (Object.prototype.hasOwnProperty.call(envelope, "result")) return envelope.result as T;
+  return payload as T;
 }
 
 function normalizeCampaign(value: unknown, fallback?: MarketingCampaign): MarketingCampaign {
@@ -276,8 +288,18 @@ function normalizeIntegration(value: unknown, fallback: MarketingIntegration[]):
 
 function normalizeProspect(value: unknown): MarketingProspect {
   const row = asRecord(value);
-  const emailMasked = asString(pick(row, "email_masked", "emailMasked")) || null;
-  const phoneMasked = asString(pick(row, "phone_masked", "phoneMasked")) || null;
+  const rawEmailMasked = asString(pick(row, "email_masked", "emailMasked")) || null;
+  const rawPhoneMasked = asString(pick(row, "phone_masked", "phoneMasked")) || null;
+  const hasEmail = asBoolean(
+    pick(row, "has_email", "hasEmail"),
+    Boolean(rawEmailMasked && rawEmailMasked !== "***"),
+  );
+  const hasPhone = asBoolean(
+    pick(row, "has_phone", "hasPhone"),
+    Boolean(rawPhoneMasked && rawPhoneMasked !== "***"),
+  );
+  const emailMasked = hasEmail ? rawEmailMasked : null;
+  const phoneMasked = hasPhone ? rawPhoneMasked : null;
   const contactability = asString(pick(row, "contactability"), "manual_research") as MarketingProspect["contactability"];
   const contactType = asString(pick(row, "contact_type", "contactType"), "manual") as MarketingContactType;
   const lawfulBasis = asString(pick(row, "lawful_basis", "lawfulBasis")) || null;
@@ -291,14 +313,16 @@ function normalizeProspect(value: unknown): MarketingProspect {
     status: asString(pick(row, "status"), "new") as MarketingProspect["status"],
     leadScore: asNumber(pick(row, "lead_score", "leadScore")),
     recommendedChannel: contactability === "opted_out"
-      ? "manual_visit"
+      ? "tok_news"
       : contactType === "registered_user" && ["consent", "existing_customer"].includes(lawfulBasis || "")
         ? "in_app"
-      : phoneMasked
+      : contactability !== "ready"
+        ? "tok_news"
+      : hasPhone && ["consent", "existing_customer", "legitimate_interest"].includes(lawfulBasis || "")
         ? "manual_call"
-        : emailMasked
+        : hasEmail && ["consent", "existing_customer"].includes(lawfulBasis || "")
           ? "manual_email"
-          : "manual_visit",
+          : "tok_news",
     contactability,
     lastContactAt: asString(pick(row, "last_contact_at", "lastContactAt")) || null,
     nextActionAt: asString(pick(row, "next_action_at", "nextActionAt")) || null,
@@ -306,6 +330,8 @@ function normalizeProspect(value: unknown): MarketingProspect {
       asString(pick(row, "canton")),
       lawfulBasis || "",
     ].filter(Boolean),
+    hasEmail,
+    hasPhone,
     emailMasked,
     phoneMasked,
     lawfulBasis,
@@ -334,11 +360,11 @@ function computeAudiencesFromProspects(prospects: MarketingProspect[]): Marketin
     .map(({ kind, canton, items }) => {
       const activeItems = items.filter((item) => item.contactability === "ready" && item.status !== "opted_out");
       const phoneReady = activeItems.filter((item) => (
-        item.phoneMasked
+        item.hasPhone
         && ["consent", "existing_customer", "legitimate_interest"].includes(item.lawfulBasis || "")
       )).length;
       const emailReady = activeItems.filter((item) => (
-        item.emailMasked
+        item.hasEmail
         && ["consent", "existing_customer"].includes(item.lawfulBasis || "")
       )).length;
       const inAppReady = kind === "client"
@@ -360,7 +386,7 @@ function computeAudiencesFromProspects(prospects: MarketingProspect[]): Marketin
             ? "manual_email" as const
             : phoneReady > 0
               ? "manual_call" as const
-              : "manual_visit" as const,
+              : "tok_news" as const,
         updatedAt:
           items.map((item) => item.updatedAt).sort()[items.length - 1] || new Date().toISOString(),
         computed: true,
@@ -368,6 +394,77 @@ function computeAudiencesFromProspects(prospects: MarketingProspect[]): Marketin
       };
     })
     .sort((left, right) => right.total - left.total);
+}
+
+function assertMarketingOffsetParams(limit: number, offset: number) {
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 200) {
+    throw new Error("Taille de page marketing invalide.");
+  }
+  if (!Number.isSafeInteger(offset) || offset < 0 || offset > 100_000) {
+    throw new Error("Position de page marketing invalide.");
+  }
+}
+
+function normalizeMarketingListQuery(query: string) {
+  const normalized = query.trim();
+  if (normalized.length > 80 || /[%_\\]/.test(normalized)) {
+    throw new Error("Recherche marketing invalide (80 caractères maximum, sans %, _ ni \\).");
+  }
+  return normalized || null;
+}
+
+function normalizeOffsetPage<T>(
+  value: unknown,
+  normalizer: (item: unknown) => T,
+  limit: number,
+  offset: number,
+): MarketingOffsetPage<T> {
+  const row = asRecord(value);
+  const rawItems = pick(row, "items", "data");
+  const rawTotal = pick(row, "total");
+  const total = Number(rawTotal);
+  if (
+    !Array.isArray(rawItems)
+    || !Number.isSafeInteger(total)
+    || total < 0
+    || rawItems.length > limit
+    || rawItems.length > total
+    || (rawItems.length > 0 && offset >= total)
+  ) {
+    throw new Error("Réponse de pagination marketing invalide.");
+  }
+  return {
+    items: rawItems.map(normalizer),
+    total,
+  };
+}
+
+export async function listMarketingContactsPage(
+  params: MarketingContactListParams,
+): Promise<MarketingOffsetPage<MarketingProspect>> {
+  assertMarketingOffsetParams(params.limit, params.offset);
+  const result = await invokeRpc<unknown>("admin_list_marketing_contacts", {
+    p_query: normalizeMarketingListQuery(params.query),
+    p_status: params.status,
+    p_channel: params.channel,
+    p_limit: params.limit,
+    p_offset: params.offset,
+  });
+  return normalizeOffsetPage(result, normalizeProspect, params.limit, params.offset);
+}
+
+export async function listMarketingDeliveriesPage(
+  params: MarketingDeliveryListParams,
+): Promise<MarketingOffsetPage<MarketingDelivery>> {
+  assertMarketingOffsetParams(params.limit, params.offset);
+  const result = await invokeRpc<unknown>("admin_list_marketing_deliveries", {
+    p_query: normalizeMarketingListQuery(params.query),
+    p_status: params.status,
+    p_channel: params.channel,
+    p_limit: params.limit,
+    p_offset: params.offset,
+  });
+  return normalizeOffsetPage(result, (item) => normalizeDelivery(item), params.limit, params.offset);
 }
 
 export async function loadMarketingSnapshot(options: {
@@ -412,13 +509,12 @@ export async function loadMarketingSnapshot(options: {
       p_cursor_scheduled_at: null,
       p_cursor_id: null,
     }),
-    invokeRpc<unknown>("admin_list_marketing_deliveries", {
-      p_item_id: null,
-      p_status: null,
-      p_channel: null,
-      p_limit: 200,
-      p_cursor_created_at: null,
-      p_cursor_id: null,
+    listMarketingDeliveriesPage({
+      query: "",
+      status: null,
+      channel: null,
+      limit: 200,
+      offset: 0,
     }),
     invokeRpc<unknown>("admin_list_marketing_automations", {
       p_status: null,
@@ -431,12 +527,12 @@ export async function loadMarketingSnapshot(options: {
       p_limit: 100,
       p_cursor_id: null,
     }),
-    invokeRpc<unknown>("admin_list_marketing_contacts", {
-      p_status: null,
-      p_canton: null,
-      p_limit: 100,
-      p_cursor_updated_at: null,
-      p_cursor_id: null,
+    listMarketingContactsPage({
+      query: "",
+      status: null,
+      channel: null,
+      limit: 100,
+      offset: 0,
     }),
   ]);
 
@@ -477,7 +573,7 @@ export async function loadMarketingSnapshot(options: {
 
   if (deliveriesResult.status === "fulfilled") {
     successfulReads += 1;
-    deliveries = normalizeCursorPage(deliveriesResult.value, (item) => normalizeDelivery(item)).items;
+    deliveries = deliveriesResult.value.items;
   } else {
     warnings.push(`Journal backend indisponible : ${safeErrorMessage(deliveriesResult.reason)}.`);
   }
@@ -511,7 +607,7 @@ export async function loadMarketingSnapshot(options: {
 
   if (contactsResult.status === "fulfilled") {
     successfulReads += 1;
-    prospects = normalizeCursorPage(contactsResult.value, normalizeProspect).items;
+    prospects = contactsResult.value.items;
     audiences = computeAudiencesFromProspects(prospects);
   } else {
     warnings.push(`Prospects indisponibles : ${safeErrorMessage(contactsResult.reason)}.`);
@@ -682,6 +778,65 @@ export async function completeManualMarketingDelivery(
   });
 }
 
+export async function upsertMarketingRestaurantContact(
+  draft: MarketingRestaurantContactDraft,
+) {
+  const evidenceAt = marketingZurichLocalDateTimeToIso(draft.evidenceAt);
+  if (!evidenceAt) throw new Error("Date de preuve invalide en heure suisse.");
+  const email = draft.email.trim();
+  const phone = draft.phone.trim();
+  const result = await invokeRpc<unknown>("admin_upsert_marketing_contact", {
+    p_payload: {
+      ...(draft.id ? { id: draft.id } : {}),
+      display_name: draft.displayName.trim(),
+      ...(email ? { email } : {}),
+      ...(phone ? { phone } : {}),
+      city: draft.city.trim(),
+      canton: draft.canton.trim().toUpperCase(),
+      category: draft.category.trim(),
+      lawful_basis: draft.lawfulBasis,
+      evidence_source: draft.evidenceSource.trim(),
+      evidence_note: draft.evidenceNote.trim(),
+      evidence_at: evidenceAt,
+    },
+    p_expected_updated_at: draft.expectedUpdatedAt || null,
+  });
+  return normalizeProspect(result);
+}
+
+export async function suppressMarketingContact(contactId: string, reason: string) {
+  return invokeRpc<UnknownRecord>("admin_suppress_marketing_contact", {
+    p_contact_id: contactId,
+    p_reason: reason.trim(),
+  });
+}
+
+export async function revealManualMarketingDeliveryTarget(
+  deliveryId: string,
+  reason: string,
+): Promise<MarketingManualTarget> {
+  const result = asRecord(await invokeRpc<unknown>("admin_reveal_manual_delivery_target", {
+    p_delivery_id: deliveryId,
+    p_reason: reason.trim(),
+  }));
+  const responseDeliveryId = asString(pick(result, "delivery_id"));
+  const channel = asString(pick(result, "channel"));
+  const target = asString(pick(result, "target"));
+  if (
+    responseDeliveryId !== deliveryId
+    || !["manual_call", "manual_email"].includes(channel)
+    || !target
+  ) {
+    throw new Error("Le backend n'a pas retourné de cible manuelle exploitable.");
+  }
+  return {
+    deliveryId: responseDeliveryId,
+    channel: channel as MarketingManualTarget["channel"],
+    target,
+    revealedAt: asString(pick(result, "revealed_at"), new Date().toISOString()),
+  };
+}
+
 export async function setMarketingGlobalPause(paused: boolean, reason: string) {
   return invokeRpc<unknown>("admin_set_marketing_global_pause", {
     p_paused: paused,
@@ -689,18 +844,85 @@ export async function setMarketingGlobalPause(paused: boolean, reason: string) {
   });
 }
 
-export async function syncMarketingProspectCatalog(limit = 10_000) {
-  const result = await invokeRpc<unknown>("admin_sync_marketing_prospect_catalog", {
-    p_limit: limit,
-  });
-  return asRecord(result);
+function normalizeSourceSyncBatch(value: unknown): MarketingSourceSyncBatch {
+  const row = asRecord(value);
+  const requiredCount = (...keys: string[]) => {
+    const count = Number(pick(row, ...keys));
+    if (!Number.isSafeInteger(count) || count < 0) {
+      throw new Error("Compteurs de synchronisation invalides.");
+    }
+    return count;
+  };
+  const optionalCount = (...keys: string[]) => {
+    const value = pick(row, ...keys);
+    return value === undefined || value === null ? 0 : requiredCount(...keys);
+  };
+  const rawHasMore = pick(row, "has_more", "hasMore");
+  const rawComplete = pick(row, "complete");
+  const rawNextCursor = pick(row, "next_cursor", "nextCursor");
+  if (
+    rawNextCursor !== undefined
+    && rawNextCursor !== null
+    && (typeof rawNextCursor !== "string"
+      || rawNextCursor.length > 512
+      || !/^[A-Za-z0-9+/=]+$/.test(rawNextCursor))
+  ) {
+    throw new Error("Curseur de synchronisation invalide.");
+  }
+  const nextCursor = typeof rawNextCursor === "string" ? rawNextCursor : null;
+  const hasMore = typeof rawHasMore === "boolean" ? rawHasMore : null;
+  const complete = typeof rawComplete === "boolean" ? rawComplete : null;
+  if (
+    hasMore === null
+    || complete === null
+    || hasMore === complete
+    || (hasMore && !nextCursor)
+  ) {
+    throw new Error("État de reprise de synchronisation invalide.");
+  }
+  return {
+    processed: requiredCount("processed"),
+    inserted: requiredCount("inserted"),
+    updated: requiredCount("updated"),
+    suppressed: optionalCount("suppressed"),
+    reconsented: optionalCount("reconsented", "reconsent"),
+    nextCursor,
+    watermark: asString(pick(row, "watermark")) || null,
+    hasMore,
+    complete,
+  };
 }
 
-export async function syncMarketingClientConsents(limit = 10_000) {
-  const result = await invokeRpc<unknown>("admin_sync_marketing_client_consents", {
-    p_limit: limit,
+function assertMarketingSyncLimit(limit: number) {
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1_000) {
+    throw new Error("Taille de lot de synchronisation invalide.");
+  }
+}
+
+export async function syncMarketingProspectCatalog(params: {
+  limit: number;
+  afterSourceObjectId: string | null;
+  untilSourceObjectId: string | null;
+}) {
+  assertMarketingSyncLimit(params.limit);
+  const result = await invokeRpc<unknown>("admin_sync_marketing_prospect_catalog", {
+    p_limit: params.limit,
+    p_after_source_objectid: params.afterSourceObjectId,
+    p_until_source_objectid: params.untilSourceObjectId,
   });
-  return asRecord(result);
+  return normalizeSourceSyncBatch(result);
+}
+
+export async function syncMarketingClientConsents(params: {
+  limit: number;
+  cursor: string | null;
+}) {
+  assertMarketingSyncLimit(params.limit);
+  const result = await invokeRpc<unknown>("admin_sync_marketing_client_consents", {
+    p_limit: params.limit,
+    p_cursor: params.cursor,
+  });
+  return normalizeSourceSyncBatch(result);
 }
 
 export async function upsertMarketingAutomation(payload: MarketingAutomationDraft, expectedUpdatedAt?: string | null) {
@@ -720,13 +942,16 @@ export async function upsertMarketingAutomation(payload: MarketingAutomationDraf
 }
 
 export async function runMarketingOrchestrator(action: "run_due" | "run_item", itemId?: string, limit = 25) {
-  const { data, error } = await supabase.functions.invoke("marketing-orchestrator", {
+  const payload = await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.orchestrator, {
+    method: "POST",
     body: {
       action,
       ...(itemId ? { itemId } : {}),
       limit,
     },
   });
-  if (error) throw error;
-  return data;
+  const envelope = asRecord(payload);
+  if (Object.prototype.hasOwnProperty.call(envelope, "data")) return envelope.data;
+  if (Object.prototype.hasOwnProperty.call(envelope, "result")) return envelope.result;
+  return payload;
 }

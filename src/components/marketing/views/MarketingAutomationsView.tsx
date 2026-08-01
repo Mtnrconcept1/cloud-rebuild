@@ -34,7 +34,7 @@ const EMPTY_AUTOMATION: MarketingAutomationDraft = {
   description: "",
   trigger: "",
   action: "",
-  channel: "manual_visit",
+  channel: "manual_call",
   status: "paused",
 };
 
