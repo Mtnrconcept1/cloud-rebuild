@@ -220,7 +220,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 722
+      "line": 737
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
@@ -1108,7 +1108,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "incident_id_required": [
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 1041
+      "line": 1056
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
@@ -1550,7 +1550,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 862
+      "line": 877
     }
   ],
   "order_not_found": [
@@ -2352,7 +2352,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "unsupported_action": [
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 1069
+      "line": 1084
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",

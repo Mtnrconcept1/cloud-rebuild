@@ -494,13 +494,15 @@ export function selectSupportMessages(
   rawMessages: Array<Record<string, unknown>>,
   maxMessages = 28,
 ) {
+  const requestedLimit = Number.isFinite(maxMessages) ? Math.floor(maxMessages) : 28;
+  const limit = Math.max(1, requestedLimit);
   const normalized = rawMessages.map((message, index) => ({
     ...message,
     body: typeof message.body === "string" ? message.body.trim().slice(0, 1_200) : "",
     __index: index,
     __identity: messageIdentity(message, index),
   }));
-  if (normalized.length <= maxMessages) {
+  if (normalized.length <= limit) {
     return normalized.map(({ __index: _index, __identity: _identity, ...message }) => message);
   }
 
@@ -509,18 +511,24 @@ export function selectSupportMessages(
     if (message) selected.set(message.__identity, message);
   };
 
-  normalized.slice(0, 4).forEach(add);
-  normalized.slice(-12).forEach(add);
+  const firstCount = Math.min(4, Math.max(1, limit - 1));
+  normalized.slice(0, firstCount).forEach(add);
+
+  const lastCount = Math.min(12, Math.max(0, limit - selected.size));
+  if (lastCount > 0) normalized.slice(-lastCount).forEach(add);
 
   const important = /(payment|paiement|stripe|refund|rembourse|reservation|réservation|order|commande|confirm|cancel|annul|error|erreur|allerg|medical|médical|fraud|fraude|urgent|legal|juridique|chargeback)/i;
-  normalized
-    .filter((message) => important.test(String(message.body || "")))
-    .slice(-16)
-    .forEach(add);
+  const remaining = Math.max(0, limit - selected.size);
+  if (remaining > 0) {
+    normalized
+      .filter((message) => important.test(String(message.body || "")))
+      .filter((message) => !selected.has(message.__identity))
+      .slice(-remaining)
+      .forEach(add);
+  }
 
   const ordered = [...selected.values()]
-    .sort((left, right) => left.__index - right.__index)
-    .slice(-maxMessages);
+    .sort((left, right) => left.__index - right.__index);
   return ordered.map(({ __index: _index, __identity: _identity, ...message }) => message);
 }
 

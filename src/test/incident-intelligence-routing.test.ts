@@ -9,6 +9,7 @@ import {
   buildStableEvidenceHash,
   buildSupportTechnicalEvidence,
   classifyIncidentRepairability,
+  selectSupportMessages,
   shouldUseDeepIncidentAnalysis,
 } from "../../supabase/functions/_shared/incident-intelligence";
 
@@ -234,5 +235,50 @@ describe("incident intelligence routing behavior", () => {
       confidence: decision.confidence,
       sensitive: decision.sensitive,
     })).toBe(false);
+  });
+
+  it("preserves the opening complaint and latest replies in the bounded support context", () => {
+    const messages = Array.from({ length: 50 }, (_, index) => ({
+      id: `message-${index}`,
+      author_role: index % 2 === 0 ? "customer" : "admin",
+      created_at: `2026-08-01T10:${String(index).padStart(2, "0")}:00Z`,
+      body: index === 0
+        ? "Plain opening complaint with essential context"
+        : index >= 8 && index < 42
+        ? `Payment error detail ${index}`
+        : `Conversation message ${index}`,
+    }));
+
+    const selected = selectSupportMessages(messages, 28);
+    const ids = selected.map((message) => message.id);
+
+    expect(selected).toHaveLength(28);
+    expect(ids[0]).toBe("message-0");
+    expect(ids).toContain("message-49");
+    expect(ids.at(-1)).toBe("message-49");
+  });
+
+  it("invalidates a stale canonical Guardian assessment when severity or risk changes", () => {
+    const guardian = readFileSync(
+      resolve(root, "supabase/functions/ai-guardian/index.ts"),
+      "utf8",
+    );
+    const canonicalIndex = guardian.indexOf(
+      "const canonical = buildCanonicalGuardianAssessment(incident)",
+    );
+    const cacheQueryIndex = guardian.indexOf(
+      "const { data: existingAssessment, error: existingError }",
+    );
+
+    expect(canonicalIndex).toBeGreaterThan(0);
+    expect(cacheQueryIndex).toBeGreaterThan(canonicalIndex);
+    expect(guardian).toContain("const reusableExistingAssessment = Boolean(");
+    expect(guardian).toContain(
+      "normalizeLevel(existingAssessment.severity) === currentSeverity",
+    );
+    expect(guardian).toContain(
+      "normalizeLevel(existingAssessment.risk_level) === currentRiskLevel",
+    );
+    expect(guardian).toContain(": !deepRequired");
   });
 });

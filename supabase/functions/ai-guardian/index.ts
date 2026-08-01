@@ -601,6 +601,16 @@ async function analyzeIncident(
       context: incident.sanitized_context,
     });
 
+  const canonical = buildCanonicalGuardianAssessment(incident);
+  const deepRequired = shouldUseDeepIncidentAnalysis({
+    force: forceDeepAnalysis,
+    severity: incident.severity,
+    repairability: incident.repairability || routing.repairability,
+    confidence: incident.confidence,
+    sensitive: routing.sensitive,
+    evidenceChanged: false,
+  });
+
   const { data: existingAssessment, error: existingError } = await actor.adminClient
     .from("ops_guardian_assessments")
     .select("*")
@@ -610,7 +620,22 @@ async function analyzeIncident(
     .limit(1)
     .maybeSingle();
   if (existingError) throw new HttpError(500, existingError.message);
-  if (existingAssessment && !forceDeepAnalysis) {
+  const currentSeverity = canonical?.severity || normalizeLevel(incident.severity);
+  const currentRiskLevel = canonical?.risk_level || normalizeLevel(incident.risk_level);
+  const reusableExistingAssessment = Boolean(
+    existingAssessment
+      && !forceDeepAnalysis
+      && (
+        existingAssessment.analysis_source === "deep"
+          ? normalizeLevel(existingAssessment.severity) === currentSeverity
+            && normalizeLevel(existingAssessment.risk_level) === currentRiskLevel
+          : !deepRequired
+            && canonical
+            && normalizeLevel(existingAssessment.severity) === canonical.severity
+            && normalizeLevel(existingAssessment.risk_level) === canonical.risk_level
+      )
+  );
+  if (reusableExistingAssessment && existingAssessment) {
   const reusedModel = existingAssessment.model || "cache";
   await recordUsage(actor, {
     status: "success",
@@ -643,16 +668,6 @@ async function analyzeIncident(
     reused: true,
   };
 }
-
-  const canonical = buildCanonicalGuardianAssessment(incident);
-  const deepRequired = shouldUseDeepIncidentAnalysis({
-    force: forceDeepAnalysis,
-    severity: incident.severity,
-    repairability: incident.repairability || routing.repairability,
-    confidence: incident.confidence,
-    sensitive: routing.sensitive,
-    evidenceChanged: false,
-  });
 
   if (canonical && !deepRequired) {
     const { data: stored, error } = await actor.adminClient
