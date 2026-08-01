@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - feat/unify-incident-intelligence
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   contents: write
@@ -19,6 +26,7 @@ env:
 jobs:
   apply-and-validate:
     name: Apply patch and run focused validation
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 35
 
