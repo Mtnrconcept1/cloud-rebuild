@@ -1,0 +1,57 @@
+name: Repair auth card patch script v2
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/restaurateur-onboarding-reliability'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/restaurateur-onboarding-reliability
+          fetch-depth: 1
+
+      - name: Make confirmation effect insertion anchor-based
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/apply-restaurateur-auth-card-fix.py')
+          source = path.read_text(encoding='utf-8')
+          old = '    auth = replace_once(auth, mount_effect, confirmation_effect, "confirmation effect")'
+          new = '\n'.join([
+              '    mount_start = auth.find("  useEffect(() => {\\n    authMountedRef.current = true;")',
+              '    mount_end = auth.find("\\n\\n  const requiredDocuments", mount_start)',
+              '    if mount_start < 0 or mount_end < 0:',
+              '        raise RuntimeError("auth mount effect not found")',
+              '    auth = auth[:mount_start] + confirmation_effect + auth[mount_end:]',
+          ])
+          if source.count(old) != 1:
+              raise SystemExit(f'expected one confirmation-effect replacement line, found {source.count(old)}')
+          path.write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Commit script repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/apply-restaurateur-auth-card-fix.py
+          git diff --cached --check
+          git commit -m "chore: make auth confirmation patch anchor-based"
+          git push origin HEAD:fix/restaurateur-onboarding-reliability
