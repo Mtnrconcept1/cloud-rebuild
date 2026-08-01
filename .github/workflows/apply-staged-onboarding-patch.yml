@@ -1,0 +1,205 @@
+name: Apply staged restaurateur onboarding patch
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/restaurateur-onboarding-reliability'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/restaurateur-onboarding-reliability
+          fetch-depth: 0
+
+      - name: Decode and apply reviewed patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode tmp/restaurateur-onboarding-reliability.patch.gz.b64 | gzip --decompress > "$RUNNER_TEMP/onboarding.patch"
+          git apply --check "$RUNNER_TEMP/onboarding.patch"
+          git apply "$RUNNER_TEMP/onboarding.patch"
+
+      - name: Preserve demo restaurant state in the database invariant
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('supabase/migrations/20260802000000_restaurateur_onboarding_reliability.sql')
+          source = path.read_text(encoding='utf-8')
+          source = source.replace(
+              "BEGIN\n  IF v_status NOT IN ('active', 'pending', 'paused', 'suspended', 'archived') THEN",
+              "BEGIN\n  IF COALESCE(NEW.is_demo, false) THEN\n    NEW.status := 'demo';\n    RETURN NEW;\n  END IF;\n\n  IF v_status NOT IN ('active', 'pending', 'paused', 'suspended', 'archived') THEN",
+              1,
+          )
+          source = source.replace(
+              'BEFORE INSERT OR UPDATE OF status, is_active\n',
+              'BEFORE INSERT OR UPDATE OF status, is_active, is_demo\n',
+              1,
+          )
+          old_where = """WHERE (
+            COALESCE(restaurant.is_active, false) IS TRUE
+            AND lower(COALESCE(restaurant.status, '')) <> 'active'
+          ) OR (
+            COALESCE(restaurant.is_active, false) IS FALSE
+            AND lower(COALESCE(restaurant.status, '')) = 'active'
+          );"""
+          new_where = """WHERE COALESCE(restaurant.is_demo, false) IS FALSE
+            AND (
+              (
+                COALESCE(restaurant.is_active, false) IS TRUE
+                AND lower(COALESCE(restaurant.status, '')) <> 'active'
+              )
+              OR
+              (
+                COALESCE(restaurant.is_active, false) IS FALSE
+                AND lower(COALESCE(restaurant.status, '')) = 'active'
+              )
+            );"""
+          if old_where not in source:
+              raise SystemExit('restaurant repair WHERE clause not found')
+          source = source.replace(old_where, new_where, 1)
+          old_check = """  CHECK (
+            (
+              COALESCE(is_active, false) IS TRUE
+              AND lower(COALESCE(status, '')) = 'active'
+            )
+            OR
+            (
+              COALESCE(is_active, false) IS FALSE
+              AND lower(COALESCE(status, 'pending')) <> 'active'
+            )
+          ) NOT VALID;"""
+          new_check = """  CHECK (
+            (
+              COALESCE(is_demo, false) IS TRUE
+              AND lower(COALESCE(status, '')) = 'demo'
+            )
+            OR
+            (
+              COALESCE(is_demo, false) IS FALSE
+              AND COALESCE(is_active, false) IS TRUE
+              AND lower(COALESCE(status, '')) = 'active'
+            )
+            OR
+            (
+              COALESCE(is_demo, false) IS FALSE
+              AND COALESCE(is_active, false) IS FALSE
+              AND lower(COALESCE(status, 'pending')) <> 'active'
+            )
+          ) NOT VALID;"""
+          if old_check not in source:
+              raise SystemExit('restaurant operational constraint not found')
+          source = source.replace(old_check, new_check, 1)
+          source = source.replace(
+              "'A restaurant is public only when status=active and is_active=true; every other status is private.';",
+              "'Real restaurants are public only when status=active and is_active=true; demo restaurants keep status=demo.';",
+              1,
+          )
+          path.write_text(source, encoding='utf-8')
+          PY
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Format modified TypeScript
+        run: >-
+          pnpm dlx prettier@3.6.2 --write
+          src/pages/Auth.tsx
+          src/lib/privilegedSignupRecovery.ts
+          src/lib/restaurantAdminState.ts
+          src/pages/admin/AdminRestaurants.tsx
+          supabase/functions/create-checkout/index.ts
+          src/test/auth-signup-form.test.tsx
+          src/test/restaurant-onboarding-payments.test.ts
+          src/test/admin-restaurants-console.test.ts
+          src/test/restaurateur-onboarding-reliability.test.ts
+
+      - name: Regenerate error code map
+        run: pnpm run generate:error-code-map
+
+      - name: Run focused regression tests
+        run: >-
+          pnpm exec vitest run --mode production
+          src/test/restaurateur-onboarding-reliability.test.ts
+          src/test/auth-signup-form.test.tsx
+          src/test/restaurant-onboarding-payments.test.ts
+          src/test/admin-restaurants-console.test.ts
+          src/test/payment-attempt-state.test.ts
+          src/test/auth-redirect-security.test.ts
+          src/test/database-value-constraints.test.ts
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Production build
+        run: pnpm run build:prod
+
+      - name: Commit validated product changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout HEAD -- \
+            public/sitemap-actualites.xml \
+            public/sitemap-pages.xml \
+            public/sitemap-restaurants.xml
+          rm -f tmp/restaurateur-onboarding-reliability.patch.gz.b64
+          rm -f scripts/apply-restaurateur-auth-card-fix.py
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/pages/Auth.tsx \
+            src/lib/privilegedSignupRecovery.ts \
+            src/lib/restaurantAdminState.ts \
+            src/pages/admin/AdminRestaurants.tsx \
+            supabase/functions/create-checkout/index.ts \
+            supabase/functions/_shared/error-code-map.ts \
+            supabase/migrations/20260802000000_restaurateur_onboarding_reliability.sql \
+            src/test/auth-signup-form.test.tsx \
+            src/test/restaurant-onboarding-payments.test.ts \
+            src/test/admin-restaurants-console.test.ts \
+            src/test/restaurateur-onboarding-reliability.test.ts
+          git add -u \
+            tmp/restaurateur-onboarding-reliability.patch.gz.b64 \
+            scripts/apply-restaurateur-auth-card-fix.py
+
+          git diff --cached --check
+          if git diff --cached | grep -Eiq '(sk-proj-|sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}|whsec_[A-Za-z0-9_-]{20,}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9]{20,})'; then
+            echo "::error::A secret-like value was detected in the final diff."
+            exit 1
+          fi
+
+          git commit -m "fix(onboarding): restore confirmation, card setup and activation"
+          git push origin HEAD:fix/restaurateur-onboarding-reliability
