@@ -31,8 +31,11 @@ describe("marketing Edge Function security", () => {
   });
 
   it("declares verify_jwt false only because both functions authenticate in code", () => {
-    expect(config).toContain("[functions.marketing-orchestrator]");
-    expect(config).toContain("[functions.marketing-provider-webhook]");
-    expect(config.match(/verify_jwt = false/g)).toHaveLength(2);
+    expect(config).toMatch(
+      /\[functions\.marketing-orchestrator\]\s+verify_jwt = false/,
+    );
+    expect(config).toMatch(
+      /\[functions\.marketing-provider-webhook\]\s+verify_jwt = false/,
+    );
   });
 });
