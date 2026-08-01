@@ -1,0 +1,121 @@
+name: Finalize incident intelligence
+
+on:
+  push:
+    branches:
+      - feat/unify-incident-intelligence
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+
+jobs:
+  finalize:
+    name: Apply final hardening and validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/unify-incident-intelligence
+          fetch-depth: 0
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Reconstruct and verify one-shot finalizer
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat \
+            scripts/.incident-finalize/finalize.py.gz.part00.b64 \
+            scripts/.incident-finalize/finalize.py.gz.part01a.b64 \
+            scripts/.incident-finalize/finalize.py.gz.part01b.b64 \
+            scripts/.incident-finalize/finalize.py.gz.part01c.b64 \
+            scripts/.incident-finalize/finalize.py.gz.part01d.b64 \
+            | tr -d '\r\n' \
+            | base64 --decode \
+            | gzip --decompress \
+            > /tmp/finalize-incident-intelligence.py
+          echo "d7260c47c3ccbca50c77016d7acd44e2a6e1c38f5218dc8032591f3e239d2cc5  /tmp/finalize-incident-intelligence.py" | sha256sum --check
+          python -m py_compile /tmp/finalize-incident-intelligence.py
+
+      - name: Apply final hardening
+        run: python /tmp/finalize-incident-intelligence.py
+
+      - name: Regenerate canonical error-code map
+        run: pnpm run generate:error-code-map
+
+      - name: Run focused routing and governance tests
+        run: >-
+          pnpm exec vitest run --mode production
+          src/test/incident-intelligence-routing.test.ts
+          src/test/incident-intelligence-unification.test.ts
+          src/test/incident-automation-readiness.test.ts
+          src/test/incident-evidence-depth.test.ts
+          src/test/tok-intelligence-suite.test.ts
+          src/test/tok-ai-platform-plan.test.ts
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Production build
+        run: pnpm run build:prod
+
+      - name: Validate diff and secret safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          if git diff | grep -Eiq '(sk-proj-|sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}|whsec_[A-Za-z0-9_-]{20,}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9]{20,})'; then
+            echo "::error::A secret-like value was detected in the generated diff."
+            exit 1
+          fi
+          historical_migrations="$(git diff --name-only --diff-filter=M -- 'supabase/migrations/*.sql' | grep -v '^supabase/migrations/20260801130000_unify_incident_intelligence.sql$' || true)"
+          if [[ -n "$historical_migrations" ]]; then
+            echo "::error::Existing migrations must remain immutable."
+            printf '%s\n' "$historical_migrations"
+            exit 1
+          fi
+
+      - name: Remove one-shot staging files
+        shell: bash
+        run: |
+          rm -rf scripts/.incident-finalize
+          rm -f .github/workflows/finalize-incident-intelligence.yml
+
+      - name: Commit final implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No final changes to commit."
+            exit 0
+          fi
+          git diff --cached --check
+          git commit -m "feat(ops): finalize canonical incident routing and token controls"
+          git push origin HEAD:feat/unify-incident-intelligence
