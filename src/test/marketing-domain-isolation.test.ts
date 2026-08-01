@@ -65,6 +65,21 @@ describe("marketing domain isolation", () => {
     expect(target).toBe("https://marketing.thetok.ch/marketing?view=calendar");
   });
 
+  it("preserves public OAuth callbacks until Auth exchanges the PKCE code", () => {
+    expect(getSanitizedMarketingHostRedirectTarget(
+      "https://www.thetok.ch/auth/callback?code=google-pkce-code&next=%2Fadmin",
+    )).toBeNull();
+    expect(getSanitizedMarketingHostRedirectTarget(
+      "https://www.thetok.ch/auth/callback?error=access_denied&error_description=cancelled",
+    )).toBeNull();
+  });
+
+  it("still strips credentials when an auth callback lands on the marketing host", () => {
+    expect(getSanitizedMarketingHostRedirectTarget(
+      "https://marketing.thetok.ch/auth/callback?code=secret&next=%2Fadmin",
+    )).toBe("https://www.thetok.ch/auth?next=%2Fadmin");
+  });
+
   it("blocks child rendering while a canonical redirect is pending", () => {
     const source = readFileSync(resolve(process.cwd(), "src/components/marketing/MarketingHostBoundary.tsx"), "utf8");
     expect(source).toContain("{ children }: { children: ReactNode }");
