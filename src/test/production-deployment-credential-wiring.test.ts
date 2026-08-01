@@ -7,6 +7,10 @@ const workflow = readFileSync(
   resolve(process.cwd(), ".github/workflows/deploy-production.yml"),
   "utf8",
 );
+const keyWriter = readFileSync(
+  resolve(process.cwd(), "scripts/write-production-supabase-keys-env.mjs"),
+  "utf8",
+);
 
 describe("production deployment credential wiring", () => {
   it("resolves elevated Supabase credentials from the existing management token", () => {
@@ -20,6 +24,7 @@ describe("production deployment credential wiring", () => {
     expect(workflow).not.toContain(
       "SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}",
     );
+    expect(keyWriter).toContain("::add-mask::${value}");
   });
 
   it("injects the resolved server values only into the Vercel runtime", () => {
@@ -32,6 +37,5 @@ describe("production deployment credential wiring", () => {
     expect(workflow).toContain(
       '--env "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY"',
     );
-    expect(workflow).toContain('echo "::add-mask::${value}\\n"');
   });
 });
