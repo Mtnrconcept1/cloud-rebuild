@@ -1,0 +1,99 @@
+name: Repair incident cache hardening workflow v2
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+jobs:
+  repair-workflow:
+    name: Repair one-shot hardening workflow robustly
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/unify-incident-intelligence
+          fetch-depth: 0
+
+      - name: Repair exact workflow source and remove bootstraps
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/workflows/apply-incident-cache-stability.yml')
+          source = path.read_text(encoding='utf-8')
+          lines = source.splitlines()
+
+          for variable in ('old_sensitive', 'new_sensitive'):
+              start = next(
+                  (index for index, line in enumerate(lines)
+                   if line.strip().startswith(f'{variable} =')),
+                  None,
+              )
+              if start is None:
+                  raise SystemExit(f'Unable to locate {variable} assignment')
+
+              indent = lines[start][:len(lines[start]) - len(lines[start].lstrip())]
+              end = None
+              for index in range(start + 1, min(len(lines), start + 16)):
+                  stripped = lines[index].strip()
+                  if stripped.startswith('/'):
+                      lines[index] = indent + '    ' + stripped
+                  elif stripped == "]);'''":
+                      lines[index] = indent + '  ' + stripped
+                      end = index
+                      break
+
+              if end is None:
+                  raise SystemExit(f'Unable to locate the end of {variable}')
+
+          source = '\n'.join(lines) + '\n'
+
+          if source.count('(?:attempt|essai|retry)') != 1:
+              raise SystemExit('Unable to locate the incident signature retry group')
+          source = source.replace(
+              '(?:attempt|essai|retry)',
+              '(attempt|essai|retry)',
+              1,
+          )
+
+          lines = source.splitlines()
+          reset_index = next(
+              (index for index, line in enumerate(lines)
+               if line.strip() == 'git reset .github/workflows/apply-incident-cache-stability.yml'),
+              None,
+          )
+          if reset_index is None or reset_index == 0:
+              raise SystemExit('Unable to locate the one-shot cleanup command')
+          if lines[reset_index - 1].strip() != 'git add -A':
+              raise SystemExit('Unexpected one-shot staging block')
+
+          indent = lines[reset_index][:len(lines[reset_index]) - len(lines[reset_index].lstrip())]
+          lines[reset_index - 1] = indent + 'rm -f .github/workflows/apply-incident-cache-stability.yml'
+          lines[reset_index] = indent + 'git add -A'
+          path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/apply-incident-cache-stability.yml
+          git rm -f \
+            .github/workflows/fix-incident-cache-stability-bootstrap.yml \
+            .github/workflows/fix-incident-cache-stability-pr.yml \
+            .github/workflows/fix-incident-cache-stability-pr-v2.yml
+          git diff --cached --check
+          git commit -m "ci(ops): repair one-shot cache hardening workflow"
+          git push origin HEAD:feat/unify-incident-intelligence
