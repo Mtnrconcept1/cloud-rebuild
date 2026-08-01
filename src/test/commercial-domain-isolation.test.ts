@@ -341,8 +341,15 @@ describe("commercial.thetok.ch canonical isolation", () => {
     expect(app).toContain("<CommercialHostBoundary>\n      <AdminHostBoundary />");
     expect(app.indexOf("<CanonicalWorkspaceHostBoundary>"))
       .toBeLessThan(app.indexOf("{commercialDemoFrame ? ("));
-    expect(app.indexOf("<MarketingHostBoundary>"))
-      .toBeLessThan(app.indexOf("<AuthProvider>"));
+    expect(app).toMatch(
+      /<MarketingHostBoundary>[\s\S]*?<ApplicationBoundary\s+commercialDemoFrame=\{commercialDemoFrame\}\s*\/>[\s\S]*?<\/MarketingHostBoundary>/,
+    );
+    const applicationBoundary = app.slice(
+      app.indexOf("function ApplicationBoundary"),
+      app.indexOf("const App ="),
+    );
+    expect(applicationBoundary.indexOf("if (isMarketingExecutionLocation(pathname))"))
+      .toBeLessThan(applicationBoundary.indexOf("<AuthProvider>"));
     expect(boundary).toContain("buildSanitizedAuthRedirectUrl");
     expect(boundary).toContain("window.location.replace(redirectTarget)");
     expect(boundary).not.toContain('signOut({ scope: "local" })');
