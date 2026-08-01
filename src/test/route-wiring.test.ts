@@ -40,12 +40,14 @@ const CORE_ROUTES = new Set([
   "/restaurant/:id",
   "/panier",
   "/mon-espace",
+  "/memoire-tok",
   "/compte",
   "/espace-client",
   "/mes-avis",
   "/profil",
   "/notifications",
   "/dashboard/notifications",
+  "/dashboard/campaign-studio",
   "/courier/notifications",
   "/contact",
   "/cgu",
@@ -60,6 +62,8 @@ const CORE_ROUTES = new Set([
   "/miamz-solidaires",
   "/aide",
   "/admin",
+  "/admin/support-resolution",
+  "/admin/guardian",
   "/commercial/comptabilite",
 ]);
 

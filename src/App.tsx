@@ -63,6 +63,7 @@ const Commandes = lazy(() => import("./pages/Commandes"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 const Reservations = lazy(() => import("./pages/Reservations"));
 const Profil = lazy(() => import("./pages/Profil"));
+const CustomerMemory = lazy(() => import("./pages/CustomerMemory"));
 const ClientDashboardHome = lazy(() => import("./pages/ClientDashboardHome"));
 const ClientReviews = lazy(() => import("./pages/ClientReviews"));
 const Notifications = lazy(() => import("./pages/Notifications"));
@@ -109,6 +110,7 @@ const DashboardOffres = lazy(() => import("./pages/dashboard/DashboardOffres"));
 const DashboardVentesFlash = lazy(() => import("./pages/dashboard/DashboardVentesFlash"));
 const DashboardFormules = lazy(() => import("./pages/dashboard/DashboardFormules"));
 const DashboardCampagnes = lazy(() => import("./pages/dashboard/DashboardCampagnes"));
+const DashboardCampaignStudio = lazy(() => import("./pages/dashboard/DashboardCampaignStudio"));
 const DashboardCrm = lazy(() => import("./pages/dashboard/DashboardCrm"));
 const DashboardPerformances = lazy(() => import("./pages/dashboard/DashboardPerformances"));
 const DashboardComparaison = lazy(() => import("./pages/dashboard/DashboardComparaison"));
@@ -157,6 +159,8 @@ const AdminAiOperations = lazy(() => import("./pages/admin/AdminAiOperations"));
 const AdminActualites = lazy(() => import("./pages/admin/AdminActualites"));
 const AdminCrm = lazy(() => import("./pages/admin/AdminCrm"));
 const AdminSinistres = lazy(() => import("./pages/admin/AdminSinistres"));
+const AdminSupportResolution = lazy(() => import("./pages/admin/AdminSupportResolution"));
+const AdminGuardian = lazy(() => import("./pages/admin/AdminGuardian"));
 const AdminTokConnect = lazy(() => import("./pages/admin/AdminTokConnect"));
 
 const queryClient = new QueryClient({
@@ -433,6 +437,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const tokOneEnabled = hasFeature("tok-one");
   const tokConnectEnabled = hasFeature("tok-connect");
   const giftPointsEnabled = hasFeature("points-cadeau");
+  const customerMemoryEnabled = hasFeature("customer-memory");
   const dashboardOverviewEnabled = hasFeature("dashboard-overview");
   const dashboardAdvisorEnabled = hasFeature("dashboard-advisor");
   const dashboardRestaurantEnabled = hasFeature("dashboard-restaurant");
@@ -453,6 +458,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const dashboardReseauxSociauxEnabled = hasFeature("dashboard-reseaux-sociaux");
   const dashboardActualitesEnabled = hasFeature("dashboard-actualites");
   const dashboardCampagnesEnabled = hasFeature("dashboard-campagnes");
+  const dashboardCampaignStudioEnabled = hasFeature("dashboard-campaign-studio");
   const dashboardCrmEnabled = hasFeature("dashboard-crm");
   const dashboardSupportEnabled = hasFeature("dashboard-support");
   const dashboardServiceEnabled = hasFeature("dashboard-service");
@@ -480,6 +486,8 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const adminCrmEnabled = hasFeature("admin-crm");
   const adminPlatformConfigEnabled = hasFeature("admin-platform-config");
   const adminOperationsCenterEnabled = hasFeature("admin-operations-center");
+  const adminSupportResolutionEnabled = hasFeature("admin-support-resolution");
+  const adminGuardianEnabled = hasFeature("admin-guardian");
   const adminTokConnectEnabled = hasFeature("admin-tok-connect");
   const deliveryEnabled = hasFeature("livraison");
   const showPublicFooter = shouldShowPublicFooter(pathname);
@@ -527,6 +535,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/reservations" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={reservationEnabled} fallback="/mon-espace"><Reservations /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/mes-avis" element={<ProtectedRoute requiredRole="client"><ClientReviews /></ProtectedRoute>} />
           <Route path="/profil" element={<ProtectedRoute requiredRole="client"><Profil /></ProtectedRoute>} />
+          <Route path="/memoire-tok" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={customerMemoryEnabled} fallback="/mon-espace"><CustomerMemory /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute requiredRole="client"><Notifications /></ProtectedRoute>} />
           <Route path="/creneaux-garantis" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("creneaux-garantis")}><CreneauxGarantis /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/flex-prix-bas" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("flex-prix-bas")}><FlexPrixBas /></FeatureSwitch></ClientSurfaceRoute>} />
@@ -576,6 +585,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/dashboard/reseaux-sociaux" element={<DashboardRoute><FeatureSwitch enabled={dashboardReseauxSociauxEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="social"><DashboardReseauxSociaux /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/actualites" element={<DashboardRoute><FeatureSwitch enabled={dashboardActualitesEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="actualites"><DashboardActualites /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/campagnes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagnesEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="campaigns"><DashboardCampagnes /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/campaign-studio" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampaignStudioEnabled} fallback="/dashboard/campagnes"><CommercialDemoSafeEffectsBoundary tool="campaigns"><DashboardCampaignStudio /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/crm" element={<DashboardRoute><FeatureSwitch enabled={dashboardCrmEnabled} fallback="/dashboard"><DashboardCrm /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/notifications" element={<DashboardRoute><DashboardNotifications /></DashboardRoute>} />
           <Route path="/dashboard/support" element={<DashboardRoute><FeatureSwitch enabled={dashboardSupportEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="support"><DashboardSupport /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
@@ -608,6 +618,8 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/admin/compta/ia" element={<AdminProtectedRoute fallback="/admin/compta"><FeatureSwitch enabled={adminComptaAiEnabled} fallback="/admin/compta"><AdminComptaAi /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/commandes-reservations" element={<AdminProtectedRoute><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback="/admin"><AdminOperationsCenter /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/sinistres" element={<AdminProtectedRoute><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback="/admin"><AdminSinistres /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/support-resolution" element={<AdminProtectedRoute><FeatureSwitch enabled={adminSupportResolutionEnabled} fallback="/admin/sinistres"><AdminSupportResolution /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/guardian" element={<AdminProtectedRoute><FeatureSwitch enabled={adminGuardianEnabled} fallback="/admin"><AdminGuardian /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/ai-operations" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAiOperationsEnabled} fallback="/admin"><AdminAiOperations /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/tok-connect" element={<AdminProtectedRoute><FeatureSwitch enabled={adminTokConnectEnabled} fallback="/admin"><AdminTokConnect /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />

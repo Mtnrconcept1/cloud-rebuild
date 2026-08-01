@@ -248,3 +248,16 @@ verify_jwt = false
 
 [functions.google-actions-center-sync]
 verify_jwt = false
+
+
+[functions.ai-campaign-studio]
+verify_jwt = false
+
+[functions.customer-memory]
+verify_jwt = false
+
+[functions.ai-support-resolution]
+verify_jwt = false
+
+[functions.ai-guardian]
+verify_jwt = false

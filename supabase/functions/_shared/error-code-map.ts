@@ -1,10 +1,20 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 277 error codes mapped from supabase/functions/**.
+// 303 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
 export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
+  "action_id_required": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 1094
+    },
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 1103
+    }
+  ],
   "action_invalid": [
     {
       "file": "supabase/functions/commercial-demo-ai/index.ts",
@@ -197,12 +207,20 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 137
     },
     {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 501
+    },
+    {
       "file": "supabase/functions/ai-client-chat/index.ts",
       "line": 262
     },
     {
       "file": "supabase/functions/ai-client-support/index.ts",
       "line": 325
+    },
+    {
+      "file": "supabase/functions/ai-guardian/index.ts",
+      "line": 519
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
@@ -215,14 +233,6 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-restaurant-tools/index.ts",
       "line": 141
-    },
-    {
-      "file": "supabase/functions/ai-social-post-copy/index.ts",
-      "line": 125
-    },
-    {
-      "file": "supabase/functions/commercial-demo-ai/index.ts",
-      "line": 738
     }
   ],
   "ai_timeout": [
@@ -285,10 +295,32 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 155
     }
   ],
+  "campaign_not_found": [
+    {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 464
+    }
+  ],
   "campaign_preview_fields_required": [
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
       "line": 911
+    }
+  ],
+  "campaign_required": [
+    {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 455
+    }
+  ],
+  "campaign_studio_run_not_found": [
+    {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 437
+    },
+    {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 480
     }
   ],
   "captcha_invalid": [
@@ -509,6 +541,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 114
     }
   ],
+  "consent_check_unavailable": [
+    {
+      "file": "supabase/functions/_shared/intelligence.ts",
+      "line": 56
+    }
+  ],
   "content_type_must_be_json": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
@@ -699,6 +737,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 389
     }
   ],
+  "explicit_confirmation_required": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 691
+    }
+  ],
   "feature_disabled": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
@@ -717,6 +761,16 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
       "line": 443
+    }
+  ],
+  "financial_action_requires_manual_workflow": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 682
+    },
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 710
     }
   ],
   "firebase_service_account_invalid_format": [
@@ -1051,6 +1105,16 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 1439
     }
   ],
+  "incident_id_required": [
+    {
+      "file": "supabase/functions/ai-guardian/index.ts",
+      "line": 823
+    },
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 1082
+    }
+  ],
   "incident_not_approved": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
@@ -1115,8 +1179,24 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   ],
   "invalid_action": [
     {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 220
+    },
+    {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 500
+    },
+    {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
       "line": 303
+    },
+    {
+      "file": "supabase/functions/customer-memory/index.ts",
+      "line": 126
+    },
+    {
+      "file": "supabase/functions/customer-memory/index.ts",
+      "line": 427
     }
   ],
   "invalid_authentication": [
@@ -1143,6 +1223,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
       "line": 1216
+    }
+  ],
+  "invalid_category": [
+    {
+      "file": "supabase/functions/customer-memory/index.ts",
+      "line": 376
     }
   ],
   "invalid_client": [
@@ -1237,10 +1323,22 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 901
     }
   ],
+  "item_required": [
+    {
+      "file": "supabase/functions/customer-memory/index.ts",
+      "line": 337
+    }
+  ],
   "json_object_required": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
       "line": 346
+    }
+  ],
+  "label_required": [
+    {
+      "file": "supabase/functions/customer-memory/index.ts",
+      "line": 378
     }
   ],
   "marketing_reference_ids_required": [
@@ -1309,6 +1407,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/restaurant-media-governance/index.ts",
       "line": 90
+    }
+  ],
+  "memory_item_not_found": [
+    {
+      "file": "supabase/functions/customer-memory/index.ts",
+      "line": 356
     }
   ],
   "menu_images_required": [
@@ -1423,6 +1527,16 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 1186
     }
   ],
+  "ops_incident_not_found": [
+    {
+      "file": "supabase/functions/ai-guardian/index.ts",
+      "line": 449
+    },
+    {
+      "file": "supabase/functions/ai-guardian/index.ts",
+      "line": 645
+    }
+  ],
   "order_not_found": [
     {
       "file": "supabase/functions/ai-client-chat/index.ts",
@@ -1431,6 +1545,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-client-support/index.ts",
       "line": 373
+    }
+  ],
+  "order_recipient_unavailable": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 802
     }
   ],
   "origin_not_allowed": [
@@ -1491,6 +1611,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 268
     }
   ],
+  "personalization_consent_required": [
+    {
+      "file": "supabase/functions/_shared/intelligence.ts",
+      "line": 68
+    }
+  ],
   "premium_required": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
@@ -1498,6 +1624,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     }
   ],
   "prompt_required": [
+    {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 504
+    },
     {
       "file": "supabase/functions/commercial-demo-ai/index.ts",
       "line": 576
@@ -1727,6 +1857,42 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 361
     }
   ],
+  "reservation_recipient_unavailable": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 780
+    }
+  ],
+  "resolution_action_already_executing": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 688
+    }
+  ],
+  "resolution_action_concurrent_update": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 738
+    }
+  ],
+  "resolution_action_not_found": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 676
+    }
+  ],
+  "resolution_action_not_rejectable": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 1002
+    }
+  ],
+  "resolution_action_rejected": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 685
+    }
+  ],
   "response_type_code_required": [
     {
       "file": "supabase/functions/tok-connect-oauth/index.ts",
@@ -1775,7 +1941,17 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 263
     }
   ],
+  "restaurant_owner_unavailable": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 823
+    }
+  ],
   "restaurant_required": [
+    {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 397
+    },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
       "line": 1384
@@ -1811,6 +1987,16 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/enrich-restaurants/index.ts",
       "line": 124
+    }
+  ],
+  "run_required": [
+    {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 418
+    },
+    {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 453
     }
   ],
   "scheduler_identity_required": [
@@ -1899,6 +2085,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
       "line": 323
+    }
+  ],
+  "support_incident_not_found": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 261
     }
   ],
   "telegram_chat_forbidden": [
@@ -2137,6 +2329,14 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   ],
   "unsupported_action": [
     {
+      "file": "supabase/functions/ai-guardian/index.ts",
+      "line": 845
+    },
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 1111
+    },
+    {
       "file": "supabase/functions/ops-incident-control/index.ts",
       "line": 1625
     },
@@ -2157,6 +2357,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 402
     }
   ],
+  "unsupported_resolution_action": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 696
+    }
+  ],
   "unsupported_workflow_status": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
@@ -2167,6 +2373,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-admin-dashboard-chat/index.ts",
       "line": 468
+    }
+  ],
+  "value_required": [
+    {
+      "file": "supabase/functions/customer-memory/index.ts",
+      "line": 382
     }
   ],
   "verified_account_email_required": [

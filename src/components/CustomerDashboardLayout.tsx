@@ -117,6 +117,7 @@ const NAV_SECTIONS: CustomerNavSection[] = [
     items: [
       { to: "/notifications", label: "Notifications", shortLabel: "Notifs", icon: Bell },
       { to: "/profil?tab=infos", label: "Mon profil", shortLabel: "Profil", icon: User, tab: "infos" },
+      { to: "/memoire-tok", label: "Ma mémoire TOK", shortLabel: "Mémoire", icon: Sparkles, feature: "customer-memory" },
       { to: "/contact", label: "Aide et support", shortLabel: "Aide", icon: LifeBuoy },
     ],
   },
