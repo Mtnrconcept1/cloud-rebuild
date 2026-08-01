@@ -10,6 +10,10 @@ const secretWriter = readFileSync(
   resolve(process.cwd(), "scripts/write-supabase-secrets-env.mjs"),
   "utf8",
 );
+const productionKeyWriter = readFileSync(
+  resolve(process.cwd(), "scripts/write-production-supabase-keys-env.mjs"),
+  "utf8",
+);
 const demoSecretWriter = readFileSync(
   resolve(process.cwd(), "scripts/write-commercial-demo-secrets-env.mjs"),
   "utf8",
@@ -47,6 +51,11 @@ describe("production deployment secret scope", () => {
   const beforeSecretSteps = section(
     deploySupabase,
     "    steps:",
+    "      - name: Resolve production Supabase API keys",
+  );
+  const resolveProductionKeys = section(
+    deploySupabase,
+    "      - name: Resolve production Supabase API keys",
     "      - name: Assert server-only OpenAI secret",
   );
   const assertOpenAi = section(
@@ -103,6 +112,20 @@ describe("production deployment secret scope", () => {
     expect(jobEnvironment).not.toContain("${{ secrets.");
     expect(secretEnvironmentNames(jobEnvironment)).toEqual([]);
     expect(beforeSecretSteps).not.toContain("${{ secrets.");
+
+    expect(secretEnvironmentNames(resolveProductionKeys)).toEqual([
+      "SUPABASE_ACCESS_TOKEN",
+    ]);
+    expect(resolveProductionKeys).toContain(
+      "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/api-keys?reveal=true",
+    );
+    expect(resolveProductionKeys).toContain(
+      "node ./scripts/write-production-supabase-keys-env.mjs",
+    );
+    expect(resolveProductionKeys).not.toContain("SUPABASE_DB_PASSWORD:");
+    expect(resolveProductionKeys).not.toContain(
+      "SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.",
+    );
   });
 
   it("exposes function-provider secrets only while writing the private env file", () => {
@@ -138,8 +161,6 @@ describe("production deployment secret scope", () => {
       "STRIPE_WEBHOOK_SECRET_LIVE",
       "STRIPE_WEBHOOK_SIGNING_SECRET",
       "STRIPE_WEBHOOK_SIGNING_SECRET_LIVE",
-      "SUPABASE_ANON_KEY",
-      "SUPABASE_SERVICE_ROLE_KEY",
       "TELEGRAM_ADMIN_CHAT_ID",
       "TELEGRAM_ADMIN_USER_ID",
       "TELEGRAM_BOT_TOKEN",
@@ -154,10 +175,22 @@ describe("production deployment secret scope", () => {
     expect(secretEnvironmentNames(prepareSecrets)).toEqual(expectedFunctionSecrets);
     expect(prepareSecrets).not.toContain("SUPABASE_ACCESS_TOKEN:");
     expect(prepareSecrets).not.toContain("SUPABASE_DB_PASSWORD:");
+    expect(prepareSecrets).not.toContain(
+      "SUPABASE_ANON_KEY: ${{ secrets.",
+    );
+    expect(prepareSecrets).not.toContain(
+      "SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.",
+    );
 
     for (const name of expectedFunctionSecrets) {
       expect(secretWriter).toContain(`"${name}"`);
     }
+    for (const name of ["SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"]) {
+      expect(secretWriter).toContain(`"${name}"`);
+      expect(productionKeyWriter).toContain(name);
+    }
+    expect(productionKeyWriter).toContain("::add-mask::${value}");
+    expect(productionKeyWriter).toContain("mode: 0o600");
     expect(secretWriter).toContain("mode: 0o600");
     expect(secretWriter).toContain("fs.chmodSync(outFile, 0o600)");
   });
