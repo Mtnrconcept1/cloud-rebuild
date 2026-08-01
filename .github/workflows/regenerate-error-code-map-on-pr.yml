@@ -1,0 +1,45 @@
+name: Regenerate error-code map on PR
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/**"
+      - "scripts/generate-error-code-map.mjs"
+      - ".github/workflows/regenerate-error-code-map-on-pr.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    name: regenerate and commit
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout pull-request branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Generate canonical map
+        run: node scripts/generate-error-code-map.mjs
+
+      - name: Commit canonical map when changed
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if git diff --quiet -- supabase/functions/_shared/error-code-map.ts; then
+            echo "error-code-map.ts is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add supabase/functions/_shared/error-code-map.ts
+          git commit -m "chore: regenerate error-code map"
+          git push origin "HEAD:${HEAD_REF}"
