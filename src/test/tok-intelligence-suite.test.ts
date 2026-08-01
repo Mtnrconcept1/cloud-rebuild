@@ -128,6 +128,8 @@ describe("TOK Intelligence Suite", () => {
     expect(guardian).toContain("automatic_resolution_performed: false");
     expect(guardian).toContain("human_approval_required");
     expect(guardian).toContain("branche dédiée, patch minimal, tests, PR");
+    expect(guardian).toContain("GUARDIAN_ANALYSIS_TIMEOUT_MS = 100_000");
+    expect(guardian).toContain("timeoutMs: GUARDIAN_ANALYSIS_TIMEOUT_MS");
     expect(guardian).not.toContain('.update({ status: "resolved"');
     expect(guardian).not.toContain("merge_pull_request");
     expect(guardian).not.toContain("supabase db push");
