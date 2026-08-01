@@ -49,8 +49,8 @@ describe("SEO growth readiness", () => {
     expect(robots).toContain("Sitemap: https://www.thetok.ch/sitemap.xml");
     expect(robots).not.toMatch(/^Disallow:/m);
     expect(vercel).toContain('"key": "X-Robots-Tag"');
-    expect(vercel).toContain('"source": "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)"');
-    expect(vercel).toContain('"source": "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)/:path*"');
+    expect(vercel).toContain('"source": "/:surface(admin|marketing|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)"');
+    expect(vercel).toContain('"source": "/:surface(admin|marketing|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)/:path*"');
     expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve");
     expect(sitemap).toContain("https://www.thetok.ch/restaurants/lausanne");
     expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve/pizza");
