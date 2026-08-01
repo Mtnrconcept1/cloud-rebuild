@@ -734,6 +734,15 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/courier/profile"],
   },
   {
+    name: "admin-marketing-operations",
+    label: "Admin: Centre marketing",
+    description: "Pilote le calendrier, les campagnes, les audiences, les automatisations, les envois et leurs résultats depuis un espace admin isolé.",
+    defaultEnabled: true,
+    group: "admin_tools",
+    routeTargets: ["/marketing"],
+    critical: true,
+  },
+  {
     name: "admin-restaurants",
     label: "Admin: Restaurants",
     description: "Expose la gestion admin des restaurants.",
@@ -1032,3 +1041,4 @@ export const FEATURE_ROUTE_MAP: Record<string, string> = Object.fromEntries(
     (definition.routeTargets || []).map((routeTarget) => [definition.name, routeTarget]),
   ),
 );
+
