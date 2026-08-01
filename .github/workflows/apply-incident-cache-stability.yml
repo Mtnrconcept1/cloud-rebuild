@@ -52,32 +52,34 @@ jobs:
           python <<'PY'
           from pathlib import Path
 
-          def replace_once(path: str, old: str, new: str) -> None:
-              target = Path(path)
-              source = target.read_text(encoding="utf-8")
+          def replace_between(source: str, start_marker: str, end_marker: str, replacement: str) -> str:
+              start = source.index(start_marker)
+              end = source.index(end_marker, start)
+              return source[:start] + replacement + source[end:]
+
+          def replace_once(source: str, old: str, new: str, label: str) -> str:
               count = source.count(old)
               if count != 1:
-                  raise SystemExit(f"{path}: expected one occurrence, found {count}")
-              target.write_text(source.replace(old, new, 1), encoding="utf-8")
+                  raise SystemExit(f"{label}: expected one occurrence, found {count}")
+              return source.replace(old, new, 1)
 
+          # Stable technical evidence hash: ignore recurrence counters, timestamps and request IDs.
           shared_path = Path("supabase/functions/_shared/incident-intelligence.ts")
           shared = shared_path.read_text(encoding="utf-8")
-          old_sensitive = '''  const sensitive = containsAny(evidenceText, [
-            /payment|stripe|checkout|refund|invoice|billing|compta/,
-            /auth|rls|role|permission|security|secret|token|credential/,
-            /migration|schema|database|postgres/,
-          ]);'''
-          new_sensitive = '''  const sensitive = containsAny(evidenceText, [
+
+          sensitivity_start = shared.index("  const sensitive = containsAny(evidenceText, [")
+          sensitivity_end = shared.index("\n  ]);", sensitivity_start) + len("\n  ]);")
+          sensitivity_block = '''  const sensitive = containsAny(evidenceText, [
             /payment|stripe|checkout|refund|invoice|billing|compta/,
             /auth(?:entication|orization)?|rls|role|permission|security|secret|credential|bearer|jwt|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|session[_ -]?token/,
             /migration|schema|database|postgres/,
           ]);'''
-          if shared.count(old_sensitive) != 1:
-              raise SystemExit("Unable to locate the incident sensitivity classifier")
-          shared = shared.replace(old_sensitive, new_sensitive, 1)
+          shared = shared[:sensitivity_start] + sensitivity_block + shared[sensitivity_end:]
 
-          stable_marker = "export async function buildStableEvidenceHash(value: unknown) {"
-          stable_helpers = '''const VOLATILE_INCIDENT_EVIDENCE_KEY = /^(?:id|source_event_id|request_id|rid|update_id|github_run_id|github_pr_number|decision_message_id|decision_chat_id|occurrence_count|failure_count|attempt|duration_ms|run_number|created_at|updated_at|timestamp|time|date|distinct_clients|distinct_user_agents|input_tokens|output_tokens|total_tokens|cached_input_tokens|cache_write_tokens|reasoning_tokens|usage)$/i;
+          helper_marker = "const VOLATILE_INCIDENT_EVIDENCE_KEY ="
+          if helper_marker not in shared:
+              stable_marker = "export async function buildStableEvidenceHash(value: unknown) {"
+              helpers = '''const VOLATILE_INCIDENT_EVIDENCE_KEY = /^(?:id|source_event_id|request_id|rid|update_id|github_run_id|github_pr_number|decision_message_id|decision_chat_id|occurrence_count|failure_count|attempt|duration_ms|run_number|created_at|updated_at|timestamp|time|date|distinct_clients|distinct_user_agents|input_tokens|output_tokens|total_tokens|cached_input_tokens|cache_write_tokens|reasoning_tokens|usage)$/i;
 
           function isVolatileIncidentEvidenceKey(key: string) {
             const normalized = key.toLowerCase();
@@ -92,10 +94,14 @@ jobs:
             if (typeof value === "string") return normalizeText(value, 8_000);
             if (typeof value === "number" || typeof value === "boolean") return value;
             if (Array.isArray(value)) {
-              return value
-                .slice(0, 80)
-                .map((entry) => canonicalizeIncidentEvidence(entry, depth + 1))
-                .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+              const unique = new Map<string, unknown>();
+              for (const entry of value.slice(0, 80)) {
+                const normalized = canonicalizeIncidentEvidence(entry, depth + 1);
+                unique.set(JSON.stringify(normalized), normalized);
+              }
+              return [...unique.values()].sort((left, right) =>
+                JSON.stringify(left).localeCompare(JSON.stringify(right))
+              );
             }
             if (typeof value !== "object") return normalizeText(String(value), 1_000);
 
@@ -111,8 +117,7 @@ jobs:
 
           function normalizeIncidentSignature(value: unknown) {
             return normalizeText(value, 2_400)
-              .replace(/\\b\\d{1,2}\\b/g, "<count>")
-              .replace(/\\b(?:attempt|essai|retry)\\s*#?\\s*<count>\\b/g, "$1 <count>");
+              .replace(/\\b(attempt|essai|retry)\\s*#?\\s*\\d+\\b/g, "$1 <count>");
           }
 
           function evidenceRecord(value: unknown) {
@@ -122,12 +127,12 @@ jobs:
           }
 
           '''
-          if stable_marker not in shared:
-              raise SystemExit("Unable to locate buildStableEvidenceHash")
-          shared = shared.replace(stable_marker, stable_helpers + stable_marker, 1)
+              if stable_marker not in shared:
+                  raise SystemExit("buildStableEvidenceHash marker missing")
+              shared = shared.replace(stable_marker, helpers + stable_marker, 1)
 
-          envelope_start = shared.index("export function buildIncidentEvidenceEnvelope(")
-          envelope_end = shared.index("\n\nexport function buildIncidentEvidenceHash", envelope_start)
+          envelope_start = "export function buildIncidentEvidenceEnvelope(input: IncidentEvidenceInput) {"
+          envelope_end = "\n\nexport function buildIncidentEvidenceHash"
           envelope = '''export function buildIncidentEvidenceEnvelope(input: IncidentEvidenceInput) {
             const technical = evidenceRecord(input.technicalDetails);
             const context = evidenceRecord(input.context);
@@ -146,13 +151,32 @@ jobs:
               sanitized_context: canonicalizeIncidentEvidence(input.context),
             };
           }'''
-          shared = shared[:envelope_start] + envelope + shared[envelope_end:]
+          shared = replace_between(shared, envelope_start, envelope_end, envelope)
           shared_path.write_text(shared, encoding="utf-8")
 
+          # Compact Support Resolution context before hashing or sending it to OpenAI.
           support_path = Path("supabase/functions/ai-support-resolution/index.ts")
           support = support_path.read_text(encoding="utf-8")
-          compact_marker = "\n\nasync function invokeOpsIncidentControl(payload: Record<string, unknown>) {"
-          compact_helpers = '''
+          support = support.replace("\n  .limit(80);", "\n    .limit(80);", 1)
+          support = support.replace(
+              '''  const sanitizedMessages = [...(messages || [])]
+            .reverse()
+            .map((message: Record<string, unknown>) => ({
+              ...message,
+              body: sanitizeMultilineText(message.body, 1200),
+            }));''',
+              '''  const sanitizedMessages = [...(messages || [])]
+            .reverse()
+            .map((message: Record<string, unknown>) => ({
+              ...message,
+              body: sanitizeMultilineText(message.body, 1200),
+            }));''',
+              1,
+          )
+
+          if "function buildSupportModelContext(" not in support:
+              compact_marker = "\n\nasync function invokeOpsIncidentControl(payload: Record<string, unknown>) {"
+              compact_helpers = '''
 
           function compactSupportRecord(
             value: unknown,
@@ -201,7 +225,6 @@ jobs:
               })),
               message_digest: context.messageDigest,
               order: compactSupportRecord(context.order, [
-                "order_number",
                 "status",
                 "payment_status",
                 "fulfillment_status",
@@ -220,7 +243,6 @@ jobs:
                 "cancellation_reason_code",
               ]),
               reservation: compactSupportRecord(context.reservation, [
-                "order_reference",
                 "status",
                 "feature",
                 "date",
@@ -264,57 +286,35 @@ jobs:
               ], 500),
             };
           }'''
-          if support.count(compact_marker) != 1:
-              raise SystemExit("Unable to locate the support model-context insertion point")
-          support = support.replace(compact_marker, compact_helpers + compact_marker, 1)
+              if compact_marker not in support:
+                  raise SystemExit("support model context insertion marker missing")
+              support = support.replace(compact_marker, compact_helpers + compact_marker, 1)
 
-          hash_start = support.index("  const contextHash = await buildStableEvidenceHash({")
-          hash_end = support.index("\n\n  const { data: cachedRun", hash_start)
+          hash_start = "  const contextHash = await buildStableEvidenceHash({"
+          hash_end = "\n\n  const { data: cachedRun"
           hash_block = '''  const modelContext = buildSupportModelContext(context);
             const contextHash = await buildStableEvidenceHash({
               analysis_version: SUPPORT_ANALYSIS_VERSION,
               prompt,
               model_context: modelContext,
             });'''
-          support = support[:hash_start] + hash_block + support[hash_end:]
+          support = replace_between(support, hash_start, hash_end, hash_block)
 
-          old_payload = '''        content: JSON.stringify({
-                    prompt,
-                    incident: context.incident,
-                    messages: context.messages,
-                    message_digest: context.messageDigest,
-                    order: context.order,
-                    reservation: context.reservation,
-                    payments: context.payments,
-                    notifications: context.notifications,
-                    restaurant: context.restaurant,
-                  }),'''
-          if old_payload not in support:
-              normalized_old = "\n".join(line.strip() for line in old_payload.splitlines())
-              lines = support.splitlines()
-              start_line = next((index for index, line in enumerate(lines) if line.strip() == 'content: JSON.stringify({'), None)
-              if start_line is None:
-                  raise SystemExit("Unable to locate the support OpenAI payload")
-              end_line = start_line
-              while end_line < len(lines) and lines[end_line].strip() != '}),':
-                  end_line += 1
-              if end_line >= len(lines):
-                  raise SystemExit("Unable to locate the support OpenAI payload terminator")
-              lines[start_line:end_line + 1] = [
-                  "        content: JSON.stringify({ prompt, ...modelContext }),",
-              ]
-              support = "\n".join(lines) + ("\n" if support.endswith("\n") else "")
-          else:
-              support = support.replace(
-                  old_payload,
-                  "        content: JSON.stringify({ prompt, ...modelContext }),",
-                  1,
-              )
+          response_start = support.index("  const openAIResponse = await createOpenAIResponse({")
+          payload_start = support.index("        content: JSON.stringify({", response_start)
+          payload_end = support.index("\n        }),", payload_start) + len("\n        }),")
+          support = (
+              support[:payload_start]
+              + "        content: JSON.stringify({ prompt, ...modelContext }),"
+              + support[payload_end:]
+          )
           support_path.write_text(support, encoding="utf-8")
 
+          # Preserve current severity on cached diagnostics and show the real occurrence count in Telegram.
           ops_path = Path("supabase/functions/ops-incident-control/index.ts")
           ops = ops_path.read_text(encoding="utf-8")
-          cache_start = ops.index("  if (previous && isReusableRepairPlan(previous.repair_plan, evidenceHash)) {")
+          cache_marker = "  if (previous && isReusableRepairPlan(previous.repair_plan, evidenceHash)) {"
+          cache_start = ops.index(cache_marker)
           plan_start = ops.index("    const plan = decorateRepairPlan(", cache_start)
           plan_end = ops.index("\n    build = {", plan_start)
           cached_plan = '''    const plan = {
@@ -331,41 +331,53 @@ jobs:
             };'''
           ops = ops[:plan_start] + cached_plan + ops[plan_end:]
 
-          replacements = {
-              "function buildIncidentTelegramMessage(incidentId: string, input: IncidentInput, plan: RepairPlan) {": '''function buildIncidentTelegramMessage(
+          if "occurrenceCount: number" not in ops:
+              ops = replace_once(
+                  ops,
+                  "function buildIncidentTelegramMessage(incidentId: string, input: IncidentInput, plan: RepairPlan) {",
+                  '''function buildIncidentTelegramMessage(
             incidentId: string,
             input: IncidentInput,
             plan: RepairPlan,
             occurrenceCount: number,
           ) {''',
-              '`<b>Occurrences :</b> 1 · <b>Source :</b> ${escapeHtml(input.source)}`': '`<b>Occurrences :</b> ${Math.max(1, occurrenceCount)} · <b>Source :</b> ${escapeHtml(input.source)}`',
-              '''  plan: RepairPlan,
-            approvalToken: string,
-          ) {''': '''  plan: RepairPlan,
-            approvalToken: string,
-            occurrenceCount: number,
-          ) {''',
-              "text: buildIncidentTelegramMessage(incidentId, input, plan),": "text: buildIncidentTelegramMessage(incidentId, input, plan, occurrenceCount),",
-              "const telegram = await sendIncidentApprovalMessage(registered.incidentId, input, plan, approvalToken);": "const telegram = await sendIncidentApprovalMessage(registered.incidentId, input, plan, approvalToken, currentIncident.occurrence_count);",
-          }
-          for old, new in replacements.items():
-              count = ops.count(old)
-              if count != 1:
-                  raise SystemExit(f"ops-incident-control marker not unique: {old[:70]!r} ({count})")
-              ops = ops.replace(old, new, 1)
+                  "telegram message signature",
+              )
+              ops = replace_once(
+                  ops,
+                  '`<b>Occurrences :</b> 1 · <b>Source :</b> ${escapeHtml(input.source)}`',
+                  '`<b>Occurrences :</b> ${Math.max(1, occurrenceCount)} · <b>Source :</b> ${escapeHtml(input.source)}`',
+                  "telegram occurrence display",
+              )
+              function_start = ops.index("async function sendIncidentApprovalMessage(")
+              approval_marker = "  approvalToken: string,\n) {"
+              approval_at = ops.index(approval_marker, function_start)
+              ops = (
+                  ops[:approval_at]
+                  + "  approvalToken: string,\n  occurrenceCount: number,\n) {"
+                  + ops[approval_at + len(approval_marker):]
+              )
+              ops = replace_once(
+                  ops,
+                  "text: buildIncidentTelegramMessage(incidentId, input, plan),",
+                  "text: buildIncidentTelegramMessage(incidentId, input, plan, occurrenceCount),",
+                  "telegram message call",
+              )
+              ops = replace_once(
+                  ops,
+                  "const telegram = await sendIncidentApprovalMessage(registered.incidentId, input, plan, approvalToken);",
+                  "const telegram = await sendIncidentApprovalMessage(registered.incidentId, input, plan, approvalToken, currentIncident.occurrence_count);",
+                  "telegram approval call",
+              )
           ops_path.write_text(ops, encoding="utf-8")
 
+          # Record zero-token Guardian cache hits for cost observability.
           guardian_path = Path("supabase/functions/ai-guardian/index.ts")
           guardian = guardian_path.read_text(encoding="utf-8")
-          reuse_marker = '''  if (existingAssessment && !forceDeepAnalysis) {
-            return {
-              assessment: existingAssessment,
-              result: existingAssessment.assessment,
-              function_name: findLikelyFunctionName(incident),
-              reused: true,
-            };
-          }'''
-          reuse_block = '''  if (existingAssessment && !forceDeepAnalysis) {
+          if "const reusedModel = existingAssessment.model || \"cache\";" not in guardian:
+              reuse_start = guardian.index("  if (existingAssessment && !forceDeepAnalysis) {")
+              reuse_end = guardian.index("\n  }", reuse_start) + len("\n  }")
+              reuse_block = '''  if (existingAssessment && !forceDeepAnalysis) {
             const reusedModel = existingAssessment.model || "cache";
             await recordUsage(actor, {
               status: "success",
@@ -398,32 +410,29 @@ jobs:
               reused: true,
             };
           }'''
-          if guardian.count(reuse_marker) != 1:
-              raise SystemExit("Unable to locate Guardian cache reuse block")
-          guardian = guardian.replace(reuse_marker, reuse_block, 1)
+              guardian = guardian[:reuse_start] + reuse_block + guardian[reuse_end:]
           guardian_path.write_text(guardian, encoding="utf-8")
 
-          test_path = Path("src/test/incident-intelligence-routing.test.ts")
-          test = test_path.read_text(encoding="utf-8")
-          test = test.replace(
-              '''import {
-            buildStableEvidenceHash,
-            buildSupportTechnicalEvidence,
-            classifyIncidentRepairability,
-          } from "../../supabase/functions/_shared/incident-intelligence";''',
-              '''import {
-            buildIncidentEvidenceHash,
-            buildStableEvidenceHash,
-            buildSupportTechnicalEvidence,
-            classifyIncidentRepairability,
-            shouldUseDeepIncidentAnalysis,
-          } from "../../supabase/functions/_shared/incident-intelligence";''',
-              1,
-          )
-          final_marker = "\n});\n"
-          if not test.endswith(final_marker):
-              raise SystemExit("Unexpected routing-test terminator")
-          extra_tests = '''
+          # Behavioral regression tests for stable cache keys and routing.
+          routing_path = Path("src/test/incident-intelligence-routing.test.ts")
+          routing_test = routing_path.read_text(encoding="utf-8")
+          if "buildIncidentEvidenceHash," not in routing_test:
+              routing_test = routing_test.replace(
+                  "  buildStableEvidenceHash,\n",
+                  "  buildIncidentEvidenceHash,\n  buildStableEvidenceHash,\n",
+                  1,
+              )
+          if "shouldUseDeepIncidentAnalysis," not in routing_test:
+              routing_test = routing_test.replace(
+                  "  classifyIncidentRepairability,\n",
+                  "  classifyIncidentRepairability,\n  shouldUseDeepIncidentAnalysis,\n",
+                  1,
+              )
+          if "keeps the incident evidence hash stable across counts and timestamps" not in routing_test:
+              final_marker = "\n});\n"
+              if not routing_test.endswith(final_marker):
+                  raise SystemExit("unexpected routing test terminator")
+              extra_tests = '''
 
             it("keeps the incident evidence hash stable across counts and timestamps", async () => {
               const first = await buildIncidentEvidenceHash({
@@ -511,16 +520,18 @@ jobs:
                 sensitive: decision.sensitive,
               })).toBe(false);
             });'''
-          test = test[:-len(final_marker)] + extra_tests + final_marker
-          test_path.write_text(test, encoding="utf-8")
+              routing_test = routing_test[:-len(final_marker)] + extra_tests + final_marker
+          routing_path.write_text(routing_test, encoding="utf-8")
 
-          replace_once(
-              "src/test/incident-intelligence-unification.test.ts",
-              '''    expect(support).toContain("selectSupportMessages(context.messages, 28)");''',
-              '''    expect(support).toContain("selectSupportMessages(sanitizedMessages, 28)");
+          unification_path = Path("src/test/incident-intelligence-unification.test.ts")
+          unification = unification_path.read_text(encoding="utf-8")
+          marker = '    expect(support).toContain("selectSupportMessages");'
+          additions = '''    expect(support).toContain("selectSupportMessages");
               expect(support).toContain("buildSupportModelContext(context)");
-              expect(support).toContain("model_context: modelContext");''',
-          )
+              expect(support).toContain("model_context: modelContext");'''
+          if "buildSupportModelContext(context)" not in unification:
+              unification = replace_once(unification, marker, additions, "support context test")
+          unification_path.write_text(unification, encoding="utf-8")
 
           print("Incident cache stability hardening applied.")
           PY
