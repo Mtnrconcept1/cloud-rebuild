@@ -13,7 +13,7 @@ source = source.replace(old_marker, new_marker, 1)
 pattern = re.compile(
     r'  it\("routes complex diagnostics to the strategic model independently from Codex repair", \(\) => \{[\s\S]*?\n  \}\);\n\n  it\("isolates Codex, validation, and publication on separate runners"',
 )
-replacement = '''  it("routes technical triage economically and independently from Codex repair", () => {
+replacement = r'''  it("routes technical triage economically and independently from Codex repair", () => {
     const edgeFunction = readProjectFile(
       "supabase/functions/ops-incident-control/index.ts",
     );
@@ -37,7 +37,7 @@ replacement = '''  it("routes technical triage economically and independently fr
   });
 
   it("isolates Codex, validation, and publication on separate runners"'''
-source, count = pattern.subn(replacement, source, count=1)
+source, count = pattern.subn(lambda _match: replacement, source, count=1)
 if count != 1:
     raise SystemExit(f"Expected one legacy routing test block, replaced {count}")
 
