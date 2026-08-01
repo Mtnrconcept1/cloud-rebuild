@@ -259,7 +259,12 @@ describe("vercel config", () => {
     expect(workflow).toContain("VERCEL_CLI_VERSION: 55.0.0");
     expect(workflow).not.toContain("vercel@latest");
     expect(workflow).toContain('pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --prod --token="$VERCEL_TOKEN"');
-    expect(workflow).toContain('pnpm dlx "vercel@${VERCEL_CLI_VERSION}" deploy --prebuilt --prod --token="$VERCEL_TOKEN"');
+    expect(workflow).toMatch(
+      /pnpm dlx "vercel@\$\{VERCEL_CLI_VERSION\}" deploy \\\s+--prebuilt \\\s+--prod \\\s+--token="\$VERCEL_TOKEN"/,
+    );
+    expect(workflow).toContain('--env "SUPABASE_URL=$VITE_SUPABASE_URL"');
+    expect(workflow).toContain('--env "SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY"');
+    expect(workflow).toContain('--env "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY"');
     expect(workflow).toContain("tar -czf \"$RUNNER_TEMP/vercel-output.tgz\"");
     expect(workflow).toContain("actions/upload-artifact@v4");
     expect(workflow).toContain("actions/download-artifact@v5");
