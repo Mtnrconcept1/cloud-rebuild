@@ -41,6 +41,9 @@ describe("restaurant slug SEO", () => {
     expect(app).toContain('/restaurant/:id');
     expect(localRestaurants).toContain('queryKey: ["restaurant-slug", city, requestedRestaurantSlug]');
     expect(localRestaurants).toContain("resolvedRestaurantId");
+    expect(localRestaurants).toContain("legacySlugMiss");
+    expect(localRestaurants).toContain("isExplicitRestaurantRoute && !isSlugLoading");
+    expect(localRestaurants).toContain("unknownListingRoute");
     expect(restaurantDetail).toContain("resolvedRestaurantId");
     expect(restaurantDetail).toContain("canonicalPath");
   });

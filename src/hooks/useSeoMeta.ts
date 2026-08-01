@@ -11,6 +11,7 @@ const PRIVATE_ROUTE_PREFIXES = [
   "/courier",
   "/commercial",
   "/profil",
+  "/memoire-tok",
   "/notifications",
   "/commandes",
   "/commande",
@@ -167,7 +168,6 @@ function isPrivateRoute(path: string) {
 
 function isKnownPublicRoute(path: string) {
   if (PUBLIC_ROUTE_FALLBACKS[path]) return true;
-  if (["/restaurant/", "/restaurants/", "/actualites/"].some((prefix) => path.startsWith(prefix))) return true;
   return [
     "/actualites",
     "/tok-one",
