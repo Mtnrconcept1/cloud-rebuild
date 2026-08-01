@@ -42,26 +42,34 @@ describe("SEO growth readiness", () => {
 
   it("publishes sitemap and robots entries for public local and B2B pages", () => {
     const robots = read("public/robots.txt");
-    const sitemap = read("public/sitemap.xml");
+    const sitemapIndex = read("public/sitemap.xml");
+    const pagesSitemap = read("public/sitemap-pages.xml");
+    const restaurantSitemap = read("public/sitemap-restaurants.xml");
+    const actualitesSitemap = read("public/sitemap-actualites.xml");
+    const prerender = read("scripts/prerender-seo.mjs");
     const vercel = read("vercel.json");
 
-    expect(robots).not.toMatch(/^Disallow: \/$/m);
+    expect(robots).toContain("User-agent: Googlebot");
+    expect(robots).toContain("User-agent: OAI-SearchBot");
+    expect(robots).toContain("User-agent: GPTBot");
+    expect(robots).toContain("User-agent: CCBot");
+    expect(robots).toMatch(/^Disallow: \/$/m);
     expect(robots).toContain("Sitemap: https://www.thetok.ch/sitemap.xml");
-    expect(robots).not.toMatch(/^Disallow:/m);
     expect(vercel).toContain('"key": "X-Robots-Tag"');
-    expect(vercel).toContain('"source": "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)"');
-    expect(vercel).toContain('"source": "/:surface(admin|dashboard|courier|commercial|profil|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)/:path*"');
-    expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve");
-    expect(sitemap).toContain("https://www.thetok.ch/restaurants/lausanne");
-    expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve/pizza");
-    expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve/eaux-vives");
-    expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve/plainpalais");
-    expect(sitemap).toContain("https://www.thetok.ch/restaurateurs/geneve");
-    expect(sitemap).toContain("https://www.thetok.ch/restaurateurs/alternative-commission-couvert");
-    expect(sitemap).toContain("https://www.thetok.ch/miamz-solidaires");
-    expect(sitemap).toContain("https://www.thetok.ch/aide");
-    expect(sitemap).toContain("https://www.thetok.ch/contact");
-    expect(sitemap).not.toMatch(
+    expect(vercel).toContain("memoire-tok");
+    expect(sitemapIndex).toContain("https://www.thetok.ch/sitemap-pages.xml");
+    expect(sitemapIndex).toContain("https://www.thetok.ch/sitemap-actualites.xml");
+    expect(pagesSitemap).toContain("https://www.thetok.ch/restaurateurs/geneve");
+    expect(pagesSitemap).toContain("https://www.thetok.ch/restaurateurs/alternative-commission-couvert");
+    expect(pagesSitemap).toContain("https://www.thetok.ch/miamz-solidaires");
+    expect(pagesSitemap).toContain("https://www.thetok.ch/aide");
+    expect(pagesSitemap).toContain("https://www.thetok.ch/contact");
+    expect(actualitesSitemap).toContain("https://www.thetok.ch/actualites");
+    expect(restaurantSitemap).toContain("<urlset");
+    expect(prerender).toContain('fileName: "sitemap-restaurants.xml"');
+    expect(prerender).toContain("MIN_LOCAL_RESTAURANTS");
+    expect(prerender).toContain("inventoryCount");
+    expect([pagesSitemap, restaurantSitemap, actualitesSitemap].join("\n")).not.toMatch(
       /https:\/\/www\.thetok\.ch\/(?:admin|dashboard|courier|auth|panier|profil|notifications|commandes|reservations|points-cadeau)(?:\/|<)/,
     );
   });
@@ -75,6 +83,9 @@ describe("SEO growth readiness", () => {
     expect(prerender).toContain("PRIVATE_ROUTE_PREFIXES");
     expect(prerender).toContain('"/admin"');
     expect(prerender).toContain('"/dashboard"');
+    expect(prerender).toContain('"/memoire-tok"');
+    expect(prerender).toContain('"/espaces"');
+    expect(prerender).toContain('"/r"');
     expect(prerender).toContain("createClient");
     expect(prerender).toContain("VITE_SUPABASE_PUBLISHABLE_KEY");
     expect(prerender).toContain('type="application/ld+json"');
@@ -105,8 +116,11 @@ describe("SEO growth readiness", () => {
     expect(prerender).toContain("BreadcrumbList");
     expect(prerender).not.toContain('document.getElementById("tok-prerendered-content")');
     expect(prerender).not.toContain("page.lastmod || today");
-    expect(prerender).toContain("const lastmod = page.lastmod ?");
+    expect(prerender).toContain("const lastmod = normalizeSitemapDate(page.lastmod)");
     expect(prerender).toContain("itemListElement: restaurants.slice(0, 100)");
+    expect(prerender).toContain('writeIfDirectoryExists(DIST_DIR, "404.html", renderNotFoundHtml(baseHtml))');
+    expect(prerender).toContain("noindex,nofollow,noarchive");
+    expect(prerender).toContain('html.replace(/\\s*<link\\s+rel="canonical"');
     expect(prerender).not.toContain(
       '<noscript><main><h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.description)}</p></main></noscript>',
     );
@@ -132,6 +146,10 @@ describe("SEO growth readiness", () => {
     expect(page).toContain("search_restaurants_catalog");
     expect(page).toContain('lazy(() => import("./RestaurantDetail"))');
     expect(page).not.toContain("restaurants.length === 0))");
+    expect(page).toContain("hasConfirmedEmptyInventory");
+    expect(page).toContain("unknownListingRoute");
+    expect(page).toContain("isSuccess: isListingSuccess");
+    expect(page).toContain('"noindex,follow,noarchive"');
     expect(restaurantCard).toContain("to={restaurantPath}");
     expect(restaurantCard).toContain('data-card-action="restaurant-link"');
     expect(restaurantCard).not.toContain('`/restaurant/${id}?reserve=true');

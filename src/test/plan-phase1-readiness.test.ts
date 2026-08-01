@@ -192,7 +192,7 @@ describe("phase 1 launch audit plan readiness", () => {
     const app = readProjectFile("src/App.tsx");
     const page = readProjectFile("src/pages/RestaurateursGoogleBusiness.tsx");
     const economics = readProjectFile("src/lib/googleBusinessEconomics.ts");
-    const sitemap = readProjectFile("public/sitemap.xml");
+    const sitemap = readProjectFile("public/sitemap-pages.xml");
     const prerender = readProjectFile("scripts/prerender-seo.mjs");
     const postDeployCheck = readProjectFile("scripts/post-deploy-check.mjs");
 

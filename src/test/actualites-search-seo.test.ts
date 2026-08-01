@@ -58,10 +58,12 @@ describe("Actualites global search and public post SEO", () => {
     expect(carousel).toContain("Agrandir l’image");
   });
 
-  it("pre-renders every public post into the sitemap with crawler-visible article metadata", () => {
+  it("pre-renders quality public posts into the sitemap with crawler-visible article metadata", () => {
     const prerender = readProjectFile("scripts/prerender-seo.mjs");
 
     expect(prerender).toContain("MAX_DYNAMIC_ACTUALITES");
+    expect(prerender).toContain("MIN_ACTUALITE_TEXT_LENGTH");
+    expect(prerender).toContain("indexableTextLength");
     expect(prerender).toContain("ACTUALITES_PRERENDER_BATCH_SIZE");
     expect(prerender).toContain("async function collectDynamicActualitesPages");
     expect(prerender).toContain('.from("social_posts")');

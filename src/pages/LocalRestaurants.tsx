@@ -67,11 +67,6 @@ const DISTRICT_LABELS: Record<string, string> = {
   chailly: "Chailly",
 };
 
-const CURATED_CUISINES_BY_CITY: Record<string, string[]> = {
-  geneve: ["pizza", "sushi", "burger", "kebab"],
-  lausanne: ["italien", "asiatique"],
-};
-
 function slugToLabel(slug: string | undefined, labels: Record<string, string>) {
   const normalized = String(slug || "").trim().toLowerCase();
   if (!normalized) return "";
@@ -173,13 +168,15 @@ function LocalRestaurantsSeo({
   description,
   path,
   jsonLd,
+  robots,
 }: {
   title: string;
   description: string;
   path: string;
   jsonLd: Record<string, unknown>[];
+  robots?: string;
 }) {
-  useSeoMeta({ title, description, path, jsonLd });
+  useSeoMeta({ title, description, path, jsonLd, robots });
   return null;
 }
 
@@ -188,7 +185,7 @@ function buildLocalSeoLinks(citySlug: string | undefined, city: string, category
   const discoveredCuisines = restaurants
     .map((restaurant) => slugifyRestaurantSegment(restaurant?.cuisine_type))
     .filter((cuisine, index, cuisines) => cuisine && CATEGORY_LABELS[cuisine] && cuisines.indexOf(cuisine) === index);
-  const supportedCuisines = CURATED_CUISINES_BY_CITY[safeCitySlug] || discoveredCuisines.slice(0, 8);
+  const supportedCuisines = discoveredCuisines.slice(0, 8);
   const cuisineLinks = supportedCuisines.map((cuisine) => ({
     href: `/restaurants/${safeCitySlug}/${cuisine}`,
     label: `${slugToLabel(cuisine, CATEGORY_LABELS)} à ${city}`,
@@ -212,6 +209,8 @@ export default function LocalRestaurants() {
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
   const params = useParams<{ city?: string; category?: string; restaurantSlug?: string }>();
+  const normalizedCitySegment = String(params.city || "").trim().toLowerCase();
+  const knownCitySegment = Boolean(CITY_LABELS[normalizedCitySegment]);
   const city = slugToLabel(params.city, CITY_LABELS);
   const routeSegment = String(params.category || "").trim().toLowerCase();
   const explicitRestaurantSlug = slugifyRestaurantSegment(params.restaurantSlug);
@@ -239,7 +238,11 @@ export default function LocalRestaurants() {
   const restaurantSlugBaseQuery = {
     queryKey: ["restaurant-slug", city, requestedRestaurantSlug],
   };
-  const { data: fetchedRestaurantBySlug, isLoading: isRemoteSlugLoading } = useQuery({
+  const {
+    data: fetchedRestaurantBySlug,
+    isLoading: isRemoteSlugLoading,
+    isError: isRemoteSlugError,
+  } = useQuery({
     queryKey: [...restaurantSlugBaseQuery.queryKey, demoSessionKey],
     enabled: Boolean(city && slugCandidate && !isCommercialDemoClient),
     queryFn: async () => {
@@ -261,13 +264,30 @@ export default function LocalRestaurants() {
   const restaurantBySlug = isCommercialDemoClient ? demoRestaurantBySlug : fetchedRestaurantBySlug;
   const isSlugLoading = !isCommercialDemoClient && isRemoteSlugLoading;
   const resolvedRestaurantId = restaurantBySlug?.id ? String(restaurantBySlug.id) : "";
+  const legacySlugMiss = Boolean(legacyRestaurantSlug && !isSlugLoading && !isRemoteSlugError && !restaurantBySlug);
   const district = knownDistrictSegment ? slugToLabel(params.category, DISTRICT_LABELS) : "";
-  const category = district || resolvedRestaurantId ? "" : slugToLabel(params.category, CATEGORY_LABELS);
-  const path = params.category ? `/restaurants/${params.city}/${params.category}` : `/restaurants/${params.city}`;
+  const category = district || resolvedRestaurantId
+    ? ""
+    : knownCategorySegment || legacySlugMiss
+      ? slugToLabel(params.category, CATEGORY_LABELS)
+      : "";
+  const path = isExplicitRestaurantRoute
+    ? `/restaurants/${params.city}/r/${params.restaurantSlug}`
+    : params.category
+      ? `/restaurants/${params.city}/${params.category}`
+      : `/restaurants/${params.city}`;
 
-  const { data: restaurants = [], isLoading } = useQuery({
+  const {
+    data: restaurants = [],
+    isLoading,
+    isError,
+    isSuccess: isListingSuccess,
+  } = useQuery({
     queryKey: ["local-restaurants", city, category, district, demoSessionKey],
-    enabled: Boolean(city) && !resolvedRestaurantId && !slugCandidate,
+    enabled: Boolean(city)
+      && !resolvedRestaurantId
+      && !isExplicitRestaurantRoute
+      && (!slugCandidate || legacySlugMiss),
     queryFn: async () => {
       if (isCommercialDemoClient) {
         return demoRestaurants;
@@ -281,7 +301,7 @@ export default function LocalRestaurants() {
         p_min_rating: 0,
         p_sort_by: "pertinence",
         p_sort_direction: "desc",
-        p_limit: 90,
+        p_limit: 60,
         p_offset: 0,
       });
 
@@ -305,6 +325,11 @@ export default function LocalRestaurants() {
     () => buildLocalSeoLinks(params.city, city, category, district, restaurants),
     [category, city, district, params.city, restaurants],
   );
+  const knownListingRoute = Boolean(
+    knownCitySegment && (!routeSegment || knownDistrictSegment || knownCategorySegment),
+  );
+  const hasConfirmedEmptyInventory = isListingSuccess && restaurants.length === 0;
+  const unknownListingRoute = hasConfirmedEmptyInventory && !knownListingRoute;
 
   if (slugCandidate && isSlugLoading) {
     return (
@@ -341,13 +366,43 @@ export default function LocalRestaurants() {
     );
   }
 
-  if (slugCandidate && !isSlugLoading) {
+  if (isExplicitRestaurantRoute && !isSlugLoading && !isRemoteSlugError) {
     return <NotFound />;
+  }
+
+  if (unknownListingRoute) {
+    return <NotFound />;
+  }
+
+  if (isRemoteSlugError) {
+    return (
+      <main className="min-h-screen bg-background">
+        <LocalRestaurantsSeo
+          title="Restaurant temporairement indisponible | TOK"
+          description="La fiche restaurant ne peut pas être chargée pour le moment."
+          path={path}
+          jsonLd={[]}
+          robots="noindex,follow,noarchive"
+        />
+        <div className="container py-16 text-center">
+          <h1 className="text-2xl font-bold">Fiche temporairement indisponible</h1>
+          <p className="mt-3 text-muted-foreground">Réessayez dans quelques instants.</p>
+        </div>
+      </main>
+    );
   }
 
   return (
     <main className="min-h-screen bg-background">
-      <LocalRestaurantsSeo title={title} description={description} path={path} jsonLd={jsonLd} />
+      {!isLoading ? (
+        <LocalRestaurantsSeo
+          title={title}
+          description={description}
+          path={path}
+          jsonLd={jsonLd}
+          robots={isError || hasConfirmedEmptyInventory ? "noindex,follow,noarchive" : undefined}
+        />
+      ) : null}
       <div className="container space-y-8 py-8">
         <section className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -398,7 +453,7 @@ export default function LocalRestaurants() {
               <div key={item} className="h-[300px] animate-pulse rounded-2xl bg-muted" />
             ))}
           </div>
-        ) : restaurants.length > 0 ? (
+        ) : !isError && restaurants.length > 0 ? (
           <section className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {restaurants.map((restaurant: any) => (
               <RestaurantCard key={restaurant.id} {...toCardProps(restaurant)} />
@@ -406,8 +461,14 @@ export default function LocalRestaurants() {
           </section>
         ) : (
           <section className="rounded-2xl border border-dashed p-10 text-center">
-            <p className="font-semibold">Aucun restaurant trouvé pour cette page locale.</p>
-            <p className="mt-2 text-sm text-muted-foreground">Essayez une autre ville, un autre quartier ou une autre cuisine depuis la recherche.</p>
+            <p className="font-semibold">
+              {isError ? "La sélection locale est temporairement indisponible." : "Aucun restaurant trouvé pour cette page locale."}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {isError
+                ? "Réessayez dans quelques instants ou utilisez la recherche générale."
+                : "Essayez une autre ville, un autre quartier ou une autre cuisine depuis la recherche."}
+            </p>
           </section>
         )}
       </div>

@@ -92,6 +92,11 @@ describe("responsive and SEO regression guards", () => {
     expect(localRestaurants).toContain('lazy(() => import("./RestaurantDetail"))');
     expect(localRestaurants).not.toContain('import RestaurantDetail from "./RestaurantDetail"');
     expect(localRestaurants).not.toContain("restaurants.length === 0))");
+    expect(localRestaurants).toContain("hasConfirmedEmptyInventory");
+    expect(localRestaurants).toContain("unknownListingRoute");
+    expect(localRestaurants).toContain("isSuccess: isListingSuccess");
+    expect(localRestaurants).toContain('"noindex,follow,noarchive"');
+    expect(localRestaurants).toContain("legacySlugMiss");
     expect(restaurantCard).toContain("to={restaurantPath}");
     expect(restaurantCard).toContain("width={640}");
     expect(restaurantCard).toContain("height={400}");
@@ -109,8 +114,10 @@ describe("responsive and SEO regression guards", () => {
 
     expect(html).toContain('name="robots"');
     expect(html).toContain('property="og:locale" content="fr_CH"');
-    expect(robots).not.toContain("User-agent: Googlebot");
-    expect(robots).not.toContain("Disallow:");
+    expect(robots).toContain("User-agent: Googlebot");
+    expect(robots).toContain("User-agent: OAI-SearchBot");
+    expect(robots).toContain("User-agent: GPTBot");
+    expect(robots).toContain("Disallow: /");
     expect(seoHook).toContain("snapshotManagedHead");
     expect(seoHook).toContain("restoreManagedHead(previousHead)");
     expect(seoHook).toContain("ensureSeoMetadataForRoute");
@@ -119,6 +126,7 @@ describe("responsive and SEO regression guards", () => {
     expect(vercel).toContain('"value": "admin.thetok.ch"');
     expect(vercel).toContain('"key": "X-Robots-Tag"');
     expect(vercel).toContain("espace-client");
+    expect(vercel).toContain("memoire-tok");
     expect(prerender).toContain('path: "/cookies"');
     expect(prerender).toContain('path: "/conditions-restaurateurs"');
     expect(prerender).toContain('path: "/tok-pulse"');
