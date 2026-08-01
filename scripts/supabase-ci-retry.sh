@@ -2,12 +2,17 @@
 set -euo pipefail
 
 supabase_ci_retry() {
-  if [[ "${SUPABASE_CI_SINGLE_FUNCTION_DEPLOY:-false}" != "true" ]] \
-    && [[ "${1:-}" == "functions" ]] \
-    && [[ "${2:-}" == "deploy" ]]; then
+  if [[ "${1:-}" == "functions" ]] && [[ "${2:-}" == "deploy" ]]; then
     supabase_ci_deploy_functions_individually "${@:3}"
     return $?
   fi
+
+  supabase_ci_retry_command "generic" "$@"
+}
+
+supabase_ci_retry_command() {
+  local command_kind="$1"
+  shift
 
   local attempt=1
   local max_attempts="${SUPABASE_CLI_RETRY_ATTEMPTS:-4}"
@@ -31,8 +36,13 @@ supabase_ci_retry() {
     local output
     output="$(cat "$output_file")"
 
-    if supabase_ci_is_existing_deployment "$output"; then
-      echo "Supabase reports that this exact Edge Function deployment already exists; treating it as an idempotent success."
+    # The Supabase function deploy endpoint can report this exact conflict when
+    # the deployment for the isolated function slug already exists. Accept it
+    # only for a single-function deploy; no other Supabase command may turn a
+    # generic 409 into success.
+    if [[ "$command_kind" == "function-deploy" ]] \
+      && supabase_ci_is_existing_deployment "$output"; then
+      echo "Supabase reports that this Edge Function deployment already exists; treating the isolated function deploy as an idempotent success."
       rm -f "$output_file"
       return 0
     fi
@@ -90,8 +100,9 @@ supabase_ci_deploy_functions_individually() {
     fi
 
     echo "Deploying Edge Function idempotently: $function_name"
-    SUPABASE_CI_SINGLE_FUNCTION_DEPLOY=true \
-      supabase_ci_retry functions deploy "$function_name" "${deploy_options[@]}"
+    supabase_ci_retry_command \
+      "function-deploy" \
+      functions deploy "$function_name" "${deploy_options[@]}"
   done
 }
 
