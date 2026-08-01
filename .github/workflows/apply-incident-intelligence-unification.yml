@@ -49,6 +49,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare one-shot patcher
+        run: |
+          python scripts/fix-incident-patcher-syntax.py
+          node --check scripts/apply-incident-intelligence-unification.mjs
+
       - name: Apply one-shot source transformation
         run: node scripts/apply-incident-intelligence-unification.mjs
 
