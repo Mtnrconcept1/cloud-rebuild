@@ -47,7 +47,7 @@ describe("unified incident intelligence", () => {
       "expected_business_rule",
       "unknown",
     ]) {
-      expect(shared).toContain(`\"${repairability}\"`);
+      expect(shared).toContain(`"${repairability}"`);
     }
 
     expect(shared).toContain("buildIncidentEvidenceHash");
