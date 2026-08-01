@@ -1,0 +1,36 @@
+name: Export generated error-code map
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/**"
+      - "scripts/generate-error-code-map.mjs"
+      - ".github/workflows/export-error-code-map.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    name: generate and upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate canonical map
+        run: node scripts/generate-error-code-map.mjs
+
+      - name: Upload canonical map
+        uses: actions/upload-artifact@v4
+        with:
+          name: error-code-map-${{ github.event.pull_request.head.sha }}
+          path: supabase/functions/_shared/error-code-map.ts
+          if-no-files-found: error
+          retention-days: 1
