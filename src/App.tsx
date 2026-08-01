@@ -42,6 +42,8 @@ import CommercialDemoFrameProvider, { CommercialDemoFrameAuthBoundary, useCommer
 import CommercialDemoHostSecurityBoundary from "@/components/commercial/CommercialDemoHostSecurityBoundary";
 import CommercialDemoSafeEffectsBoundary from "@/components/commercial/CommercialDemoSafeEffectsBoundary";
 import CommercialHostBoundary from "@/components/commercial/CommercialHostBoundary";
+import MarketingHostBoundary from "@/components/marketing/MarketingHostBoundary";
+import { isMarketingAppHost, isMarketingPath } from "@/lib/marketingDomains";
 import { isCommercialDemoClientPathAllowed } from "@/lib/commercialDemoClientRoutes";
 import { getCommercialDemoFrameConfig, type CommercialDemoFrameConfig } from "@/lib/commercialDemoFrame";
 
@@ -162,6 +164,7 @@ const AdminSinistres = lazy(() => import("./pages/admin/AdminSinistres"));
 const AdminSupportResolution = lazy(() => import("./pages/admin/AdminSupportResolution"));
 const AdminGuardian = lazy(() => import("./pages/admin/AdminGuardian"));
 const AdminTokConnect = lazy(() => import("./pages/admin/AdminTokConnect"));
+const MarketingWorkspace = lazy(() => import("./pages/marketing/MarketingWorkspace"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -245,6 +248,24 @@ function AdminHostBoundary() {
   return null;
 }
 
+function isMarketingExecutionLocation(pathname: string) {
+  return isMarketingPath(pathname)
+    || (typeof window !== "undefined" && isMarketingAppHost(window.location.hostname));
+}
+
+function CanonicalWorkspaceHostBoundary({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
+  const marketingExecutionLocation = isMarketingExecutionLocation(pathname);
+  const canonicalChildren = marketingExecutionLocation ? children : (
+    <CommercialHostBoundary>
+      <AdminHostBoundary />
+      {children}
+    </CommercialHostBoundary>
+  );
+
+  return <>{canonicalChildren}</>;
+}
+
 function ClientSurfaceRoute({ children }: { children: React.ReactNode }) {
   const { user, loading, role, roles } = useAuth();
 
@@ -282,7 +303,9 @@ function shouldShowPublicNavbar(pathname: string) {
     pathname === "/courier" ||
     pathname.startsWith("/courier/") ||
     pathname === "/commercial" ||
-    pathname.startsWith("/commercial/")
+    pathname.startsWith("/commercial/") ||
+    pathname === "/marketing" ||
+    pathname.startsWith("/marketing/")
   );
 }
 
@@ -489,19 +512,23 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const adminSupportResolutionEnabled = hasFeature("admin-support-resolution");
   const adminGuardianEnabled = hasFeature("admin-guardian");
   const adminTokConnectEnabled = hasFeature("admin-tok-connect");
+  const adminMarketingOperationsEnabled = hasFeature("admin-marketing-operations");
   const deliveryEnabled = hasFeature("livraison");
-  const showPublicFooter = shouldShowPublicFooter(pathname);
-  const publicNavbar = !commercialDemoFrame && !oauthConsentFrame && shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
+  const isMarketingSurface = isMarketingExecutionLocation(pathname);
+  const showGlobalClientChrome = !commercialDemoFrame && !oauthConsentFrame && !isMarketingSurface;
+  const showPublicFooter = showGlobalClientChrome && shouldShowPublicFooter(pathname);
+  const publicNavbar = showGlobalClientChrome && shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
   const isCommercialDemoHost = !commercialDemoFrame && pathname === "/commercial/demo-live";
   const supportChatAllowed = (!commercialDemoFrame || commercialDemoFrame.surface !== "commercial")
-    && !isCommercialDemoHost;
+    && !isCommercialDemoHost
+    && !isMarketingSurface;
 
   return (
     <>
-      {!commercialDemoFrame && !oauthConsentFrame ? <MobileLogoIntro /> : null}
-      {!commercialDemoFrame && !oauthConsentFrame ? <AiCreationNotifications /> : null}
+      {showGlobalClientChrome ? <MobileLogoIntro /> : null}
+      {showGlobalClientChrome ? <AiCreationNotifications /> : null}
       {publicNavbar}
-      {!commercialDemoFrame && !oauthConsentFrame ? <FloatingRouteBackButton /> : null}
+      {showGlobalClientChrome ? <FloatingRouteBackButton /> : null}
       <Suspense
         fallback={(
           <AppLoadingScreen
@@ -598,6 +625,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/courier/notifications" element={<ProtectedRoute requiredRole="courier"><CourierNotifications /></ProtectedRoute>} />
           <Route path="/courier/earnings" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEarningsEnabled} fallback="/courier"><CourierEarnings /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/profile" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierProfileEnabled} fallback="/courier"><CourierProfile /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/marketing" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminMarketingOperationsEnabled} fallback="/admin"><MarketingWorkspace /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin" element={<AdminDashboardRoute />} />
           <Route path="/admin/platform" element={<AdminProtectedRoute><FeatureSwitch enabled={adminPlatformConfigEnabled} fallback="/admin"><AdminPlatformConfig /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/restaurants" element={<AdminProtectedRoute><FeatureSwitch enabled={adminRestaurantsEnabled} fallback="/admin"><AdminRestaurants /></FeatureSwitch></AdminProtectedRoute>} />
@@ -637,21 +665,26 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
         </Routes>
       </Suspense>
       {aiSupportChatEnabled === true && !oauthConsentFrame && supportChatAllowed ? <SupportChat /> : null}
-      {!commercialDemoFrame && !oauthConsentFrame ? (
+      {showGlobalClientChrome ? (
         <Suspense fallback={null}>
           <OrderConflictDialog />
         </Suspense>
       ) : null}
       {!commercialDemoFrame && pathname === "/" ? <DailyMiamzSlotMachine /> : null}
-      {!commercialDemoFrame && !oauthConsentFrame && showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
-      {!commercialDemoFrame && !oauthConsentFrame ? <LegalConsentBanner /> : null}
+      {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
+      {showGlobalClientChrome ? <LegalConsentBanner /> : null}
     </>
   );
 }
 
-const App = () => {
-  const commercialDemoFrame = getCommercialDemoFrameConfig();
-  const shell = (
+function AppRuntime({ commercialDemoFrame }: { commercialDemoFrame: CommercialDemoFrameConfig | null }) {
+  const { pathname } = useLocation();
+
+  if (isMarketingExecutionLocation(pathname)) {
+    return <AppShell commercialDemoFrame={commercialDemoFrame} />;
+  }
+
+  return (
     <>
       <NativeIntegration />
       <CartProvider>
@@ -659,6 +692,11 @@ const App = () => {
       </CartProvider>
     </>
   );
+}
+
+const App = () => {
+  const commercialDemoFrame = getCommercialDemoFrameConfig();
+  const shell = <AppRuntime commercialDemoFrame={commercialDemoFrame} />;
 
   return (
     <ErrorBoundary>
@@ -667,24 +705,25 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter basename={commercialDemoFrame?.basename}>
-            <ScrollToTop />
-            <RouteSeoFallback />
-            <CommercialDemoHostSecurityBoundary>
-              <AuthProvider>
-                <CommercialHostBoundary>
-                  <AdminHostBoundary />
-                  {commercialDemoFrame ? (
-                    <CommercialDemoFrameAuthBoundary config={commercialDemoFrame}>
-                      <CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>
-                        <CommercialDemoFrameProvider config={commercialDemoFrame}>
-                          {shell}
-                        </CommercialDemoFrameProvider>
-                      </CommercialDemoFrameRouteBoundary>
-                    </CommercialDemoFrameAuthBoundary>
-                  ) : shell}
-                </CommercialHostBoundary>
-              </AuthProvider>
-            </CommercialDemoHostSecurityBoundary>
+            <MarketingHostBoundary>
+              <ScrollToTop />
+              <RouteSeoFallback />
+              <CommercialDemoHostSecurityBoundary>
+                <AuthProvider>
+                  <CanonicalWorkspaceHostBoundary>
+                    {commercialDemoFrame ? (
+                      <CommercialDemoFrameAuthBoundary config={commercialDemoFrame}>
+                        <CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>
+                          <CommercialDemoFrameProvider config={commercialDemoFrame}>
+                            {shell}
+                          </CommercialDemoFrameProvider>
+                        </CommercialDemoFrameRouteBoundary>
+                      </CommercialDemoFrameAuthBoundary>
+                    ) : shell}
+                  </CanonicalWorkspaceHostBoundary>
+                </AuthProvider>
+              </CommercialDemoHostSecurityBoundary>
+            </MarketingHostBoundary>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
