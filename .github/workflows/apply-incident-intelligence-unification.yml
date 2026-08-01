@@ -55,7 +55,9 @@ jobs:
           node --check scripts/apply-incident-intelligence-unification.mjs
 
       - name: Apply one-shot source transformation
-        run: node scripts/apply-incident-intelligence-unification.mjs
+        run: |
+          node scripts/apply-incident-intelligence-unification.mjs
+          python scripts/patch-incident-automation-contract.py
 
       - name: Regenerate canonical error-code map
         run: pnpm run generate:error-code-map
@@ -76,6 +78,7 @@ jobs:
             "supabase/functions/ai-support-resolution/index.ts",
             "src/lib/tokIntelligence.ts",
             "src/test/incident-intelligence-unification.test.ts",
+            "src/test/incident-automation-readiness.test.ts",
           ];
 
           let failed = false;
@@ -120,6 +123,7 @@ jobs:
           pnpm exec eslint .
           --ignore-pattern scripts/apply-incident-intelligence-unification.mjs
           --ignore-pattern scripts/fix-incident-patcher-syntax.py
+          --ignore-pattern scripts/patch-incident-automation-contract.py
 
       - name: Validate diff and secret safety
         shell: bash
@@ -151,6 +155,7 @@ jobs:
             supabase/functions/ai-support-resolution/index.ts \
             src/lib/tokIntelligence.ts \
             src/test/incident-intelligence-unification.test.ts \
+            src/test/incident-automation-readiness.test.ts \
             supabase/migrations/20260801130000_unify_incident_intelligence.sql \
             docs/operations/incident-intelligence-unification.md
           git commit -m "feat(ops): unify incident diagnosis and support escalation"
