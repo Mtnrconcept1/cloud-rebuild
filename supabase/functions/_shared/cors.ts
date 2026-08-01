@@ -17,6 +17,7 @@
  * and localhost dev keep working:
  *   - https://thetok.ch, https://www.thetok.ch, https://app.thetok.ch
  *   - https://admin.thetok.ch                         (dedicated admin UI)
+ *   - https://marketing.thetok.ch                     (isolated marketing operations)
  *   - https://commercial.thetok.ch                    (commercial workspace)
  *   - https://demo-client.thetok.ch                    (focused client demo)
  *   - https://demo-restaurateur.thetok.ch              (focused restaurant demo)
@@ -33,6 +34,7 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://www.thetok.ch",
   "https://app.thetok.ch",
   "https://admin.thetok.ch",
+  "https://marketing.thetok.ch",
   "https://commercial.thetok.ch",
   "https://demo-client.thetok.ch",
   "https://demo-restaurateur.thetok.ch",
@@ -168,4 +170,5 @@ export const corsHeadersStatic: Record<string, string> = {
   "Access-Control-Allow-Headers": ALLOWED_HEADERS,
   "Vary": "Origin",
 };
+
 
