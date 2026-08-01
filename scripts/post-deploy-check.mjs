@@ -14,14 +14,29 @@ const DEFAULT_TARGETS = [
   },
   {
     url: "https://www.thetok.ch/robots.txt",
-    expect: ["Sitemap: https://www.thetok.ch/sitemap.xml"],
+    expect: [
+      "User-agent: OAI-SearchBot",
+      "User-agent: GPTBot",
+      "Sitemap: https://www.thetok.ch/sitemap.xml",
+    ],
   },
   {
     url: "https://www.thetok.ch/sitemap.xml",
     expect: [
+      "https://www.thetok.ch/sitemap-pages.xml",
+      "https://www.thetok.ch/sitemap-restaurants.xml",
+    ],
+  },
+  {
+    url: "https://www.thetok.ch/sitemap-pages.xml",
+    expect: [
       "https://www.thetok.ch/restaurateurs/geneve",
       "https://www.thetok.ch/restaurateurs/google-business",
     ],
+  },
+  {
+    url: "https://www.thetok.ch/sitemap-restaurants.xml",
+    expect: ["<urlset", "https://www.thetok.ch/restaurants/"],
   },
   {
     url: "https://www.thetok.ch/restaurateurs/geneve",
@@ -38,6 +53,18 @@ const DEFAULT_TARGETS = [
       "Bascule du bouton Google",
       "Remplacer le bouton quand les services sont prêts",
     ],
+  },
+  {
+    url: "https://www.thetok.ch/auth/callback",
+    expect: ["<div id=\"root\""],
+    expectedHeaders: {
+      "x-robots-tag": "noindex",
+    },
+  },
+  {
+    url: "https://www.thetok.ch/route-inexistante-seo-post-deploy-check",
+    expectedStatus: 404,
+    expect: ["Page introuvable", "noindex,nofollow,noarchive"],
   },
 ];
 
@@ -59,8 +86,9 @@ export async function runPostDeployCheck(targets = DEFAULT_TARGETS) {
   for (const target of targets) {
     try {
       const { response, text } = await fetchText(target);
-      if (!response.ok) {
-        failures.push(`${target.url} returned ${response.status}`);
+      const expectedStatus = target.expectedStatus || 200;
+      if (response.status !== expectedStatus) {
+        failures.push(`${target.url} returned ${response.status}, expected ${expectedStatus}`);
         continue;
       }
 
@@ -72,6 +100,13 @@ export async function runPostDeployCheck(targets = DEFAULT_TARGETS) {
       for (const expected of target.expect || []) {
         if (!text.includes(expected)) {
           failures.push(`${target.url} is missing expected content: ${expected}`);
+        }
+      }
+
+      for (const [headerName, expected] of Object.entries(target.expectedHeaders || {})) {
+        const actual = response.headers.get(headerName) || "";
+        if (!actual.toLowerCase().includes(String(expected).toLowerCase())) {
+          failures.push(`${target.url} returned unexpected ${headerName}: ${actual || "(missing)"}`);
         }
       }
     } catch (error) {

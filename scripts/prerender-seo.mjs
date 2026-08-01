@@ -10,9 +10,27 @@ const ROOT = process.cwd();
 const DIST_DIR = path.resolve(ROOT, "dist");
 const PUBLIC_DIR = path.resolve(ROOT, "public");
 const PUBLIC_ONLY = process.argv.includes("--public-only");
-const MAX_DYNAMIC_RESTAURANTS = Number(process.env.SEO_SITEMAP_MAX_RESTAURANTS || 500);
-const MAX_DYNAMIC_ACTUALITES = Math.max(1, Number(process.env.SEO_SITEMAP_MAX_ACTUALITES || 5000) || 5000);
+const MAX_DYNAMIC_RESTAURANTS = Math.max(1, Number(process.env.SEO_SITEMAP_MAX_RESTAURANTS || 10000) || 10000);
+const MAX_DYNAMIC_ACTUALITES = Math.max(1, Number(process.env.SEO_SITEMAP_MAX_ACTUALITES || 10000) || 10000);
+const MIN_LOCAL_RESTAURANTS = Math.max(1, Number(process.env.SEO_MIN_LOCAL_RESTAURANTS || 1) || 1);
+const MIN_ACTUALITE_TEXT_LENGTH = Math.max(1, Number(process.env.SEO_MIN_ACTUALITE_TEXT_LENGTH || 80) || 80);
+const RESTAURANT_PRERENDER_BATCH_SIZE = 500;
 const ACTUALITES_PRERENDER_BATCH_SIZE = 500;
+
+const SITEMAP_GROUPS = [
+  {
+    fileName: "sitemap-restaurants.xml",
+    matches: (page) => page.path.startsWith("/restaurants/") || page.path.startsWith("/restaurant/"),
+  },
+  {
+    fileName: "sitemap-actualites.xml",
+    matches: (page) => page.path === "/actualites" || page.path.startsWith("/actualites/"),
+  },
+  {
+    fileName: "sitemap-pages.xml",
+    matches: () => true,
+  },
+];
 
 const STATIC_LOCAL_PAGES = [
   ["geneve", "Genève"],
@@ -77,26 +95,40 @@ const LOCAL_DISTRICTS = {
   chailly: "Chailly",
 };
 
-const RICH_LOCAL_PAGES = [
-  ...LOCAL_CITIES.filter((city) => STATIC_LOCAL_PAGES.some(([slug]) => slug === city.slug)).map((city) => ({
-    type: "city",
-    slug: city.slug,
-    citySlug: city.slug,
-    city: city.label,
-  })),
-  ...LOCAL_CITIES.flatMap((city) =>
-    city.districts.filter((districtSlug) =>
-      STATIC_LOCAL_PAGES.some(([slug]) => slug === `${city.slug}/${districtSlug}`),
-    ).map((districtSlug) => ({
-      type: "district",
-      slug: `${city.slug}/${districtSlug}`,
-      citySlug: city.slug,
+const RICH_LOCAL_PAGES = STATIC_LOCAL_PAGES.map(([slug, fallbackLabel]) => {
+  const [citySlug, categorySlug] = slug.split("/");
+  const city = LOCAL_CITIES.find((item) => item.slug === citySlug);
+  if (!city) throw new Error(`Ville SEO locale inconnue: ${citySlug}`);
+  if (!categorySlug) {
+    return {
+      type: "city",
+      slug,
+      citySlug,
       city: city.label,
-      districtSlug,
-      district: LOCAL_DISTRICTS[districtSlug] || districtSlug.replace(/-/g, " "),
-    })),
-  ),
-];
+    };
+  }
+
+  if (city.districts.includes(categorySlug)) {
+    return {
+      type: "district",
+      slug,
+      citySlug,
+      city: city.label,
+      districtSlug: categorySlug,
+      district: LOCAL_DISTRICTS[categorySlug] || fallbackLabel,
+    };
+  }
+
+  const cuisine = LOCAL_CUISINES.find((item) => item.slug === categorySlug);
+  return {
+    type: "cuisine",
+    slug,
+    citySlug,
+    city: city.label,
+    cuisineSlug: categorySlug,
+    cuisine: cuisine?.label || fallbackLabel,
+  };
+});
 
 function buildLocalHeading(page) {
   if (page.type === "cuisine") return `${page.cuisine} à ${page.city} : commander, réserver et comparer`;
@@ -237,6 +269,8 @@ function buildLocalJsonLd(page, restaurants = []) {
 function buildLocalSeoPage(page, overrides = {}) {
   const { restaurants = [], ...pageOverrides } = overrides;
   return {
+    seoKind: "local-listing",
+    inventoryCount: restaurants.length,
     path: `/restaurants/${page.slug}`,
     title: buildLocalTitle(page),
     description: buildLocalDescription(page),
@@ -303,26 +337,6 @@ const PUBLIC_SEO_PAGES = [
     },
   },
   ...RICH_LOCAL_PAGES.map((page) => buildLocalSeoPage(page)),
-  ...STATIC_LOCAL_PAGES.map(([slug, label]) => {
-    const [citySlug, categorySlug] = slug.split("/");
-    const city = citySlug === "geneve" ? "Genève" : "Lausanne";
-    const isCategory = Boolean(categorySlug);
-    return {
-      path: `/restaurants/${slug}`,
-      title: isCategory ? `${label} | TOK` : `Restaurants à ${city} | TOK`,
-      description: isCategory
-        ? `Découvrez les meilleures adresses ${label.toLowerCase()} avec réservation, commande, offres locales et Miamz solidaires sur TOK.`
-        : `Découvrez les restaurants disponibles à ${city} : réservation, commande, anti-gaspi, ventes flash et offres locales sur TOK.`,
-      priority: isCategory ? "0.8" : "0.9",
-      changefreq: isCategory ? "weekly" : "daily",
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "ItemList",
-        name: isCategory ? label : `Restaurants à ${city}`,
-        url: `${CANONICAL_ORIGIN}/restaurants/${slug}`,
-      },
-    };
-  }),
   {
     path: "/anti-gaspi",
     title: "Offres anti-gaspi à Genève | TOK",
@@ -1006,6 +1020,7 @@ const PRIVATE_ROUTE_PREFIXES = [
   "/courier",
   "/commercial",
   "/profil",
+  "/memoire-tok",
   "/notifications",
   "/commandes",
   "/commande",
@@ -1018,6 +1033,8 @@ const PRIVATE_ROUTE_PREFIXES = [
   "/panier",
   "/auth",
   "/oauth",
+  "/espaces",
+  "/r",
   "/tok-connect/developer",
 ];
 
@@ -1216,14 +1233,33 @@ async function collectDynamicRestaurantPages() {
     const supabase = createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data, error } = await supabase
-      .from("restaurants")
-      .select("id, name, slug, city, cuisine_type, image_url, rating, review_count, updated_at, description, address, phone, price_range, opening_hours")
-      .eq("is_active", true)
-      .order("updated_at", { ascending: false, nullsFirst: false })
-      .limit(MAX_DYNAMIC_RESTAURANTS);
+    const data = [];
+    let totalRestaurantCount = null;
+    for (let offset = 0; offset < MAX_DYNAMIC_RESTAURANTS; offset += RESTAURANT_PRERENDER_BATCH_SIZE) {
+      const batchSize = Math.min(RESTAURANT_PRERENDER_BATCH_SIZE, MAX_DYNAMIC_RESTAURANTS - offset);
+      const { data: batch, error, count } = await supabase
+        .from("restaurants")
+        .select(
+          "id, name, slug, city, cuisine_type, image_url, rating, review_count, updated_at, description, address, phone, price_range, opening_hours",
+          offset === 0 ? { count: "exact" } : undefined,
+        )
+        .eq("is_active", true)
+        .order("updated_at", { ascending: false, nullsFirst: false })
+        .order("id", { ascending: true })
+        .range(offset, offset + batchSize - 1);
 
-    if (error || !Array.isArray(data)) return handleDynamicSeoFailure("restaurants", error || "réponse non tabulaire");
+      if (error || !Array.isArray(batch)) return handleDynamicSeoFailure("restaurants", error || "réponse non tabulaire");
+      if (offset === 0 && Number.isFinite(count)) totalRestaurantCount = Number(count);
+      data.push(...batch);
+      if (batch.length < batchSize) break;
+    }
+
+    if (totalRestaurantCount !== null && totalRestaurantCount > MAX_DYNAMIC_RESTAURANTS) {
+      console.warn(
+        `SEO restaurants: ${totalRestaurantCount} fiches actives détectées, mais la limite de pré-rendu est ${MAX_DYNAMIC_RESTAURANTS}. `
+          + "Augmentez SEO_SITEMAP_MAX_RESTAURANTS pour conserver une couverture exhaustive.",
+      );
+    }
 
     const restaurants = data.filter((restaurant) => restaurant?.id && restaurant?.name);
     const localGroups = new Map();
@@ -1374,22 +1410,36 @@ async function collectDynamicActualitesPages() {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const data = [];
+    let totalActualitesCount = null;
     for (let offset = 0; offset < MAX_DYNAMIC_ACTUALITES; offset += ACTUALITES_PRERENDER_BATCH_SIZE) {
       const batchSize = Math.min(ACTUALITES_PRERENDER_BATCH_SIZE, MAX_DYNAMIC_ACTUALITES - offset);
-      const { data: batch, error } = await supabase
+      const { data: batch, error, count } = await supabase
         .from("social_posts")
-        .select("id,body,post_type,published_at,created_at,updated_at,status,visibility,restaurants(id,name,city,cuisine_type,image_url),social_post_media(id,media_url,alt_text,metadata,sort_order,media_type)")
+        .select(
+          "id,body,post_type,published_at,created_at,updated_at,status,visibility,restaurants(id,name,city,cuisine_type,image_url),social_post_media(id,media_url,alt_text,metadata,sort_order,media_type)",
+          offset === 0 ? { count: "exact" } : undefined,
+        )
         .eq("status", "published")
         .eq("visibility", "public")
         .order("published_at", { ascending: false, nullsFirst: false })
+        .order("id", { ascending: true })
         .range(offset, offset + batchSize - 1);
 
       if (error || !Array.isArray(batch)) return handleDynamicSeoFailure("actualités", error || "réponse non tabulaire");
+      if (offset === 0 && Number.isFinite(count)) totalActualitesCount = Number(count);
       data.push(...batch);
       if (batch.length < batchSize) break;
     }
 
-    return data.flatMap((post) => {
+    if (totalActualitesCount !== null && totalActualitesCount > MAX_DYNAMIC_ACTUALITES) {
+      console.warn(
+        `SEO actualités: ${totalActualitesCount} publications détectées, mais la limite de pré-rendu est ${MAX_DYNAMIC_ACTUALITES}. `
+          + "Augmentez SEO_SITEMAP_MAX_ACTUALITES pour conserver une couverture exhaustive.",
+      );
+    }
+
+    let thinActualitesCount = 0;
+    const pages = data.flatMap((post) => {
       if (!post?.id) return [];
       const restaurant = Array.isArray(post.restaurants) ? post.restaurants[0] : post.restaurants;
       const restaurantName = String(restaurant?.name || "Restaurant TOK").trim() || "Restaurant TOK";
@@ -1398,6 +1448,13 @@ async function collectDynamicActualitesPages() {
         : [];
       const primaryImage = media.find((item) => item?.media_type === "image" && item?.media_url) || null;
       const analysis = readActualitesImageAnalysis(primaryImage?.metadata);
+      const indexableTextLength = Math.max(
+        String(post.body || "").trim().length,
+        String(analysis.description || "").trim().length,
+        String(analysis.short_description || "").trim().length,
+      );
+      const isThinActualite = indexableTextLength < MIN_ACTUALITE_TEXT_LENGTH;
+      if (isThinActualite) thinActualitesCount += 1;
       const city = String(restaurant?.city || "").trim();
       const cuisine = String(restaurant?.cuisine_type || "").trim();
       const fallbackSubject = compactActualitesSeoText(firstNonEmptySeoText(post.body, analysis.short_description, post.post_type), 42);
@@ -1430,6 +1487,8 @@ async function collectDynamicActualitesPages() {
         ogType: "article",
         publishedAt,
         modifiedAt: updatedAt,
+        includeInSitemap: !isThinActualite,
+        robots: isThinActualite ? "noindex,follow,noarchive" : undefined,
         staticContent: {
           heading: title,
           paragraphs: [compactActualitesSeoText(post.body || analysis.description || description, 1200)],
@@ -1476,6 +1535,12 @@ async function collectDynamicActualitesPages() {
         },
       }];
     });
+    if (thinActualitesCount > 0) {
+      console.warn(
+        `SEO actualités: ${thinActualitesCount} publication(s) trop courte(s) servie(s) en noindex et exclue(s) du sitemap.`,
+      );
+    }
+    return pages;
   } catch (error) {
     if (error instanceof DynamicSeoCollectionError) throw error;
     return handleDynamicSeoFailure("actualités", error);
@@ -1495,29 +1560,109 @@ async function collectSeoPages() {
     },
   );
   const enabledActualitesPages = disabledFeatures.has("actualites-sociales") ? [] : actualitesPages;
-  return dedupePages([...publicPages, ...restaurantPages, ...enabledActualitesPages]);
+  const pages = dedupePages([...publicPages, ...restaurantPages, ...enabledActualitesPages]);
+  const thinLocalPages = pages.filter(
+    (page) => page.seoKind === "local-listing" && Number(page.inventoryCount || 0) < MIN_LOCAL_RESTAURANTS,
+  );
+  if (thinLocalPages.length > 0) {
+    console.warn(
+      `SEO local: ${thinLocalPages.length} page(s) sans inventaire suffisant servie(s) en noindex et exclue(s) du sitemap.`,
+    );
+  }
+  return pages.map((page) => {
+    const thinLocalPage = page.seoKind === "local-listing"
+      && Number(page.inventoryCount || 0) < MIN_LOCAL_RESTAURANTS;
+    return thinLocalPage
+      ? { ...page, includeInSitemap: false, robots: "noindex,follow,noarchive" }
+      : page;
+  });
 }
 
-function renderSitemap(pages) {
+function normalizeSitemapDate(value) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  const date = parsed.toISOString().slice(0, 10);
+  return date <= new Date().toISOString().slice(0, 10) ? date : "";
+}
+
+function renderUrlSitemap(pages) {
   const rows = pages.map((page) => {
-    const lastmod = page.lastmod ? String(page.lastmod).slice(0, 10) : "";
+    const lastmod = normalizeSitemapDate(page.lastmod);
     const lastmodTag = lastmod ? `\n    <lastmod>${escapeXml(lastmod)}</lastmod>` : "";
+    const image = page.image && page.image !== DEFAULT_IMAGE ? toAbsoluteSeoImage(page.image) : undefined;
+    const imageTag = image
+      ? `\n    <image:image>\n      <image:loc>${escapeXml(image)}</image:loc>\n      <image:title>${escapeXml(page.imageAlt || page.title)}</image:title>\n    </image:image>`
+      : "";
     return `  <url>
-    <loc>${escapeXml(canonicalUrl(page.path))}</loc>${lastmodTag}
+    <loc>${escapeXml(canonicalUrl(page.path))}</loc>${lastmodTag}${imageTag}
     <changefreq>${escapeXml(page.changefreq || "weekly")}</changefreq>
     <priority>${escapeXml(page.priority || "0.5")}</priority>
   </url>`;
   });
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${rows.join("\n")}
 </urlset>
 `;
 }
 
+function buildSitemapFiles(pages) {
+  const groups = new Map(SITEMAP_GROUPS.map(({ fileName }) => [fileName, []]));
+  for (const page of pages) {
+    if (page.includeInSitemap === false) continue;
+    const group = SITEMAP_GROUPS.find(({ matches }) => matches(page));
+    groups.get(group.fileName).push(page);
+  }
+
+  return [...groups.entries()]
+    .map(([fileName, groupedPages]) => ({
+      fileName,
+      pages: groupedPages,
+      content: renderUrlSitemap(groupedPages),
+      lastmod: groupedPages.map((page) => normalizeSitemapDate(page.lastmod)).filter(Boolean).sort().at(-1) || "",
+    }));
+}
+
+function renderSitemapIndex(sitemapFiles) {
+  const rows = sitemapFiles.filter(({ pages }) => pages.length > 0).map(({ fileName, lastmod }) => {
+    const lastmodTag = lastmod ? `\n    <lastmod>${escapeXml(lastmod)}</lastmod>` : "";
+    return `  <sitemap>\n    <loc>${escapeXml(`${CANONICAL_ORIGIN}/${fileName}`)}</loc>${lastmodTag}\n  </sitemap>`;
+  });
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${rows.join("\n")}
+</sitemapindex>
+`;
+}
+
 function renderRobots() {
-  return `User-agent: *
+  return `# Search engines and answer engines used for discovery
+User-agent: Googlebot
+User-agent: bingbot
+User-agent: Applebot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+Allow: /
+
+# Training-only and bulk dataset crawlers
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
+User-agent: Bytespider
+User-agent: meta-externalagent
+Disallow: /
+
+# Other well-behaved crawlers may discover public pages
+User-agent: *
 Allow: /
 
 Sitemap: ${CANONICAL_ORIGIN}/sitemap.xml
@@ -1568,13 +1713,39 @@ function renderStaticContent(page) {
 </section>`;
 }
 
+function renderNotFoundHtml(baseHtml) {
+  let html = upsertTitle(baseHtml, "Page introuvable | TOK");
+  html = upsertTag(
+    html,
+    /<meta\s+name="description"[^>]*>/i,
+    '<meta name="description" content="Cette page n’existe pas ou n’est plus disponible." />',
+  );
+  html = upsertTag(
+    html,
+    /<meta\s+name="robots"[^>]*>/i,
+    '<meta name="robots" content="noindex,nofollow,noarchive" />',
+  );
+  html = html.replace(/\s*<link\s+rel="canonical"[^>]*>/i, "");
+  html = html.replace(/\s*<meta\s+property="og:url"[^>]*>/i, "");
+  html = html.replace(/\s*<script\s+id="tok-page-json-ld"[\s\S]*?<\/script>/i, "");
+  html = html.replace(
+    /<div id="root"><\/div>/i,
+    '<div id="root"><main style="font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;min-height:100vh;display:grid;place-items:center;padding:32px;text-align:center"><section><p style="font-weight:800;text-transform:uppercase;letter-spacing:.18em">Erreur 404</p><h1 style="font-size:clamp(2rem,6vw,4rem);margin:.5rem 0">Page introuvable</h1><p>Cette adresse est incorrecte ou la page a été déplacée.</p><p><a href="/">Retour à l’accueil</a></p></section></main></div>',
+  );
+  return html;
+}
+
 function renderPreRenderedHtml(baseHtml, page) {
   const canonical = canonicalUrl(page.path);
   const image = page.image || DEFAULT_IMAGE;
   const imageAlt = page.imageAlt || page.title;
   let html = upsertTitle(baseHtml, page.title);
   html = upsertTag(html, /<meta\s+name="description"[^>]*>/i, `<meta name="description" content="${escapeHtml(page.description)}" />`);
-  html = upsertTag(html, /<meta\s+name="robots"[^>]*>/i, '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />');
+  html = upsertTag(
+    html,
+    /<meta\s+name="robots"[^>]*>/i,
+    `<meta name="robots" content="${escapeHtml(page.robots || "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1")}" />`,
+  );
   html = upsertTag(html, /<link\s+rel="canonical"[^>]*>/i, `<link rel="canonical" href="${escapeHtml(canonical)}" />`);
   html = upsertTag(html, /<meta\s+property="og:type"[^>]*>/i, `<meta property="og:type" content="${escapeHtml(page.ogType || "website")}" />`);
   html = upsertTag(html, /<meta\s+property="og:site_name"[^>]*>/i, '<meta property="og:site_name" content="TOK" />');
@@ -1637,16 +1808,24 @@ async function writeIfDirectoryExists(directory, fileName, content) {
 
 async function main() {
   const pages = await collectSeoPages();
-  const sitemap = renderSitemap(pages);
+  const sitemapFiles = buildSitemapFiles(pages);
+  const sitemap = renderSitemapIndex(sitemapFiles);
   const robots = renderRobots();
 
   await writeIfDirectoryExists(PUBLIC_DIR, "sitemap.xml", sitemap);
+  for (const sitemapFile of sitemapFiles) {
+    await writeIfDirectoryExists(PUBLIC_DIR, sitemapFile.fileName, sitemapFile.content);
+  }
   await writeIfDirectoryExists(PUBLIC_DIR, "robots.txt", robots);
 
   if (!PUBLIC_ONLY) {
     const baseIndexPath = path.join(DIST_DIR, "index.html");
     const baseHtml = await readFile(baseIndexPath, "utf8");
+    await writeIfDirectoryExists(DIST_DIR, "404.html", renderNotFoundHtml(baseHtml));
     await writeIfDirectoryExists(DIST_DIR, "sitemap.xml", sitemap);
+    for (const sitemapFile of sitemapFiles) {
+      await writeIfDirectoryExists(DIST_DIR, sitemapFile.fileName, sitemapFile.content);
+    }
     await writeIfDirectoryExists(DIST_DIR, "robots.txt", robots);
 
     for (const page of pages) {
@@ -1656,7 +1835,8 @@ async function main() {
     }
   }
 
-  console.log(`SEO prerender ready: ${pages.length} public route(s).`);
+  const activeSitemapCount = sitemapFiles.filter(({ pages: sitemapPages }) => sitemapPages.length > 0).length;
+  console.log(`SEO prerender ready: ${pages.length} public route(s) across ${activeSitemapCount} sitemap(s).`);
 }
 
 main().catch((error) => {
