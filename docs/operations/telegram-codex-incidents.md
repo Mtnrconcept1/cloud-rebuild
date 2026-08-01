@@ -20,8 +20,18 @@ Le canal initial est Telegram. La file d'incidents, les décisions et le workflo
 - `public.ops_incident_events` : journal append-only des détections, décisions et exécutions.
 - `ops-incident-control` : Edge Function signée pour le scan, l'ingestion, Telegram et les callbacks GitHub.
 - `TOK Incident Monitor` : scan périodique des échecs Edge et ingestion des échecs CI/déploiement.
-  Les échecs `CI` ne sont remontés que pour `main`; les échecs `Deploy Production` sont toujours remontés.
+  Seuls les runs du dépôt courant, liés à `main` et déclenchés par un événement explicitement autorisé sont ingérés.
+  Pour chaque workflow échoué ou expiré, le collecteur priorise les vrais échecs, lit au maximum quatre jobs et produit un extrait nettoyé sous un budget strict de 32 Kio.
 - `TOK Codex Incident Repair` : exécution Codex après approbation et ouverture d'une PR testée.
+
+## Modèles utilisés
+
+Le plan Telegram et la réparation de code sont deux appels distincts :
+
+- le diagnostic Supabase utilise le modèle mini pour un incident standard et le modèle stratégique configuré pour un incident GitHub, `high` ou `critical`; le modèle demandé, le modèle retourné et un éventuel code d'erreur sont conservés dans `repair_plan` ;
+- la réparation réelle est fixée explicitement à `gpt-5.6-sol` avec l'effort `high`; l'action `openai/codex-action` est épinglée à une révision immuable et le modèle/effort sont confirmés dans chaque callback.
+
+Les logs, traces et messages d'erreur restent des preuves non fiables : ils ne sont jamais traités comme des instructions.
 
 ## Garde-fous
 
@@ -30,18 +40,22 @@ Le canal initial est Telegram. La file d'incidents, les décisions et le workflo
 - Les écritures sont réservées au `service_role` dans l'Edge Function.
 - Les boutons Telegram utilisent un jeton aléatoire haché, à usage décisionnel, expirant après 24 heures.
 - Le contexte Codex utilise un second jeton haché, expirant après 6 heures.
+- Au moment de l'approbation, le contrôle vérifie et fige le SHA du dépôt à réparer. Le workflow récupère ce SHA dans le contexte authentifié puis checkout exactement cette révision.
 - Les callbacks Telegram exigent le `secret_token` officiel du webhook, l'identifiant du chat et l'identifiant de l'administrateur.
 - Les collecteurs génériques exigent un secret distinct.
 - Les erreurs métier sans message technique ne sont pas transformées automatiquement en bugs.
-- Un échec Edge est actif uniquement si aucun succès plus récent n'existe pour la même fonction et la même action.
+- Un échec Edge instrumenté est actif uniquement si aucun succès plus récent n'existe pour la même fonction et la même action ; seule la signature de l'erreur non résolue la plus récente est regroupée.
+- Le scanner Edge lit `public.edge_function_audit_logs`, pas l'API native des logs Supabase. Toute fonction critique doit donc appeler `writeAuditLog` ; `google-actions-center-sync` est instrumentée de cette manière.
 - Les doublons actifs partagent le même incident et augmentent `occurrence_count`; l’empreinte ignore les compteurs et horodatages variables.
+- Une approbation expirée, un diagnostic bloqué ou un workflow de réparation abandonné passe à `failed` ; une occurrence ultérieure peut alors créer un nouvel incident. Un résultat `no_changes` est regroupé pendant l'épisode actif puis réévaluable après 24 heures sans occurrence.
+- Pour GitHub Actions, l'empreinte inclut le SHA du commit en échec : un nouveau commit peut être réanalysé tandis qu'un même run reste dédupliqué.
 - Les sources externes peuvent transmettre `groupingKey` ou `fingerprint` pour stabiliser le regroupement sans imposer leur propre identifiant en base.
 - Codex n’accède pas aux secrets GitHub du callback ou du push pendant son exécution.
 - `actions/checkout` utilise `persist-credentials: false` avant Codex.
-- Codex produit uniquement un patch éphémère; un deuxième runner neuf l’applique et exécute lint, typecheck, tests et build sans secret de publication.
+- Codex produit uniquement un patch éphémère; un deuxième runner neuf l’applique et exécute lint, typecheck, tests et `build:prod` avec des valeurs publiques factices, sans secret de publication.
 - Un troisième runner neuf reconstruit exactement le patch validé et reçoit le jeton de publication uniquement pour le commit, le push et la PR.
 - Les hooks Git sont désactivés et un `HOME` Git propre est utilisé pendant la publication.
-- Les chemins de contrôle `.github/**`, `AGENTS.md`, `docs/skills/**`, `supabase/config.toml` et l’automatisation d’incidents elle-même sont interdits aux réparations automatiques.
+- Les chemins de contrôle `.github/**`, `AGENTS.md`, `docs/skills/**`, `supabase/config.toml`, les deux fonctions d'automatisation, leurs migrations, leur test de préparation et ce runbook sont interdits aux réparations automatiques.
 - Les migrations existantes sont immuables; seule une nouvelle migration non destructive peut être proposée.
 - La branche générée suit `codex/incident-<8 caractères>-<run id>-<tentative>`.
 - La branche `main` n'est jamais modifiée directement.
@@ -84,18 +98,18 @@ attendent leurs secrets. Ce repli concerne uniquement le saut interne
 projet-à-projet : les appels externes (workflows GitHub, collecteurs) exigent
 toujours les secrets partagés dédiés.
 
-### État de provisionnement à compléter
+### Vérification du provisionnement
 
-Le workflow `TOK Incident Secret Sync` (`sync-incident-secrets.yml`) échoue
-tant que l'environnement GitHub `production` ne contient pas les secrets
-suivants (constat du run n°1) : `OPS_CONTROL_SECRET`, `OPS_INGEST_SECRET`,
+La chaîne a déjà produit des approbations et des runs Codex ; l'échec historique
+du premier run de `TOK Incident Secret Sync` ne décrit donc plus l'état courant.
+Après toute rotation ou création d'environnement, vérifier néanmoins que
+`production` contient `OPS_CONTROL_SECRET`, `OPS_INGEST_SECRET`,
 `OPS_GITHUB_CALLBACK_SECRET`, `GITHUB_INCIDENT_TOKEN`, `TELEGRAM_BOT_TOKEN`,
-`TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_ADMIN_USER_ID`, `TELEGRAM_WEBHOOK_SECRET`.
-Après les avoir créés (valeurs aléatoires `openssl rand -hex 32` pour les
-secrets `OPS_*` et `TELEGRAM_WEBHOOK_SECRET`, valeurs BotFather/Telegram/PAT
-pour les autres), relancer manuellement ce workflow : il synchronise les
-secrets vers Supabase, enregistre le webhook Telegram signé et exécute un scan
-initial de vérification.
+`TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_ADMIN_USER_ID` et
+`TELEGRAM_WEBHOOK_SECRET`. Relancer alors `sync-incident-secrets.yml` : il
+synchronise les secrets vers Supabase, enregistre le webhook Telegram signé et
+exécute un scan initial. Ne jamais conclure à partir d'un ancien run ; contrôler
+le dernier run et le statut de santé de `ops-incident-control`.
 
 Exemple de configuration Supabase CLI, à lancer localement sans commiter les valeurs :
 
@@ -157,7 +171,7 @@ Respecter le workflow du dépôt :
 
 1. fusionner la PR uniquement après CI verte ;
 2. laisser `Deploy Production` appliquer la migration ;
-3. laisser le même workflow déployer `ops-incident-control` ;
+3. laisser le même workflow déployer `ops-incident-control`, `ops-incident-native-scan` et toute fonction nouvellement instrumentée telle que `google-actions-center-sync` ;
 4. configurer les secrets Supabase et GitHub ;
 5. enregistrer le webhook Telegram ;
 6. déclencher manuellement `TOK Incident Monitor` pour le premier contrôle.
@@ -241,12 +255,12 @@ detected
 
 `resolved` doit être envoyé par un contrôle post-déploiement ou une décision admin après validation réelle. L'ouverture d'une PR ne marque jamais l'incident comme résolu.
 
-`no_changes` signale une analyse aboutie sans correctif sûr à proposer : ce n'est pas un échec et le run GitHub reste vert. Cet état reste dans le périmètre de déduplication, donc les occurrences suivantes du même `fingerprint` incrémentent `occurrence_count` au lieu d'ouvrir un nouvel incident et de relancer Codex toutes les cinq minutes.
+`no_changes` signale une analyse aboutie sans correctif sûr à proposer : ce n'est pas un échec et le run GitHub reste vert. Les occurrences continues du même `fingerprint` incrémentent `occurrence_count` au lieu de relancer Codex toutes les cinq minutes. Après 24 heures sans nouvelle occurrence, le même problème peut toutefois ouvrir un nouvel épisode et bénéficier de nouvelles preuves. Pour GitHub Actions, le SHA du commit fait partie de l'empreinte afin qu'un échec sur un nouveau commit soit analysé immédiatement.
 
 ## Comportement en cas d'échec
 
 - Telegram indisponible : l'incident retourne à `detected`, conserve son plan et sera retenté lors d'une occurrence suivante.
-- OpenAI indisponible côté Supabase : un plan conservateur de secours est envoyé.
+- OpenAI indisponible côté Supabase : un plan conservateur de secours est envoyé avec le code d'échec nettoyé et les chemins source déjà présents dans les preuves.
 - GitHub dispatch indisponible : l'incident passe à `failed` et aucune branche n'est créée.
 - Codex sans changement sûr : l’incident passe à `no_changes` ; aucune PR n’est ouverte, aucun échec n’est signalé et les occurrences suivantes sont regroupées sur cet incident.
 - Modification d’un chemin protégé, d’une migration existante, d’un lien symbolique ou ajout de SQL destructif : le patch est rejeté avant validation.

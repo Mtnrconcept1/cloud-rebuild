@@ -4,12 +4,14 @@ import {
   HttpError,
   getEnv,
   jsonResponse,
+  writeAuditLog,
   type EdgeSupabaseClient,
 } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
 const FUNCTION_NAME = "google-actions-center-sync";
 const DEFAULT_BATCH_SIZE = 50;
+const MAX_BATCH_SIZE = 50;
 const REQUEST_TIMEOUT_MS = 20_000;
 const TOKEN_SCOPE = "https://www.googleapis.com/auth/mapsbooking";
 
@@ -21,6 +23,7 @@ type OutboxRow = {
   availability_date: string | null;
   payload: Record<string, unknown>;
   attempts: number;
+  claim_token: string;
 };
 
 type ServiceAccount = {
@@ -223,20 +226,69 @@ async function deliver(client: EdgeSupabaseClient, row: OutboxRow, token: string
   }
 }
 
+function stableFailureCode(error: unknown) {
+  const message = error instanceof Error ? error.message : "unknown_error";
+  const code = message.split(":", 1)[0]
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 120);
+  return code || "unknown_error";
+}
+
+async function settleClaim(
+  client: EdgeSupabaseClient,
+  row: OutboxRow,
+  success: boolean,
+  errorCode: string | null,
+) {
+  if (!row.claim_token) throw new HttpError(503, "outbox_claim_token_missing");
+  const { data: settled, error } = await client.rpc(
+    "settle_google_actions_center_outbox_claim",
+    {
+      p_id: row.id,
+      p_claim_token: row.claim_token,
+      p_success: success,
+      p_error: errorCode,
+    },
+  );
+  if (error || settled !== true) throw new HttpError(503, "outbox_settle_failed");
+}
+
+async function hasOutstandingDeliveryFailures(client: EdgeSupabaseClient) {
+  const { count, error } = await client
+    .from("google_actions_center_outbox")
+    .select("id", { count: "exact", head: true })
+    .in("status", ["pending", "processing", "abandoned"])
+    .or("status.eq.processing,last_error.not.is.null");
+  if (error) throw new HttpError(503, "outbox_recovery_check_failed");
+  return (count ?? 0) > 0;
+}
+
 Deno.serve(async (req) => {
   const cors = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, cors);
   if (preflight) return preflight;
 
   const log = makeLogger(FUNCTION_NAME);
+  const action = "sync_google_actions_center";
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
   try {
+    const authenticated = await authenticateRequest(req, {
+      allowServiceRole: true,
+      allowSchedulerSecret: true,
+    });
+    if (!authenticated.isServiceRole) throw new HttpError(403, "forbidden");
+    actor = authenticated;
     if (req.method !== "POST") throw new HttpError(405, "method_not_allowed");
-    const actor = await authenticateRequest(req, { allowServiceRole: true, allowSchedulerSecret: true });
-    if (!actor.isServiceRole) throw new HttpError(403, "forbidden");
 
     const body = await req.json().catch(() => ({})) as Record<string, unknown>;
-    const limit = Math.min(Math.max(Number(body.limit) || DEFAULT_BATCH_SIZE, 1), 200);
+    const limit = Math.min(
+      Math.max(Math.floor(Number(body.limit) || DEFAULT_BATCH_SIZE), 1),
+      MAX_BATCH_SIZE,
+    );
 
     const { data: claimed, error: claimError } = await actor.adminClient
       .rpc("claim_google_actions_center_outbox", { p_limit: limit });
@@ -244,6 +296,10 @@ Deno.serve(async (req) => {
 
     const rows = (Array.isArray(claimed) ? claimed : []) as OutboxRow[];
     if (rows.length === 0) {
+      // No delivery was attempted, so this is not recovery evidence for a
+      // previous failed batch. Logging success here would hide a row in backoff
+      // from the incident scanner.
+      log.info("outbox idle", { claimed: 0 });
       return jsonResponse({ ok: true, claimed: 0, sent: 0, failed: 0 }, 200, cors);
     }
 
@@ -253,33 +309,87 @@ Deno.serve(async (req) => {
 
     let sent = 0;
     let failed = 0;
+    const failureCodes = new Set<string>();
     for (const row of rows) {
       try {
         await deliver(actor.adminClient, row, token);
-        await actor.adminClient.rpc("settle_google_actions_center_outbox", {
-          p_id: row.id,
-          p_success: true,
-          p_error: null,
-        });
-        sent += 1;
       } catch (error) {
-        const message = error instanceof Error ? error.message : "unknown_error";
-        await actor.adminClient.rpc("settle_google_actions_center_outbox", {
-          p_id: row.id,
-          p_success: false,
-          p_error: message,
-        });
+        const failureCode = stableFailureCode(error);
+        failureCodes.add(failureCode);
+        try {
+          await settleClaim(actor.adminClient, row, false, failureCode);
+        } catch (settleError) {
+          failureCodes.add(stableFailureCode(settleError));
+        }
+        failed += 1;
+        continue;
+      }
+
+      try {
+        await settleClaim(actor.adminClient, row, true, null);
+        sent += 1;
+      } catch (settleError) {
+        failureCodes.add(stableFailureCode(settleError));
         failed += 1;
       }
     }
 
+    const stableFailureCodes = [...failureCodes].sort().slice(0, 10);
+    if (failed === 0 && await hasOutstandingDeliveryFailures(actor.adminClient)) {
+      // A successful batch is not proof of recovery while another delivery is
+      // still in backoff, leased after a failure, or abandoned. Emitting a
+      // success here would make the incident scanner hide that unresolved row.
+      log.info("batch succeeded with outstanding delivery failures", {
+        claimed: rows.length,
+        sent,
+      });
+      return jsonResponse({ ok: true, claimed: rows.length, sent, failed }, 200, cors);
+    }
+
+    const auditStatus = failed > 0 ? "failure" : "success";
+    const auditError = failed > 0
+      ? `google_delivery_batch_failed:${stableFailureCodes.join(",") || "unknown_error"}`
+      : undefined;
+    await writeAuditLog({
+      adminClient: actor.adminClient,
+      actor,
+      request: req,
+      functionName: FUNCTION_NAME,
+      action,
+      status: auditStatus,
+      errorMessage: auditError,
+      metadata: {
+        rid: log.rid,
+        claimed: rows.length,
+        sent,
+        failed,
+        failure_codes: stableFailureCodes,
+      },
+    });
+
     log.info("outbox drained", { claimed: rows.length, sent, failed });
     return jsonResponse({ ok: true, claimed: rows.length, sent, failed }, 200, cors);
   } catch (error) {
-    if (error instanceof HttpError) {
-      return jsonResponse({ ok: false, error: error.message }, error.status, cors);
+    const status = error instanceof HttpError ? error.status : 500;
+    const publicMessage = error instanceof HttpError ? error.message : "internal_error";
+    log.error("sync failed", {
+      status,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+
+    if (actor) {
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: FUNCTION_NAME,
+        action,
+        status: "failure",
+        errorMessage: publicMessage.slice(0, 500),
+        metadata: { rid: log.rid },
+      }).catch(() => {});
     }
-    log.error("sync failed", { error: error instanceof Error ? error.message : "unknown" });
-    return jsonResponse({ ok: false, error: "internal_error" }, 500, cors);
+
+    return jsonResponse({ ok: false, error: publicMessage }, status, cors);
   }
 });
