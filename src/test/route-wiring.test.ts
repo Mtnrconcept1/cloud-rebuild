@@ -61,6 +61,8 @@ const CORE_ROUTES = new Set([
   "/restaurateurs/alternative-commission-couvert",
   "/miamz-solidaires",
   "/aide",
+  "/marketing/login",
+  "/marketing/*",
   "/admin",
   "/admin/support-resolution",
   "/admin/guardian",

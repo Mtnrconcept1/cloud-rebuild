@@ -337,7 +337,7 @@ describe("commercial.thetok.ch canonical isolation", () => {
     const mobileDomains = readFileSync(resolve(root, "src/lib/mobile-domains.ts"), "utf8");
 
     expect(app).toContain("<MarketingHostBoundary>");
-    expect(app).toContain("<AuthProvider>\n                  <CanonicalWorkspaceHostBoundary>");
+    expect(app).toMatch(/<AuthProvider>\s*<CanonicalWorkspaceHostBoundary>/);
     expect(app).toContain("<CommercialHostBoundary>\n      <AdminHostBoundary />");
     expect(app.indexOf("<CanonicalWorkspaceHostBoundary>"))
       .toBeLessThan(app.indexOf("{commercialDemoFrame ? ("));
