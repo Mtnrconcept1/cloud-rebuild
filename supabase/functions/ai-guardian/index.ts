@@ -59,9 +59,9 @@ type AuditRow = {
   request_metadata?: Record<string, unknown> | null;
   created_at?: string | null;
 };
-
 const FUNCTION_NAME = "ai-guardian";
 const FEATURE_NAME = "admin-guardian";
+const GUARDIAN_ANALYSIS_TIMEOUT_MS = 100_000;
 const OUTPUT_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -529,9 +529,9 @@ Les paiements, RLS, rôles, secrets, migrations et données client sont toujours
 Les chemins .github/**, AGENTS.md, docs/skills/**, supabase/config.toml et l'automatisation Guardian nécessitent une revue humaine explicite.
 human_approval_required doit rester vrai.
 Réponds en français technique et opérationnel.`;
-
   const openAIResponse = await createOpenAIResponse({
     model,
+    timeoutMs: GUARDIAN_ANALYSIS_TIMEOUT_MS,
     input: [
       { role: "system", content: systemPrompt },
       {
