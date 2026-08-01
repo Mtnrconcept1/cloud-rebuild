@@ -193,7 +193,11 @@ def main() -> None:
           }, [confirmationCompleted, confirmationOperationId, toast, user]);
         '''
     )
-    auth = replace_once(auth, mount_effect, confirmation_effect, "confirmation effect")
+    mount_start = auth.find("  useEffect(() => {\n    authMountedRef.current = true;")
+    mount_end = auth.find("\n\n  const requiredDocuments", mount_start)
+    if mount_start < 0 or mount_end < 0:
+        raise RuntimeError("auth mount effect not found")
+    auth = auth[:mount_start] + confirmation_effect + auth[mount_end:]
 
     redirect_literal = '        emailRedirectTo: `${getCanonicalAuthHref()}?confirmed=1`,\n'
     if auth.count(redirect_literal) != 2:
