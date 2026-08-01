@@ -56,8 +56,9 @@ export type PrivilegedSignupRecoveryDraft = {
 
 type SavePrivilegedSignupRecoveryDraftInput = Omit<
   PrivilegedSignupRecoveryDraft,
-  "version" | "createdAt" | "expiresAt"
+  "version" | "createdAt" | "expiresAt" | "documents"
 > & {
+  documents: Partial<Record<SignupDocumentType, File | null | undefined>>;
   ttlMs?: number;
 };
 
