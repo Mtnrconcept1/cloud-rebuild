@@ -1,0 +1,1002 @@
+name: Finalize restaurateur onboarding reliability
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+
+jobs:
+  finalize:
+    name: Apply and validate onboarding fixes
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/restaurateur-onboarding-reliability'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/restaurateur-onboarding-reliability
+          fetch-depth: 0
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply onboarding reliability patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          def replace_once(source: str, old: str, new: str, label: str) -> str:
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected one occurrence, found {count}")
+              return source.replace(old, new, 1)
+
+          recovery_path = Path("src/lib/privilegedSignupRecovery.ts")
+          recovery = recovery_path.read_text(encoding="utf-8")
+          recovery = replace_once(
+              recovery,
+              '''type SavePrivilegedSignupRecoveryDraftInput = Omit<
+            PrivilegedSignupRecoveryDraft,
+            "version" | "createdAt" | "expiresAt"
+          > & {
+            ttlMs?: number;
+          };''',
+              '''type SavePrivilegedSignupRecoveryDraftInput = Omit<
+            PrivilegedSignupRecoveryDraft,
+            "version" | "createdAt" | "expiresAt" | "documents"
+          > & {
+            documents: Partial<Record<SignupDocumentType, File | null | undefined>>;
+            ttlMs?: number;
+          };''',
+              "recovery input documents",
+          )
+          recovery_path.write_text(recovery, encoding="utf-8")
+
+          auth_path = Path("src/pages/Auth.tsx")
+          auth = auth_path.read_text(encoding="utf-8")
+          auth = replace_once(
+              auth,
+              '''import {
+            createCheckoutWithRecovery,
+            createPaymentAttemptOperationKey,
+            getOrCreatePaymentAttemptId,
+            markPaymentAttemptRedirected,
+          } from "@/lib/paymentAttempt";
+          import { LEGAL_ACCEPTANCE_VERSION } from "@/lib/legalDocuments";''',
+              '''import {
+            createCheckoutWithRecovery,
+            createPaymentAttemptOperationKey,
+            getOrCreatePaymentAttemptId,
+            isPaymentAttemptIndeterminateError,
+            markPaymentAttemptRedirected,
+          } from "@/lib/paymentAttempt";
+          import { LEGAL_ACCEPTANCE_VERSION } from "@/lib/legalDocuments";
+          import {
+            loadPrivilegedSignupRecoveryDraft,
+            removePrivilegedSignupRecoveryDraft,
+            savePrivilegedSignupRecoveryDraft,
+          } from "@/lib/privilegedSignupRecovery";''',
+              "Auth recovery imports",
+          )
+          auth = replace_once(
+              auth,
+              '''const supabase = getSupabase();
+          const onboardingAttemptScope = (restaurantId: string) => `restaurant-onboarding:${restaurantId}`;''',
+              '''const supabase = getSupabase();
+          const onboardingAttemptScope = (restaurantId: string) => `restaurant-onboarding:${restaurantId}`;
+
+          function buildSignupConfirmationRedirect(operationId?: string | null) {
+            const redirect = new URL(getCanonicalAuthCallbackHref(), "https://www.thetok.ch");
+            redirect.searchParams.set("confirmed", "1");
+            if (operationId) redirect.searchParams.set("signup_operation_id", operationId);
+            return redirect.toString();
+          }''',
+              "signup confirmation redirect helper",
+          )
+          auth = replace_once(
+              auth,
+              '''  const checkout = await createCheckoutWithRecovery({
+            paymentAttemptId,
+            create: async () => {
+              const { data, error } = await invokeSupabaseFunction("create-checkout", { body: checkoutPayload });
+              if (error) throw error;
+              return data;
+            },
+            getStatus: async () => {
+              const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+                body: { payment_attempt_id: paymentAttemptId },
+              });
+              if (error) throw error;
+              return data;
+            },
+          });''',
+              '''  const checkout = await (async () => {
+            try {
+              return await createCheckoutWithRecovery({
+                paymentAttemptId,
+                create: async () => {
+                  const { data, error } = await invokeSupabaseFunction("create-checkout", { body: checkoutPayload });
+                  if (error) throw error;
+                  return data;
+                },
+                getStatus: async () => {
+                  const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
+                    body: { payment_attempt_id: paymentAttemptId },
+                  });
+                  if (error) throw error;
+                  return data;
+                },
+              });
+            } catch (error) {
+              if (isPaymentAttemptIndeterminateError(error)) {
+                throw new Error(
+                  "La demande d’enregistrement de carte est encore en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants.",
+                );
+              }
+              throw error;
+            }
+          })();''',
+              "onboarding card recovery message",
+          )
+          auth = replace_once(
+              auth,
+              '''  const requestedSubscriptionPlanSlug = String(searchParams.get("subscriptionPlan") || "").trim().toLowerCase();''',
+              '''  const requestedSubscriptionPlanSlug = String(searchParams.get("subscriptionPlan") || "").trim().toLowerCase();
+            const confirmationCompleted = searchParams.get("confirmed") === "1";
+            const confirmationOperationId = String(searchParams.get("signup_operation_id") || "").trim();''',
+              "confirmation query state",
+          )
+          auth = replace_once(
+              auth,
+              '''  const incompleteSignupNoticeRef = useRef(false);''',
+              '''  const incompleteSignupNoticeRef = useRef(false);
+            const confirmationNoticeShownRef = useRef(false);''',
+              "confirmation notice ref",
+          )
+          mount_marker = '''  useEffect(() => {
+            authMountedRef.current = true;
+            return () => {
+              authMountedRef.current = false;
+            };
+          }, []);
+          '''
+          confirmation_effect = '''  useEffect(() => {
+            authMountedRef.current = true;
+            return () => {
+              authMountedRef.current = false;
+            };
+          }, []);
+
+            useEffect(() => {
+              if (!confirmationCompleted || user) return;
+
+              setPrivilegedSignupAwaitingEmail(false);
+              setPrivilegedSignupResumeChecking(false);
+              setIsLogin(true);
+              setForgotPassword(false);
+
+              if (!confirmationNoticeShownRef.current) {
+                confirmationNoticeShownRef.current = true;
+                toast({
+                  title: "Email confirmé",
+                  description: "Votre dossier restaurateur est conservé. La connexion finalisera automatiquement l’inscription.",
+                });
+              }
+
+              if (!confirmationOperationId) return;
+              let cancelled = false;
+              void loadPrivilegedSignupRecoveryDraft(confirmationOperationId)
+                .then((draft) => {
+                  if (!draft || cancelled) return;
+                  setSignupForm((current) => ({
+                    ...current,
+                    email: current.email || draft.email,
+                  }));
+                  setRoleMode(draft.role);
+                  privilegedSignupOperationRef.current = {
+                    key: `${draft.email}:${draft.role}`,
+                    id: draft.operationId,
+                  };
+                })
+                .catch(() => undefined);
+
+              return () => {
+                cancelled = true;
+              };
+            }, [confirmationCompleted, confirmationOperationId, toast, user]);
+          '''
+          auth = replace_once(auth, mount_marker, confirmation_effect, "confirmation effect")
+
+          auth = replace_once(
+              auth,
+              '''        emailRedirectTo: `${getCanonicalAuthHref()}?confirmed=1`,''',
+              '''        emailRedirectTo: buildSignupConfirmationRedirect(
+                  privilegedSignupOperationRef.current?.id || confirmationOperationId || null,
+                ),''',
+              "resend confirmation callback",
+          )
+
+          resume_start = auth.index("    const resumePrivilegedSignup = async () => {")
+          resume_end = auth.index("\n\n    void resumePrivilegedSignup();", resume_start)
+          new_resume = '''    const resumePrivilegedSignup = async () => {
+              setPrivilegedSignupSubmitting(true);
+              try {
+                const { data, error } = await supabase
+                  .from("signup_application_drafts")
+                  .select("operation_id, requested_role, safe_payload, status")
+                  .eq("user_id", user.id)
+                  .gt("expires_at", new Date().toISOString())
+                  .maybeSingle();
+                if (error) throw error;
+                if (!data) {
+                  setPrivilegedSignupResumeChecking(false);
+                  return;
+                }
+                const draft = data as ServerSignupDraft;
+                if (draft.status === "finalized") {
+                  await removePrivilegedSignupRecoveryDraft(draft.operation_id).catch(() => false);
+                  await refreshRoles();
+                  navigateToPostAuthTarget(draft.requested_role, true);
+                  return;
+                }
+
+                const safe = draft.safe_payload || {};
+                const loadedRecovery = await loadPrivilegedSignupRecoveryDraft(draft.operation_id)
+                  .catch(() => null);
+                const recovery = loadedRecovery
+                  && loadedRecovery.role === draft.requested_role
+                  && (!user.email || loadedRecovery.email === user.email.trim().toLowerCase())
+                  ? loadedRecovery
+                  : null;
+                const localForm = recovery?.form;
+                const recoveredForm: SignupFormState = {
+                  ...signupForm,
+                  fullName: localForm?.fullName || signupForm.fullName || String(safe.full_name || user.user_metadata?.full_name || ""),
+                  email: String(user.email || localForm?.email || signupForm.email || ""),
+                  password: "",
+                  phone: localForm?.phone || signupForm.phone,
+                  city: localForm?.city || signupForm.city || String(safe.city || ""),
+                  address: localForm?.address || signupForm.address,
+                  businessName: localForm?.businessName || signupForm.businessName || String(safe.business_name || ""),
+                  legalName: localForm?.legalName || signupForm.legalName,
+                  businessRegistrationNumber: localForm?.businessRegistrationNumber || signupForm.businessRegistrationNumber,
+                  taxId: localForm?.taxId || signupForm.taxId,
+                  restaurantName: localForm?.restaurantName || signupForm.restaurantName || String(safe.restaurant_name || ""),
+                  restaurantDescription: localForm?.restaurantDescription || signupForm.restaurantDescription || String(safe.restaurant_description || ""),
+                  vehicleType: localForm?.vehicleType || signupForm.vehicleType || String(safe.vehicle_type || "bicycle"),
+                  licensePlate: localForm?.licensePlate || signupForm.licensePlate,
+                  iban: localForm?.iban || signupForm.iban,
+                };
+                const recoveredDocuments = recovery?.documents
+                  ? { ...documents, ...recovery.documents }
+                  : documents;
+                const recoveredOnboardingChoices: RestaurateurOnboardingChoices | undefined =
+                  draft.requested_role === "restaurateur"
+                    ? {
+                      subscriptionPlanId:
+                        recovery?.onboardingChoices?.subscriptionPlanId
+                        || String(safe.selected_subscription_plan_id || selectedSubscriptionPlanId || ""),
+                      subscriptionBillingPeriod:
+                        recovery?.onboardingChoices?.subscriptionBillingPeriod
+                        || (safe.selected_subscription_billing_period === "yearly" ? "yearly" : selectedSubscriptionBillingPeriod),
+                    }
+                    : undefined;
+                const acceptedAt = String(
+                  recovery?.legalAcceptance.acceptedAt
+                  || safe.legal_terms_accepted_at
+                  || safe.privacy_policy_accepted_at
+                  || "",
+                );
+                const recoveredLegalAccepted = Boolean(acceptedAt);
+                const recoveredLegalAcceptance: SignupLegalAcceptance = {
+                  termsAccepted: recoveredLegalAccepted,
+                  privacyPolicyAccepted: recoveredLegalAccepted,
+                  acceptedAt,
+                  version: recovery?.legalAcceptance.version || LEGAL_ACCEPTANCE_VERSION,
+                };
+                const recoveredContractSignature = draft.requested_role === "restaurateur"
+                  ? {
+                    signerName: recovery?.contractSignature?.signerName || contractSignerName,
+                    signatureDataUrl: recovery?.contractSignature?.signatureDataUrl || contractSignatureDataUrl,
+                  }
+                  : undefined;
+                const recoveredReferralToken = recovery?.commercialReferralToken || commercialReferralToken;
+
+                setRoleMode(draft.requested_role);
+                setSignupForm(recoveredForm);
+                setDocuments(recoveredDocuments);
+                setLegalAccepted(recoveredLegalAccepted);
+                setLegalAcceptanceDraft(recoveredLegalAccepted);
+                if (recoveredOnboardingChoices) {
+                  setSelectedSubscriptionPlanId(recoveredOnboardingChoices.subscriptionPlanId);
+                  setSelectedSubscriptionBillingPeriod(recoveredOnboardingChoices.subscriptionBillingPeriod);
+                }
+                if (recoveredContractSignature) {
+                  setContractSignerName(recoveredContractSignature.signerName);
+                  setContractSignatureDataUrl(recoveredContractSignature.signatureDataUrl);
+                }
+                if (recoveredReferralToken) setCommercialReferralToken(recoveredReferralToken);
+                privilegedSignupOperationRef.current = {
+                  key: `${user.id}:${draft.requested_role}`,
+                  id: draft.operation_id,
+                };
+
+                const missingDocuments = getMissingSignupDocuments(
+                  getRequiredSignupDocuments(draft.requested_role, recoveredForm.vehicleType),
+                  recoveredDocuments,
+                );
+                const missingForm = getSignupValidationError(
+                  draft.requested_role,
+                  recoveredForm,
+                  recoveredOnboardingChoices,
+                  recoveredLegalAccepted,
+                  recoveredContractSignature,
+                  false,
+                );
+                if (missingForm || missingDocuments.length > 0) {
+                  setIsLogin(false);
+                  throw new Error(
+                    recovery
+                      ? missingForm || `Documents manquants: ${missingDocuments.map((item) => item.label).join(", ")}.`
+                      : "Le brouillon local sécurisé n’est pas disponible sur cet appareil. Complétez uniquement les informations ou documents manquants.",
+                  );
+                }
+
+                const contractContentSha256 = draft.requested_role === "restaurateur" && recoveredContractSignature
+                  ? await generateRestaurantPartnerContractSha256({
+                    signerName: recoveredContractSignature.signerName.trim(),
+                    signatureDataUrl: recoveredContractSignature.signatureDataUrl,
+                    signedAt: recoveredLegalAcceptance.acceptedAt,
+                    legalName: recoveredForm.legalName,
+                    businessName: recoveredForm.businessName,
+                    restaurantName: recoveredForm.restaurantName,
+                    restaurateurAddress: recoveredForm.address,
+                    restaurateurPhone: recoveredForm.phone,
+                    businessRegistrationNumber: recoveredForm.businessRegistrationNumber,
+                    taxId: recoveredForm.taxId,
+                    city: recoveredForm.city,
+                    signerRole: "Représentant autorisé",
+                    signerEmail: recoveredForm.email,
+                    userId: user.id,
+                    acceptanceText: RESTAURANT_CONTRACT_ACCEPTANCE_TEXT,
+                    selectedSubscriptionPlanLabel: recovery?.selectedSubscriptionPlanLabel || null,
+                    selectedSubscriptionPriceLabel: recovery?.selectedSubscriptionPriceLabel || null,
+                  })
+                  : null;
+                const resumePayload: SignupApplicationSubmission["payload"] = {
+                  role: draft.requested_role,
+                  form: getSignupApplicationForm(recoveredForm),
+                  onboardingChoices: recoveredOnboardingChoices,
+                  documents: recoveredDocuments,
+                  legalAcceptance: recoveredLegalAcceptance,
+                  contractSignature: recoveredContractSignature,
+                  contractContentSha256,
+                  commercialReferralToken:
+                    draft.requested_role === "restaurateur" ? recoveredReferralToken || undefined : undefined,
+                };
+
+                await finalizeSignupApplication({
+                  operationId: draft.operation_id,
+                  userId: user.id,
+                  payload: resumePayload,
+                }, { skipIfExisting: true });
+                await removePrivilegedSignupRecoveryDraft(draft.operation_id).catch(() => false);
+                privilegedSignupOperationRef.current = null;
+                try {
+                  await refreshRoles();
+                } catch {
+                  // The authenticated RPC is authoritative; role state will refresh on the next page load.
+                }
+
+                if (cancelled) return;
+                toast({
+                  title: "Inscription enregistrée",
+                  description: draft.requested_role === "restaurateur"
+                    ? "Votre dossier est enregistré. Enregistrez maintenant votre carte pour débloquer la configuration du restaurant."
+                    : "Votre compte est en attente de validation humaine.",
+                });
+                if (draft.requested_role === "restaurateur" && recoveredOnboardingChoices) {
+                  await startRestaurantCardRegistrationAfterSignup(user.id, recoveredOnboardingChoices);
+                  return;
+                }
+                navigateToPostAuthTarget(draft.requested_role, true);
+              } catch (error) {
+                if (cancelled) return;
+                const message = error instanceof Error ? error.message : "Impossible de reprendre l'inscription.";
+                toast({ title: "Inscription à reprendre", description: message, variant: "destructive" });
+              } finally {
+                privilegedSignupMutexRef.current = false;
+                if (authMountedRef.current) {
+                  setPrivilegedSignupSubmitting(false);
+                  setPrivilegedSignupResumeChecking(false);
+                }
+              }
+            };'''
+          auth = auth[:resume_start] + new_resume + auth[resume_end:]
+
+          operation_marker = '''      if (isPrivilegedSignup) {
+                privilegedSignupOperationRef.current = { key: operationKey, id: operationId };
+              }
+
+              if (!isContinuingConfirmedSignup) {'''
+          operation_replacement = '''      if (isPrivilegedSignup) {
+                privilegedSignupOperationRef.current = { key: operationKey, id: operationId };
+              }
+
+              let recoveryDraftSaved = false;
+              if (isPrivilegedSignup && !isContinuingConfirmedSignup) {
+                try {
+                  recoveryDraftSaved = await savePrivilegedSignupRecoveryDraft({
+                    operationId,
+                    role: submittedRole,
+                    email: signupForm.email,
+                    form: getSignupApplicationForm(signupForm),
+                    onboardingChoices: submittedRole === "restaurateur" ? submittedOnboardingChoices : undefined,
+                    documents,
+                    legalAcceptance: {
+                      acceptedAt: submittedLegalAcceptance.acceptedAt,
+                      version: submittedLegalAcceptance.version,
+                    },
+                    contractSignature: submittedRole === "restaurateur" ? submittedContractSignature : undefined,
+                    selectedSubscriptionPlanLabel: selectedSubscriptionPlan?.name || null,
+                    selectedSubscriptionPriceLabel: selectedSubscriptionPrice == null
+                      ? null
+                      : formatChf(selectedSubscriptionPrice) + (
+                        submittedOnboardingChoices.subscriptionBillingPeriod === "yearly"
+                          ? " · annuel, 12 mois au prix de 11"
+                          : " · mensuel"
+                      ),
+                    commercialReferralToken:
+                      submittedRole === "restaurateur" ? commercialReferralToken || undefined : undefined,
+                  });
+                } catch {
+                  recoveryDraftSaved = false;
+                }
+              }
+
+              if (!isContinuingConfirmedSignup) {'''
+          auth = replace_once(auth, operation_marker, operation_replacement, "save local signup recovery")
+          auth = replace_once(
+              auth,
+              '''            emailRedirectTo: `${getCanonicalAuthHref()}?confirmed=1`,''',
+              '''            emailRedirectTo: buildSignupConfirmationRedirect(
+                          isPrivilegedSignup ? operationId : null,
+                        ),''',
+              "signup callback redirect",
+          )
+          auth = replace_once(
+              auth,
+              '''        if (signUpResponse.error) throw signUpResponse.error;''',
+              '''        if (signUpResponse.error) {
+                      if (isPrivilegedSignup) {
+                        await removePrivilegedSignupRecoveryDraft(operationId).catch(() => false);
+                      }
+                      throw signUpResponse.error;
+                    }''',
+              "signup recovery cleanup on error",
+          )
+          auth = replace_once(
+              auth,
+              '''        setPrivilegedSignupResumeChecking(isPrivilegedSignup);
+                    setPrivilegedSignupAwaitingEmail(isPrivilegedSignup);
+                    toast({
+                      title: "Compte créé",
+                      description: isPrivilegedSignup
+                        ? "Confirmez votre email. Le dossier reprendra automatiquement si cet onglet reste ouvert ; sinon, reconnectez-vous pour le finaliser."
+                        : "Vérifiez votre email pour confirmer votre compte.",
+                    });''',
+              '''        setPrivilegedSignupResumeChecking(false);
+                    setPrivilegedSignupAwaitingEmail(isPrivilegedSignup);
+                    toast({
+                      title: "Compte créé",
+                      description: isPrivilegedSignup
+                        ? recoveryDraftSaved
+                          ? "Confirmez votre email. TOK restaurera automatiquement le dossier sur cet appareil, même si le lien s’ouvre dans un nouvel onglet."
+                          : "Confirmez votre email. Gardez cet onglet ouvert, car le stockage local sécurisé est indisponible."
+                        : "Vérifiez votre email pour confirmer votre compte.",
+                    });''',
+              "waiting confirmation copy",
+          )
+          auth = replace_once(
+              auth,
+              '''      await finalizeSignupApplication({
+                operationId,
+                userId: activeUser.id,
+                payload: submissionPayload,
+              }, { skipIfExisting: isContinuingConfirmedSignup });
+
+              if (isPrivilegedSignup) {
+                privilegedSignupOperationRef.current = null;
+              }''',
+              '''      await finalizeSignupApplication({
+                operationId,
+                userId: activeUser.id,
+                payload: submissionPayload,
+              }, { skipIfExisting: isContinuingConfirmedSignup });
+
+              if (isPrivilegedSignup) {
+                await removePrivilegedSignupRecoveryDraft(operationId).catch(() => false);
+                privilegedSignupOperationRef.current = null;
+              }''',
+              "clear completed local recovery",
+          )
+
+          auth = replace_once(
+              auth,
+              '''              {privilegedSignupAwaitingEmail && !session ? (
+                        <p className="text-center text-sm text-muted-foreground" role="status">
+                          Confirmez votre email. Gardez cet onglet ouvert pour reprendre automatiquement le dossier,
+                          ou reconnectez-vous ensuite pour le finaliser.
+                        </p>
+                      ) : null}''',
+              '''              {privilegedSignupAwaitingEmail && !session ? (
+                        <div className="space-y-3 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950" role="status">
+                          <p>
+                            Confirmez votre email. Votre formulaire et vos documents restent conservés localement sur cet appareil.
+                          </p>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              onClick={() => {
+                                setPrivilegedSignupAwaitingEmail(false);
+                                setIsLogin(true);
+                                setForgotPassword(false);
+                              }}
+                            >
+                              J’ai confirmé mon email
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={handleResendConfirmationEmail}
+                              disabled={loading || resendLoading}
+                            >
+                              {resendLoading ? "Envoi..." : "Renvoyer l’email"}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}''',
+              "waiting confirmation actions",
+          )
+          auth = replace_once(
+              auth,
+              '''          {isLogin && (postAuthRedirectTarget || searchParams.get("domain") === "required") ? (''',
+              '''          {confirmationCompleted && !user ? (
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
+                      <p className="font-medium">Adresse email confirmée</p>
+                      <p className="pt-1 text-emerald-800">
+                        Connectez-vous si la session ne s’est pas ouverte automatiquement. Le dossier restaurateur sera restauré sans ressaisie.
+                      </p>
+                    </div>
+                  ) : null}
+                  {isLogin && (postAuthRedirectTarget || searchParams.get("domain") === "required") ? (''',
+              "confirmed email notice",
+          )
+          auth = replace_once(
+              auth,
+              '''              {isLogin && !forgotPassword && !isDemoAuthMode ? (''',
+              '''              {isLogin && !forgotPassword && !isDemoAuthMode && !confirmationCompleted ? (''',
+              "hide resend after confirmation",
+          )
+          auth_path.write_text(auth, encoding="utf-8")
+
+          checkout_path = Path("supabase/functions/create-checkout/index.ts")
+          checkout = checkout_path.read_text(encoding="utf-8")
+          checkout = replace_once(
+              checkout,
+              '''    if (isRestaurantOnboardingSetup) {
+                sessionParams.mode = "setup";
+                sessionParams.setup_intent_data = {''',
+              '''    if (isRestaurantOnboardingSetup) {
+                sessionParams.mode = "setup";
+                sessionParams.currency = CHECKOUT_CURRENCY.toLowerCase();
+                sessionParams.setup_intent_data = {''',
+              "Stripe setup currency",
+          )
+          checkout_path.write_text(checkout, encoding="utf-8")
+
+          admin_path = Path("src/pages/admin/AdminRestaurants.tsx")
+          admin = admin_path.read_text(encoding="utf-8")
+          admin = replace_once(
+              admin,
+              '''import {
+            createRestaurantStripeAdjustment,
+            RESTAURANT_ADJUSTMENT_REASONS,
+            type RestaurantAdjustmentReason,
+          } from "@/lib/restaurantAdjustments";''',
+              '''import {
+            createRestaurantStripeAdjustment,
+            RESTAURANT_ADJUSTMENT_REASONS,
+            type RestaurantAdjustmentReason,
+          } from "@/lib/restaurantAdjustments";
+          import {
+            getRestaurantOperationalStatePatch,
+            getRestaurantOperationalStatusLabel,
+            isRestaurantOperationallyActive,
+            normalizeRestaurantOperationalStatus,
+            RESTAURANT_OPERATIONAL_STATUS_OPTIONS,
+          } from "@/lib/restaurantAdminState";''',
+              "admin state imports",
+          )
+          status_start = admin.index("const STATUS_OPTIONS = [")
+          status_end = admin.index("\n\nconst DEFAULT_PAYMENT_METHODS", status_start)
+          admin = admin[:status_start] + admin[status_end + 2:]
+          admin = replace_once(admin, "      is_active: restaurant.is_active ?? true,", "      is_active: restaurant.is_active ?? false,", "fallback active")
+          admin = replace_once(admin, "      status: restaurant.status || \"active\",", "      status: normalizeRestaurantOperationalStatus(restaurant.status),", "fallback status")
+          admin = replace_once(
+              admin,
+              '''function statusBadgeVariant(isActive?: boolean | null) {
+            return isActive ? "default" : "secondary";
+          }''',
+              '''function statusBadgeVariant(restaurant: { status?: string | null; is_active?: boolean | null }) {
+            return isRestaurantOperationallyActive(restaurant) ? "default" : "secondary";
+          }''',
+              "status badge helper",
+          )
+          admin = replace_once(admin, "  onSuspend: () => void;\n  onActivateOverride: () => void;", "  onSuspend: () => void;\n  onActivate: () => void;\n  onActivateOverride: () => void;", "detail activate prop type")
+          admin = replace_once(admin, "  onSuspend,\n  onActivateOverride,", "  onSuspend,\n  onActivate,\n  onActivateOverride,", "detail activate prop destructure")
+          admin = replace_once(
+              admin,
+              '''              <Badge variant={statusBadgeVariant(detail.restaurant.is_active)}>
+                    {detail.restaurant.is_active ? "Actif" : "Inactif"}
+                  </Badge>
+                  <Badge variant="outline">
+                    {detail.restaurant.status || "Statut inconnu"}
+                  </Badge>''',
+              '''              <Badge variant={statusBadgeVariant(detail.restaurant)}>
+                    {getRestaurantOperationalStatusLabel(detail.restaurant.status)}
+                  </Badge>''',
+              "detail canonical status badge",
+          )
+          actions_old = '''            <Textarea
+                  value={overrideReason}
+                  onChange={(event) => onOverrideReasonChange(event.target.value)}
+                  placeholder="Raison d'override pour une activation incomplète"
+                  className="min-h-20"
+                />
+                <Textarea
+                  value={actionReason}
+                  onChange={(event) => onActionReasonChange(event.target.value)}
+                  placeholder="Note pour correction ou notification"
+                  className="min-h-20"
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={onActivateOverride}>
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    Activer avec override
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={onSuspend}>
+                    <AlertTriangle className="mr-2 h-4 w-4" />
+                    Suspendre
+                  </Button>'''
+          actions_new = '''            {!isRestaurantOperationallyActive(detail.restaurant) && !detail.quality.publishable ? (
+                  <Textarea
+                    value={overrideReason}
+                    onChange={(event) => onOverrideReasonChange(event.target.value)}
+                    placeholder="Justification obligatoire pour forcer la mise en ligne malgré les éléments manquants"
+                    className="min-h-20"
+                  />
+                ) : null}
+                <Textarea
+                  value={actionReason}
+                  onChange={(event) => onActionReasonChange(event.target.value)}
+                  placeholder="Note pour correction ou notification"
+                  className="min-h-20"
+                />
+                <div className="flex flex-wrap gap-2">
+                  {!isRestaurantOperationallyActive(detail.restaurant) && detail.quality.publishable ? (
+                    <Button variant="outline" size="sm" onClick={onActivate}>
+                      <ShieldCheck className="mr-2 h-4 w-4" />
+                      Mettre en ligne
+                    </Button>
+                  ) : null}
+                  {!isRestaurantOperationallyActive(detail.restaurant) && !detail.quality.publishable ? (
+                    <Button variant="outline" size="sm" onClick={onActivateOverride}>
+                      <ShieldCheck className="mr-2 h-4 w-4" />
+                      Forcer la mise en ligne
+                    </Button>
+                  ) : null}
+                  {isRestaurantOperationallyActive(detail.restaurant) ? (
+                    <Button variant="outline" size="sm" onClick={onSuspend}>
+                      <AlertTriangle className="mr-2 h-4 w-4" />
+                      Suspendre
+                    </Button>
+                  ) : null}'''
+          admin = replace_once(admin, actions_old, actions_new, "detail activation actions")
+          admin = replace_once(admin, "      const isActive = restaurant.is_active ?? true;", "      const isActive = isRestaurantOperationallyActive(restaurant);", "filter canonical active")
+          admin = replace_once(
+              admin,
+              '''      active: restaurants.filter((restaurant) => restaurant.is_active ?? true)
+                .length,''',
+              '''      active: restaurants.filter((restaurant) => isRestaurantOperationallyActive(restaurant))
+                .length,''',
+              "stats canonical active",
+          )
+          admin = replace_once(
+              admin,
+              '''            onSuspend={() =>
+                  selectedRestaurant &&
+                  updateRestaurant(
+                    selectedRestaurant,
+                    { is_active: false, status: "suspended" },
+                    "Restaurant suspendu",
+                    {
+                      reason: actionReason.trim() || null,
+                    },
+                  )
+                }
+                onActivateOverride={handleActivateOverride}''',
+              '''            onSuspend={() =>
+                  selectedRestaurant &&
+                  updateRestaurant(
+                    selectedRestaurant,
+                    getRestaurantOperationalStatePatch("suspended"),
+                    "Restaurant suspendu",
+                    {
+                      reason: actionReason.trim() || null,
+                    },
+                  )
+                }
+                onActivate={() =>
+                  selectedRestaurant &&
+                  updateRestaurant(
+                    selectedRestaurant,
+                    getRestaurantOperationalStatePatch("active"),
+                    "Restaurant mis en ligne",
+                  )
+                }
+                onActivateOverride={handleActivateOverride}''',
+              "detail activate callback",
+          )
+          admin = replace_once(
+              admin,
+              '''      { is_active: true, status: "active" },''',
+              '''      getRestaurantOperationalStatePatch("active"),''',
+              "override canonical patch",
+          )
+          admin = replace_once(
+              admin,
+              '''                        <Badge
+                              variant={
+                                restaurant.is_active ? "default" : "secondary"
+                              }
+                            >
+                              {restaurant.is_active ? "Actif" : "Inactif"}
+                            </Badge>''',
+              '''                        <Badge variant={statusBadgeVariant(restaurant)}>
+                              {getRestaurantOperationalStatusLabel(restaurant.status)}
+                            </Badge>''',
+              "list canonical status badge",
+          )
+          control_start = admin.index('                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">')
+          control_end = admin.index('\n                </div>\n\n                <div className="mt-4 flex flex-wrap gap-2">', control_start)
+          controls = admin[control_start:control_end]
+          active_label_start = controls.index('                    <label className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm">\n                      <span>Actif</span>')
+          active_label_end = controls.index('                    </label>\n', active_label_start) + len('                    </label>\n')
+          controls = controls[:active_label_start] + controls[active_label_end:]
+          controls = controls.replace('xl:grid-cols-4', 'xl:grid-cols-3', 1)
+          controls = controls.replace('value={restaurant.status || "active"}', 'value={normalizeRestaurantOperationalStatus(restaurant.status)}', 1)
+          controls = controls.replace('{ status: event.target.value },', 'getRestaurantOperationalStatePatch(event.target.value),', 1)
+          controls = controls.replace('{STATUS_OPTIONS.map((option) => (', '{RESTAURANT_OPERATIONAL_STATUS_OPTIONS.map((option) => (', 1)
+          controls = controls.replace(
+              '<option key={option.value} value={option.value}>',
+              '<option\n                              key={option.value}\n                              value={option.value}\n                              disabled={option.value === "active" && !getCatalogQuality(restaurant).publishable}\n                            >',
+              1,
+          )
+          admin = admin[:control_start] + controls + admin[control_end:]
+          admin_path.write_text(admin, encoding="utf-8")
+
+          auth_test_path = Path("src/test/auth-signup-form.test.tsx")
+          auth_test = auth_test_path.read_text(encoding="utf-8")
+          auth_test = replace_once(
+              auth_test,
+              '''const authContextMocks = vi.hoisted(() => ({''',
+              '''const recoveryMocks = vi.hoisted(() => ({
+            save: vi.fn(),
+            load: vi.fn(),
+            remove: vi.fn(),
+          }));
+
+          vi.mock("@/lib/privilegedSignupRecovery", () => ({
+            savePrivilegedSignupRecoveryDraft: recoveryMocks.save,
+            loadPrivilegedSignupRecoveryDraft: recoveryMocks.load,
+            removePrivilegedSignupRecoveryDraft: recoveryMocks.remove,
+          }));
+
+          const authContextMocks = vi.hoisted(() => ({''',
+              "auth recovery mocks",
+          )
+          auth_test = replace_once(
+              auth_test,
+              '''    supabaseMocks.resend.mockResolvedValue({ error: null });''',
+              '''    recoveryMocks.save.mockResolvedValue(true);
+                recoveryMocks.load.mockResolvedValue(null);
+                recoveryMocks.remove.mockResolvedValue(true);
+                supabaseMocks.resend.mockResolvedValue({ error: null });''',
+              "auth recovery mock defaults",
+          )
+          auth_test = auth_test.replace(
+              'emailRedirectTo: `${window.location.origin}/auth?confirmed=1`,',
+              'emailRedirectTo: `${window.location.origin}/auth/callback?confirmed=1`,',
+          )
+          auth_test_path.write_text(auth_test, encoding="utf-8")
+
+          onboarding_test_path = Path("src/test/restaurant-onboarding-payments.test.ts")
+          onboarding_test = onboarding_test_path.read_text(encoding="utf-8")
+          onboarding_test = replace_once(
+              onboarding_test,
+              '''    expect(auth).toContain("startRestaurantCardRegistrationAfterSignup");''',
+              '''    expect(auth).toContain("startRestaurantCardRegistrationAfterSignup");
+                expect(auth).toContain("savePrivilegedSignupRecoveryDraft");
+                expect(auth).toContain("loadPrivilegedSignupRecoveryDraft");
+                expect(auth).toContain("buildSignupConfirmationRedirect");''',
+              "onboarding recovery assertions",
+          )
+          onboarding_test = replace_once(
+              onboarding_test,
+              '''    expect(checkout).toContain('sessionParams.mode = "setup"');''',
+              '''    expect(checkout).toContain('sessionParams.mode = "setup"');
+                expect(checkout).toContain("sessionParams.currency = CHECKOUT_CURRENCY.toLowerCase()");''',
+              "checkout currency assertion",
+          )
+          onboarding_test_path.write_text(onboarding_test, encoding="utf-8")
+
+          admin_test_path = Path("src/test/admin-restaurants-console.test.ts")
+          admin_test = admin_test_path.read_text(encoding="utf-8")
+          admin_test = replace_once(
+              admin_test,
+              '''    expect(source).toContain("overrideReason");''',
+              '''    expect(source).toContain("overrideReason");
+                expect(source).toContain("getRestaurantOperationalStatePatch");
+                expect(source).toContain("RESTAURANT_OPERATIONAL_STATUS_OPTIONS");
+                expect(source).not.toContain("<span>Actif</span>");
+                expect(source).toContain("Forcer la mise en ligne");''',
+              "admin canonical state assertions",
+          )
+          admin_test_path.write_text(admin_test, encoding="utf-8")
+
+          focused_test_path = Path("src/test/restaurateur-onboarding-reliability.test.ts")
+          focused_test_path.write_text('''import { readFileSync } from "node:fs";
+          import { resolve } from "node:path";
+          import { describe, expect, it } from "vitest";
+
+          import {
+            getRestaurantOperationalStatePatch,
+            isRestaurantOperationallyActive,
+          } from "@/lib/restaurantAdminState";
+
+          const root = process.cwd();
+          const read = (path: string) => readFileSync(resolve(root, path), "utf8");
+
+          describe("restaurateur onboarding reliability", () => {
+            it("uses one canonical restaurant activation state", () => {
+              expect(getRestaurantOperationalStatePatch("active")).toEqual({
+                status: "active",
+                is_active: true,
+              });
+              expect(getRestaurantOperationalStatePatch("suspended")).toEqual({
+                status: "suspended",
+                is_active: false,
+              });
+              expect(isRestaurantOperationallyActive({ status: "active", is_active: false })).toBe(false);
+              expect(isRestaurantOperationallyActive({ status: "active", is_active: true })).toBe(true);
+
+              const migration = read("supabase/migrations/20260802000000_restaurateur_onboarding_reliability.sql");
+              expect(migration).toContain("normalize_restaurant_operational_state");
+              expect(migration).toContain("restaurants_operational_state_consistent");
+              expect(migration).toContain("application.status = 'approved'");
+            });
+
+            it("restores a privileged form after confirmation without storing the password", () => {
+              const auth = read("src/pages/Auth.tsx");
+              const recovery = read("src/lib/privilegedSignupRecovery.ts");
+
+              expect(auth).toContain("buildSignupConfirmationRedirect");
+              expect(auth).toContain("getCanonicalAuthCallbackHref");
+              expect(auth).toContain("savePrivilegedSignupRecoveryDraft");
+              expect(auth).toContain("loadPrivilegedSignupRecoveryDraft");
+              expect(auth).toContain("recoveredForm");
+              expect(auth).toContain("recoveredDocuments");
+              expect(auth).toContain("J’ai confirmé mon email");
+              expect(recovery).toContain('DATABASE_NAME = "tok-privileged-signup-recovery"');
+              expect(recovery).not.toMatch(/password\s*:/i);
+            });
+
+            it("sets the currency required by Stripe setup-mode checkout", () => {
+              const checkout = read("supabase/functions/create-checkout/index.ts");
+              expect(checkout).toContain('sessionParams.mode = "setup"');
+              expect(checkout).toContain("sessionParams.currency = CHECKOUT_CURRENCY.toLowerCase()");
+              expect(checkout.indexOf("sessionParams.currency = CHECKOUT_CURRENCY.toLowerCase()"))
+                .toBeGreaterThan(checkout.indexOf('sessionParams.mode = "setup"'));
+            });
+          });
+          '''.replace("          ", ""), encoding="utf-8")
+
+          print("Restaurateur onboarding reliability patch applied.")
+          PY
+
+      - name: Regenerate error-code map
+        run: pnpm run generate:error-code-map
+
+      - name: Run focused tests
+        run: >-
+          pnpm exec vitest run --mode production
+          src/test/restaurateur-onboarding-reliability.test.ts
+          src/test/auth-signup-form.test.tsx
+          src/test/restaurant-onboarding-payments.test.ts
+          src/test/admin-restaurants-console.test.ts
+          src/test/payment-attempt-state.test.ts
+          src/test/route-wiring.test.ts
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Production build
+        run: pnpm run build:prod
+
+      - name: Commit validated product changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout HEAD -- \
+            public/sitemap-actualites.xml \
+            public/sitemap-pages.xml \
+            public/sitemap-restaurants.xml
+          rm -f .github/workflows/finalize-restaurateur-onboarding-reliability.yml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/pages/Auth.tsx \
+            src/lib/privilegedSignupRecovery.ts \
+            src/lib/restaurantAdminState.ts \
+            src/pages/admin/AdminRestaurants.tsx \
+            supabase/functions/create-checkout/index.ts \
+            supabase/functions/_shared/error-code-map.ts \
+            supabase/migrations/20260802000000_restaurateur_onboarding_reliability.sql \
+            src/test/auth-signup-form.test.tsx \
+            src/test/restaurant-onboarding-payments.test.ts \
+            src/test/admin-restaurants-console.test.ts \
+            src/test/restaurateur-onboarding-reliability.test.ts
+          git add -u .github/workflows/finalize-restaurateur-onboarding-reliability.yml
+
+          git diff --cached --check
+          if git diff --cached | grep -Eiq '(sk-proj-|sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}|whsec_[A-Za-z0-9_-]{20,}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9]{20,})'; then
+            echo "::error::A secret-like value was detected in the final diff."
+            exit 1
+          fi
+
+          git commit -m "fix(onboarding): restore signup and unify restaurant activation"
+          git push origin HEAD:fix/restaurateur-onboarding-reliability
