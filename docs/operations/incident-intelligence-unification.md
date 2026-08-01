@@ -62,6 +62,8 @@ Le modèle ne reçoit plus l’historique brut complet. Il charge d’abord les 
 - digest déterministe des messages omis ;
 - maximum 28 messages sélectionnés.
 
+La sélection réserve explicitement une place au début du dossier et aux réponses les plus récentes avant de compléter avec les messages à fort signal. Une longue série de messages importants ne peut donc plus évincer la plainte initiale nécessaire à la compréhension du cas.
+
 Un `context_hash` permet de réutiliser une analyse existante lorsque le dossier n’a pas changé.
 
 ## Budgets IA
@@ -84,6 +86,12 @@ Les journaux IA doivent conserver :
 - résultat : cache, diagnostic, no-change, PR ou échec.
 
 Les indicateurs de pilotage prioritaires sont le coût par incident approuvé, par PR ouverte et par correctif vérifié.
+
+## Stabilité opérationnelle du cache
+
+Les compteurs de récurrence, horodatages, identifiants de requête et compteurs de tokens sont exclus du hash technique afin qu’une même panne ne soit pas refacturée à chaque occurrence. Le hash change toutefois lorsque la signature d’erreur ou les preuves techniques changent.
+
+Guardian vérifie séparément la gravité et le niveau de risque avant de réutiliser une évaluation. Une évaluation canonique devenue obsolète est reconstruite sans token ; une ancienne analyse approfondie n’est réutilisée que si sa gravité et son risque correspondent encore à l’incident actuel.
 
 ## Sécurité
 
