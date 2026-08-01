@@ -11,6 +11,10 @@ export const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY")?.trim() || "";
 export const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL")?.trim() || "gpt-5.5";
 const TOK_AI_MINI_MODEL = Deno.env.get("OPENAI_MODEL_TOK_MINI")?.trim() || "gpt-5.4-mini";
 const TOK_AI_STRATEGIC_MODEL = Deno.env.get("OPENAI_MODEL_TOK_STRATEGIC")?.trim() || "gpt-5.5";
+const TOK_AI_INCIDENT_TRIAGE_MODEL = Deno.env.get("OPENAI_MODEL_TOK_INCIDENT_TRIAGE")?.trim() || TOK_AI_MINI_MODEL;
+const TOK_AI_INCIDENT_DEEP_MODEL = Deno.env.get("OPENAI_MODEL_TOK_INCIDENT_DEEP")?.trim() || "gpt-5.6-terra";
+const TOK_AI_SUPPORT_RESOLUTION_MODEL = Deno.env.get("OPENAI_MODEL_TOK_SUPPORT_RESOLUTION")?.trim() || TOK_AI_MINI_MODEL;
+const TOK_AI_SUPPORT_RESOLUTION_COMPLEX_MODEL = Deno.env.get("OPENAI_MODEL_TOK_SUPPORT_RESOLUTION_COMPLEX")?.trim() || "gpt-5.6-terra";
 
 const RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_RESPONSE_TIMEOUT_MS = readBoundedTimeout(
@@ -32,7 +36,10 @@ export type OpenAIJsonSchema = {
 
 export type OpenAIResponseUsage = {
   input_tokens?: number;
+  cached_input_tokens?: number;
+  cache_write_tokens?: number;
   output_tokens?: number;
+  reasoning_tokens?: number;
   total_tokens?: number;
 };
 
@@ -46,6 +53,7 @@ type OpenAIRequestOptions = {
   include?: string[];
   reasoning?: Record<string, unknown>;
   timeoutMs?: number;
+  verbosity?: "low" | "medium" | "high";
 };
 
 function readBoundedTimeout(raw: string | number | undefined, fallback: number) {
@@ -62,6 +70,10 @@ export type TokAiModelTask =
   | "accounting"
   | "admin_monitor"
   | "admin_report"
+  | "incident_triage"
+  | "incident_deep"
+  | "support_resolution"
+  | "support_resolution_complex"
   | "image_economy"
   | "image_premium";
 
@@ -86,6 +98,14 @@ export function selectTokAiModel(
       return TOK_AI_MINI_MODEL;
     case "admin_report":
       return TOK_AI_STRATEGIC_MODEL;
+    case "incident_triage":
+      return TOK_AI_INCIDENT_TRIAGE_MODEL;
+    case "incident_deep":
+      return TOK_AI_INCIDENT_DEEP_MODEL;
+    case "support_resolution":
+      return TOK_AI_SUPPORT_RESOLUTION_MODEL;
+    case "support_resolution_complex":
+      return TOK_AI_SUPPORT_RESOLUTION_COMPLEX_MODEL;
     case "image_economy":
       return Deno.env.get("OPENAI_MODEL_IMAGE_ECONOMY")?.trim() || TOK_AI_MINI_MODEL;
     case "image_premium":
@@ -95,8 +115,16 @@ export function selectTokAiModel(
   }
 }
 
-function buildTextFormat(schema?: OpenAIJsonSchema) {
-  if (!schema) return { format: { type: "text" } };
+function buildTextFormat(
+  schema?: OpenAIJsonSchema,
+  verbosity?: "low" | "medium" | "high",
+) {
+  if (!schema) {
+    return {
+      format: { type: "text" },
+      ...(verbosity ? { verbosity } : {}),
+    };
+  }
 
   return {
     format: {
@@ -106,6 +134,7 @@ function buildTextFormat(schema?: OpenAIJsonSchema) {
       strict: schema.strict ?? true,
       schema: schema.schema,
     },
+    ...(verbosity ? { verbosity } : {}),
   };
 }
 
@@ -118,7 +147,7 @@ export async function createOpenAIResponse(options: OpenAIRequestOptions) {
     model: options.model || OPENAI_MODEL,
     input: options.input,
     store: false,
-    text: buildTextFormat(options.jsonSchema),
+    text: buildTextFormat(options.jsonSchema, options.verbosity),
   };
 
   if (options.maxOutputTokens) {
@@ -220,13 +249,27 @@ export function extractUsage(data: unknown): OpenAIResponseUsage {
   if (!usage || typeof usage !== "object") return {};
 
   const record = usage as Record<string, unknown>;
+  const inputDetails = record.input_tokens_details && typeof record.input_tokens_details === "object"
+    ? record.input_tokens_details as Record<string, unknown>
+    : {};
+  const outputDetails = record.output_tokens_details && typeof record.output_tokens_details === "object"
+    ? record.output_tokens_details as Record<string, unknown>
+    : {};
   const inputTokens = Number(record.input_tokens ?? 0);
+  const cachedInputTokens = Number(inputDetails.cached_tokens ?? 0);
+  const cacheWriteTokens = Number(
+    inputDetails.cache_write_tokens ?? inputDetails.cache_creation_tokens ?? 0,
+  );
   const outputTokens = Number(record.output_tokens ?? 0);
+  const reasoningTokens = Number(outputDetails.reasoning_tokens ?? 0);
   const totalTokens = Number(record.total_tokens ?? inputTokens + outputTokens);
 
   return {
     input_tokens: Number.isFinite(inputTokens) ? inputTokens : 0,
+    cached_input_tokens: Number.isFinite(cachedInputTokens) ? cachedInputTokens : 0,
+    cache_write_tokens: Number.isFinite(cacheWriteTokens) ? cacheWriteTokens : 0,
     output_tokens: Number.isFinite(outputTokens) ? outputTokens : 0,
+    reasoning_tokens: Number.isFinite(reasoningTokens) ? reasoningTokens : 0,
     total_tokens: Number.isFinite(totalTokens) ? totalTokens : 0,
   };
 }

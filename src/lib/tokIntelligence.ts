@@ -230,6 +230,15 @@ export type SupportResolutionRun = {
   updated_at: string;
 };
 
+export type SupportOpsIncidentLink = {
+  id: string;
+  support_incident_id: string;
+  ops_incident_id: string;
+  link_type: string;
+  technical_evidence: Record<string, unknown>;
+  created_at: string;
+};
+
 export type SupportIncidentSummary = {
   id: string;
   user_id: string | null;
@@ -251,6 +260,8 @@ export function listSupportResolutionWorkspace(incidentId?: string | null) {
     incidents: SupportIncidentSummary[];
     runs: SupportResolutionRun[];
     actions: SupportResolutionAction[];
+    links: SupportOpsIncidentLink[];
+    ops_incidents: OpsIncidentSummary[];
   }>("ai-support-resolution", {
     action: "list",
     incidentId: incidentId || null,
@@ -310,6 +321,11 @@ export type OpsIncidentSummary = {
   github_pr_number: number | null;
   github_pr_url: string | null;
   failure_reason: string | null;
+  evidence_hash?: string | null;
+  repairability?: string | null;
+  analysis_source?: string | null;
+  analysis_cached?: boolean | null;
+  analysis_generated_at?: string | null;
 };
 
 export type GuardianAssessmentRecord = {
@@ -349,11 +365,13 @@ export function getGuardianOverview() {
 export function analyzeGuardianIncident(input: {
   incidentId: string;
   prompt?: string;
+  forceDeepAnalysis?: boolean;
 }) {
   return invokeTokIntelligence<{
     assessment: GuardianAssessmentRecord;
     result: Record<string, unknown>;
     function_name: string | null;
+    reused?: boolean;
   }>("ai-guardian", { action: "analyze", ...input });
 }
 

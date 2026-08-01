@@ -15,6 +15,11 @@ import {
 } from "../_shared/intelligence.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import {
+  buildIncidentEvidenceHash,
+  classifyIncidentRepairability,
+  shouldUseDeepIncidentAnalysis,
+} from "../_shared/incident-intelligence.ts";
+import {
   OPENAI_API_KEY,
   createOpenAIResponse,
   estimateOpenAITextCostChf,
@@ -62,6 +67,8 @@ type AuditRow = {
 const FUNCTION_NAME = "ai-guardian";
 const FEATURE_NAME = "admin-guardian";
 const GUARDIAN_ANALYSIS_TIMEOUT_MS = 100_000;
+const GUARDIAN_ANALYSIS_VERSION = 2;
+const GUARDIAN_DEEP_OUTPUT_TOKENS = 1600;
 const OUTPUT_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -380,7 +387,7 @@ async function getOverview(
     actor.adminClient
       .from("ops_incidents")
       .select(
-        "id, fingerprint, source, source_event_id, severity, status, title, summary, probable_cause, impact, repair_plan, technical_details, sanitized_context, confidence, risk_level, occurrence_count, first_seen_at, last_seen_at, github_run_id, github_branch, github_pr_number, github_pr_url, resolution_summary, failure_reason, created_at, updated_at",
+        "id, fingerprint, source, source_event_id, severity, status, title, summary, probable_cause, impact, repair_plan, technical_details, sanitized_context, confidence, risk_level, occurrence_count, first_seen_at, last_seen_at, github_run_id, github_branch, github_pr_number, github_pr_url, resolution_summary, failure_reason, evidence_hash, repairability, analysis_source, analysis_model_requested, analysis_model_returned, analysis_cached, analysis_generated_at, created_at, updated_at",
       )
       .not("status", "in", '("resolved","rejected","no_changes")')
       .order("last_seen_at", { ascending: false })
@@ -466,7 +473,7 @@ async function getIncidentAnalysisContext(
     )
     .gte("created_at", lookback)
     .order("created_at", { ascending: false })
-    .limit(500);
+    .limit(160);
 
   if (functionName) auditQuery = auditQuery.eq("function_name", functionName);
 
@@ -477,20 +484,20 @@ async function getIncidentAnalysisContext(
         .select("id, event_type, actor, payload, created_at")
         .eq("incident_id", incidentId)
         .order("created_at", { ascending: true })
-        .limit(400),
+        .limit(120),
       auditQuery,
       actor.adminClient
         .from("ops_guardian_assessments")
         .select("*")
         .eq("incident_id", incidentId)
         .order("created_at", { ascending: false })
-        .limit(10),
+        .limit(3),
       actor.adminClient
         .from("ops_guardian_verifications")
         .select("*")
         .eq("incident_id", incidentId)
         .order("created_at", { ascending: false })
-        .limit(20),
+        .limit(8),
     ]);
 
   const error =
@@ -510,25 +517,197 @@ async function getIncidentAnalysisContext(
   };
 }
 
+function stringList(value: unknown, maxItems: number) {
+  return Array.isArray(value)
+    ? value.map((entry) => sanitizeMultilineText(entry, 900)).filter(Boolean).slice(0, maxItems)
+    : [];
+}
+
+function buildCanonicalGuardianAssessment(
+  incident: Record<string, unknown>,
+): GuardianAssessment | null {
+  if (!isRecord(incident.repair_plan)) return null;
+  const plan = incident.repair_plan;
+  const steps = stringList(plan.repair_steps, 10);
+  const files = stringList(plan.files_to_inspect, 20);
+  const tests = stringList(plan.validation_steps, 20);
+  const rollbackSteps = stringList(plan.rollback_steps, 10);
+  if (!sanitizeMultilineText(plan.probable_cause, 3000) || steps.length === 0) return null;
+
+  return normalizeAssessment({
+    summary: sanitizeMultilineText(
+      plan.executive_summary || incident.summary,
+      3000,
+    ),
+    probable_cause: sanitizeMultilineText(plan.probable_cause, 3000),
+    alternative_causes: [],
+    evidence: [{
+      source: "ops-incident-control",
+      fact: `Diagnostic canonique réutilisé pour le hash ${String(incident.evidence_hash || "absent").slice(0, 16)}.`,
+      confidence: Math.max(0, Math.min(1, Number(incident.confidence) || 0)),
+    }],
+    affected_components: files,
+    business_impact: sanitizeMultilineText(
+      plan.user_impact || incident.impact,
+      2400,
+    ),
+    severity: normalizeLevel(plan.severity || incident.severity),
+    risk_level: normalizeLevel(plan.risk_level || incident.risk_level),
+    confidence: Math.max(0, Math.min(1, Number(plan.confidence ?? incident.confidence) || 0)),
+    repair_plan: steps.map((step) => ({
+      step,
+      files,
+      reason: "Étape issue du diagnostic technique canonique approuvé par le workflow d'incident.",
+      rollback: rollbackSteps.join(" ") || "Revenir au commit précédent si les validations échouent.",
+    })),
+    tests,
+    rollback: rollbackSteps.join(" ") || "Fermer la PR sans fusion si les validations échouent.",
+    validation_conditions: tests,
+    human_approval_required: true,
+  });
+}
+
 async function analyzeIncident(
   actor: Awaited<ReturnType<typeof authenticateRequest>>,
   incidentId: string,
   prompt: string,
+  forceDeepAnalysis: boolean,
   request: Request,
 ) {
-  if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
+  const { data: incident, error: incidentError } = await actor.adminClient
+    .from("ops_incidents")
+    .select("*")
+    .eq("id", incidentId)
+    .maybeSingle();
+  if (incidentError) throw new HttpError(500, incidentError.message);
+  if (!incident) throw new HttpError(404, "ops_incident_not_found");
 
+  const routing = classifyIncidentRepairability({
+    source: incident.source,
+    severity: incident.severity,
+    title: incident.title,
+    summary: incident.summary,
+    technicalDetails: incident.technical_details,
+    context: incident.sanitized_context,
+  });
+  const evidenceHash = typeof incident.evidence_hash === "string"
+    ? incident.evidence_hash
+    : await buildIncidentEvidenceHash({
+      source: incident.source,
+      severity: incident.severity,
+      title: incident.title,
+      summary: incident.summary,
+      technicalDetails: incident.technical_details,
+      context: incident.sanitized_context,
+    });
+
+  const { data: existingAssessment, error: existingError } = await actor.adminClient
+    .from("ops_guardian_assessments")
+    .select("*")
+    .eq("incident_id", incidentId)
+    .eq("evidence_hash", evidenceHash)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existingError) throw new HttpError(500, existingError.message);
+  if (existingAssessment && !forceDeepAnalysis) {
+    return {
+      assessment: existingAssessment,
+      result: existingAssessment.assessment,
+      function_name: findLikelyFunctionName(incident),
+      reused: true,
+    };
+  }
+
+  const canonical = buildCanonicalGuardianAssessment(incident);
+  const deepRequired = shouldUseDeepIncidentAnalysis({
+    force: forceDeepAnalysis,
+    severity: incident.severity,
+    repairability: incident.repairability || routing.repairability,
+    confidence: incident.confidence,
+    sensitive: routing.sensitive,
+    evidenceChanged: false,
+  });
+
+  if (canonical && !deepRequired) {
+    const { data: stored, error } = await actor.adminClient
+      .from("ops_guardian_assessments")
+      .insert({
+        incident_id: incidentId,
+        requested_by: actor.userId,
+        status: "completed",
+        severity: canonical.severity,
+        risk_level: canonical.risk_level,
+        confidence: canonical.confidence,
+        assessment: canonical,
+        model: incident.analysis_model_returned || incident.analysis_model_requested || null,
+        usage: {},
+        evidence_hash: evidenceHash,
+        analysis_source: "canonical",
+      })
+      .select("*")
+      .single();
+    if (error) throw new HttpError(500, error.message);
+
+    await actor.adminClient.from("ops_incident_events").insert({
+      incident_id: incidentId,
+      event_type: "guardian_reused_canonical_plan",
+      actor: actor.userId,
+      payload: {
+        assessment_id: stored.id,
+        evidence_hash: evidenceHash,
+        analysis_version: GUARDIAN_ANALYSIS_VERSION,
+      },
+    });
+
+    await recordUsage(actor, {
+      status: "success",
+      action: "analyze_cached",
+      incidentId,
+      assessmentId: stored.id,
+      model: incident.analysis_model_returned || incident.analysis_model_requested || "cache",
+      usage: {},
+      metadata: {
+        cached: true,
+        evidence_hash: evidenceHash,
+        analysis_source: "canonical",
+      },
+    });
+
+    await writeAuditLog({
+      adminClient: actor.adminClient,
+      functionName: FUNCTION_NAME,
+      status: "success",
+      action: "analyze_cached",
+      actor,
+      request,
+      targetEntityType: "ops_guardian_assessments",
+      targetEntityId: stored.id,
+      metadata: { incident_id: incidentId, evidence_hash: evidenceHash },
+    });
+
+    return {
+      assessment: stored,
+      result: canonical,
+      function_name: findLikelyFunctionName(incident),
+      reused: true,
+    };
+  }
+
+  if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
   const context = await getIncidentAnalysisContext(actor, incidentId);
-  const model = selectTokAiModel("admin_report");
-  const systemPrompt = `Tu es TOK Guardian, agent interne de fiabilité d'une plateforme suisse de réservation, commande et paiement.
-Tu analyses des incidents techniques à partir de journaux déjà nettoyés. N'invente jamais un fichier, une branche, une migration, un commit, une PR, une donnée ou un test.
-Distingue clairement preuve, hypothèse et condition de vérification.
-Ne propose jamais une mutation directe de production, un merge automatique, un déploiement automatique ou une suppression de données.
-Toute réparation doit suivre: branche dédiée, patch minimal, tests, PR, revue humaine, déploiement contrôlé, vérification post-déploiement.
-Les paiements, RLS, rôles, secrets, migrations et données client sont toujours à risque élevé.
-Les chemins .github/**, AGENTS.md, docs/skills/**, supabase/config.toml et l'automatisation Guardian nécessitent une revue humaine explicite.
-human_approval_required doit rester vrai.
-Réponds en français technique et opérationnel.`;
+  const model = selectTokAiModel("incident_deep");
+  const reasoningEffort = routing.sensitive
+      || incident.severity === "critical"
+      || incident.severity === "high"
+    ? "high"
+    : "medium";
+  const systemPrompt = `Tu es TOK Guardian. Approfondis uniquement les éléments que le diagnostic canonique ne tranche pas.
+N'invente aucun fichier, branche, migration, commit, PR, donnée ou test. Distingue preuve, hypothèse et validation.
+Toute réparation suit branche dédiée, patch minimal, tests, PR, revue humaine, déploiement contrôlé et vérification post-déploiement.
+Aucune mutation directe de production, fusion automatique, suppression de données ou désactivation de sécurité.
+human_approval_required reste vrai. Réponds en français technique dans le schéma demandé.`;
+
   const openAIResponse = await createOpenAIResponse({
     model,
     timeoutMs: GUARDIAN_ANALYSIS_TIMEOUT_MS,
@@ -538,6 +717,7 @@ Réponds en français technique et opérationnel.`;
         role: "user",
         content: JSON.stringify({
           request: prompt,
+          canonical_plan: incident.repair_plan,
           incident: context.incident,
           function_name: context.function_name,
           events: context.events,
@@ -547,12 +727,12 @@ Réponds en français technique et opérationnel.`;
         }),
       },
     ],
-    maxOutputTokens: 3600,
-    reasoning: { effort: "high" },
+    maxOutputTokens: GUARDIAN_DEEP_OUTPUT_TOKENS,
+    reasoning: { effort: reasoningEffort },
+    verbosity: "low",
     jsonSchema: {
       name: "tok_guardian_assessment",
-      description:
-        "Evidence-based incident assessment with tests and rollback.",
+      description: "Evidence-based incident assessment with tests and rollback.",
       schema: OUTPUT_SCHEMA,
     },
   });
@@ -575,6 +755,8 @@ Réponds en français technique et opérationnel.`;
       assessment,
       model,
       usage,
+      evidence_hash: evidenceHash,
+      analysis_source: "deep",
     })
     .select("*")
     .single();
@@ -590,6 +772,8 @@ Réponds en français technique et opérationnel.`;
       risk_level: assessment.risk_level,
       confidence: assessment.confidence,
       human_approval_required: true,
+      evidence_hash: evidenceHash,
+      analysis_source: "deep",
     },
   });
 
@@ -603,6 +787,11 @@ Réponds en français technique et opérationnel.`;
     metadata: {
       severity: assessment.severity,
       risk_level: assessment.risk_level,
+      evidence_hash: evidenceHash,
+      analysis_source: "deep",
+      cached_input_tokens: usage.cached_input_tokens ?? 0,
+      cache_write_tokens: usage.cache_write_tokens ?? 0,
+      reasoning_tokens: usage.reasoning_tokens ?? 0,
     },
   });
 
@@ -619,6 +808,8 @@ Réponds en français technique et opérationnel.`;
       incident_id: incidentId,
       severity: assessment.severity,
       risk_level: assessment.risk_level,
+      evidence_hash: evidenceHash,
+      analysis_source: "deep",
     },
   });
 
@@ -626,6 +817,7 @@ Réponds en français technique et opérationnel.`;
     assessment: stored,
     result: assessment,
     function_name: context.function_name,
+    reused: false,
   };
 }
 
@@ -805,6 +997,7 @@ Deno.serve(async (req) => {
     const prompt = sanitizeMultilineText(body.prompt, 3000);
     const functionName = sanitizeText(body.functionName, 100);
     const observationStart = sanitizeText(body.observationStart, 80) || null;
+    const forceDeepAnalysis = body.forceDeepAnalysis === true;
 
     const limiter = createRateLimiter(actor.adminClient, FUNCTION_NAME);
     await limiter.consume(`admin:${actor.userId}`, {
@@ -823,7 +1016,13 @@ Deno.serve(async (req) => {
     if (!incidentId) throw new HttpError(400, "incident_id_required");
 
     if (action === "analyze") {
-      const result = await analyzeIncident(actor, incidentId, prompt, req);
+      const result = await analyzeIncident(
+        actor,
+        incidentId,
+        prompt,
+        forceDeepAnalysis,
+        req,
+      );
       assessmentId = result.assessment.id;
       return jsonResponse(result, 200, cors);
     }

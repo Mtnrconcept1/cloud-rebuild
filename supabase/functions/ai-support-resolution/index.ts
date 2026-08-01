@@ -16,6 +16,11 @@ import {
 } from "../_shared/intelligence.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import {
+  buildStableEvidenceHash,
+  buildSupportMessageDigest,
+  selectSupportMessages,
+} from "../_shared/incident-intelligence.ts";
+import {
   enqueueNotification,
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
@@ -37,6 +42,7 @@ type ResolutionAction =
   | "request_restaurant_response"
   | "set_waiting_customer"
   | "set_waiting_restaurant"
+  | "escalate_technical_incident"
   | "close_incident"
   | "request_refund"
   | "grant_credit"
@@ -71,6 +77,8 @@ type SupportResolutionResult = {
 
 const FUNCTION_NAME = "ai-support-resolution";
 const FEATURE_NAME = "admin-support-resolution";
+const SUPPORT_ANALYSIS_VERSION = 2;
+const SUPPORT_ANALYSIS_OUTPUT_TOKENS = 1400;
 const FINANCIAL_ACTIONS = new Set<ResolutionAction>([
   "request_refund",
   "grant_credit",
@@ -87,6 +95,7 @@ const ACTION_TYPES: ResolutionAction[] = [
   "request_restaurant_response",
   "set_waiting_customer",
   "set_waiting_restaurant",
+  "escalate_technical_incident",
   "close_incident",
   "request_refund",
   "grant_credit",
@@ -265,7 +274,7 @@ async function getIncidentContext(
     .select("id, author_role, body, visibility, metadata, created_at")
     .eq("incident_id", incidentId)
     .order("created_at", { ascending: true })
-    .limit(160);
+    .limit(80);
 
   if (messageError) throw new HttpError(500, messageError.message);
 
@@ -304,7 +313,7 @@ async function getIncidentContext(
       )
       .eq("order_id", incident.order_id)
       .order("created_at", { ascending: false })
-      .limit(30);
+      .limit(12);
     if (error) throw new HttpError(500, error.message);
     payments = data || [];
   }
@@ -321,7 +330,7 @@ async function getIncidentContext(
       .select("id, title, type, category, read_at, created_at, data")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(30);
+      .limit(12);
     if (error) throw new HttpError(500, error.message);
     notifications = data || [];
   }
@@ -337,12 +346,20 @@ async function getIncidentContext(
     restaurant = data || null;
   }
 
+  const sanitizedMessages = (messages || []).map((message: Record<string, unknown>) => ({
+    ...message,
+    body: sanitizeMultilineText(message.body, 1200),
+  }));
+  const selectedMessages = selectSupportMessages(sanitizedMessages, 28);
+  const messageDigest = buildSupportMessageDigest(
+    sanitizedMessages,
+    selectedMessages,
+  );
+
   return {
     incident,
-    messages: (messages || []).map((message: Record<string, unknown>) => ({
-      ...message,
-      body: sanitizeMultilineText(message.body, 2000),
-    })),
+    messages: selectedMessages,
+    messageDigest,
     order,
     reservation,
     payments,
@@ -399,10 +416,39 @@ async function listResolutionWorkspace(
     actions = data || [];
   }
 
+  const supportIncidentIds = (incidents || [])
+    .map((incident: { id?: string | null }) => incident.id)
+    .filter((id: string | null | undefined): id is string => Boolean(id));
+  let links: Array<Record<string, unknown>> = [];
+  let opsIncidents: Array<Record<string, unknown>> = [];
+  if (supportIncidentIds.length > 0) {
+    const { data: linkRows, error: linkError } = await actor.adminClient
+      .from("support_ops_incident_links")
+      .select("*")
+      .in("support_incident_id", supportIncidentIds)
+      .order("created_at", { ascending: false });
+    if (linkError) throw new HttpError(500, linkError.message);
+    links = linkRows || [];
+
+    const opsIds = [...new Set(links
+      .map((link) => typeof link.ops_incident_id === "string" ? link.ops_incident_id : null)
+      .filter((id): id is string => Boolean(id)))];
+    if (opsIds.length > 0) {
+      const { data: opsRows, error: opsError } = await actor.adminClient
+        .from("ops_incidents")
+        .select("id, severity, status, title, repairability, evidence_hash, github_pr_number, github_pr_url, resolution_summary, last_seen_at")
+        .in("id", opsIds);
+      if (opsError) throw new HttpError(500, opsError.message);
+      opsIncidents = opsRows || [];
+    }
+  }
+
   return {
     incidents: incidents || [],
     runs: runs || [],
     actions,
+    links,
+    ops_incidents: opsIncidents,
   };
 }
 
@@ -472,6 +518,119 @@ function normalizeResolutionResult(
   };
 }
 
+function isComplexSupportContext(
+  context: Awaited<ReturnType<typeof getIncidentContext>>,
+) {
+  const evidence = JSON.stringify({
+    priority: context.incident.priority,
+    category: context.incident.category,
+    subject: context.incident.subject,
+    description: context.incident.description,
+    order: context.order,
+    reservation: context.reservation,
+    payments: context.payments,
+  }).toLowerCase();
+  return context.incident.priority === "urgent"
+    || context.incident.priority === "high"
+    || /(payment|paiement|stripe|refund|rembourse|chargeback|fraud|fraude|allerg|medical|médical|legal|juridique|threat|menace)/i.test(evidence);
+}
+
+function buildSupportTechnicalEvidence(
+  context: Awaited<ReturnType<typeof getIncidentContext>>,
+) {
+  const metadata = isRecord(context.incident.metadata)
+    ? context.incident.metadata
+    : {};
+  const allowlistedMetadata: Record<string, unknown> = {};
+  for (const key of [
+    "function_name",
+    "action",
+    "error_code",
+    "error_type",
+    "route",
+    "provider",
+    "release",
+    "request_id",
+    "status",
+  ]) {
+    if (metadata[key] !== undefined) allowlistedMetadata[key] = metadata[key];
+  }
+
+  return {
+    support_incident_id: context.incident.id,
+    category: context.incident.category,
+    priority: context.incident.priority,
+    support_status: context.incident.status,
+    order: context.order
+      ? {
+        id: context.order.id,
+        status: context.order.status,
+        payment_status: context.order.payment_status,
+        fulfillment_status: context.order.fulfillment_status,
+        refund_status: context.order.refund_status,
+        restaurant_response_status: context.order.restaurant_response_status,
+        created_at: context.order.created_at,
+        updated_at: context.order.updated_at,
+      }
+      : null,
+    reservation: context.reservation
+      ? {
+        id: context.reservation.id,
+        status: context.reservation.status,
+        feature: context.reservation.feature,
+        deposit_status: context.reservation.deposit_status,
+        refund_status: context.reservation.refund_status,
+        restaurant_confirmation_required: context.reservation.restaurant_confirmation_required,
+        created_at: context.reservation.created_at,
+        updated_at: context.reservation.updated_at,
+      }
+      : null,
+    payment_states: context.payments.slice(0, 12).map((payment) => ({
+      type: payment.type,
+      status: payment.status,
+      provider: payment.provider,
+      stripe_mode: payment.stripe_mode,
+      created_at: payment.created_at,
+    })),
+    notification_states: context.notifications.slice(0, 12).map((notification) => ({
+      type: notification.type,
+      category: notification.category,
+      created_at: notification.created_at,
+      read_at: notification.read_at,
+    })),
+    metadata: allowlistedMetadata,
+  };
+}
+
+async function invokeOpsIncidentControl(payload: Record<string, unknown>) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim() || "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new HttpError(503, "ops_incident_internal_configuration_missing");
+  }
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/ops-incident-control`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${serviceRoleKey}`,
+      apikey: serviceRoleKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  const body = await response.json().catch(() => ({})) as Record<string, unknown>;
+  if (!response.ok || body.ok !== true || typeof body.incidentId !== "string") {
+    throw new HttpError(502, `ops_incident_escalation_failed:${response.status}`);
+  }
+  return body as {
+    incidentId: string;
+    createdNew?: boolean;
+    status?: string;
+    notified?: boolean;
+    reason?: string;
+  };
+}
+
 async function analyzeIncident(
   actor: Awaited<ReturnType<typeof authenticateRequest>>,
   incidentId: string,
@@ -483,15 +642,92 @@ async function analyzeIncident(
   }
 
   const context = await getIncidentContext(actor, incidentId);
-  const model = selectTokAiModel("support_complex");
+  const contextHash = await buildStableEvidenceHash({
+    analysis_version: SUPPORT_ANALYSIS_VERSION,
+    prompt,
+    incident: {
+      id: context.incident.id,
+      category: context.incident.category,
+      priority: context.incident.priority,
+      status: context.incident.status,
+      subject: context.incident.subject,
+      description: context.incident.description,
+      last_message_at: context.incident.last_message_at,
+      updated_at: context.incident.updated_at,
+    },
+    messages: context.messages,
+    message_digest: context.messageDigest,
+    order: context.order,
+    reservation: context.reservation,
+    payments: context.payments,
+    notifications: context.notifications,
+    restaurant: context.restaurant,
+  });
+
+  const { data: cachedRun, error: cacheError } = await actor.adminClient
+    .from("support_resolution_runs")
+    .select("*")
+    .eq("incident_id", incidentId)
+    .eq("context_hash", contextHash)
+    .not("status", "in", '("failed","rejected")')
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (cacheError) throw new HttpError(500, cacheError.message);
+
+  if (cachedRun) {
+    const { data: cachedActions, error: actionError } = await actor.adminClient
+      .from("support_resolution_actions")
+      .select("*")
+      .eq("run_id", cachedRun.id)
+      .order("created_at", { ascending: true });
+    if (actionError) throw new HttpError(500, actionError.message);
+
+    await recordUsage(actor, {
+      status: "success",
+      action: "analyze_cached",
+      incidentId,
+      runId: cachedRun.id,
+      model: cachedRun.model || "cache",
+      usage: {},
+      metadata: { cached: true, context_hash: contextHash },
+    });
+    await writeAuditLog({
+      adminClient: actor.adminClient,
+      functionName: FUNCTION_NAME,
+      status: "success",
+      action: "analyze_cached",
+      actor,
+      request,
+      targetEntityType: "support_resolution_runs",
+      targetEntityId: cachedRun.id,
+      metadata: { incident_id: incidentId, context_hash: contextHash },
+    });
+
+    return {
+      run: cachedRun,
+      actions: cachedActions || [],
+      result: {
+        title: cachedRun.title,
+        executive_summary: cachedRun.executive_summary,
+        ...(isRecord(cachedRun.analysis) ? cachedRun.analysis : {}),
+        customer_safe_summary: cachedRun.customer_safe_summary,
+        risk_level: cachedRun.risk_level,
+        confidence: cachedRun.confidence,
+      },
+      reused: true,
+    };
+  }
+
+  const complex = isComplexSupportContext(context);
+  const model = selectTokAiModel(
+    complex ? "support_resolution_complex" : "support_resolution",
+  );
   const systemPrompt = `Tu es TOK Support & Resolution, agent interne de résolution pour une plateforme suisse de restauration.
-Analyse uniquement les faits fournis. N'invente jamais un paiement, un remboursement, une livraison, une réservation ou un échange.
-Sépare strictement les faits confirmés des incertitudes.
-Toute allergie, intoxication, menace, urgence médicale, risque juridique, fraude, paiement contesté ou remboursement doit être escaladé à une personne.
-Tu peux proposer des actions réversibles et auditables. Tu ne peux jamais autoriser ni exécuter un remboursement ou un avoir.
-Les actions request_refund et grant_credit sont toujours manuelles.
-close_incident doit être proposé seulement si les preuves montrent une résolution réelle.
-Rédige le résumé client sans données internes, identifiants techniques ni accusation non vérifiée.
+Analyse uniquement les faits fournis et sépare faits confirmés et incertitudes.
+Toute allergie, intoxication, menace, urgence médicale, risque juridique, fraude, paiement contesté, remboursement ou avoir reste humain.
+Propose escalate_technical_incident uniquement si les états, codes ou métadonnées prouvent un défaut logiciel ou runtime. Ne l'utilise jamais pour une erreur utilisateur, une configuration externe, un refus métier attendu ou une simple demande de remboursement.
+Les actions réversibles restent auditées. Rédige le résumé client sans identifiants techniques ni accusation non vérifiée.
 Réponds en français opérationnel.`;
 
   const openAIResponse = await createOpenAIResponse({
@@ -504,6 +740,7 @@ Réponds en français opérationnel.`;
           prompt,
           incident: context.incident,
           messages: context.messages,
+          message_digest: context.messageDigest,
           order: context.order,
           reservation: context.reservation,
           payments: context.payments,
@@ -512,12 +749,12 @@ Réponds en français opérationnel.`;
         }),
       },
     ],
-    maxOutputTokens: 2600,
-    reasoning: { effort: "medium" },
+    maxOutputTokens: SUPPORT_ANALYSIS_OUTPUT_TOKENS,
+    reasoning: { effort: complex ? "medium" : "low" },
+    verbosity: "low",
     jsonSchema: {
       name: "tok_support_resolution_result",
-      description:
-        "Fact-based support diagnosis and a controlled action proposal.",
+      description: "Fact-based support diagnosis and a controlled action proposal.",
       schema: OUTPUT_SCHEMA,
     },
   });
@@ -544,12 +781,16 @@ Réponds en français opérationnel.`;
         uncertainties: result.uncertainties,
         probable_cause: result.probable_cause,
         warnings: result.warnings,
+        message_digest: context.messageDigest,
       },
       customer_safe_summary: result.customer_safe_summary,
       risk_level: result.risk_level,
       confidence: result.confidence,
       model,
       usage,
+      context_hash: contextHash,
+      analysis_version: SUPPORT_ANALYSIS_VERSION,
+      cached_from_run_id: null,
     })
     .select("*")
     .single();
@@ -558,8 +799,7 @@ Réponds en français opérationnel.`;
 
   const actionRows = result.recommended_actions.map((action, index) => {
     const isFinancial = FINANCIAL_ACTIONS.has(action.action_type);
-    const requiresApproval =
-      isFinancial || !LOW_RISK_ACTIONS.has(action.action_type);
+    const requiresApproval = isFinancial || !LOW_RISK_ACTIONS.has(action.action_type);
     return {
       run_id: run.id,
       incident_id: incidentId,
@@ -586,7 +826,6 @@ Réponds en français opérationnel.`;
     .from("support_resolution_actions")
     .insert(actionRows)
     .select("*");
-
   if (actionsError) throw new HttpError(500, actionsError.message);
 
   await recordUsage(actor, {
@@ -600,6 +839,11 @@ Réponds en français opérationnel.`;
       action_count: actions?.length || 0,
       risk_level: result.risk_level,
       confidence: result.confidence,
+      context_hash: contextHash,
+      analysis_version: SUPPORT_ANALYSIS_VERSION,
+      cached_input_tokens: usage.cached_input_tokens ?? 0,
+      cache_write_tokens: usage.cache_write_tokens ?? 0,
+      reasoning_tokens: usage.reasoning_tokens ?? 0,
     },
   });
 
@@ -616,10 +860,11 @@ Réponds en français opérationnel.`;
       incident_id: incidentId,
       risk_level: result.risk_level,
       action_count: actions?.length || 0,
+      context_hash: contextHash,
     },
   });
 
-  return { run, actions: actions || [], result };
+  return { run, actions: actions || [], result, reused: false };
 }
 
 async function notifyUser(
@@ -855,6 +1100,76 @@ async function executeResolutionAction(
         .eq("id", lockedAction.incident_id);
       if (error) throw error;
       result.incident_status = "waiting_restaurant";
+    } else if (actionType === "escalate_technical_incident") {
+      const technicalEvidence = buildSupportTechnicalEvidence(context);
+      const groupingKey = await buildStableEvidenceHash({
+        source: "support_resolution",
+        technical_evidence: technicalEvidence,
+      });
+      const metadata = isRecord(context.incident.metadata)
+        ? context.incident.metadata
+        : {};
+      const priority = String(context.incident.priority || "normal").toLowerCase();
+      const severity = priority === "urgent"
+        ? "critical"
+        : priority === "high"
+        ? "high"
+        : "medium";
+      const opsIncident = await invokeOpsIncidentControl({
+        action: "ingest",
+        source: "external",
+        eventId: `support:${context.incident.id}:${groupingKey.slice(0, 16)}`,
+        severity,
+        title: `Signal technique issu du support — ${sanitizeText(context.incident.category, 100) || "incident"}`,
+        summary: "Un dossier support validé contient des états techniques incohérents. Les conversations et données personnelles ne sont pas transmises.",
+        errorType: sanitizeText(metadata.error_code || metadata.error_type, 160),
+        component: sanitizeText(metadata.function_name || metadata.component, 160),
+        route: sanitizeText(metadata.route, 240),
+        fingerprint: groupingKey,
+        context: {
+          origin: FUNCTION_NAME,
+          support_incident_id: context.incident.id,
+          technical_evidence: technicalEvidence,
+        },
+      });
+
+      const { data: link, error: linkError } = await actor.adminClient
+        .from("support_ops_incident_links")
+        .upsert({
+          support_incident_id: context.incident.id,
+          ops_incident_id: opsIncident.incidentId,
+          link_type: "escalated",
+          technical_evidence: technicalEvidence,
+          created_by: actor.userId,
+        }, { onConflict: "support_incident_id,ops_incident_id" })
+        .select("*")
+        .single();
+      if (linkError) throw linkError;
+
+      const { data: note, error: noteError } = await actor.adminClient
+        .from("support_incident_messages")
+        .insert({
+          incident_id: context.incident.id,
+          author_id: actor.userId,
+          author_role: "admin",
+          body: `Dossier lié à l'incident technique ${opsIncident.incidentId}. Le diagnostic et toute réparation suivent désormais le workflow Telegram/Codex.`,
+          visibility: "internal",
+          metadata: {
+            source: FUNCTION_NAME,
+            support_resolution_action_id: actionId,
+            ops_incident_id: opsIncident.incidentId,
+          },
+        })
+        .select("id")
+        .single();
+      if (noteError) throw noteError;
+
+      result.ops_incident_id = opsIncident.incidentId;
+      result.ops_incident_status = opsIncident.status || null;
+      result.ops_incident_created = opsIncident.createdNew === true;
+      result.telegram_notified = opsIncident.notified === true;
+      result.link_id = link.id;
+      result.message_id = note.id;
     } else if (actionType === "close_incident") {
       const resolution =
         argumentsValue.note ||
@@ -1046,7 +1361,7 @@ Deno.serve(async (req) => {
   let action = "list";
   let incidentId: string | null = null;
   let runId: string | null = null;
-  const model = selectTokAiModel("support_complex");
+  const model = selectTokAiModel("support_resolution_complex");
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });

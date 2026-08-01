@@ -333,7 +333,7 @@ describe("human-approved Telegram and Codex incident automation", () => {
       "analysis_model_requested",
       "analysis_model_returned",
       "analysis_error",
-      'selectTokAiModel("admin_monitor", complexity)',
+      'selectTokAiModel("incident_triage")',
     ]) {
       expect(edgeFunction).toContain(marker);
     }
@@ -408,21 +408,27 @@ describe("human-approved Telegram and Codex incident automation", () => {
     expect(recovered).toHaveLength(0);
   });
 
-  it("routes complex diagnostics to the strategic model independently from Codex repair", () => {
+  it("routes technical triage economically and independently from Codex repair", () => {
     const edgeFunction = readProjectFile(
       "supabase/functions/ops-incident-control/index.ts",
     );
     const sharedOpenAi = readProjectFile("supabase/functions/_shared/openai.ts");
     const selector = extractNamedFunction(sharedOpenAi, "selectTokAiModel");
 
-    expect(edgeFunction).toMatch(
-      /input\.source === "github_actions" \|\| severityRank\(input\.severity\) >= 3[\s\S]*?\? "complex"[\s\S]*?: "standard"/,
+    expect(edgeFunction).toContain('selectTokAiModel("incident_triage")');
+    expect(edgeFunction).toContain("INCIDENT_TRIAGE_OUTPUT_TOKENS = 900");
+    expect(edgeFunction).toContain('reasoning: { effort: "low" }');
+    expect(edgeFunction).toContain('verbosity: "low"');
+    expect(edgeFunction).toContain("classifyIncidentRepairability");
+    expect(edgeFunction).toContain("codex_eligible");
+    expect(selector).toMatch(
+      /case "incident_triage":\s+return TOK_AI_INCIDENT_TRIAGE_MODEL;/,
     );
-    expect(edgeFunction).toContain('selectTokAiModel("admin_monitor", complexity)');
-    expect(selector).toContain(
-      'if (complexity === "complex") return TOK_AI_STRATEGIC_MODEL;',
+    expect(selector).toMatch(
+      /case "incident_deep":\s+return TOK_AI_INCIDENT_DEEP_MODEL;/,
     );
-    expect(selector).toMatch(/case "admin_monitor":\s+return TOK_AI_MINI_MODEL;/);
+    expect(edgeFunction).toContain('const CODEX_REPAIR_MODEL = "gpt-5.6-sol"');
+    expect(edgeFunction).toContain('const CODEX_REPAIR_EFFORT = "high"');
   });
 
   it("isolates Codex, validation, and publication on separate runners", () => {

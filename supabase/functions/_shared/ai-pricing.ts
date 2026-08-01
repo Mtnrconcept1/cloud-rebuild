@@ -8,6 +8,9 @@ type TextModelPricing = {
 };
 
 const TEXT_MODEL_PRICING: Record<string, TextModelPricing> = {
+  "gpt-5.6-sol": { inputUsdPerMillion: 5, cachedInputUsdPerMillion: 0.5, outputUsdPerMillion: 30 },
+  "gpt-5.6-terra": { inputUsdPerMillion: 2.5, cachedInputUsdPerMillion: 0.25, outputUsdPerMillion: 15 },
+  "gpt-5.6-luna": { inputUsdPerMillion: 1, cachedInputUsdPerMillion: 0.1, outputUsdPerMillion: 6 },
   "gpt-5.5": { inputUsdPerMillion: 5, cachedInputUsdPerMillion: 0.5, outputUsdPerMillion: 30 },
   "gpt-5.5-pro": { inputUsdPerMillion: 30, outputUsdPerMillion: 180 },
   "gpt-5.4": { inputUsdPerMillion: 2.5, cachedInputUsdPerMillion: 0.25, outputUsdPerMillion: 15 },
