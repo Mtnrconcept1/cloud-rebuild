@@ -66,6 +66,7 @@ describe("feature flag catalog", () => {
     expect(getExactFeatureForRoute("/admin/compta/entrees")).toBe("admin-compta");
     expect(getExactFeatureForRoute("/admin/compta/sorties")).toBe("admin-compta");
     expect(getExactFeatureForRoute("/admin/platform")).toBe("admin-platform-config");
+    expect(getExactFeatureForRoute("/marketing")).toBe("admin-marketing-operations");
     expect(getExactFeatureForRoute("/admin/commandes-reservations")).toBe("admin-operations-center");
     expect(getExactFeatureForRoute("/points-cadeau")).toBe("points-cadeau");
   });
@@ -135,3 +136,4 @@ describe("payment helpers", () => {
     expect(getFirstAvailablePaymentMethod(activeFeatures, [], "postfinance_card")).toBeNull();
   });
 });
+
