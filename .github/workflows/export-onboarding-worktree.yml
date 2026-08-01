@@ -1,0 +1,36 @@
+name: Export onboarding worktree
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/restaurateur-onboarding-reliability'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/restaurateur-onboarding-reliability
+          fetch-depth: 1
+
+      - name: Package repository source
+        run: tar --exclude=.git --exclude=node_modules -czf "$RUNNER_TEMP/cloud-rebuild-source.tgz" .
+
+      - name: Upload repository source
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloud-rebuild-source-${{ github.sha }}
+          path: ${{ runner.temp }}/cloud-rebuild-source.tgz
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
