@@ -90,7 +90,8 @@ describe("dashboard shell navigation", () => {
     expect(app).toContain('pathname.startsWith("/dashboard/")');
     expect(app).toContain('pathname.startsWith("/admin/")');
     expect(app).toContain('pathname.startsWith("/courier/")');
-    expect(app).toContain("const publicNavbar = !commercialDemoFrame && !oauthConsentFrame && shouldShowPublicNavbar(pathname) ? <Navbar /> : null");
+    expect(app).toContain("const showGlobalClientChrome = !commercialDemoFrame && !oauthConsentFrame && !isMarketingSurface");
+    expect(app).toContain("const publicNavbar = showGlobalClientChrome && shouldShowPublicNavbar(pathname) ? <Navbar /> : null");
     expect(app).not.toContain('pathname === "/actualites" && publicNavbar');
   });
 
