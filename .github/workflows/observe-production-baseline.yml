@@ -1,0 +1,73 @@
+name: Observe production baseline validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  observe:
+    name: Wait for Deploy Production result
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'ops/dispatch-production-baseline-4e55f4'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - name: Observe dispatched workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          EXPECTED_SHA: 4e55f436ed66f9aae83d578d6b7b04e6c15c15da
+          DISPATCHED_AFTER: 2026-08-01T17:02:00Z
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for attempt in $(seq 1 100); do
+            payload="$(curl --fail --silent --show-error \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer ${GH_TOKEN}" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${REPOSITORY}/actions/workflows/deploy-production.yml/runs?event=workflow_dispatch&branch=main&per_page=20")"
+
+            run="$(jq -c \
+              --arg sha "$EXPECTED_SHA" \
+              --arg after "$DISPATCHED_AFTER" \
+              '.workflow_runs
+                | map(select(.head_sha == $sha and .created_at >= $after))
+                | sort_by(.created_at)
+                | last // empty' <<<"$payload")"
+
+            if [[ -z "$run" ]]; then
+              echo "Deploy Production run not visible yet (attempt ${attempt})."
+              sleep 15
+              continue
+            fi
+
+            run_id="$(jq -r '.id' <<<"$run")"
+            status="$(jq -r '.status' <<<"$run")"
+            conclusion="$(jq -r '.conclusion // "pending"' <<<"$run")"
+            html_url="$(jq -r '.html_url' <<<"$run")"
+            echo "Deploy Production run ${run_id}: status=${status}, conclusion=${conclusion}, url=${html_url}"
+
+            if [[ "$status" == "completed" ]]; then
+              echo "run_id=${run_id}" >> "$GITHUB_STEP_SUMMARY"
+              echo "conclusion=${conclusion}" >> "$GITHUB_STEP_SUMMARY"
+              echo "url=${html_url}" >> "$GITHUB_STEP_SUMMARY"
+              [[ "$conclusion" == "success" ]]
+              exit $?
+            fi
+
+            sleep 15
+          done
+
+          echo "::error::Timed out waiting for Deploy Production."
+          exit 1
