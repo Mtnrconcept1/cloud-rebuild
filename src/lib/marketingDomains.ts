@@ -139,12 +139,18 @@ export function getMarketingHostRedirectTarget({
 }
 
 /**
- * Resolve a host transition after removing OAuth/PKCE controls and legacy
- * token fragments. Callers must use this function, not the raw redirect helper,
- * when the input comes from window.location.
+ * Resolve a marketing host transition after removing OAuth/PKCE controls and
+ * legacy token fragments. Authentication callbacks that already belong to the
+ * public application must remain untouched so Auth can exchange their PKCE
+ * code for a session.
  */
 export function getSanitizedMarketingHostRedirectTarget(href: string) {
   const originalLocation = new URL(href, TOK_PUBLIC_APP_ORIGIN);
+  const isInsideMarketingBoundary = isMarketingAppHost(originalLocation.hostname)
+    || isMarketingPath(originalLocation.pathname);
+
+  if (!isInsideMarketingBoundary) return null;
+
   const safeLocation = sanitizeCrossOriginLocation(href);
   const canonicalTarget = getMarketingHostRedirectTarget({
     hostname: safeLocation.hostname,
