@@ -23,9 +23,9 @@ describe("marketing operations frontend contracts", () => {
     const fallback = read("src/marketing/fallbackSnapshot.ts");
     for (const channel of ["email", "push"]) expect(fallback).toContain(`id: "${channel}"`);
     for (const channel of ["instagram", "facebook", "tiktok", "linkedin", "youtube", "google_business", "telegram", "website"]) {
-      expect(fallback).toContain(`\"${channel}\"`);
+      expect(fallback).toContain(`"${channel}"`);
     }
-    for (const channel of ["manual_call", "manual_email", "manual_visit"]) expect(fallback).toContain(`\"${channel}\"`);
+    for (const channel of ["manual_call", "manual_email", "manual_visit"]) expect(fallback).toContain(`"${channel}"`);
     expect(fallback).toContain('availability: "disconnected"');
     expect(fallback).toContain('availability: "manual"');
   });
@@ -44,7 +44,7 @@ describe("marketing operations frontend contracts", () => {
       "admin_complete_manual_marketing_item",
       "admin_create_marketing_campaign_bundle",
       "admin_upsert_marketing_automation",
-    ]) expect(client).toContain(`\"${rpc}\"`);
+    ]) expect(client).toContain(`"${rpc}"`);
     expect(client).toContain('supabase.functions.invoke("marketing-orchestrator"');
     expect(client).not.toMatch(/\.from\([^)]*marketing_[^)]+\)\s*\.\s*(insert|update|upsert|delete)/s);
     expect(client).not.toContain("as any");
