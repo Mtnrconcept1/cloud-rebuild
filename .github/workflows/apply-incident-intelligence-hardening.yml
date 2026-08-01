@@ -1,0 +1,1130 @@
+name: Apply incident intelligence hardening
+
+on:
+  push:
+    branches:
+      - feat/unify-incident-intelligence
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+
+jobs:
+  harden:
+    name: Harden routing, deduplication and operator UX
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/unify-incident-intelligence
+          fetch-depth: 0
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply deterministic hardening patch
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              source = target.read_text(encoding="utf-8")
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one occurrence, found {count}")
+              target.write_text(source.replace(old, new, 1), encoding="utf-8")
+
+          incident_shared = '''export type IncidentRepairability =
+            | "code"
+            | "configuration"
+            | "data"
+            | "third_party"
+            | "transient"
+            | "expected_business_rule"
+            | "unknown";
+
+          export type IncidentSeverity = "low" | "medium" | "high" | "critical";
+
+          export type IncidentRoutingDecision = {
+            repairability: IncidentRepairability;
+            reason: string;
+            confidence: number;
+            codexEligible: boolean;
+            sensitive: boolean;
+          };
+
+          type IncidentEvidenceInput = {
+            source?: unknown;
+            severity?: unknown;
+            title?: unknown;
+            summary?: unknown;
+            technicalDetails?: unknown;
+            context?: unknown;
+          };
+
+          type DeepAnalysisDecisionInput = {
+            force?: boolean;
+            severity?: unknown;
+            repairability?: unknown;
+            confidence?: unknown;
+            sensitive?: boolean;
+            evidenceChanged?: boolean;
+          };
+
+          type SupportTechnicalEvidenceInput = {
+            metadata?: unknown;
+            order?: unknown;
+            reservation?: unknown;
+            payments?: unknown;
+            notifications?: unknown;
+          };
+
+          const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi;
+          const LONG_NUMBER = /\\b\\d{5,}\\b/g;
+          const WHITESPACE = /\\s+/g;
+
+          function normalizeText(value: unknown, maxLength = 4_000) {
+            return typeof value === "string"
+              ? value
+                .toLowerCase()
+                .replace(UUID, "<uuid>")
+                .replace(LONG_NUMBER, "<number>")
+                .replace(WHITESPACE, " ")
+                .trim()
+                .slice(0, maxLength)
+              : "";
+          }
+
+          function normalizeSeverity(value: unknown): IncidentSeverity {
+            return value === "critical" || value === "high" || value === "low"
+              ? value
+              : "medium";
+          }
+
+          function collectEvidenceStrings(
+            value: unknown,
+            output: string[] = [],
+            depth = 0,
+          ): string[] {
+            if (output.length >= 140 || depth > 5 || value === null || value === undefined) {
+              return output;
+            }
+
+            if (typeof value === "string") {
+              const normalized = normalizeText(value, 1_200);
+              if (normalized) output.push(normalized);
+              return output;
+            }
+
+            if (typeof value === "number" || typeof value === "boolean") {
+              output.push(String(value));
+              return output;
+            }
+
+            if (Array.isArray(value)) {
+              for (const entry of value.slice(0, 40)) {
+                collectEvidenceStrings(entry, output, depth + 1);
+                if (output.length >= 140) break;
+              }
+              return output;
+            }
+
+            if (typeof value === "object") {
+              const entries = Object.entries(value as Record<string, unknown>)
+                .sort(([left], [right]) => left.localeCompare(right))
+                .slice(0, 80);
+              for (const [key, entry] of entries) {
+                output.push(normalizeText(key, 120));
+                collectEvidenceStrings(entry, output, depth + 1);
+                if (output.length >= 140) break;
+              }
+            }
+
+            return output;
+          }
+
+          function canonicalize(value: unknown, depth = 0): unknown {
+            if (depth > 7) return "[depth-limited]";
+            if (value === null || value === undefined) return null;
+            if (typeof value === "string") return normalizeText(value, 8_000);
+            if (typeof value === "number" || typeof value === "boolean") return value;
+            if (Array.isArray(value)) {
+              return value.slice(0, 80).map((entry) => canonicalize(entry, depth + 1));
+            }
+            if (typeof value !== "object") return normalizeText(String(value), 1_000);
+
+            const output: Record<string, unknown> = {};
+            for (const [key, entry] of Object.entries(value as Record<string, unknown>)
+              .sort(([left], [right]) => left.localeCompare(right))
+              .slice(0, 120)) {
+              output[key.slice(0, 160)] = canonicalize(entry, depth + 1);
+            }
+            return output;
+          }
+
+          export async function buildStableEvidenceHash(value: unknown) {
+            const canonical = JSON.stringify(canonicalize(value)).slice(0, 120_000);
+            const digest = await crypto.subtle.digest(
+              "SHA-256",
+              new TextEncoder().encode(canonical),
+            );
+            return [...new Uint8Array(digest)]
+              .map((byte) => byte.toString(16).padStart(2, "0"))
+              .join("");
+          }
+
+          export function buildIncidentEvidenceEnvelope(input: IncidentEvidenceInput) {
+            return {
+              source: normalizeText(input.source, 120),
+              severity: normalizeSeverity(input.severity),
+              title: normalizeText(input.title, 500),
+              summary: normalizeText(input.summary, 4_000),
+              technical_details: canonicalize(input.technicalDetails),
+              sanitized_context: canonicalize(input.context),
+            };
+          }
+
+          export function buildIncidentEvidenceHash(input: IncidentEvidenceInput) {
+            return buildStableEvidenceHash(buildIncidentEvidenceEnvelope(input));
+          }
+
+          function containsAny(text: string, patterns: RegExp[]) {
+            return patterns.some((pattern) => pattern.test(text));
+          }
+
+          export function classifyIncidentRepairability(
+            input: IncidentEvidenceInput,
+          ): IncidentRoutingDecision {
+            const source = normalizeText(input.source, 120);
+            const severity = normalizeSeverity(input.severity);
+            const context = input.context && typeof input.context === "object"
+              ? input.context as Record<string, unknown>
+              : {};
+            const technical = input.technicalDetails && typeof input.technicalDetails === "object"
+              ? input.technicalDetails as Record<string, unknown>
+              : {};
+            const evidenceText = collectEvidenceStrings({
+              source,
+              title: input.title,
+              summary: input.summary,
+              technical,
+              context,
+            }).join(" | ");
+
+            const sourceFiles = Array.isArray(context.source_files)
+              ? context.source_files.filter((value) => typeof value === "string")
+              : [];
+            const errorSites = Array.isArray(context.error_code_sites)
+              ? context.error_code_sites
+              : [];
+            const stack = normalizeText(technical.stack, 4_000);
+            const hasCodeLocation =
+              source === "github_actions" ||
+              sourceFiles.length > 0 ||
+              errorSites.length > 0 ||
+              Boolean(stack);
+            const hasCompileOrTestFailure = containsAny(evidenceText, [
+              /assertionerror|referenceerror|syntaxerror/,
+              /test(?:s| suite)?[^|]{0,80}failed|build[^|]{0,80}failed/,
+              /typecheck[^|]{0,80}failed|lint[^|]{0,80}failed/,
+              /module not found|cannot find module|compile(?:r|ilation)? error/,
+            ]);
+            const hasRuntimeCodeFailure = containsAny(evidenceText, [
+              /typeerror|rangeerror|uncaught|unhandled rejection/,
+              /stack trace|invalid function response|unexpected null/,
+            ]);
+            const hasTransientSignal = containsAny(evidenceText, [
+              /timeout|timed out|rate[_ -]?limited|too many requests/,
+              /connection reset|network error|dns|temporary|transient/,
+              /service unavailable|gateway timeout|http 429|http 503|http 504/,
+            ]);
+            const hasProviderIdentity = containsAny(evidenceText, [
+              /stripe|resend|telegram|github api|google actions center/,
+              /firebase|openai|vercel|supabase api/,
+            ]);
+            const hasProviderFailure = containsAny(evidenceText, [
+              /provider[^|]{0,100}(unavailable|error|failed|rejected|timeout)/,
+              /upstream[^|]{0,100}(error|failed|unavailable|timeout)/,
+              /third[_ -]?party|external service|webhook[^|]{0,100}(failed|rejected)/,
+            ]) || (hasProviderIdentity && containsAny(evidenceText, [
+              /error|failed|rejected|unavailable|timeout|rate[_ -]?limit/,
+            ]));
+            const sensitive = containsAny(evidenceText, [
+              /payment|stripe|checkout|refund|invoice|billing|compta/,
+              /auth|rls|role|permission|security|secret|token|credential/,
+              /migration|schema|database|postgres/,
+            ]);
+
+            if (containsAny(evidenceText, [
+              /method_not_allowed|content_type_must_be_json|invalid_json_body/,
+              /explicit_confirmation_required|financial_action_requires_manual_workflow/,
+              /approval_expired|invalid_callback_data|request_body_too_large/,
+              /unsupported_action|unsupported_workflow_status/,
+              /expected_business_rule|validation_rejected_as_expected/,
+            ])) {
+              return {
+                repairability: "expected_business_rule",
+                reason: "Le signal correspond à un garde-fou ou à un rejet métier attendu.",
+                confidence: 0.96,
+                codexEligible: false,
+                sensitive,
+              };
+            }
+
+            if (containsAny(evidenceText, [
+              /not_configured|configuration.*missing|missing.*configuration/,
+              /bad credentials|invalid credential|domain.*unverified/,
+              /resource not accessible by personal access token/,
+              /missing secret|secret.*missing|environment variable.*missing/,
+              /github_dispatch_failed:(401|403)|telegram_not_configured/,
+            ])) {
+              return {
+                repairability: "configuration",
+                reason: "La preuve pointe vers une configuration, un secret ou une autorisation externe à corriger.",
+                confidence: 0.94,
+                codexEligible: false,
+                sensitive: true,
+              };
+            }
+
+            if (hasCompileOrTestFailure) {
+              return {
+                repairability: "code",
+                reason: "La preuve contient un échec de compilation, de test ou une erreur de code reproductible.",
+                confidence: 0.94,
+                codexEligible: true,
+                sensitive,
+              };
+            }
+
+            if (containsAny(evidenceText, [
+              /duplicate key|foreign key|constraint violation|sqlstate/,
+              /row not found|record not found|invalid state|state transition/,
+              /schema cache|pgrst|data inconsistency|orphaned/,
+            ])) {
+              return {
+                repairability: "data",
+                reason: "Le signal indique une incohérence de données ou d’état qui exige une vérification métier avant tout patch.",
+                confidence: 0.82,
+                codexEligible: false,
+                sensitive,
+              };
+            }
+
+            if (hasProviderFailure) {
+              return {
+                repairability: "third_party",
+                reason: "La panne dépend principalement d’un fournisseur ou d’une API externe.",
+                confidence: 0.8,
+                codexEligible: false,
+                sensitive,
+              };
+            }
+
+            if (hasTransientSignal) {
+              return {
+                repairability: "transient",
+                reason: "Le signal ressemble à une panne temporaire ; une nouvelle observation doit confirmer sa persistance.",
+                confidence: severity === "critical" ? 0.62 : 0.76,
+                codexEligible: false,
+                sensitive,
+              };
+            }
+
+            if (hasRuntimeCodeFailure || hasCodeLocation) {
+              return {
+                repairability: "code",
+                reason: "La preuve contient une stack, un emplacement de code ou un échec runtime à reproduire sur une branche isolée.",
+                confidence: errorSites.length > 0 || Boolean(stack) ? 0.88 : 0.74,
+                codexEligible: true,
+                sensitive,
+              };
+            }
+
+            return {
+              repairability: "unknown",
+              reason: "Les preuves disponibles ne permettent pas encore de choisir entre code, configuration, données ou fournisseur.",
+              confidence: 0.35,
+              codexEligible: false,
+              sensitive,
+            };
+          }
+
+          export function shouldUseDeepIncidentAnalysis(
+            input: DeepAnalysisDecisionInput,
+          ) {
+            if (input.force === true || input.evidenceChanged === true) return true;
+
+            const severity = normalizeSeverity(input.severity);
+            const repairability = normalizeText(input.repairability, 80) as IncidentRepairability;
+            const confidence = Number(input.confidence);
+            const normalizedConfidence = Number.isFinite(confidence) ? confidence : 0;
+
+            if (repairability === "unknown") return true;
+            if (input.sensitive === true) return true;
+            if (severity === "critical") return true;
+            if (severity === "high" && normalizedConfidence < 0.8) return true;
+            return normalizedConfidence < 0.55;
+          }
+
+          function normalizeTechnicalValue(
+            key: string,
+            value: unknown,
+          ): string | number | boolean | null {
+            if (typeof value === "string") {
+              const normalized = normalizeText(value, key === "route" ? 500 : 240);
+              if (!normalized) return null;
+              return key === "route" ? normalized.split(/[?#]/, 1)[0] || null : normalized;
+            }
+            if (typeof value === "number" || typeof value === "boolean") return value;
+            return null;
+          }
+
+          function compactTechnicalState(
+            value: unknown,
+            keys: readonly string[],
+          ): Record<string, unknown> | null {
+            if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+            const source = value as Record<string, unknown>;
+            const output: Record<string, unknown> = {};
+            for (const key of keys) {
+              const normalized = normalizeTechnicalValue(key, source[key]);
+              if (normalized !== null && normalized !== "") output[key] = normalized;
+            }
+            return Object.keys(output).length > 0 ? output : null;
+          }
+
+          function uniqueSortedStates(
+            values: unknown,
+            keys: readonly string[],
+          ) {
+            if (!Array.isArray(values)) return [];
+            const unique = new Map<string, Record<string, unknown>>();
+            for (const value of values.slice(0, 30)) {
+              const state = compactTechnicalState(value, keys);
+              if (!state) continue;
+              unique.set(JSON.stringify(state), state);
+            }
+            return [...unique.values()].sort((left, right) =>
+              JSON.stringify(left).localeCompare(JSON.stringify(right))
+            );
+          }
+
+          export function buildSupportTechnicalEvidence(
+            input: SupportTechnicalEvidenceInput,
+          ) {
+            const metadata = compactTechnicalState(input.metadata, [
+              "function_name",
+              "component",
+              "action",
+              "error_code",
+              "error_type",
+              "route",
+              "provider",
+              "release",
+              "status",
+              "response_status",
+              "method",
+              "auth_mode",
+            ]) || {};
+
+            return {
+              metadata,
+              order_state: compactTechnicalState(input.order, [
+                "status",
+                "payment_status",
+                "fulfillment_status",
+                "refund_status",
+                "restaurant_response_status",
+                "cancellation_reason_code",
+              ]),
+              reservation_state: compactTechnicalState(input.reservation, [
+                "status",
+                "feature",
+                "deposit_status",
+                "refund_status",
+                "restaurant_confirmation_required",
+                "cancellation_reason_code",
+              ]),
+              payment_states: uniqueSortedStates(input.payments, [
+                "type",
+                "status",
+                "provider",
+                "stripe_mode",
+                "currency",
+              ]),
+              notification_states: uniqueSortedStates(input.notifications, [
+                "type",
+                "category",
+              ]),
+            };
+          }
+
+          function messageIdentity(message: Record<string, unknown>, index: number) {
+            const id = typeof message.id === "string" ? message.id : "";
+            if (id) return id;
+            return [
+              String(message.created_at || ""),
+              String(message.author_role || ""),
+              String(message.body || "").slice(0, 100),
+              String(index),
+            ].join("|");
+          }
+
+          export function selectSupportMessages(
+            rawMessages: Array<Record<string, unknown>>,
+            maxMessages = 28,
+          ) {
+            const normalized = rawMessages.map((message, index) => ({
+              ...message,
+              body: typeof message.body === "string" ? message.body.trim().slice(0, 1_200) : "",
+              __index: index,
+              __identity: messageIdentity(message, index),
+            }));
+            if (normalized.length <= maxMessages) {
+              return normalized.map(({ __index: _index, __identity: _identity, ...message }) => message);
+            }
+
+            const selected = new Map<string, typeof normalized[number]>();
+            const add = (message: typeof normalized[number] | undefined) => {
+              if (message) selected.set(message.__identity, message);
+            };
+
+            normalized.slice(0, 4).forEach(add);
+            normalized.slice(-12).forEach(add);
+
+            const important = /(payment|paiement|stripe|refund|rembourse|reservation|réservation|order|commande|confirm|cancel|annul|error|erreur|allerg|medical|médical|fraud|fraude|urgent|legal|juridique|chargeback)/i;
+            normalized
+              .filter((message) => important.test(String(message.body || "")))
+              .slice(-16)
+              .forEach(add);
+
+            const ordered = [...selected.values()]
+              .sort((left, right) => left.__index - right.__index)
+              .slice(-maxMessages);
+            return ordered.map(({ __index: _index, __identity: _identity, ...message }) => message);
+          }
+
+          export function buildSupportMessageDigest(
+            messages: Array<Record<string, unknown>>,
+            selectedMessages: Array<Record<string, unknown>>,
+          ) {
+            const roles = new Map<string, number>();
+            for (const message of messages) {
+              const role = typeof message.author_role === "string" ? message.author_role : "unknown";
+              roles.set(role, (roles.get(role) || 0) + 1);
+            }
+
+            return {
+              total_messages: messages.length,
+              selected_messages: selectedMessages.length,
+              omitted_messages: Math.max(0, messages.length - selectedMessages.length),
+              messages_by_role: Object.fromEntries(roles.entries()),
+              first_message_at: messages[0]?.created_at || null,
+              last_message_at: messages[messages.length - 1]?.created_at || null,
+            };
+          }
+          '''
+          Path("supabase/functions/_shared/incident-intelligence.ts").write_text(
+              incident_shared,
+              encoding="utf-8",
+          )
+
+          replace_once(
+              "supabase/functions/ai-support-resolution/index.ts",
+              '''import {
+            buildStableEvidenceHash,
+            buildSupportMessageDigest,
+            selectSupportMessages,
+          } from "../_shared/incident-intelligence.ts";''',
+              '''import {
+            buildStableEvidenceHash,
+            buildSupportMessageDigest,
+            buildSupportTechnicalEvidence,
+            selectSupportMessages,
+          } from "../_shared/incident-intelligence.ts";''',
+          )
+          replace_once(
+              "supabase/functions/ai-support-resolution/index.ts",
+              '''    .order("created_at", { ascending: true })
+            .limit(80);''',
+              '''    .order("created_at", { ascending: false })
+            .limit(80);''',
+          )
+          replace_once(
+              "supabase/functions/ai-support-resolution/index.ts",
+              '''  const sanitizedMessages = (messages || []).map((message: Record<string, unknown>) => ({
+            ...message,
+            body: sanitizeMultilineText(message.body, 1200),
+          }));''',
+              '''  const sanitizedMessages = [...(messages || [])]
+            .reverse()
+            .map((message: Record<string, unknown>) => ({
+              ...message,
+              body: sanitizeMultilineText(message.body, 1200),
+            }));''',
+          )
+
+          support_path = Path("supabase/functions/ai-support-resolution/index.ts")
+          support = support_path.read_text(encoding="utf-8")
+          local_start = support.index("function buildSupportTechnicalEvidence(")
+          local_end = support.index("\n\nasync function invokeOpsIncidentControl", local_start)
+          support = support[:local_start] + support[local_end + 2:]
+
+          invoke_start = support.index("async function invokeOpsIncidentControl(")
+          invoke_end = support.index("\n\nasync function analyzeIncident", invoke_start)
+          invoke_replacement = '''async function invokeOpsIncidentControl(payload: Record<string, unknown>) {
+            const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim() || "";
+            const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
+            if (!supabaseUrl || !serviceRoleKey) {
+              throw new HttpError(503, "ops_incident_internal_configuration_missing");
+            }
+
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 15_000);
+            try {
+              const response = await fetch(`${supabaseUrl}/functions/v1/ops-incident-control`, {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${serviceRoleKey}`,
+                  apikey: serviceRoleKey,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+                signal: controller.signal,
+              });
+              const body = await response.json().catch(() => ({})) as Record<string, unknown>;
+              if (!response.ok || body.ok !== true || typeof body.incidentId !== "string") {
+                throw new HttpError(502, `ops_incident_escalation_failed:${response.status}`);
+              }
+              return body as {
+                incidentId: string;
+                createdNew?: boolean;
+                status?: string;
+                notified?: boolean;
+                reason?: string;
+              };
+            } catch (error) {
+              if (error instanceof DOMException && error.name === "AbortError") {
+                throw new HttpError(504, "ops_incident_escalation_timeout");
+              }
+              throw error;
+            } finally {
+              clearTimeout(timeout);
+            }
+          }'''
+          support = support[:invoke_start] + invoke_replacement + support[invoke_end:]
+
+          escalation_start = support.index(
+              "      const technicalEvidence = buildSupportTechnicalEvidence(context);"
+          )
+          escalation_end = support.index(
+              "\n\n      const { data: link, error: linkError }",
+              escalation_start,
+          )
+          escalation_replacement = '''      const technicalEvidence = buildSupportTechnicalEvidence({
+                metadata: context.incident.metadata,
+                order: context.order,
+                reservation: context.reservation,
+                payments: context.payments,
+                notifications: context.notifications,
+              });
+              const technicalMetadata = isRecord(technicalEvidence.metadata)
+                ? technicalEvidence.metadata
+                : {};
+              const hasTechnicalSignal = Object.keys(technicalMetadata).length > 0
+                || technicalEvidence.order_state !== null
+                || technicalEvidence.reservation_state !== null
+                || technicalEvidence.payment_states.length > 0
+                || technicalEvidence.notification_states.length > 0;
+              if (!hasTechnicalSignal) {
+                throw new HttpError(409, "technical_evidence_insufficient");
+              }
+
+              const groupingKey = await buildStableEvidenceHash({
+                source: "support_resolution",
+                technical_evidence: technicalEvidence,
+              });
+              const component = sanitizeText(
+                technicalMetadata.function_name || technicalMetadata.component,
+                160,
+              );
+              const errorType = sanitizeText(
+                technicalMetadata.error_code || technicalMetadata.error_type,
+                160,
+              );
+              const provider = sanitizeText(technicalMetadata.provider, 120);
+              const route = sanitizeText(technicalMetadata.route, 240);
+              const technicalIdentity = [component, errorType, provider, route]
+                .filter(Boolean)
+                .join(" — ")
+                || "état technique incohérent";
+              const priority = String(context.incident.priority || "normal").toLowerCase();
+              const severity = priority === "urgent"
+                ? "critical"
+                : priority === "high"
+                ? "high"
+                : "medium";
+              const opsIncident = await invokeOpsIncidentControl({
+                action: "ingest",
+                source: "external",
+                eventId: `support:${context.incident.id}:${groupingKey.slice(0, 16)}`,
+                severity,
+                title: `Signal technique support — ${technicalIdentity}`.slice(0, 240),
+                summary: "Un dossier support validé contient un signal technique reproductible. Les conversations et données personnelles ne sont pas transmises.",
+                errorType,
+                component,
+                route,
+                fingerprint: groupingKey,
+                context: {
+                  origin: FUNCTION_NAME,
+                  technical_evidence: technicalEvidence,
+                },
+              });'''
+          support = support[:escalation_start] + escalation_replacement + support[escalation_end:]
+          support_path.write_text(support, encoding="utf-8")
+
+          replace_once(
+              "supabase/functions/_shared/ai-pricing.ts",
+              '''export function getOpenAITextCreditUnits(
+            model: string | null | undefined,
+            inputTokens = 0,
+            outputTokens = 0,
+            minimumCredits = 1,
+          ) {
+            return getTokAiCreditUnitsFromCostChf(
+              estimateOpenAITextCostChf(model, inputTokens, outputTokens),
+              minimumCredits,
+            );
+          }''',
+              '''export function getOpenAITextCreditUnits(
+            model: string | null | undefined,
+            inputTokens = 0,
+            outputTokens = 0,
+            minimumCredits = 1,
+          ) {
+            const input = Math.max(0, Number(inputTokens) || 0);
+            const output = Math.max(0, Number(outputTokens) || 0);
+            if (input === 0 && output === 0) return 0;
+            return getTokAiCreditUnitsFromCostChf(
+              estimateOpenAITextCostChf(model, input, output),
+              minimumCredits,
+            );
+          }''',
+          )
+
+          replace_once(
+              "src/pages/admin/AdminGuardian.tsx",
+              '''function formatDate(value: string | null | undefined) {''',
+              '''const DEFAULT_GUARDIAN_ANALYSIS_PROMPT =
+            "Établis la cause probable à partir des preuves, le patch minimal, les tests, le rollback et les conditions de vérification.";
+
+          function formatDate(value: string | null | undefined) {''',
+          )
+          replace_once(
+              "src/pages/admin/AdminGuardian.tsx",
+              '''  const [analysisPrompt, setAnalysisPrompt] = useState(
+            "Établis la cause probable à partir des preuves, le patch minimal, les tests, le rollback et les conditions de vérification.",
+          );''',
+              '''  const [analysisPrompt, setAnalysisPrompt] = useState(
+            DEFAULT_GUARDIAN_ANALYSIS_PROMPT,
+          );''',
+          )
+          replace_once(
+              "src/pages/admin/AdminGuardian.tsx",
+              '''      return analyzeGuardianIncident({
+                incidentId: selectedIncident.id,
+                prompt: analysisPrompt,
+              });''',
+              '''      const prompt = analysisPrompt.trim() || DEFAULT_GUARDIAN_ANALYSIS_PROMPT;
+              return analyzeGuardianIncident({
+                incidentId: selectedIncident.id,
+                prompt,
+                forceDeepAnalysis: prompt !== DEFAULT_GUARDIAN_ANALYSIS_PROMPT,
+              });''',
+          )
+          replace_once(
+              "src/pages/admin/AdminGuardian.tsx",
+              '''    onSuccess: async ({ function_name }) => {
+              if (function_name) setFunctionName(function_name);
+              await refresh();
+              toast({
+                title: "Évaluation Guardian créée",
+                description:
+                  "Aucune branche, PR, migration ou mise en production n’a été déclenchée.",
+              });
+            },''',
+              '''    onSuccess: async ({ function_name, reused }) => {
+              if (function_name) setFunctionName(function_name);
+              await refresh();
+              toast({
+                title: reused
+                  ? "Diagnostic canonique réutilisé"
+                  : "Évaluation Guardian créée",
+                description: reused
+                  ? "Aucun nouvel appel IA n’a été nécessaire pour ces preuves."
+                  : "Aucune branche, PR, migration ou mise en production n’a été déclenchée.",
+              });
+            },''',
+          )
+
+          replace_once(
+              "src/pages/admin/AdminSupportResolution.tsx",
+              '''  ClipboardCheck,
+            Loader2,''',
+              '''  ClipboardCheck,
+            ExternalLink,
+            Loader2,''',
+          )
+          replace_once(
+              "src/pages/admin/AdminSupportResolution.tsx",
+              '''  UserCheck,
+            XCircle,''',
+              '''  UserCheck,
+            Wrench,
+            XCircle,''',
+          )
+          replace_once(
+              "src/pages/admin/AdminSupportResolution.tsx",
+              '''  type SupportIncidentSummary,
+            type SupportResolutionAction,''',
+              '''  type OpsIncidentSummary,
+            type SupportIncidentSummary,
+            type SupportResolutionAction,
+            type SupportOpsIncidentLink,''',
+          )
+          replace_once(
+              "src/pages/admin/AdminSupportResolution.tsx",
+              '''  const selectedActions = useMemo(
+            () =>
+              (workspaceQuery.data?.actions || []).filter(
+                (action) => action.run_id === latestRun?.id,
+              ),
+            [workspaceQuery.data?.actions, latestRun?.id],
+          );''',
+              '''  const selectedActions = useMemo(
+            () =>
+              (workspaceQuery.data?.actions || []).filter(
+                (action) => action.run_id === latestRun?.id,
+              ),
+            [workspaceQuery.data?.actions, latestRun?.id],
+          );
+          const selectedLinks = useMemo<SupportOpsIncidentLink[]>(
+            () =>
+              (workspaceQuery.data?.links || []).filter(
+                (link) => link.support_incident_id === selectedIncident?.id,
+              ),
+            [workspaceQuery.data?.links, selectedIncident?.id],
+          );
+          const linkedOpsIncidents = useMemo<OpsIncidentSummary[]>(() => {
+            const ids = new Set(selectedLinks.map((link) => link.ops_incident_id));
+            return (workspaceQuery.data?.ops_incidents || []).filter((incident) =>
+              ids.has(incident.id)
+            );
+          }, [workspaceQuery.data?.ops_incidents, selectedLinks]);''',
+          )
+          replace_once(
+              "src/pages/admin/AdminSupportResolution.tsx",
+              '''              <Card>
+                    <CardHeader>
+                      <CardTitle>Nouveau diagnostic</CardTitle>
+                    </CardHeader>''',
+              '''              {linkedOpsIncidents.length ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Wrench className="h-5 w-5" />
+                      Incident technique lié
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {linkedOpsIncidents.map((incident) => (
+                      <div key={incident.id} className="rounded-2xl border p-4">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="font-semibold">{incident.title}</p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              <Badge variant="outline">{incident.status}</Badge>
+                              <Badge variant="secondary">
+                                {incident.repairability || "unknown"}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <a
+                              href={`/admin/guardian?incident=${encodeURIComponent(incident.id)}`}
+                              className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted"
+                            >
+                              Ouvrir dans Guardian
+                            </a>
+                            {incident.github_pr_url ? (
+                              <a
+                                href={incident.github_pr_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted"
+                              >
+                                PR #{incident.github_pr_number || ""}
+                                <ExternalLink className="ml-1 h-4 w-4" />
+                              </a>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              ) : null}
+
+              <Card>
+                    <CardHeader>
+                      <CardTitle>Nouveau diagnostic</CardTitle>
+                    </CardHeader>''',
+          )
+
+          routing_test = '''import { readFileSync } from "node:fs";
+          import { resolve } from "node:path";
+
+          import { describe, expect, it } from "vitest";
+
+          import { getOpenAITextCreditUnits } from "../../supabase/functions/_shared/ai-pricing";
+          import {
+            buildStableEvidenceHash,
+            buildSupportTechnicalEvidence,
+            classifyIncidentRepairability,
+          } from "../../supabase/functions/_shared/incident-intelligence";
+
+          const root = process.cwd();
+
+          describe("incident intelligence routing behavior", () => {
+            it("does not send a provider timeout to Codex merely because an entrypoint is known", () => {
+              const decision = classifyIncidentRepairability({
+                source: "edge_audit",
+                severity: "high",
+                summary: "Resend provider timeout: upstream service unavailable",
+                technicalDetails: {
+                  provider: "resend",
+                  error_message: "provider_timeout",
+                },
+                context: {
+                  source_files: ["supabase/functions/send-email/index.ts"],
+                },
+              });
+
+              expect(decision.repairability).toBe("third_party");
+              expect(decision.codexEligible).toBe(false);
+            });
+
+            it("routes SQL state failures to data review even when the throw site is known", () => {
+              const decision = classifyIncidentRepairability({
+                source: "edge_audit",
+                severity: "high",
+                summary: "PGRST SQLSTATE 23503 foreign key constraint violation",
+                context: {
+                  source_files: ["supabase/functions/order-sync/index.ts"],
+                  error_code_sites: [{
+                    file: "supabase/functions/order-sync/index.ts",
+                    line: 241,
+                  }],
+                },
+              });
+
+              expect(decision.repairability).toBe("data");
+              expect(decision.codexEligible).toBe(false);
+            });
+
+            it("keeps reproducible test failures eligible for the isolated Codex workflow", () => {
+              const decision = classifyIncidentRepairability({
+                source: "github_actions",
+                severity: "high",
+                summary: "AssertionError: route wiring test failed",
+                context: {
+                  source_files: ["src/test/route-wiring.test.ts"],
+                },
+              });
+
+              expect(decision.repairability).toBe("code");
+              expect(decision.codexEligible).toBe(true);
+            });
+
+            it("deduplicates support symptoms independently from case and transaction identifiers", async () => {
+              const first = buildSupportTechnicalEvidence({
+                metadata: {
+                  function_name: "daily-dish-ai",
+                  error_code: "provider_timeout",
+                  route: "/functions/v1/daily-dish-ai?user=2f4c98d0-03f7-4e72-910a-0c34a892ca21",
+                  request_id: "request-111111",
+                },
+                order: {
+                  id: "2f4c98d0-03f7-4e72-910a-0c34a892ca21",
+                  status: "pending",
+                  payment_status: "paid",
+                  created_at: "2026-08-01T10:00:00Z",
+                },
+                payments: [{
+                  id: "11111111-1111-4111-8111-111111111111",
+                  type: "payment",
+                  status: "succeeded",
+                  provider: "stripe",
+                  created_at: "2026-08-01T10:00:00Z",
+                }],
+              });
+              const second = buildSupportTechnicalEvidence({
+                metadata: {
+                  function_name: "daily-dish-ai",
+                  error_code: "provider_timeout",
+                  route: "/functions/v1/daily-dish-ai?user=891a6eef-5be3-4d4a-9887-2e4f27bf39ee",
+                  request_id: "request-999999",
+                },
+                order: {
+                  id: "891a6eef-5be3-4d4a-9887-2e4f27bf39ee",
+                  status: "pending",
+                  payment_status: "paid",
+                  created_at: "2026-08-01T14:00:00Z",
+                },
+                payments: [{
+                  id: "99999999-9999-4999-8999-999999999999",
+                  type: "payment",
+                  status: "succeeded",
+                  provider: "stripe",
+                  created_at: "2026-08-01T14:00:00Z",
+                }],
+              });
+
+              expect(second).toEqual(first);
+              expect(await buildStableEvidenceHash(second)).toBe(
+                await buildStableEvidenceHash(first),
+              );
+              expect(JSON.stringify(first)).not.toContain("2f4c98d0");
+              expect(JSON.stringify(first)).not.toContain("request-");
+            });
+
+            it("does not debit an AI credit when no provider token was consumed", () => {
+              expect(getOpenAITextCreditUnits("gpt-5.6-terra", 0, 0)).toBe(0);
+              expect(getOpenAITextCreditUnits("gpt-5.6-terra", 1, 1)).toBeGreaterThan(0);
+            });
+
+            it("loads the latest support window and exposes the linked technical incident to admins", () => {
+              const support = readFileSync(
+                resolve(root, "supabase/functions/ai-support-resolution/index.ts"),
+                "utf8",
+              );
+              const supportUi = readFileSync(
+                resolve(root, "src/pages/admin/AdminSupportResolution.tsx"),
+                "utf8",
+              );
+              const guardianUi = readFileSync(
+                resolve(root, "src/pages/admin/AdminGuardian.tsx"),
+                "utf8",
+              );
+
+              expect(support).toContain(
+                '.order("created_at", { ascending: false })\\n    .limit(80);',
+              );
+              expect(support).toContain("const sanitizedMessages = [...(messages || [])]");
+              expect(support).toContain("technical_evidence: technicalEvidence");
+              expect(support).not.toContain(
+                "support_incident_id: context.incident.id,\\n          technical_evidence: technicalEvidence",
+              );
+              expect(supportUi).toContain("workspaceQuery.data?.ops_incidents");
+              expect(supportUi).toContain("Ouvrir dans Guardian");
+              expect(guardianUi).toContain("forceDeepAnalysis:");
+            });
+          });
+          '''
+          Path("src/test/incident-intelligence-routing.test.ts").write_text(
+              routing_test,
+              encoding="utf-8",
+          )
+
+          replace_once(
+              "src/test/incident-intelligence-unification.test.ts",
+              '''    expect(shared).toContain("selectSupportMessages");
+              expect(shared).toContain("maxMessages = 28");''',
+              '''    expect(shared).toContain("selectSupportMessages");
+              expect(shared).toContain("buildSupportTechnicalEvidence");
+              expect(shared).toContain("maxMessages = 28");''',
+          )
+
+          replace_once(
+              "docs/operations/incident-intelligence-unification.md",
+              '''Le modèle ne reçoit plus l’historique brut complet :''',
+              '''Le modèle ne reçoit plus l’historique brut complet. Il charge d’abord les 80 messages les plus récents, les remet dans l’ordre chronologique, puis sélectionne :''',
+          )
+
+          print("Incident intelligence hardening patch applied.")
+          PY
+
+      - name: Regenerate canonical error-code map
+        run: pnpm run generate:error-code-map
+
+      - name: Run focused incident tests
+        run: >-
+          pnpm exec vitest run --mode production
+          src/test/incident-intelligence-routing.test.ts
+          src/test/incident-intelligence-unification.test.ts
+          src/test/incident-automation-readiness.test.ts
+          src/test/incident-evidence-depth.test.ts
+          src/test/tok-intelligence-suite.test.ts
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Production build
+        run: pnpm run build:prod
+
+      - name: Validate diff and secret safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          if git diff | grep -Eiq '(sk-proj-|sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}|whsec_[A-Za-z0-9_-]{20,}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9]{20,})'; then
+            echo "::error::A secret-like value was detected in the generated diff."
+            exit 1
+          fi
+          historical_migrations="$(git diff --name-only --diff-filter=M -- 'supabase/migrations/*.sql' | grep -v '^supabase/migrations/20260801130000_unify_incident_intelligence.sql$' || true)"
+          if [[ -n "$historical_migrations" ]]; then
+            echo "::error::Existing migrations must remain immutable."
+            printf '%s\n' "$historical_migrations"
+            exit 1
+          fi
+
+      - name: Commit validated hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git reset .github/workflows/apply-incident-intelligence-hardening.yml
+          if git diff --cached --quiet; then
+            echo "No product changes to commit."
+            exit 0
+          fi
+          git diff --cached --check
+          git commit -m "fix(ops): harden incident routing and support deduplication"
+          git push origin HEAD:feat/unify-incident-intelligence
