@@ -31,41 +31,131 @@ jobs:
           ref: fix/restaurateur-onboarding-reliability
           fetch-depth: 0
 
-      - name: Decode and apply reviewed patch
+      - name: Decode and apply reviewed product patch
         shell: bash
         run: |
           set -euo pipefail
-          base64 --decode tmp/restaurateur-onboarding-reliability.patch.gz.b64 | gzip --decompress > "$RUNNER_TEMP/onboarding.patch"
+          patch_source="tmp/restaurateur-onboarding-reliability.patch.gz.b64"
+          if [[ ! -f "$patch_source" ]]; then
+            echo "Reviewed product patch is already applied."
+            exit 0
+          fi
+          base64 --decode "$patch_source" | gzip --decompress > "$RUNNER_TEMP/onboarding.patch"
           git apply --check "$RUNNER_TEMP/onboarding.patch"
           git apply "$RUNNER_TEMP/onboarding.patch"
 
-      - name: Preserve demo restaurant state in the database invariant
+      - name: Write the reviewed restaurant-state migration
         shell: bash
         run: |
           set -euo pipefail
-          python <<'PY'
-          from pathlib import Path
+          cat > supabase/migrations/20260802000000_restaurateur_onboarding_reliability.sql <<'SQL'
+          BEGIN;
 
-          path = Path('supabase/migrations/20260802000000_restaurateur_onboarding_reliability.sql')
-          source = path.read_text(encoding='utf-8')
-          source = source.replace(
-              "BEGIN\n  IF v_status NOT IN ('active', 'pending', 'paused', 'suspended', 'archived') THEN",
-              "BEGIN\n  IF COALESCE(NEW.is_demo, false) THEN\n    NEW.status := 'demo';\n    RETURN NEW;\n  END IF;\n\n  IF v_status NOT IN ('active', 'pending', 'paused', 'suspended', 'archived') THEN",
-              1,
-          )
-          source = source.replace(
-              'BEFORE INSERT OR UPDATE OF status, is_active\n',
-              'BEFORE INSERT OR UPDATE OF status, is_active, is_demo\n',
-              1,
-          )
-          old_where = """WHERE (
-            COALESCE(restaurant.is_active, false) IS TRUE
-            AND lower(COALESCE(restaurant.status, '')) <> 'active'
-          ) OR (
-            COALESCE(restaurant.is_active, false) IS FALSE
-            AND lower(COALESCE(restaurant.status, '')) = 'active'
-          );"""
-          new_where = """WHERE COALESCE(restaurant.is_demo, false) IS FALSE
+          -- `status` and `is_active` previously behaved like two independent
+          -- activation controls. One invariant now protects every caller,
+          -- including older clients and the admin console.
+          CREATE OR REPLACE FUNCTION public.normalize_restaurant_operational_state()
+          RETURNS trigger
+          LANGUAGE plpgsql
+          SECURITY INVOKER
+          SET search_path = public
+          AS $$
+          DECLARE
+            v_status text := lower(COALESCE(NULLIF(trim(NEW.status), ''), 'pending'));
+            v_status_changed boolean := TG_OP = 'INSERT' OR NEW.status IS DISTINCT FROM OLD.status;
+            v_active_changed boolean := TG_OP = 'INSERT' OR NEW.is_active IS DISTINCT FROM OLD.is_active;
+          BEGIN
+            IF COALESCE(NEW.is_demo, false) THEN
+              NEW.status := 'demo';
+              RETURN NEW;
+            END IF;
+
+            IF v_status NOT IN ('active', 'pending', 'paused', 'suspended', 'archived') THEN
+              RAISE EXCEPTION 'Unsupported restaurant status: %', NEW.status
+                USING ERRCODE = '22023';
+            END IF;
+
+            IF TG_OP = 'INSERT' THEN
+              IF COALESCE(NEW.is_active, false) OR v_status = 'active' THEN
+                NEW.status := 'active';
+                NEW.is_active := true;
+              ELSE
+                NEW.status := v_status;
+                NEW.is_active := false;
+              END IF;
+              RETURN NEW;
+            END IF;
+
+            IF v_status_changed THEN
+              NEW.status := v_status;
+              NEW.is_active := v_status = 'active';
+            ELSIF v_active_changed THEN
+              IF COALESCE(NEW.is_active, false) THEN
+                NEW.status := 'active';
+                NEW.is_active := true;
+              ELSE
+                NEW.status := CASE
+                  WHEN lower(COALESCE(OLD.status, 'pending')) = 'active' THEN 'paused'
+                  ELSE v_status
+                END;
+                NEW.is_active := false;
+              END IF;
+            ELSIF COALESCE(NEW.is_active, false) IS TRUE AND v_status <> 'active' THEN
+              NEW.status := 'active';
+              NEW.is_active := true;
+            ELSIF COALESCE(NEW.is_active, false) IS FALSE AND v_status = 'active' THEN
+              NEW.status := 'paused';
+              NEW.is_active := false;
+            END IF;
+
+            RETURN NEW;
+          END;
+          $$;
+
+          REVOKE ALL ON FUNCTION public.normalize_restaurant_operational_state()
+            FROM PUBLIC, anon, authenticated, service_role;
+
+          DROP TRIGGER IF EXISTS normalize_restaurant_operational_state ON public.restaurants;
+          CREATE TRIGGER normalize_restaurant_operational_state
+          BEFORE INSERT OR UPDATE OF status, is_active, is_demo
+          ON public.restaurants
+          FOR EACH ROW
+          EXECUTE FUNCTION public.normalize_restaurant_operational_state();
+
+          -- Repair only contradictory real restaurants. An application that has
+          -- not completed human review remains private; demos retain status=demo.
+          UPDATE public.restaurants AS restaurant
+          SET
+            status = CASE
+              WHEN EXISTS (
+                SELECT 1
+                FROM public.signup_applications AS application
+                WHERE application.user_id = restaurant.owner_id
+                  AND application.requested_role = 'restaurateur'::public.app_role
+                  AND application.status = 'approved'
+                  AND application.reviewed_by IS NOT NULL
+                  AND application.reviewed_at IS NOT NULL
+                  AND application.metadata->>'restaurant_id' = restaurant.id::text
+              )
+              THEN CASE WHEN COALESCE(restaurant.is_active, false) THEN 'active' ELSE 'paused' END
+              ELSE 'pending'
+            END,
+            is_active = CASE
+              WHEN EXISTS (
+                SELECT 1
+                FROM public.signup_applications AS application
+                WHERE application.user_id = restaurant.owner_id
+                  AND application.requested_role = 'restaurateur'::public.app_role
+                  AND application.status = 'approved'
+                  AND application.reviewed_by IS NOT NULL
+                  AND application.reviewed_at IS NOT NULL
+                  AND application.metadata->>'restaurant_id' = restaurant.id::text
+              )
+              THEN COALESCE(restaurant.is_active, false)
+              ELSE false
+            END,
+            updated_at = now()
+          WHERE COALESCE(restaurant.is_demo, false) IS FALSE
             AND (
               (
                 COALESCE(restaurant.is_active, false) IS TRUE
@@ -76,48 +166,109 @@ jobs:
                 COALESCE(restaurant.is_active, false) IS FALSE
                 AND lower(COALESCE(restaurant.status, '')) = 'active'
               )
-            );"""
-          if old_where not in source:
-              raise SystemExit('restaurant repair WHERE clause not found')
-          source = source.replace(old_where, new_where, 1)
-          old_check = """  CHECK (
-            (
-              COALESCE(is_active, false) IS TRUE
-              AND lower(COALESCE(status, '')) = 'active'
-            )
-            OR
-            (
-              COALESCE(is_active, false) IS FALSE
-              AND lower(COALESCE(status, 'pending')) <> 'active'
-            )
-          ) NOT VALID;"""
-          new_check = """  CHECK (
-            (
-              COALESCE(is_demo, false) IS TRUE
-              AND lower(COALESCE(status, '')) = 'demo'
-            )
-            OR
-            (
-              COALESCE(is_demo, false) IS FALSE
-              AND COALESCE(is_active, false) IS TRUE
-              AND lower(COALESCE(status, '')) = 'active'
-            )
-            OR
-            (
-              COALESCE(is_demo, false) IS FALSE
-              AND COALESCE(is_active, false) IS FALSE
-              AND lower(COALESCE(status, 'pending')) <> 'active'
-            )
-          ) NOT VALID;"""
-          if old_check not in source:
-              raise SystemExit('restaurant operational constraint not found')
-          source = source.replace(old_check, new_check, 1)
-          source = source.replace(
-              "'A restaurant is public only when status=active and is_active=true; every other status is private.';",
-              "'Real restaurants are public only when status=active and is_active=true; demo restaurants keep status=demo.';",
-              1,
-          )
+            );
+
+          ALTER TABLE public.restaurants
+            DROP CONSTRAINT IF EXISTS restaurants_operational_state_consistent;
+
+          ALTER TABLE public.restaurants
+            ADD CONSTRAINT restaurants_operational_state_consistent
+            CHECK (
+              (
+                COALESCE(is_demo, false) IS TRUE
+                AND lower(COALESCE(status, '')) = 'demo'
+              )
+              OR
+              (
+                COALESCE(is_demo, false) IS FALSE
+                AND COALESCE(is_active, false) IS TRUE
+                AND lower(COALESCE(status, '')) = 'active'
+              )
+              OR
+              (
+                COALESCE(is_demo, false) IS FALSE
+                AND COALESCE(is_active, false) IS FALSE
+                AND lower(COALESCE(status, 'pending')) <> 'active'
+              )
+            ) NOT VALID;
+
+          ALTER TABLE public.restaurants
+            VALIDATE CONSTRAINT restaurants_operational_state_consistent;
+
+          COMMENT ON CONSTRAINT restaurants_operational_state_consistent ON public.restaurants IS
+            'Real restaurants are public only when status=active and is_active=true; demo restaurants keep status=demo.';
+
+          NOTIFY pgrst, 'reload schema';
+
+          COMMIT;
+          SQL
+
+      - name: Clarify card-registration recovery in the dashboard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('src/pages/dashboard/DashboardHome.tsx')
+          source = path.read_text(encoding='utf-8')
+          old_no_url = '''      if (!checkout.url) {
+                throw new Error("Le paiement est en cours de vérification. Reprenez la même tentative dans quelques secondes.");
+              }'''
+          new_no_url = '''      if (!checkout.url) {
+                throw new Error(
+                  "L’enregistrement de la carte est en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants.",
+                );
+              }'''
+          if old_no_url in source:
+              source = source.replace(old_no_url, new_no_url, 1)
+          elif "L’enregistrement de la carte est en cours de vérification" not in source:
+              raise SystemExit('Dashboard card URL guard was not found')
+
+          old_catch = '''    } catch (error) {
+                toast({
+                  title: isPaymentAttemptIndeterminateError(error) ? "Paiement en cours de vérification" : "Paiement impossible",
+                  description: error instanceof Error ? error.message : "Veuillez réessayer dans quelques instants.",
+                  variant: "destructive",
+                });
+              } finally {'''
+          new_catch = '''    } catch (error) {
+                const isIndeterminate = isPaymentAttemptIndeterminateError(error);
+                toast({
+                  title: isIndeterminate
+                    ? "Enregistrement de carte en cours"
+                    : "Enregistrement de carte impossible",
+                  description: isIndeterminate
+                    ? "La demande est encore en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants."
+                    : error instanceof Error
+                      ? error.message
+                      : "Veuillez réessayer dans quelques instants.",
+                  variant: "destructive",
+                });
+              } finally {'''
+          if old_catch in source:
+              source = source.replace(old_catch, new_catch, 1)
+          elif "Enregistrement de carte impossible" not in source:
+              raise SystemExit('Dashboard card catch block was not found')
+
           path.write_text(source, encoding='utf-8')
+
+          test_path = Path('src/test/restaurateur-onboarding-reliability.test.ts')
+          tests = test_path.read_text(encoding='utf-8')
+          marker = '''  it("sets the currency required by Stripe setup-mode checkout", () => {'''
+          added = '''  it("uses card-specific recovery copy without suggesting a debit", () => {
+                const dashboard = read("src/pages/dashboard/DashboardHome.tsx");
+                expect(dashboard).toContain("Enregistrement de carte en cours");
+                expect(dashboard).toContain("Aucun débit n’a été créé");
+                expect(dashboard).not.toContain("Paiement en cours de vérification");
+              });
+
+            '''
+          if "uses card-specific recovery copy" not in tests:
+              if marker not in tests:
+                  raise SystemExit('Focused checkout test marker not found')
+              tests = tests.replace(marker, added + marker, 1)
+          test_path.write_text(tests, encoding='utf-8')
           PY
 
       - name: Enable pnpm
@@ -137,6 +288,7 @@ jobs:
           src/lib/privilegedSignupRecovery.ts
           src/lib/restaurantAdminState.ts
           src/pages/admin/AdminRestaurants.tsx
+          src/pages/dashboard/DashboardHome.tsx
           supabase/functions/create-checkout/index.ts
           src/test/auth-signup-form.test.tsx
           src/test/restaurant-onboarding-payments.test.ts
@@ -184,6 +336,7 @@ jobs:
             src/lib/privilegedSignupRecovery.ts \
             src/lib/restaurantAdminState.ts \
             src/pages/admin/AdminRestaurants.tsx \
+            src/pages/dashboard/DashboardHome.tsx \
             supabase/functions/create-checkout/index.ts \
             supabase/functions/_shared/error-code-map.ts \
             supabase/migrations/20260802000000_restaurateur_onboarding_reliability.sql \
@@ -199,6 +352,11 @@ jobs:
           if git diff --cached | grep -Eiq '(sk-proj-|sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}|whsec_[A-Za-z0-9_-]{20,}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9]{20,})'; then
             echo "::error::A secret-like value was detected in the final diff."
             exit 1
+          fi
+
+          if git diff --cached --quiet; then
+            echo "Product patch is already committed."
+            exit 0
           fi
 
           git commit -m "fix(onboarding): restore confirmation, card setup and activation"
