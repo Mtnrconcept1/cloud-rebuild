@@ -39,7 +39,7 @@ jobs:
               raise SystemExit('Unable to locate fragile checkout patch start')
           block_end = source.index('\n          )', label_index) + len('\n          )')
 
-          replacement = r'''          checkout_anchor = "const checkout = await createCheckoutWithRecovery({"
+          replacement = r"""          checkout_anchor = "const checkout = await createCheckoutWithRecovery({"
           checkout_anchor_index = auth.index(checkout_anchor)
           checkout_start = auth.rfind("\n", 0, checkout_anchor_index) + 1
           checkout_end_anchor = 'if (!checkout.url) throw new Error("La session d\\'enregistrement de la carte est en cours de vérification.");'
@@ -71,7 +71,7 @@ jobs:
               throw error;
             }
           })();'''
-          auth = auth[:checkout_start] + checkout_replacement + auth[checkout_end:]'''
+          auth = auth[:checkout_start] + checkout_replacement + auth[checkout_end:]"""
 
           path.write_text(source[:block_start] + replacement + source[block_end:], encoding='utf-8')
           PY
