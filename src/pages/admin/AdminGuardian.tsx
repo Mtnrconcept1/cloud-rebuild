@@ -31,6 +31,9 @@ import {
   type OpsIncidentSummary,
 } from "@/lib/tokIntelligence";
 
+const DEFAULT_GUARDIAN_ANALYSIS_PROMPT =
+  "Établis la cause probable à partir des preuves, le patch minimal, les tests, le rollback et les conditions de vérification.";
+
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
   const date = new Date(value);
@@ -96,8 +99,8 @@ export default function AdminGuardian() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [analysisPrompt, setAnalysisPrompt] = useState(
-    "Établis la cause probable à partir des preuves, le patch minimal, les tests, le rollback et les conditions de vérification.",
-  );
+  DEFAULT_GUARDIAN_ANALYSIS_PROMPT,
+);
   const [functionName, setFunctionName] = useState("");
   const selectedIncidentId = searchParams.get("incident");
 
@@ -132,20 +135,25 @@ export default function AdminGuardian() {
   const analyzeMutation = useMutation({
     mutationFn: async () => {
       if (!selectedIncident) throw new Error("Sélectionnez un incident.");
-      return analyzeGuardianIncident({
-        incidentId: selectedIncident.id,
-        prompt: analysisPrompt,
-      });
+      const prompt = analysisPrompt.trim() || DEFAULT_GUARDIAN_ANALYSIS_PROMPT;
+    return analyzeGuardianIncident({
+      incidentId: selectedIncident.id,
+      prompt,
+      forceDeepAnalysis: prompt !== DEFAULT_GUARDIAN_ANALYSIS_PROMPT,
+    });
     },
-    onSuccess: async ({ function_name }) => {
-      if (function_name) setFunctionName(function_name);
-      await refresh();
-      toast({
-        title: "Évaluation Guardian créée",
-        description:
-          "Aucune branche, PR, migration ou mise en production n’a été déclenchée.",
-      });
-    },
+    onSuccess: async ({ function_name, reused }) => {
+    if (function_name) setFunctionName(function_name);
+    await refresh();
+    toast({
+      title: reused
+        ? "Diagnostic canonique réutilisé"
+        : "Évaluation Guardian créée",
+      description: reused
+        ? "Aucun nouvel appel IA n’a été nécessaire pour ces preuves."
+        : "Aucune branche, PR, migration ou mise en production n’a été déclenchée.",
+    });
+  },
     onError: (error) => {
       toast({
         title: "Analyse impossible",

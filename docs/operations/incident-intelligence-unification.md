@@ -54,7 +54,7 @@ Plusieurs dossiers support peuvent ainsi pointer vers le même bug sans créer p
 
 ## Réduction du contexte Support & Resolution
 
-Le modèle ne reçoit plus l’historique brut complet :
+Le modèle ne reçoit plus l’historique brut complet. Il charge d’abord les 80 messages les plus récents, les remet dans l’ordre chronologique, puis sélectionne :
 
 - premiers messages utiles ;
 - derniers messages ;

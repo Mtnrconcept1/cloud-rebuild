@@ -68,8 +68,11 @@ export function getOpenAITextCreditUnits(
   outputTokens = 0,
   minimumCredits = 1,
 ) {
+  const input = Math.max(0, Number(inputTokens) || 0);
+  const output = Math.max(0, Number(outputTokens) || 0);
+  if (input === 0 && output === 0) return 0;
   return getTokAiCreditUnitsFromCostChf(
-    estimateOpenAITextCostChf(model, inputTokens, outputTokens),
+    estimateOpenAITextCostChf(model, input, output),
     minimumCredits,
   );
 }

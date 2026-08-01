@@ -18,6 +18,7 @@ import { makeLogger } from "../_shared/logging.ts";
 import {
   buildStableEvidenceHash,
   buildSupportMessageDigest,
+  buildSupportTechnicalEvidence,
   selectSupportMessages,
 } from "../_shared/incident-intelligence.ts";
 import {
@@ -273,8 +274,8 @@ async function getIncidentContext(
     .from("support_incident_messages")
     .select("id, author_role, body, visibility, metadata, created_at")
     .eq("incident_id", incidentId)
-    .order("created_at", { ascending: true })
-    .limit(80);
+    .order("created_at", { ascending: false })
+  .limit(80);
 
   if (messageError) throw new HttpError(500, messageError.message);
 
@@ -346,7 +347,9 @@ async function getIncidentContext(
     restaurant = data || null;
   }
 
-  const sanitizedMessages = (messages || []).map((message: Record<string, unknown>) => ({
+  const sanitizedMessages = [...(messages || [])]
+  .reverse()
+  .map((message: Record<string, unknown>) => ({
     ...message,
     body: sanitizeMultilineText(message.body, 1200),
   }));
@@ -535,73 +538,6 @@ function isComplexSupportContext(
     || /(payment|paiement|stripe|refund|rembourse|chargeback|fraud|fraude|allerg|medical|médical|legal|juridique|threat|menace)/i.test(evidence);
 }
 
-function buildSupportTechnicalEvidence(
-  context: Awaited<ReturnType<typeof getIncidentContext>>,
-) {
-  const metadata = isRecord(context.incident.metadata)
-    ? context.incident.metadata
-    : {};
-  const allowlistedMetadata: Record<string, unknown> = {};
-  for (const key of [
-    "function_name",
-    "action",
-    "error_code",
-    "error_type",
-    "route",
-    "provider",
-    "release",
-    "request_id",
-    "status",
-  ]) {
-    if (metadata[key] !== undefined) allowlistedMetadata[key] = metadata[key];
-  }
-
-  return {
-    support_incident_id: context.incident.id,
-    category: context.incident.category,
-    priority: context.incident.priority,
-    support_status: context.incident.status,
-    order: context.order
-      ? {
-        id: context.order.id,
-        status: context.order.status,
-        payment_status: context.order.payment_status,
-        fulfillment_status: context.order.fulfillment_status,
-        refund_status: context.order.refund_status,
-        restaurant_response_status: context.order.restaurant_response_status,
-        created_at: context.order.created_at,
-        updated_at: context.order.updated_at,
-      }
-      : null,
-    reservation: context.reservation
-      ? {
-        id: context.reservation.id,
-        status: context.reservation.status,
-        feature: context.reservation.feature,
-        deposit_status: context.reservation.deposit_status,
-        refund_status: context.reservation.refund_status,
-        restaurant_confirmation_required: context.reservation.restaurant_confirmation_required,
-        created_at: context.reservation.created_at,
-        updated_at: context.reservation.updated_at,
-      }
-      : null,
-    payment_states: context.payments.slice(0, 12).map((payment) => ({
-      type: payment.type,
-      status: payment.status,
-      provider: payment.provider,
-      stripe_mode: payment.stripe_mode,
-      created_at: payment.created_at,
-    })),
-    notification_states: context.notifications.slice(0, 12).map((notification) => ({
-      type: notification.type,
-      category: notification.category,
-      created_at: notification.created_at,
-      read_at: notification.read_at,
-    })),
-    metadata: allowlistedMetadata,
-  };
-}
-
 async function invokeOpsIncidentControl(payload: Record<string, unknown>) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim() || "";
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
@@ -609,26 +545,38 @@ async function invokeOpsIncidentControl(payload: Record<string, unknown>) {
     throw new HttpError(503, "ops_incident_internal_configuration_missing");
   }
 
-  const response = await fetch(`${supabaseUrl}/functions/v1/ops-incident-control`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${serviceRoleKey}`,
-      apikey: serviceRoleKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-  const body = await response.json().catch(() => ({})) as Record<string, unknown>;
-  if (!response.ok || body.ok !== true || typeof body.incidentId !== "string") {
-    throw new HttpError(502, `ops_incident_escalation_failed:${response.status}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/ops-incident-control`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${serviceRoleKey}`,
+        apikey: serviceRoleKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    const body = await response.json().catch(() => ({})) as Record<string, unknown>;
+    if (!response.ok || body.ok !== true || typeof body.incidentId !== "string") {
+      throw new HttpError(502, `ops_incident_escalation_failed:${response.status}`);
+    }
+    return body as {
+      incidentId: string;
+      createdNew?: boolean;
+      status?: string;
+      notified?: boolean;
+      reason?: string;
+    };
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new HttpError(504, "ops_incident_escalation_timeout");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-  return body as {
-    incidentId: string;
-    createdNew?: boolean;
-    status?: string;
-    notified?: boolean;
-    reason?: string;
-  };
 }
 
 async function analyzeIncident(
@@ -1101,37 +1049,65 @@ async function executeResolutionAction(
       if (error) throw error;
       result.incident_status = "waiting_restaurant";
     } else if (actionType === "escalate_technical_incident") {
-      const technicalEvidence = buildSupportTechnicalEvidence(context);
-      const groupingKey = await buildStableEvidenceHash({
-        source: "support_resolution",
+      const technicalEvidence = buildSupportTechnicalEvidence({
+      metadata: context.incident.metadata,
+      order: context.order,
+      reservation: context.reservation,
+      payments: context.payments,
+      notifications: context.notifications,
+    });
+    const technicalMetadata = isRecord(technicalEvidence.metadata)
+      ? technicalEvidence.metadata
+      : {};
+    const hasTechnicalSignal = Object.keys(technicalMetadata).length > 0
+      || technicalEvidence.order_state !== null
+      || technicalEvidence.reservation_state !== null
+      || technicalEvidence.payment_states.length > 0
+      || technicalEvidence.notification_states.length > 0;
+    if (!hasTechnicalSignal) {
+      throw new HttpError(409, "technical_evidence_insufficient");
+    }
+
+    const groupingKey = await buildStableEvidenceHash({
+      source: "support_resolution",
+      technical_evidence: technicalEvidence,
+    });
+    const component = sanitizeText(
+      technicalMetadata.function_name || technicalMetadata.component,
+      160,
+    );
+    const errorType = sanitizeText(
+      technicalMetadata.error_code || technicalMetadata.error_type,
+      160,
+    );
+    const provider = sanitizeText(technicalMetadata.provider, 120);
+    const route = sanitizeText(technicalMetadata.route, 240);
+    const technicalIdentity = [component, errorType, provider, route]
+      .filter(Boolean)
+      .join(" — ")
+      || "état technique incohérent";
+    const priority = String(context.incident.priority || "normal").toLowerCase();
+    const severity = priority === "urgent"
+      ? "critical"
+      : priority === "high"
+      ? "high"
+      : "medium";
+    const opsIncident = await invokeOpsIncidentControl({
+      action: "ingest",
+      source: "external",
+      eventId: `support:${context.incident.id}:${groupingKey.slice(0, 16)}`,
+      severity,
+      title: `Signal technique support — ${technicalIdentity}`.slice(0, 240),
+      summary: "Un dossier support validé contient un signal technique reproductible. Les conversations et données personnelles ne sont pas transmises.",
+      errorType,
+      component,
+      route,
+      fingerprint: groupingKey,
+      context: {
+        origin: FUNCTION_NAME,
         technical_evidence: technicalEvidence,
-      });
-      const metadata = isRecord(context.incident.metadata)
-        ? context.incident.metadata
-        : {};
-      const priority = String(context.incident.priority || "normal").toLowerCase();
-      const severity = priority === "urgent"
-        ? "critical"
-        : priority === "high"
-        ? "high"
-        : "medium";
-      const opsIncident = await invokeOpsIncidentControl({
-        action: "ingest",
-        source: "external",
-        eventId: `support:${context.incident.id}:${groupingKey.slice(0, 16)}`,
-        severity,
-        title: `Signal technique issu du support — ${sanitizeText(context.incident.category, 100) || "incident"}`,
-        summary: "Un dossier support validé contient des états techniques incohérents. Les conversations et données personnelles ne sont pas transmises.",
-        errorType: sanitizeText(metadata.error_code || metadata.error_type, 160),
-        component: sanitizeText(metadata.function_name || metadata.component, 160),
-        route: sanitizeText(metadata.route, 240),
-        fingerprint: groupingKey,
-        context: {
-          origin: FUNCTION_NAME,
-          support_incident_id: context.incident.id,
-          technical_evidence: technicalEvidence,
-        },
-      });
+      },
+    });
 
       const { data: link, error: linkError } = await actor.adminClient
         .from("support_ops_incident_links")

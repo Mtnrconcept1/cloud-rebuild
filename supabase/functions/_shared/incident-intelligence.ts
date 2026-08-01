@@ -35,6 +35,14 @@ type DeepAnalysisDecisionInput = {
   evidenceChanged?: boolean;
 };
 
+type SupportTechnicalEvidenceInput = {
+  metadata?: unknown;
+  order?: unknown;
+  reservation?: unknown;
+  payments?: unknown;
+  notifications?: unknown;
+};
+
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi;
 const LONG_NUMBER = /\b\d{5,}\b/g;
 const WHITESPACE = /\s+/g;
@@ -173,11 +181,38 @@ export function classifyIncidentRepairability(
   const errorSites = Array.isArray(context.error_code_sites)
     ? context.error_code_sites
     : [];
-  const hasCodeEvidence =
+  const stack = normalizeText(technical.stack, 4_000);
+  const hasCodeLocation =
     source === "github_actions" ||
     sourceFiles.length > 0 ||
     errorSites.length > 0 ||
-    typeof technical.stack === "string";
+    Boolean(stack);
+  const hasCompileOrTestFailure = containsAny(evidenceText, [
+    /assertionerror|referenceerror|syntaxerror/,
+    /test(?:s| suite)?[^|]{0,80}failed|build[^|]{0,80}failed/,
+    /typecheck[^|]{0,80}failed|lint[^|]{0,80}failed/,
+    /module not found|cannot find module|compile(?:r|ilation)? error/,
+  ]);
+  const hasRuntimeCodeFailure = containsAny(evidenceText, [
+    /typeerror|rangeerror|uncaught|unhandled rejection/,
+    /stack trace|invalid function response|unexpected null/,
+  ]);
+  const hasTransientSignal = containsAny(evidenceText, [
+    /timeout|timed out|rate[_ -]?limited|too many requests/,
+    /connection reset|network error|dns|temporary|transient/,
+    /service unavailable|gateway timeout|http 429|http 503|http 504/,
+  ]);
+  const hasProviderIdentity = containsAny(evidenceText, [
+    /stripe|resend|telegram|github api|google actions center/,
+    /firebase|openai|vercel|supabase api/,
+  ]);
+  const hasProviderFailure = containsAny(evidenceText, [
+    /provider[^|]{0,100}(unavailable|error|failed|rejected|timeout)/,
+    /upstream[^|]{0,100}(error|failed|unavailable|timeout)/,
+    /third[_ -]?party|external service|webhook[^|]{0,100}(failed|rejected)/,
+  ]) || (hasProviderIdentity && containsAny(evidenceText, [
+    /error|failed|rejected|unavailable|timeout|rate[_ -]?limit/,
+  ]));
   const sensitive = containsAny(evidenceText, [
     /payment|stripe|checkout|refund|invoice|billing|compta/,
     /auth|rls|role|permission|security|secret|token|credential/,
@@ -216,15 +251,11 @@ export function classifyIncidentRepairability(
     };
   }
 
-  if (hasCodeEvidence || containsAny(evidenceText, [
-    /assertionerror|typeerror|referenceerror|syntaxerror/,
-    /test.*failed|build.*failed|typecheck.*failed|lint.*failed/,
-    /uncaught|stack trace|source_files|error_code_sites/,
-  ])) {
+  if (hasCompileOrTestFailure) {
     return {
       repairability: "code",
-      reason: "La preuve contient un site de code, une stack ou un échec de validation reproductible.",
-      confidence: sourceFiles.length > 0 || errorSites.length > 0 ? 0.9 : 0.78,
+      reason: "La preuve contient un échec de compilation, de test ou une erreur de code reproductible.",
+      confidence: 0.94,
       codexEligible: true,
       sensitive,
     };
@@ -238,36 +269,38 @@ export function classifyIncidentRepairability(
     return {
       repairability: "data",
       reason: "Le signal indique une incohérence de données ou d’état qui exige une vérification métier avant tout patch.",
-      confidence: 0.76,
+      confidence: 0.82,
       codexEligible: false,
       sensitive,
     };
   }
 
-  if (containsAny(evidenceText, [
-    /stripe|resend|telegram|github|google actions center|firebase/,
-    /provider.*(unavailable|error|rejected)|third[_ -]?party/,
-    /upstream.*(error|unavailable)|external service/,
-  ])) {
+  if (hasProviderFailure) {
     return {
       repairability: "third_party",
       reason: "La panne dépend principalement d’un fournisseur ou d’une API externe.",
-      confidence: 0.72,
+      confidence: 0.8,
       codexEligible: false,
       sensitive,
     };
   }
 
-  if (containsAny(evidenceText, [
-    /timeout|timed out|rate[_ -]?limited|too many requests/,
-    /connection reset|network error|dns|temporary|transient/,
-    /service unavailable|gateway timeout|http 429|http 503|http 504/,
-  ])) {
+  if (hasTransientSignal) {
     return {
       repairability: "transient",
       reason: "Le signal ressemble à une panne temporaire ; une nouvelle observation doit confirmer sa persistance.",
-      confidence: severity === "critical" ? 0.58 : 0.7,
+      confidence: severity === "critical" ? 0.62 : 0.76,
       codexEligible: false,
+      sensitive,
+    };
+  }
+
+  if (hasRuntimeCodeFailure || hasCodeLocation) {
+    return {
+      repairability: "code",
+      reason: "La preuve contient une stack, un emplacement de code ou un échec runtime à reproduire sur une branche isolée.",
+      confidence: errorSites.length > 0 || Boolean(stack) ? 0.88 : 0.74,
+      codexEligible: true,
       sensitive,
     };
   }
@@ -296,6 +329,99 @@ export function shouldUseDeepIncidentAnalysis(
   if (severity === "critical") return true;
   if (severity === "high" && normalizedConfidence < 0.8) return true;
   return normalizedConfidence < 0.55;
+}
+
+function normalizeTechnicalValue(
+  key: string,
+  value: unknown,
+): string | number | boolean | null {
+  if (typeof value === "string") {
+    const normalized = normalizeText(value, key === "route" ? 500 : 240);
+    if (!normalized) return null;
+    return key === "route" ? normalized.split(/[?#]/, 1)[0] || null : normalized;
+  }
+  if (typeof value === "number" || typeof value === "boolean") return value;
+  return null;
+}
+
+function compactTechnicalState(
+  value: unknown,
+  keys: readonly string[],
+): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const source = value as Record<string, unknown>;
+  const output: Record<string, unknown> = {};
+  for (const key of keys) {
+    const normalized = normalizeTechnicalValue(key, source[key]);
+    if (normalized !== null && normalized !== "") output[key] = normalized;
+  }
+  return Object.keys(output).length > 0 ? output : null;
+}
+
+function uniqueSortedStates(
+  values: unknown,
+  keys: readonly string[],
+) {
+  if (!Array.isArray(values)) return [];
+  const unique = new Map<string, Record<string, unknown>>();
+  for (const value of values.slice(0, 30)) {
+    const state = compactTechnicalState(value, keys);
+    if (!state) continue;
+    unique.set(JSON.stringify(state), state);
+  }
+  return [...unique.values()].sort((left, right) =>
+    JSON.stringify(left).localeCompare(JSON.stringify(right))
+  );
+}
+
+export function buildSupportTechnicalEvidence(
+  input: SupportTechnicalEvidenceInput,
+) {
+  const metadata = compactTechnicalState(input.metadata, [
+    "function_name",
+    "component",
+    "action",
+    "error_code",
+    "error_type",
+    "route",
+    "provider",
+    "release",
+    "status",
+    "response_status",
+    "method",
+    "auth_mode",
+  ]) || {};
+
+  return {
+    metadata,
+    order_state: compactTechnicalState(input.order, [
+      "status",
+      "payment_status",
+      "fulfillment_status",
+      "refund_status",
+      "restaurant_response_status",
+      "cancellation_reason_code",
+    ]),
+    reservation_state: compactTechnicalState(input.reservation, [
+      "status",
+      "feature",
+      "deposit_status",
+      "refund_status",
+      "restaurant_confirmation_required",
+      "cancellation_reason_code",
+    ]),
+    payment_states: uniqueSortedStates(input.payments, [
+      "type",
+      "status",
+      "provider",
+      "stripe_mode",
+      "currency",
+    ]),
+    notification_states: uniqueSortedStates(input.notifications, [
+      "type",
+      "category",
+    ]),
+  };
 }
 
 function messageIdentity(message: Record<string, unknown>, index: number) {

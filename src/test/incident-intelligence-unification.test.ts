@@ -55,6 +55,7 @@ describe("unified incident intelligence", () => {
     expect(shared).toContain("classifyIncidentRepairability");
     expect(shared).toContain("shouldUseDeepIncidentAnalysis");
     expect(shared).toContain("selectSupportMessages");
+    expect(shared).toContain("buildSupportTechnicalEvidence");
     expect(shared).toContain("maxMessages = 28");
   });
 

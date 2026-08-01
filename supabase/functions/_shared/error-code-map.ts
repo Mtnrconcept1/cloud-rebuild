@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 304 error codes mapped from supabase/functions/**.
+// 306 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -8,11 +8,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "action_id_required": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1409
+      "line": 1385
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1418
+      "line": 1394
     }
   ],
   "action_invalid": [
@@ -740,7 +740,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "explicit_confirmation_required": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 936
+      "line": 884
     }
   ],
   "feature_disabled": [
@@ -766,11 +766,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "financial_action_requires_manual_workflow": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 927
+      "line": 875
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 955
+      "line": 903
     }
   ],
   "firebase_service_account_invalid_format": [
@@ -1112,7 +1112,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1397
+      "line": 1373
     }
   ],
   "incident_not_approved": [
@@ -1527,10 +1527,16 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 1611
     }
   ],
+  "ops_incident_escalation_timeout": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 574
+    }
+  ],
   "ops_incident_internal_configuration_missing": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 609
+      "line": 545
     }
   ],
   "ops_incident_not_found": [
@@ -1560,7 +1566,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "order_recipient_unavailable": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1047
+      "line": 995
     }
   ],
   "origin_not_allowed": [
@@ -1870,37 +1876,37 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "reservation_recipient_unavailable": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1025
+      "line": 973
     }
   ],
   "resolution_action_already_executing": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 933
+      "line": 881
     }
   ],
   "resolution_action_concurrent_update": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 983
+      "line": 931
     }
   ],
   "resolution_action_not_found": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 921
+      "line": 869
     }
   ],
   "resolution_action_not_rejectable": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1317
+      "line": 1293
     }
   ],
   "resolution_action_rejected": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 930
+      "line": 878
     }
   ],
   "response_type_code_required": [
@@ -1954,7 +1960,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "restaurant_owner_unavailable": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1068
+      "line": 1016
     }
   ],
   "restaurant_required": [
@@ -2100,7 +2106,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "support_incident_not_found": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 270
+      "line": 271
+    }
+  ],
+  "technical_evidence_insufficient": [
+    {
+      "file": "supabase/functions/ai-support-resolution/index.ts",
+      "line": 1068
     }
   ],
   "telegram_chat_forbidden": [
@@ -2344,7 +2356,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1426
+      "line": 1402
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
@@ -2370,7 +2382,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "unsupported_resolution_action": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 941
+      "line": 889
     }
   ],
   "unsupported_workflow_status": [
