@@ -116,7 +116,6 @@ jobs:
       - name: Verify production Supabase target
         run: pnpm run supabase:doctor:prod
 
-
       - name: Enforce and verify Supabase leaked-password protection
         id: supabase_auth_security
         env:
@@ -230,7 +229,6 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
 
-
       - name: Pull Vercel production project settings
         run: pnpm dlx "vercel@${VERCEL_CLI_VERSION}" pull --yes --environment=production --token="$VERCEL_TOKEN"
 
@@ -325,7 +323,6 @@ jobs:
               --token="$VERCEL_TOKEN"
           done
 
-
   deploy_supabase:
     needs:
       - baseline
@@ -366,6 +363,27 @@ jobs:
       - name: Assert production Supabase target
         run: test "$SUPABASE_PROJECT_REF" = "wwcrtyoueexyxkkikaos"
 
+      - name: Resolve production Supabase API keys
+        if: >-
+          ${{ needs.validation.outputs.deploy_functions == 'true' ||
+              needs.validation.outputs.sync_supabase_secrets == 'true' }}
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" || (echo "::error::Missing SUPABASE_ACCESS_TOKEN." && exit 1)
+          keys_file="${RUNNER_TEMP}/production-api-keys.json"
+          trap 'rm -f -- "$keys_file"' EXIT
+          curl --fail --silent --show-error \
+            --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/api-keys?reveal=true" \
+            --output "$keys_file"
+          chmod 600 "$keys_file"
+          node ./scripts/write-production-supabase-keys-env.mjs \
+            --keys-file="$keys_file" \
+            --out="$GITHUB_ENV"
+
       - name: Assert server-only OpenAI secret
         if: >-
           ${{ needs.validation.outputs.deploy_functions == 'true' ||
@@ -385,8 +403,6 @@ jobs:
           ${{ needs.validation.outputs.deploy_functions == 'true' ||
               needs.validation.outputs.sync_supabase_secrets == 'true' }}
         env:
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY || secrets.STRIPE_PERSONAL_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}
           STRIPE_SECRET_KEY_LIVE: ${{ secrets.STRIPE_PERSONNAL_SECRET_KEY || secrets.STRIPE_PERSONAL_SECRET_KEY || secrets.STRIPE_SECRET_KEY_LIVE }}
           STRIPE_SECRET_KEY_TEST: ${{ secrets.STRIPE_SECRET_KEY_TEST || secrets.STRIPEE_SECRET_KEY_TEST }}
@@ -587,9 +603,7 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
     steps:
       - name: Setup Node
@@ -599,6 +613,28 @@ jobs:
 
       - name: Enable pnpm
         run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Checkout deployment scripts
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Resolve production Supabase API keys for Vercel
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" || (echo "::error::Missing SUPABASE_ACCESS_TOKEN." && exit 1)
+          keys_file="${RUNNER_TEMP}/production-api-keys.json"
+          trap 'rm -f -- "$keys_file"' EXIT
+          curl --fail --silent --show-error \
+            --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/api-keys?reveal=true" \
+            --output "$keys_file"
+          chmod 600 "$keys_file"
+          node ./scripts/write-production-supabase-keys-env.mjs \
+            --keys-file="$keys_file" \
+            --out="$GITHUB_ENV"
 
       - name: Download prebuilt Vercel output
         uses: actions/download-artifact@v5
@@ -614,24 +650,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$SUPABASE_SERVICE_ROLE_KEY" || (echo "::error::Missing server-only Supabase credential for the marketing BFF." && exit 1)
-          test -n "$VITE_SUPABASE_PUBLISHABLE_KEY" || (echo "::error::Missing Supabase publishable key for the marketing BFF." && exit 1)
+          test -n "$SUPABASE_SERVICE_ROLE_KEY" || (echo "::error::Unable to resolve the server-only Supabase credential for the marketing BFF." && exit 1)
+          test -n "$SUPABASE_PUBLISHABLE_KEY" || (echo "::error::Unable to resolve the Supabase publishable key for the marketing BFF." && exit 1)
           deployment_output="$(
             pnpm dlx "vercel@${VERCEL_CLI_VERSION}" deploy \
               --prebuilt \
               --prod \
               --token="$VERCEL_TOKEN" \
               --meta githubCommitSha="$GITHUB_SHA" \
-              --env "SUPABASE_URL=$VITE_SUPABASE_URL" \
-              --env "SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY" \
+              --env "SUPABASE_URL=$PRODUCTION_SUPABASE_URL" \
+              --env "SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY" \
               --env "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY"
           )"
           deployment_url="$(printf '%s\n' "$deployment_output" | tail -n 1 | tr -d '\r')"
           test -n "$deployment_url" || (echo "::error::Vercel did not return a deployment URL." && exit 1)
           echo "Vercel deployment: $deployment_url"
           echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
-
-
 
   attach_marketing_domain:
     needs:
@@ -781,7 +815,6 @@ jobs:
           [[ "$session_status" == "401" ]] || (echo "::error::Unauthenticated marketing BFF session endpoint must return 401." && exit 1)
           grep -Eiq '^cache-control:.*no-store' "$headers_file" || (echo "::error::Marketing BFF response is cacheable." && exit 1)
           rm -f -- "$headers_file" "$body_file"
-
 
   deployment_gate:
     name: deployment-gate

@@ -2,7 +2,7 @@ import {
   marketingOrchestratorHandler,
   type MarketingApiRequest,
   type MarketingApiResponse,
-} from "../../server/marketingBff";
+} from "../../server/marketingBff.js";
 
 export default function handler(req: MarketingApiRequest, res: MarketingApiResponse) {
   return marketingOrchestratorHandler(req, res);

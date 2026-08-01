@@ -262,8 +262,8 @@ describe("vercel config", () => {
     expect(workflow).toMatch(
       /pnpm dlx "vercel@\$\{VERCEL_CLI_VERSION\}" deploy \\\s+--prebuilt \\\s+--prod \\\s+--token="\$VERCEL_TOKEN"/,
     );
-    expect(workflow).toContain('--env "SUPABASE_URL=$VITE_SUPABASE_URL"');
-    expect(workflow).toContain('--env "SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY"');
+    expect(workflow).toContain('--env "SUPABASE_URL=$PRODUCTION_SUPABASE_URL"');
+    expect(workflow).toContain('--env "SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY"');
     expect(workflow).toContain('--env "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY"');
     expect(workflow).toContain("tar -czf \"$RUNNER_TEMP/vercel-output.tgz\"");
     expect(workflow).toContain("actions/upload-artifact@v4");
