@@ -212,27 +212,23 @@ jobs:
 
           path = Path('src/pages/dashboard/DashboardHome.tsx')
           source = path.read_text(encoding='utf-8')
-          old_no_url = '''      if (!checkout.url) {
-                throw new Error("Le paiement est en cours de vérification. Reprenez la même tentative dans quelques secondes.");
-              }'''
-          new_no_url = '''      if (!checkout.url) {
-                throw new Error(
-                  "L’enregistrement de la carte est en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants.",
-                );
-              }'''
-          if old_no_url in source:
-              source = source.replace(old_no_url, new_no_url, 1)
+          old_message = '"Le paiement est en cours de vérification. Reprenez la même tentative dans quelques secondes."'
+          new_message = '''(
+                "L’enregistrement de la carte est en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants."
+              )'''
+          if old_message in source:
+              source = source.replace(old_message, new_message, 1)
           elif "L’enregistrement de la carte est en cours de vérification" not in source:
               raise SystemExit('Dashboard card URL guard was not found')
 
-          old_catch = '''    } catch (error) {
-                toast({
-                  title: isPaymentAttemptIndeterminateError(error) ? "Paiement en cours de vérification" : "Paiement impossible",
-                  description: error instanceof Error ? error.message : "Veuillez réessayer dans quelques instants.",
-                  variant: "destructive",
-                });
-              } finally {'''
-          new_catch = '''    } catch (error) {
+          old_title = 'title: isPaymentAttemptIndeterminateError(error) ? "Paiement en cours de vérification" : "Paiement impossible",'
+          if old_title in source:
+              title_index = source.index(old_title)
+              block_start = source.rfind('    } catch (error) {', 0, title_index)
+              block_end = source.index('    } finally {', title_index)
+              if block_start < 0:
+                  raise SystemExit('Dashboard card catch start was not found')
+              replacement = '''    } catch (error) {
                 const isIndeterminate = isPaymentAttemptIndeterminateError(error);
                 toast({
                   title: isIndeterminate
@@ -246,8 +242,7 @@ jobs:
                   variant: "destructive",
                 });
               } finally {'''
-          if old_catch in source:
-              source = source.replace(old_catch, new_catch, 1)
+              source = source[:block_start] + replacement + source[block_end + len('    } finally {'):]
           elif "Enregistrement de carte impossible" not in source:
               raise SystemExit('Dashboard card catch block was not found')
 
@@ -255,7 +250,7 @@ jobs:
 
           test_path = Path('src/test/restaurateur-onboarding-reliability.test.ts')
           tests = test_path.read_text(encoding='utf-8')
-          marker = '''  it("sets the currency required by Stripe setup-mode checkout", () => {'''
+          marker = '  it("sets the currency required by Stripe setup-mode checkout", () => {'
           added = '''  it("uses card-specific recovery copy without suggesting a debit", () => {
                 const dashboard = read("src/pages/dashboard/DashboardHome.tsx");
                 expect(dashboard).toContain("Enregistrement de carte en cours");
