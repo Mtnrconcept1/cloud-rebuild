@@ -96,6 +96,8 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "settle-developer-statement": "le règlement d’un relevé développeur",
   "campaign-portal": "la gestion des campagnes sponsorisées",
   "generate-campaign": "la génération d’une campagne marketing",
+  "marketing-orchestrator": "l’exécution gouvernée des campagnes marketing planifiées",
+  "marketing-provider-webhook": "la réception sécurisée des événements des fournisseurs marketing",
   "create-social-post-boost": "la mise en avant payante d’une publication",
   "track-analytics": "la collecte des événements d’analyse",
   "track-sponsored-event": "la collecte des événements sponsorisés",

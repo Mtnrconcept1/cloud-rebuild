@@ -56,6 +56,7 @@ describe("SEO growth readiness", () => {
     expect(robots).toMatch(/^Disallow: \/$/m);
     expect(robots).toContain("Sitemap: https://www.thetok.ch/sitemap.xml");
     expect(vercel).toContain('"key": "X-Robots-Tag"');
+    expect(vercel).toContain("marketing");
     expect(vercel).toContain("memoire-tok");
     expect(sitemapIndex).toContain("https://www.thetok.ch/sitemap-pages.xml");
     expect(sitemapIndex).toContain("https://www.thetok.ch/sitemap-actualites.xml");
@@ -70,7 +71,7 @@ describe("SEO growth readiness", () => {
     expect(prerender).toContain("MIN_LOCAL_RESTAURANTS");
     expect(prerender).toContain("inventoryCount");
     expect([pagesSitemap, restaurantSitemap, actualitesSitemap].join("\n")).not.toMatch(
-      /https:\/\/www\.thetok\.ch\/(?:admin|dashboard|courier|auth|panier|profil|notifications|commandes|reservations|points-cadeau)(?:\/|<)/,
+      /https:\/\/www\.thetok\.ch\/(?:admin|marketing|dashboard|courier|auth|panier|profil|memoire-tok|notifications|commandes|reservations|points-cadeau)(?:\/|<)/,
     );
   });
 

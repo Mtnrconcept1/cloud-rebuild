@@ -98,7 +98,7 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(app).toContain("<Navigate to={policy.home} replace />");
     expect(app).toContain("<CommercialDemoFrameRouteBoundary config={commercialDemoFrame}>");
     expect(app).toContain(
-      "const publicNavbar = !commercialDemoFrame && !oauthConsentFrame && shouldShowPublicNavbar(pathname)",
+      "const publicNavbar = showGlobalClientChrome && shouldShowPublicNavbar(pathname)",
     );
     expect(app).toContain("commercialDemoContext.snapshot.active_features.includes(flagName)");
   });

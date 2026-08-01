@@ -28,6 +28,38 @@ describe("vercel config", () => {
     }));
   });
 
+  it("opens the dedicated marketing host on the isolated admin workspace", () => {
+    const config = JSON.parse(readFileSync(path.resolve(process.cwd(), "vercel.json"), "utf8")) as {
+      redirects?: Array<{
+        source?: string;
+        destination?: string;
+        permanent?: boolean;
+        has?: Array<{ type?: string; value?: string }>;
+      }>;
+      headers?: Array<{
+        has?: Array<{ type?: string; value?: string }>;
+        headers?: Array<{ key?: string; value?: string }>;
+      }>;
+    };
+
+    expect(config.redirects).toContainEqual({
+      source: "/",
+      has: [{ type: "host", value: "marketing.thetok.ch" }],
+      destination: "/marketing",
+      permanent: false,
+    });
+    expect(config.redirects).not.toContainEqual(expect.objectContaining({
+      destination: expect.stringMatching(/^https:\/\/marketing\.thetok\.ch/),
+    }));
+
+    const headers = config.headers?.find((entry) => entry.has?.some(
+      (condition) => condition.type === "host" && condition.value === "marketing.thetok.ch",
+    ))?.headers || [];
+    expect(headers).toContainEqual({ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" });
+    expect(headers).toContainEqual({ key: "Referrer-Policy", value: "no-referrer" });
+    expect(headers).toContainEqual({ key: "Cache-Control", value: "private, no-store, max-age=0, must-revalidate" });
+  });
+
   it("routes admin paths through the dedicated admin domain", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
     const config = JSON.parse(readFileSync(configPath, "utf8")) as {
@@ -72,7 +104,7 @@ describe("vercel config", () => {
       rewrites?: Array<{ source?: string; destination?: string }>;
     };
 
-    const privateSurfacePattern = "/:surface(admin|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)";
+    const privateSurfacePattern = "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)";
 
     expect(config.rewrites).not.toContainEqual({
       source: "/(.*)",
@@ -194,7 +226,7 @@ describe("vercel config", () => {
     const noindexSources = (config.headers || [])
       .filter((entry) => entry.headers?.some((header) => header.key === "X-Robots-Tag"))
       .map((entry) => entry.source);
-    const privateSurfacePattern = "/:surface(admin|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)";
+    const privateSurfacePattern = "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)";
 
     expect(noindexSources).toContain(privateSurfacePattern);
     expect(noindexSources).toContain(`${privateSurfacePattern}/:path*`);
@@ -227,7 +259,12 @@ describe("vercel config", () => {
     expect(workflow).toContain("VERCEL_CLI_VERSION: 55.0.0");
     expect(workflow).not.toContain("vercel@latest");
     expect(workflow).toContain('pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --prod --token="$VERCEL_TOKEN"');
-    expect(workflow).toContain('pnpm dlx "vercel@${VERCEL_CLI_VERSION}" deploy --prebuilt --prod --token="$VERCEL_TOKEN"');
+    expect(workflow).toMatch(
+      /pnpm dlx "vercel@\$\{VERCEL_CLI_VERSION\}" deploy \\\s+--prebuilt \\\s+--prod \\\s+--token="\$VERCEL_TOKEN"/,
+    );
+    expect(workflow).toContain('--env "SUPABASE_URL=$VITE_SUPABASE_URL"');
+    expect(workflow).toContain('--env "SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY"');
+    expect(workflow).toContain('--env "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY"');
     expect(workflow).toContain("tar -czf \"$RUNNER_TEMP/vercel-output.tgz\"");
     expect(workflow).toContain("actions/upload-artifact@v4");
     expect(workflow).toContain("actions/download-artifact@v5");

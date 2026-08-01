@@ -261,3 +261,10 @@ verify_jwt = false
 
 [functions.ai-guardian]
 verify_jwt = false
+
+[functions.marketing-orchestrator]
+verify_jwt = false
+
+[functions.marketing-provider-webhook]
+verify_jwt = false
+

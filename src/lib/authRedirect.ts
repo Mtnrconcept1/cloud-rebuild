@@ -73,3 +73,4 @@ export function buildSanitizedAuthRedirectUrl(href: string) {
 
   return `${url.pathname}${url.search}${url.hash}`;
 }
+

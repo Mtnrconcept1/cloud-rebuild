@@ -39,3 +39,4 @@ export function getWorkspaceChooserHref(hostname?: string) {
   }
   return `${TOK_CANONICAL_AUTH_ORIGIN}${TOK_WORKSPACE_CHOOSER_PATH}`;
 }
+

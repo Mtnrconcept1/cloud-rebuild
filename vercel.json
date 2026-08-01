@@ -163,6 +163,17 @@
       "permanent": false
     },
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "marketing.thetok.ch"
+        }
+      ],
+      "destination": "/marketing",
+      "permanent": false
+    },
+    {
       "source": "/admin",
       "has": [
         {
@@ -297,6 +308,23 @@
       ]
     },
     {
+      "source": "/api/marketing/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store, max-age=0, must-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
       "source": "/:path*",
       "has": [
         {
@@ -373,6 +401,37 @@
       "has": [
         {
           "type": "host",
+          "value": "marketing.thetok.ch"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' https://www.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.sentry.io https://sentry.io https://photon.komoot.io https://router.project-osrm.org https://www.gstatic.com https://fcmregistrations.googleapis.com https://firebaseinstallations.googleapis.com https://fcm.googleapis.com https://firestore.googleapis.com; frame-src 'self' https://www.thetok.ch https://cloud-rebuild-recovered.vercel.app https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:; media-src 'self' blob: https:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
           "value": "admin.thetok.ch"
         }
       ],
@@ -388,7 +447,7 @@
       ]
     },
     {
-      "source": "/:surface(admin|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)",
+      "source": "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)",
       "headers": [
         {
           "key": "X-Robots-Tag",
@@ -401,7 +460,7 @@
       ]
     },
     {
-      "source": "/:surface(admin|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)/:path*",
+      "source": "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)/:path*",
       "headers": [
         {
           "key": "X-Robots-Tag",
@@ -553,11 +612,11 @@
       "destination": "/images/taboule.webp"
     },
     {
-      "source": "/:surface(admin|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)",
+      "source": "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)",
       "destination": "/index.html"
     },
     {
-      "source": "/:surface(admin|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)/:path*",
+      "source": "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)/:path*",
       "destination": "/index.html"
     },
     {
