@@ -60,6 +60,45 @@ jobs:
               line[10:] if line.startswith("          ") else line
               for line in workflow[start:end].splitlines()
           )
+
+          strict_helper = '''def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              source = target.read_text(encoding="utf-8")
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one occurrence, found {count}")
+              target.write_text(source.replace(old, new, 1), encoding="utf-8")'''
+          tolerant_helper = '''def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              source = target.read_text(encoding="utf-8")
+              exact_count = source.count(old)
+              if exact_count == 1:
+                  target.write_text(source.replace(old, new, 1), encoding="utf-8")
+                  return
+
+              old_lines = old.strip("\\n").splitlines()
+              normalized_old = [line.strip() for line in old_lines]
+              source_lines = source.splitlines()
+              matches: list[int] = []
+              width = len(old_lines)
+              for candidate in range(0, len(source_lines) - width + 1):
+                  if [line.strip() for line in source_lines[candidate:candidate + width]] == normalized_old:
+                      matches.append(candidate)
+
+              if len(matches) != 1:
+                  marker = normalized_old[0] if normalized_old else "<empty>"
+                  raise SystemExit(
+                      f"{path}: expected one normalized occurrence for {marker!r}, found {len(matches)}"
+                  )
+
+              candidate = matches[0]
+              source_lines[candidate:candidate + width] = new.strip("\\n").splitlines()
+              trailing_newline = "\\n" if source.endswith("\\n") else ""
+              target.write_text("\\n".join(source_lines) + trailing_newline, encoding="utf-8")'''
+          if script.count(strict_helper) != 1:
+              raise SystemExit("Unable to locate the strict replace_once helper")
+          script = script.replace(strict_helper, tolerant_helper, 1)
+
           Path("/tmp/apply-incident-hardening.py").write_text(script + "\n", encoding="utf-8")
           PY_EXTRACT
           python /tmp/apply-incident-hardening.py
