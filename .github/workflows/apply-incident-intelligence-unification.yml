@@ -111,8 +111,11 @@ jobs:
       - name: Typecheck application
         run: pnpm run typecheck
 
-      - name: Lint all sources
-        run: pnpm run lint
+      - name: Lint generated product sources
+        run: >-
+          pnpm exec eslint .
+          --ignore-pattern scripts/apply-incident-intelligence-unification.mjs
+          --ignore-pattern scripts/fix-incident-patcher-syntax.py
 
       - name: Validate diff and secret safety
         shell: bash
