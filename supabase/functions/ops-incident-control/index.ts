@@ -899,7 +899,12 @@ function severityIcon(severity: Severity) {
   return "🔵";
 }
 
-function buildIncidentTelegramMessage(incidentId: string, input: IncidentInput, plan: RepairPlan) {
+function buildIncidentTelegramMessage(
+  incidentId: string,
+  input: IncidentInput,
+  plan: RepairPlan,
+  occurrenceCount: number,
+) {
   const steps = plan.repair_steps.slice(0, 6)
     .map((step, index) => `${index + 1}. ${escapeHtml(step)}`)
     .join("\n");
@@ -928,7 +933,7 @@ function buildIncidentTelegramMessage(incidentId: string, input: IncidentInput, 
     `<b>Fichiers à vérifier</b>\n${files}`,
     "",
     `<b>Risque :</b> ${escapeHtml(plan.risk_level)} · <b>Confiance :</b> ${Math.round(plan.confidence * 100)} %`,
-    `<b>Occurrences :</b> 1 · <b>Source :</b> ${escapeHtml(input.source)}`,
+    `<b>Occurrences :</b> ${Math.max(1, occurrenceCount)} · <b>Source :</b> ${escapeHtml(input.source)}`,
     `<b>Incident :</b> <code>${escapeHtml(incidentId)}</code>`,
     "",
     decisionText,
@@ -940,13 +945,14 @@ async function sendIncidentApprovalMessage(
   input: IncidentInput,
   plan: RepairPlan,
   approvalToken: string,
+  occurrenceCount: number,
 ) {
   const chatId = configuredTelegramChatId();
   if (!chatId) throw new HttpError(503, "telegram_chat_not_configured");
 
   const result = await telegramApi("sendMessage", {
     chat_id: chatId,
-    text: buildIncidentTelegramMessage(incidentId, input, plan),
+    text: buildIncidentTelegramMessage(incidentId, input, plan, occurrenceCount),
     parse_mode: "HTML",
     disable_web_page_preview: true,
     reply_markup: {
@@ -1097,12 +1103,18 @@ async function analyzeAndNotify(registered: RegisteredIncident, input: IncidentI
   let build: RepairPlanBuild;
   if (previous && isReusableRepairPlan(previous.repair_plan, evidenceHash)) {
     const usage: OpenAIResponseUsage = {};
-    const plan = decorateRepairPlan(
+    const plan = {
+    ...decorateRepairPlan(
       previous.repair_plan,
       routing,
       evidenceHash,
       { source: "cache", cached: true, usage },
-    );
+    ),
+    severity: maxSeverity(
+      input.severity,
+      normalizeSeverity(previous.repair_plan.severity, input.severity),
+    ),
+  };
     build = {
       plan,
       usage,
@@ -1185,7 +1197,7 @@ async function analyzeAndNotify(registered: RegisteredIncident, input: IncidentI
   if (awaitingError) throw new HttpError(500, awaitingError.message);
 
   try {
-    const telegram = await sendIncidentApprovalMessage(registered.incidentId, input, plan, approvalToken);
+    const telegram = await sendIncidentApprovalMessage(registered.incidentId, input, plan, approvalToken, currentIncident.occurrence_count);
     const { error: messageError } = await client
       .from("ops_incidents")
       .update({

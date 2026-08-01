@@ -126,6 +126,53 @@ function canonicalize(value: unknown, depth = 0): unknown {
   return output;
 }
 
+const VOLATILE_INCIDENT_EVIDENCE_KEY = /^(?:id|source_event_id|request_id|rid|update_id|github_run_id|github_pr_number|decision_message_id|decision_chat_id|occurrence_count|failure_count|attempt|duration_ms|run_number|created_at|updated_at|timestamp|time|date|distinct_clients|distinct_user_agents|input_tokens|output_tokens|total_tokens|cached_input_tokens|cache_write_tokens|reasoning_tokens|usage)$/i;
+
+function isVolatileIncidentEvidenceKey(key: string) {
+  const normalized = key.toLowerCase();
+  return VOLATILE_INCIDENT_EVIDENCE_KEY.test(normalized)
+    || normalized.endsWith("_at")
+    || /(?:^|_)(?:count|duration_ms|tokens)$/.test(normalized);
+}
+
+function canonicalizeIncidentEvidence(value: unknown, depth = 0): unknown {
+  if (depth > 7) return "[depth-limited]";
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string") return normalizeText(value, 8_000);
+  if (typeof value === "number" || typeof value === "boolean") return value;
+  if (Array.isArray(value)) {
+    const unique = new Map<string, unknown>();
+    for (const entry of value.slice(0, 80)) {
+      const normalized = canonicalizeIncidentEvidence(entry, depth + 1);
+      unique.set(JSON.stringify(normalized), normalized);
+    }
+    return [...unique.values()].sort((left, right) =>
+      JSON.stringify(left).localeCompare(JSON.stringify(right))
+    );
+  }
+  if (typeof value !== "object") return normalizeText(String(value), 1_000);
+
+  const output: Record<string, unknown> = {};
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .slice(0, 120)) {
+    if (isVolatileIncidentEvidenceKey(key)) continue;
+    output[key.slice(0, 160)] = canonicalizeIncidentEvidence(entry, depth + 1);
+  }
+  return output;
+}
+
+function normalizeIncidentSignature(value: unknown) {
+  return normalizeText(value, 2_400)
+    .replace(/\b(attempt|essai|retry)\s*#?\s*\d+\b/g, "$1 <count>");
+}
+
+function evidenceRecord(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
 export async function buildStableEvidenceHash(value: unknown) {
   const canonical = JSON.stringify(canonicalize(value)).slice(0, 120_000);
   const digest = await crypto.subtle.digest(
@@ -138,13 +185,21 @@ export async function buildStableEvidenceHash(value: unknown) {
 }
 
 export function buildIncidentEvidenceEnvelope(input: IncidentEvidenceInput) {
+  const technical = evidenceRecord(input.technicalDetails);
+  const context = evidenceRecord(input.context);
+  const primaryError = technical.error_message
+    || technical.error_type
+    || technical.error_code
+    || context.primary_error
+    || context.error_message
+    || input.summary;
+
   return {
     source: normalizeText(input.source, 120),
-    severity: normalizeSeverity(input.severity),
     title: normalizeText(input.title, 500),
-    summary: normalizeText(input.summary, 4_000),
-    technical_details: canonicalize(input.technicalDetails),
-    sanitized_context: canonicalize(input.context),
+    primary_error: normalizeIncidentSignature(primaryError),
+    technical_details: canonicalizeIncidentEvidence(input.technicalDetails),
+    sanitized_context: canonicalizeIncidentEvidence(input.context),
   };
 }
 
@@ -214,10 +269,10 @@ export function classifyIncidentRepairability(
     /error|failed|rejected|unavailable|timeout|rate[_ -]?limit/,
   ]));
   const sensitive = containsAny(evidenceText, [
-    /payment|stripe|checkout|refund|invoice|billing|compta/,
-    /auth|rls|role|permission|security|secret|token|credential/,
-    /migration|schema|database|postgres/,
-  ]);
+  /payment|stripe|checkout|refund|invoice|billing|compta/,
+  /auth(?:entication|orization)?|rls|role|permission|security|secret|credential|bearer|jwt|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|session[_ -]?token/,
+  /migration|schema|database|postgres/,
+]);
 
   if (containsAny(evidenceText, [
     /method_not_allowed|content_type_must_be_json|invalid_json_body/,

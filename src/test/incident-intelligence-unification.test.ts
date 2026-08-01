@@ -96,6 +96,8 @@ describe("unified incident intelligence", () => {
 
     expect(support).toContain('"escalate_technical_incident"');
     expect(support).toContain("selectSupportMessages");
+    expect(support).toContain("buildSupportModelContext(context)");
+    expect(support).toContain("model_context: modelContext");
     expect(support).toContain("buildSupportMessageDigest");
     expect(support).toContain("context_hash");
     expect(support).toContain("cached_from_run_id");

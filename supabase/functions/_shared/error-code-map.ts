@@ -8,11 +8,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "action_id_required": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1385
+      "line": 1469
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1394
+      "line": 1478
     }
   ],
   "action_invalid": [
@@ -220,7 +220,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 697
+      "line": 722
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
@@ -268,7 +268,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "approved_base_sha_missing": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1812
+      "line": 1824
     }
   ],
   "authorization_code_expired": [
@@ -370,7 +370,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "codex_dispatch_not_configured": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1657
+      "line": 1669
     }
   ],
   "commercial_demo_ai_budget_exhausted": [
@@ -740,7 +740,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "explicit_confirmation_required": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 884
+      "line": 968
     }
   ],
   "feature_disabled": [
@@ -766,11 +766,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "financial_action_requires_manual_workflow": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 875
+      "line": 959
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 903
+      "line": 987
     }
   ],
   "firebase_service_account_invalid_format": [
@@ -836,39 +836,39 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "github_base_revision_invalid": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1580
+      "line": 1592
     }
   ],
   "github_base_revision_not_found": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1602
+      "line": 1614
     }
   ],
   "github_incident_token_not_configured": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1556
+      "line": 1568
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1609
+      "line": 1621
     }
   ],
   "github_pr_number_mismatch": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1937
+      "line": 1949
     }
   ],
   "github_run_id_invalid": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1787
+      "line": 1799
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1890
+      "line": 1902
     }
   ],
   "google_actions_center_route_not_found": [
@@ -1068,69 +1068,69 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "incident_bound_to_another_github_run": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1795
+      "line": 1807
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1919
+      "line": 1931
     }
   ],
   "incident_context_parameters_missing": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1785
+      "line": 1797
     }
   ],
   "incident_context_token_expired": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1801
+      "line": 1813
     }
   ],
   "incident_context_token_invalid": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1805
+      "line": 1817
     }
   ],
   "incident_context_token_missing": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1798
+      "line": 1810
     }
   ],
   "incident_id_missing": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1889
+      "line": 1901
     }
   ],
   "incident_id_required": [
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 1016
+      "line": 1041
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1373
+      "line": 1457
     }
   ],
   "incident_not_approved": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1792
+      "line": 1804
     }
   ],
   "incident_not_found": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1003
+      "line": 1009
     }
   ],
   "incident_registration_failed": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1023
+      "line": 1029
     }
   ],
   "incident_scan_invalid_response": [
@@ -1160,15 +1160,15 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "incident_state_changed": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1729
+      "line": 1741
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1825
+      "line": 1837
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1970
+      "line": 1982
     }
   ],
   "instruction_invalid": [
@@ -1222,7 +1222,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_callback_data": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1641
+      "line": 1653
     }
   ],
   "invalid_category": [
@@ -1244,13 +1244,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_github_incident_repository": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1549
+      "line": 1561
     }
   ],
   "invalid_github_pr_url": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1935
+      "line": 1947
     }
   ],
   "invalid_image": [
@@ -1262,7 +1262,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_incident_workflow_transition": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1916
+      "line": 1928
     }
   ],
   "invalid_json": [
@@ -1290,7 +1290,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_repair_branch": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1924
+      "line": 1936
     }
   ],
   "invalid_request": [
@@ -1462,7 +1462,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2042
+      "line": 2054
     },
     {
       "file": "supabase/functions/ops-incident-native-scan/index.ts",
@@ -1524,19 +1524,19 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ops_github_callback_secret_not_configured": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1611
+      "line": 1623
     }
   ],
   "ops_incident_escalation_timeout": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 574
+      "line": 683
     }
   ],
   "ops_incident_internal_configuration_missing": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 545
+      "line": 654
     }
   ],
   "ops_incident_not_found": [
@@ -1550,7 +1550,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 837
+      "line": 862
     }
   ],
   "order_not_found": [
@@ -1566,7 +1566,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "order_recipient_unavailable": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 995
+      "line": 1079
     }
   ],
   "origin_not_allowed": [
@@ -1688,7 +1688,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "pull_request_metadata_missing": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1941
+      "line": 1953
     }
   ],
   "rate_limiter_unavailable": [
@@ -1876,37 +1876,37 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "reservation_recipient_unavailable": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 973
+      "line": 1057
     }
   ],
   "resolution_action_already_executing": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 881
+      "line": 965
     }
   ],
   "resolution_action_concurrent_update": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 931
+      "line": 1015
     }
   ],
   "resolution_action_not_found": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 869
+      "line": 953
     }
   ],
   "resolution_action_not_rejectable": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1293
+      "line": 1377
     }
   ],
   "resolution_action_rejected": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 878
+      "line": 962
     }
   ],
   "response_type_code_required": [
@@ -1960,7 +1960,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "restaurant_owner_unavailable": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1016
+      "line": 1100
     }
   ],
   "restaurant_required": [
@@ -2112,25 +2112,25 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "technical_evidence_insufficient": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1068
+      "line": 1152
     }
   ],
   "telegram_chat_forbidden": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1529
+      "line": 1541
     }
   ],
   "telegram_chat_not_configured": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 945
+      "line": 951
     }
   ],
   "telegram_message_id_missing": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 963
+      "line": 969
     }
   ],
   "telegram_not_configured": [
@@ -2142,7 +2142,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "telegram_user_forbidden": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1536
+      "line": 1548
     }
   ],
   "tok_connect_agent_run_not_approvable": [
@@ -2326,41 +2326,41 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "unauthorized": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1484
+      "line": 1496
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1503
+      "line": 1515
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1522
+      "line": 1534
     }
   ],
   "unexpected_reasoning_effort": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1951
+      "line": 1963
     }
   ],
   "unexpected_repair_model": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1948
+      "line": 1960
     }
   ],
   "unsupported_action": [
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 1044
+      "line": 1069
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 1402
+      "line": 1486
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2075
+      "line": 2087
     },
     {
       "file": "supabase/functions/restaurant-media-governance/index.ts",
@@ -2382,13 +2382,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "unsupported_resolution_action": [
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
-      "line": 889
+      "line": 973
     }
   ],
   "unsupported_workflow_status": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 1912
+      "line": 1924
     }
   ],
   "user_message_required": [

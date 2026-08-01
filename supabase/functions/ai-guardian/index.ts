@@ -611,13 +611,38 @@ async function analyzeIncident(
     .maybeSingle();
   if (existingError) throw new HttpError(500, existingError.message);
   if (existingAssessment && !forceDeepAnalysis) {
-    return {
-      assessment: existingAssessment,
-      result: existingAssessment.assessment,
-      function_name: findLikelyFunctionName(incident),
-      reused: true,
-    };
-  }
+  const reusedModel = existingAssessment.model || "cache";
+  await recordUsage(actor, {
+    status: "success",
+    action: "analyze_cached",
+    incidentId,
+    assessmentId: existingAssessment.id,
+    model: reusedModel,
+    usage: {},
+    metadata: {
+      cached: true,
+      evidence_hash: evidenceHash,
+      analysis_source: existingAssessment.analysis_source || "cache",
+    },
+  });
+  await writeAuditLog({
+    adminClient: actor.adminClient,
+    functionName: FUNCTION_NAME,
+    status: "success",
+    action: "analyze_cached",
+    actor,
+    request,
+    targetEntityType: "ops_guardian_assessments",
+    targetEntityId: existingAssessment.id,
+    metadata: { incident_id: incidentId, evidence_hash: evidenceHash },
+  });
+  return {
+    assessment: existingAssessment,
+    result: existingAssessment.assessment,
+    function_name: findLikelyFunctionName(incident),
+    reused: true,
+  };
+}
 
   const canonical = buildCanonicalGuardianAssessment(incident);
   const deepRequired = shouldUseDeepIncidentAnalysis({

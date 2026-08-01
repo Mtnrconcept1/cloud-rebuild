@@ -275,7 +275,7 @@ async function getIncidentContext(
     .select("id, author_role, body, visibility, metadata, created_at")
     .eq("incident_id", incidentId)
     .order("created_at", { ascending: false })
-  .limit(80);
+    .limit(80);
 
   if (messageError) throw new HttpError(500, messageError.message);
 
@@ -538,6 +538,115 @@ function isComplexSupportContext(
     || /(payment|paiement|stripe|refund|rembourse|chargeback|fraud|fraude|allerg|medical|médical|legal|juridique|threat|menace)/i.test(evidence);
 }
 
+function compactSupportRecord(
+  value: unknown,
+  keys: readonly string[],
+  maxStringLength = 800,
+) {
+  if (!isRecord(value)) return null;
+  const output: Record<string, unknown> = {};
+  for (const key of keys) {
+    const entry = value[key];
+    if (typeof entry === "string") {
+      const normalized = sanitizeMultilineText(entry, maxStringLength);
+      if (normalized) output[key] = normalized;
+    } else if (typeof entry === "number" || typeof entry === "boolean") {
+      output[key] = entry;
+    }
+  }
+  return Object.keys(output).length > 0 ? output : null;
+}
+
+function buildSupportModelContext(
+  context: Awaited<ReturnType<typeof getIncidentContext>>,
+) {
+  return {
+    incident: compactSupportRecord(context.incident, [
+      "category",
+      "priority",
+      "status",
+      "subject",
+      "description",
+      "resolution",
+      "last_message_at",
+      "resolved_at",
+      "closed_at",
+      "created_at",
+      "updated_at",
+    ], 1_600),
+    incident_technical_metadata: buildSupportTechnicalEvidence({
+      metadata: context.incident.metadata,
+    }).metadata,
+    messages: context.messages.map((message) => ({
+      author_role: sanitizeText(message.author_role, 80),
+      visibility: sanitizeText(message.visibility, 80),
+      created_at: sanitizeText(message.created_at, 80),
+      body: sanitizeMultilineText(message.body, 1_200),
+    })),
+    message_digest: context.messageDigest,
+    order: compactSupportRecord(context.order, [
+      "status",
+      "payment_status",
+      "fulfillment_status",
+      "total_amount",
+      "discount_amount",
+      "delivery_fee",
+      "refund_status",
+      "refunded_amount_chf",
+      "restaurant_response_status",
+      "restaurant_viewed_at",
+      "restaurant_accepted_at",
+      "acceptance_deadline_at",
+      "created_at",
+      "updated_at",
+      "cancelled_at",
+      "cancellation_reason_code",
+    ]),
+    reservation: compactSupportRecord(context.reservation, [
+      "status",
+      "feature",
+      "date",
+      "time",
+      "party_size",
+      "total_amount",
+      "deposit_amount_chf",
+      "deposit_status",
+      "refund_status",
+      "refunded_amount_chf",
+      "restaurant_confirmation_required",
+      "restaurant_confirmed_at",
+      "reservation_confirmation_deadline_at",
+      "created_at",
+      "updated_at",
+      "cancelled_at",
+      "cancellation_reason_code",
+      "honored_at",
+    ]),
+    payments: context.payments.map((payment) => compactSupportRecord(payment, [
+      "amount",
+      "currency",
+      "type",
+      "status",
+      "provider",
+      "stripe_mode",
+      "created_at",
+    ])).filter(Boolean),
+    notifications: context.notifications.map((notification) => compactSupportRecord(notification, [
+      "title",
+      "type",
+      "category",
+      "read_at",
+      "created_at",
+    ], 500)).filter(Boolean),
+    restaurant: compactSupportRecord(context.restaurant, [
+      "name",
+      "city",
+      "cuisine_type",
+      "is_demo",
+    ], 500),
+  };
+}
+
 async function invokeOpsIncidentControl(payload: Record<string, unknown>) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim() || "";
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
@@ -590,26 +699,11 @@ async function analyzeIncident(
   }
 
   const context = await getIncidentContext(actor, incidentId);
+  const modelContext = buildSupportModelContext(context);
   const contextHash = await buildStableEvidenceHash({
     analysis_version: SUPPORT_ANALYSIS_VERSION,
     prompt,
-    incident: {
-      id: context.incident.id,
-      category: context.incident.category,
-      priority: context.incident.priority,
-      status: context.incident.status,
-      subject: context.incident.subject,
-      description: context.incident.description,
-      last_message_at: context.incident.last_message_at,
-      updated_at: context.incident.updated_at,
-    },
-    messages: context.messages,
-    message_digest: context.messageDigest,
-    order: context.order,
-    reservation: context.reservation,
-    payments: context.payments,
-    notifications: context.notifications,
-    restaurant: context.restaurant,
+    model_context: modelContext,
   });
 
   const { data: cachedRun, error: cacheError } = await actor.adminClient
@@ -684,17 +778,7 @@ Réponds en français opérationnel.`;
       { role: "system", content: systemPrompt },
       {
         role: "user",
-        content: JSON.stringify({
-          prompt,
-          incident: context.incident,
-          messages: context.messages,
-          message_digest: context.messageDigest,
-          order: context.order,
-          reservation: context.reservation,
-          payments: context.payments,
-          notifications: context.notifications,
-          restaurant: context.restaurant,
-        }),
+        content: JSON.stringify({ prompt, ...modelContext }),
       },
     ],
     maxOutputTokens: SUPPORT_ANALYSIS_OUTPUT_TOKENS,

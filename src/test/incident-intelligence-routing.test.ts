@@ -5,9 +5,11 @@ import { describe, expect, it } from "vitest";
 
 import { getOpenAITextCreditUnits } from "../../supabase/functions/_shared/ai-pricing";
 import {
+  buildIncidentEvidenceHash,
   buildStableEvidenceHash,
   buildSupportTechnicalEvidence,
   classifyIncidentRepairability,
+  shouldUseDeepIncidentAnalysis,
 } from "../../supabase/functions/_shared/incident-intelligence";
 
 const root = process.cwd();
@@ -145,5 +147,92 @@ describe("incident intelligence routing behavior", () => {
     expect(supportUi).toContain("workspaceQuery.data?.ops_incidents");
     expect(supportUi).toContain("Ouvrir dans Guardian");
     expect(guardianUi).toContain("forceDeepAnalysis:");
+  });
+
+  it("keeps the incident evidence hash stable across counts and timestamps", async () => {
+    const first = await buildIncidentEvidenceHash({
+      source: "edge_audit",
+      severity: "medium",
+      title: "Edge Function daily-dish-ai — generate",
+      summary: "1 échec sans succès plus récent",
+      technicalDetails: {
+        function_name: "daily-dish-ai",
+        action: "generate",
+        error_message: "provider_timeout",
+        failure_count: 1,
+        last_failure_at: "2026-08-01T10:00:00Z",
+      },
+      context: {
+        source_files: ["supabase/functions/daily-dish-ai/index.ts"],
+        recent_failures: [{
+          created_at: "2026-08-01T10:00:00Z",
+          error_message: "provider_timeout",
+        }],
+        impact_scope: { failure_count: 1, distinct_clients: 1 },
+      },
+    });
+    const second = await buildIncidentEvidenceHash({
+      source: "edge_audit",
+      severity: "critical",
+      title: "Edge Function daily-dish-ai — generate",
+      summary: "19 échecs sans succès plus récent",
+      technicalDetails: {
+        function_name: "daily-dish-ai",
+        action: "generate",
+        error_message: "provider_timeout",
+        failure_count: 19,
+        last_failure_at: "2026-08-01T16:30:00Z",
+      },
+      context: {
+        source_files: ["supabase/functions/daily-dish-ai/index.ts"],
+        recent_failures: [{
+          created_at: "2026-08-01T16:30:00Z",
+          error_message: "provider_timeout",
+        }],
+        impact_scope: { failure_count: 19, distinct_clients: 12 },
+      },
+    });
+    const changed = await buildIncidentEvidenceHash({
+      source: "edge_audit",
+      title: "Edge Function daily-dish-ai — generate",
+      technicalDetails: {
+        function_name: "daily-dish-ai",
+        action: "generate",
+        error_message: "invalid_structured_output",
+      },
+      context: {
+        source_files: ["supabase/functions/daily-dish-ai/index.ts"],
+      },
+    });
+
+    expect(second).toBe(first);
+    expect(changed).not.toBe(first);
+  });
+
+  it("does not treat token accounting fields as a security escalation", () => {
+    const decision = classifyIncidentRepairability({
+      source: "edge_audit",
+      severity: "medium",
+      summary: "OpenAI provider timeout",
+      technicalDetails: {
+        provider: "openai",
+        error_message: "provider_timeout",
+      },
+      context: {
+        runtime_diagnostics: {
+          input_tokens: 1200,
+          output_tokens: 80,
+          reasoning_tokens: 40,
+        },
+      },
+    });
+
+    expect(decision.sensitive).toBe(false);
+    expect(shouldUseDeepIncidentAnalysis({
+      severity: "medium",
+      repairability: decision.repairability,
+      confidence: decision.confidence,
+      sensitive: decision.sensitive,
+    })).toBe(false);
   });
 });
