@@ -2,6 +2,13 @@
 set -euo pipefail
 
 supabase_ci_retry() {
+  if [[ "${SUPABASE_CI_SINGLE_FUNCTION_DEPLOY:-false}" != "true" ]] \
+    && [[ "${1:-}" == "functions" ]] \
+    && [[ "${2:-}" == "deploy" ]]; then
+    supabase_ci_deploy_functions_individually "${@:3}"
+    return $?
+  fi
+
   local attempt=1
   local max_attempts="${SUPABASE_CLI_RETRY_ATTEMPTS:-4}"
   local delay_seconds="${SUPABASE_CLI_RETRY_DELAY_SECONDS:-20}"
@@ -23,6 +30,13 @@ supabase_ci_retry() {
 
     local output
     output="$(cat "$output_file")"
+
+    if supabase_ci_is_existing_deployment "$output"; then
+      echo "Supabase reports that this exact Edge Function deployment already exists; treating it as an idempotent success."
+      rm -f "$output_file"
+      return 0
+    fi
+
     if [[ "$attempt" -ge "$max_attempts" ]] || ! supabase_ci_is_transient_error "$output"; then
       rm -f "$output_file"
       return "$status"
@@ -33,6 +47,57 @@ supabase_ci_retry() {
     sleep "$sleep_seconds"
     attempt=$((attempt + 1))
   done
+}
+
+supabase_ci_deploy_functions_individually() {
+  local -a function_names=()
+  local -a deploy_options=()
+  local parsing_options=false
+  local argument
+
+  for argument in "$@"; do
+    if [[ "$argument" == --* ]]; then
+      parsing_options=true
+    fi
+
+    if [[ "$parsing_options" == "true" ]]; then
+      deploy_options+=("$argument")
+    else
+      function_names+=("$argument")
+    fi
+  done
+
+  if (( ${#function_names[@]} == 0 )); then
+    while IFS= read -r function_path; do
+      function_names+=("$(basename "$function_path")")
+    done < <(find supabase/functions -mindepth 1 -maxdepth 1 -type d ! -name '_shared' -print | sort)
+  fi
+
+  if (( ${#function_names[@]} == 0 )); then
+    echo "::error::No Supabase Edge Function directory was found."
+    return 1
+  fi
+
+  local function_name
+  for function_name in "${function_names[@]}"; do
+    if [[ ! "$function_name" =~ ^[A-Za-z0-9_-]+$ ]]; then
+      echo "::error::Invalid Edge Function name: $function_name"
+      return 1
+    fi
+    if [[ ! -d "supabase/functions/$function_name" ]]; then
+      echo "::error::Edge Function '$function_name' does not exist locally."
+      return 1
+    fi
+
+    echo "Deploying Edge Function idempotently: $function_name"
+    SUPABASE_CI_SINGLE_FUNCTION_DEPLOY=true \
+      supabase_ci_retry functions deploy "$function_name" "${deploy_options[@]}"
+  done
+}
+
+supabase_ci_is_existing_deployment() {
+  local output="$1"
+  [[ "$output" =~ deployment[[:space:]]+already[[:space:]]+exists ]]
 }
 
 supabase_ci_is_transient_error() {
