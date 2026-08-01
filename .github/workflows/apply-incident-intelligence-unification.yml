@@ -1,0 +1,137 @@
+name: Apply incident intelligence unification
+
+on:
+  push:
+    branches:
+      - feat/unify-incident-intelligence
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+
+jobs:
+  apply-and-validate:
+    name: Apply patch and run focused validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/unify-incident-intelligence
+          fetch-depth: 0
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply one-shot source transformation
+        run: node scripts/apply-incident-intelligence-unification.mjs
+
+      - name: Regenerate canonical error-code map
+        run: pnpm run generate:error-code-map
+
+      - name: Parse modified TypeScript sources
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import ts from "typescript";
+          import { readFileSync } from "node:fs";
+
+          const files = [
+            "supabase/functions/_shared/incident-intelligence.ts",
+            "supabase/functions/_shared/openai.ts",
+            "supabase/functions/_shared/ai-pricing.ts",
+            "supabase/functions/ops-incident-control/index.ts",
+            "supabase/functions/ai-guardian/index.ts",
+            "supabase/functions/ai-support-resolution/index.ts",
+            "src/lib/tokIntelligence.ts",
+            "src/test/incident-intelligence-unification.test.ts",
+          ];
+
+          let failed = false;
+          for (const file of files) {
+            const output = ts.transpileModule(readFileSync(file, "utf8"), {
+              fileName: file,
+              reportDiagnostics: true,
+              compilerOptions: {
+                target: ts.ScriptTarget.ES2022,
+                module: ts.ModuleKind.ESNext,
+                jsx: ts.JsxEmit.ReactJSX,
+              },
+            });
+            const diagnostics = output.diagnostics || [];
+            if (diagnostics.length === 0) continue;
+            failed = true;
+            console.error(`\n${file}`);
+            for (const diagnostic of diagnostics) {
+              console.error(ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
+            }
+          }
+          if (failed) process.exit(1);
+          NODE
+
+      - name: Run focused regression tests
+        run: >-
+          pnpm exec vitest run --mode production
+          src/test/incident-intelligence-unification.test.ts
+          src/test/tok-intelligence-suite.test.ts
+          src/test/incident-automation-readiness.test.ts
+          src/test/incident-evidence-depth.test.ts
+
+      - name: Typecheck application
+        run: pnpm run typecheck
+
+      - name: Lint all sources
+        run: pnpm run lint
+
+      - name: Validate diff and secret safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          if git diff -- . ':!pnpm-lock.yaml' | grep -Eiq '(sk-proj-|sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}|whsec_[A-Za-z0-9_-]{20,}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9]{20,})'; then
+            echo "::error::A secret-like value was detected in the generated diff."
+            exit 1
+          fi
+
+      - name: Commit generated implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet && [[ -z "$(git ls-files --others --exclude-standard)" ]]; then
+            echo "No generated changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            supabase/functions/_shared/incident-intelligence.ts \
+            supabase/functions/_shared/openai.ts \
+            supabase/functions/_shared/ai-pricing.ts \
+            supabase/functions/_shared/error-code-map.ts \
+            supabase/functions/ops-incident-control/index.ts \
+            supabase/functions/ai-guardian/index.ts \
+            supabase/functions/ai-support-resolution/index.ts \
+            src/lib/tokIntelligence.ts \
+            src/test/incident-intelligence-unification.test.ts \
+            supabase/migrations/20260801130000_unify_incident_intelligence.sql \
+            docs/operations/incident-intelligence-unification.md
+          git commit -m "feat(ops): unify incident diagnosis and support escalation"
+          git push origin HEAD:feat/unify-incident-intelligence
