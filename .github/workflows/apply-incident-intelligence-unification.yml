@@ -100,13 +100,17 @@ jobs:
           if (failed) process.exit(1);
           NODE
 
-      - name: Run focused regression tests
-        run: >-
-          pnpm exec vitest run --mode production
-          src/test/incident-intelligence-unification.test.ts
-          src/test/tok-intelligence-suite.test.ts
-          src/test/incident-automation-readiness.test.ts
-          src/test/incident-evidence-depth.test.ts
+      - name: Test incident intelligence unification
+        run: pnpm exec vitest run --mode production src/test/incident-intelligence-unification.test.ts
+
+      - name: Test TOK intelligence suite
+        run: pnpm exec vitest run --mode production src/test/tok-intelligence-suite.test.ts
+
+      - name: Test incident automation readiness
+        run: pnpm exec vitest run --mode production src/test/incident-automation-readiness.test.ts
+
+      - name: Test incident evidence depth
+        run: pnpm exec vitest run --mode production src/test/incident-evidence-depth.test.ts
 
       - name: Typecheck application
         run: pnpm run typecheck
