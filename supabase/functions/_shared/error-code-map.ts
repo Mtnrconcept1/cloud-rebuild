@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 306 error codes mapped from supabase/functions/**.
+// 315 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -89,6 +89,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
       "line": 1154
+    }
+  ],
+  "ai_invalid_plan": [
+    {
+      "file": "supabase/functions/_shared/marketing-ai.ts",
+      "line": 100
     }
   ],
   "ai_invalid_response": [
@@ -227,12 +233,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 1358
     },
     {
-      "file": "supabase/functions/ai-restaurant-agent/index.ts",
-      "line": 193
+      "file": "supabase/functions/ai-marketing-agent/index.ts",
+      "line": 150
     },
     {
-      "file": "supabase/functions/ai-restaurant-tools/index.ts",
-      "line": 141
+      "file": "supabase/functions/ai-restaurant-agent/index.ts",
+      "line": 193
     }
   ],
   "ai_timeout": [
@@ -333,6 +339,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/contact-support/index.ts",
       "line": 78
+    }
+  ],
+  "channels_required": [
+    {
+      "file": "supabase/functions/ai-marketing-agent/index.ts",
+      "line": 91
     }
   ],
   "chat_tool_invalid": [
@@ -1177,6 +1189,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 1152
     }
   ],
+  "integrations_unavailable": [
+    {
+      "file": "supabase/functions/ai-marketing-agent/index.ts",
+      "line": 109
+    }
+  ],
   "invalid_action": [
     {
       "file": "supabase/functions/ai-campaign-studio/index.ts",
@@ -1185,6 +1203,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-campaign-studio/index.ts",
       "line": 500
+    },
+    {
+      "file": "supabase/functions/ai-marketing-agent/index.ts",
+      "line": 66
     },
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
@@ -1321,6 +1343,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
       "line": 901
+    }
+  ],
+  "item_count_invalid": [
+    {
+      "file": "supabase/functions/ai-marketing-agent/index.ts",
+      "line": 164
     }
   ],
   "item_required": [
@@ -2015,6 +2043,18 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 453
     }
   ],
+  "run_start_unavailable": [
+    {
+      "file": "supabase/functions/ai-marketing-agent/index.ts",
+      "line": 177
+    }
+  ],
+  "runs_unavailable": [
+    {
+      "file": "supabase/functions/ai-marketing-agent/index.ts",
+      "line": 146
+    }
+  ],
   "scheduler_identity_required": [
     {
       "file": "supabase/functions/ops-incident-native-scan/index.ts",
@@ -2323,6 +2363,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 244
     }
   ],
+  "too_many_channels": [
+    {
+      "file": "supabase/functions/ai-marketing-agent/index.ts",
+      "line": 93
+    }
+  ],
   "unauthorized": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
@@ -2365,6 +2411,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/restaurant-media-governance/index.ts",
       "line": 80
+    }
+  ],
+  "unsupported_channel": [
+    {
+      "file": "supabase/functions/ai-marketing-agent/index.ts",
+      "line": 97
     }
   ],
   "unsupported_grant_type": [
@@ -2431,6 +2483,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
       "line": 778
+    }
+  ],
+  "window_invalid": [
+    {
+      "file": "supabase/functions/ai-marketing-agent/index.ts",
+      "line": 160
     }
   ]
 };

@@ -10,11 +10,13 @@ export const MARKETING_BFF_ENDPOINTS = {
   logout: "/api/marketing/logout",
   rpc: "/api/marketing/rpc",
   orchestrator: "/api/marketing/orchestrator",
+  agent: "/api/marketing/agent",
 } as const;
 
 const MAX_MARKETING_REQUEST_BYTES = 256_000;
 const MAX_MARKETING_RESPONSE_BYTES = 2_000_000;
 const MARKETING_REQUEST_TIMEOUT_MS = 20_000;
+const MAX_MARKETING_REQUEST_TIMEOUT_MS = 130_000;
 const MARKETING_LOGIN_PATH = "/marketing/login";
 
 type MarketingBffRequestOptions = {
@@ -23,6 +25,12 @@ type MarketingBffRequestOptions = {
   requireCsrf?: boolean;
   redirectOnUnauthorized?: boolean;
   signal?: AbortSignal;
+  /**
+   * Per-request budget. The default suits a database round trip; the AI agent
+   * runs a reasoning pass and several image generations and needs far longer,
+   * so it raises this rather than every call waiting on the slowest one.
+   */
+  timeoutMs?: number;
 };
 
 export class MarketingBffError extends Error {
@@ -153,7 +161,11 @@ export async function marketingBffRequest<T>(
   const abortFromCaller = () => controller.abort(options.signal?.reason);
   if (options.signal?.aborted) abortFromCaller();
   else options.signal?.addEventListener("abort", abortFromCaller, { once: true });
-  const timeout = window.setTimeout(() => controller.abort(), MARKETING_REQUEST_TIMEOUT_MS);
+  const budgetMs = Math.min(
+    MAX_MARKETING_REQUEST_TIMEOUT_MS,
+    Math.max(1_000, options.timeoutMs ?? MARKETING_REQUEST_TIMEOUT_MS),
+  );
+  const timeout = window.setTimeout(() => controller.abort(), budgetMs);
 
   try {
     const headers: Record<string, string> = {
