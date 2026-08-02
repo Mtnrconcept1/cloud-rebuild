@@ -45,6 +45,7 @@ const CORE_ROUTES = new Set([
   "/espace-client",
   "/mes-avis",
   "/profil",
+  "/parametres/securite",
   "/notifications",
   "/dashboard/notifications",
   "/dashboard/campaign-studio",

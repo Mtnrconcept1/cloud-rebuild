@@ -17,6 +17,7 @@ globalThis.ResizeObserver =
 const supabaseMocks = vi.hoisted(() => ({
   resend: vi.fn(),
   exchangeCodeForSession: vi.fn(),
+  onAuthStateChange: vi.fn(),
   resetPasswordForEmail: vi.fn(),
   rpc: vi.fn(),
   signInWithOAuth: vi.fn(),
@@ -60,6 +61,7 @@ vi.mock("@/integrations/supabase/client", () => ({
     auth: {
       resend: supabaseMocks.resend,
       exchangeCodeForSession: supabaseMocks.exchangeCodeForSession,
+      onAuthStateChange: supabaseMocks.onAuthStateChange,
       resetPasswordForEmail: supabaseMocks.resetPasswordForEmail,
       signInWithOAuth: supabaseMocks.signInWithOAuth,
       signInWithPassword: supabaseMocks.signInWithPassword,
@@ -250,6 +252,13 @@ describe("Auth signup form", () => {
     supabaseMocks.exchangeCodeForSession.mockResolvedValue({
       data: { session: null },
       error: null,
+    });
+    supabaseMocks.onAuthStateChange.mockReturnValue({
+      data: {
+        subscription: {
+          unsubscribe: vi.fn(),
+        },
+      },
     });
     supabaseMocks.from.mockImplementation(mockSupabaseTable);
     supabaseMocks.rpc.mockResolvedValue({ data: null, error: null });
