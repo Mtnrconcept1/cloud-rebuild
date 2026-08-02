@@ -21,6 +21,17 @@ const MAX_PENDING_SECONDS = 10 * 60;
 const MAX_SESSION_SECONDS = 4 * 60 * 60;
 const MAX_REQUEST_BYTES = 128 * 1024;
 const MAX_RESPONSE_BYTES = 1024 * 1024;
+/**
+ * Supabase renders the TOTP QR code as an SVG carrying one `<rect>` per module,
+ * so the payload grows with the length of the `otpauth://` URI rather than
+ * staying near any small constant. A verified production enrollment for a
+ * sixteen-character issuer and an eighteen-character address encodes at QR
+ * version 8 (57x57), which is 1298 dark modules and roughly 96 kB of markup.
+ * The former 64 kB ceiling rejected exactly that, so this budget is sized from
+ * the observed payload with room to spare rather than guessed.
+ */
+const MAX_QR_SVG_CHARS = 256 * 1024;
+const MAX_ENROLL_RESPONSE_BYTES = 512 * 1024;
 const AUTH_TIMEOUT_MS = 8_000;
 const DATABASE_TIMEOUT_MS = 8_000;
 const ORCHESTRATOR_TIMEOUT_MS = 20_000;
@@ -509,6 +520,7 @@ async function authRequest(
     accessToken?: string;
     body?: JsonObject;
     serviceRole?: boolean;
+    maxBytes?: number;
   } = {},
 ): Promise<unknown> {
   const apiKey = options.serviceRole ? config.serviceRoleKey : config.publishableKey;
@@ -526,7 +538,7 @@ async function authRequest(
       ...(options.body ? { body: JSON.stringify(options.body) } : {}),
     },
     AUTH_TIMEOUT_MS,
-    256 * 1024,
+    options.maxBytes ?? 256 * 1024,
   );
   if (!response.ok) throw new DownstreamHttpError(response.status);
   return response.value;
@@ -722,29 +734,58 @@ async function ensureServiceAdmin(
   return { userId, email };
 }
 
+interface TotpEnrollment {
+  factorId: string;
+  qrCode: string;
+  secret: string;
+  otpauthUri: string;
+}
+
 async function enrollTotp(
   config: BffConfig,
   accessToken: string,
-): Promise<{ factorId: string; qrCode: string }> {
+): Promise<TotpEnrollment> {
   const value = await authRequest(config, "/factors", {
     method: "POST",
     accessToken,
     body: { factor_type: "totp", friendly_name: "TheTOK Marketing" },
+    maxBytes: MAX_ENROLL_RESPONSE_BYTES,
   });
   const record = asRecord(value);
   const factorId = validateUuid(stringField(record, "id", 64));
   const totp = asRecord(record.totp);
-  const qr = stringField(totp, "qr_code", 64 * 1024);
-  if (!qr) throw new DownstreamHttpError(502);
-  const qrCode = normalizeQrCode(qr);
-  return { factorId, qrCode };
+  const secret = stringField(totp, "secret", 256);
+  const rawUri = stringField(totp, "uri", 4_096);
+  const otpauthUri = /^otpauth:\/\/totp\//i.test(rawUri) ? rawUri : "";
+  const qrCode = normalizeQrCode(stringField(totp, "qr_code", MAX_QR_SVG_CHARS));
+  // Only an enrollment the administrator cannot complete by any route is fatal.
+  // Either a scannable image or the secret paired with its URI is enough to
+  // provision an authenticator.
+  if (!qrCode && !(secret && otpauthUri)) throw new DownstreamHttpError(502);
+  return { factorId, qrCode, secret, otpauthUri };
 }
 
+/** Shapes the enrollment for the browser, omitting whatever Supabase withheld. */
+function enrollmentPayload(enrollment: TotpEnrollment): JsonObject {
+  return {
+    status: "mfa_enrollment_required",
+    ...(enrollment.qrCode ? { qrCode: enrollment.qrCode } : {}),
+    ...(enrollment.secret ? { secret: enrollment.secret } : {}),
+    ...(enrollment.otpauthUri ? { otpauthUri: enrollment.otpauthUri } : {}),
+  };
+}
+
+/**
+ * Returns an empty string rather than throwing when the image is unusable. The
+ * QR code is a convenience for scanning; the enrollment secret travels in
+ * `totp.secret` and `totp.uri`, so a missing or oversized image must never
+ * abort an authentication that has already succeeded.
+ */
 function normalizeQrCode(value: string): string {
   const trimmed = value.trim();
+  if (!trimmed) return "";
   if (/^data:image\/(?:png|svg\+xml);base64,[A-Za-z0-9+/=]+$/.test(trimmed)) {
-    if (trimmed.length > 96 * 1024) throw new DownstreamHttpError(502);
-    return trimmed;
+    return trimmed.length > MAX_QR_SVG_CHARS ? "" : trimmed;
   }
 
   let svg = trimmed;
@@ -760,9 +801,7 @@ function normalizeQrCode(value: string): string {
       svg = payload;
     }
   }
-  if (!svg.slice(0, 512).includes("<svg") || svg.length > 64 * 1024) {
-    throw new DownstreamHttpError(502);
-  }
+  if (!svg.slice(0, 512).includes("<svg") || svg.length > MAX_QR_SVG_CHARS) return "";
   return `data:image/svg+xml;base64,${Buffer.from(svg, "utf8").toString("base64")}`;
 }
 
@@ -1012,7 +1051,10 @@ async function login(req: MarketingApiRequest, res: MarketingApiResponse): Promi
     factor.factorType === "totp" && factor.status === "verified"
   ));
   let enrolledFactorId = "";
-  let qrCode = "";
+  // Keyed on whether a factor was just enrolled, never on whether the QR image
+  // survived. An enrollment answered with "mfa_required" would ask for a code
+  // from an authenticator the administrator was never given the means to set up.
+  let enrolled: JsonObject | null = null;
   let factorId = verifiedFactor?.id ?? "";
   let challengeId = "";
   try {
@@ -1031,7 +1073,7 @@ async function login(req: MarketingApiRequest, res: MarketingApiResponse): Promi
       const enrollment = await enrollTotp(config, tokens.accessToken);
       factorId = enrollment.factorId;
       enrolledFactorId = enrollment.factorId;
-      qrCode = enrollment.qrCode;
+      enrolled = enrollmentPayload(enrollment);
     }
     challengeId = await createMfaChallenge(config, tokens.accessToken, factorId);
     const rawPending = opaqueToken();
@@ -1047,9 +1089,7 @@ async function login(req: MarketingApiRequest, res: MarketingApiResponse): Promi
     sendJson(
       res,
       200,
-      qrCode
-        ? { status: "mfa_enrollment_required", qrCode }
-        : { status: "mfa_required" },
+      enrolled ?? { status: "mfa_required" },
       [
         pendingCookie(rawPending),
         clearCookie(MARKETING_SESSION_COOKIE, true),
@@ -1142,7 +1182,7 @@ async function enrollMfa(req: MarketingApiRequest, res: MarketingApiResponse): P
     sendJson(
       res,
       200,
-      { status: "mfa_enrollment_required", qrCode: enrollment.qrCode },
+      enrollmentPayload(enrollment),
       [pendingCookie(rawPending)],
     );
   } catch (error) {
