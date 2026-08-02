@@ -299,7 +299,8 @@ export default function RestaurateursGeneve() {
               </h1>
               <p className="max-w-2xl text-base leading-7 text-white/82 md:text-lg">
                 TOK centralise les réservations, les commandes, les offres anti-gaspi, les ventes flash, les actualités,
-                les photos IA, les Miamz et les campagnes dans un dashboard pensé pour les restaurants genevois.
+                les photos IA, les Miamz et les campagnes. Pour la réservation : le pack est mensuel et une table
+                réellement servie coûte 5 CHF, quel que soit le nombre de personnes.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -352,6 +353,31 @@ export default function RestaurateursGeneve() {
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="border-b bg-orange-50 px-4 py-12 md:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-700">Le prix en 15 secondes</p>
+            <h2 className="mt-3 text-3xl font-black md:text-4xl">Trois repères avant de comparer les offres.</h2>
+            <p className="mt-3 text-slate-700">Le prix ne dépend pas seulement d'un chiffre annoncé. Distinguez le pack, la table réellement servie et les annulations.</p>
+          </div>
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+            {[
+              ["1. Le pack", "Un montant mensuel pour les outils et l'accompagnement choisis."],
+              ["2. La réservation servie", "5 CHF pour une table réellement servie, que vous receviez 2 ou 8 personnes."],
+              ["3. Annulation ou no-show", "0 CHF pour une réservation qui n'est pas honorée."],
+            ].map(([title, body]) => (
+              <article key={title} className="rounded-2xl border border-orange-200 bg-white p-5 shadow-sm">
+                <h3 className="font-black text-slate-950">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{body}</p>
+              </article>
+            ))}
+          </div>
+          <Link className="mt-6 inline-flex items-center gap-2 font-bold text-orange-800 underline underline-offset-4" to="/restaurateurs/alternative-commission-couvert">
+            Voir un exemple chiffré, table par table <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 
