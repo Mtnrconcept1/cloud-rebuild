@@ -3,7 +3,7 @@ import process from "node:process";
 const PROJECT_REF = process.env.SUPABASE_PROJECT_REF || "wwcrtyoueexyxkkikaos";
 const MANAGEMENT_URL = `https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth`;
 const EXPECTED_HOST = "smtp.resend.com";
-const EXPECTED_PORT = 465;
+const EXPECTED_PORT = "587";
 const EXPECTED_USER = "resend";
 const EXPECTED_ADMIN_EMAIL = "noreply@thetok.ch";
 const EXPECTED_SENDER_NAME = "TOK";
@@ -56,7 +56,6 @@ export function buildAuthSmtpPatch(resendApiKey) {
     smtp_user: EXPECTED_USER,
     smtp_pass: resendApiKey,
     smtp_sender_name: EXPECTED_SENDER_NAME,
-    rate_limit_email_sent: EXPECTED_EMAIL_RATE_LIMIT,
   };
 }
 
@@ -69,11 +68,11 @@ export function assertAuthSmtpConfiguration(config) {
     smtp_port: EXPECTED_PORT,
     smtp_user: EXPECTED_USER,
     smtp_sender_name: EXPECTED_SENDER_NAME,
-    rate_limit_email_sent: EXPECTED_EMAIL_RATE_LIMIT,
   };
 
   for (const [key, value] of Object.entries(expected)) {
-    if (config?.[key] !== value) {
+    const actual = key === "smtp_port" ? String(config?.[key] ?? "") : config?.[key];
+    if (actual !== value) {
       failures.push(`${key}=${JSON.stringify(config?.[key])}, expected ${JSON.stringify(value)}`);
     }
   }
@@ -86,11 +85,21 @@ export function assertAuthSmtpConfiguration(config) {
 export async function ensureSupabaseAuthSmtp() {
   const accessToken = requireSecret("SUPABASE_ACCESS_TOKEN");
   const resendApiKey = requireSecret("RESEND_API_KEY");
-  const patch = buildAuthSmtpPatch(resendApiKey);
 
-  await managementRequest("PATCH", accessToken, patch);
-  const config = await managementRequest("GET", accessToken);
+  await managementRequest("PATCH", accessToken, buildAuthSmtpPatch(resendApiKey));
+  let config = await managementRequest("GET", accessToken);
   assertAuthSmtpConfiguration(config);
+
+  await managementRequest("PATCH", accessToken, {
+    rate_limit_email_sent: EXPECTED_EMAIL_RATE_LIMIT,
+  });
+  config = await managementRequest("GET", accessToken);
+
+  if (Number(config?.rate_limit_email_sent) !== EXPECTED_EMAIL_RATE_LIMIT) {
+    throw new Error(
+      `Supabase Auth email rate limit verification failed: ${JSON.stringify(config?.rate_limit_email_sent)}`,
+    );
+  }
 
   console.log(
     `Supabase Auth SMTP verified for ${PROJECT_REF}: ${EXPECTED_HOST}:${EXPECTED_PORT}, sender ${EXPECTED_ADMIN_EMAIL}, email rate limit ${EXPECTED_EMAIL_RATE_LIMIT}/h.`,
