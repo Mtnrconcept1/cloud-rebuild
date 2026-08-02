@@ -24,8 +24,7 @@ const MAX_RESPONSE_BYTES = 1024 * 1024;
 const AUTH_TIMEOUT_MS = 8_000;
 const DATABASE_TIMEOUT_MS = 8_000;
 const ORCHESTRATOR_TIMEOUT_MS = 20_000;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const OPAQUE_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -58,9 +57,7 @@ export const MARKETING_OPERATION_NAMES = [
 
 export type MarketingOperation = (typeof MARKETING_OPERATION_NAMES)[number];
 
-const MARKETING_OPERATION_ALLOWLIST = new Set<string>(
-  MARKETING_OPERATION_NAMES,
-);
+const MARKETING_OPERATION_ALLOWLIST = new Set<string>(MARKETING_OPERATION_NAMES);
 
 type HeaderValue = string | string[] | undefined;
 
@@ -121,12 +118,7 @@ class PublicBffError extends Error {
   readonly code: string;
   readonly retryAfter?: number;
 
-  constructor(
-    status: number,
-    code: string,
-    message: string,
-    retryAfter?: number,
-  ) {
+  constructor(status: number, code: string, message: string, retryAfter?: number) {
     super(message);
     this.name = "PublicBffError";
     this.status = status;
@@ -170,10 +162,7 @@ export function validateMarketingRequestContext(
   const fetchMode = header(req, "sec-fetch-mode").toLowerCase();
   const fetchDest = header(req, "sec-fetch-dest").toLowerCase();
 
-  if (
-    host !== MARKETING_HOST ||
-    (forwardedHost && forwardedHost !== MARKETING_HOST)
-  ) {
+  if (host !== MARKETING_HOST || (forwardedHost && forwardedHost !== MARKETING_HOST)) {
     throw new PublicBffError(403, "request_rejected", "Requête refusée.");
   }
   if (forwardedProto && forwardedProto !== "https") {
@@ -216,18 +205,12 @@ function isOpaqueToken(value: string): boolean {
 function constantTimeEqual(left: string, right: string): boolean {
   const leftBuffer = Buffer.from(left, "utf8");
   const rightBuffer = Buffer.from(right, "utf8");
-  return (
-    leftBuffer.length === rightBuffer.length &&
-    timingSafeEqual(leftBuffer, rightBuffer)
-  );
+  return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
 }
 
 export function parseCookies(cookieHeader: string): Record<string, string> {
   if (!cookieHeader || cookieHeader.length > 8_192) return {};
-  const result: Record<string, string> = Object.create(null) as Record<
-    string,
-    string
-  >;
+  const result: Record<string, string> = Object.create(null) as Record<string, string>;
   for (const part of cookieHeader.split(";")) {
     const separator = part.indexOf("=");
     if (separator <= 0) continue;
@@ -240,12 +223,7 @@ export function parseCookies(cookieHeader: string): Record<string, string> {
   return result;
 }
 
-function cookie(
-  name: string,
-  value: string,
-  maxAge: number,
-  httpOnly: boolean,
-): string {
+function cookie(name: string, value: string, maxAge: number, httpOnly: boolean): string {
   const attributes = [
     `${name}=${value}`,
     "Path=/",
@@ -282,10 +260,7 @@ function clearAuthCookies(): string[] {
 }
 
 function setSecurityHeaders(res: MarketingApiResponse): void {
-  res.setHeader(
-    "Cache-Control",
-    "private, no-store, max-age=0, must-revalidate",
-  );
+  res.setHeader("Cache-Control", "private, no-store, max-age=0, must-revalidate");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -305,13 +280,10 @@ function sendJson(
   let serialized = JSON.stringify(value);
   if (Buffer.byteLength(serialized, "utf8") > MAX_RESPONSE_BYTES) {
     status = 502;
-    serialized = JSON.stringify({
-      error: { code: "service_unavailable", message: "Service indisponible." },
-    });
+    serialized = JSON.stringify({ error: { code: "service_unavailable", message: "Service indisponible." } });
   }
   if (cookies.length) res.setHeader("Set-Cookie", cookies);
-  if (retryAfter !== undefined)
-    res.setHeader("Retry-After", String(retryAfter));
+  if (retryAfter !== undefined) res.setHeader("Retry-After", String(retryAfter));
   res.statusCode = status;
   res.end(serialized);
 }
@@ -327,35 +299,26 @@ function sendError(res: MarketingApiResponse, error: unknown): void {
     );
     return;
   }
-  sendJson(res, 503, {
-    error: { code: "service_unavailable", message: "Service indisponible." },
-  });
+  sendJson(res, 503, { error: { code: "service_unavailable", message: "Service indisponible." } });
 }
 
-function methodNotAllowed(
-  res: MarketingApiResponse,
-  allowed: readonly string[],
-): void {
+function methodNotAllowed(res: MarketingApiResponse, allowed: readonly string[]): void {
   res.setHeader("Allow", allowed.join(", "));
-  sendJson(res, 405, {
-    error: { code: "method_not_allowed", message: "Méthode refusée." },
-  });
+  sendJson(res, 405, { error: { code: "method_not_allowed", message: "Méthode refusée." } });
 }
 
 function readConfig(): BffConfig {
   const supabaseUrl = (
-    process.env.SUPABASE_URL ??
-    process.env.VITE_SUPABASE_URL ??
-    ""
-  )
-    .trim()
-    .replace(/\/+$/, "");
+    process.env.SUPABASE_URL
+    ?? process.env.VITE_SUPABASE_URL
+    ?? ""
+  ).trim().replace(/\/+$/, "");
   const publishableKey = (
-    process.env.SUPABASE_PUBLISHABLE_KEY ??
-    process.env.SUPABASE_ANON_KEY ??
-    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-    process.env.VITE_SUPABASE_ANON_KEY ??
-    ""
+    process.env.SUPABASE_PUBLISHABLE_KEY
+    ?? process.env.SUPABASE_ANON_KEY
+    ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY
+    ?? process.env.VITE_SUPABASE_ANON_KEY
+    ?? ""
   ).trim();
   const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
 
@@ -363,26 +326,18 @@ function readConfig(): BffConfig {
   try {
     parsedUrl = new URL(supabaseUrl);
   } catch {
-    throw new PublicBffError(
-      503,
-      "service_unavailable",
-      "Service indisponible.",
-    );
+    throw new PublicBffError(503, "service_unavailable", "Service indisponible.");
   }
   if (
-    parsedUrl.protocol !== "https:" ||
-    parsedUrl.username ||
-    parsedUrl.password ||
-    !parsedUrl.hostname.endsWith(".supabase.co") ||
-    publishableKey.length < 20 ||
-    serviceRoleKey.length < 20 ||
-    constantTimeEqual(publishableKey, serviceRoleKey)
+    parsedUrl.protocol !== "https:"
+    || parsedUrl.username
+    || parsedUrl.password
+    || !parsedUrl.hostname.endsWith(".supabase.co")
+    || publishableKey.length < 20
+    || serviceRoleKey.length < 20
+    || constantTimeEqual(publishableKey, serviceRoleKey)
   ) {
-    throw new PublicBffError(
-      503,
-      "service_unavailable",
-      "Service indisponible.",
-    );
+    throw new PublicBffError(503, "service_unavailable", "Service indisponible.");
   }
   return { supabaseUrl, publishableKey, serviceRoleKey };
 }
@@ -400,18 +355,15 @@ function assertSafeJson(value: unknown, depth = 0, state = { nodes: 0 }): void {
   }
   if (value === null || typeof value === "boolean") return;
   if (typeof value === "number") {
-    if (!Number.isFinite(value))
-      throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+    if (!Number.isFinite(value)) throw new PublicBffError(400, "invalid_request", "Requête invalide.");
     return;
   }
   if (typeof value === "string") {
-    if (value.length > 32_000)
-      throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+    if (value.length > 32_000) throw new PublicBffError(400, "invalid_request", "Requête invalide.");
     return;
   }
   if (Array.isArray(value)) {
-    if (value.length > 500)
-      throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+    if (value.length > 500) throw new PublicBffError(400, "invalid_request", "Requête invalide.");
     for (const item of value) assertSafeJson(item, depth + 1, state);
     return;
   }
@@ -419,14 +371,13 @@ function assertSafeJson(value: unknown, depth = 0, state = { nodes: 0 }): void {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
   const entries = Object.entries(value);
-  if (entries.length > 250)
-    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  if (entries.length > 250) throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   for (const [key, item] of entries) {
     if (
-      key.length > 128 ||
-      key === "__proto__" ||
-      key === "prototype" ||
-      key === "constructor"
+      key.length > 128
+      || key === "__proto__"
+      || key === "prototype"
+      || key === "constructor"
     ) {
       throw new PublicBffError(400, "invalid_request", "Requête invalide.");
     }
@@ -434,36 +385,21 @@ function assertSafeJson(value: unknown, depth = 0, state = { nodes: 0 }): void {
   }
 }
 
-function parseJsonBody(
-  req: MarketingApiRequest,
-  maxBytes = MAX_REQUEST_BYTES,
-): JsonObject {
+function parseJsonBody(req: MarketingApiRequest, maxBytes = MAX_REQUEST_BYTES): JsonObject {
   const contentType = header(req, "content-type").toLowerCase();
   const contentLength = Number(header(req, "content-length") || "0");
   if (!contentType.startsWith("application/json")) {
     throw new PublicBffError(415, "unsupported_media_type", "Format refusé.");
   }
-  if (
-    !Number.isFinite(contentLength) ||
-    contentLength < 0 ||
-    contentLength > maxBytes
-  ) {
-    throw new PublicBffError(
-      413,
-      "request_too_large",
-      "Requête trop volumineuse.",
-    );
+  if (!Number.isFinite(contentLength) || contentLength < 0 || contentLength > maxBytes) {
+    throw new PublicBffError(413, "request_too_large", "Requête trop volumineuse.");
   }
 
   let value = req.body;
   if (Buffer.isBuffer(value)) value = value.toString("utf8");
   if (typeof value === "string") {
     if (Buffer.byteLength(value, "utf8") > maxBytes) {
-      throw new PublicBffError(
-        413,
-        "request_too_large",
-        "Requête trop volumineuse.",
-      );
+      throw new PublicBffError(413, "request_too_large", "Requête trop volumineuse.");
     }
     try {
       value = JSON.parse(value) as unknown;
@@ -476,26 +412,19 @@ function parseJsonBody(
   }
   const serializedSize = Buffer.byteLength(JSON.stringify(value), "utf8");
   if (serializedSize > maxBytes) {
-    throw new PublicBffError(
-      413,
-      "request_too_large",
-      "Requête trop volumineuse.",
-    );
+    throw new PublicBffError(413, "request_too_large", "Requête trop volumineuse.");
   }
   assertSafeJson(value);
   return value;
 }
 
-function requireCsrf(
-  req: MarketingApiRequest,
-  cookies: Record<string, string>,
-): string {
+function requireCsrf(req: MarketingApiRequest, cookies: Record<string, string>): string {
   const fromCookie = cookies[MARKETING_CSRF_COOKIE] ?? "";
   const fromHeader = header(req, MARKETING_CSRF_HEADER);
   if (
-    !isOpaqueToken(fromCookie) ||
-    !isOpaqueToken(fromHeader) ||
-    !constantTimeEqual(fromCookie, fromHeader)
+    !isOpaqueToken(fromCookie)
+    || !isOpaqueToken(fromHeader)
+    || !constantTimeEqual(fromCookie, fromHeader)
   ) {
     throw new PublicBffError(403, "csrf_rejected", "Requête refusée.");
   }
@@ -504,10 +433,10 @@ function requireCsrf(
 
 function requestIp(req: MarketingApiRequest): string {
   const candidate = (
-    header(req, "x-vercel-forwarded-for") ||
-    header(req, "x-forwarded-for").split(",", 1)[0] ||
-    req.socket?.remoteAddress ||
-    "unknown"
+    header(req, "x-vercel-forwarded-for")
+    || header(req, "x-forwarded-for").split(",", 1)[0]
+    || req.socket?.remoteAddress
+    || "unknown"
   ).trim();
   return candidate.slice(0, 128);
 }
@@ -521,21 +450,14 @@ async function boundedFetch(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, {
-      ...init,
-      signal: controller.signal,
-      redirect: "error",
-    });
-    const advertisedLength = Number(
-      response.headers.get("content-length") || "0",
-    );
+    const response = await fetch(url, { ...init, signal: controller.signal, redirect: "error" });
+    const advertisedLength = Number(response.headers.get("content-length") || "0");
     if (Number.isFinite(advertisedLength) && advertisedLength > maxBytes) {
       throw new DownstreamHttpError(502);
     }
     const bytes = new Uint8Array(await response.arrayBuffer());
     if (bytes.byteLength > maxBytes) throw new DownstreamHttpError(502);
-    if (!bytes.byteLength)
-      return { status: response.status, ok: response.ok, value: null };
+    if (!bytes.byteLength) return { status: response.status, ok: response.ok, value: null };
     let value: unknown;
     try {
       value = JSON.parse(Buffer.from(bytes).toString("utf8")) as unknown;
@@ -555,11 +477,7 @@ function asRecord(value: unknown): JsonObject {
   return isPlainObject(value) ? value : {};
 }
 
-function stringField(
-  record: JsonObject,
-  key: string,
-  maxLength = 32_000,
-): string {
+function stringField(record: JsonObject, key: string, maxLength = 32_000): string {
   const value = record[key];
   return typeof value === "string" && value.length <= maxLength ? value : "";
 }
@@ -574,11 +492,8 @@ async function authRequest(
     serviceRole?: boolean;
   } = {},
 ): Promise<unknown> {
-  const apiKey = options.serviceRole
-    ? config.serviceRoleKey
-    : config.publishableKey;
-  const authorization =
-    options.accessToken ?? (options.serviceRole ? config.serviceRoleKey : "");
+  const apiKey = options.serviceRole ? config.serviceRoleKey : config.publishableKey;
+  const authorization = options.accessToken ?? (options.serviceRole ? config.serviceRoleKey : "");
   const response = await boundedFetch(
     `${config.supabaseUrl}/auth/v1${path}`,
     {
@@ -634,14 +549,12 @@ async function serviceRpc(
 
 function normalizeRpcObject(value: unknown): JsonObject {
   if (isPlainObject(value)) return value;
-  if (Array.isArray(value) && value.length === 1 && isPlainObject(value[0]))
-    return value[0];
+  if (Array.isArray(value) && value.length === 1 && isPlainObject(value[0])) return value[0];
   return {};
 }
 
 function normalizeRpcNullableObject(value: unknown): JsonObject | null {
-  if (value === null || (Array.isArray(value) && value.length === 0))
-    return null;
+  if (value === null || (Array.isArray(value) && value.length === 0)) return null;
   const normalized = normalizeRpcObject(value);
   return Object.keys(normalized).length ? normalized : null;
 }
@@ -654,23 +567,18 @@ async function consumeRateLimit(
   includeIp = true,
 ): Promise<string> {
   const keyHash = rateLimitKey(req, bucket, subject, includeIp);
-  const result = normalizeRpcObject(
-    await serviceRpc(config, "service_consume_marketing_auth_attempt", {
-      p_key_hash: keyHash,
-    }),
-  );
+  const result = normalizeRpcObject(await serviceRpc(
+    config,
+    "service_consume_marketing_auth_attempt",
+    { p_key_hash: keyHash },
+  ));
   const allowed = result.allowed === true;
   const retryValue = Number(result.retry_after_seconds);
   const retryAfter = Number.isFinite(retryValue)
     ? Math.max(1, Math.min(3_600, Math.ceil(retryValue)))
     : 60;
   if (!allowed) {
-    throw new PublicBffError(
-      429,
-      "rate_limited",
-      "Trop de tentatives.",
-      retryAfter,
-    );
+    throw new PublicBffError(429, "rate_limited", "Trop de tentatives.", retryAfter);
   }
   return keyHash;
 }
@@ -685,13 +593,8 @@ function rateLimitKey(
   return sha256Hex(`thetok-marketing-bff:v1:${bucket}:${ipPart}:${subject}`);
 }
 
-async function clearRateLimit(
-  config: BffConfig,
-  keyHash: string,
-): Promise<void> {
-  await serviceRpc(config, "service_clear_marketing_auth_attempt", {
-    p_key_hash: keyHash,
-  });
+async function clearRateLimit(config: BffConfig, keyHash: string): Promise<void> {
+  await serviceRpc(config, "service_clear_marketing_auth_attempt", { p_key_hash: keyHash });
 }
 
 function validateUuid(value: string): string {
@@ -700,20 +603,15 @@ function validateUuid(value: string): string {
 }
 
 function validateStoredToken(value: string): string {
-  if (!value || value.length > 16_384 || /[\r\n]/.test(value))
-    throw new DownstreamHttpError(502);
+  if (!value || value.length > 16_384 || /[\r\n]/.test(value)) throw new DownstreamHttpError(502);
   return value;
 }
 
 function normalizeAuthTokens(value: unknown): AuthTokens {
   const record = asRecord(value);
   const user = asRecord(record.user);
-  const accessToken = validateStoredToken(
-    stringField(record, "access_token", 16_384),
-  );
-  const refreshToken = validateStoredToken(
-    stringField(record, "refresh_token", 16_384),
-  );
+  const accessToken = validateStoredToken(stringField(record, "access_token", 16_384));
+  const refreshToken = validateStoredToken(stringField(record, "refresh_token", 16_384));
   const userId = validateUuid(stringField(user, "id", 64));
   const email = stringField(user, "email", 254).trim().toLowerCase();
   if (!EMAIL_PATTERN.test(email)) throw new DownstreamHttpError(502);
@@ -728,7 +626,8 @@ function normalizeFactors(userValue: unknown): MfaFactor[] {
     const factor = asRecord(candidate);
     const id = stringField(factor, "id", 64);
     const factorType = (
-      stringField(factor, "factor_type", 32) || stringField(factor, "type", 32)
+      stringField(factor, "factor_type", 32)
+      || stringField(factor, "type", 32)
     ).toLowerCase();
     const status = stringField(factor, "status", 32).toLowerCase();
     if (!UUID_PATTERN.test(id) || !factorType || !status) continue;
@@ -739,17 +638,12 @@ function normalizeFactors(userValue: unknown): MfaFactor[] {
       createdAt: stringField(factor, "created_at", 64),
     });
   }
-  return factors.sort(
-    (left, right) =>
-      left.createdAt.localeCompare(right.createdAt) ||
-      left.id.localeCompare(right.id),
-  );
+  return factors.sort((left, right) => (
+    left.createdAt.localeCompare(right.createdAt) || left.id.localeCompare(right.id)
+  ));
 }
 
-async function getAuthUser(
-  config: BffConfig,
-  accessToken: string,
-): Promise<JsonObject> {
+async function getAuthUser(config: BffConfig, accessToken: string): Promise<JsonObject> {
   const value = await authRequest(config, "/user", { accessToken });
   const user = asRecord(value);
   validateUuid(stringField(user, "id", 64));
@@ -768,20 +662,14 @@ async function signInWithPassword(
   return normalizeAuthTokens(value);
 }
 
-async function signOutLocal(
-  config: BffConfig,
-  accessToken: string,
-): Promise<void> {
+async function signOutLocal(config: BffConfig, accessToken: string): Promise<void> {
   await authRequest(config, "/logout?scope=local", {
     method: "POST",
     accessToken,
   });
 }
 
-async function signOutLocalBestEffort(
-  config: BffConfig,
-  accessToken: string,
-): Promise<void> {
+async function signOutLocalBestEffort(config: BffConfig, accessToken: string): Promise<void> {
   try {
     await signOutLocal(config, accessToken);
   } catch {
@@ -809,11 +697,9 @@ async function ensureServiceAdmin(
     config,
     `/user_roles?select=user_id&user_id=eq.${encodeURIComponent(userId)}&role=eq.admin&limit=1`,
   );
-  if (!Array.isArray(roles) || roles.length !== 1)
-    throw new DownstreamHttpError(403);
+  if (!Array.isArray(roles) || roles.length !== 1) throw new DownstreamHttpError(403);
   const role = asRecord(roles[0]);
-  if (stringField(role, "user_id", 64) !== userId)
-    throw new DownstreamHttpError(403);
+  if (stringField(role, "user_id", 64) !== userId) throw new DownstreamHttpError(403);
   return { userId, email };
 }
 
@@ -866,14 +752,10 @@ async function unenrollFactor(
   accessToken: string,
   factorId: string,
 ): Promise<void> {
-  await authRequest(
-    config,
-    `/factors/${encodeURIComponent(validateUuid(factorId))}`,
-    {
-      method: "DELETE",
-      accessToken,
-    },
-  );
+  await authRequest(config, `/factors/${encodeURIComponent(validateUuid(factorId))}`, {
+    method: "DELETE",
+    accessToken,
+  });
 }
 
 async function createMfaChallenge(
@@ -910,17 +792,12 @@ async function verifyMfaChallenge(
 
 function decodeJwtClaims(accessToken: string): JsonObject {
   const parts = accessToken.split(".");
-  if (
-    parts.length !== 3 ||
-    parts.some((part) => !part || part.length > 16_384)
-  ) {
+  if (parts.length !== 3 || parts.some((part) => !part || part.length > 16_384)) {
     throw new DownstreamHttpError(502);
   }
   let value: unknown;
   try {
-    value = JSON.parse(
-      Buffer.from(parts[1], "base64url").toString("utf8"),
-    ) as unknown;
+    value = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8")) as unknown;
   } catch {
     throw new DownstreamHttpError(502);
   }
@@ -937,24 +814,21 @@ function assertFreshAal2(
   const now = Math.floor(Date.now() / 1_000);
   const issuedAt = Number(claims.iat);
   const expiresAt = Number(claims.exp);
-  const issuer =
-    typeof claims.iss === "string" ? claims.iss.replace(/\/+$/, "") : "";
+  const issuer = typeof claims.iss === "string" ? claims.iss.replace(/\/+$/, "") : "";
   if (
-    claims.aal !== "aal2" ||
-    claims.sub !== expectedUserId ||
-    issuer !== `${config.supabaseUrl}/auth/v1` ||
-    !Number.isFinite(issuedAt) ||
-    !Number.isFinite(expiresAt) ||
-    issuedAt < now - 5 * 60 ||
-    issuedAt > now + 60 ||
-    expiresAt <= now
+    claims.aal !== "aal2"
+    || claims.sub !== expectedUserId
+    || issuer !== `${config.supabaseUrl}/auth/v1`
+    || !Number.isFinite(issuedAt)
+    || !Number.isFinite(expiresAt)
+    || issuedAt < now - 5 * 60
+    || issuedAt > now + 60
+    || expiresAt <= now
   ) {
     throw new DownstreamHttpError(403);
   }
   if (Array.isArray(claims.amr)) {
-    const hasTotp = claims.amr.some(
-      (entry) => stringField(asRecord(entry), "method", 32) === "totp",
-    );
+    const hasTotp = claims.amr.some((entry) => stringField(asRecord(entry), "method", 32) === "totp");
     if (!hasTotp) throw new DownstreamHttpError(403);
   }
 }
@@ -966,16 +840,18 @@ async function storePendingChallenge(
   factorId: string,
   challengeId: string,
 ): Promise<void> {
-  const result = normalizeRpcObject(
-    await serviceRpc(config, "service_store_marketing_auth_challenge", {
+  const result = normalizeRpcObject(await serviceRpc(
+    config,
+    "service_store_marketing_auth_challenge",
+    {
       p_pending_sid_hash: pendingHash,
       p_user_id: tokens.userId,
       p_access_token: tokens.accessToken,
       p_refresh_token: tokens.refreshToken,
       p_factor_id: validateUuid(factorId),
       p_challenge_id: validateUuid(challengeId),
-    }),
-  );
+    },
+  ));
   if (result.stored === false) throw new DownstreamHttpError(503);
 }
 
@@ -984,40 +860,28 @@ async function getPendingChallenge(
   rawPending: string,
 ): Promise<PendingAuthChallenge | null> {
   if (!isOpaqueToken(rawPending)) return null;
-  const result = normalizeRpcNullableObject(
-    await serviceRpc(config, "service_get_marketing_auth_challenge", {
-      p_pending_sid_hash: sha256Hex(rawPending),
-    }),
-  );
+  const result = normalizeRpcNullableObject(await serviceRpc(
+    config,
+    "service_get_marketing_auth_challenge",
+    { p_pending_sid_hash: sha256Hex(rawPending) },
+  ));
   if (!result) return null;
   const expiresAt = stringField(result, "expires_at", 64);
   const expires = Date.parse(expiresAt);
-  if (
-    !Number.isFinite(expires) ||
-    expires <= Date.now() ||
-    expires > Date.now() + MAX_PENDING_SECONDS * 1_000 + 60_000
-  ) {
+  if (!Number.isFinite(expires) || expires <= Date.now() || expires > Date.now() + MAX_PENDING_SECONDS * 1_000 + 60_000) {
     return null;
   }
   return {
     userId: validateUuid(stringField(result, "user_id", 64)),
-    accessToken: validateStoredToken(
-      stringField(result, "access_token", 16_384),
-    ),
-    refreshToken: validateStoredToken(
-      stringField(result, "refresh_token", 16_384),
-    ),
+    accessToken: validateStoredToken(stringField(result, "access_token", 16_384)),
+    refreshToken: validateStoredToken(stringField(result, "refresh_token", 16_384)),
     factorId: validateUuid(stringField(result, "factor_id", 64)),
     challengeId: validateUuid(stringField(result, "challenge_id", 64)),
     expiresAt,
   };
 }
 
-function normalizeSession(
-  value: unknown,
-  sessionHash: string,
-  csrfHash: string,
-): ActiveMarketingSession | null {
+function normalizeSession(value: unknown, sessionHash: string, csrfHash: string): ActiveMarketingSession | null {
   const result = normalizeRpcNullableObject(value);
   if (!result) return null;
   const userId = stringField(result, "user_id", 64);
@@ -1025,11 +889,11 @@ function normalizeSession(
   const expiresAt = stringField(result, "expires_at", 64);
   const expires = Date.parse(expiresAt);
   if (
-    !UUID_PATTERN.test(userId) ||
-    !EMAIL_PATTERN.test(email) ||
-    !Number.isFinite(expires) ||
-    expires <= Date.now() ||
-    expires > Date.now() + MAX_SESSION_SECONDS * 1_000 + 60_000
+    !UUID_PATTERN.test(userId)
+    || !EMAIL_PATTERN.test(email)
+    || !Number.isFinite(expires)
+    || expires <= Date.now()
+    || expires > Date.now() + MAX_SESSION_SECONDS * 1_000 + 60_000
   ) {
     return null;
   }
@@ -1047,11 +911,7 @@ async function activeSession(
     ? requireCsrf(req, cookies)
     : (cookies[MARKETING_CSRF_COOKIE] ?? "");
   if (!isOpaqueToken(rawSession) || !isOpaqueToken(rawCsrf)) {
-    throw new PublicBffError(
-      401,
-      "authentication_required",
-      "Authentification requise.",
-    );
+    throw new PublicBffError(401, "authentication_required", "Authentification requise.");
   }
   const sessionHash = sha256Hex(rawSession);
   const csrfHash = sha256Hex(rawCsrf);
@@ -1061,29 +921,18 @@ async function activeSession(
     p_touch: true,
   });
   const session = normalizeSession(result, sessionHash, csrfHash);
-  if (!session)
-    throw new PublicBffError(
-      401,
-      "authentication_required",
-      "Authentification requise.",
-    );
+  if (!session) throw new PublicBffError(401, "authentication_required", "Authentification requise.");
   return session;
 }
 
-async function revokeSession(
-  config: BffConfig,
-  rawSession: string,
-): Promise<void> {
+async function revokeSession(config: BffConfig, rawSession: string): Promise<void> {
   if (!isOpaqueToken(rawSession)) return;
   await serviceRpc(config, "service_revoke_marketing_web_session", {
     p_sid_hash: sha256Hex(rawSession),
   });
 }
 
-async function revokeSessionBestEffort(
-  config: BffConfig,
-  rawSession: string,
-): Promise<void> {
+async function revokeSessionBestEffort(config: BffConfig, rawSession: string): Promise<void> {
   try {
     await revokeSession(config, rawSession);
   } catch {
@@ -1091,10 +940,7 @@ async function revokeSessionBestEffort(
   }
 }
 
-async function login(
-  req: MarketingApiRequest,
-  res: MarketingApiResponse,
-): Promise<void> {
+async function login(req: MarketingApiRequest, res: MarketingApiResponse): Promise<void> {
   if ((req.method ?? "GET").toUpperCase() !== "POST") {
     methodNotAllowed(res, ["POST"]);
     return;
@@ -1107,49 +953,33 @@ async function login(
   const email = stringField(body, "email", 254).trim().toLowerCase();
   const password = stringField(body, "password", 1_024);
   if (
-    !EMAIL_PATTERN.test(email) ||
-    password.length < 8 ||
-    password.length > 1_024 ||
-    Object.keys(body).some((key) => !["email", "password"].includes(key))
+    !EMAIL_PATTERN.test(email)
+    || password.length < 8
+    || password.length > 1_024
+    || Object.keys(body).some((key) => !["email", "password"].includes(key))
   ) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
 
   await consumeRateLimit(config, req, "password-ip", "all-accounts");
-  await consumeRateLimit(
-    config,
-    req,
-    "password-account",
-    sha256Hex(email),
-    false,
-  );
+  await consumeRateLimit(config, req, "password-account", sha256Hex(email), false);
   let tokens: AuthTokens | undefined;
   let authUser: JsonObject;
   try {
     tokens = await signInWithPassword(config, email, password);
     await ensureServiceAdmin(config, tokens.userId);
     authUser = await getAuthUser(config, tokens.accessToken);
-    if (stringField(authUser, "id", 64) !== tokens.userId)
-      throw new DownstreamHttpError(403);
+    if (stringField(authUser, "id", 64) !== tokens.userId) throw new DownstreamHttpError(403);
   } catch {
     if (tokens) await signOutLocalBestEffort(config, tokens.accessToken);
-    throw new PublicBffError(
-      401,
-      "authentication_failed",
-      "Authentification impossible.",
-    );
+    throw new PublicBffError(401, "authentication_failed", "Authentification impossible.");
   }
-  if (!tokens)
-    throw new PublicBffError(
-      401,
-      "authentication_failed",
-      "Authentification impossible.",
-    );
+  if (!tokens) throw new PublicBffError(401, "authentication_failed", "Authentification impossible.");
 
   const factors = normalizeFactors(authUser);
-  const verifiedFactor = factors.find(
-    (factor) => factor.factorType === "totp" && factor.status === "verified",
-  );
+  const verifiedFactor = factors.find((factor) => (
+    factor.factorType === "totp" && factor.status === "verified"
+  ));
   let enrolledFactorId = "";
   let qrCode = "";
   let factorId = verifiedFactor?.id ?? "";
@@ -1160,16 +990,11 @@ async function login(
       // already has another verified MFA factor. Such accounts must manage
       // their factors from a previously established AAL2 session.
       if (factors.some((factor) => factor.status === "verified")) {
-        throw new PublicBffError(
-          401,
-          "authentication_failed",
-          "Authentification impossible.",
-        );
+        throw new PublicBffError(401, "authentication_failed", "Authentification impossible.");
       }
-      for (const staleFactor of factors.filter(
-        (factor) =>
-          factor.factorType === "totp" && factor.status !== "verified",
-      )) {
+      for (const staleFactor of factors.filter((factor) => (
+        factor.factorType === "totp" && factor.status !== "verified"
+      ))) {
         await unenrollFactor(config, tokens.accessToken, staleFactor.id);
       }
       const enrollment = await enrollTotp(config, tokens.accessToken);
@@ -1177,11 +1002,7 @@ async function login(
       enrolledFactorId = enrollment.factorId;
       qrCode = enrollment.qrCode;
     }
-    challengeId = await createMfaChallenge(
-      config,
-      tokens.accessToken,
-      factorId,
-    );
+    challengeId = await createMfaChallenge(config, tokens.accessToken, factorId);
     const rawPending = opaqueToken();
     await storePendingChallenge(
       config,
@@ -1198,7 +1019,10 @@ async function login(
       qrCode
         ? { status: "mfa_enrollment_required", qrCode }
         : { status: "mfa_required" },
-      [pendingCookie(rawPending), clearCookie(MARKETING_SESSION_COOKIE, true)],
+      [
+        pendingCookie(rawPending),
+        clearCookie(MARKETING_SESSION_COOKIE, true),
+      ],
     );
   } catch (error) {
     if (enrolledFactorId) {
@@ -1218,10 +1042,7 @@ async function login(
   }
 }
 
-async function enrollMfa(
-  req: MarketingApiRequest,
-  res: MarketingApiResponse,
-): Promise<void> {
+async function enrollMfa(req: MarketingApiRequest, res: MarketingApiResponse): Promise<void> {
   if ((req.method ?? "GET").toUpperCase() !== "POST") {
     methodNotAllowed(res, ["POST"]);
     return;
@@ -1246,12 +1067,7 @@ async function enrollMfa(
     sendJson(
       res,
       401,
-      {
-        error: {
-          code: "authentication_required",
-          message: "Authentification requise.",
-        },
-      },
+      { error: { code: "authentication_required", message: "Authentification requise." } },
       [clearCookie(MARKETING_PENDING_COOKIE, true)],
     );
     return;
@@ -1261,30 +1077,18 @@ async function enrollMfa(
   try {
     await ensureServiceAdmin(config, pending.userId);
     const authUser = await getAuthUser(config, pending.accessToken);
-    if (stringField(authUser, "id", 64) !== pending.userId)
-      throw new DownstreamHttpError(403);
+    if (stringField(authUser, "id", 64) !== pending.userId) throw new DownstreamHttpError(403);
     const factors = normalizeFactors(authUser);
-    const verifiedFactors = factors.filter(
-      (factor) => factor.status === "verified",
-    );
+    const verifiedFactors = factors.filter((factor) => factor.status === "verified");
     if (verifiedFactors.some((factor) => factor.factorType === "totp")) {
-      throw new PublicBffError(
-        409,
-        "enrollment_not_required",
-        "Enrôlement non requis.",
-      );
+      throw new PublicBffError(409, "enrollment_not_required", "Enrôlement non requis.");
     }
     if (verifiedFactors.length > 0) {
       await signOutLocalBestEffort(config, pending.accessToken);
       sendJson(
         res,
         403,
-        {
-          error: {
-            code: "enrollment_forbidden",
-            message: "Enrôlement refusé.",
-          },
-        },
+        { error: { code: "enrollment_forbidden", message: "Enrôlement refusé." } },
         [clearCookie(MARKETING_PENDING_COOKIE, true)],
       );
       return;
@@ -1295,11 +1099,7 @@ async function enrollMfa(
     }
     const enrollment = await enrollTotp(config, pending.accessToken);
     replacementFactorId = enrollment.factorId;
-    const challengeId = await createMfaChallenge(
-      config,
-      pending.accessToken,
-      enrollment.factorId,
-    );
+    const challengeId = await createMfaChallenge(config, pending.accessToken, enrollment.factorId);
     await storePendingChallenge(
       config,
       sha256Hex(rawPending),
@@ -1323,16 +1123,8 @@ async function enrollMfa(
       }
     }
     if (error instanceof PublicBffError) throw error;
-    if (
-      error instanceof DownstreamHttpError &&
-      error.status >= 400 &&
-      error.status < 500
-    ) {
-      throw new PublicBffError(
-        401,
-        "authentication_failed",
-        "Authentification impossible.",
-      );
+    if (error instanceof DownstreamHttpError && error.status >= 400 && error.status < 500) {
+      throw new PublicBffError(401, "authentication_failed", "Authentification impossible.");
     }
     throw error;
   }
@@ -1344,11 +1136,7 @@ async function refreshChallengeBestEffort(
   pending: PendingAuthChallenge,
 ): Promise<void> {
   try {
-    const challengeId = await createMfaChallenge(
-      config,
-      pending.accessToken,
-      pending.factorId,
-    );
+    const challengeId = await createMfaChallenge(config, pending.accessToken, pending.factorId);
     await storePendingChallenge(
       config,
       sha256Hex(rawPending),
@@ -1361,10 +1149,7 @@ async function refreshChallengeBestEffort(
   }
 }
 
-async function verifyMfa(
-  req: MarketingApiRequest,
-  res: MarketingApiResponse,
-): Promise<void> {
+async function verifyMfa(req: MarketingApiRequest, res: MarketingApiResponse): Promise<void> {
   if ((req.method ?? "GET").toUpperCase() !== "POST") {
     methodNotAllowed(res, ["POST"]);
     return;
@@ -1375,10 +1160,7 @@ async function verifyMfa(
   requireCsrf(req, cookies);
   const body = parseJsonBody(req, 4 * 1024);
   const code = stringField(body, "code", 12).trim();
-  if (
-    !/^\d{6}$/.test(code) ||
-    Object.keys(body).some((key) => key !== "code")
-  ) {
+  if (!/^\d{6}$/.test(code) || Object.keys(body).some((key) => key !== "code")) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
   const rawPending = cookies[MARKETING_PENDING_COOKIE] ?? "";
@@ -1400,12 +1182,7 @@ async function verifyMfa(
     sendJson(
       res,
       401,
-      {
-        error: {
-          code: "authentication_required",
-          message: "Authentification requise.",
-        },
-      },
+      { error: { code: "authentication_required", message: "Authentification requise." } },
       [clearCookie(MARKETING_PENDING_COOKIE, true)],
     );
     return;
@@ -1421,11 +1198,7 @@ async function verifyMfa(
       code,
     );
   } catch (error) {
-    if (
-      error instanceof DownstreamHttpError &&
-      error.status >= 400 &&
-      error.status < 500
-    ) {
+    if (error instanceof DownstreamHttpError && error.status >= 400 && error.status < 500) {
       await refreshChallengeBestEffort(config, rawPending, pending);
       throw new PublicBffError(401, "mfa_failed", "Vérification impossible.");
     }
@@ -1448,35 +1221,21 @@ async function verifyMfa(
     const rawCsrf = opaqueToken();
     const sessionHash = sha256Hex(rawSession);
     const csrfHash = sha256Hex(rawCsrf);
-    const finalized = await serviceRpc(
-      config,
-      "service_finalize_marketing_web_session",
-      {
-        p_pending_sid_hash: sha256Hex(rawPending),
-        p_sid_hash: sessionHash,
-        p_csrf_hash: csrfHash,
-        p_expires_at: new Date(
-          Date.now() + MAX_SESSION_SECONDS * 1_000,
-        ).toISOString(),
-      },
-    );
+    const finalized = await serviceRpc(config, "service_finalize_marketing_web_session", {
+      p_pending_sid_hash: sha256Hex(rawPending),
+      p_sid_hash: sessionHash,
+      p_csrf_hash: csrfHash,
+      p_expires_at: new Date(Date.now() + MAX_SESSION_SECONDS * 1_000).toISOString(),
+    });
     const session = normalizeSession(finalized, sessionHash, csrfHash);
-    if (
-      !session ||
-      session.userId !== pending.userId ||
-      session.email !== admin.email
-    ) {
+    if (!session || session.userId !== pending.userId || session.email !== admin.email) {
       throw new DownstreamHttpError(503);
     }
 
     try {
       await signOutLocal(config, verified.accessToken);
     } catch {
-      throw new PublicBffError(
-        503,
-        "service_unavailable",
-        "Service indisponible.",
-      );
+      throw new PublicBffError(503, "service_unavailable", "Service indisponible.");
     }
     await clearRateLimit(config, userIpRateKey).catch(() => undefined);
     await clearRateLimit(config, userGlobalRateKey).catch(() => undefined);
@@ -1490,10 +1249,7 @@ async function verifyMfa(
     ).catch(() => undefined);
     const remainingSeconds = Math.max(
       1,
-      Math.min(
-        MAX_SESSION_SECONDS,
-        Math.floor((Date.parse(session.expiresAt) - Date.now()) / 1_000),
-      ),
+      Math.min(MAX_SESSION_SECONDS, Math.floor((Date.parse(session.expiresAt) - Date.now()) / 1_000)),
     );
     sendJson(
       res,
@@ -1521,10 +1277,7 @@ async function verifyMfa(
   }
 }
 
-async function getSession(
-  req: MarketingApiRequest,
-  res: MarketingApiResponse,
-): Promise<void> {
+async function getSession(req: MarketingApiRequest, res: MarketingApiResponse): Promise<void> {
   validateMarketingRequestContext(req, false);
   const cookies = parseCookies(header(req, "cookie"));
   const rawSession = cookies[MARKETING_SESSION_COOKIE] ?? "";
@@ -1539,8 +1292,7 @@ async function getSession(
     }
     const nextCsrf = opaqueToken();
     const cookieHeaders = [csrfCookie(nextCsrf)];
-    if (rawSession)
-      cookieHeaders.push(clearCookie(MARKETING_SESSION_COOKIE, true));
+    if (rawSession) cookieHeaders.push(clearCookie(MARKETING_SESSION_COOKIE, true));
     sendJson(res, 401, { authenticated: false }, cookieHeaders);
     return;
   }
@@ -1553,13 +1305,14 @@ async function getSession(
     if (admin.email !== session.email) throw new DownstreamHttpError(403);
   } catch (error) {
     if (error instanceof PublicBffError && error.status !== 401) throw error;
-    if (error instanceof DownstreamHttpError && error.status >= 500)
-      throw error;
+    if (error instanceof DownstreamHttpError && error.status >= 500) throw error;
     await revokeSessionBestEffort(config, rawSession);
-    sendJson(res, 401, { authenticated: false }, [
-      clearCookie(MARKETING_SESSION_COOKIE, true),
-      csrfCookie(opaqueToken()),
-    ]);
+    sendJson(
+      res,
+      401,
+      { authenticated: false },
+      [clearCookie(MARKETING_SESSION_COOKIE, true), csrfCookie(opaqueToken())],
+    );
     return;
   }
   sendJson(res, 200, {
@@ -1571,10 +1324,7 @@ async function getSession(
   });
 }
 
-async function logout(
-  req: MarketingApiRequest,
-  res: MarketingApiResponse,
-): Promise<void> {
+async function logout(req: MarketingApiRequest, res: MarketingApiResponse): Promise<void> {
   validateMarketingRequestContext(req, true);
   const config = readConfig();
   const cookies = parseCookies(header(req, "cookie"));
@@ -1588,10 +1338,7 @@ async function logout(
   sendJson(res, 200, { authenticated: false }, clearAuthCookies());
 }
 
-async function executeMarketingRpc(
-  req: MarketingApiRequest,
-  res: MarketingApiResponse,
-): Promise<void> {
+async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiResponse): Promise<void> {
   if ((req.method ?? "GET").toUpperCase() !== "POST") {
     methodNotAllowed(res, ["POST"]);
     return;
@@ -1604,32 +1351,21 @@ async function executeMarketingRpc(
     throw new PublicBffError(400, "operation_rejected", "Opération refusée.");
   }
   const args = body.args === undefined ? {} : body.args;
-  if (
-    !isPlainObject(args) ||
-    Object.keys(body).some((key) => !["operation", "args"].includes(key))
-  ) {
+  if (!isPlainObject(args) || Object.keys(body).some((key) => !["operation", "args"].includes(key))) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
   try {
-    const result = await serviceRpc(
-      config,
-      "service_execute_marketing_admin_operation",
-      {
-        p_sid_hash: session.sessionHash,
-        p_csrf_hash: session.csrfHash,
-        p_operation: operation,
-        p_args: args,
-      },
-    );
+    const result = await serviceRpc(config, "service_execute_marketing_admin_operation", {
+      p_sid_hash: session.sessionHash,
+      p_csrf_hash: session.csrfHash,
+      p_operation: operation,
+      p_args: args,
+    });
     sendJson(res, 200, result);
   } catch (error) {
-    if (
-      error instanceof DownstreamHttpError &&
-      error.status >= 400 &&
-      error.status < 500
-    ) {
+    if (error instanceof DownstreamHttpError && error.status >= 400 && error.status < 500) {
       throw new PublicBffError(400, "operation_rejected", "Opération refusée.");
     }
     throw error;
@@ -1651,18 +1387,12 @@ async function runMarketingOrchestrator(
   if (action !== "run_due" && action !== "run_item") {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
-  const allowedKeys =
-    action === "run_item" ? ["action", "itemId", "limit"] : ["action", "limit"];
+  const allowedKeys = action === "run_item" ? ["action", "itemId", "limit"] : ["action", "limit"];
   if (Object.keys(body).some((key) => !allowedKeys.includes(key))) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
   const rawLimit = body.limit === undefined ? 25 : body.limit;
-  if (
-    typeof rawLimit !== "number" ||
-    !Number.isInteger(rawLimit) ||
-    rawLimit < 1 ||
-    rawLimit > 100
-  ) {
+  if (typeof rawLimit !== "number" || !Number.isInteger(rawLimit) || rawLimit < 1 || rawLimit > 100) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
   const itemId = action === "run_item" ? stringField(body, "itemId", 64) : "";
@@ -1694,11 +1424,7 @@ async function runMarketingOrchestrator(
   );
   if (!response.ok) {
     if (response.status === 409) {
-      throw new PublicBffError(
-        409,
-        "operation_unavailable",
-        "Opération indisponible.",
-      );
+      throw new PublicBffError(409, "operation_unavailable", "Opération indisponible.");
     }
     if (response.status >= 400 && response.status < 500) {
       throw new PublicBffError(400, "operation_rejected", "Opération refusée.");
