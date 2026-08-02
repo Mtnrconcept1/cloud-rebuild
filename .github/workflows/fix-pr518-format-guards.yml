@@ -1,0 +1,53 @@
+name: Fix PR 518 formatting-sensitive guards
+
+on:
+  push:
+    branches:
+      - fix/restaurateur-onboarding-reliability
+    paths:
+      - .github/workflows/fix-pr518-format-guards.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/restaurateur-onboarding-reliability
+          fetch-depth: 0
+
+      - name: Restore stable source markers
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('supabase/functions/create-checkout/index.ts')
+          source = path.read_text()
+
+          replacements = {
+              '''const CLIENT_STRIPE_CHECKOUT_KINDS = new Set([\n  "order",\n  "zero-attente",\n  "chefs-table",\n]);''': 'const CLIENT_STRIPE_CHECKOUT_KINDS = new Set(["order", "zero-attente", "chefs-table"]);',
+              '''await rateLimiter.consume(`user:${actor.userId}`, {\n      maxRequests: 12,\n      windowSeconds: 300,\n    });''': 'await rateLimiter.consume(`user:${actor.userId}`, { maxRequests: 12, windowSeconds: 300 });',
+              '''await rateLimiter.consume(`ip:${requestMetadata.ip}`, {\n        maxRequests: 60,\n        windowSeconds: 300,\n      });''': 'await rateLimiter.consume(`ip:${requestMetadata.ip}`, { maxRequests: 60, windowSeconds: 300 });',
+              '''await rateLimiter.consume("global", {\n      maxRequests: 500,\n      windowSeconds: 60,\n    });''': 'await rateLimiter.consume("global", { maxRequests: 500, windowSeconds: 60 });',
+              '''points_to_redeem: Math.round(\n            (pointsByPaymentGroup.get(paymentGroupKey) || 0) * 100,\n          ),''': 'points_to_redeem: Math.round((pointsByPaymentGroup.get(paymentGroupKey) || 0) * 100),',
+          }
+
+          for old, new in replacements.items():
+              if old not in source:
+                  raise SystemExit(f'Expected source marker missing: {old[:80]!r}')
+              source = source.replace(old, new, 1)
+
+          path.write_text(source)
+          PY
+
+      - name: Commit repaired markers
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add supabase/functions/create-checkout/index.ts
+          git diff --cached --quiet && exit 0
+          git commit -m "fix(test): preserve checkout guard source markers"
+          git push origin HEAD:fix/restaurateur-onboarding-reliability
