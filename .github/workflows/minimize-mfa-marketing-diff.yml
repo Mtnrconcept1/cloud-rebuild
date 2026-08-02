@@ -1,0 +1,142 @@
+name: Minimize MFA marketing diff
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+
+jobs:
+  minimize:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/mfa-password-and-marketing-login'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/mfa-password-and-marketing-login
+          fetch-depth: 1
+
+      - name: Restore canonical server formatting and apply only reviewed hunks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          git checkout origin/main -- server/marketingBff.ts
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('server/marketingBff.ts')
+          source = path.read_text(encoding='utf-8')
+
+          old_decoder = '''    try {
+                svg = decodeURIComponent(trimmed.slice(separator + 1));
+              } catch {
+                throw new DownstreamHttpError(502);
+              }'''
+          new_decoder = '''    const payload = trimmed.slice(separator + 1);
+              try {
+                svg = decodeURIComponent(payload);
+              } catch {
+                // Supabase can return an SVG data URL containing literal percent
+                // characters. The payload is already valid SVG and must not abort
+                // the MFA enrollment before the challenge is created.
+                svg = payload;
+              }'''
+          if source.count(old_decoder) != 1:
+              raise SystemExit(f'SVG decoder: expected one occurrence, found {source.count(old_decoder)}')
+          source = source.replace(old_decoder, new_decoder, 1)
+
+          old_catch = '''  } catch {
+                if (enrolledFactorId) {
+                  try {
+                    await unenrollFactor(config, tokens.accessToken, enrolledFactorId);
+                  } catch {
+                    // Best-effort cleanup of an incomplete enrollment.
+                  }
+                }
+                await signOutLocalBestEffort(config, tokens.accessToken);
+                throw new PublicBffError(401, "authentication_failed", "Authentification impossible.");
+              }
+            }'''
+          new_catch = '''  } catch (error) {
+                if (enrolledFactorId) {
+                  try {
+                    await unenrollFactor(config, tokens.accessToken, enrolledFactorId);
+                  } catch {
+                    // Best-effort cleanup of an incomplete enrollment.
+                  }
+                }
+                await signOutLocalBestEffort(config, tokens.accessToken);
+                if (error instanceof PublicBffError) throw error;
+                throw new PublicBffError(
+                  503,
+                  "mfa_setup_unavailable",
+                  "Configuration 2FA temporairement indisponible.",
+                );
+              }
+            }'''
+          if source.count(old_catch) != 1:
+              raise SystemExit(f'login error mapping: expected one occurrence, found {source.count(old_catch)}')
+          source = source.replace(old_catch, new_catch, 1)
+          path.write_text(source, encoding='utf-8')
+          PY
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run focused tests
+        run: >-
+          pnpm exec vitest run --mode production
+          src/test/password-recovery-routing.test.ts
+          src/test/marketing-bff-security.test.ts
+          src/test/marketing-bff-client.test.ts
+          src/test/auth-signup-form.test.tsx
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Production build
+        run: pnpm run build:prod
+
+      - name: Commit minimal validated diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout HEAD -- \
+            public/sitemap-actualites.xml \
+            public/sitemap-pages.xml \
+            public/sitemap-restaurants.xml
+          rm -f .github/workflows/minimize-mfa-marketing-diff.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server/marketingBff.ts
+          git add -u .github/workflows/minimize-mfa-marketing-diff.yml
+          git diff --cached --check
+          git commit -m "chore(auth): keep MFA marketing patch minimal"
+          git push origin HEAD:fix/mfa-password-and-marketing-login
