@@ -24,6 +24,34 @@ def stabilize_auth_recovery() -> None:
     path = Path("src/pages/Auth.tsx")
     source = path.read_text(encoding="utf-8")
 
+    recovery_start = "    setPrivilegedSignupAwaitingEmail(false);\n    let cancelled = false;"
+    recovery_active = (
+        "    setPrivilegedSignupAwaitingEmail(false);\n"
+        "    setPrivilegedSignupResumeChecking(true);\n"
+        "    let cancelled = false;"
+    )
+    if recovery_start not in source:
+        raise RuntimeError("confirmed recovery start was not found")
+    source = source.replace(recovery_start, recovery_active, 1)
+
+    fallback_guard = (
+        "    if (!user || !incompletePrivilegedSignupRole || "
+        "privilegedSignupResumeChecking) return;"
+    )
+    guarded_fallback = textwrap.dedent(
+        '''\
+          if (
+            !user
+            || !incompletePrivilegedSignupRole
+            || privilegedSignupResumeChecking
+            || privilegedSignupMutexRef.current
+          ) return;
+        '''
+    ).rstrip()
+    if fallback_guard not in source:
+        raise RuntimeError("incomplete-signup fallback guard was not found")
+    source = source.replace(fallback_guard, guarded_fallback, 1)
+
     resume_marker = "const resumePrivilegedSignup = async () => {"
     resume_index = require_single(source, resume_marker, "resume privileged signup")
     resume_end = source.index("\n\n    void resumePrivilegedSignup();", resume_index)
