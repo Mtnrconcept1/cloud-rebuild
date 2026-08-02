@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - scripts/ensure-supabase-auth-smtp.mjs
-      - .github/workflows/ensure-supabase-auth-smtp.yml
   workflow_dispatch:
 
 concurrency:
