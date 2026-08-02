@@ -23,157 +23,57 @@ jobs:
           ref: fix/restaurateur-onboarding-reliability
           fetch-depth: 1
 
-      - name: Add the final recovery and validation repairs
+      - name: Wire the stabilization helper into the staged validation
         shell: bash
         run: |
           set -euo pipefail
           python <<'PY'
           from pathlib import Path
 
-          workflow_path = Path('.github/workflows/apply-staged-onboarding-patch.yml')
-          workflow = workflow_path.read_text(encoding='utf-8')
+          path = Path('.github/workflows/apply-staged-onboarding-patch.yml')
+          source = path.read_text(encoding='utf-8')
 
-          marker = '      - name: Enable pnpm\n'
-          if 'Stabilize confirmed signup recovery and focused assertions' not in workflow:
-              if marker not in workflow:
-                  raise SystemExit('pnpm insertion marker not found')
-              step = r'''      - name: Stabilize confirmed signup recovery and focused assertions
-                shell: bash
-                run: |
-                  set -euo pipefail
-                  python <<'PYTHON'
-                  from pathlib import Path
-
-                  auth_path = Path('src/pages/Auth.tsx')
-                  source = auth_path.read_text(encoding='utf-8')
-                  resume_start = source.index('    const resumePrivilegedSignup = async () => {')
-                  resume_end = source.index('\n\n    void resumePrivilegedSignup();', resume_start)
-
-                  state_start = source.index('        setRoleMode(draft.requested_role);', resume_start, resume_end)
-                  operation_ref_start = source.index(
-                      '        privilegedSignupOperationRef.current = {',
-                      state_start,
-                      resume_end,
-                  )
-                  state_block = source[state_start:operation_ref_start].rstrip()
-                  source = source[:state_start] + source[operation_ref_start:]
-
-                  missing_start = source.index(
-                      '        if (missingForm || missingDocuments.length > 0) {',
-                      resume_start,
-                  )
-                  missing_end = source.index(
-                      '\n\n        const contractContentSha256',
-                      missing_start,
-                  )
-                  missing_replacement = (
-                      '        if (missingForm || missingDocuments.length > 0) {\n'
-                      + state_block
-                      + '\n          setIsLogin(false);\n'
-                      + '          const resumeMessage = recovery\n'
-                      + '            ? missingForm || `Documents manquants: ${missingDocuments.map((item) => item.label).join(", ")}.`\n'
-                      + '            : "Le brouillon local sécurisé n’est pas disponible sur cet appareil. Complétez uniquement les informations ou documents manquants.";\n'
-                      + '          toast({\n'
-                      + '            title: "Inscription à reprendre",\n'
-                      + '            description: resumeMessage,\n'
-                      + '            variant: "destructive",\n'
-                      + '          });\n'
-                      + '          return;\n'
-                      + '        }'
-                  )
-                  source = source[:missing_start] + missing_replacement + source[missing_end:]
-
-                  finalize_old = '''        await finalizeSignupApplication({
-                    operationId: draft.operation_id,
-                    userId: user.id,
-                    payload: resumePayload,
-                  }, { skipIfExisting: true });'''
-                  finalize_new = '''        const finalizeRecoveredSignup = () =>
-                    finalizeSignupApplication(
-                      {
-                        operationId: draft.operation_id,
-                        userId: user.id,
-                        payload: resumePayload,
-                      },
-                      { skipIfExisting: true },
-                    );
-                  try {
-                    await finalizeRecoveredSignup();
-                  } catch (resumeError) {
-                    if (cancelled) return;
-                    const resumeMessage = resumeError instanceof Error
-                      ? resumeError.message
-                      : "La première reprise de l’inscription a échoué.";
-                    toast({
-                      title: "Inscription à reprendre",
-                      description: resumeMessage,
-                      variant: "destructive",
-                    });
-                    await finalizeRecoveredSignup();
-                  }'''
-                  if source.count(finalize_old) != 1:
-                      raise SystemExit(
-                          f'expected one recovered-signup finalization block, found {source.count(finalize_old)}'
-                      )
-                  source = source.replace(finalize_old, finalize_new, 1)
-                  auth_path.write_text(source, encoding='utf-8')
-
-                  dashboard_path = Path('src/pages/dashboard/DashboardHome.tsx')
-                  dashboard = dashboard_path.read_text(encoding='utf-8')
-                  old_back_error = '''        title: "Paiement en cours de vérification",
-                        description: "Reprenez la même tentative pour éviter tout doublon.",'''
-                  new_back_error = '''        title: "Enregistrement de carte en cours",
-                        description: "La demande est encore en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants.",'''
-                  if old_back_error in dashboard:
-                      dashboard = dashboard.replace(old_back_error, new_back_error, 1)
-                  elif 'title: "Enregistrement de carte en cours"' not in dashboard:
-                      raise SystemExit('onboarding back-navigation recovery copy not found')
-                  dashboard_path.write_text(dashboard, encoding='utf-8')
-
-                  payments_path = Path('src/test/restaurant-onboarding-payments.test.ts')
-                  payments = payments_path.read_text(encoding='utf-8')
-                  brittle_assertion = '''    expect(checkout).toContain('if (!signupApplicationId) throw new HttpError(400, "signup_application_id requis")');'''
-                  stable_assertion = '''    expect(checkout).toContain("signup_application_id requis");'''
-                  if brittle_assertion in payments:
-                      payments = payments.replace(brittle_assertion, stable_assertion, 1)
-                  elif stable_assertion not in payments:
-                      raise SystemExit('signup application validation assertion not found')
-                  payments_path.write_text(payments, encoding='utf-8')
-                  PYTHON
+          pnpm_marker = '      - name: Enable pnpm\n'
+          stabilization_step = '''      - name: Stabilize confirmed signup recovery
+                  run: python scripts/stabilize-restaurateur-onboarding.py
 
           '''
-              workflow = workflow.replace(marker, step + marker, 1)
+          if 'Stabilize confirmed signup recovery' not in source:
+              if pnpm_marker not in source:
+                  raise SystemExit('pnpm insertion marker not found')
+              source = source.replace(pnpm_marker, stabilization_step + pnpm_marker, 1)
 
           cleanup_anchor = '          rm -f scripts/apply-restaurateur-auth-card-fix.py\n'
-          cleanup_replacement = (
+          cleanup_extension = (
               cleanup_anchor
+              + '          rm -f scripts/stabilize-restaurateur-onboarding.py\n'
               + '          rm -f .github/workflows/apply-staged-onboarding-patch.yml\n'
-              + '          rm -f .github/workflows/repair-onboarding-final.yml\n'
           )
-          if '.github/workflows/apply-staged-onboarding-patch.yml' not in workflow.split('Commit validated product changes', 1)[-1]:
-              if cleanup_anchor not in workflow:
-                  raise SystemExit('workflow cleanup anchor not found')
-              workflow = workflow.replace(cleanup_anchor, cleanup_replacement, 1)
+          commit_section = source.split('      - name: Commit validated product changes', 1)[-1]
+          if 'rm -f scripts/stabilize-restaurateur-onboarding.py' not in commit_section:
+              if cleanup_anchor not in source:
+                  raise SystemExit('cleanup anchor not found')
+              source = source.replace(cleanup_anchor, cleanup_extension, 1)
 
-          add_u_anchor = '''          git add -u \\
+          old_add_u = '''          git add -u \\
                     tmp/restaurateur-onboarding-reliability.patch.gz.b64 \\
                     scripts/apply-restaurateur-auth-card-fix.py
           '''
-          add_u_replacement = '''          git add -u \\
+          new_add_u = '''          git add -u \\
                     tmp/restaurateur-onboarding-reliability.patch.gz.b64 \\
                     scripts/apply-restaurateur-auth-card-fix.py \\
-                    .github/workflows/apply-staged-onboarding-patch.yml \\
-                    .github/workflows/repair-onboarding-final.yml
+                    scripts/stabilize-restaurateur-onboarding.py \\
+                    .github/workflows/apply-staged-onboarding-patch.yml
           '''
-          if '.github/workflows/repair-onboarding-final.yml' not in workflow.split('git add -u', 1)[-1]:
-              if add_u_anchor not in workflow:
+          if 'scripts/stabilize-restaurateur-onboarding.py \\' not in commit_section:
+              if old_add_u not in source:
                   raise SystemExit('git add -u cleanup block not found')
-              workflow = workflow.replace(add_u_anchor, add_u_replacement, 1)
+              source = source.replace(old_add_u, new_add_u, 1)
 
-          workflow_path.write_text(workflow, encoding='utf-8')
+          path.write_text(source, encoding='utf-8')
           PY
 
-      - name: Commit the repaired validation workflow
+      - name: Commit the repaired staged workflow
         shell: bash
         run: |
           set -euo pipefail
@@ -183,5 +83,5 @@ jobs:
           git add .github/workflows/apply-staged-onboarding-patch.yml
           git add -u .github/workflows/repair-onboarding-final.yml
           git diff --cached --check
-          git commit -m "ci: stabilize confirmed onboarding recovery"
+          git commit -m "ci: run final onboarding stabilization before validation"
           git push origin HEAD:fix/restaurateur-onboarding-reliability
