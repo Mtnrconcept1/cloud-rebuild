@@ -199,8 +199,8 @@ describe("phase 1 launch audit plan readiness", () => {
     expect(app).toContain('const RestaurateursGoogleBusiness = lazy(() => import("./pages/RestaurateursGoogleBusiness"))');
     expect(app).toContain('<Route path="/restaurateurs/google-business" element={<RestaurateursGoogleBusiness />} />');
     expect(page).toContain("Transformez votre fiche Google Business en canal direct");
-    expect(page).toContain("Tables Google par mois");
-    expect(page).toContain("Commission comparée par couvert");
+    expect(page).toContain("Réservations issues de Google / mois");
+    expect(page).toContain("Montant facturé par personne (comparatif)");
     expect(page).toContain("Auditer ma fiche Google");
     expect(page).toContain("calculateGoogleBusinessSavings");
     expect(economics).toContain("calculateGoogleBusinessSavings");
