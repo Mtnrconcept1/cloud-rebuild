@@ -965,6 +965,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const privilegedSignupResumeRef = useRef<string | null>(null);
   const incompleteSignupNoticeRef = useRef(false);
   const confirmationNoticeShownRef = useRef(false);
+  const passwordRecoveryRequestRef = useRef(false);
   const { activeFeatures, loading: featureFlagsLoading } =
     useFeatureFlagSnapshot();
   const courierSignupEnabled = activeFeatures.has("espace-livreur");
@@ -1670,7 +1671,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   };
 
   const handleResetPassword = async () => {
-    if (!signupForm.email.trim()) {
+    if (passwordRecoveryRequestRef.current) return;
+
+    const normalizedEmail = signupForm.email.trim().toLowerCase();
+    if (!normalizedEmail) {
       toast({ title: "Entrez votre email", variant: "destructive" });
       return;
     }
@@ -1683,32 +1687,45 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       return;
     }
 
+    passwordRecoveryRequestRef.current = true;
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      signupForm.email,
-      {
-        redirectTo: isDemoAuthMode
-          ? `${window.location.origin}/auth/demo`
-          : getCanonicalAuthHref(),
-        captchaToken: captchaToken || undefined,
-      },
-    );
+    setSignupForm((current) => ({ ...current, email: normalizedEmail }));
 
-    if (error) {
-      toast({
-        title: "Erreur",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        normalizedEmail,
+        {
+          redirectTo: isDemoAuthMode
+            ? `${window.location.origin}/auth/demo`
+            : getCanonicalAuthHref(),
+          captchaToken: captchaToken || undefined,
+        },
+      );
+
+      if (error) {
+        const isRateLimited =
+          error.status === 429 ||
+          /rate limit|too many requests|email rate/i.test(error.message);
+        toast({
+          title: isRateLimited ? "Trop de demandes" : "Envoi impossible",
+          description: isRateLimited
+            ? "Un email a déjà été demandé récemment. Attendez quelques minutes avant de réessayer et utilisez uniquement le dernier lien reçu."
+            : error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Email envoyé",
         description:
-          "Consultez votre boite mail pour reinitialiser votre mot de passe.",
+          "Consultez votre boîte mail pour réinitialiser votre mot de passe. Une nouvelle demande sera temporairement bloquée pour éviter les doublons.",
       });
       setForgotPassword(false);
+    } finally {
+      passwordRecoveryRequestRef.current = false;
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleResendConfirmationEmail = async () => {
