@@ -101,8 +101,16 @@ def clarify_dashboard_card_copy() -> None:
     source = path.read_text(encoding="utf-8")
 
     source = source.replace(
+        '"Le paiement est en cours de vérification. Reprenez la même tentative dans quelques secondes."',
+        '"L’enregistrement de la carte est en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants."',
+    )
+    source = source.replace(
         'title: "Paiement en cours de vérification"',
         'title: "Enregistrement de carte en cours"',
+    )
+    source = source.replace(
+        'title: isPaymentAttemptIndeterminateError(error) ? "Paiement en cours de vérification" : "Paiement impossible",',
+        'title: isPaymentAttemptIndeterminateError(error) ? "Enregistrement de carte en cours" : "Enregistrement de carte impossible",',
     )
     source = source.replace(
         'description: "Reprenez la même tentative pour éviter tout doublon."',
@@ -113,6 +121,8 @@ def clarify_dashboard_card_copy() -> None:
         raise RuntimeError("generic payment recovery copy remains in DashboardHome")
     if "Enregistrement de carte en cours" not in source:
         raise RuntimeError("card-specific recovery copy was not installed")
+    if "Aucun débit n’a été créé" not in source:
+        raise RuntimeError("no-debit recovery explanation was not installed")
 
     path.write_text(source, encoding="utf-8")
 
@@ -135,10 +145,36 @@ def stabilize_checkout_assertion() -> None:
     path.write_text(source, encoding="utf-8")
 
 
+def ensure_card_copy_regression_test() -> None:
+    path = Path("src/test/restaurateur-onboarding-reliability.test.ts")
+    source = path.read_text(encoding="utf-8")
+    title = '  it("uses card-specific recovery copy without suggesting a debit", () => {'
+    if title in source:
+        return
+
+    marker = '  it("sets the currency required by Stripe setup-mode checkout", () => {'
+    if marker not in source:
+        raise RuntimeError("focused Stripe setup test marker was not found")
+    addition = textwrap.dedent(
+        '''\
+          it("uses card-specific recovery copy without suggesting a debit", () => {
+            const dashboard = read("src/pages/dashboard/DashboardHome.tsx");
+            expect(dashboard).toContain("Enregistrement de carte en cours");
+            expect(dashboard).toContain("Aucun débit n’a été créé");
+            expect(dashboard).not.toContain("Paiement en cours de vérification");
+          });
+
+        '''
+    )
+    source = source.replace(marker, addition + marker, 1)
+    path.write_text(source, encoding="utf-8")
+
+
 def main() -> None:
     stabilize_auth_recovery()
     clarify_dashboard_card_copy()
     stabilize_checkout_assertion()
+    ensure_card_copy_regression_test()
 
 
 if __name__ == "__main__":
