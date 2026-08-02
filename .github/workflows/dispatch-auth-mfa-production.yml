@@ -1,0 +1,42 @@
+name: Dispatch auth MFA production deployment
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'ops/dispatch-auth-mfa-production-ee22e4'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Dispatch Deploy Production on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          response_file="$(mktemp)"
+          status="$(curl --silent --show-error --output "$response_file" --write-out '%{http_code}' \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REPOSITORY}/actions/workflows/deploy-production.yml/dispatches" \
+            --data '{"ref":"main"}')"
+          if [[ "$status" != "204" ]]; then
+            echo "::error::Deploy Production dispatch failed with HTTP ${status}."
+            cat "$response_file"
+            exit 1
+          fi
+          echo "Deploy Production dispatched for main commit ee22e400861c3fbfb1e5f19311bd0ff7ac6f344f."
