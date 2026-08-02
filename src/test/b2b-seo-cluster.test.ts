@@ -19,7 +19,7 @@ describe("B2B restaurateur SEO cluster", () => {
     const alternative = read(pages.alternative);
 
     expect(geneve).toContain("La plateforme restaurateur pour transformer la demande locale à Genève");
-    expect(geneve).toContain("dashboard pensé pour les restaurants genevois");
+    expect(geneve).toContain("Trois repères avant de comparer les offres");
     expect(geneve).toContain("Réservations et commandes directes");
     expect(geneve).toContain("Anti-gaspi et ventes flash");
     expect(geneve).toContain("Actualités, campagnes et Miamz");
@@ -31,7 +31,7 @@ describe("B2B restaurateur SEO cluster", () => {
     expect(google).toContain("Transformez votre fiche Google Business en canal direct");
     expect(google).toContain("clics Google Maps");
     expect(google).toContain("Checklist de bascule");
-    expect(google).toContain("Tables Google par mois");
+    expect(google).toContain("Réservations issues de Google / mois");
     expect(google).toContain("bouton de réservation traçable");
     expect(google).toContain("Bascule du bouton Google");
     expect(google).toContain("Situation");
@@ -42,8 +42,8 @@ describe("B2B restaurateur SEO cluster", () => {
     expect(alternative).toContain("No-shows et changements");
     expect(alternative).toContain("Scénarios chiffrés");
     expect(alternative).toContain("Marge prévisible");
-    expect(alternative).toContain("Question à trancher");
-    expect(alternative).toContain("Lecture TOK");
+    expect(alternative).toContain("À vérifier");
+    expect(alternative).toContain("Avec TOK");
 
     expect(geneve).not.toContain("Transformez votre fiche Google Business en canal direct");
     expect(google).not.toContain("Scénarios chiffrés");
