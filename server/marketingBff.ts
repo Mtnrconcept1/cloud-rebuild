@@ -731,10 +731,14 @@ function normalizeQrCode(value: string): string {
   let svg = trimmed;
   if (/^data:image\/svg\+xml(?:;[^,]*)?,/i.test(trimmed)) {
     const separator = trimmed.indexOf(",");
+    const payload = trimmed.slice(separator + 1);
     try {
-      svg = decodeURIComponent(trimmed.slice(separator + 1));
+      svg = decodeURIComponent(payload);
     } catch {
-      throw new DownstreamHttpError(502);
+      // Supabase can return an SVG data URL containing literal percent
+      // characters. The payload is already valid SVG and must not abort
+      // the MFA enrollment before the challenge is created.
+      svg = payload;
     }
   }
   if (!svg.slice(0, 512).includes("<svg") || svg.length > 64 * 1024) {
@@ -1020,7 +1024,7 @@ async function login(req: MarketingApiRequest, res: MarketingApiResponse): Promi
         clearCookie(MARKETING_SESSION_COOKIE, true),
       ],
     );
-  } catch {
+  } catch (error) {
     if (enrolledFactorId) {
       try {
         await unenrollFactor(config, tokens.accessToken, enrolledFactorId);
@@ -1029,7 +1033,12 @@ async function login(req: MarketingApiRequest, res: MarketingApiResponse): Promi
       }
     }
     await signOutLocalBestEffort(config, tokens.accessToken);
-    throw new PublicBffError(401, "authentication_failed", "Authentification impossible.");
+    if (error instanceof PublicBffError) throw error;
+    throw new PublicBffError(
+      503,
+      "mfa_setup_unavailable",
+      "Configuration 2FA temporairement indisponible.",
+    );
   }
 }
 

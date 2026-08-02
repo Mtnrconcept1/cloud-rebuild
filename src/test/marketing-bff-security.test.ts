@@ -246,6 +246,63 @@ describe("marketing server-only BFF", () => {
     expect(cookies.join(";")).not.toMatch(/supabase-access-token|supabase-refresh-token/);
   });
 
+  it("accepts Supabase SVG enrollment payloads containing literal percent characters", async () => {
+  configureServerEnvironment();
+  const userId = "11111111-1111-4111-8111-111111111111";
+  const factorId = "22222222-2222-4222-8222-222222222222";
+  const challengeId = "33333333-3333-4333-8333-333333333333";
+  vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request) => {
+    const url = String(input);
+    if (url.endsWith("/rpc/service_consume_marketing_auth_attempt")) {
+      return json({ allowed: true, retry_after_seconds: 0 });
+    }
+    if (url.endsWith("/auth/v1/token?grant_type=password")) {
+      return json({
+        access_token: "supabase-access-token",
+        refresh_token: "supabase-refresh-token",
+        user: { id: userId, email: "admin@thetok.ch" },
+      });
+    }
+    if (url.endsWith(`/auth/v1/admin/users/${userId}`)) {
+      return json({ id: userId, email: "admin@thetok.ch" });
+    }
+    if (url.includes("/rest/v1/user_roles?")) return json([{ user_id: userId }]);
+    if (url.endsWith("/auth/v1/user")) {
+      return json({ id: userId, email: "admin@thetok.ch", factors: [] });
+    }
+    if (url.endsWith("/auth/v1/factors")) {
+      return json({
+        id: factorId,
+        totp: {
+          qr_code: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><text>100%</text></svg>',
+        },
+      });
+    }
+    if (url.endsWith(`/auth/v1/factors/${factorId}/challenge`)) {
+      return json({ id: challengeId });
+    }
+    if (url.endsWith("/rpc/service_store_marketing_auth_challenge")) {
+      return json({ user_id: userId, expires_at: new Date(Date.now() + 600_000).toISOString() });
+    }
+    throw new Error(`Unexpected test request: ${url}`);
+  }));
+
+  const recorder = responseRecorder();
+  await marketingLoginHandler(
+    mutationRequest(
+      { email: "admin@thetok.ch", password: "correct-password" },
+      `${MARKETING_CSRF_COOKIE}=${"c".repeat(43)}`,
+    ),
+    recorder.response,
+  );
+
+  expect(recorder.response.statusCode).toBe(200);
+  const payload = JSON.parse(recorder.body) as Record<string, unknown>;
+  expect(payload.status).toBe("mfa_enrollment_required");
+  expect(payload.qrCode).toMatch(/^data:image\/svg\+xml;base64,/);
+  expect(recorder.body).not.toMatch(/supabase-access-token|supabase-refresh-token/);
+});
+
   it("refuses AAL1 TOTP bootstrap when another verified factor exists", async () => {
     configureServerEnvironment();
     const userId = "11111111-1111-4111-8111-111111111111";
