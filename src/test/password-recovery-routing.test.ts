@@ -8,6 +8,7 @@ const passwordForm = fs.readFileSync(
   "src/components/auth/AccountPasswordForm.tsx",
   "utf8",
 );
+const passwordPolicy = fs.readFileSync("src/lib/passwordPolicy.ts", "utf8");
 
 describe("password recovery routing", () => {
   it("keeps recovery links on the dedicated reset form", () => {
@@ -30,8 +31,18 @@ describe("authenticated account security", () => {
     expect(passwordForm).toContain("new-password");
     expect(passwordForm).toContain("getAuthenticatorAssuranceLevel");
     expect(passwordForm).toContain("challengeAndVerify");
-    expect(passwordForm).toContain("Ajoutez au moins un symbole");
     expect(passwordForm).toContain("known to be weak");
+  });
+
+  it("validates passwords through the shared Supabase-aligned policy", () => {
+    expect(passwordForm).toContain('from "@/lib/passwordPolicy"');
+    expect(passwordForm).toContain("getPasswordError");
+    // The symbol guidance must name the set Supabase actually accepts, so an
+    // accented character is never mistaken for a valid symbol.
+    expect(passwordPolicy).toContain("Ajoutez au moins un symbole");
+    expect(passwordPolicy).toContain("REQUIRED_SYMBOLS");
+    // A regular expression here would silently reopen the gap on a bad escape.
+    expect(passwordPolicy).not.toMatch(/\[\^A-Za-z0-9/);
   });
 
   it("exposes account security from protected dashboards and client settings", () => {

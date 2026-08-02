@@ -48,11 +48,19 @@ export function readConsent(): ConsentReceipt | null {
 async function persistReceipt(receipt: ConsentReceipt) {
   try {
     const supabase = getSupabase();
-    const { data } = await supabase.auth.getUser();
+    // The consent banner also runs for anonymous visitors. Asking Supabase for
+    // the user without a session made it answer 403 `bad_jwt` (missing sub
+    // claim); such a receipt is simply attributed to no user. getUser() is kept
+    // behind the guard so an attributed receipt still carries a server-verified
+    // identity rather than one read from browser storage.
+    const { data: sessionData } = await supabase.auth.getSession();
+    const verifiedUserId = sessionData.session?.access_token
+      ? (await supabase.auth.getUser()).data.user?.id ?? null
+      : null;
     await (supabase as unknown as {
       from: (table: string) => { insert: (payload: Record<string, unknown>) => Promise<unknown> };
     }).from("consent_receipts").insert({
-      user_id: data.user?.id ?? null,
+      user_id: verifiedUserId,
       consent_version: receipt.version,
       necessary: true,
       analytics: receipt.preferences.analytics,

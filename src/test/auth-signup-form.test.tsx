@@ -437,7 +437,7 @@ describe("Auth signup form", () => {
       target: { value: "client@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Mot de passe"), {
-      target: { value: "secret123" },
+      target: { value: "Secret123!" },
     });
     acceptLegalTerms();
     fireEvent.click(screen.getByRole("button", { name: "Créer mon compte" }));
@@ -446,7 +446,7 @@ describe("Auth signup form", () => {
       expect(supabaseMocks.signUp).toHaveBeenCalledWith(
         expect.objectContaining({
           email: "client@example.com",
-          password: "secret123",
+          password: "Secret123!",
           options: expect.objectContaining({
             data: expect.objectContaining({
               legal_terms_accepted: true,
@@ -478,7 +478,7 @@ describe("Auth signup form", () => {
       target: { value: "client@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Mot de passe"), {
-      target: { value: "secret123" },
+      target: { value: "Secret123!" },
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Créer mon compte" }));
@@ -553,7 +553,7 @@ describe("Auth signup form", () => {
       target: { value: "restaurant@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Mot de passe"), {
-      target: { value: "secret123" },
+      target: { value: "Secret123!" },
     });
     fireEvent.change(screen.getByLabelText("Téléphone"), {
       target: { value: "+41790000000" },
@@ -686,7 +686,7 @@ describe("Auth signup form", () => {
       target: { value: "restaurant@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Mot de passe"), {
-      target: { value: "secret123" },
+      target: { value: "Secret123!" },
     });
     fireEvent.change(screen.getByLabelText("Téléphone"), {
       target: { value: "+41790000000" },

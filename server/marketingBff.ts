@@ -307,6 +307,20 @@ function methodNotAllowed(res: MarketingApiResponse, allowed: readonly string[])
   sendJson(res, 405, { error: { code: "method_not_allowed", message: "Méthode refusée." } });
 }
 
+/**
+ * Configuration failures and upstream outages used to reach the browser as the
+ * same opaque 503, which made a missing deployment variable indistinguishable
+ * from a Supabase incident. They now carry distinct error codes.
+ *
+ * The `reason` stays server-side and is deliberately never logged: this module
+ * handles raw Supabase access and refresh tokens, and the no-logging rule is
+ * enforced by marketing-bff-security.test.ts. It documents, at each call site,
+ * which setting is being rejected.
+ */
+function configurationUnavailable(_reason: string): PublicBffError {
+  return new PublicBffError(503, "configuration_unavailable", "Service indisponible.");
+}
+
 function readConfig(): BffConfig {
   const supabaseUrl = (
     process.env.SUPABASE_URL
@@ -322,22 +336,27 @@ function readConfig(): BffConfig {
   ).trim();
   const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
 
+  if (!supabaseUrl) throw configurationUnavailable("SUPABASE_URL is not set");
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(supabaseUrl);
   } catch {
-    throw new PublicBffError(503, "service_unavailable", "Service indisponible.");
+    throw configurationUnavailable("SUPABASE_URL is not a valid URL");
   }
-  if (
-    parsedUrl.protocol !== "https:"
-    || parsedUrl.username
-    || parsedUrl.password
-    || !parsedUrl.hostname.endsWith(".supabase.co")
-    || publishableKey.length < 20
-    || serviceRoleKey.length < 20
-    || constantTimeEqual(publishableKey, serviceRoleKey)
-  ) {
-    throw new PublicBffError(503, "service_unavailable", "Service indisponible.");
+  if (parsedUrl.protocol !== "https:" || parsedUrl.username || parsedUrl.password) {
+    throw configurationUnavailable("SUPABASE_URL must be credential-free HTTPS");
+  }
+  if (!parsedUrl.hostname.endsWith(".supabase.co")) {
+    throw configurationUnavailable("SUPABASE_URL host is not a supabase.co project");
+  }
+  if (publishableKey.length < 20) {
+    throw configurationUnavailable("SUPABASE_PUBLISHABLE_KEY is missing or too short");
+  }
+  if (serviceRoleKey.length < 20) {
+    throw configurationUnavailable("SUPABASE_SERVICE_ROLE_KEY is missing or too short");
+  }
+  if (constantTimeEqual(publishableKey, serviceRoleKey)) {
+    throw configurationUnavailable("SUPABASE_SERVICE_ROLE_KEY duplicates the publishable key");
   }
   return { supabaseUrl, publishableKey, serviceRoleKey };
 }
@@ -961,8 +980,13 @@ async function login(req: MarketingApiRequest, res: MarketingApiResponse): Promi
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
 
-  await consumeRateLimit(config, req, "password-ip", "all-accounts");
-  await consumeRateLimit(config, req, "password-account", sha256Hex(email), false);
+  const ipRateKey = await consumeRateLimit(config, req, "password-ip", "all-accounts");
+  // Scoped to the calling address on purpose. Keyed on the account alone, this
+  // bucket let any unauthenticated third party who knew an administrator's
+  // address hold that account locked out from anywhere, indefinitely, with six
+  // requests every fifteen minutes. Per-address brute-force resistance is
+  // unchanged: "password-ip" already caps every address at five attempts.
+  const accountRateKey = await consumeRateLimit(config, req, "password-account", sha256Hex(email));
   let tokens: AuthTokens | undefined;
   let authUser: JsonObject;
   try {
@@ -975,6 +999,13 @@ async function login(req: MarketingApiRequest, res: MarketingApiResponse): Promi
     throw new PublicBffError(401, "authentication_failed", "Authentification impossible.");
   }
   if (!tokens) throw new PublicBffError(401, "authentication_failed", "Authentification impossible.");
+
+  // The password step succeeded, so release its quota now instead of waiting
+  // for the TOTP step. An administrator who mistypes or abandons the MFA
+  // challenge must not be locked out of a credential they entered correctly;
+  // the "mfa-verify" buckets remain the guard for the second factor.
+  await clearRateLimit(config, ipRateKey).catch(() => undefined);
+  await clearRateLimit(config, accountRateKey).catch(() => undefined);
 
   const factors = normalizeFactors(authUser);
   const verifiedFactor = factors.find((factor) => (
@@ -1237,16 +1268,10 @@ async function verifyMfa(req: MarketingApiRequest, res: MarketingApiResponse): P
     } catch {
       throw new PublicBffError(503, "service_unavailable", "Service indisponible.");
     }
+    // The password buckets were already released by the login step, so only
+    // the two MFA buckets remain to be cleared here.
     await clearRateLimit(config, userIpRateKey).catch(() => undefined);
     await clearRateLimit(config, userGlobalRateKey).catch(() => undefined);
-    await clearRateLimit(
-      config,
-      rateLimitKey(req, "password-ip", "all-accounts"),
-    ).catch(() => undefined);
-    await clearRateLimit(
-      config,
-      rateLimitKey(req, "password-account", sha256Hex(admin.email), false),
-    ).catch(() => undefined);
     const remainingSeconds = Math.max(
       1,
       Math.min(MAX_SESSION_SECONDS, Math.floor((Date.parse(session.expiresAt) - Date.now()) / 1_000)),

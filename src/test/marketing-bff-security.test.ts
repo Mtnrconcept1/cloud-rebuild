@@ -44,7 +44,11 @@ function responseRecorder() {
   return { response, headers, get body() { return body; } };
 }
 
-function mutationRequest(body: Record<string, unknown>, cookieHeader: string): MarketingApiRequest {
+function mutationRequest(
+  body: Record<string, unknown>,
+  cookieHeader: string,
+  forwardedFor = "192.0.2.1",
+): MarketingApiRequest {
   return {
     method: "POST",
     headers: {
@@ -56,7 +60,7 @@ function mutationRequest(body: Record<string, unknown>, cookieHeader: string): M
       "content-type": "application/json",
       cookie: cookieHeader,
       "x-tok-marketing-csrf": "c".repeat(43),
-      "x-forwarded-for": "192.0.2.1",
+      "x-forwarded-for": forwardedFor,
     },
     body,
   };
@@ -570,5 +574,108 @@ describe("marketing server-only BFF", () => {
     expect(recorder.response.statusCode).toBe(401);
     expect(consumedRateKeys.size).toBe(2);
     expect(clearCalls).toBe(0);
+  });
+
+  function stubSuccessfulPasswordStep(
+    consumedRateKeys: Set<string>,
+    clearedRateKeys: Set<string>,
+  ) {
+    const userId = "11111111-1111-4111-8111-111111111111";
+    const factorId = "22222222-2222-4222-8222-222222222222";
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/rpc/service_consume_marketing_auth_attempt")) {
+        consumedRateKeys.add((JSON.parse(String(init?.body)) as { p_key_hash: string }).p_key_hash);
+        return json({ allowed: true, retry_after_seconds: 0 });
+      }
+      if (url.endsWith("/rpc/service_clear_marketing_auth_attempt")) {
+        clearedRateKeys.add((JSON.parse(String(init?.body)) as { p_key_hash: string }).p_key_hash);
+        return new Response(null, { status: 204 });
+      }
+      if (url.endsWith("/auth/v1/token?grant_type=password")) {
+        return json({
+          access_token: "supabase-access-token",
+          refresh_token: "supabase-refresh-token",
+          user: { id: userId, email: "admin@thetok.ch" },
+        });
+      }
+      if (url.endsWith(`/auth/v1/admin/users/${userId}`)) {
+        return json({ id: userId, email: "admin@thetok.ch" });
+      }
+      if (url.includes("/rest/v1/user_roles?")) return json([{ user_id: userId }]);
+      if (url.endsWith("/auth/v1/user")) {
+        return json({
+          id: userId,
+          email: "admin@thetok.ch",
+          factors: [{
+            id: factorId,
+            factor_type: "totp",
+            status: "verified",
+            created_at: "2026-08-01T00:00:00.000Z",
+          }],
+        });
+      }
+      if (url.endsWith(`/auth/v1/factors/${factorId}/challenge`)) {
+        return json({ id: "33333333-3333-4333-8333-333333333333" });
+      }
+      if (url.endsWith("/rpc/service_store_marketing_auth_challenge")) {
+        return json({ user_id: userId, expires_at: new Date(Date.now() + 600_000).toISOString() });
+      }
+      throw new Error(`Unexpected test request: ${url}`);
+    }));
+  }
+
+  it("releases both password buckets as soon as the password step succeeds", async () => {
+    configureServerEnvironment();
+    const consumedRateKeys = new Set<string>();
+    const clearedRateKeys = new Set<string>();
+    stubSuccessfulPasswordStep(consumedRateKeys, clearedRateKeys);
+
+    const recorder = responseRecorder();
+    await marketingLoginHandler(
+      mutationRequest(
+        { email: "admin@thetok.ch", password: "correct-password" },
+        `${MARKETING_CSRF_COOKIE}=${"c".repeat(43)}`,
+      ),
+      recorder.response,
+    );
+
+    // An administrator who abandons the TOTP prompt must not burn the quota of
+    // a password they entered correctly.
+    expect(recorder.response.statusCode).toBe(200);
+    expect(consumedRateKeys.size).toBe(2);
+    for (const key of consumedRateKeys) expect(clearedRateKeys.has(key)).toBe(true);
+  });
+
+  it("scopes the per-account password bucket to the calling address", async () => {
+    configureServerEnvironment();
+    const firstAddressKeys = new Set<string>();
+    stubSuccessfulPasswordStep(firstAddressKeys, new Set<string>());
+    await marketingLoginHandler(
+      mutationRequest(
+        { email: "admin@thetok.ch", password: "correct-password" },
+        `${MARKETING_CSRF_COOKIE}=${"c".repeat(43)}`,
+        "198.51.100.7",
+      ),
+      responseRecorder().response,
+    );
+
+    const secondAddressKeys = new Set<string>();
+    stubSuccessfulPasswordStep(secondAddressKeys, new Set<string>());
+    await marketingLoginHandler(
+      mutationRequest(
+        { email: "admin@thetok.ch", password: "correct-password" },
+        `${MARKETING_CSRF_COOKIE}=${"c".repeat(43)}`,
+        "203.0.113.9",
+      ),
+      responseRecorder().response,
+    );
+
+    // No bucket may be shared across addresses for the same account: a bucket
+    // keyed on the account alone let any third party who knew an administrator's
+    // address hold that account locked out from anywhere.
+    expect(firstAddressKeys.size).toBe(2);
+    expect(secondAddressKeys.size).toBe(2);
+    for (const key of firstAddressKeys) expect(secondAddressKeys.has(key)).toBe(false);
   });
 });
