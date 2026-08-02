@@ -28,6 +28,7 @@ import AddressAutocomplete from "@/components/AddressAutocomplete";
 import CityAutocomplete from "@/components/CityAutocomplete";
 import { enablePush, disablePush } from "@/lib/push-unified";
 import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
+import AccountPasswordForm from "@/components/auth/AccountPasswordForm";
 import { useSignupApplication } from "@/hooks/useSignupApplication";
 import {
   isTokOneSubscriptionActive,
@@ -788,6 +789,24 @@ export default function Profil() {
           </TabsContent>
 
           <TabsContent value="parametres" className="space-y-6 pt-4">
+            <div className="rounded-xl border bg-card p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Shield className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Mot de passe et sécurité</h3>
+                  <p className="text-xs text-muted-foreground">Ce mot de passe donne accès à tous vos espaces TOK.</p>
+                </div>
+              </div>
+              {isCommercialDemoClient ? (
+                <p className="text-sm text-muted-foreground">
+                  Le changement de mot de passe est désactivé dans la démonstration commerciale.
+                </p>
+              ) : (
+                <AccountPasswordForm />
+              )}
+            </div>
             <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">

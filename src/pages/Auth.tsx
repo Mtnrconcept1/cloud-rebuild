@@ -53,6 +53,7 @@ import {
 import RestaurantPartnerContractPreview, {
   RESTAURANT_PARTNER_CONTRACT_EXPORT_ACTION_LABEL,
 } from "@/components/contracts/RestaurantPartnerContractPreview";
+import AccountPasswordForm from "@/components/auth/AccountPasswordForm";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -927,6 +928,9 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     useState<SignupFormState>(EMPTY_SIGNUP_FORM);
   const [loading, setLoading] = useState(false);
   const [forgotPassword, setForgotPassword] = useState(false);
+  const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(
+    searchParams.get("mode") === "recovery",
+  );
   const [showRolePicker, setShowRolePicker] = useState(false);
   const [documents, setDocuments] = useState<
     Partial<Record<SignupDocumentType, File | null>>
@@ -977,6 +981,24 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       authMountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("mode") === "recovery") {
+      setPasswordRecoveryMode(true);
+      setIsLogin(true);
+      setForgotPassword(false);
+    }
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setPasswordRecoveryMode(true);
+        setIsLogin(true);
+        setForgotPassword(false);
+      }
+    });
+
+    return () => authListener.subscription.unsubscribe();
+  }, [searchParams]);
   useEffect(() => {
     if (!confirmationCompleted || user) return;
 
@@ -1105,6 +1127,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
   const navigateToPostAuthTarget = useCallback(
     (selectedRole: UserRole, replace = false) => {
+      if (passwordRecoveryMode) return;
       const target = getPostAuthTarget(selectedRole);
       const targetUrl = new URL(target, window.location.origin);
 
@@ -1118,7 +1141,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         replace,
       });
     },
-    [getPostAuthTarget, navigate],
+    [getPostAuthTarget, navigate, passwordRecoveryMode],
   );
 
   useEffect(() => {
@@ -1696,8 +1719,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         normalizedEmail,
         {
           redirectTo: isDemoAuthMode
-            ? `${window.location.origin}/auth/demo`
-            : getCanonicalAuthHref(),
+            ? `${window.location.origin}/auth/demo?mode=recovery`
+            : `${getCanonicalAuthHref()}?mode=recovery`,
           captchaToken: captchaToken || undefined,
         },
       );
@@ -2123,6 +2146,34 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       setLoading(false);
     }
   };
+  if (passwordRecoveryMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4 py-10">
+        <Card className="w-full max-w-md shadow-lg border-0">
+          <CardHeader className="text-center space-y-3">
+            <img src={logoSrc} alt="Tok" className="mx-auto h-20 w-auto object-contain" />
+            <CardTitle className="font-display text-2xl">Créer un nouveau mot de passe</CardTitle>
+            <CardDescription>
+              Choisissez votre nouveau mot de passe. Vous reviendrez ensuite à la page de connexion.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AccountPasswordForm
+              recovery
+              onSuccess={async () => {
+                await supabase.auth.signOut({ scope: "local" });
+                setPasswordRecoveryMode(false);
+                setIsLogin(true);
+                setForgotPassword(false);
+                navigate("/auth", { replace: true });
+              }}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (showRolePicker && user && canSwitchRole && switchableRoles.length > 1) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4">
@@ -2170,7 +2221,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     roles.length > 0 &&
     !privilegedSignupSubmitting &&
     !privilegedSignupResumeChecking &&
-    !incompletePrivilegedSignupRole
+    !incompletePrivilegedSignupRole &&
+    !passwordRecoveryMode
   )
     return null;
 
