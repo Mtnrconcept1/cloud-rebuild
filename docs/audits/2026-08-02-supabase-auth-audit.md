@@ -18,12 +18,47 @@ en trois causes distinctes, dont deux sont des défauts de code confirmés :
 
 | Code | Origine réelle | Statut |
 |------|----------------|--------|
-| 422 | Politique de mot de passe client plus permissive que celle de Supabase | **Défaut confirmé** (A1) |
+| 422 | Politique de mot de passe client plus permissive que celle de Supabase | **Corrigé** (A1) |
 | 401 | `insufficient_aal` sur `PUT /user` (MFA actif) | Correctif présent, postérieur aux erreurs (A2) |
-| 403 | `bad_jwt` — jeton sans claim `sub` sur `GET /user` | **Défaut confirmé** (A3) |
-| 429 | Limiteur du BFF, **pas** Supabase — verrouillage de compte à distance possible | **Défaut confirmé** (A4) |
-| 503 | Fourre-tout du BFF : masque surtout une variable d'environnement Vercel absente | **Défaut d'observabilité** (A5) |
+| 403 | `bad_jwt` — jeton sans claim `sub` sur `GET /user` | **Corrigé** (A3) |
+| 429 | Limiteur du BFF, **pas** Supabase — verrouillage de compte à distance possible | **Corrigé** (A4) |
+| 503 | Fourre-tout du BFF : masque surtout une variable d'environnement absente | **Corrigé** (A5) |
 | 500 | Non reproduit sur 24 h | Aucune trace (A6) |
+
+## Correctifs appliqués
+
+Livrés sur cette branche à la suite de l'audit. Chaque correctif est verrouillé
+par un test.
+
+| Réf | Changement | Fichiers |
+|-----|-----------|----------|
+| A1 | Politique de mot de passe unique, alignée sur l'ensemble de symboles exact de Supabase ; inscription et changement de mot de passe partagent le même validateur ; l'ensemble accepté est affiché à l'utilisateur | `src/lib/passwordPolicy.ts` (nouveau), `src/components/auth/AccountPasswordForm.tsx`, `src/pages/Auth.tsx` |
+| A3 | `getUser()` n'est plus appelé sans session lors de l'enregistrement du consentement | `src/lib/consent.ts` |
+| A4 | Le seau de limitation par compte est scopé à l'adresse appelante ; les seaux du mot de passe sont libérés dès l'étape mot de passe réussie | `server/marketingBff.ts` |
+| A5 | Les échecs de configuration portent le code `configuration_unavailable`, distinct d'une panne amont | `server/marketingBff.ts` |
+
+Deux points relevés par l'audit n'ont volontairement pas été modifiés :
+
+- **A2** — le correctif AAL2 était déjà en place ; il reste à confirmer sur une
+  fenêtre de 24 h qu'aucun `insufficient_aal` ne réapparaît.
+- **A7** — la fenêtre de grâce expirée n'est pas prolongée : ce serait masquer un
+  écart réel. Les logs montrent `send-email` et `stripe-worker` en 200 continu,
+  donc les identifiants Resend et Stripe sont opérationnels et la porte de
+  `release:readiness` devrait passer. À vérifier au prochain déploiement.
+
+### Compromis assumé sur A4
+
+Le seau par compte était global, sans composante d'adresse. Le rendre
+dépendant de l'adresse supprime la primitive de déni de service, mais rend le
+password spraying distribué un peu moins contraint : un attaquant disposant de N
+adresses obtient 5 tentatives par adresse et par quart d'heure, au lieu de 5 pour
+le compte entier.
+
+Ce compromis est acceptable ici parce que la console marketing impose la MFA en
+AAL2 : un mot de passe seul ne produit aucune session. À l'inverse, la version
+précédente permettait à n'importe quel tiers non authentifié de verrouiller une
+console d'exploitation. La résistance par adresse est inchangée, le seau
+`password-ip` plafonnant déjà chaque adresse à 5 tentatives.
 
 ## Méthode
 
@@ -164,9 +199,17 @@ src/pages/admin/AdminSinistres.tsx:628
 src/pages/dashboard/DashboardPlanSalle.tsx:2044
 ```
 
-**Correctif recommandé** : vérifier la présence d'une session avant d'appeler
-`getUser()`, et traiter l'absence de session comme un état déconnecté normal
-plutôt que comme une erreur réseau.
+**Corrigé** sur `src/lib/consent.ts` : c'est le seul de ces neuf appels qui
+s'exécute réellement sans session, puisque la bannière de consentement s'affiche
+pour tout visiteur, y compris anonyme — ce qui correspond au `referer` observé.
+`getUser()` y est désormais précédé d'une vérification de session, et un reçu
+non attribué est enregistré avec `user_id` nul.
+
+Les huit autres appels sont situés derrière des surfaces authentifiées
+(tableaux de bord, admin, projet de démo) où une session existe par
+construction ; ils ne produisent pas cette erreur et n'ont pas été modifiés. Si
+de nouveaux `bad_jwt` apparaissent avec un `referer` de tableau de bord, ce sont
+les prochains à instrumenter.
 
 ### A4 — Verrouillage de compte marketing à distance (→ 429) — Gravité haute
 

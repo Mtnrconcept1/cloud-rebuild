@@ -23,6 +23,11 @@ import {
   RESERVATION_FLAT_FEE_CHF,
 } from "@/lib/fairGrowth";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
+import {
+  MIN_PASSWORD_LENGTH,
+  PASSWORD_POLICY_HINT,
+  getPasswordPolicyError,
+} from "@/lib/passwordPolicy";
 import { openSafeHtmlPrintDocument } from "@/lib/safePrintWindow";
 import { getDefaultActiveRole, getFeatureVisibleRoles } from "@/lib/roleAccess";
 import {
@@ -295,8 +300,13 @@ function getSignupValidationError(
 ) {
   if (!form.fullName.trim()) return "Le nom complet est requis.";
   if (!form.email.trim()) return "L'email est requis.";
-  if (requirePassword && (!form.password.trim() || form.password.length < 6)) {
-    return "Le mot de passe doit contenir au moins 6 caracteres.";
+  if (requirePassword) {
+    // Signup used to accept any 6-character password, which Supabase then
+    // refused with a 422 the form could not explain. The shared policy keeps
+    // the client refusal and the server refusal in step. The raw value is
+    // checked because that is exactly what gets submitted, spaces included.
+    const passwordError = getPasswordPolicyError(form.password);
+    if (passwordError) return passwordError;
   }
   if (!legalAccepted)
     return "Vous devez accepter les CGU et la politique de confidentialité.";
@@ -2427,7 +2437,9 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                         }
                         placeholder="********"
                         required
-                        minLength={6}
+                        // Sign-in must keep accepting the shorter passwords
+                        // issued before the policy was aligned on Supabase.
+                        minLength={isLogin ? 6 : MIN_PASSWORD_LENGTH}
                         autoComplete={
                           isLogin ? "current-password" : "new-password"
                         }
@@ -2451,6 +2463,11 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                         )}
                       </button>
                     </div>
+                    {!isLogin ? (
+                      <p className="text-xs text-muted-foreground">
+                        {PASSWORD_POLICY_HINT}
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
 

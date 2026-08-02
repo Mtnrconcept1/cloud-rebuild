@@ -1,13 +1,16 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Eye, EyeOff, KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { getSupabase } from "@/integrations/supabase/client";
+import {
+  PASSWORD_POLICY_HINT,
+  getPasswordError,
+} from "@/lib/passwordPolicy";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const supabase = getSupabase();
-const MIN_PASSWORD_LENGTH = 10;
 const TOTP_PATTERN = /^\d{6}$/;
 
 type AccountPasswordFormProps = {
@@ -21,25 +24,6 @@ type AuthErrorLike = {
   message?: unknown;
   status?: unknown;
 };
-
-function getPasswordError(password: string, confirmation: string) {
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères.`;
-  }
-  if (
-    !/[a-z]/.test(password) ||
-    !/[A-Z]/.test(password) ||
-    !/[0-9]/.test(password)
-  ) {
-    return "Utilisez au moins une minuscule, une majuscule et un chiffre.";
-  }
-  if (!/[^A-Za-z0-9\s]/.test(password)) {
-    return "Ajoutez au moins un symbole, par exemple !, #, %, + ou ?.";
-  }
-  if (password !== confirmation)
-    return "Les deux mots de passe ne correspondent pas.";
-  return null;
-}
 
 function getAuthErrorDetails(error: unknown) {
   const candidate =
@@ -271,8 +255,7 @@ export default function AccountPasswordForm({
       <p
         className={`text-xs ${validationError ? "text-destructive" : "text-muted-foreground"}`}
       >
-        {validationError ||
-          "10 caractères minimum, avec majuscule, minuscule, chiffre et symbole."}
+        {validationError || PASSWORD_POLICY_HINT}
       </p>
 
       {mfaRequired ? (
