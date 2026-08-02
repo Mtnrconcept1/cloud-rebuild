@@ -43,32 +43,28 @@ jobs:
                   raise SystemExit('pnpm insertion marker not found')
               source = source.replace(pnpm_marker, stabilization_step + pnpm_marker, 1)
 
+          commit_marker = '      - name: Commit validated product changes\n'
+          commit_start = source.index(commit_marker)
           cleanup_anchor = '          rm -f scripts/apply-restaurateur-auth-card-fix.py\n'
           cleanup_extension = (
               cleanup_anchor
               + '          rm -f scripts/stabilize-restaurateur-onboarding.py\n'
               + '          rm -f .github/workflows/apply-staged-onboarding-patch.yml\n'
           )
-          commit_section = source.split('      - name: Commit validated product changes', 1)[-1]
-          if 'rm -f scripts/stabilize-restaurateur-onboarding.py' not in commit_section:
-              if cleanup_anchor not in source:
-                  raise SystemExit('cleanup anchor not found')
-              source = source.replace(cleanup_anchor, cleanup_extension, 1)
+          if 'rm -f scripts/stabilize-restaurateur-onboarding.py' not in source[commit_start:]:
+              cleanup_index = source.index(cleanup_anchor, commit_start)
+              source = source[:cleanup_index] + cleanup_extension + source[cleanup_index + len(cleanup_anchor):]
 
-          old_add_u = '''          git add -u \\
-                    tmp/restaurateur-onboarding-reliability.patch.gz.b64 \\
-                    scripts/apply-restaurateur-auth-card-fix.py
-          '''
-          new_add_u = '''          git add -u \\
-                    tmp/restaurateur-onboarding-reliability.patch.gz.b64 \\
-                    scripts/apply-restaurateur-auth-card-fix.py \\
-                    scripts/stabilize-restaurateur-onboarding.py \\
-                    .github/workflows/apply-staged-onboarding-patch.yml
-          '''
-          if 'scripts/stabilize-restaurateur-onboarding.py \\' not in commit_section:
-              if old_add_u not in source:
-                  raise SystemExit('git add -u cleanup block not found')
-              source = source.replace(old_add_u, new_add_u, 1)
+          add_u_start = source.index('          git add -u \\\n', commit_start)
+          add_u_end = source.index('\n\n          git diff --cached --check', add_u_start)
+          new_add_u = '\n'.join([
+              '          git add -u \\',
+              '            tmp/restaurateur-onboarding-reliability.patch.gz.b64 \\',
+              '            scripts/apply-restaurateur-auth-card-fix.py \\',
+              '            scripts/stabilize-restaurateur-onboarding.py \\',
+              '            .github/workflows/apply-staged-onboarding-patch.yml',
+          ])
+          source = source[:add_u_start] + new_add_u + source[add_u_end:]
 
           path.write_text(source, encoding='utf-8')
           PY
