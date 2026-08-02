@@ -63,11 +63,7 @@ import {
 
 const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
 type CheckoutItem = Record<string, unknown>;
-const CLIENT_STRIPE_CHECKOUT_KINDS = new Set([
-  "order",
-  "zero-attente",
-  "chefs-table",
-]);
+const CLIENT_STRIPE_CHECKOUT_KINDS = new Set(["order", "zero-attente", "chefs-table"]);
 const RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS = new Set(["campaign"]);
 const RECOGNIZED_CHECKOUT_KINDS = new Set([
   "order",
@@ -253,20 +249,11 @@ Deno.serve(async (req) => {
 
     const requestMetadata = buildRequestMetadata(req);
     const rateLimiter = createRateLimiter(actor.adminClient, "create-checkout");
-    await rateLimiter.consume(`user:${actor.userId}`, {
-      maxRequests: 12,
-      windowSeconds: 300,
-    });
+    await rateLimiter.consume(`user:${actor.userId}`, { maxRequests: 12, windowSeconds: 300 });
     if (requestMetadata.ip) {
-      await rateLimiter.consume(`ip:${requestMetadata.ip}`, {
-        maxRequests: 60,
-        windowSeconds: 300,
-      });
+      await rateLimiter.consume(`ip:${requestMetadata.ip}`, { maxRequests: 60, windowSeconds: 300 });
     }
-    await rateLimiter.consume("global", {
-      maxRequests: 500,
-      windowSeconds: 60,
-    });
+    await rateLimiter.consume("global", { maxRequests: 500, windowSeconds: 60 });
 
     const {
       items,
@@ -1436,9 +1423,7 @@ Deno.serve(async (req) => {
           ...(order_metadata || {}),
           payment_method: normalizedPaymentMethod,
           delivery_fee: deliveryFeeShare,
-          points_to_redeem: Math.round(
-            (pointsByPaymentGroup.get(paymentGroupKey) || 0) * 100,
-          ),
+          points_to_redeem: Math.round((pointsByPaymentGroup.get(paymentGroupKey) || 0) * 100),
           points_discount: pointsByPaymentGroup.get(paymentGroupKey) || 0,
           points_discount_amount:
             pointsByPaymentGroup.get(paymentGroupKey) || 0,
