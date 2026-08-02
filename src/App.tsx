@@ -6,7 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AppLoadingScreen from "@/components/ui/app-loading-screen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { useAuth } from "@/lib/auth-context";
 import { CartProvider } from "@/lib/cart";
@@ -67,6 +67,7 @@ const Commandes = lazy(() => import("./pages/Commandes"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 const Reservations = lazy(() => import("./pages/Reservations"));
 const Profil = lazy(() => import("./pages/Profil"));
+const AccountSecurity = lazy(() => import("./pages/AccountSecurity"));
 const CustomerMemory = lazy(() => import("./pages/CustomerMemory"));
 const ClientDashboardHome = lazy(() => import("./pages/ClientDashboardHome"));
 const ClientReviews = lazy(() => import("./pages/ClientReviews"));
@@ -349,6 +350,12 @@ export function AdminRouteFrame({
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
         <ChefHelpButton surface="admin" compact className="hidden w-auto md:flex" />
         <RoleSpaceSwitcher compact />
+        <Link
+          to="/parametres/securite"
+          className="hidden h-11 items-center rounded-full border border-border/70 bg-background/95 px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent md:flex"
+        >
+          Paramètres
+        </Link>
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
         <NotificationBell />
         <SignOutButton iconOnly />
@@ -564,6 +571,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/reservations" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={reservationEnabled} fallback="/mon-espace"><Reservations /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/mes-avis" element={<ProtectedRoute requiredRole="client"><ClientReviews /></ProtectedRoute>} />
           <Route path="/profil" element={<ProtectedRoute requiredRole="client"><Profil /></ProtectedRoute>} />
+          <Route path="/parametres/securite" element={<ProtectedRoute><AccountSecurity /></ProtectedRoute>} />
           <Route path="/memoire-tok" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={customerMemoryEnabled} fallback="/mon-espace"><CustomerMemory /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute requiredRole="client"><Notifications /></ProtectedRoute>} />
           <Route path="/creneaux-garantis" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("creneaux-garantis")}><CreneauxGarantis /></FeatureSwitch></ClientSurfaceRoute>} />
