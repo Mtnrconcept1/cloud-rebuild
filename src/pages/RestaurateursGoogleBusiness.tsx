@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { calculateGoogleBusinessSavings } from "@/lib/googleBusinessEconomics";
+import { RESERVATION_FLAT_FEE_CHF } from "@/lib/fairGrowth";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { GOOGLE_BUSINESS_SERVICE_SCOPE } from "@/lib/googleBusinessServiceScope";
 
@@ -114,7 +115,7 @@ export default function RestaurateursGoogleBusiness() {
         monthlyTables,
         coversPerTable,
         commissionPerCoverChf: commissionPerCover,
-        tokFeePerTableChf: 0,
+        tokFeePerTableChf: RESERVATION_FLAT_FEE_CHF,
         monthlyPackFeeChf: packFee,
       }),
     [commissionPerCover, coversPerTable, monthlyTables, packFee],
@@ -218,7 +219,8 @@ export default function RestaurateursGoogleBusiness() {
                 Transformez votre fiche Google Business en canal direct.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-white/80 md:text-lg">
-                Audit, recommandations, suivi des clics Google Maps et bouton de réservation traçable vers les services réellement ouverts. Toute intervention
+                Audit, recommandations, suivi des clics Google Maps et bouton de réservation traçable vers les services réellement ouverts.
+                Pour comparer les coûts, TOK applique 5 CHF par table réellement servie, en plus du pack mensuel sélectionné. Toute intervention
                 dans Google est soumise à mandat ; aucune publication automatique ni garantie de classement.
               </p>
             </div>
@@ -244,9 +246,9 @@ export default function RestaurateursGoogleBusiness() {
           </div>
 
           <div className="grid gap-3 rounded-lg border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-md">
-            <MetricDark label="Tables Google estimées" value={monthlyTables.toLocaleString("fr-CH")} />
+            <MetricDark label="Tables Google comparées" value={monthlyTables.toLocaleString("fr-CH")} />
             <MetricDark label="Coût modèle au couvert" value={formatChf(simulation.perCoverModelCostChf)} />
-            <MetricDark label="Estimation TOK" value={formatChf(simulation.tokModelCostChf)} />
+            <MetricDark label="TOK : pack + 5 CHF/table" value={formatChf(simulation.tokModelCostChf)} />
             <MetricDark
               label={simulation.isTokCheaper ? "Gain mensuel estimé" : "Écart mensuel estimé"}
               value={formatChf(Math.abs(simulation.monthlySavingsChf))}
@@ -331,25 +333,31 @@ export default function RestaurateursGoogleBusiness() {
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Simulateur du canal Google</p>
             <h2 className="text-3xl font-black md:text-4xl">Mesurez le coût de conversion des tables issues de Google.</h2>
             <p className="text-slate-600">
-              La page Google Business ne vend pas toute la plateforme. Elle aide le restaurateur à décider si son bouton
-              Google doit pointer vers un parcours direct TOK.
+              Ce calcul compare le même volume de tables Google dans les deux modèles. Le total TOK additionne le pack mensuel
+              et 5 CHF par table ; le modèle concurrent additionne un montant pour chaque personne. Il s'agit d'une estimation,
+              pas d'une garantie de trafic ou de résultat Google.
             </p>
           </div>
 
           <div className="grid gap-6 rounded-lg border bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_290px]">
             <div className="grid gap-4 sm:grid-cols-2">
-              <NumberField id="tables" label="Tables Google par mois" value={monthlyTables} onChange={setMonthlyTables} />
-              <NumberField id="covers" label="Couverts moyens par table" value={coversPerTable} onChange={setCoversPerTable} step={0.5} />
-              <NumberField id="commission" label="Commission comparée par couvert" value={commissionPerCover} onChange={setCommissionPerCover} step={0.1} />
+              <NumberField id="tables" label="Réservations issues de Google / mois" value={monthlyTables} onChange={setMonthlyTables} />
+              <NumberField id="covers" label="Personnes moyennes par réservation" value={coversPerTable} onChange={setCoversPerTable} step={0.5} />
+              <NumberField id="commission" label="Montant facturé par personne (comparatif)" value={commissionPerCover} onChange={setCommissionPerCover} step={0.1} />
               <NumberField id="pack" label="Pack TOK mensuel" value={packFee} onChange={setPackFee} />
             </div>
 
             <div className="grid gap-3 rounded-lg bg-slate-950 p-4 text-white">
-              <MetricDark label="Couverts Google" value={simulation.monthlyCovers.toLocaleString("fr-CH")} />
-              <MetricDark label="Coût au couvert" value={formatChf(simulation.perCoverModelCostChf)} />
-              <MetricDark label="Coût TOK" value={formatChf(simulation.tokModelCostChf)} />
-              <MetricDark label="Coût TOK / couvert" value={`${simulation.tokEffectiveCostPerCoverChf.toLocaleString("fr-CH")} CHF`} />
-              <MetricDark label="Écart annuel" value={formatChf(simulation.annualSavingsChf)} accent={simulation.isTokCheaper} />
+              <MetricDark label="1. Personnes comparées" value={simulation.monthlyCovers.toLocaleString("fr-CH")} />
+              <MetricDark label="2. Modèle au couvert" value={formatChf(simulation.perCoverModelCostChf)} />
+              <MetricDark label="3. TOK : pack + tables" value={formatChf(simulation.tokModelCostChf)} />
+              <p className="rounded-md border border-white/10 bg-white/5 p-3 text-xs leading-5 text-white/75">
+                Au couvert : {simulation.monthlyCovers.toLocaleString("fr-CH")} personnes × {commissionPerCover.toLocaleString("fr-CH")} CHF.
+                <br />
+                TOK : {monthlyTables.toLocaleString("fr-CH")} tables × 5 CHF + pack {formatChf(packFee)}.
+              </p>
+              <MetricDark label="Coût TOK par personne" value={`${simulation.tokEffectiveCostPerCoverChf.toLocaleString("fr-CH")} CHF`} />
+              <MetricDark label="Écart annuel estimé" value={formatChf(simulation.annualSavingsChf)} accent={simulation.isTokCheaper} />
             </div>
           </div>
         </div>
