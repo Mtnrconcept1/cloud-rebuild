@@ -61,38 +61,46 @@ jobs:
               raise SystemExit(f'SVG decoder: expected one occurrence, found {source.count(old_decoder)}')
           source = source.replace(old_decoder, new_decoder, 1)
 
-          old_catch = '''  } catch {
-                if (enrolledFactorId) {
-                  try {
-                    await unenrollFactor(config, tokens.accessToken, enrolledFactorId);
-                  } catch {
-                    // Best-effort cleanup of an incomplete enrollment.
-                  }
+          login_start = source.index('async function login(')
+          enroll_start = source.index('\n\nasync function enrollMfa(', login_start)
+          login_source = source[login_start:enroll_start]
+          catch_start = login_source.rindex('\n  } catch {\n')
+          catch_source = login_source[catch_start:]
+          expected_tail = '''
+            } catch {
+              if (enrolledFactorId) {
+                try {
+                  await unenrollFactor(config, tokens.accessToken, enrolledFactorId);
+                } catch {
+                  // Best-effort cleanup of an incomplete enrollment.
                 }
-                await signOutLocalBestEffort(config, tokens.accessToken);
-                throw new PublicBffError(401, "authentication_failed", "Authentification impossible.");
               }
-            }'''
-          new_catch = '''  } catch (error) {
-                if (enrolledFactorId) {
-                  try {
-                    await unenrollFactor(config, tokens.accessToken, enrolledFactorId);
-                  } catch {
-                    // Best-effort cleanup of an incomplete enrollment.
-                  }
+              await signOutLocalBestEffort(config, tokens.accessToken);
+              throw new PublicBffError(401, "authentication_failed", "Authentification impossible.");
+            }
+          }'''
+          if catch_source != expected_tail:
+              raise SystemExit('login error mapping changed unexpectedly')
+          replacement_tail = '''
+            } catch (error) {
+              if (enrolledFactorId) {
+                try {
+                  await unenrollFactor(config, tokens.accessToken, enrolledFactorId);
+                } catch {
+                  // Best-effort cleanup of an incomplete enrollment.
                 }
-                await signOutLocalBestEffort(config, tokens.accessToken);
-                if (error instanceof PublicBffError) throw error;
-                throw new PublicBffError(
-                  503,
-                  "mfa_setup_unavailable",
-                  "Configuration 2FA temporairement indisponible.",
-                );
               }
-            }'''
-          if source.count(old_catch) != 1:
-              raise SystemExit(f'login error mapping: expected one occurrence, found {source.count(old_catch)}')
-          source = source.replace(old_catch, new_catch, 1)
+              await signOutLocalBestEffort(config, tokens.accessToken);
+              if (error instanceof PublicBffError) throw error;
+              throw new PublicBffError(
+                503,
+                "mfa_setup_unavailable",
+                "Configuration 2FA temporairement indisponible.",
+              );
+            }
+          }'''
+          login_source = login_source[:catch_start] + replacement_tail
+          source = source[:login_start] + login_source + source[enroll_start:]
           path.write_text(source, encoding='utf-8')
           PY
 
