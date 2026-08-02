@@ -232,8 +232,22 @@ export default function MarketingSessionProvider({ children }: { children: React
       if (sessionGeneration.current !== generation) return false;
       applySnapshot(snapshot);
       return true;
-    } catch {
+    } catch (loginError) {
       if (sessionGeneration.current !== generation) return false;
+      if (loginError instanceof MarketingBffError) {
+        if (loginError.status === 429) {
+          setError("Trop de tentatives. Réessayez dans quelques minutes.");
+          return false;
+        }
+        if (loginError.status >= 500) {
+          setError("Service de connexion indisponible. Réessayez plus tard.");
+          return false;
+        }
+        if (loginError.status === 400 || loginError.status === 401) {
+          setError(LOGIN_ERROR);
+          return false;
+        }
+      }
       setError(LOGIN_ERROR);
       return false;
     } finally {
