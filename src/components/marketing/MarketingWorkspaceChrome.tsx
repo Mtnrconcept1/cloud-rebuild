@@ -16,6 +16,7 @@ import {
   Play,
   RefreshCw,
   ShieldCheck,
+  Sparkles,
   Users,
 } from "lucide-react";
 
@@ -51,6 +52,7 @@ const NAV_ITEMS: Array<{
   icon: typeof Gauge;
 }> = [
   { id: "overview", label: "Vue d'ensemble", shortLabel: "Aperçu", description: "Santé, volumes et prochaines actions", icon: Gauge },
+  { id: "agent", label: "Agent IA", shortLabel: "Agent IA", description: "Génère une campagne complète en brouillon", icon: Sparkles },
   { id: "calendar", label: "Calendrier", shortLabel: "Calendrier", description: "Publications et envois planifiés", icon: CalendarDays },
   { id: "campaigns", label: "Campagnes", shortLabel: "Campagnes", description: "Création, validation et diffusion", icon: Megaphone },
   { id: "audiences", label: "Audiences & prospects", shortLabel: "Audiences", description: "Segments, ciblage et priorités", icon: Users },

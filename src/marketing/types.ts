@@ -1,5 +1,6 @@
 export const MARKETING_VIEWS = [
   "overview",
+  "agent",
   "calendar",
   "campaigns",
   "audiences",

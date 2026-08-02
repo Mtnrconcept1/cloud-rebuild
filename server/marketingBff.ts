@@ -1,4 +1,4 @@
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 
 /**
  * Server-only boundary for marketing.thetok.ch.
@@ -35,6 +35,11 @@ const MAX_ENROLL_RESPONSE_BYTES = 512 * 1024;
 const AUTH_TIMEOUT_MS = 8_000;
 const DATABASE_TIMEOUT_MS = 8_000;
 const ORCHESTRATOR_TIMEOUT_MS = 20_000;
+/**
+ * The agent runs a reasoning pass and then up to six image generations, so it
+ * needs a budget an order of magnitude above a database round trip.
+ */
+const AGENT_TIMEOUT_MS = 120_000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const OPAQUE_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1499,6 +1504,212 @@ async function runMarketingOrchestrator(
   sendJson(res, 200, response.value);
 }
 
+const MARKETING_CHANNEL_VALUES = new Set([
+  "tok_news",
+  "in_app",
+  "email",
+  "push",
+  "instagram",
+  "facebook",
+  "linkedin",
+  "tiktok",
+  "youtube",
+  "telegram",
+  "google_business",
+  "website",
+  "manual_call",
+  "manual_email",
+  "manual_visit",
+]);
+
+function agentChannels(body: JsonObject): string[] {
+  const raw = body.channels;
+  if (!Array.isArray(raw) || raw.length === 0 || raw.length > 8) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+  const channels = [...new Set(raw.map((entry) => (typeof entry === "string" ? entry.trim() : "")))];
+  if (channels.some((channel) => !MARKETING_CHANNEL_VALUES.has(channel))) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+  return channels;
+}
+
+function agentTimestamp(body: JsonObject, key: string): string {
+  const value = body[key];
+  const parsed = typeof value === "string" ? Date.parse(value) : Number.NaN;
+  if (!Number.isFinite(parsed)) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+  return new Date(parsed).toISOString();
+}
+
+async function callMarketingAgent(
+  config: BffConfig,
+  actorUserId: string,
+  payload: JsonObject,
+): Promise<JsonObject> {
+  const response = await boundedFetch(
+    `${config.supabaseUrl}/functions/v1/ai-marketing-agent`,
+    {
+      method: "POST",
+      headers: {
+        apikey: config.serviceRoleKey,
+        Authorization: `Bearer ${config.serviceRoleKey}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "x-marketing-actor-user-id": actorUserId,
+      },
+      body: JSON.stringify(payload),
+    },
+    AGENT_TIMEOUT_MS,
+  );
+  if (!response.ok) {
+    if (response.status === 429) {
+      throw new PublicBffError(429, "ai_rate_limited", "Trop de demandes, réessayez dans un instant.");
+    }
+    if (response.status >= 400 && response.status < 500) {
+      throw new PublicBffError(400, "operation_rejected", "Opération refusée.");
+    }
+    throw new DownstreamHttpError(response.status);
+  }
+  return normalizeRpcObject(response.value);
+}
+
+/**
+ * The AI agent proposes; it never writes.
+ *
+ * The plan comes back from the Edge function as a campaign bundle and is
+ * persisted here through admin_create_marketing_campaign_bundle — the same
+ * allowlisted operation an administrator uses by hand, carrying the same live
+ * session and CSRF proof. That is what keeps every existing guarantee intact:
+ * new calendar items are forced to draft, audience filters are validated, an
+ * unconnected channel degrades to blocked_configuration, and nothing reaches a
+ * real contact until a human approves it.
+ */
+async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResponse): Promise<void> {
+  if ((req.method ?? "GET").toUpperCase() !== "POST") {
+    methodNotAllowed(res, ["POST"]);
+    return;
+  }
+  validateMarketingRequestContext(req, true);
+  const config = readConfig();
+  const body = parseJsonBody(req, 16 * 1024);
+  const action = stringField(body, "action", 32);
+  if (action !== "generate" && action !== "list_runs") {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+
+  const session = await activeSession(config, req, true);
+  await ensureServiceAdmin(config, session.userId);
+
+  if (action === "list_runs") {
+    if (Object.keys(body).some((key) => key !== "action")) {
+      throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+    }
+    sendJson(res, 200, await callMarketingAgent(config, session.userId, { action }));
+    return;
+  }
+
+  const allowedKeys = ["action", "objective", "audienceHint", "channels", "startsAt", "endsAt", "itemCount"];
+  if (Object.keys(body).some((key) => !allowedKeys.includes(key))) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+  const objective = stringField(body, "objective", 2000);
+  if (!objective) throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  const audienceHint = body.audienceHint === undefined ? "" : stringField(body, "audienceHint", 500);
+  const channels = agentChannels(body);
+  const startsAt = agentTimestamp(body, "startsAt");
+  const endsAt = agentTimestamp(body, "endsAt");
+  if (Date.parse(endsAt) <= Date.parse(startsAt)) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+  const itemCount = body.itemCount === undefined ? 4 : body.itemCount;
+  if (typeof itemCount !== "number" || !Number.isInteger(itemCount) || itemCount < 1 || itemCount > 12) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+
+  const generated = await callMarketingAgent(config, session.userId, {
+    action: "generate",
+    objective,
+    audienceHint,
+    channels,
+    startsAt,
+    endsAt,
+    itemCount,
+  });
+
+  const runId = typeof generated.runId === "string" ? generated.runId : null;
+  const bundle = generated.bundle;
+  if (!isPlainObject(bundle)) {
+    throw new PublicBffError(502, "ai_invalid_plan", "Le plan produit est inexploitable.");
+  }
+
+  try {
+    const persisted = normalizeRpcObject(
+      await serviceRpc(config, "service_execute_marketing_admin_operation", {
+        p_sid_hash: session.sessionHash,
+        p_csrf_hash: session.csrfHash,
+        p_operation: "admin_create_marketing_campaign_bundle",
+        p_args: { p_payload: bundle, p_client_request_id: randomUUID() },
+      }),
+    );
+    const campaign = isPlainObject(persisted.campaign) ? persisted.campaign : {};
+    const campaignId = typeof campaign.id === "string" ? campaign.id : null;
+
+    if (runId) {
+      await serviceRpc(config, "service_complete_marketing_ai_run", {
+        p_run_id: runId,
+        p_status: "succeeded",
+        p_plan: bundle,
+        p_campaign_id: campaignId,
+        p_item_count: Number(generated.itemCount) || 0,
+        p_asset_count: Number(generated.assetCount) || 0,
+        p_model: typeof generated.model === "string" ? generated.model : "",
+        p_input_tokens: Number(generated.inputTokens) || 0,
+        p_output_tokens: Number(generated.outputTokens) || 0,
+        p_estimated_cost_chf: Number(generated.estimatedCostChf) || 0,
+        p_error: null,
+      });
+    }
+
+    sendJson(res, 200, {
+      ok: true,
+      runId,
+      campaign: persisted.campaign ?? null,
+      items: persisted.items ?? [],
+      summary: generated.summary ?? "",
+      assetCount: Number(generated.assetCount) || 0,
+      estimatedCostChf: Number(generated.estimatedCostChf) || 0,
+    });
+  } catch (error) {
+    if (runId) {
+      // Best effort: a run left marked 'running' is visible as such and must
+      // never mask the persistence failure being rethrown.
+      try {
+        await serviceRpc(config, "service_complete_marketing_ai_run", {
+          p_run_id: runId,
+          p_status: "failed",
+          p_plan: bundle,
+          p_campaign_id: null,
+          p_item_count: 0,
+          p_asset_count: 0,
+          p_model: typeof generated.model === "string" ? generated.model : "",
+          p_input_tokens: 0,
+          p_output_tokens: 0,
+          p_estimated_cost_chf: 0,
+          p_error: "Campaign bundle persistence failed",
+        });
+      } catch {
+        // Ignored on purpose.
+      }
+    }
+    if (error instanceof DownstreamHttpError && error.status >= 400 && error.status < 500) {
+      throw new PublicBffError(400, "operation_rejected", "Opération refusée.");
+    }
+    throw error;
+  }
+}
+
 async function runSafely(
   res: MarketingApiResponse,
   operation: () => Promise<void>,
@@ -1570,4 +1781,11 @@ export async function marketingOrchestratorHandler(
   res: MarketingApiResponse,
 ): Promise<void> {
   await runSafely(res, () => runMarketingOrchestrator(req, res));
+}
+
+export async function marketingAgentHandler(
+  req: MarketingApiRequest,
+  res: MarketingApiResponse,
+): Promise<void> {
+  await runSafely(res, () => runMarketingAgent(req, res));
 }

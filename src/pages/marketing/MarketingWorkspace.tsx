@@ -2,6 +2,7 @@ import { AlertCircle, CheckCircle2, Info, X } from "lucide-react";
 
 import MarketingWorkspaceChrome from "@/components/marketing/MarketingWorkspaceChrome";
 import MarketingActivityView from "@/components/marketing/views/MarketingActivityView";
+import MarketingAgentView from "@/components/marketing/views/MarketingAgentView";
 import MarketingAudiencesView from "@/components/marketing/views/MarketingAudiencesView";
 import MarketingAutomationsView from "@/components/marketing/views/MarketingAutomationsView";
 import MarketingCalendarView from "@/components/marketing/views/MarketingCalendarView";
@@ -42,6 +43,8 @@ export default function MarketingWorkspace() {
 
   const content = operations.loading ? <LoadingWorkspace /> : (() => {
     switch (filters.view) {
+      case "agent":
+        return <MarketingAgentView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} onNavigate={setView} />;
       case "calendar":
         return <MarketingCalendarView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onCancel={operations.cancelItem} onApprove={operations.approveItem} onCompleteManual={operations.completeManualItem} />;
       case "campaigns":

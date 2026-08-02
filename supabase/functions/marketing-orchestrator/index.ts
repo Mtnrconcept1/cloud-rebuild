@@ -34,6 +34,147 @@ type ClaimedDelivery = {
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")?.trim() || "";
+const EMAIL_FROM = Deno.env.get("EMAIL_FROM")?.trim() || "Tok <noreply@thetok.ch>";
+const RESEND_TIMEOUT_MS = 20_000;
+
+/**
+ * Channels whose adapter exists but which cannot publish until an
+ * administrator provisions the provider credentials and, for the social
+ * networks, until the platform has approved the publishing application.
+ *
+ * They are listed rather than lumped into a default branch so the recorded
+ * error names the missing piece instead of a generic "not deployed", and so
+ * adding a real adapter is a deliberate removal from this list.
+ */
+const DORMANT_CHANNELS = new Map<string, string>([
+  ["instagram", "instagram_credentials_missing"],
+  ["facebook", "facebook_credentials_missing"],
+  ["linkedin", "linkedin_credentials_missing"],
+  ["tiktok", "tiktok_credentials_missing"],
+  ["youtube", "youtube_credentials_missing"],
+  ["telegram", "telegram_credentials_missing"],
+  ["google_business", "google_business_credentials_missing"],
+  ["website", "website_credentials_missing"],
+  ["push", "push_credentials_missing"],
+]);
+
+/** The address a recipient can always reach to stop receiving campaigns. */
+function unsubscribeMailbox(from: string) {
+  const match = from.match(/<([^>]+)>/);
+  return (match ? match[1] : from).trim();
+}
+
+type PreparedEmail = {
+  status: string;
+  reason?: string;
+  recipient?: string;
+  subject?: string;
+  html?: string;
+  text?: string;
+};
+
+async function sendViaResend(prepared: PreparedEmail, deliveryId: string) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), RESEND_TIMEOUT_MS);
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+        // Resend deduplicates on this key, so a retry after a timeout cannot
+        // deliver the same campaign twice to the same recipient.
+        "Idempotency-Key": deliveryId,
+      },
+      body: JSON.stringify({
+        from: EMAIL_FROM,
+        to: [prepared.recipient],
+        subject: prepared.subject,
+        html: prepared.html,
+        text: prepared.text,
+        headers: {
+          "List-Unsubscribe": `<mailto:${unsubscribeMailbox(EMAIL_FROM)}?subject=unsubscribe>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      // 4xx is a rejected message and will be rejected again; 5xx and 429 are
+      // worth another attempt.
+      const retryable = response.status >= 500 || response.status === 429;
+      return { ok: false as const, retryable, code: `resend_http_${response.status}` };
+    }
+
+    const body = await response.json().catch(() => ({}));
+    const messageId = typeof body?.id === "string" ? body.id : null;
+    return { ok: true as const, messageId };
+  } catch (error) {
+    const aborted = error instanceof DOMException && error.name === "AbortError";
+    return { ok: false as const, retryable: true, code: aborted ? "resend_timeout" : "resend_unreachable" };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/**
+ * Email is a two-phase send: Postgres re-runs every consent, targeting, quiet
+ * hours and cap gate and hands back the recipient only for the delivery whose
+ * lease we hold, then the provider call happens outside the transaction. The
+ * row sits in 'processing' in between, so a crash never reads as a send.
+ */
+async function processEmailDelivery(client: AdminClient, delivery: ClaimedDelivery) {
+  if (!RESEND_API_KEY) {
+    await invokeRpc(client, "complete_marketing_delivery", {
+      p_delivery_id: delivery.id,
+      p_lease_token: delivery.lease_token,
+      p_status: "blocked_configuration",
+      p_provider_message_id: null,
+      p_error_code: "resend_key_missing",
+      p_error: "RESEND_API_KEY is not configured",
+      p_metadata: { channel: "email" },
+    });
+    return { id: delivery.id, status: "blocked_configuration" };
+  }
+
+  const prepared = asRecord(
+    await invokeRpc(client, "service_prepare_marketing_email_delivery", {
+      p_delivery_id: delivery.id,
+      p_lease_token: delivery.lease_token,
+    }),
+  ) as PreparedEmail;
+
+  // Anything other than 'ready' means a gate closed and Postgres already
+  // recorded the outcome on the row.
+  if (prepared.status !== "ready") {
+    return { id: delivery.id, status: prepared.status, reason: prepared.reason };
+  }
+
+  const sent = await sendViaResend(prepared, delivery.id);
+  if (sent.ok) {
+    await invokeRpc(client, "service_record_marketing_email_sent", {
+      p_delivery_id: delivery.id,
+      p_lease_token: delivery.lease_token,
+      p_provider_message_id: sent.messageId,
+    });
+    return { id: delivery.id, status: "sent" };
+  }
+
+  const retryable = sent.retryable && delivery.attempt_count < delivery.max_attempts;
+  await invokeRpc(client, "complete_marketing_delivery", {
+    p_delivery_id: delivery.id,
+    p_lease_token: delivery.lease_token,
+    p_status: retryable ? "retrying" : "failed",
+    p_provider_message_id: null,
+    p_error_code: sent.code,
+    p_error: "Resend rejected or could not receive the message",
+    p_metadata: { channel: "email" },
+  });
+  return { id: delivery.id, status: retryable ? "retrying" : "failed" };
+}
+
 async function attachDelegatedAdminIdentity(
   actor: Awaited<ReturnType<typeof authenticateRequest>>,
   req: Request,
@@ -109,7 +250,9 @@ async function materializeAll(client: AdminClient, itemId: string) {
 
 async function processItem(client: AdminClient, item: ClaimedItem) {
   try {
-    if (item.channel === "in_app" || ["manual_call", "manual_email"].includes(item.channel)) {
+    // Email joins the channels that fan an approved item out into per-contact
+    // deliveries, now that a real adapter can process them.
+    if (item.channel === "in_app" || ["email", "manual_call", "manual_email"].includes(item.channel)) {
       const materialized = await materializeAll(client, item.id);
       const nextStatus = !materialized.batchComplete
         ? "retrying"
@@ -160,12 +303,15 @@ async function processDelivery(client: AdminClient, delivery: ClaimedDelivery) {
       });
       return { id: delivery.id, status: "sent" };
     }
+    if (delivery.channel === "email") {
+      return await processEmailDelivery(client, delivery);
+    }
     await invokeRpc(client, "complete_marketing_delivery", {
       p_delivery_id: delivery.id,
       p_lease_token: delivery.lease_token,
       p_status: "blocked_configuration",
       p_provider_message_id: null,
-      p_error_code: "adapter_not_deployed",
+      p_error_code: DORMANT_CHANNELS.get(delivery.channel) || "adapter_not_deployed",
       p_error: "Provider adapter is not deployed",
       p_metadata: { channel: delivery.channel },
     });
