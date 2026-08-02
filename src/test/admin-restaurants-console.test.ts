@@ -17,15 +17,23 @@ function readMigration(name: string) {
 }
 
 function latestMigrationContaining(pattern: RegExp) {
-  const matches = migrationFiles().filter((name) => pattern.test(readMigration(name)));
+  const matches = migrationFiles().filter((name) =>
+    pattern.test(readMigration(name)),
+  );
   expect(matches.length).toBeGreaterThan(0);
   return readMigration(matches[matches.length - 1]);
 }
 
 function extractFunction(sql: string, functionName: string) {
-  const escapedFunctionName = functionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escapedFunctionName = functionName.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&",
+  );
   const match = sql.match(
-    new RegExp(`CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+public\\.${escapedFunctionName}[\\s\\S]*?\\nEND;\\n\\$\\$;`, "i"),
+    new RegExp(
+      `CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+public\\.${escapedFunctionName}[\\s\\S]*?\\nEND;\\n\\$\\$;`,
+      "i",
+    ),
   );
 
   expect(match).toBeTruthy();
@@ -41,8 +49,14 @@ describe("admin restaurants console", () => {
       /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_update_restaurant_admin_state/i,
     );
 
-    const detailFn = extractFunction(detailSql, "admin_get_restaurant_admin_detail");
-    const updateFn = extractFunction(updateSql, "admin_update_restaurant_admin_state");
+    const detailFn = extractFunction(
+      detailSql,
+      "admin_get_restaurant_admin_detail",
+    );
+    const updateFn = extractFunction(
+      updateSql,
+      "admin_update_restaurant_admin_state",
+    );
     const actionSql = latestMigrationContaining(
       /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_record_restaurant_admin_action[\s\S]*public\.enqueue_notification/i,
     );
@@ -52,8 +66,14 @@ describe("admin restaurants console", () => {
     const markCorrectionDoneSql = latestMigrationContaining(
       /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.restaurant_mark_admin_correction_done[\s\S]*Correction restaurant effectuée/i,
     );
-    const actionFn = extractFunction(actionSql, "admin_record_restaurant_admin_action");
-    const markCorrectionDoneFn = extractFunction(markCorrectionDoneSql, "restaurant_mark_admin_correction_done");
+    const actionFn = extractFunction(
+      actionSql,
+      "admin_record_restaurant_admin_action",
+    );
+    const markCorrectionDoneFn = extractFunction(
+      markCorrectionDoneSql,
+      "restaurant_mark_admin_correction_done",
+    );
 
     expect(detailFn).toMatch(/public\.has_role\(v_actor_id,\s*'admin'\)/i);
     expect(detailFn).toMatch(/quality[\s\S]*missing_fields[\s\S]*publishable/i);
@@ -64,7 +84,9 @@ describe("admin restaurants console", () => {
     expect(detailFn).toMatch(/payment_health/i);
     expect(detailFn).toMatch(/recent_history/i);
     expect(detailFn).toMatch(/p\.recipient_id\s*=\s*p_restaurant_id\s+AND/i);
-    expect(detailFn).not.toMatch(/p\.recipient_id\s*=\s*p_restaurant_id::text/i);
+    expect(detailFn).not.toMatch(
+      /p\.recipient_id\s*=\s*p_restaurant_id::text/i,
+    );
 
     expect(updateFn).toMatch(/public\.has_role\(v_actor_id,\s*'admin'\)/i);
     expect(updateFn).toMatch(/jsonb_object_keys\(p_patch\)/i);
@@ -74,28 +96,53 @@ describe("admin restaurants console", () => {
     expect(updateFn).toMatch(/p_reason\s+IS\s+NULL/i);
     expect(updateFn).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
 
-    expect(actionFn).toMatch(/v_action\s+NOT\s+IN\s+\('request_correction',\s*'reindex_catalog',\s*'send_notification'\)/i);
-    expect(actionFn).toMatch(/SELECT[\s\S]*owner_id[\s\S]*INTO[\s\S]*v_owner_id/i);
+    expect(actionFn).toMatch(
+      /v_action\s+NOT\s+IN\s+\('request_correction',\s*'reindex_catalog',\s*'send_notification'\)/i,
+    );
+    expect(actionFn).toMatch(
+      /SELECT[\s\S]*owner_id[\s\S]*INTO[\s\S]*v_owner_id/i,
+    );
     expect(actionFn).toMatch(/public\.enqueue_notification/i);
-    expect(actionFn).toMatch(/v_action\s*=\s*'request_correction'[\s\S]*public\.enqueue_notification/i);
-    expect(actionFn).toMatch(/INSERT\s+INTO\s+public\.restaurant_admin_correction_requests/i);
+    expect(actionFn).toMatch(
+      /v_action\s*=\s*'request_correction'[\s\S]*public\.enqueue_notification/i,
+    );
+    expect(actionFn).toMatch(
+      /INSERT\s+INTO\s+public\.restaurant_admin_correction_requests/i,
+    );
     expect(actionFn).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
-    expect(correctionSql).toMatch(/ALTER\s+TABLE\s+public\.restaurant_admin_correction_requests\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY/i);
-    expect(correctionSql).toMatch(/restaurant_admin_correction_requests_owner_select/i);
+    expect(correctionSql).toMatch(
+      /ALTER\s+TABLE\s+public\.restaurant_admin_correction_requests\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY/i,
+    );
+    expect(correctionSql).toMatch(
+      /restaurant_admin_correction_requests_owner_select/i,
+    );
     expect(markCorrectionDoneFn).toMatch(/Restaurant owner access required/i);
     expect(markCorrectionDoneFn).toMatch(/status\s*=\s*'completed'/i);
-    expect(markCorrectionDoneFn).toMatch(/UPDATE\s+public\.notifications[\s\S]*read_at/i);
+    expect(markCorrectionDoneFn).toMatch(
+      /UPDATE\s+public\.notifications[\s\S]*read_at/i,
+    );
     expect(markCorrectionDoneFn).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
     expect(markCorrectionDoneFn).toMatch(/public\.enqueue_notification/i);
     expect(markCorrectionDoneFn).toMatch(/Correction restaurant effectuée/i);
-    expect(detailSql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_get_restaurant_admin_detail\(uuid\)\s+FROM\s+anon/i);
-    expect(updateSql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_update_restaurant_admin_state/i);
-    expect(actionSql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_record_restaurant_admin_action/i);
-    expect(markCorrectionDoneSql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.restaurant_mark_admin_correction_done/i);
+    expect(detailSql).toMatch(
+      /REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_get_restaurant_admin_detail\(uuid\)\s+FROM\s+anon/i,
+    );
+    expect(updateSql).toMatch(
+      /GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_update_restaurant_admin_state/i,
+    );
+    expect(actionSql).toMatch(
+      /GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_record_restaurant_admin_action/i,
+    );
+    expect(markCorrectionDoneSql).toMatch(
+      /GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.restaurant_mark_admin_correction_done/i,
+    );
   });
 
   it("uses the audited RPCs and exposes the restaurant detail operations console", () => {
-    const source = readFileSync(resolve(root, "src/pages/admin/AdminRestaurants.tsx"), "utf8");
+    const source = readFileSync(
+      resolve(root, "src/pages/admin/AdminRestaurants.tsx"),
+      "utf8",
+    );
 
     expect(source).toContain("admin_get_restaurant_admin_detail");
     expect(source).toContain("admin_update_restaurant_admin_state");
@@ -111,24 +158,37 @@ describe("admin restaurants console", () => {
     expect(source).toContain("Fiche restaurant");
     expect(source).toContain("DialogContent");
     expect(source).toContain("max-w-6xl");
-    expect(source).toContain("min-h-0 flex-1 overflow-y-auto overscroll-contain");
+    expect(source).toContain(
+      "min-h-0 flex-1 overflow-y-auto overscroll-contain",
+    );
     expect(source).toContain("onOpenChange={(open) => {");
-    expect(source).not.toContain("selectedRestaurantId ? (\n        <RestaurantDetailPanel");
+    expect(source).not.toContain(
+      "selectedRestaurantId ? (\n        <RestaurantDetailPanel",
+    );
     expect(source).toContain("Santé paiement");
     expect(source).toContain("Historique");
     expect(source).toContain("Demander correction");
     expect(source).toContain("Réindexer catalogue");
     expect(source).toContain("overrideReason");
+    expect(source).toContain("getRestaurantOperationalStatePatch");
+    expect(source).toContain("RESTAURANT_OPERATIONAL_STATUS_OPTIONS");
+    expect(source).not.toContain("<span>Actif</span>");
+    expect(source).toContain("Forcer la mise en ligne");
   });
 
   it("surfaces admin correction requests on the restaurateur dashboard with an owner acknowledgement action", () => {
-    const source = readFileSync(resolve(root, "src/pages/dashboard/DashboardHome.tsx"), "utf8");
+    const source = readFileSync(
+      resolve(root, "src/pages/dashboard/DashboardHome.tsx"),
+      "utf8",
+    );
 
     expect(source).toContain("restaurant_admin_correction_requests");
     expect(source).toContain("restaurant_mark_admin_correction_done");
     expect(source).toContain("restaurant-admin-correction-requests");
     expect(source).toContain("Demande de correction TOK");
     expect(source).toContain("Modification effectuée");
-    expect(source).toContain("TOK est informé que la correction demandée a été effectuée.");
+    expect(source).toContain(
+      "TOK est informé que la correction demandée a été effectuée.",
+    );
   });
 });
