@@ -31,33 +31,33 @@ const CANONICAL_ORIGIN = "https://www.thetok.ch";
 const comparisonRows = [
   {
     criterion: "Déclencheur du coût",
-    tok: "Réservation réellement honorée, forfait de 5.- par table, sans plafond ni condition d'origine.",
-    perCover: "Chaque couvert déclaré, apporté ou facturé selon le canal.",
-    decision: "Comparer le coût avant le service, pas seulement après facturation.",
+    tok: "Une table réellement servie = 5 CHF, que la table compte 2 ou 8 personnes.",
+    perCover: "Le prix augmente à chaque personne : une table de 6 coûte 6 × la commission annoncée.",
+    decision: "Demandez : « combien paie-je si la même table accueille 2, 4 ou 6 personnes ? »",
   },
   {
     criterion: "Prévisibilité",
-    tok: "Budget plus stable pour prévoir marge, staff et enveloppe marketing.",
-    perCover: "Facture sensible aux groupes, pics de volume et écarts de remplissage.",
-    decision: "Vérifier le scénario samedi soir, pas uniquement le jour calme.",
+    tok: "Vous connaissez le coût de chaque table servie avant le service.",
+    perCover: "Le total dépend à la fois du nombre de tables et du nombre de personnes à chaque table.",
+    decision: "Testez un samedi avec vos grandes tables, pas seulement une petite réservation.",
   },
   {
     criterion: "No-shows et changements",
-    tok: "CHF 0 sur annulation et no-show ; frais uniquement sur une réservation TOK honorée.",
-    perCover: "Le coût devient difficile à relire si les couverts changent ou annulent.",
-    decision: "Suivre tables honorées, tables perdues et coût par couvert réel.",
+    tok: "0 CHF si la réservation est annulée ou non honorée ; 5 CHF seulement si la table est servie.",
+    perCover: "Vérifiez dans le contrat à quel moment les couverts annulés ou modifiés sont facturés.",
+    decision: "Comparez toujours les deux modèles sur les mêmes tables réellement servies.",
   },
   {
     criterion: "Marge",
-    tok: "Lecture directe du coût d'acquisition par table et par revenu encaissé.",
-    perCover: "La marge baisse vite si le ticket moyen ou la taille des groupes varie.",
-    decision: "Comparer coût du canal, ticket moyen et revenu net restaurant.",
+    tok: "Le coût variable par réservation reste identique ; le pack mensuel est affiché à part.",
+    perCover: "Une même réservation peut coûter beaucoup plus dès que le groupe s'agrandit.",
+    decision: "Regardez le coût total et le coût par réservation, pas uniquement le prix affiché.",
   },
   {
     criterion: "Décision",
-    tok: "Google, site, QR code, Instagram et fichier client restent des canaux propres à CHF 0.",
-    perCover: "Dépendance possible si tout le flux passe par une seule plateforme.",
-    decision: "Déplacer du volume seulement quand les conversions sont mesurées.",
+    tok: "La règle de prix est lisible : forfait mensuel + 5 CHF par table réellement servie.",
+    perCover: "La règle de prix doit être confirmée : montant par personne, services inclus et conditions d'annulation.",
+    decision: "Demandez une simulation écrite avec vos propres volumes avant de changer de canal.",
   },
 ];
 
@@ -137,7 +137,7 @@ export default function AlternativeCommissionCouvert() {
     const plannedCovers = tables * covers;
     const honoredTables = tables * (1 - noShows);
     const honoredCovers = honoredTables * covers;
-    const perCoverCost = plannedCovers * fee;
+    const perCoverCost = honoredCovers * fee;
     const effectiveFeePerTable = RESERVATION_FLAT_FEE_CHF;
     const tokTableCost = honoredTables * effectiveFeePerTable;
     const tokEstimatedCost = tokTableCost + fairGrowthPlan.monthlyPriceChf;
@@ -229,8 +229,9 @@ export default function AlternativeCommissionCouvert() {
                 Commission par couvert : comparez avant de choisir.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-white/82 md:text-lg">
-                Une commission par couvert peut sembler simple, mais elle change avec les groupes, les no-shows, le
-                ticket moyen et le volume. TOK vous aide à lire le coût d'acquisition avant de déplacer vos ventes.
+                La différence est simple : une commission au couvert multiplie le prix par le nombre de personnes ;
+                TOK facture 5 CHF pour une table réellement servie, quel que soit le nombre de convives. Comparez
+                ensuite les deux modèles sur le même nombre de réservations honorées.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -255,10 +256,10 @@ export default function AlternativeCommissionCouvert() {
           </div>
 
           <div className="grid gap-3 rounded-lg border border-white/14 bg-white/12 p-5 shadow-2xl backdrop-blur-md">
-            <MetricDark label="Couverts prévus" value={Math.round(simulation.plannedCovers).toLocaleString("fr-CH")} />
-            <MetricDark label="Tables honorées" value={Math.round(simulation.honoredTables).toLocaleString("fr-CH")} />
-            <MetricDark label="Modèle au couvert" value={formatChf(simulation.perCoverCost)} />
-            <MetricDark label="Écart estimé" value={formatChf(simulation.difference)} accent />
+            <MetricDark label="Tables réellement servies" value={Math.round(simulation.honoredTables).toLocaleString("fr-CH")} />
+            <MetricDark label="Personnes réellement servies" value={Math.round(simulation.honoredCovers).toLocaleString("fr-CH")} />
+            <MetricDark label="Coût au couvert" value={formatChf(simulation.perCoverCost)} />
+            <MetricDark label="Écart mensuel estimé" value={formatChf(simulation.difference)} accent />
           </div>
         </div>
       </section>
@@ -297,8 +298,8 @@ export default function AlternativeCommissionCouvert() {
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Simulation économique</p>
             <h2 className="text-3xl font-black md:text-4xl">Intégrez les no-shows et les couverts réels.</h2>
             <p className="text-muted-foreground">
-              Le but n'est pas de promettre une économie automatique. Le bon comparatif met côte à côte coût variable,
-              tables honorées, pack, marge et coût d'acquisition.
+              Entrez vos chiffres. Les deux modèles sont calculés sur les mêmes réservations réellement servies :
+              les annulations et no-shows ne gonflent donc pas artificiellement la comparaison.
             </p>
           </div>
 
@@ -315,20 +316,25 @@ export default function AlternativeCommissionCouvert() {
                   </SelectContent>
                 </Select>
               </div>
-              <NumberField id="tables-per-month" label="Tables TOK prévues / mois" value={tablesPerMonth} onChange={setTablesPerMonth} />
-              <NumberField id="covers-per-table" label="Couverts par table" value={coversPerTable} onChange={setCoversPerTable} step={0.1} />
-              <NumberField id="fee-per-cover" label="Commission par couvert" value={feePerCover} onChange={setFeePerCover} step={0.1} />
-              <NumberField id="no-show-rate" label="No-show / annulations (%)" value={noShowRate} onChange={setNoShowRate} />
+              <NumberField id="tables-per-month" label="Réservations attendues / mois" value={tablesPerMonth} onChange={setTablesPerMonth} />
+              <NumberField id="covers-per-table" label="Personnes moyennes par réservation" value={coversPerTable} onChange={setCoversPerTable} step={0.1} />
+              <NumberField id="fee-per-cover" label="Montant facturé par personne (comparatif)" value={feePerCover} onChange={setFeePerCover} step={0.1} />
+              <NumberField id="no-show-rate" label="Annulations ou no-shows (%)" value={noShowRate} onChange={setNoShowRate} />
             </div>
 
             <div className="grid gap-3 rounded-lg bg-slate-950 p-4 text-white">
-              <MetricDark label="Tables honorées" value={Math.round(simulation.honoredTables).toLocaleString("fr-CH")} />
-              <MetricDark label="Couverts honorés" value={Math.round(simulation.honoredCovers).toLocaleString("fr-CH")} />
-              <MetricDark label="Coût au couvert" value={formatChf(simulation.perCoverCost)} />
-              <MetricDark label={"Estimation TOK · " + simulation.planName} value={formatChf(simulation.tokEstimatedCost)} />
-              <MetricDark label="Forfait / table honorée" value={simulation.effectiveFeePerTable.toLocaleString("fr-CH", { maximumFractionDigits: 2 }) + " CHF"} />
+              <MetricDark label="1. Tables réellement servies" value={Math.round(simulation.honoredTables).toLocaleString("fr-CH")} />
+              <MetricDark label="2. Personnes réellement servies" value={Math.round(simulation.honoredCovers).toLocaleString("fr-CH")} />
+              <MetricDark label="3. Modèle au couvert" value={formatChf(simulation.perCoverCost)} />
+              <MetricDark label={"4. TOK · " + simulation.planName} value={formatChf(simulation.tokEstimatedCost)} />
+              <MetricDark label="Forfait TOK / table servie" value={simulation.effectiveFeePerTable.toLocaleString("fr-CH", { maximumFractionDigits: 2 }) + " CHF"} />
+              <p className="rounded-md border border-white/10 bg-white/5 p-3 text-xs leading-5 text-white/75">
+                Au couvert : {Math.round(simulation.honoredCovers).toLocaleString("fr-CH")} personnes × {feePerCover.toLocaleString("fr-CH")} CHF.
+                <br />
+                TOK : {Math.round(simulation.honoredTables).toLocaleString("fr-CH")} tables × 5 CHF + pack {simulation.planName}.
+              </p>
               <MetricDark
-                label="Coût TOK / couvert honoré"
+                label="Coût TOK par personne servie"
                 value={`${simulation.acquisitionPerHonoredCover.toLocaleString("fr-CH", { maximumFractionDigits: 2 })} CHF`}
                 accent
               />
@@ -347,23 +353,24 @@ export default function AlternativeCommissionCouvert() {
               claire de la marge, des no-shows et de la prévisibilité.
             </p>
           </div>
-          <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-            <div className="grid bg-slate-950 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-white md:grid-cols-[0.75fr_1fr_1fr_1fr]">
-              <span>Critère</span>
-              <span>Lecture TOK</span>
-              <span>Commission par couvert</span>
-              <span>Question à trancher</span>
-            </div>
+          <div className="grid gap-4">
             {comparisonRows.map((row) => (
-              <div
-                key={row.criterion}
-                className="grid gap-2 border-t p-4 text-sm md:grid-cols-[0.75fr_1fr_1fr_1fr] md:gap-3"
-              >
-                <p className="font-bold text-slate-950">{row.criterion}</p>
-                <p className="leading-6 text-emerald-700">{row.tok}</p>
-                <p className="leading-6 text-muted-foreground">{row.perCover}</p>
-                <p className="leading-6 text-orange-700">{row.decision}</p>
-              </div>
+              <article key={row.criterion} className="rounded-2xl border bg-white p-5 shadow-sm">
+                <h3 className="text-lg font-black text-slate-950">{row.criterion}</h3>
+                <div className="mt-4 grid gap-4 text-sm md:grid-cols-2">
+                  <div className="rounded-xl bg-emerald-50 p-4">
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-800">Avec TOK</p>
+                    <p className="mt-2 leading-6 text-emerald-950">{row.tok}</p>
+                  </div>
+                  <div className="rounded-xl bg-slate-50 p-4">
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-600">Au couvert</p>
+                    <p className="mt-2 leading-6 text-slate-700">{row.perCover}</p>
+                  </div>
+                </div>
+                <p className="mt-4 rounded-xl bg-orange-50 p-4 text-sm font-medium leading-6 text-orange-950">
+                  À vérifier : {row.decision}
+                </p>
+              </article>
             ))}
           </div>
         </div>
@@ -375,7 +382,7 @@ export default function AlternativeCommissionCouvert() {
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Scénarios chiffrés</p>
             <h2 className="text-3xl font-black">Le même prix par couvert ne raconte pas la même histoire.</h2>
             <p className="text-muted-foreground">
-              Les scénarios ci-dessous montrent pourquoi le restaurateur doit comparer par situation de salle.
+              Même montant par personne, résultat différent : plus une table est grande, plus une commission au couvert augmente. Les exemples utilisent le plan sélectionné et une salle sans no-show.
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
