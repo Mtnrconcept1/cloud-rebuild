@@ -1,0 +1,61 @@
+name: Apply auth recovery rate-limit fix
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/auth-recovery-rate-limit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/auth-recovery-rate-limit
+          fetch-depth: 1
+
+      - name: Apply reviewed fix
+        run: python scripts/apply-auth-recovery-rate-limit-fix.py
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm dlx prettier@3.6.2 --write src/pages/Auth.tsx src/test/auth-password-recovery.test.ts
+      - run: pnpm exec vitest run --mode production src/test/auth-password-recovery.test.ts src/test/security-upload-captcha.test.ts src/test/auth-signup-form.test.tsx
+      - run: pnpm run typecheck
+      - run: pnpm run lint
+      - run: pnpm run build:prod
+
+      - name: Commit validated fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f scripts/apply-auth-recovery-rate-limit-fix.py
+          rm -f .github/workflows/apply-auth-recovery-rate-limit-fix.yml
+          git checkout HEAD -- public/sitemap-actualites.xml public/sitemap-pages.xml public/sitemap-restaurants.xml || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/pages/Auth.tsx src/test/auth-password-recovery.test.ts
+          git add -u scripts/apply-auth-recovery-rate-limit-fix.py .github/workflows/apply-auth-recovery-rate-limit-fix.yml
+          git diff --cached --check
+          git commit -m "fix(auth): normalize and throttle password recovery"
+          git push origin HEAD:fix/auth-recovery-rate-limit
