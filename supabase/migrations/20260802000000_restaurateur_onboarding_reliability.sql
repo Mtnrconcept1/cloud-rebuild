@@ -1,12 +1,12 @@
 BEGIN;
 
--- `status` and `is_active` previously behaved like two independent activation
--- controls. Keep one canonical operational state at the database boundary so
--- every caller, including older clients, receives the same result.
+-- `status` and `is_active` previously behaved like two independent
+-- activation controls. One invariant now protects every caller,
+-- including older clients and the admin console.
 CREATE OR REPLACE FUNCTION public.normalize_restaurant_operational_state()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = public
 AS $$
 DECLARE
@@ -14,6 +14,11 @@ DECLARE
   v_status_changed boolean := TG_OP = 'INSERT' OR NEW.status IS DISTINCT FROM OLD.status;
   v_active_changed boolean := TG_OP = 'INSERT' OR NEW.is_active IS DISTINCT FROM OLD.is_active;
 BEGIN
+  IF COALESCE(NEW.is_demo, false) THEN
+    NEW.status := 'demo';
+    RETURN NEW;
+  END IF;
+
   IF v_status NOT IN ('active', 'pending', 'paused', 'suspended', 'archived') THEN
     RAISE EXCEPTION 'Unsupported restaurant status: %', NEW.status
       USING ERRCODE = '22023';
@@ -38,8 +43,8 @@ BEGIN
       NEW.status := 'active';
       NEW.is_active := true;
     ELSE
-      NEW.status := CASE WHEN lower(COALESCE(OLD.status, 'pending')) = 'active'
-        THEN 'paused'
+      NEW.status := CASE
+        WHEN lower(COALESCE(OLD.status, 'pending')) = 'active' THEN 'paused'
         ELSE v_status
       END;
       NEW.is_active := false;
@@ -61,14 +66,13 @@ REVOKE ALL ON FUNCTION public.normalize_restaurant_operational_state()
 
 DROP TRIGGER IF EXISTS normalize_restaurant_operational_state ON public.restaurants;
 CREATE TRIGGER normalize_restaurant_operational_state
-BEFORE INSERT OR UPDATE OF status, is_active
+BEFORE INSERT OR UPDATE OF status, is_active, is_demo
 ON public.restaurants
 FOR EACH ROW
 EXECUTE FUNCTION public.normalize_restaurant_operational_state();
 
--- Repair the two inconsistent production rows conservatively. A restaurant
--- whose human review is not complete must remain private. An approved row keeps
--- the boolean intent and receives the matching canonical status.
+-- Repair only contradictory real restaurants. An application that has
+-- not completed human review remains private; demos retain status=demo.
 UPDATE public.restaurants AS restaurant
 SET
   status = CASE
@@ -100,13 +104,18 @@ SET
     ELSE false
   END,
   updated_at = now()
-WHERE (
-  COALESCE(restaurant.is_active, false) IS TRUE
-  AND lower(COALESCE(restaurant.status, '')) <> 'active'
-) OR (
-  COALESCE(restaurant.is_active, false) IS FALSE
-  AND lower(COALESCE(restaurant.status, '')) = 'active'
-);
+WHERE COALESCE(restaurant.is_demo, false) IS FALSE
+  AND (
+    (
+      COALESCE(restaurant.is_active, false) IS TRUE
+      AND lower(COALESCE(restaurant.status, '')) <> 'active'
+    )
+    OR
+    (
+      COALESCE(restaurant.is_active, false) IS FALSE
+      AND lower(COALESCE(restaurant.status, '')) = 'active'
+    )
+  );
 
 ALTER TABLE public.restaurants
   DROP CONSTRAINT IF EXISTS restaurants_operational_state_consistent;
@@ -115,12 +124,19 @@ ALTER TABLE public.restaurants
   ADD CONSTRAINT restaurants_operational_state_consistent
   CHECK (
     (
-      COALESCE(is_active, false) IS TRUE
+      COALESCE(is_demo, false) IS TRUE
+      AND lower(COALESCE(status, '')) = 'demo'
+    )
+    OR
+    (
+      COALESCE(is_demo, false) IS FALSE
+      AND COALESCE(is_active, false) IS TRUE
       AND lower(COALESCE(status, '')) = 'active'
     )
     OR
     (
-      COALESCE(is_active, false) IS FALSE
+      COALESCE(is_demo, false) IS FALSE
+      AND COALESCE(is_active, false) IS FALSE
       AND lower(COALESCE(status, 'pending')) <> 'active'
     )
   ) NOT VALID;
@@ -129,7 +145,7 @@ ALTER TABLE public.restaurants
   VALIDATE CONSTRAINT restaurants_operational_state_consistent;
 
 COMMENT ON CONSTRAINT restaurants_operational_state_consistent ON public.restaurants IS
-  'A restaurant is public only when status=active and is_active=true; every other status is private.';
+  'Real restaurants are public only when status=active and is_active=true; demo restaurants keep status=demo.';
 
 NOTIFY pgrst, 'reload schema';
 

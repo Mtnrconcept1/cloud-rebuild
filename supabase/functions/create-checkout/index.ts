@@ -31,7 +31,10 @@ import {
   sealPaymentAttemptRequest,
   type AcquiredPaymentAttempt,
 } from "../_shared/payment-attempts.ts";
-import { getLatestTokOneSubscription, isTokOneEntitledStatus } from "../_shared/tok-one.ts";
+import {
+  getLatestTokOneSubscription,
+  isTokOneEntitledStatus,
+} from "../_shared/tok-one.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   assertPaymentMethodAllowed,
@@ -60,7 +63,11 @@ import {
 
 const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
 type CheckoutItem = Record<string, unknown>;
-const CLIENT_STRIPE_CHECKOUT_KINDS = new Set(["order", "zero-attente", "chefs-table"]);
+const CLIENT_STRIPE_CHECKOUT_KINDS = new Set([
+  "order",
+  "zero-attente",
+  "chefs-table",
+]);
 const RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS = new Set(["campaign"]);
 const RECOGNIZED_CHECKOUT_KINDS = new Set([
   "order",
@@ -80,11 +87,15 @@ const TWINT_MAX_CHECKOUT_AMOUNT_CENTS = 500_000;
 const CHECKOUT_CURRENCY = "CHF";
 
 function normalizeCheckoutKind(value: unknown) {
-  return String(value || "order").trim().toLowerCase();
+  return String(value || "order")
+    .trim()
+    .toLowerCase();
 }
 
 function normalizePaymentMethod(value: unknown) {
-  return String(value || "card").trim().toLowerCase();
+  return String(value || "card")
+    .trim()
+    .toLowerCase();
 }
 
 function assertRestaurantOnboardingSetupSessionIntegrity(input: {
@@ -100,7 +111,9 @@ function assertRestaurantOnboardingSetupSessionIntegrity(input: {
   const { session } = input;
   const metadata = session.metadata || {};
   const actualMode = input.livemode ? "live" : "test";
-  const sessionLivemode = (session as Stripe.Checkout.Session & { livemode?: boolean }).livemode;
+  const sessionLivemode = (
+    session as Stripe.Checkout.Session & { livemode?: boolean }
+  ).livemode;
 
   if (session.mode !== "setup") {
     throw new Error(`STRIPE_SETUP_MODE_MISMATCH:${session.mode}`);
@@ -109,13 +122,20 @@ function assertRestaurantOnboardingSetupSessionIntegrity(input: {
     throw new Error("STRIPE_SETUP_CHECKOUT_KIND_MISMATCH");
   }
   if (metadata.stripe_mode && metadata.stripe_mode !== actualMode) {
-    throw new Error(`STRIPE_MODE_MISMATCH:${metadata.stripe_mode}:${actualMode}`);
+    throw new Error(
+      `STRIPE_MODE_MISMATCH:${metadata.stripe_mode}:${actualMode}`,
+    );
   }
-  if (typeof sessionLivemode === "boolean" && sessionLivemode !== input.livemode) {
+  if (
+    typeof sessionLivemode === "boolean" &&
+    sessionLivemode !== input.livemode
+  ) {
     throw new Error("STRIPE_SESSION_EVENT_MODE_MISMATCH");
   }
   if (session.payment_status !== "no_payment_required") {
-    throw new Error(`STRIPE_SETUP_PAYMENT_STATUS_MISMATCH:${session.payment_status}`);
+    throw new Error(
+      `STRIPE_SETUP_PAYMENT_STATUS_MISMATCH:${session.payment_status}`,
+    );
   }
   if (session.amount_total != null && Number(session.amount_total) !== 0) {
     throw new Error(`STRIPE_SETUP_AMOUNT_MISMATCH:${session.amount_total}`);
@@ -124,24 +144,27 @@ function assertRestaurantOnboardingSetupSessionIntegrity(input: {
   if (sessionCurrency && sessionCurrency !== "chf") {
     throw new Error(`STRIPE_SETUP_CURRENCY_MISMATCH:${sessionCurrency}`);
   }
-  if (readStripeObjectId(session.payment_intent) || readStripeObjectId(session.subscription)) {
+  if (
+    readStripeObjectId(session.payment_intent) ||
+    readStripeObjectId(session.subscription)
+  ) {
     throw new Error("STRIPE_SETUP_UNEXPECTED_PAYMENT_RESOURCE");
   }
   if (readStripeObjectId(session.customer) !== input.stripeCustomerId) {
     throw new Error("STRIPE_SETUP_CUSTOMER_MISMATCH");
   }
   if (
-    metadata.user_id !== input.userId
-    || metadata.payment_attempt_id !== input.paymentAttemptId
-    || metadata.operation_key !== input.operationKey
+    metadata.user_id !== input.userId ||
+    metadata.payment_attempt_id !== input.paymentAttemptId ||
+    metadata.operation_key !== input.operationKey
   ) {
     throw new Error("STRIPE_SETUP_ATTEMPT_IDENTITY_MISMATCH");
   }
   if (
-    !metadata.signup_application_id
-    || !metadata.restaurant_id
-    || !metadata.plan_id
-    || !metadata.restaurant_subscription_plan_slug
+    !metadata.signup_application_id ||
+    !metadata.restaurant_id ||
+    !metadata.plan_id ||
+    !metadata.restaurant_subscription_plan_slug
   ) {
     throw new Error("STRIPE_SETUP_BUSINESS_IDENTITY_MISSING");
   }
@@ -152,26 +175,42 @@ function assertRestaurantOnboardingSetupSessionIntegrity(input: {
     throw new Error("STRIPE_SETUP_RESERVED_SUBSCRIPTION_AMOUNT_MISSING");
   }
   if (
-    metadata.billing_period !== input.billingPeriod
-    || Number(metadata.reserved_subscription_amount_cents || 0) !== input.reservedAmountCents
+    metadata.billing_period !== input.billingPeriod ||
+    Number(metadata.reserved_subscription_amount_cents || 0) !==
+      input.reservedAmountCents
   ) {
     throw new Error("STRIPE_SETUP_RESERVED_SUBSCRIPTION_SNAPSHOT_MISMATCH");
   }
 }
 
-function getCheckoutItemRestaurantId(item: CheckoutItem, fallbackRestaurantId: string) {
-  return String(item?.restaurant_id || item?.restaurantId || fallbackRestaurantId);
+function getCheckoutItemRestaurantId(
+  item: CheckoutItem,
+  fallbackRestaurantId: string,
+) {
+  return String(
+    item?.restaurant_id || item?.restaurantId || fallbackRestaurantId,
+  );
 }
 
-function getCheckoutItemPaymentGroupKey(item: CheckoutItem, fallbackRestaurantId: string) {
+function getCheckoutItemPaymentGroupKey(
+  item: CheckoutItem,
+  fallbackRestaurantId: string,
+) {
   const restaurantId = getCheckoutItemRestaurantId(item, fallbackRestaurantId);
-  const metadata = item?.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata)
-    ? item.metadata as Record<string, unknown>
-    : {};
+  const metadata =
+    item?.metadata &&
+    typeof item.metadata === "object" &&
+    !Array.isArray(item.metadata)
+      ? (item.metadata as Record<string, unknown>)
+      : {};
 
   if (metadata.is_meal_subscription) {
-    const deliveryDate = String(metadata.delivery_date || metadata.subscription_day || "jour");
-    const deliveryTime = String(metadata.delivery_time || metadata.preferred_time || "12:00");
+    const deliveryDate = String(
+      metadata.delivery_date || metadata.subscription_day || "jour",
+    );
+    const deliveryTime = String(
+      metadata.delivery_time || metadata.preferred_time || "12:00",
+    );
     return `${restaurantId}|abonnement|${deliveryDate}|${deliveryTime}`;
   }
 
@@ -189,7 +228,12 @@ Deno.serve(async (req) => {
   let auditKind = "order";
   let auditTargetEntityType = "restaurants";
   let auditTargetEntityId = "";
-  let activeAttempt: (AcquiredPaymentAttempt & { adminClient: any; stripeSessionId?: string | null }) | null = null;
+  let activeAttempt:
+    | (AcquiredPaymentAttempt & {
+        adminClient: any;
+        stripeSessionId?: string | null;
+      })
+    | null = null;
 
   try {
     // Origin/Referer is only defense in depth; the authoritative account
@@ -209,11 +253,20 @@ Deno.serve(async (req) => {
 
     const requestMetadata = buildRequestMetadata(req);
     const rateLimiter = createRateLimiter(actor.adminClient, "create-checkout");
-    await rateLimiter.consume(`user:${actor.userId}`, { maxRequests: 12, windowSeconds: 300 });
+    await rateLimiter.consume(`user:${actor.userId}`, {
+      maxRequests: 12,
+      windowSeconds: 300,
+    });
     if (requestMetadata.ip) {
-      await rateLimiter.consume(`ip:${requestMetadata.ip}`, { maxRequests: 60, windowSeconds: 300 });
+      await rateLimiter.consume(`ip:${requestMetadata.ip}`, {
+        maxRequests: 60,
+        windowSeconds: 300,
+      });
     }
-    await rateLimiter.consume("global", { maxRequests: 500, windowSeconds: 60 });
+    await rateLimiter.consume("global", {
+      maxRequests: 500,
+      windowSeconds: 60,
+    });
 
     const {
       items,
@@ -241,8 +294,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    const effectiveKind = normalizeCheckoutKind(checkout_kind || order_metadata?.checkout_kind || "order");
-    if (effectiveKind === "commercial-demo-order" || effectiveKind === "commercial_demo_order") {
+    const effectiveKind = normalizeCheckoutKind(
+      checkout_kind || order_metadata?.checkout_kind || "order",
+    );
+    if (
+      effectiveKind === "commercial-demo-order" ||
+      effectiveKind === "commercial_demo_order"
+    ) {
       throw new HttpError(
         400,
         "Les commandes de demonstration commerciale utilisent exclusivement le paiement Stripe Test dedie.",
@@ -258,27 +316,40 @@ Deno.serve(async (req) => {
         "Les campagnes se reglent uniquement avec les credits TOK. Rechargez votre solde depuis Mon compte/Facturation ou attendez le prochain renouvellement.",
       );
     }
-    if (CLIENT_STRIPE_CHECKOUT_KINDS.has(effectiveKind) && ["cash", "credits"].includes(normalizedPaymentMethod)) {
-      throw new HttpError(400, "Ce parcours client doit etre regle avec un moyen de paiement Stripe.");
+    if (
+      CLIENT_STRIPE_CHECKOUT_KINDS.has(effectiveKind) &&
+      ["cash", "credits"].includes(normalizedPaymentMethod)
+    ) {
+      throw new HttpError(
+        400,
+        "Ce parcours client doit etre regle avec un moyen de paiement Stripe.",
+      );
     }
 
-    const isRestaurantOnboardingSetup = effectiveKind === "restaurant-onboarding";
+    const isRestaurantOnboardingSetup =
+      effectiveKind === "restaurant-onboarding";
     const isSubscriptionCheckout =
-      effectiveKind === "tok-one"
-      || effectiveKind === "restaurant-subscription-upgrade";
-    const isSubscriptionLifecycleCheckout = isSubscriptionCheckout || isRestaurantOnboardingSetup;
+      effectiveKind === "tok-one" ||
+      effectiveKind === "restaurant-subscription-upgrade";
+    const isSubscriptionLifecycleCheckout =
+      isSubscriptionCheckout || isRestaurantOnboardingSetup;
     const stripeRuntime = getStripeRuntimeForCheckoutKind(effectiveKind);
     const stripe = stripeRuntime.stripe;
-    const { data: preexistingAttempt, error: preexistingAttemptError } = await actor.adminClient
-      .from("payment_attempts")
-      .select("id, operation_key, owner_user_id, kind, mode, amount_cents, currency, request_fingerprint, request_snapshot")
-      .eq("operation_key", clientPaymentAttemptId)
-      .eq("owner_user_id", actor.userId)
-      .maybeSingle();
-    if (preexistingAttemptError) throw new HttpError(500, preexistingAttemptError.message);
+    const { data: preexistingAttempt, error: preexistingAttemptError } =
+      await actor.adminClient
+        .from("payment_attempts")
+        .select(
+          "id, operation_key, owner_user_id, kind, mode, amount_cents, currency, request_fingerprint, request_snapshot",
+        )
+        .eq("operation_key", clientPaymentAttemptId)
+        .eq("owner_user_id", actor.userId)
+        .maybeSingle();
+    if (preexistingAttemptError)
+      throw new HttpError(500, preexistingAttemptError.message);
     if (
-      preexistingAttempt
-      && (preexistingAttempt.kind !== effectiveKind || preexistingAttempt.mode !== stripeRuntime.mode)
+      preexistingAttempt &&
+      (preexistingAttempt.kind !== effectiveKind ||
+        preexistingAttempt.mode !== stripeRuntime.mode)
     ) {
       throw new HttpError(409, "PAYMENT_ATTEMPT_IDENTITY_MISMATCH");
     }
@@ -293,10 +364,11 @@ Deno.serve(async (req) => {
       items: Array.isArray(items) ? items : [],
       order_metadata: order_metadata || {},
     };
-    const requestFingerprint = await fingerprintPaymentAttemptRequest(requestIdentity);
+    const requestFingerprint =
+      await fingerprintPaymentAttemptRequest(requestIdentity);
     if (
-      preexistingAttempt?.request_fingerprint
-      && preexistingAttempt.request_fingerprint !== requestFingerprint
+      preexistingAttempt?.request_fingerprint &&
+      preexistingAttempt.request_fingerprint !== requestFingerprint
     ) {
       throw new HttpError(409, "PAYMENT_ATTEMPT_REQUEST_MISMATCH");
     }
@@ -310,10 +382,19 @@ Deno.serve(async (req) => {
         cashAllowed: false,
       });
     } catch (error) {
-      throw new HttpError(400, error instanceof Error ? error.message : "Moyen de paiement indisponible.");
+      throw new HttpError(
+        400,
+        error instanceof Error
+          ? error.message
+          : "Moyen de paiement indisponible.",
+      );
     }
 
-    if (["postfinance_card", "postfinance_efinance"].includes(normalizedPaymentMethod)) {
+    if (
+      ["postfinance_card", "postfinance_efinance"].includes(
+        normalizedPaymentMethod,
+      )
+    ) {
       throw new HttpError(
         400,
         "Les paiements PostFinance sont temporairement indisponibles. Utilisez la carte bancaire ou TWINT.",
@@ -322,7 +403,6 @@ Deno.serve(async (req) => {
     if (!STRIPE_CHECKOUT_PAYMENT_METHODS.has(normalizedPaymentMethod)) {
       throw new HttpError(400, "Moyen de paiement Stripe non pris en charge.");
     }
-
 
     let lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
     let discountCents = 0;
@@ -336,7 +416,8 @@ Deno.serve(async (req) => {
     // Never trust an arbitrary client metadata amount for the restaurant's tip.
     const marketplaceTipCents = 0;
     let restaurantOnboardingStripeCustomerId = "";
-    let restaurantOnboardingBillingPeriod: RestaurantSubscriptionBillingPeriod = "monthly";
+    let restaurantOnboardingBillingPeriod: RestaurantSubscriptionBillingPeriod =
+      "monthly";
     let restaurantOnboardingReservedAmountCents = 0;
     const chefTableHoldItems: Array<{ drop_id: string; quantity: number }> = [];
     let sessionMetadata: Record<string, string> = {
@@ -352,10 +433,14 @@ Deno.serve(async (req) => {
       checkout_id: String(order_metadata?.checkout_id || ""),
       checkout_group_id: String(order_metadata?.checkout_group_id || ""),
       primary_order_id: String(order_metadata?.primary_order_id || ""),
-      checkout_session_state: String(order_metadata?.checkout_session_state || ""),
+      checkout_session_state: String(
+        order_metadata?.checkout_session_state || "",
+      ),
       formula_applied: String(order_metadata?.formula_applied || ""),
       formula_discount_amount: "0.00",
-      formula_discount_percent: String(order_metadata?.formula_discount_percent || ""),
+      formula_discount_percent: String(
+        order_metadata?.formula_discount_percent || "",
+      ),
       promo_applied: "",
       promo_discount_amount: "0.00",
       promo_code_id: String(order_metadata?.promo_code_id || ""),
@@ -368,7 +453,9 @@ Deno.serve(async (req) => {
       miamz_benefits_applied: "",
       miamz_points_multiplier: "1.00",
       authoritative_total: "0.00",
-      pre_discount_subtotal: String(order_metadata?.pre_discount_subtotal || ""),
+      pre_discount_subtotal: String(
+        order_metadata?.pre_discount_subtotal || "",
+      ),
       arrival_date: String(order_metadata?.arrival_date || ""),
       arrival_time: String(order_metadata?.arrival_time || ""),
       party_size: String(order_metadata?.party_size || ""),
@@ -376,15 +463,22 @@ Deno.serve(async (req) => {
       delivery_time: String(order_metadata?.delivery_time || ""),
       pickup_date: String(order_metadata?.pickup_date || ""),
       pickup_time: String(order_metadata?.pickup_time || ""),
-      scheduled_delivery_label: String(order_metadata?.scheduled_delivery_label || ""),
+      scheduled_delivery_label: String(
+        order_metadata?.scheduled_delivery_label || "",
+      ),
     };
 
     if (effectiveKind === "launch-pack") {
-      throw new HttpError(410, "Les packs de lancement ne sont plus commercialises. Choisissez un abonnement ou un pack de credits IA.");
+      throw new HttpError(
+        410,
+        "Les packs de lancement ne sont plus commercialises. Choisissez un abonnement ou un pack de credits IA.",
+      );
     } else if (effectiveKind === "restaurant-onboarding") {
       const planId = String(order_metadata?.plan_id || "");
       const restaurantId = String(order_metadata?.restaurant_id || "");
-      const signupApplicationId = String(order_metadata?.signup_application_id || "");
+      const signupApplicationId = String(
+        order_metadata?.signup_application_id || "",
+      );
       const billingPeriod = parseRestaurantSubscriptionBillingPeriod(
         order_metadata?.billing_period || "monthly",
       );
@@ -392,13 +486,27 @@ Deno.serve(async (req) => {
 
       if (!planId) throw new HttpError(400, "plan_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
-      if (!signupApplicationId) throw new HttpError(400, "signup_application_id requis");
-      if (!billingPeriod) throw new HttpError(400, "La periode d'abonnement restaurateur est invalide");
-      if (billingPeriod === "yearly" && !isFairGrowthAnnualBillingEnabled(activeFlags)) {
-        throw new HttpError(503, "La facturation annuelle Fair Growth n'est pas encore activee");
+      if (!signupApplicationId)
+        throw new HttpError(400, "signup_application_id requis");
+      if (!billingPeriod)
+        throw new HttpError(
+          400,
+          "La periode d'abonnement restaurateur est invalide",
+        );
+      if (
+        billingPeriod === "yearly" &&
+        !isFairGrowthAnnualBillingEnabled(activeFlags)
+      ) {
+        throw new HttpError(
+          503,
+          "La facturation annuelle Fair Growth n'est pas encore activee",
+        );
       }
       if (normalizedPaymentMethod !== "card") {
-        throw new HttpError(400, "L'onboarding restaurateur requiert un paiement par carte");
+        throw new HttpError(
+          400,
+          "L'onboarding restaurateur requiert un paiement par carte",
+        );
       }
 
       auditKind = "restaurant-onboarding";
@@ -408,48 +516,72 @@ Deno.serve(async (req) => {
       await requireRestaurantAccess(actor, restaurantId);
 
       if (signupApplicationId) {
-        const { data: application, error: applicationError } = await actor.adminClient
-          .from("signup_applications")
-          .select("id, user_id, requested_role, selected_subscription_plan_id, selected_subscription_billing_period, restaurant_subscription_id, metadata")
-          .eq("id", signupApplicationId)
-          .maybeSingle();
+        const { data: application, error: applicationError } =
+          await actor.adminClient
+            .from("signup_applications")
+            .select(
+              "id, user_id, requested_role, selected_subscription_plan_id, selected_subscription_billing_period, restaurant_subscription_id, metadata",
+            )
+            .eq("id", signupApplicationId)
+            .maybeSingle();
 
-        if (applicationError) throw new HttpError(500, applicationError.message);
-        if (!application) throw new HttpError(404, "Dossier d'inscription introuvable");
-        if (application.user_id !== actor.userId || application.requested_role !== "restaurateur") {
+        if (applicationError)
+          throw new HttpError(500, applicationError.message);
+        if (!application)
+          throw new HttpError(404, "Dossier d'inscription introuvable");
+        if (
+          application.user_id !== actor.userId ||
+          application.requested_role !== "restaurateur"
+        ) {
           throw new HttpError(403, "Dossier d'inscription invalide");
         }
 
-        const applicationMetadata = application.metadata && typeof application.metadata === "object"
-          ? application.metadata as Record<string, unknown>
-          : {};
-        const applicationRestaurantId = String(applicationMetadata.restaurant_id || "");
+        const applicationMetadata =
+          application.metadata && typeof application.metadata === "object"
+            ? (application.metadata as Record<string, unknown>)
+            : {};
+        const applicationRestaurantId = String(
+          applicationMetadata.restaurant_id || "",
+        );
         const selectedPlanId = String(
-          application.selected_subscription_plan_id
-          || applicationMetadata.selected_subscription_plan_id
-          || "",
+          application.selected_subscription_plan_id ||
+            applicationMetadata.selected_subscription_plan_id ||
+            "",
         );
         const selectedBillingPeriod = String(
-          application.selected_subscription_billing_period
-          || applicationMetadata.selected_subscription_billing_period
-          || "monthly",
+          application.selected_subscription_billing_period ||
+            applicationMetadata.selected_subscription_billing_period ||
+            "monthly",
         );
-        applicationSubscriptionId = String(application.restaurant_subscription_id || "");
+        applicationSubscriptionId = String(
+          application.restaurant_subscription_id || "",
+        );
 
-        if (applicationRestaurantId && applicationRestaurantId !== restaurantId) {
+        if (
+          applicationRestaurantId &&
+          applicationRestaurantId !== restaurantId
+        ) {
           throw new HttpError(403, "Restaurant du dossier invalide");
         }
         if (selectedPlanId && selectedPlanId !== planId) {
-          throw new HttpError(400, "L'abonnement choisi ne correspond pas au dossier");
+          throw new HttpError(
+            400,
+            "L'abonnement choisi ne correspond pas au dossier",
+          );
         }
         if (selectedBillingPeriod && selectedBillingPeriod !== billingPeriod) {
-          throw new HttpError(400, "La periode d'abonnement ne correspond pas au dossier");
+          throw new HttpError(
+            400,
+            "La periode d'abonnement ne correspond pas au dossier",
+          );
         }
       }
 
       const { data: plan, error: planError } = await actor.adminClient
         .from("restaurant_subscription_plans")
-        .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit, is_active")
+        .select(
+          "id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit, is_active",
+        )
         .eq("id", planId)
         .eq("is_active", true)
         .maybeSingle();
@@ -457,72 +589,116 @@ Deno.serve(async (req) => {
       if (planError) throw new HttpError(500, planError.message);
       if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
 
-      const { data: existingSub, error: existingSubError } = await actor.adminClient
-        .from("restaurant_ai_subscriptions")
-        .select("id, status, current_period_end, signup_application_id, restaurant_subscription_plan_id, billing_period, price_monthly_chf_snapshot, billing_amount_chf_snapshot, annual_months_charged_snapshot, pricing_version_snapshot")
-        .eq("restaurant_id", restaurantId)
-        .eq("signup_application_id", signupApplicationId)
-        .eq("restaurant_subscription_plan_id", planId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { data: existingSub, error: existingSubError } =
+        await actor.adminClient
+          .from("restaurant_ai_subscriptions")
+          .select(
+            "id, status, current_period_end, signup_application_id, restaurant_subscription_plan_id, billing_period, price_monthly_chf_snapshot, billing_amount_chf_snapshot, annual_months_charged_snapshot, pricing_version_snapshot",
+          )
+          .eq("restaurant_id", restaurantId)
+          .eq("signup_application_id", signupApplicationId)
+          .eq("restaurant_subscription_plan_id", planId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
       if (existingSubError) throw new HttpError(500, existingSubError.message);
       if (!existingSub) {
-        throw new HttpError(409, "Le contrat d'abonnement réservé n'est pas encore prêt");
+        throw new HttpError(
+          409,
+          "Le contrat d'abonnement réservé n'est pas encore prêt",
+        );
       }
-      if (applicationSubscriptionId && existingSub.id !== applicationSubscriptionId) {
-        throw new HttpError(409, "Le contrat d'abonnement ne correspond pas au dossier");
+      if (
+        applicationSubscriptionId &&
+        existingSub.id !== applicationSubscriptionId
+      ) {
+        throw new HttpError(
+          409,
+          "Le contrat d'abonnement ne correspond pas au dossier",
+        );
       }
       if (existingSub.billing_period !== billingPeriod) {
-        throw new HttpError(409, "La periode d'abonnement ne correspond pas au contrat reserve");
+        throw new HttpError(
+          409,
+          "La periode d'abonnement ne correspond pas au contrat reserve",
+        );
       }
 
-      const subscriptionAmountCents = Math.round(Number(existingSub.billing_amount_chf_snapshot) * 100);
-      const expectedSubscriptionAmountCents = getRestaurantSubscriptionAmountCents(
-        existingSub.price_monthly_chf_snapshot,
-        billingPeriod,
+      const subscriptionAmountCents = Math.round(
+        Number(existingSub.billing_amount_chf_snapshot) * 100,
       );
+      const expectedSubscriptionAmountCents =
+        getRestaurantSubscriptionAmountCents(
+          existingSub.price_monthly_chf_snapshot,
+          billingPeriod,
+        );
       if (
-        !Number.isSafeInteger(subscriptionAmountCents)
-        || subscriptionAmountCents <= 0
-        || subscriptionAmountCents !== expectedSubscriptionAmountCents
-        || (billingPeriod === "yearly"
-          && Number(existingSub.annual_months_charged_snapshot) !== FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+        !Number.isSafeInteger(subscriptionAmountCents) ||
+        subscriptionAmountCents <= 0 ||
+        subscriptionAmountCents !== expectedSubscriptionAmountCents ||
+        (billingPeriod === "yearly" &&
+          Number(existingSub.annual_months_charged_snapshot) !==
+            FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
       ) {
-        throw new HttpError(409, "Le montant reserve de l'abonnement est invalide");
+        throw new HttpError(
+          409,
+          "Le montant reserve de l'abonnement est invalide",
+        );
       }
       const subscriptionAmount = subscriptionAmountCents / 100;
       restaurantOnboardingBillingPeriod = billingPeriod;
       restaurantOnboardingReservedAmountCents = subscriptionAmountCents;
 
-      const existingSubscriptionStatus = String(existingSub.status || "").toLowerCase();
-      if (!["awaiting_payment_method", "past_due"].includes(existingSubscriptionStatus)) {
-        if (["awaiting_activation", "activation_pending"].includes(existingSubscriptionStatus)) {
-          throw new HttpError(409, "Votre carte est déjà enregistrée pour cet abonnement");
+      const existingSubscriptionStatus = String(
+        existingSub.status || "",
+      ).toLowerCase();
+      if (
+        !["awaiting_payment_method", "past_due"].includes(
+          existingSubscriptionStatus,
+        )
+      ) {
+        if (
+          ["awaiting_activation", "activation_pending"].includes(
+            existingSubscriptionStatus,
+          )
+        ) {
+          throw new HttpError(
+            409,
+            "Votre carte est déjà enregistrée pour cet abonnement",
+          );
         }
         if (isTokOneEntitledStatus(existingSubscriptionStatus)) {
           throw new HttpError(409, "Vous avez deja un abonnement actif");
         }
-        throw new HttpError(409, "Ce parcours d'onboarding n'est plus disponible pour cet abonnement");
+        throw new HttpError(
+          409,
+          "Ce parcours d'onboarding n'est plus disponible pour cet abonnement",
+        );
       }
 
       if (existingSub?.id) {
-        const { data: savedPaymentMethod, error: savedPaymentMethodError } = await actor.adminClient
-          .from("restaurant_subscription_payment_methods")
-          .select("stripe_customer_id")
-          .eq("subscription_id", existingSub.id)
-          .maybeSingle();
+        const { data: savedPaymentMethod, error: savedPaymentMethodError } =
+          await actor.adminClient
+            .from("restaurant_subscription_payment_methods")
+            .select("stripe_customer_id")
+            .eq("subscription_id", existingSub.id)
+            .maybeSingle();
         if (savedPaymentMethodError) {
           throw new HttpError(500, savedPaymentMethodError.message);
         }
-        restaurantOnboardingStripeCustomerId = String(savedPaymentMethod?.stripe_customer_id || "");
+        restaurantOnboardingStripeCustomerId = String(
+          savedPaymentMethod?.stripe_customer_id || "",
+        );
       }
       if (
-        restaurantOnboardingStripeCustomerId
-        && !restaurantOnboardingStripeCustomerId.startsWith("cus_")
+        restaurantOnboardingStripeCustomerId &&
+        !restaurantOnboardingStripeCustomerId.startsWith("cus_")
       ) {
-        throw new HttpError(500, "Identifiant client Stripe restaurateur invalide");
+        throw new HttpError(
+          500,
+          "Identifiant client Stripe restaurateur invalide",
+        );
       }
 
       if (!restaurantOnboardingStripeCustomerId) {
@@ -530,9 +706,10 @@ Deno.serve(async (req) => {
           query: `metadata['signup_application_id']:'${signupApplicationId}'`,
           limit: 10,
         });
-        const matchingCustomer = customerSearch.data.find((customer) =>
-          customer.metadata?.restaurant_id === restaurantId
-          && customer.metadata?.user_id === actor.userId
+        const matchingCustomer = customerSearch.data.find(
+          (customer) =>
+            customer.metadata?.restaurant_id === restaurantId &&
+            customer.metadata?.user_id === actor.userId,
         );
 
         if (matchingCustomer) {
@@ -572,7 +749,9 @@ Deno.serve(async (req) => {
         user_id: actor.userId,
         checkout_kind: effectiveKind,
         stripe_mode: stripeRuntime.mode,
-        stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
+        stripe_key_scope: stripeRuntime.isolatedTokOneKey
+          ? "tok_one"
+          : "default",
         payment_method_label: "card",
         restaurant_id: restaurantId,
         signup_application_id: signupApplicationId,
@@ -583,25 +762,31 @@ Deno.serve(async (req) => {
         billing_period: billingPeriod,
         subscription_amount: subscriptionAmount.toFixed(2),
         reserved_subscription_amount_cents: String(subscriptionAmountCents),
-        annual_months_charged: billingPeriod === "yearly"
-          ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
-          : "1",
+        annual_months_charged:
+          billingPeriod === "yearly"
+            ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+            : "1",
         service_months: billingPeriod === "yearly" ? "12" : "1",
         entitlement_reset_period: "monthly",
         pricing_version: String(existingSub.pricing_version_snapshot || ""),
         billing_start_trigger: "first_real_reservation_or_order",
-        activation_recovery: existingSubscriptionStatus === "past_due" ? "true" : "false",
+        activation_recovery:
+          existingSubscriptionStatus === "past_due" ? "true" : "false",
         authoritative_total: "0.00",
       };
     } else if (effectiveKind === "restaurant-subscription-upgrade") {
       const planId = String(order_metadata?.plan_id || "");
       const restaurantId = String(order_metadata?.restaurant_id || "");
-      const activeChangeRequiresSchedulingCode = "restaurant_subscription_active_change_requires_scheduling";
+      const activeChangeRequiresSchedulingCode =
+        "restaurant_subscription_active_change_requires_scheduling";
 
       if (!planId) throw new HttpError(400, "plan_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
       if (normalizedPaymentMethod !== "card") {
-        throw new HttpError(400, "L'upgrade d'abonnement restaurateur requiert un paiement par carte");
+        throw new HttpError(
+          400,
+          "L'upgrade d'abonnement restaurateur requiert un paiement par carte",
+        );
       }
 
       auditKind = "restaurant-subscription-upgrade";
@@ -612,7 +797,9 @@ Deno.serve(async (req) => {
 
       const { data: plan, error: planError } = await actor.adminClient
         .from("restaurant_subscription_plans")
-        .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit, is_active, position")
+        .select(
+          "id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit, is_active, position",
+        )
         .eq("id", planId)
         .eq("is_active", true)
         .maybeSingle();
@@ -620,32 +807,49 @@ Deno.serve(async (req) => {
       if (planError) throw new HttpError(500, planError.message);
       if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
 
-      const { data: existingSub, error: existingSubError } = await actor.adminClient
-        .from("restaurant_ai_subscriptions")
-        .select("id, plan, status, billing_period, current_period_end, restaurant_subscription_plan_id, stripe_subscription_id")
-        .eq("restaurant_id", restaurantId)
-        .maybeSingle();
+      const { data: existingSub, error: existingSubError } =
+        await actor.adminClient
+          .from("restaurant_ai_subscriptions")
+          .select(
+            "id, plan, status, billing_period, current_period_end, restaurant_subscription_plan_id, stripe_subscription_id",
+          )
+          .eq("restaurant_id", restaurantId)
+          .maybeSingle();
 
       if (existingSubError) throw new HttpError(500, existingSubError.message);
 
       const billingPeriod = parseRestaurantSubscriptionBillingPeriod(
-        order_metadata?.billing_period || existingSub?.billing_period || "monthly",
+        order_metadata?.billing_period ||
+          existingSub?.billing_period ||
+          "monthly",
       );
-      if (!billingPeriod) throw new HttpError(400, "La periode d'abonnement restaurateur est invalide");
-      if (billingPeriod === "yearly" && !isFairGrowthAnnualBillingEnabled(activeFlags)) {
-        throw new HttpError(503, "La facturation annuelle Fair Growth n'est pas encore activee");
+      if (!billingPeriod)
+        throw new HttpError(
+          400,
+          "La periode d'abonnement restaurateur est invalide",
+        );
+      if (
+        billingPeriod === "yearly" &&
+        !isFairGrowthAnnualBillingEnabled(activeFlags)
+      ) {
+        throw new HttpError(
+          503,
+          "La facturation annuelle Fair Growth n'est pas encore activee",
+        );
       }
       const subscriptionAmountCents = getRestaurantSubscriptionAmountCents(
         plan.price_monthly_chf,
         billingPeriod,
       );
-      if (subscriptionAmountCents <= 0) throw new HttpError(400, "Prix du plan invalide");
+      if (subscriptionAmountCents <= 0)
+        throw new HttpError(400, "Prix du plan invalide");
       const subscriptionAmount = subscriptionAmountCents / 100;
 
       const hasActiveSubscription = Boolean(
         existingSub &&
-        isTokOneEntitledStatus(existingSub.status) &&
-        (!existingSub.current_period_end || new Date(existingSub.current_period_end) > new Date()),
+          isTokOneEntitledStatus(existingSub.status) &&
+          (!existingSub.current_period_end ||
+            new Date(existingSub.current_period_end) > new Date()),
       );
 
       // Never create a second full-price subscription over an already-paid
@@ -689,7 +893,9 @@ Deno.serve(async (req) => {
         user_id: actor.userId,
         checkout_kind: effectiveKind,
         stripe_mode: stripeRuntime.mode,
-        stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
+        stripe_key_scope: stripeRuntime.isolatedTokOneKey
+          ? "tok_one"
+          : "default",
         payment_method_label: "card",
         restaurant_id: restaurantId,
         plan_id: plan.id,
@@ -697,33 +903,47 @@ Deno.serve(async (req) => {
         restaurant_subscription_plan_slug: plan.slug,
         plan_name: plan.name,
         billing_period: billingPeriod,
-        annual_months_charged: billingPeriod === "yearly"
-          ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
-          : "1",
+        annual_months_charged:
+          billingPeriod === "yearly"
+            ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
+            : "1",
         service_months: billingPeriod === "yearly" ? "12" : "1",
         entitlement_reset_period: "monthly",
         previous_restaurant_ai_subscription_id: String(existingSub?.id || ""),
-        previous_stripe_subscription_id: String(existingSub?.stripe_subscription_id || ""),
+        previous_stripe_subscription_id: String(
+          existingSub?.stripe_subscription_id || "",
+        ),
         previous_subscription_plan_slug: String(existingSub?.plan || ""),
         subscription_amount: subscriptionAmount.toFixed(2),
         campaign_credit_chf: Number(plan.campaign_credit_chf || 0).toFixed(2),
         ai_tool_credits: String(plan.ai_tool_credits || 0),
         ai_photo_credits: String(plan.ai_photo_credits || 0),
-        monthly_conversation_limit: String(plan.monthly_conversation_limit || 0),
+        monthly_conversation_limit: String(
+          plan.monthly_conversation_limit || 0,
+        ),
         monthly_text_tool_limit: String(plan.monthly_text_tool_limit || 0),
         monthly_image_limit: String(plan.monthly_image_limit || 0),
-        monthly_premium_image_limit: String(plan.monthly_premium_image_limit || 0),
-        monthly_voice_minutes_limit: String(plan.monthly_voice_minutes_limit || 0),
+        monthly_premium_image_limit: String(
+          plan.monthly_premium_image_limit || 0,
+        ),
+        monthly_voice_minutes_limit: String(
+          plan.monthly_voice_minutes_limit || 0,
+        ),
         authoritative_total: subscriptionAmount.toFixed(2),
       };
     } else if (effectiveKind === "restaurant-credit-pack") {
-      const packId = String(order_metadata?.credit_pack_id || order_metadata?.pack_id || "");
+      const packId = String(
+        order_metadata?.credit_pack_id || order_metadata?.pack_id || "",
+      );
       const restaurantId = String(order_metadata?.restaurant_id || "");
 
       if (!packId) throw new HttpError(400, "credit_pack_id requis");
       if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
       if (!["card", "twint"].includes(normalizedPaymentMethod)) {
-        throw new HttpError(400, "Les packs de credits acceptent la carte bancaire ou TWINT");
+        throw new HttpError(
+          400,
+          "Les packs de credits acceptent la carte bancaire ou TWINT",
+        );
       }
 
       auditKind = "restaurant-credit-pack";
@@ -734,16 +954,20 @@ Deno.serve(async (req) => {
 
       const { data: pack, error: packError } = await actor.adminClient
         .from("restaurant_credit_packs")
-        .select("id, slug, name, description, price_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, is_active")
+        .select(
+          "id, slug, name, description, price_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, is_active",
+        )
         .eq("id", packId)
         .eq("is_active", true)
         .maybeSingle();
 
       if (packError) throw new HttpError(500, packError.message);
-      if (!pack) throw new HttpError(404, "Pack de credits introuvable ou inactif");
+      if (!pack)
+        throw new HttpError(404, "Pack de credits introuvable ou inactif");
 
       const packAmount = Number(pack.price_chf || 0);
-      if (packAmount <= 0) throw new HttpError(400, "Prix du pack de credits invalide");
+      if (packAmount <= 0)
+        throw new HttpError(400, "Prix du pack de credits invalide");
 
       // This row is created only after the durable attempt lease is acquired.
       // A retry looks it up through payment_attempt_id instead of inserting a
@@ -766,21 +990,23 @@ Deno.serve(async (req) => {
         },
       };
 
-      lineItems = [{
-        price_data: {
-          currency: "chf",
-          product_data: {
-            name: `Pack de credits TOK - ${pack.name}`,
-            description: String(pack.description || ""),
-            metadata: {
-              restaurant_credit_pack_id: pack.id,
-              restaurant_credit_pack_slug: pack.slug,
+      lineItems = [
+        {
+          price_data: {
+            currency: "chf",
+            product_data: {
+              name: `Pack de credits TOK - ${pack.name}`,
+              description: String(pack.description || ""),
+              metadata: {
+                restaurant_credit_pack_id: pack.id,
+                restaurant_credit_pack_slug: pack.slug,
+              },
             },
+            unit_amount: Math.round(packAmount * 100),
           },
-          unit_amount: Math.round(packAmount * 100),
+          quantity: 1,
         },
-        quantity: 1,
-      }];
+      ];
 
       sessionMetadata = {
         ...sessionMetadata,
@@ -815,7 +1041,10 @@ Deno.serve(async (req) => {
 
       const billingPeriod = String(order_metadata?.billing_period || "monthly");
       if (billingPeriod !== "monthly") {
-        throw new HttpError(400, "Les abonnements Tok One sont mensuels et renouveles automatiquement.");
+        throw new HttpError(
+          400,
+          "Les abonnements Tok One sont mensuels et renouveles automatiquement.",
+        );
       }
       const amount = Number(plan.price_monthly);
 
@@ -826,40 +1055,44 @@ Deno.serve(async (req) => {
         throw new HttpError(400, "Tok One requiert un paiement par carte");
       }
 
-      const { data: existingSub, error: existingSubError } = await actor.adminClient
-        .from("tok_one_subscriptions")
-        .select("id, status, current_period_end")
-        .eq("user_id", actor.userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { data: existingSub, error: existingSubError } =
+        await actor.adminClient
+          .from("tok_one_subscriptions")
+          .select("id, status, current_period_end")
+          .eq("user_id", actor.userId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
       if (existingSubError) throw new HttpError(500, existingSubError.message);
 
       const now = new Date();
       const hasActiveSubscription = Boolean(
         existingSub &&
-        isTokOneEntitledStatus(existingSub.status) &&
-        (!existingSub.current_period_end || new Date(existingSub.current_period_end) > now),
+          isTokOneEntitledStatus(existingSub.status) &&
+          (!existingSub.current_period_end ||
+            new Date(existingSub.current_period_end) > now),
       );
 
       if (hasActiveSubscription) {
         throw new HttpError(409, "Vous avez deja un abonnement actif");
       }
 
-      lineItems = [{
-        price_data: {
-          currency: "chf",
-          product_data: {
-            name: `Tok One - ${plan.name} (Mensuel)`,
+      lineItems = [
+        {
+          price_data: {
+            currency: "chf",
+            product_data: {
+              name: `Tok One - ${plan.name} (Mensuel)`,
+            },
+            recurring: {
+              interval: "month",
+            },
+            unit_amount: Math.round(amount * 100),
           },
-          recurring: {
-            interval: "month",
-          },
-          unit_amount: Math.round(amount * 100),
+          quantity: 1,
         },
-        quantity: 1,
-      }];
+      ];
 
       sessionMetadata = {
         ...sessionMetadata,
@@ -869,7 +1102,9 @@ Deno.serve(async (req) => {
         billing_renewal: "auto_monthly",
         cancellation_notice_days: "3",
         stripe_mode: stripeRuntime.mode,
-        stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
+        stripe_key_scope: stripeRuntime.isolatedTokOneKey
+          ? "tok_one"
+          : "default",
         authoritative_total: amount.toFixed(2),
       };
     } else if (effectiveKind === "campaign") {
@@ -885,11 +1120,13 @@ Deno.serve(async (req) => {
       auditTargetEntityType = "chef_table_drops";
       auditTargetEntityId = String(order_metadata?.checkout_group_id || "");
 
-      const dropIds = Array.from(new Set(
-        (items as CheckoutItem[])
-          .map((item) => String(item?.metadata?.chef_table_drop_id || ""))
-          .filter(Boolean),
-      ));
+      const dropIds = Array.from(
+        new Set(
+          (items as CheckoutItem[])
+            .map((item) => String(item?.metadata?.chef_table_drop_id || ""))
+            .filter(Boolean),
+        ),
+      );
 
       if (dropIds.length === 0) {
         throw new HttpError(400, "Drop La Table du Chef introuvable.");
@@ -897,25 +1134,36 @@ Deno.serve(async (req) => {
 
       const { data: dropRows, error: dropsError } = await actor.adminClient
         .from("chef_table_drops")
-        .select("id, restaurant_id, chef_name, dish_name, price, original_price, drop_time, remaining_portions, is_active, is_vip, required_miamz_points, restaurants(name)")
+        .select(
+          "id, restaurant_id, chef_name, dish_name, price, original_price, drop_time, remaining_portions, is_active, is_vip, required_miamz_points, restaurants(name)",
+        )
         .in("id", dropIds);
 
       if (dropsError) throw new HttpError(500, dropsError.message);
 
-      const tokOneSubscription = await getLatestTokOneSubscription(actor.adminClient, actor.userId);
+      const tokOneSubscription = await getLatestTokOneSubscription(
+        actor.adminClient,
+        actor.userId,
+      );
       const tokOnePeriodEnd = tokOneSubscription?.current_period_end
         ? new Date(tokOneSubscription.current_period_end)
         : null;
       const hasActiveTokOneSubscription = Boolean(
         tokOneSubscription &&
-        isTokOneEntitledStatus(tokOneSubscription.status) &&
-        tokOnePeriodEnd &&
-        tokOnePeriodEnd > new Date(),
+          isTokOneEntitledStatus(tokOneSubscription.status) &&
+          tokOnePeriodEnd &&
+          tokOnePeriodEnd > new Date(),
       );
-      const dropMap = new Map((dropRows || []).map((row: any) => [row.id, row]));
-      const dropRestaurantIds = Array.from(new Set(
-        (dropRows || []).map((row: any) => String(row.restaurant_id || "")).filter(Boolean),
-      ));
+      const dropMap = new Map(
+        (dropRows || []).map((row: any) => [row.id, row]),
+      );
+      const dropRestaurantIds = Array.from(
+        new Set(
+          (dropRows || [])
+            .map((row: any) => String(row.restaurant_id || ""))
+            .filter(Boolean),
+        ),
+      );
       if (dropRestaurantIds.length !== 1) {
         throw new HttpError(
           400,
@@ -924,8 +1172,14 @@ Deno.serve(async (req) => {
       }
       marketplaceRestaurantId = dropRestaurantIds[0];
       const requestedRestaurantId = String(order_metadata?.restaurant_id || "");
-      if (requestedRestaurantId && requestedRestaurantId !== marketplaceRestaurantId) {
-        throw new HttpError(400, "Le restaurant de la session ne correspond pas aux experiences selectionnees.");
+      if (
+        requestedRestaurantId &&
+        requestedRestaurantId !== marketplaceRestaurantId
+      ) {
+        throw new HttpError(
+          400,
+          "Le restaurant de la session ne correspond pas aux experiences selectionnees.",
+        );
       }
       let authoritativeTotal = 0;
       let totalPartySize = 0;
@@ -934,24 +1188,39 @@ Deno.serve(async (req) => {
 
       for (const item of items as CheckoutItem[]) {
         const dropId = String(item?.metadata?.chef_table_drop_id || "");
-        const quantity = Math.max(1, Number(item?.metadata?.party_size || item?.quantity || 1));
+        const quantity = Math.max(
+          1,
+          Number(item?.metadata?.party_size || item?.quantity || 1),
+        );
         const drop = dropMap.get(dropId);
 
         if (!drop) {
           throw new HttpError(404, "Drop La Table du Chef introuvable.");
         }
         if (!drop.is_active) {
-          throw new HttpError(409, "Ce drop La Table du Chef n'est plus disponible.");
+          throw new HttpError(
+            409,
+            "Ce drop La Table du Chef n'est plus disponible.",
+          );
         }
         if (Number(drop.remaining_portions || 0) < quantity) {
-          throw new HttpError(409, "Le nombre de portions disponibles a change pour ce drop.");
+          throw new HttpError(
+            409,
+            "Le nombre de portions disponibles a change pour ce drop.",
+          );
         }
 
         const isVipDrop = drop.is_vip === true;
-        const requiredMiamzPoints = Math.max(1, Number(drop.required_miamz_points || 0));
+        const requiredMiamzPoints = Math.max(
+          1,
+          Number(drop.required_miamz_points || 0),
+        );
         if (isVipDrop) {
           vipDropCount += 1;
-          maxRequiredMiamzPoints = Math.max(maxRequiredMiamzPoints, requiredMiamzPoints);
+          maxRequiredMiamzPoints = Math.max(
+            maxRequiredMiamzPoints,
+            requiredMiamzPoints,
+          );
           if (!hasActiveTokOneSubscription) {
             throw new HttpError(
               403,
@@ -971,8 +1240,14 @@ Deno.serve(async (req) => {
           price_data: {
             currency: "chf",
             product_data: {
-              name: String(drop.dish_name || item?.name || "Experience La Table du Chef"),
-              description: String(drop.restaurants?.name || item?.restaurant_name || "La Table du Chef"),
+              name: String(
+                drop.dish_name || item?.name || "Experience La Table du Chef",
+              ),
+              description: String(
+                drop.restaurants?.name ||
+                  item?.restaurant_name ||
+                  "La Table du Chef",
+              ),
               metadata: {
                 chef_table_drop_id: drop.id,
                 restaurant_id: drop.restaurant_id,
@@ -981,7 +1256,9 @@ Deno.serve(async (req) => {
                 source: "chef_table_drop",
                 is_vip: isVipDrop ? "true" : "false",
                 vip_access: isVipDrop ? "tok_one" : "standard",
-                required_miamz_points: isVipDrop ? String(requiredMiamzPoints) : "0",
+                required_miamz_points: isVipDrop
+                  ? String(requiredMiamzPoints)
+                  : "0",
               },
             },
             unit_amount: unitAmount,
@@ -1005,24 +1282,39 @@ Deno.serve(async (req) => {
       };
     } else {
       const primaryRestaurantId = String(order_metadata?.restaurant_id || "");
-      if (!primaryRestaurantId) throw new HttpError(400, "restaurant_id requis");
-      if (!Array.isArray(items) || items.length === 0) throw new HttpError(400, "Aucun article");
+      if (!primaryRestaurantId)
+        throw new HttpError(400, "restaurant_id requis");
+      if (!Array.isArray(items) || items.length === 0)
+        throw new HttpError(400, "Aucun article");
       auditTargetEntityType = "restaurants";
       auditTargetEntityId = primaryRestaurantId;
 
-      const { data: primaryRestaurant, error: primaryRestaurantError } = await actor.adminClient
-        .from("restaurants")
-        .select("id, stripe_account_id")
-        .eq("id", primaryRestaurantId)
-        .maybeSingle();
-      if (primaryRestaurantError) throw new HttpError(500, primaryRestaurantError.message);
-      if (!primaryRestaurant) throw new HttpError(404, "Restaurant introuvable");
+      const { data: primaryRestaurant, error: primaryRestaurantError } =
+        await actor.adminClient
+          .from("restaurants")
+          .select("id, stripe_account_id")
+          .eq("id", primaryRestaurantId)
+          .maybeSingle();
+      if (primaryRestaurantError)
+        throw new HttpError(500, primaryRestaurantError.message);
+      if (!primaryRestaurant)
+        throw new HttpError(404, "Restaurant introuvable");
 
-      const groupedItems = new Map<string, { groupRestaurantId: string; items: CheckoutItem[] }>();
+      const groupedItems = new Map<
+        string,
+        { groupRestaurantId: string; items: CheckoutItem[] }
+      >();
       for (const item of items as CheckoutItem[]) {
-        const groupRestaurantId = getCheckoutItemRestaurantId(item, primaryRestaurantId);
-        if (!groupRestaurantId) throw new HttpError(400, "restaurant_id manquant sur un article");
-        const paymentGroupKey = getCheckoutItemPaymentGroupKey(item, primaryRestaurantId);
+        const groupRestaurantId = getCheckoutItemRestaurantId(
+          item,
+          primaryRestaurantId,
+        );
+        if (!groupRestaurantId)
+          throw new HttpError(400, "restaurant_id manquant sur un article");
+        const paymentGroupKey = getCheckoutItemPaymentGroupKey(
+          item,
+          primaryRestaurantId,
+        );
         if (!groupedItems.has(paymentGroupKey)) {
           groupedItems.set(paymentGroupKey, { groupRestaurantId, items: [] });
         }
@@ -1030,43 +1322,82 @@ Deno.serve(async (req) => {
       }
 
       const paymentGroupKeys = Array.from(groupedItems.keys());
-      const checkoutRestaurantIds = Array.from(new Set(
-        Array.from(groupedItems.values()).map((group) => group.groupRestaurantId).filter(Boolean),
-      ));
-      if (checkoutRestaurantIds.length !== 1 || checkoutRestaurantIds[0] !== primaryRestaurantId) {
+      const checkoutRestaurantIds = Array.from(
+        new Set(
+          Array.from(groupedItems.values())
+            .map((group) => group.groupRestaurantId)
+            .filter(Boolean),
+        ),
+      );
+      if (
+        checkoutRestaurantIds.length !== 1 ||
+        checkoutRestaurantIds[0] !== primaryRestaurantId
+      ) {
         throw new HttpError(
           400,
           "Une session de paiement doit concerner un seul restaurant. Separez le panier par restaurant.",
         );
       }
       marketplaceRestaurantId = primaryRestaurantId;
-      const totalDeliveryFee = effectiveKind === "zero-attente"
-        ? 0
-        : toMoney(order_metadata?.delivery_fee);
-      const requestedPointsToRedeem = Math.max(0, Math.floor(Number(order_metadata?.points_to_redeem || 0)));
-      const requestedPointsDiscount = toMoney(order_metadata?.points_discount_amount || order_metadata?.points_discount);
-      const totalPointsDiscount = Math.min(requestedPointsDiscount, requestedPointsToRedeem / 100);
-      const totalFlexDiscount = toMoney(order_metadata?.flex_discount_amount || order_metadata?.flex_discount);
+      const totalDeliveryFee =
+        effectiveKind === "zero-attente"
+          ? 0
+          : toMoney(order_metadata?.delivery_fee);
+      const requestedPointsToRedeem = Math.max(
+        0,
+        Math.floor(Number(order_metadata?.points_to_redeem || 0)),
+      );
+      const requestedPointsDiscount = toMoney(
+        order_metadata?.points_discount_amount ||
+          order_metadata?.points_discount,
+      );
+      const totalPointsDiscount = Math.min(
+        requestedPointsDiscount,
+        requestedPointsToRedeem / 100,
+      );
+      const totalFlexDiscount = toMoney(
+        order_metadata?.flex_discount_amount || order_metadata?.flex_discount,
+      );
       const pointsByPaymentGroup = new Map<string, number>();
       const flexByPaymentGroup = new Map<string, number>();
 
-      const perPaymentGroupSubtotals = Array.from(groupedItems.entries()).map(([paymentGroupKey, group]) => ({
-        paymentGroupKey,
-        subtotal: group.items.reduce(
-          (sum, item) => sum + (toMoney(item?.price ?? item?.unit_price) * Math.max(1, Number(item?.quantity || 1))),
-          0,
-        ),
-      }));
-      const totalSubtotal = perPaymentGroupSubtotals.reduce((sum, row) => sum + row.subtotal, 0);
+      const perPaymentGroupSubtotals = Array.from(groupedItems.entries()).map(
+        ([paymentGroupKey, group]) => ({
+          paymentGroupKey,
+          subtotal: group.items.reduce(
+            (sum, item) =>
+              sum +
+              toMoney(item?.price ?? item?.unit_price) *
+                Math.max(1, Number(item?.quantity || 1)),
+            0,
+          ),
+        }),
+      );
+      const totalSubtotal = perPaymentGroupSubtotals.reduce(
+        (sum, row) => sum + row.subtotal,
+        0,
+      );
 
-      const allocateDiscount = (totalDiscount: number, targetMap: Map<string, number>) => {
+      const allocateDiscount = (
+        totalDiscount: number,
+        targetMap: Map<string, number>,
+      ) => {
         let remaining = Math.round(totalDiscount * 100) / 100;
         perPaymentGroupSubtotals.forEach((row, index) => {
-          const share = totalSubtotal > 0 ? row.subtotal / totalSubtotal : (paymentGroupKeys.length > 0 ? 1 / paymentGroupKeys.length : 0);
-          const allocated = index === perPaymentGroupSubtotals.length - 1
-            ? Math.max(0, remaining)
-            : Math.round((totalDiscount * share) * 100) / 100;
-          remaining = Math.max(0, Math.round((remaining - allocated) * 100) / 100);
+          const share =
+            totalSubtotal > 0
+              ? row.subtotal / totalSubtotal
+              : paymentGroupKeys.length > 0
+                ? 1 / paymentGroupKeys.length
+                : 0;
+          const allocated =
+            index === perPaymentGroupSubtotals.length - 1
+              ? Math.max(0, remaining)
+              : Math.round(totalDiscount * share * 100) / 100;
+          remaining = Math.max(
+            0,
+            Math.round((remaining - allocated) * 100) / 100,
+          );
           targetMap.set(row.paymentGroupKey, allocated);
         });
       };
@@ -1093,22 +1424,46 @@ Deno.serve(async (req) => {
       const primaryPromoNames: string[] = [];
       const miamzBenefitsApplied = new Set<string>();
 
-      for (const [index, [paymentGroupKey, group]] of Array.from(groupedItems.entries()).entries()) {
+      for (const [index, [paymentGroupKey, group]] of Array.from(
+        groupedItems.entries(),
+      ).entries()) {
         const { groupRestaurantId, items: restaurantItems } = group;
-        const deliveryFeeShare = paymentGroupKeys.length > 0 ? totalDeliveryFee / paymentGroupKeys.length : totalDeliveryFee;
+        const deliveryFeeShare =
+          paymentGroupKeys.length > 0
+            ? totalDeliveryFee / paymentGroupKeys.length
+            : totalDeliveryFee;
         const groupMetadata = {
           ...(order_metadata || {}),
           payment_method: normalizedPaymentMethod,
           delivery_fee: deliveryFeeShare,
-          points_to_redeem: Math.round((pointsByPaymentGroup.get(paymentGroupKey) || 0) * 100),
+          points_to_redeem: Math.round(
+            (pointsByPaymentGroup.get(paymentGroupKey) || 0) * 100,
+          ),
           points_discount: pointsByPaymentGroup.get(paymentGroupKey) || 0,
-          points_discount_amount: pointsByPaymentGroup.get(paymentGroupKey) || 0,
+          points_discount_amount:
+            pointsByPaymentGroup.get(paymentGroupKey) || 0,
           flex_discount_amount: flexByPaymentGroup.get(paymentGroupKey) || 0,
-          formula_discount_amount: groupRestaurantId === primaryRestaurantId ? order_metadata?.formula_discount_amount || order_metadata?.formula_discount : 0,
-          formula_discount: groupRestaurantId === primaryRestaurantId ? order_metadata?.formula_discount || 0 : 0,
-          promotion_discount_amount: groupRestaurantId === primaryRestaurantId ? order_metadata?.promotion_discount_amount || 0 : 0,
-          promotion_applied: groupRestaurantId === primaryRestaurantId ? order_metadata?.promotion_applied || null : null,
-          promo_code_id: groupRestaurantId === primaryRestaurantId ? order_metadata?.promo_code_id || null : null,
+          formula_discount_amount:
+            groupRestaurantId === primaryRestaurantId
+              ? order_metadata?.formula_discount_amount ||
+                order_metadata?.formula_discount
+              : 0,
+          formula_discount:
+            groupRestaurantId === primaryRestaurantId
+              ? order_metadata?.formula_discount || 0
+              : 0,
+          promotion_discount_amount:
+            groupRestaurantId === primaryRestaurantId
+              ? order_metadata?.promotion_discount_amount || 0
+              : 0,
+          promotion_applied:
+            groupRestaurantId === primaryRestaurantId
+              ? order_metadata?.promotion_applied || null
+              : null,
+          promo_code_id:
+            groupRestaurantId === primaryRestaurantId
+              ? order_metadata?.promo_code_id || null
+              : null,
         };
 
         const pricing = await buildVerifiedOrderPricing({
@@ -1121,23 +1476,30 @@ Deno.serve(async (req) => {
           context: effectiveKind === "zero-attente" ? "zero-attente" : "cart",
         });
 
-        lineItems.push(...pricing.validatedItems.map((item) => ({
-          price_data: {
-            currency: "chf",
-            product_data: {
-              name: item.name,
-              description: item.source === "menu_item" ? undefined : item.source,
-              metadata: {
-                menu_item_id: String(item.menuItemId || ""),
-                source: String(item.source || ""),
-                anti_waste_offer_id: String(item.metadata?.anti_waste_offer_id || item.metadata?.offer_id || ""),
-                flash_sale_id: String(item.metadata?.flash_sale_id || ""),
+        lineItems.push(
+          ...pricing.validatedItems.map((item) => ({
+            price_data: {
+              currency: "chf",
+              product_data: {
+                name: item.name,
+                description:
+                  item.source === "menu_item" ? undefined : item.source,
+                metadata: {
+                  menu_item_id: String(item.menuItemId || ""),
+                  source: String(item.source || ""),
+                  anti_waste_offer_id: String(
+                    item.metadata?.anti_waste_offer_id ||
+                      item.metadata?.offer_id ||
+                      "",
+                  ),
+                  flash_sale_id: String(item.metadata?.flash_sale_id || ""),
+                },
               },
+              unit_amount: Math.round(item.unitPrice * 100),
             },
-            unit_amount: Math.round(item.unitPrice * 100),
-          },
-          quantity: item.quantity,
-        })));
+            quantity: item.quantity,
+          })),
+        );
 
         if (pricing.qualityFee > 0) {
           lineItems.push({
@@ -1164,9 +1526,9 @@ Deno.serve(async (req) => {
         authoritativeTotal += pricing.total;
         verifiedDeliveryPassThroughTotal += Math.max(
           0,
-          pricing.deliveryFee
-            - pricing.tokOneDeliveryDiscount
-            - pricing.miamzDeliveryDiscount,
+          pricing.deliveryFee -
+            pricing.tokOneDeliveryDiscount -
+            pricing.miamzDeliveryDiscount,
         );
         formulaDiscountTotal += pricing.formulaDiscount;
         promoDiscountTotal += pricing.promoDiscount;
@@ -1181,30 +1543,45 @@ Deno.serve(async (req) => {
           tokOneDiscountPercentMax = pricing.tokOneDiscountPercent;
         }
         miamzDeliveryDiscountTotal += pricing.miamzDeliveryDiscount;
-        if (pricing.miamzDeliveryDiscountPercent > miamzDeliveryDiscountPercentMax) {
-          miamzDeliveryDiscountPercentMax = pricing.miamzDeliveryDiscountPercent;
+        if (
+          pricing.miamzDeliveryDiscountPercent > miamzDeliveryDiscountPercentMax
+        ) {
+          miamzDeliveryDiscountPercentMax =
+            pricing.miamzDeliveryDiscountPercent;
         }
         if (pricing.miamzPointsMultiplier > miamzPointsMultiplierMax) {
           miamzPointsMultiplierMax = pricing.miamzPointsMultiplier;
         }
-        pricing.miamzBenefitsApplied.forEach((benefitId) => miamzBenefitsApplied.add(benefitId));
+        pricing.miamzBenefitsApplied.forEach((benefitId) =>
+          miamzBenefitsApplied.add(benefitId),
+        );
         pointsDiscountTotal += pricing.pointsDiscount;
         flexDiscountTotal += pricing.flexDiscount;
 
-        if (index === 0 && primaryRestaurantId === groupRestaurantId && pricing.formulaName) primaryFormulaNames.push(pricing.formulaName);
-        if (index === 0 && primaryRestaurantId === groupRestaurantId && pricing.promoName) primaryPromoNames.push(pricing.promoName);
+        if (
+          index === 0 &&
+          primaryRestaurantId === groupRestaurantId &&
+          pricing.formulaName
+        )
+          primaryFormulaNames.push(pricing.formulaName);
+        if (
+          index === 0 &&
+          primaryRestaurantId === groupRestaurantId &&
+          pricing.promoName
+        )
+          primaryPromoNames.push(pricing.promoName);
       }
 
-
-      discountCents = Math.round((
-        formulaDiscountTotal
-        + promoDiscountTotal
-        + tokOneDiscountTotal
-        + tokOneDeliveryDiscountTotal
-        + miamzDeliveryDiscountTotal
-        + pointsDiscountTotal
-        + flexDiscountTotal
-      ) * 100);
+      discountCents = Math.round(
+        (formulaDiscountTotal +
+          promoDiscountTotal +
+          tokOneDiscountTotal +
+          tokOneDeliveryDiscountTotal +
+          miamzDeliveryDiscountTotal +
+          pointsDiscountTotal +
+          flexDiscountTotal) *
+          100,
+      );
       marketplaceDeliveryPassThroughCents = Math.max(
         0,
         Math.round(verifiedDeliveryPassThroughTotal * 100),
@@ -1222,9 +1599,12 @@ Deno.serve(async (req) => {
         tok_one_discount_amount: tokOneDiscountTotal.toFixed(2),
         tok_one_discount_percent: tokOneDiscountPercentMax.toFixed(2),
         tok_one_delivery_saved: tokOneDeliveryDiscountTotal.toFixed(2),
-        tok_one_total_saved: (tokOneDiscountTotal + tokOneDeliveryDiscountTotal).toFixed(2),
+        tok_one_total_saved: (
+          tokOneDiscountTotal + tokOneDeliveryDiscountTotal
+        ).toFixed(2),
         miamz_delivery_discount_amount: miamzDeliveryDiscountTotal.toFixed(2),
-        miamz_delivery_discount_percent: miamzDeliveryDiscountPercentMax.toFixed(2),
+        miamz_delivery_discount_percent:
+          miamzDeliveryDiscountPercentMax.toFixed(2),
         miamz_benefits_applied: Array.from(miamzBenefitsApplied).join(","),
         miamz_points_multiplier: miamzPointsMultiplierMax.toFixed(2),
         points_discount_amount: pointsDiscountTotal.toFixed(2),
@@ -1234,7 +1614,9 @@ Deno.serve(async (req) => {
     }
 
     if (CLIENT_STRIPE_CHECKOUT_KINDS.has(effectiveKind)) {
-      const clientCheckoutRestaurantId = String(marketplaceRestaurantId || "").trim();
+      const clientCheckoutRestaurantId = String(
+        marketplaceRestaurantId || "",
+      ).trim();
       if (!clientCheckoutRestaurantId) {
         throw new HttpError(400, "Restaurant requis pour ce paiement.");
       }
@@ -1259,18 +1641,29 @@ Deno.serve(async (req) => {
     }
 
     const totalBeforeDiscountCents = lineItems.reduce(
-      (sum, lineItem) => sum + ((lineItem.price_data?.unit_amount || 0) * (lineItem.quantity || 1)),
+      (sum, lineItem) =>
+        sum +
+        (lineItem.price_data?.unit_amount || 0) * (lineItem.quantity || 1),
       0,
     );
     discountCents = Math.min(discountCents, totalBeforeDiscountCents);
-    const finalCheckoutTotalCents = Math.max(0, totalBeforeDiscountCents - discountCents);
+    const finalCheckoutTotalCents = Math.max(
+      0,
+      totalBeforeDiscountCents - discountCents,
+    );
 
     if (normalizedPaymentMethod === "twint") {
       if (isSubscriptionLifecycleCheckout) {
-        throw new HttpError(400, "TWINT ne peut pas etre utilise avec ce parcours d'abonnement.");
+        throw new HttpError(
+          400,
+          "TWINT ne peut pas etre utilise avec ce parcours d'abonnement.",
+        );
       }
       if (CHECKOUT_CURRENCY !== "CHF") {
-        throw new HttpError(400, "TWINT requiert un paiement en francs suisses.");
+        throw new HttpError(
+          400,
+          "TWINT requiert un paiement en francs suisses.",
+        );
       }
       if (finalCheckoutTotalCents > TWINT_MAX_CHECKOUT_AMOUNT_CENTS) {
         throw new HttpError(400, "TWINT est limite a CHF 5'000 par paiement.");
@@ -1283,9 +1676,9 @@ Deno.serve(async (req) => {
     );
     const marketplaceCommissionableCents = Math.max(
       0,
-      finalCheckoutTotalCents
-        - marketplaceTipCents
-        - marketplaceDeliveryPassThroughCents,
+      finalCheckoutTotalCents -
+        marketplaceTipCents -
+        marketplaceDeliveryPassThroughCents,
     );
 
     const marketplaceRouting = await resolveMarketplaceRouting({
@@ -1307,15 +1700,25 @@ Deno.serve(async (req) => {
         gross_amount_cents: String(marketplaceRouting.grossCents),
         commissionable_cents: String(marketplaceRouting.commissionableCents),
         tip_cents: String(marketplaceRouting.tipCents),
-        delivery_pass_through_cents: String(marketplaceRouting.deliveryPassThroughCents),
+        delivery_pass_through_cents: String(
+          marketplaceRouting.deliveryPassThroughCents,
+        ),
         platform_fee_bps: String(marketplaceRouting.platformFeeBps),
         platform_fee_amount_cents: String(marketplaceRouting.platformFeeCents),
-        stripe_application_fee_amount_cents: String(marketplaceRouting.stripeApplicationFeeCents),
-        restaurant_share_amount_cents: String(marketplaceRouting.restaurantShareCents),
-        restaurant_transfer_amount_cents: String(marketplaceRouting.restaurantTransferCents),
+        stripe_application_fee_amount_cents: String(
+          marketplaceRouting.stripeApplicationFeeCents,
+        ),
+        restaurant_share_amount_cents: String(
+          marketplaceRouting.restaurantShareCents,
+        ),
+        restaurant_transfer_amount_cents: String(
+          marketplaceRouting.restaurantTransferCents,
+        ),
         developer_order_bps: String(marketplaceRouting.developerOrderBps),
         developer_share_bps: String(marketplaceRouting.developerOrderBps),
-        developer_share_amount_cents: String(marketplaceRouting.developerShareCents),
+        developer_share_amount_cents: String(
+          marketplaceRouting.developerShareCents,
+        ),
         tok_net_amount_cents: String(marketplaceRouting.tokNetRevenueCents),
         pricing_plan_id: String(marketplaceRouting.pricingPlanId || ""),
         pricing_plan_slug: String(marketplaceRouting.pricingPlanSlug || ""),
@@ -1324,17 +1727,19 @@ Deno.serve(async (req) => {
       };
     }
 
-    const attemptRestaurantId = String(
-      marketplaceRestaurantId || sessionMetadata.restaurant_id || "",
-    ).trim() || null;
+    const attemptRestaurantId =
+      String(
+        marketplaceRestaurantId || sessionMetadata.restaurant_id || "",
+      ).trim() || null;
 
     // A different client UUID must not create a second simultaneous
     // subscription. The database also enforces this invariant to close the
     // race between these read and acquire calls.
     if (isSubscriptionLifecycleCheckout) {
-      const subscriptionKinds = effectiveKind === "tok-one"
-        ? ["tok-one"]
-        : ["restaurant-onboarding", "restaurant-subscription-upgrade"];
+      const subscriptionKinds =
+        effectiveKind === "tok-one"
+          ? ["tok-one"]
+          : ["restaurant-onboarding", "restaurant-subscription-upgrade"];
       let conflictQuery = actor.adminClient
         .from("payment_attempts")
         .select("id, operation_key")
@@ -1344,11 +1749,17 @@ Deno.serve(async (req) => {
         .in("state", ["pending", "session_bound"])
         .neq("operation_key", clientPaymentAttemptId)
         .limit(1);
-      if (attemptRestaurantId) conflictQuery = conflictQuery.eq("restaurant_id", attemptRestaurantId);
-      const { data: conflictingAttempts, error: conflictingAttemptError } = await conflictQuery;
-      if (conflictingAttemptError) throw new HttpError(500, conflictingAttemptError.message);
+      if (attemptRestaurantId)
+        conflictQuery = conflictQuery.eq("restaurant_id", attemptRestaurantId);
+      const { data: conflictingAttempts, error: conflictingAttemptError } =
+        await conflictQuery;
+      if (conflictingAttemptError)
+        throw new HttpError(500, conflictingAttemptError.message);
       if (conflictingAttempts?.length) {
-        throw new HttpError(409, "Un paiement d'abonnement est deja en cours. Reprenez la tentative existante.");
+        throw new HttpError(
+          409,
+          "Un paiement d'abonnement est deja en cours. Reprenez la tentative existante.",
+        );
       }
     }
 
@@ -1368,12 +1779,14 @@ Deno.serve(async (req) => {
         primary_order_id: sessionMetadata.primary_order_id || null,
         order_reference: sessionMetadata.order_reference || null,
         restaurant_id: attemptRestaurantId,
-        finance_snapshot_version: sessionMetadata.finance_snapshot_version || null,
+        finance_snapshot_version:
+          sessionMetadata.finance_snapshot_version || null,
         pricing_version: sessionMetadata.pricing_version || null,
         platform_fee_bps: sessionMetadata.platform_fee_bps || null,
         commissionable_cents: sessionMetadata.commissionable_cents || null,
         tip_cents: sessionMetadata.tip_cents || null,
-        delivery_pass_through_cents: sessionMetadata.delivery_pass_through_cents || null,
+        delivery_pass_through_cents:
+          sessionMetadata.delivery_pass_through_cents || null,
         stripe_application_fee_amount_cents:
           sessionMetadata.stripe_application_fee_amount_cents || null,
       },
@@ -1410,10 +1823,19 @@ Deno.serve(async (req) => {
       }
 
       if (String(existingSession.metadata?.user_id || "") !== actor.userId) {
-        throw new HttpError(409, "La session Stripe existante n'appartient pas a cet utilisateur");
+        throw new HttpError(
+          409,
+          "La session Stripe existante n'appartient pas a cet utilisateur",
+        );
       }
-      if (String(existingSession.metadata?.operation_key || "") !== acquiredAttempt.operationKey) {
-        throw new HttpError(409, "La session Stripe existante ne correspond pas a cette tentative");
+      if (
+        String(existingSession.metadata?.operation_key || "") !==
+        acquiredAttempt.operationKey
+      ) {
+        throw new HttpError(
+          409,
+          "La session Stripe existante ne correspond pas a cette tentative",
+        );
       }
       if (isRestaurantOnboardingSetup) {
         assertRestaurantOnboardingSetupSessionIntegrity({
@@ -1436,44 +1858,65 @@ Deno.serve(async (req) => {
       }
 
       if (existingSession.status === "open" && existingSession.url) {
-        return jsonResponse({
-          payment_attempt_id: clientPaymentAttemptId,
-          server_payment_attempt_id: acquiredAttempt.attemptId,
-          sessionId: existingSession.id,
-          session_id: existingSession.id,
-          url: existingSession.url,
-          reused: true,
-          state: "session_bound",
-        }, 200, corsHeaders);
+        return jsonResponse(
+          {
+            payment_attempt_id: clientPaymentAttemptId,
+            server_payment_attempt_id: acquiredAttempt.attemptId,
+            sessionId: existingSession.id,
+            session_id: existingSession.id,
+            url: existingSession.url,
+            reused: true,
+            state: "session_bound",
+          },
+          200,
+          corsHeaders,
+        );
       }
 
-      if (isRestaurantOnboardingSetup && existingSession.status === "complete") {
+      if (
+        isRestaurantOnboardingSetup &&
+        existingSession.status === "complete"
+      ) {
         const setupIntentId = readStripeObjectId(existingSession.setup_intent);
         if (!setupIntentId) {
-          throw new HttpError(503, "PAYMENT_ATTEMPT_SETUP_INTENT_INDETERMINATE");
+          throw new HttpError(
+            503,
+            "PAYMENT_ATTEMPT_SETUP_INTENT_INDETERMINATE",
+          );
         }
-        return jsonResponse({
-          payment_attempt_id: clientPaymentAttemptId,
-          server_payment_attempt_id: acquiredAttempt.attemptId,
-          sessionId: existingSession.id,
-          session_id: existingSession.id,
-          setup_intent_id: setupIntentId,
-          url: null,
-          reused: true,
-          state: acquiredAttempt.state === "finalized" ? "finalized" : "setup_complete",
-        }, 200, corsHeaders);
+        return jsonResponse(
+          {
+            payment_attempt_id: clientPaymentAttemptId,
+            server_payment_attempt_id: acquiredAttempt.attemptId,
+            sessionId: existingSession.id,
+            session_id: existingSession.id,
+            setup_intent_id: setupIntentId,
+            url: null,
+            reused: true,
+            state:
+              acquiredAttempt.state === "finalized"
+                ? "finalized"
+                : "setup_complete",
+          },
+          200,
+          corsHeaders,
+        );
       }
 
       if (existingSession.payment_status === "paid") {
-        return jsonResponse({
-          payment_attempt_id: clientPaymentAttemptId,
-          server_payment_attempt_id: acquiredAttempt.attemptId,
-          sessionId: existingSession.id,
-          session_id: existingSession.id,
-          url: null,
-          reused: true,
-          state: acquiredAttempt.state === "finalized" ? "finalized" : "paid",
-        }, 200, corsHeaders);
+        return jsonResponse(
+          {
+            payment_attempt_id: clientPaymentAttemptId,
+            server_payment_attempt_id: acquiredAttempt.attemptId,
+            sessionId: existingSession.id,
+            session_id: existingSession.id,
+            url: null,
+            reused: true,
+            state: acquiredAttempt.state === "finalized" ? "finalized" : "paid",
+          },
+          200,
+          corsHeaders,
+        );
       }
 
       if (existingSession.status === "expired") {
@@ -1485,7 +1928,8 @@ Deno.serve(async (req) => {
             paymentStatus: "cancelled",
             checkoutState: "expired",
             failureCode: "checkout_session_expired",
-            failureMessage: "La session de paiement a expire; la commande doit etre recreee.",
+            failureMessage:
+              "La session de paiement a expire; la commande doit etre recreee.",
           });
         }
         await abandonPaymentAttemptSession({
@@ -1505,9 +1949,9 @@ Deno.serve(async (req) => {
         }
         acquiredAttempt = await acquirePaymentAttempt(acquireAttemptInput);
         if (
-          acquiredAttempt.operationKey !== clientPaymentAttemptId
-          || !acquiredAttempt.leaseAcquired
-          || !acquiredAttempt.leaseToken
+          acquiredAttempt.operationKey !== clientPaymentAttemptId ||
+          !acquiredAttempt.leaseAcquired ||
+          !acquiredAttempt.leaseToken
         ) {
           throw new HttpError(409, "PAYMENT_ATTEMPT_REACQUIRE_FAILED");
         }
@@ -1532,12 +1976,14 @@ Deno.serve(async (req) => {
     }
 
     if (creditPackPurchaseDraft) {
-      const { data: existingPurchase, error: existingPurchaseError } = await actor.adminClient
-        .from("restaurant_credit_purchases")
-        .select("id")
-        .eq("payment_attempt_id", acquiredAttempt.attemptId)
-        .maybeSingle();
-      if (existingPurchaseError) throw new HttpError(500, existingPurchaseError.message);
+      const { data: existingPurchase, error: existingPurchaseError } =
+        await actor.adminClient
+          .from("restaurant_credit_purchases")
+          .select("id")
+          .eq("payment_attempt_id", acquiredAttempt.attemptId)
+          .maybeSingle();
+      if (existingPurchaseError)
+        throw new HttpError(500, existingPurchaseError.message);
 
       if (existingPurchase?.id) {
         creditPackPurchaseId = existingPurchase.id;
@@ -1552,22 +1998,27 @@ Deno.serve(async (req) => {
           })
           .eq("id", creditPackPurchaseId)
           .in("status", ["cancelled", "failed", "pending_payment"]);
-        if (resetPurchaseError) throw new HttpError(500, resetPurchaseError.message);
+        if (resetPurchaseError)
+          throw new HttpError(500, resetPurchaseError.message);
       } else {
-        const draftMetadata = creditPackPurchaseDraft.metadata as Record<string, unknown>;
-        const { data: purchaseRecord, error: purchaseError } = await actor.adminClient
-          .from("restaurant_credit_purchases")
-          .insert({
-            ...creditPackPurchaseDraft,
-            payment_attempt_id: acquiredAttempt.attemptId,
-            metadata: {
-              ...draftMetadata,
+        const draftMetadata = creditPackPurchaseDraft.metadata as Record<
+          string,
+          unknown
+        >;
+        const { data: purchaseRecord, error: purchaseError } =
+          await actor.adminClient
+            .from("restaurant_credit_purchases")
+            .insert({
+              ...creditPackPurchaseDraft,
               payment_attempt_id: acquiredAttempt.attemptId,
-              operation_key: acquiredAttempt.operationKey,
-            },
-          })
-          .select("id")
-          .single();
+              metadata: {
+                ...draftMetadata,
+                payment_attempt_id: acquiredAttempt.attemptId,
+                operation_key: acquiredAttempt.operationKey,
+              },
+            })
+            .select("id")
+            .single();
         if (purchaseError) throw new HttpError(500, purchaseError.message);
         creditPackPurchaseId = purchaseRecord.id;
       }
@@ -1580,16 +2031,19 @@ Deno.serve(async (req) => {
     }
 
     const urlSeparator = safeReturnUrl.includes("?") ? "&" : "?";
-    const userLookup = actor.userClient ? await actor.userClient.auth.getUser() : null;
+    const userLookup = actor.userClient
+      ? await actor.userClient.auth.getUser()
+      : null;
     const userEmail = userLookup?.data.user?.email || undefined;
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: isSubscriptionCheckout ? "subscription" : "payment",
       success_url: `${safeReturnUrl}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&payment_attempt_id=${encodeURIComponent(clientPaymentAttemptId)}&status=success`,
       cancel_url: `${safeReturnUrl}${urlSeparator}payment_attempt_id=${encodeURIComponent(clientPaymentAttemptId)}&status=cancelled`,
-      customer_email: isRestaurantOnboardingSetup && restaurantOnboardingStripeCustomerId
-        ? undefined
-        : userEmail,
+      customer_email:
+        isRestaurantOnboardingSetup && restaurantOnboardingStripeCustomerId
+          ? undefined
+          : userEmail,
       client_reference_id: actor.userId || undefined,
       metadata: sessionMetadata,
     };
@@ -1599,7 +2053,7 @@ Deno.serve(async (req) => {
     // least 30 minutes), otherwise a stale browser tab could pay after stock
     // or a reservation slot has been released to another customer.
     if (CLIENT_STRIPE_CHECKOUT_KINDS.has(effectiveKind)) {
-      sessionParams.expires_at = Math.floor(Date.now() / 1000) + (31 * 60);
+      sessionParams.expires_at = Math.floor(Date.now() / 1000) + 31 * 60;
     }
 
     if (!isRestaurantOnboardingSetup) {
@@ -1618,9 +2072,9 @@ Deno.serve(async (req) => {
     // A SetupIntent does not move money. Marketplace and developer revenue
     // allocation is applied only to the future subscription invoice.
     if (
-      !isRestaurantOnboardingSetup
-      && marketplaceRouting.enabled
-      && marketplaceRouting.destinationAccountId
+      !isRestaurantOnboardingSetup &&
+      marketplaceRouting.enabled &&
+      marketplaceRouting.destinationAccountId
     ) {
       sessionParams.payment_intent_data = {
         ...sessionParams.payment_intent_data,
@@ -1650,30 +2104,35 @@ Deno.serve(async (req) => {
 
     if (isRestaurantOnboardingSetup) {
       sessionParams.mode = "setup";
+      sessionParams.currency = CHECKOUT_CURRENCY.toLowerCase();
       sessionParams.customer = restaurantOnboardingStripeCustomerId;
       sessionParams.custom_text = {
         submit: {
-          message: "Aucun montant n’est débité ni bloqué aujourd’hui. En enregistrant cette carte, vous autorisez TOK à débiter l’abonnement lors de la première réservation ou commande client.",
+          message:
+            "Aucun montant n’est débité ni bloqué aujourd’hui. En enregistrant cette carte, vous autorisez TOK à débiter l’abonnement lors de la première réservation ou commande client.",
         },
       };
       sessionParams.setup_intent_data = {
-        description: "Abonnement restaurateur TOK à activer à la première activité client",
+        description:
+          "Abonnement restaurateur TOK à activer à la première activité client",
         metadata: sessionMetadata,
       };
     }
 
     let couponParams: Stripe.CouponCreateParams | null = null;
     if (discountCents > 0) {
-      const hasTokOneDiscount = toMoney(sessionMetadata.tok_one_discount_amount) > 0
-        || toMoney(sessionMetadata.tok_one_delivery_saved) > 0;
-      const hasMiamzDiscount = toMoney(sessionMetadata.miamz_delivery_discount_amount) > 0;
+      const hasTokOneDiscount =
+        toMoney(sessionMetadata.tok_one_discount_amount) > 0 ||
+        toMoney(sessionMetadata.tok_one_delivery_saved) > 0;
+      const hasMiamzDiscount =
+        toMoney(sessionMetadata.miamz_delivery_discount_amount) > 0;
       const couponName = hasTokOneDiscount
         ? "Avantage Tok One"
         : hasMiamzDiscount
           ? "Avantage Miamz"
           : sessionMetadata.formula_applied
-          ? `Reduction ${sessionMetadata.formula_applied}`
-          : "Reduction commande";
+            ? `Reduction ${sessionMetadata.formula_applied}`
+            : "Reduction commande";
       couponParams = {
         amount_off: discountCents,
         currency: "chf",
@@ -1705,33 +2164,47 @@ Deno.serve(async (req) => {
     const sealedRequestSnapshot = sealed.requestSnapshot;
 
     const sealedSessionParams = sealedRequestSnapshot.session_params;
-    if (!sealedSessionParams || typeof sealedSessionParams !== "object" || Array.isArray(sealedSessionParams)) {
+    if (
+      !sealedSessionParams ||
+      typeof sealedSessionParams !== "object" ||
+      Array.isArray(sealedSessionParams)
+    ) {
       throw new Error("PAYMENT_ATTEMPT_SESSION_SNAPSHOT_INVALID");
     }
-    const sealedMetadata = (sealedSessionParams as Record<string, any>).metadata;
+    const sealedMetadata = (sealedSessionParams as Record<string, any>)
+      .metadata;
     if (
-      String(sealedMetadata?.payment_attempt_id || "") !== acquiredAttempt.attemptId
-      || String(sealedMetadata?.operation_key || "") !== acquiredAttempt.operationKey
-      || String(sealedMetadata?.user_id || "") !== actor.userId
+      String(sealedMetadata?.payment_attempt_id || "") !==
+        acquiredAttempt.attemptId ||
+      String(sealedMetadata?.operation_key || "") !==
+        acquiredAttempt.operationKey ||
+      String(sealedMetadata?.user_id || "") !== actor.userId
     ) {
       throw new Error("PAYMENT_ATTEMPT_SESSION_SNAPSHOT_IDENTITY_MISMATCH");
     }
     sessionMetadata = sealedMetadata as Record<string, string>;
 
-    const stripeSessionParams = sealedSessionParams as unknown as Stripe.Checkout.SessionCreateParams;
+    const stripeSessionParams =
+      sealedSessionParams as unknown as Stripe.Checkout.SessionCreateParams;
     const sealedCouponParams = sealedRequestSnapshot.coupon_params;
-    if (sealedCouponParams && typeof sealedCouponParams === "object" && !Array.isArray(sealedCouponParams)) {
+    if (
+      sealedCouponParams &&
+      typeof sealedCouponParams === "object" &&
+      !Array.isArray(sealedCouponParams)
+    ) {
       const coupon = await stripe.coupons.create(
         sealedCouponParams as unknown as Stripe.CouponCreateParams,
-        { idempotencyKey: `${acquiredAttempt.stripeIdempotencyKey}:coupon`.slice(0, 255) },
+        {
+          idempotencyKey:
+            `${acquiredAttempt.stripeIdempotencyKey}:coupon`.slice(0, 255),
+        },
       );
       stripeSessionParams.discounts = [{ coupon: coupon.id }];
     }
 
-    const session = await stripe.checkout.sessions.create(
-      stripeSessionParams,
-      { idempotencyKey: acquiredAttempt.stripeIdempotencyKey.slice(0, 255) },
-    );
+    const session = await stripe.checkout.sessions.create(stripeSessionParams, {
+      idempotencyKey: acquiredAttempt.stripeIdempotencyKey.slice(0, 255),
+    });
     activeAttempt.stripeSessionId = session.id;
 
     const releaseCreatedBusinessPrerequisites = async (reason: string) => {
@@ -1743,7 +2216,8 @@ Deno.serve(async (req) => {
           paymentStatus: "cancelled",
           checkoutState: "cancelled",
           failureCode: reason,
-          failureMessage: "Session Stripe fermee avant redirection; ressources liberees.",
+          failureMessage:
+            "Session Stripe fermee avant redirection; ressources liberees.",
         });
       }
 
@@ -1753,33 +2227,47 @@ Deno.serve(async (req) => {
           .update({ status: "cancelled", updated_at: new Date().toISOString() })
           .eq("id", creditPackPurchaseId)
           .eq("status", "pending_payment");
-        if (error) throw new Error(`CREDIT_PACK_HOLD_RELEASE_FAILED:${error.message}`);
+        if (error)
+          throw new Error(`CREDIT_PACK_HOLD_RELEASE_FAILED:${error.message}`);
       }
 
       if (effectiveKind === "zero-attente" && zeroAttenteHoldReservationId) {
-        const { error } = await actor.adminClient.rpc("release_zero_attente_checkout_hold", {
-          p_session_id: session.id,
-          p_expected_attempt_id: acquiredAttempt.attemptId,
-          p_reason: reason,
-        });
-        if (error) throw new Error(`ZERO_ATTENTE_HOLD_RELEASE_FAILED:${error.message}`);
+        const { error } = await actor.adminClient.rpc(
+          "release_zero_attente_checkout_hold",
+          {
+            p_session_id: session.id,
+            p_expected_attempt_id: acquiredAttempt.attemptId,
+            p_reason: reason,
+          },
+        );
+        if (error)
+          throw new Error(`ZERO_ATTENTE_HOLD_RELEASE_FAILED:${error.message}`);
       }
 
       if (effectiveKind === "chefs-table" && chefTableHoldCount > 0) {
-        const { error } = await actor.adminClient.rpc("release_chef_table_checkout_hold", {
-          p_session_id: session.id,
-        });
-        if (error) throw new Error(`CHEF_TABLE_HOLD_RELEASE_FAILED:${error.message}`);
+        const { error } = await actor.adminClient.rpc(
+          "release_chef_table_checkout_hold",
+          {
+            p_session_id: session.id,
+          },
+        );
+        if (error)
+          throw new Error(`CHEF_TABLE_HOLD_RELEASE_FAILED:${error.message}`);
       }
     };
 
-    const expireAndAbandonKnownSession = async (reason: string, terminalCancel = false) => {
+    const expireAndAbandonKnownSession = async (
+      reason: string,
+      terminalCancel = false,
+    ) => {
       let terminalSession = session;
       if (terminalSession.status === "open") {
         terminalSession = await stripe.checkout.sessions.expire(session.id);
       }
       if (terminalSession.status !== "expired") {
-        throw new Error(`STRIPE_SESSION_NOT_ABANDONABLE:${terminalSession.status}`);
+        throw new Error(
+          `STRIPE_SESSION_NOT_ABANDONABLE:${terminalSession.status}`,
+        );
       }
       await releaseCreatedBusinessPrerequisites(reason);
       await abandonPaymentAttemptSession({
@@ -1811,7 +2299,10 @@ Deno.serve(async (req) => {
       throw new HttpError(409, "PAYMENT_ATTEMPT_SESSION_EXPIRED_RETRY");
     }
     if (session.status !== "open") {
-      throw new HttpError(503, `PAYMENT_ATTEMPT_SESSION_${String(session.status).toUpperCase()}`);
+      throw new HttpError(
+        503,
+        `PAYMENT_ATTEMPT_SESSION_${String(session.status).toUpperCase()}`,
+      );
     }
 
     try {
@@ -1840,7 +2331,8 @@ Deno.serve(async (req) => {
       } catch (abandonError) {
         log.error("invalid_checkout_session_abandon_failed", {
           session_id: session.id,
-          message: abandonError instanceof Error ? abandonError.message : "unknown",
+          message:
+            abandonError instanceof Error ? abandonError.message : "unknown",
         });
       }
       throw integrityError;
@@ -1860,7 +2352,8 @@ Deno.serve(async (req) => {
         } catch (abandonError) {
           log.error("order_checkout_session_abandon_failed", {
             session_id: session.id,
-            message: abandonError instanceof Error ? abandonError.message : "unknown",
+            message:
+              abandonError instanceof Error ? abandonError.message : "unknown",
           });
         }
         throw mappingError;
@@ -1882,11 +2375,14 @@ Deno.serve(async (req) => {
 
       if (purchaseUpdateError) {
         try {
-          await expireAndAbandonKnownSession("credit_pack_session_persist_failed");
+          await expireAndAbandonKnownSession(
+            "credit_pack_session_persist_failed",
+          );
         } catch (expireError) {
           log.warn("credit_pack_checkout_session_expire_failed", {
             session_id: session.id,
-            message: expireError instanceof Error ? expireError.message : "unknown",
+            message:
+              expireError instanceof Error ? expireError.message : "unknown",
           });
         }
 
@@ -1895,9 +2391,8 @@ Deno.serve(async (req) => {
     }
 
     if (effectiveKind === "zero-attente") {
-      const { data: holdReservationId, error: holdError } = await actor.adminClient.rpc(
-        "create_zero_attente_checkout_hold",
-        {
+      const { data: holdReservationId, error: holdError } =
+        await actor.adminClient.rpc("create_zero_attente_checkout_hold", {
           p_restaurant_id: sessionMetadata.restaurant_id,
           p_date: sessionMetadata.arrival_date,
           p_time: sessionMetadata.arrival_time,
@@ -1913,8 +2408,7 @@ Deno.serve(async (req) => {
             payment_method: normalizedPaymentMethod,
           },
           p_notes: "Hold Zero Attente cree avant redirection Stripe.",
-        },
-      );
+        });
 
       if (holdError || !holdReservationId) {
         try {
@@ -1922,13 +2416,15 @@ Deno.serve(async (req) => {
         } catch (expireError) {
           log.warn("zero_attente_checkout_session_expire_failed", {
             session_id: session.id,
-            message: expireError instanceof Error ? expireError.message : "unknown",
+            message:
+              expireError instanceof Error ? expireError.message : "unknown",
           });
         }
 
         throw new HttpError(
           409,
-          holdError?.message || "Ce creneau Zero Attente n'est plus disponible.",
+          holdError?.message ||
+            "Ce creneau Zero Attente n'est plus disponible.",
         );
       }
 
@@ -1957,13 +2453,15 @@ Deno.serve(async (req) => {
         } catch (expireError) {
           log.warn("chef_table_checkout_session_expire_failed", {
             session_id: session.id,
-            message: expireError instanceof Error ? expireError.message : "unknown",
+            message:
+              expireError instanceof Error ? expireError.message : "unknown",
           });
         }
 
         throw new HttpError(
           409,
-          holdError?.message || "Certaines experiences La Table du Chef ne sont plus disponibles.",
+          holdError?.message ||
+            "Certaines experiences La Table du Chef ne sont plus disponibles.",
         );
       }
 
@@ -2006,7 +2504,9 @@ Deno.serve(async (req) => {
           },
         );
         if (lifecycleError) {
-          throw new Error(`ONBOARDING_LIFECYCLE_AUDIT_FAILED:${lifecycleError.message}`);
+          throw new Error(
+            `ONBOARDING_LIFECYCLE_AUDIT_FAILED:${lifecycleError.message}`,
+          );
         }
       }
     } catch (bindError) {
@@ -2015,13 +2515,16 @@ Deno.serve(async (req) => {
       ).includes("payment_attempt_cancellation_requested");
       try {
         await expireAndAbandonKnownSession(
-          cancellationRequested ? "payment_attempt_cancelled_during_create" : "payment_attempt_bind_failed",
+          cancellationRequested
+            ? "payment_attempt_cancelled_during_create"
+            : "payment_attempt_bind_failed",
           cancellationRequested,
         );
       } catch (expireError) {
         log.error("unbound_checkout_session_expire_failed", {
           session_id: session.id,
-          message: expireError instanceof Error ? expireError.message : "unknown",
+          message:
+            expireError instanceof Error ? expireError.message : "unknown",
         });
       }
       throw bindError;
@@ -2041,7 +2544,9 @@ Deno.serve(async (req) => {
         session_id: session.id,
         payment_method: normalizedPaymentMethod,
         stripe_mode: stripeRuntime.mode,
-        stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
+        stripe_key_scope: stripeRuntime.isolatedTokOneKey
+          ? "tok_one"
+          : "default",
         finance_routing_mode: marketplaceRouting.mode,
         platform_fee_cents: marketplaceRouting.platformFeeCents,
         restaurant_share_cents: marketplaceRouting.restaurantShareCents,
@@ -2069,7 +2574,9 @@ Deno.serve(async (req) => {
       corsHeaders,
     );
   } catch (error) {
-    log.error("create-checkout error", { message: error instanceof Error ? error.message : "unknown" });
+    log.error("create-checkout error", {
+      message: error instanceof Error ? error.message : "unknown",
+    });
 
     // A timeout/error is retryable and must never be interpreted as a failed
     // payment by the client. Releasing the lease lets the same operation key
@@ -2081,15 +2588,20 @@ Deno.serve(async (req) => {
           adminClient: activeAttempt.adminClient,
           attemptId: activeAttempt.attemptId,
           leaseToken: activeAttempt.leaseToken,
-          errorCode: error instanceof HttpError ? `http_${error.status}` : "checkout_create_error",
-          errorMessage: error instanceof Error ? error.message : "Erreur interne",
+          errorCode:
+            error instanceof HttpError
+              ? `http_${error.status}`
+              : "checkout_create_error",
+          errorMessage:
+            error instanceof Error ? error.message : "Erreur interne",
           retryable: true,
         });
       } catch (attemptError) {
         log.error("payment_attempt_release_failed", {
           payment_attempt_id: activeAttempt.attemptId,
           stripe_session_id: activeAttempt.stripeSessionId || null,
-          message: attemptError instanceof Error ? attemptError.message : "unknown",
+          message:
+            attemptError instanceof Error ? attemptError.message : "unknown",
         });
       }
     }

@@ -43,6 +43,13 @@ import {
   RESTAURANT_ADJUSTMENT_REASONS,
   type RestaurantAdjustmentReason,
 } from "@/lib/restaurantAdjustments";
+import {
+  getRestaurantOperationalStatePatch,
+  getRestaurantOperationalStatusLabel,
+  isRestaurantOperationallyActive,
+  normalizeRestaurantOperationalStatus,
+  RESTAURANT_OPERATIONAL_STATUS_OPTIONS,
+} from "@/lib/restaurantAdminState";
 
 const supabase = getSupabase();
 
@@ -143,14 +150,6 @@ type RestaurantAdminDetail = {
   recent_history: RestaurantHistoryEntry[];
 };
 
-const STATUS_OPTIONS = [
-  { value: "active", label: "Actif" },
-  { value: "pending", label: "En attente" },
-  { value: "paused", label: "En pause" },
-  { value: "suspended", label: "Suspendu" },
-  { value: "archived", label: "Archivé" },
-];
-
 const DEFAULT_PAYMENT_METHODS = ["card", "cash", "twint"];
 const CATALOG_QUALITY_KEYS = [
   "image",
@@ -213,9 +212,9 @@ function buildFallbackRestaurantAdminDetail(
       address: restaurant.address,
       cuisine_type: restaurant.cuisine_type,
       image_url: restaurant.image_url,
-      is_active: restaurant.is_active ?? true,
+      is_active: restaurant.is_active ?? false,
       is_featured: restaurant.is_featured ?? false,
-      status: restaurant.status || "active",
+      status: normalizeRestaurantOperationalStatus(restaurant.status),
       supports_pickup: restaurant.supports_pickup ?? true,
       supports_dinein: restaurant.supports_dinein ?? false,
       supports_reservation: restaurant.supports_reservation ?? false,
@@ -276,8 +275,11 @@ function asNumber(summary: RestaurantSummary | undefined, key: string) {
   return Number(summary?.[key] || 0);
 }
 
-function statusBadgeVariant(isActive?: boolean | null) {
-  return isActive ? "default" : "secondary";
+function statusBadgeVariant(restaurant: {
+  status?: string | null;
+  is_active?: boolean | null;
+}) {
+  return isRestaurantOperationallyActive(restaurant) ? "default" : "secondary";
 }
 
 function CatalogQualityNotice({ restaurant }: { restaurant: AdminRestaurant }) {
@@ -350,6 +352,7 @@ type RestaurantDetailPanelProps = {
   onClose: () => void;
   onRefresh: () => void;
   onSuspend: () => void;
+  onActivate: () => void;
   onActivateOverride: () => void;
   onRequestCorrection: () => void;
   onReindexCatalog: () => void;
@@ -368,6 +371,7 @@ function RestaurantDetailPanel({
   onClose,
   onRefresh,
   onSuspend,
+  onActivate,
   onActivateOverride,
   onRequestCorrection,
   onReindexCatalog,
@@ -375,7 +379,8 @@ function RestaurantDetailPanel({
 }: RestaurantDetailPanelProps) {
   const { toast } = useToast();
   const [adjustmentAmount, setAdjustmentAmount] = useState("");
-  const [adjustmentReason, setAdjustmentReason] = useState<RestaurantAdjustmentReason>("subscription_issue");
+  const [adjustmentReason, setAdjustmentReason] =
+    useState<RestaurantAdjustmentReason>("subscription_issue");
   const [adjustmentDetails, setAdjustmentDetails] = useState("");
   const [adjustmentPending, setAdjustmentPending] = useState(false);
   const fallbackDetail = fallbackRestaurant
@@ -436,11 +441,19 @@ function RestaurantDetailPanel({
   const handleAdjustment = async () => {
     const amount = Number(adjustmentAmount.replace(",", "."));
     if (!Number.isFinite(amount) || amount <= 0) {
-      toast({ title: "Montant invalide", description: "Saisissez un montant CHF supérieur à zéro.", variant: "destructive" });
+      toast({
+        title: "Montant invalide",
+        description: "Saisissez un montant CHF supérieur à zéro.",
+        variant: "destructive",
+      });
       return;
     }
     if (adjustmentDetails.trim().length < 12) {
-      toast({ title: "Justification requise", description: "Décrivez la correction en au moins 12 caractères.", variant: "destructive" });
+      toast({
+        title: "Justification requise",
+        description: "Décrivez la correction en au moins 12 caractères.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -463,7 +476,8 @@ function RestaurantDetailPanel({
     } catch (error) {
       toast({
         title: "Versement impossible",
-        description: error instanceof Error ? error.message : "Une erreur est survenue.",
+        description:
+          error instanceof Error ? error.message : "Une erreur est survenue.",
         variant: "destructive",
       });
     } finally {
@@ -478,11 +492,8 @@ function RestaurantDetailPanel({
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <DialogTitle className="text-lg">Fiche restaurant</DialogTitle>
-              <Badge variant={statusBadgeVariant(detail.restaurant.is_active)}>
-                {detail.restaurant.is_active ? "Actif" : "Inactif"}
-              </Badge>
-              <Badge variant="outline">
-                {detail.restaurant.status || "Statut inconnu"}
+              <Badge variant={statusBadgeVariant(detail.restaurant)}>
+                {getRestaurantOperationalStatusLabel(detail.restaurant.status)}
               </Badge>
               {detail.restaurant.is_featured ? (
                 <Badge variant="outline">Mis en avant</Badge>
@@ -644,14 +655,22 @@ function RestaurantDetailPanel({
             </div>
             <div className="space-y-3 rounded-lg border p-3">
               <div>
-                <p className="text-sm font-semibold">Rembourser / créditer le restaurateur</p>
+                <p className="text-sm font-semibold">
+                  Rembourser / créditer le restaurateur
+                </p>
                 <p className="text-xs text-muted-foreground">
-                  Versement correctif directement sur son solde Stripe Connect. Chaque opération est idempotente et auditée.
+                  Versement correctif directement sur son solde Stripe Connect.
+                  Chaque opération est idempotente et auditée.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1">
-                  <label htmlFor={`adjustment-amount-${detail.restaurant.id}`} className="text-xs font-medium">Montant CHF</label>
+                  <label
+                    htmlFor={`adjustment-amount-${detail.restaurant.id}`}
+                    className="text-xs font-medium"
+                  >
+                    Montant CHF
+                  </label>
                   <Input
                     id={`adjustment-amount-${detail.restaurant.id}`}
                     type="number"
@@ -659,28 +678,46 @@ function RestaurantDetailPanel({
                     max="100000"
                     step="0.01"
                     value={adjustmentAmount}
-                    onChange={(event) => setAdjustmentAmount(event.target.value)}
+                    onChange={(event) =>
+                      setAdjustmentAmount(event.target.value)
+                    }
                     placeholder="49.90"
                     disabled={adjustmentPending || !stripePayoutReady}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor={`adjustment-reason-${detail.restaurant.id}`} className="text-xs font-medium">Motif</label>
+                  <label
+                    htmlFor={`adjustment-reason-${detail.restaurant.id}`}
+                    className="text-xs font-medium"
+                  >
+                    Motif
+                  </label>
                   <select
                     id={`adjustment-reason-${detail.restaurant.id}`}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     value={adjustmentReason}
-                    onChange={(event) => setAdjustmentReason(event.target.value as RestaurantAdjustmentReason)}
+                    onChange={(event) =>
+                      setAdjustmentReason(
+                        event.target.value as RestaurantAdjustmentReason,
+                      )
+                    }
                     disabled={adjustmentPending || !stripePayoutReady}
                   >
                     {RESTAURANT_ADJUSTMENT_REASONS.map((reason) => (
-                      <option key={reason.value} value={reason.value}>{reason.label}</option>
+                      <option key={reason.value} value={reason.value}>
+                        {reason.label}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
               <div className="space-y-1">
-                <label htmlFor={`adjustment-details-${detail.restaurant.id}`} className="text-xs font-medium">Justification interne</label>
+                <label
+                  htmlFor={`adjustment-details-${detail.restaurant.id}`}
+                  className="text-xs font-medium"
+                >
+                  Justification interne
+                </label>
                 <Textarea
                   id={`adjustment-details-${detail.restaurant.id}`}
                   value={adjustmentDetails}
@@ -691,16 +728,26 @@ function RestaurantDetailPanel({
                 />
               </div>
               {!stripePayoutReady ? (
-                <p className="text-xs text-amber-700">Le restaurateur doit terminer Stripe Connect et activer les versements avant toute correction.</p>
+                <p className="text-xs text-amber-700">
+                  Le restaurateur doit terminer Stripe Connect et activer les
+                  versements avant toute correction.
+                </p>
               ) : null}
               <Button
                 type="button"
                 className="w-full"
-                disabled={adjustmentPending || !stripePayoutReady || !adjustmentAmount || adjustmentDetails.trim().length < 12}
+                disabled={
+                  adjustmentPending ||
+                  !stripePayoutReady ||
+                  !adjustmentAmount ||
+                  adjustmentDetails.trim().length < 12
+                }
                 onClick={handleAdjustment}
               >
                 <Send className="mr-2 h-4 w-4" />
-                {adjustmentPending ? "Versement en cours..." : "Verser via Stripe"}
+                {adjustmentPending
+                  ? "Versement en cours..."
+                  : "Verser via Stripe"}
               </Button>
             </div>
           </section>
@@ -753,12 +800,15 @@ function RestaurantDetailPanel({
         <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
           <div className="space-y-3">
             <h3 className="text-sm font-semibold">Actions</h3>
-            <Textarea
-              value={overrideReason}
-              onChange={(event) => onOverrideReasonChange(event.target.value)}
-              placeholder="Raison d'override pour une activation incomplète"
-              className="min-h-20"
-            />
+            {!isRestaurantOperationallyActive(detail.restaurant) &&
+            !detail.quality.publishable ? (
+              <Textarea
+                value={overrideReason}
+                onChange={(event) => onOverrideReasonChange(event.target.value)}
+                placeholder="Justification obligatoire pour forcer la mise en ligne malgré les éléments manquants"
+                className="min-h-20"
+              />
+            ) : null}
             <Textarea
               value={actionReason}
               onChange={(event) => onActionReasonChange(event.target.value)}
@@ -766,14 +816,30 @@ function RestaurantDetailPanel({
               className="min-h-20"
             />
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={onActivateOverride}>
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                Activer avec override
-              </Button>
-              <Button variant="outline" size="sm" onClick={onSuspend}>
-                <AlertTriangle className="mr-2 h-4 w-4" />
-                Suspendre
-              </Button>
+              {!isRestaurantOperationallyActive(detail.restaurant) &&
+              detail.quality.publishable ? (
+                <Button variant="outline" size="sm" onClick={onActivate}>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Mettre en ligne
+                </Button>
+              ) : null}
+              {!isRestaurantOperationallyActive(detail.restaurant) &&
+              !detail.quality.publishable ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onActivateOverride}
+                >
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Forcer la mise en ligne
+                </Button>
+              ) : null}
+              {isRestaurantOperationallyActive(detail.restaurant) ? (
+                <Button variant="outline" size="sm" onClick={onSuspend}>
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  Suspendre
+                </Button>
+              ) : null}
               <Button variant="outline" size="sm" onClick={onRequestCorrection}>
                 <ClipboardCheck className="mr-2 h-4 w-4" />
                 Demander correction
@@ -921,7 +987,7 @@ export default function AdminRestaurants() {
         (restaurant.cuisine_type || "").toLowerCase().includes(term) ||
         restaurant.id.toLowerCase().includes(term);
 
-      const isActive = restaurant.is_active ?? true;
+      const isActive = isRestaurantOperationallyActive(restaurant);
       const quality = getCatalogQuality(restaurant);
       const matchesVisibility =
         visibilityFilter === "all" ||
@@ -938,8 +1004,9 @@ export default function AdminRestaurants() {
   const stats = useMemo(() => {
     return {
       total: restaurants.length,
-      active: restaurants.filter((restaurant) => restaurant.is_active ?? true)
-        .length,
+      active: restaurants.filter((restaurant) =>
+        isRestaurantOperationallyActive(restaurant),
+      ).length,
       featured: restaurants.filter(
         (restaurant) => restaurant.is_featured ?? false,
       ).length,
@@ -1086,7 +1153,7 @@ export default function AdminRestaurants() {
 
     updateRestaurant(
       selectedRestaurant,
-      { is_active: true, status: "active" },
+      getRestaurantOperationalStatePatch("active"),
       "Restaurant activé avec override",
       {
         override: true,
@@ -1116,7 +1183,7 @@ export default function AdminRestaurants() {
         icon={Store}
         tone="emerald"
         visualLabel="Restaurants"
-          illustration={DASHBOARD_ILLUSTRATIONS.adminRestaurants}
+        illustration={DASHBOARD_ILLUSTRATIONS.adminRestaurants}
         stats={[
           { label: "Restaurants", value: stats.total, icon: Store },
           { label: "Actifs", value: stats.active, icon: Sparkles },
@@ -1244,11 +1311,19 @@ export default function AdminRestaurants() {
               selectedRestaurant &&
               updateRestaurant(
                 selectedRestaurant,
-                { is_active: false, status: "suspended" },
+                getRestaurantOperationalStatePatch("suspended"),
                 "Restaurant suspendu",
                 {
                   reason: actionReason.trim() || null,
                 },
+              )
+            }
+            onActivate={() =>
+              selectedRestaurant &&
+              updateRestaurant(
+                selectedRestaurant,
+                getRestaurantOperationalStatePatch("active"),
+                "Restaurant mis en ligne",
               )
             }
             onActivateOverride={handleActivateOverride}
@@ -1317,12 +1392,10 @@ export default function AdminRestaurants() {
                         <h3 className="text-sm font-semibold">
                           {restaurant.name}
                         </h3>
-                        <Badge
-                          variant={
-                            restaurant.is_active ? "default" : "secondary"
-                          }
-                        >
-                          {restaurant.is_active ? "Actif" : "Inactif"}
+                        <Badge variant={statusBadgeVariant(restaurant)}>
+                          {getRestaurantOperationalStatusLabel(
+                            restaurant.status,
+                          )}
                         </Badge>
                         {restaurant.is_featured ? (
                           <Badge variant="outline">Mis en avant</Badge>
@@ -1360,22 +1433,7 @@ export default function AdminRestaurants() {
                     </div>
                   </div>
 
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    <label className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm">
-                      <span>Actif</span>
-                      <Switch
-                        checked={restaurant.is_active ?? true}
-                        onCheckedChange={(checked) =>
-                          updateRestaurant(
-                            restaurant,
-                            { is_active: checked },
-                            checked
-                              ? "Restaurant activé"
-                              : "Restaurant désactivé",
-                          )
-                        }
-                      />
-                    </label>
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                     <label className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm">
                       <span>Mise en avant</span>
                       <Switch
@@ -1411,18 +1469,32 @@ export default function AdminRestaurants() {
                         Statut
                       </p>
                       <select
-                        value={restaurant.status || "active"}
+                        value={normalizeRestaurantOperationalStatus(
+                          restaurant.status,
+                        )}
                         onChange={(event) =>
                           updateRestaurant(
                             restaurant,
-                            { status: event.target.value },
-                            "Statut du restaurant mis à jour",
+                            getRestaurantOperationalStatePatch(
+                              event.target.value,
+                            ),
+                            event.target.value === "active"
+                              ? "Restaurant mis en ligne"
+                              : "Statut du restaurant mis à jour",
                           )
                         }
                         className="w-full rounded-md border bg-background px-2 py-1.5 text-sm"
                       >
-                        {STATUS_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
+                        {RESTAURANT_OPERATIONAL_STATUS_OPTIONS.map((option) => (
+                          <option
+                            key={option.value}
+                            value={option.value}
+                            disabled={
+                              option.value === "active" &&
+                              !getCatalogQuality(restaurant).publishable &&
+                              !isRestaurantOperationallyActive(restaurant)
+                            }
+                          >
                             {option.label}
                           </option>
                         ))}

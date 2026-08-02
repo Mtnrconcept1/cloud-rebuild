@@ -79,7 +79,8 @@ function openDatabase(): Promise<IDBDatabase | null> {
       }
     };
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error("indexeddb_open_failed"));
+    request.onerror = () =>
+      reject(request.error ?? new Error("indexeddb_open_failed"));
     request.onblocked = () => reject(new Error("indexeddb_open_blocked"));
   });
 }
@@ -87,8 +88,10 @@ function openDatabase(): Promise<IDBDatabase | null> {
 function waitForTransaction(transaction: IDBTransaction) {
   return new Promise<void>((resolve, reject) => {
     transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error ?? new Error("indexeddb_transaction_failed"));
-    transaction.onabort = () => reject(transaction.error ?? new Error("indexeddb_transaction_aborted"));
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("indexeddb_transaction_failed"));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("indexeddb_transaction_aborted"));
   });
 }
 
@@ -100,9 +103,11 @@ function cloneDocuments(
   documents: Partial<Record<SignupDocumentType, File | null | undefined>>,
 ) {
   return Object.fromEntries(
-    Object.entries(documents).filter((entry): entry is [SignupDocumentType, File] => {
-      return entry[1] instanceof File;
-    }),
+    Object.entries(documents).filter(
+      (entry): entry is [SignupDocumentType, File] => {
+        return entry[1] instanceof File;
+      },
+    ),
   ) as Partial<Record<SignupDocumentType, File>>;
 }
 
@@ -130,7 +135,8 @@ export async function savePrivilegedSignupRecoveryDraft(
     legalAcceptance: input.legalAcceptance,
     contractSignature: input.contractSignature,
     selectedSubscriptionPlanLabel: input.selectedSubscriptionPlanLabel ?? null,
-    selectedSubscriptionPriceLabel: input.selectedSubscriptionPriceLabel ?? null,
+    selectedSubscriptionPriceLabel:
+      input.selectedSubscriptionPriceLabel ?? null,
     commercialReferralToken: input.commercialReferralToken,
     createdAt: now,
     expiresAt: now + ttlMs,
@@ -155,13 +161,21 @@ export async function loadPrivilegedSignupRecoveryDraft(
   try {
     const transaction = database.transaction(STORE_NAME, "readonly");
     const request = transaction.objectStore(STORE_NAME).get(operationId);
-    const draft = await new Promise<PrivilegedSignupRecoveryDraft | null>((resolve, reject) => {
-      request.onsuccess = () => resolve((request.result as PrivilegedSignupRecoveryDraft | undefined) ?? null);
-      request.onerror = () => reject(request.error ?? new Error("indexeddb_read_failed"));
-    });
+    const draft = await new Promise<PrivilegedSignupRecoveryDraft | null>(
+      (resolve, reject) => {
+        request.onsuccess = () =>
+          resolve(
+            (request.result as PrivilegedSignupRecoveryDraft | undefined) ??
+              null,
+          );
+        request.onerror = () =>
+          reject(request.error ?? new Error("indexeddb_read_failed"));
+      },
+    );
     await waitForTransaction(transaction);
 
-    if (!draft || draft.version !== 1 || draft.operationId !== operationId) return null;
+    if (!draft || draft.version !== 1 || draft.operationId !== operationId)
+      return null;
     if (!Number.isFinite(draft.expiresAt) || draft.expiresAt <= Date.now()) {
       await removePrivilegedSignupRecoveryDraft(operationId);
       return null;

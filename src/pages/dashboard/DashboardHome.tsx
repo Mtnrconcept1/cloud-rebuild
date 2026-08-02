@@ -10,7 +10,9 @@ import RestaurantDashboardHomeView, {
   type RestaurantDashboardMobileMenuItem,
   type RestaurantDashboardMobileReservation,
 } from "@/components/dashboard/RestaurantDashboardHomeView";
-import SignupApplicationStatusCard, { type SignupApplicationCorrectionPayload } from "@/components/signup/SignupApplicationStatusCard";
+import SignupApplicationStatusCard, {
+  type SignupApplicationCorrectionPayload,
+} from "@/components/signup/SignupApplicationStatusCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
@@ -18,7 +20,10 @@ import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useSignupApplication } from "@/hooks/useSignupApplication";
 import { useToast } from "@/hooks/use-toast";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
-import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
+import {
+  getServicePeriodFromMetadata,
+  getServicePeriodLabel,
+} from "@/lib/serviceSettings";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
@@ -33,7 +38,10 @@ import {
   rememberPaymentAttemptId,
   resolvePaymentAttemptStatus,
 } from "@/lib/paymentAttempt";
-import { resolveRestaurantOnboardingAttemptView, type RestaurantOnboardingAttemptView } from "@/lib/restaurantOnboardingLifecycle";
+import {
+  resolveRestaurantOnboardingAttemptView,
+  type RestaurantOnboardingAttemptView,
+} from "@/lib/restaurantOnboardingLifecycle";
 import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
 import {
   findUncommittedVerificationDocumentPaths,
@@ -50,10 +58,18 @@ const supabase = getSupabase();
 // the webhook flips them to "confirmed". For orders, 'pending' is also
 // pre-checkout and gets filtered. For reservations, 'pending' is the default
 // state where the restaurateur still has to confirm: we must keep it visible.
-const INVALID_ORDER_STATUS_FILTER = "(cancelled,refused,payment_failed,pending,pending_payment)";
+const INVALID_ORDER_STATUS_FILTER =
+  "(cancelled,refused,payment_failed,pending,pending_payment)";
 const INVALID_RESERVATION_STATUS_FILTER = "(cancelled,no_show,pending_payment)";
-const UPCOMING_ORDER_STATUSES = ["confirmed", "accepted", "preparing", "ready", "delivering"];
-const onboardingAttemptScope = (restaurantId: string) => `restaurant-onboarding:${restaurantId}`;
+const UPCOMING_ORDER_STATUSES = [
+  "confirmed",
+  "accepted",
+  "preparing",
+  "ready",
+  "delivering",
+];
+const onboardingAttemptScope = (restaurantId: string) =>
+  `restaurant-onboarding:${restaurantId}`;
 
 type UpcomingReservationRow = {
   id: string;
@@ -96,17 +112,22 @@ function LiveDashboard() {
   const signupApplication = Array.isArray(rawSignupApplication)
     ? rawSignupApplication[0] || null
     : rawSignupApplication || null;
-  const [onboardingCheckoutLoading, setOnboardingCheckoutLoading] = useState(false);
-  const [onboardingAttempt, setOnboardingAttempt] = useState<RestaurantOnboardingAttemptView | null>(null);
+  const [onboardingCheckoutLoading, setOnboardingCheckoutLoading] =
+    useState(false);
+  const [onboardingAttempt, setOnboardingAttempt] =
+    useState<RestaurantOnboardingAttemptView | null>(null);
   const onboardingCheckoutLockRef = useRef(false);
   const cancellingOnboardingAttemptRef = useRef<string | null>(null);
-  const signupRestaurantId = typeof signupApplication?.metadata?.restaurant_id === "string"
-    ? signupApplication.metadata.restaurant_id
-    : "";
+  const signupRestaurantId =
+    typeof signupApplication?.metadata?.restaurant_id === "string"
+      ? signupApplication.metadata.restaurant_id
+      : "";
   const onboardingRestaurantId = selectedId || signupRestaurantId;
 
   usePaymentAttemptBackCancellation({
-    scope: onboardingRestaurantId ? onboardingAttemptScope(onboardingRestaurantId) : null,
+    scope: onboardingRestaurantId
+      ? onboardingAttemptScope(onboardingRestaurantId)
+      : null,
     onCancelled: () => {
       setOnboardingCheckoutLoading(false);
       toast({
@@ -117,8 +138,9 @@ function LiveDashboard() {
     onError: () => {
       setOnboardingCheckoutLoading(false);
       toast({
-        title: "Paiement en cours de vérification",
-        description: "Reprenez la même tentative pour éviter tout doublon.",
+        title: "Enregistrement de carte en cours",
+        description:
+          "La demande est encore en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants.",
         variant: "destructive",
       });
     },
@@ -127,61 +149,110 @@ function LiveDashboard() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get("status");
-    const paymentAttemptId = normalizePaymentAttemptId(params.get("payment_attempt_id"));
+    const paymentAttemptId = normalizePaymentAttemptId(
+      params.get("payment_attempt_id"),
+    );
     if (!paymentAttemptId || !onboardingRestaurantId) return;
 
     const scope = onboardingAttemptScope(onboardingRestaurantId);
     if (status === "success") {
       rememberPaymentAttemptId(scope, paymentAttemptId);
       setOnboardingCheckoutLoading(true);
-      setOnboardingAttempt(resolveRestaurantOnboardingAttemptView({ paymentAttemptState: "session_bound", browserReturnReceived: true }));
+      setOnboardingAttempt(
+        resolveRestaurantOnboardingAttemptView({
+          paymentAttemptState: "session_bound",
+          browserReturnReceived: true,
+        }),
+      );
       void resolvePaymentAttemptStatus({
         paymentAttemptId,
         pollAttempts: 6,
         pollDelayMs: 1_000,
         getStatus: async () => {
-          const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
-            body: { payment_attempt_id: paymentAttemptId, browser_return_received: true },
-          });
+          const { data, error } = await invokeSupabaseFunction(
+            "payment-attempt-status",
+            {
+              body: {
+                payment_attempt_id: paymentAttemptId,
+                browser_return_received: true,
+              },
+            },
+          );
           if (error) throw error;
-          const record = data && typeof data === "object" ? data as Record<string, unknown> : {};
-          setOnboardingAttempt(resolveRestaurantOnboardingAttemptView({
-            paymentAttemptState: typeof record.state === "string" ? record.state : null,
-            stripeStatus: typeof record.stripe_status === "string" ? record.stripe_status : null,
-            setupIntentStatus: typeof record.setup_intent_status === "string" ? record.setup_intent_status : null,
-            webhookReceived: record.webhook_received === true,
-            browserReturnReceived: true,
-          }));
+          const record =
+            data && typeof data === "object"
+              ? (data as Record<string, unknown>)
+              : {};
+          setOnboardingAttempt(
+            resolveRestaurantOnboardingAttemptView({
+              paymentAttemptState:
+                typeof record.state === "string" ? record.state : null,
+              stripeStatus:
+                typeof record.stripe_status === "string"
+                  ? record.stripe_status
+                  : null,
+              setupIntentStatus:
+                typeof record.setup_intent_status === "string"
+                  ? record.setup_intent_status
+                  : null,
+              webhookReceived: record.webhook_received === true,
+              browserReturnReceived: true,
+            }),
+          );
           return data;
         },
-      }).then((resolution) => {
-        if (resolution?.state === "finalized") {
-          clearPaymentAttemptId(scope, paymentAttemptId);
-          void queryClient.invalidateQueries({ queryKey: ["signup-application"] });
-          toast({ title: "Carte confirmée", description: "Le webhook Stripe a confirmé l’enregistrement de la carte." });
-        }
-      }).finally(() => setOnboardingCheckoutLoading(false));
+      })
+        .then((resolution) => {
+          if (resolution?.state === "finalized") {
+            clearPaymentAttemptId(scope, paymentAttemptId);
+            void queryClient.invalidateQueries({
+              queryKey: ["signup-application"],
+            });
+            toast({
+              title: "Carte confirmée",
+              description:
+                "Le webhook Stripe a confirmé l’enregistrement de la carte.",
+            });
+          }
+        })
+        .finally(() => setOnboardingCheckoutLoading(false));
       return;
     }
-    if (status !== "cancelled" || cancellingOnboardingAttemptRef.current === paymentAttemptId) return;
+    if (
+      status !== "cancelled" ||
+      cancellingOnboardingAttemptRef.current === paymentAttemptId
+    )
+      return;
 
     cancellingOnboardingAttemptRef.current = paymentAttemptId;
     rememberPaymentAttemptId(scope, paymentAttemptId);
     setOnboardingCheckoutLoading(true);
     void invokeSupabaseFunction("cancel-payment-attempt", {
-      body: { payment_attempt_id: paymentAttemptId, reason: "stripe_cancel_return" },
-    }).then(({ error }) => {
-      if (error) throw error;
-      clearPaymentAttemptId(scope, paymentAttemptId);
-      toast({ title: "Paiement annulé", description: "Aucun abonnement n'a été créé." });
-    }).catch((error) => {
-      cancellingOnboardingAttemptRef.current = null;
-      toast({
-        title: "Annulation en cours de vérification",
-        description: error instanceof Error ? error.message : "Reprenez cette tentative dans quelques secondes.",
-        variant: "destructive",
-      });
-    }).finally(() => setOnboardingCheckoutLoading(false));
+      body: {
+        payment_attempt_id: paymentAttemptId,
+        reason: "stripe_cancel_return",
+      },
+    })
+      .then(({ error }) => {
+        if (error) throw error;
+        clearPaymentAttemptId(scope, paymentAttemptId);
+        toast({
+          title: "Paiement annulé",
+          description: "Aucun abonnement n'a été créé.",
+        });
+      })
+      .catch((error) => {
+        cancellingOnboardingAttemptRef.current = null;
+        toast({
+          title: "Annulation en cours de vérification",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Reprenez cette tentative dans quelques secondes.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => setOnboardingCheckoutLoading(false));
   }, [onboardingRestaurantId, queryClient, toast]);
   const today = new Date().toISOString().split("T")[0];
   const todayStartDate = new Date();
@@ -190,17 +261,27 @@ function LiveDashboard() {
   tomorrowStartDate.setDate(tomorrowStartDate.getDate() + 1);
   const todayStart = todayStartDate.toISOString();
   const tomorrowStart = tomorrowStartDate.toISOString();
-  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  const monthStart = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1,
+  ).toISOString();
   const { data: restaurant } = useQuery({
     queryKey: ["my-restaurant-detail", selectedId],
     queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("*").eq("id", selectedId!).single();
+      const { data } = await supabase
+        .from("restaurants")
+        .select("*")
+        .eq("id", selectedId!)
+        .single();
       return data;
     },
     enabled: !!selectedId,
   });
 
-  const operationalQueriesEnabled = Boolean(restaurant?.id && !dashboardAccessLocked);
+  const operationalQueriesEnabled = Boolean(
+    restaurant?.id && !dashboardAccessLocked,
+  );
 
   const { data: upcomingOrders = [] } = useQuery({
     queryKey: ["dashboard-upcoming-orders", restaurant?.id],
@@ -260,7 +341,9 @@ function LiveDashboard() {
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: mobileMenuItems = [] } = useQuery<RestaurantDashboardMobileMenuItem[]>({
+  const { data: mobileMenuItems = [] } = useQuery<
+    RestaurantDashboardMobileMenuItem[]
+  >({
     queryKey: ["dashboard-mobile-menu-items", restaurant?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -276,7 +359,9 @@ function LiveDashboard() {
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: mobileTodayReservations = [] } = useQuery<RestaurantDashboardMobileReservation[]>({
+  const { data: mobileTodayReservations = [] } = useQuery<
+    RestaurantDashboardMobileReservation[]
+  >({
     queryKey: ["dashboard-mobile-today-reservations", restaurant?.id, today],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -327,8 +412,14 @@ function LiveDashboard() {
           .not("status", "in", "(cancelled,no_show)")
           .gt("total_amount", 0),
       ]);
-      const orderRevenue = (ordersRes.data || []).reduce((sum, row) => sum + Number(row.total_amount || 0), 0);
-      const reservationRevenue = (reservationsRes.data || []).reduce((sum, row) => sum + Number(row.total_amount || 0), 0);
+      const orderRevenue = (ordersRes.data || []).reduce(
+        (sum, row) => sum + Number(row.total_amount || 0),
+        0,
+      );
+      const reservationRevenue = (reservationsRes.data || []).reduce(
+        (sum, row) => sum + Number(row.total_amount || 0),
+        0,
+      );
       return orderRevenue + reservationRevenue;
     },
     enabled: operationalQueriesEnabled,
@@ -366,8 +457,14 @@ function LiveDashboard() {
           .not("status", "in", "(cancelled,no_show)")
           .gt("total_amount", 0),
       ]);
-      const orderRevenue = (ordersRes.data || []).reduce((sum, row) => sum + Number(row.total_amount), 0);
-      const zaRevenue = (reservationsRes.data || []).reduce((sum, row) => sum + Number(row.total_amount), 0);
+      const orderRevenue = (ordersRes.data || []).reduce(
+        (sum, row) => sum + Number(row.total_amount),
+        0,
+      );
+      const zaRevenue = (reservationsRes.data || []).reduce(
+        (sum, row) => sum + Number(row.total_amount),
+        0,
+      );
       return orderRevenue + zaRevenue;
     },
     enabled: operationalQueriesEnabled,
@@ -376,7 +473,9 @@ function LiveDashboard() {
   const { data: adminCorrectionRequests = [] } = useQuery({
     queryKey: ["restaurant-admin-correction-requests", restaurant?.id],
     queryFn: async () => {
-      const { data, error } = await (supabase.from as any)("restaurant_admin_correction_requests")
+      const { data, error } = await (supabase.from as any)(
+        "restaurant_admin_correction_requests",
+      )
         .select("id, restaurant_id, reason, status, requested_at")
         .eq("restaurant_id", restaurant!.id)
         .eq("status", "open")
@@ -391,38 +490,49 @@ function LiveDashboard() {
 
   const markAdminCorrectionDone = useMutation({
     mutationFn: async (requestId: string) => {
-      const { error } = await (supabase.rpc as any)("restaurant_mark_admin_correction_done", {
-        p_request_id: requestId,
-      });
+      const { error } = await (supabase.rpc as any)(
+        "restaurant_mark_admin_correction_done",
+        {
+          p_request_id: requestId,
+        },
+      );
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["restaurant-admin-correction-requests", restaurant?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["restaurant-admin-correction-requests", restaurant?.id],
+      });
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["navbar-notifications"] });
       toast({
         title: "Modification confirmée",
-        description: "TOK est informé que la correction demandée a été effectuée.",
+        description:
+          "TOK est informé que la correction demandée a été effectuée.",
       });
     },
     onError: (error) => {
       toast({
         title: "Confirmation impossible",
-        description: error instanceof Error ? error.message : "La modification n'a pas pu être confirmée.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "La modification n'a pas pu être confirmée.",
         variant: "destructive",
       });
     },
   });
 
   const startRestaurantOnboardingPayment = async () => {
-    const onboardingSelection = getSignupRestaurateurOnboardingSelection(signupApplication);
+    const onboardingSelection =
+      getSignupRestaurateurOnboardingSelection(signupApplication);
     const restaurantId = onboardingRestaurantId;
 
     if (!signupApplication?.id || !restaurantId || !onboardingSelection) {
       toast({
         title: "Enregistrement de la carte indisponible",
-        description: "Le dossier restaurateur ne contient pas encore tous les choix requis.",
+        description:
+          "Le dossier restaurateur ne contient pas encore tous les choix requis.",
         variant: "destructive",
       });
       return;
@@ -460,29 +570,47 @@ function LiveDashboard() {
       const checkout = await createCheckoutWithRecovery({
         paymentAttemptId,
         create: async () => {
-          const { data, error } = await invokeSupabaseFunction("create-checkout", { body: checkoutPayload });
+          const { data, error } = await invokeSupabaseFunction(
+            "create-checkout",
+            { body: checkoutPayload },
+          );
           if (error) throw error;
           return data;
         },
         getStatus: async () => {
-          const { data, error } = await invokeSupabaseFunction("payment-attempt-status", {
-            body: { payment_attempt_id: paymentAttemptId },
-          });
+          const { data, error } = await invokeSupabaseFunction(
+            "payment-attempt-status",
+            {
+              body: { payment_attempt_id: paymentAttemptId },
+            },
+          );
           if (error) throw error;
           return data;
         },
       });
 
       if (!checkout.url) {
-        throw new Error("Le paiement est en cours de vérification. Reprenez la même tentative dans quelques secondes.");
+        throw new Error(
+          "L’enregistrement de la carte est en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants.",
+        );
       }
 
-      markPaymentAttemptRedirected(onboardingAttemptScope(restaurantId), paymentAttemptId);
+      markPaymentAttemptRedirected(
+        onboardingAttemptScope(restaurantId),
+        paymentAttemptId,
+      );
       redirectToTrustedCheckoutUrl(checkout.url);
     } catch (error) {
+      const isIndeterminate = isPaymentAttemptIndeterminateError(error);
       toast({
-        title: isPaymentAttemptIndeterminateError(error) ? "Paiement en cours de vérification" : "Paiement impossible",
-        description: error instanceof Error ? error.message : "Veuillez réessayer dans quelques instants.",
+        title: isIndeterminate
+          ? "Enregistrement de carte en cours"
+          : "Enregistrement de carte impossible",
+        description: isIndeterminate
+          ? "La demande est encore en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants."
+          : error instanceof Error
+            ? error.message
+            : "Veuillez réessayer dans quelques instants.",
         variant: "destructive",
       });
     } finally {
@@ -493,29 +621,41 @@ function LiveDashboard() {
 
   const resubmitSignupApplication = useMutation({
     mutationFn: async (payload: SignupApplicationCorrectionPayload) => {
-      if (!signupApplication?.id || signupApplication.requested_role !== "restaurateur") {
+      if (
+        !signupApplication?.id ||
+        signupApplication.requested_role !== "restaurateur"
+      ) {
         throw new Error("Aucun dossier restaurateur à corriger.");
       }
 
-      const documentEntries = Object.entries(payload.documentInputs) as Array<[SignupDocumentType, File | null | undefined]>;
+      const documentEntries = Object.entries(payload.documentInputs) as Array<
+        [SignupDocumentType, File | null | undefined]
+      >;
       const uploadedDocuments = await uploadVerificationDocumentsWithRollback(
-        documentEntries.flatMap(([documentType, file]) => file ? [{
-          userId: signupApplication.user_id,
-          role: "restaurateur" as const,
-          documentType,
-          file,
-        }] : []),
+        documentEntries.flatMap(([documentType, file]) =>
+          file
+            ? [
+                {
+                  userId: signupApplication.user_id,
+                  role: "restaurateur" as const,
+                  documentType,
+                  file,
+                },
+              ]
+            : [],
+        ),
       );
       const previousPathByDocumentType = new Map(
-        (signupApplication.signup_application_documents || []).map((document) => [
-          document.document_type,
-          document.file_path,
-        ]),
+        (signupApplication.signup_application_documents || []).map(
+          (document) => [document.document_type, document.file_path],
+        ),
       );
 
-      const existingMetadata = signupApplication.metadata && typeof signupApplication.metadata === "object"
-        ? signupApplication.metadata
-        : {};
+      const existingMetadata =
+        signupApplication.metadata &&
+        typeof signupApplication.metadata === "object"
+          ? signupApplication.metadata
+          : {};
       const correctionResubmittedAt = new Date().toISOString();
 
       const { error } = await (supabase.rpc as any)("sync_signup_application", {
@@ -542,60 +682,84 @@ function LiveDashboard() {
       });
 
       if (error) {
-        const { data: reconciledApplication, error: reconciliationError } = await supabase
-          .from("signup_applications")
-          .select("metadata")
-          .eq("id", signupApplication.id)
-          .maybeSingle();
-        const reconciledMetadata = reconciledApplication?.metadata
-          && typeof reconciledApplication.metadata === "object"
-          ? reconciledApplication.metadata as Record<string, unknown>
-          : null;
-        const correctionWasCommitted = !reconciliationError
-          && reconciledMetadata?.correction_resubmitted_at === correctionResubmittedAt;
+        const { data: reconciledApplication, error: reconciliationError } =
+          await supabase
+            .from("signup_applications")
+            .select("metadata")
+            .eq("id", signupApplication.id)
+            .maybeSingle();
+        const reconciledMetadata =
+          reconciledApplication?.metadata &&
+          typeof reconciledApplication.metadata === "object"
+            ? (reconciledApplication.metadata as Record<string, unknown>)
+            : null;
+        const correctionWasCommitted =
+          !reconciliationError &&
+          reconciledMetadata?.correction_resubmitted_at ===
+            correctionResubmittedAt;
 
         if (!correctionWasCommitted) {
           if (uploadedDocuments.length === 0) throw error;
-          const uncommittedPaths = await findUncommittedVerificationDocumentPaths(
-            signupApplication.user_id,
-            uploadedDocuments.map((document) => document.file_path),
-          );
+          const uncommittedPaths =
+            await findUncommittedVerificationDocumentPaths(
+              signupApplication.user_id,
+              uploadedDocuments.map((document) => document.file_path),
+            );
           if (uncommittedPaths?.length) {
             await removeVerificationDocumentsBestEffort(uncommittedPaths);
           }
-          if (uncommittedPaths === null || uncommittedPaths.length > 0) throw error;
+          if (uncommittedPaths === null || uncommittedPaths.length > 0)
+            throw error;
         }
       }
 
       const replacedPaths = uploadedDocuments.flatMap((document) => {
-        const previousPath = previousPathByDocumentType.get(document.document_type);
-        return previousPath && previousPath !== document.file_path ? [previousPath] : [];
+        const previousPath = previousPathByDocumentType.get(
+          document.document_type,
+        );
+        return previousPath && previousPath !== document.file_path
+          ? [previousPath]
+          : [];
       });
       await removeVerificationDocumentsBestEffort(replacedPaths);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["signup-application"] });
-      queryClient.invalidateQueries({ queryKey: ["signup-application", signupApplication?.user_id, "restaurateur"] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "signup-application",
+          signupApplication?.user_id,
+          "restaurateur",
+        ],
+      });
       toast({
         title: "Dossier renvoyé",
-        description: "Vos corrections ont été transmises à l'admin TOK pour une nouvelle validation.",
+        description:
+          "Vos corrections ont été transmises à l'admin TOK pour une nouvelle validation.",
       });
     },
     onError: (error) => {
       toast({
         title: "Envoi impossible",
-        description: error instanceof Error ? error.message : "Le dossier n'a pas pu être renvoyé.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Le dossier n'a pas pu être renvoyé.",
         variant: "destructive",
       });
     },
   });
 
-  const typedUpcomingReservations = upcomingReservations as UpcomingReservationRow[];
+  const typedUpcomingReservations =
+    upcomingReservations as UpcomingReservationRow[];
 
   const todayServiceCounts = typedUpcomingReservations.reduce(
     (acc, reservation) => {
       if (reservation.date !== today) return acc;
-      const period = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
+      const period = getServicePeriodFromMetadata(
+        reservation.metadata,
+        reservation.time,
+      );
       acc[period] += 1;
       return acc;
     },
@@ -608,7 +772,9 @@ function LiveDashboard() {
         <div className="space-y-6">
           <SignupApplicationStatusCard
             application={signupApplication}
-            onStartRestaurantOnboardingPayment={startRestaurantOnboardingPayment}
+            onStartRestaurantOnboardingPayment={
+              startRestaurantOnboardingPayment
+            }
             onboardingPaymentLoading={onboardingCheckoutLoading}
             onboardingAttempt={onboardingAttempt}
             onResubmitApplication={resubmitSignupApplication.mutateAsync}
@@ -617,8 +783,12 @@ function LiveDashboard() {
             emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
           />
           <div className="space-y-4 py-12 text-center">
-            <h2 className="font-display text-2xl font-bold">Aucun restaurant</h2>
-            <p className="text-muted-foreground">Créez votre restaurant depuis l'onglet "Mon restaurant".</p>
+            <h2 className="font-display text-2xl font-bold">
+              Aucun restaurant
+            </h2>
+            <p className="text-muted-foreground">
+              Créez votre restaurant depuis l'onglet "Mon restaurant".
+            </p>
           </div>
         </div>
       </DashboardLayout>
@@ -636,12 +806,16 @@ function LiveDashboard() {
       todayServiceCounts={todayServiceCounts}
       upcomingOrders={(upcomingOrders || []).map((order) => ({
         id: String(order.id),
-        createdAt: typeof order.created_at === "string" ? order.created_at : null,
+        createdAt:
+          typeof order.created_at === "string" ? order.created_at : null,
         totalAmount: Number(order.total_amount || 0),
         status: normalizeOrderStatus(order.status),
       }))}
       upcomingReservations={typedUpcomingReservations.map((reservation) => {
-        const period = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
+        const period = getServicePeriodFromMetadata(
+          reservation.metadata,
+          reservation.time,
+        );
         return {
           id: reservation.id,
           date: reservation.date,
@@ -651,62 +825,77 @@ function LiveDashboard() {
           servicePeriodLabel: getServicePeriodLabel(period),
         };
       })}
-      restaurantImageUrl={typeof restaurant.image_url === "string" ? restaurant.image_url : null}
+      restaurantImageUrl={
+        typeof restaurant.image_url === "string" ? restaurant.image_url : null
+      }
       mobileMenuItems={mobileMenuItems}
       mobileTodayReservations={mobileTodayReservations}
       mobileReadyOrdersCount={mobileReadyOrdersCount}
-      leadingContent={(
+      leadingContent={
         <>
-        <SignupApplicationStatusCard
-          application={signupApplication}
-          onStartRestaurantOnboardingPayment={startRestaurantOnboardingPayment}
-          onboardingPaymentLoading={onboardingCheckoutLoading}
-          onboardingAttempt={onboardingAttempt}
-          onResubmitApplication={resubmitSignupApplication.mutateAsync}
-          resubmittingApplication={resubmitSignupApplication.isPending}
-          title="Dossier de vérification restaurateur"
-          emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
-        />
+          <SignupApplicationStatusCard
+            application={signupApplication}
+            onStartRestaurantOnboardingPayment={
+              startRestaurantOnboardingPayment
+            }
+            onboardingPaymentLoading={onboardingCheckoutLoading}
+            onboardingAttempt={onboardingAttempt}
+            onResubmitApplication={resubmitSignupApplication.mutateAsync}
+            resubmittingApplication={resubmitSignupApplication.isPending}
+            title="Dossier de vérification restaurateur"
+            emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
+          />
 
-        {adminCorrectionRequests.length > 0 ? (
-          <Card className="tok-dashboard-section rounded-3xl border border-amber-200 bg-amber-50/80 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-50">
-            <CardHeader className="space-y-2">
-              <CardTitle className="flex items-center gap-3 text-xl font-bold">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-100">
-                  <AlertTriangle className="h-6 w-6" />
-                </span>
-                Demande de correction TOK
-              </CardTitle>
-              <p className="text-sm text-amber-800 dark:text-amber-100/80">
-                Une modification est demandée par l'équipe TOK pour garder votre fiche restaurant prête à être publiée.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {adminCorrectionRequests.map((request) => (
-                <div key={request.id} className="rounded-2xl border border-amber-200 bg-background/80 p-4 text-sm shadow-sm dark:border-amber-400/20 dark:bg-[#07142b]/80">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="space-y-2">
-                      <p className="font-semibold">Correction demandée le {formatDashboardDateTime(request.requested_at)}</p>
-                      <p className="text-amber-900 dark:text-amber-50/90">{request.reason}</p>
+          {adminCorrectionRequests.length > 0 ? (
+            <Card className="tok-dashboard-section rounded-3xl border border-amber-200 bg-amber-50/80 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-50">
+              <CardHeader className="space-y-2">
+                <CardTitle className="flex items-center gap-3 text-xl font-bold">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-100">
+                    <AlertTriangle className="h-6 w-6" />
+                  </span>
+                  Demande de correction TOK
+                </CardTitle>
+                <p className="text-sm text-amber-800 dark:text-amber-100/80">
+                  Une modification est demandée par l'équipe TOK pour garder
+                  votre fiche restaurant prête à être publiée.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {adminCorrectionRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    className="rounded-2xl border border-amber-200 bg-background/80 p-4 text-sm shadow-sm dark:border-amber-400/20 dark:bg-[#07142b]/80"
+                  >
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="space-y-2">
+                        <p className="font-semibold">
+                          Correction demandée le{" "}
+                          {formatDashboardDateTime(request.requested_at)}
+                        </p>
+                        <p className="text-amber-900 dark:text-amber-50/90">
+                          {request.reason}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() =>
+                          markAdminCorrectionDone.mutate(request.id)
+                        }
+                        disabled={markAdminCorrectionDone.isPending}
+                        className="shrink-0 gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        Modification effectuée
+                      </Button>
                     </div>
-                    <Button
-                      onClick={() => markAdminCorrectionDone.mutate(request.id)}
-                      disabled={markAdminCorrectionDone.isPending}
-                      className="shrink-0 gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-                    >
-                      <CheckCircle2 className="h-4 w-4" />
-                      Modification effectuée
-                    </Button>
                   </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        ) : null}
+                ))}
+              </CardContent>
+            </Card>
+          ) : null}
 
-        <GoogleBusinessBookingCard restaurantId={restaurant.id} />
+          <GoogleBusinessBookingCard restaurantId={restaurant.id} />
         </>
-      )}
+      }
     />
   );
 }
