@@ -199,6 +199,61 @@ describe("payment attempt lifecycle", () => {
     expect(result.sessionId).toBe("cs_test_same_attempt");
   });
 
+  it("surfaces a scope conflict instead of polling an attempt the server never created", async () => {
+    const conflict = Object.assign(
+      new Error("Un paiement d'abonnement est deja en cours. Reprenez la tentative existante."),
+      {
+        status: 409,
+        body: {
+          error: "Un paiement d'abonnement est deja en cours. Reprenez la tentative existante.",
+          error_code: "PAYMENT_ATTEMPT_OPERATION_CONFLICT",
+          existing_payment_attempt_id: SECOND_ATTEMPT_ID,
+          resumable: true,
+        },
+      },
+    );
+    const getStatus = vi.fn();
+
+    await expect(createCheckoutWithRecovery({
+      paymentAttemptId: ATTEMPT_ID,
+      create: async () => { throw conflict; },
+      getStatus,
+      pollAttempts: 5,
+      pollDelayMs: 0,
+      sleep: async () => {},
+    })).rejects.toBe(conflict);
+
+    expect(getStatus).not.toHaveBeenCalled();
+  });
+
+  it("still polls when the conflict names the attempt this client already owns", async () => {
+    const inProgress = Object.assign(new Error("PAYMENT_ATTEMPT_ALREADY_IN_PROGRESS"), {
+      status: 409,
+      body: {
+        error: "PAYMENT_ATTEMPT_ALREADY_IN_PROGRESS",
+        error_code: "PAYMENT_ATTEMPT_ALREADY_IN_PROGRESS",
+        existing_payment_attempt_id: ATTEMPT_ID,
+        resumable: true,
+      },
+    });
+    const getStatus = vi.fn().mockResolvedValue({
+      payment_attempt_id: ATTEMPT_ID,
+      state: "session_bound",
+      session_id: "cs_test_same_attempt",
+      url: "https://checkout.stripe.com/c/pay/cs_test_same_attempt",
+    });
+
+    const result = await createCheckoutWithRecovery({
+      paymentAttemptId: ATTEMPT_ID,
+      create: async () => { throw inProgress; },
+      getStatus,
+      pollAttempts: 1,
+    });
+
+    expect(getStatus).toHaveBeenCalledTimes(1);
+    expect(result.sessionId).toBe("cs_test_same_attempt");
+  });
+
   it("does not hide a definitive validation failure behind polling", async () => {
     const validationError = Object.assign(new Error("Montant invalide"), { status: 422 });
     const getStatus = vi.fn();

@@ -8,6 +8,7 @@ function read(path: string) {
 
 const checkout = read("supabase/functions/create-checkout/index.ts");
 const attempts = read("supabase/functions/_shared/payment-attempts.ts");
+const sharedAuth = read("supabase/functions/_shared/auth.ts");
 const webhook = read("supabase/functions/stripe-webhook/index.ts");
 const refundAllocations = read("supabase/functions/_shared/refund-allocations.ts");
 const marketplaceFinance = read("supabase/functions/_shared/marketplace-finance.ts");
@@ -88,6 +89,25 @@ describe("durable Stripe payment attempts", () => {
     expect(integrityMigration).toContain("payment_attempt_cancellation_requested");
     expect(integrityMigration).toContain("payment_attempt_session_became_bound");
     expect(integrityMigration).toContain("cancellation_requested_at");
+  });
+
+  it("reclaims subscription attempts that hold nothing payable", () => {
+    // A client UUID lives in sessionStorage, so a dead attempt that keeps
+    // answering 409 locks the owner out of checkout on every later device.
+    expect(checkout).toContain("unbound_subscription_attempt_reclaimed");
+    expect(checkout).toContain("expired_subscription_attempt_reclaimed");
+    expect(checkout).toContain("conflicting_subscription_session_expired");
+    // Only Stripe may declare a bound session unpayable.
+    expect(checkout).toContain('conflictingSession.status !== "expired"');
+    expect(checkout).toContain("conflictLeaseHeld");
+  });
+
+  it("returns the blocking operation key so the owner can resume or cancel it", () => {
+    expect(checkout).toContain("buildSubscriptionConflictError");
+    expect(checkout).toContain("existing_payment_attempt_id");
+    expect(checkout).toContain("PAYMENT_ATTEMPT_OPERATION_CONFLICT");
+    expect(checkout).toContain("errorRecovery(error)");
+    expect(sharedAuth).toContain("export function errorRecovery");
   });
 
   it("serializes duplicate order creation and rejects identity drift", () => {

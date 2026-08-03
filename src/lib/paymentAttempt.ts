@@ -178,6 +178,35 @@ function normalizeResponse(input: unknown, fallbackAttemptId: string): CheckoutS
   };
 }
 
+export type PaymentAttemptConflict = {
+  errorCode: string | null;
+  existingPaymentAttemptId: string | null;
+  resumable: boolean;
+};
+
+/**
+ * Machine-readable conflict facts returned next to the human sentence when the
+ * server refuses a checkout because another attempt already owns the scope.
+ */
+export function readPaymentAttemptConflict(error: unknown): PaymentAttemptConflict | null {
+  if (!error || typeof error !== "object") return null;
+  const body = (error as { body?: unknown }).body;
+  if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+
+  const record = body as Record<string, unknown>;
+  const errorCode = typeof record.error_code === "string" && record.error_code.trim()
+    ? record.error_code.trim()
+    : null;
+  const existingPaymentAttemptId = normalizePaymentAttemptId(record.existing_payment_attempt_id);
+  if (!errorCode && !existingPaymentAttemptId) return null;
+
+  return {
+    errorCode,
+    existingPaymentAttemptId,
+    resumable: record.resumable === true,
+  };
+}
+
 function getErrorStatus(error: unknown) {
   if (!error || typeof error !== "object") return null;
   const directStatus = "status" in error ? (error as { status?: unknown }).status : null;
@@ -403,6 +432,15 @@ export async function createCheckoutWithRecovery({
     if (created.url || created.sessionId || isPaymentAttemptTerminal(created)) return created;
   } catch (error) {
     if (!isPaymentAttemptRecoverableError(error)) throw error;
+
+    // A conflict naming another attempt is a decision, not a lost response: the
+    // server never created this id, so polling it can only return 404s and end
+    // on a misleading "réessayez dans quelques instants". Surface the sentence
+    // that tells the owner which payment is still open.
+    const conflict = readPaymentAttemptConflict(error);
+    if (conflict?.existingPaymentAttemptId && conflict.existingPaymentAttemptId !== id) {
+      throw error;
+    }
   }
 
   const recovered = await resolvePaymentAttemptStatus({

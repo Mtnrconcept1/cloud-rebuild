@@ -89,10 +89,11 @@ function mergeRequestHeaders(headers: HeadersInit | undefined, accessToken: stri
   return nextHeaders;
 }
 
-async function getHttpErrorMessage(response: Response | undefined, fallbackMessage: string) {
-  if (!response) return fallbackMessage;
+async function readHttpErrorPayload(response: Response | undefined, fallbackMessage: string) {
+  if (!response) return { message: fallbackMessage, body: null as Record<string, unknown> | null };
 
   let message = fallbackMessage;
+  let body: Record<string, unknown> | null = null;
 
   try {
     const clonedResponse = response.clone();
@@ -100,6 +101,9 @@ async function getHttpErrorMessage(response: Response | undefined, fallbackMessa
 
     if (contentType.includes("application/json")) {
       const payload = await clonedResponse.json();
+      if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+        body = payload as Record<string, unknown>;
+      }
       if (typeof payload?.error === "string" && payload.error.trim()) {
         message = payload.error.trim();
       } else if (typeof payload?.message === "string" && payload.message.trim()) {
@@ -117,7 +121,7 @@ async function getHttpErrorMessage(response: Response | undefined, fallbackMessa
     // Keep the fallback when the body cannot be parsed.
   }
 
-  return message;
+  return { message, body };
 }
 
 async function normalizeHttpError(
@@ -125,14 +129,20 @@ async function normalizeHttpError(
   response?: Response,
   name = "FunctionsHttpError",
 ) {
-  const normalizedError = new Error(await getHttpErrorMessage(response, fallbackMessage)) as Error & {
+  const { message, body } = await readHttpErrorPayload(response, fallbackMessage);
+  const normalizedError = new Error(message) as Error & {
     status?: number;
     context?: unknown;
+    body?: Record<string, unknown> | null;
   };
 
   normalizedError.name = name;
   normalizedError.status = response?.status;
   normalizedError.context = response;
+  // A recoverable conflict answers with machine-readable fields next to the
+  // sentence. The response body is already consumed here, so callers that only
+  // see the Error must still be able to act on them.
+  normalizedError.body = body;
   return normalizedError;
 }
 

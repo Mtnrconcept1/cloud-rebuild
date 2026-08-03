@@ -6,6 +6,8 @@ import {
   assertProductionFlowAllowed,
   buildRequestMetadata,
   createAdminClient,
+  errorDiagnostics,
+  errorRecovery,
   jsonResponse,
   requireRestaurantAccess,
   writeAuditLog,
@@ -177,6 +179,37 @@ function assertRestaurantOnboardingSetupSessionIntegrity(input: {
   ) {
     throw new Error("STRIPE_SETUP_RESERVED_SUBSCRIPTION_SNAPSHOT_MISMATCH");
   }
+}
+
+/**
+ * A subscription scope already holds a payable attempt owned by this user.
+ *
+ * The blocked client generated a fresh UUID and therefore knows nothing about
+ * the attempt standing in its way. Return the operation key it must resume or
+ * cancel, otherwise "reprenez la tentative existante" is an instruction the
+ * browser cannot follow and the restaurateur stays locked out of checkout.
+ */
+function buildSubscriptionConflictError(conflictingAttempt: {
+  id: string;
+  operation_key: string;
+  state: string;
+  stripe_checkout_session_id: string | null;
+}) {
+  const conflictError = new HttpError(
+    409,
+    "Un paiement d'abonnement est deja en cours. Reprenez la tentative existante.",
+    {
+      conflicting_payment_attempt_id: conflictingAttempt.id,
+      conflicting_payment_attempt_state: conflictingAttempt.state,
+    },
+  );
+  conflictError.recovery = {
+    error_code: "PAYMENT_ATTEMPT_OPERATION_CONFLICT",
+    existing_payment_attempt_id: conflictingAttempt.operation_key,
+    existing_payment_attempt_state: conflictingAttempt.state,
+    resumable: Boolean(conflictingAttempt.stripe_checkout_session_id),
+  };
+  return conflictError;
 }
 
 function getCheckoutItemRestaurantId(
@@ -1727,24 +1760,88 @@ Deno.serve(async (req) => {
           : ["restaurant-onboarding", "restaurant-subscription-upgrade"];
       let conflictQuery = actor.adminClient
         .from("payment_attempts")
-        .select("id, operation_key")
+        .select(
+          "id, operation_key, state, stripe_checkout_session_id, lease_expires_at",
+        )
         .eq("owner_user_id", actor.userId)
         .eq("mode", stripeRuntime.mode)
         .in("kind", subscriptionKinds)
         .in("state", ["pending", "session_bound"])
         .neq("operation_key", clientPaymentAttemptId)
-        .limit(1);
+        .order("created_at", { ascending: false })
+        .limit(10);
       if (attemptRestaurantId)
         conflictQuery = conflictQuery.eq("restaurant_id", attemptRestaurantId);
       const { data: conflictingAttempts, error: conflictingAttemptError } =
         await conflictQuery;
       if (conflictingAttemptError)
         throw new HttpError(500, conflictingAttemptError.message);
-      if (conflictingAttempts?.length) {
-        throw new HttpError(
-          409,
-          "Un paiement d'abonnement est deja en cours. Reprenez la tentative existante.",
-        );
+
+      for (const conflictingAttempt of conflictingAttempts || []) {
+        const conflictLeaseHeld =
+          Boolean(conflictingAttempt.lease_expires_at) &&
+          Date.parse(String(conflictingAttempt.lease_expires_at)) > Date.now();
+
+        // The client UUID lives in sessionStorage, so the next tab, device or
+        // browser restart sends a brand new one. An attempt that holds nothing
+        // payable must therefore be reclaimed here instead of blocking that new
+        // UUID forever: the owner has no way to rediscover the previous key.
+        if (!conflictingAttempt.stripe_checkout_session_id) {
+          if (conflictLeaseHeld) {
+            // A concurrent create-checkout is mid-flight on the same scope.
+            throw buildSubscriptionConflictError(conflictingAttempt);
+          }
+          // No Checkout Session was ever bound, so no URL ever reached a
+          // browser and nothing can be paid against this attempt.
+          await cancelPersistedPaymentAttempt({
+            adminClient: actor.adminClient,
+            attemptId: conflictingAttempt.id,
+            reason: "unbound_subscription_attempt_reclaimed",
+          });
+          log.warn("subscription_attempt_reclaimed", {
+            payment_attempt_id: conflictingAttempt.id,
+            operation_key: conflictingAttempt.operation_key,
+            state: conflictingAttempt.state,
+            reason: "no_stripe_session_bound",
+          });
+          continue;
+        }
+
+        // A bound session is only harmless once Stripe itself confirms it can
+        // no longer be paid. Never infer that from local timestamps.
+        let conflictingSession: Stripe.Checkout.Session;
+        try {
+          conflictingSession = await stripe.checkout.sessions.retrieve(
+            conflictingAttempt.stripe_checkout_session_id,
+          );
+        } catch (error) {
+          throw new HttpError(
+            503,
+            `PAYMENT_ATTEMPT_INDETERMINATE:${error instanceof Error ? error.message : "Stripe indisponible"}`,
+          );
+        }
+
+        if (conflictingSession.status !== "expired") {
+          throw buildSubscriptionConflictError(conflictingAttempt);
+        }
+
+        await abandonPaymentAttemptSession({
+          adminClient: actor.adminClient,
+          attemptId: conflictingAttempt.id,
+          sessionId: conflictingSession.id,
+          reason: "conflicting_subscription_session_expired",
+        });
+        await cancelPersistedPaymentAttempt({
+          adminClient: actor.adminClient,
+          attemptId: conflictingAttempt.id,
+          reason: "expired_subscription_attempt_reclaimed",
+        });
+        log.warn("subscription_attempt_reclaimed", {
+          payment_attempt_id: conflictingAttempt.id,
+          operation_key: conflictingAttempt.operation_key,
+          state: conflictingAttempt.state,
+          reason: "stripe_session_expired",
+        });
       }
     }
 
@@ -1780,7 +1877,12 @@ Deno.serve(async (req) => {
     if (acquiredAttempt.operationKey !== clientPaymentAttemptId) {
       // The database returns the already-active subscription attempt when a
       // second UUID races on the same logical subscription scope.
-      throw new HttpError(409, "PAYMENT_ATTEMPT_OPERATION_CONFLICT");
+      throw buildSubscriptionConflictError({
+        id: acquiredAttempt.attemptId,
+        operation_key: acquiredAttempt.operationKey,
+        state: acquiredAttempt.state,
+        stripe_checkout_session_id: acquiredAttempt.stripeCheckoutSessionId,
+      });
     }
     activeAttempt = { ...acquiredAttempt, adminClient: actor.adminClient };
 
@@ -1957,7 +2059,19 @@ Deno.serve(async (req) => {
     }
 
     if (!acquiredAttempt.leaseAcquired || !acquiredAttempt.leaseToken) {
-      throw new HttpError(409, "PAYMENT_ATTEMPT_ALREADY_IN_PROGRESS");
+      // Same operation key, another request holds the lease: the client polls
+      // this very attempt rather than starting a second checkout.
+      const inProgressError = new HttpError(
+        409,
+        "PAYMENT_ATTEMPT_ALREADY_IN_PROGRESS",
+      );
+      inProgressError.recovery = {
+        error_code: "PAYMENT_ATTEMPT_ALREADY_IN_PROGRESS",
+        existing_payment_attempt_id: clientPaymentAttemptId,
+        existing_payment_attempt_state: acquiredAttempt.state,
+        resumable: true,
+      };
+      throw inProgressError;
     }
 
     if (creditPackPurchaseDraft) {
@@ -2600,9 +2714,14 @@ Deno.serve(async (req) => {
       targetEntityType: auditTargetEntityType || null,
       targetEntityId: auditTargetEntityId || null,
       errorMessage: error instanceof Error ? error.message : "Erreur interne",
+      metadata: errorDiagnostics(error),
     });
     if (error instanceof HttpError) {
-      return jsonResponse({ error: error.message }, error.status, corsHeaders);
+      return jsonResponse(
+        { error: error.message, ...errorRecovery(error) },
+        error.status,
+        corsHeaders,
+      );
     }
     const message = error instanceof Error ? error.message : "Erreur interne";
     return jsonResponse({ error: message }, 500, corsHeaders);
