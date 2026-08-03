@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const entrypoints = [
   ["api/marketing/agent.ts", "../../server/marketingBff.js"],
+  ["api/marketing/launch.ts", "../../server/marketingBff.js"],
   ["api/marketing/login.ts", "../../server/marketingBff.js"],
   ["api/marketing/logout.ts", "../../server/marketingBff.js"],
   ["api/marketing/orchestrator.ts", "../../server/marketingBff.js"],

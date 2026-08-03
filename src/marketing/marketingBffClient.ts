@@ -11,6 +11,7 @@ export const MARKETING_BFF_ENDPOINTS = {
   rpc: "/api/marketing/rpc",
   orchestrator: "/api/marketing/orchestrator",
   agent: "/api/marketing/agent",
+  launch: "/api/marketing/launch",
 } as const;
 
 const MAX_MARKETING_REQUEST_BYTES = 256_000;

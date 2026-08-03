@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Send, ShieldCheck, Sparkles } from "lucide-react";
 
 import {
   MarketingChannelBadge,
@@ -89,6 +89,39 @@ export default function MarketingAgentView({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [runs, setRuns] = useState<AgentRun[]>([]);
+  const [launching, setLaunching] = useState(false);
+  const [launchNotice, setLaunchNotice] = useState<string | null>(null);
+
+  const launch = async () => {
+    if (!result?.campaign?.id) return;
+    setLaunching(true);
+    setLaunchNotice(null);
+    setError(null);
+    try {
+      const response = await marketingBffRequest<{
+        approvedCount: number;
+        rejectedCount: number;
+        dispatched: boolean;
+      }>(MARKETING_BFF_ENDPOINTS.launch, {
+        method: "POST",
+        timeoutMs: 60_000,
+        body: { campaignId: result.campaign.id, itemIds: result.items.map((item) => item.id) },
+      });
+      setLaunchNotice(
+        `${response.approvedCount} élément(s) approuvé(s)` +
+          (response.rejectedCount > 0 ? `, ${response.rejectedCount} refusé(s)` : "") +
+          (response.dispatched
+            ? ". L'envoi a démarré et suit la cadence automatique."
+            : ". L'envoi démarrera à la prochaine exécution planifiée."),
+      );
+    } catch (caught) {
+      setError(
+        caught instanceof MarketingBffError ? caught.message : "Le lancement a échoué.",
+      );
+    } finally {
+      setLaunching(false);
+    }
+  };
 
   const connectedChannels = useMemo(
     () =>
@@ -348,9 +381,36 @@ export default function MarketingAgentView({
                 </li>
               ))}
             </ul>
-            <Button type="button" variant="outline" onClick={() => onNavigate("calendar")}>
-              Relire et approuver dans le calendrier
-            </Button>
+            {launchNotice ? (
+              <Alert className="border-emerald-200 bg-emerald-50 text-emerald-900">
+                <CheckCircle2 className="h-4 w-4" />
+                <AlertDescription>{launchNotice}</AlertDescription>
+              </Alert>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" onClick={launch} disabled={launching || !canMutateBackend}>
+                {launching ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                    Lancement…
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" aria-hidden />
+                    Approuver et lancer la campagne
+                  </>
+                )}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => onNavigate("calendar")}>
+                Relire d'abord dans le calendrier
+              </Button>
+            </div>
+            <p className="text-xs leading-relaxed text-slate-500">
+              Le lancement approuve la campagne et ses éléments, puis confie l'envoi à
+              l'orchestrateur. La cadence est gérée automatiquement : montée en charge
+              progressive, étalement sur la journée et par fournisseur de messagerie, arrêt
+              automatique si les rebonds ou les plaintes montent.
+            </p>
           </CardContent>
         </Card>
       ) : null}

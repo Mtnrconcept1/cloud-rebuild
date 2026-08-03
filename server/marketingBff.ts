@@ -1504,6 +1504,112 @@ async function runMarketingOrchestrator(
   sendJson(res, 200, response.value);
 }
 
+/**
+ * One action for what was three: approve the campaign, approve each of its
+ * items, then ask the orchestrator to start.
+ *
+ * Every step goes through an operation that was already allowlisted, carrying
+ * the same live session and CSRF proof, so nothing here weakens the approval
+ * rule — it batches a human decision instead of replacing it. The operator is
+ * still the one approving; they simply stop clicking once per item.
+ *
+ * Dispatch is best-effort on purpose: the approvals are what matter and they
+ * are durable. If the orchestrator call fails, the campaign is approved and the
+ * next scheduled run picks it up, which is a far better failure than approvals
+ * that half-applied.
+ */
+async function launchMarketingCampaign(
+  req: MarketingApiRequest,
+  res: MarketingApiResponse,
+): Promise<void> {
+  if ((req.method ?? "GET").toUpperCase() !== "POST") {
+    methodNotAllowed(res, ["POST"]);
+    return;
+  }
+  validateMarketingRequestContext(req, true);
+  const config = readConfig();
+  const body = parseJsonBody(req, 64 * 1024);
+  if (Object.keys(body).some((key) => !["campaignId", "itemIds"].includes(key))) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+  const campaignId = stringField(body, "campaignId", 64);
+  if (!UUID_PATTERN.test(campaignId)) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+  const rawItems = body.itemIds;
+  if (!Array.isArray(rawItems) || rawItems.length === 0 || rawItems.length > 64) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+  const itemIds = [...new Set(rawItems.map((entry) => (typeof entry === "string" ? entry.trim() : "")))];
+  if (itemIds.some((id) => !UUID_PATTERN.test(id))) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+
+  const session = await activeSession(config, req, true);
+  await ensureServiceAdmin(config, session.userId);
+
+  const runOperation = (operation: string, args: JsonObject) =>
+    serviceRpc(config, "service_execute_marketing_admin_operation", {
+      p_sid_hash: session.sessionHash,
+      p_csrf_hash: session.csrfHash,
+      p_operation: operation,
+      p_args: args,
+    });
+
+  try {
+    await runOperation("admin_approve_marketing_campaign", {
+      p_campaign_id: campaignId,
+      p_reason: "Lancement depuis le centre marketing",
+    });
+  } catch (error) {
+    if (error instanceof DownstreamHttpError && error.status >= 400 && error.status < 500) {
+      throw new PublicBffError(400, "operation_rejected", "Opération refusée.");
+    }
+    throw error;
+  }
+
+  const approved: string[] = [];
+  const rejected: string[] = [];
+  for (const itemId of itemIds) {
+    try {
+      await runOperation("admin_approve_marketing_item", { p_item_id: itemId });
+      approved.push(itemId);
+    } catch {
+      // An item the database refuses — already sent, cancelled, or edited since
+      // — must not abort the ones that are still valid.
+      rejected.push(itemId);
+    }
+  }
+
+  let dispatched = false;
+  if (approved.length > 0) {
+    const response = await boundedFetch(
+      `${config.supabaseUrl}/functions/v1/marketing-orchestrator`,
+      {
+        method: "POST",
+        headers: {
+          apikey: config.serviceRoleKey,
+          Authorization: `Bearer ${config.serviceRoleKey}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "x-marketing-actor-user-id": session.userId,
+        },
+        body: JSON.stringify({ action: "run_due", limit: 100 }),
+      },
+      ORCHESTRATOR_TIMEOUT_MS,
+    ).catch(() => null);
+    dispatched = Boolean(response?.ok);
+  }
+
+  sendJson(res, 200, {
+    ok: true,
+    campaignId,
+    approvedCount: approved.length,
+    rejectedCount: rejected.length,
+    dispatched,
+  });
+}
+
 const MARKETING_CHANNEL_VALUES = new Set([
   "tok_news",
   "in_app",
@@ -1788,4 +1894,11 @@ export async function marketingAgentHandler(
   res: MarketingApiResponse,
 ): Promise<void> {
   await runSafely(res, () => runMarketingAgent(req, res));
+}
+
+export async function marketingLaunchHandler(
+  req: MarketingApiRequest,
+  res: MarketingApiResponse,
+): Promise<void> {
+  await runSafely(res, () => launchMarketingCampaign(req, res));
 }
