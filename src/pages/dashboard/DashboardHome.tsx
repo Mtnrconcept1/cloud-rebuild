@@ -35,6 +35,7 @@ import {
   isPaymentAttemptIndeterminateError,
   markPaymentAttemptRedirected,
   normalizePaymentAttemptId,
+  readPaymentAttemptConflict,
   rememberPaymentAttemptId,
   resolvePaymentAttemptStatus,
 } from "@/lib/paymentAttempt";
@@ -601,16 +602,26 @@ function LiveDashboard() {
       );
       redirectToTrustedCheckoutUrl(checkout.url);
     } catch (error) {
+      // A scope conflict names a payment that already exists for this
+      // restaurant. Telling the restaurateur to simply retry would loop them on
+      // the same refusal, so say whether there is an open session to finish.
+      const conflict = readPaymentAttemptConflict(error);
       const isIndeterminate = isPaymentAttemptIndeterminateError(error);
       toast({
-        title: isIndeterminate
-          ? "Enregistrement de carte en cours"
-          : "Enregistrement de carte impossible",
-        description: isIndeterminate
-          ? "La demande est encore en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants."
-          : error instanceof Error
-            ? error.message
-            : "Veuillez réessayer dans quelques instants.",
+        title: conflict
+          ? "Paiement déjà en cours"
+          : isIndeterminate
+            ? "Enregistrement de carte en cours"
+            : "Enregistrement de carte impossible",
+        description: conflict
+          ? conflict.resumable
+            ? "Une session de paiement est encore ouverte pour ce restaurant. Terminez-la ou annulez-la avant d’en démarrer une nouvelle."
+            : "Une demande de paiement est déjà en cours de traitement pour ce restaurant. Aucun débit n’a été créé. Réessayez dans quelques instants."
+          : isIndeterminate
+            ? "La demande est encore en cours de vérification. Aucun débit n’a été créé. Réessayez dans quelques instants."
+            : error instanceof Error
+              ? error.message
+              : "Veuillez réessayer dans quelques instants.",
         variant: "destructive",
       });
     } finally {

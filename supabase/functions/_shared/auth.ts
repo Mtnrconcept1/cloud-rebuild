@@ -12,6 +12,16 @@ export class HttpError extends Error {
    * into writeAuditLog metadata; never put credentials or user content here.
    */
   details?: Record<string, unknown>;
+  /**
+   * Non-sensitive fields the handler merges into the JSON error body.
+   *
+   * A conflict the caller could act on (resume an existing payment attempt,
+   * cancel it) is useless when only a human sentence crosses the wire: the
+   * browser cannot guess an identifier the server never returned. Restrict
+   * this to identifiers the authenticated caller already owns; never secrets,
+   * internal ids, or another user's data.
+   */
+  recovery?: Record<string, unknown>;
 
   constructor(status: number, message: string, details?: Record<string, unknown>) {
     super(message);
@@ -19,6 +29,12 @@ export class HttpError extends Error {
     this.status = status;
     if (details) this.details = details;
   }
+}
+
+/** Client-visible recovery hints carried by an HttpError, safe to return in the error body. */
+export function errorRecovery(error: unknown): Record<string, unknown> {
+  if (error instanceof HttpError && error.recovery) return error.recovery;
+  return {};
 }
 
 /** Diagnostics carried by an HttpError, safe to merge into an audit log entry. */
