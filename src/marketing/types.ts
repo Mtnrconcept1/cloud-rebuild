@@ -8,6 +8,7 @@ export const MARKETING_VIEWS = [
   "activity",
   "results",
   "integrations",
+  "faq",
 ] as const;
 
 export type MarketingView = (typeof MARKETING_VIEWS)[number];
@@ -298,6 +299,11 @@ export type MarketingDelivery = {
   id: string;
   itemId: string;
   campaignName: string;
+  /** Business identity of the recipient; the address itself stays masked. */
+  contactId: string | null;
+  contactName: string | null;
+  contactCity: string | null;
+  contactPostalCode: string | null;
   targetMasked: string;
   channel: MarketingChannelId;
   status: MarketingDeliveryStatus;
