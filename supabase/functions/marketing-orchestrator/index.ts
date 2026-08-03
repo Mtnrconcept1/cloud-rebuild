@@ -7,6 +7,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { buildUnsubscribeToken } from "../_shared/marketing-unsubscribe-token.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import {
   asRecord,
@@ -65,6 +66,29 @@ function unsubscribeMailbox(from: string) {
   return (match ? match[1] : from).trim();
 }
 
+const UNSUBSCRIBE_SECRET = Deno.env.get("MARKETING_WEBHOOK_SECRET")?.trim() || "";
+const UNSUBSCRIBE_BASE = `${(Deno.env.get("SUPABASE_URL") || "").trim().replace(/\/+$/, "")}/functions/v1/marketing-unsubscribe`;
+
+/**
+ * Gmail and Yahoo require bulk senders to offer a one-click unsubscribe, and
+ * penalise a mailto: link on its own. The URL carries a signature so the public
+ * endpoint cannot be used to suppress arbitrary contacts.
+ */
+async function unsubscribeHeaders(deliveryId: string) {
+  const mailto = `<mailto:${unsubscribeMailbox(EMAIL_FROM)}?subject=unsubscribe>`;
+  const token = await buildUnsubscribeToken(deliveryId, UNSUBSCRIBE_SECRET);
+  if (!token || !UNSUBSCRIBE_BASE.startsWith("https://")) {
+    // Without a secret the link would be forgeable, so fall back to mailto
+    // rather than publish an endpoint anyone could drive.
+    return { "List-Unsubscribe": mailto };
+  }
+  const url = `${UNSUBSCRIBE_BASE}?token=${encodeURIComponent(token)}`;
+  return {
+    "List-Unsubscribe": `<${url}>, ${mailto}`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  };
+}
+
 type PreparedEmail = {
   status: string;
   reason?: string;
@@ -93,10 +117,7 @@ async function sendViaResend(prepared: PreparedEmail, deliveryId: string) {
         subject: prepared.subject,
         html: prepared.html,
         text: prepared.text,
-        headers: {
-          "List-Unsubscribe": `<mailto:${unsubscribeMailbox(EMAIL_FROM)}?subject=unsubscribe>`,
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-        },
+        headers: await unsubscribeHeaders(deliveryId),
       }),
       signal: controller.signal,
     });
