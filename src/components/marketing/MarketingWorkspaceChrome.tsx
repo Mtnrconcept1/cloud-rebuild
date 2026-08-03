@@ -5,6 +5,7 @@ import {
   Bot,
   CalendarDays,
   Check,
+  BookOpen,
   ChevronRight,
   CirclePause,
   Gauge,
@@ -60,6 +61,7 @@ const NAV_ITEMS: Array<{
   { id: "activity", label: "Journal des envois", shortLabel: "Journal", description: "Qui, quand, canal et résultat", icon: ListChecks },
   { id: "results", label: "Résultats", shortLabel: "Résultats", description: "Performance et attribution", icon: BarChart3 },
   { id: "integrations", label: "Intégrations", shortLabel: "Intégrations", description: "État réel des fournisseurs", icon: Link2 },
+  { id: "faq", label: "Mode d'emploi", shortLabel: "Aide", description: "Fonctionnement, règles et paramétrage", icon: BookOpen },
 ];
 
 function Navigation({

@@ -156,6 +156,13 @@ function normalizeDelivery(value: unknown, fallback?: MarketingDelivery): Market
     id: asString(pick(row, "id"), fallback?.id || crypto.randomUUID()),
     itemId: asString(pick(row, "item_id", "calendar_item_id", "itemId"), fallback?.itemId || ""),
     campaignName: asString(pick(row, "campaign_name", "campaignName"), fallback?.campaignName || "Campagne"),
+    // Naming the recipient answers "have we already contacted them?" without
+    // widening what is exposed: the address stays masked below.
+    contactId: asString(pick(row, "contact_id", "contactId"), fallback?.contactId || "") || null,
+    contactName: asString(pick(row, "contact_name", "contactName"), fallback?.contactName || "") || null,
+    contactCity: asString(pick(row, "contact_city", "contactCity"), fallback?.contactCity || "") || null,
+    contactPostalCode:
+      asString(pick(row, "contact_postal_code", "contactPostalCode"), fallback?.contactPostalCode || "") || null,
     // The API contract intentionally exposes only a masked target.
     targetMasked: asString(pick(row, "target_masked", "targetMasked"), fallback?.targetMasked || "***"),
     channel: asString(pick(row, "channel"), fallback?.channel || "in_app") as MarketingChannelId,
