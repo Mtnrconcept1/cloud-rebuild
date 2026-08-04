@@ -922,6 +922,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const {
     user,
     session,
+    loading: authLoading,
     roles,
     role,
     switchRole,
@@ -2157,27 +2158,64 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     }
   };
   if (passwordRecoveryMode) {
+    // "mode=recovery" only says the link pointed here; it says nothing about
+    // the one-time token, which Supabase invalidates the moment it is used and
+    // which an email scanner or a first click on another device can burn.
+    // Rendering the form without a session lets someone choose a new password
+    // and submit it, only to be told "Auth session missing!" — a raw SDK
+    // sentence that names no cause and offers no way out.
+    const recoveryLinkPending = authLoading || loading;
+    const recoverySessionReady = Boolean(session);
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4 py-10">
         <Card className="w-full max-w-md shadow-lg border-0">
           <CardHeader className="text-center space-y-3">
             <img src={logoSrc} alt="Tok" className="mx-auto h-20 w-auto object-contain" />
-            <CardTitle className="font-display text-2xl">Créer un nouveau mot de passe</CardTitle>
+            <CardTitle className="font-display text-2xl">
+              {recoverySessionReady || recoveryLinkPending
+                ? "Créer un nouveau mot de passe"
+                : "Lien de réinitialisation expiré"}
+            </CardTitle>
             <CardDescription>
-              Choisissez votre nouveau mot de passe. Vous reviendrez ensuite à la page de connexion.
+              {recoverySessionReady
+                ? "Choisissez votre nouveau mot de passe. Vous reviendrez ensuite à la page de connexion."
+                : recoveryLinkPending
+                  ? "Vérification de votre lien de réinitialisation…"
+                  : "Ce lien a déjà été utilisé ou a expiré. Chaque lien ne fonctionne qu’une seule fois, et sur l’appareil qui l’ouvre en premier. Demandez-en un nouveau et ouvrez-le directement sur cet appareil."}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <AccountPasswordForm
-              recovery
-              onSuccess={async () => {
-                await supabase.auth.signOut({ scope: "local" });
-                setPasswordRecoveryMode(false);
-                setIsLogin(true);
-                setForgotPassword(false);
-                navigate("/auth", { replace: true });
-              }}
-            />
+            {recoverySessionReady ? (
+              <AccountPasswordForm
+                recovery
+                onSuccess={async () => {
+                  await supabase.auth.signOut({ scope: "local" });
+                  setPasswordRecoveryMode(false);
+                  setIsLogin(true);
+                  setForgotPassword(false);
+                  navigate("/auth", { replace: true });
+                }}
+              />
+            ) : recoveryLinkPending ? (
+              <div className="flex justify-center py-6" role="status" aria-live="polite">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <span className="sr-only">Vérification du lien de réinitialisation</span>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => {
+                  setPasswordRecoveryMode(false);
+                  setIsLogin(true);
+                  setForgotPassword(true);
+                  navigate("/auth", { replace: true });
+                }}
+              >
+                Demander un nouveau lien
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>

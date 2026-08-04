@@ -54,6 +54,14 @@ function getPasswordUpdateErrorMessage(error: unknown) {
   if (isInsufficientAalError(error)) {
     return "Validez d’abord le code de votre application d’authentification.";
   }
+  // The SDK answers an untranslated "Auth session missing!" when the recovery
+  // link was already consumed, which names neither the cause nor a way out.
+  if (
+    code === "session_missing" ||
+    /auth session missing|session[_ ]not[_ ]found/i.test(message)
+  ) {
+    return "Votre session de réinitialisation a expiré. Demandez un nouveau lien et ouvrez-le directement sur cet appareil.";
+  }
   return message || "Une erreur est survenue.";
 }
 
