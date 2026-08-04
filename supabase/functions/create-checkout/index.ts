@@ -439,6 +439,11 @@ Deno.serve(async (req) => {
     let restaurantOnboardingBillingPeriod: RestaurantSubscriptionBillingPeriod =
       "monthly";
     let restaurantOnboardingReservedAmountCents = 0;
+    // The onboarding lifecycle audit runs after the Stripe session is bound,
+    // far outside the branch that parses the request, so these identities must
+    // live in the handler scope.
+    let restaurantOnboardingSignupApplicationId = "";
+    let restaurantOnboardingRestaurantId = "";
     const chefTableHoldItems: Array<{ drop_id: string; quantity: number }> = [];
     let sessionMetadata: Record<string, string> = {
       user_id: actor.userId || "",
@@ -532,6 +537,8 @@ Deno.serve(async (req) => {
       auditKind = "restaurant-onboarding";
       auditTargetEntityType = "signup_applications";
       auditTargetEntityId = signupApplicationId || restaurantId;
+      restaurantOnboardingSignupApplicationId = signupApplicationId;
+      restaurantOnboardingRestaurantId = restaurantId;
 
       await requireRestaurantAccess(actor, restaurantId);
 
@@ -2592,8 +2599,8 @@ Deno.serve(async (req) => {
         const { error: lifecycleError } = await actor.adminClient.rpc(
           "record_restaurant_onboarding_state",
           {
-            p_signup_application_id: signupApplicationId,
-            p_restaurant_id: restaurantId,
+            p_signup_application_id: restaurantOnboardingSignupApplicationId,
+            p_restaurant_id: restaurantOnboardingRestaurantId,
             p_payment_attempt_id: acquiredAttempt.attemptId,
             p_state: "stripe_session_created",
             p_idempotency_key: session.id,
