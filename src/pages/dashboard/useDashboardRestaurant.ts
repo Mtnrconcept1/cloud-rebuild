@@ -23,7 +23,6 @@ export const RESTAURANT_ONBOARDING_ROUTE_CATALOG = [
   { path: "/dashboard/formules", feature: "dashboard-formules" },
   { path: "/dashboard/service", feature: "dashboard-service" },
   { path: "/dashboard/plan-salle", feature: "dashboard-plan-salle" },
-  { path: "/dashboard/plan-salle-v2", feature: "dashboard-plan-salle" },
 ] as const;
 
 export const RESTAURANT_ONBOARDING_CONFIGURATION_ROUTES =

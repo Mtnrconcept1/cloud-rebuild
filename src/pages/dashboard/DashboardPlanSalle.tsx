@@ -2300,7 +2300,12 @@ export default function DashboardPlanSalle() {
     onError: (error: Error, options) => {
       if (options?.source === "auto-layout") {
         scheduledAutoSaveLayoutSignatureRef.current = null;
-        lastAutoSavedLayoutSignatureRef.current = null;
+        // Retiring the scheduled signature alone would re-arm this very save:
+        // the effect depends on the mutation, the draft stays dirty, and a
+        // server refusal is deterministic. Remember the refused state so the
+        // restaurateur gets one actionable toast instead of one per second.
+        // Any further edit changes the signature and re-enables the auto-save.
+        lastAutoSavedLayoutSignatureRef.current = options.layoutSignature ?? null;
       }
       toast({
         title: options?.source === "auto-layout" ? "Erreur de sauvegarde auto" : "Erreur de sauvegarde",

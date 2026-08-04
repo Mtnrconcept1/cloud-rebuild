@@ -68,4 +68,21 @@ describe("floor plan page layout", () => {
     expect(page).toContain("saveMutation.mutate");
     expect(page).toContain("lastAutoSavedLayoutSignatureRef");
   });
+
+  it("does not re-arm an auto-save the server already refused", () => {
+    const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
+
+    // A server refusal is deterministic, and the auto-save effect depends on
+    // the mutation while the draft stays dirty. Forgetting the refused
+    // signature would replay the same doomed save every 900ms and bury the
+    // restaurateur under destructive toasts.
+    const errorHandler = page.slice(page.indexOf("onError: (error: Error, options) => {"));
+    const errorHandlerBody = errorHandler.slice(0, errorHandler.indexOf("toast({"));
+
+    expect(errorHandlerBody).toContain("lastAutoSavedLayoutSignatureRef.current = options.layoutSignature ?? null;");
+    expect(errorHandlerBody).not.toContain("lastAutoSavedLayoutSignatureRef.current = null;");
+    // Switching branch, date or edit mode must still forget it: that is a new
+    // context, not a refused one.
+    expect(page).toContain("}, [editMode, referenceDate, selectedBranchId]);");
+  });
 });
