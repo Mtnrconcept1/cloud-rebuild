@@ -14,7 +14,7 @@ import { notifyAdmins } from "../_shared/notifications.ts";
 type SupportSource = "public_contact" | "restaurant_dashboard";
 
 const FUNCTION_NAME = "contact-support";
-const SUPPORT_EMAIL = Deno.env.get("SUPPORT_EMAIL")?.trim() || "info@thetok.ch";
+const SUPPORT_EMAIL = Deno.env.get("SUPPORT_EMAIL")?.trim() || "contact@thetok.ch";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const HTML_ENTITIES: Record<string, string> = {
   "&": "&amp;",
