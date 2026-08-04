@@ -63,6 +63,19 @@ function bookingEndpoint() {
 
 /* ------------------------------------------------------------------ */
 
+/**
+ * Presence check only, deliberately kept free of parsing and of throwing.
+ *
+ * It is called before the outbox is claimed so an unconfigured deployment
+ * never leases rows it cannot deliver. Claiming first and failing on the
+ * credentials afterwards left rows stuck in `processing` with `last_error`
+ * NULL, re-leased on every run — the attempts counter climbed past 2000
+ * without a single delivery ever being attempted.
+ */
+function serviceAccountConfigured(): boolean {
+  return Boolean(getEnv("GOOGLE_ACTIONS_CENTER_SERVICE_ACCOUNT"));
+}
+
 function decodeServiceAccount(): ServiceAccount {
   const raw = getEnv("GOOGLE_ACTIONS_CENTER_SERVICE_ACCOUNT");
   if (!raw) throw new HttpError(503, "google_service_account_missing");
@@ -289,6 +302,21 @@ Deno.serve(async (req) => {
       Math.max(Math.floor(Number(body.limit) || DEFAULT_BATCH_SIZE), 1),
       MAX_BATCH_SIZE,
     );
+
+    if (!serviceAccountConfigured()) {
+      // Nothing can be delivered without credentials. Returning before the claim
+      // keeps the outbox untouched, and staying off the `failure` audit path
+      // stops the incident scanner from re-opening the same misconfiguration
+      // every run. The warning below remains the signal in the edge logs.
+      log.warn("google actions center not configured, sync skipped", {
+        secret: "GOOGLE_ACTIONS_CENTER_SERVICE_ACCOUNT",
+      });
+      return jsonResponse(
+        { ok: true, skipped: "google_service_account_missing", claimed: 0, sent: 0, failed: 0 },
+        200,
+        cors,
+      );
+    }
 
     const { data: claimed, error: claimError } = await actor.adminClient
       .rpc("claim_google_actions_center_outbox", { p_limit: limit });

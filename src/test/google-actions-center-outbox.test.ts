@@ -119,6 +119,26 @@ describe("Google Actions Center real-time updates", () => {
     expect(worker).not.toContain("const adminClient = createAdminClient()");
   });
 
+  it("never leases a row it has no credentials to deliver", () => {
+    // Claiming first and discovering the missing service account afterwards left
+    // rows stuck in `processing` with last_error NULL, re-leased every 30 minutes
+    // by the claim RPC: production reached attempts = 2154 without a single
+    // delivery attempt, and each run reopened the same incident.
+    expect(worker).toContain("function serviceAccountConfigured()");
+    expect(worker).toContain("if (!serviceAccountConfigured()) {");
+    expect(worker).toContain('skipped: "google_service_account_missing"');
+
+    // The guard is only worth anything before the claim.
+    const guardAt = worker.indexOf("if (!serviceAccountConfigured()) {");
+    const claimAt = worker.indexOf('.rpc("claim_google_actions_center_outbox"');
+    expect(guardAt).toBeGreaterThan(-1);
+    expect(claimAt).toBeGreaterThan(guardAt);
+
+    // Visible in the edge logs, but off the `failure` audit path so the incident
+    // scanner stops reopening a misconfiguration that no retry can resolve.
+    expect(worker).toContain("google actions center not configured, sync skipped");
+  });
+
   it("is scheduled, registered and named in the audit log", () => {
     expect(cron).toContain("cron.schedule('tok-google-actions-center-sync', '*/2 * * * *'");
     expect(cron).toContain("internal_cron_secret");

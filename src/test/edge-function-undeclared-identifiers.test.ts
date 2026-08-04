@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
@@ -59,4 +59,57 @@ describe("edge function identifier scopes", () => {
 
     expect(undeclared).toEqual([]);
   }, 120_000);
+
+  // Same blind spot, second shape. A PostgREST query builder is a thenable, not
+  // a Promise: it implements `then` and nothing else. `await builder` works, so
+  // the mistake reads as correct, but `builder.catch(...)` is a TypeError at
+  // runtime. ops-incident-control did exactly that to swallow a telemetry write
+  // and returned 500 on every scan for days — which ops-incident-native-scan
+  // then reported as incident_scan_upstream_failed:500.
+  it("never calls .catch() or .finally() on a PostgREST query builder", () => {
+    const BUILDER_METHODS = new Set([
+      "select", "insert", "update", "upsert", "delete", "rpc",
+      "eq", "neq", "gt", "gte", "lt", "lte", "like", "ilike", "is", "in",
+      "contains", "filter", "not", "or", "match", "order", "limit", "range",
+      "single", "maybeSingle", "csv", "returns",
+    ]);
+
+    const offenders = collectTypeScriptFiles(FUNCTIONS_ROOT).flatMap((file) => {
+      const source = ts.createSourceFile(
+        file,
+        readFileSync(file, "utf8"),
+        ts.ScriptTarget.ESNext,
+        true,
+      );
+      const found: string[] = [];
+
+      const visit = (node: ts.Node) => {
+        // Match `<something>.<builderMethod>(...).catch(...)`, i.e. a property
+        // access whose receiver is a call to a builder method.
+        if (
+          ts.isCallExpression(node) &&
+          ts.isPropertyAccessExpression(node.expression) &&
+          (node.expression.name.text === "catch" || node.expression.name.text === "finally")
+        ) {
+          const receiver = node.expression.expression;
+          if (
+            ts.isCallExpression(receiver) &&
+            ts.isPropertyAccessExpression(receiver.expression) &&
+            BUILDER_METHODS.has(receiver.expression.name.text)
+          ) {
+            const { line } = source.getLineAndCharacterOfPosition(node.getStart(source));
+            found.push(
+              `${relative(process.cwd(), file)}:${line + 1} .${receiver.expression.name.text}(...).${node.expression.name.text}(...)`,
+            );
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(source);
+      return found;
+    });
+
+    expect(offenders).toEqual([]);
+  }, 60_000);
 });
