@@ -60,7 +60,10 @@ export type ReservationTableRecommendation = {
   table: ServiceDraftTable;
 } & ReservationPlacementScore;
 
-const DEFAULT_OCCUPATION_MINUTES = 90;
+// Must stay equal to the fallback used by restaurant_save_floor_plan_assignments.
+// The server is the authority on conflicts: any shorter value here makes the
+// client offer placements the save then refuses as overlapping.
+const DEFAULT_OCCUPATION_MINUTES = 120;
 const RELEASED_RESERVATION_STATUSES = new Set(["cancelled", "canceled", "no_show", "completed", "archived"]);
 
 const isJsonRecord = (value: Json): value is Record<string, Json> =>
@@ -322,10 +325,8 @@ function getReservationDurationMinutes(reservation: ServiceReservation) {
     return Math.max(30, Math.round(duration));
   }
 
-  const partySize = Number(reservation.party_size || 0);
-  if (partySize >= 7) return 150;
-  if (partySize >= 5) return 120;
-  if (partySize >= 3) return 105;
+  // One flat default for every party size, matching the server. A per-size
+  // ladder here would diverge from the conflict rule the save enforces.
   return DEFAULT_OCCUPATION_MINUTES;
 }
 
