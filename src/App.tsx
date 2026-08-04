@@ -103,6 +103,7 @@ const TokOne = lazy(() => import("./pages/TokOne"));
 const TokPulse = lazy(() => import("./pages/TokPulse"));
 const TokConnect = lazy(() => import("./pages/TokConnect"));
 const TokConnectDeveloper = lazy(() => import("./pages/TokConnectDeveloper"));
+const TokConnectMcpWidget = lazy(() => import("./pages/tok-connect/TokConnectMcpWidget"));
 const CommercialProspection = lazy(() => import("./pages/CommercialProspection"));
 const CommercialComptabilite = lazy(() => import("./pages/CommercialComptabilite"));
 const CommercialDemoLive = lazy(() => import("./pages/CommercialDemoLive"));
@@ -587,6 +588,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/tok-pulse" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("tok-pulse")} fallback="/"><TokPulse /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/tok-connect" element={<FeatureSwitch enabled={tokConnectEnabled} fallback="/"><TokConnect /></FeatureSwitch>} />
           <Route path="/tok-connect/developer" element={<ProtectedRoute><FeatureSwitch enabled={tokConnectEnabled} fallback="/tok-connect"><TokConnectDeveloper /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/tok-connect/mcp-widget" element={<TokConnectMcpWidget />} />
           <Route path="/commercial" element={<ProtectedRoute requiredRoles={["admin", "commercial"]}><FeatureSwitch enabled={commercialProspectionEnabled} fallback="/"><CommercialProspection /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/commercial/prospection" element={<Navigate to="/commercial" replace />} />
           <Route path="/commercial/comptabilite" element={<ProtectedRoute requiredRoles={["admin", "commercial"]}><FeatureSwitch enabled={commercialProspectionEnabled} fallback="/"><CommercialComptabilite /></FeatureSwitch></ProtectedRoute>} />

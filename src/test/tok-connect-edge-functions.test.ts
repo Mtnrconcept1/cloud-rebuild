@@ -153,24 +153,14 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("buildApplicationSandboxResult");
     expect(source).toContain("mutation_allowed");
     expect(source).toContain("requires_human_confirmation");
-    expect(source).toContain("Sandbox parcours TOK");
-    expect(source).toContain("https://www.thetok.ch/logo.png");
-    expect(source).toContain("https://www.thetok.ch/chef.png");
-    expect(source).toContain("tok-topbar");
-    expect(source).toContain("tok-mascot");
-    expect(source).toContain("floating-menu");
-    expect(source).toContain("Mes espaces");
-    expect(source).toContain("Journal technique");
     expect(source).toContain("resourceDomains");
-    expect(source).toContain("tok-restaurant-card");
-    expect(source).toContain("renderRestaurantCards");
-    expect(source).toContain("renderToolPayload");
-    expect(source).toContain("parseToolPayload");
     expect(source).toContain("MCP_TOOLS.map(toolDefinition)");
     expect(source).toContain("buildActionWindowResult");
     expect(source).toContain('"openai/outputTemplate"');
     expect(source).toContain("window.openai.requestDisplayMode");
     expect(source).toContain("window.openai.sendFollowUpMessage");
+    expect(source).toContain("iframe");
+    expect(source).toContain("https://www.thetok.ch/tok-connect/mcp-widget");
     expect(source).toContain("MCP resources/read action-window");
   });
 

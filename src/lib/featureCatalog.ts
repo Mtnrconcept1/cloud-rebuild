@@ -301,7 +301,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     description: "Active la page publique API, MCP et agents IA pour partenaires restaurants.",
     defaultEnabled: true,
     group: "client_features",
-    routeTargets: ["/tok-connect", "/tok-connect/developer"],
+    routeTargets: ["/tok-connect", "/tok-connect/developer", "/tok-connect/mcp-widget"],
   },
   {
     name: "tok-connect-api",

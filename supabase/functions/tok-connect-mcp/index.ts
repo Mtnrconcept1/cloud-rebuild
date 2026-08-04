@@ -75,6 +75,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
+<<<<<<< Updated upstream
       /* Design tokens copied verbatim from the TOK application (src/index.css)
          so the ChatGPT widget renders with the product's real identity rather
          than an approximation. Light and dark follow the reader's theme. */
@@ -910,102 +911,24 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         .tok-restaurant-grid { grid-template-columns: 1fr; }
         .sandbox-head { display: block; }
       }
+=======
+      body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: #f8fafc; }
+      iframe { border: none; width: 100vw; height: 100vh; display: block; }
+      #loader { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #fff; z-index: 10; font-family: sans-serif; color: #ff6b14; font-weight: bold; }
+>>>>>>> Stashed changes
     </style>
   </head>
   <body>
-    <div class="app-frame">
-      <nav class="tok-topbar" aria-label="Navigation TOK Connect">
-        <div class="tok-brand">
-          <img src="https://www.thetok.ch/logo.png" alt="TOK" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
-          <span class="tok-brand-fallback">TOK</span>
-          <div>
-            <strong>TOK Connect</strong>
-            <p>Application ChatGPT connectee</p>
-          </div>
-        </div>
-        <div class="tok-nav" aria-hidden="true">
-          <span>Explorer</span>
-          <span>Actualites</span>
-          <span>Anti-gaspi</span>
-          <span class="active">TOK Connect</span>
-        </div>
-        <div class="tok-actions">
-          <span class="tok-icon-btn">☾</span>
-          <span class="tok-icon-btn">🔔</span>
-          <span class="tok-space-btn">▦ Mes espaces</span>
-        </div>
-      </nav>
-
-      <div class="floating-menu" aria-label="Espace actif">
-        <span class="floating-menu-icon">☰</span>
-        <span>
-          <small>MCP TOK</small>
-          <strong>Sandbox ChatGPT</strong>
-        </span>
-      </div>
-
-      <main class="shell">
-        <div class="app-content">
-          <section class="app-hero">
-            <div class="hero-copy">
-              <div class="eyebrow"><span class="dot"></span>TOK Connect Live</div>
-              <h1>Parcours ChatGPT dans TOK</h1>
-              <p>Visualisez la demande, les modules TOK mobilises et chaque etape avant toute action reelle dans l'application.</p>
-              <div class="hero-actions">
-                <button id="ask-summary" type="button">Demander un recap</button>
-                <button id="fullscreen" class="secondary" type="button">Plein ecran</button>
-              </div>
-            </div>
-            <aside class="hero-panel">
-              <div class="status"><span class="dot"></span><span id="status">Connecte</span></div>
-              <div class="tok-mascot" aria-hidden="true">
-                <span class="tok-mascot-label">
-                  <small>Assistant TOK</small>
-                  <strong>ChatGPT agit dans une interface TOK securisee.</strong>
-                </span>
-                <img src="https://www.thetok.ch/chef.png" alt="" />
-              </div>
-              <div class="metrics">
-                <div class="metric"><b id="tool-count">0</b><span>outils disponibles</span></div>
-                <div class="metric"><b id="history-count">0</b><span>actions suivies</span></div>
-              </div>
-              <p>Les paiements, reservations, commandes, publications et generations IA restent bloques jusqu'a confirmation humaine.</p>
-            </aside>
-          </section>
-
-          <section class="grid">
-            <article class="card sandbox-card">
-              <h2>Sandbox parcours TOK</h2>
-              <div id="sandbox">
-                <p>Demandez a ChatGPT de simuler une reservation, une commande, PhotoPro, Studio Marketing ou un autre module TOK pour afficher le parcours ici.</p>
-              </div>
-            </article>
-            <article class="card">
-              <h2>Actions visibles</h2>
-              <div id="actions" class="action-list"></div>
-            </article>
-            <aside class="card">
-              <h2>Controle</h2>
-              <p>Fenetre connectee a ChatGPT Apps. Elle suit les appels MCP sans executer de mutation directe.</p>
-              <details>
-                <summary>Journal technique</summary>
-                <pre id="payload">{}</pre>
-              </details>
-            </aside>
-          </section>
-        </div>
-      </main>
-    </div>
+    <div id="loader">Chargement TOK Connect...</div>
+    <iframe id="mcp-frame" src="https://www.thetok.ch/tok-connect/mcp-widget" allow="clipboard-read; clipboard-write"></iframe>
     <script>
-      const actionsEl = document.getElementById("actions");
-      const sandboxEl = document.getElementById("sandbox");
-      const payloadEl = document.getElementById("payload");
-      const toolCountEl = document.getElementById("tool-count");
-      const historyCountEl = document.getElementById("history-count");
-      const statusEl = document.getElementById("status");
-      const askSummaryButton = document.getElementById("ask-summary");
-      const fullscreenButton = document.getElementById("fullscreen");
+      const iframe = document.getElementById('mcp-frame');
+      const loader = document.getElementById('loader');
+      
+      let iframeReady = false;
+      let pendingState = null;
 
+<<<<<<< Updated upstream
       function getState() {
         return window.openai && window.openai.widgetState && Array.isArray(window.openai.widgetState.actions)
           ? window.openai.widgetState.actions
@@ -1211,129 +1134,50 @@ const ACTION_WINDOW_HTML = `<!doctype html>
               '<div class="guardrail">' + escapeHtml(guardrail) + '</div>'
             ).join("") + '</div>' +
             '</div>';
+=======
+      function sendToIframe(state) {
+        if (!iframeReady || !iframe.contentWindow) {
+          pendingState = state;
+>>>>>>> Stashed changes
           return;
         }
-
-        const payloadMarkup = renderToolPayload(payload);
-        if (payloadMarkup) {
-          sandboxEl.innerHTML = '<div class="tok-widget-stack">' + payloadMarkup + '</div>';
-          return;
-        }
-
-        if (!sandbox || !Array.isArray(sandbox.steps)) {
-          sandboxEl.innerHTML = renderInitialShowcase();
-          return;
-        }
-        const modules = Array.isArray(sandbox.modules) ? sandbox.modules : [];
-        const guardrails = Array.isArray(sandbox.guardrails) ? sandbox.guardrails : [];
-        sandboxEl.innerHTML =
-          '<div class="tok-widget-stack">' +
-          '<div class="sandbox-head">' +
-          '<div><strong>' + escapeHtml(sandbox.title || "Parcours ChatGPT dans TOK") + '</strong>' +
-          '<p>' + escapeHtml(sandbox.request || "Demande sandbox") + '</p></div>' +
-          '<span class="module-chip">' + escapeHtml(sandbox.actor || "acteur") + '</span>' +
-          '</div>' +
-          '<div class="module-row">' + modules.map((module) =>
-            '<span class="module-chip">' + escapeHtml(module.title || module.id || "Module TOK") + '</span>'
-          ).join("") + '</div>' +
-          '<div class="step-list">' + sandbox.steps.map((step, index) =>
-            '<div class="step">' +
-            '<div class="step-index">' + String(index + 1) + '</div>' +
-            '<div><small>' + escapeHtml(step.status || "preview") + '</small>' +
-            '<strong>' + escapeHtml(step.title || "Etape TOK") + '</strong>' +
-            '<p>' + escapeHtml(step.detail || "") + '</p></div>' +
-            '</div>'
-          ).join("") + '</div>' +
-          '<div class="guardrails">' + guardrails.map((guardrail) =>
-            '<div class="guardrail">' + escapeHtml(guardrail) + '</div>'
-          ).join("") + '</div>' +
-          renderModuleCards(modules) +
-          '</div>';
+        iframe.contentWindow.postMessage({ type: "mcp_widget_update", state }, "*");
       }
 
-      function render(output, metadata) {
-        const rawOutput = output || {};
-        const structured = rawOutput && rawOutput.structuredContent ? rawOutput.structuredContent : rawOutput;
-        const meta = metadata || {};
-        const tools = Array.isArray(structured.available_tools) ? structured.available_tools : [];
-        const currentAction = structured.current_action || null;
-        const content = meta && meta.mcp_tool_result && meta.mcp_tool_result.content
-          ? meta.mcp_tool_result.content
-          : Array.isArray(rawOutput.content) ? rawOutput.content : [];
-        const toolPayload = parseToolPayload(rawOutput, content);
-        let actions = getState();
-
-        if (currentAction && currentAction.name) {
-          const signature = currentAction.name + ":" + (currentAction.at || "");
-          if (!actions.some((entry) => entry.signature === signature)) {
-            actions = [{
-              signature,
-              name: currentAction.name,
-              title: currentAction.title || currentAction.name,
-              status: currentAction.status || "terminee",
-              summary: currentAction.summary || summarizeContent(content),
-              at: currentAction.at || new Date().toISOString(),
-            }].concat(actions);
-            setState(actions);
+      window.addEventListener("message", (event) => {
+        if (event.data?.type === "mcp_widget_ready") {
+          iframeReady = true;
+          loader.style.display = 'none';
+          if (pendingState) {
+            sendToIframe(pendingState);
+            pendingState = null;
           }
         }
+        
+        if (event.data?.type === "mcp_action") {
+          if (event.data.action === "fullscreen" && window.openai && typeof window.openai.requestDisplayMode === "function") {
+            window.openai.requestDisplayMode({ mode: "fullscreen" });
+          } else if (event.data.action === "summarize" && window.openai && typeof window.openai.sendFollowUpMessage === "function") {
+            window.openai.sendFollowUpMessage({ prompt: "Résume les actions TOK Connect affichées.", scrollToBottom: true });
+          }
+        }
+      });
 
-        const visibleActions = actions.length ? actions : tools.slice(0, 8).map((tool, index) => ({
-          signature: tool.name || String(index),
-          name: tool.name || "outil_tok",
-          title: tool.title || tool.name || "Outil TOK Connect",
-          status: "pret",
-          summary: tool.description || "Outil disponible dans TOK Connect.",
-          at: "",
-        }));
-
-        actionsEl.innerHTML = visibleActions.map((action, index) =>
-          '<div class="action">' +
-          '<div class="badge">' + String(index + 1) + '</div>' +
-          '<div><strong>' + escapeHtml(action.title) + '</strong>' +
-          '<span>' + escapeHtml(action.status + " - " + action.summary) + '</span></div>' +
-          '</div>'
-        ).join("");
-
-        toolCountEl.textContent = String(tools.length);
-        historyCountEl.textContent = String(actions.length);
-        statusEl.textContent = actions.length ? "Actions suivies" : "Pret";
-        renderSandbox(structured.sandbox || null, structured, toolPayload);
-        payloadEl.textContent = JSON.stringify({ structured, history: actions.slice(0, 5) }, null, 2);
-
+      function render(output, metadata) {
+        sendToIframe({ toolOutput: output, toolResponseMetadata: metadata });
         if (window.openai && typeof window.openai.notifyIntrinsicHeight === "function") {
           window.openai.notifyIntrinsicHeight();
         }
       }
 
-      function escapeHtml(value) {
-        return String(value)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      askSummaryButton.addEventListener("click", () => {
-        if (window.openai && typeof window.openai.sendFollowUpMessage === "function") {
-          window.openai.sendFollowUpMessage({
-            prompt: "Resume les actions TOK Connect affichees dans la fenetre et indique la prochaine action utile.",
-            scrollToBottom: true,
-          });
-        }
-      });
-
-      fullscreenButton.addEventListener("click", () => {
-        if (window.openai && typeof window.openai.requestDisplayMode === "function") {
-          window.openai.requestDisplayMode({ mode: "fullscreen" });
-        }
-      });
-
       render(window.openai && window.openai.toolOutput, window.openai && window.openai.toolResponseMetadata);
+      
       window.addEventListener("openai:set_globals", (event) => {
         const globals = event.detail && event.detail.globals ? event.detail.globals : {};
-        render(globals.toolOutput || (window.openai && window.openai.toolOutput), globals.toolResponseMetadata || (window.openai && window.openai.toolResponseMetadata));
+        render(
+          globals.toolOutput || (window.openai && window.openai.toolOutput),
+          globals.toolResponseMetadata || (window.openai && window.openai.toolResponseMetadata)
+        );
       }, { passive: true });
     </script>
   </body>
