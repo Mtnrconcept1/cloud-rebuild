@@ -131,19 +131,34 @@ describe("service shared table state", () => {
     });
 
     expect(seated.key).toBe("occupied");
-    expect(seated.detail).toBe("lib. ~21:30");
+    // 20:00 + the 120 min the server also uses to detect conflicts.
+    expect(seated.detail).toBe("lib. ~22:00");
   });
 
   it("marks occupied tables as soon free near their estimated release time", () => {
     const state = getTableServiceState({
       isReservable: true,
       assignments: [reservation({ status: "seated", time: "20:00" })],
-      now: new Date("2026-05-27T21:20:00"),
+      // Inside the last 15 minutes before the 22:00 estimated release.
+      now: new Date("2026-05-27T21:50:00"),
     });
 
     expect(state.key).toBe("soon-free");
     expect(state.label).toBe("Bientot libre");
-    expect(state.detail).toBe("lib. ~21:30");
+    expect(state.detail).toBe("lib. ~22:00");
+  });
+
+  it("keeps the occupation default aligned with the server conflict window", () => {
+    // restaurant_save_floor_plan_assignments falls back to 120 minutes. A
+    // shorter client default would score rotations the save then refuses.
+    const stillOccupied = getTableServiceState({
+      isReservable: true,
+      assignments: [reservation({ status: "seated", time: "20:00" })],
+      now: new Date("2026-05-27T21:20:00"),
+    });
+
+    expect(stillOccupied.key).toBe("occupied");
+    expect(stillOccupied.detail).toBe("lib. ~22:00");
   });
 
   it("does not mark another service date as late", () => {

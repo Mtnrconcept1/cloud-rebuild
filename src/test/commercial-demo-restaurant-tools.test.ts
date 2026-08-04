@@ -169,6 +169,9 @@ describe("commercial demo restaurant tool adapters", () => {
     );
     expect(ownerRestaurants).toContain("useQuery<OwnedRestaurant[]>");
     expect(ownerRestaurants).toContain("socialLinks: null");
-    expect(app).toContain('commercialDemoFrame?.surface === "restaurant" ? <DashboardPlanSalle /> : <DashboardPlanSalleV2 />');
+    // "Plan de salle 2" is gone: its URL now lands on the guarded floor plan,
+    // so the commercial demo can no longer reach an unguarded second editor.
+    expect(app).toContain('<Route path="/dashboard/plan-salle-v2" element={<Navigate to="/dashboard/plan-salle" replace />} />');
+    expect(app).not.toContain("DashboardPlanSalleV2");
   });
 });
