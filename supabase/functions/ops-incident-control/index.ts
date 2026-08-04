@@ -623,7 +623,7 @@ async function recordIncidentAiUsage(input: {
   const inputTokens = usage.input_tokens ?? 0;
   const outputTokens = usage.output_tokens ?? 0;
   const model = input.model || "deterministic";
-  await createAdminClient().from("ai_usage_logs").insert({
+  const { error: usageInsertError } = await createAdminClient().from("ai_usage_logs").insert({
     function_name: FUNCTION_NAME,
     action: "analyze",
     feature_name: "ops_incident_control",
@@ -653,7 +653,16 @@ async function recordIncidentAiUsage(input: {
       reasoning_tokens: usage.reasoning_tokens ?? 0,
       error: input.error || null,
     },
-  }).catch(() => {});
+  });
+  // La télémétrie ne doit jamais faire échouer le scan d'incidents : on journalise
+  // sans relancer. Le builder PostgREST est thenable mais n'expose pas `.catch()`,
+  // il faut donc récupérer l'erreur via le résultat awaité.
+  if (usageInsertError) {
+    makeLogger(FUNCTION_NAME).warn("ai_usage_log_insert_failed", {
+      incident_id: input.incidentId,
+      error: usageInsertError.message,
+    });
+  }
 }
 
 async function buildRepairPlan(
