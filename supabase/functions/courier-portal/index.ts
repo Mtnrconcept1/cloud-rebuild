@@ -17,6 +17,9 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
+// Module scope: the delivery helpers below log outside the request handler.
+const log = makeLogger("courier-portal");
+
 const ACTIVE_JOB_STATUSES = ["accepted", "arriving_pickup", "picked_up", "arriving_dropoff"];
 
 function toIsoDate(value: Date) {
@@ -368,8 +371,6 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
-
-  const log = makeLogger("courier-portal");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
