@@ -141,8 +141,11 @@ export default function SignupApplicationStatusCard({
     "payment_action_required",
     "past_due",
   ].includes(onboardingPaymentStatus);
+  const hasRejectedDocuments = documents.some((doc) => String(doc.status || "").toLowerCase() === "rejected");
   const canResubmitCorrection =
-    application.requested_role === "restaurateur" && application.status === "needs_changes" && Boolean(onResubmitApplication);
+    application.requested_role === "restaurateur"
+    && (application.status === "needs_changes" || hasRejectedDocuments)
+    && Boolean(onResubmitApplication);
   const restaurateurRequirements = getRequiredSignupDocuments("restaurateur");
 
   const updateCorrectionField = (field: keyof Omit<SignupApplicationCorrectionPayload, "documentInputs">, value: string) => {
@@ -261,6 +264,32 @@ export default function SignupApplicationStatusCard({
               Note de revue
             </div>
             <p>{application.review_note}</p>
+          </div>
+        ) : null}
+
+        {hasRejectedDocuments ? (
+          <div className="rounded-xl border border-red-300 bg-red-50/90 p-4 text-sm text-red-950 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-100">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-semibold flex items-center gap-2 text-red-700 dark:text-red-400">
+                  <AlertCircle className="h-4 w-4" />
+                  Documents à remplacer
+                </p>
+                <p className="pt-1 text-xs text-red-800 dark:text-red-200">
+                  Un ou plusieurs justificatifs ont été marqués « À revoir ». Ouvrez le formulaire de correction pour uploader les nouveaux documents.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                className="shrink-0 gap-2"
+                onClick={() => setCorrectionOpen(true)}
+              >
+                <Upload className="h-4 w-4" />
+                Remplacer les documents
+              </Button>
+            </div>
           </div>
         ) : null}
 
@@ -466,6 +495,21 @@ export default function SignupApplicationStatusCard({
                     </div>
                     {document.rejection_reason ? (
                       <p className="pt-2 text-xs text-destructive">{document.rejection_reason}</p>
+                    ) : null}
+                    {String(document.status || "").toLowerCase() === "rejected" ? (
+                      <div className="mt-2.5 flex items-center justify-between gap-2 border-t pt-2 text-xs">
+                        <span className="font-medium text-red-700 dark:text-red-300">Ce document doit être remplacé</span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 gap-1 text-xs"
+                          onClick={() => setCorrectionOpen(true)}
+                        >
+                          <Upload className="h-3 w-3" />
+                          Remplacer
+                        </Button>
+                      </div>
                     ) : null}
                   </div>
                 );
