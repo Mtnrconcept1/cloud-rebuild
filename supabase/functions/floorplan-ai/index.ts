@@ -78,6 +78,8 @@ REGLES CRITIQUES COMPTAGE (priorite absolue):
 type FloorplanAction = "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
 
 type ReservationRow = { party_size: number | null };
+type ExistingOperationRow = { response: Record<string, unknown> | null };
+
 type ImagePayload = {
   dataUrl: string;
   mimeType: string;
@@ -85,6 +87,7 @@ type ImagePayload = {
   width: number | null;
   height: number | null;
 };
+
 type AiFloorPlanSeatPlacement = {
   zone: string;
   type: string;
@@ -92,6 +95,7 @@ type AiFloorPlanSeatPlacement = {
   benchLength?: number;
   benchDepth?: number;
 };
+
 type AiFloorPlanTable = {
   table_number: string;
   capacity: number;
@@ -108,6 +112,7 @@ type AiFloorPlanTable = {
   source_bbox?: Record<string, number>;
   confidence?: number;
 };
+
 type SemanticFrameHint = {
   x_ratio: number;
   y_ratio: number;
@@ -127,44 +132,87 @@ const FURNITURE_KINDS = new Set([
 const RECT_SEAT_ZONES = new Set(["top", "right", "bottom", "left"]);
 const ROUND_SEAT_ZONES = new Set(["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"]);
 
+function normalizeRequestId(value: unknown) {
+  if (typeof value !== "string") return crypto.randomUUID();
+  const v = value.trim();
+  return v.length > 0 ? v.slice(0, 100) : crypto.randomUUID();
+}
+
+function resolveBranchIdFromRestaurant(restaurant: Record<string, unknown>) {
+  const candidate =
+    (typeof restaurant.primary_branch_id === "string" && restaurant.primary_branch_id) ||
+    (typeof restaurant.branch_id === "string" && restaurant.branch_id) ||
+    null;
+
+  if (!candidate) throw new HttpError(500, "branch_id_missing");
+  return candidate;
+}
+
+async function getExistingIdempotentResponse(params: {
+  actor: Awaited<ReturnType<typeof authenticateRequest>>;
+  actorId: string;
+  branchId: string;
+  operationKind: string;
+  requestId: string;
+}) {
+  const { actor, actorId, branchId, operationKind, requestId } = params;
+  const { data } = await actor.adminClient
+    .schema("private")
+    .from("floor_plan_save_operations")
+    .select("response")
+    .eq("actor_id", actorId)
+    .eq("branch_id", branchId)
+    .eq("operation_kind", operationKind)
+    .eq("request_id", requestId)
+    .maybeSingle<ExistingOperationRow>();
+
+  return data?.response ?? null;
+}
+
+async function saveIdempotentResponse(params: {
+  actor: Awaited<ReturnType<typeof authenticateRequest>>;
+  actorId: string;
+  branchId: string;
+  operationKind: string;
+  requestId: string;
+  requestPayload: Record<string, unknown>;
+  response: Record<string, unknown>;
+}) {
+  const { actor, actorId, branchId, operationKind, requestId, requestPayload, response } = params;
+
+  const { error } = await actor.adminClient
+    .schema("private")
+    .from("floor_plan_save_operations")
+    .insert({
+      actor_id: actorId,
+      branch_id: branchId,
+      operation_kind: operationKind,
+      request_id: requestId,
+      request_payload: requestPayload,
+      response,
+    });
+
+  if (!error) return response;
+
+  const existing = await getExistingIdempotentResponse({
+    actor,
+    actorId,
+    branchId,
+    operationKind,
+    requestId,
+  });
+
+  if (existing) return existing;
+  throw error;
+}
+
 function clampNumber(value: unknown, fallback: number, min: number, max: number) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.min(max, Math.max(min, parsed));
 }
 
-function isSquareLikeRectTable(source: Record<string, unknown>) {
-  const shapeToken = normalizeToken(readValue(source, ["shape", "forme", "table_shape", "tableShape"]));
-  if (["square", "carre", "carree"].includes(shapeToken)) return true;
-
-  const kindToken = normalizeToken(readValue(source, ["kind", "type", "object_type", "objet"]));
-  if (["table_square", "table_square_2", "table-square", "table-square-2"].includes(kindToken)) return true;
-
-  const ratioPairs: Array<[number | null, number | null]> = [
-    [readNumber(source, ["w", "width"]), readNumber(source, ["h", "height"])],
-    [
-      normalizeRatio(readValue(source, ["w_ratio", "wRatio", "width_ratio", "widthRatio"])),
-      normalizeRatio(readValue(source, ["h_ratio", "hRatio", "height_ratio", "heightRatio"])),
-    ],
-  ];
-  const ratioBox = readBox(source, ["normalized", "relative_bounds", "relativeBounds", "ratio_bounds", "ratioBounds"]);
-  if (ratioBox) ratioPairs.push([ratioBox.w, ratioBox.h]);
-  const imageBox = readBox(source, ["image_bbox", "imageBBox", "bbox", "bounds", "box"]);
-  if (imageBox) ratioPairs.push([imageBox.w, imageBox.h]);
-
-  return ratioPairs.some(([w, h]) => {
-    if (w === null || h === null) return false;
-    const safeW = Math.abs(w);
-    const safeH = Math.abs(h);
-    if (safeW <= 0 || safeH <= 0) return false;
-    const ratio = Math.max(safeW, safeH) / Math.min(safeW, safeH);
-    return ratio <= 1.2;
-  });
-}
-
 function getTableKind(shape: "round" | "rect", capacity: number, options: { squareLike?: boolean } = {}) {
-  // Banquet plans routinely use 8 to 12 seat rounds and long shared tables:
-  // collapsing them to a 4-seat kind lost both the capacity and the visual.
   if (shape === "round") {
     if (capacity <= 2) return "table-round-2";
     if (capacity <= 4) return "table-round-4";
@@ -179,7 +227,7 @@ function getTableKind(shape: "round" | "rect", capacity: number, options: { squa
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
-    ? value as Record<string, unknown>
+    ? (value as Record<string, unknown>)
     : {};
 }
 
@@ -267,52 +315,20 @@ function normalizeFurnitureKind(value: unknown) {
 function normalizeSeatZone(value: unknown, shape: "round" | "rect") {
   const token = normalizeToken(value);
   const rectMap: Record<string, string> = {
-    top: "top",
-    haut: "top",
-    above: "top",
-    nord: "top",
-    north: "top",
-    bottom: "bottom",
-    bas: "bottom",
-    below: "bottom",
-    sud: "bottom",
-    south: "bottom",
-    left: "left",
-    gauche: "left",
-    ouest: "left",
-    west: "left",
-    right: "right",
-    droite: "right",
-    est: "right",
-    east: "right",
+    top: "top", haut: "top", above: "top", nord: "top", north: "top",
+    bottom: "bottom", bas: "bottom", below: "bottom", sud: "bottom", south: "bottom",
+    left: "left", gauche: "left", ouest: "left", west: "left",
+    right: "right", droite: "right", est: "right", east: "right",
   };
   const roundMap: Record<string, string> = {
-    top: "north",
-    haut: "north",
-    above: "north",
-    nord: "north",
-    north: "north",
-    bottom: "south",
-    bas: "south",
-    below: "south",
-    sud: "south",
-    south: "south",
-    left: "west",
-    gauche: "west",
-    ouest: "west",
-    west: "west",
-    right: "east",
-    droite: "east",
-    est: "east",
-    east: "east",
-    north_east: "north-east",
-    nord_est: "north-east",
-    south_east: "south-east",
-    sud_est: "south-east",
-    south_west: "south-west",
-    sud_ouest: "south-west",
-    north_west: "north-west",
-    nord_ouest: "north-west",
+    top: "north", haut: "north", above: "north", nord: "north", north: "north",
+    bottom: "south", bas: "south", below: "south", sud: "south", south: "south",
+    left: "west", gauche: "west", ouest: "west", west: "west",
+    right: "east", droite: "east", est: "east", east: "east",
+    north_east: "north-east", nord_est: "north-east",
+    south_east: "south-east", sud_est: "south-east",
+    south_west: "south-west", sud_ouest: "south-west",
+    north_west: "north-west", nord_ouest: "north-west",
   };
   const zone = shape === "round" ? roundMap[token] || token.replace(/_/g, "-") : rectMap[token] || token;
   if (shape === "round") return ROUND_SEAT_ZONES.has(zone) ? zone : null;
@@ -973,7 +989,7 @@ function extractChatUsage(value: unknown) {
   const usage = typeof value === "object" && value !== null
     ? (value as Record<string, unknown>).usage
     : null;
-  const record = typeof usage === "object" && usage !== null ? usage as Record<string, unknown> : {};
+  const record = typeof usage === "object" && usage !== null ? (usage as Record<string, unknown>) : {};
   const inputTokens = readTokenCount(record.prompt_tokens ?? record.input_tokens);
   const outputTokens = readTokenCount(record.completion_tokens ?? record.output_tokens);
   const totalTokens = readTokenCount(record.total_tokens) || inputTokens + outputTokens;
@@ -1041,8 +1057,11 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action as FloorplanAction;
     const restaurantId = typeof body.restaurantId === "string" ? body.restaurantId : "";
+    const requestId = normalizeRequestId(body.requestId);
+
     const requestedCanvasWidth = Math.min(Math.max(Number(body.canvasWidth) || CANONICAL_CANVAS_WIDTH, 400), 2000);
     const requestedCanvasHeight = Math.min(Math.max(Number(body.canvasHeight) || CANONICAL_CANVAS_HEIGHT, 400), 2000);
+
     const canvasWidth = CANONICAL_CANVAS_WIDTH;
     const canvasHeight = CANONICAL_CANVAS_HEIGHT;
     const currentLayout = Array.isArray(body.currentLayout) ? body.currentLayout : [];
@@ -1056,16 +1075,28 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "invalid_image");
     }
 
-    // Ownership check.
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
 
-    // Per-user + per-restaurant + global rate limit. Fail-closed.
+    const branchId = resolveBranchIdFromRestaurant(restaurant as Record<string, unknown>);
+    const operationKind = `floorplan:${action}`;
+
+    // Verification d'idempotence AVANT tout appel OpenAI
+    const existingResponse = await getExistingIdempotentResponse({
+      actor,
+      actorId: actor.userId,
+      branchId,
+      operationKind,
+      requestId,
+    });
+    if (existingResponse) return jsonResponse(existingResponse, 200, cors);
+
+    // Rate Limiter
     const rl = createRateLimiter(actor.adminClient, "floorplan-ai");
     await rl.consume(`user:${actor.userId}`, { maxRequests: 15, windowSeconds: 3600 });
     await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 30, windowSeconds: 3600 });
     await rl.consume("global", { maxRequests: 200, windowSeconds: 60 });
 
-    // Reservation stats (last 30d).
+    // Statistiques de reservations
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const { data: recentReservations } = await actor.adminClient
       .from("reservations")
@@ -1077,6 +1108,7 @@ Deno.serve(async (req) => {
     const avgPartySize = reservations.length > 0
       ? (reservations.reduce((s, r) => s + (r.party_size || 2), 0) / reservations.length).toFixed(1)
       : "2.5";
+
     const partyDistribution: Record<number, number> = {};
     for (const r of reservations) {
       const size = r.party_size || 2;
@@ -1094,7 +1126,7 @@ Deno.serve(async (req) => {
         .join("\n")
       : "Aucune table placée";
 
-    const systemPrompt = buildFloorPlanPrompt({
+    const promptParams = {
       restaurant: {
         name: restaurant.name,
         cuisine_type: restaurant.cuisine_type,
@@ -1105,7 +1137,11 @@ Deno.serve(async (req) => {
       canvasWidth,
       canvasHeight,
       currentLayoutSummary,
-    });
+    };
+
+    const systemPrompt = action === "image-import"
+      ? buildFloorPlanPrompt(promptParams)
+      : buildSystemPrompt(promptParams);
 
     let userPrompt = rawPrompt;
     if (!userPrompt) {
@@ -1113,14 +1149,11 @@ Deno.serve(async (req) => {
         userPrompt =
           `Analyse l'image importee comme un plan de salle a reproduire fidelement. Dimensions source connues: ${image?.width || "inconnue"}x${image?.height || "inconnue"} px. Identifie d'abord le rectangle interieur de la salle (room_bounds), puis liste toutes les tables visibles avec leur numero exact, leur forme, leur nombre exact d'assises visibles, leurs chaises par zone et leurs ratios x_ratio/y_ratio/w_ratio/h_ratio dans la salle. Inclue uniquement le mobilier visible (plantes, accueil, bar, separateurs, dessertes). Ne renvoie jamais les chaises attachees aux tables comme meubles separes. Ne corrige pas le plan et n'optimise pas: reproduis le meme placement relatif que l'image. Retourne uniquement le JSON strict demande.`;
       } else if (action === "generate") {
-        userPrompt =
-          "Génère un plan de salle optimisé avec un bon mix de tables 2/4/6 personnes, un accueil et des plantes. Optimise circulation et couverts.";
+        userPrompt = "Génère un plan de salle optimisé avec un bon mix de tables 2/4/6 personnes, un accueil et des plantes. Optimise circulation et couverts.";
       } else if (action === "optimize") {
-        userPrompt =
-          "Analyse la disposition actuelle et propose une version optimisée. Garde les types existants, ajuste positions/rotations/espacement.";
+        userPrompt = "Analyse la disposition actuelle et propose une version optimisée. Garde les types existants, ajuste positions/rotations/espacement.";
       } else if (action === "suggest-furniture") {
-        userPrompt =
-          "Suggère des meubles complémentaires (plantes, séparateurs, bar, accueil) sans modifier les tables existantes.";
+        userPrompt = "Suggère des meubles complémentaires (plantes, séparateurs, bar, accueil) sans modifier les tables existantes.";
       } else {
         userPrompt = "Donne tes suggestions d'amélioration.";
       }
@@ -1133,10 +1166,9 @@ Deno.serve(async (req) => {
         { type: "image_url", image_url: { url: image.dataUrl, detail: "high" } },
       ]
       : userPrompt;
-    // A banquet plan carries 25 to 40 elements. The former 4000-token ceiling
-    // truncated the answer, so the model silently returned a handful of
-    // elements instead of the full room.
+
     const maxTokens = action === "image-import" ? 16000 : 1800;
+
     const preflightCredits = estimateTextAiPreflightCredits({
       model: selectedModel,
       input: {
@@ -1146,15 +1178,12 @@ Deno.serve(async (req) => {
         canvasHeight,
         currentLayoutSummary,
         image: image
-          ? {
-            mimeType: image.mimeType,
-            width: image.width,
-            height: image.height,
-          }
+          ? { mimeType: image.mimeType, width: image.width, height: image.height }
           : null,
       },
       maxOutputTokens: maxTokens,
     });
+
     const creditPreflight = await requireRestaurantTokCreditBalance({
       adminClient: actor.adminClient,
       restaurantId,
@@ -1200,6 +1229,7 @@ Deno.serve(async (req) => {
     }
 
     const usage = extractChatUsage(data);
+
     await insertUsage(actor, {
       status: "success",
       action,
@@ -1208,6 +1238,7 @@ Deno.serve(async (req) => {
       usage,
       metadata: {
         rid: log.rid,
+        request_id: requestId,
         has_image: Boolean(image),
         image_mime_type: image?.mimeType || null,
         canvas_width: canvasWidth,
@@ -1218,6 +1249,11 @@ Deno.serve(async (req) => {
         source_image_height: image?.height || null,
         preflight_required_credit_units: creditPreflight.requiredCredits,
         preflight_available_tok_credits: creditPreflight.availableCredits,
+        actual_credit_units: getOpenAITextCreditUnits(
+          selectedModel,
+          usage.inputTokens,
+          usage.outputTokens,
+        ),
       },
     });
 
@@ -1233,6 +1269,7 @@ Deno.serve(async (req) => {
       metadata: {
         model: selectedModel,
         rid: log.rid,
+        request_id: requestId,
         has_image: Boolean(image),
         image_mime_type: image?.mimeType || null,
         source_image_width: image?.width || null,
@@ -1240,7 +1277,29 @@ Deno.serve(async (req) => {
       },
     });
 
-    return jsonResponse(normalizeFloorPlanAiResult(parsed, canvasWidth, canvasHeight, image), 200, cors);
+    const normalizedResult = normalizeFloorPlanAiResult(parsed, canvasWidth, canvasHeight, image);
+
+    const persistedResponse = await saveIdempotentResponse({
+      actor,
+      actorId: actor.userId,
+      branchId,
+      operationKind,
+      requestId,
+      requestPayload: {
+        action,
+        restaurantId,
+        requestId,
+        rid: log.rid,
+        hasImage: Boolean(image),
+        canvasWidth,
+        canvasHeight,
+        requestedCanvasWidth,
+        requestedCanvasHeight,
+      },
+      response: normalizedResult as Record<string, unknown>,
+    });
+
+    return jsonResponse(persistedResponse, 200, cors);
   } catch (err) {
     const status = err instanceof HttpError ? err.status : 500;
     const message = err instanceof HttpError ? err.message : "internal_error";
