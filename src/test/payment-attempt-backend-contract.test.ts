@@ -19,6 +19,9 @@ const completeOrder = read("supabase/functions/complete-order-checkout/index.ts"
 const reconcileOrders = read("supabase/functions/reconcile-paid-order-checkouts/index.ts");
 const processRefund = read("supabase/functions/process-refund/index.ts");
 const integrityMigration = read("supabase/migrations/20260715060000_payment_integrity_state_machine.sql");
+const idempotentAbandon = read(
+  "supabase/migrations/20260805020000_idempotent_payment_attempt_abandonment.sql",
+);
 
 describe("durable Stripe payment attempts", () => {
   it("requires one stable client UUID and seals the exact Stripe request", () => {
@@ -38,6 +41,33 @@ describe("durable Stripe payment attempts", () => {
     expect(attempts).toContain("abandon_payment_attempt_session");
     expect(checkout).toContain("expireAndAbandonKnownSession");
     expect(checkout).toContain("PAYMENT_ATTEMPT_INDETERMINATE");
+  });
+
+  it("answers replayed session abandonments idempotently so Stripe stops redelivering", () => {
+    // checkout.session.expired is terminal and replayable. Raising on an
+    // abandonment that already happened made stripe-webhook return 500, and
+    // Stripe redelivered the same event for days (evt_1TxHYs... ran 07-26 to
+    // 07-28; evt_1U0tRI... and evt_1U0WHr... were still looping on 08-05).
+    expect(idempotentAbandon).toContain("stripe_session_history");
+    expect(idempotentAbandon).toContain("jsonb_array_elements");
+    expect(idempotentAbandon).toContain("v_attempt.state = 'cancelled'");
+
+    // The replay check must precede the finalized guard, otherwise a late
+    // expired event for an older generation loops forever once a later
+    // generation has been paid.
+    expect(idempotentAbandon.indexOf("entry ->> 'checkout_session_id'")).toBeLessThan(
+      idempotentAbandon.indexOf("finalized_attempt_cannot_be_abandoned"),
+    );
+
+    // Guards protecting a payable session stay in place.
+    expect(idempotentAbandon).toContain("finalized_attempt_cannot_be_abandoned");
+    expect(idempotentAbandon).toContain("payment_attempt_session_mismatch");
+    expect(idempotentAbandon).toContain("payment_attempt_lease_lost");
+
+    // CREATE OR REPLACE rewrites the SET clauses, so dropping this would
+    // silently revert 20260804204953 and restore the unbounded lock wait.
+    expect(idempotentAbandon).toContain("SET lock_timeout = '5s'");
+    expect(idempotentAbandon).toContain("SET search_path = ''");
   });
 
   it("recovers stale webhook leases and never acknowledges active work as done", () => {
