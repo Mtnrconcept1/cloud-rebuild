@@ -51,6 +51,14 @@ describe("automatic floor-plan image import", () => {
     expect(panel).toContain("MAX_IMPORT_IMAGE_BYTES");
   });
 
+  it("surfaces a controlled TOK credit rejection instead of the generic Supabase function error", () => {
+    const panel = read("src/components/floor-plan/FloorPlanAIPanel.tsx");
+
+    expect(panel).toContain('invokeSupabaseFunction<AIFloorPlanResult>("floorplan-ai"');
+    expect(panel).toContain("formatAiImageGenerationError(error)");
+    expect(panel).not.toContain('supabase.functions.invoke("floorplan-ai"');
+  });
+
   it("requires a precise image-analysis JSON contract before placing imported furniture", () => {
     const edgeFunction = read("supabase/functions/floorplan-ai/index.ts");
 

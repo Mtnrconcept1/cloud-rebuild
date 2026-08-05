@@ -16,11 +16,11 @@ import { AiLoadingState } from "@/components/ui/ai-loading-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getSupabase } from "@/integrations/supabase/client";
 import { optimizeImageUpload } from "@/lib/optimizedImages";
+import { formatAiImageGenerationError } from "@/lib/publicErrorMessages";
+import { invokeSupabaseFunction } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
-const supabase = getSupabase();
 const MAX_IMPORT_IMAGE_BYTES = 6 * 1024 * 1024;
 const IMPORT_IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
@@ -134,53 +134,39 @@ export default function FloorPlanAIPanel({
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
   const callAI = async (action: AIFloorPlanResult["source"], prompt?: string, image?: ImportImagePayload | null) => {
-  setLoading(true);
-  setError(null);
-  setResult(null);
+    setLoading(true);
+    setError(null);
+    setResult(null);
 
-  try {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    try {
+      const { data, error } = await invokeSupabaseFunction<AIFloorPlanResult>("floorplan-ai", {
+        body: {
+          action,
+          restaurantId,
+          currentLayout,
+          canvasWidth,
+          canvasHeight,
+          prompt,
+          image: image || undefined,
+        },
+      });
 
-    if (userError || !user) {
-      throw new Error("Non connecté");
+      if (error) throw error;
+      if (!data?.tables || !Array.isArray(data.tables)) {
+        throw new Error("Réponse IA invalide");
+      }
+
+      setResult({
+        ...data,
+        source: action,
+        variantName: action === "image-import" ? `Plan IA - ${new Date().toLocaleDateString("fr-CH")}` : undefined,
+      });
+    } catch (error) {
+      setError(formatAiImageGenerationError(error));
+    } finally {
+      setLoading(false);
     }
-
-    const { data, error } = await supabase.functions.invoke("floorplan-ai", {
-      body: {
-        action,
-        restaurantId,
-        currentLayout,
-        canvasWidth,
-        canvasHeight,
-        prompt,
-        image: image || undefined,
-      },
-    });
-
-    if (error) {
-      throw new Error(error.message || "Erreur lors de l'appel à la fonction");
-    }
-
-    const aiData = data as AIFloorPlanResult;
-
-    if (!aiData?.tables || !Array.isArray(aiData.tables)) {
-      throw new Error("Réponse IA invalide");
-    }
-
-    setResult({
-      ...aiData,
-      source: action,
-      variantName: action === "image-import" ? `Plan IA - ${new Date().toLocaleDateString("fr-CH")}` : undefined,
-    });
-  } catch (e) {
-    setError(e instanceof Error ? e.message : "Erreur inconnue");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
