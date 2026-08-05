@@ -65,7 +65,15 @@ EXHAUSTIVITE (regle la plus importante):
 3. La liste analysis.tables + analysis.furniture doit contenir exactement ce nombre d'elements.
 Une sortie partielle est invalide: si le plan montre 10 rondes, 8 tables longues, une piste de danse, un DJ, 2 bars et un buffet, il faut 23 entrees, pas 3.
 Inclue toutes les tables quelle que soit leur couleur ou leur statut: les tables beige/libres comptent autant que les vertes/occupees.
-Ne renvoie jamais les chaises attachees aux tables comme meubles separes: elles sont deja decrites par seatPlacements.`;
+Ne renvoie jamais les chaises attachees aux tables comme meubles separes: elles sont deja decrites par seatPlacements.
+
+REGLES CRITIQUES COMPTAGE (priorite absolue):
+- Une table CARREE (largeur ≈ hauteur, petite) avec 1 chaise au-dessus et 1 chaise en-dessous = capacity:2, kind:"table-rect-2" ou "table-square-2"
+- Une table RECTANGULAIRE (largeur > hauteur) avec 2 chaises au-dessus et 2 chaises en-dessous = capacity:4, kind:"table-rect-4"
+- JAMAIS assumer capacity:4 pour une table carree: compter les chaises visibles
+- Pour le mobilier de decor (plantes, separateurs, etc.): chaque instance visible = une entree separee dans "furniture". Si 3 plantes sont visibles, emettre 3 objets furniture de kind:"plant"
+- Avant d'emettre la reponse, verifier: nombre de tables JSON == nombre de tables visibles sur l'image, nombre de plantes JSON == nombre de plantes visibles
+- Pour une table ronde 4 places: seatPlacements = [{"zone":"north","count":1},{"zone":"east","count":1},{"zone":"south","count":1},{"zone":"west","count":1}]`;
 
 type FloorplanAction = "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
 
@@ -109,7 +117,7 @@ type SemanticFrameHint = {
 
 const RESERVABLE_TABLE_KINDS = new Set([
   "table-round-2", "table-round-4", "table-round-6", "table-round-8", "table-round-10",
-  "table-rect-2", "table-rect-4", "table-rect-6", "table-banquet", "cocktail-table", "table",
+  "table-square-2", "table-rect-2", "table-rect-4", "table-rect-6", "table-banquet", "cocktail-table", "table",
 ]);
 const FURNITURE_KINDS = new Set([
   "chair", "stool", "bar", "corner-bench", "banquette", "booth", "sofa",
@@ -125,7 +133,36 @@ function clampNumber(value: unknown, fallback: number, min: number, max: number)
   return Math.min(max, Math.max(min, parsed));
 }
 
-function getTableKind(shape: "round" | "rect", capacity: number) {
+function isSquareLikeRectTable(source: Record<string, unknown>) {
+  const shapeToken = normalizeToken(readValue(source, ["shape", "forme", "table_shape", "tableShape"]));
+  if (["square", "carre", "carree"].includes(shapeToken)) return true;
+
+  const kindToken = normalizeToken(readValue(source, ["kind", "type", "object_type", "objet"]));
+  if (["table_square", "table_square_2", "table-square", "table-square-2"].includes(kindToken)) return true;
+
+  const ratioPairs: Array<[number | null, number | null]> = [
+    [readNumber(source, ["w", "width"]), readNumber(source, ["h", "height"])],
+    [
+      normalizeRatio(readValue(source, ["w_ratio", "wRatio", "width_ratio", "widthRatio"])),
+      normalizeRatio(readValue(source, ["h_ratio", "hRatio", "height_ratio", "heightRatio"])),
+    ],
+  ];
+  const ratioBox = readBox(source, ["normalized", "relative_bounds", "relativeBounds", "ratio_bounds", "ratioBounds"]);
+  if (ratioBox) ratioPairs.push([ratioBox.w, ratioBox.h]);
+  const imageBox = readBox(source, ["image_bbox", "imageBBox", "bbox", "bounds", "box"]);
+  if (imageBox) ratioPairs.push([imageBox.w, imageBox.h]);
+
+  return ratioPairs.some(([w, h]) => {
+    if (w === null || h === null) return false;
+    const safeW = Math.abs(w);
+    const safeH = Math.abs(h);
+    if (safeW <= 0 || safeH <= 0) return false;
+    const ratio = Math.max(safeW, safeH) / Math.min(safeW, safeH);
+    return ratio <= 1.2;
+  });
+}
+
+function getTableKind(shape: "round" | "rect", capacity: number, options: { squareLike?: boolean } = {}) {
   // Banquet plans routinely use 8 to 12 seat rounds and long shared tables:
   // collapsing them to a 4-seat kind lost both the capacity and the visual.
   if (shape === "round") {
@@ -135,7 +172,7 @@ function getTableKind(shape: "round" | "rect", capacity: number) {
     if (capacity <= 8) return "table-round-8";
     return "table-round-10";
   }
-  if (capacity <= 2) return "table-rect-2";
+  if (capacity <= 2) return options.squareLike ? "table-square-2" : "table-rect-2";
   if (capacity <= 4) return "table-rect-4";
   return capacity <= 6 ? "table-rect-6" : "table-banquet";
 }
@@ -352,6 +389,7 @@ function normalizeSeatPlacementsFromAi(source: Record<string, unknown>, shape: "
 }
 
 function getFallbackSize(kind: string, shape: "round" | "rect", capacity: number) {
+  if (kind === "table-square-2") return { w: 116, h: 116 };
   if (kind === "plant") return { w: 84, h: 84 };
   if (kind === "host-stand") return { w: 110, h: 98 };
   if (kind === "service-station") return { w: 140, h: 92 };
