@@ -914,7 +914,18 @@ const ACTION_WINDOW_HTML = `<!doctype html>
 =======
       body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: #f8fafc; }
       iframe { border: none; width: 100vw; height: 100vh; display: block; }
-      #loader { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #fff; z-index: 10; font-family: sans-serif; color: #ff6b14; font-weight: bold; }
+      #loader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface, #fff);
+  z-index: 10;
+  font-family: sans-serif;
+  color: var(--color-brand-primary);
+  font-weight: bold;
+}
 >>>>>>> Stashed changes
     </style>
   </head>
