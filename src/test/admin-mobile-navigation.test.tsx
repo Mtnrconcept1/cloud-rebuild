@@ -43,7 +43,7 @@ describe("AdminMobileNavigation", () => {
     featureState.activeFeatures = new Set(allAdminFeatures);
   });
 
-  it("shows the same floating mobile dashboard menu pattern for admin routes", () => {
+  it("shows the floating admin menu trigger at every viewport width", () => {
     render(
       <MemoryRouter initialEntries={["/admin/restaurants"]}>
         <AdminMobileNavigation />
@@ -54,6 +54,7 @@ describe("AdminMobileNavigation", () => {
 
     expect(trigger.textContent).toContain("Admin");
     expect(trigger.textContent).toContain("Restaurants");
+    expect(trigger.parentElement?.parentElement?.className).not.toContain("md:hidden");
 
     fireEvent.click(trigger);
 
