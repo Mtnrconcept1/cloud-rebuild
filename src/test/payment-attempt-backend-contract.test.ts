@@ -20,7 +20,7 @@ const reconcileOrders = read("supabase/functions/reconcile-paid-order-checkouts/
 const processRefund = read("supabase/functions/process-refund/index.ts");
 const integrityMigration = read("supabase/migrations/20260715060000_payment_integrity_state_machine.sql");
 const idempotentAbandon = read(
-  "supabase/migrations/20260805020000_idempotent_payment_attempt_abandonment.sql",
+  "supabase/migrations/20260805014524_idempotent_payment_attempt_abandonment.sql",
 );
 
 describe("durable Stripe payment attempts", () => {

@@ -2260,7 +2260,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_partner_token_required": [
     {
       "file": "supabase/functions/_shared/tok-connect-auth.ts",
-      "line": 397
+      "line": 405
     }
   ],
   "tok_connect_party_size_limit_exceeded": [
