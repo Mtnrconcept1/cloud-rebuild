@@ -301,6 +301,30 @@ export default function Navbar() {
                     </NavigationMenuContent>
                   </NavigationMenuItem>
                 ) : null}
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="bg-transparent text-sm font-medium">
+                    Informations
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <div className="grid w-56 gap-1 p-2">
+                      <Link to="/a-propos" className="rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
+                        À propos
+                      </Link>
+                      <Link to="/contact" className="rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
+                        Contact
+                      </Link>
+                      <Link to="/cgu" className="rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
+                        CGU
+                      </Link>
+                      <Link to="/politique-confidentialite" className="rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
+                        Confidentialité
+                      </Link>
+                      <Link to="/cookies" className="rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
+                        Cookies
+                      </Link>
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
           ) : null}

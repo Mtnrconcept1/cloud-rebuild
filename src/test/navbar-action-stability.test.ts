@@ -73,6 +73,19 @@ describe("navbar action stability", () => {
     expect(source).not.toContain('<NavigationMenu className="hidden md:flex">');
   });
 
+  it("keeps mobile informational links accessible from the desktop dropdown", () => {
+    const desktopNavigationStart = source.indexOf('<NavigationMenu className="hidden xl:flex">');
+    const desktopNavigationEnd = source.indexOf("</NavigationMenu>", desktopNavigationStart);
+    const desktopNavigation = source.slice(desktopNavigationStart, desktopNavigationEnd);
+
+    expect(desktopNavigation).toContain("Informations");
+    expect(desktopNavigation).toContain('to="/a-propos"');
+    expect(desktopNavigation).toContain('to="/contact"');
+    expect(desktopNavigation).toContain('to="/cgu"');
+    expect(desktopNavigation).toContain('to="/politique-confidentialite"');
+    expect(desktopNavigation).toContain('to="/cookies"');
+  });
+
   it("keeps the desktop Help button to the right of the account menu", () => {
     const accountMenuIndex = source.indexOf('<DropdownMenu modal={false} open={accountMenuOpen}');
     const compactHelpIndex = source.indexOf('<ChefHelpButton surface="client" compact className="hidden h-20 w-20 xl:flex" />');
