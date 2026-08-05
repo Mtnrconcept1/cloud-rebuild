@@ -90,9 +90,21 @@ describe("TOK Connect MCP HTTP protocol helpers", () => {
     expect(() => assertMcpContentType(mcpRequest("{}", {
       "Content-Type": "application/json; charset=utf-8",
     }))).not.toThrow();
+    // RFC 9110 allows whitespace before the parameter separator. Matching the
+    // raw header rejected this with 415 before any handler ran.
+    expect(() => assertMcpContentType(mcpRequest("{}", {
+      "Content-Type": "application/json ; charset=utf-8",
+    }))).not.toThrow();
+    expect(() => assertMcpContentType(mcpRequest("{}", {
+      "Content-Type": "APPLICATION/JSON",
+    }))).not.toThrow();
+
     expect(() => assertMcpContentType(mcpRequest("{}", {
       "Content-Type": "text/plain",
     }))).toThrowError(expect.objectContaining({ httpStatus: 415 }));
+    expect(() => assertMcpContentType(mcpRequest("{}", {}))).toThrowError(
+      expect.objectContaining({ httpStatus: 415 }),
+    );
 
     expect(() => assertMcpAcceptHeader(mcpRequest("{}", {
       Accept: "application/json, text/event-stream",

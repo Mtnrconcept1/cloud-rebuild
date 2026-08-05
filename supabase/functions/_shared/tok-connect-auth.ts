@@ -374,6 +374,14 @@ export async function recordTokConnectApiRequest(input: {
       // show which connector is live. Keep the identity in the metadata blob.
       request_metadata: {
         ...buildRequestMetadata(input.request),
+        // Protocol headers, kept because a request rejected at the transport
+        // gate (415 mcp_content_type_invalid) never reaches a handler: without
+        // these the log records that a client was turned away but not why, and
+        // the platform log API is not always available to fill the gap.
+        content_type: input.request.headers.get("content-type"),
+        accept: input.request.headers.get("accept"),
+        mcp_protocol_version: input.request.headers.get("mcp-protocol-version"),
+        has_authorization: input.request.headers.has("authorization"),
         ...(input.context?.authMode === "supabase_oauth"
           ? {
             auth_mode: "supabase_oauth",

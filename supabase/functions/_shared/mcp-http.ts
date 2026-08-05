@@ -76,8 +76,17 @@ export async function parseMcpJsonRpcRequest(req: Request): Promise<McpJsonRpcRe
 }
 
 export function assertMcpContentType(req: Request) {
-  const contentType = (req.headers.get("content-type") || "").toLowerCase();
-  if (contentType === "application/json" || contentType.startsWith("application/json;")) return;
+  // Compare the media type only. Matching the raw header meant a spec-legal
+  // "application/json ; charset=utf-8" — RFC 9110 allows whitespace before the
+  // parameter separator — was rejected with 415 before any handler ran, which
+  // is indistinguishable from sending the wrong type entirely. Parameters and
+  // surrounding whitespace are stripped; a genuinely wrong media type such as
+  // text/plain is still refused.
+  const mediaType = (req.headers.get("content-type") || "")
+    .split(";")[0]
+    .trim()
+    .toLowerCase();
+  if (mediaType === "application/json" || mediaType.endsWith("+json")) return;
   throw new McpProtocolError(-32600, "mcp_content_type_invalid", 415);
 }
 
