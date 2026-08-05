@@ -78,6 +78,7 @@ type PortalBody = {
     | "revoke-partner"
     | "upsert-restaurant-grant"
     | "update-grant-status"
+    | "mcp-connection-status"
     | "update-client-policy"
     | "approve-agent-run"
     | "reject-agent-run";
@@ -423,6 +424,101 @@ async function updateGrantStatus(
   });
 
   return { grant: updatedGrant };
+}
+
+const MCP_CONNECTION_LOG_LIMIT = 200;
+
+type McpRequestLogRow = {
+  route: string;
+  status_code: number | null;
+  error_code: string | null;
+  created_at: string;
+  request_metadata: Record<string, unknown> | null;
+};
+
+function readMetadataString(metadata: Record<string, unknown> | null, key: string) {
+  const value = metadata?.[key];
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+/**
+ * Real state of the MCP connectors pointed at one restaurant.
+ *
+ * ChatGPT authenticates through Supabase OAuth, which never creates a row in
+ * tok_connect_restaurant_grants — access is decided from restaurant ownership
+ * and staff roles instead (see assertTokConnectRestaurantGrant). The request
+ * log is therefore the only evidence that a connector is live, and RLS hides it
+ * from restaurateurs (partner_id is null on this path), so we read it here with
+ * the admin client behind requireRestaurantAccess.
+ */
+async function mcpConnectionStatus(
+  actor: PortalActor,
+  restaurantId: string,
+) {
+  await requireRestaurantAccess(actor, restaurantId, { allowDemo: true });
+
+  const { data, error } = await actor.adminClient
+    .from("tok_connect_api_requests")
+    .select("route, status_code, error_code, created_at, request_metadata")
+    .eq("restaurant_id", restaurantId)
+    .is("partner_id", null)
+    .order("created_at", { ascending: false })
+    .limit(MCP_CONNECTION_LOG_LIMIT);
+
+  if (error) throw new HttpError(500, error.message);
+
+  const rows = (data || []).filter((row) =>
+    readMetadataString(row.request_metadata, "auth_mode") === "supabase_oauth"
+  ) as McpRequestLogRow[];
+
+  const connections = new Map<string, {
+    oauth_client_id: string | null;
+    last_seen_at: string;
+    first_seen_at: string;
+    request_count: number;
+    error_count: number;
+    last_error_code: string | null;
+    tools: string[];
+  }>();
+
+  for (const row of rows) {
+    const oauthClientId = readMetadataString(row.request_metadata, "oauth_client_id");
+    const key = oauthClientId || "unknown";
+    const failed = row.error_code !== null || (row.status_code || 0) >= 400;
+    // Rows arrive newest-first, so the first row for a key is the latest one.
+    const existing = connections.get(key);
+    const tool = row.route.startsWith("MCP tools/call ")
+      ? row.route.replace("MCP tools/call ", "").replace(/ (noauth|auth-required)$/, "")
+      : null;
+
+    if (!existing) {
+      connections.set(key, {
+        oauth_client_id: oauthClientId,
+        last_seen_at: row.created_at,
+        first_seen_at: row.created_at,
+        request_count: 1,
+        error_count: failed ? 1 : 0,
+        last_error_code: failed ? row.error_code : null,
+        tools: tool ? [tool] : [],
+      });
+      continue;
+    }
+
+    existing.first_seen_at = row.created_at;
+    existing.request_count += 1;
+    if (failed) existing.error_count += 1;
+    if (tool && !existing.tools.includes(tool)) existing.tools.push(tool);
+  }
+
+  return {
+    restaurant_id: restaurantId,
+    // The dashboard needs to distinguish "no connector has ever called" from
+    // "we cannot see it", so surface the window we actually inspected.
+    log_limit: MCP_CONNECTION_LOG_LIMIT,
+    connections: [...connections.values()].sort((left, right) =>
+      right.last_seen_at.localeCompare(left.last_seen_at)
+    ),
+  };
 }
 
 async function upsertRestaurantGrant(
@@ -841,6 +937,14 @@ Deno.serve(async (req) => {
       return jsonResponse(buildTokConnectEnvelope({
         requestId,
         data: await updateGrantStatus(actor, req, requestId, body.grant_id, body.status as typeof GRANT_STATUSES[number]),
+      }), 200, corsHeaders);
+    }
+
+    if (action === "mcp-connection-status") {
+      if (!body.restaurant_id) throw new HttpError(400, "restaurant_id_required");
+      return jsonResponse(buildTokConnectEnvelope({
+        requestId,
+        data: await mcpConnectionStatus(actor, body.restaurant_id),
       }), 200, corsHeaders);
     }
 

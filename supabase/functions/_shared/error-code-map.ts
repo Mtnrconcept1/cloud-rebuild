@@ -50,21 +50,21 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "admin_required": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 342
+      "line": 343
     },
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 434
+      "line": 530
     },
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 494
+      "line": 590
     }
   ],
   "agent_run_id_required": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 862
+      "line": 966
     }
   ],
   "ai_credits_exhausted": [
@@ -262,7 +262,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "allowed_scopes_required": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 439
+      "line": 535
     }
   ],
   "anonymous_client_identity_unavailable": [
@@ -368,15 +368,15 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "client_uuid_required": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 495
+      "line": 591
     },
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 737
+      "line": 833
     },
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 769
+      "line": 865
     }
   ],
   "codex_dispatch_not_configured": [
@@ -928,13 +928,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "grant_id_required": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 837
+      "line": 933
     }
   ],
   "grant_status_invalid": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 839
+      "line": 935
     }
   ],
   "idempotency_key_in_progress": [
@@ -960,7 +960,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "idempotency_key_reused_with_different_arguments": [
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1855
+      "line": 1859
     }
   ],
   "idempotency_key_reused_with_different_body": [
@@ -1394,7 +1394,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2689
+      "line": 2699
     }
   ],
   "mcp_prompt_not_found": [
@@ -1404,7 +1404,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2662
+      "line": 2672
     }
   ],
   "mcp_tool_not_found": [
@@ -1418,11 +1418,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2406
+      "line": 2410
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2450
+      "line": 2454
     }
   ],
   "media_id_required": [
@@ -1506,7 +1506,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 679
+      "line": 775
     },
     {
       "file": "supabase/functions/tok-connect-webhook-dispatch/index.ts",
@@ -1636,11 +1636,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "partner_id_required": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 435
+      "line": 531
     },
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 870
+      "line": 974
     }
   ],
   "partner_inactive": [
@@ -1966,7 +1966,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 436
+      "line": 532
+    },
+    {
+      "file": "supabase/functions/tok-connect-portal/index.ts",
+      "line": 944
     }
   ],
   "restaurant_media_identity_mismatch": [
@@ -2024,7 +2028,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "restaurant_required_for_agent_run_approval": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 584
+      "line": 680
     }
   ],
   "review_seeding_disabled_in_production": [
@@ -2188,13 +2192,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_agent_run_not_approvable": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 580
+      "line": 676
     }
   ],
   "tok_connect_agent_run_not_found": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 578
+      "line": 674
     }
   ],
   "tok_connect_client_inactive": [
@@ -2206,11 +2210,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_client_not_found": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 165
+      "line": 166
     },
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 504
+      "line": 600
     }
   ],
   "tok_connect_daily_reservation_limit_exceeded": [
@@ -2222,7 +2226,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_grant_not_found": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 388
+      "line": 389
     }
   ],
   "tok_connect_mcp_grant_required": [
@@ -2246,17 +2250,17 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_partner_member_required": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 176
+      "line": 177
     },
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 193
+      "line": 194
     }
   ],
   "tok_connect_partner_token_required": [
     {
       "file": "supabase/functions/_shared/tok-connect-auth.ts",
-      "line": 384
+      "line": 397
     }
   ],
   "tok_connect_party_size_limit_exceeded": [
@@ -2268,7 +2272,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_portal_action_unknown": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 882
+      "line": 986
     }
   ],
   "tok_connect_reservation_not_owned": [
@@ -2346,21 +2350,21 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_webhook_endpoint_inactive": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 285
+      "line": 286
     }
   ],
   "tok_connect_webhook_endpoint_not_found": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 216
+      "line": 217
     },
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 224
+      "line": 225
     },
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 244
+      "line": 245
     }
   ],
   "too_many_channels": [
@@ -2476,13 +2480,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "webhook_https_url_required": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 630
+      "line": 726
     }
   ],
   "webhook_url_required": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
-      "line": 778
+      "line": 874
     }
   ],
   "window_invalid": [

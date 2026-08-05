@@ -368,7 +368,20 @@ export async function recordTokConnectApiRequest(input: {
       latency_ms: Math.max(0, Date.now() - input.startedAt),
       idempotency_key: input.idempotencyKey || null,
       error_code: input.errorCode || null,
-      request_metadata: buildRequestMetadata(input.request),
+      // OAuth callers (ChatGPT and any other MCP client) have no partner row, so
+      // partner_id/client_id above stay null. Without this the request log keeps
+      // no trace at all of *who* called, and the restaurateur dashboard cannot
+      // show which connector is live. Keep the identity in the metadata blob.
+      request_metadata: {
+        ...buildRequestMetadata(input.request),
+        ...(input.context?.authMode === "supabase_oauth"
+          ? {
+            auth_mode: "supabase_oauth",
+            oauth_client_id: input.context.oauthClientId,
+            oauth_user_id: input.context.userId,
+          }
+          : {}),
+      },
     });
   } catch (error) {
     console.error("[tok-connect] api request log failure", error);

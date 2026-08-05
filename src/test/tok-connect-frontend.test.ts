@@ -146,6 +146,35 @@ describe("TOK Connect frontend integration", () => {
     expect(dashboard).toContain("navigator.clipboard.writeText");
   });
 
+  it("reports the real ChatGPT/OAuth connection state instead of promising a partner consent row", () => {
+    const dashboard = read("src/pages/dashboard/DashboardTokConnect.tsx");
+
+    // ChatGPT authenticates through Supabase OAuth, which never writes to
+    // tok_connect_restaurant_grants. The page used to tell restaurateurs a
+    // consent would "appear below" and that ChatGPT otherwise only saw demo
+    // data — both false, leaving a working connection looking broken.
+    expect(dashboard).toContain("mcp-connection-status");
+    expect(dashboard).toContain("Connexion ChatGPT");
+    expect(dashboard).toContain("Aucun appel MCP enregistré pour ce restaurant.");
+    expect(dashboard).not.toContain("Le consentement apparaît ci-dessous");
+    expect(dashboard).not.toContain("ChatGPT ne reçoit que des données de");
+  });
+
+  it("exposes MCP connection state through the portal, since RLS hides OAuth request logs from restaurateurs", () => {
+    const portal = read("supabase/functions/tok-connect-portal/index.ts");
+    const mcp = read("supabase/functions/tok-connect-mcp/index.ts");
+    const sharedAuth = read("supabase/functions/_shared/tok-connect-auth.ts");
+
+    expect(portal).toContain('action === "mcp-connection-status"');
+    expect(portal).toContain("requireRestaurantAccess");
+    expect(portal).toContain('.is("partner_id", null)');
+
+    // Without these two the request log carries neither the restaurant nor the
+    // OAuth client, so the dashboard has nothing to display.
+    expect(mcp).toContain("restaurantId: typeof args.restaurant_id === \"string\"");
+    expect(sharedAuth).toContain("oauth_client_id: input.context.oauthClientId");
+  });
+
   it("keeps the OAuth Edge Function compatible with ChatGPT manual OAuth", () => {
     const oauth = read("supabase/functions/tok-connect-oauth/index.ts");
 

@@ -38,6 +38,10 @@ type McpHandleResult = {
   context: TokConnectTokenContext | null;
   route: string;
   scopes: string[];
+  // Which restaurant the call targeted, when the tool/resource names one. The
+  // request log is the only per-restaurant trace of MCP activity, so the
+  // restaurateur dashboard depends on this being carried through.
+  restaurantId?: string | null;
 };
 
 type TokConnectMcpTool = {
@@ -2497,6 +2501,7 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
         context,
         route: `MCP tools/call ${toolName}`,
         scopes: tool.requiredScopes,
+        restaurantId: typeof args.restaurant_id === "string" ? args.restaurant_id : null,
       };
     }
 
@@ -2583,27 +2588,31 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
       }
       let context: TokConnectTokenContext;
       let scopes: string[];
+      let resourceRestaurantId: string | null = null;
       let resourceText = JSON.stringify({ status: "available", mutation_allowed: false });
       if (uri.startsWith("tok://availability/")) {
+        resourceRestaurantId = uri.replace("tok://availability/", "");
         scopes = ["availability:read"];
         context = await authorizeMcp(req, scopes);
         await assertTokConnectRestaurantGrant(
           context,
-          uri.replace("tok://availability/", ""),
+          resourceRestaurantId,
           "availability:read",
           { requireMcp: true },
         );
       } else if (uri.startsWith("tok://campaign-preview/")) {
+        resourceRestaurantId = uri.replace("tok://campaign-preview/", "");
         scopes = ["campaigns:preview"];
         context = await authorizeMcp(req, scopes);
         await assertTokConnectRestaurantGrant(
           context,
-          uri.replace("tok://campaign-preview/", ""),
+          resourceRestaurantId,
           "campaigns:preview",
           { requireMcp: true },
         );
       } else if (uri.startsWith("tok://autopilot-runs/")) {
         const restaurantId = uri.replace("tok://autopilot-runs/", "");
+        resourceRestaurantId = restaurantId;
         scopes = ["autopilot:plan", "analytics:read", "campaigns:preview"];
         context = await authorizeMcp(req, scopes);
         await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect-autopilot");
@@ -2642,6 +2651,7 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
         context,
         route: "MCP resources/read",
         scopes,
+        restaurantId: resourceRestaurantId,
       };
     }
 
@@ -2719,6 +2729,7 @@ Deno.serve(async (req) => {
   let errorCode: string | null = null;
   let route = "tok-connect-mcp";
   let scopes: string[] = [];
+  let restaurantId: string | null = null;
   let rpc: McpJsonRpcRequest | null = null;
 
   try {
@@ -2737,6 +2748,7 @@ Deno.serve(async (req) => {
     context = result.context;
     route = result.route;
     scopes = result.scopes;
+    restaurantId = result.restaurantId || null;
     const negotiatedVersion = rpc.method === "initialize"
       ? negotiateMcpProtocolVersion(rpc.params)
       : req.headers.get("MCP-Protocol-Version") || undefined;
@@ -2783,6 +2795,7 @@ Deno.serve(async (req) => {
       statusCode,
       startedAt,
       scopes,
+      restaurantId,
       errorCode,
     });
   }
