@@ -49,7 +49,19 @@ jobs:
             > "${RUNNER_TEMP}/tok-incident-scan.json"
 
           jq -e '.ok == true' "${RUNNER_TEMP}/tok-incident-scan.json" >/dev/null
+          INCIDENT_COUNT="$(jq '.incidents | length' "${RUNNER_TEMP}/tok-incident-scan.json")"
           jq '{activeFailures, incidents: (.incidents | length)}' "${RUNNER_TEMP}/tok-incident-scan.json"
+
+          # Rate limit: no more than 5 incidents per scan cycle
+          if (( INCIDENT_COUNT > 5 )); then
+            echo "::error::Incident rate limit exceeded (${INCIDENT_COUNT} > 5). Possible flooding attack — halting scan."
+            exit 1
+          fi
+
+          # Warn on unusual incident volume (3+)
+          if (( INCIDENT_COUNT >= 3 )); then
+            echo "::warning::Unusual incident volume detected: ${INCIDENT_COUNT} incidents in this scan."
+          fi
 
   report-workflow-failure:
     name: Report failed GitHub workflow

@@ -41,24 +41,61 @@ jobs:
         id: request
         env:
           DISPATCH_INCIDENT_ID: ${{ github.event.client_payload.incident_id }}
+          OPS_GITHUB_CALLBACK_SECRET: ${{ secrets.OPS_GITHUB_CALLBACK_SECRET }}
         shell: bash
         run: |
           set -euo pipefail
 
           INCIDENT_ID="${DISPATCH_INCIDENT_ID:-}"
-          # Context tokens are deliberately read from the event file: putting the
-          # value in a step env exposes it before ::add-mask:: can take effect.
-          CONTEXT_TOKEN="$(jq -r '.client_payload.context_token // empty' "$GITHUB_EVENT_PATH")"
 
           if [[ ! "$INCIDENT_ID" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]; then
             echo "::error::Invalid incident UUID."
             exit 1
           fi
 
+          # --- HMAC-SHA256 payload signature validation ---
+          PAYLOAD="$(cat "$GITHUB_EVENT_PATH")"
+          RECEIVED_SIG="$(printf '%s' "$PAYLOAD" | jq -r '.client_payload.signature // empty')"
+          if [[ -z "$RECEIVED_SIG" ]]; then
+            echo "::error::Missing payload signature."
+            exit 1
+          fi
+          if [[ -z "${OPS_GITHUB_CALLBACK_SECRET:-}" ]]; then
+            echo "::error::OPS_GITHUB_CALLBACK_SECRET is not configured."
+            exit 1
+          fi
+          EXPECTED_SIG="$(printf '%s' "$PAYLOAD" | \
+            openssl dgst -sha256 -hmac "$OPS_GITHUB_CALLBACK_SECRET" -hex | \
+            cut -d' ' -f2)"
+          if [[ "$RECEIVED_SIG" != "$EXPECTED_SIG" ]]; then
+            echo "::error::Invalid incident payload signature — tampering detected."
+            exit 1
+          fi
+
+          # --- Timestamp validation: reject payloads older than 5 minutes ---
+          INCIDENT_TS="$(printf '%s' "$PAYLOAD" | jq -r '.client_payload.timestamp // empty')"
+          if [[ -z "$INCIDENT_TS" ]]; then
+            echo "::error::Missing incident timestamp."
+            exit 1
+          fi
+          CURRENT_TS="$(date +%s)"
+          AGE=$(( CURRENT_TS - INCIDENT_TS ))
+          if (( AGE < 0 || AGE > 300 )); then
+            echo "::error::Incident payload timestamp out of acceptable range (replay attack?)."
+            exit 1
+          fi
+
           echo "incident_id=$INCIDENT_ID" >> "$GITHUB_OUTPUT"
 
-          if [[ ! "$CONTEXT_TOKEN" =~ ^[A-Za-z0-9_-]{24,64}$ ]]; then
-            echo "::error::Invalid incident context token."
+          # Context tokens are deliberately read from the event file: putting the
+          # value in a step env exposes it before ::add-mask:: can take effect.
+          CONTEXT_TOKEN="$(jq -r '
+            .client_payload.context_token |
+            select(test("^[A-Za-z0-9_-]{32,256}$")) // empty' \
+            "$GITHUB_EVENT_PATH")"
+
+          if [[ -z "$CONTEXT_TOKEN" ]]; then
+            echo "::error::Invalid or missing incident context token."
             exit 1
           fi
           if [[ -z "$INCIDENT_CONTROL_URL" || "$INCIDENT_GITHUB_SECRET_PRESENT" != "true" ]]; then
@@ -70,6 +107,7 @@ jobs:
             exit 1
           fi
 
+          # Mask BEFORE any further use or output
           echo "::add-mask::$CONTEXT_TOKEN"
           printf '%s' "$CONTEXT_TOKEN" > "${RUNNER_TEMP}/tok-incident-context-token"
           chmod 600 "${RUNNER_TEMP}/tok-incident-context-token"
@@ -149,6 +187,68 @@ jobs:
             "${RUNNER_TEMP}/tok-repair-context-request.json"
           unset CONTEXT_TOKEN
 
+      - name: Validate incident type whitelist and sanitize context fields
+        env:
+          INCIDENT_ID: ${{ steps.request.outputs.incident_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          CONTEXT_FILE="${RUNNER_TEMP}/tok-incident-context.json"
+
+          ALLOWED_INCIDENT_TYPES=(
+            "edge_function_timeout"
+            "database_connection_failed"
+            "api_rate_limit"
+            "auth_provider_error"
+            "build_failure"
+            "deploy_failure"
+            "workflow_failure"
+            "service_degradation"
+            "data_sync_error"
+            "payment_processing_error"
+          )
+
+          INCIDENT_TYPE="$(jq -r '.incident.type // empty' "$CONTEXT_FILE")"
+          if [[ -n "$INCIDENT_TYPE" ]]; then
+            FOUND=0
+            for ALLOWED in "${ALLOWED_INCIDENT_TYPES[@]}"; do
+              if [[ "$INCIDENT_TYPE" == "$ALLOWED" ]]; then FOUND=1; break; fi
+            done
+            if [[ $FOUND -eq 0 ]]; then
+              echo "::error::Incident type '${INCIDENT_TYPE}' is not in the allowed whitelist."
+              exit 1
+            fi
+          fi
+
+          # Structural sanitization: ensure text fields contain no executable patterns
+          EXECUTABLE_PATTERN='(^|[^a-zA-Z])(bash|sh|curl|eval|exec|python3?|node|ruby|perl|wget|nc |ncat|mkfifo|/bin/|/usr/bin/|`[^`]+`|\$\([^)]+\))'
+          for FIELD in '.incident.title' '.incident.repair_plan.summary // ""'; do
+            VALUE="$(jq -r "$FIELD" "$CONTEXT_FILE" 2>/dev/null || true)"
+            if [[ -n "$VALUE" ]] && printf '%s' "$VALUE" | grep -Eiq "$EXECUTABLE_PATTERN"; then
+              echo "::error::Incident field '${FIELD}' contains potentially executable content — rejecting payload."
+              exit 1
+            fi
+          done
+
+          # Emit audit trail entry
+          jq -n \
+            --arg incident_id "$INCIDENT_ID" \
+            --arg timestamp "$(date -Iseconds)" \
+            --arg action "repair_context_validated" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg incident_type "${INCIDENT_TYPE:-unknown}" \
+            '{
+              incident_id: $incident_id,
+              action: $action,
+              timestamp: $timestamp,
+              run_id: $run_id,
+              run_attempt: $run_attempt,
+              repository: $repository,
+              incident_type: $incident_type
+            }' >> "${RUNNER_TEMP}/tok-incident-audit.jsonl"
+
       - name: Checkout approved immutable base revision
         uses: actions/checkout@v4
         with:
@@ -185,10 +285,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          # Create a restricted sandbox directory for Codex context
+          SANDBOX_DIR="${RUNNER_TEMP}/codex-sandbox-$$"
+          mkdir -p "$SANDBOX_DIR"
+          chmod 700 "$SANDBOX_DIR"
+          cp "${RUNNER_TEMP}/tok-incident-context.json" "$SANDBOX_DIR/incident-context.json"
+          chmod 400 "$SANDBOX_DIR/incident-context.json"
+
+          # Expose read-only context inside the workspace for Codex to read
           mkdir -p .codex-runtime
-          cp "${RUNNER_TEMP}/tok-incident-context.json" .codex-runtime/incident-context.json
-          chmod 600 .codex-runtime/incident-context.json
+          cp "$SANDBOX_DIR/incident-context.json" .codex-runtime/incident-context.json
+          chmod 400 .codex-runtime/incident-context.json
           printf '.codex-runtime/\n' >> .git/info/exclude
+
+          echo "CODEX_SANDBOX=$SANDBOX_DIR" >> "$GITHUB_ENV"
 
       - name: Notify repair start
         continue-on-error: true
@@ -303,6 +414,15 @@ jobs:
               exit 1
             fi
 
+            # Per-file size limit: 5 MiB
+            if [[ -f "$FILE" ]]; then
+              FILE_BYTES="$(stat -c '%s' "$FILE")"
+              if (( FILE_BYTES > 5242880 )); then
+                echo "::error file=$FILE::File exceeds the 5 MiB per-file size limit."
+                exit 1
+              fi
+            fi
+
             if [[ "$FILE" == supabase/migrations/*.sql ]]; then
               if git cat-file -e "${BASE_SHA}:${FILE}" 2>/dev/null; then
                 echo "::error file=$FILE::Existing migrations are immutable."
@@ -346,6 +466,13 @@ jobs:
           PATCH_SIZE="$(stat -c '%s' "$ARTIFACT_DIR/repair.patch")"
           if (( PATCH_SIZE > 10485760 )); then
             echo "::error::Repair patch exceeds 10 MiB."
+            exit 1
+          fi
+
+          # Total changed-file workspace size limit: 8 MiB
+          TOTAL_CHANGED_BYTES="$(git diff --name-only "$BASE_SHA" -- | xargs -d '\n' -r stat -c '%s' 2>/dev/null | awk '{s+=$1} END{print s+0}')"
+          if (( TOTAL_CHANGED_BYTES > 8388608 )); then
+            echo "::error::Total size of changed files exceeds the 8 MiB safety limit."
             exit 1
           fi
 
@@ -467,6 +594,29 @@ jobs:
             exit 1
           fi
 
+      - name: Validate main branch protection before publishing
+        env:
+          GH_TOKEN: ${{ secrets.TOK_CODEX_GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$GH_TOKEN"
+
+          # Verify main branch protection is enabled
+          PROTECTED="$(gh api "repos/$GITHUB_REPOSITORY/branches/main" --jq '.protected' 2>/dev/null || echo 'false')"
+          if [[ "$PROTECTED" != "true" ]]; then
+            echo "::error::Main branch does not have branch protection enabled — aborting publish."
+            exit 1
+          fi
+
+          # Verify at least 1 required approving review
+          REQUIRED_REVIEWS="$(gh api "repos/$GITHUB_REPOSITORY/branches/main/protection" \
+            --jq '.required_pull_request_reviews.required_approving_review_count // 0' 2>/dev/null || echo '0')"
+          if (( REQUIRED_REVIEWS < 1 )); then
+            echo "::error::Main branch requires at least 1 required approving review — aborting publish."
+            exit 1
+          fi
+
       - name: Checkout immutable base revision
         uses: actions/checkout@v4
         with:
@@ -560,6 +710,7 @@ jobs:
           GH_TOKEN: ${{ secrets.TOK_CODEX_GITHUB_TOKEN }}
           INCIDENT_ID: ${{ needs.prepare.outputs.incident_id }}
           REPAIR_BRANCH: ${{ needs.prepare.outputs.repair_branch }}
+          INCIDENT_GITHUB_SECRET: ${{ secrets.OPS_GITHUB_CALLBACK_SECRET || secrets.TOK_INCIDENT_GITHUB_SECRET }}
         shell: bash
         run: |
           set -euo pipefail
@@ -602,6 +753,33 @@ jobs:
 
           echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+          # Emit audit trail for PR publication
+          jq -n \
+            --arg incident_id "$INCIDENT_ID" \
+            --arg timestamp "$(date -Iseconds)" \
+            --arg action "repair_pr_published" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg pr_url "$PR_URL" \
+            --arg pr_number "$PR_NUMBER" \
+            --arg branch "$REPAIR_BRANCH" \
+            '{
+              incident_id: $incident_id,
+              action: $action,
+              timestamp: $timestamp,
+              run_id: $run_id,
+              run_attempt: $run_attempt,
+              repository: $repository,
+              pr_url: $pr_url,
+              pr_number: $pr_number,
+              branch: $branch
+            }' | curl --silent --show-error --max-time 15 \
+              -X POST "$INCIDENT_CONTROL_URL" \
+              -H "Content-Type: application/json" \
+              -H "x-ops-github-secret: $INCIDENT_GITHUB_SECRET" \
+              --data-binary @- >/dev/null || true
 
   report:
     name: Report repair result to Telegram
