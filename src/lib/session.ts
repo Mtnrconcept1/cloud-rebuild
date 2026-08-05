@@ -222,6 +222,10 @@ export async function invokeSupabaseFunction<TData = unknown>(
     headers: mergeFunctionHeaders(invokeOptions.headers, accessToken),
   });
 
+  if (getFunctionsErrorStatus(result.error, result.response) === 401) {
+    return throwSessionExpired();
+  }
+
   if (result.error) {
     return {
       ...result,

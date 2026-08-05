@@ -104,6 +104,17 @@ describe("commercial demo account security", () => {
     expect(sessionHelper).toContain("await getFreshAccessToken(true)");
     expect(sessionHelper).toContain('auth.signOut({ scope: "local" })');
     expect(sessionHelper).toContain("throw new SessionExpiredError()");
+    expect(sessionHelper).toContain(
+      "if (getFunctionsErrorStatus(result.error, result.response) === 401)",
+    );
+    expect(sessionHelper).toContain("return throwSessionExpired()");
+    expect(sharedAuth).toContain("function getSupabasePublicKey()");
+    expect(sharedAuth).toContain(
+      'getEnv("SUPABASE_ANON_KEY") || getEnv("SUPABASE_PUBLISHABLE_KEY")',
+    );
+    expect(sharedAuth).toContain(
+      'throw new HttpError(503, "SUPABASE_PUBLIC_KEY_NOT_CONFIGURED")',
+    );
     expect(provisionFunction).toContain("authenticateRequest(req)");
     expect(provisionFunction).toContain('requireUserRole(actor, ["admin"])');
   });

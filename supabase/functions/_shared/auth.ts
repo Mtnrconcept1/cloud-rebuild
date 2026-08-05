@@ -121,6 +121,10 @@ export function createAdminClient() {
   ) as EdgeSupabaseClient;
 }
 
+function getSupabasePublicKey() {
+  return getEnv("SUPABASE_ANON_KEY") || getEnv("SUPABASE_PUBLISHABLE_KEY");
+}
+
 export function jsonResponse(
   payload: Record<string, unknown>,
   status: number,
@@ -253,9 +257,14 @@ export async function authenticateRequest(
     };
   }
 
+  const publicKey = getSupabasePublicKey();
+  if (!publicKey) {
+    throw new HttpError(503, "SUPABASE_PUBLIC_KEY_NOT_CONFIGURED");
+  }
+
   const userClient = createClient(
     getEnv("SUPABASE_URL"),
-    getEnv("SUPABASE_ANON_KEY"),
+    publicKey,
     {
       global: {
         headers: {
