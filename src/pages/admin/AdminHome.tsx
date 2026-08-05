@@ -12,6 +12,7 @@ import {
   Layers,
   MessageSquareText,
   MapPin,
+  Network,
   Newspaper,
   Rocket,
   Settings2,
@@ -199,6 +200,14 @@ const ADMIN_TOOLS = [
     href: "/admin/audit",
     feature: "admin-audit",
     color: "text-amber-500",
+  },
+  {
+    title: "TOK Connect",
+    description: "Gérer les partenaires, restaurants et accès API TOK Connect.",
+    icon: Network,
+    href: "/admin/tok-connect",
+    feature: "admin-tok-connect",
+    color: "text-cyan-500",
   },
   {
     title: "Operations IA",

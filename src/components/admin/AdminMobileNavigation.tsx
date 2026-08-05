@@ -95,7 +95,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
       { to: "/admin/platform", label: "Configuration plateforme", icon: Settings2, feature: "admin-platform-config" },
       { to: "/admin/ai-operations", label: "Operations IA", icon: Brain, feature: "ai_admin_monitoring" },
       { to: "/admin/guardian", label: "TOK Guardian", icon: ShieldAlert, feature: "admin-guardian" },
-      { to: "/admin/tok-connect", label: "TOK Connect", icon: Network, feature: "tok-connect" },
+      { to: "/admin/tok-connect", label: "TOK Connect", icon: Network, feature: "admin-tok-connect" },
       { to: "/admin/packs", label: "Abonnements restaurateur", icon: Crown, feature: "admin-packs" },
     ],
   },
@@ -303,7 +303,7 @@ export default function AdminMobileNavigation() {
   );
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pl-[calc(env(safe-area-inset-left,0px)+1rem)] pr-[calc(env(safe-area-inset-right,0px)+1rem)] md:hidden">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pl-[calc(env(safe-area-inset-left,0px)+1rem)] pr-[calc(env(safe-area-inset-right,0px)+1rem)]">
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetTrigger asChild>
           <Button

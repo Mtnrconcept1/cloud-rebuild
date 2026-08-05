@@ -62,6 +62,17 @@ describe("super admin sensitive RLS hardening", () => {
     expect(rolesFn).toContain("ON CONFLICT (user_id, role) DO NOTHING");
   });
 
+  it("keeps feature flags readable while restricting rollout writes", () => {
+    const { sql } = latestMigrationContaining("feature_flags_public_select");
+
+    expect(sql).toContain('CREATE POLICY "feature_flags_public_select"');
+    expect(sql).toMatch(/FOR SELECT\s+TO anon,\s*authenticated/i);
+    expect(sql).toContain("USING (true)");
+    expect(sql).toContain('CREATE POLICY "feature_flags_super_admin_write"');
+    expect(sql).toContain("USING (public.auth_is_super_admin())");
+    expect(sql).toContain("WITH CHECK (public.auth_is_super_admin())");
+  });
+
   it("locks admin audit, finance, token and security tables behind super-admin policies", () => {
     const { sql } = latestMigrationContaining("super_admin_sensitive_rls_hardening");
 

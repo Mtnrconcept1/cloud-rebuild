@@ -35,6 +35,7 @@ const allAdminFeatures = [
   "admin-audit",
   "admin-platform-config",
   "ai_admin_monitoring",
+  "admin-tok-connect",
   "admin-packs",
 ];
 
@@ -61,6 +62,7 @@ describe("AdminMobileNavigation", () => {
     expect(screen.getByRole("link", { name: "Vue d'ensemble" }).getAttribute("href")).toBe("/admin");
     expect(screen.getByRole("link", { name: "Commandes et reservations" }).getAttribute("href")).toBe("/admin/commandes-reservations");
     expect(screen.getByRole("link", { name: "Configuration plateforme" }).getAttribute("href")).toBe("/admin/platform");
+    expect(screen.getByRole("link", { name: "TOK Connect" }).getAttribute("href")).toBe("/admin/tok-connect");
   });
 
   it("hides admin tabs whose feature flag is disabled", () => {
