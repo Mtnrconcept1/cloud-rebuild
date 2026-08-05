@@ -1199,7 +1199,7 @@ export default function Aide() {
                   <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <div>
                     <p className="text-sm font-medium">Téléphone</p>
-                    <p className="text-xs text-muted-foreground">0800 MIAMZ (64269)</p>
+                    <p className="text-xs text-muted-foreground">+41 76 475 66 69</p>
                     <p className="text-xs text-muted-foreground">Lun-Ven, 9h-21h.</p>
                   </div>
                 </div>
