@@ -413,12 +413,20 @@ export function useFeatureFlagSnapshot(options: { enabled?: boolean; live?: bool
 
     loadFlags();
     window.addEventListener("feature-flags-changed", loadFlags);
-    const channel = live
-      ? getSupabase()
-          .channel("feature-flags-runtime")
-          .on("postgres_changes", { event: "*", schema: "public", table: "feature_flags" }, loadRemoteFlags)
-          .subscribe()
-      : null;
+
+    let channel: ReturnType<ReturnType<typeof getSupabase>["channel"]> | null = null;
+    if (live) {
+      const supabase = getSupabase();
+      // Remove any previous channel with the same name to avoid
+      // "cannot add callbacks after subscribe()" errors on re-renders.
+      const existing = supabase.getChannels().find((ch) => ch.topic === "realtime:feature-flags-runtime");
+      if (existing) void supabase.removeChannel(existing);
+
+      channel = supabase
+        .channel("feature-flags-runtime")
+        .on("postgres_changes", { event: "*", schema: "public", table: "feature_flags" }, loadRemoteFlags)
+        .subscribe();
+    }
 
     return () => {
       cancelled = true;
