@@ -1,4 +1,4 @@
-﻿import { render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -63,13 +63,13 @@ describe("ComingSoonGate", () => {
               </ComingSoonGate>
             )}
           />
-          <Route path="/coming-soon" element={<div>Bient├┤t</div>} />
+          <Route path="/coming-soon" element={<div>Bientôt</div>} />
         </Routes>
       </MemoryRouter>,
     );
 
     expect(screen.queryByText("Accueil")).not.toBeInTheDocument();
-    expect(screen.getByText("Bient├┤t")).toBeInTheDocument();
+    expect(screen.getByText("Bientôt")).toBeInTheDocument();
   });
 
   it("redirects public routes when the coming-soon feature flag is enabled", async () => {
@@ -88,12 +88,12 @@ describe("ComingSoonGate", () => {
               </ComingSoonGate>
             )}
           />
-          <Route path="/coming-soon" element={<div>Bient├┤t</div>} />
+          <Route path="/coming-soon" element={<div>Bientôt</div>} />
         </Routes>
       </MemoryRouter>,
     );
 
     expect(screen.queryByText("Accueil")).not.toBeInTheDocument();
-    expect(screen.getByText("Bient├┤t")).toBeInTheDocument();
+    expect(screen.getByText("Bientôt")).toBeInTheDocument();
   });
 });
