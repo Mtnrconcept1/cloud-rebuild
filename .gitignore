@@ -59,3 +59,22 @@ eslint-output.json
 
 # Local source art used to generate optimized event logos.
 public/logotok_1_50_transparents/
+
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Secrets / keys
+*.pem
+*.key
+*.p12
+service-account*.json
+
+# Local DB/artifacts
+*.sqlite
+*.db
+
+# Supabase local branch state
+supabase/.branches/*
