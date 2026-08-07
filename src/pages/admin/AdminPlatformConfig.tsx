@@ -40,6 +40,7 @@ import {
 } from "@/lib/featureFlags";
 
 const CRITICAL_FLAGS = new Set([
+  "coming-soon",
   "livraison",
   "emporter",
   "reservation",

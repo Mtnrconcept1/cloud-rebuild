@@ -8,8 +8,17 @@ const authMock = vi.hoisted(() => ({
   },
 }));
 
+const flagMock = vi.hoisted(() => ({
+  isEnabled: (_name: string) => false,
+  loading: false,
+}));
+
 vi.mock("@/lib/auth-context", () => ({
   useAuth: () => authMock.state,
+}));
+
+vi.mock("@/lib/featureFlags", () => ({
+  useFeatureFlagSnapshot: () => flagMock,
 }));
 
 async function loadComingSoonGate() {
@@ -21,6 +30,7 @@ describe("ComingSoonGate", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.resetModules();
+    flagMock.isEnabled = () => false;
   });
 
   it("renders its children when the coming soon mode is disabled", async () => {
@@ -38,8 +48,33 @@ describe("ComingSoonGate", () => {
     expect(screen.getByText("Accueil")).toBeInTheDocument();
   });
 
-  it("redirects public routes to the coming soon page when the gate is enabled", async () => {
+  it("redirects public routes to the coming soon page when the gate is enabled via env", async () => {
     vi.stubEnv("VITE_COMING_SOON", "true");
+    const ComingSoonGate = await loadComingSoonGate();
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Routes>
+          <Route
+            path="/"
+            element={(
+              <ComingSoonGate>
+                <div>Accueil</div>
+              </ComingSoonGate>
+            )}
+          />
+          <Route path="/coming-soon" element={<div>Bientôt</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText("Accueil")).not.toBeInTheDocument();
+    expect(screen.getByText("Bientôt")).toBeInTheDocument();
+  });
+
+  it("redirects public routes when the coming-soon feature flag is enabled", async () => {
+    vi.stubEnv("VITE_COMING_SOON", "false");
+    flagMock.isEnabled = (name: string) => name === "coming-soon";
     const ComingSoonGate = await loadComingSoonGate();
 
     render(

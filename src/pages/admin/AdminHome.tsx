@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -41,7 +42,8 @@ import { Progress } from "@/components/ui/progress";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useAuth } from "@/lib/auth-context";
-import { useActiveFeatures } from "@/lib/featureFlags";
+import { useActiveFeatures, useFeatureFlags } from "@/lib/featureFlags";
+import { Switch } from "@/components/ui/switch";
 import {
   MARKETPLACE_LIQUIDITY_BLOCKERS,
   MarketplaceLiquidityBlocker,
@@ -267,6 +269,11 @@ export default function AdminHome() {
   const { unreadNotifications } = useNotificationCenter(50);
   const adminPlatformConfigEnabled = activeFeatures.has(ADMIN_PLATFORM_CONFIG_LINK.feature);
   const visibleTools = ADMIN_TOOLS.filter((tool) => !tool.feature || activeFeatures.has(tool.feature));
+
+  const { flags, setFlagState, loading: flagsLoading } = useFeatureFlags(true);
+  const comingSoonFlag = flags.find((f) => f.name === "coming-soon");
+  const comingSoonActive = comingSoonFlag?.explicitEnabled ?? false;
+  const [comingSoonToggling, setComingSoonToggling] = useState(false);
 
   const { data: stats } = useQuery({
     queryKey: ["admin-stats"],
@@ -573,6 +580,41 @@ export default function AdminHome() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className={comingSoonActive ? "border-amber-400 bg-amber-50" : "border-green-200 bg-green-50/50"}>
+        <CardContent className="flex flex-col gap-4 py-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Rocket className={`h-5 w-5 ${comingSoonActive ? "text-amber-600" : "text-green-600"}`} />
+              <p className="font-semibold">Page « Coming Soon »</p>
+              <Badge variant={comingSoonActive ? "destructive" : "secondary"}>
+                {comingSoonActive ? "Activée" : "Désactivée"}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {comingSoonActive
+                ? "Le site public est masqué. Seuls les dashboards admin, restaurateur, coursier et l'authentification sont accessibles."
+                : "Le site public est visible par tous les visiteurs."}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Switch
+              checked={comingSoonActive}
+              disabled={flagsLoading || comingSoonToggling || !comingSoonFlag}
+              onCheckedChange={async (checked) => {
+                setComingSoonToggling(true);
+                await setFlagState(
+                  comingSoonFlag!.id,
+                  checked,
+                  checked ? "Activation Coming Soon depuis admin home" : "Désactivation Coming Soon depuis admin home",
+                );
+                setComingSoonToggling(false);
+              }}
+            />
+            <span className="text-sm font-medium">{comingSoonActive ? "Actif" : "Inactif"}</span>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="flex flex-col gap-4 py-6 lg:flex-row lg:items-center lg:justify-between">
