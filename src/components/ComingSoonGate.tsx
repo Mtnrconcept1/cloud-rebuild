@@ -36,8 +36,8 @@ export default function ComingSoonGate({
 
   const comingSoonActive = COMING_SOON_ENV || isEnabled("coming-soon");
 
-  if (!comingSoonActive) return <>{children}</>;
   if (authLoading || flagsLoading) return null;
+  if (!comingSoonActive) return <>{children}</>;
   if (isExemptPath(pathname)) return <>{children}</>;
 
   return <Navigate to="/coming-soon" replace />;
