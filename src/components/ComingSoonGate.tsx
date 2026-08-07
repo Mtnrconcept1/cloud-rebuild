@@ -32,7 +32,7 @@ export default function ComingSoonGate({
   const { loading } = useAuth();
 
   if (!COMING_SOON_ENABLED) return <>{children}</>;
-  if (loading) return <>{children}</>;
+  if (loading) return null;
   if (isExemptPath(pathname)) return <>{children}</>;
 
   return <Navigate to="/coming-soon" replace />;
