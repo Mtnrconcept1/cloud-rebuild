@@ -1,7 +1,8 @@
 import { useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth-context";
+import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 
-const COMING_SOON_ENABLED = import.meta.env.VITE_COMING_SOON === "true";
+const COMING_SOON_ENV = import.meta.env.VITE_COMING_SOON === "true";
 
 const EXEMPT_PREFIXES = [
   "/auth",
@@ -20,7 +21,8 @@ function isExemptPath(pathname: string): boolean {
 }
 
 /**
- * Blocks navigation to public/client routes when VITE_COMING_SOON=true.
+ * Blocks navigation to public/client routes when the "coming-soon" feature flag
+ * is active (admin toggle) OR VITE_COMING_SOON=true (env fallback).
  * Restaurant dashboard, admin dashboard and auth routes remain accessible.
  */
 export default function ComingSoonGate({
@@ -29,10 +31,13 @@ export default function ComingSoonGate({
   children: React.ReactNode;
 }) {
   const { pathname } = useLocation();
-  const { loading } = useAuth();
+  const { loading: authLoading } = useAuth();
+  const { isEnabled, loading: flagsLoading } = useFeatureFlagSnapshot({ enabled: true, live: true });
 
-  if (!COMING_SOON_ENABLED) return <>{children}</>;
-  if (loading) return null;
+  const comingSoonActive = COMING_SOON_ENV || isEnabled("coming-soon");
+
+  if (!comingSoonActive) return <>{children}</>;
+  if (authLoading || flagsLoading) return null;
   if (isExemptPath(pathname)) return <>{children}</>;
 
   return <Navigate to="/coming-soon" replace />;

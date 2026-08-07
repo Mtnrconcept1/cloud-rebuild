@@ -865,6 +865,15 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     group: "admin_tools",
     routeTargets: ["/admin/compta", "/admin/compta/entrees", "/admin/compta/sorties"],
   },
+  {
+    name: "coming-soon",
+    label: "Page Coming Soon",
+    description: "Lorsque activé, redirige toutes les pages publiques vers la page Coming Soon. Les dashboards admin, restaurateur, coursier et l'authentification restent accessibles.",
+    defaultEnabled: false,
+    group: "admin_tools",
+    routeTargets: ["/coming-soon"],
+    critical: true,
+  },
 ];
 
 const FEATURE_DEFINITION_MAP = new Map(FEATURE_DEFINITIONS.map((definition) => [definition.name, definition]));
