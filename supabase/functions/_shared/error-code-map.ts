@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 315 error codes mapped from supabase/functions/**.
+// 316 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -88,7 +88,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1154
+      "line": 1221
     }
   ],
   "ai_invalid_plan": [
@@ -120,7 +120,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1161
+      "line": 1228
     }
   ],
   "ai_provider_billing_unavailable": [
@@ -184,7 +184,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1149
+      "line": 1216
     },
     {
       "file": "supabase/functions/restaurant-advisor/index.ts",
@@ -299,6 +299,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/google-actions-center-sync/index.ts",
       "line": 168
+    }
+  ],
+  "branch_id_missing": [
+    {
+      "file": "supabase/functions/floorplan-ai/index.ts",
+      "line": 147
     }
   ],
   "campaign_not_found": [
@@ -1278,7 +1284,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_image": [
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1018
+      "line": 1075
     }
   ],
   "invalid_incident_workflow_transition": [
@@ -1326,7 +1332,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1015
+      "line": 1072
     },
     {
       "file": "supabase/functions/restaurant-advisor/index.ts",
