@@ -1,5 +1,5 @@
 import { useLocation, Navigate } from "react-router-dom";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 
 const COMING_SOON_ENABLED = import.meta.env.VITE_COMING_SOON === "true";
 
