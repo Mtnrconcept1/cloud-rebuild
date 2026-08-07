@@ -42,6 +42,7 @@ import CommercialDemoFrameProvider, { CommercialDemoFrameAuthBoundary, useCommer
 import CommercialDemoHostSecurityBoundary from "@/components/commercial/CommercialDemoHostSecurityBoundary";
 import CommercialDemoSafeEffectsBoundary from "@/components/commercial/CommercialDemoSafeEffectsBoundary";
 import CommercialHostBoundary from "@/components/commercial/CommercialHostBoundary";
+import ComingSoonGate from "@/components/ComingSoonGate";
 import MarketingHostBoundary from "@/components/marketing/MarketingHostBoundary";
 import MarketingProtectedRoute from "@/components/marketing/MarketingProtectedRoute";
 import { isMarketingAppHost, isMarketingPath } from "@/lib/marketingDomains";
@@ -49,6 +50,7 @@ import MarketingSessionProvider from "@/marketing/MarketingSessionProvider";
 import { isCommercialDemoClientPathAllowed } from "@/lib/commercialDemoClientRoutes";
 import { getCommercialDemoFrameConfig, type CommercialDemoFrameConfig } from "@/lib/commercialDemoFrame";
 
+const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const WorkspaceChooser = lazy(() => import("./pages/WorkspaceChooser"));
@@ -546,7 +548,9 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           />
         )}
       >
+        <ComingSoonGate>
         <Routes>
+          <Route path="/coming-soon" element={<ComingSoon />} />
           <Route path="/" element={<ClientSurfaceRoute><Index /></ClientSurfaceRoute>} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/auth/demo" element={<Auth demoMode />} />
@@ -674,6 +678,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/aide" element={<Aide />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </ComingSoonGate>
       </Suspense>
       {aiSupportChatEnabled === true && !oauthConsentFrame && supportChatAllowed ? <SupportChat /> : null}
       {showGlobalClientChrome ? (

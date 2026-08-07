@@ -24,7 +24,7 @@ jobs:
     uses: ./.github/workflows/_validation.yml
     with:
       base_sha: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
-      head_sha: ${{ github.sha }}
+      head_sha: ${{ github.event.pull_request.head.sha || github.sha }}
       force_full: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' }}
       force_deploy: false
       skip_build: false

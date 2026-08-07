@@ -70,6 +70,7 @@ const CORE_ROUTES = new Set([
   "/commercial/comptabilite",
   // Legacy redirect kept alive for bookmarks after "Plan de salle 2" was removed.
   "/dashboard/plan-salle-v2",
+  "/coming-soon",
 ]);
 
 function escapeRegex(value: string) {
