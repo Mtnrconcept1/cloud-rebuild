@@ -14,8 +14,16 @@ const rowsState = vi.hoisted(() => ({
 }));
 const realtimeState = vi.hoisted(() => ({
   callback: null as null | (() => void),
+  channels: [] as Array<{ topic: string }>,
 }));
-const removeChannelMock = vi.hoisted(() => vi.fn());
+const removeChannelMock = vi.hoisted(() =>
+  vi.fn((channel: { topic: string }) => {
+    realtimeState.channels = realtimeState.channels.filter((entry) => entry !== channel);
+  }),
+);
+const getChannelsMock = vi.hoisted(() =>
+  vi.fn(() => [...realtimeState.channels]),
+);
 
 vi.mock("@/integrations/supabase/client", () => ({
   getSupabase: () => ({
@@ -24,19 +32,35 @@ vi.mock("@/integrations/supabase/client", () => ({
         order: async () => ({ data: rowsState.rows, error: null }),
       }),
     }),
-    channel: () => ({
-      on: (
-        _type: string,
-        _filter: Record<string, string>,
-        callback: () => void,
-      ) => {
-        realtimeState.callback = callback;
-        const subscribedChannel = { topic: "feature-flags-runtime" };
+    getChannels: getChannelsMock,
+    channel: (name: string) => {
+      const topic = `realtime:${name}`;
+      const existing = realtimeState.channels.find((entry) => entry.topic === topic);
+      if (existing) {
         return {
-          subscribe: () => subscribedChannel,
+          on: () => {
+            throw new Error(
+              `cannot add postgres_changes callbacks for ${topic} after subscribe()`,
+            );
+          },
         };
-      },
-    }),
+      }
+
+      return {
+        on: (
+          _type: string,
+          _filter: Record<string, string>,
+          callback: () => void,
+        ) => {
+          realtimeState.callback = callback;
+          const subscribedChannel = { topic };
+          realtimeState.channels.push(subscribedChannel);
+          return {
+            subscribe: () => subscribedChannel,
+          };
+        },
+      };
+    },
     removeChannel: removeChannelMock,
   }),
 }));
@@ -86,7 +110,9 @@ describe("feature flag Realtime propagation", () => {
     invalidateFeatureFlagsCache();
     rowsState.rows = featureRows(true);
     realtimeState.callback = null;
-    removeChannelMock.mockReset();
+    realtimeState.channels = [];
+    removeChannelMock.mockClear();
+    getChannelsMock.mockClear();
   });
 
   it("refreshes both the app route snapshot and passive navigation consumers", async () => {
@@ -107,5 +133,22 @@ describe("feature flag Realtime propagation", () => {
       expect(screen.getByTestId("live")).toHaveTextContent("off");
       expect(screen.getByTestId("navigation")).toHaveTextContent("off");
     });
+  });
+
+  it("removes a stale realtime channel before re-subscribing", async () => {
+    const staleChannel = { topic: "realtime:feature-flags-runtime" };
+    realtimeState.channels = [staleChannel];
+
+    render(<FeatureFlagRealtimeProbe />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("live")).toHaveTextContent("on");
+    });
+
+    expect(removeChannelMock).toHaveBeenCalledWith(staleChannel);
+    expect(realtimeState.callback).not.toBeNull();
+    expect(
+      realtimeState.channels.some((entry) => entry.topic === "realtime:feature-flags-runtime"),
+    ).toBe(true);
   });
 });
