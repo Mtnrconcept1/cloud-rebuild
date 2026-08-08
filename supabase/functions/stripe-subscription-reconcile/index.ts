@@ -45,10 +45,14 @@ function finiteUnixTimestamp(value: unknown) {
 
 function resolveSubscriptionPeriod(subscription: Stripe.Subscription) {
   const starts = (subscription.items?.data || [])
-    .map((item) => finiteUnixTimestamp(item.current_period_start))
+    .map((item) => finiteUnixTimestamp(
+      (item as { current_period_start?: unknown }).current_period_start,
+    ))
     .filter((value): value is number => value !== null);
   const ends = (subscription.items?.data || [])
-    .map((item) => finiteUnixTimestamp(item.current_period_end))
+    .map((item) => finiteUnixTimestamp(
+      (item as { current_period_end?: unknown }).current_period_end,
+    ))
     .filter((value): value is number => value !== null);
 
   return {
