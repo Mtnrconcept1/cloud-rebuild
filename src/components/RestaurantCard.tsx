@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Bike, Clock3, Heart, MapPin, Percent, Sparkles } from "lucide-react";
+import { ArrowRight, Bike, Heart, MapPin, Percent, Sparkles } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
@@ -357,11 +357,6 @@ export default function RestaurantCard({
   const hasDiscount = discountPercentLabel.length > 0;
   const discountBadgeLabel = hasDiscount ? `Jusqu’à -${discountPercentLabel}%` : null;
   const discountShortLabel = hasDiscount ? `-${discountPercentLabel}%` : null;
-  const estimatedMinutes = useMemo(() => {
-    const base = 25 + Math.floor(Math.random() * 15);
-    return { min: base, max: base + 10 };
-  }, []);
-
   useEffect(() => {
     if (isCommercialDemoClient) return;
     if (isSponsored && sponsoredCampaignId) return;
@@ -544,12 +539,6 @@ export default function RestaurantCard({
               <MapPin className="h-3.5 w-3.5 text-primary/75" />
               <span className="font-medium text-foreground/90 dark:text-white/90">{city}</span>
             </span>
-            {showDelivery ? (
-              <span className="inline-flex items-center gap-1.5">
-                <Clock3 className="h-3.5 w-3.5 text-primary/75" />
-                <span>{estimatedMinutes.min}-{estimatedMinutes.max} min</span>
-              </span>
-            ) : null}
           </div>
 
           {address ? (

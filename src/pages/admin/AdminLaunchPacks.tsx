@@ -466,7 +466,12 @@ export default function AdminLaunchPacks() {
                         <span>{subscription.cancel_at_period_end ? "Résiliation programmée" : "Renouvellement actif"}</span>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto"
+                      onClick={() => setSelectedSubscriptionId(subscription.id)}
+                    >
                       Gérer les accès
                     </Button>
                   </div>

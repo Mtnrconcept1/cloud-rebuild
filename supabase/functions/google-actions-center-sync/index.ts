@@ -305,15 +305,15 @@ Deno.serve(async (req) => {
 
     if (!serviceAccountConfigured()) {
       // Nothing can be delivered without credentials. Returning before the claim
-      // keeps the outbox untouched, and staying off the `failure` audit path
-      // stops the incident scanner from re-opening the same misconfiguration
-      // every run. The warning below remains the signal in the edge logs.
+      // keeps the outbox untouched. This is an unavailable integration, not a
+      // successful no-op: callers and monitors must receive a non-2xx response
+      // until the service account is configured and delivery is validated.
       log.warn("google actions center not configured, sync skipped", {
         secret: "GOOGLE_ACTIONS_CENTER_SERVICE_ACCOUNT",
       });
       return jsonResponse(
-        { ok: true, skipped: "google_service_account_missing", claimed: 0, sent: 0, failed: 0 },
-        200,
+        { ok: false, error: "google_service_account_missing", claimed: 0, sent: 0, failed: 0 },
+        503,
         cors,
       );
     }

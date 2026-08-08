@@ -126,7 +126,9 @@ describe("Google Actions Center real-time updates", () => {
     // delivery attempt, and each run reopened the same incident.
     expect(worker).toContain("function serviceAccountConfigured()");
     expect(worker).toContain("if (!serviceAccountConfigured()) {");
-    expect(worker).toContain('skipped: "google_service_account_missing"');
+    expect(worker).toContain('error: "google_service_account_missing"');
+    expect(worker).toContain("503,");
+    expect(worker).not.toContain('skipped: "google_service_account_missing"');
 
     // The guard is only worth anything before the claim.
     const guardAt = worker.indexOf("if (!serviceAccountConfigured()) {");
@@ -134,8 +136,8 @@ describe("Google Actions Center real-time updates", () => {
     expect(guardAt).toBeGreaterThan(-1);
     expect(claimAt).toBeGreaterThan(guardAt);
 
-    // Visible in the edge logs, but off the `failure` audit path so the incident
-    // scanner stops reopening a misconfiguration that no retry can resolve.
+    // Visible in the edge logs and surfaced as a non-2xx integration failure so
+    // callers and monitors cannot mistake missing credentials for a delivery.
     expect(worker).toContain("google actions center not configured, sync skipped");
   });
 
