@@ -125,6 +125,9 @@ verify_jwt = false
 [functions.stripe-worker]
 verify_jwt = false
 
+[functions.stripe-subscription-reconcile]
+verify_jwt = false
+
 [functions.dispatch-timeout]
 verify_jwt = false
 
