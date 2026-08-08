@@ -14,7 +14,10 @@ const SERVICE_AUTOSAVE_MAX_DELAY_MS = 12_000;
 const SERVICE_AUTOSAVE_MAX_FAILURES = 3;
 const OPERATION_TIMEOUT_MS = 60_000;
 const BRIDGE_PROTOCOL_VERSION = 2;
-const EXPECTS_DASHBOARD_HYDRATION = new URLSearchParams(window.location.search).get("connected") === "1";
+const STANDALONE_ACCESS_BLOCKED = window.parent === window;
+// The production tool is dashboard-only. Every load remains inert until the
+// authenticated parent sends a same-origin hydration payload.
+const EXPECTS_DASHBOARD_HYDRATION = true;
 const EDITABLE_RESERVATION_STATUSES = Object.freeze(["pending", "confirmed", "arrived", "seated", "no_show"]);
 const ACTIVE_OCCUPANCY_STATUSES = new Set(["seated", "installed", "occupied", "order_taken", "served", "dessert", "bill_requested"]);
 
@@ -41,24 +44,8 @@ const todayIso = () => {
 const uid = (prefix) => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
-const sampleTables = () => [
-  { id: "t1", name: "T1", capacity: 2, zone: "Salle principale", shape: "round", x: 8, y: 10, blocked: false, editable: true, kind: "table" },
-  { id: "t2", name: "T2", capacity: 4, zone: "Salle principale", shape: "square", x: 28, y: 10, blocked: false, editable: true, kind: "table" },
-  { id: "t3", name: "T3", capacity: 6, zone: "Salle principale", shape: "rectangle", x: 52, y: 10, blocked: false, editable: true, kind: "table" },
-  { id: "t4", name: "T4", capacity: 4, zone: "Salle principale", shape: "round", x: 10, y: 38, blocked: false, editable: true, kind: "table" },
-  { id: "t5", name: "T5", capacity: 8, zone: "Salle principale", shape: "rectangle", x: 38, y: 40, blocked: false, editable: true, kind: "table" },
-  { id: "t6", name: "T6", capacity: 4, zone: "Terrasse", shape: "square", x: 10, y: 12, blocked: false, editable: true, kind: "table" },
-  { id: "t7", name: "T7", capacity: 2, zone: "Terrasse", shape: "round", x: 36, y: 12, blocked: false, editable: true, kind: "table" }
-];
-
-const sampleReservations = () => [
-  { id: "r1", name: "Famille Martin", size: 4, time: "19:30", date: todayIso(), period: "soir", preferredZone: "Salle principale", note: "Chaise bébé", durationMinutes: 120, tableId: null, status: "confirmed" },
-  { id: "r2", name: "Sophie Bernard", size: 2, time: "19:45", date: todayIso(), period: "soir", preferredZone: "Terrasse", note: "", durationMinutes: 120, tableId: null, status: "confirmed" },
-  { id: "r3", name: "Groupe Dubois", size: 7, time: "20:00", date: todayIso(), period: "soir", preferredZone: "", note: "Anniversaire", durationMinutes: 120, tableId: null, status: "confirmed" }
-];
-
 const initialState = () => {
-  const tables = sampleTables();
+  const tables = [];
   return {
     connected: false,
     branchId: null,
@@ -69,7 +56,7 @@ const initialState = () => {
     tables: clone(tables),
     serverTemplateTables: clone(tables),
     serverServiceTables: clone(tables),
-    reservations: sampleReservations(),
+    reservations: [],
     recommendations: {},
     variants: [],
     activeVariantId: "current",
@@ -79,7 +66,7 @@ const initialState = () => {
   };
 };
 
-let state = loadState();
+let state = EXPECTS_DASHBOARD_HYDRATION ? initialState() : loadState();
 let awaitingHydration = EXPECTS_DASHBOARD_HYDRATION;
 let history = { past: [], future: [], baseline: clone(state.tables) };
 let assignmentHistory = { past: [], future: [], context: "local" };
@@ -193,7 +180,7 @@ function loadState() {
 }
 
 function saveState() {
-  if (state.connected) return;
+  if (state.connected || awaitingHydration) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     mode: state.mode,
     selectedDate: state.selectedDate,
@@ -769,7 +756,9 @@ function renderControls() {
   });
 
   if (awaitingHydration) {
-    elements.connectionLabel.textContent = "Chargement sécurisé…";
+    elements.connectionLabel.textContent = STANDALONE_ACCESS_BLOCKED
+      ? "Ouvrez le plan de salle depuis votre dashboard"
+      : "Chargement sécurisé…";
   } else if (pendingOperation) {
     elements.connectionLabel.textContent = "Enregistrement…";
   } else if (hasCurrentRevisionConflict()) {
