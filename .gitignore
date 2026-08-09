@@ -69,6 +69,7 @@ public/logotok_1_50_transparents/
 # Secrets / keys
 *.pem
 *.key
+*.p8
 *.p12
 service-account*.json
 

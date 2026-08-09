@@ -1,0 +1,358 @@
+name: App Store Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      marketing_version:
+        description: App Store version, for example 1.0 or 1.0.1.
+        required: true
+        type: string
+        default: "1.0"
+      build_number:
+        description: Monotonically increasing iOS build number.
+        required: true
+        type: string
+        default: "1"
+      upload:
+        description: Upload the validated IPA to App Store Connect after archive/export.
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  IOS_BUNDLE_ID: com.tok.app
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: app-store-production
+  cancel-in-progress: false
+
+jobs:
+  validation:
+    uses: ./.github/workflows/_validation.yml
+    with:
+      base_sha: ""
+      head_sha: ${{ github.sha }}
+      force_full: true
+      force_deploy: false
+      skip_build: false
+
+  web_bundle:
+    name: Build production web bundle
+    needs: validation
+    runs-on: ubuntu-latest
+    environment: Production
+    env:
+      VITE_SUPABASE_PROJECT_ID: wwcrtyoueexyxkkikaos
+      VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY || secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+      VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+      VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+      VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+      VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+      VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+
+    steps:
+      - name: Refuse non-main releases
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::App Store releases must be dispatched from main. Current ref: $GITHUB_REF"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Write production frontend env
+        run: node ./scripts/write-production-env.mjs --out=.env.production
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+
+      - name: Build production web bundle
+        run: pnpm run build
+
+      - name: Upload web bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-store-web-${{ github.sha }}
+          path: dist
+          if-no-files-found: error
+          retention-days: 1
+
+  app_store_preflight:
+    name: Verify App Store Connect
+    needs: validation
+    runs-on: ubuntu-latest
+    environment: app-store-production
+    outputs:
+      app_id: ${{ steps.appstore.outputs.app_id }}
+      app_name: ${{ steps.appstore.outputs.app_name }}
+      primary_locale: ${{ steps.appstore.outputs.primary_locale }}
+    env:
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+
+    steps:
+      - name: Refuse non-main releases
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::App Store releases must be dispatched from main. Current ref: $GITHUB_REF"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Validate release configuration
+        shell: bash
+        env:
+          MARKETING_VERSION_INPUT: ${{ inputs.marketing_version }}
+          BUILD_NUMBER_INPUT: ${{ inputs.build_number }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$MARKETING_VERSION_INPUT" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]]; then
+            echo "::error::marketing_version must look like 1.0 or 1.0.1."
+            exit 1
+          fi
+
+          if [[ ! "$BUILD_NUMBER_INPUT" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::build_number must be a positive integer."
+            exit 1
+          fi
+
+          if [[ ! "$APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]]; then
+            echo "::error::Missing or invalid APPLE_TEAM_ID environment variable in app-store-production. Add the 10-character Apple Developer Team ID as an environment variable named APPLE_TEAM_ID."
+            exit 1
+          fi
+
+          test -n "$APP_STORE_CONNECT_PRIVATE_KEY" || (echo "::error::Missing APP_STORE_CONNECT_PRIVATE_KEY." && exit 1)
+          test -n "$APP_STORE_CONNECT_KEY_ID" || (echo "::error::Missing APP_STORE_CONNECT_KEY_ID." && exit 1)
+          test -n "$APP_STORE_CONNECT_ISSUER_ID" || (echo "::error::Missing APP_STORE_CONNECT_ISSUER_ID." && exit 1)
+
+      - name: Authenticate and locate TOK in App Store Connect
+        id: appstore
+        run: node ./scripts/app-store-connect-preflight.mjs
+
+  archive:
+    name: Archive and validate iOS app
+    needs:
+      - validation
+      - web_bundle
+      - app_store_preflight
+    runs-on: macos-15
+    environment: app-store-production
+    env:
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      MARKETING_VERSION_INPUT: ${{ inputs.marketing_version }}
+      BUILD_NUMBER_INPUT: ${{ inputs.build_number }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download production web bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: app-store-web-${{ github.sha }}
+          path: dist
+
+      - name: Verify Xcode version
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcode_major="$(xcodebuild -version | awk '/Xcode/{split($2, parts, "."); print parts[1]; exit}')"
+          if [[ -z "$xcode_major" || "$xcode_major" -lt 16 ]]; then
+            echo "::error::App Store Connect currently requires iOS builds produced with Xcode 16 or later."
+            exit 1
+          fi
+
+      - name: Run iOS source readiness checks
+        run: pnpm run mobile:ios:readiness
+
+      - name: Sync Capacitor iOS project
+        run: pnpm exec cap sync ios
+
+      - name: Materialize App Store Connect key
+        id: apple_key
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_dir="$RUNNER_TEMP/private_keys"
+          key_path="$key_dir/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
+          mkdir -p "$key_dir"
+          private_key="${APP_STORE_CONNECT_PRIVATE_KEY//\\n/$'\n'}"
+          printf '%s\n' "$private_key" > "$key_path"
+          chmod 600 "$key_path"
+          echo "key_dir=$key_dir" >> "$GITHUB_OUTPUT"
+          echo "key_path=$key_path" >> "$GITHUB_OUTPUT"
+
+      - name: Archive release build
+        shell: bash
+        env:
+          KEY_PATH: ${{ steps.apple_key.outputs.key_path }}
+        run: |
+          set -euo pipefail
+          archive_path="$RUNNER_TEMP/Tok.xcarchive"
+          echo "archive_path=$archive_path" >> "$GITHUB_ENV"
+
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$archive_path" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$KEY_PATH" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            MARKETING_VERSION="$MARKETING_VERSION_INPUT" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER_INPUT" \
+            clean archive
+
+      - name: Export signed IPA
+        id: export
+        shell: bash
+        env:
+          KEY_PATH: ${{ steps.apple_key.outputs.key_path }}
+        run: |
+          set -euo pipefail
+          export_path="$RUNNER_TEMP/app-store-export"
+          export_options="$RUNNER_TEMP/ExportOptions.plist"
+          mkdir -p "$export_path"
+
+          cat > "$export_options" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>${APPLE_TEAM_ID}</string>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          PLIST
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$archive_path" \
+            -exportPath "$export_path" \
+            -exportOptionsPlist "$export_options" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$KEY_PATH" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID"
+
+          ipa_path="$(find "$export_path" -maxdepth 1 -type f -name '*.ipa' -print -quit)"
+          if [[ -z "$ipa_path" ]]; then
+            echo "::error::Xcode export did not produce an IPA."
+            exit 1
+          fi
+
+          echo "ipa_path=$ipa_path" >> "$GITHUB_OUTPUT"
+
+      - name: Validate IPA with App Store Connect
+        shell: bash
+        env:
+          API_PRIVATE_KEYS_DIR: ${{ steps.apple_key.outputs.key_dir }}
+          IPA_PATH: ${{ steps.export.outputs.ipa_path }}
+        run: |
+          set -euo pipefail
+          xcrun altool \
+            --validate-app \
+            -f "$IPA_PATH" \
+            -t ios \
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+
+      - name: Upload IPA to App Store Connect
+        if: ${{ inputs.upload }}
+        shell: bash
+        env:
+          API_PRIVATE_KEYS_DIR: ${{ steps.apple_key.outputs.key_dir }}
+          IPA_PATH: ${{ steps.export.outputs.ipa_path }}
+        run: |
+          set -euo pipefail
+          xcrun altool \
+            --upload-app \
+            -f "$IPA_PATH" \
+            -t ios \
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+
+      - name: Store validated IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tok-ios-${{ inputs.marketing_version }}-${{ inputs.build_number }}
+          path: ${{ steps.export.outputs.ipa_path }}
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Remove private key material
+        if: ${{ always() }}
+        shell: bash
+        run: rm -rf -- "$RUNNER_TEMP/private_keys"
