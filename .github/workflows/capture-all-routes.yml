@@ -1,0 +1,55 @@
+name: Capture all production routes
+
+on:
+  push:
+    branches:
+      - capture/all-routes-20260809
+    paths:
+      - scripts/capture-all-routes-production.cjs
+      - .github/workflows/capture-all-routes.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install isolated Puppeteer runtime
+        run: |
+          npm install --prefix /tmp/tok-route-capture puppeteer-core@24.40.0
+          echo "NODE_PATH=/tmp/tok-route-capture/node_modules" >> "$GITHUB_ENV"
+          CHROME_PATH="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          if [ -z "$CHROME_PATH" ]; then
+            echo "No compatible Chrome/Chromium binary found on runner" >&2
+            exit 1
+          fi
+          echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
+          "$CHROME_PATH" --version
+
+      - name: Capture every App route against production
+        env:
+          BASE_URL: https://www.thetok.ch
+          OUTPUT_DIR: screenshots-all-routes
+          WAIT_MS: '2500'
+        run: node scripts/capture-all-routes-production.cjs
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: thetok-all-routes-screenshots
+          path: screenshots-all-routes
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 7
