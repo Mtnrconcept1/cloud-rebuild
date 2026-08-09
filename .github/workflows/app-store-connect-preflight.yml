@@ -1,0 +1,79 @@
+name: App Store Connect Preflight
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/app-store-connect-preflight.yml"
+      - "scripts/app-store-connect-preflight.mjs"
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22
+  IOS_BUNDLE_ID: com.tok.app
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: app-store-connect-preflight
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Authenticate and locate TOK
+    runs-on: ubuntu-latest
+    environment: app-store-production
+    env:
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Validate Apple configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]]; then
+            echo "::error::Missing or invalid APPLE_TEAM_ID in the app-store-production environment."
+            exit 1
+          fi
+
+          test -n "$APP_STORE_CONNECT_PRIVATE_KEY" || (echo "::error::Missing APP_STORE_CONNECT_PRIVATE_KEY." && exit 1)
+          test -n "$APP_STORE_CONNECT_KEY_ID" || (echo "::error::Missing APP_STORE_CONNECT_KEY_ID." && exit 1)
+          test -n "$APP_STORE_CONNECT_ISSUER_ID" || (echo "::error::Missing APP_STORE_CONNECT_ISSUER_ID." && exit 1)
+
+      - name: Authenticate with App Store Connect
+        id: appstore
+        run: node ./scripts/app-store-connect-preflight.mjs
+
+      - name: Summarize preflight
+        shell: bash
+        env:
+          APP_ID: ${{ steps.appstore.outputs.app_id }}
+          APP_NAME: ${{ steps.appstore.outputs.app_name }}
+          PRIMARY_LOCALE: ${{ steps.appstore.outputs.primary_locale }}
+        run: |
+          {
+            echo "## App Store Connect preflight"
+            echo ""
+            echo "- Authentication: success"
+            echo "- App: ${APP_NAME}"
+            echo "- Bundle ID: ${IOS_BUNDLE_ID}"
+            echo "- App Store Connect ID: ${APP_ID}"
+            echo "- Primary locale: ${PRIMARY_LOCALE}"
+          } >> "$GITHUB_STEP_SUMMARY"
