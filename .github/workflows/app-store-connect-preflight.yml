@@ -14,7 +14,7 @@ permissions:
 
 env:
   NODE_VERSION: 22
-  IOS_BUNDLE_ID: com.tok.app
+  IOS_BUNDLE_ID: ch.thetok.app
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   preflight:
-    name: Authenticate and locate TOK
+    name: Authenticate and locate Thetok
     runs-on: ubuntu-latest
     environment: app-store-production
     env:
