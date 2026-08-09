@@ -3,6 +3,8 @@
 ## Current repository status
 
 - iOS App Store source readiness is guarded by `pnpm run mobile:ios:readiness`.
+- The App Store Connect record for iOS uses Bundle ID `ch.thetok.app`; the iOS release workflow forces and verifies this identifier on the archived app.
+- Android intentionally keeps package `com.tok.app`; do not rename it as part of the iOS App Store release because the existing Android/Firebase configuration is bound to that package.
 - The iOS bundle includes `PrivacyInfo.xcprivacy` and the Xcode project copies it into app resources.
 - The iOS target signs `App/App.entitlements`; APNs uses `development` for Debug and `production` for Release through `APS_ENVIRONMENT`.
 - App Store export compliance is declared with `ITSAppUsesNonExemptEncryption=false` for standard TLS-only usage. Recheck this before release if custom/non-exempt cryptography is added.
@@ -15,7 +17,8 @@
 
 ## Values required before store release
 
-- Apple Team ID: required to publish a valid `/.well-known/apple-app-site-association` file for Universal Links.
+- Apple Team ID: `73HG6QD4AJ` for the current Apple Developer team.
+- iOS App Store Bundle ID: `ch.thetok.app`.
 - Android release SHA-256 fingerprint: required in every deployed `/.well-known/assetlinks.json` host.
 - Android release keystore: provide `android/keystore.properties` from CI secrets or local secure storage.
 - Google Play Console metadata: Data Safety form, privacy policy URL, app access instructions/test account, content rating, target audience, screenshots, feature graphic, support contact and release notes must be completed outside this repo.
@@ -23,11 +26,11 @@
 - Push production credentials: APNs production key/capability and Firebase Android app SHA fingerprints.
 - Production domains: keep `thetok.ch`, `www.thetok.ch`, `admin.thetok.ch`, `app.thetok.ch` and any retained legacy `tok.ch` hosts aligned across app links, CORS, Stripe return URLs, Supabase site URLs and App Store metadata.
 - App Store Connect metadata: privacy nutrition label, age rating, support URL, marketing URL, review notes/test account, screenshots and category must be completed outside this repo.
-- Signing: set the Apple Development Team in Xcode/App Store Connect and verify the App ID enables Associated Domains and Push Notifications.
+- Signing: verify the App ID `ch.thetok.app` enables Associated Domains and Push Notifications.
 
-## Apple App Site Association template
+## Apple App Site Association
 
-Do not publish this template as-is. Replace `<APPLE_TEAM_ID>` with the real Apple Developer Team ID, then serve the JSON without extension and with `application/json` content type at each Associated Domain host.
+The tracked `public/.well-known/apple-app-site-association` file declares the current iOS application identifier:
 
 ```json
 {
@@ -35,11 +38,11 @@ Do not publish this template as-is. Replace `<APPLE_TEAM_ID>` with the real Appl
     "apps": [],
     "details": [
       {
-        "appIDs": ["<APPLE_TEAM_ID>.com.tok.app"],
+        "appIDs": ["73HG6QD4AJ.ch.thetok.app"],
         "components": [
           {
             "/": "/*",
-            "comment": "Tok mobile routes"
+            "comment": "Thetok mobile routes"
           }
         ]
       }
@@ -47,6 +50,8 @@ Do not publish this template as-is. Replace `<APPLE_TEAM_ID>` with the real Appl
   }
 }
 ```
+
+After deployment, verify that every enabled Associated Domain host serves this document from `/.well-known/apple-app-site-association` over HTTPS without authentication or redirects that break Apple verification.
 
 ## Android Digital Asset Links template
 
@@ -90,12 +95,14 @@ Use this as the repo-aligned starting point for Play Console. The final declarat
 
 ## App Store Connect notes
 
+- The App Store Connect listing is named `Thetok`; the signed iOS Bundle ID is `ch.thetok.app`.
 - The privacy manifest in the repo is a technical bundle declaration. The App Store Connect privacy questionnaire still needs to match the real production behavior and legal/privacy policy.
 - Do not commit Apple signing certificates, provisioning profiles, APNs private keys, App Store Connect API keys or Firebase service account secrets.
-- Before the first upload, generate and deploy the Apple App Site Association file for every enabled Associated Domain host with the real `<APPLE_TEAM_ID>.com.tok.app` app ID.
+- The App Store release workflow must verify the archived `CFBundleIdentifier` before validating or uploading an IPA.
 
 ## Google Play Console notes
 
+- Android remains a separate package identity: `com.tok.app`.
 - `mobile:android:readiness` is a source/configuration guard. It does not replace Play Console review, policy declarations or a real AAB upload.
 - Before the first upload, generate and deploy `assetlinks.json` for `thetok.ch`, `www.thetok.ch`, `app.thetok.ch`, `admin.thetok.ch` and any retained legacy hosts declared in the manifest.
 - Before generating the final upload artifact, provide `android/keystore.properties` from secure local storage or CI secrets and set a fresh `TOK_VERSION_CODE` plus `TOK_VERSION_NAME`.

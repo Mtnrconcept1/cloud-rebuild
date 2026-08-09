@@ -25,7 +25,7 @@ permissions:
 env:
   NODE_VERSION: 22
   PNPM_VERSION: 10.28.1
-  IOS_BUNDLE_ID: com.tok.app
+  IOS_BUNDLE_ID: ch.thetok.app
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
@@ -168,7 +168,7 @@ jobs:
           test -n "$APP_STORE_CONNECT_KEY_ID" || (echo "::error::Missing APP_STORE_CONNECT_KEY_ID." && exit 1)
           test -n "$APP_STORE_CONNECT_ISSUER_ID" || (echo "::error::Missing APP_STORE_CONNECT_ISSUER_ID." && exit 1)
 
-      - name: Authenticate and locate TOK in App Store Connect
+      - name: Authenticate and locate Thetok in App Store Connect
         id: appstore
         run: node ./scripts/app-store-connect-preflight.mjs
 
@@ -251,7 +251,7 @@ jobs:
           KEY_PATH: ${{ steps.apple_key.outputs.key_path }}
         run: |
           set -euo pipefail
-          archive_path="$RUNNER_TEMP/Tok.xcarchive"
+          archive_path="$RUNNER_TEMP/Thetok.xcarchive"
           echo "archive_path=$archive_path" >> "$GITHUB_ENV"
 
           xcodebuild \
@@ -265,9 +265,17 @@ jobs:
             -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
             -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            PRODUCT_BUNDLE_IDENTIFIER="$IOS_BUNDLE_ID" \
             MARKETING_VERSION="$MARKETING_VERSION_INPUT" \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER_INPUT" \
             clean archive
+
+          actual_bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :ApplicationProperties:CFBundleIdentifier' "$archive_path/Info.plist")"
+          if [[ "$actual_bundle_id" != "$IOS_BUNDLE_ID" ]]; then
+            echo "::error::Archived bundle id is $actual_bundle_id, expected $IOS_BUNDLE_ID."
+            exit 1
+          fi
+          echo "Archived iOS bundle id verified: $actual_bundle_id"
 
       - name: Export signed IPA
         id: export
@@ -347,7 +355,7 @@ jobs:
       - name: Store validated IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tok-ios-${{ inputs.marketing_version }}-${{ inputs.build_number }}
+          name: thetok-ios-${{ inputs.marketing_version }}-${{ inputs.build_number }}
           path: ${{ steps.export.outputs.ipa_path }}
           if-no-files-found: error
           retention-days: 3

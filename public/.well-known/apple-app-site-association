@@ -1,0 +1,18 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [
+          "73HG6QD4AJ.ch.thetok.app"
+        ],
+        "components": [
+          {
+            "/": "/*",
+            "comment": "Thetok mobile routes"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 import { createPrivateKey, sign } from "node:crypto";
 import { appendFile } from "node:fs/promises";
 
-const DEFAULT_BUNDLE_ID = "com.tok.app";
+const DEFAULT_BUNDLE_ID = "ch.thetok.app";
 const APP_STORE_CONNECT_AUDIENCE = "appstoreconnect-v1";
 const APP_STORE_CONNECT_API = "https://api.appstoreconnect.apple.com";
 
@@ -107,7 +107,7 @@ async function main() {
 
   const app = apps[0];
   const attributes = app.attributes || {};
-  const appName = attributes.name || "Tok";
+  const appName = attributes.name || "Thetok";
   const primaryLocale = attributes.primaryLocale || "unknown";
 
   console.log(`App Store Connect authentication succeeded for ${appName} (${bundleId}).`);
