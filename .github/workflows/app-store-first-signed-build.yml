@@ -1,0 +1,58 @@
+name: App Store First Signed Build Trigger
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/app-store-first-signed-build.yml"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    name: Dispatch non-uploading App Store build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout merge commit and parent
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Verify this is the one-time file addition
+        id: guard
+        shell: bash
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          workflow_path=".github/workflows/app-store-first-signed-build.yml"
+          status="$(git diff --name-status "$BEFORE_SHA" "$CURRENT_SHA" -- "$workflow_path" | awk 'NR==1 {print $1}')"
+
+          if [[ "$status" == "A" ]]; then
+            echo "dispatch=true" >> "$GITHUB_OUTPUT"
+            echo "First signed-build trigger added on main; dispatch is authorized."
+          else
+            echo "dispatch=false" >> "$GITHUB_OUTPUT"
+            echo "Workflow was not newly added (status: ${status:-none}); refusing to dispatch another signed build automatically."
+          fi
+
+      - name: Dispatch App Store Release without upload
+        if: ${{ steps.guard.outputs.dispatch == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run app-store-release.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref main \
+            -f marketing_version=1.0 \
+            -f build_number=1 \
+            -f upload=false
+
+          echo "Dispatched App Store Release 1.0 (1) with upload=false."
