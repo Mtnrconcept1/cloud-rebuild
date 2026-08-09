@@ -178,7 +178,7 @@ jobs:
       - validation
       - web_bundle
       - app_store_preflight
-    runs-on: macos-15
+    runs-on: macos-26
     environment: app-store-production
     env:
       APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
@@ -213,16 +213,35 @@ jobs:
           name: app-store-web-${{ github.sha }}
           path: dist
 
-      - name: Verify Xcode version
+      - name: Select Xcode 26
         shell: bash
         run: |
           set -euo pipefail
+          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+
+      - name: Verify Xcode and iOS SDK versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcode_version="$(xcodebuild -version | awk '/Xcode/{print $2; exit}')"
+          sdk_version="$(xcrun --sdk iphoneos --show-sdk-version)"
+          xcode_major="${xcode_version%%.*}"
+          sdk_major="${sdk_version%%.*}"
+
           xcodebuild -version
-          xcode_major="$(xcodebuild -version | awk '/Xcode/{split($2, parts, "."); print parts[1]; exit}')"
-          if [[ -z "$xcode_major" || "$xcode_major" -lt 16 ]]; then
-            echo "::error::App Store Connect currently requires iOS builds produced with Xcode 16 or later."
+          echo "iOS SDK $sdk_version"
+
+          if [[ -z "$xcode_major" || ! "$xcode_major" =~ ^[0-9]+$ || "$xcode_major" -lt 26 ]]; then
+            echo "::error::App Store Connect requires iOS builds produced with Xcode 26 or later. Found Xcode ${xcode_version:-unknown}."
             exit 1
           fi
+
+          if [[ -z "$sdk_major" || ! "$sdk_major" =~ ^[0-9]+$ || "$sdk_major" -lt 26 ]]; then
+            echo "::error::App Store Connect requires the iOS 26 SDK or later. Found iOS SDK ${sdk_version:-unknown}."
+            exit 1
+          fi
+
+          echo "Using Xcode $xcode_version with iOS SDK $sdk_version."
 
       - name: Run iOS source readiness checks
         run: pnpm run mobile:ios:readiness
