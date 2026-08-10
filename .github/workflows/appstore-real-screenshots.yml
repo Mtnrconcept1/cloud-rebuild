@@ -44,8 +44,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Chrome for Puppeteer
-        run: pnpm exec puppeteer browsers install chrome@stable
+      - name: Install Puppeteer-matched Chrome
+        run: pnpm exec puppeteer browsers install chrome
 
       - name: Resolve production Supabase server key
         shell: bash
