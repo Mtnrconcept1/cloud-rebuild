@@ -1,0 +1,5 @@
+TheTok App Store finalization trigger v3
+
+Purpose: retry iOS 1.0 finalization after correcting the Apple age-rating enum type.
+
+This file is intentionally one-shot. The production workflow accepts it only when it is first added to main.
