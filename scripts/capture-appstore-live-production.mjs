@@ -7,6 +7,7 @@ import puppeteer from "puppeteer";
 const APP_URL = (process.env.APP_URL || "https://www.thetok.ch").replace(/\/$/, "");
 const SUPABASE_URL = (process.env.SUPABASE_URL || "https://wwcrtyoueexyxkkikaos.supabase.co").replace(/\/$/, "");
 const SUPABASE_PROJECT_REF = "wwcrtyoueexyxkkikaos";
+const CONSENT_STORAGE_KEY = "tok_consent_cookies-2026-07-v3";
 const ANON_KEY = requireEnv("SUPABASE_ANON_KEY");
 const SERVICE_ROLE_KEY = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 const OUTPUT_DIR = path.resolve(process.env.SCREENSHOT_OUTPUT_DIR || "appstore-real-screenshots");
@@ -114,6 +115,7 @@ try {
       "Demo frames: not used.",
       "Mockups: not used.",
       "No payment or transaction is executed by this capture job.",
+      "Privacy banner: dismissed via the same current consent storage contract, with optional categories disabled.",
       "",
       "Each folder name contains the exact screenshot pixel dimensions.",
       "JPEG is used intentionally and contains no alpha channel.",
@@ -286,9 +288,27 @@ async function launchBrowser() {
 
 async function installProductionSession(page, session) {
   const storageKey = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
-  await page.evaluate(({ key, value }) => {
+  const consentReceipt = {
+    version: "cookies-2026-07-v3",
+    preferences: {
+      necessary: true,
+      analytics: false,
+      marketing: false,
+      personalization: false,
+      geolocation: false,
+    },
+    recordedAt: new Date().toISOString(),
+    source: "settings",
+  };
+  await page.evaluate(({ key, value, consentKey, consentValue }) => {
     window.localStorage.setItem(key, JSON.stringify(value));
-  }, { key: storageKey, value: session });
+    window.localStorage.setItem(consentKey, JSON.stringify(consentValue));
+  }, {
+    key: storageKey,
+    value: session,
+    consentKey: CONSENT_STORAGE_KEY,
+    consentValue: consentReceipt,
+  });
   await page.reload({ waitUntil: "domcontentloaded", timeout: 120_000 });
   await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
   await new Promise((resolve) => setTimeout(resolve, 1_500));
@@ -350,6 +370,13 @@ async function captureRoute(currentBrowser, device, url, output) {
     const visibleText = await page.evaluate(() => document.body?.innerText || "");
     if (/Accès refusé|Impossible d'ouvrir|Erreur inattendue|Page introuvable/i.test(visibleText)) {
       throw new Error(`Screen failed to render: ${visibleText.replace(/\s+/g, " ").slice(0, 500)}`);
+    }
+
+    const consentDialogVisible = await page.evaluate(() => Boolean(
+      document.querySelector('[aria-labelledby="consent-title"]'),
+    ));
+    if (consentDialogVisible) {
+      throw new Error("Privacy consent dialog is still visible; refusing to create an App Store screenshot");
     }
 
     const buffer = await page.screenshot({
