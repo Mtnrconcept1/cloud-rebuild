@@ -74,8 +74,12 @@ async function api(path, { method = "GET", body, optional404 = false } = {}) {
   return payload;
 }
 
+function localTerritoryAvailabilityId(territoryId, index) {
+  return `\${territory-${index}-${territoryId.toLowerCase()}}`;
+}
+
 async function ensureAvailability() {
-  const current = await api(`/v1/apps/${APP_ID}/appAvailabilityV2?include=territoryAvailabilities&limit[territoryAvailabilities]=50`, { optional404: true });
+  const current = await api(`/v1/apps/${APP_ID}/appAvailabilityV2?include=territoryAvailabilities&limit[territoryAvailabilities]=200`, { optional404: true });
   if (current?.data?.id) {
     console.log(`Availability already exists: ${current.data.id}.`);
     return current.data.id;
@@ -87,13 +91,18 @@ async function ensureAvailability() {
     throw new Error(`Unexpected App Store territory catalog (${territories.length} territories, CHE present=${territories.some((territory) => territory.id === "CHE")}).`);
   }
 
+  const localIds = new Map(
+    territories.map((territory, index) => [territory.id, localTerritoryAvailabilityId(territory.id, index)]),
+  );
+
   const links = territories.map((territory) => ({
     type: "territoryAvailabilities",
-    id: territory.id,
+    id: localIds.get(territory.id),
   }));
+
   const included = territories.map((territory) => ({
     type: "territoryAvailabilities",
-    id: territory.id,
+    id: localIds.get(territory.id),
     attributes: {
       available: territory.id === "CHE",
       preOrderEnabled: false,
@@ -130,11 +139,10 @@ async function verifySwitzerlandOnly(availabilityId) {
   const rows = Array.isArray(first?.data) ? first.data : [];
   if (rows.length < 100) throw new Error(`Only ${rows.length} territory availability rows were returned.`);
 
-  const includedTerritories = new Map((first.included || []).filter((row) => row.type === "territories").map((row) => [row.id, row]));
   let enabled = [];
   for (const row of rows) {
     if (row.attributes?.available === true) {
-      const territoryId = row.relationships?.territory?.data?.id || includedTerritories.get(row.id)?.id || null;
+      const territoryId = row.relationships?.territory?.data?.id || null;
       enabled.push(territoryId || row.id);
     }
   }
@@ -237,10 +245,10 @@ async function main() {
   await addVersionToSubmission(submission);
   await submit(submission);
   await finalState(submission.id);
-  console.log("APP_STORE_V5_COMPLETE");
+  console.log("APP_STORE_V6_COMPLETE");
 }
 
 main().catch((error) => {
-  console.error(`App Store v5 failed: ${error instanceof Error ? error.message : String(error)}`);
+  console.error(`App Store v6 failed: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 });
