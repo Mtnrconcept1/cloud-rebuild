@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - ios/.appstore-screenshot-upload-v1
+      - ios/.appstore-screenshot-upload-v2
   workflow_dispatch:
 
 permissions:
@@ -32,14 +32,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
 
       - name: Guard one-shot production upload
         if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
-          if ! git diff-tree --no-commit-id --name-status -r "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-screenshot-upload-v1$'; then
-            echo "::error::The production screenshot upload trigger must be added exactly once."
+          parent="${GITHUB_SHA}^"
+          git cat-file -e "$parent"
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-screenshot-upload-v2$'; then
+            echo "::error::The production screenshot upload trigger v2 must be added exactly once."
             exit 1
           fi
 
@@ -49,6 +53,7 @@ jobs:
           set -euo pipefail
           node --check ./scripts/app-store-connect-upload-screenshots.mjs
           test -s ./ios/TheTok_AppStore_Final_Assets.zip
+          test "$(git rev-parse HEAD:ios/TheTok_AppStore_Final_Assets.zip)" = "2bc47c497a42a21732f1bd8c9d40d3b20f3f49f6"
           unzip -tq ./ios/TheTok_AppStore_Final_Assets.zip
 
       - name: Extract App Store assets
