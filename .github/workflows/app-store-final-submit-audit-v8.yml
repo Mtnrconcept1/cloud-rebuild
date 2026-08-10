@@ -1,0 +1,33 @@
+name: App Store Final Submit Audit v8
+
+on:
+  push:
+    branches:
+      - chore/appstore-final-submit-audit-v8
+    paths:
+      - scripts/app-store-final-submit-audit-v8.mjs
+      - .github/workflows/app-store-final-submit-audit-v8.yml
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    name: Attempt final App Store version submission
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: app-store-production
+    env:
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Validate audit script
+        run: node --check ./scripts/app-store-final-submit-audit-v8.mjs
+
+      - name: Attempt final submission
+        run: node ./scripts/app-store-final-submit-audit-v8.mjs
