@@ -184,7 +184,7 @@ async function updateAgeRating(r) {
     contests: "NONE",
     gambling: false,
     gamblingSimulated: "NONE",
-    gunsOrOtherWeapons: false,
+    gunsOrOtherWeapons: "NONE",
     healthOrWellnessTopics: false,
     lootBox: false,
     medicalOrTreatmentInformation: "NONE",
