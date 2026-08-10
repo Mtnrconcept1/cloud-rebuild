@@ -1,0 +1,64 @@
+name: App Store Submit v5
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ios/.appstore-submit-v5
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-store-submit-v5-production
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    name: Configure availability and submit to App Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: app-store-production
+    env:
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Guard one-shot production submission
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          parent="${GITHUB_SHA}^"
+          git cat-file -e "$parent"
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-submit-v5$'; then
+            echo "::error::The App Store v5 submission trigger must be added exactly once."
+            exit 1
+          fi
+
+      - name: Validate submission script
+        run: node --check ./scripts/app-store-availability-submit-v5.mjs
+
+      - name: Configure Switzerland availability and submit
+        run: node ./scripts/app-store-availability-submit-v5.mjs
+
+      - name: Write summary
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo "## TheTok App Store submission v5"
+            echo ""
+            echo "- Availability: Switzerland only"
+            echo "- Version: 1.0"
+            echo "- Build: 2"
+            echo "- Review submission: accepted"
+          } >> "$GITHUB_STEP_SUMMARY"

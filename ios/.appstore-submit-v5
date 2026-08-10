@@ -1,0 +1,5 @@
+TheTok App Store submission trigger v5
+
+Purpose: configure App Store availability for Switzerland only and submit iOS 1.0 / build 2 to App Review.
+
+This file is intentionally one-shot. The workflow accepts it only when it is first added to main.
