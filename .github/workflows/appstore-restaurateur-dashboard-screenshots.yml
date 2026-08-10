@@ -1,0 +1,110 @@
+name: App Store Restaurateur Dashboard Screenshots
+
+on:
+  push:
+    branches:
+      - chore/appstore-real-screenshots
+    paths:
+      - scripts/capture-appstore-restaurateur-dashboard.mjs
+      - .github/workflows/appstore-restaurateur-dashboard-screenshots.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  APP_URL: https://www.thetok.ch
+  SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
+  SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
+  RESTAURATEUR_SCREENSHOT_OUTPUT_DIR: appstore-restaurateur-dashboard-screenshots
+
+jobs:
+  capture:
+    name: Capture all live restaurateur dashboard pages
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 50
+
+    env:
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+    steps:
+      - name: Checkout capture branch
+        uses: actions/checkout@v6
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Puppeteer-matched Chrome
+        run: pnpm exec puppeteer browsers install chrome
+
+      - name: Resolve production Supabase server key
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" || (echo "::error::Missing SUPABASE_ACCESS_TOKEN" && exit 1)
+          keys_file="${RUNNER_TEMP}/production-supabase-api-keys.json"
+          trap 'rm -f -- "$keys_file"' EXIT
+          curl --fail --silent --show-error \
+            --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/api-keys?reveal=true" \
+            --output "$keys_file"
+          chmod 600 "$keys_file"
+          service_role="$(
+            node -e '
+              const fs = require("node:fs");
+              const keys = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+              if (!Array.isArray(keys)) process.exit(2);
+              const entry = keys.find((item) => item && item.type === "secret" && item.disabled !== true)
+                || keys.find((item) => item && (item.name === "service_role" || item.type === "service_role") && item.disabled !== true);
+              const value = String(entry?.api_key || entry?.value || entry?.key || "").trim();
+              if (!value) process.exit(3);
+              process.stdout.write(value);
+            ' "$keys_file"
+          )"
+          test -n "$service_role" || (echo "::error::Unable to resolve production Supabase server key" && exit 1)
+          echo "::add-mask::$service_role"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$service_role" >> "$GITHUB_ENV"
+          rm -f -- "$keys_file"
+          trap - EXIT
+
+      - name: Assert capture credentials are available
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ANON_KEY" || (echo "::error::Missing SUPABASE_ANON_KEY" && exit 1)
+          test -n "$SUPABASE_SERVICE_ROLE_KEY" || (echo "::error::Unable to materialize SUPABASE_SERVICE_ROLE_KEY" && exit 1)
+
+      - name: Capture all live restaurateur dashboard screenshots
+        run: node ./scripts/capture-appstore-restaurateur-dashboard.mjs
+
+      - name: Package screenshots
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf thetok-appstore-restaurateur-dashboard-real.tgz "$RESTAURATEUR_SCREENSHOT_OUTPUT_DIR"
+
+      - name: Upload restaurateur App Store screenshots
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: thetok-appstore-restaurateur-dashboard-real
+          path: |
+            appstore-restaurateur-dashboard-screenshots/
+            thetok-appstore-restaurateur-dashboard-real.tgz
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
