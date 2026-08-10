@@ -112,6 +112,7 @@ try {
       `Live restaurant selected at capture time: ${restaurant.name}`,
       "Capture method: Chromium/Puppeteer on GitHub Actions connected directly to the deployed production SPA.",
       "Authentication: temporary production client account created for capture and deleted at job end.",
+      "Profile label: Client TOK.",
       "Demo frames: not used.",
       "Mockups: not used.",
       "No payment or transaction is executed by this capture job.",
@@ -214,6 +215,22 @@ async function ensureClientRole(userId) {
   });
 }
 
+async function ensureCaptureProfile(userId) {
+  const endpoint = `${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`;
+  await jsonRequest(endpoint, {
+    method: "POST",
+    headers: serviceHeaders({
+      "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    }),
+    body: JSON.stringify({
+      user_id: userId,
+      full_name: "Client TOK",
+      city: "Genève",
+    }),
+  });
+}
+
 async function createTemporaryClientUser() {
   const email = `appstore.capture.${Date.now()}@thetok.ch`;
   const password = `Tok-${crypto.randomBytes(18).toString("base64url")}!9a`;
@@ -240,6 +257,7 @@ async function createTemporaryClientUser() {
 
   try {
     await ensureClientRole(userId);
+    await ensureCaptureProfile(userId);
   } catch (error) {
     await deleteAuthUser(userId).catch(() => undefined);
     throw error;
