@@ -24,7 +24,40 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
       - name: Validate
         run: node --check ./scripts/app-store-reviewability-audit-v5.mjs
+
       - name: Read Apple state
         run: node ./scripts/app-store-reviewability-audit-v5.mjs
+
+      - name: Inspect official Apple OpenAPI schemas
+        shell: bash
+        run: |
+          set -euo pipefail
+          spec_zip="${RUNNER_TEMP}/app-store-connect-openapi.zip"
+          spec_json="${RUNNER_TEMP}/app-store-connect-openapi.json"
+          curl --fail --silent --show-error \
+            "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip" \
+            -o "$spec_zip"
+          entry="$(unzip -Z1 "$spec_zip" | head -n 1)"
+          unzip -p "$spec_zip" "$entry" > "$spec_json"
+          node - "$spec_json" <<'NODE'
+          const fs = require('node:fs');
+          const spec = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const schemas = spec.components?.schemas || {};
+          const names = [
+            'AppAvailabilityV2CreateRequest',
+            'AppAvailabilityV2CreateRequest.Data',
+            'AppAvailabilityV2CreateRequest.Data.Relationships',
+            'TerritoryAvailabilityInlineCreate',
+            'TerritoryAvailabilityInlineCreate.Attributes',
+            'TerritoryAvailabilityInlineCreate.Relationships',
+            'ReviewSubmissionUpdateRequest',
+            'ReviewSubmissionUpdateRequest.Data',
+          ];
+          for (const name of names) {
+            console.log(`OPENAPI_SCHEMA ${name} ${JSON.stringify(schemas[name] || null)}`);
+          }
+          NODE
+          rm -f -- "$spec_zip" "$spec_json"
