@@ -1,0 +1,187 @@
+name: App Store Finalize v1
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ios/.appstore-finalize-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: app-store-finalize-v1-production
+  cancel-in-progress: false
+
+env:
+  IOS_BUNDLE_ID: ch.thetok.app
+  APP_STORE_VERSION: "1.0"
+  APP_STORE_LOCALE: fr-FR
+
+jobs:
+  prepare-review-account:
+    name: Prepare isolated App Review account
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: Production
+    env:
+      SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
+      SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      APP_REVIEW_CREDENTIAL_FILE: ${{ runner.temp }}/app-review-credentials.json
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Guard one-shot production finalization
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          parent="${GITHUB_SHA}^"
+          git cat-file -e "$parent"
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-finalize-v1$'; then
+            echo "::error::The App Store finalization trigger must be added exactly once."
+            exit 1
+          fi
+
+      - name: Resolve production Supabase server key
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" || (echo "::error::Missing SUPABASE_ACCESS_TOKEN" && exit 1)
+          keys_file="${RUNNER_TEMP}/production-supabase-api-keys.json"
+          trap 'rm -f -- "$keys_file"' EXIT
+          curl --fail --silent --show-error \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/api-keys?reveal=true" \
+            --output "$keys_file"
+          chmod 600 "$keys_file"
+          service_role="$(node -e '
+            const fs = require("node:fs");
+            const keys = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            if (!Array.isArray(keys)) process.exit(2);
+            const entry = keys.find((item) => item && item.type === "secret" && item.disabled !== true)
+              || keys.find((item) => item && (item.name === "service_role" || item.type === "service_role") && item.disabled !== true);
+            const value = String(entry?.api_key || entry?.value || entry?.key || "").trim();
+            if (!value) process.exit(3);
+            process.stdout.write(value);
+          ' "$keys_file")"
+          test -n "$service_role" || (echo "::error::Unable to resolve production Supabase server key" && exit 1)
+          echo "::add-mask::$service_role"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$service_role" >> "$GITHUB_ENV"
+          rm -f -- "$keys_file"
+          trap - EXIT
+
+      - name: Validate review account script
+        run: node --check ./scripts/app-store-review-account.mjs
+
+      - name: Create or reset App Review account
+        run: node ./scripts/app-store-review-account.mjs
+
+      - name: Upload encrypted-context review credential artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-review-credentials-${{ github.run_id }}
+          path: ${{ runner.temp }}/app-review-credentials.json
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Remove local review credential file
+        if: always()
+        shell: bash
+        run: rm -f -- "$APP_REVIEW_CREDENTIAL_FILE"
+
+  finalize-app-store:
+    name: Fill metadata and submit to App Review
+    needs: prepare-review-account
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: app-store-production
+    env:
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_REVIEW_DEMO_EMAIL: appreview@thetok.ch
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Download App Review credential
+        uses: actions/download-artifact@v4
+        with:
+          name: app-review-credentials-${{ github.run_id }}
+          path: ${{ runner.temp }}/app-review-credential
+
+      - name: Validate App Store finalizer
+        run: node --check ./scripts/app-store-connect-finalize-v1.mjs
+
+      - name: Fill App Store Connect and submit
+        shell: bash
+        run: |
+          set -euo pipefail
+          credential_file="${RUNNER_TEMP}/app-review-credential/app-review-credentials.json"
+          test -s "$credential_file"
+          password="$(node -e 'const fs=require("node:fs");const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(!v.password)process.exit(2);process.stdout.write(v.password)' "$credential_file")"
+          test -n "$password"
+          echo "::add-mask::$password"
+          APP_REVIEW_DEMO_PASSWORD="$password" node ./scripts/app-store-connect-finalize-v1.mjs
+
+      - name: Remove local App Review credential
+        if: always()
+        shell: bash
+        run: rm -rf -- "${RUNNER_TEMP}/app-review-credential"
+
+      - name: Delete temporary credential artifact
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_name="app-review-credentials-${GITHUB_RUN_ID}"
+          response_file="${RUNNER_TEMP}/artifacts.json"
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?per_page=100" \
+            -o "$response_file"
+          artifact_id="$(node -e '
+            const fs=require("node:fs");
+            const payload=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
+            const name=process.argv[2];
+            const found=(payload.artifacts||[]).find((artifact)=>artifact.name===name);
+            if(found?.id) process.stdout.write(String(found.id));
+          ' "$response_file" "$artifact_name")"
+          rm -f -- "$response_file"
+          if [ -n "$artifact_id" ]; then
+            curl --fail --silent --show-error -X DELETE \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}"
+          fi
+
+      - name: Write finalization summary
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo "## TheTok App Store finalization"
+            echo ""
+            echo "- App: TheTok"
+            echo "- Bundle ID: \`ch.thetok.app\`"
+            echo "- Version: \`1.0\`"
+            echo "- Build: \`2\`"
+            echo "- Locale: \`fr-FR\`"
+            echo "- Release: manual after approval"
+            echo "- App Review account: \`appreview@thetok.ch\`"
+            echo "- Review submission: accepted by Apple"
+          } >> "$GITHUB_STEP_SUMMARY"
