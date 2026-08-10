@@ -48,16 +48,17 @@ jobs:
           const schemas = spec.components?.schemas || {};
           const names = [
             'AppAvailabilityV2CreateRequest',
-            'AppAvailabilityV2CreateRequest.Data',
-            'AppAvailabilityV2CreateRequest.Data.Relationships',
             'TerritoryAvailabilityInlineCreate',
-            'TerritoryAvailabilityInlineCreate.Attributes',
-            'TerritoryAvailabilityInlineCreate.Relationships',
             'ReviewSubmissionUpdateRequest',
-            'ReviewSubmissionUpdateRequest.Data',
+            'ReviewSubmissionItemCreateRequest',
+            'AppStoreVersionSubmissionCreateRequest',
           ];
           for (const name of names) {
             console.log(`OPENAPI_SCHEMA ${name} ${JSON.stringify(schemas[name] || null)}`);
           }
+          const privacyPaths = Object.keys(spec.paths || {}).filter((path) => path.toLowerCase().includes('privacy'));
+          const privacySchemas = Object.keys(schemas).filter((name) => name.toLowerCase().includes('privacy'));
+          console.log(`OPENAPI_PRIVACY_PATHS ${JSON.stringify(privacyPaths)}`);
+          console.log(`OPENAPI_PRIVACY_SCHEMAS ${JSON.stringify(privacySchemas)}`);
           NODE
           rm -f -- "$spec_zip" "$spec_json"
