@@ -1,0 +1,30 @@
+name: App Store Reviewability Audit v5
+
+on:
+  push:
+    branches:
+      - chore/appstore-reviewability-audit-v5
+    paths:
+      - scripts/app-store-reviewability-audit-v5.mjs
+      - .github/workflows/app-store-reviewability-audit-v5.yml
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Read App Store reviewability state
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: app-store-production
+    env:
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Validate
+        run: node --check ./scripts/app-store-reviewability-audit-v5.mjs
+      - name: Read Apple state
+        run: node ./scripts/app-store-reviewability-audit-v5.mjs
