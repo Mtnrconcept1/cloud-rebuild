@@ -19,7 +19,7 @@ env:
 
 jobs:
   capture:
-    name: Capture deployed TOK interfaces
+    name: Capture authenticated live TOK interfaces
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 30
@@ -89,24 +89,24 @@ jobs:
           test -n "$SUPABASE_SERVICE_ROLE_KEY" || (echo "::error::Unable to materialize SUPABASE_SERVICE_ROLE_KEY" && exit 1)
           test -n "$SUPABASE_ACCESS_TOKEN" || (echo "::error::Missing SUPABASE_ACCESS_TOKEN" && exit 1)
 
-      - name: Capture real production screenshots
-        run: node ./scripts/capture-appstore-production.mjs
+      - name: Capture authenticated live production screenshots
+        run: node ./scripts/capture-appstore-live-production.mjs
 
       - name: Package screenshots
         if: success()
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf thetok-appstore-real-screenshots.tgz "$SCREENSHOT_OUTPUT_DIR"
+          tar -czf thetok-appstore-live-production-screenshots.tgz "$SCREENSHOT_OUTPUT_DIR"
 
       - name: Upload App Store screenshots
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: thetok-appstore-real-screenshots
+          name: thetok-appstore-live-production-screenshots
           path: |
             appstore-real-screenshots/
-            thetok-appstore-real-screenshots.tgz
+            thetok-appstore-live-production-screenshots.tgz
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
