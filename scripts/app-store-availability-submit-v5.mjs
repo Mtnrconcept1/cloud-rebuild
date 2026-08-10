@@ -50,8 +50,11 @@ function apiErrors(payload, status) {
   }));
 }
 
-async function api(path, { method = "GET", body, optional404 = false } = {}) {
-  const response = await fetch(`${API}${path}`, {
+async function api(pathOrUrl, { method = "GET", body, optional404 = false } = {}) {
+  const url = pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")
+    ? pathOrUrl
+    : `${API}${pathOrUrl}`;
+  const response = await fetch(url, {
     method,
     headers: {
       Accept: "application/json",
@@ -79,7 +82,7 @@ function localTerritoryAvailabilityId(territoryId, index) {
 }
 
 async function ensureAvailability() {
-  const current = await api(`/v1/apps/${APP_ID}/appAvailabilityV2?include=territoryAvailabilities&limit[territoryAvailabilities]=200`, { optional404: true });
+  const current = await api(`/v1/apps/${APP_ID}/appAvailabilityV2`, { optional404: true });
   if (current?.data?.id) {
     console.log(`Availability already exists: ${current.data.id}.`);
     return current.data.id;
@@ -134,9 +137,24 @@ async function ensureAvailability() {
   return created.data.id;
 }
 
+async function fetchAllTerritoryAvailabilities(availabilityId) {
+  const rows = [];
+  let next = `/v2/appAvailabilities/${availabilityId}/territoryAvailabilities?include=territory&limit=50`;
+  let pageCount = 0;
+
+  while (next) {
+    pageCount += 1;
+    if (pageCount > 10) throw new Error("Territory availability pagination exceeded 10 pages.");
+    const page = await api(next);
+    rows.push(...(Array.isArray(page?.data) ? page.data : []));
+    next = page?.links?.next || null;
+  }
+
+  return rows;
+}
+
 async function verifySwitzerlandOnly(availabilityId) {
-  const first = await api(`/v2/appAvailabilities/${availabilityId}/territoryAvailabilities?include=territory&limit=200`);
-  const rows = Array.isArray(first?.data) ? first.data : [];
+  const rows = await fetchAllTerritoryAvailabilities(availabilityId);
   if (rows.length < 100) throw new Error(`Only ${rows.length} territory availability rows were returned.`);
 
   let enabled = [];
@@ -150,7 +168,7 @@ async function verifySwitzerlandOnly(availabilityId) {
   if (enabled.length !== 1 || enabled[0] !== "CHE") {
     throw new Error(`Unexpected enabled territories: ${JSON.stringify(enabled)}.`);
   }
-  console.log("Verified App Store availability: Switzerland only.");
+  console.log(`Verified App Store availability: Switzerland only (${rows.length} storefront rows).`);
 }
 
 async function getOrCreateReadySubmission() {
@@ -245,10 +263,10 @@ async function main() {
   await addVersionToSubmission(submission);
   await submit(submission);
   await finalState(submission.id);
-  console.log("APP_STORE_V6_COMPLETE");
+  console.log("APP_STORE_V7_COMPLETE");
 }
 
 main().catch((error) => {
-  console.error(`App Store v6 failed: ${error instanceof Error ? error.message : String(error)}`);
+  console.error(`App Store v7 failed: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 });
