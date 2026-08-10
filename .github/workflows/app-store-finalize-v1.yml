@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - ios/.appstore-finalize-v2
+      - ios/.appstore-finalize-v3
   workflow_dispatch:
 
 permissions:
@@ -46,8 +46,8 @@ jobs:
           set -euo pipefail
           parent="${GITHUB_SHA}^"
           git cat-file -e "$parent"
-          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-finalize-v2$'; then
-            echo "::error::The App Store finalization trigger v2 must be added exactly once."
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-finalize-v3$'; then
+            echo "::error::The App Store finalization trigger v3 must be added exactly once."
             exit 1
           fi
 
