@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - ios/.appstore-finalize-v3
+      - ios/.appstore-finalize-v4
   workflow_dispatch:
 
 permissions:
@@ -46,8 +46,8 @@ jobs:
           set -euo pipefail
           parent="${GITHUB_SHA}^"
           git cat-file -e "$parent"
-          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-finalize-v3$'; then
-            echo "::error::The App Store finalization trigger v3 must be added exactly once."
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-finalize-v4$'; then
+            echo "::error::The App Store finalization trigger v4 must be added exactly once."
             exit 1
           fi
 
@@ -121,6 +121,21 @@ jobs:
         with:
           name: app-review-credentials-${{ github.run_id }}
           path: ${{ runner.temp }}/app-review-credential
+
+      - name: Prepare current Apple age-rating schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = './scripts/app-store-connect-finalize-v1.mjs';
+          const source = fs.readFileSync(path, 'utf8');
+          const legacy = '    ageRatingOverride: "NONE",\n';
+          if (!source.includes(legacy)) {
+            throw new Error('Expected legacy ageRatingOverride line was not found.');
+          }
+          fs.writeFileSync(path, source.replace(legacy, ''), 'utf8');
+          NODE
 
       - name: Validate App Store finalizer
         run: node --check ./scripts/app-store-connect-finalize-v1.mjs
