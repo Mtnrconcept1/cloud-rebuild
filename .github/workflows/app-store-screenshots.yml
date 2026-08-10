@@ -1,0 +1,82 @@
+name: App Store Screenshots
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ios/.appstore-screenshot-upload-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-store-screenshots-production
+  cancel-in-progress: false
+
+jobs:
+  upload-screenshots:
+    name: Upload App Store screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: app-store-production
+    env:
+      IOS_BUNDLE_ID: ch.thetok.app
+      APP_STORE_VERSION: "1.0"
+      APP_STORE_LOCALE: fr-FR
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Guard one-shot production upload
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! git diff-tree --no-commit-id --name-status -r "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-screenshot-upload-v1$'; then
+            echo "::error::The production screenshot upload trigger must be added exactly once."
+            exit 1
+          fi
+
+      - name: Validate uploader and asset archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check ./scripts/app-store-connect-upload-screenshots.mjs
+          test -s ./ios/TheTok_AppStore_Final_Assets.zip
+          unzip -tq ./ios/TheTok_AppStore_Final_Assets.zip
+
+      - name: Extract App Store assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          asset_root="${RUNNER_TEMP}/thetok-appstore-assets"
+          rm -rf "$asset_root"
+          mkdir -p "$asset_root"
+          unzip -q ./ios/TheTok_AppStore_Final_Assets.zip -d "$asset_root"
+          test -d "$asset_root/iPhone_6.9_1320x2868"
+          test -d "$asset_root/iPad_13_2752x2064"
+          echo "APP_STORE_SCREENSHOT_ASSET_ROOT=$asset_root" >> "$GITHUB_ENV"
+
+      - name: Upload screenshots to App Store Connect
+        run: node ./scripts/app-store-connect-upload-screenshots.mjs
+
+      - name: Write summary
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo "## App Store screenshots uploaded"
+            echo ""
+            echo "- Bundle ID: \`ch.thetok.app\`"
+            echo "- Version: \`1.0\`"
+            echo "- Locale: \`fr-FR\`"
+            echo "- iPhone 6.9-inch: 10 screenshots"
+            echo "- iPad 13-inch: 10 screenshots"
+            echo "- Source: \`ios/TheTok_AppStore_Final_Assets.zip\`"
+          } >> "$GITHUB_STEP_SUMMARY"
