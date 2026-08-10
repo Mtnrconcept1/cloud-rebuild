@@ -1,0 +1,11 @@
+TheTok App Store screenshot upload trigger v1
+
+Source archive: ios/TheTok_AppStore_Final_Assets.zip
+Bundle ID: ch.thetok.app
+Version: 1.0
+Locale: fr-FR
+Targets:
+- iPhone 6.9-inch (APP_IPHONE_67)
+- iPad 13-inch (APP_IPAD_PRO_3GEN_129)
+
+This file is intentionally one-shot. The production workflow refuses a modified/reused trigger on push.
