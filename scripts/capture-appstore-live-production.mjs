@@ -142,6 +142,14 @@ function safeError(error) {
   return error instanceof Error ? error.message : String(error);
 }
 
+function serviceHeaders(extra = {}) {
+  return {
+    apikey: SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+    ...extra,
+  };
+}
+
 async function jsonRequest(url, options = {}) {
   const response = await fetch(url, options);
   const text = await response.text();
@@ -169,10 +177,7 @@ async function selectLiveRestaurant() {
     limit: "1",
   });
   const rows = await jsonRequest(`${SUPABASE_URL}/rest/v1/restaurants?${params.toString()}`, {
-    headers: {
-      apikey: SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
-    },
+    headers: serviceHeaders(),
   });
   const restaurant = Array.isArray(rows) ? rows[0] : null;
   if (!restaurant?.id || !restaurant?.name) {
@@ -185,16 +190,34 @@ async function selectLiveRestaurant() {
   };
 }
 
+async function ensureClientRole(userId) {
+  const params = new URLSearchParams({
+    select: "user_id",
+    user_id: `eq.${userId}`,
+    role: "eq.client",
+    limit: "1",
+  });
+  const existing = await jsonRequest(`${SUPABASE_URL}/rest/v1/user_roles?${params.toString()}`, {
+    headers: serviceHeaders(),
+  });
+  if (Array.isArray(existing) && existing.length > 0) return;
+
+  await jsonRequest(`${SUPABASE_URL}/rest/v1/user_roles`, {
+    method: "POST",
+    headers: serviceHeaders({
+      "Content-Type": "application/json",
+      Prefer: "return=minimal",
+    }),
+    body: JSON.stringify({ user_id: userId, role: "client" }),
+  });
+}
+
 async function createTemporaryClientUser() {
   const email = `appstore.capture.${Date.now()}@thetok.ch`;
   const password = `Tok-${crypto.randomBytes(18).toString("base64url")}!9a`;
   const created = await jsonRequest(`${SUPABASE_URL}/auth/v1/admin/users`, {
     method: "POST",
-    headers: {
-      apikey: SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
-      "Content-Type": "application/json",
-    },
+    headers: serviceHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({
       email,
       password,
@@ -214,16 +237,7 @@ async function createTemporaryClientUser() {
   }
 
   try {
-    await jsonRequest(`${SUPABASE_URL}/rest/v1/user_roles`, {
-      method: "POST",
-      headers: {
-        apikey: SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify({ user_id: userId, role: "client" }),
-    });
+    await ensureClientRole(userId);
   } catch (error) {
     await deleteAuthUser(userId).catch(() => undefined);
     throw error;
@@ -251,10 +265,7 @@ async function signInProduction(email, password) {
 async function deleteAuthUser(userId) {
   const response = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
     method: "DELETE",
-    headers: {
-      apikey: SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
-    },
+    headers: serviceHeaders(),
   });
   if (!response.ok && response.status !== 404) {
     throw new Error(`Auth cleanup returned HTTP ${response.status}`);
