@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - ios/.appstore-finalize-v1
+      - ios/.appstore-finalize-v2
   workflow_dispatch:
 
 permissions:
@@ -32,7 +32,6 @@ jobs:
       SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      APP_REVIEW_CREDENTIAL_FILE: ${{ runner.temp }}/app-review-credentials.json
 
     steps:
       - name: Checkout repository
@@ -47,8 +46,8 @@ jobs:
           set -euo pipefail
           parent="${GITHUB_SHA}^"
           git cat-file -e "$parent"
-          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-finalize-v1$'; then
-            echo "::error::The App Store finalization trigger must be added exactly once."
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-finalize-v2$'; then
+            echo "::error::The App Store finalization trigger v2 must be added exactly once."
             exit 1
           fi
 
@@ -84,6 +83,8 @@ jobs:
         run: node --check ./scripts/app-store-review-account.mjs
 
       - name: Create or reset App Review account
+        env:
+          APP_REVIEW_CREDENTIAL_FILE: ${{ runner.temp }}/app-review-credentials.json
         run: node ./scripts/app-store-review-account.mjs
 
       - name: Upload encrypted-context review credential artifact
@@ -97,7 +98,7 @@ jobs:
       - name: Remove local review credential file
         if: always()
         shell: bash
-        run: rm -f -- "$APP_REVIEW_CREDENTIAL_FILE"
+        run: rm -f -- "${RUNNER_TEMP}/app-review-credentials.json"
 
   finalize-app-store:
     name: Fill metadata and submit to App Review
