@@ -1,18 +1,18 @@
-name: App Store Submit v6
+name: App Store Submit v7
 
 on:
   push:
     branches:
       - main
     paths:
-      - ios/.appstore-submit-v6
+      - ios/.appstore-submit-v7
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: app-store-submit-v6-production
+  group: app-store-submit-v7-production
   cancel-in-progress: false
 
 jobs:
@@ -39,8 +39,8 @@ jobs:
           set -euo pipefail
           parent="${GITHUB_SHA}^"
           git cat-file -e "$parent"
-          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-submit-v6$'; then
-            echo "::error::The App Store v6 submission trigger must be added exactly once."
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-submit-v7$'; then
+            echo "::error::The App Store v7 submission trigger must be added exactly once."
             exit 1
           fi
 
@@ -55,7 +55,7 @@ jobs:
         shell: bash
         run: |
           {
-            echo "## TheTok App Store submission v6"
+            echo "## TheTok App Store submission v7"
             echo ""
             echo "- Availability: Switzerland only"
             echo "- Version: 1.0"
