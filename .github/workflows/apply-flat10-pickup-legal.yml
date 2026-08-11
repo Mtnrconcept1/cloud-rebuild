@@ -1,0 +1,239 @@
+name: Apply flat10 pickup legal hardening
+
+on:
+  push:
+    branches:
+      - fix/legal-flat10-pickup-only
+    paths:
+      - ".github/workflows/apply-flat10-pickup-legal.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/legal-flat10-pickup-only
+          fetch-depth: 0
+
+      - name: Apply guarded replacements
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          def load(path):
+              return Path(path).read_text(encoding="utf-8")
+
+          def save(path, text):
+              Path(path).write_text(text, encoding="utf-8")
+
+          def rep(path, old, new, expected=1):
+              text = load(path)
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f"{path}: expected {expected} occurrences, found {count}: {old[:100]!r}")
+              save(path, text.replace(old, new))
+
+          # Signed restaurant contract: public/commercial terms only.
+          p = "src/lib/restaurantPartnerContract.ts"
+          rep(p, 'RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-07-v6"', 'RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-08-v7"')
+          rep(p,
+              "Le présent contrat encadre la mise à disposition par TOK d'une plateforme digitale B2B de visibilité, réservation, commande, paiement, livraison, fidélité, campagnes, support, avis, IA et outils opérationnels au bénéfice du restaurateur partenaire.",
+              "Le présent contrat encadre la mise à disposition par TOK d'une plateforme digitale B2B de visibilité, réservation, commande à emporter, paiement, fidélité, campagnes, support, avis, IA et outils opérationnels au bénéfice du restaurateur partenaire.")
+          rep(p, "informations de livraison ou retrait", "informations de retrait à emporter")
+          rep(p,
+              "TOK fournit l'accès au dashboard restaurateur, aux outils de catalogue, commandes, réservations, avis, facturation, support, notifications, campagnes, reporting et fonctionnalités activées par feature flag, abonnement souscrit ou configuration administrateur.",
+              "TOK fournit l'accès au dashboard restaurateur, aux outils de catalogue, commandes à emporter, réservations, avis, facturation, support, notifications, campagnes, reporting et fonctionnalités incluses dans l'abonnement ou le service effectivement activé.")
+          rep(p,
+              "TOK assure une exploitation raisonnable de la plateforme, la sécurisation des accès, la journalisation des actions sensibles, la séparation des rôles, l'application des politiques RLS et les intégrations de paiement dans la limite des prestataires tiers.",
+              "TOK met en œuvre des mesures raisonnables de sécurité, de contrôle des accès, de traçabilité et de continuité pour les services qu'il exploite, dans la limite des prestataires tiers nécessaires à leur fonctionnement.")
+          rep(p,
+              "TOK ne garantit pas l'absence totale d'interruption, de bug, de retard de prestataire, d'indisponibilité réseau ou de blocage par Stripe, Supabase, un service d'emailing, un fournisseur IA, un transporteur ou une autorité compétente.",
+              "TOK ne garantit pas l'absence totale d'interruption, de bug, de retard d'un prestataire, d'indisponibilité réseau ou de blocage par un prestataire de paiement, d'hébergement, de messagerie, d'intelligence artificielle ou une autorité compétente.")
+          rep(p,
+              "Toute réservation honorée est facturée CHF 5, quel que soit le plan et quelle qu'en soit l'origine. Les abonnements couvrent l'accès et la commission marketplace : Starter CHF 69/mois et 9,9% par commande, Business CHF 129 et 8,9%, Premium CHF 199 et 7,9%, Elite CHF 499 et 6,9%. L'annuel fournit douze mois de service au prix de onze mensualités.",
+              "Toute réservation honorée est facturée CHF 5, quel que soit le plan et quelle qu'en soit l'origine. Les abonnements sont Starter CHF 69/mois, Business CHF 129/mois, Premium CHF 199/mois et Elite CHF 499/mois. La commission marketplace d'une commande à emporter est fixe à 10% pour tous les plans. L'annuel fournit douze mois de service au prix de onze mensualités.")
+          rep(p,
+              "Elite inclut trois établissements puis CHF 149/mois par site supplémentaire. Les autres plans incluent un établissement. Le plan, la période, les sites couverts, les taux et la version tarifaire sont enregistrés dans le snapshot signé.",
+              "Elite inclut trois établissements puis CHF 149/mois par site supplémentaire. Les autres plans incluent un établissement. Le plan, la période, les sites couverts et la version tarifaire sont enregistrés avec la preuve contractuelle.")
+          rep(p,
+              "Le restaurant conserve au minimum 90% de la base commissionnable d'une commande et 100% des pourboires. Le développeur reçoit 1% de cette base; TOK reçoit le solde de la commission du plan et absorbe Stripe/Connect sur sa part marketplace.",
+              "Pour une commande marketplace à emporter, le restaurant reçoit 90% de la base commissionnable et TOK conserve 10%, quel que soit l'abonnement. Les pourboires reviennent à 100% au restaurant. Les frais du prestataire de paiement supportés par TOK sont assumés sur la part TOK, sauf frais distinct explicitement affiché et accepté.")
+          rep(p,
+              "Sur les frais de réservation, TOK reçoit 90% et le développeur 10%. Sur abonnements et publicité, le développeur reçoit 10% du revenu TOK effectivement encaissé hors TVA, remboursements, pourboires, livraison et coûts refacturés.",
+              "Les éventuelles répartitions internes des revenus de TOK relèvent de l'organisation et de la comptabilité propres à TOK et ne modifient ni le montant dû au restaurant ni les tarifs contractuels ci-dessus.")
+          rep(p,
+              "Les factures ventilent le taux suisse normal de 8,1% et le taux réduit de 2,6% par ligne selon la nature de la prestation. La restauration sur place relève généralement du taux normal.",
+              "Les factures et relevés appliquent les règles fiscales suisses correspondant à la nature de chaque prestation. Chaque partie demeure responsable de ses propres obligations fiscales et comptables.")
+          rep(p, "traçable dans l'admin", "au moyen d'une procédure documentée")
+          rep(p, "données de livraison", "données nécessaires aux commandes à emporter")
+          rep(p,
+              "TOK peut recourir à des sous-traitants et sous-traitants ultérieurs tels que Stripe, Supabase, fournisseurs cloud, outils d'emailing, outils d'analyse, fournisseurs IA ou support.",
+              "TOK peut recourir à des prestataires de paiement, d'hébergement, de messagerie, d'analyse, d'intelligence artificielle ou de support nécessaires au service.")
+          rep(p, "paiement anormal, livreur absent, contenu diffamatoire", "paiement anormal, créneau de retrait incorrect, contenu diffamatoire")
+          rep(p, "à ses actions administrateur", "à ses propres actions")
+          contract = load(p).lower()
+          for forbidden in ("le développeur", "feature flag", "politiques rls", "configuration administrateur", "livreur"):
+              if forbidden in contract:
+                  raise SystemExit(f"{p}: forbidden public/internal wording remains: {forbidden}")
+
+          # Client feature defaults: delivery/courier fail closed.
+          p = "src/lib/featureCatalog.ts"
+          rep(p,
+              'name: "livraison",\n    label: "Livraison",\n    description: "Expose les parcours de livraison côté client, restaurateur et livreur.",\n    defaultEnabled: true,',
+              'name: "livraison",\n    label: "Livraison (désactivée)",\n    description: "Parcours dormant : ne pas exposer tant que le service de transport et le dashboard coursier ne sont pas réactivés.",\n    defaultEnabled: false,')
+          text = load(p)
+          # All courier-group definitions must fail closed by default.
+          text, n = re.subn(r'(\{\n\s+name: "[^"]+",\n\s+label: "[^"]+",\n\s+description: "[^"]+",\n\s+)defaultEnabled: true,(\n\s+group: "courier",)', r'\1defaultEnabled: false,\2', text)
+          if n < 1:
+              raise SystemExit(f"{p}: no courier defaults changed")
+          save(p, text)
+
+          p = "src/lib/featureFlags.ts"
+          rep(p, '      livraison: true,\n      emporter: true,', '      livraison: false,\n      emporter: true,')
+          rep(p,
+              'description: "Active le parcours marketplace standard et les outils admin principaux.",',
+              'description: "Active le parcours marketplace à emporter, les réservations et les outils admin principaux.",')
+
+          p = "supabase/functions/_shared/feature-flags.ts"
+          rep(p, '  livraison: { defaultEnabled: true },', '  livraison: { defaultEnabled: false },')
+
+          # Server finance: new marketplace attempts use flat 10%; internal TOK
+          # allocation remains server-side, never fetched from public plan rows.
+          p = "supabase/functions/_shared/marketplace-finance.ts"
+          rep(p, 'export const TOK_PLATFORM_FEE_BPS = 990;', 'export const TOK_PLATFORM_FEE_BPS = 1000;')
+          rep(p, 'export const FAIR_GROWTH_PRICING_VERSION = "fair_growth_2026_07";', 'export const FAIR_GROWTH_PRICING_VERSION = "flat_marketplace_2026_08";')
+          rep(p, 'export const MAX_FAIR_GROWTH_PLATFORM_FEE_BPS = 990;', 'export const MAX_FAIR_GROWTH_PLATFORM_FEE_BPS = 1000;')
+          rep(p,
+              '// Reduced marketplace rates are an entitlement, not merely a selected plan.\n// Fail closed to Starter pricing whenever payment/activation is incomplete,\n// delinquent or paused.',
+              '// Marketplace commission is flat at 10% for every paid plan. Subscription\n// resolution is still required to attach the correct contractual plan snapshot.')
+          rep(p,
+              '"restaurant_subscription_plan_id, plan, status, current_period_end, marketplace_commission_bps_snapshot, developer_order_bps_snapshot, pricing_version_snapshot",',
+              '"restaurant_subscription_plan_id, plan, status, current_period_end, marketplace_commission_bps_snapshot, pricing_version_snapshot",')
+          rep(p,
+              '''    const snapshotDeveloperRate = toOptionalBasisPoints(\n      subscription.developer_order_bps_snapshot,\n      "subscription_developer_order_bps_snapshot",\n      TOK_ORDER_DEVELOPER_SHARE_BPS,\n    );\n    if (\n      snapshotDeveloperRate !== null\n      && snapshotDeveloperRate !== TOK_ORDER_DEVELOPER_SHARE_BPS\n    ) {\n      throw new HttpError(503, "FAIR_GROWTH_DEVELOPER_ORDER_RATE_MISMATCH");\n    }\n''',
+              '')
+          rep(p,
+              '.select("id, slug, marketplace_commission_bps, developer_order_bps, pricing_version");',
+              '.select("id, slug, marketplace_commission_bps, pricing_version");')
+          rep(p,
+              '''        const planDeveloperRate = toBasisPoints(\n          plan.developer_order_bps,\n          "plan_developer_order_bps",\n          TOK_ORDER_DEVELOPER_SHARE_BPS,\n        );\n        if (planDeveloperRate !== TOK_ORDER_DEVELOPER_SHARE_BPS) {\n          throw new HttpError(503, "FAIR_GROWTH_DEVELOPER_ORDER_RATE_MISMATCH");\n        }\n''',
+              '')
+          rep(p,
+              '''  // A configured or merely selected plan is not a paid entitlement. If there\n  // is no active/trialing subscription snapshot, always fall back to Starter;\n  // a stale runtime configuration must never preserve a discounted rate.''',
+              '''  // If no current subscription snapshot is available, fail closed to the\n  // same public 10% marketplace commission without inventing a discounted tier.''')
+
+          # Safe subscription RPC replaces direct owner reads of the raw table.
+          p = "src/pages/dashboard/useOwnerRestaurants.ts"
+          rep(p,
+              '''    (supabase.from as any)("restaurant_ai_subscriptions")\n      .select("id, restaurant_id, plan, status, current_period_end, restaurant_subscription_plan_id")\n      .in("restaurant_id", restaurantIds)\n      .in("status", ["trialing", "active"]),''',
+              '''    (supabase.rpc as any)("get_my_restaurant_ai_subscriptions", {\n      p_restaurant_ids: restaurantIds,\n    }).in("status", ["trialing", "active"]),''')
+
+          p = "src/components/contracts/RestaurantPartnerContractCard.tsx"
+          rep(p,
+              '''      const { data, error } = await (supabase as any)\n        .from("restaurant_ai_subscriptions")\n        .select("plan, billing_period, price_monthly_chf_snapshot, billing_amount_chf_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, pricing_version_snapshot")\n        .eq("restaurant_id", restaurantId)\n        .maybeSingle();''',
+              '''      const { data, error } = await (supabase.rpc as any)(\n        "get_my_restaurant_ai_subscriptions",\n        { p_restaurant_ids: [restaurantId] },\n      )\n        .select("plan, billing_period, price_monthly_chf_snapshot, billing_amount_chf_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, pricing_version_snapshot")\n        .maybeSingle();''')
+
+          p = "src/lib/ai/tokAiClient.ts"
+          rep(p, '  metadata?: JsonRecord | null;\n};\n\nasync function invokeTokAiFunction', '};\n\nasync function invokeTokAiFunction')
+          rep(p,
+              '''  const { data, error } = await (supabase.from as any)("restaurant_ai_subscriptions")\n    .select(`''',
+              '''  const { data, error } = await (supabase.rpc as any)("get_my_restaurant_ai_subscriptions", {\n    p_restaurant_ids: [restaurantId],\n  })\n    .select(`''')
+          rep(p, '''      monthly_voice_minutes_limit,\n      current_period_start,\n      current_period_end,\n      metadata\n''', '''      monthly_voice_minutes_limit,\n      current_period_start,\n      current_period_end\n''')
+          rep(p, '    .eq("restaurant_id", restaurantId)\n', '', expected=1)
+
+          # Public help copy: pickup only. Delivery-specific FAQ rows remain
+          # feature-filtered and are not rendered while delivery is disabled.
+          p = "src/pages/Aide.tsx"
+          rep(p, '  Truck,\n', '')
+          rep(p, 'title: "Livraison & retrait",\n    description: "Adresse, retrait à emporter, retards et créneaux.",\n    icon: Truck,', 'title: "Retrait à emporter",\n    description: "Créneaux de retrait, préparation et récupération au restaurant.",\n    icon: ShoppingBag,')
+          rep(p, 'description: "Abonnement, livraison offerte, avantages et résiliation.",', 'description: "Abonnement, avantages, priorités et résiliation.",')
+          rep(p, '"Commande en cours non reçue, livreur bloqué ou adresse incorrecte.",', '"Commande à emporter en cours, restaurant fermé ou créneau de retrait incorrect.",')
+          rep(p,
+              'a: "Saisissez votre adresse dans la recherche ou dans le panier. L\'application vérifie automatiquement les restaurants qui livrent chez vous, ceux disponibles en retrait et les offres proches. Si aucune livraison n\'est disponible, le retrait à emporter ou les réservations peuvent rester accessibles selon les restaurants.",',
+              'a: "Saisissez votre ville, une adresse de recherche ou votre position approximative. L\'application affiche les restaurants proches disponibles pour le retrait à emporter, les réservations et les offres actives.",')
+          rep(p, 'par distance, horaires, livraison, retrait, offres, avis ou préférences.', 'par distance, horaires, retrait à emporter, offres, avis ou préférences.')
+          rep(p, 'sponsorisé, ouvert en ligne, livraison, retrait ou réservation.', 'sponsorisé, ouvert en ligne, retrait à emporter ou réservation.')
+          rep(p,
+              'q: "Comment choisir entre livraison, retrait et réservation ?",\n        a: "La livraison sert à recevoir votre repas à l\'adresse choisie. Le retrait à emporter vous permet de commander et récupérer au restaurant à une heure donnée. La réservation sert à bloquer une table, parfois avec des options premium comme Zéro Attente ou La Table du Chef si elles sont disponibles.",',
+              'q: "Comment choisir entre retrait à emporter et réservation ?",\n        a: "Le retrait à emporter vous permet de commander puis de récupérer la commande directement au restaurant au créneau choisi. La réservation sert à bloquer une table, parfois avec des options premium comme Zéro Attente ou La Table du Chef lorsqu\'elles sont disponibles.",')
+          rep(p,
+              'a: "Ouvrez la fiche du restaurant, choisissez vos plats, options et quantités, puis ajoutez-les au panier. Dans le panier, vérifiez le restaurant, le mode de service, l\'adresse ou l\'heure de retrait, les frais, les réductions, le total et le moyen de paiement. La commande est transmise au restaurant uniquement après validation du paiement lorsque le mode choisi l\'exige.",',
+              'a: "Ouvrez la fiche du restaurant, choisissez vos plats, options et quantités, puis ajoutez-les au panier. Dans le panier, vérifiez le restaurant, le créneau de retrait, les réductions, le total et le moyen de paiement. La commande est transmise au restaurant uniquement après validation du paiement lorsque le parcours l\'exige.",')
+          rep(p,
+              'a: "Rendez-vous dans Mes commandes ou ouvrez la notification reçue. Vous verrez les étapes disponibles : commande créée, paiement confirmé, acceptée par le restaurant, en préparation, prête, prise en charge, en livraison, livrée, annulée ou remboursée selon le cas.",',
+              'a: "Rendez-vous dans Mes commandes ou ouvrez la notification reçue. Vous verrez les étapes disponibles : commande créée, paiement confirmé, acceptée par le restaurant, en préparation, prête à retirer, retirée, annulée ou remboursée selon le cas.",')
+
+          # Tok One: no public delivery promise while that service is dormant.
+          p = "src/pages/TokOne.tsx"
+          rep(p, '  Truck,\n', '')
+          rep(p, '  price_monthly: 14.9,\n  price_yearly: 149,\n  currency: "CHF",\n  free_delivery_min_order: 25,', '  price_monthly: 9.9,\n  price_yearly: 89.9,\n  currency: "CHF",\n  free_delivery_min_order: null,')
+          rep(p, '  { id: "demo-free-delivery", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "free_delivery", value: { min_order: 25 } },\n', '')
+          rep(p,
+              '''  {\n    id: "free_delivery",\n    title: "Livraison offerte",\n    description:\n      "Les frais de livraison TOK disparaissent sur les commandes éligibles selon votre formule active.",\n    details: [\n      "Le seuil d'éligibilité est lu depuis votre formule Tok One.",\n      "L'avantage s'applique automatiquement au panier quand le restaurant et la zone sont couverts.",\n      "Le récapitulatif de commande distingue toujours les frais économisés des autres coûts.",\n    ],\n    icon: Truck,\n    tone: "orange",\n  },''',
+              '''  {\n    id: "member_exclusives",\n    title: "Avantages réservés",\n    description:\n      "Profitez d'avantages Tok One sur les parcours et offres partenaires éligibles.",\n    details: [\n      "Les avantages disponibles sont affichés avant l'action concernée.",\n      "Les conditions peuvent varier selon le restaurant et l'opération active.",\n      "TOK vérifie l'éligibilité au moment de la commande ou de la réservation.",\n    ],\n    icon: Star,\n    tone: "orange",\n  },''')
+          rep(p, '  free_delivery: CORE_BENEFITS[0],\n', '')
+          rep(p, 'de la zone de livraison et des opérations actives.', 'des restaurants partenaires et des opérations actives.')
+          rep(p,
+              '"Abonnement premium TOK pour profiter de livraisons offertes, avantages VIP, réductions partenaires et support prioritaire en Suisse romande.",',
+              '"Abonnement premium TOK pour profiter d’avantages VIP, réductions partenaires, accès prioritaires et support prioritaire en Suisse romande.",')
+          rep(p, '  if (benefit.benefit_type.includes("delivery")) return Truck;\n', '')
+          rep(p,
+              'title: "Tok One | Livraison offerte, avantages VIP et offres restaurant",\n    description:\n      "Tok One regroupe livraison offerte, avantages VIP, réductions partenaires, accès prioritaire aux expériences TOK et support prioritaire en Suisse romande.",',
+              'title: "Tok One | Avantages VIP et offres restaurant",\n    description:\n      "Tok One regroupe avantages VIP, réductions partenaires, accès prioritaire aux expériences TOK et support prioritaire en Suisse romande.",')
+          rep(p, '.filter((benefit) => benefit.enabled)', '.filter((benefit) => benefit.enabled && benefit.id !== "free_delivery")')
+
+          p = "src/lib/subscriptionEntitlements.ts"
+          rep(p,
+              '''  {\n    id: "free_delivery",\n    label: "Livraison gratuite",\n    description: "Frais de livraison offerts selon les conditions du plan.",\n  },\n''',
+              '')
+          rep(p, '    free_delivery: isEnabled(freeDeliveryBenefit),\n', '')
+          rep(p,
+              'freeDeliveryMinOrder: enabledById.free_delivery\n      ? configuredFreeDelivery || planFreeDelivery || 0\n      : Number.POSITIVE_INFINITY,',
+              'freeDeliveryMinOrder: isEnabled(freeDeliveryBenefit)\n      ? configuredFreeDelivery || planFreeDelivery || 0\n      : Number.POSITIVE_INFINITY,')
+
+          # Pricing page: exact 90/10, no degressive/cap/free-origin wording.
+          p = "src/pages/PacksRestaurateur.tsx"
+          text = load(p)
+          text = text.replace("conserve au minimum 90%", "reçoit 90%")
+          text = text.replace("Frais de réservation plafonnés à 7% du CA de la table", "Réservation honorée : CHF 5 fixe, sans plafond en pourcentage")
+          text = text.replace("Site, QR code, Instagram, Google et fichier client : CHF 0", "Toute réservation honorée traitée par TOK : CHF 5")
+          save(p, text)
+
+          # Do not render a disabled delivery selector in the cart. The stale
+          # delivery logic stays available behind the feature for future reuse.
+          p = "src/pages/Panier.tsx"
+          text = load(p)
+          text, n = re.subn(
+              r'(\{deliveryAvailable \? \([\s\S]*?\) : null\})',
+              r'{deliveryFeatureEnabled && deliveryAvailable ? (\1) : null}',
+              text,
+              count=0,
+          )
+          # The exact JSX differs across layouts; at minimum the word Livraison
+          # must not be in an always-rendered mode label when the global flag is off.
+          save(p, text)
+
+          # Feature visibility does not classify Tok One as delivery-dependent.
+          p = "src/lib/featureVisibility.ts"
+          rep(p, '{ feature: "tok-one", terms: ["tok one", "livraison gratuite", "abonnement tok one"] },', '{ feature: "tok-one", terms: ["tok one", "abonnement tok one"] },')
+
+          # Remove one-shot workflow before committing the product changes.
+          Path('.github/workflows/apply-flat10-pickup-legal.yml').unlink()
+          PY
+
+      - name: Commit guarded legal and product changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "fix(legal): align TOK terms with flat 90/10 pickup model"
+          git push origin HEAD:fix/legal-flat10-pickup-only
