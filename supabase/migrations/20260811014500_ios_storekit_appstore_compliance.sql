@@ -1,6 +1,5 @@
--- App Store compliance: Apple StoreKit entitlement provenance, canonical Tok One
--- pricing, and user blocking for UGC.
--- Additive only: existing Stripe subscription rows and social data remain intact.
+-- App Store compliance: Apple StoreKit entitlement provenance and user blocking
+-- for UGC. Existing Stripe subscription rows and social data remain intact.
 
 ALTER TABLE public.tok_one_subscriptions
   ADD COLUMN IF NOT EXISTS billing_provider text NOT NULL DEFAULT 'stripe',
@@ -35,19 +34,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_tok_one_apple_transaction
 CREATE INDEX IF NOT EXISTS idx_tok_one_billing_provider_user
   ON public.tok_one_subscriptions (billing_provider, user_id, created_at DESC);
 
--- The production plan still carried the original 9.90/89.90 seed while the
--- launch specification and App Store products use 14.90/149.00. The web
--- Stripe checkout reads these columns dynamically, so align the single source
--- of truth before exposing StoreKit in iOS. Existing Stripe subscriptions keep
--- the amount already recorded by Stripe; this only affects new purchases.
-UPDATE public.user_subscription_plans
-SET
-  price_monthly = 14.90,
-  price_yearly = 149.00,
-  currency = 'CHF',
-  updated_at = now()
-WHERE status = 'active'
-  AND lower(regexp_replace(trim(name), '[[:space:]_-]+', ' ', 'g')) IN ('tok one', 'miamz+');
+-- Tok One pricing remains governed by user_subscription_plans. The canonical
+-- production plan is 9.90 CHF/month and 89.90 CHF/year; StoreKit must mirror
+-- that price instead of rewriting the web/Stripe source of truth here.
 
 CREATE TABLE IF NOT EXISTS public.social_user_blocks (
   blocker_user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
