@@ -11,6 +11,14 @@ const legalPages = [
   "src/pages/ConditionsRestaurateurs.tsx",
 ];
 
+const mojibakeMarkers = [
+  String.fromCharCode(0xfffd),
+  String.fromCharCode(0x00c2),
+  String.fromCharCode(0x00c3),
+  String.fromCharCode(0x00c5),
+  `${String.fromCharCode(0x00e2)}${String.fromCharCode(0x20ac)}`,
+];
+
 function read(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
 }
@@ -62,11 +70,9 @@ describe("TOK Connect legal and help content", () => {
   it("keeps the touched French legal pages free from common mojibake markers", () => {
     for (const page of legalPages) {
       const source = read(page);
-      expect(source, page).not.toContain("�");
-      expect(source, page).not.toContain("Â");
-      expect(source, page).not.toContain("Ã");
-      expect(source, page).not.toContain("Å");
-      expect(source, page).not.toContain("â€");
+      for (const marker of mojibakeMarkers) {
+        expect(source, page).not.toContain(marker);
+      }
     }
   });
 });
