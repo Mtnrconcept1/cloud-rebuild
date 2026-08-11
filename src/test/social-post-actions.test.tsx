@@ -143,7 +143,7 @@ describe("SocialPostCard actions", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Signaler le post" }));
-    expect(screen.getByRole("dialog", { name: "Signaler ce post" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Signaler et bloquer ce compte" })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Raison du signalement"), { target: { value: "harassment" } });
     fireEvent.click(screen.getByRole("button", { name: "Envoyer le signalement" }));
     expect(socialHooks.reportMutate).toHaveBeenCalledWith({
