@@ -86,10 +86,14 @@ describe("public legal and commercial surface", () => {
 
   it("does not leak internal admin routes or implementation details through help SEO/copy", () => {
     const help = source("src/pages/Aide.tsx");
-    expect(help).not.toContain('"@type": "FAQPage"');
+    expect(help).toContain('"@type": "FAQPage"');
+    expect(help).toContain("visibleFaqSections.flatMap");
     expect(help).not.toContain("/admin/tok-connect");
     expect(help).not.toContain("contrôles côté Edge Function");
     expect(help).not.toContain("Les fonctions désactivées côté admin");
+    expect(help).not.toContain("Idempotency-Key");
+    expect(help).not.toContain("X-TOK-Signature");
+    expect(source("src/pages/Cookies.tsx")).not.toContain("maintenu dans le code source");
   });
 
   it("keeps Tok One public copy free of active delivery promises", () => {

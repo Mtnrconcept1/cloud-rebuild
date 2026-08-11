@@ -23,6 +23,9 @@ const sections = [
       "Support : messages, pièces jointes, incidents signalés et historique nécessaire à leur résolution.",
       "Données techniques : adresse IP, type d'appareil, navigateur, version de l'application, erreurs, performances et événements de sécurité nécessaires à l'exploitation du service.",
       "Fonctions d'intelligence artificielle : contenu de la demande, résultat et métadonnées strictement nécessaires lorsque vous utilisez une fonction IA.",
+      "Campagnes et personnalisation : interactions, préférences et signaux d'intérêt nécessaires pour ordonner des contenus, mesurer une campagne ou appliquer vos choix de personnalisation.",
+      "Notifications : identifiant technique de notification et préférences de réception lorsque vous activez ce canal.",
+      "Intégrations TOK Connect : identité du partenaire, permissions accordées, actions réalisées et données strictement nécessaires à l'intégration autorisée.",
     ],
   },
   {
@@ -55,31 +58,39 @@ const sections = [
       "Vercel et fournisseurs d'hébergement : mise à disposition et exploitation des services web concernés.",
       "Fournisseurs de messagerie et notifications : envoi des messages nécessaires au service ou demandés par l'utilisateur.",
       "OpenAI ou autre fournisseur IA activé : uniquement pour les fonctions d'intelligence artificielle effectivement utilisées et selon le périmètre nécessaire à la demande.",
+      "Partenaires TOK Connect approuvés : uniquement les données nécessaires à l'action autorisée et dans la limite des permissions accordées.",
       "Autorités ou conseils : uniquement lorsque la loi l'exige ou lorsque cela est nécessaire à la défense de droits légitimes.",
     ],
   },
   {
-    title: "6. Transferts à l'étranger",
+    title: "6. Intégrations TOK Connect et partenaires autorisés",
+    paragraphs: [
+      "Lorsqu'un restaurant ou TOK autorise une intégration partenaire, le partenaire ne reçoit que les informations nécessaires aux fonctions qui lui ont été accordées. Les permissions peuvent être retirées ou limitées selon le service concerné.",
+      "TOK conserve les éléments de traçabilité nécessaires à la sécurité, au support, à la preuve d'une action et au respect des obligations applicables, sans publier les secrets ou mécanismes internes de l'intégration.",
+    ],
+  },
+  {
+    title: "7. Transferts à l'étranger",
     paragraphs: [
       "Certains prestataires peuvent traiter des données en dehors de la Suisse. Lorsque le droit applicable l'exige, TOK utilise les garanties prévues pour encadrer ces transferts et limite les données transmises au besoin du service.",
     ],
   },
   {
-    title: "7. Conservation",
+    title: "8. Conservation",
     paragraphs: [
       "Les données sont conservées pendant la durée nécessaire au service puis supprimées, anonymisées ou archivées pendant la durée requise par les obligations légales, comptables, contractuelles, de sécurité ou de preuve.",
       "Les durées peuvent varier selon la catégorie : compte actif, commande, réservation, facture, paiement, consentement, litige, sécurité ou support.",
     ],
   },
   {
-    title: "8. Sécurité",
+    title: "9. Sécurité",
     paragraphs: [
       "TOK met en œuvre des mesures techniques et organisationnelles destinées à limiter l'accès non autorisé, la perte, l'altération ou la divulgation de données. Les accès sont limités selon les besoins et les actions sensibles font l'objet de contrôles appropriés.",
       "Aucun système n'offre une sécurité absolue. Si vous pensez que votre compte ou vos données ont été compromis, contactez-nous rapidement.",
     ],
   },
   {
-    title: "9. Vos droits",
+    title: "10. Vos droits",
     paragraphs: [
       "Selon le droit applicable, vous pouvez notamment demander l'accès aux données vous concernant, leur rectification, leur suppression lorsque les conditions sont réunies, ou des informations sur leur traitement.",
       "Certaines données doivent être conservées malgré une demande de suppression lorsqu'une obligation légale, comptable, de prévention de la fraude ou de défense de droits l'exige.",
@@ -87,13 +98,13 @@ const sections = [
     ],
   },
   {
-    title: "10. Cookies, mesures d'audience et communications",
+    title: "11. Cookies, mesures d'audience et communications",
     paragraphs: [
       "Les cookies et technologies similaires sont décrits dans la Politique cookies. Les communications commerciales sont envoyées selon vos choix et peuvent être désactivées au moyen des mécanismes proposés.",
     ],
   },
   {
-    title: "11. Modifications",
+    title: "12. Modifications",
     paragraphs: [
       "Cette politique peut être mise à jour en cas d'évolution du service ou du cadre légal. Sa version et sa date d'effet sont indiquées en tête de page. Une nouvelle acceptation sera demandée lorsque cela est nécessaire.",
     ],

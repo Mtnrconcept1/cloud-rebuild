@@ -1,7 +1,7 @@
 export type ProRole = "restaurateur" | "courier";
 
-export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-07-v6";
-export const LEGAL_ACCEPTANCE_VERSION = "cgu-2026-07-v4+privacy-2026-07-v4";
+export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-08-v7";
+export const LEGAL_ACCEPTANCE_VERSION = "cgu-2026-08-v5+privacy-2026-08-v5";
 
 export const ACCEPTED_MIME_TYPES = [
   "application/pdf",
@@ -33,7 +33,7 @@ export function validateSubmissionFields(
   fields: Record<string, string | undefined>,
 ): string | null {
   if (role !== "restaurateur" && role !== "courier") {
-    return "Role non supporte pour ce parcours (role attendu : restaurateur ou livreur).";
+    return "Role non supporte pour ce parcours.";
   }
   if (!String(fields.full_name || "").trim()) return "Le nom complet est requis.";
   if (!String(fields.phone || "").trim()) return "Le telephone est requis.";

@@ -13,19 +13,20 @@ const migration = read("supabase/migrations/20260712000526_marketplace_finance_r
 const cart = read("src/pages/Panier.tsx");
 
 describe("TOK marketplace finance routing", () => {
-  it("uses the active Fair Growth plan snapshot and an exact 1% order developer share", () => {
-    expect(finance).toContain("TOK_PLATFORM_FEE_BPS = 990");
+  it("uses a flat 10% marketplace fee and seals the active plan snapshot", () => {
+    expect(finance).toContain("TOK_PLATFORM_FEE_BPS = 1000");
     expect(finance).toContain("TOK_ORDER_DEVELOPER_SHARE_BPS = 100");
     expect(finance).toContain("marketplace_commission_bps_snapshot");
     expect(finance).toContain('"subscription_snapshot"');
-    expect(finance).toContain("MAX_FAIR_GROWTH_PLATFORM_FEE_BPS = 990");
+    expect(finance).toContain("MAX_FAIR_GROWTH_PLATFORM_FEE_BPS = 1000");
     expect(finance).toContain('ENTITLED_SUBSCRIPTION_STATUSES = new Set([\n  "active",\n  "trialing"');
     expect(finance).not.toContain('"past_due",\n  "trialing"');
     expect(finance).not.toContain('"paused",');
     expect(finance).toContain("current_period_end");
     expect(finance).toContain("currentPeriodEndMs > Date.now()");
-    expect(finance).toContain('pricingRateSource: "starter_fallback"');
+    expect(finance).toContain('pricingRateSource: "runtime_default"');
     expect(finance).toContain("platformFeeBps: TOK_PLATFORM_FEE_BPS");
+    expect(finance).toContain("pricingPlanSlug: null");
     expect(finance).not.toContain("input.financeConfig?.platform_fee_bps ?? TOK_PLATFORM_FEE_BPS");
     expect(migration).toContain("developer_share_bps integer NOT NULL DEFAULT 1000");
     expect(migration).toContain("reservation_fee_cents integer NOT NULL DEFAULT 500");

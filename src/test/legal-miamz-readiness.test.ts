@@ -13,100 +13,62 @@ const publicLegalPages = [
   "src/pages/APropos.tsx",
 ];
 
-const brokenEncodingMarkers = [
-  "\u00c3",
-  "\u00c2",
-  "\u00e2\u20ac\u201d",
-  "\u00e2\u20ac\u2122",
-  "\u00e2\u20ac\u0153",
-  "\u00e2\u20ac",
-  "\ufffd",
-];
+const brokenEncodingMarkers = ["Ã", "Â", "â€", "�"];
 
 describe("legal Miamz and sponsored content readiness", () => {
   it("keeps public legal and help pages in readable UTF-8 French", () => {
     for (const path of publicLegalPages) {
       const content = read(path);
-
-      for (const brokenEncoding of brokenEncodingMarkers) {
-        expect(content, `${path} contains ${brokenEncoding}`).not.toContain(brokenEncoding);
-      }
+      for (const marker of brokenEncodingMarkers) expect(content, path).not.toContain(marker);
     }
   });
 
   it("documents Miamz value, expiry, donations and refund adjustments in public legal copy", () => {
     const cgu = read("src/pages/CGU.tsx");
     const miamz = read("src/pages/MiamzSolidaires.tsx");
-
     for (const expected of [
       "Les Miamz ne constituent pas une monnaie",
       "sans valeur en espèces",
       "durée de validité",
       "dons solidaires",
-      "annulation, remboursement, fraude, abus ou erreur technique",
-      "tables VIP",
-    ]) {
-      expect(cgu).toContain(expected);
-    }
-
+      "Une annulation, un remboursement, une fraude, un abus ou une erreur technique",
+      "tables ou expériences VIP",
+    ]) expect(cgu).toContain(expected);
     for (const expected of [
       "non convertibles en espèces",
       "durée de validité affichée",
       "preuve de redistribution",
       "annulation ou remboursement",
-    ]) {
-      expect(miamz).toContain(expected);
-    }
+    ]) expect(miamz).toContain(expected);
   });
 
-  it("covers sponsored posts and AI photo responsibilities in legal and privacy pages", () => {
+  it("covers sponsored posts and AI responsibilities without exposing production internals", () => {
     const cgu = read("src/pages/CGU.tsx");
     const privacy = read("src/pages/PolitiqueConfidentialite.tsx");
-
     for (const expected of [
       "campagnes sponsorisées",
       "photos générées ou retouchées par IA",
       "ne doivent pas induire les utilisateurs en erreur",
-      "post ne doit être présenté comme sponsorisé",
-      "budget quotidien",
-    ]) {
-      expect(cgu).toContain(expected);
-    }
-
+      "ne doit être présenté comme sponsorisé",
+      "budget et la durée",
+    ]) expect(cgu).toContain(expected);
     for (const expected of [
-      "Données d'usage IA",
+      "Fonctions d'intelligence artificielle",
       "OpenAI",
-      "scores d'intérêt",
-      "Réseaux sociaux restaurateur",
-      "jetons push",
-    ]) {
-      expect(privacy).toContain(expected);
-    }
+      "signaux d'intérêt",
+      "identifiant technique de notification",
+      "Partenaires TOK Connect approuvés",
+    ]) expect(privacy).toContain(expected);
   });
 
   it("explains recent product additions in FAQ and About pages", () => {
     const aide = read("src/pages/Aide.tsx");
     const about = read("src/pages/APropos.tsx");
-
     for (const expected of [
-      "posts sauvegardés",
-      "Plus comme ça",
-      "Moins comme ça",
-      "CPC",
-      "budget total et la durée",
-      "tables VIP",
-      "panier",
-      "jetons de notification push",
-    ]) {
-      expect(aide).toContain(expected);
-    }
-
-    for (const expected of [
-      "Actualités",
-      "Miamz",
-      "campagnes",
-      "restaurants indépendants",
-    ]) {
+      "posts sauvegardés", "Plus comme ça", "Moins comme ça", "CPC",
+      "budget total et la durée", "tables VIP", "panier", "jetons de notification push",
+    ]) expect(aide).toContain(expected);
+    for (const expected of ["Actualités", "Miamz", "campagnes", "restaurants indépendants"]) {
       expect(about).toContain(expected);
     }
   });

@@ -1018,7 +1018,7 @@ export default function TokOne() {
               Tok One
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-700 dark:text-white/70">
-              Livraison offerte, accès VIP aux expériences, réductions
+              Avantages réservés, accès VIP aux expériences, réductions
               partenaires et support prioritaire. Une formule claire pour les
               clients qui commandent, réservent et découvrent les meilleures
               tables de Genève.

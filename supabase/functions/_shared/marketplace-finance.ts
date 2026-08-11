@@ -253,9 +253,9 @@ async function resolveFairGrowthPricingSnapshot(input: {
   return {
     platformFeeBps: TOK_PLATFORM_FEE_BPS,
     pricingPlanId: null,
-    pricingPlanSlug: "starter",
+    pricingPlanSlug: null,
     pricingVersion: FAIR_GROWTH_PRICING_VERSION,
-    pricingRateSource: "starter_fallback",
+    pricingRateSource: "runtime_default",
   };
 }
 

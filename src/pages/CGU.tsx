@@ -53,16 +53,21 @@ const sections = [
   {
     title: "7. Tok One, Miamz et avantages",
     paragraphs: [
-      "Les Miamz et avantages de fidélité n'ont pas de valeur monétaire en dehors de TOK et ne constituent pas un compte bancaire, un dépôt ou un actif financier.",
-      "Tok One peut donner accès à des réductions, priorités, offres partenaires, support prioritaire ou autres avantages décrits dans l'application. Les droits applicables sont ceux de la formule active au moment de l'utilisation.",
+      "Les Miamz ne constituent pas une monnaie, un compte bancaire, un dépôt ou un actif financier et sont sans valeur en espèces en dehors des usages expressément proposés par TOK.",
+      "Le nombre de Miamz attribués, leur durée de validité, les conditions d'utilisation et les avantages accessibles sont affichés dans l'application ou dans l'opération concernée.",
+      "Une annulation, un remboursement, une fraude, un abus ou une erreur technique peut entraîner l'annulation ou la correction des Miamz liés à l'opération concernée.",
+      "Les dons solidaires, lorsqu'ils sont proposés, précisent leur destination, les conditions de conversion des avantages et les informations disponibles sur la redistribution.",
+      "Tok One peut donner accès à des réductions, priorités, offres partenaires, support prioritaire, tables ou expériences VIP et autres avantages décrits dans l'application. Les droits applicables sont ceux de la formule active au moment de l'utilisation.",
       "Les conditions de souscription, renouvellement et résiliation de Tok One sont présentées dans le parcours d'achat concerné.",
     ],
   },
   {
-    title: "8. Actualités, avis et contenus utilisateurs",
+    title: "8. Actualités, avis, contenus et campagnes sponsorisées",
     paragraphs: [
       "Les utilisateurs doivent publier uniquement des contenus licites et respecter les droits de tiers. Les contenus haineux, menaçants, frauduleux, diffamatoires, discriminatoires, sexuellement explicites, violents ou destinés au harcèlement peuvent être modérés ou supprimés.",
       "TOK met à disposition des mécanismes de signalement et de blocage. Un compte peut être suspendu ou supprimé en cas d'abus répétés ou graves.",
+      "Les campagnes sponsorisées et autres mises en avant payantes doivent être clairement identifiées. Un post ne doit être présenté comme sponsorisé que lorsque la mise en avant est effectivement active.",
+      "Le budget et la durée d'une campagne, ainsi que les principales conditions de diffusion, sont présentés au restaurateur avant validation. TOK ne garantit aucun volume de vues, clics, réservations, commandes ou chiffre d'affaires.",
     ],
   },
   {
@@ -70,29 +75,38 @@ const sections = [
     paragraphs: [
       "Certaines fonctions peuvent utiliser des systèmes d'intelligence artificielle pour assister la recherche, le support, la rédaction, l'analyse ou la création de contenus.",
       "Les résultats peuvent comporter des erreurs. Les informations importantes, notamment prix, allergènes, disponibilités, informations contractuelles ou décisions commerciales, doivent être vérifiées avant utilisation.",
+      "Les photos générées ou retouchées par IA et les textes assistés ne doivent pas induire les utilisateurs en erreur sur un plat, un prix, une disponibilité, une origine, un allergène ou une caractéristique essentielle de l'offre.",
     ],
   },
   {
-    title: "10. Disponibilité et responsabilité",
+    title: "10. Intégrations TOK Connect et partenaires autorisés",
+    paragraphs: [
+      "TOK Connect permet à des partenaires approuvés d'interagir avec certaines fonctions de TOK dans la limite des permissions accordées par TOK et, lorsque nécessaire, par le restaurant concerné.",
+      "Un partenaire autorisé ne peut utiliser que les données et actions nécessaires à l'intégration convenue. Les autorisations peuvent être limitées, suspendues ou révoquées en cas de risque, d'abus, de non-conformité ou à la demande du restaurant lorsque son autorisation est requise.",
+      "Lorsqu'une réservation ou une autre action réelle est confirmée au moyen d'une intégration autorisée, les mêmes règles commerciales et opérationnelles que dans TOK s'appliquent. Les environnements de test ne valent jamais confirmation d'une opération réelle.",
+    ],
+  },
+  {
+    title: "11. Disponibilité et responsabilité",
     paragraphs: [
       "TOK met en œuvre des moyens raisonnables pour assurer la disponibilité et la sécurité de la plateforme, sans garantir un fonctionnement ininterrompu ou exempt de toute erreur.",
       "TOK n'est pas responsable des informations erronées fournies par un restaurant, d'une indisponibilité de stock, d'un retard de préparation, d'une interruption imputable à un prestataire tiers ou d'un usage contraire aux présentes CGU, sous réserve des responsabilités qui ne peuvent être exclues par la loi.",
     ],
   },
   {
-    title: "11. Données personnelles",
+    title: "12. Données personnelles",
     paragraphs: [
       "Le traitement des données personnelles est décrit dans la Politique de confidentialité. Celle-ci précise les catégories de données, finalités, destinataires, durées de conservation et droits des personnes concernées.",
     ],
   },
   {
-    title: "12. Modification des CGU",
+    title: "13. Modification des CGU",
     paragraphs: [
       "TOK peut mettre à jour les présentes CGU afin de refléter une évolution légale, fonctionnelle ou commerciale. La version et sa date d'effet sont indiquées en tête du document. Lorsqu'une nouvelle acceptation est nécessaire, l'utilisateur en est informé dans l'application.",
     ],
   },
   {
-    title: "13. Droit applicable et contact",
+    title: "14. Droit applicable et contact",
     paragraphs: [
       "Les présentes CGU sont régies par le droit suisse, sous réserve des dispositions impératives applicables au consommateur.",
       `Pour toute question concernant ces conditions, vous pouvez contacter TOK à ${SUPPORT_EMAIL}.`,

@@ -59,6 +59,7 @@ describe("public feature, help and legal coverage", () => {
     const help = read("src/pages/Aide.tsx");
     expect(help).toContain('"@type": "FAQPage"');
     expect(help).toContain("acceptedAnswer");
+    expect(help).toContain("visibleFaqSections.flatMap");
   });
 
   it("wires all matrix destinations as public routes", () => {

@@ -56,9 +56,10 @@ describe("restaurant partner contracts governance", () => {
     expect(contractCopy).toContain("Date de signature");
     expect(contractCopy).toContain("Lieu");
     expect(contractCopy).toContain("IDE/UID suisse");
-    expect(contractCopy).toContain("Sur les frais de réservation");
+    expect(contractCopy).toContain("restaurant reçoit 90%");
+    expect(contractCopy).toContain("TOK conserve 10%");
     expect(contractCopy).toContain("chargeback");
-    expect(contractCopy).toContain("sous-traitants ultérieurs");
+    expect(contractCopy).toContain("prestataires de paiement");
     expect(contractCopy).toContain("allergènes");
     expect(contractCopy).toContain("tribunaux compétents du canton de Genève");
     expect(contractCopy).toContain("Annexes contractuelles attendues");

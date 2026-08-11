@@ -83,6 +83,7 @@ const sections = [
       "Le restaurateur est responsable des prix, stocks, remises, horaires, conditions et contenus associés à ses offres, ventes flash, opérations anti-gaspi, publications et campagnes.",
       "Toute communication commerciale doit être exacte, non trompeuse et conforme au droit applicable. TOK peut refuser, suspendre ou retirer un contenu qui présente un risque juridique, de sécurité ou de tromperie pour les utilisateurs.",
       "TOK ne garantit aucun volume de vues, clics, commandes, réservations ou chiffre d'affaires issu d'une campagne ou d'un outil d'assistance.",
+      "Les contenus sponsorisés doivent être clairement identifiés et ne peuvent présenter une offre, un prix, une disponibilité ou une caractéristique de manière trompeuse.",
     ],
   },
   {
@@ -98,6 +99,7 @@ const sections = [
     body: [
       "Le restaurateur garantit disposer des droits nécessaires sur les marques, logos, menus, photographies, vidéos et autres contenus qu'il transmet ou publie via TOK.",
       "Les contenus générés ou assistés par intelligence artificielle doivent être vérifiés avant publication. Le restaurateur reste responsable des informations commerciales et alimentaires qu'il valide.",
+      "Les photos générées ou retouchées par intelligence artificielle ne doivent pas induire le client en erreur sur le produit réellement proposé.",
     ],
   },
   {
@@ -116,7 +118,16 @@ const sections = [
     ],
   },
   {
-    title: "14. Droit applicable et contact",
+    title: "14. TOK Connect et partenaires autorisés",
+    body: [
+      "Le restaurateur peut autoriser ou révoquer un partenaire TOK Connect pour son établissement au moyen des contrôles mis à sa disposition lorsque cette intégration est disponible.",
+      "Les autorisations sont limitées aux usages nécessaires au partenaire. Le restaurateur doit vérifier les partenaires auxquels il accorde un accès et retirer une autorisation devenue inutile ou inappropriée.",
+      "Une réservation réelle ou une autre opération confirmée au moyen d'une intégration autorisée engage le restaurant dans les mêmes conditions qu'une opération équivalente confirmée dans TOK, sous réserve des droits de correction et d'annulation applicables.",
+      "TOK peut suspendre une intégration en cas de risque, d'abus, d'accès non autorisé ou de non-conformité.",
+    ],
+  },
+  {
+    title: "15. Droit applicable et contact",
     body: [
       "Les présentes conditions sont régies par le droit suisse. Les règles impératives de compétence demeurent réservées.",
       `Pour toute question contractuelle ou de facturation, contactez TOK à ${SUPPORT_EMAIL}.`,

@@ -842,62 +842,57 @@ const FAQS: FaqSection[] = [
     questions: [
       {
         q: "Qu'est-ce que TOK Connect ?",
-        a: "TOK Connect est le socle d'intégration de TOK pour les partenaires approuvés : API REST, OAuth, webhooks, portail développeur et serveur MCP. Il permet de lire des restaurants, menus et disponibilités, de préparer des réservations, de confirmer certaines réservations réelles et de générer des previews de campagnes sans donner un accès libre à toute la plateforme.",
+        a: "TOK Connect permet à des partenaires approuvés de relier leurs services à certaines fonctions de TOK. Chaque intégration est limitée aux autorisations accordées et peut être suspendue ou révoquée si elle n'est plus nécessaire ou présente un risque.",
       },
       {
-        q: "À quoi sert l'API REST TOK Connect ?",
-        a: "L'API REST versionnée sert aux applications partenaires qui veulent intégrer TOK dans leurs propres outils : recherche de restaurants, détail d'un restaurant, menu, disponibilité, preview de réservation, création de réservation confirmée, consultation de crédits et preview de campagne. Les réponses utilisent une enveloppe standard avec ok, data, error, request_id et next_cursor lorsque la pagination est nécessaire.",
+        q: "À quoi sert l'API TOK Connect ?",
+        a: "Elle permet à un partenaire autorisé de consulter ou d'utiliser les fonctions prévues par son intégration, par exemple des informations de restaurant, des disponibilités ou certaines étapes d'une réservation, uniquement dans le périmètre qui lui a été accordé.",
       },
       {
         q: "Que signifie MCP dans TOK Connect ?",
-        a: "Le serveur MCP permet à un assistant compatible, par exemple un connecteur ChatGPT configuré par un partenaire autorisé, d'appeler des outils TOK de manière structurée. En v1, seuls les outils prudents sont exposés : recherche, disponibilité, préparation de réservation, performance restaurant autorisée, estimation de coût crédit et preview de campagne.",
+        a: "MCP permet à un assistant compatible d'utiliser des outils TOK autorisés de manière structurée. Les actions disponibles dépendent du partenaire, du restaurant concerné et des permissions effectivement accordées.",
       },
       {
-        q: "Qui peut créer un client OAuth TOK Connect ?",
-        a: "Seuls les partenaires validés peuvent disposer d'un client OAuth. Un client peut être sandbox ou production, recevoir des scopes limités, des quotas et des restaurants autorisés. Les secrets ne sont pas affichés en clair après création et peuvent être révoqués ou renouvelés.",
+        q: "Qui peut utiliser TOK Connect ?",
+        a: "Seuls les partenaires validés et les comptes autorisés peuvent utiliser une intégration TOK Connect. TOK peut limiter les fonctions accessibles, les établissements concernés et la durée de l'autorisation.",
       },
       {
         q: "Quelles données un partenaire peut-il consulter ?",
-        a: "Un partenaire ne voit que les données couvertes par ses scopes et par les autorisations restaurant : informations publiques de restaurant, menus, disponibilités, données strictement nécessaires à une réservation ou statistiques agrégées lorsque le restaurant et TOK les autorisent. Les données de paiement sensibles et les secrets serveur ne sont jamais transmis.",
+        a: "Un partenaire ne reçoit que les données nécessaires à l'action autorisée. Les données de paiement sensibles, informations internes de TOK et informations sans rapport avec l'intégration ne sont pas communiquées.",
       },
       {
         q: "Un partenaire peut-il créer une réservation réelle ?",
-        a: "Oui, mais seulement avec le scope adapté, un restaurant autorisé, une disponibilité valide et une confirmation explicite dans le parcours partenaire. Le endpoint de création exige une clé Idempotency-Key afin d'éviter les doublons si une requête est rejouée.",
+        a: "Oui lorsque cette action fait partie de ses autorisations, que le restaurant concerné l'accepte et que le parcours prévoit une confirmation réelle. Une opération de test n'est jamais traitée comme une réservation réelle.",
       },
       {
         q: "Les actions autonomes sont-elles autorisées ?",
-        a: "Non en v1 pour les actions sensibles. TOK Connect peut préparer, suggérer ou prévisualiser des campagnes, coûts, réservations et performances, mais les offres, campagnes autonomes, crédits consommés ou actions commerciales sensibles doivent rester en preview ou passer par une validation humaine explicite.",
+        a: "Les actions sensibles restent limitées par les autorisations accordées et peuvent nécessiter une confirmation explicite. TOK peut imposer une validation humaine pour une opération commerciale ou financière.",
       },
       {
-        q: "Que sont les webhooks TOK Connect ?",
-        a: "Les webhooks préviennent un partenaire lorsqu'un événement autorisé se produit, par exemple reservation.created, reservation.cancelled, webhook.test ou campaign.previewed. Chaque livraison comporte des en-têtes X-TOK-Event, X-TOK-Delivery, X-TOK-Timestamp et X-TOK-Signature pour permettre la vérification côté partenaire.",
+        q: "À quoi servent les notifications d'intégration ?",
+        a: "Elles permettent à un partenaire autorisé d'être informé d'un changement utile à son intégration. Les échanges sont protégés et limités aux événements nécessaires au service convenu.",
       },
       {
-        q: "Comment fonctionne le mode sandbox ?",
-        a: "Le mode sandbox isole les tests d'un client OAuth avec des données déterministes et sans mutation production. Il sert à développer une intégration, tester l'authentification, la pagination, les erreurs, les webhooks et les appels MCP avant toute validation production.",
+        q: "Comment fonctionne l'environnement de test ?",
+        a: "Il permet de vérifier une intégration sans transformer une opération de test en réservation, campagne ou transaction réelle.",
       },
       {
         q: "Comment un restaurateur contrôle-t-il l'accès à son établissement ?",
-        a: "Le restaurateur peut autoriser ou révoquer les partenaires par restaurant depuis le dashboard TOK Connect lorsque la fonctionnalité est active. Il peut limiter les scopes, les quotas, les réservations et les usages autorisés. TOK peut aussi suspendre un accès en cas de risque, abus ou non-conformité.",
+        a: "Lorsque TOK Connect est disponible pour son établissement, le restaurateur peut autoriser ou révoquer un partenaire et limiter les usages qui lui sont accordés. TOK peut également suspendre un accès en cas de risque ou d'abus.",
       },
       {
-        q: "Comment TOK sécurise les tokens et les appels TOK Connect ?",
-        a: "TOK Connect applique une authentification dédiée, des autorisations limitées au périmètre accordé, des quotas, une journalisation de sécurité et des signatures pour les échanges sensibles.",
+        q: "Comment TOK protège-t-il une intégration ?",
+        a: "TOK applique des contrôles d'authentification, d'autorisation, de traçabilité et de limitation adaptés au service concerné, sans exposer les secrets ou mécanismes internes de la plateforme.",
       },
       {
-        q: "Où trouver la documentation et les exemples TOK Connect ?",
-        a: "La page TOK Connect et l'espace partenaire autorisé donnent accès à la documentation, aux environnements de test et aux outils prévus pour le compte concerné.",
+        q: "Où trouver la documentation TOK Connect ?",
+        a: "La page TOK Connect et l'espace réservé au partenaire autorisé présentent la documentation et les outils disponibles pour son compte.",
       },
     ],
   },
 ];
 
 export default function Aide() {
-  useSeoMeta({
-    title: "Centre d'aide TOK — clients et restaurateurs",
-    description: "Réponses sur les commandes, paiements, inscriptions restaurateurs, abonnements, Google Business et fonctionnalités TOK.",
-    path: "/aide",
-  });
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const questionsRef = useRef<HTMLElement | null>(null);
@@ -931,6 +926,28 @@ export default function Aide() {
         .filter((section) => section.questions.length > 0),
     [activeFeatures, visibleCategoryIds],
   );
+
+  const faqJsonLd = useMemo(
+    () => ({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: visibleFaqSections.flatMap((section) =>
+        section.questions.map((item) => ({
+          "@type": "Question",
+          name: item.q,
+          acceptedAnswer: { "@type": "Answer", text: item.a },
+        })),
+      ),
+    }),
+    [visibleFaqSections],
+  );
+
+  useSeoMeta({
+    title: "Centre d'aide TOK — clients et restaurateurs",
+    description: "Réponses sur les commandes à emporter, paiements, inscriptions restaurateurs, abonnements, Google Business et fonctionnalités TOK.",
+    path: "/aide",
+    jsonLd: faqJsonLd,
+  });
 
   const normalizedSearch = search.trim().toLowerCase();
 
