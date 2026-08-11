@@ -15,7 +15,7 @@
   "icons": [
     {
       "src": "/logotok.png",
-      "sizes": "any",
+      "sizes": "1691x1099",
       "type": "image/png",
       "purpose": "any"
     }
@@ -45,7 +45,7 @@
       "icons": [
         {
           "src": "/logotok.png",
-          "sizes": "any",
+          "sizes": "1691x1099",
           "type": "image/png"
         }
       ]
@@ -58,7 +58,7 @@
       "icons": [
         {
           "src": "/logotok.png",
-          "sizes": "any",
+          "sizes": "1691x1099",
           "type": "image/png"
         }
       ]
@@ -71,7 +71,7 @@
       "icons": [
         {
           "src": "/logotok.png",
-          "sizes": "any",
+          "sizes": "1691x1099",
           "type": "image/png"
         }
       ]
@@ -84,7 +84,7 @@
       "icons": [
         {
           "src": "/logotok.png",
-          "sizes": "any",
+          "sizes": "1691x1099",
           "type": "image/png"
         }
       ]
