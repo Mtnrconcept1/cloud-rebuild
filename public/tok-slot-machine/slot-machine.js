@@ -2,7 +2,7 @@ const symbols = Object.freeze([
   Object.freeze({
     id: "logo_suisse",
     label: "Logo TOK Suisse",
-    src: "assets/tok.png"
+    src: "/logotok.png"
   }),
   Object.freeze({
     id: "monstre_fourchette",
