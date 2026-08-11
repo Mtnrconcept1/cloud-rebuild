@@ -5,7 +5,7 @@ on:
     branches:
       - ops/app-store-tok-one-readiness
     paths:
-      - ios/.appstore-tok-one-readiness-v6
+      - ios/.appstore-tok-one-readiness-v7
   workflow_dispatch:
 
 permissions:
@@ -18,7 +18,7 @@ concurrency:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     environment: app-store-production
     env:
       APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
@@ -38,18 +38,13 @@ jobs:
           set -euo pipefail
           parent="${GITHUB_SHA}^"
           git cat-file -e "$parent"
-          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-tok-one-readiness-v6$'; then
-            echo "::error::Readiness audit must be triggered by adding its v6 marker exactly once."
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-tok-one-readiness-v7$'; then
+            echo "::error::Build 4 audit must be triggered by adding its v7 marker exactly once."
             exit 1
           fi
 
-      - name: Validate audit scripts
-        run: |
-          node --check ./scripts/app-store-tok-one-readiness.mjs
-          node --check ./scripts/app-store-tok-one-metadata-audit.mjs
+      - name: Validate build audit
+        run: node --check ./scripts/app-store-build4-audit.mjs
 
-      - name: Audit subscription state
-        run: node ./scripts/app-store-tok-one-readiness.mjs
-
-      - name: Audit group and availability metadata
-        run: node ./scripts/app-store-tok-one-metadata-audit.mjs
+      - name: Audit processed build 4 and review state
+        run: node ./scripts/app-store-build4-audit.mjs
