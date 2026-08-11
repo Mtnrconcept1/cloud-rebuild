@@ -5,7 +5,7 @@ on:
     branches:
       - feat/ios-storekit-appstore-compliance
     paths:
-      - ios/.appstore-tok-one-setup-v2
+      - ios/.appstore-tok-one-setup-v3
   workflow_dispatch:
 
 permissions:
@@ -43,19 +43,19 @@ jobs:
           set -euo pipefail
           parent="${GITHUB_SHA}^"
           git cat-file -e "$parent"
-          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-tok-one-setup-v2$'; then
-            echo "::error::Tok One setup must be triggered by adding the v2 marker exactly once."
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-tok-one-setup-v3$'; then
+            echo "::error::Tok One setup must be triggered by adding the v3 marker exactly once."
             exit 1
           fi
 
       - name: Validate setup script syntax
         run: |
           node --check ./scripts/app-store-connect-tok-one.mjs
-          node --check ./scripts/app-store-connect-tok-one-v2.mjs
+          node --check ./scripts/app-store-connect-tok-one-v3.mjs
 
       - name: Configure subscriptions and notifications
         id: setup
-        run: node ./scripts/app-store-connect-tok-one-v2.mjs
+        run: node ./scripts/app-store-connect-tok-one-v3.mjs
 
       - name: Summarize configuration
         if: success()
