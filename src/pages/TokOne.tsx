@@ -779,7 +779,7 @@ export default function TokOne() {
     benefits,
   });
   const enabledBenefits = entitlements.displayBenefits
-    .filter((benefit) => benefit.enabled && benefit.id !== "free_delivery")
+    .filter((benefit) => benefit.enabled)
     .map<BenefitCard>((benefit, index) => {
       const presentation = ENTITLEMENT_BENEFITS[benefit.id];
       if (presentation) return { ...presentation, id: benefit.id };
