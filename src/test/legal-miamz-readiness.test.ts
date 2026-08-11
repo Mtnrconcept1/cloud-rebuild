@@ -13,7 +13,12 @@ const publicLegalPages = [
   "src/pages/APropos.tsx",
 ];
 
-const brokenEncodingMarkers = ["Ã", "Â", "â€", "�"];
+const brokenEncodingMarkers = [
+  String.fromCharCode(0x00c3),
+  String.fromCharCode(0x00c2),
+  `${String.fromCharCode(0x00e2)}${String.fromCharCode(0x20ac)}`,
+  String.fromCharCode(0xfffd),
+];
 
 describe("legal Miamz and sponsored content readiness", () => {
   it("keeps public legal and help pages in readable UTF-8 French", () => {
