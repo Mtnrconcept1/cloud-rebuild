@@ -1,0 +1,51 @@
+name: App Store Build 4 Trigger
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ios/.appstore-build4-storekit
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  dispatch:
+    name: Dispatch App Store Release 1.0 (4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Guard one-shot trigger
+        shell: bash
+        run: |
+          set -euo pipefail
+          parent="${GITHUB_SHA}^"
+          git cat-file -e "$parent"
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-build4-storekit$'; then
+            echo "::error::The build 4 StoreKit trigger must be added exactly once."
+            exit 1
+          fi
+
+      - name: Dispatch signed App Store build 1.0 (4)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/app-store-release.yml/dispatches"
+          payload='{"ref":"main","inputs":{"marketing_version":"1.0","build_number":"4","upload":"true"}}'
+          curl --fail --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$api" \
+            -d "$payload"
+          echo "Dispatched App Store Release for TheTok 1.0 (4) with StoreKit changes and upload=true."
