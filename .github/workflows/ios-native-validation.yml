@@ -1,3 +1,4 @@
+# Pre-merge App Store gate: compile the real Capacitor/StoreKit bridge with Xcode 26.
 name: iOS Native Validation
 
 on:
