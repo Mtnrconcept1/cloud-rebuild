@@ -51,6 +51,8 @@ import {
 } from "@/lib/paymentAttempt";
 import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { getPlatform } from "@/lib/platform";
+import { restoreTokOneIosPurchases } from "@/lib/iosCommerceFetch";
 
 const supabase = getSupabase();
 
@@ -548,6 +550,7 @@ function FaqCard({ question, answer }: { question: string; answer: string }) {
 
 export default function TokOne() {
   const { user } = useAuth();
+  const isNativeIos = getPlatform() === "ios";
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const commercialDemoSessionId = commercialDemoFrame?.config.sessionId;
@@ -556,6 +559,7 @@ export default function TokOne() {
   const queryClient = useQueryClient();
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [restoreLoading, setRestoreLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [expandedBenefit, setExpandedBenefit] = useState<string | null>(null);
   const checkoutLockRef = useRef(false);
@@ -714,6 +718,54 @@ export default function TokOne() {
 
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) || plans[0];
   const activeSubscription = isTokOneSubscriptionActive(subscription);
+
+  const handleRestoreIosPurchases = async () => {
+    if (!isNativeIos || !user?.id || restoreLoading) return;
+    const planId = subscription?.plan_id || selectedPlan?.id;
+    if (!planId) {
+      toast({
+        title: "Restauration impossible",
+        description: "La formule Tok One n'est pas encore disponible.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setRestoreLoading(true);
+    try {
+      const result = await restoreTokOneIosPurchases({
+        userId: user.id,
+        sync: async (signedTransaction) => {
+          const { error } = await supabase.functions.invoke("sync-apple-storekit", {
+            body: {
+              signed_transaction: signedTransaction,
+              plan_id: planId,
+              source: "ios_storekit_restore",
+            },
+          });
+          if (error) throw error;
+        },
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
+      await refetchSubscription();
+      toast({
+        title: result.restored > 0 ? "Achats restaurés" : "Aucun achat à restaurer",
+        description: result.restored > 0
+          ? "Votre abonnement Tok One Apple a été resynchronisé."
+          : "Aucun abonnement Tok One actif n'a été trouvé sur ce compte Apple.",
+      });
+    } catch (error) {
+      toast({
+        title: "Restauration impossible",
+        description: error instanceof Error ? error.message : "Impossible de restaurer les achats Apple.",
+        variant: "destructive",
+      });
+    } finally {
+      setRestoreLoading(false);
+    }
+  };
+
   const entitlements = buildTokOneEntitlements({
     plan: selectedPlan ?? null,
     benefits,
@@ -1167,6 +1219,28 @@ export default function TokOne() {
               ) : null}
               {activeSubscription ? "Abonnement déjà actif" : "Souscrire à Tok One"}
             </Button>
+            {isNativeIos ? (
+              <div className="space-y-3 text-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleRestoreIosPurchases}
+                  disabled={restoreLoading || !user}
+                >
+                  {restoreLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                  ) : null}
+                  Restaurer mes achats Apple
+                </Button>
+                <p className="mx-auto max-w-xl text-xs leading-5 text-muted-foreground">
+                  Tok One est un abonnement mensuel auto-renouvelable. Le prix
+                  affiché ci-dessus est débité sur votre compte Apple. Le
+                  renouvellement peut être géré depuis les réglages de votre
+                  compte Apple. Consultez les <Link className="underline" to="/cgu">conditions d'utilisation</Link>
+                  {" "}et la <Link className="underline" to="/politique-confidentialite">politique de confidentialité</Link>.
+                </p>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

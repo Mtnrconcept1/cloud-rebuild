@@ -56,6 +56,19 @@ describe("security URL helpers", () => {
     expect(normalizeTrustedCheckoutRedirectUrl("javascript:alert(1)", { origin })).toBeNull();
   });
 
+  it("accepts only same-host returns inside the native Capacitor scheme", () => {
+    const origin = "capacitor://localhost";
+
+    expect(normalizeTrustedCheckoutRedirectUrl("/tok-one?status=success", { origin }))
+      .toBe("capacitor://localhost/tok-one?status=success");
+    expect(normalizeTrustedCheckoutRedirectUrl("capacitor://localhost/tok-one", { origin }))
+      .toBe("capacitor://localhost/tok-one");
+    expect(normalizeTrustedCheckoutRedirectUrl("capacitor://evil.example/tok-one", { origin }))
+      .toBeNull();
+    expect(normalizeTrustedCheckoutRedirectUrl("tok://localhost/tok-one", { origin }))
+      .toBeNull();
+  });
+
   it("redirects through an injectable assign function after checkout URL validation", () => {
     const assigned: string[] = [];
 

@@ -1606,10 +1606,11 @@ export default function SocialPostCard({
         <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
           <DialogContent className="max-w-md rounded-2xl p-5 sm:p-6">
             <DialogHeader>
-              <DialogTitle>Signaler ce post</DialogTitle>
+              <DialogTitle>Signaler et bloquer ce compte</DialogTitle>
               <DialogDescription>
-                Choisissez la raison du signalement. Notre équipe l'examinera
-                avant toute action.
+                Choisissez la raison du signalement. Le contenu sera transmis
+                à notre équipe de modération et l'auteur sera immédiatement
+                masqué de votre fil.
               </DialogDescription>
             </DialogHeader>
 

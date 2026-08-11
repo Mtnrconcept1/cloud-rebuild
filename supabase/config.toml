@@ -277,3 +277,11 @@ verify_jwt = false
 [functions.marketing-provider-webhook]
 verify_jwt = false
 
+# StoreKit purchase sync authenticates the Supabase user inside the handler.
+[functions.sync-apple-storekit]
+verify_jwt = false
+
+# Apple calls this webhook without a Supabase JWT. Its signedPayload JWS is
+# cryptographically verified against Apple's certificate chain in the handler.
+[functions.apple-storekit-webhook]
+verify_jwt = false

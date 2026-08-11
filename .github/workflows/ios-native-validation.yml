@@ -1,0 +1,90 @@
+# Pre-merge App Store gate: compile the real Capacitor/StoreKit bridge with Xcode 26.
+name: iOS Native Validation
+
+on:
+  pull_request:
+    paths:
+      - "ios/**"
+      - "src/lib/iosCommerceFetch.ts"
+      - "src/integrations/supabase/client.ts"
+      - "src/pages/TokOne.tsx"
+      - "supabase/functions/_shared/apple-storekit.ts"
+      - "supabase/functions/sync-apple-storekit/**"
+      - "supabase/functions/apple-storekit-webhook/**"
+      - ".github/workflows/ios-native-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  native-build:
+    name: Xcode 26 unsigned native build
+    runs-on: macos-26
+    timeout-minutes: 25
+    environment: Production
+    env:
+      VITE_SUPABASE_PROJECT_ID: wwcrtyoueexyxkkikaos
+      VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY || secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+      VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+      VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+      VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+      VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+      VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build production web bundle
+        run: pnpm run build
+
+      - name: Select Xcode 26
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Run iOS source readiness checks
+        run: pnpm run mobile:ios:readiness
+
+      - name: Sync Capacitor iOS project
+        run: pnpm exec cap sync ios
+
+      - name: Compile native app without signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            PRODUCT_BUNDLE_IDENTIFIER='ch.thetok.app' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            clean build

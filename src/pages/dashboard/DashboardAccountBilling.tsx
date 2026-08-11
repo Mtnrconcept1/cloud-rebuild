@@ -49,6 +49,7 @@ import {
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { getSupabase } from "@/integrations/supabase/client";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
+import { getPlatform } from "@/lib/platform";
 import {
   getRestaurantSubscriptionToolAccessState,
   normalizeRestaurantSubscriptionPlanSlug,
@@ -775,9 +776,39 @@ function CommercialDemoAccountBilling() {
   );
 }
 
+function IosRestaurantBillingCompanion() {
+  return (
+    <DashboardLayout>
+      <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Abonnement TOK</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              L'application iOS donne accès aux fonctionnalités comprises dans
+              votre abonnement restaurateur actif.
+            </p>
+            <p>
+              L'achat, le changement de formule et l'achat de crédits
+              publicitaires ou numériques ne sont pas proposés dans
+              l'application iOS.
+            </p>
+            <p>
+              Aucun paiement d'abonnement restaurateur n'est déclenché depuis
+              cet écran.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
+  );
+}
+
 export default function DashboardAccountBilling() {
   const commercialDemoFrame = useCommercialDemoFrame();
   if (commercialDemoFrame?.surface === "restaurant") return <CommercialDemoAccountBilling />;
+  if (getPlatform() === "ios") return <IosRestaurantBillingCompanion />;
   return <LiveDashboardAccountBilling />;
 }
 

@@ -4,6 +4,7 @@ import type { Database } from './types';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/env';
 import { readSupabasePublicEnv } from '@/lib/publicEnv';
 import { authStorage } from './authStorage';
+import { createIosCommerceAwareFetch } from '@/lib/iosCommerceFetch';
 import {
   COMMERCIAL_DEMO_SUPABASE_PUBLISHABLE_KEY,
   COMMERCIAL_DEMO_SUPABASE_URL,
@@ -28,6 +29,9 @@ export function getProductionSupabase(): SupabaseClient<Database> {
   );
 
   productionSupabase = createClient<Database>(url, publishableKey, {
+    global: {
+      fetch: createIosCommerceAwareFetch(),
+    },
     auth: {
       storage: authStorage,
       persistSession: true,
