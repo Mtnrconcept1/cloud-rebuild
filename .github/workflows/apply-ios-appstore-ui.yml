@@ -1,0 +1,63 @@
+name: Apply iOS App Store UI
+
+on:
+  push:
+    branches:
+      - feat/ios-storekit-appstore-compliance
+    paths:
+      - ios/.apply-appstore-ui-v1
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-ios-appstore-ui
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+          ref: feat/ios-storekit-appstore-compliance
+
+      - name: Guard one-shot trigger
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          parent="${GITHUB_SHA}^"
+          git cat-file -e "$parent"
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.apply-appstore-ui-v1$'; then
+            echo "::error::The iOS App Store UI patch marker must be added exactly once."
+            exit 1
+          fi
+
+      - name: Validate patch script
+        run: node --check ./scripts/apply-ios-appstore-ui.mjs
+
+      - name: Apply UI policy
+        run: node ./scripts/apply-ios-appstore-ui.mjs
+
+      - name: Verify expected diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          git diff --exit-code --quiet && (echo "::error::Patch produced no changes" && exit 1) || true
+          git diff --name-only
+
+      - name: Commit patched UI
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/pages/Auth.tsx src/pages/TokOne.tsx src/pages/dashboard/DashboardAccountBilling.tsx src/components/social/SocialPostCard.tsx
+          git commit -m "feat(ios): enforce App Store purchase surfaces"
+          git push origin HEAD:feat/ios-storekit-appstore-compliance
