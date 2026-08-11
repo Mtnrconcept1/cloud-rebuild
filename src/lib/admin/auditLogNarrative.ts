@@ -126,6 +126,8 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "google-actions-center": "la synchronisation avec Google Actions Center",
   "manage-restaurant-subscription": "la gestion de l’abonnement d’un restaurant",
   "manage-tok-one-subscription": "la gestion d’un abonnement TOK One",
+  "sync-apple-storekit": "la validation et la synchronisation d’un abonnement Tok One acheté via Apple",
+  "apple-storekit-webhook": "la réception des renouvellements, résiliations et remboursements Tok One envoyés par Apple",
   "tok-connect-mcp": "le connecteur MCP TOK Connect pour ChatGPT",
   "tok-connect-api": "l’API partenaires TOK Connect",
   "tok-connect-oauth": "l’authentification OAuth de TOK Connect",
