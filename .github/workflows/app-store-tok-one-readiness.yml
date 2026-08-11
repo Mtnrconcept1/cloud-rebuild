@@ -5,7 +5,7 @@ on:
     branches:
       - ops/app-store-tok-one-readiness
     paths:
-      - ios/.appstore-tok-one-readiness-v8
+      - ios/.appstore-tok-one-readiness-v9
   workflow_dispatch:
 
 permissions:
@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  switch-build:
+  complete-annual-metadata:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: app-store-production
@@ -38,13 +38,30 @@ jobs:
           set -euo pipefail
           parent="${GITHUB_SHA}^"
           git cat-file -e "$parent"
-          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-tok-one-readiness-v8$'; then
-            echo "::error::Build 4 switch must be triggered by adding its v8 marker exactly once."
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-tok-one-readiness-v9$'; then
+            echo "::error::Annual Tok One metadata completion must be triggered by adding its v9 marker exactly once."
             exit 1
           fi
 
-      - name: Validate build switch
-        run: node --check ./scripts/app-store-build4-switch.mjs
+      - name: Validate uploader and asset archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check ./scripts/app-store-yearly-review-screenshot.mjs
+          test -s ./ios/TheTok_AppStore_Final_Assets.zip
+          unzip -tq ./ios/TheTok_AppStore_Final_Assets.zip
 
-      - name: Cancel waiting review and attach build 4
-        run: node ./scripts/app-store-build4-switch.mjs
+      - name: Extract Tok One review screenshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          asset_root="${RUNNER_TEMP}/thetok-appstore-assets"
+          rm -rf "$asset_root"
+          mkdir -p "$asset_root"
+          unzip -q ./ios/TheTok_AppStore_Final_Assets.zip -d "$asset_root"
+          screenshot="$asset_root/iPhone_6.9_1320x2868/10_10_abonnement_tok_one.jpg"
+          test -s "$screenshot"
+          echo "TOK_ONE_REVIEW_SCREENSHOT_PATH=$screenshot" >> "$GITHUB_ENV"
+
+      - name: Upload annual Review Information screenshot
+        run: node ./scripts/app-store-yearly-review-screenshot.mjs
