@@ -16,6 +16,7 @@ import {
 
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth-context";
+import { getPlatform } from "@/lib/platform";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import {
   FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
@@ -280,6 +281,7 @@ function formatChf(amount: number | null | undefined) {
 
 function getInitialSignupRole(searchParams: URLSearchParams): SignupRole {
   const requestedType = String(searchParams.get("type") || "").toLowerCase();
+  if (getPlatform() === "ios" && requestedType === "restaurateur") return "client";
   if (requestedType === "restaurateur") return "restaurateur";
   if (requestedType === "courier" || requestedType === "livreur")
     return "courier";
@@ -859,6 +861,7 @@ async function startRestaurantCardRegistrationAfterSignup(
 }
 
 export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
+  const isNativeIos = getPlatform() === "ios";
   const isCommercialAuthHost =
     typeof window !== "undefined" &&
     isCommercialAppHost(window.location.hostname);
@@ -1619,6 +1622,11 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   ]);
 
   useEffect(() => {
+    if (!isNativeIos || isLogin || roleMode !== "restaurateur") return;
+    setRoleMode("client");
+  }, [isLogin, isNativeIos, roleMode]);
+
+  useEffect(() => {
     if (
       !featureFlagsLoading &&
       !courierSignupEnabled &&
@@ -2320,7 +2328,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
               className="w-full"
             >
               <TabsList
-                className={`grid h-auto w-full ${courierSignupEnabled ? "grid-cols-1 min-[360px]:grid-cols-3" : "grid-cols-2"}`}
+                className={`grid h-auto w-full ${isNativeIos ? (courierSignupEnabled ? "grid-cols-1 min-[360px]:grid-cols-2" : "grid-cols-1") : courierSignupEnabled ? "grid-cols-1 min-[360px]:grid-cols-3" : "grid-cols-2"}`}
               >
                 <TabsTrigger
                   value="client"
@@ -2328,12 +2336,14 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                 >
                   Client
                 </TabsTrigger>
-                <TabsTrigger
-                  value="restaurateur"
-                  className="w-full min-w-0 whitespace-normal px-1.5 text-xs leading-tight sm:px-3 sm:text-sm"
-                >
-                  Restaurateur
-                </TabsTrigger>
+                {!isNativeIos ? (
+                  <TabsTrigger
+                    value="restaurateur"
+                    className="w-full min-w-0 whitespace-normal px-1.5 text-xs leading-tight sm:px-3 sm:text-sm"
+                  >
+                    Restaurateur
+                  </TabsTrigger>
+                ) : null}
                 {courierSignupEnabled ? (
                   <TabsTrigger
                     value="courier"
