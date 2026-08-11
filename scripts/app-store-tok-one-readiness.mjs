@@ -56,18 +56,27 @@ function appleError(payload, status, context) {
   return `${context}: HTTP ${status}${detail ? `: ${detail}` : ""}`;
 }
 
-async function request(pathname, { allow404 = false } = {}) {
-  const response = await fetch(new URL(pathname, API), {
-    headers: { Accept: "application/json", Authorization: `Bearer ${token()}` },
-  });
-  const text = await response.text();
-  let payload = null;
-  if (text) {
-    try { payload = JSON.parse(text); } catch { payload = null; }
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function request(pathname, { allow404 = false, retries = 2 } = {}) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    const response = await fetch(new URL(pathname, API), {
+      headers: { Accept: "application/json", Authorization: `Bearer ${token()}` },
+    });
+    const text = await response.text();
+    let payload = null;
+    if (text) {
+      try { payload = JSON.parse(text); } catch { payload = null; }
+    }
+    if (allow404 && response.status === 404) return null;
+    if (response.ok) return payload;
+
+    lastError = new Error(appleError(payload, response.status, `GET ${pathname}`));
+    if (response.status < 500 || attempt === retries) throw lastError;
+    await sleep(500 * (attempt + 1));
   }
-  if (allow404 && response.status === 404) return null;
-  if (!response.ok) throw new Error(appleError(payload, response.status, `GET ${pathname}`));
-  return payload;
+  throw lastError || new Error(`GET ${pathname} failed.`);
 }
 
 async function resolveApp() {
@@ -116,8 +125,12 @@ async function listPrices(subscriptionId) {
 }
 
 async function listLocalizations(subscriptionId) {
-  const payload = await request(`/v1/subscriptions/${subscriptionId}/subscriptionLocalizations?fields[subscriptionLocalizations]=name,locale,description,state&limit=200`);
-  return (payload?.data || []).map((row) => ({ id: row.id, ...row.attributes }));
+  try {
+    const payload = await request(`/v1/subscriptions/${subscriptionId}/subscriptionLocalizations?fields[subscriptionLocalizations]=name,locale,description&limit=200`, { retries: 3 });
+    return (payload?.data || []).map((row) => ({ id: row.id, ...row.attributes }));
+  } catch (error) {
+    return [{ locale: "unavailable", error: error instanceof Error ? error.message : String(error) }];
+  }
 }
 
 async function readReviewScreenshot(subscriptionId) {
