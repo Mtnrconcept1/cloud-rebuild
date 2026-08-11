@@ -202,7 +202,6 @@ export type RestaurantAiSubscription = {
   monthly_voice_minutes_limit: number;
   current_period_start: string;
   current_period_end: string;
-  metadata?: JsonRecord | null;
 };
 
 async function invokeTokAiFunction<T>(functionName: string, body: JsonRecord): Promise<T> {
@@ -570,7 +569,9 @@ export async function getAiUsageForRestaurant(restaurantId: string, since?: stri
 }
 
 export async function getAiSubscriptionForRestaurant(restaurantId: string) {
-  const { data, error } = await (supabase.from as any)("restaurant_ai_subscriptions")
+  const { data, error } = await (supabase.rpc as any)("get_my_restaurant_ai_subscriptions", {
+    p_restaurant_ids: [restaurantId],
+  })
     .select(`
       id,
       restaurant_id,
@@ -582,10 +583,8 @@ export async function getAiSubscriptionForRestaurant(restaurantId: string) {
       monthly_premium_image_limit,
       monthly_voice_minutes_limit,
       current_period_start,
-      current_period_end,
-      metadata
+      current_period_end
     `)
-    .eq("restaurant_id", restaurantId)
     .maybeSingle();
 
   if (error) throw error;

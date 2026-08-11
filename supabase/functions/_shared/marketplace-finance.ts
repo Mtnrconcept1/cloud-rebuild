@@ -4,11 +4,11 @@ import {
   completeStripeWebhookEvent,
 } from "./payment-attempts.ts";
 
-export const TOK_PLATFORM_FEE_BPS = 990;
+export const TOK_PLATFORM_FEE_BPS = 1000;
 export const TOK_DEVELOPER_SHARE_BPS = 1000;
 export const TOK_ORDER_DEVELOPER_SHARE_BPS = 100;
-export const FAIR_GROWTH_PRICING_VERSION = "fair_growth_2026_07";
-export const MAX_FAIR_GROWTH_PLATFORM_FEE_BPS = 990;
+export const FAIR_GROWTH_PRICING_VERSION = "flat_marketplace_2026_08";
+export const MAX_FAIR_GROWTH_PLATFORM_FEE_BPS = 1000;
 
 export const MARKETPLACE_CHECKOUT_KINDS = new Set([
   "order",
@@ -17,9 +17,8 @@ export const MARKETPLACE_CHECKOUT_KINDS = new Set([
   "match-group",
 ]);
 
-// Reduced marketplace rates are an entitlement, not merely a selected plan.
-// Fail closed to Starter pricing whenever payment/activation is incomplete,
-// delinquent or paused.
+// Marketplace commission is flat at 10% for every plan. Subscription
+// resolution is retained only to seal the contractual plan snapshot.
 const ENTITLED_SUBSCRIPTION_STATUSES = new Set([
   "active",
   "trialing",
@@ -189,7 +188,7 @@ async function resolveFairGrowthPricingSnapshot(input: {
   const { data: subscription, error: subscriptionError } = await input.adminClient
     .from("restaurant_ai_subscriptions")
     .select(
-      "restaurant_subscription_plan_id, plan, status, current_period_end, marketplace_commission_bps_snapshot, developer_order_bps_snapshot, pricing_version_snapshot",
+      "restaurant_subscription_plan_id, plan, status, current_period_end, marketplace_commission_bps_snapshot, pricing_version_snapshot",
     )
     .eq("restaurant_id", input.restaurantId)
     .maybeSingle();
@@ -212,17 +211,6 @@ async function resolveFairGrowthPricingSnapshot(input: {
       "subscription_marketplace_commission_bps_snapshot",
       MAX_FAIR_GROWTH_PLATFORM_FEE_BPS,
     );
-    const snapshotDeveloperRate = toOptionalBasisPoints(
-      subscription.developer_order_bps_snapshot,
-      "subscription_developer_order_bps_snapshot",
-      TOK_ORDER_DEVELOPER_SHARE_BPS,
-    );
-    if (
-      snapshotDeveloperRate !== null
-      && snapshotDeveloperRate !== TOK_ORDER_DEVELOPER_SHARE_BPS
-    ) {
-      throw new HttpError(503, "FAIR_GROWTH_DEVELOPER_ORDER_RATE_MISMATCH");
-    }
     if (snapshotRate !== null) {
       return {
         platformFeeBps: snapshotRate,
@@ -240,19 +228,11 @@ async function resolveFairGrowthPricingSnapshot(input: {
     if (planId || planSlug) {
       let planQuery = input.adminClient
         .from("restaurant_subscription_plans")
-        .select("id, slug, marketplace_commission_bps, developer_order_bps, pricing_version");
+        .select("id, slug, marketplace_commission_bps, pricing_version");
       planQuery = planId ? planQuery.eq("id", planId) : planQuery.eq("slug", planSlug);
       const { data: plan, error: planError } = await planQuery.maybeSingle();
       if (planError) throw new HttpError(500, planError.message);
       if (plan) {
-        const planDeveloperRate = toBasisPoints(
-          plan.developer_order_bps,
-          "plan_developer_order_bps",
-          TOK_ORDER_DEVELOPER_SHARE_BPS,
-        );
-        if (planDeveloperRate !== TOK_ORDER_DEVELOPER_SHARE_BPS) {
-          throw new HttpError(503, "FAIR_GROWTH_DEVELOPER_ORDER_RATE_MISMATCH");
-        }
         return {
           platformFeeBps: toBasisPoints(
             plan.marketplace_commission_bps,
@@ -268,9 +248,8 @@ async function resolveFairGrowthPricingSnapshot(input: {
     }
   }
 
-  // A configured or merely selected plan is not a paid entitlement. If there
-  // is no active/trialing subscription snapshot, always fall back to Starter;
-  // a stale runtime configuration must never preserve a discounted rate.
+  // If no current subscription snapshot exists, use the same public 10%
+  // marketplace commission without inventing a discounted tier.
   return {
     platformFeeBps: TOK_PLATFORM_FEE_BPS,
     pricingPlanId: null,

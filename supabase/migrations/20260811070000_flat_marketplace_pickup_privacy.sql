@@ -100,6 +100,13 @@ GRANT SELECT (
 DROP POLICY IF EXISTS restaurant_ai_subscriptions_owner_admin_select
   ON public.restaurant_ai_subscriptions;
 
+DROP POLICY IF EXISTS restaurant_ai_subscriptions_admin_select
+  ON public.restaurant_ai_subscriptions;
+CREATE POLICY restaurant_ai_subscriptions_admin_select
+  ON public.restaurant_ai_subscriptions
+  FOR SELECT TO authenticated
+  USING (public.auth_is_admin());
+
 CREATE OR REPLACE FUNCTION public.get_my_restaurant_ai_subscriptions(
   p_restaurant_ids uuid[] DEFAULT NULL
 )
@@ -185,7 +192,7 @@ AS $$
     s.pricing_version_snapshot
   FROM public.restaurant_ai_subscriptions s
   WHERE auth.uid() IS NOT NULL
-    AND public.auth_owns_restaurant(s.restaurant_id)
+    AND (public.auth_owns_restaurant(s.restaurant_id) OR public.auth_is_admin())
     AND (p_restaurant_ids IS NULL OR s.restaurant_id = ANY (p_restaurant_ids));
 $$;
 

@@ -123,10 +123,11 @@ export default function RestaurantPartnerContractCard({
     queryKey: ["restaurant-fair-growth-contract-snapshot", restaurantId],
     enabled: Boolean(restaurantId) && !isCommercialDemoRestaurant,
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("restaurant_ai_subscriptions")
+      const { data, error } = await (supabase.rpc as any)(
+        "get_my_restaurant_ai_subscriptions",
+        { p_restaurant_ids: [restaurantId] },
+      )
         .select("plan, billing_period, price_monthly_chf_snapshot, billing_amount_chf_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, pricing_version_snapshot")
-        .eq("restaurant_id", restaurantId)
         .maybeSingle();
       if (error) throw error;
       return data as FairGrowthContractSnapshot | null;

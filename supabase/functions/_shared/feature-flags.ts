@@ -16,7 +16,7 @@ const FEATURE_DEFINITIONS: Record<string, FeatureDefinition> = {
     defaultEnabled: true,
     dependsOn: ["dashboard-restaurateur", "dashboard-menu", "ai_menu_optimizer", "ai_photo_enhancer", "ai_sales_insights"],
   },
-  livraison: { defaultEnabled: true },
+  livraison: { defaultEnabled: false },
   emporter: { defaultEnabled: true },
   "sur-place": { defaultEnabled: true },
   reservation: { defaultEnabled: true },
