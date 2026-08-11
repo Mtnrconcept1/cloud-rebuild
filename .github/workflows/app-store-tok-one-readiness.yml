@@ -5,7 +5,7 @@ on:
     branches:
       - ops/app-store-tok-one-readiness
     paths:
-      - ios/.appstore-tok-one-readiness-v5
+      - ios/.appstore-tok-one-readiness-v6
   workflow_dispatch:
 
 permissions:
@@ -38,8 +38,8 @@ jobs:
           set -euo pipefail
           parent="${GITHUB_SHA}^"
           git cat-file -e "$parent"
-          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-tok-one-readiness-v5$'; then
-            echo "::error::Readiness audit must be triggered by adding its v5 marker exactly once."
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-tok-one-readiness-v6$'; then
+            echo "::error::Readiness audit must be triggered by adding its v6 marker exactly once."
             exit 1
           fi
 
