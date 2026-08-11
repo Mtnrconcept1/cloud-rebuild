@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { Browser } from "@capacitor/browser";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -570,7 +571,7 @@ export default function TokOne() {
 
   usePaymentAttemptBackCancellation({
     scope: TOK_ONE_PAYMENT_ATTEMPT_SCOPE,
-    enabled: !isCommercialDemoClient,
+    enabled: !isCommercialDemoClient && !isNativeIos,
     onCancelled: () => {
       setCheckoutLoading(false);
       toast({
@@ -623,6 +624,17 @@ export default function TokOne() {
 
     if (status === "cancelled") {
       window.history.replaceState({}, "", window.location.pathname);
+      if (isNativeIos) {
+        if (paymentAttemptId) {
+          clearPaymentAttemptId(TOK_ONE_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+        }
+        setCheckoutLoading(false);
+        toast({
+          title: "Achat annulé",
+          description: "Aucun abonnement Tok One Apple n’a été créé.",
+        });
+        return;
+      }
       if (!paymentAttemptId) {
         toast({ title: "Paiement annulé", variant: "destructive" });
         return;
@@ -878,6 +890,26 @@ export default function TokOne() {
         },
       });
 
+      if (isNativeIos && checkout.state === "cancelled") {
+        clearPaymentAttemptId(TOK_ONE_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+        toast({
+          title: "Achat annulé",
+          description: "Aucun abonnement Tok One Apple n’a été créé.",
+        });
+        return;
+      }
+
+      if (isNativeIos && checkout.state === "succeeded") {
+        clearPaymentAttemptId(TOK_ONE_PAYMENT_ATTEMPT_SCOPE, paymentAttemptId);
+        queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
+        await refetchSubscription();
+        toast({
+          title: "Bienvenue dans Tok One !",
+          description: "Votre abonnement Apple est actif.",
+        });
+        return;
+      }
+
       if (!checkout.url) {
         throw new Error("L'abonnement est en cours de vérification. Relancez avec le même bouton dans quelques secondes.");
       }
@@ -902,12 +934,34 @@ export default function TokOne() {
 
   const cancelSubscription = async () => {
     if (!subscription) return;
+    const isAppleManagedSubscription =
+      isNativeIos && subscription.billing_provider === "apple";
     const confirmed = window.confirm(
-      "Résilier Tok One à la fin de la période en cours ? La demande doit être faite au plus tard 3 jours avant le renouvellement mensuel.",
+      isAppleManagedSubscription
+        ? "Ouvrir la gestion de vos abonnements Apple pour modifier ou résilier Tok One ?"
+        : "Résilier Tok One à la fin de la période en cours ? La demande doit être faite au plus tard 3 jours avant le renouvellement mensuel.",
     );
     if (!confirmed) return;
 
     setCancelLoading(true);
+    if (isAppleManagedSubscription) {
+      try {
+        await Browser.open({ url: "https://apps.apple.com/account/subscriptions" });
+        toast({
+          title: "Gestion Apple ouverte",
+          description: "La résiliation et le renouvellement de cet abonnement sont gérés par Apple.",
+        });
+      } catch (error) {
+        toast({
+          title: "Gestion Apple indisponible",
+          description: error instanceof Error ? error.message : "Impossible d’ouvrir les abonnements Apple.",
+          variant: "destructive",
+        });
+      } finally {
+        setCancelLoading(false);
+      }
+      return;
+    }
     if (isCommercialDemoClient && commercialDemoFrame) {
       const nextSubscription = { ...subscription, cancel_at_period_end: true } as TokOneSubscription;
       persistCommercialDemoTokOneSubscription(commercialDemoFrame.config.sessionId, nextSubscription);

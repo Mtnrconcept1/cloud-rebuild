@@ -84,7 +84,7 @@ async function findExistingTokOneSubscription(input: {
   if (stripeSubscriptionId) {
     const { data, error } = await adminClient
       .from("tok_one_subscriptions")
-      .select("id, user_id, plan_id, status, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
+      .select("id, user_id, plan_id, status, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id, billing_provider, apple_original_transaction_id")
       .eq("stripe_subscription_id", stripeSubscriptionId)
       .eq("stripe_mode", stripeMode)
       .maybeSingle();
@@ -97,10 +97,11 @@ async function findExistingTokOneSubscription(input: {
 
   const { data, error } = await adminClient
     .from("tok_one_subscriptions")
-    .select("id, user_id, plan_id, status, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
+    .select("id, user_id, plan_id, status, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id, billing_provider, apple_original_transaction_id")
     .eq("user_id", userId)
     .eq("plan_id", planId)
     .eq("stripe_mode", stripeMode)
+    .eq("billing_provider", "stripe")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -112,7 +113,7 @@ async function findExistingTokOneSubscription(input: {
 export async function getLatestTokOneSubscription(adminClient: AdminClient, userId: string) {
   const { data, error } = await adminClient
     .from("tok_one_subscriptions")
-    .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
+    .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id, billing_provider, apple_original_transaction_id")
     .eq("user_id", userId)
     .eq("stripe_mode", "live")
     .order("created_at", { ascending: false })
@@ -177,6 +178,7 @@ export async function syncTokOneSubscriptionRecord(input: {
     cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
     stripe_subscription_id: subscription.id,
     stripe_mode: normalizedStripeMode,
+    billing_provider: "stripe",
     stripe_checkout_session_id: stripeCheckoutSessionId || existing?.stripe_checkout_session_id || null,
   };
 

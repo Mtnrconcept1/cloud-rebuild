@@ -145,6 +145,13 @@ Deno.serve(async (req) => {
       throw new HttpError(409, "Aucun abonnement actif a resilier");
     }
 
+    if (String(subscription.billing_provider || "").toLowerCase() === "apple") {
+      throw new HttpError(
+        409,
+        "APPLE_MANAGED_SUBSCRIPTION: cet abonnement Tok One est géré par Apple. Utilisez la gestion des abonnements Apple pour le modifier ou le résilier.",
+      );
+    }
+
     if (action === "cancel") {
       assertCancellationNoticeWindow(subscription.current_period_end);
     }

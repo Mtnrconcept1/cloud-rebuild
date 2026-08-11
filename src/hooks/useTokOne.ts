@@ -43,6 +43,8 @@ export type TokOneSubscription = {
   stripe_subscription_id: string | null;
   stripe_checkout_session_id?: string | null;
   stripe_mode?: "live" | "test" | string | null;
+  billing_provider?: "stripe" | "apple" | string | null;
+  apple_original_transaction_id?: string | null;
   stripe_session_id?: string | null;
   billing_period?: string | null;
   user_subscription_plans: TokOnePlan | null;
@@ -83,6 +85,8 @@ function attachPlan<T extends Record<string, any>>(subscription: T, plan: TokOne
     stripe_subscription_id: subscription.stripe_subscription_id ?? null,
     stripe_checkout_session_id: subscription.stripe_checkout_session_id ?? null,
     stripe_mode: subscription.stripe_mode ?? null,
+    billing_provider: subscription.billing_provider ?? "stripe",
+    apple_original_transaction_id: subscription.apple_original_transaction_id ?? null,
     user_subscription_plans: plan,
   } as unknown as TokOneSubscription;
 }
