@@ -54,8 +54,11 @@ Deno.serve(async (req) => {
       throw new HttpError(403, "Cette transaction Apple n’appartient pas à ce compte TOK.");
     }
 
-    const requestedBillingPeriod = String(body.billing_period || "monthly").toLowerCase();
-    if (requestedBillingPeriod !== identity.billingPeriod) {
+    const requestedBillingPeriod =
+      typeof body.billing_period === "string" && body.billing_period.trim()
+        ? body.billing_period.trim().toLowerCase()
+        : null;
+    if (requestedBillingPeriod && requestedBillingPeriod !== identity.billingPeriod) {
       throw new HttpError(400, "La période de facturation Apple ne correspond pas à la formule demandée.");
     }
 
