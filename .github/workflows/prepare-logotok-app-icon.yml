@@ -1,0 +1,63 @@
+name: Prepare TOK App Icon
+
+on:
+  push:
+    branches:
+      - fix/unify-logotok-appstore-build6
+    paths:
+      - ios/.prepare-logotok-app-icon-build6
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  generate:
+    name: Generate native icon from public/logotok.png
+    runs-on: macos-26
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Generate opaque 1024px App Store icon
+        shell: bash
+        run: |
+          set -euo pipefail
+          swift scripts/prepare-ios-app-icon.swift \
+            public/logotok.png \
+            ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+
+      - name: Verify generated PNG
+        shell: bash
+        run: |
+          set -euo pipefail
+          icon="ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+          width="$(sips -g pixelWidth "$icon" | awk '/pixelWidth/{print $2}')"
+          height="$(sips -g pixelHeight "$icon" | awk '/pixelHeight/{print $2}')"
+          [[ "$width" == "1024" && "$height" == "1024" ]] || {
+            echo "::error::Generated App Store icon must be 1024x1024, got ${width}x${height}."
+            exit 1
+          }
+
+      - name: Commit generated native asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          icon="ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+          git add "$icon"
+          if git diff --cached --quiet; then
+            echo "Native app icon is already synchronized with public/logotok.png."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "build(ios): sync app icon from logotok.png"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
