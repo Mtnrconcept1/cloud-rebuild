@@ -1,0 +1,62 @@
+name: Apply iOS StoreKit Subscription Management Fix
+
+on:
+  push:
+    branches:
+      - fix/ios-storekit-subscription-management
+    paths:
+      - ios/.apply-storekit-subscription-management-v1
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-ios-storekit-subscription-management-fix
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+          ref: fix/ios-storekit-subscription-management
+
+      - name: Guard one-shot trigger
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          parent="${GITHUB_SHA}^"
+          git cat-file -e "$parent"
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.apply-storekit-subscription-management-v1$'; then
+            echo "::error::The StoreKit management marker must be added exactly once."
+            exit 1
+          fi
+
+      - name: Validate patch script
+        run: node --check ./scripts/apply-ios-storekit-subscription-management-fix.mjs
+
+      - name: Apply fix
+        run: node ./scripts/apply-ios-storekit-subscription-management-fix.mjs
+
+      - name: Verify diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          git diff --name-only
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/hooks/useTokOne.ts src/pages/TokOne.tsx supabase/functions/_shared/tok-one.ts supabase/functions/manage-tok-one-subscription/index.ts
+          git commit -m "fix(ios): keep Apple subscription lifecycle Apple-managed"
+          git push origin HEAD:fix/ios-storekit-subscription-management
