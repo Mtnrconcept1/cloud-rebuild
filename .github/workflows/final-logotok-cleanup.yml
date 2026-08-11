@@ -1,0 +1,54 @@
+name: Final Logotok Cleanup
+
+on:
+  push:
+    branches:
+      - fix/unify-logotok-appstore-build6
+    paths:
+      - scripts/.final-logotok-cleanup-build6
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Normalize final TOK logo references
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("public/tok-slot-machine/slot-machine.js")
+          text = path.read_text(encoding="utf-8")
+          old = 'src: "assets/tok.png"'
+          new = 'src: "/logotok.png"'
+          if old not in text:
+              raise SystemExit("Expected legacy slot-machine TOK logo reference was not found")
+          path.write_text(text.replace(old, new), encoding="utf-8")
+          PY
+
+          git rm -f public/tok.png public/tok-slot-machine/assets/tok.png
+
+      - name: Commit final cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(brand): remove final legacy TOK logo files"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
