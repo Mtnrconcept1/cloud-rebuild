@@ -78,12 +78,14 @@ const sections = [
     ],
   },
   {
-    title: "9. Offres, campagnes et contenus",
+    title: "9. Offres, campagnes, contenus et Google Business",
     body: [
       "Le restaurateur est responsable des prix, stocks, remises, horaires, conditions et contenus associés à ses offres, ventes flash, opérations anti-gaspi, publications et campagnes.",
       "Toute communication commerciale doit être exacte, non trompeuse et conforme au droit applicable. TOK peut refuser, suspendre ou retirer un contenu qui présente un risque juridique, de sécurité ou de tromperie pour les utilisateurs.",
       "TOK ne garantit aucun volume de vues, clics, commandes, réservations ou chiffre d'affaires issu d'une campagne ou d'un outil d'assistance.",
       "Les contenus sponsorisés doivent être clairement identifiés et ne peuvent présenter une offre, un prix, une disponibilité ou une caractéristique de manière trompeuse.",
+      "Toute intervention de TOK sur une fiche Google Business Profile nécessite un mandat du restaurateur et les droits d'accès appropriés. TOK ne garantit aucun classement, niveau de visibilité ou résultat commercial dans Google.",
+      "Si Google contrôle, suspend ou bloque la fiche, l'intervention de TOK et les délais associés peuvent être suspendus jusqu'à ce que les accès et validations nécessaires soient de nouveau disponibles.",
     ],
   },
   {
