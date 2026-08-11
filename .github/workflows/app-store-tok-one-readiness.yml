@@ -5,7 +5,7 @@ on:
     branches:
       - ops/app-store-tok-one-readiness
     paths:
-      - ios/.appstore-tok-one-readiness-v4
+      - ios/.appstore-tok-one-readiness-v5
   workflow_dispatch:
 
 permissions:
@@ -38,13 +38,18 @@ jobs:
           set -euo pipefail
           parent="${GITHUB_SHA}^"
           git cat-file -e "$parent"
-          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-tok-one-readiness-v4$'; then
-            echo "::error::Readiness audit must be triggered by adding its v4 marker exactly once."
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.appstore-tok-one-readiness-v5$'; then
+            echo "::error::Readiness audit must be triggered by adding its v5 marker exactly once."
             exit 1
           fi
 
-      - name: Validate audit script
-        run: node --check ./scripts/app-store-tok-one-readiness.mjs
+      - name: Validate audit scripts
+        run: |
+          node --check ./scripts/app-store-tok-one-readiness.mjs
+          node --check ./scripts/app-store-tok-one-metadata-audit.mjs
 
-      - name: Audit App Store Connect
+      - name: Audit subscription state
         run: node ./scripts/app-store-tok-one-readiness.mjs
+
+      - name: Audit group and availability metadata
+        run: node ./scripts/app-store-tok-one-metadata-audit.mjs
