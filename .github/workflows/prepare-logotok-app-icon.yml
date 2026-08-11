@@ -3,11 +3,9 @@ name: Prepare TOK App Icon
 on:
   push:
     branches:
-      - fix/unify-logotok-appstore-build6
+      - main
     paths:
-      - ios/.prepare-logotok-app-icon-build6
-      - scripts/prepare-ios-app-icon.sh
-      - .github/workflows/prepare-logotok-app-icon.yml
+      - public/logotok.png
   workflow_dispatch:
 
 permissions:
@@ -37,7 +35,7 @@ jobs:
             public/logotok.png \
             ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
 
-      - name: Commit generated native asset
+      - name: Commit generated native asset when needed
         shell: bash
         run: |
           set -euo pipefail
