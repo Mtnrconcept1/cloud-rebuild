@@ -14,22 +14,10 @@
   ],
   "icons": [
     {
-      "src": "/favicon-192x192.png",
-      "sizes": "192x192",
+      "src": "/logotok.png",
+      "sizes": "any",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "/favicon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ],
   "screenshots": [
@@ -56,8 +44,8 @@
       "url": "/mon-espace?source=pwa-shortcut",
       "icons": [
         {
-          "src": "/favicon-192x192.png",
-          "sizes": "192x192",
+          "src": "/logotok.png",
+          "sizes": "any",
           "type": "image/png"
         }
       ]
@@ -69,8 +57,8 @@
       "url": "/recherche?mode=reservation",
       "icons": [
         {
-          "src": "/favicon-192x192.png",
-          "sizes": "192x192",
+          "src": "/logotok.png",
+          "sizes": "any",
           "type": "image/png"
         }
       ]
@@ -82,8 +70,8 @@
       "url": "/ventes-flash",
       "icons": [
         {
-          "src": "/favicon-192x192.png",
-          "sizes": "192x192",
+          "src": "/logotok.png",
+          "sizes": "any",
           "type": "image/png"
         }
       ]
@@ -95,8 +83,8 @@
       "url": "/actualites",
       "icons": [
         {
-          "src": "/favicon-192x192.png",
-          "sizes": "192x192",
+          "src": "/logotok.png",
+          "sizes": "any",
           "type": "image/png"
         }
       ]
