@@ -54,7 +54,7 @@ const groupLocalizations = (groupLocalization?.data || []).map((row) => ({ id: r
 
 const subscriptions = [];
 for (const target of SUBSCRIPTIONS) {
-  const availability = await get(`/v1/subscriptions/${target.id}/subscriptionAvailability?include=availableTerritories&limit[availableTerritories]=200`, { allow404: true });
+  const availability = await get(`/v1/subscriptions/${target.id}/subscriptionAvailability?include=availableTerritories&limit[availableTerritories]=50`, { allow404: true });
   const territoryIds = (availability?.included || []).filter((row) => row.type === "territories").map((row) => row.id).sort();
   const images = await get(`/v1/subscriptions/${target.id}/images?fields[subscriptionImages]=fileName,fileSize,assetDeliveryState&limit=50`, { allow404: true }).catch((error) => ({ error: String(error) }));
   subscriptions.push({
