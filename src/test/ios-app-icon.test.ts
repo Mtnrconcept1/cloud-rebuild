@@ -67,13 +67,14 @@ describe("iOS TOK app icon", () => {
       "utf8",
     );
     const generator = readFileSync(
-      resolve(root, "scripts/prepare-ios-app-icon.swift"),
+      resolve(root, "scripts/prepare-ios-app-icon.sh"),
       "utf8",
     );
 
     expect(workflow).toContain("public/logotok.png");
     expect(workflow).toContain(defaultIcon);
-    expect(generator).toContain("hasAlpha: false");
-    expect(generator).toContain("canvasSize = 1024");
+    expect(generator).toContain("public/logotok.png");
+    expect(generator).toContain("-p 1024 1024");
+    expect(generator).toContain("-s format jpeg");
   });
 });
