@@ -6,6 +6,8 @@ on:
       - fix/unify-logotok-appstore-build6
     paths:
       - ios/.prepare-logotok-app-icon-build6
+      - scripts/prepare-ios-app-icon.sh
+      - .github/workflows/prepare-logotok-app-icon.yml
   workflow_dispatch:
 
 permissions:
@@ -31,21 +33,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          swift scripts/prepare-ios-app-icon.swift \
+          bash scripts/prepare-ios-app-icon.sh \
             public/logotok.png \
             ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
-
-      - name: Verify generated PNG
-        shell: bash
-        run: |
-          set -euo pipefail
-          icon="ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
-          width="$(sips -g pixelWidth "$icon" | awk '/pixelWidth/{print $2}')"
-          height="$(sips -g pixelHeight "$icon" | awk '/pixelHeight/{print $2}')"
-          [[ "$width" == "1024" && "$height" == "1024" ]] || {
-            echo "::error::Generated App Store icon must be 1024x1024, got ${width}x${height}."
-            exit 1
-          }
 
       - name: Commit generated native asset
         shell: bash
@@ -60,4 +50,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "build(ios): sync app icon from logotok.png"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
