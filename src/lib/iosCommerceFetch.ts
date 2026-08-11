@@ -86,6 +86,25 @@ async function readJsonBody(input: RequestInfo | URL, init?: RequestInit) {
   return null;
 }
 
+function getCheckoutMetadata(payload: Record<string, unknown>) {
+  const metadata = payload.order_metadata;
+  return metadata && typeof metadata === "object" && !Array.isArray(metadata)
+    ? metadata as Record<string, unknown>
+    : {};
+}
+
+function readCheckoutString(
+  payload: Record<string, unknown>,
+  key: string,
+  fallback: string | null = null,
+) {
+  const direct = payload[key];
+  if (typeof direct === "string" && direct.trim()) return direct.trim();
+  const nested = getCheckoutMetadata(payload)[key];
+  if (typeof nested === "string" && nested.trim()) return nested.trim();
+  return fallback;
+}
+
 function readBearerSubject(headers: Headers) {
   const authorization = headers.get("authorization") || "";
   if (!authorization.toLowerCase().startsWith("bearer ")) return null;
@@ -141,14 +160,22 @@ async function syncAppleTransaction(
     throw new Error("La transaction Apple ne contient pas de preuve signée exploitable.");
   }
 
+  const planId = readCheckoutString(payload, "plan_id");
+  const billingPeriod = readCheckoutString(payload, "billing_period", "monthly");
+  const paymentAttemptId = readCheckoutString(payload, "payment_attempt_id");
+
+  if (!planId) {
+    throw new Error("La formule Tok One est absente du paiement Apple.");
+  }
+
   const syncResponse = await baseFetch(buildFunctionUrl(createCheckoutUrl, "sync-apple-storekit"), {
     method: "POST",
     headers,
     body: JSON.stringify({
       signed_transaction: purchase.jwsRepresentation,
-      plan_id: payload.plan_id ?? null,
-      billing_period: payload.billing_period ?? "monthly",
-      payment_attempt_id: payload.payment_attempt_id ?? null,
+      plan_id: planId,
+      billing_period: billingPeriod,
+      payment_attempt_id: paymentAttemptId,
       source: "ios_storekit_purchase",
     }),
   });
@@ -168,19 +195,19 @@ async function handleTokOnePurchase(
   payload: Record<string, unknown>,
 ) {
   const userId = readBearerSubject(headers);
-  const paymentAttemptId = typeof payload.payment_attempt_id === "string"
-    ? payload.payment_attempt_id
-    : null;
+  const paymentAttemptId = readCheckoutString(payload, "payment_attempt_id");
+  const planId = readCheckoutString(payload, "plan_id");
+  const billingPeriod = readCheckoutString(payload, "billing_period", "monthly");
 
   if (!userId) {
     return jsonResponse({ error: "Session utilisateur requise pour l’achat Tok One." }, 401);
   }
 
-  if (typeof payload.plan_id !== "string" || !payload.plan_id.trim()) {
+  if (!planId) {
     return jsonResponse({ error: "Formule Tok One invalide." }, 400);
   }
 
-  const productId = getTokOneIosProductId(payload.billing_period);
+  const productId = getTokOneIosProductId(billingPeriod);
   let purchase: NativePurchaseResult;
 
   try {
@@ -202,7 +229,10 @@ async function handleTokOnePurchase(
       state: "cancelled",
       payment_status: "cancelled",
       retryable: false,
-      url: buildReturnUrl("cancelled", paymentAttemptId),
+      // The native purchase never created a server-side Stripe payment attempt.
+      // Omit the attempt from the return URL so the Tok One page does not call
+      // cancel-payment-attempt for an object that cannot exist.
+      url: buildReturnUrl("cancelled", null),
     });
   }
 
@@ -211,7 +241,8 @@ async function handleTokOnePurchase(
       error: "L’achat Apple est en attente de validation.",
       error_code: "IOS_STOREKIT_PENDING",
       payment_attempt_id: paymentAttemptId,
-    }, 425);
+      retryable: false,
+    }, 400);
   }
 
   if (purchase.status !== "purchased") {
@@ -265,8 +296,7 @@ export function createIosCommerceAwareFetch(
     if (!payload) return baseFetch(input, init);
 
     const checkoutKind = normalizeCheckoutKind(
-      payload.checkout_kind ||
-        (payload.order_metadata as Record<string, unknown> | undefined)?.checkout_kind,
+      payload.checkout_kind || getCheckoutMetadata(payload).checkout_kind,
     );
 
     if (checkoutKind === "tok-one") {
