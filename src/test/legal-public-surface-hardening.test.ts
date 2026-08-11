@@ -9,6 +9,8 @@ import {
 } from "@/lib/fairGrowth";
 import { isHelpCategoryVisible, isHelpQuestionVisible } from "@/lib/featureVisibility";
 
+// These checks intentionally inspect source copy as well as runtime constants:
+// contractual/internal wording must not silently re-enter a public surface.
 const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("public legal and commercial surface", () => {
