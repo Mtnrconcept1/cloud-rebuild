@@ -245,7 +245,7 @@ export default function PacksRestaurateur() {
         </div>
         <h1 className="font-display text-4xl font-bold md:text-5xl">Choisissez votre abonnement TOK</h1>
         <p className="text-lg leading-relaxed text-muted-foreground">
-          Fair Growth facture uniquement la valeur réellement créée : vos canaux propres restent gratuits, les réservations TOK ne sont facturées que lorsqu'elles sont honorées et le restaurant conserve au minimum 90% de chaque commande.
+          Les réservations honorées sont facturées CHF 5, et chaque commande marketplace à emporter applique une répartition fixe : 90% au restaurant et 10% à TOK, quel que soit l'abonnement.
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Button asChild size="lg">

@@ -1127,9 +1127,9 @@ export default function TokOne() {
       <section className="border-b border-border bg-muted/35 py-10 dark:border-white/10 dark:bg-white/[0.02]">
         <div className="mx-auto grid max-w-7xl gap-4 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
           <StatTile
-            value="0 CHF"
-            label="Frais TOK éligibles"
-            detail="Le bénéfice livraison s'applique automatiquement quand le panier est couvert."
+            value="VIP"
+            label="Avantages membres"
+            detail="Les avantages actifs sont appliqués automatiquement sur les parcours éligibles."
           />
           <StatTile
             value={`${entitlements.discountPercent}%`}
@@ -1405,7 +1405,7 @@ export default function TokOne() {
               Activez Tok One et laissez les avantages se déclencher.
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
-              Commande, livraison, réservation, ventes flash ou Table du Chef :
+              Commandes à emporter, réservations, ventes flash ou Table du Chef :
               votre statut premium suit votre compte.
             </p>
           </div>

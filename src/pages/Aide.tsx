@@ -278,7 +278,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Pourquoi mon total a-t-il changé entre le menu et le panier ?",
-        a: "Le total final peut inclure options, suppléments, consigne, frais de service, livraison, réductions, code promo, Miamz, taxes applicables ou frais liés au mode de paiement. Le panier est la source d'affichage la plus complète avant paiement.",
+        a: "Le total final peut inclure options, suppléments, consigne, frais de service, réductions, code promo, Miamz, taxes applicables ou frais liés au mode de paiement. Le panier est la source d'affichage la plus complète avant paiement.",
       },
       {
         q: "Pourquoi un plat devient indisponible pendant que je commande ?",
@@ -290,7 +290,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Puis-je ajouter un pourboire ?",
-        a: "Si le pourboire est disponible, il apparaît dans le panier ou après livraison. Le montant doit être clair avant validation. Si l'option n'apparaît pas, elle n'est pas active pour ce restaurant, ce mode de service ou cette zone.",
+        a: "Si le pourboire est disponible, il apparaît dans le panier ou après une commande terminée. Le montant doit être clair avant validation. Si l'option n'apparaît pas, elle n'est pas active pour ce restaurant, ce mode de service ou cette zone.",
       },
       {
         q: "Comment utiliser une note pour le restaurant ?",
@@ -494,7 +494,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Pourquoi une fonctionnalité affichée hier n'est plus là aujourd'hui ?",
-        a: "Elle peut être désactivée temporairement, limitée à une zone, fermée par le restaurant, hors horaire, en test, complète ou non disponible pour votre compte. Les fonctions désactivées côté admin doivent disparaître de toute la plateforme.",
+        a: "Elle peut être désactivée temporairement, limitée à une zone, fermée par le restaurant, hors horaire, en test, complète ou non disponible pour votre compte. Une fonctionnalité non disponible ne doit pas être présentée comme active dans l'interface.",
       },
     ],
   },
@@ -882,11 +882,11 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Comment TOK sécurise les tokens et les appels TOK Connect ?",
-        a: "TOK Connect utilise OAuth client-credentials, des tokens opaques courts, des secrets hashés, des scopes, des quotas, des logs d'audit, des contrôles côté Edge Function et des signatures webhook. Les mutations sensibles ne sont pas faites directement depuis le navigateur.",
+        a: "TOK Connect applique une authentification dédiée, des autorisations limitées au périmètre accordé, des quotas, une journalisation de sécurité et des signatures pour les échanges sensibles.",
       },
       {
         q: "Où trouver la documentation et les exemples TOK Connect ?",
-        a: "La page publique /tok-connect présente le produit. Le portail /tok-connect/developer donne accès à la documentation OpenAPI, aux clients sandbox, aux logs, quotas, webhooks et exemples MCP pour les utilisateurs autorisés. Les admins disposent d'une supervision dédiée dans /admin/tok-connect.",
+        a: "La page TOK Connect et l'espace partenaire autorisé donnent accès à la documentation, aux environnements de test et aux outils prévus pour le compte concerné.",
       },
     ],
   },
