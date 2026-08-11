@@ -18,11 +18,6 @@ export const TOK_ONE_DEFAULT_DISCOUNT_PERCENT = 20;
 
 export const TOK_ONE_DEFAULT_BENEFITS = [
   {
-    id: "free_delivery",
-    label: "Livraison gratuite",
-    description: "Frais de livraison offerts selon les conditions du plan.",
-  },
-  {
     id: "discount_percentage",
     label: "Réductions exclusives",
     description: "Jusqu’à 20% sur les plats éligibles.",
@@ -103,7 +98,6 @@ export function buildTokOneEntitlements(input: {
   };
 
   const enabledById: Record<BenefitId, boolean> = {
-    free_delivery: isEnabled(freeDeliveryBenefit),
     discount_percentage: isEnabled(discountBenefit),
     chef_table_priority: flags.chefTablePriority,
     flash_early_access: flags.flashEarlyAccess,
@@ -113,7 +107,7 @@ export function buildTokOneEntitlements(input: {
 
   return {
     discountPercent: enabledById.discount_percentage ? configuredDiscount || TOK_ONE_DEFAULT_DISCOUNT_PERCENT : 0,
-    freeDeliveryMinOrder: enabledById.free_delivery
+    freeDeliveryMinOrder: isEnabled(freeDeliveryBenefit)
       ? configuredFreeDelivery || planFreeDelivery || 0
       : Number.POSITIVE_INFINITY,
     flags,

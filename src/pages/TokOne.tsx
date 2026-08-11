@@ -16,7 +16,6 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
-  Truck,
   Utensils,
   WalletCards,
   X,
@@ -64,10 +63,10 @@ const COMMERCIAL_DEMO_TOK_ONE_PLAN: TokOnePlan = {
   id: "commercial-demo-tok-one",
   name: "Tok One Premium",
   description: "La formule premium présentée pendant la démonstration commerciale.",
-  price_monthly: 14.9,
-  price_yearly: 149,
+  price_monthly: 9.9,
+  price_yearly: 89.9,
   currency: "CHF",
-  free_delivery_min_order: 25,
+  free_delivery_min_order: null,
   status: "active",
   stripe_product_id: null,
 };
@@ -76,7 +75,6 @@ const EMPTY_TOK_ONE_PLANS: TokOnePlan[] = [];
 const EMPTY_TOK_ONE_BENEFITS: TokOneBenefit[] = [];
 
 const COMMERCIAL_DEMO_TOK_ONE_BENEFITS: TokOneBenefit[] = [
-  { id: "demo-free-delivery", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "free_delivery", value: { min_order: 25 } },
   { id: "demo-discount", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "discount_percentage", value: { percentage: 10 } },
   { id: "demo-priority", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "chef_table_priority", value: {} },
   { id: "demo-support", plan_id: COMMERCIAL_DEMO_TOK_ONE_PLAN.id, benefit_type: "priority_support", value: {} },
@@ -137,16 +135,16 @@ type BenefitPresentation = Omit<BenefitCard, "id">;
 
 const CORE_BENEFITS: BenefitCard[] = [
   {
-    id: "free_delivery",
-    title: "Livraison offerte",
+    id: "member_exclusives",
+    title: "Avantages réservés",
     description:
-      "Les frais de livraison TOK disparaissent sur les commandes éligibles selon votre formule active.",
+      "Profitez d'avantages Tok One sur les parcours et offres partenaires éligibles.",
     details: [
-      "Le seuil d'éligibilité est lu depuis votre formule Tok One.",
-      "L'avantage s'applique automatiquement au panier quand le restaurant et la zone sont couverts.",
-      "Le récapitulatif de commande distingue toujours les frais économisés des autres coûts.",
+      "Les avantages disponibles sont affichés avant l'action concernée.",
+      "Les conditions peuvent varier selon le restaurant et l'opération active.",
+      "TOK vérifie l'éligibilité au moment de la commande ou de la réservation.",
     ],
-    icon: Truck,
+    icon: Star,
     tone: "orange",
   },
   {
@@ -191,7 +189,6 @@ const CORE_BENEFITS: BenefitCard[] = [
 ];
 
 const ENTITLEMENT_BENEFITS: Record<string, BenefitPresentation> = {
-  free_delivery: CORE_BENEFITS[0],
   discount_percentage: CORE_BENEFITS[2],
   chef_table_priority: {
     title: "Priorité La Table du Chef",
@@ -269,7 +266,7 @@ const FAQS = [
   {
     question: "Les avantages sont-ils disponibles partout ?",
     answer:
-      "Les avantages dépendent des restaurants partenaires, de la zone de livraison et des opérations actives.",
+      "Les avantages dépendent des restaurants partenaires et des opérations actives.",
   },
   {
     question: "Comment les économies sont-elles calculées ?",
@@ -288,7 +285,7 @@ const TOK_ONE_JSON_LD = {
     url: "https://www.thetok.ch",
   },
   description:
-    "Abonnement premium TOK pour profiter de livraisons offertes, avantages VIP, réductions partenaires et support prioritaire en Suisse romande.",
+    "Abonnement premium TOK pour profiter d’avantages VIP, réductions partenaires, accès prioritaires et support prioritaire en Suisse romande.",
   serviceType: "Abonnement de fidélité et avantages food",
   url: "https://www.thetok.ch/tok-one",
   areaServed: "Suisse romande",
@@ -311,7 +308,6 @@ const currency = (amount: number) =>
   }).format(amount);
 
 const getBenefitIcon = (benefit: TokOneBenefit): LucideIcon => {
-  if (benefit.benefit_type.includes("delivery")) return Truck;
   if (benefit.benefit_type.includes("discount")) return Gift;
   if (benefit.benefit_type.includes("priority")) return Crown;
   if (benefit.benefit_type.includes("support")) return Headphones;
@@ -599,9 +595,9 @@ export default function TokOne() {
   const refetchSubscription = subscriptionQuery.refetch;
 
   useSeoMeta({
-    title: "Tok One | Livraison offerte, avantages VIP et offres restaurant",
+    title: "Tok One | Avantages VIP et offres restaurant",
     description:
-      "Tok One regroupe livraison offerte, avantages VIP, réductions partenaires, accès prioritaire aux expériences TOK et support prioritaire en Suisse romande.",
+      "Tok One regroupe avantages VIP, réductions partenaires, accès prioritaire aux expériences TOK et support prioritaire en Suisse romande.",
     path: "/tok-one",
     jsonLd: TOK_ONE_JSON_LD,
   });
@@ -783,7 +779,7 @@ export default function TokOne() {
     benefits,
   });
   const enabledBenefits = entitlements.displayBenefits
-    .filter((benefit) => benefit.enabled)
+    .filter((benefit) => benefit.enabled && benefit.id !== "free_delivery")
     .map<BenefitCard>((benefit, index) => {
       const presentation = ENTITLEMENT_BENEFITS[benefit.id];
       if (presentation) return { ...presentation, id: benefit.id };

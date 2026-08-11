@@ -20,7 +20,6 @@ import {
   Smartphone,
   Star,
   Store,
-  Truck,
   User,
   UtensilsCrossed,
   Zap,
@@ -89,9 +88,9 @@ const CATEGORIES: HelpCategory[] = [
   },
   {
     id: "delivery",
-    title: "Livraison & retrait",
-    description: "Adresse, retrait à emporter, retards et créneaux.",
-    icon: Truck,
+    title: "Retrait à emporter",
+    description: "Créneaux de retrait, préparation et récupération au restaurant.",
+    icon: ShoppingBag,
     color: "text-amber-600",
     bg: "bg-amber-50",
   },
@@ -138,7 +137,7 @@ const CATEGORIES: HelpCategory[] = [
   {
     id: "membership",
     title: "Tok One",
-    description: "Abonnement, livraison offerte, avantages et résiliation.",
+    description: "Abonnement, avantages, priorités et résiliation.",
     icon: ShieldCheck,
     color: "text-violet-600",
     bg: "bg-violet-50",
@@ -178,7 +177,7 @@ const CATEGORIES: HelpCategory[] = [
 ];
 
 const URGENT_CASES = [
-  "Commande en cours non reçue, livreur bloqué ou adresse incorrecte.",
+  "Commande à emporter en cours, restaurant fermé ou créneau de retrait incorrect.",
   "Paiement débité sans confirmation visible dans l'application.",
   "Article manquant, plat renversé, allergène ou problème de sécurité alimentaire.",
   "Réservation ce soir à modifier, retard important ou impossibilité de venir.",
@@ -202,7 +201,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Comment savoir si TOK est disponible dans ma zone ?",
-        a: "Saisissez votre adresse dans la recherche ou dans le panier. L'application vérifie automatiquement les restaurants qui livrent chez vous, ceux disponibles en retrait et les offres proches. Si aucune livraison n'est disponible, le retrait à emporter ou les réservations peuvent rester accessibles selon les restaurants.",
+        a: "Saisissez votre ville, une adresse de recherche ou votre position approximative. L'application affiche les restaurants proches disponibles pour le retrait à emporter, les réservations et les offres actives.",
       },
       {
         q: "Pourquoi certains restaurants ou boutons ne s'affichent pas ?",
@@ -210,15 +209,15 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Comment rechercher rapidement un restaurant ou un plat ?",
-        a: "Utilisez la barre de recherche avec un nom de restaurant, une cuisine, un plat, un hashtag, une ville ou une envie simple comme pizza, sushi, halal, burger, terrasse, dessert ou déjeuner. Vous pouvez ensuite filtrer par distance, horaires, livraison, retrait, offres, avis ou préférences.",
+        a: "Utilisez la barre de recherche avec un nom de restaurant, une cuisine, un plat, un hashtag, une ville ou une envie simple comme pizza, sushi, halal, burger, terrasse, dessert ou déjeuner. Vous pouvez ensuite filtrer par distance, horaires, retrait à emporter, offres, avis ou préférences.",
       },
       {
         q: "Que signifient les badges visibles sur les restaurants ?",
-        a: "Les badges donnent des signaux rapides : type de cuisine, restaurant suivi, offre active, vente flash, anti-gaspi, nouveauté, clients proches, sponsorisé, ouvert en ligne, livraison, retrait ou réservation. Ils servent à comprendre pourquoi un restaurant ou un post remonte dans votre expérience.",
+        a: "Les badges donnent des signaux rapides : type de cuisine, restaurant suivi, offre active, vente flash, anti-gaspi, nouveauté, clients proches, sponsorisé, ouvert en ligne, retrait à emporter ou réservation. Ils servent à comprendre pourquoi un restaurant ou un post remonte dans votre expérience.",
       },
       {
-        q: "Comment choisir entre livraison, retrait et réservation ?",
-        a: "La livraison sert à recevoir votre repas à l'adresse choisie. Le retrait à emporter vous permet de commander et récupérer au restaurant à une heure donnée. La réservation sert à bloquer une table, parfois avec des options premium comme Zéro Attente ou La Table du Chef si elles sont disponibles.",
+        q: "Comment choisir entre retrait à emporter et réservation ?",
+        a: "Le retrait à emporter vous permet de commander puis de récupérer la commande directement au restaurant au créneau choisi. La réservation sert à bloquer une table, parfois avec des options premium comme Zéro Attente ou La Table du Chef lorsqu'elles sont disponibles.",
       },
       {
         q: "Que faire si l'application semble bloquée ou n'affiche pas les données ?",
@@ -235,7 +234,7 @@ const FAQS: FaqSection[] = [
     questions: [
       {
         q: "Comment passer une commande ?",
-        a: "Ouvrez la fiche du restaurant, choisissez vos plats, options et quantités, puis ajoutez-les au panier. Dans le panier, vérifiez le restaurant, le mode de service, l'adresse ou l'heure de retrait, les frais, les réductions, le total et le moyen de paiement. La commande est transmise au restaurant uniquement après validation du paiement lorsque le mode choisi l'exige.",
+        a: "Ouvrez la fiche du restaurant, choisissez vos plats, options et quantités, puis ajoutez-les au panier. Dans le panier, vérifiez le restaurant, le créneau de retrait, les réductions, le total et le moyen de paiement. La commande est transmise au restaurant uniquement après validation du paiement lorsque le mode choisi l'exige.",
       },
       {
         q: "Quand ma commande est-elle vraiment confirmée ?",
@@ -243,7 +242,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Où suivre ma commande ?",
-        a: "Rendez-vous dans Mes commandes ou ouvrez la notification reçue. Vous verrez les étapes disponibles : commande créée, paiement confirmé, acceptée par le restaurant, en préparation, prête, prise en charge, en livraison, livrée, annulée ou remboursée selon le cas.",
+        a: "Rendez-vous dans Mes commandes ou ouvrez la notification reçue. Vous verrez les étapes disponibles : commande créée, paiement confirmé, acceptée par le restaurant, en préparation, prête à retirer, retirée, annulée ou remboursée selon le cas.",
       },
       {
         q: "Pourquoi le restaurant doit-il accepter la commande ?",
@@ -615,7 +614,7 @@ const FAQS: FaqSection[] = [
     questions: [
       {
         q: "Qu'est-ce que Tok One ?",
-        a: "Tok One est un abonnement donnant accès à des avantages selon l'offre active : livraison offerte ou réduite, support prioritaire, accès anticipé, offres réservées, avantages fidélité ou expériences partenaires.",
+        a: "Tok One est un abonnement donnant accès à des avantages selon l'offre active : support prioritaire, accès anticipé, offres réservées, avantages fidélité ou expériences partenaires.",
       },
       {
         q: "Comment souscrire à Tok One ?",
@@ -656,7 +655,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Quand mes Miamz sont-ils crédités ?",
-        a: "Ils peuvent être crédités après paiement, livraison, réservation honorée ou validation d'une action. En cas d'annulation, remboursement ou fraude, les points peuvent être annulés ou retirés.",
+        a: "Ils peuvent être crédités après une commande terminée, une réservation honorée ou la validation d'une action. En cas d'annulation, remboursement ou fraude, les points peuvent être annulés ou retirés.",
       },
       {
         q: "Comment utiliser mes Miamz ?",
@@ -689,7 +688,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Quels problèmes peuvent donner lieu à remboursement ?",
-        a: "Article manquant, erreur majeure, commande non livrée, double paiement, annulation restaurant, problème sanitaire, emballage renversé ou retard exceptionnel peuvent être éligibles selon les preuves et la situation. Une préférence gustative seule ne suffit pas toujours.",
+        a: "Article manquant, erreur majeure, commande à emporter non remise, double paiement, annulation restaurant, problème sanitaire, emballage endommagé ou retard exceptionnel peuvent être éligibles selon les preuves et la situation. Une préférence gustative seule ne suffit pas toujours.",
       },
       {
         q: "Combien de temps prend un remboursement ?",
@@ -730,7 +729,7 @@ const FAQS: FaqSection[] = [
     questions: [
       {
         q: "Quels sont les tarifs TOK ?",
-        a: "Toute réservation honorée est facturée CHF 5, quel que soit le plan et quelle qu'en soit l'origine. Les abonnements couvrent l'accès et la commission marketplace : Starter CHF 69/mois et 9,9% par commande, Business CHF 129 et 8,9%, Premium CHF 199 et 7,9%, Elite CHF 499 et 6,9%. Elite inclut trois établissements, puis CHF 149/mois par site supplémentaire. Le rattachement des sites et tout supplément sont validés avec TOK avant facturation. L'annuel fournit 12 mois de service au prix de 11.",
+        a: "Toute réservation honorée est facturée CHF 5, quel que soit le plan et quelle qu'en soit l'origine. Les abonnements sont Starter CHF 69/mois, Business CHF 129/mois, Premium CHF 199/mois et Elite CHF 499/mois. La commission d'une commande marketplace à emporter est fixe à 10% pour tous les plans. Elite inclut trois établissements, puis CHF 149/mois par site supplémentaire. Le rattachement des sites et tout supplément sont validés avec TOK avant facturation. L'annuel fournit 12 mois de service au prix de 11.",
       },
       {
         q: "Comment fonctionne le Plat du jour IA ?",
@@ -746,7 +745,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Quelle part d'une commande revient au restaurant ?",
-        a: "Le restaurant conserve au minimum 90% du montant éligible de la commande et 100% des pourboires. Les taux de commission de 9,9%, 8,9%, 7,9% et 6,9% laissent respectivement 90,1%, 91,1%, 92,1% et 93,1% au restaurant sur la base commissionnable. Les frais Stripe et Connect de la marketplace sont absorbés par la part TOK.",
+        a: "Le restaurant reçoit 90% de la base commissionnable de toute commande marketplace à emporter et 100% des pourboires. TOK conserve 10%. Le taux est identique pour Starter, Business, Premium et Elite ; les frais du prestataire de paiement supportés par TOK sont assumés sur la part TOK.",
       },
       {
         q: "Comment fonctionne l'abonnement annuel ?",
@@ -798,7 +797,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Comment gérer les commandes entrantes ?",
-        a: "Le restaurant doit accepter, préparer, marquer prêt, refuser ou signaler un problème depuis le dashboard. Les statuts doivent refléter la réalité opérationnelle, car ils pilotent les notifications client et les flux de paiement/livraison.",
+        a: "Le restaurant doit accepter, préparer, marquer prêt, refuser ou signaler un problème depuis le dashboard. Les statuts doivent refléter la réalité opérationnelle, car ils pilotent les notifications client et le suivi du paiement et du retrait.",
       },
       {
         q: "Comment gérer les réservations ?",
@@ -830,7 +829,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Pourquoi un module du dashboard est-il absent ?",
-        a: "Il peut être désactivé par feature flag, non inclus dans votre abonnement, réservé à certains rôles, non configuré pour votre restaurant ou temporairement indisponible. Quand un module est désactivé par l'admin, il doit être inexistant dans l'interface.",
+        a: "Il peut ne pas être inclus dans votre abonnement, être réservé à certains rôles, ne pas être disponible pour votre établissement ou être temporairement indisponible. Un service non activé n'est pas présenté dans votre interface.",
       },
       {
         q: "Comment demander de l'aide opérationnelle ?",
@@ -898,15 +897,6 @@ export default function Aide() {
     title: "Centre d'aide TOK — clients et restaurateurs",
     description: "Réponses sur les commandes, paiements, inscriptions restaurateurs, abonnements, Google Business et fonctionnalités TOK.",
     path: "/aide",
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: FAQS.flatMap((section) => section.questions).map((item) => ({
-        "@type": "Question",
-        name: item.q,
-        acceptedAnswer: { "@type": "Answer", text: item.a },
-      })),
-    },
   });
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
@@ -994,7 +984,7 @@ export default function Aide() {
               Trouvez une réponse claire avant de contacter le support
             </h1>
             <p className="mx-auto max-w-2xl text-base leading-relaxed text-primary-foreground/80 md:text-lg">
-              Commandes, paiements, réservations, livraison, fidélité, actualités,
+              Commandes à emporter, paiements, réservations, fidélité, actualités,
               restaurateurs et sécurité : {totalQuestions} réponses détaillées pour vous guider.
             </p>
           </div>

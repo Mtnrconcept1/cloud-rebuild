@@ -1676,7 +1676,7 @@ export default function Panier() {
             </div>
         <h1 className="font-display text-3xl font-bold">Votre panier est prêt à continuer</h1>
             <p className="text-sm text-muted-foreground">
-              Finalisez la connexion pour renseigner l&apos;adresse, activer vos avantages et confirmer le paiement.
+              Finalisez la connexion pour choisir votre retrait, activer vos avantages et confirmer le paiement.
             </p>
           </div>
 
@@ -1738,7 +1738,7 @@ export default function Panier() {
             </div>
 
             <div className="rounded-2xl bg-muted/40 p-4 text-xs text-muted-foreground">
-              Les promotions, Miamz, Tok One, le choix du paiement et les informations de livraison apparaissent juste après la connexion.
+              Les promotions, Miamz, Tok One, le choix du paiement et les informations de retrait apparaissent juste après la connexion.
             </div>
           </div>
         </div>
@@ -1806,7 +1806,9 @@ export default function Panier() {
               <div>
                 <p className="text-sm font-semibold">Mode de commande</p>
                 <p className="text-sm text-muted-foreground">
-                  Vous pouvez encore choisir entre livraison et emporter avant de continuer.
+                  {deliveryFeatureEnabled
+                    ? "Vous pouvez encore choisir entre livraison et emporter avant de continuer."
+                    : "Votre commande sera préparée pour un retrait à emporter au restaurant."}
                 </p>
               </div>
               <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
@@ -1814,7 +1816,8 @@ export default function Panier() {
               </span>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className={`grid gap-3 ${deliveryFeatureEnabled ? "sm:grid-cols-2" : "grid-cols-1"}`}>
+              {deliveryFeatureEnabled ? (
               <button
                 type="button"
                 disabled={!deliveryAvailable || hasAntiGaspi || isGuaranteedDeliveryCheckout}
@@ -1833,6 +1836,7 @@ export default function Panier() {
                   Adresse precise et frais calcules avant paiement.
                 </span>
               </button>
+              ) : null}
 
               <button
                 type="button"
@@ -1856,7 +1860,9 @@ export default function Panier() {
 
             {!hasJourneyAvailable ? (
               <div className="rounded-xl border border-dashed p-3 text-sm text-muted-foreground">
-                Livraison et emporter sont actuellement indisponibles pour ce restaurant.
+                {deliveryFeatureEnabled
+                  ? "Livraison et emporter sont actuellement indisponibles pour ce restaurant."
+                  : "Le retrait à emporter est actuellement indisponible pour ce restaurant."}
               </div>
             ) : null}
           </div>
@@ -2215,13 +2221,13 @@ export default function Panier() {
               <span className="shrink-0 text-right">-{tokOneDiscount.toFixed(2)} CHF</span>
             </div>
           )}
-          {tokOneDeliverySaved > 0 ? (
+          {deliveryFeatureEnabled && orderMode === "delivery" && tokOneDeliverySaved > 0 ? (
             <div className="flex min-w-0 justify-between gap-3 text-sm font-medium text-violet-600">
               <span className="flex min-w-0 items-start gap-1.5 break-words"><Crown className="mt-0.5 h-3.5 w-3.5 shrink-0" />Livraison offerte (Tok One)</span>
               <span className="shrink-0 text-right"><span className="mr-2 line-through text-muted-foreground">{quotedDeliveryFee.toFixed(2)} CHF</span>Gratuit</span>
             </div>
           ) : (
-            <div className="flex min-w-0 justify-between gap-3 text-sm"><span className="min-w-0 break-words">{`Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span><span className="shrink-0 text-right">{deliveryFee.toFixed(2)} CHF</span></div>
+            <div className="flex min-w-0 justify-between gap-3 text-sm"><span className="min-w-0 break-words">{deliveryFeatureEnabled && orderMode === "delivery" ? "Frais de livraison" : "Retrait à emporter"}</span><span className="shrink-0 text-right">{deliveryFeatureEnabled && orderMode === "delivery" ? `${deliveryFee.toFixed(2)} CHF` : "Sans frais"}</span></div>
           )}
           {orderMode === "delivery" && scheduledDeliveryLabel ? (
             <div className="flex min-w-0 justify-between gap-3 text-sm text-muted-foreground max-[380px]:flex-col max-[380px]:gap-1"><span className="shrink-0">Livraison planifiée</span><span className="min-w-0 break-words text-right max-[380px]:text-left">{scheduledDeliveryLabel}</span></div>
@@ -2237,7 +2243,7 @@ export default function Panier() {
           )}
         </div>
 
-        {!isCommercialDemoClient && !isChefsTableCheckout && !isTokOneMember && orderMode === "delivery" && quotedDeliveryFee > 0 && (
+        {!isCommercialDemoClient && !isChefsTableCheckout && deliveryFeatureEnabled && !isTokOneMember && orderMode === "delivery" && quotedDeliveryFee > 0 && (
           <Link to="/tok-one" className="flex min-w-0 items-center gap-3 rounded-xl border border-violet-200 bg-violet-50 p-3 transition-colors hover:bg-violet-100 max-[380px]:items-start">
             <Crown className="h-5 w-5 text-violet-600 shrink-0" />
             <div className="flex-1 min-w-0">
@@ -2248,10 +2254,12 @@ export default function Panier() {
           </Link>
         )}
 
-        {!isCommercialDemoClient && !isChefsTableCheckout && orderMode === "delivery" && <FlexOptions flexOption={flexOption} setFlexOption={setFlexOption} />}
+        {!isCommercialDemoClient && !isChefsTableCheckout && deliveryFeatureEnabled && orderMode === "delivery" && <FlexOptions flexOption={flexOption} setFlexOption={setFlexOption} />}
         {!hasJourneyAvailable ? (
           <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-            Livraison et emporter sont actuellement indisponibles pour ce restaurant.
+            {deliveryFeatureEnabled
+              ? "Livraison et emporter sont actuellement indisponibles pour ce restaurant."
+              : "Le retrait à emporter est actuellement indisponible pour ce restaurant."}
           </div>
         ) : null}
         <PaymentMethodSelector
@@ -2260,7 +2268,9 @@ export default function Panier() {
           allowedMethods={allowedPaymentMethods}
           cashDescription={
             allowedPaymentMethods.includes("cash")
-              ? "Le paiement sera effectué sur place lors du retrait ou de la livraison."
+              ? (deliveryFeatureEnabled && orderMode === "delivery"
+                  ? "Le paiement sera effectué lors de la remise de la commande."
+                  : "Le paiement sera effectué sur place lors du retrait.")
               : "Le paiement en espèces n'est pas disponible pour ce parcours."
           }
           variant={isChefsTableCheckout ? "chef-table" : "default"}

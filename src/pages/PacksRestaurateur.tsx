@@ -123,10 +123,8 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
         <div className="grid gap-2 rounded-xl border border-primary/15 bg-primary/5 p-3 text-sm">
           <span><strong>{formatChf(RESERVATION_FLAT_FEE_CHF)}</strong> par réservation honorée, quelle qu'en soit l'origine</span>
           <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> sur les commandes marketplace</span>
-          <span>Site, QR code, Instagram, Google et fichier client : <strong>CHF 0</strong></span>
           <span>Annulation, no-show, remboursement et démonstration : <strong>CHF 0</strong></span>
-          <span>Frais de réservation plafonnés à <strong>7% du CA de la table</strong></span>
-          <span>Restaurant : <strong>au minimum 90%</strong> de la commande et 100% des pourboires</span>
+          <span>Commande à emporter : <strong>90% au restaurant / 10% à TOK</strong> · pourboires 100% restaurant</span>
           {fairGrowthPlan.slug === "elite" ? (
             <>
               <span><strong>3 établissements inclus</strong> · CHF 149/mois par site supplémentaire</span>
