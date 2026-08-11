@@ -1,0 +1,62 @@
+name: Apply iOS StoreKit CI Fixes
+
+on:
+  push:
+    branches:
+      - feat/ios-storekit-appstore-compliance
+    paths:
+      - ios/.apply-storekit-ci-fixes-v1
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-ios-storekit-ci-fixes
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+          ref: feat/ios-storekit-appstore-compliance
+
+      - name: Guard one-shot trigger
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          parent="${GITHUB_SHA}^"
+          git cat-file -e "$parent"
+          if ! git diff --name-status "$parent" "$GITHUB_SHA" | grep -Eq '^A[[:space:]]+ios/\.apply-storekit-ci-fixes-v1$'; then
+            echo "::error::The StoreKit CI fix marker must be added exactly once."
+            exit 1
+          fi
+
+      - name: Validate patch script
+        run: node --check ./scripts/apply-ios-storekit-ci-fixes.mjs
+
+      - name: Apply fixes
+        run: node ./scripts/apply-ios-storekit-ci-fixes.mjs
+
+      - name: Verify diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          git diff --name-only
+
+      - name: Commit fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add supabase/config.toml src/lib/admin/auditLogNarrative.ts src/test/social-post-actions.test.tsx
+          git commit -m "fix(ios): satisfy StoreKit security and audit contracts"
+          git push origin HEAD:feat/ios-storekit-appstore-compliance
