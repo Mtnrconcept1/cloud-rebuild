@@ -20,33 +20,31 @@ describe("Fair Growth pricing", () => {
   });
 
   it("facture un forfait identique quel que soit le plan et le couvert", () => {
-    // Le frais ne se negocie plus par abonnement et ne suit plus l'addition :
-    // c'est la contrepartie de la suppression des modules.
     expect(RESERVATION_FLAT_FEE_CHF).toBe(5);
     expect(FAIR_GROWTH_PLANS.every((plan) => !("acquiredReservationFeeChf" in plan))).toBe(true);
   });
 
-  it("keeps tips entirely with the restaurant and delivery outside revenue", () => {
+  it("keeps tips entirely with the restaurant and delivery outside marketplace revenue", () => {
     const split = calculateFairGrowthOrderDistribution({
       commissionableCents: 10_000,
       tipCents: 1_000,
       deliveryPassThroughCents: 500,
-      marketplaceCommissionBps: 990,
+      marketplaceCommissionBps: 1_000,
     });
 
     expect(split).toMatchObject({
       grossCents: 11_500,
-      platformCommissionCents: 990,
-      developerShareCents: 100,
-      tokNetRevenueCents: 890,
-      restaurantShareCents: 10_010,
+      platformCommissionCents: 1_000,
+      restaurantShareCents: 10_000,
       tipCents: 1_000,
       deliveryPassThroughCents: 500,
-      stripeApplicationFeeCents: 1_490,
+      stripeApplicationFeeCents: 1_500,
     });
+    expect(split).not.toHaveProperty("developerShareCents");
+    expect(split).not.toHaveProperty("tokNetRevenueCents");
   });
 
-  it("grants lower-plan commissions to the restaurant while preserving one percent for the developer", () => {
+  it("gives every restaurant plan the same 90 percent marketplace share", () => {
     expect(
       FAIR_GROWTH_PLANS.map((plan) =>
         calculateFairGrowthOrderDistribution({
@@ -54,33 +52,30 @@ describe("Fair Growth pricing", () => {
           marketplaceCommissionBps: plan.marketplaceCommissionBps,
         }).restaurantShareCents
       ),
-    ).toEqual([9010, 9110, 9210, 9310]);
+    ).toEqual([9_000, 9_000, 9_000, 9_000]);
   });
 
-  it("compares 50 restaurants against the current ten-percent marketplace baseline", () => {
-    // Le forfait etant identique des deux cotes, l'ecart ne tient plus qu'a la
-    // commission marketplace.
+  it("matches the ten-percent marketplace baseline for all plans", () => {
     const restaurants = 50;
     const reservationsPerRestaurant = 200;
     const ordersPerRestaurant = 200;
     const averageOrderChf = 40;
-    const currentMarketplaceCommissionBps = 1000;
+    const marketplaceCommissionBps = 1_000;
 
-    const currentMonthly = FAIR_GROWTH_PLANS.map((plan) => restaurants * (
+    const baselineMonthly = FAIR_GROWTH_PLANS.map((plan) => restaurants * (
       plan.monthlyPriceChf
-      + reservationsPerRestaurant * 5
-      + ordersPerRestaurant * averageOrderChf * currentMarketplaceCommissionBps / 10_000
+      + reservationsPerRestaurant * RESERVATION_FLAT_FEE_CHF
+      + ordersPerRestaurant * averageOrderChf * marketplaceCommissionBps / 10_000
     ));
-    const fairGrowthMonthly = FAIR_GROWTH_PLANS.map((plan) => restaurants * (
+    const configuredMonthly = FAIR_GROWTH_PLANS.map((plan) => restaurants * (
       plan.monthlyPriceChf
       + reservationsPerRestaurant * RESERVATION_FLAT_FEE_CHF
       + ordersPerRestaurant * averageOrderChf * plan.marketplaceCommissionBps / 10_000
     ));
 
-    expect(currentMonthly).toEqual([93_450, 96_450, 99_950, 114_950]);
-    expect(fairGrowthMonthly).toEqual([93_050, 92_050, 91_550, 102_550]);
-    expect(currentMonthly.map((amount, index) => amount - fairGrowthMonthly[index]))
-      .toEqual([400, 4_400, 8_400, 12_400]);
+    expect(baselineMonthly).toEqual([93_450, 96_450, 99_950, 114_950]);
+    expect(configuredMonthly).toEqual(baselineMonthly);
+    expect(baselineMonthly.map((amount, index) => amount - configuredMonthly[index]))
+      .toEqual([0, 0, 0, 0]);
   });
-
 });
