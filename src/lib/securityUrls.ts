@@ -20,6 +20,8 @@ const TOK_PUBLIC_ASSET_HOSTS = new Set([
   "www.thetok.ch",
 ]);
 
+const SAFE_NATIVE_APP_SCHEMES = new Set(["capacitor:", "tok:"]);
+
 const PUBLIC_IMAGE_URL_ALIASES: Record<string, string> = {
   "/images/fondue moiti\u00e9 moiti\u00e9.jpg": "/images/fondue-moitie-moitie.jpg",
   "/images/meringue double.webp": "/images/meringue-double.webp",
@@ -87,6 +89,11 @@ function getCurrentOrigin() {
 }
 
 function isAllowedSameOriginRedirect(url: URL, base: URL) {
+  if (SAFE_NATIVE_APP_SCHEMES.has(base.protocol)) {
+    return url.protocol === base.protocol
+      && normalizeHost(url.hostname) === normalizeHost(base.hostname);
+  }
+
   if (url.origin !== base.origin) return false;
   if (url.protocol === "https:") return true;
   return isLocalHttpUrl(url);
