@@ -32,7 +32,7 @@ const HELP_FEATURE_RULES: Array<{ feature: string; terms: string[] }> = [
   { feature: "anti-gaspi", terms: ["anti gaspi", "anti-gaspi", "paniers surprise", "dons solidaires"] },
   { feature: "ventes-flash", terms: ["ventes flash", "vente flash", "flash"] },
   { feature: "actualites-sociales", terms: ["actualites", "posts", "publication", "sponsorise"] },
-  { feature: "tok-one", terms: ["tok one", "livraison gratuite", "abonnement tok one"] },
+  { feature: "tok-one", terms: ["tok one", "abonnement tok one"] },
   { feature: "points-cadeau", terms: ["points cadeau", "points de fidelite en cadeau", "offrir des points"] },
   { feature: "multi-restaurant", terms: ["multi restaurant", "multi-restaurant", "multi restos", "multi-restos"] },
   { feature: "match-groupes", terms: ["match groupes", "commande groupee", "commandes groupees"] },

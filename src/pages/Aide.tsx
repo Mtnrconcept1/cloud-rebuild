@@ -20,7 +20,6 @@ import {
   Smartphone,
   Star,
   Store,
-  Truck,
   User,
   UtensilsCrossed,
   Zap,
@@ -89,9 +88,9 @@ const CATEGORIES: HelpCategory[] = [
   },
   {
     id: "delivery",
-    title: "Livraison & retrait",
-    description: "Adresse, retrait à emporter, retards et créneaux.",
-    icon: Truck,
+    title: "Retrait à emporter",
+    description: "Créneaux de retrait, préparation et récupération au restaurant.",
+    icon: ShoppingBag,
     color: "text-amber-600",
     bg: "bg-amber-50",
   },
@@ -138,7 +137,7 @@ const CATEGORIES: HelpCategory[] = [
   {
     id: "membership",
     title: "Tok One",
-    description: "Abonnement, livraison offerte, avantages et résiliation.",
+    description: "Abonnement, avantages, priorités et résiliation.",
     icon: ShieldCheck,
     color: "text-violet-600",
     bg: "bg-violet-50",
@@ -178,7 +177,7 @@ const CATEGORIES: HelpCategory[] = [
 ];
 
 const URGENT_CASES = [
-  "Commande en cours non reçue, livreur bloqué ou adresse incorrecte.",
+  "Commande à emporter en cours, restaurant fermé ou créneau de retrait incorrect.",
   "Paiement débité sans confirmation visible dans l'application.",
   "Article manquant, plat renversé, allergène ou problème de sécurité alimentaire.",
   "Réservation ce soir à modifier, retard important ou impossibilité de venir.",
@@ -202,7 +201,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Comment savoir si TOK est disponible dans ma zone ?",
-        a: "Saisissez votre adresse dans la recherche ou dans le panier. L'application vérifie automatiquement les restaurants qui livrent chez vous, ceux disponibles en retrait et les offres proches. Si aucune livraison n'est disponible, le retrait à emporter ou les réservations peuvent rester accessibles selon les restaurants.",
+        a: "Saisissez votre ville, une adresse de recherche ou votre position approximative. L'application affiche les restaurants proches disponibles pour le retrait à emporter, les réservations et les offres actives.",
       },
       {
         q: "Pourquoi certains restaurants ou boutons ne s'affichent pas ?",
@@ -210,15 +209,15 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Comment rechercher rapidement un restaurant ou un plat ?",
-        a: "Utilisez la barre de recherche avec un nom de restaurant, une cuisine, un plat, un hashtag, une ville ou une envie simple comme pizza, sushi, halal, burger, terrasse, dessert ou déjeuner. Vous pouvez ensuite filtrer par distance, horaires, livraison, retrait, offres, avis ou préférences.",
+        a: "Utilisez la barre de recherche avec un nom de restaurant, une cuisine, un plat, un hashtag, une ville ou une envie simple comme pizza, sushi, halal, burger, terrasse, dessert ou déjeuner. Vous pouvez ensuite filtrer par distance, horaires, retrait à emporter, offres, avis ou préférences.",
       },
       {
         q: "Que signifient les badges visibles sur les restaurants ?",
-        a: "Les badges donnent des signaux rapides : type de cuisine, restaurant suivi, offre active, vente flash, anti-gaspi, nouveauté, clients proches, sponsorisé, ouvert en ligne, livraison, retrait ou réservation. Ils servent à comprendre pourquoi un restaurant ou un post remonte dans votre expérience.",
+        a: "Les badges donnent des signaux rapides : type de cuisine, restaurant suivi, offre active, vente flash, anti-gaspi, nouveauté, clients proches, sponsorisé, ouvert en ligne, retrait à emporter ou réservation. Ils servent à comprendre pourquoi un restaurant ou un post remonte dans votre expérience.",
       },
       {
-        q: "Comment choisir entre livraison, retrait et réservation ?",
-        a: "La livraison sert à recevoir votre repas à l'adresse choisie. Le retrait à emporter vous permet de commander et récupérer au restaurant à une heure donnée. La réservation sert à bloquer une table, parfois avec des options premium comme Zéro Attente ou La Table du Chef si elles sont disponibles.",
+        q: "Comment choisir entre retrait à emporter et réservation ?",
+        a: "Le retrait à emporter vous permet de commander puis de récupérer la commande directement au restaurant au créneau choisi. La réservation sert à bloquer une table, parfois avec des options premium comme Zéro Attente ou La Table du Chef lorsqu'elles sont disponibles.",
       },
       {
         q: "Que faire si l'application semble bloquée ou n'affiche pas les données ?",
@@ -235,7 +234,7 @@ const FAQS: FaqSection[] = [
     questions: [
       {
         q: "Comment passer une commande ?",
-        a: "Ouvrez la fiche du restaurant, choisissez vos plats, options et quantités, puis ajoutez-les au panier. Dans le panier, vérifiez le restaurant, le mode de service, l'adresse ou l'heure de retrait, les frais, les réductions, le total et le moyen de paiement. La commande est transmise au restaurant uniquement après validation du paiement lorsque le mode choisi l'exige.",
+        a: "Ouvrez la fiche du restaurant, choisissez vos plats, options et quantités, puis ajoutez-les au panier. Dans le panier, vérifiez le restaurant, le créneau de retrait, les réductions, le total et le moyen de paiement. La commande est transmise au restaurant uniquement après validation du paiement lorsque le mode choisi l'exige.",
       },
       {
         q: "Quand ma commande est-elle vraiment confirmée ?",
@@ -243,7 +242,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Où suivre ma commande ?",
-        a: "Rendez-vous dans Mes commandes ou ouvrez la notification reçue. Vous verrez les étapes disponibles : commande créée, paiement confirmé, acceptée par le restaurant, en préparation, prête, prise en charge, en livraison, livrée, annulée ou remboursée selon le cas.",
+        a: "Rendez-vous dans Mes commandes ou ouvrez la notification reçue. Vous verrez les étapes disponibles : commande créée, paiement confirmé, acceptée par le restaurant, en préparation, prête à retirer, retirée, annulée ou remboursée selon le cas.",
       },
       {
         q: "Pourquoi le restaurant doit-il accepter la commande ?",
@@ -279,7 +278,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Pourquoi mon total a-t-il changé entre le menu et le panier ?",
-        a: "Le total final peut inclure options, suppléments, consigne, frais de service, livraison, réductions, code promo, Miamz, taxes applicables ou frais liés au mode de paiement. Le panier est la source d'affichage la plus complète avant paiement.",
+        a: "Le total final peut inclure options, suppléments, consigne, frais de service, réductions, code promo, Miamz, taxes applicables ou frais liés au mode de paiement. Le panier est la source d'affichage la plus complète avant paiement.",
       },
       {
         q: "Pourquoi un plat devient indisponible pendant que je commande ?",
@@ -291,7 +290,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Puis-je ajouter un pourboire ?",
-        a: "Si le pourboire est disponible, il apparaît dans le panier ou après livraison. Le montant doit être clair avant validation. Si l'option n'apparaît pas, elle n'est pas active pour ce restaurant, ce mode de service ou cette zone.",
+        a: "Si le pourboire est disponible, il apparaît dans le panier ou après une commande terminée. Le montant doit être clair avant validation. Si l'option n'apparaît pas, elle n'est pas active pour ce restaurant, ce mode de service ou cette zone.",
       },
       {
         q: "Comment utiliser une note pour le restaurant ?",
@@ -495,7 +494,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Pourquoi une fonctionnalité affichée hier n'est plus là aujourd'hui ?",
-        a: "Elle peut être désactivée temporairement, limitée à une zone, fermée par le restaurant, hors horaire, en test, complète ou non disponible pour votre compte. Les fonctions désactivées côté admin doivent disparaître de toute la plateforme.",
+        a: "Elle peut être désactivée temporairement, limitée à une zone, fermée par le restaurant, hors horaire, en test, complète ou non disponible pour votre compte. Une fonctionnalité non disponible ne doit pas être présentée comme active dans l'interface.",
       },
     ],
   },
@@ -615,7 +614,7 @@ const FAQS: FaqSection[] = [
     questions: [
       {
         q: "Qu'est-ce que Tok One ?",
-        a: "Tok One est un abonnement donnant accès à des avantages selon l'offre active : livraison offerte ou réduite, support prioritaire, accès anticipé, offres réservées, avantages fidélité ou expériences partenaires.",
+        a: "Tok One est un abonnement donnant accès à des avantages selon l'offre active : support prioritaire, accès anticipé, offres réservées, avantages fidélité ou expériences partenaires.",
       },
       {
         q: "Comment souscrire à Tok One ?",
@@ -656,7 +655,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Quand mes Miamz sont-ils crédités ?",
-        a: "Ils peuvent être crédités après paiement, livraison, réservation honorée ou validation d'une action. En cas d'annulation, remboursement ou fraude, les points peuvent être annulés ou retirés.",
+        a: "Ils peuvent être crédités après une commande terminée, une réservation honorée ou la validation d'une action. En cas d'annulation, remboursement ou fraude, les points peuvent être annulés ou retirés.",
       },
       {
         q: "Comment utiliser mes Miamz ?",
@@ -689,7 +688,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Quels problèmes peuvent donner lieu à remboursement ?",
-        a: "Article manquant, erreur majeure, commande non livrée, double paiement, annulation restaurant, problème sanitaire, emballage renversé ou retard exceptionnel peuvent être éligibles selon les preuves et la situation. Une préférence gustative seule ne suffit pas toujours.",
+        a: "Article manquant, erreur majeure, commande à emporter non remise, double paiement, annulation restaurant, problème sanitaire, emballage endommagé ou retard exceptionnel peuvent être éligibles selon les preuves et la situation. Une préférence gustative seule ne suffit pas toujours.",
       },
       {
         q: "Combien de temps prend un remboursement ?",
@@ -730,7 +729,7 @@ const FAQS: FaqSection[] = [
     questions: [
       {
         q: "Quels sont les tarifs TOK ?",
-        a: "Toute réservation honorée est facturée CHF 5, quel que soit le plan et quelle qu'en soit l'origine. Les abonnements couvrent l'accès et la commission marketplace : Starter CHF 69/mois et 9,9% par commande, Business CHF 129 et 8,9%, Premium CHF 199 et 7,9%, Elite CHF 499 et 6,9%. Elite inclut trois établissements, puis CHF 149/mois par site supplémentaire. Le rattachement des sites et tout supplément sont validés avec TOK avant facturation. L'annuel fournit 12 mois de service au prix de 11.",
+        a: "Toute réservation honorée est facturée CHF 5, quel que soit le plan et quelle qu'en soit l'origine. Les abonnements sont Starter CHF 69/mois, Business CHF 129/mois, Premium CHF 199/mois et Elite CHF 499/mois. La commission d'une commande marketplace à emporter est fixe à 10% pour tous les plans. Elite inclut trois établissements, puis CHF 149/mois par site supplémentaire. Le rattachement des sites et tout supplément sont validés avec TOK avant facturation. L'annuel fournit 12 mois de service au prix de 11.",
       },
       {
         q: "Comment fonctionne le Plat du jour IA ?",
@@ -746,7 +745,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Quelle part d'une commande revient au restaurant ?",
-        a: "Le restaurant conserve au minimum 90% du montant éligible de la commande et 100% des pourboires. Les taux de commission de 9,9%, 8,9%, 7,9% et 6,9% laissent respectivement 90,1%, 91,1%, 92,1% et 93,1% au restaurant sur la base commissionnable. Les frais Stripe et Connect de la marketplace sont absorbés par la part TOK.",
+        a: "Le restaurant reçoit 90% de la base commissionnable de toute commande marketplace à emporter et 100% des pourboires. TOK conserve 10%. Le taux est identique pour Starter, Business, Premium et Elite ; les frais du prestataire de paiement supportés par TOK sont assumés sur la part TOK.",
       },
       {
         q: "Comment fonctionne l'abonnement annuel ?",
@@ -798,7 +797,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Comment gérer les commandes entrantes ?",
-        a: "Le restaurant doit accepter, préparer, marquer prêt, refuser ou signaler un problème depuis le dashboard. Les statuts doivent refléter la réalité opérationnelle, car ils pilotent les notifications client et les flux de paiement/livraison.",
+        a: "Le restaurant doit accepter, préparer, marquer prêt, refuser ou signaler un problème depuis le dashboard. Les statuts doivent refléter la réalité opérationnelle, car ils pilotent les notifications client et le suivi du paiement et du retrait.",
       },
       {
         q: "Comment gérer les réservations ?",
@@ -830,7 +829,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Pourquoi un module du dashboard est-il absent ?",
-        a: "Il peut être désactivé par feature flag, non inclus dans votre abonnement, réservé à certains rôles, non configuré pour votre restaurant ou temporairement indisponible. Quand un module est désactivé par l'admin, il doit être inexistant dans l'interface.",
+        a: "Il peut ne pas être inclus dans votre abonnement, être réservé à certains rôles, ne pas être disponible pour votre établissement ou être temporairement indisponible. Un service non activé n'est pas présenté dans votre interface.",
       },
       {
         q: "Comment demander de l'aide opérationnelle ?",
@@ -843,71 +842,57 @@ const FAQS: FaqSection[] = [
     questions: [
       {
         q: "Qu'est-ce que TOK Connect ?",
-        a: "TOK Connect est le socle d'intégration de TOK pour les partenaires approuvés : API REST, OAuth, webhooks, portail développeur et serveur MCP. Il permet de lire des restaurants, menus et disponibilités, de préparer des réservations, de confirmer certaines réservations réelles et de générer des previews de campagnes sans donner un accès libre à toute la plateforme.",
+        a: "TOK Connect permet à des partenaires approuvés de relier leurs services à certaines fonctions de TOK. Chaque intégration est limitée aux autorisations accordées et peut être suspendue ou révoquée si elle n'est plus nécessaire ou présente un risque.",
       },
       {
-        q: "À quoi sert l'API REST TOK Connect ?",
-        a: "L'API REST versionnée sert aux applications partenaires qui veulent intégrer TOK dans leurs propres outils : recherche de restaurants, détail d'un restaurant, menu, disponibilité, preview de réservation, création de réservation confirmée, consultation de crédits et preview de campagne. Les réponses utilisent une enveloppe standard avec ok, data, error, request_id et next_cursor lorsque la pagination est nécessaire.",
+        q: "À quoi sert l'API TOK Connect ?",
+        a: "Elle permet à un partenaire autorisé de consulter ou d'utiliser les fonctions prévues par son intégration, par exemple des informations de restaurant, des disponibilités ou certaines étapes d'une réservation, uniquement dans le périmètre qui lui a été accordé.",
       },
       {
         q: "Que signifie MCP dans TOK Connect ?",
-        a: "Le serveur MCP permet à un assistant compatible, par exemple un connecteur ChatGPT configuré par un partenaire autorisé, d'appeler des outils TOK de manière structurée. En v1, seuls les outils prudents sont exposés : recherche, disponibilité, préparation de réservation, performance restaurant autorisée, estimation de coût crédit et preview de campagne.",
+        a: "MCP permet à un assistant compatible d'utiliser des outils TOK autorisés de manière structurée. Les actions disponibles dépendent du partenaire, du restaurant concerné et des permissions effectivement accordées.",
       },
       {
-        q: "Qui peut créer un client OAuth TOK Connect ?",
-        a: "Seuls les partenaires validés peuvent disposer d'un client OAuth. Un client peut être sandbox ou production, recevoir des scopes limités, des quotas et des restaurants autorisés. Les secrets ne sont pas affichés en clair après création et peuvent être révoqués ou renouvelés.",
+        q: "Qui peut utiliser TOK Connect ?",
+        a: "Seuls les partenaires validés et les comptes autorisés peuvent utiliser une intégration TOK Connect. TOK peut limiter les fonctions accessibles, les établissements concernés et la durée de l'autorisation.",
       },
       {
         q: "Quelles données un partenaire peut-il consulter ?",
-        a: "Un partenaire ne voit que les données couvertes par ses scopes et par les autorisations restaurant : informations publiques de restaurant, menus, disponibilités, données strictement nécessaires à une réservation ou statistiques agrégées lorsque le restaurant et TOK les autorisent. Les données de paiement sensibles et les secrets serveur ne sont jamais transmis.",
+        a: "Un partenaire ne reçoit que les données nécessaires à l'action autorisée. Les données de paiement sensibles, informations internes de TOK et informations sans rapport avec l'intégration ne sont pas communiquées.",
       },
       {
         q: "Un partenaire peut-il créer une réservation réelle ?",
-        a: "Oui, mais seulement avec le scope adapté, un restaurant autorisé, une disponibilité valide et une confirmation explicite dans le parcours partenaire. Le endpoint de création exige une clé Idempotency-Key afin d'éviter les doublons si une requête est rejouée.",
+        a: "Oui lorsque cette action fait partie de ses autorisations, que le restaurant concerné l'accepte et que le parcours prévoit une confirmation réelle. Une opération de test n'est jamais traitée comme une réservation réelle.",
       },
       {
         q: "Les actions autonomes sont-elles autorisées ?",
-        a: "Non en v1 pour les actions sensibles. TOK Connect peut préparer, suggérer ou prévisualiser des campagnes, coûts, réservations et performances, mais les offres, campagnes autonomes, crédits consommés ou actions commerciales sensibles doivent rester en preview ou passer par une validation humaine explicite.",
+        a: "Les actions sensibles restent limitées par les autorisations accordées et peuvent nécessiter une confirmation explicite. TOK peut imposer une validation humaine pour une opération commerciale ou financière.",
       },
       {
-        q: "Que sont les webhooks TOK Connect ?",
-        a: "Les webhooks préviennent un partenaire lorsqu'un événement autorisé se produit, par exemple reservation.created, reservation.cancelled, webhook.test ou campaign.previewed. Chaque livraison comporte des en-têtes X-TOK-Event, X-TOK-Delivery, X-TOK-Timestamp et X-TOK-Signature pour permettre la vérification côté partenaire.",
+        q: "À quoi servent les notifications d'intégration ?",
+        a: "Elles permettent à un partenaire autorisé d'être informé d'un changement utile à son intégration. Les échanges sont protégés et limités aux événements nécessaires au service convenu.",
       },
       {
-        q: "Comment fonctionne le mode sandbox ?",
-        a: "Le mode sandbox isole les tests d'un client OAuth avec des données déterministes et sans mutation production. Il sert à développer une intégration, tester l'authentification, la pagination, les erreurs, les webhooks et les appels MCP avant toute validation production.",
+        q: "Comment fonctionne l'environnement de test ?",
+        a: "Il permet de vérifier une intégration sans transformer une opération de test en réservation, campagne ou transaction réelle.",
       },
       {
         q: "Comment un restaurateur contrôle-t-il l'accès à son établissement ?",
-        a: "Le restaurateur peut autoriser ou révoquer les partenaires par restaurant depuis le dashboard TOK Connect lorsque la fonctionnalité est active. Il peut limiter les scopes, les quotas, les réservations et les usages autorisés. TOK peut aussi suspendre un accès en cas de risque, abus ou non-conformité.",
+        a: "Lorsque TOK Connect est disponible pour son établissement, le restaurateur peut autoriser ou révoquer un partenaire et limiter les usages qui lui sont accordés. TOK peut également suspendre un accès en cas de risque ou d'abus.",
       },
       {
-        q: "Comment TOK sécurise les tokens et les appels TOK Connect ?",
-        a: "TOK Connect utilise OAuth client-credentials, des tokens opaques courts, des secrets hashés, des scopes, des quotas, des logs d'audit, des contrôles côté Edge Function et des signatures webhook. Les mutations sensibles ne sont pas faites directement depuis le navigateur.",
+        q: "Comment TOK protège-t-il une intégration ?",
+        a: "TOK applique des contrôles d'authentification, d'autorisation, de traçabilité et de limitation adaptés au service concerné, sans exposer les secrets ou mécanismes internes de la plateforme.",
       },
       {
-        q: "Où trouver la documentation et les exemples TOK Connect ?",
-        a: "La page publique /tok-connect présente le produit. Le portail /tok-connect/developer donne accès à la documentation OpenAPI, aux clients sandbox, aux logs, quotas, webhooks et exemples MCP pour les utilisateurs autorisés. Les admins disposent d'une supervision dédiée dans /admin/tok-connect.",
+        q: "Où trouver la documentation TOK Connect ?",
+        a: "La page TOK Connect et l'espace réservé au partenaire autorisé présentent la documentation et les outils disponibles pour son compte.",
       },
     ],
   },
 ];
 
 export default function Aide() {
-  useSeoMeta({
-    title: "Centre d'aide TOK — clients et restaurateurs",
-    description: "Réponses sur les commandes, paiements, inscriptions restaurateurs, abonnements, Google Business et fonctionnalités TOK.",
-    path: "/aide",
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: FAQS.flatMap((section) => section.questions).map((item) => ({
-        "@type": "Question",
-        name: item.q,
-        acceptedAnswer: { "@type": "Answer", text: item.a },
-      })),
-    },
-  });
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const questionsRef = useRef<HTMLElement | null>(null);
@@ -941,6 +926,28 @@ export default function Aide() {
         .filter((section) => section.questions.length > 0),
     [activeFeatures, visibleCategoryIds],
   );
+
+  const faqJsonLd = useMemo(
+    () => ({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: visibleFaqSections.flatMap((section) =>
+        section.questions.map((item) => ({
+          "@type": "Question",
+          name: item.q,
+          acceptedAnswer: { "@type": "Answer", text: item.a },
+        })),
+      ),
+    }),
+    [visibleFaqSections],
+  );
+
+  useSeoMeta({
+    title: "Centre d'aide TOK — clients et restaurateurs",
+    description: "Réponses sur les commandes à emporter, paiements, inscriptions restaurateurs, abonnements, Google Business et fonctionnalités TOK.",
+    path: "/aide",
+    jsonLd: faqJsonLd,
+  });
 
   const normalizedSearch = search.trim().toLowerCase();
 
@@ -994,7 +1001,7 @@ export default function Aide() {
               Trouvez une réponse claire avant de contacter le support
             </h1>
             <p className="mx-auto max-w-2xl text-base leading-relaxed text-primary-foreground/80 md:text-lg">
-              Commandes, paiements, réservations, livraison, fidélité, actualités,
+              Commandes à emporter, paiements, réservations, fidélité, actualités,
               restaurateurs et sécurité : {totalQuestions} réponses détaillées pour vous guider.
             </p>
           </div>

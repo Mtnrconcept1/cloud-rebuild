@@ -70,12 +70,12 @@ export const FEATURE_FLAG_PRESETS: FeatureFlagPreset[] = [
   {
     name: "production stable",
     label: "production stable",
-    description: "Active le parcours marketplace standard et les outils admin principaux.",
+    description: "Active le parcours marketplace à emporter, les réservations et les outils admin principaux.",
     routes: ["/", "/recherche", "/panier", "/commandes", "/reservations", "/dashboard", "/admin"],
     flags: {
       "payment-card": true,
       commandes: true,
-      livraison: true,
+      livraison: false,
       emporter: true,
       reservation: true,
       "dashboard-restaurateur": true,

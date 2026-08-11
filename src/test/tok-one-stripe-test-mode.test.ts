@@ -135,7 +135,7 @@ describe("Tok One Stripe test mode", () => {
   });
 
   it("renders Tok One benefit cards as accessible expandable controls keyed by benefit id", () => {
-    expect(tokOnePageSource).toContain('id: "free_delivery"');
+    expect(tokOnePageSource).not.toContain('id: "free_delivery"');
     expect(tokOnePageSource).toContain("details:");
     expect(tokOnePageSource).toContain("aria-expanded={isExpanded}");
     expect(tokOnePageSource).toContain("aria-controls={detailsId}");

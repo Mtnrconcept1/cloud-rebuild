@@ -123,10 +123,8 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
         <div className="grid gap-2 rounded-xl border border-primary/15 bg-primary/5 p-3 text-sm">
           <span><strong>{formatChf(RESERVATION_FLAT_FEE_CHF)}</strong> par réservation honorée, quelle qu'en soit l'origine</span>
           <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> sur les commandes marketplace</span>
-          <span>Site, QR code, Instagram, Google et fichier client : <strong>CHF 0</strong></span>
           <span>Annulation, no-show, remboursement et démonstration : <strong>CHF 0</strong></span>
-          <span>Frais de réservation plafonnés à <strong>7% du CA de la table</strong></span>
-          <span>Restaurant : <strong>au minimum 90%</strong> de la commande et 100% des pourboires</span>
+          <span>Commande à emporter : <strong>90% au restaurant / 10% à TOK</strong> · pourboires 100% restaurant</span>
           {fairGrowthPlan.slug === "elite" ? (
             <>
               <span><strong>3 établissements inclus</strong> · CHF 149/mois par site supplémentaire</span>
@@ -247,7 +245,7 @@ export default function PacksRestaurateur() {
         </div>
         <h1 className="font-display text-4xl font-bold md:text-5xl">Choisissez votre abonnement TOK</h1>
         <p className="text-lg leading-relaxed text-muted-foreground">
-          Fair Growth facture uniquement la valeur réellement créée : vos canaux propres restent gratuits, les réservations TOK ne sont facturées que lorsqu'elles sont honorées et le restaurant conserve au minimum 90% de chaque commande.
+          Les réservations honorées sont facturées CHF 5, et chaque commande marketplace à emporter applique une répartition fixe : 90% au restaurant et 10% à TOK, quel que soit l'abonnement.
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Button asChild size="lg">

@@ -48,7 +48,7 @@ function splitTaxInclusiveTokRevenue(
 
 function splitOrder(
   grossCents: number,
-  platformFeeBps = 990,
+  platformFeeBps = 1000,
   developerOrderBps = 100,
   tipCents = 0,
   deliveryCents = 0,
@@ -75,20 +75,20 @@ describe("Stripe developer revenue-share routing", () => {
     });
   });
 
-  it("splits a Starter order into 90.1% restaurant, 8.9% TOK and 1% developer", () => {
+  it("keeps the public order split at 90% restaurant / 10% platform before internal settlement", () => {
     expect(splitOrder(10_000)).toEqual({
-      restaurantCents: 9_010,
+      restaurantCents: 9_000,
       deliveryCents: 0,
-      tokCents: 890,
+      tokCents: 900,
       developerCents: 100,
     });
   });
 
   it("keeps the full tip and delivery outside commission", () => {
-    expect(splitOrder(12_000, 990, 100, 1_000, 1_000)).toEqual({
-      restaurantCents: 10_010,
+    expect(splitOrder(12_000, 1000, 100, 1_000, 1_000)).toEqual({
+      restaurantCents: 10_000,
       deliveryCents: 1_000,
-      tokCents: 890,
+      tokCents: 900,
       developerCents: 100,
     });
   });
@@ -157,7 +157,7 @@ describe("Stripe developer revenue-share routing", () => {
   });
 
   it("uses server-authoritative basis-point helpers and exposes all exact amounts", () => {
-    expect(finance).toContain("TOK_PLATFORM_FEE_BPS = 990");
+    expect(finance).toContain("TOK_PLATFORM_FEE_BPS = 1000");
     expect(finance).toContain("TOK_DEVELOPER_SHARE_BPS = 1000");
     expect(finance).toContain("TOK_ORDER_DEVELOPER_SHARE_BPS = 100");
     expect(finance).toContain("calculateDeveloperRevenueSplit");

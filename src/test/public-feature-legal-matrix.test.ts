@@ -36,11 +36,14 @@ describe("public feature, help and legal coverage", () => {
   });
 
   it("binds signup receipts and legal pages to exact coherent versions", () => {
+    const cgu = read("src/pages/CGU.tsx");
+    const validation = read("supabase/functions/submit-signup-application/validation.ts");
+
     expect(LEGAL_ACCEPTANCE_VERSION).toContain(LEGAL_DOCUMENTS.cgu.version);
     expect(LEGAL_ACCEPTANCE_VERSION).toContain(LEGAL_DOCUMENTS.privacy.version);
     expect(read("src/pages/Auth.tsx")).toContain("legalAcceptance.version");
-    expect(read("supabase/functions/submit-signup-application/validation.ts")).toContain(LEGAL_ACCEPTANCE_VERSION);
-    expect(read("src/pages/CGU.tsx")).toContain("identifiant exact de la présente version");
+    expect(validation).toContain(LEGAL_ACCEPTANCE_VERSION);
+    expect(cgu).toContain("Version {LEGAL_DOCUMENTS.cgu.version} — applicable dès le {LEGAL_EFFECTIVE_DATE_FR}");
   });
 
   it("keeps every public help/legal page indexable with explicit SEO metadata", () => {
@@ -59,6 +62,7 @@ describe("public feature, help and legal coverage", () => {
     const help = read("src/pages/Aide.tsx");
     expect(help).toContain('"@type": "FAQPage"');
     expect(help).toContain("acceptedAnswer");
+    expect(help).toContain("visibleFaqSections.flatMap");
   });
 
   it("wires all matrix destinations as public routes", () => {

@@ -609,7 +609,7 @@ describe("Auth signup form", () => {
             onboarding_payment_status: "payment_method_required",
             legal_terms_accepted: true,
             privacy_policy_accepted: true,
-            contract_version: "TOK-CH-RP-2026-07-v6",
+            contract_version: "TOK-CH-RP-2026-08-v7",
             contract_signer_name: "Marie Dupont, gérante",
             contract_signature_data_url: expect.stringContaining(
               "data:image/png;base64,",

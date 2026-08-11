@@ -64,10 +64,9 @@ async function fetchActiveRestaurantSubscriptions(restaurantIds: string[]) {
   if (restaurantIds.length === 0) return new Map<string, OwnedRestaurantSubscription>();
 
   const [{ data: subscriptionsData, error: subscriptionsError }, { data: plansData, error: plansError }] = await Promise.all([
-    (supabase.from as any)("restaurant_ai_subscriptions")
-      .select("id, restaurant_id, plan, status, current_period_end, restaurant_subscription_plan_id")
-      .in("restaurant_id", restaurantIds)
-      .in("status", ["trialing", "active"]),
+    (supabase.rpc as any)("get_my_restaurant_ai_subscriptions", {
+      p_restaurant_ids: restaurantIds,
+    }),
     (supabase.from as any)("restaurant_subscription_plans")
       .select("id, slug, features")
       .eq("is_active", true),
@@ -88,6 +87,7 @@ async function fetchActiveRestaurantSubscriptions(restaurantIds: string[]) {
 
   const subscriptionsByRestaurant = new Map<string, OwnedRestaurantSubscription>();
   const sortedSubscriptions = [...((subscriptionsData || []) as RestaurantSubscriptionRow[])]
+    .filter((subscription) => ["trialing", "active"].includes(String(subscription.status || "")))
     .sort((a, b) => getSubscriptionSortTime(b) - getSubscriptionSortTime(a));
 
   for (const subscription of sortedSubscriptions) {

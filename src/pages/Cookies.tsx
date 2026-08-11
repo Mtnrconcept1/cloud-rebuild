@@ -47,7 +47,7 @@ export default function Cookies() {
 
       <section className="space-y-4">
         <h2 className="text-2xl font-semibold">Inventaire des technologies</h2>
-        <p className="text-sm text-muted-foreground">Cet inventaire est maintenu dans le code source afin que tout ajout ou changement puisse être revu avec la fonctionnalité concernée.</p>
+        <p className="text-sm text-muted-foreground">Cet inventaire décrit les principales technologies utilisées, leur finalité, leur durée et les conditions de leur activation.</p>
         <div className="overflow-x-auto rounded-2xl border">
           <table className="w-full min-w-[980px] text-left text-sm">
             <thead className="bg-muted/50">
