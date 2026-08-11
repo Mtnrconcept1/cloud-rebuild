@@ -2,185 +2,143 @@ import { Link } from "react-router-dom";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { LEGAL_DOCUMENTS, LEGAL_EFFECTIVE_DATE_FR } from "@/lib/legalDocuments";
 
+const sections = [
+  {
+    title: "1. Responsable du traitement",
+    paragraphs: [
+      "TOK traite les données personnelles nécessaires à l'exploitation de la plateforme et des services effectivement proposés.",
+      "Pour toute demande relative à vos données personnelles, vous pouvez écrire à privacy@thetok.ch.",
+    ],
+  },
+  {
+    title: "2. Données que nous pouvons traiter",
+    bullets: [
+      "Compte et identité : nom, prénom, adresse e-mail, téléphone, photo de profil, préférences, rôle et informations de connexion.",
+      "Commandes à emporter : restaurant, articles, quantités, créneau de retrait, instructions, statut, remboursements et historique.",
+      "Réservations : restaurant, date, heure, nombre de personnes, demandes particulières, statut et historique.",
+      "Paiements : montant, devise, statut et identifiants techniques nécessaires au rapprochement. TOK ne conserve pas le numéro complet de carte lorsqu'un prestataire de paiement traite la transaction.",
+      "Restaurants partenaires : identité commerciale, coordonnées, informations contractuelles, informations de facturation, justificatifs d'onboarding et paramètres nécessaires au service.",
+      "Localisation : ville, adresse recherchée, position approximative ou GPS uniquement lorsque vous l'autorisez, notamment pour afficher des établissements pertinents à proximité.",
+      "Actualités et interactions : publications, commentaires, likes, sauvegardes, signalements, blocages et préférences déduites de vos interactions.",
+      "Support : messages, pièces jointes, incidents signalés et historique nécessaire à leur résolution.",
+      "Données techniques : adresse IP, type d'appareil, navigateur, version de l'application, erreurs, performances et événements de sécurité nécessaires à l'exploitation du service.",
+      "Fonctions d'intelligence artificielle : contenu de la demande, résultat et métadonnées strictement nécessaires lorsque vous utilisez une fonction IA.",
+    ],
+  },
+  {
+    title: "3. Finalités",
+    bullets: [
+      "Créer, authentifier et sécuriser les comptes.",
+      "Traiter les commandes à emporter, réservations, paiements, remboursements et demandes de support.",
+      "Afficher les restaurants, menus, offres et contenus pertinents.",
+      "Gérer les programmes de fidélité, avantages et abonnements effectivement activés.",
+      "Permettre aux restaurants de gérer leurs informations, menus, commandes, réservations, campagnes, factures et contenus.",
+      "Prévenir la fraude, les abus, les accès non autorisés et les incidents de sécurité.",
+      "Respecter nos obligations contractuelles, comptables et légales.",
+      "Améliorer le fonctionnement et la qualité de TOK à partir de mesures agrégées ou nécessaires au diagnostic.",
+    ],
+  },
+  {
+    title: "4. Fondement et proportionnalité",
+    paragraphs: [
+      "TOK traite les données lorsqu'elles sont nécessaires à l'exécution d'un service demandé, au respect d'une obligation légale, à la sécurité et à la prévention des abus, ou lorsque vous avez donné un consentement lorsque celui-ci est requis.",
+      "Nous cherchons à limiter les données traitées à ce qui est nécessaire pour la finalité annoncée et à ne pas réutiliser les données de manière incompatible avec cette finalité.",
+    ],
+  },
+  {
+    title: "5. Destinataires et prestataires",
+    bullets: [
+      "Restaurants partenaires : uniquement les informations nécessaires à la préparation d'une commande à emporter, à une réservation, au service client ou à la facturation concernée.",
+      "Stripe : paiements, remboursements, abonnements et reversements lorsque ce prestataire est utilisé.",
+      "Apple : gestion d'un achat ou abonnement numérique effectué par l'intermédiaire de l'App Store lorsque ce parcours est utilisé.",
+      "Supabase : authentification, base de données, stockage et fonctions serveur.",
+      "Vercel et fournisseurs d'hébergement : mise à disposition et exploitation des services web concernés.",
+      "Fournisseurs de messagerie et notifications : envoi des messages nécessaires au service ou demandés par l'utilisateur.",
+      "OpenAI ou autre fournisseur IA activé : uniquement pour les fonctions d'intelligence artificielle effectivement utilisées et selon le périmètre nécessaire à la demande.",
+      "Autorités ou conseils : uniquement lorsque la loi l'exige ou lorsque cela est nécessaire à la défense de droits légitimes.",
+    ],
+  },
+  {
+    title: "6. Transferts à l'étranger",
+    paragraphs: [
+      "Certains prestataires peuvent traiter des données en dehors de la Suisse. Lorsque le droit applicable l'exige, TOK utilise les garanties prévues pour encadrer ces transferts et limite les données transmises au besoin du service.",
+    ],
+  },
+  {
+    title: "7. Conservation",
+    paragraphs: [
+      "Les données sont conservées pendant la durée nécessaire au service puis supprimées, anonymisées ou archivées pendant la durée requise par les obligations légales, comptables, contractuelles, de sécurité ou de preuve.",
+      "Les durées peuvent varier selon la catégorie : compte actif, commande, réservation, facture, paiement, consentement, litige, sécurité ou support.",
+    ],
+  },
+  {
+    title: "8. Sécurité",
+    paragraphs: [
+      "TOK met en œuvre des mesures techniques et organisationnelles destinées à limiter l'accès non autorisé, la perte, l'altération ou la divulgation de données. Les accès sont limités selon les besoins et les actions sensibles font l'objet de contrôles appropriés.",
+      "Aucun système n'offre une sécurité absolue. Si vous pensez que votre compte ou vos données ont été compromis, contactez-nous rapidement.",
+    ],
+  },
+  {
+    title: "9. Vos droits",
+    paragraphs: [
+      "Selon le droit applicable, vous pouvez notamment demander l'accès aux données vous concernant, leur rectification, leur suppression lorsque les conditions sont réunies, ou des informations sur leur traitement.",
+      "Certaines données doivent être conservées malgré une demande de suppression lorsqu'une obligation légale, comptable, de prévention de la fraude ou de défense de droits l'exige.",
+      "Vous pouvez également initier la suppression de votre compte depuis les fonctions prévues dans l'application.",
+    ],
+  },
+  {
+    title: "10. Cookies, mesures d'audience et communications",
+    paragraphs: [
+      "Les cookies et technologies similaires sont décrits dans la Politique cookies. Les communications commerciales sont envoyées selon vos choix et peuvent être désactivées au moyen des mécanismes proposés.",
+    ],
+  },
+  {
+    title: "11. Modifications",
+    paragraphs: [
+      "Cette politique peut être mise à jour en cas d'évolution du service ou du cadre légal. Sa version et sa date d'effet sont indiquées en tête de page. Une nouvelle acceptation sera demandée lorsque cela est nécessaire.",
+    ],
+  },
+] as const;
+
 export default function PolitiqueConfidentialite() {
-  useSeoMeta({ title: "Politique de confidentialité | TOK", description: "Données traitées par TOK, finalités, bases légales, sous-traitants, durées et droits des personnes.", path: "/politique-confidentialite" });
+  useSeoMeta({
+    title: "Politique de confidentialité | TOK",
+    description: "Données traitées par TOK, finalités, prestataires, conservation, sécurité et droits des personnes.",
+    path: "/politique-confidentialite",
+  });
+
   return (
-    <div className="container py-12 md:py-20 max-w-4xl space-y-12">
+    <div className="container max-w-4xl space-y-12 py-12 md:py-20">
       <div className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Politique de confidentialité</h1>
-        <p className="text-muted-foreground">Version {LEGAL_DOCUMENTS.privacy.version} — applicable dès le {LEGAL_EFFECTIVE_DATE_FR}</p>
+        <p className="text-muted-foreground">
+          Version {LEGAL_DOCUMENTS.privacy.version} — applicable dès le {LEGAL_EFFECTIVE_DATE_FR}
+        </p>
       </div>
 
       <div className="prose prose-foodhub max-w-none space-y-8">
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">1. Responsable du traitement</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK traite les données personnelles nécessaires à l'exploitation de la plateforme. Pour toute demande relative à vos données, vous pouvez nous contacter à <span className="font-medium text-foreground">privacy@thetok.ch</span>.
-          </p>
-          <ul className="list-none space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Responsable :</span> TOK, Suisse</li>
-            <li><span className="font-medium text-foreground">Site public :</span> www.thetok.ch</li>
-          </ul>
-        </section>
+        {sections.map((section) => (
+          <section key={section.title} className="space-y-4">
+            <h2 className="text-2xl font-semibold">{section.title}</h2>
+            {"paragraphs" in section
+              ? section.paragraphs?.map((paragraph) => (
+                  <p key={paragraph} className="text-foreground/80 leading-relaxed">
+                    {paragraph}
+                  </p>
+                ))
+              : null}
+            {"bullets" in section && section.bullets ? (
+              <ul className="list-disc space-y-2 pl-6 text-foreground/80">
+                {section.bullets.map((bullet) => (
+                  <li key={bullet}>{bullet}</li>
+                ))}
+              </ul>
+            ) : null}
+          </section>
+        ))}
 
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">2. Données collectées</h2>
-          <p className="text-foreground/80 leading-relaxed">Selon votre usage de TOK, nous pouvons traiter les catégories suivantes :</p>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Compte et identité :</span> nom, prénom, email, téléphone, photo, préférences, rôles et informations de connexion.</li>
-            <li><span className="font-medium text-foreground">Commandes et réservations :</span> paniers, articles, restaurants, horaires, adresses, instructions, statuts, remboursements, sinistres et historique.</li>
-            <li><span className="font-medium text-foreground">Paiement :</span> montants, devise, statut, identifiants de transaction et informations nécessaires au traitement par Stripe. Les données bancaires complètes ne sont pas stockées par TOK.</li>
-            <li><span className="font-medium text-foreground">Onboarding restaurateur :</span> dossier commercial, confirmation email, justificatifs, statut d'approbation, progression des onglets et référence du moyen de paiement enregistré sans conservation du numéro complet.</li>
-            <li><span className="font-medium text-foreground">Localisation :</span> adresse, zone de livraison, distance, coordonnées approximatives ou GPS lorsque vous l'autorisez.</li>
-            <li><span className="font-medium text-foreground">Actualités et interactions :</span> vues, clics, likes, commentaires, reposts, partages, sauvegardes, signalements, posts masqués, « Plus comme ça », « Moins comme ça » et préférences déduites.</li>
-            <li><span className="font-medium text-foreground">Recommandations :</span> scores d'intérêt, tags de cuisine, restaurants favoris, types de contenus, zones fréquentes, engagement historique et signaux utilisés pour ordonner le fil.</li>
-            <li><span className="font-medium text-foreground">Campagnes restaurateur :</span> budgets, durées, zones de diffusion, contenus, audiences, impressions, clics, CPC, conversions, dépenses, statuts et historiques.</li>
-            <li><span className="font-medium text-foreground">Réseaux sociaux restaurateur :</span> profils renseignés, canaux sélectionnés, autorisations de publication, identifiants techniques et jetons strictement nécessaires lorsque le restaurateur connecte un compte externe.</li>
-            <li><span className="font-medium text-foreground">Support et administration :</span> conversations, numéros de sinistre, pièces jointes, statuts de traitement, notes d'audit, décisions de modération et notifications.</li>
-            <li><span className="font-medium text-foreground">Données techniques :</span> adresse IP, appareil, navigateur, logs de sécurité, jetons de notification push, erreurs, performances et événements d'audit.</li>
-            <li><span className="font-medium text-foreground">Intégrations TOK Connect :</span> partenaires, membres partenaires, clients OAuth, scopes, quotas, restaurants autorisés, tokens opaques, journaux API, clés d'idempotence, endpoints webhook, livraisons webhook, request_id et traces d'agent MCP.</li>
-            <li><span className="font-medium text-foreground">Données d'usage IA :</span> demandes, résultats, coûts estimés, modèles utilisés, qualité de sortie et métadonnées nécessaires aux fonctionnalités d'assistance, de génération ou de retouche, y compris lorsque le traitement implique OpenAI.</li>
-          </ul>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">3. Finalités du traitement</h2>
-          <p className="text-foreground/80 leading-relaxed">Nous utilisons ces données pour :</p>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li>Créer et sécuriser votre compte, gérer les rôles client, restaurateur, coursier ou administrateur.</li>
-            <li>Traiter les commandes, réservations, paiements, remboursements, livraisons, factures et demandes de support.</li>
-            <li>Afficher des restaurants, offres, actualités, posts sauvegardés et recommandations adaptées à vos interactions.</li>
-            <li>Gérer les boutons « Plus comme ça » et « Moins comme ça » pour ajuster les contenus similaires qui vous sont proposés.</li>
-            <li>Mesurer les campagnes sponsorisées, répartir leur diffusion selon le budget quotidien et fournir des métriques agrégées aux restaurants.</li>
-            <li>Permettre aux restaurateurs de gérer menus, photos, campagnes, actualités, réseaux sociaux, factures, réservations et commandes.</li>
-            <li>Fournir TOK Connect aux partenaires autorisés : API, OAuth, MCP, webhooks, sandbox, logs, quotas, audit et révocation.</li>
-            <li>Envoyer des notifications strictement destinées au compte, rôle ou restaurant concerné.</li>
-            <li>Prévenir la fraude, sécuriser la plateforme, auditer les actions sensibles et respecter nos obligations légales.</li>
-          </ul>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">4. Bases légales</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Les traitements reposent notamment sur l'exécution du contrat, votre consentement lorsque requis, notre intérêt légitime à sécuriser et améliorer le service, ainsi que nos obligations légales comptables, fiscales ou de sécurité.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Les recommandations du fil Actualités personnalisent l'ordre et la sélection des contenus. Elles ne constituent pas une décision individuelle automatisée produisant à elles seules un effet juridique significatif.
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">5. Partage avec des tiers</h2>
-          <p className="text-foreground/80 leading-relaxed">Nous partageons des données uniquement lorsque cela est nécessaire au service :</p>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Restaurants partenaires :</span> informations nécessaires à la préparation, réservation, service, facturation et support.</li>
-            <li><span className="font-medium text-foreground">Sous-traitants techniques :</span> Supabase pour la base de données, l'authentification, le stockage et les fonctions serveur ; Stripe pour les moyens de paiement, abonnements et reversements ; Vercel pour l'hébergement web ; fournisseurs d'email et de notifications pour les messages demandés ; OpenAI uniquement pour les fonctions IA effectivement activées.</li>
-            <li><span className="font-medium text-foreground">Partenaires TOK Connect approuvés :</span> données strictement couvertes par leurs scopes, les autorisations restaurant, les quotas et les finalités validées.</li>
-            <li><span className="font-medium text-foreground">Coursiers :</span> informations nécessaires à la livraison et au suivi de mission.</li>
-            <li><span className="font-medium text-foreground">Stripe :</span> traitement des paiements, abonnements, remboursements, Connect et facturation.</li>
-            <li><span className="font-medium text-foreground">Supabase :</span> authentification, base de données, stockage, fonctions serveur, temps réel et sécurité.</li>
-            <li><span className="font-medium text-foreground">Vercel :</span> hébergement, déploiement et logs techniques du frontend.</li>
-            <li><span className="font-medium text-foreground">Firebase ou services push :</span> notifications mobiles et web lorsque vous les activez.</li>
-            <li><span className="font-medium text-foreground">Réseaux sociaux tiers :</span> publication ou préparation de posts lorsque le restaurateur connecte un compte externe et déclenche cette action.</li>
-            <li><span className="font-medium text-foreground">OpenAI ou prestataires IA :</span> traitement technique de certaines fonctionnalités d'assistance ou de génération lorsque ces services sont activés.</li>
-            <li><span className="font-medium text-foreground">Prestataires email, analytics, sécurité et support :</span> uniquement dans les limites nécessaires à l'exploitation de TOK.</li>
-          </ul>
-          <p className="text-foreground/80 leading-relaxed">
-            Nous ne vendons pas vos données personnelles nominatives. Les restaurants peuvent recevoir des statistiques agrégées sur leurs contenus et campagnes, comme impressions, clics, sauvegardes, partages, conversions et coût global.
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">6. Sécurité, notifications et session</h2>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li>Les communications sont chiffrées en transit par HTTPS/TLS.</li>
-            <li>Les accès aux données sont restreints par des contrôles de rôle, des politiques RLS et des vérifications serveur.</li>
-            <li>Les notifications sont limitées au destinataire, rôle ou restaurant concerné.</li>
-            <li>À la déconnexion, TOK peut nettoyer le panier local, les brouillons de checkout et les jetons push de la session courante.</li>
-            <li>Les mots de passe sont gérés par le système d'authentification et ne sont pas stockés en clair.</li>
-            <li>Les clés serveur et secrets de paiement ne sont jamais exposés dans le navigateur.</li>
-          </ul>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">7. Durées de conservation</h2>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Compte :</span> pendant la vie du compte, puis suppression ou anonymisation selon les délais techniques et légaux applicables.</li>
-            <li><span className="font-medium text-foreground">Commandes, paiements et factures :</span> pendant les durées nécessaires aux obligations comptables, fiscales, anti-fraude et de preuve.</li>
-            <li><span className="font-medium text-foreground">Actualités, interactions et recommandations :</span> pendant la durée utile à l'expérience utilisateur, à la modération et à la mesure des performances.</li>
-            <li><span className="font-medium text-foreground">Support, sinistres et audit :</span> pendant la durée nécessaire au traitement, à la sécurité et à la défense des droits de TOK ou des utilisateurs.</li>
-            <li><span className="font-medium text-foreground">Jetons push et données locales :</span> supprimés, désactivés ou remplacés lors de la déconnexion, du changement de compte ou du retrait de consentement lorsque cela est possible.</li>
-          </ul>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">8. Vos droits</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Conformément à la LPD et, lorsque applicable, au RGPD, vous pouvez demander l'accès, la rectification, l'effacement, la limitation, la portabilité ou l'opposition au traitement de vos données. Vous pouvez aussi retirer un consentement donné, par exemple pour la géolocalisation, les notifications ou certains cookies.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Pour exercer vos droits, contactez <span className="font-medium text-foreground">privacy@thetok.ch</span>. Nous pouvons vous demander une vérification d'identité avant de répondre, afin de protéger votre compte.
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">9. Cookies et technologies similaires</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK utilise des cookies et stockages locaux nécessaires à l'authentification, au panier, à la sécurité, aux préférences et au fonctionnement de l'application. Les cookies ou technologies non essentiels, notamment analytiques ou marketing, sont soumis au consentement lorsque la loi l'exige.
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">10. Suppression du compte</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Vous pouvez demander la suppression de votre compte depuis l'application ou en nous contactant. Certaines données peuvent être conservées lorsqu'une obligation légale, une transaction en cours, un litige, une facture, un remboursement ou une mesure anti-fraude l'exige.
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">11. Mineurs</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK ne s'adresse pas aux personnes de moins de 16 ans. Si vous pensez qu'un mineur nous a transmis des données sans autorisation, contactez-nous afin que nous puissions prendre les mesures appropriées.
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">12. Modifications</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Cette politique peut être mise à jour lorsque la plateforme, nos prestataires, nos traitements ou la réglementation évoluent. La date de dernière mise à jour figure en haut de cette page.
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">13. Traitements liés à TOK Connect</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK Connect permet à des partenaires approuvés d'accéder à certaines fonctionnalités TOK via API REST, OAuth, webhooks et MCP. Les données transmises dépendent toujours des scopes du client OAuth, du mode sandbox ou production, des autorisations accordées par le restaurant concerné, des quotas et des finalités validées par TOK.
-          </p>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Données restaurant :</span> fiche publique, horaires, services, menus, disponibilités, identifiants techniques et paramètres nécessaires à l'intégration.</li>
-            <li><span className="font-medium text-foreground">Réservations :</span> informations strictement nécessaires à la preview, à la création, à l'annulation ou au support d'une réservation autorisée.</li>
-            <li><span className="font-medium text-foreground">Campagnes et performance :</span> previews, coûts estimés, crédits, métriques agrégées et indicateurs autorisés par le restaurant et TOK.</li>
-            <li><span className="font-medium text-foreground">Sécurité et audit :</span> client OAuth, scopes, adresse IP, request_id, horodatage, statut, erreurs, idempotence, révocation, rotation de secret, livraison webhook et signatures.</li>
-            <li><span className="font-medium text-foreground">MCP :</span> appels d'outils, ressources, prompts, traces techniques et résultats nécessaires pour fournir l'assistant connecté dans le périmètre autorisé.</li>
-          </ul>
-          <p className="text-foreground/80 leading-relaxed">
-            Les secrets OAuth sont hashés ou protégés côté serveur, les tokens sont opaques et les clés service_role ne sont pas exposées dans le navigateur. Les webhooks sont signés afin que le partenaire puisse vérifier l'origine et l'intégrité de la livraison.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Le partenaire qui reçoit des données via TOK Connect doit les utiliser uniquement pour l'intégration validée, les protéger, respecter les droits des personnes concernées et supprimer ou anonymiser les données lorsqu'elles ne sont plus nécessaires. Selon l'intégration, il peut agir comme sous-traitant ou responsable indépendant de certains traitements.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Le mode sandbox utilise des données de test ou fixtures isolées et ne doit pas contenir de mutation production. Un restaurant ou TOK peut retirer une autorisation, révoquer un client, réduire un scope ou suspendre un webhook lorsqu'un accès n'est plus justifié.
-          </p>
-        </section>
-
-        <section className="space-y-4 border-t pt-8 mt-8">
-          <h2 className="text-2xl font-semibold">14. Contact</h2>
-          <ul className="list-none space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Email confidentialité :</span> privacy@thetok.ch</li>
-            <li><span className="font-medium text-foreground">Formulaire :</span> via notre <Link to="/contact" className="text-primary hover:underline font-medium">page de contact</Link></li>
-            <li><span className="font-medium text-foreground">Centre d'aide :</span> <Link to="/aide" className="text-primary hover:underline font-medium">Centre d'aide TOK</Link></li>
-          </ul>
+        <section className="rounded-2xl border bg-muted/30 p-5 text-sm text-foreground/80">
+          Consultez également nos <Link className="font-medium text-primary underline" to={LEGAL_DOCUMENTS.cgu.path}>Conditions générales d'utilisation</Link>.
         </section>
       </div>
     </div>
