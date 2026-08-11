@@ -1,0 +1,144 @@
+name: Apply flat10 core hardening v2
+
+on:
+  push:
+    branches: [fix/legal-flat10-pickup-only]
+    paths: [.github/workflows/apply-flat10-core-v2.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/legal-flat10-pickup-only
+          fetch-depth: 0
+
+      - name: Apply guarded core changes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          def read(path): return Path(path).read_text(encoding="utf-8")
+          def write(path, text): Path(path).write_text(text, encoding="utf-8")
+          def rep(path, old, new, count=1):
+              text = read(path)
+              actual = text.count(old)
+              if actual < count:
+                  raise SystemExit(f"{path}: expected >= {count}, found {actual}: {old[:120]!r}")
+              write(path, text.replace(old, new, count))
+
+          # Runtime contract signed by restaurants.
+          p = "src/lib/restaurantPartnerContract.ts"
+          replacements = [
+            ('TOK-CH-RP-2026-07-v6', 'TOK-CH-RP-2026-08-v7'),
+            ("plateforme digitale B2B de visibilité, réservation, commande, paiement, livraison, fidélité", "plateforme digitale B2B de visibilité, réservation, commande à emporter, paiement, fidélité"),
+            ("informations de livraison ou retrait", "informations de retrait à emporter"),
+            ("fonctionnalités activées par feature flag, abonnement souscrit ou configuration administrateur", "fonctionnalités incluses dans l'abonnement ou le service effectivement activé"),
+            ("la journalisation des actions sensibles, la séparation des rôles, l'application des politiques RLS et les intégrations de paiement", "la traçabilité des opérations sensibles, le contrôle des accès et les intégrations de paiement"),
+            ("blocage par Stripe, Supabase, un service d'emailing, un fournisseur IA, un transporteur ou une autorité compétente", "blocage par un prestataire de paiement, d'hébergement, de messagerie, d'intelligence artificielle ou une autorité compétente"),
+            ("Les abonnements couvrent l'accès et la commission marketplace : Starter CHF 69/mois et 9,9% par commande, Business CHF 129 et 8,9%, Premium CHF 199 et 7,9%, Elite CHF 499 et 6,9%.", "Les abonnements sont Starter CHF 69/mois, Business CHF 129/mois, Premium CHF 199/mois et Elite CHF 499/mois. La commission marketplace d'une commande à emporter est fixe à 10% pour tous les plans."),
+            ("Le plan, la période, les sites couverts, les taux et la version tarifaire sont enregistrés dans le snapshot signé.", "Le plan, la période, les sites couverts et la version tarifaire sont enregistrés avec la preuve contractuelle."),
+            ("Le restaurant conserve au minimum 90% de la base commissionnable d'une commande et 100% des pourboires. Le développeur reçoit 1% de cette base; TOK reçoit le solde de la commission du plan et absorbe Stripe/Connect sur sa part marketplace.", "Pour une commande marketplace à emporter, le restaurant reçoit 90% de la base commissionnable et TOK conserve 10%, quel que soit l'abonnement. Les pourboires reviennent à 100% au restaurant. Les frais du prestataire de paiement supportés par TOK sont assumés sur la part TOK, sauf frais distinct explicitement affiché et accepté."),
+            ("Sur les frais de réservation, TOK reçoit 90% et le développeur 10%. Sur abonnements et publicité, le développeur reçoit 10% du revenu TOK effectivement encaissé hors TVA, remboursements, pourboires, livraison et coûts refacturés.", "Les éventuelles répartitions internes des revenus de TOK relèvent de l'organisation et de la comptabilité propres à TOK et ne modifient ni le montant dû au restaurant ni les tarifs contractuels ci-dessus."),
+            ("Les factures ventilent le taux suisse normal de 8,1% et le taux réduit de 2,6% par ligne selon la nature de la prestation. La restauration sur place relève généralement du taux normal.", "Les factures et relevés appliquent les règles fiscales suisses correspondant à la nature de chaque prestation. Chaque partie demeure responsable de ses propres obligations fiscales et comptables."),
+            ("traçable dans l'admin", "au moyen d'une procédure documentée"),
+            ("données de livraison", "données nécessaires aux commandes à emporter"),
+            ("TOK peut recourir à des sous-traitants et sous-traitants ultérieurs tels que Stripe, Supabase, fournisseurs cloud, outils d'emailing, outils d'analyse, fournisseurs IA ou support.", "TOK peut recourir à des prestataires de paiement, d'hébergement, de messagerie, d'analyse, d'intelligence artificielle ou de support nécessaires au service."),
+            ("paiement anormal, livreur absent, contenu diffamatoire", "paiement anormal, créneau de retrait incorrect, contenu diffamatoire"),
+            ("à ses actions administrateur", "à ses propres actions"),
+            ("  adminWebsite: \"https://admin.thetok.ch\",\n", ""),
+            ("  tokAdminWebsite?: string;\n", ""),
+            ('    { label: "Dashboard admin", value: input.tokAdminWebsite || TOK_CONTRACT_LEGAL_INFORMATION.adminWebsite },\n', ""),
+            ("Le snapshot tarifaire (plan, période, prix, taux, établissements et version tarifaire)", "Le snapshot tarifaire (plan, période, prix, établissements et version tarifaire)"),
+          ]
+          for old, new in replacements:
+              rep(p, old, new)
+          lower = read(p).lower()
+          for forbidden in ["le développeur", "livraison", "livreur", "feature flag", "politiques rls", "configuration administrateur", "dashboard admin", "admin.thetok.ch"]:
+              if forbidden in lower:
+                  raise SystemExit(f"{p}: forbidden wording remains: {forbidden}")
+
+          # Delivery/courier fail closed by default in client and Edge logic.
+          p = "src/lib/featureCatalog.ts"
+          rep(p, 'label: "Livraison",\n    description: "Expose les parcours de livraison côté client, restaurateur et livreur.",\n    defaultEnabled: true,\n    group: "journeys",', 'label: "Livraison (désactivée)",\n    description: "Parcours dormant, masqué tant que le transport et l’espace coursier ne sont pas réactivés.",\n    defaultEnabled: false,\n    group: "journeys",')
+          text = read(p)
+          text, changed = re.subn(r'(name: "(?:espace-livreur|courier-home|courier-jobs|courier-earnings|courier-profile)",[\s\S]*?defaultEnabled: )true,', r'\1false,', text)
+          if changed != 5:
+              raise SystemExit(f"{p}: expected 5 courier defaults, changed {changed}")
+          text = text.replace('description: "Expose le pilotage réservations et livraison du restaurant."', 'description: "Expose le pilotage des réservations et du service du restaurant."')
+          write(p, text)
+
+          p = "src/lib/featureFlags.ts"
+          rep(p, 'description: "Active le parcours marketplace standard et les outils admin principaux."', 'description: "Active le parcours marketplace à emporter, les réservations et les outils admin principaux."')
+          rep(p, '      livraison: true,\n      emporter: true,', '      livraison: false,\n      emporter: true,')
+
+          p = "supabase/functions/_shared/feature-flags.ts"
+          rep(p, '  livraison: { defaultEnabled: true },', '  livraison: { defaultEnabled: false },')
+
+          # Server marketplace engine: public commission fixed at 10%. Internal
+          # allocation remains server-only but is no longer read from public plan rows.
+          p = "supabase/functions/_shared/marketplace-finance.ts"
+          rep(p, 'export const TOK_PLATFORM_FEE_BPS = 990;', 'export const TOK_PLATFORM_FEE_BPS = 1000;')
+          rep(p, 'export const FAIR_GROWTH_PRICING_VERSION = "fair_growth_2026_07";', 'export const FAIR_GROWTH_PRICING_VERSION = "flat_marketplace_2026_08";')
+          rep(p, 'export const MAX_FAIR_GROWTH_PLATFORM_FEE_BPS = 990;', 'export const MAX_FAIR_GROWTH_PLATFORM_FEE_BPS = 1000;')
+          rep(p, '// Reduced marketplace rates are an entitlement, not merely a selected plan.\n// Fail closed to Starter pricing whenever payment/activation is incomplete,\n// delinquent or paused.', '// Marketplace commission is flat at 10% for every plan. Subscription\n// resolution is retained only to seal the contractual plan snapshot.')
+          rep(p, '"restaurant_subscription_plan_id, plan, status, current_period_end, marketplace_commission_bps_snapshot, developer_order_bps_snapshot, pricing_version_snapshot"', '"restaurant_subscription_plan_id, plan, status, current_period_end, marketplace_commission_bps_snapshot, pricing_version_snapshot"')
+          text = read(p)
+          text, n = re.subn(r'\n    const snapshotDeveloperRate = toOptionalBasisPoints\([\s\S]*?throw new HttpError\(503, "FAIR_GROWTH_DEVELOPER_ORDER_RATE_MISMATCH"\);\n    \}', '', text, count=1)
+          if n != 1: raise SystemExit(f"{p}: snapshot developer guard not found")
+          text = text.replace('.select("id, slug, marketplace_commission_bps, developer_order_bps, pricing_version")', '.select("id, slug, marketplace_commission_bps, pricing_version")')
+          text, n = re.subn(r'\n        const planDeveloperRate = toBasisPoints\([\s\S]*?throw new HttpError\(503, "FAIR_GROWTH_DEVELOPER_ORDER_RATE_MISMATCH"\);\n        \}', '', text, count=1)
+          if n != 1: raise SystemExit(f"{p}: plan developer guard not found")
+          text = text.replace('// A configured or merely selected plan is not a paid entitlement. If there\n  // is no active/trialing subscription snapshot, always fall back to Starter;\n  // a stale runtime configuration must never preserve a discounted rate.', '// If no current subscription snapshot exists, use the same public 10%\n  // marketplace commission without inventing a discounted tier.')
+          write(p, text)
+
+          # Safe RPC migration: admins retain internal access, restaurants receive
+          # only safe subscription fields via the RPC.
+          p = "supabase/migrations/20260811070000_flat_marketplace_pickup_privacy.sql"
+          rep(p, '    AND public.auth_owns_restaurant(s.restaurant_id)\n    AND (p_restaurant_ids IS NULL', '    AND (public.auth_owns_restaurant(s.restaurant_id) OR public.auth_is_admin())\n    AND (p_restaurant_ids IS NULL')
+          marker = 'DROP POLICY IF EXISTS restaurant_ai_subscriptions_owner_admin_select\n  ON public.restaurant_ai_subscriptions;\n\n'
+          addition = marker + '''DROP POLICY IF EXISTS restaurant_ai_subscriptions_admin_select\n  ON public.restaurant_ai_subscriptions;\nCREATE POLICY restaurant_ai_subscriptions_admin_select\n  ON public.restaurant_ai_subscriptions\n  FOR SELECT TO authenticated\n  USING (public.auth_is_admin());\n\n'''
+          rep(p, marker, addition)
+
+          # Frontend owner reads use the safe RPC instead of the raw table.
+          p = "src/pages/dashboard/useOwnerRestaurants.ts"
+          old = '''    (supabase.from as any)("restaurant_ai_subscriptions")\n      .select("id, restaurant_id, plan, status, current_period_end, restaurant_subscription_plan_id")\n      .in("restaurant_id", restaurantIds)\n      .in("status", ["trialing", "active"]),'''
+          new = '''    (supabase.rpc as any)("get_my_restaurant_ai_subscriptions", {\n      p_restaurant_ids: restaurantIds,\n    }),'''
+          rep(p, old, new)
+          rep(p, '  const sortedSubscriptions = [...((subscriptionsData || []) as RestaurantSubscriptionRow[])]\n    .sort', '  const sortedSubscriptions = [...((subscriptionsData || []) as RestaurantSubscriptionRow[])]\n    .filter((subscription) => ["trialing", "active"].includes(String(subscription.status || "")))\n    .sort')
+
+          p = "src/components/contracts/RestaurantPartnerContractCard.tsx"
+          old = '''      const { data, error } = await (supabase as any)\n        .from("restaurant_ai_subscriptions")\n        .select("plan, billing_period, price_monthly_chf_snapshot, billing_amount_chf_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, pricing_version_snapshot")\n        .eq("restaurant_id", restaurantId)\n        .maybeSingle();'''
+          new = '''      const { data, error } = await (supabase.rpc as any)(\n        "get_my_restaurant_ai_subscriptions",\n        { p_restaurant_ids: [restaurantId] },\n      )\n        .select("plan, billing_period, price_monthly_chf_snapshot, billing_amount_chf_snapshot, acquired_reservation_fee_cents_snapshot, marketplace_commission_bps_snapshot, included_establishments_snapshot, additional_establishment_price_cents_snapshot, reservation_revenue_cap_bps_snapshot, pricing_version_snapshot")\n        .maybeSingle();'''
+          rep(p, old, new)
+
+          p = "src/lib/ai/tokAiClient.ts"
+          rep(p, '  metadata?: JsonRecord | null;\n};\n\nasync function invokeTokAiFunction', '};\n\nasync function invokeTokAiFunction')
+          old = '''  const { data, error } = await (supabase.from as any)("restaurant_ai_subscriptions")\n    .select(`\n      id,\n      restaurant_id,\n      plan,\n      status,\n      monthly_conversation_limit,\n      monthly_text_tool_limit,\n      monthly_image_limit,\n      monthly_premium_image_limit,\n      monthly_voice_minutes_limit,\n      current_period_start,\n      current_period_end,\n      metadata\n    `)\n    .eq("restaurant_id", restaurantId)\n    .maybeSingle();'''
+          new = '''  const { data, error } = await (supabase.rpc as any)("get_my_restaurant_ai_subscriptions", {\n    p_restaurant_ids: [restaurantId],\n  })\n    .select(`\n      id,\n      restaurant_id,\n      plan,\n      status,\n      monthly_conversation_limit,\n      monthly_text_tool_limit,\n      monthly_image_limit,\n      monthly_premium_image_limit,\n      monthly_voice_minutes_limit,\n      current_period_start,\n      current_period_end\n    `)\n    .maybeSingle();'''
+          rep(p, old, new)
+
+          # Remove both one-shot workflow files from the resulting product diff.
+          for path in [
+            '.github/workflows/apply-flat10-pickup-legal.yml',
+            '.github/workflows/apply-flat10-core-v2.yml',
+          ]:
+              Path(path).unlink(missing_ok=True)
+          PY
+
+      - name: Commit core hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "fix(legal): hide internal finance and enforce flat 90/10"
+          git push origin HEAD:fix/legal-flat10-pickup-only
