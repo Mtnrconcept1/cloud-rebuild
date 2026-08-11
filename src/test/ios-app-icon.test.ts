@@ -3,10 +3,9 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-const iconDir = resolve(
-  process.cwd(),
-  "ios/App/App/Assets.xcassets/AppIcon.appiconset",
-);
+const root = process.cwd();
+const iconDir = resolve(root, "ios/App/App/Assets.xcassets/AppIcon.appiconset");
+const defaultIcon = "AppIcon-512@2x.png";
 
 function pngHeader(fileName: string) {
   const filePath = resolve(iconDir, fileName);
@@ -25,49 +24,57 @@ function pngHeader(fileName: string) {
 }
 
 describe("iOS TOK app icon", () => {
-  it("defines explicit Any, Dark and Tinted 1024px variants", () => {
+  it("defines one universal 1024px App Store icon", () => {
     const contents = JSON.parse(
       readFileSync(resolve(iconDir, "Contents.json"), "utf8"),
     ) as {
       images: Array<{
         filename?: string;
+        idiom?: string;
+        platform?: string;
         size?: string;
         appearances?: Array<{ appearance?: string; value?: string }>;
       }>;
     };
 
-    const byFile = new Map(
-      contents.images.map((image) => [image.filename, image]),
+    expect(contents.images).toEqual([
+      {
+        filename: defaultIcon,
+        idiom: "universal",
+        platform: "ios",
+        size: "1024x1024",
+      },
+    ]);
+  });
+
+  it("keeps the generated App Store icon opaque and 1024x1024", () => {
+    expect(existsSync(resolve(iconDir, defaultIcon))).toBe(true);
+    expect(pngHeader(defaultIcon)).toEqual({
+      width: 1024,
+      height: 1024,
+      colorType: 2,
+    });
+  });
+
+  it("does not keep independent dark or tinted logo variants", () => {
+    expect(existsSync(resolve(iconDir, "AppIcon-512@2x-dark.png"))).toBe(false);
+    expect(existsSync(resolve(iconDir, "AppIcon-512@2x-tinted.png"))).toBe(false);
+  });
+
+  it("generates the native icon from public/logotok.png", () => {
+    const workflow = readFileSync(
+      resolve(root, ".github/workflows/prepare-logotok-app-icon.yml"),
+      "utf8",
+    );
+    const generator = readFileSync(
+      resolve(root, "scripts/prepare-ios-app-icon.sh"),
+      "utf8",
     );
 
-    expect(byFile.get("AppIcon-512@2x.png")?.size).toBe("1024x1024");
-    expect(
-      byFile.get("AppIcon-512@2x-dark.png")?.appearances,
-    ).toEqual([{ appearance: "luminosity", value: "dark" }]);
-    expect(
-      byFile.get("AppIcon-512@2x-tinted.png")?.appearances,
-    ).toEqual([{ appearance: "luminosity", value: "tinted" }]);
-  });
-
-  it("keeps the default App Store icon opaque and all variants 1024x1024", () => {
-    const defaults = pngHeader("AppIcon-512@2x.png");
-    const dark = pngHeader("AppIcon-512@2x-dark.png");
-    const tinted = pngHeader("AppIcon-512@2x-tinted.png");
-
-    expect(defaults).toEqual({ width: 1024, height: 1024, colorType: 2 });
-    expect(dark.width).toBe(1024);
-    expect(dark.height).toBe(1024);
-    expect(tinted.width).toBe(1024);
-    expect(tinted.height).toBe(1024);
-  });
-
-  it("tracks all icon files referenced by the asset catalog", () => {
-    for (const fileName of [
-      "AppIcon-512@2x.png",
-      "AppIcon-512@2x-dark.png",
-      "AppIcon-512@2x-tinted.png",
-    ]) {
-      expect(existsSync(resolve(iconDir, fileName))).toBe(true);
-    }
+    expect(workflow).toContain("public/logotok.png");
+    expect(workflow).toContain(defaultIcon);
+    expect(generator).toContain("public/logotok.png");
+    expect(generator).toContain("-p 1024 1024");
+    expect(generator).toContain("-s format jpeg");
   });
 });

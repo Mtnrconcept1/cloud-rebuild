@@ -96,7 +96,7 @@ describe("public asset deduplication", () => {
     const duplicateGroups = [...duplicated.values()].filter((names) => names.length > 1);
 
     expect(duplicateGroups).toEqual([]);
-    expect(existsSync(publicFile("logo.png"))).toBe(true);
+    expect(existsSync(publicFile("logotok.png"))).toBe(true);
     expect(existsSync(publicFile("favicon.ico.png"))).toBe(false);
     expect(logoCandidates.some((asset) => /copie/i.test(asset.name))).toBe(false);
   });

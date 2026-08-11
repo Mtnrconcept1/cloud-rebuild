@@ -23,7 +23,7 @@ function showBrowserNotification(title: string, body: string, tag: string) {
     new Notification(title, {
       body,
       tag,
-      icon: "/favicon.ico",
+      icon: "/logotok.png",
     });
   } catch {
     // Browser notifications are optional; the in-app toast remains the fallback.

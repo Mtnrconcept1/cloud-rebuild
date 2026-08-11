@@ -39,7 +39,7 @@ describe("transactional order and reservation emails", () => {
 
     expect(email.subject).toContain("TOK-78452");
     expect(email.bodyHtml).toContain("Merci pour votre commande");
-    expect(email.bodyHtml).toContain("https://www.thetok.ch/logo.png");
+    expect(email.bodyHtml).toContain("https://www.thetok.ch/logotok.png");
     expect(email.bodyHtml).toContain("https://www.thetok.ch/chef2.png");
     expect(email.bodyHtml).toContain("Numéro de commande");
     expect(email.bodyHtml).toContain("TOK Paris Opéra");
@@ -71,7 +71,7 @@ describe("transactional order and reservation emails", () => {
 
     expect(email.subject).toContain("Nouvelle réservation");
     expect(email.bodyHtml).toContain("Nouvelle réservation reçue");
-    expect(email.bodyHtml).toContain("https://www.thetok.ch/logo.png");
+    expect(email.bodyHtml).toContain("https://www.thetok.ch/logotok.png");
     expect(email.bodyHtml).toContain("https://www.thetok.ch/chef2.png");
     expect(email.bodyHtml).toContain("Alex");
     expect(email.bodyHtml).toContain("2 convive(s)");
