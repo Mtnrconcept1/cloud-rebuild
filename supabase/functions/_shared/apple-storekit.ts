@@ -36,6 +36,18 @@ function requireString(value: unknown, field: string) {
   return value.trim();
 }
 
+function normalizeTokOnePlanName(value: unknown) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, " ");
+}
+
+function isCanonicalTokOnePlanName(value: unknown) {
+  const normalized = normalizeTokOnePlanName(value);
+  return normalized === "tok one" || normalized === "miamz+";
+}
+
 function toIso(value: number | undefined, fallback: Date) {
   return new Date(
     typeof value === "number" && Number.isFinite(value) && value > 0
@@ -145,6 +157,47 @@ export function assertTokOneAppleTransaction(transaction: JWSTransactionDecodedP
   };
 }
 
+async function getCanonicalTokOnePlan(
+  adminClient: EdgeSupabaseClient,
+  requestedPlanId?: string | null,
+) {
+  if (requestedPlanId) {
+    const { data: requestedPlan, error: requestedPlanError } = await adminClient
+      .from("user_subscription_plans")
+      .select("id, name, status")
+      .eq("id", requestedPlanId)
+      .maybeSingle();
+
+    if (requestedPlanError) throw requestedPlanError;
+    if (
+      !requestedPlan ||
+      String(requestedPlan.status || "").toLowerCase() !== "active" ||
+      !isCanonicalTokOnePlanName(requestedPlan.name)
+    ) {
+      throw new Error("APPLE_STOREKIT_PLAN_INACTIVE_OR_UNKNOWN");
+    }
+    return requestedPlan;
+  }
+
+  // App Store Server Notifications can race ahead of the client-side purchase
+  // sync. Resolve the canonical active Tok One plan from authoritative data so
+  // a renewal/refund notification never depends on a row already existing.
+  const { data: activePlans, error: activePlansError } = await adminClient
+    .from("user_subscription_plans")
+    .select("id, name, status")
+    .eq("status", "active")
+    .limit(50);
+
+  if (activePlansError) throw activePlansError;
+  const matchingPlans = (activePlans || []).filter((plan: { name?: unknown }) =>
+    isCanonicalTokOnePlanName(plan.name)
+  );
+  if (matchingPlans.length !== 1) {
+    throw new Error(`APPLE_STOREKIT_CANONICAL_PLAN_COUNT:${matchingPlans.length}`);
+  }
+  return matchingPlans[0];
+}
+
 async function resolvePlanId(
   adminClient: EdgeSupabaseClient,
   requestedPlanId: string | null | undefined,
@@ -164,21 +217,7 @@ async function resolvePlanId(
     return { planId: String(existing.plan_id), existingId: String(existing.id) };
   }
 
-  if (!requestedPlanId) {
-    return { planId: null, existingId: null };
-  }
-
-  const { data: plan, error: planError } = await adminClient
-    .from("user_subscription_plans")
-    .select("id, status")
-    .eq("id", requestedPlanId)
-    .maybeSingle();
-
-  if (planError) throw planError;
-  if (!plan || String(plan.status || "").toLowerCase() !== "active") {
-    throw new Error("APPLE_STOREKIT_PLAN_INACTIVE_OR_UNKNOWN");
-  }
-
+  const plan = await getCanonicalTokOnePlan(adminClient, requestedPlanId);
   return { planId: String(plan.id), existingId: null };
 }
 
@@ -194,15 +233,6 @@ export async function persistAppleTokOneTransaction(input: {
     input.requestedPlanId,
     transactionIdentity.originalTransactionId,
   );
-
-  if (!planId) {
-    return {
-      updated: false,
-      reason: "missing_plan_mapping",
-      transactionIdentity,
-      row: null,
-    };
-  }
 
   const now = new Date();
   const revoked = typeof input.transaction.revocationDate === "number";
