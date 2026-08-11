@@ -11,6 +11,8 @@ import { isHelpCategoryVisible, isHelpQuestionVisible } from "@/lib/featureVisib
 
 // These checks intentionally inspect source copy as well as runtime constants:
 // contractual/internal wording must not silently re-enter a public surface.
+// They also keep the versions accepted by onboarding synchronized with the
+// versions actually displayed and signed by restaurateurs.
 const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("public legal and commercial surface", () => {
@@ -103,6 +105,18 @@ describe("public legal and commercial surface", () => {
     expect(tokOne).not.toContain("Tok One | Livraison offerte");
     expect(tokOne).toContain("price_monthly: 9.9");
     expect(tokOne).toContain("price_yearly: 89.9");
+  });
+
+  it("keeps restaurant signup validation on the August legal versions", () => {
+    const validation = source("supabase/functions/submit-signup-application/validation.ts");
+    expect(validation).toContain(
+      'RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-08-v7"',
+    );
+    expect(validation).toContain(
+      'LEGAL_ACCEPTANCE_VERSION = "cgu-2026-08-v5+privacy-2026-08-v5"',
+    );
+    expect(validation).not.toContain("TOK-CH-RP-2026-07-v6");
+    expect(validation).not.toContain("cgu-2026-07-v4+privacy-2026-07-v4");
   });
 
   it("moves restaurant subscription internals behind a safe RPC", () => {
