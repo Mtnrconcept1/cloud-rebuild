@@ -166,7 +166,7 @@ function renderItems(items: TransactionalEmailItem[], appBaseUrl: string) {
 
   return items.map((item) => {
     const image = String(item.imageUrl || "").trim();
-    const itemImage = /^https?:\/\//.test(image) ? image : assetUrl(appBaseUrl, "/tok.png");
+    const itemImage = /^https?:\/\//.test(image) ? image : assetUrl(appBaseUrl, "/logotok.png");
     return `
       <tr>
         <td style="padding:14px 0;border-bottom:1px solid #e5e7eb;width:76px;">
@@ -239,7 +239,7 @@ function buildShell(input: {
   detailUrl: string;
 }) {
   const appBaseUrl = normalizeBaseUrl(input.appBaseUrl);
-  const logoUrl = assetUrl(appBaseUrl, "/logo.png");
+  const logoUrl = assetUrl(appBaseUrl, "/logotok.png");
   const chefUrl = assetUrl(appBaseUrl, "/chef2.png");
   const safeDetailUrl = escapeHtml(input.detailUrl);
 
