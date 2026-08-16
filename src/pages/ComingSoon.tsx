@@ -10,7 +10,7 @@ const ComingSoon = () => {
           className="mx-auto mb-8 h-20 w-auto object-contain"
         />
         <h1 className="text-3xl font-bold leading-tight text-foreground sm:text-4xl">
-          Ouverture de toque imminente.
+          Ouverture de Tok imminente.
         </h1>
         <p className="mx-auto mt-4 max-w-sm text-base text-muted-foreground sm:text-lg">
           Nous vous tiendrons informé du grand lancement.
