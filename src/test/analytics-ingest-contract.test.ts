@@ -52,4 +52,16 @@ describe("analytics ingest contract", () => {
     expect(restaurantDetail).toContain('fetchpriority: "high"');
     expect(restaurantDetail).not.toContain("fetchPriority=");
   });
+
+  it("accepts cart additions for restaurant analytics without opening the event allowlist", () => {
+    const edgeFunction = read("supabase/functions/track-analytics/index.ts");
+    const restaurantEvents = edgeFunction.match(
+      /\["restaurant", new Set\(\[(.*?)\]\)\]/,
+    )?.[1];
+
+    expect(restaurantEvents).toContain('"add_to_cart"');
+    expect(restaurantEvents).not.toContain('"unsupported_event"');
+    expect(edgeFunction).toContain("if (!isAllowedEvent(entityType, eventName))");
+    expect(edgeFunction).toContain('throw new HttpError(400, "eventName invalide")');
+  });
 });

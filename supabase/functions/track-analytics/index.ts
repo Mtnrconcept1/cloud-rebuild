@@ -14,7 +14,7 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const TRACKABLE_ENTITY_TYPES = new Set(["restaurant", "dish", "collection", "ad"]);
 const TRACKABLE_EVENT_NAMES_BY_ENTITY = new Map<string, Set<string>>([
-  ["restaurant", new Set(["view", "favorite", "unfavorite", "share", "call", "directions", "menu_open", "gallery_open", "order_start", "checkout_initiated", "order_completed", "reservation_start"])],
+  ["restaurant", new Set(["view", "favorite", "unfavorite", "share", "call", "directions", "menu_open", "gallery_open", "order_start", "add_to_cart", "checkout_initiated", "order_completed", "reservation_start"])],
   ["dish", new Set(["view", "add_to_cart", "remove_from_cart", "customize", "share"])],
   ["collection", new Set(["view", "click", "filter", "sort"])],
   ["ad", new Set(["impression", "click", "cta_click", "dismiss"])],
