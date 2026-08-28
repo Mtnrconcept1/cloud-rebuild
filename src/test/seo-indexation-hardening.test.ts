@@ -105,6 +105,9 @@ describe("SEO indexation and crawler hardening", () => {
     expect(localRestaurants).toContain("legacySlugMiss");
     expect(localRestaurants).toContain('"noindex,follow,noarchive"');
     expect(prerender).toContain("MIN_LOCAL_RESTAURANTS");
+    expect(prerender).toContain("MIN_SPECIALIZED_LOCAL_RESTAURANTS");
+    expect(prerender).toContain('page.localPageType === "city"');
+    expect(localRestaurants).toContain("hasThinInventory");
     expect(prerender).toContain("MIN_ACTUALITE_TEXT_LENGTH");
     expect(prerender).toContain('page.seoKind === "local-listing"');
     expect(prerender).toContain("includeInSitemap: false");

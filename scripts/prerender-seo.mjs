@@ -13,6 +13,10 @@ const PUBLIC_ONLY = process.argv.includes("--public-only");
 const MAX_DYNAMIC_RESTAURANTS = Math.max(1, Number(process.env.SEO_SITEMAP_MAX_RESTAURANTS || 10000) || 10000);
 const MAX_DYNAMIC_ACTUALITES = Math.max(1, Number(process.env.SEO_SITEMAP_MAX_ACTUALITES || 10000) || 10000);
 const MIN_LOCAL_RESTAURANTS = Math.max(1, Number(process.env.SEO_MIN_LOCAL_RESTAURANTS || 1) || 1);
+const MIN_SPECIALIZED_LOCAL_RESTAURANTS = Math.max(
+  2,
+  Number(process.env.SEO_MIN_SPECIALIZED_LOCAL_RESTAURANTS || 3) || 3,
+);
 const MIN_ACTUALITE_TEXT_LENGTH = Math.max(1, Number(process.env.SEO_MIN_ACTUALITE_TEXT_LENGTH || 80) || 80);
 const RESTAURANT_PRERENDER_BATCH_SIZE = 500;
 const ACTUALITES_PRERENDER_BATCH_SIZE = 500;
@@ -35,6 +39,24 @@ const SITEMAP_GROUPS = [
 const STATIC_LOCAL_PAGES = [
   ["geneve", "Genève"],
   ["lausanne", "Lausanne"],
+  ["zurich", "Zurich"],
+  ["bale", "Bâle"],
+  ["berne", "Berne"],
+  ["lucerne", "Lucerne"],
+  ["lugano", "Lugano"],
+  ["winterthour", "Winterthour"],
+  ["saint-gall", "Saint-Gall"],
+  ["fribourg", "Fribourg"],
+  ["neuchatel", "Neuchâtel"],
+  ["sion", "Sion"],
+  ["nyon", "Nyon"],
+  ["morges", "Morges"],
+  ["vevey", "Vevey"],
+  ["montreux", "Montreux"],
+  ["yverdon-les-bains", "Yverdon-les-Bains"],
+  ["bienne", "Bienne"],
+  ["carouge", "Carouge"],
+  ["vernier", "Vernier"],
   ["geneve/pizza", "Pizza à Genève"],
   ["geneve/sushi", "Sushi à Genève"],
   ["geneve/burger", "Burger à Genève"],
@@ -51,33 +73,92 @@ const STATIC_LOCAL_PAGES = [
 const LOCAL_CITIES = [
   { slug: "geneve", label: "Genève", districts: ["eaux-vives", "plainpalais", "paquis", "carouge", "champel", "jonction", "servette", "rive"] },
   { slug: "lausanne", label: "Lausanne", districts: ["flon", "ouchy", "sous-gare", "chailly"] },
+  { slug: "zurich", label: "Zurich", districts: [] },
+  { slug: "bale", label: "Bâle", districts: [] },
+  { slug: "berne", label: "Berne", districts: [] },
+  { slug: "lucerne", label: "Lucerne", districts: [] },
+  { slug: "lugano", label: "Lugano", districts: [] },
+  { slug: "winterthour", label: "Winterthour", districts: [] },
+  { slug: "saint-gall", label: "Saint-Gall", districts: [] },
   { slug: "fribourg", label: "Fribourg", districts: [] },
   { slug: "neuchatel", label: "Neuchâtel", districts: [] },
+  { slug: "sion", label: "Sion", districts: [] },
   { slug: "nyon", label: "Nyon", districts: [] },
+  { slug: "morges", label: "Morges", districts: [] },
   { slug: "vevey", label: "Vevey", districts: [] },
   { slug: "montreux", label: "Montreux", districts: [] },
   { slug: "yverdon-les-bains", label: "Yverdon-les-Bains", districts: [] },
+  { slug: "bienne", label: "Bienne", districts: [] },
+  { slug: "carouge", label: "Carouge", districts: [] },
+  { slug: "vernier", label: "Vernier", districts: [] },
 ];
 
 const LOCAL_CUISINES = [
   { slug: "pizza", label: "Pizza" },
+  { slug: "italien", label: "Italien" },
   { slug: "sushi", label: "Sushi" },
+  { slug: "japonais", label: "Japonais" },
+  { slug: "asiatique", label: "Asiatique" },
+  { slug: "chinois", label: "Chinois" },
+  { slug: "thai", label: "Thaï" },
+  { slug: "indien", label: "Indien" },
+  { slug: "libanais", label: "Libanais" },
   { slug: "burger", label: "Burger" },
   { slug: "kebab", label: "Kebab" },
-  { slug: "italien", label: "Italien" },
-  { slug: "asiatique", label: "Asiatique" },
-  { slug: "japonais", label: "Japonais" },
-  { slug: "libanais", label: "Libanais" },
-  { slug: "indien", label: "Indien" },
   { slug: "halal", label: "Halal" },
+  { slug: "suisse", label: "Suisse" },
+  { slug: "francais", label: "Français" },
+  { slug: "mediterraneen", label: "Méditerranéen" },
+  { slug: "mexicain", label: "Mexicain" },
+  { slug: "marocain", label: "Marocain" },
+  { slug: "africain", label: "Africain" },
+  { slug: "vegetarien", label: "Végétarien" },
+  { slug: "vegan", label: "Vegan" },
   { slug: "healthy", label: "Healthy" },
   { slug: "brunch", label: "Brunch" },
+  { slug: "cafe", label: "Café" },
   { slug: "dessert", label: "Dessert" },
-  { slug: "africain", label: "Africain" },
   { slug: "bistro", label: "Bistro" },
   { slug: "street-food", label: "Street food" },
   { slug: "coreen", label: "Coréen" },
   { slug: "grec", label: "Grec" },
+];
+
+const CUISINE_SLUG_ALIASES = new Map([
+  ["pizzeria", "pizza"],
+  ["pizzas", "pizza"],
+  ["italienne", "italien"],
+  ["japonaise", "japonais"],
+  ["indienne", "indien"],
+  ["libanaise", "libanais"],
+  ["africaine", "africain"],
+  ["vegetarienne", "vegetarien"],
+  ["vegetarian", "vegetarien"],
+  ["desserts", "dessert"],
+  ["streetfood", "street-food"],
+]);
+
+function extractRestaurantCuisineSlugs(value) {
+  const knownSlugs = new Set(LOCAL_CUISINES.map((cuisine) => cuisine.slug));
+  return String(value || "")
+    .split(/[,;|/]+/)
+    .map((part) => part.replace(/\+\s*\d+\s*$/, "").trim())
+    .map((part) => CUISINE_SLUG_ALIASES.get(slugify(part)) || slugify(part))
+    .filter((cuisineSlug, index, cuisineSlugs) =>
+      knownSlugs.has(cuisineSlug) && cuisineSlugs.indexOf(cuisineSlug) === index
+    );
+}
+
+const LOCAL_INTENTS = [
+  { slug: "reservation", matches: (restaurant) => restaurant.supports_reservation === true },
+  {
+    slug: "pas-cher",
+    matches: (restaurant) => Number(restaurant.price_range) > 0 && Number(restaurant.price_range) <= 2,
+  },
+  {
+    slug: "meilleurs",
+    matches: (restaurant) => Number(restaurant.rating) > 0 && Number(restaurant.review_count) > 0,
+  },
 ];
 
 const LOCAL_DISTRICTS = {
@@ -131,40 +212,75 @@ const RICH_LOCAL_PAGES = STATIC_LOCAL_PAGES.map(([slug, fallbackLabel]) => {
 });
 
 function buildLocalHeading(page) {
-  if (page.type === "cuisine") return `${page.cuisine} à ${page.city} : commander, réserver et comparer`;
+  if (page.type === "intent" && page.intentSlug === "reservation") return `Réservation de restaurant à ${page.city}`;
+  if (page.type === "intent" && page.intentSlug === "pas-cher") return `Restaurants pas chers à ${page.city}`;
+  if (page.type === "intent" && page.intentSlug === "meilleurs") return `Meilleurs restaurants à ${page.city}`;
+  if (page.type === "cuisine" && page.cuisineSlug === "pizza") return `Pizzerias à ${page.city} : les meilleures adresses à réserver`;
+  if (page.type === "cuisine") return `Restaurants ${page.cuisine} à ${page.city} : commander et réserver`;
   if (page.type === "district") return `Restaurants à ${page.district}, ${page.city}`;
-  return `Restaurants à ${page.city} : réservation, commande et offres locales`;
+  return `Restaurants à ${page.city} : réservation, commande et bonnes adresses`;
 }
 
 function buildLocalTitle(page) {
-  if (page.type === "cuisine") return `${page.cuisine} à ${page.city} : commande et réservation | TOK`;
+  if (page.type === "intent" && page.intentSlug === "reservation") return `Réservation restaurant à ${page.city} | TOK`;
+  if (page.type === "intent" && page.intentSlug === "pas-cher") return `Restaurant pas cher à ${page.city} | TOK`;
+  if (page.type === "intent" && page.intentSlug === "meilleurs") return `Meilleurs restaurants à ${page.city} | TOK`;
+  if (page.type === "cuisine" && page.cuisineSlug === "pizza") return `Pizzeria à ${page.city} : les meilleures adresses | TOK`;
+  if (page.type === "cuisine") return `Restaurant ${page.cuisine} à ${page.city} | TOK`;
   if (page.type === "district") return `Restaurants à ${page.district}, ${page.city} | TOK`;
-  return `Restaurants à ${page.city} : réserver et commander | TOK`;
+  return `Restaurant à ${page.city} : réserver une table | TOK`;
 }
 
 function buildLocalDescription(page) {
+  if (page.type === "intent" && page.intentSlug === "reservation") {
+    return `Réservez une table dans les restaurants de ${page.city} qui confirment le service de réservation sur TOK.`;
+  }
+  if (page.type === "intent" && page.intentSlug === "pas-cher") {
+    return `Comparez les restaurants abordables à ${page.city} selon leur gamme de prix et les services réellement disponibles sur TOK.`;
+  }
+  if (page.type === "intent" && page.intentSlug === "meilleurs") {
+    return `Découvrez les restaurants les mieux notés à ${page.city}, classés à partir des notes et avis disponibles sur TOK.`;
+  }
+  if (page.type === "cuisine" && page.cuisineSlug === "pizza") {
+    return `Trouvez une pizzeria à ${page.city}, comparez les adresses disponibles et réservez une table ou commandez sur TOK.`;
+  }
   if (page.type === "cuisine") {
     return `Trouvez les restaurants ${page.cuisine} à ${page.city} sur TOK : réservation, commande, retrait, livraison et offres locales.`;
   }
   if (page.type === "district") {
     return `Découvrez les restaurants proches de ${page.district} à ${page.city} : bonnes adresses, réservation, commande et offres locales sur TOK.`;
   }
-  return `Comparez les restaurants à ${page.city} avec TOK : cuisines, quartiers, réservation, commande, anti-gaspi et offres locales.`;
+  return `Trouvez un restaurant à ${page.city} avec TOK : comparez les cuisines, les services de réservation, la commande et les offres locales.`;
 }
 
 function buildLocalLinks(page, restaurants = []) {
   const citySlug = page.citySlug || page.slug.split("/")[0] || "geneve";
-  const city = LOCAL_CITIES.find((item) => item.slug === citySlug) || LOCAL_CITIES[0];
-  const staticLocalSlugs = new Set(STATIC_LOCAL_PAGES.map(([slug]) => slug));
+  const city = LOCAL_CITIES.find((item) => item.slug === citySlug) || { label: page.city, districts: [] };
+  const cuisineCounts = new Map();
+  for (const restaurant of restaurants) {
+    for (const cuisineSlug of extractRestaurantCuisineSlugs(restaurant.cuisine_type)) {
+      cuisineCounts.set(cuisineSlug, Number(cuisineCounts.get(cuisineSlug) || 0) + 1);
+    }
+  }
   const cuisineLinks = LOCAL_CUISINES.filter((cuisine) =>
-    staticLocalSlugs.has(`${citySlug}/${cuisine.slug}`),
+    Number(cuisineCounts.get(cuisine.slug) || 0) >= MIN_SPECIALIZED_LOCAL_RESTAURANTS
   ).map((cuisine) => ({
     href: `/restaurants/${citySlug}/${cuisine.slug}`,
-    label: `${cuisine.label} à ${city.label}`,
+    label: cuisine.slug === "pizza"
+      ? `Pizzerias à ${city.label}`
+      : `Restaurants ${cuisine.label} à ${city.label}`,
   }));
-  const districtLinks = city.districts.filter((districtSlug) =>
-    staticLocalSlugs.has(`${citySlug}/${districtSlug}`),
-  ).map((districtSlug) => ({
+  const intentLinks = LOCAL_INTENTS.filter((intent) =>
+    restaurants.filter(intent.matches).length >= MIN_SPECIALIZED_LOCAL_RESTAURANTS
+  ).map((intent) => ({
+    href: `/restaurants/${citySlug}/${intent.slug}`,
+    label: intent.slug === "reservation"
+      ? `Réserver un restaurant à ${city.label}`
+      : intent.slug === "pas-cher"
+        ? `Restaurants pas chers à ${city.label}`
+        : `Meilleurs restaurants à ${city.label}`,
+  }));
+  const districtLinks = city.districts.map((districtSlug) => ({
     href: `/restaurants/${citySlug}/${districtSlug}`,
     label: `Restaurants ${LOCAL_DISTRICTS[districtSlug]}`,
   }));
@@ -178,17 +294,24 @@ function buildLocalLinks(page, restaurants = []) {
     { href: "/recherche", label: "Recherche restaurants" },
     { href: "/anti-gaspi", label: "Offres anti-gaspi" },
     { href: "/ventes-flash", label: "Ventes flash food" },
+    ...intentLinks,
     ...cuisineLinks,
     ...districtLinks,
   ].filter((link, index, links) => links.findIndex((candidate) => candidate.href === link.href) === index);
 }
 
 function buildLocalStaticContent(page, restaurants = []) {
-  const serviceLine = page.type === "cuisine"
-    ? `Cette page aide à trouver une adresse ${page.cuisine} à ${page.city}, puis à choisir selon les services disponibles : réservation, commande, retrait, livraison ou offres courtes.`
-    : page.type === "district"
-      ? `Cette page rassemble les restaurants du quartier ${page.district} à ${page.city}, avec des critères utiles pour réserver, commander et repérer les offres locales.`
-      : `Cette page rassemble les restaurants de ${page.city}, les cuisines recherchées, les quartiers utiles, les offres anti-gaspi et les ventes flash.`;
+  const serviceLine = page.type === "intent" && page.intentSlug === "reservation"
+    ? `Cette sélection contient uniquement les adresses de ${page.city} dont le service de réservation est confirmé dans TOK.`
+    : page.type === "intent" && page.intentSlug === "pas-cher"
+      ? `Cette sélection compare les adresses de ${page.city} classées dans les gammes de prix les plus accessibles.`
+      : page.type === "intent" && page.intentSlug === "meilleurs"
+        ? `Cette sélection s'appuie sur les notes et le nombre d'avis disponibles ; elle évolue avec les données vérifiées dans TOK.`
+        : page.type === "cuisine"
+          ? `Cette page aide à trouver une adresse ${page.cuisine} à ${page.city}, puis à choisir selon les services disponibles : réservation, commande, retrait ou livraison.`
+          : page.type === "district"
+            ? `Cette page rassemble les restaurants du quartier ${page.district} à ${page.city}, avec des critères utiles pour réserver, commander et repérer les offres locales.`
+            : `Cette page rassemble les restaurants de ${page.city}, les cuisines recherchées, les services de réservation et les offres locales.`;
   const restaurantItems = restaurants.slice(0, 24).map((restaurant) => {
     const cuisine = String(restaurant.cuisine_type || "").trim();
     return cuisine ? `${restaurant.name} — ${cuisine}` : String(restaurant.name);
@@ -270,6 +393,7 @@ function buildLocalSeoPage(page, overrides = {}) {
   const { restaurants = [], ...pageOverrides } = overrides;
   return {
     seoKind: "local-listing",
+    localPageType: page.type,
     inventoryCount: restaurants.length,
     path: `/restaurants/${page.slug}`,
     title: buildLocalTitle(page),
@@ -285,9 +409,9 @@ function buildLocalSeoPage(page, overrides = {}) {
 const PUBLIC_SEO_PAGES = [
   {
     path: "/",
-    title: "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
+    title: "TOK - Réservez, commandez et trouvez un restaurant en Suisse",
     description:
-      "Avec TOK, trouvez un restaurant, réservez, commandez, profitez d'offres locales et cumulez des Miamz solidaires en Suisse romande.",
+      "Réservation restaurant, bonnes adresses, pizzerias et restaurants pas chers : trouvez où manger à Genève et dans les villes suisses avec TOK.",
     priority: "1.0",
     changefreq: "daily",
     jsonLd: [
@@ -297,7 +421,7 @@ const PUBLIC_SEO_PAGES = [
         name: "TOK",
         url: CANONICAL_ORIGIN,
         logo: `${CANONICAL_ORIGIN}/logotok.png`,
-        areaServed: ["Genève", "Lausanne", "Suisse romande"],
+        areaServed: "Switzerland",
       },
       {
         "@context": "https://schema.org",
@@ -311,6 +435,27 @@ const PUBLIC_SEO_PAGES = [
         },
       },
     ],
+    staticContent: {
+      heading: "Réservez un restaurant à Genève et dans les villes suisses",
+      paragraphs: [
+        "TOK rassemble des restaurants disponibles pour la réservation, la commande et les offres locales. Chaque page de ville est publiée dans Google seulement lorsqu'elle contient un inventaire réel.",
+        "Comparez les restaurants par ville, cuisine, gamme de prix et services confirmés : pizzeria, restaurant italien, sushi, brunch, vegan, halal et autres spécialités.",
+      ],
+      sections: [
+        {
+          heading: "Recherches populaires",
+          items: ["Réservation restaurant", "Restaurant à Genève", "Meilleurs restaurants", "Restaurant pas cher", "Pizzeria", "Restaurant italien", "Sushi", "Brunch"],
+        },
+        {
+          heading: "Villes couvertes",
+          items: LOCAL_CITIES.map((city) => city.label),
+        },
+      ],
+      links: LOCAL_CITIES.map((city) => ({
+        href: `/restaurants/${city.slug}`,
+        label: `Restaurants à ${city.label}`,
+      })),
+    },
   },
   {
     path: "/recherche",
@@ -1240,7 +1385,7 @@ async function collectDynamicRestaurantPages() {
       const { data: batch, error, count } = await supabase
         .from("restaurants")
         .select(
-          "id, name, slug, city, cuisine_type, image_url, rating, review_count, updated_at, description, address, phone, price_range, opening_hours",
+          "id, name, slug, city, cuisine_type, image_url, rating, review_count, updated_at, description, address, phone, price_range, opening_hours, supports_reservation, delivery_available, supports_pickup",
           offset === 0 ? { count: "exact" } : undefined,
         )
         .eq("is_active", true)
@@ -1278,7 +1423,7 @@ async function collectDynamicRestaurantPages() {
       const city = String(restaurant.city || "Genève").trim() || "Genève";
       const citySlug = slugify(city);
       const cuisine = String(restaurant.cuisine_type || "").trim();
-      const cuisineSlug = slugify(cuisine);
+      const cuisineSlugs = extractRestaurantCuisineSlugs(cuisine);
       const restaurantPath = buildRestaurantSeoPath(restaurant);
 
       if (citySlug) {
@@ -1289,14 +1434,24 @@ async function collectDynamicRestaurantPages() {
           city,
         }, restaurant);
       }
-      if (citySlug && cuisineSlug) {
+      for (const cuisineSlug of cuisineSlugs) {
+        const cuisineDefinition = LOCAL_CUISINES.find((item) => item.slug === cuisineSlug);
         registerLocalPage({
           type: "cuisine",
           slug: `${citySlug}/${cuisineSlug}`,
           citySlug,
           city,
           cuisineSlug,
-          cuisine,
+          cuisine: cuisineDefinition?.label || cuisineSlug,
+        }, restaurant);
+      }
+      for (const intent of LOCAL_INTENTS.filter((candidate) => candidate.matches(restaurant))) {
+        registerLocalPage({
+          type: "intent",
+          slug: `${citySlug}/${intent.slug}`,
+          citySlug,
+          city,
+          intentSlug: intent.slug,
         }, restaurant);
       }
 
@@ -1561,8 +1716,11 @@ async function collectSeoPages() {
   );
   const enabledActualitesPages = disabledFeatures.has("actualites-sociales") ? [] : actualitesPages;
   const pages = dedupePages([...publicPages, ...restaurantPages, ...enabledActualitesPages]);
+  const minimumInventoryForLocalPage = (page) =>
+    page.localPageType === "city" ? MIN_LOCAL_RESTAURANTS : MIN_SPECIALIZED_LOCAL_RESTAURANTS;
   const thinLocalPages = pages.filter(
-    (page) => page.seoKind === "local-listing" && Number(page.inventoryCount || 0) < MIN_LOCAL_RESTAURANTS,
+    (page) => page.seoKind === "local-listing"
+      && Number(page.inventoryCount || 0) < minimumInventoryForLocalPage(page),
   );
   if (thinLocalPages.length > 0) {
     console.warn(
@@ -1571,7 +1729,7 @@ async function collectSeoPages() {
   }
   return pages.map((page) => {
     const thinLocalPage = page.seoKind === "local-listing"
-      && Number(page.inventoryCount || 0) < MIN_LOCAL_RESTAURANTS;
+      && Number(page.inventoryCount || 0) < minimumInventoryForLocalPage(page);
     return thinLocalPage
       ? { ...page, includeInSitemap: false, robots: "noindex,follow,noarchive" }
       : page;
