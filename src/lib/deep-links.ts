@@ -1,4 +1,5 @@
 import { App, type URLOpenListenerEvent } from "@capacitor/app";
+import { Browser } from "@capacitor/browser";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { isNative } from "@/lib/platform";
 import { getNavigationTargetFromAppUrl } from "@/lib/navigation";
@@ -29,6 +30,11 @@ export function setupDeepLinks(navigateFn: (path: string) => void) {
   const handles = [
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
       const path = getNavigationTargetFromAppUrl(event.url, "/");
+      if (path === "/auth/callback" || path.startsWith("/auth/callback?")) {
+        void Browser.close().catch((error) => {
+          console.warn("Unable to close native OAuth browser", error);
+        });
+      }
       navigateFn(path);
     }),
 

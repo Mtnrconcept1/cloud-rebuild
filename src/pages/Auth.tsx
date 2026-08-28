@@ -99,6 +99,7 @@ import {
   isCanonicalAuthHost,
   TOK_WORKSPACE_CHOOSER_PATH,
 } from "@/lib/authDomains";
+import { startOAuthSignIn } from "@/lib/nativeOAuth";
 import { isCommercialAppHost } from "@/lib/commercialDomains";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
@@ -3211,13 +3212,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                     className="w-full"
                     onClick={async () => {
                       try {
-                        const { error } = await supabase.auth.signInWithOAuth({
-                          provider: "google",
-                          options: {
-                            redirectTo: getCanonicalAuthCallbackHref(),
-                          },
-                        });
-                        if (error) throw error;
+                        await startOAuthSignIn("google");
                       } catch {
                         toast({
                           title: "Google indisponible",
@@ -3255,13 +3250,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                     className="w-full"
                     onClick={async () => {
                       try {
-                        const { error } = await supabase.auth.signInWithOAuth({
-                          provider: "apple",
-                          options: {
-                            redirectTo: getCanonicalAuthCallbackHref(),
-                          },
-                        });
-                        if (error) throw error;
+                        await startOAuthSignIn("apple");
                       } catch {
                         toast({
                           title: "Apple indisponible",
