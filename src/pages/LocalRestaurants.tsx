@@ -21,36 +21,111 @@ const CITY_LABELS: Record<string, string> = {
   geneve: "Genève",
   genève: "Genève",
   lausanne: "Lausanne",
+  zurich: "Zurich",
+  bale: "Bâle",
+  bâle: "Bâle",
+  berne: "Berne",
+  lucerne: "Lucerne",
+  lugano: "Lugano",
+  winterthour: "Winterthour",
+  "saint-gall": "Saint-Gall",
   fribourg: "Fribourg",
   neuchatel: "Neuchâtel",
+  sion: "Sion",
   nyon: "Nyon",
+  morges: "Morges",
   vevey: "Vevey",
   montreux: "Montreux",
   "yverdon-les-bains": "Yverdon-les-Bains",
+  bienne: "Bienne",
+  carouge: "Carouge",
+  vernier: "Vernier",
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
   italien: "italienne",
-  japonais: "japonaise",
   pizza: "pizza",
+  sushi: "sushi",
+  japonais: "japonaise",
+  asiatique: "asiatique",
+  chinois: "chinoise",
+  thai: "thaïlandaise",
+  indien: "indienne",
+  libanais: "libanaise",
   burger: "burger",
   kebab: "kebab",
-  sushi: "sushi",
-  vegan: "vegan",
-  asiatique: "asiatique",
-  africain: "africaine",
-  libanais: "libanaise",
-  indien: "indienne",
   halal: "halal",
+  suisse: "suisse",
+  francais: "française",
+  mediterraneen: "méditerranéenne",
+  mexicain: "mexicaine",
+  marocain: "marocaine",
+  africain: "africaine",
+  vegetarien: "végétarienne",
+  vegan: "vegan",
   healthy: "healthy",
   brunch: "brunch",
+  cafe: "café",
   dessert: "dessert",
-  desserts: "desserts",
   coreen: "coréenne",
   grec: "grecque",
   bistro: "bistro",
   "street-food": "street food",
 };
+
+const CATEGORY_ALIASES: Record<string, string> = {
+  pizzeria: "pizza",
+  pizzas: "pizza",
+  italienne: "italien",
+  japonaise: "japonais",
+  indienne: "indien",
+  libanaise: "libanais",
+  africaine: "africain",
+  vegetarienne: "vegetarien",
+  desserts: "dessert",
+  streetfood: "street-food",
+  "meilleure-pizzeria": "pizza",
+  "meilleures-pizzerias": "pizza",
+};
+
+const INTENT_LABELS: Record<string, string> = {
+  reservation: "Réservation",
+  "pas-cher": "Petit prix",
+  meilleurs: "Mieux notés",
+};
+
+const MIN_SPECIALIZED_LOCAL_RESTAURANTS = 3;
+
+function extractRestaurantCuisineSlugs(value: unknown) {
+  return String(value || "")
+    .split(/[,;|/]+/)
+    .map((part) => part.replace(/\+\s*\d+\s*$/, "").trim())
+    .map((part) => {
+      const slug = slugifyRestaurantSegment(part);
+      return CATEGORY_ALIASES[slug] || slug;
+    })
+    .filter((slug, index, slugs) => Boolean(CATEGORY_LABELS[slug]) && slugs.indexOf(slug) === index);
+}
+
+function filterRestaurantsByIntent(restaurants: any[], intent: string) {
+  if (intent === "reservation") {
+    return restaurants.filter((restaurant) => restaurant.supports_reservation === true);
+  }
+  if (intent === "pas-cher") {
+    return restaurants
+      .filter((restaurant) => Number(restaurant.price_range) > 0 && Number(restaurant.price_range) <= 2)
+      .sort((left, right) => Number(left.price_range) - Number(right.price_range));
+  }
+  if (intent === "meilleurs") {
+    return restaurants
+      .filter((restaurant) => Number(restaurant.rating) > 0 && Number(restaurant.review_count) > 0)
+      .sort((left, right) =>
+        Number(right.rating) - Number(left.rating)
+        || Number(right.review_count) - Number(left.review_count)
+      );
+  }
+  return restaurants;
+}
 
 const DISTRICT_LABELS: Record<string, string> = {
   "eaux-vives": "Eaux-Vives",
@@ -104,14 +179,50 @@ function toCardProps(restaurant: any) {
   };
 }
 
-function getPageName(city: string, category: string, district: string) {
+function getPageName(city: string, category: string, district: string, intent: string) {
+  if (intent === "reservation") return `Réservation de restaurant à ${city}`;
+  if (intent === "pas-cher") return `Restaurants pas chers à ${city}`;
+  if (intent === "meilleurs") return `Meilleurs restaurants à ${city}`;
   if (district) return `Restaurants aux ${district}, ${city}`;
+  if (category === "pizza") return `Pizzerias à ${city}`;
   if (category) return `Restaurants ${category} à ${city}`;
   return `Restaurants à ${city}`;
 }
 
-function buildRestaurantJsonLd(restaurants: any[], city: string, category: string, district: string, path: string) {
-  const pageName = getPageName(city, category, district);
+function getPageTitle(city: string, category: string, district: string, intent: string) {
+  if (intent === "reservation") return `Réservation restaurant à ${city} | TOK`;
+  if (intent === "pas-cher") return `Restaurant pas cher à ${city} | TOK`;
+  if (intent === "meilleurs") return `Meilleurs restaurants à ${city} | TOK`;
+  if (category === "pizza") return `Pizzeria à ${city} : les meilleures adresses | TOK`;
+  if (category) return `Restaurant ${category} à ${city} | TOK`;
+  if (district) return `Restaurants à ${district}, ${city} | TOK`;
+  return `Restaurant à ${city} : réserver une table | TOK`;
+}
+
+function getPageDescription(city: string, category: string, district: string, intent: string) {
+  if (intent === "reservation") {
+    return `Réservez une table dans les restaurants de ${city} qui confirment le service de réservation sur TOK.`;
+  }
+  if (intent === "pas-cher") {
+    return `Comparez les restaurants abordables à ${city} selon leur gamme de prix et les services réellement disponibles sur TOK.`;
+  }
+  if (intent === "meilleurs") {
+    return `Découvrez les restaurants les mieux notés à ${city}, classés à partir des notes et avis disponibles sur TOK.`;
+  }
+  if (district) {
+    return `Découvrez les restaurants proches de ${district} à ${city} sur TOK : réservation, commande et offres locales.`;
+  }
+  if (category === "pizza") {
+    return `Trouvez une pizzeria à ${city}, comparez les adresses disponibles et réservez une table ou commandez sur TOK.`;
+  }
+  if (category) {
+    return `Découvrez les restaurants ${category} à ${city} sur TOK : réservation, commande, retrait et livraison selon les services disponibles.`;
+  }
+  return `Trouvez un restaurant à ${city} avec TOK : comparez les cuisines, la réservation, la commande et les offres locales.`;
+}
+
+function buildRestaurantJsonLd(restaurants: any[], city: string, category: string, district: string, intent: string, path: string) {
+  const pageName = getPageName(city, category, district, intent);
   const itemList = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -180,25 +291,59 @@ function LocalRestaurantsSeo({
   return null;
 }
 
-function buildLocalSeoLinks(citySlug: string | undefined, city: string, category: string, district: string, restaurants: any[]) {
+function buildLocalSeoLinks(citySlug: string | undefined, city: string, category: string, district: string, intent: string, restaurants: any[]) {
   const safeCitySlug = slugifyRestaurantSegment(citySlug || city || "geneve");
-  const discoveredCuisines = restaurants
-    .map((restaurant) => slugifyRestaurantSegment(restaurant?.cuisine_type))
-    .filter((cuisine, index, cuisines) => cuisine && CATEGORY_LABELS[cuisine] && cuisines.indexOf(cuisine) === index);
-  const supportedCuisines = discoveredCuisines.slice(0, 8);
-  const cuisineLinks = supportedCuisines.map((cuisine) => ({
-    href: `/restaurants/${safeCitySlug}/${cuisine}`,
-    label: `${slugToLabel(cuisine, CATEGORY_LABELS)} à ${city}`,
-  }));
+  const cuisineCounts = new Map<string, number>();
+  for (const restaurant of restaurants) {
+    for (const cuisineSlug of extractRestaurantCuisineSlugs(restaurant?.cuisine_type)) {
+      cuisineCounts.set(cuisineSlug, Number(cuisineCounts.get(cuisineSlug) || 0) + 1);
+    }
+  }
+  const cuisineLinks = [...cuisineCounts.entries()]
+    .filter(([, count]) => count >= MIN_SPECIALIZED_LOCAL_RESTAURANTS)
+    .slice(0, 10)
+    .map(([cuisineSlug]) => ({
+      href: `/restaurants/${safeCitySlug}/${cuisineSlug}`,
+      label: cuisineSlug === "pizza"
+        ? `Pizzerias à ${city}`
+        : `Restaurants ${slugToLabel(cuisineSlug, CATEGORY_LABELS)} à ${city}`,
+    }));
+  const intentLinks = [
+    {
+      slug: "reservation",
+      count: restaurants.filter((restaurant) => restaurant.supports_reservation === true).length,
+      label: `Réserver un restaurant à ${city}`,
+    },
+    {
+      slug: "pas-cher",
+      count: restaurants.filter((restaurant) =>
+        Number(restaurant.price_range) > 0 && Number(restaurant.price_range) <= 2
+      ).length,
+      label: `Restaurants pas chers à ${city}`,
+    },
+    {
+      slug: "meilleurs",
+      count: restaurants.filter((restaurant) =>
+        Number(restaurant.rating) > 0 && Number(restaurant.review_count) > 0
+      ).length,
+      label: `Meilleurs restaurants à ${city}`,
+    },
+  ]
+    .filter((candidate) => candidate.count >= MIN_SPECIALIZED_LOCAL_RESTAURANTS)
+    .map((candidate) => ({
+      href: `/restaurants/${safeCitySlug}/${candidate.slug}`,
+      label: candidate.label,
+    }));
 
   return [
     { href: `/restaurants/${safeCitySlug}`, label: `Tous les restaurants à ${city}` },
+    ...intentLinks,
     ...cuisineLinks,
     { href: "/anti-gaspi", label: "Offres anti-gaspi" },
     { href: "/ventes-flash", label: "Ventes flash" },
     { href: "/miamz-solidaires", label: "Miamz solidaires" },
   ].filter((link) => {
-    if (category && link.href.endsWith(`/${slugifyRestaurantSegment(category)}`)) return false;
+    if (intent && link.href.endsWith(`/${intent}`)) return false;
     if (district && link.href.endsWith(`/${slugifyRestaurantSegment(district)}`)) return false;
     return true;
   });
@@ -213,13 +358,19 @@ export default function LocalRestaurants() {
   const knownCitySegment = Boolean(CITY_LABELS[normalizedCitySegment]);
   const city = slugToLabel(params.city, CITY_LABELS);
   const routeSegment = String(params.category || "").trim().toLowerCase();
+  const canonicalRouteSegment = CATEGORY_ALIASES[routeSegment] || routeSegment;
   const explicitRestaurantSlug = slugifyRestaurantSegment(params.restaurantSlug);
   const isExplicitRestaurantRoute = Boolean(explicitRestaurantSlug);
   const knownDistrictSegment = Boolean(!isExplicitRestaurantRoute && routeSegment && DISTRICT_LABELS[routeSegment]);
-  const knownCategorySegment = Boolean(!isExplicitRestaurantRoute && routeSegment && CATEGORY_LABELS[routeSegment]);
-  const legacyRestaurantSlug = !isExplicitRestaurantRoute && routeSegment && !knownDistrictSegment && !knownCategorySegment
-    ? slugifyRestaurantSegment(routeSegment)
-    : "";
+  const knownCategorySegment = Boolean(!isExplicitRestaurantRoute && routeSegment && CATEGORY_LABELS[canonicalRouteSegment]);
+  const knownIntentSegment = Boolean(!isExplicitRestaurantRoute && routeSegment && INTENT_LABELS[routeSegment]);
+  const legacyRestaurantSlug = !isExplicitRestaurantRoute
+    && routeSegment
+    && !knownDistrictSegment
+    && !knownCategorySegment
+    && !knownIntentSegment
+      ? slugifyRestaurantSegment(routeSegment)
+      : "";
   const requestedRestaurantSlug = explicitRestaurantSlug || legacyRestaurantSlug;
   const slugCandidate = Boolean(requestedRestaurantSlug);
   const demoRestaurants = useMemo(
@@ -266,15 +417,19 @@ export default function LocalRestaurants() {
   const resolvedRestaurantId = restaurantBySlug?.id ? String(restaurantBySlug.id) : "";
   const legacySlugMiss = Boolean(legacyRestaurantSlug && !isSlugLoading && !isRemoteSlugError && !restaurantBySlug);
   const district = knownDistrictSegment ? slugToLabel(params.category, DISTRICT_LABELS) : "";
-  const category = district || resolvedRestaurantId
+  const intent = knownIntentSegment ? routeSegment : "";
+  const category = district || intent || resolvedRestaurantId
     ? ""
     : knownCategorySegment || legacySlugMiss
-      ? slugToLabel(params.category, CATEGORY_LABELS)
+      ? slugToLabel(canonicalRouteSegment, CATEGORY_LABELS)
       : "";
+  const categoryAliasRedirect = Boolean(
+    knownCategorySegment && routeSegment && canonicalRouteSegment !== routeSegment
+  );
   const path = isExplicitRestaurantRoute
     ? `/restaurants/${params.city}/r/${params.restaurantSlug}`
     : params.category
-      ? `/restaurants/${params.city}/${params.category}`
+      ? `/restaurants/${params.city}/${canonicalRouteSegment}`
       : `/restaurants/${params.city}`;
 
   const {
@@ -283,14 +438,14 @@ export default function LocalRestaurants() {
     isError,
     isSuccess: isListingSuccess,
   } = useQuery({
-    queryKey: ["local-restaurants", city, category, district, demoSessionKey],
+    queryKey: ["local-restaurants", city, category, district, intent, demoSessionKey],
     enabled: Boolean(city)
       && !resolvedRestaurantId
       && !isExplicitRestaurantRoute
       && (!slugCandidate || legacySlugMiss),
     queryFn: async () => {
       if (isCommercialDemoClient) {
-        return demoRestaurants;
+        return filterRestaurantsByIntent(demoRestaurants, intent);
       }
       const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
         p_query: district || null,
@@ -306,30 +461,32 @@ export default function LocalRestaurants() {
       });
 
       if (error) throw error;
-      return data || [];
+      return filterRestaurantsByIntent(data || [], intent);
     },
   });
 
-  const pageName = getPageName(city, category, district);
-  const title = `${pageName} | TOK`;
-  const description = district
-    ? `Découvrez les restaurants proches de ${district} à ${city} sur Tok : réservation, commande, offres locales, Miamz et bonnes adresses de quartier.`
-    : category
-      ? `Découvrez les restaurants ${category} disponibles à ${city} sur Tok : commande, réservation, offres locales et adresses indexables.`
-      : `Découvrez les restaurants disponibles à ${city} sur Tok : livraison, réservation, anti-gaspi, ventes flash et adresses locales.`;
+  const pageName = getPageName(city, category, district, intent);
+  const title = getPageTitle(city, category, district, intent);
+  const description = getPageDescription(city, category, district, intent);
   const jsonLd = useMemo(
-    () => buildRestaurantJsonLd(restaurants, city, category, district, path),
-    [category, city, district, path, restaurants],
+    () => buildRestaurantJsonLd(restaurants, city, category, district, intent, path),
+    [category, city, district, intent, path, restaurants],
   );
   const localSeoLinks = useMemo(
-    () => buildLocalSeoLinks(params.city, city, category, district, restaurants),
-    [category, city, district, params.city, restaurants],
+    () => buildLocalSeoLinks(params.city, city, category, district, intent, restaurants),
+    [category, city, district, intent, params.city, restaurants],
   );
   const knownListingRoute = Boolean(
-    knownCitySegment && (!routeSegment || knownDistrictSegment || knownCategorySegment),
+    knownCitySegment && (!routeSegment || knownDistrictSegment || knownCategorySegment || knownIntentSegment),
   );
   const hasConfirmedEmptyInventory = isListingSuccess && restaurants.length === 0;
+  const minimumInventory = category || district || intent ? MIN_SPECIALIZED_LOCAL_RESTAURANTS : 1;
+  const hasThinInventory = isListingSuccess && restaurants.length < minimumInventory;
   const unknownListingRoute = hasConfirmedEmptyInventory && !knownListingRoute;
+
+  if (categoryAliasRedirect) {
+    return <Navigate to={path} replace />;
+  }
 
   if (slugCandidate && isSlugLoading) {
     return (
@@ -400,7 +557,7 @@ export default function LocalRestaurants() {
           description={description}
           path={path}
           jsonLd={jsonLd}
-          robots={isError || hasConfirmedEmptyInventory ? "noindex,follow,noarchive" : undefined}
+          robots={isError || hasThinInventory ? "noindex,follow,noarchive" : undefined}
         />
       ) : null}
       <div className="container space-y-8 py-8">
@@ -412,6 +569,7 @@ export default function LocalRestaurants() {
             </Badge>
             {district ? <Badge variant="outline">Quartier {district}</Badge> : null}
             {category ? <Badge variant="outline">{category}</Badge> : null}
+            {intent ? <Badge variant="outline">{INTENT_LABELS[intent]}</Badge> : null}
           </div>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">

@@ -23,9 +23,10 @@ describe("SEO growth readiness", () => {
     expect(html).toContain('rel="canonical" href="https://www.thetok.ch/"');
     expect(html).toContain('property="og:url" content="https://www.thetok.ch/"');
     expect(html).toContain('property="og:image" content="https://www.thetok.ch/fond3.png"');
-    expect(html).toContain("tok - réservez, commandez et profitez");
-    expect(html).toContain("restaurant genève");
-    expect(html).toContain("miamz solidaires");
+    expect(html).toContain("tok - réservez, commandez et trouvez");
+    expect(html).toContain("restaurants pas chers");
+    expect(html).toContain("genève");
+    expect(html).not.toContain('name="keywords"');
   });
 
   it("keeps static SEO copy free of mojibake", () => {
@@ -34,10 +35,9 @@ describe("SEO growth readiness", () => {
 
     expect(html).not.toMatch(MOJIBAKE_PATTERN);
     expect(prerender).not.toMatch(MOJIBAKE_PATTERN);
-    expect(html).toContain("TOK - Réservez, commandez et profitez");
-    expect(html).toContain("réservation restaurant");
-    expect(html).toContain("Miamz");
-    expect(html).toContain("Suisse romande");
+    expect(html).toContain("TOK - Réservez, commandez et trouvez");
+    expect(html).toContain("Réservation restaurant");
+    expect(html).toContain("villes suisses");
   });
 
   it("publishes sitemap and robots entries for public local and B2B pages", () => {
@@ -69,6 +69,9 @@ describe("SEO growth readiness", () => {
     expect(restaurantSitemap).toContain("<urlset");
     expect(prerender).toContain('fileName: "sitemap-restaurants.xml"');
     expect(prerender).toContain("MIN_LOCAL_RESTAURANTS");
+    expect(prerender).toContain("MIN_SPECIALIZED_LOCAL_RESTAURANTS");
+    expect(prerender).toContain("extractRestaurantCuisineSlugs");
+    expect(prerender).toContain("LOCAL_INTENTS");
     expect(prerender).toContain("inventoryCount");
     expect([pagesSitemap, restaurantSitemap, actualitesSitemap].join("\n")).not.toMatch(
       /https:\/\/www\.thetok\.ch\/(?:admin|marketing|dashboard|courier|auth|panier|profil|memoire-tok|notifications|commandes|reservations|points-cadeau)(?:\/|<)/,
@@ -142,6 +145,9 @@ describe("SEO growth readiness", () => {
     expect(page).toContain('"@type": "Restaurant"');
     expect(page).toContain('"@type": "ItemList"');
     expect(page).toContain("DISTRICT_LABELS");
+    expect(page).toContain("INTENT_LABELS");
+    expect(page).toContain("CATEGORY_ALIASES");
+    expect(page).toContain("MIN_SPECIALIZED_LOCAL_RESTAURANTS");
     expect(page).toContain("Restaurants à");
     expect(page).toContain("Découvrez");
     expect(page).toContain("search_restaurants_catalog");
