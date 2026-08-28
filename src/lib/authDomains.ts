@@ -2,6 +2,7 @@ export const TOK_CANONICAL_AUTH_HOST = "www.thetok.ch";
 export const TOK_CANONICAL_AUTH_ORIGIN = `https://${TOK_CANONICAL_AUTH_HOST}`;
 export const TOK_CANONICAL_AUTH_PATH = "/auth";
 export const TOK_WORKSPACE_CHOOSER_PATH = "/espaces";
+export const TOK_NATIVE_AUTH_CALLBACK_HREF = "tok://auth/callback";
 
 const LOCAL_APP_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
@@ -27,6 +28,15 @@ export function getCanonicalAuthHref(hostname?: string) {
 export function getCanonicalAuthCallbackHref(hostname?: string) {
   const authHref = getCanonicalAuthHref(hostname);
   return `${authHref}/callback`;
+}
+
+export function getOAuthAuthCallbackHref(
+  native: boolean,
+  hostname?: string,
+) {
+  return native
+    ? TOK_NATIVE_AUTH_CALLBACK_HREF
+    : getCanonicalAuthCallbackHref(hostname);
 }
 
 export function getWorkspaceChooserHref(hostname?: string) {
