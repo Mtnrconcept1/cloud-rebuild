@@ -82,12 +82,21 @@ jobs:
           path.write_text(source.replace(old, new, 1), encoding="utf-8")
           PY
           python3 .github/seo-entity-patch.py
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("docs/skills/TOK_SEO_SKILL.md")
+          path.write_text(path.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
+          PY
 
       - name: Check patch formatting
         run: git diff --check
 
       - name: Run targeted SEO tests
         run: pnpm exec vitest run src/test/restaurant-entity-seo.test.ts src/test/seo-growth.test.ts src/test/seo-indexation-hardening.test.ts --reporter=verbose
+
+      - name: Run complete test suite
+        run: pnpm test
 
       - name: Lint all sources
         run: pnpm run lint
