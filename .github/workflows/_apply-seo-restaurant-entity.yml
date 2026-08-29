@@ -73,7 +73,13 @@ jobs:
         run: git diff --check
 
       - name: Run targeted SEO tests
-        run: pnpm exec vitest run src/test/restaurant-entity-seo.test.ts src/test/seo-growth.test.ts src/test/seo-indexation-hardening.test.ts --reporter=verbose
+        run: >-
+          pnpm exec vitest run
+          src/test/restaurant-entity-seo.test.ts
+          src/test/seo-growth.test.ts
+          src/test/seo-indexation-hardening.test.ts
+          src/test/responsive-seo-regressions.test.ts
+          --reporter=verbose
 
       - name: Run complete test suite
         run: pnpm test
@@ -104,7 +110,8 @@ jobs:
             src/lib/seo/restaurantEntity.d.mts \
             src/pages/RestaurantDetail.tsx \
             src/test/restaurant-entity-seo.test.ts \
-            src/test/seo-growth.test.ts
+            src/test/seo-growth.test.ts \
+            src/test/responsive-seo-regressions.test.ts
           git rm \
             .github/seo-entity-patch.py \
             .github/prepare-seo-entity-patch.py \
