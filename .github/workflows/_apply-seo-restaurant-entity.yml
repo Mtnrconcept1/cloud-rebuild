@@ -1,0 +1,106 @@
+name: Apply restaurant entity SEO patch
+
+on:
+  push:
+    branches:
+      - feat/seo-restaurant-entity-trust
+    paths:
+      - .github/seo-entity-patch.py
+      - .github/workflows/_apply-seo-restaurant-entity.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-seo-restaurant-entity
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+  SEO_STRICT_DYNAMIC: "0"
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout isolated SEO branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/seo-restaurant-entity-trust
+          fetch-depth: 0
+
+      - name: Verify isolated branch and repository state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --prune origin main
+          git status --short --branch
+          test "$(git branch --show-current)" = "feat/seo-restaurant-entity-trust"
+          git merge-base --is-ancestor origin/main HEAD
+          test -f AGENTS.md
+          sed -n '1,260p' AGENTS.md
+
+          unexpected="$(git diff --name-only origin/main...HEAD | grep -vE '^\.github/(seo-entity-patch\.py|workflows/_apply-seo-restaurant-entity\.yml)$' || true)"
+          if [[ -n "$unexpected" ]]; then
+            echo "::error::Unexpected pre-existing changes on isolated branch:"
+            printf '%s\n' "$unexpected"
+            exit 1
+          fi
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply reviewed SEO patch
+        run: python3 .github/seo-entity-patch.py
+
+      - name: Check patch formatting
+        run: git diff --check
+
+      - name: Run targeted SEO tests
+        run: pnpm exec vitest run src/test/restaurant-entity-seo.test.ts src/test/seo-growth.test.ts src/test/seo-indexation-hardening.test.ts --reporter=verbose
+
+      - name: Lint all sources
+        run: pnpm run lint
+
+      - name: Typecheck application
+        run: pnpm run typecheck
+
+      - name: Build production application
+        run: pnpm run build:prod
+
+      - name: Commit validated implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            docs/skills/TOK_SEO_SKILL.md \
+            scripts/prerender-seo.mjs \
+            src/lib/seo/restaurantEntity.mjs \
+            src/lib/seo/restaurantEntity.d.mts \
+            src/pages/RestaurantDetail.tsx \
+            src/test/restaurant-entity-seo.test.ts
+          git rm .github/seo-entity-patch.py .github/workflows/_apply-seo-restaurant-entity.yml
+
+          git diff --cached --check
+          git diff --cached --stat
+          git commit -m "feat(seo): strengthen restaurant entity pages"
+          git push origin HEAD:feat/seo-restaurant-entity-trust
