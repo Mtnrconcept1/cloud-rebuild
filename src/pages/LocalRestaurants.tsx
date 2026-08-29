@@ -179,7 +179,8 @@ function toCardProps(restaurant: any) {
   };
 }
 
-function getPageName(city: string, category: string, district: string, intent: string) {
+function getPageName(city: string, category: string, district: string, intent: string, venueName?: string) {
+  if (venueName) return `Où manger près de ${venueName}, ${city}`;
   if (intent === "reservation") return `Réservation de restaurant à ${city}`;
   if (intent === "pas-cher") return `Restaurants pas chers à ${city}`;
   if (intent === "meilleurs") return `Meilleurs restaurants à ${city}`;
@@ -189,7 +190,8 @@ function getPageName(city: string, category: string, district: string, intent: s
   return `Restaurants à ${city}`;
 }
 
-function getPageTitle(city: string, category: string, district: string, intent: string) {
+function getPageTitle(city: string, category: string, district: string, intent: string, venueName?: string) {
+  if (venueName) return `Où manger près de ${venueName}, ${city} | TOK`;
   if (intent === "reservation") return `Réservation restaurant à ${city} | TOK`;
   if (intent === "pas-cher") return `Restaurant pas cher à ${city} | TOK`;
   if (intent === "meilleurs") return `Meilleurs restaurants à ${city} | TOK`;
@@ -199,7 +201,10 @@ function getPageTitle(city: string, category: string, district: string, intent: 
   return `Restaurant à ${city} : réserver une table | TOK`;
 }
 
-function getPageDescription(city: string, category: string, district: string, intent: string) {
+function getPageDescription(city: string, category: string, district: string, intent: string, venueName?: string) {
+  if (venueName) {
+    return `Réservez un restaurant ou trouvez une table à proximité de ${venueName} à ${city} avant ou après votre sortie ou événement sur TOK.`;
+  }
   if (intent === "reservation") {
     return `Réservez une table dans les restaurants de ${city} qui confirment le service de réservation sur TOK.`;
   }
@@ -349,14 +354,36 @@ function buildLocalSeoLinks(citySlug: string | undefined, city: string, category
   });
 }
 
+function parseVenueSlug(venueSlug: string) {
+  const normalized = venueSlug.trim().toLowerCase();
+  for (const [key, label] of Object.entries(CITY_LABELS)) {
+    const citySlug = slugifyRestaurantSegment(key);
+    if (normalized.endsWith(`-${citySlug}`)) {
+      const venuePart = normalized.slice(0, -(citySlug.length + 1));
+      const venueName = venuePart
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+      return { venueName, city: label, citySlug };
+    }
+  }
+  const venueName = normalized
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+  return { venueName, city: "Genève", citySlug: "geneve" };
+}
+
 export default function LocalRestaurants() {
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
-  const params = useParams<{ city?: string; category?: string; restaurantSlug?: string }>();
-  const normalizedCitySegment = String(params.city || "").trim().toLowerCase();
+  const params = useParams<{ city?: string; category?: string; restaurantSlug?: string; venueSlug?: string }>();
+  const venueInfo = params.venueSlug ? parseVenueSlug(params.venueSlug) : null;
+  const venueName = venueInfo?.venueName;
+  const normalizedCitySegment = String(params.city || venueInfo?.citySlug || "").trim().toLowerCase();
   const knownCitySegment = Boolean(CITY_LABELS[normalizedCitySegment]);
-  const city = slugToLabel(params.city, CITY_LABELS);
+  const city = venueInfo?.city || slugToLabel(params.city, CITY_LABELS);
   const routeSegment = String(params.category || "").trim().toLowerCase();
   const canonicalRouteSegment = CATEGORY_ALIASES[routeSegment] || routeSegment;
   const explicitRestaurantSlug = slugifyRestaurantSegment(params.restaurantSlug);
@@ -426,11 +453,13 @@ export default function LocalRestaurants() {
   const categoryAliasRedirect = Boolean(
     knownCategorySegment && routeSegment && canonicalRouteSegment !== routeSegment
   );
-  const path = isExplicitRestaurantRoute
-    ? `/restaurants/${params.city}/r/${params.restaurantSlug}`
-    : params.category
-      ? `/restaurants/${params.city}/${canonicalRouteSegment}`
-      : `/restaurants/${params.city}`;
+  const path = params.venueSlug
+    ? `/restaurants-pres/${params.venueSlug}`
+    : isExplicitRestaurantRoute
+      ? `/restaurants/${params.city}/r/${params.restaurantSlug}`
+      : params.category
+        ? `/restaurants/${params.city}/${canonicalRouteSegment}`
+        : `/restaurants/${params.city}`;
 
   const {
     data: restaurants = [],
@@ -438,7 +467,7 @@ export default function LocalRestaurants() {
     isError,
     isSuccess: isListingSuccess,
   } = useQuery({
-    queryKey: ["local-restaurants", city, category, district, intent, demoSessionKey],
+    queryKey: ["local-restaurants", city, category, district, intent, venueName, demoSessionKey],
     enabled: Boolean(city)
       && !resolvedRestaurantId
       && !isExplicitRestaurantRoute
@@ -448,7 +477,7 @@ export default function LocalRestaurants() {
         return filterRestaurantsByIntent(demoRestaurants, intent);
       }
       const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
-        p_query: district || null,
+        p_query: venueName || district || null,
         p_city: city,
         p_cuisine: category || null,
         p_price_range: null,
@@ -465,9 +494,9 @@ export default function LocalRestaurants() {
     },
   });
 
-  const pageName = getPageName(city, category, district, intent);
-  const title = getPageTitle(city, category, district, intent);
-  const description = getPageDescription(city, category, district, intent);
+  const pageName = getPageName(city, category, district, intent, venueName);
+  const title = getPageTitle(city, category, district, intent, venueName);
+  const description = getPageDescription(city, category, district, intent, venueName);
   const jsonLd = useMemo(
     () => buildRestaurantJsonLd(restaurants, city, category, district, intent, path),
     [category, city, district, intent, path, restaurants],

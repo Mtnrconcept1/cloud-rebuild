@@ -559,6 +559,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/oauth/consent" element={<OAuthConsent />} />
           <Route path="/recherche" element={<ClientSurfaceRoute><Recherche /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
+          <Route path="/restaurants-pres/:venueSlug" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city/r/:restaurantSlug" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city/:category" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
           <Route path="/r/:slug/reserver" element={<ClientSurfaceRoute><RestaurantBookingRedirect /></ClientSurfaceRoute>} />
@@ -673,6 +674,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/packs-restaurateur" element={<PacksRestaurateur />} />
           <Route path="/conditions-restaurateurs" element={<ConditionsRestaurateurs />} />
           <Route path="/restaurateurs/geneve" element={<RestaurateursGeneve />} />
+          <Route path="/restaurateurs/:city" element={<RestaurateursGeneve />} />
           <Route path="/restaurateurs/google-business" element={<RestaurateursGoogleBusiness />} />
           <Route path="/restaurateurs/alternative-commission-couvert" element={<AlternativeCommissionCouvert />} />
           <Route path="/aide" element={<Aide />} />
