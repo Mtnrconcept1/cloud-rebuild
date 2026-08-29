@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Search } from "lucide-react";
 
@@ -16,6 +16,7 @@ import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCa
 
 const supabase = getSupabase();
 const RestaurantDetail = lazy(() => import("./RestaurantDetail"));
+const STOPPIN_VENUE_RADIUS_KM = 5;
 
 const CITY_LABELS: Record<string, string> = {
   geneve: "Genève",
@@ -146,6 +147,13 @@ function slugToLabel(slug: string | undefined, labels: Record<string, string>) {
   const normalized = String(slug || "").trim().toLowerCase();
   if (!normalized) return "";
   return labels[normalized] || normalized.replace(/-/g, " ");
+}
+
+function parseCoordinate(value: string | null, min: number, max: number) {
+  const normalized = String(value || "").trim();
+  if (!normalized) return null;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) && parsed >= min && parsed <= max ? parsed : null;
 }
 
 function toAbsoluteSeoImage(value: unknown) {
@@ -379,8 +387,14 @@ export default function LocalRestaurants() {
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
   const params = useParams<{ city?: string; category?: string; restaurantSlug?: string; venueSlug?: string }>();
+  const [searchParams] = useSearchParams();
   const venueInfo = params.venueSlug ? parseVenueSlug(params.venueSlug) : null;
   const venueName = venueInfo?.venueName;
+  const venueLatitude = parseCoordinate(searchParams.get("lat"), -90, 90);
+  const venueLongitude = parseCoordinate(searchParams.get("lng"), -180, 180);
+  const hasVenueCoordinates = Boolean(
+    venueName && venueLatitude !== null && venueLongitude !== null,
+  );
   const normalizedCitySegment = String(params.city || venueInfo?.citySlug || "").trim().toLowerCase();
   const knownCitySegment = Boolean(CITY_LABELS[normalizedCitySegment]);
   const city = venueInfo?.city || slugToLabel(params.city, CITY_LABELS);
@@ -467,7 +481,17 @@ export default function LocalRestaurants() {
     isError,
     isSuccess: isListingSuccess,
   } = useQuery({
-    queryKey: ["local-restaurants", city, category, district, intent, venueName, demoSessionKey],
+    queryKey: [
+      "local-restaurants",
+      city,
+      category,
+      district,
+      intent,
+      venueName,
+      venueLatitude,
+      venueLongitude,
+      demoSessionKey,
+    ],
     enabled: Boolean(city)
       && !resolvedRestaurantId
       && !isExplicitRestaurantRoute
@@ -476,8 +500,27 @@ export default function LocalRestaurants() {
       if (isCommercialDemoClient) {
         return filterRestaurantsByIntent(demoRestaurants, intent);
       }
+
+      if (hasVenueCoordinates && venueLatitude !== null && venueLongitude !== null) {
+        const { data, error } = await (supabase.rpc as any)("search_restaurants_nearby", {
+          p_lat: venueLatitude,
+          p_lng: venueLongitude,
+          p_radius_km: STOPPIN_VENUE_RADIUS_KM,
+          p_cuisine: category || null,
+          p_min_rating: 0,
+          p_max_price_range: 4,
+          p_search_text: null,
+          p_delivery_only: false,
+          p_limit: 60,
+          p_offset: 0,
+        });
+
+        if (error) throw error;
+        return filterRestaurantsByIntent(data || [], intent);
+      }
+
       const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
-        p_query: venueName || district || null,
+        p_query: district || null,
         p_city: city,
         p_cuisine: category || null,
         p_price_range: null,
