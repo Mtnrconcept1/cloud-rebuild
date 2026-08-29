@@ -6,6 +6,7 @@ on:
       - feat/seo-restaurant-entity-trust
     paths:
       - .github/seo-entity-patch.py
+      - .github/prepare-seo-entity-patch.py
       - .github/workflows/_apply-seo-restaurant-entity.yml
 
 permissions:
@@ -26,7 +27,6 @@ env:
 
 jobs:
   apply:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
 
     steps:
@@ -47,7 +47,7 @@ jobs:
           test -f AGENTS.md
           sed -n '1,260p' AGENTS.md
 
-          unexpected="$(git diff --name-only origin/main...HEAD | grep -vE '^\.github/(seo-entity-patch\.py|workflows/_apply-seo-restaurant-entity\.yml)$' || true)"
+          unexpected="$(git diff --name-only origin/main...HEAD | grep -vE '^\.github/(seo-entity-patch\.py|prepare-seo-entity-patch\.py|workflows/_apply-seo-restaurant-entity\.yml)$' || true)"
           if [[ -n "$unexpected" ]]; then
             echo "::error::Unexpected pre-existing changes on isolated branch:"
             printf '%s\n' "$unexpected"
@@ -67,54 +67,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Apply reviewed SEO patch
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path(".github/seo-entity-patch.py")
-          source = path.read_text(encoding="utf-8")
-          old = "updated, count = re.subn(pattern, replacement, text, count=1, flags=re.DOTALL)"
-          new = "updated, count = re.subn(pattern, lambda _match: replacement, text, count=1, flags=re.DOTALL)"
-          if source.count(old) != 1:
-              raise SystemExit("Unexpected patch-runner substitution helper")
-          path.write_text(source.replace(old, new, 1), encoding="utf-8")
-          PY
-          python3 .github/seo-entity-patch.py
-          python3 - <<'PY'
-          from pathlib import Path
-
-          docs_path = Path("docs/skills/TOK_SEO_SKILL.md")
-          docs_path.write_text(docs_path.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
-
-          test_path = Path("src/test/seo-growth.test.ts")
-          source = test_path.read_text(encoding="utf-8")
-          old_declaration = '    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");\n    const seo = read("src/hooks/useSeoMeta.ts");'
-          new_declaration = '    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");\n    const restaurantEntity = read("src/lib/seo/restaurantEntity.mjs");\n    const seo = read("src/hooks/useSeoMeta.ts");'
-          old_assertions = '''    expect(restaurantDetail).toContain("useSeoMeta");
-    expect(restaurantDetail).toContain("buildRestaurantDetailJsonLd");
-    expect(restaurantDetail).toContain('\"@type\": \"Restaurant\"');
-    expect(restaurantDetail).toContain("const restaurantPath = canonicalPath || `/restaurant/${restaurantId}`");
-    expect(restaurantDetail).toContain("buildCanonicalUrl(restaurantPath)");'''
-          new_assertions = '''    expect(restaurantDetail).toContain("useSeoMeta");
-    expect(restaurantDetail).toContain("buildRestaurantSeoModel");
-    expect(restaurantDetail).toContain("jsonLd: restaurantSeoModel?.jsonLd || null");
-    expect(restaurantDetail).toContain('aria-label="Fil d\\'Ariane"');
-    expect(restaurantEntity).toContain("export function buildRestaurantSeoModel");
-    expect(restaurantEntity).toContain('\"@type\": \"Restaurant\"');
-    expect(restaurantEntity).toContain('\"@type\": \"WebPage\"');
-    expect(restaurantEntity).toContain('\"@type\": \"BreadcrumbList\"');'''
-
-          if source.count(old_declaration) != 1:
-              raise SystemExit("Unexpected SEO growth test declaration block")
-          if source.count(old_assertions) != 1:
-              raise SystemExit("Unexpected SEO growth test assertion block")
-
-          source = source.replace(old_declaration, new_declaration, 1)
-          source = source.replace(old_assertions, new_assertions, 1)
-          test_path.write_text(source, encoding="utf-8")
-          PY
+        run: python3 .github/prepare-seo-entity-patch.py
 
       - name: Check patch formatting
         run: git diff --check
@@ -152,7 +105,10 @@ jobs:
             src/pages/RestaurantDetail.tsx \
             src/test/restaurant-entity-seo.test.ts \
             src/test/seo-growth.test.ts
-          git rm .github/seo-entity-patch.py .github/workflows/_apply-seo-restaurant-entity.yml
+          git rm \
+            .github/seo-entity-patch.py \
+            .github/prepare-seo-entity-patch.py \
+            .github/workflows/_apply-seo-restaurant-entity.yml
 
           git diff --cached --check
           git diff --cached --stat
