@@ -40,3 +40,13 @@ Rendre TOK découvrable sur Google sans exposer de pages privées, sans noindex 
 - données structurées
 - titres et descriptions uniques
 - absence d’indexation des espaces privés
+
+## Fiches restaurant : entité, preuve et fraîcheur
+
+- Générer le titre, la description et le JSON-LD depuis les mêmes données que l'interface.
+- Relier `WebPage`, `Restaurant`, `BreadcrumbList` et `Menu` avec des `@id` stables.
+- N'émettre `aggregateRating`, `GeoCoordinates`, horaires et actions de réservation que lorsque les données sources les justifient.
+- Rendre le fil d'Ariane avec de vrais liens HTML crawlables.
+- Afficher une zone visible « Provenance et fraîcheur des informations » avec la date de mise à jour.
+- Ne jamais inventer d'horaires, de sous-notes d'avis, de services, de prix ou de disponibilité.
+- Garder les démonstrations commerciales et les fiches introuvables en `noindex`.
