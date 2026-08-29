@@ -4,6 +4,8 @@ import path from "node:path";
 
 import { createClient } from "@supabase/supabase-js";
 
+import { buildRestaurantSeoModel } from "../src/lib/seo/restaurantEntity.mjs";
+
 const CANONICAL_ORIGIN = "https://www.thetok.ch";
 const DEFAULT_IMAGE = `${CANONICAL_ORIGIN}/fond3.png`;
 const ROOT = process.cwd();
@@ -1260,13 +1262,6 @@ function toAbsoluteSeoImage(value) {
   }
 }
 
-function buildPriceRange(value) {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue) || numericValue <= 0) return undefined;
-  const level = Math.min(Math.max(Math.round(numericValue), 1), 4);
-  return Array.from({ length: level }, () => "CHF").join(" ");
-}
-
 const STRICT_DYNAMIC_SEO = process.env.SEO_STRICT_DYNAMIC === "1"
   || (process.env.SEO_STRICT_DYNAMIC !== "0" && process.env.VERCEL_ENV === "production");
 
@@ -1385,7 +1380,7 @@ async function collectDynamicRestaurantPages() {
       const { data: batch, error, count } = await supabase
         .from("restaurants")
         .select(
-          "id, name, slug, city, cuisine_type, image_url, rating, review_count, updated_at, description, address, phone, price_range, opening_hours, supports_reservation, delivery_available, supports_pickup",
+          "id, name, slug, city, cuisine_type, image_url, rating, review_count, updated_at, description, address, phone, price_range, opening_hours, supports_reservation, delivery_available, supports_pickup, supports_dinein, latitude, longitude, amenities",
           offset === 0 ? { count: "exact" } : undefined,
         )
         .eq("is_active", true)
@@ -1455,69 +1450,69 @@ async function collectDynamicRestaurantPages() {
         }, restaurant);
       }
 
-      const restaurantDescription = restaurant.description ||
-        `${restaurant.name}, restaurant ${cuisine || "local"} à ${city}. Consultez les services disponibles pour réserver ou commander sur TOK.`;
+      const restaurantSeo = buildRestaurantSeoModel({
+        restaurant,
+        canonicalPath: restaurantPath,
+        heroImage: restaurant.image_url || DEFAULT_IMAGE,
+        amenities: Array.isArray(restaurant.amenities) ? restaurant.amenities : [],
+        averageRating: restaurant.rating,
+        reviewCount: restaurant.review_count,
+      });
+      if (!restaurantSeo) {
+        throw new Error(`Fiche restaurant SEO invalide pour ${restaurant.id}`);
+      }
+
+      const sourceDescription = String(restaurant.description || "").replace(/\s+/g, " ").trim();
+      const openingHoursItems = restaurantSeo.openingHoursRows.map(
+        (entry) => `${entry.label} : ${entry.hours}`,
+      );
+      const serviceItems = restaurantSeo.serviceLabels.length > 0
+        ? [`Services renseignés : ${restaurantSeo.serviceLabels.join(", ")}`]
+        : [];
 
       return {
         path: restaurantPath,
-        title: `${restaurant.name} à ${city} : menu et réservation | TOK`,
-        description: restaurantDescription,
+        title: restaurantSeo.title,
+        description: restaurantSeo.description,
         priority: "0.7",
         changefreq: "weekly",
         lastmod: restaurant.updated_at,
-        image: toAbsoluteSeoImage(restaurant.image_url) || DEFAULT_IMAGE,
+        image: restaurantSeo.image || DEFAULT_IMAGE,
         staticContent: {
           heading: `${restaurant.name}, restaurant à ${city}`,
-          paragraphs: [restaurantDescription],
+          paragraphs: [
+            sourceDescription || restaurantSeo.description,
+            restaurantSeo.lastUpdatedLabel
+              ? `Informations issues de la fiche TOK. Dernière mise à jour le ${restaurantSeo.lastUpdatedLabel}.`
+              : "Informations issues de la fiche TOK. La date de dernière mise à jour n'est pas renseignée.",
+          ],
           sections: [
             {
               heading: "Informations pratiques",
-              items: [cuisine, restaurant.address, restaurant.phone].filter(Boolean),
+              items: [cuisine, restaurant.address, restaurant.phone, ...serviceItems].filter(Boolean),
             },
-          ],
+            openingHoursItems.length > 0
+              ? {
+                heading: "Horaires renseignés",
+                items: openingHoursItems,
+              }
+              : null,
+            {
+              heading: "Provenance et fraîcheur",
+              items: [
+                "Les horaires et services ne sont publiés que lorsqu'ils sont renseignés.",
+                restaurantSeo.lastUpdatedLabel
+                  ? `Fiche actualisée le ${restaurantSeo.lastUpdatedLabel}`
+                  : "Date d'actualisation non renseignée",
+              ],
+            },
+          ].filter(Boolean),
           links: [
             { href: `/restaurants/${citySlug}`, label: `Restaurants à ${city}` },
             { href: "/recherche", label: "Rechercher un restaurant" },
           ],
         },
-        jsonLd: [
-          {
-            "@context": "https://schema.org",
-            "@type": "Restaurant",
-            "@id": canonicalUrl(restaurantPath),
-            name: restaurant.name,
-            description: restaurantDescription,
-            image: toAbsoluteSeoImage(restaurant.image_url),
-            servesCuisine: cuisine || undefined,
-            telephone: restaurant.phone || undefined,
-            priceRange: buildPriceRange(restaurant.price_range),
-            address: {
-              "@type": "PostalAddress",
-              streetAddress: restaurant.address || undefined,
-              addressLocality: city,
-              addressCountry: "CH",
-            },
-            aggregateRating: restaurant.rating && Number(restaurant.review_count) > 0
-              ? {
-                "@type": "AggregateRating",
-                ratingValue: Number(restaurant.rating),
-                reviewCount: Number(restaurant.review_count),
-                bestRating: 10,
-                worstRating: 1,
-              }
-              : undefined,
-            url: canonicalUrl(restaurantPath),
-          },
-          {
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Accueil", item: `${CANONICAL_ORIGIN}/` },
-              { "@type": "ListItem", position: 2, name: `Restaurants à ${city}`, item: canonicalUrl(`/restaurants/${citySlug}`) },
-              { "@type": "ListItem", position: 3, name: restaurant.name, item: canonicalUrl(restaurantPath) },
-            ],
-          },
-        ],
+        jsonLd: [restaurantSeo.jsonLd],
       };
     });
 

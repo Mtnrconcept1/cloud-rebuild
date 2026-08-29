@@ -135,6 +135,7 @@ describe("SEO growth readiness", () => {
     const page = read("src/pages/LocalRestaurants.tsx");
     const restaurantCard = read("src/components/RestaurantCard.tsx");
     const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
+    const restaurantEntity = read("src/lib/seo/restaurantEntity.mjs");
     const seo = read("src/hooks/useSeoMeta.ts");
 
     expect(app).toContain('/restaurants/:city');
@@ -161,10 +162,14 @@ describe("SEO growth readiness", () => {
     expect(restaurantCard).toContain('data-card-action="restaurant-link"');
     expect(restaurantCard).not.toContain('`/restaurant/${id}?reserve=true');
     expect(restaurantDetail).toContain("useSeoMeta");
-    expect(restaurantDetail).toContain("buildRestaurantDetailJsonLd");
-    expect(restaurantDetail).toContain('"@type": "Restaurant"');
-    expect(restaurantDetail).toContain("const restaurantPath = canonicalPath || `/restaurant/${restaurantId}`");
-    expect(restaurantDetail).toContain("buildCanonicalUrl(restaurantPath)");
+    expect(restaurantDetail).toContain("buildRestaurantSeoModel");
+    expect(restaurantDetail).toContain("jsonLd: restaurantSeoModel?.jsonLd || null");
+    expect(restaurantDetail).toContain("<nav aria-label=");
+    expect(restaurantEntity).toContain("export function buildRestaurantSeoModel");
+    expect(restaurantEntity).toContain('"@type": "Restaurant"');
+    expect(restaurantEntity).toContain('"@type": "WebPage"');
+    expect(restaurantEntity).toContain('"@type": "BreadcrumbList"');
+    expect(restaurantEntity).toContain('"@type": "Menu"');
     expect(seo).toContain("link[rel='canonical']");
     expect(seo).toContain("property='og:url'");
     expect(seo).toContain("https://www.thetok.ch");

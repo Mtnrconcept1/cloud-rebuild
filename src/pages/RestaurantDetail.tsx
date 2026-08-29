@@ -1,4 +1,4 @@
-import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { Link, useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -22,8 +22,9 @@ import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import RestaurantDailyDishCard from "@/components/restaurant/RestaurantDailyDishCard";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
-import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { buildRestaurantSeoPath } from "@/lib/restaurantSlugs";
+import { buildRestaurantSeoModel } from "@/lib/seo/restaurantEntity.mjs";
 import {
   isAntiWasteOfferPubliclyVisible,
   isFlashSalePubliclyVisible,
@@ -244,55 +245,6 @@ function ReservationDeeplinkLoading() {
   );
 }
 
-function buildRestaurantDetailJsonLd({
-  restaurant,
-  restaurantId,
-  canonicalPath,
-  heroImage,
-  averageRating,
-  reviewCount,
-}: {
-  restaurant: any | null | undefined;
-  restaurantId: string | undefined;
-  canonicalPath?: string;
-  heroImage: string;
-  averageRating: string;
-  reviewCount: number;
-}) {
-  if (!restaurant || !restaurantId) return null;
-
-  const imageUrl = heroImage.startsWith("http") ? heroImage : buildCanonicalUrl(heroImage);
-  const priceRange = "$".repeat(Math.max(1, Math.min(Number(restaurant.price_range || 2), 4)));
-  const restaurantPath = canonicalPath || `/restaurant/${restaurantId}`;
-
-  return {
-    "@context": "https://schema.org",
-    "@type": "Restaurant",
-    "@id": buildCanonicalUrl(restaurantPath),
-    name: restaurant.name,
-    description: restaurant.description || `Restaurant ${restaurant.name} sur TOK`,
-    image: imageUrl,
-    servesCuisine: restaurant.cuisine_type || undefined,
-    priceRange,
-    telephone: restaurant.phone || undefined,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: restaurant.address || undefined,
-      addressLocality: restaurant.city || undefined,
-      addressCountry: "CH",
-    },
-    aggregateRating: reviewCount > 0
-      ? {
-        "@type": "AggregateRating",
-        ratingValue: Number(averageRating),
-        reviewCount,
-        bestRating: 10,
-        worstRating: 1,
-      }
-      : undefined,
-    url: buildCanonicalUrl(restaurantPath),
-  };
-}
 
 type RestaurantDetailProps = {
   resolvedRestaurantId?: string;
@@ -721,35 +673,49 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
       ? buildRestaurantSeoPath(restaurant)
       : `/restaurant/${restaurantId || ""}`);
   const restaurantNotFound = isRestaurantFetched && !restaurant;
-  const seoTitle = restaurant
-    ? `${restaurant.name} | Restaurant TOK ${restaurant.city || "Suisse romande"}`
-    : restaurantNotFound ? "Restaurant introuvable | TOK" : "Restaurant TOK | TheTok";
-  const seoDescription = restaurant
-    ? `${restaurant.name} sur TOK: ${restaurant.cuisine_type || "restaurant"} a ${restaurant.city || "Geneve"}, commande, reservation et offres locales.`
-    : restaurantNotFound
-      ? "Ce restaurant n'est pas disponible sur TOK."
-      : "Fiche restaurant TOK avec commande, reservation et offres locales.";
-  const restaurantJsonLd = useMemo(
-    () => buildRestaurantDetailJsonLd({
+  const restaurantSeoModel = useMemo(
+    () => buildRestaurantSeoModel({
       restaurant,
-      restaurantId,
       canonicalPath: restaurantCanonicalPath,
       heroImage,
-      averageRating: avgRating,
+      images: mediaPhotos || [],
+      menuItems: menuItems || [],
+      reviews: reviews || [],
+      amenities: amenityOptions,
+      averageRating: avgRating10,
       reviewCount,
     }),
-    [avgRating, heroImage, restaurantCanonicalPath, restaurantId, restaurant, reviewCount],
+    [
+      amenityOptions,
+      avgRating10,
+      heroImage,
+      mediaPhotos,
+      menuItems,
+      restaurant,
+      restaurantCanonicalPath,
+      reviewCount,
+      reviews,
+    ],
   );
+  const seoTitle = restaurantSeoModel?.title
+    || (restaurantNotFound ? "Restaurant introuvable | TOK" : "Restaurant TOK | TheTok");
+  const seoDescription = restaurantSeoModel?.description
+    || (restaurantNotFound
+      ? "Ce restaurant n'est pas disponible sur TOK."
+      : "Fiche restaurant TOK avec les informations et services réellement disponibles.");
+  const restaurantOpeningHoursRows = restaurantSeoModel?.openingHoursRows || [];
+  const restaurantLastUpdatedLabel = restaurantSeoModel?.lastUpdatedLabel;
+  const restaurantCityPath = restaurantSeoModel?.cityPath || "/recherche";
 
   useSeoMeta({
     title: seoTitle,
     description: seoDescription,
     path: restaurantCanonicalPath,
-    image: heroImage,
-    robots: restaurantNotFound
+    image: restaurantSeoModel?.image || heroImage,
+    robots: restaurantNotFound || isCommercialDemoClient
       ? "noindex,nofollow,noarchive"
       : "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
-    jsonLd: restaurantJsonLd,
+    jsonLd: restaurantSeoModel?.jsonLd || null,
   });
 
   useEffect(() => {
@@ -982,12 +948,53 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
         </div>
       </div>
       <div className="container py-6 pb-24 md:py-8 lg:pb-8">
+        <nav aria-label="Fil d'Ariane" className="mb-5 overflow-x-auto text-sm text-muted-foreground">
+          <ol className="flex min-w-max items-center gap-1.5">
+            <li><Link to="/" className="transition-colors hover:text-primary">Accueil</Link></li>
+            <li aria-hidden="true"><ChevronRight className="h-3.5 w-3.5" /></li>
+            <li>
+              <Link to={restaurantCityPath} className="transition-colors hover:text-primary">
+                {restaurant.city ? `Restaurants à ${restaurant.city}` : "Restaurants"}
+              </Link>
+            </li>
+            <li aria-hidden="true"><ChevronRight className="h-3.5 w-3.5" /></li>
+            <li className="max-w-[18rem] truncate font-medium text-foreground" aria-current="page">
+              {restaurant.name}
+            </li>
+          </ol>
+        </nav>
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 min-w-0 space-y-6">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground p-4 rounded-xl bg-card border">
               <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" />{restaurant.address}, {restaurant.city}</span>
               {restaurant.phone && <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary" />{restaurant.phone}</span>}
             </div>
+            <section
+              aria-labelledby="restaurant-data-freshness"
+              className="rounded-xl border bg-card/70 p-4"
+            >
+              <div className="flex items-start gap-3">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <div className="min-w-0 space-y-2">
+                  <h2 id="restaurant-data-freshness" className="font-semibold">
+                    Provenance et fraîcheur des informations
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Informations issues de la fiche TOK et des contenus publiés pour cet établissement.
+                    {" "}
+                    {restaurantLastUpdatedLabel
+                      ? `Dernière mise à jour le ${restaurantLastUpdatedLabel}.`
+                      : "La date de dernière mise à jour n'est pas renseignée."}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {menuItems?.length || 0} plat{(menuItems?.length || 0) > 1 ? "s" : ""} ·{" "}
+                    {galleryPhotos.length} photo{galleryPhotos.length > 1 ? "s" : ""} ·{" "}
+                    {reviewCount} avis publié{reviewCount > 1 ? "s" : ""}.
+                    Les horaires et services sont affichés uniquement lorsqu'ils sont renseignés.
+                  </p>
+                </div>
+              </div>
+            </section>
             <div className="rounded-2xl border bg-card/70 p-4 md:p-5">
               <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                 <div>
@@ -1104,22 +1111,19 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                 {restaurant.description && (
                   <div className="space-y-3"><h2 className="font-display text-xl font-bold">L'histoire du restaurant</h2><p className="text-muted-foreground leading-relaxed">{restaurant.description}</p></div>
                 )}
-                <div className="space-y-3"><h2 className="font-display text-xl font-bold">Informations pratiques</h2><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3"><Clock className="h-5 w-5 text-primary mt-0.5" /><div><h3 className="font-semibold mb-2">Horaires d'ouverture</h3>{(() => {
-                  const oh = restaurant.opening_hours as Record<string, any> | null;
-                  const DAY_LABELS: Record<string, string> = { lundi: "Lundi", mardi: "Mardi", mercredi: "Mercredi", jeudi: "Jeudi", vendredi: "Vendredi", samedi: "Samedi", dimanche: "Dimanche" };
-                  if (oh && typeof oh === "object" && !Array.isArray(oh)) {
-                    const days = Object.keys(DAY_LABELS);
-                    const entries = days.filter((d) => oh[d]).map((d) => {
-                      const v = oh[d];
-                      if (typeof v === "string") return { day: DAY_LABELS[d], hours: v };
-                      if (v && typeof v === "object" && v.open && v.close) return { day: DAY_LABELS[d], hours: `${v.open} - ${v.close}` };
-                      if (v === true || v === "true") return { day: DAY_LABELS[d], hours: "Ouvert" };
-                      return null;
-                    }).filter(Boolean) as { day: string; hours: string }[];
-                    if (entries.length > 0) return <div className="space-y-1">{entries.map((e) => <p key={e.day} className="text-sm text-muted-foreground"><span className="font-medium text-foreground">{e.day}</span> : {e.hours}</p>)}</div>;
-                  }
-                  return <p className="text-sm text-muted-foreground">Lundi - Dimanche : 11h30 - 22h30</p>;
-                })()}</div></div><div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3"><Info className="h-5 w-5 text-primary mt-0.5" /><div><h3 className="font-semibold mb-2">Détails</h3><ul className="text-sm text-muted-foreground space-y-1"><li>Cuisine : {restaurant.cuisine_type || "Non spécifié"}</li><li>Fourchette de prix : <PriceRangeIcons range={restaurant.price_range || 2} /></li>{showDelivery && <li>Frais de livraison : {Number(restaurant.delivery_fee || 0).toFixed(2)} CHF</li>}{showDelivery && Number(restaurant.min_order_amount) > 0 && <li>Commande min. : {Number(restaurant.min_order_amount).toFixed(2)} CHF</li>}</ul></div></div></div>{amenityOptions.length > 0 ? (<div className="rounded-xl bg-secondary/30 p-4"><div className="mb-3 flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary" /><h3 className="font-semibold">Commodités et services</h3></div><div className="flex flex-wrap gap-2">{amenityOptions.map((option) => (<Badge key={option.id} variant="secondary" className="rounded-full bg-background px-3 py-1 text-xs font-semibold shadow-sm">{option.label}</Badge>))}</div></div>) : null}</div>
+                <div className="space-y-3"><h2 className="font-display text-xl font-bold">Informations pratiques</h2><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3"><Clock className="h-5 w-5 text-primary mt-0.5" /><div><h3 className="font-semibold mb-2">Horaires d'ouverture</h3>{restaurantOpeningHoursRows.length > 0 ? (
+                  <div className="space-y-1">
+                    {restaurantOpeningHoursRows.map((entry) => (
+                      <p key={entry.key} className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">{entry.label}</span> : {entry.hours}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Horaires non renseignés par l'établissement.
+                  </p>
+                )}</div></div><div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3"><Info className="h-5 w-5 text-primary mt-0.5" /><div><h3 className="font-semibold mb-2">Détails</h3><ul className="text-sm text-muted-foreground space-y-1"><li>Cuisine : {restaurant.cuisine_type || "Non spécifié"}</li><li>Fourchette de prix : <PriceRangeIcons range={restaurant.price_range || 2} /></li>{showDelivery && <li>Frais de livraison : {Number(restaurant.delivery_fee || 0).toFixed(2)} CHF</li>}{showDelivery && Number(restaurant.min_order_amount) > 0 && <li>Commande min. : {Number(restaurant.min_order_amount).toFixed(2)} CHF</li>}</ul></div></div></div>{amenityOptions.length > 0 ? (<div className="rounded-xl bg-secondary/30 p-4"><div className="mb-3 flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary" /><h3 className="font-semibold">Commodités et services</h3></div><div className="flex flex-wrap gap-2">{amenityOptions.map((option) => (<Badge key={option.id} variant="secondary" className="rounded-full bg-background px-3 py-1 text-xs font-semibold shadow-sm">{option.label}</Badge>))}</div></div>) : null}</div>
 
                 {/* Carte du restaurant — échantillon du menu */}
                 {menuItems && menuItems.length > 0 && (
@@ -1168,20 +1172,29 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                         </p>
                         <p className="text-[10px] text-muted-foreground">sur 10 · {reviewCount} avis</p>
                       </div>
-                      <div className="flex-1 space-y-2">
-                        {[
-                          { label: "Ambiance", value: (Number(avgRating) * 0.95).toFixed(1) },
-                          { label: "Plats", value: avgRating },
-                          { label: "Service", value: (Number(avgRating) * 1.02 > 10 ? 10 : Number(avgRating) * 1.02).toFixed(1) },
-                        ].map((cat) => (
-                          <div key={cat.label} className="flex items-center gap-3">
-                            <span className="text-xs font-medium w-16">{cat.label}</span>
-                            <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
-                              <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${(Number(cat.value) / 10) * 100}%` }} />
-                            </div>
-                            <span className="text-xs font-bold w-6 text-right">{cat.value}</span>
+                      <div className="flex-1 space-y-3">
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          Cette note globale est calculée uniquement à partir des avis publiés ci-dessous.
+                          TOK n'affiche aucune sous-note lorsque les clients n'ont pas évalué séparément
+                          l'ambiance, les plats ou le service.
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-medium">Note globale</span>
+                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
+                            <div
+                              className="h-full rounded-full bg-primary"
+                              style={{ width: `${Math.min(Math.max(Number(avgRating), 0), 10) * 10}%` }}
+                            />
                           </div>
-                        ))}
+                          <span className="text-xs font-bold">{avgRating}/10</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab("avis")}
+                          className="text-sm font-semibold text-primary hover:underline"
+                        >
+                          Lire les avis publiés
+                        </button>
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -1438,7 +1451,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                     <div className="text-center p-6 bg-secondary/20 rounded-2xl border">
                       <p className="font-display text-5xl font-bold text-primary">{avgRating}</p>
                       <div className="flex justify-center my-2">{[1, 2, 3, 4, 5].map((s) => (<Star key={s} className={`h-4 w-4 ${s <= Math.round(Number(avgRating) / 2) ? "fill-primary text-primary" : "text-muted"}`} />))}</div>
-                      <p className="text-sm text-muted-foreground">{reviewCount} avis vérifiés</p>
+                      <p className="text-sm text-muted-foreground">{reviewCount} avis publiés</p>
                     </div>
                     <div className="space-y-2">
                       {ratingDistribution.map(({ score, count, percent }) => (

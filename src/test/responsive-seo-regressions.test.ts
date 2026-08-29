@@ -109,6 +109,7 @@ describe("responsive and SEO regression guards", () => {
     const robots = read("public/robots.txt");
     const seoHook = read("src/hooks/useSeoMeta.ts");
     const prerender = read("scripts/prerender-seo.mjs");
+    const restaurantEntity = read("src/lib/seo/restaurantEntity.mjs");
     const notFound = read("src/pages/NotFound.tsx");
     const vercel = read("vercel.json");
 
@@ -130,7 +131,9 @@ describe("responsive and SEO regression guards", () => {
     expect(prerender).toContain('path: "/cookies"');
     expect(prerender).toContain('path: "/conditions-restaurateurs"');
     expect(prerender).toContain('path: "/tok-pulse"');
-    expect(prerender).toContain("restaurant.rating && Number(restaurant.review_count) > 0");
+    expect(prerender).toContain("buildRestaurantSeoModel");
+    expect(restaurantEntity).toContain("const aggregateRating = normalizedReviewCount > 0");
+    expect(restaurantEntity).toContain('"@type": "AggregateRating"');
     expect(prerender).toContain("STRICT_DYNAMIC_SEO");
     expect(prerender).not.toContain("hasOfferCatalog: buildRestaurantOfferCatalog");
   });
