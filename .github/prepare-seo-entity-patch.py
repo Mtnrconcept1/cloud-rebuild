@@ -23,6 +23,22 @@ patch_source = replace_once(
 patch_path.write_text(patch_source, encoding="utf-8")
 runpy.run_path(str(patch_path), run_name="__main__")
 
+entity_path = ROOT / "src/lib/seo/restaurantEntity.mjs"
+entity_source = entity_path.read_text(encoding="utf-8")
+escaped_slash_count = entity_source.count("\\/")
+if escaped_slash_count != 4:
+    raise RuntimeError(
+        f"restaurant entity regex cleanup: expected 4 escaped slashes, found {escaped_slash_count}"
+    )
+entity_source = entity_source.replace("\\/", "/")
+entity_source = replace_once(
+    entity_source,
+    "normalizeImageUrls(heroImage ?? restaurant.image_url, images)",
+    "normalizeImageUrls(heroImage || restaurant.image_url, images)",
+    "restaurant primary image fallback",
+)
+entity_path.write_text(entity_source, encoding="utf-8")
+
 docs_path = ROOT / "docs/skills/TOK_SEO_SKILL.md"
 docs_path.write_text(
     docs_path.read_text(encoding="utf-8").rstrip() + "\n",
