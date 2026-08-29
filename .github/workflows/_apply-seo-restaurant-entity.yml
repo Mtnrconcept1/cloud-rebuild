@@ -67,7 +67,21 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Apply reviewed SEO patch
-        run: python3 .github/seo-entity-patch.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path(".github/seo-entity-patch.py")
+          source = path.read_text(encoding="utf-8")
+          old = "updated, count = re.subn(pattern, replacement, text, count=1, flags=re.DOTALL)"
+          new = "updated, count = re.subn(pattern, lambda _match: replacement, text, count=1, flags=re.DOTALL)"
+          if source.count(old) != 1:
+              raise SystemExit("Unexpected patch-runner substitution helper")
+          path.write_text(source.replace(old, new, 1), encoding="utf-8")
+          PY
+          python3 .github/seo-entity-patch.py
 
       - name: Check patch formatting
         run: git diff --check
