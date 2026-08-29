@@ -112,7 +112,7 @@ jobs:
             src/test/restaurant-entity-seo.test.ts \
             src/test/seo-growth.test.ts \
             src/test/responsive-seo-regressions.test.ts
-          git rm \
+          git rm -f \
             .github/seo-entity-patch.py \
             .github/prepare-seo-entity-patch.py \
             .github/workflows/_apply-seo-restaurant-entity.yml
