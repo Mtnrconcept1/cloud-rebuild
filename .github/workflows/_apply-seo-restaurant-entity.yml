@@ -85,8 +85,35 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
 
-          path = Path("docs/skills/TOK_SEO_SKILL.md")
-          path.write_text(path.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
+          docs_path = Path("docs/skills/TOK_SEO_SKILL.md")
+          docs_path.write_text(docs_path.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
+
+          test_path = Path("src/test/seo-growth.test.ts")
+          source = test_path.read_text(encoding="utf-8")
+          old_declaration = '    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");\n    const seo = read("src/hooks/useSeoMeta.ts");'
+          new_declaration = '    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");\n    const restaurantEntity = read("src/lib/seo/restaurantEntity.mjs");\n    const seo = read("src/hooks/useSeoMeta.ts");'
+          old_assertions = '''    expect(restaurantDetail).toContain("useSeoMeta");
+    expect(restaurantDetail).toContain("buildRestaurantDetailJsonLd");
+    expect(restaurantDetail).toContain('\"@type\": \"Restaurant\"');
+    expect(restaurantDetail).toContain("const restaurantPath = canonicalPath || `/restaurant/${restaurantId}`");
+    expect(restaurantDetail).toContain("buildCanonicalUrl(restaurantPath)");'''
+          new_assertions = '''    expect(restaurantDetail).toContain("useSeoMeta");
+    expect(restaurantDetail).toContain("buildRestaurantSeoModel");
+    expect(restaurantDetail).toContain("jsonLd: restaurantSeoModel?.jsonLd || null");
+    expect(restaurantDetail).toContain('aria-label="Fil d\\'Ariane"');
+    expect(restaurantEntity).toContain("export function buildRestaurantSeoModel");
+    expect(restaurantEntity).toContain('\"@type\": \"Restaurant\"');
+    expect(restaurantEntity).toContain('\"@type\": \"WebPage\"');
+    expect(restaurantEntity).toContain('\"@type\": \"BreadcrumbList\"');'''
+
+          if source.count(old_declaration) != 1:
+              raise SystemExit("Unexpected SEO growth test declaration block")
+          if source.count(old_assertions) != 1:
+              raise SystemExit("Unexpected SEO growth test assertion block")
+
+          source = source.replace(old_declaration, new_declaration, 1)
+          source = source.replace(old_assertions, new_assertions, 1)
+          test_path.write_text(source, encoding="utf-8")
           PY
 
       - name: Check patch formatting
@@ -104,7 +131,10 @@ jobs:
       - name: Typecheck application
         run: pnpm run typecheck
 
-      - name: Build production application
+      - name: Run repository build
+        run: pnpm run build
+
+      - name: Run production SEO build
         run: pnpm run build:prod
 
       - name: Commit validated implementation
@@ -120,7 +150,8 @@ jobs:
             src/lib/seo/restaurantEntity.mjs \
             src/lib/seo/restaurantEntity.d.mts \
             src/pages/RestaurantDetail.tsx \
-            src/test/restaurant-entity-seo.test.ts
+            src/test/restaurant-entity-seo.test.ts \
+            src/test/seo-growth.test.ts
           git rm .github/seo-entity-patch.py .github/workflows/_apply-seo-restaurant-entity.yml
 
           git diff --cached --check
