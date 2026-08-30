@@ -112,9 +112,16 @@ jobs:
                   raise SystemExit(f"generated public seed unexpectedly contains forbidden field marker: {forbidden}")
           if "exact same-place duplicates" not in text or "live TOK profile" not in text:
               raise SystemExit("generated seed is missing duplicate/live-profile publication guards")
-          if "2133 rows refreshed from live SITG" not in text or "97 rows preserved from the public workbook snapshot" not in text:
+          provenance = re.search(
+              r"-- (\d+) rows refreshed from live SITG on 2026-08-30; (\d+) rows preserved from the public workbook snapshot dated 2026-05-26",
+              text,
+          )
+          if not provenance:
               raise SystemExit("generated seed is missing live/snapshot provenance accounting")
-          print(f"validated {rows} stable public listings with no email-like values")
+          live_count, snapshot_count = map(int, provenance.groups())
+          if live_count + snapshot_count != 2230 or snapshot_count < 97:
+              raise SystemExit(f"invalid provenance counts: {live_count} live + {snapshot_count} snapshot")
+          print(f"validated {rows} public listings: {live_count} live + {snapshot_count} snapshot, no email-like values")
           PY
 
       - name: Apply reviewed frontend and auth patch
