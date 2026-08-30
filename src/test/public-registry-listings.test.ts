@@ -79,11 +79,11 @@ describe("public REG restaurant listings", () => {
 
     expect(assets).toHaveLength(17);
     for (const slug of ["pizza", "kebab", "gastronomique", "francais", "italien", "japonais"]) {
-      expect(helper).toContain(`slug: "${slug}"`);
+      expect(helper).toContain(`src: "/images/public-listings/${slug}.svg"`);
       expect(assets).toContain(`${slug}.svg`);
     }
     expect(assets).toContain("restaurant.svg");
-    expect(helper).toContain('`/images/public-listings/${rule.slug}.svg`');
+    expect(helper).not.toContain('${rule.slug}');
     expect(helper).toContain('src: "/images/public-listings/bar.svg"');
     expect(helper).toContain('src: "/images/public-listings/restaurant.svg"');
     expect(helper).not.toMatch(/https?:\/\//);
@@ -100,7 +100,7 @@ describe("public REG restaurant listings", () => {
     expect(card).toContain('href={`tel:${phone}`}');
     expect(card).toContain("isPublicIndexedListing && phone");
     expect(card).toContain("if (isPublicIndexedListing) return;");
-    expect(card).toContain("!isPublicIndexedListing && canShowReservationSlots");
+    expect(card).toContain("canShowReservationSlots && !isPublicIndexedListing");
     expect(card).toContain('`/restaurant-indexe/${encodeURIComponent(slug)}`');
     expect(search).toContain("search_restaurant_discovery_catalog");
     expect(local).toContain("search_restaurant_discovery_catalog");
