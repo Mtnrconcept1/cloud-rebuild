@@ -22,11 +22,14 @@ describe("public REG restaurant listings", () => {
     expect(migration).not.toMatch(/insert\s+into\s+public\.restaurants/i);
   });
 
-  it("freezes exactly 2184 physical establishments and requests only approved public fields", () => {
+  it("freezes the workbook candidates by stable REG establishment ID and requests only approved public fields", () => {
     const generator = read("scripts/generate-public-reg-seed.py");
     const outFieldsMatch = generator.match(/OUT_FIELDS\s*=\s*","\.join\(\[(.*?)\]\)/s);
 
-    expect(generator).toContain("EXPECTED_COUNT = 2184");
+    expect(generator).toContain("WORKBOOK_CANDIDATE_COUNT = 2229");
+    expect(generator).toContain("MIN_CURRENT_COUNT = 2100");
+    expect(generator).toContain("ID_ETABLISSEMENT IN");
+    expect(generator).toContain("stable public ID_ETABLISSEMENT");
     expect(generator).toContain('type_reg != "Etablissement"');
     expect(generator).toContain('ALLOWED_NOGA = {"561001", "561003", "563001", "563002"}');
     expect(outFieldsMatch).not.toBeNull();
