@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -25,11 +25,18 @@ describe("public REG restaurant listings", () => {
   it("freezes exactly 2230 physical establishments by stable REG IDs and requests only approved public fields", () => {
     const generator = read("scripts/generate-public-reg-seed.py");
     const outFieldsMatch = generator.match(/OUT_FIELDS\s*=\s*","\.join\(\[(.*?)\]\)/s);
+    const idFiles = readdirSync(resolve(process.cwd(), "scripts/public-reg-ids")).filter((name) => /\d{2}\.txt$/.test(name)).sort();
+    const stableIds = idFiles.flatMap((name) => read(`scripts/public-reg-ids/${name}`).split(/\r?\n/).filter(Boolean));
 
+    expect(idFiles).toHaveLength(12);
+    expect(stableIds).toHaveLength(2230);
+    expect(new Set(stableIds).size).toBe(2230);
     expect(generator).toContain("EXPECTED_COUNT = 2230");
-    expect(generator).toContain("STABLE_IDS =");
+    expect(generator).toContain('ID_DIRECTORY = Path("scripts/public-reg-ids")');
+    expect(generator).toContain("load_stable_ids");
     expect(generator).toContain("ID_ETABLISSEMENT IN");
     expect(generator).not.toContain("OBJECT_IDS =");
+    expect(generator).not.toContain("_STABLE_IDS_B64");
     expect(generator).toContain('type_reg != "Etablissement"');
     expect(generator).toContain('ALLOWED_NOGA = {"561001", "561003", "563001", "563002"}');
     expect(outFieldsMatch).not.toBeNull();
