@@ -6,6 +6,7 @@ on:
       - feat/public-reg-restaurant-listings-final
     paths:
       - .github/workflows/_finalize-public-reg-listings.yml
+      - src/test/public-registry-listings.test.ts
   workflow_dispatch:
 
 permissions:
