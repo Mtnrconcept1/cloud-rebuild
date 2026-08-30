@@ -1,0 +1,69 @@
+name: Materialize public REG seed
+
+on:
+  push:
+    branches:
+      - feat/public-reg-restaurant-listings
+    paths:
+      - .github/workflows/_materialize-public-reg-seed.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout preparation branch
+        uses: actions/checkout@v4
+
+      - name: Generate frozen 2,230-row seed
+        run: python3 scripts/generate-public-reg-seed.py
+
+      - name: Validate frozen seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          id_dir = Path('scripts/public-reg-ids')
+          ids = [line.strip() for path in sorted(id_dir.glob('*.txt')) for line in path.read_text(encoding='utf-8').splitlines() if line.strip()]
+          if len(ids) != 2230 or len(set(ids)) != 2230:
+              raise SystemExit(f'Expected 2230 unique frozen IDs, got {len(ids)} rows / {len(set(ids))} unique')
+
+          seed_path = Path('supabase/migrations/20260829220500_seed_public_registry_restaurants.sql')
+          sql = seed_path.read_text(encoding='utf-8')
+          if sql.strip() == 'PLACEHOLDER':
+              raise SystemExit('Seed was not materialized')
+          if sql.count("'REG/SITG – Répertoire des entreprises et établissements'") < 2230:
+              raise SystemExit('Seed does not contain all 2230 source rows')
+          forbidden = [
+              'EMAIL', 'E_MAIL', 'FAX', 'IDE_ENTREPRISE', 'TAILLE_ENTREPRISE',
+              'TEL_SECONDAIRE', 'TELEPHONE2', 'SCRAPED', 'PHOTO_URL'
+          ]
+          upper_sql = sql.upper()
+          found = [token for token in forbidden if token in upper_sql]
+          if found:
+              raise SystemExit(f'Forbidden/private fields detected in seed: {found}')
+          if 'urllib' in sql or 'arcgis/rest' in sql.lower():
+              raise SystemExit('Generated seed must be static and network-free')
+          print(f'Validated static seed: {len(ids)} frozen source rows')
+          PY
+
+      - name: Stage standalone artifact
+        run: |
+          mkdir -p /tmp/public-reg-seed
+          cp supabase/migrations/20260829220500_seed_public_registry_restaurants.sql /tmp/public-reg-seed/seed.sql
+          sha256sum /tmp/public-reg-seed/seed.sql | tee /tmp/public-reg-seed/SHA256SUMS
+
+      - name: Upload static seed artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-reg-seed-2230
+          path: /tmp/public-reg-seed/
+          if-no-files-found: error
+          retention-days: 1
