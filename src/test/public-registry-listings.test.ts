@@ -43,7 +43,7 @@ describe("public REG restaurant listings", () => {
     expect(seed).not.toContain("mailto:");
     expect(seed).toContain("exact same-place duplicates");
     expect(seed).toContain("live TOK profile");
-    expect(seed).toMatch(/'(?:\+?41|0)[0-9 .()\/-]{7,}'/);
+    expect(seed).toMatch(/'(?:\+?41|0)[0-9 .()/-]{7,}'/);
   });
 
   it("contains no live-source generator in the final implementation", () => {
