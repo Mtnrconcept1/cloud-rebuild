@@ -78,13 +78,14 @@ describe("public REG restaurant listings", () => {
     const assets = readdirSync(resolve(process.cwd(), "public/images/public-listings")).filter((name) => name.endsWith(".svg"));
 
     expect(assets).toHaveLength(17);
-    expect(helper).toContain("/images/public-listings/pizza.svg");
-    expect(helper).toContain("/images/public-listings/kebab.svg");
-    expect(helper).toContain("/images/public-listings/gastronomique.svg");
-    expect(helper).toContain("/images/public-listings/francais.svg");
-    expect(helper).toContain("/images/public-listings/restaurant.svg");
+    for (const slug of ["pizza", "kebab", "gastronomique", "francais", "italien", "japonais", "restaurant"]) {
+      expect(helper).toContain(`slug: "${slug}"`);
+      expect(assets).toContain(`${slug}.svg`);
+    }
+    expect(helper).toContain('`/images/public-listings/${rule.slug}.svg`');
+    expect(helper).toContain('src: "/images/public-listings/bar.svg"');
+    expect(helper).toContain('src: "/images/public-listings/restaurant.svg"');
     expect(helper).not.toMatch(/https?:\/\//);
-    expect(helper).not.toContain("Restaurant/cafe/snack/tea-room\" for keyword inference");
   });
 
   it("marks public-indexed cards, shows phone when present and disables transactional/favorite behavior", () => {
