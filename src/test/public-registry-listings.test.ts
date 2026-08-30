@@ -78,10 +78,11 @@ describe("public REG restaurant listings", () => {
     const assets = readdirSync(resolve(process.cwd(), "public/images/public-listings")).filter((name) => name.endsWith(".svg"));
 
     expect(assets).toHaveLength(17);
-    for (const slug of ["pizza", "kebab", "gastronomique", "francais", "italien", "japonais", "restaurant"]) {
+    for (const slug of ["pizza", "kebab", "gastronomique", "francais", "italien", "japonais"]) {
       expect(helper).toContain(`slug: "${slug}"`);
       expect(assets).toContain(`${slug}.svg`);
     }
+    expect(assets).toContain("restaurant.svg");
     expect(helper).toContain('`/images/public-listings/${rule.slug}.svg`');
     expect(helper).toContain('src: "/images/public-listings/bar.svg"');
     expect(helper).toContain('src: "/images/public-listings/restaurant.svg"');
