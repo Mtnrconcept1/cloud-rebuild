@@ -22,23 +22,22 @@ describe("public REG restaurant listings", () => {
     expect(migration).not.toMatch(/insert\s+into\s+public\.restaurants/i);
   });
 
-  it("freezes the workbook candidates by stable REG establishment ID and requests only approved public fields", () => {
+  it("freezes exactly 2230 physical establishments by stable REG IDs and requests only approved public fields", () => {
     const generator = read("scripts/generate-public-reg-seed.py");
     const outFieldsMatch = generator.match(/OUT_FIELDS\s*=\s*","\.join\(\[(.*?)\]\)/s);
 
-    expect(generator).toContain("WORKBOOK_CANDIDATE_COUNT = 2229");
-    expect(generator).toContain("MIN_CURRENT_COUNT = 2100");
+    expect(generator).toContain("EXPECTED_COUNT = 2230");
+    expect(generator).toContain("STABLE_IDS =");
     expect(generator).toContain("ID_ETABLISSEMENT IN");
-    expect(generator).toContain("stable public ID_ETABLISSEMENT");
+    expect(generator).not.toContain("OBJECT_IDS =");
     expect(generator).toContain('type_reg != "Etablissement"');
     expect(generator).toContain('ALLOWED_NOGA = {"561001", "561003", "563001", "563002"}');
     expect(outFieldsMatch).not.toBeNull();
 
     const outFields = outFieldsMatch?.[1] || "";
     for (const publicField of [
-      "OBJECTID",
-      "TYPE_REG",
       "ID_ETABLISSEMENT",
+      "TYPE_REG",
       "NOM",
       "COMPLEMENT_LOCALI",
       "CODE_NOGA",
@@ -62,6 +61,19 @@ describe("public REG restaurant listings", () => {
     ]) {
       expect(outFields).not.toContain(excludedField);
     }
+  });
+
+  it("generates a privacy-minimized source seed with duplicate publication guards", () => {
+    const seed = read("supabase/migrations/20260829220500_seed_public_registry_restaurants.sql");
+    const rowMarker = "('REG/SITG – Répertoire des entreprises et établissements'";
+
+    expect(seed.split(rowMarker).length - 1).toBe(2230);
+    expect(seed).not.toMatch(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
+    expect(seed).not.toContain("NUM_IDE");
+    expect(seed).not.toContain("ID_ENTREPRISE");
+    expect(seed).not.toContain("TEL_SECONDAIRE");
+    expect(seed).toContain("exact same-place duplicates");
+    expect(seed).toContain("live TOK profile");
   });
 
   it("renders a neutral public-source profile with claim and removal controls", () => {
