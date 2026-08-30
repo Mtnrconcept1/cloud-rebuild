@@ -10,6 +10,7 @@ on:
       - .github/workflows/_apply-public-reg-listings.yml
       - scripts/generate-public-reg-seed.py
       - supabase/migrations/20260829220000_public_registry_restaurant_listings.sql
+      - supabase/migrations/20260829220500_seed_public_registry_restaurants.sql
       - src/pages/PublicRestaurantListingDetail.tsx
       - src/test/public-registry-listings.test.ts
 
@@ -49,7 +50,7 @@ jobs:
           git status --short --branch
           test -f AGENTS.md
 
-          allowed='^(\.github/(apply-public-reg-listings\.py|finalize-public-reg-patch\.py|workflows/_apply-public-reg-listings\.yml)|scripts/generate-public-reg-seed\.py|supabase/migrations/20260829220000_public_registry_restaurant_listings\.sql|src/pages/PublicRestaurantListingDetail\.tsx|src/test/public-registry-listings\.test\.ts)$'
+          allowed='^(\.github/(apply-public-reg-listings\.py|finalize-public-reg-patch\.py|workflows/_apply-public-reg-listings\.yml)|scripts/generate-public-reg-seed\.py|supabase/migrations/20260829220(000_public_registry_restaurant_listings|500_seed_public_registry_restaurants)\.sql|src/pages/PublicRestaurantListingDetail\.tsx|src/test/public-registry-listings\.test\.ts)$'
           unexpected="$(git diff --name-only origin/main...HEAD | grep -vE "$allowed" || true)"
           if [[ -n "$unexpected" ]]; then
             echo "::error::Unexpected pre-existing branch changes:"
@@ -84,13 +85,16 @@ jobs:
           text = path.read_text(encoding="utf-8")
           row_marker = "('REG/SITG – Répertoire des entreprises et établissements'"
           rows = text.count(row_marker)
-          if not 2100 <= rows <= 2229:
-              raise SystemExit(f"expected 2100..2229 current public rows from the 2229 workbook candidates, got {rows}")
-          if "stable ID_ETABLISSEMENT identifiers" not in text:
-              raise SystemExit("generated seed is not documented as using stable REG establishment identifiers")
+          if rows != 2230:
+              raise SystemExit(f"expected exactly 2230 stable public REG source rows, got {rows}")
           if re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text):
               raise SystemExit("generated public seed unexpectedly contains an email-like value")
-          print(f"validated {rows} public listings with stable source IDs and no email-like values")
+          for forbidden in ("NUM_IDE", "ID_ENTREPRISE", "TEL_SECONDAIRE", "email_reg", "email_site", "email_final"):
+              if forbidden in text:
+                  raise SystemExit(f"generated public seed unexpectedly contains forbidden field marker: {forbidden}")
+          if "exact same-place duplicates" not in text or "live TOK profile" not in text:
+              raise SystemExit("generated seed is missing duplicate/live-profile publication guards")
+          print(f"validated {rows} stable public listings with no email-like values")
           PY
 
       - name: Apply reviewed frontend and auth patch
