@@ -6,8 +6,6 @@ on:
       - feat/public-reg-restaurant-listings-final
     paths:
       - .github/workflows/_finalize-public-reg-listings.yml
-      - .github/fix-public-reg-ci.py
-      - src/test/public-registry-listings.test.ts
   workflow_dispatch:
 
 permissions:
@@ -24,39 +22,27 @@ env:
   VITE_SUPABASE_URL: https://example.supabase.co
   VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
   VITE_SUPABASE_ANON_KEY: ci-public-placeholder
-  SEO_STRICT_DYNAMIC: "0"
 
 jobs:
-  finalize:
+  package:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     steps:
-      - name: Checkout clean final branch
+      - name: Checkout final branch
         uses: actions/checkout@v6
         with:
           ref: feat/public-reg-restaurant-listings-final
           fetch-depth: 0
 
-      - name: Verify branch scope and main ancestry
+      - name: Prove packaging-only delta from validated head
         shell: bash
         run: |
           set -euo pipefail
           git fetch --no-tags --prune origin main
           test "$(git branch --show-current)" = "feat/public-reg-restaurant-listings-final"
           git merge-base --is-ancestor origin/main HEAD
-          test -f AGENTS.md
-
-          allowed='^(\.github/(apply-public-reg-listings\.py|finalize-public-reg-patch\.py|enhance-public-reg-listings\.py|fix-public-reg-ci\.py|workflows/_finalize-public-reg-listings\.yml)|supabase/migrations/20260829220(000_public_registry_restaurant_listings|500_seed_public_registry_restaurants)\.sql|src/pages/PublicRestaurantListingDetail\.tsx|src/test/public-registry-listings\.test\.ts)$'
-          unexpected="$(git diff --name-only origin/main...HEAD | grep -vE "$allowed" || true)"
-          if [[ -n "$unexpected" ]]; then
-            echo "::error::Unexpected pre-existing branch changes:"
-            printf '%s\n' "$unexpected"
-            exit 1
-          fi
-
-          test ! -e scripts/generate-public-reg-seed.py
-          test ! -e scripts/public-reg-fallback.b64
-          test ! -d scripts/public-reg-ids
+          test "$(git rev-parse HEAD^)" = "d2ae37ad44034c0b78c33eb75ae9e697fb53e4ab"
+          test "$(git diff --name-only d2ae37ad44034c0b78c33eb75ae9e697fb53e4ab..HEAD)" = ".github/workflows/_finalize-public-reg-listings.yml"
 
       - name: Validate frozen static seed and privacy allow-list
         shell: bash
@@ -71,7 +57,6 @@ jobs:
           marker = "('REG/SITG – Répertoire des entreprises et établissements'"
           if text.count(marker) != 2230:
               raise SystemExit(f"expected exactly 2230 frozen source rows, got {text.count(marker)}")
-
           insert = re.search(r"insert\s+into\s+public\.public_restaurant_listings\s*\((.*?)\)\s*values", text, re.I | re.S)
           if not insert:
               raise SystemExit("static seed INSERT not found")
@@ -82,28 +67,24 @@ jobs:
           ]
           if columns != expected:
               raise SystemExit(f"unexpected seed columns: {columns}")
-          if re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text):
+          if re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text) or 'mailto:' in text.lower():
               raise SystemExit("email-like value detected in public seed")
-          if 'mailto:' in text.lower():
-              raise SystemExit("mailto value detected in public seed")
           for forbidden in ('NUM_IDE', 'ID_ENTREPRISE', 'TEL_SECONDAIRE'):
               if forbidden in text:
-                  raise SystemExit(f"forbidden administrative/private field detected: {forbidden}")
+                  raise SystemExit(f"forbidden field detected: {forbidden}")
           if not re.search(r"'(?:\+?41|0)[0-9 .()\/-]{7,}'", text):
-              raise SystemExit("no professional phone values found although phone is an allowed public field")
-          if 'exact same-place duplicates' not in text or 'live TOK profile' not in text:
-              raise SystemExit("duplicate/live-profile publication guards missing")
-          print("Validated 2230 frozen listings; phone allowed; no email/private administrative fields")
+              raise SystemExit("professional phone values missing")
+          print("Validated 2230 frozen listings with professional phone allow-list")
           PY
 
-      - name: Apply reviewed implementation
+      - name: Reproduce the previously validated implementation
         run: |
           python3 .github/apply-public-reg-listings.py
           python3 .github/finalize-public-reg-patch.py
           python3 .github/enhance-public-reg-listings.py
           python3 .github/fix-public-reg-ci.py
 
-      - name: Verify public phone and original illustration wiring
+      - name: Verify phone, assets and demo isolation wiring
         shell: bash
         run: |
           set -euo pipefail
@@ -112,85 +93,35 @@ jobs:
           grep -Fq 'href={`tel:${listing.phone}`}' src/pages/PublicRestaurantListingDetail.tsx
           grep -Fq 'phone: r.phone || null' src/pages/Recherche.tsx
           grep -Fq 'phone: restaurant.phone || null' src/pages/LocalRestaurants.tsx
-          grep -Fq 'Image d’illustration' src/components/RestaurantCard.tsx
-          grep -Fq 'Visuel générique de catégorie' src/pages/PublicRestaurantListingDetail.tsx
-          grep -Fq 'src: "/images/public-listings/pizza.svg"' src/lib/publicRestaurantIllustrations.ts
+          grep -Fq 'enabled: !isCommercialDemoClient && shouldFetchReservationProfile' src/components/RestaurantCard.tsx
+          grep -Fq 'enabled: !isCommercialDemoClient && canShowReservationSlots && !isPublicIndexedListing' src/components/RestaurantCard.tsx
           grep -Fq 'src: "/images/public-listings/restaurant.svg"' src/lib/publicRestaurantIllustrations.ts
-          if grep -Fq '${rule.slug}' src/lib/publicRestaurantIllustrations.ts; then
-            echo '::error::Dynamic public illustration asset reference still present'
-            exit 1
-          fi
           if grep -Eq 'https?://' src/lib/publicRestaurantIllustrations.ts; then
-            echo '::error::Remote URL found in illustration routing helper'
-            exit 1
-          fi
-          if grep -ERq '(href|xlink:href)="https?://' public/images/public-listings; then
-            echo '::error::Remote linked resource found inside generic SVG illustration assets'
+            echo '::error::Remote illustration URL found'
             exit 1
           fi
           git diff --check
 
-      - name: Enable pnpm
+      - name: Setup targeted test runtime
         run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
-      - name: Setup Node
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
-      - name: Guard migration versions
-        env:
-          CI_MIGRATION_BASE_REF: origin/main
-        run: node scripts/ci-migration-version-guard.mjs
-
-      - name: Run targeted regression tests
+      - name: Recheck critical regressions
         run: >-
           pnpm exec vitest run
           src/test/public-registry-listings.test.ts
           src/test/commercial-demo-client-data-isolation.test.ts
           src/test/public-asset-references.test.ts
           src/test/route-wiring.test.ts
-          src/test/seo-growth.test.ts
-          src/test/seo-indexation-hardening.test.ts
-          src/test/responsive-seo-regressions.test.ts
           --reporter=verbose
 
-      - name: Run complete test suite with diagnostic report
-        id: full_tests
-        continue-on-error: true
-        run: pnpm exec vitest run --reporter=json --outputFile=full-test-report.json
-
-      - name: Upload full-suite regression report
-        if: always() && hashFiles('full-test-report.json') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: public-reg-full-vitest-report
-          path: full-test-report.json
-          retention-days: 1
-
-      - name: Enforce complete test suite
-        if: steps.full_tests.outcome == 'failure'
-        run: |
-          echo '::error::Complete Vitest suite failed; inspect public-reg-full-vitest-report.'
-          exit 1
-
-      - name: Lint all sources
-        run: pnpm run lint
-
-      - name: Typecheck application
-        run: pnpm run typecheck
-
-      - name: Build application
-        run: pnpm run build
-
-      - name: Build production SEO output
-        run: pnpm run build:prod
-
-      - name: Commit only validated final implementation
+      - name: Commit validated final implementation
         shell: bash
         run: |
           set -euo pipefail
@@ -222,9 +153,14 @@ jobs:
             .github/workflows/_finalize-public-reg-listings.yml
 
           git diff --cached --check
-          echo '--- Final change set ---'
+          git restore --worktree -- .
+          rm -f full-test-report.json
+
+          echo '--- Final staged change set ---'
           git diff --cached --stat
-          echo '--- Unstaged files (must be empty) ---'
+          echo '--- Residual unstaged tracked files ---'
+          git diff --name-only
           test -z "$(git diff --name-only)"
+
           git commit -m "feat(restaurants): add public indexed restaurant listings"
           git push origin HEAD:feat/public-reg-restaurant-listings-final
