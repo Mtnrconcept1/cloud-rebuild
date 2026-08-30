@@ -149,8 +149,24 @@ jobs:
           src/test/responsive-seo-regressions.test.ts
           --reporter=verbose
 
-      - name: Run complete test suite
-        run: pnpm test
+      - name: Run complete test suite with diagnostic report
+        id: full_tests
+        continue-on-error: true
+        run: pnpm exec vitest run --reporter=json --outputFile=full-test-report.json
+
+      - name: Upload full-suite regression report
+        if: always() && hashFiles('full-test-report.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-reg-full-vitest-report
+          path: full-test-report.json
+          retention-days: 1
+
+      - name: Enforce complete test suite
+        if: steps.full_tests.outcome == 'failure'
+        run: |
+          echo '::error::Complete Vitest suite failed; inspect public-reg-full-vitest-report.'
+          exit 1
 
       - name: Lint all sources
         run: pnpm run lint
