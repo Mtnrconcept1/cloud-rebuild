@@ -6,6 +6,7 @@ on:
       - feat/public-reg-restaurant-listings-final
     paths:
       - .github/workflows/_finalize-public-reg-listings.yml
+      - .github/fix-public-reg-ci.py
       - src/test/public-registry-listings.test.ts
   workflow_dispatch:
 
@@ -45,7 +46,7 @@ jobs:
           git merge-base --is-ancestor origin/main HEAD
           test -f AGENTS.md
 
-          allowed='^(\.github/(apply-public-reg-listings\.py|finalize-public-reg-patch\.py|enhance-public-reg-listings\.py|workflows/_finalize-public-reg-listings\.yml)|supabase/migrations/20260829220(000_public_registry_restaurant_listings|500_seed_public_registry_restaurants)\.sql|src/pages/PublicRestaurantListingDetail\.tsx|src/test/public-registry-listings\.test\.ts)$'
+          allowed='^(\.github/(apply-public-reg-listings\.py|finalize-public-reg-patch\.py|enhance-public-reg-listings\.py|fix-public-reg-ci\.py|workflows/_finalize-public-reg-listings\.yml)|supabase/migrations/20260829220(000_public_registry_restaurant_listings|500_seed_public_registry_restaurants)\.sql|src/pages/PublicRestaurantListingDetail\.tsx|src/test/public-registry-listings\.test\.ts)$'
           unexpected="$(git diff --name-only origin/main...HEAD | grep -vE "$allowed" || true)"
           if [[ -n "$unexpected" ]]; then
             echo "::error::Unexpected pre-existing branch changes:"
@@ -100,6 +101,7 @@ jobs:
           python3 .github/apply-public-reg-listings.py
           python3 .github/finalize-public-reg-patch.py
           python3 .github/enhance-public-reg-listings.py
+          python3 .github/fix-public-reg-ci.py
 
       - name: Verify public phone and original illustration wiring
         shell: bash
@@ -112,6 +114,12 @@ jobs:
           grep -Fq 'phone: restaurant.phone || null' src/pages/LocalRestaurants.tsx
           grep -Fq 'Image d’illustration' src/components/RestaurantCard.tsx
           grep -Fq 'Visuel générique de catégorie' src/pages/PublicRestaurantListingDetail.tsx
+          grep -Fq 'src: "/images/public-listings/pizza.svg"' src/lib/publicRestaurantIllustrations.ts
+          grep -Fq 'src: "/images/public-listings/restaurant.svg"' src/lib/publicRestaurantIllustrations.ts
+          if grep -Fq '${rule.slug}' src/lib/publicRestaurantIllustrations.ts; then
+            echo '::error::Dynamic public illustration asset reference still present'
+            exit 1
+          fi
           if grep -Eq 'https?://' src/lib/publicRestaurantIllustrations.ts; then
             echo '::error::Remote URL found in illustration routing helper'
             exit 1
@@ -143,6 +151,8 @@ jobs:
         run: >-
           pnpm exec vitest run
           src/test/public-registry-listings.test.ts
+          src/test/commercial-demo-client-data-isolation.test.ts
+          src/test/public-asset-references.test.ts
           src/test/route-wiring.test.ts
           src/test/seo-growth.test.ts
           src/test/seo-indexation-hardening.test.ts
@@ -199,6 +209,7 @@ jobs:
             src/pages/LocalRestaurants.tsx \
             src/pages/PublicRestaurantListingDetail.tsx \
             src/pages/Recherche.tsx \
+            src/test/commercial-demo-client-data-isolation.test.ts \
             src/test/public-registry-listings.test.ts \
             src/test/route-wiring.test.ts \
             src/test/seo-growth.test.ts
@@ -207,6 +218,7 @@ jobs:
             .github/apply-public-reg-listings.py \
             .github/finalize-public-reg-patch.py \
             .github/enhance-public-reg-listings.py \
+            .github/fix-public-reg-ci.py \
             .github/workflows/_finalize-public-reg-listings.yml
 
           git diff --cached --check
