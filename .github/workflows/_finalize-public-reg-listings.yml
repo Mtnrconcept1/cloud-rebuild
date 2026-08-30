@@ -111,8 +111,12 @@ jobs:
           grep -Fq 'phone: restaurant.phone || null' src/pages/LocalRestaurants.tsx
           grep -Fq 'Image d’illustration' src/components/RestaurantCard.tsx
           grep -Fq 'Visuel générique de catégorie' src/pages/PublicRestaurantListingDetail.tsx
-          if grep -ERq 'https?://' src/lib/publicRestaurantIllustrations.ts public/images/public-listings; then
-            echo '::error::Remote URL found in generic illustration assets'
+          if grep -Eq 'https?://' src/lib/publicRestaurantIllustrations.ts; then
+            echo '::error::Remote URL found in illustration routing helper'
+            exit 1
+          fi
+          if grep -ERq '(href|xlink:href)="https?://' public/images/public-listings; then
+            echo '::error::Remote linked resource found inside generic SVG illustration assets'
             exit 1
           fi
           git diff --check
