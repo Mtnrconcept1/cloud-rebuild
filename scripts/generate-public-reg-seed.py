@@ -1,45 +1,59 @@
 #!/usr/bin/env python3
-"""Generate the exact TOK public REG/SITG seed selected from the user-provided workbook.
+"""Generate the TOK public REG/SITG seed from the user-provided workbook selection.
 
-Only the public professional fields required by TOK are requested from SITG. The query
-never requests EMAIL, FAX, TAILLE, NUM_IDE, ID_ENTREPRISE or TEL_SECONDAIRE.
+The workbook snapshot is frozen by stable REG ID_ETABLISSEMENT values rather than
+ArcGIS OBJECTID values, which can be reassigned between SITG dataset refreshes.
+Only public professional fields required by TOK are requested from SITG.
 """
 
 from __future__ import annotations
 
+import base64
 import json
+import math
 import re
 import unicodedata
 import urllib.parse
 import urllib.request
+import zlib
 from pathlib import Path
 
 SOURCE_LABEL = "REG/SITG – Répertoire des entreprises et établissements"
 SOURCE_URL = "https://sitg.ge.ch/donnees/reg-entreprise-etablissement"
 ARCGIS_QUERY_URL = "https://vector.sitg.ge.ch/arcgis/rest/services/REG_ENTREPRISE_ETABLISSEMENT/FeatureServer/0/query"
 SOURCE_SELECTION_DATE = "2026-05-26"
-SOURCE_REFRESH_DATE = "2026-08-29"
-EXPECTED_COUNT = 2184
+SOURCE_REFRESH_DATE = "2026-08-30"
+EXPECTED_COUNT = 2230
 ALLOWED_NOGA = {"561001", "561003", "563001", "563002"}
 OUTPUT_PATH = Path("supabase/migrations/20260829220500_seed_public_registry_restaurants.sql")
 
-# Exact physical establishments selected from the uploaded workbook after conservative
-# deduplication: existing TOK La Gazelle d'Or excluded and the duplicate Pad Thai row collapsed.
-OBJECT_IDS = [
-13135, 28285, 22796, 22131, 31271, 29982, 14209, 28507, 19747, 1009, 21502, 37631, 3064, 13210, 6777, 21202, 29641, 33878, 37984, 8538, 34029, 5802, 9503, 7387, 17033, 34836, 37044, 27996, 25840, 36297, 20424, 8688, 31877, 31130, 3379, 18121, 6431, 21906, 11385, 18428, 1038, 34444, 28013, 27636, 13796, 2836, 12742, 13588, 36173, 14224, 27574, 28928, 4152, 31693, 21053, 13944, 19303, 15650, 40446, 25566, 19388, 29524, 30570, 20599, 34367, 739, 28479, 25746, 28291, 14902, 33918, 27398, 24708, 14025, 26443, 32167, 10082, 29493, 29180, 27567, 9781, 16212, 24821, 38916, 35156, 40427, 10089, 17233, 29887, 37458, 26036, 40178, 18080, 32665, 32118, 32120, 12673, 13668, 35381, 1844, 18848, 36997, 28024, 3620, 34527, 24038, 17018, 14529, 27063, 12268, 19507, 8912, 29756, 38832, 23637, 19108, 36370, 20692, 29923, 39159, 16383, 32933, 4924, 5702, 11106, 20090, 5747, 39376, 25259, 17019, 14973, 36941, 21373, 25129, 14528, 21195, 9531, 917, 702, 6611, 20921, 39873, 30670, 14405, 32344, 17988, 39440, 10462, 6964, 4175, 25552, 14962, 22024, 9182, 20463, 30077, 29564, 27983, 13905, 14019, 31635, 17910, 25467, 31417, 36712, 26784, 13348, 30972, 17873, 6530, 16454, 25314, 34616, 24730, 30585, 28988, 27024, 40816, 39143, 32283, 23204, 22422, 9096, 10002, 40788, 22082, 36007, 6385, 5955, 32114, 40221, 22041, 17709, 16561, 6593, 32770, 21808, 18969, 32916, 31477, 33865, 13957, 35326, 31960, 1439, 14887, 15686, 21792, 1097, 11076, 4180, 14488, 14325, 33412, 33009, 32637, 21451, 21397, 22763, 22731, 7332, 30084, 27346, 9379, 14131, 8563, 34888, 30764, 7769, 17540, 12417, 20010, 30569, 40554, 23102, 11346, 18368, 24840, 29989, 23193, 24013, 7663, 27466, 6349, 19293, 16413, 3641, 4842, 25912, 27946, 22459, 40111, 10954, 24002, 1084, 7854, 25696, 36536, 22071, 11936, 24196, 33880, 19932, 492, 33867, 29656, 3878, 36753, 13724, 33901, 34607, 32670, 16016, 32401, 21244, 23443, 32928, 24885, 32010, 25394, 26548, 31753, 15771, 20265, 32723, 18346, 30162, 14735, 30939, 27011, 21955, 22319, 28932, 30774, 19069, 28064, 22863, 36442, 20210, 32062, 13471, 25235, 15200, 30850, 28034, 36318, 18682, 28179, 34666, 32115, 33386, 27363, 34845, 33385, 4572, 30354, 19397, 32079, 20651, 33995, 18463, 36140, 24877, 25273, 31354, 27687, 19605, 18436, 20960, 37706, 22564, 16701, 33818, 13403, 30759, 3359, 22034, 17881, 26206, 17032, 24520, 17255, 24971, 34914, 24265, 20587, 28488, 17670, 18507, 18406, 29876, 36663, 27799, 16542, 32984, 28249, 29338, 6199, 27463, 17364, 19562, 30377, 33483, 20495, 23647, 29401, 17441, 28159, 19582, 18666, 18831, 23679, 31260, 2834, 36043, 19882, 31788, 30295, 15505, 32661, 21179, 16741, 16803, 34336, 13845, 35240, 5223, 30149, 30571, 35112, 18239, 20519, 33728, 19541, 36626, 40143, 23540, 33992, 36223, 35914, 28933, 29991, 23942, 21625, 17242, 31782, 29615, 40770, 11139, 28582, 36915, 17023, 18819, 35111, 17990, 28761, 19604, 32901, 17991, 30303, 15950, 19032, 31414, 30275, 29274, 33384, 20341, 31430, 26355, 19015, 27425, 18246, 14457, 16532, 24757, 14789, 17853, 31360, 14336, 15181, 26800, 16768, 29403, 24117, 28629, 13501, 22771, 33730, 17987, 32927, 30646, 16919, 36845, 17839, 17901, 27806, 25907, 25836, 31799, 16375, 37699, 31419, 26308, 11457, 29968, 22873, 20135, 28146, 14412, 16503, 25068, 29327, 29380, 2937, 20261, 16766, 17753, 21059, 15133, 29273, 19625, 14394, 30437, 23131, 30146, 24907, 33030, 26315, 2075, 32524, 23885, 19904, 27114, 30259, 8991, 31424, 39993, 32039, 14240, 16533, 15961, 15960, 27713, 13842, 24440, 19629, 15545, 26040, 27028, 13723, 29097, 22464, 20447, 32282, 28693, 16985, 33046, 35035, 17800, 30838, 34155, 30091, 14040, 30408, 20092, 4622, 28889, 30154, 31454, 28651, 34353, 35907, 33916, 18269, 27601, 22065, 28443, 19105, 20903, 25310, 14287, 27159, 27441, 28975, 20715, 2979, 25325, 15940, 34194, 32965, 23820, 27198, 30484, 4493, 33822, 21716, 26052, 14895, 27022, 32331, 29321, 30955, 18421, 25634, 30581, 25636, 37051, 15053, 19225, 13662, 15496, 32156, 13778, 32875, 26115, 35179, 35177, 21100, 14453, 30719, 22079, 32077, 29573, 16017, 23119, 34143, 27954, 29915, 31619, 26757, 17782, 21355, 14102, 14230, 4494, 29966, 34217, 33724, 30659, 259, 32380, 25384, 24605, 26084, 19663, 16778, 18253, 27213, 2777, 39979, 17972, 15318, 19861, 22295, 13215, 13441, 13897, 28514, 34909, 24257, 30172, 23504, 29974, 27877, 2780, 25463, 15301, 31425, 24478, 13371, 25262, 21856, 21855, 29559, 34794, 27938, 21995, 14568, 16064, 21295, 31172, 21965, 30665, 30343, 29719, 30888, 21199, 22511, 24335, 23895, 26653, 17923, 13470, 25503, 24946, 15993, 29113, 36105, 15098, 17978, 28226, 15975, 17866, 28466, 30051, 19134, 13927, 19399, 9777, 30337, 14920, 30593, 23721, 22448, 26581, 13474, 31068, 21882, 26459, 27569, 21322, 21892, 16974, 26819, 25127, 21875, 23390, 21440, 29316, 19278, 31426, 30776, 20412, 23959, 25891, 3026, 23136, 28541, 20048, 17908, 30280, 26175, 29295, 30808, 31705, 34342, 30766, 18813, 24896, 17519, 16531, 13718, 28874, 25911, 18948, 27132, 30510, 23191, 30679, 27714, 13496, 23495, 16658, 13315, 26074, 19705, 29977, 16150, 36801, 36799, 36802, 11727, 29718, 21631, 21883, 17939, 15198, 2289, 16124, 29785, 37334, 24284, 31208, 16950, 29699, 28676, 25294, 35912, 11199, 28853, 22534, 17983, 6073, 31761, 30634, 26387, 26317, 30871, 21961, 20904, 30459, 17784, 24438, 18158, 15371, 14045, 20016, 21607, 32779, 22662, 22252, 23806, 31629, 18657, 31862, 26342, 22902, 9328, 2828, 21275, 36501, 25001, 32743, 1946, 13935, 28625, 37156, 17543, 25652, 23521, 22904, 27326, 17801, 36356, 15676, 32238, 30973, 29628, 23668, 16329, 40564, 21207, 23727, 20147, 24136, 37110, 29918, 20408, 15119, 22589, 16622, 33684, 24455, 27724, 19229, 26699, 22639, 21035, 32387, 37395, 25641, 17578, 19920, 20826, 13717, 29856, 22223, 19329, 21553, 27894, 13656, 19928, 13857, 18962, 14051, 36759, 30332, 26285, 30307, 17128, 13447, 30045, 25795, 36280, 22347, 16961, 34345, 13654, 34553, 13750, 31611, 29931, 19391, 26804, 13851, 32573, 24326, 24593, 40563, 13862, 20077, 37268, 13380, 27381, 17445, 19671, 24612, 11417, 17043, 22562, 21246, 36123, 31526, 15984, 17298, 28623, 24925, 14391, 27260, 29304, 29215, 29994, 16405, 16406, 18037, 31247, 18317, 15302, 17575, 24047, 20831, 31225, 26538, 18514, 16653, 32697, 24234, 24120, 25290, 25958, 29039, 28440, 26183, 17938, 21721, 21720, 21719, 30301, 19667, 31582, 30591, 24317, 13921, 29866, 32709, 28535, 25113, 25956, 32169, 30290, 32009, 30361, 30362, 27793, 22089, 17169, 23035, 29174, 30072, 32112, 27888, 33536, 33876, 33877, 33875, 33692, 13917, 17868, 22461, 14404, 22590, 16510, 32066, 31739, 28838, 23218, 27429, 31242, 24203, 36130, 27876, 25456, 36495, 16909, 32938, 28138, 19633, 30068, 25371, 19849, 36427, 29212, 11399, 17680, 32595, 31911, 19646, 27870, 22583, 30629, 40650, 20130, 23815, 25843, 25351, 19630, 29376, 16031, 36671, 30128, 28971, 25107, 24035, 28134, 21412, 3317, 29753, 16270, 25695, 24928, 31003, 17722, 30597, 11406, 35178, 31858, 18141, 27650, 27389, 13276, 19437, 18592, 28365, 25287, 27514, 29315, 32785, 25529, 26456, 24168, 18687, 34046, 19838, 13770, 29279, 17243, 32983, 18362, 20496, 19918, 15819, 3325, 36124, 24978, 31866, 24163, 18491, 34313, 22377, 25938, 31431, 31915, 20924, 30102, 3526, 25974, 27348, 24396, 28121, 14244, 15068, 32004, 17819, 31151, 21078, 32704, 16056, 22302, 18380, 33245, 30500, 19212, 37556, 22329, 27406, 33677, 25909, 25465, 32121, 13751, 17973, 21064, 29344, 22694, 20248, 21456, 3310, 32982, 20028, 14115, 27715, 29833, 27138, 29706, 731, 30739, 21147, 23025, 20900, 21584, 13300, 17874, 19750, 26366, 32798, 32414, 13495, 27229, 32734, 18261, 19022, 18245, 27499, 22102, 17677, 31112, 30190, 28855, 24871, 17724, 21946, 33354, 32759, 26319, 26658, 14337, 22587, 16168, 16689, 37000, 29680, 29582, 30999, 29916, 20940, 20403, 16125, 19848, 14118, 32597, 32526, 2901, 1876, 22018, 25585, 33496, 36511, 27908, 18189, 16042, 40508, 34611, 23039, 15698, 16571, 16416, 16570, 16572, 15518, 25393, 20348, 17815, 11728, 20229, 20228, 27544, 32075, 36415, 36416, 36139, 18587, 25930, 31341, 29543, 31367, 13183, 31282, 26072, 29145, 24582, 13275, 26360, 18535, 13507, 21722, 14402, 30000, 32003, 2357, 2148, 37258, 19049, 26104, 30035, 30111, 30421, 27025, 25799, 30485, 19905, 24818, 26926, 22337, 19926, 23622, 14712, 33044, 32188, 27545, 32668, 31428, 29921, 25098, 29040, 22889, 26716, 24700, 15224, 21377, 23256, 17624, 29461, 32934, 27770, 31374, 28900, 14455, 20955, 7801, 29804, 20330, 19432, 24513, 18377, 34136, 20937, 27171, 22867, 20252, 28258, 38988, 1631, 24477, 3376, 39417, 3624, 17291, 35059, 35598, 38438, 6326, 10931, 20212, 40883, 38487, 32044, 14061, 40626, 1231, 21679, 35623, 9700, 40786, 10994, 12140, 31407, 7597, 9624, 12694, 11269, 28620, 32953, 32784, 8314, 10328, 7015, 9575, 38866, 11800, 10528, 10956, 22798, 5458, 8888, 1107, 12107, 10502, 10061, 592, 6623, 21890, 27312, 4155, 34846, 40286, 5677, 749, 39967, 8416, 6297, 29413, 25491, 10769, 6484, 7029, 164, 28413, 30427, 14531, 30098, 8720, 38862, 39963, 10084, 6918, 10059, 10911, 14727, 27248, 938, 11090, 4153, 32479, 2054, 39291, 11038, 39511, 40112, 40282, 706, 30471, 7170, 40004, 19470, 14087, 5661, 36646, 14728, 10299, 15507, 36800, 6845, 5788, 20958, 9820, 3950, 12050, 20751, 6626, 6610, 8270, 6609, 14348, 40450, 5940, 6171, 8911, 6341, 40382, 8731, 32269, 8492, 6536, 11813, 10965, 636, 494, 35624, 594, 6738, 1019, 6905, 11159, 14328, 40119, 8319, 10933, 13146, 34612, 25985, 3711, 28117, 949, 37903, 37902, 25730, 10088, 10886, 11542, 6779, 7629, 38601, 12482, 32931, 16723, 20149, 9926, 39510, 10901, 9543, 31958, 9555, 38085, 1017, 39575, 3990, 7942, 10429, 8727, 14071, 6170, 6361, 22793, 7023, 25980, 20741, 126, 8488, 7931, 1012, 2926, 35714, 8395, 5623, 38210, 33010, 6608, 23491, 10909, 9818, 10908, 6607, 8508, 22447, 40277, 6598, 13126, 6401, 7374, 9819, 27047, 39394, 30205, 10668, 38370, 20430, 1370, 39397, 35258, 5514, 20574, 4917, 2962, 12835, 13740, 32165, 11899, 39176, 10910, 31175, 35350, 7587, 39807, 10957, 15911, 6116, 5447, 6239, 22086, 39007, 646, 10306, 6928, 14726, 37091, 13049, 6601, 4314, 8619, 14070, 994, 6342, 6327, 40374, 7420, 39318, 31119, 6366, 10083, 7064, 9356, 34868, 6822, 978, 965, 7077, 6722, 1145, 17377, 21192, 6101, 35371, 23404, 11221, 30160, 39920, 10849, 30828, 8973, 39515, 6782, 12587, 40539, 39801, 7612, 722, 1120, 11793, 8507, 9701, 12096, 6433, 6435, 5855, 23990, 39699, 32272, 6965, 11949, 26054, 6600, 35118, 6780, 39806, 5403, 40581, 28560, 5072, 6823, 10883, 34417, 10955, 8533, 38982, 25370, 8235, 13124, 4316, 12440, 38015, 15602, 10279, 6606, 36091, 40859, 9968, 939, 31267, 29398, 38964, 10958, 40375, 6907, 40284, 9380, 40452, 7070, 8689, 39779, 21535, 6329, 10456, 880, 14558, 7057, 29746, 8617, 951, 27074, 7133, 35808, 38746, 14829, 40773, 7707, 39923, 5689, 6430, 39441, 7172, 1916, 39325, 5674, 40116, 14278, 7058, 35626, 8263, 6284, 40441, 8890, 38133, 6439, 8966, 27703, 8690, 39323, 7199, 7237, 15810, 39695, 39713, 6991, 10950, 39919, 852, 39684, 32774, 7035, 6919, 10087, 31435, 11453, 7208, 6603, 33716, 851, 40545, 7928, 41042, 850, 6438, 11673, 6596, 8509, 13023, 6901, 35121, 5601, 19413, 3168, 39469, 23861, 6605, 3083, 11142, 4202, 24975, 6015, 24930, 40417, 40451, 17591, 40541, 35817, 12480, 38358, 753, 6599, 12344, 10516, 17668, 2865, 39215, 9836, 39803, 8285, 12061, 37757, 5853, 3813, 6482, 39896, 35028, 1229, 10949, 6350, 22177, 13229, 11942, 39547, 9732, 3946, 8807, 23079, 4364, 1008, 9993, 6511, 14446, 40587, 38190, 21537, 7807, 4106, 37961, 13159, 8562, 40543, 7022, 8618, 39028, 26510, 4144, 5938, 9381, 6161, 8686, 3109, 32184, 24331, 17947, 15058, 24886, 19202, 18607, 36300, 1096, 8812, 31410, 22531, 39973, 21110, 13980, 8940, 24876, 3249, 14517, 3875, 24765, 8320, 22299, 39972, 19081, 258, 6847, 30494, 19243, 7940, 30887, 30199, 40878, 30412, 5306, 36844, 14361, 29829, 11712, 5452, 24156, 7926, 26451, 27987, 11443, 7706, 26544, 5534, 23389, 13320, 22211, 14009, 30396, 40533, 17558, 30622, 30620, 4, 33919, 30360, 25635, 591, 8291, 20508, 11878, 18873, 8527, 6926, 39021, 11877, 24004, 20264, 34662, 24667, 19377, 11876, 8124, 7171, 11581, 24900, 6024, 19320, 13145, 6973, 30217, 1049, 31404, 35372, 4226, 5965, 26343, 14706, 6343, 619, 17723, 9574, 24058, 16629, 15576, 30028, 19090, 30793, 36074, 31888, 25468, 34546, 19670, 22710, 11034, 7547, 15694, 35117, 19658, 12272, 39453, 18109, 28787, 410, 10055, 35198, 40109, 33077, 8576, 31008, 12929, 6432, 5259, 26010, 19087, 39969, 39974, 40400, 40493, 32646, 21571, 19070, 6381, 9998, 23344, 39971, 10009, 13453, 25820, 11733, 14368, 23309, 32794, 1003, 29019, 14146, 23547, 40115, 33518, 25643, 8939, 6630, 17455, 191, 34116, 254, 29017, 29020, 27034, 14549, 23633, 5513, 18265, 40013, 13716, 32435, 17204, 26378, 37926, 31181, 2183, 5737, 5251, 11576, 2107, 6352, 32539, 26112, 2156, 29686, 30568, 35120, 5105, 29018, 9997, 8227, 24081, 4151, 13113, 523, 12747, 17098, 19029, 26727, 1029, 30185, 32267, 18554, 32370, 22898, 4464, 25373, 23949, 6677, 34115, 24086, 17484, 30983, 12054, 18960, 32356, 7289, 26855, 26576, 11623, 26540, 35364, 5147, 12695, 9821, 3859, 30566, 6604, 24233, 6180, 40532, 36009, 29, 31847, 27680, 32178, 24852, 34065, 36073, 34870, 39207, 28088, 34266, 19820, 29619, 9013, 12186, 20294, 18046, 1263, 19364, 25499, 29763, 19578, 16893, 10800, 22308, 40062, 31750, 23077, 15929, 13931, 27160, 6331, 31963, 32540, 2935, 953, 23146, 23871, 29520, 9226, 4368, 15147, 30772, 27261, 35818, 14275, 773, 5899, 8615, 39059, 33421, 19094, 955, 29807, 6213, 34268, 29053, 15656, 6923, 8380, 7939, 2929, 32997, 29047, 9620, 21733, 19107, 17329, 34884, 20997, 13940, 25309, 20764, 21534, 1288, 27827, 13875, 21619, 29745, 6340, 31856, 40306, 21816, 18197, 13047, 10086, 31264, 25604, 8155, 19368, 29258, 29572, 11341, 26732, 6980, 20423, 20824, 5666, 26035, 20862, 32276, 29683, 12751, 2905, 25514, 27892, 20397, 32775, 30969, 38899, 20909, 30081, 32116, 29889, 24268, 26363, 17443, 10953, 988, 10952, 1740, 28614, 17725, 30042, 39146, 25037, 13942, 12191, 10451, 12771, 28268, 37017, 23349, 38414, 2476, 32041, 34047, 30509, 21820, 32413, 18968, 17902, 11607, 22209, 30909, 1197, 39197, 31929, 13847, 35838, 30511, 36030, 15386, 24294, 12723, 38188, 38745, 37979, 11440, 40534, 1940, 4578, 7927, 11288, 39006, 39198, 6555, 14364, 6557, 16211, 40590, 15433, 10085, 16188, 1269, 25443, 28182, 1452, 29685, 23084, 15338, 30422, 18964, 30722, 1318, 17105, 30289, 30150, 30151, 26282, 12722, 41003, 1018, 11039, 38189, 11544, 37127, 40536, 36583, 11179, 14124, 19585, 1633, 27352, 28595, 21508, 23486, 24019, 34343, 39986, 26111, 12183, 28386, 7060, 31912, 15063, 40747, 4999, 30603, 12342, 10815, 26797, 14318, 18696, 4523, 28331, 17872, 8565, 18459, 40157, 24938, 8328, 19975, 22255, 18528, 33608, 6347, 26700, 24338, 31212, 28563, 5743, 27893, 17867, 29821, 26709, 27016, 36273, 18404, 8564, 22932, 961, 18661, 27761, 37349, 34677, 25683, 15321, 21340, 31992, 16363, 24990, 26264, 14031
-]
+# zlib+base64 encoded comma-separated ID_ETABLISSEMENT values from the workbook.
+# This freezes the exact 2,230 physical establishments without relying on mutable OBJECTIDs.
+_STABLE_IDS_B64 = """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"""
+STABLE_IDS = zlib.decompress(base64.b64decode(_STABLE_IDS_B64)).decode("utf-8").split(",")
 
 OUT_FIELDS = ",".join([
-    "OBJECTID", "TYPE_REG", "ID_ETABLISSEMENT", "NOM", "COMPLEMENT_LOCALI",
-    "CODE_NOGA", "ACTIVITE_DETAIL", "TEL_PRINCIPAL", "SITE_INTERNET",
-    "ADRESSE", "PHYS_NPA", "PHYS_LOCALITE", "PHYS_COMMUNE",
+    "ID_ETABLISSEMENT",
+    "TYPE_REG",
+    "NOM",
+    "COMPLEMENT_LOCALI",
+    "CODE_NOGA",
+    "ACTIVITE_DETAIL",
+    "TEL_PRINCIPAL",
+    "SITE_INTERNET",
+    "ADRESSE",
+    "PHYS_NPA",
+    "PHYS_LOCALITE",
+    "PHYS_COMMUNE",
 ])
 
 
 def sql_quote(value):
-    if value is None:
+    if value is None or value == "":
         return "NULL"
-    if isinstance(value, (int, float)):
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+            return "NULL"
         return repr(value)
     return "'" + str(value).replace("'", "''") + "'"
 
@@ -51,9 +65,10 @@ def slugify(value):
     return value or "restaurant"
 
 
-def fetch_batch(object_ids):
+def fetch_batch(stable_ids):
+    quoted = ",".join("'" + value.replace("'", "''") + "'" for value in stable_ids)
     form = urllib.parse.urlencode({
-        "where": f"OBJECTID IN ({','.join(str(value) for value in object_ids)})",
+        "where": f"ID_ETABLISSEMENT IN ({quoted})",
         "outFields": OUT_FIELDS,
         "returnGeometry": "true",
         "outSR": "4326",
@@ -68,43 +83,48 @@ def fetch_batch(object_ids):
 
 
 def main():
-    if len(OBJECT_IDS) != EXPECTED_COUNT or len(set(OBJECT_IDS)) != EXPECTED_COUNT:
-        raise RuntimeError("The frozen workbook selection must contain exactly 2184 unique OBJECTIDs")
+    if len(STABLE_IDS) != EXPECTED_COUNT or len(set(STABLE_IDS)) != EXPECTED_COUNT:
+        raise RuntimeError("The frozen workbook selection must contain exactly 2230 unique stable REG IDs")
 
     features = []
-    for offset in range(0, len(OBJECT_IDS), 300):
-        features.extend(fetch_batch(OBJECT_IDS[offset:offset + 300]))
+    for offset in range(0, len(STABLE_IDS), 200):
+        features.extend(fetch_batch(STABLE_IDS[offset:offset + 200]))
 
-    by_id = {int(feature["attributes"]["OBJECTID"]): feature for feature in features}
-    missing = sorted(set(OBJECT_IDS) - set(by_id))
+    by_id = {
+        str((feature.get("attributes") or {}).get("ID_ETABLISSEMENT") or "").strip(): feature
+        for feature in features
+    }
+    missing = sorted(set(STABLE_IDS) - set(by_id))
     if missing:
-        raise RuntimeError(f"SITG no longer returns {len(missing)} selected OBJECTIDs: {missing[:20]}")
+        raise RuntimeError(f"SITG no longer returns {len(missing)} selected stable REG IDs: {missing[:20]}")
 
-    rows = []
-    base_counts = {}
     staged = []
-    for object_id in OBJECT_IDS:
-        feature = by_id[object_id]
+    base_counts = {}
+    for stable_id in STABLE_IDS:
+        feature = by_id[stable_id]
         attrs = feature.get("attributes") or {}
         geometry = feature.get("geometry") or {}
         type_reg = str(attrs.get("TYPE_REG") or "").strip()
         code_noga = str(attrs.get("CODE_NOGA") or "").strip()
         if type_reg != "Etablissement" or code_noga not in ALLOWED_NOGA:
-            raise RuntimeError(f"Selected OBJECTID {object_id} is no longer an in-scope physical restaurant/bar")
+            raise RuntimeError(
+                f"Stable REG ID {stable_id} changed outside the selected physical restaurant/bar scope"
+            )
         name = str(attrs.get("NOM") or "").strip()
         address = str(attrs.get("ADRESSE") or "").strip()
         city = str(attrs.get("PHYS_LOCALITE") or attrs.get("PHYS_COMMUNE") or "").strip()
         if not name or not address or not city:
-            raise RuntimeError(f"Selected OBJECTID {object_id} is missing a required public location field")
+            raise RuntimeError(f"Stable REG ID {stable_id} is missing a required public location field")
         complement = str(attrs.get("COMPLEMENT_LOCALI") or "").strip()
         display_address = f"{address} — {complement}" if complement else address
         category = "Bar" if code_noga in {"563001", "563002"} else "Restaurant/cafe/snack/tea-room"
         base = slugify(name)
         base_counts[base] = base_counts.get(base, 0) + 1
-        staged.append((object_id, attrs, geometry, name, display_address, city, category, base))
+        staged.append((stable_id, attrs, geometry, name, display_address, city, category, base))
 
+    rows = []
     used_slugs = set()
-    for object_id, attrs, geometry, name, display_address, city, category, base in staged:
+    for stable_id, attrs, geometry, name, display_address, city, category, base in staged:
         slug = base
         if base_counts[base] > 1 or slug in used_slugs:
             slug = f"{base}-{slugify(city)}"
@@ -112,9 +132,9 @@ def main():
         if slug in used_slugs and complement:
             slug = f"{slug}-{slugify(complement)}"
         if slug in used_slugs:
-            slug = f"{slug}-{object_id}"
+            slug = f"{slug}-{slugify(stable_id)}"
         if slug in used_slugs:
-            raise RuntimeError(f"Unable to build a unique public listing slug for OBJECTID {object_id}")
+            raise RuntimeError(f"Unable to build a unique public listing slug for {stable_id}")
         used_slugs.add(slug)
 
         website = str(attrs.get("SITE_INTERNET") or "").strip() or None
@@ -122,14 +142,10 @@ def main():
             website = None
         phone = str(attrs.get("TEL_PRINCIPAL") or "").strip() or None
         activity = str(attrs.get("ACTIVITE_DETAIL") or "").strip() or None
-        source_ref = str(attrs.get("ID_ETABLISSEMENT") or "").strip()
-        if not source_ref:
-            raise RuntimeError(f"Selected OBJECTID {object_id} is missing ID_ETABLISSEMENT")
-
         rows.append("(" + ", ".join([
             sql_quote(SOURCE_LABEL),
             sql_quote(SOURCE_URL),
-            sql_quote(source_ref),
+            sql_quote(stable_id),
             sql_quote(SOURCE_REFRESH_DATE),
             sql_quote(name),
             sql_quote(category),
@@ -145,15 +161,99 @@ def main():
             sql_quote(slug),
         ]) + ")")
 
-    sql = """-- Generated from the exact user-provided REG/SITG selection.\n-- Original selection date: {selection_date}. Public-source refresh used for this seed: {refresh_date}.\n-- Excluded by design: EMAIL, FAX, TAILLE, NUM_IDE, ID_ENTREPRISE, TEL_SECONDAIRE, photos.\n\ninsert into public.public_restaurant_listings (\n  source, source_url, source_ref, source_collected_on, name, category, activity_detail,\n  address, postal_code, city, municipality, phone, website_url, latitude, longitude, slug\n)\nvalues\n{values}\non conflict (source, source_ref) do update\nset\n  source_url = excluded.source_url,\n  source_collected_on = excluded.source_collected_on,\n  name = excluded.name,\n  category = excluded.category,\n  activity_detail = excluded.activity_detail,\n  address = excluded.address,\n  postal_code = excluded.postal_code,\n  city = excluded.city,\n  municipality = excluded.municipality,\n  phone = excluded.phone,\n  website_url = excluded.website_url,\n  latitude = excluded.latitude,\n  longitude = excluded.longitude,\n  slug = excluded.slug,\n  updated_at = now()\nwhere public.public_restaurant_listings.claim_status = 'unclaimed'\n  and public.public_restaurant_listings.claimed_restaurant_id is null;\n\ndo $$\ndeclare v_count integer;\nbegin\n  select count(*) into v_count\n  from public.public_restaurant_listings\n  where source = '{source_label}';\n  if v_count < {expected} then\n    raise exception 'REG/SITG import incomplete: expected at least {expected} rows, got %', v_count;\n  end if;\nend\n$$;\n""".format(
+    sql = """-- Generated from the exact user-provided REG/SITG workbook selection.
+-- Original selection date: {selection_date}. Public-source refresh used for this seed: {refresh_date}.
+-- Only public professional fields needed by TOK are stored. No email, photo or scraped contact is included.
+
+insert into public.public_restaurant_listings (
+  source, source_url, source_ref, source_collected_on, name, category, activity_detail,
+  address, postal_code, city, municipality, phone, website_url, latitude, longitude, slug
+)
+values
+{values}
+on conflict (source, source_ref) do update
+set
+  source_url = excluded.source_url,
+  source_collected_on = excluded.source_collected_on,
+  name = excluded.name,
+  category = excluded.category,
+  activity_detail = excluded.activity_detail,
+  address = excluded.address,
+  postal_code = excluded.postal_code,
+  city = excluded.city,
+  municipality = excluded.municipality,
+  phone = excluded.phone,
+  website_url = excluded.website_url,
+  latitude = excluded.latitude,
+  longitude = excluded.longitude,
+  slug = excluded.slug,
+  updated_at = now()
+where public.public_restaurant_listings.claim_status = 'unclaimed'
+  and public.public_restaurant_listings.claimed_restaurant_id is null;
+
+-- Keep every source row for provenance, but hide exact same-place duplicates from discovery.
+update public.public_restaurant_listings
+set is_published = true,
+    updated_at = now()
+where source = '{source_label}'
+  and claim_status <> 'claimed';
+
+with ranked as (
+  select id,
+         row_number() over (
+           partition by public.normalize_search_text(name),
+                        public.normalize_search_text(address),
+                        public.normalize_search_text(city)
+           order by source_ref
+         ) as rn
+  from public.public_restaurant_listings
+  where source = '{source_label}'
+    and claim_status <> 'claimed'
+)
+update public.public_restaurant_listings as listing
+set is_published = false,
+    updated_at = now()
+from ranked
+where ranked.id = listing.id
+  and ranked.rn > 1;
+
+-- Do not duplicate a restaurant that already has a live TOK profile.
+update public.public_restaurant_listings as listing
+set is_published = false,
+    updated_at = now()
+where listing.source = '{source_label}'
+  and listing.claim_status <> 'claimed'
+  and exists (
+    select 1
+    from public.restaurants as restaurant
+    where restaurant.is_active is true
+      and restaurant.is_demo is false
+      and lower(coalesce(restaurant.status, '')) = 'active'
+      and public.normalize_search_text(restaurant.name) = public.normalize_search_text(listing.name)
+      and public.normalize_search_text(restaurant.address) = public.normalize_search_text(listing.address)
+  );
+
+do $$
+declare v_count integer;
+begin
+  select count(*) into v_count
+  from public.public_restaurant_listings
+  where source = '{source_label}';
+  if v_count < {expected} then
+    raise exception 'REG/SITG import incomplete: expected at least {expected} source rows, got %', v_count;
+  end if;
+end
+$$;
+""".format(
         selection_date=SOURCE_SELECTION_DATE,
         refresh_date=SOURCE_REFRESH_DATE,
         values=",\n".join(rows),
         source_label=SOURCE_LABEL.replace("'", "''"),
         expected=EXPECTED_COUNT,
     )
+
     OUTPUT_PATH.write_text(sql, encoding="utf-8")
-    print(f"Generated {OUTPUT_PATH} with {len(rows)} public listings")
+    print(f"Generated {OUTPUT_PATH} with {len(rows)} stable public listings")
 
 
 if __name__ == "__main__":
