@@ -1,0 +1,197 @@
+name: Finalize public restaurant listings
+
+on:
+  push:
+    branches:
+      - feat/public-reg-restaurant-listings-final
+    paths:
+      - .github/workflows/_finalize-public-reg-listings.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: finalize-public-reg-restaurant-listings
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+  SEO_STRICT_DYNAMIC: "0"
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout clean final branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/public-reg-restaurant-listings-final
+          fetch-depth: 0
+
+      - name: Verify branch scope and main ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --prune origin main
+          test "$(git branch --show-current)" = "feat/public-reg-restaurant-listings-final"
+          git merge-base --is-ancestor origin/main HEAD
+          test -f AGENTS.md
+
+          allowed='^(\.github/(apply-public-reg-listings\.py|finalize-public-reg-patch\.py|enhance-public-reg-listings\.py|workflows/_finalize-public-reg-listings\.yml)|supabase/migrations/20260829220(000_public_registry_restaurant_listings|500_seed_public_registry_restaurants)\.sql|src/pages/PublicRestaurantListingDetail\.tsx|src/test/public-registry-listings\.test\.ts)$'
+          unexpected="$(git diff --name-only origin/main...HEAD | grep -vE "$allowed" || true)"
+          if [[ -n "$unexpected" ]]; then
+            echo "::error::Unexpected pre-existing branch changes:"
+            printf '%s\n' "$unexpected"
+            exit 1
+          fi
+
+          test ! -e scripts/generate-public-reg-seed.py
+          test ! -e scripts/public-reg-fallback.b64
+          test ! -d scripts/public-reg-ids
+
+      - name: Validate frozen static seed and privacy allow-list
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path("supabase/migrations/20260829220500_seed_public_registry_restaurants.sql")
+          text = path.read_text(encoding="utf-8")
+          marker = "('REG/SITG – Répertoire des entreprises et établissements'"
+          if text.count(marker) != 2230:
+              raise SystemExit(f"expected exactly 2230 frozen source rows, got {text.count(marker)}")
+
+          insert = re.search(r"insert\s+into\s+public\.public_restaurant_listings\s*\((.*?)\)\s*values", text, re.I | re.S)
+          if not insert:
+              raise SystemExit("static seed INSERT not found")
+          columns = [part.strip().lower() for part in insert.group(1).split(',')]
+          expected = [
+              'source', 'source_url', 'source_ref', 'source_collected_on', 'name', 'category', 'activity_detail',
+              'address', 'postal_code', 'city', 'municipality', 'phone', 'website_url', 'latitude', 'longitude', 'slug'
+          ]
+          if columns != expected:
+              raise SystemExit(f"unexpected seed columns: {columns}")
+          if re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text):
+              raise SystemExit("email-like value detected in public seed")
+          if 'mailto:' in text.lower():
+              raise SystemExit("mailto value detected in public seed")
+          for forbidden in ('NUM_IDE', 'ID_ENTREPRISE', 'TEL_SECONDAIRE'):
+              if forbidden in text:
+                  raise SystemExit(f"forbidden administrative/private field detected: {forbidden}")
+          if not re.search(r"'(?:\+?41|0)[0-9 .()\/-]{7,}'", text):
+              raise SystemExit("no professional phone values found although phone is an allowed public field")
+          if 'exact same-place duplicates' not in text or 'live TOK profile' not in text:
+              raise SystemExit("duplicate/live-profile publication guards missing")
+          print("Validated 2230 frozen listings; phone allowed; no email/private administrative fields")
+          PY
+
+      - name: Apply reviewed implementation
+        run: |
+          python3 .github/apply-public-reg-listings.py
+          python3 .github/finalize-public-reg-patch.py
+          python3 .github/enhance-public-reg-listings.py
+
+      - name: Verify public phone and original illustration wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find public/images/public-listings -maxdepth 1 -type f -name '*.svg' | wc -l)" -eq 17
+          grep -Fq 'href={`tel:${phone}`}' src/components/RestaurantCard.tsx
+          grep -Fq 'href={`tel:${listing.phone}`}' src/pages/PublicRestaurantListingDetail.tsx
+          grep -Fq 'phone: r.phone || null' src/pages/Recherche.tsx
+          grep -Fq 'phone: restaurant.phone || null' src/pages/LocalRestaurants.tsx
+          grep -Fq 'Image d’illustration' src/components/RestaurantCard.tsx
+          grep -Fq 'Visuel générique de catégorie' src/pages/PublicRestaurantListingDetail.tsx
+          if grep -ERq 'https?://' src/lib/publicRestaurantIllustrations.ts public/images/public-listings; then
+            echo '::error::Remote URL found in generic illustration assets'
+            exit 1
+          fi
+          git diff --check
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Guard migration versions
+        env:
+          CI_MIGRATION_BASE_REF: origin/main
+        run: node scripts/ci-migration-version-guard.mjs
+
+      - name: Run targeted regression tests
+        run: >-
+          pnpm exec vitest run
+          src/test/public-registry-listings.test.ts
+          src/test/route-wiring.test.ts
+          src/test/seo-growth.test.ts
+          src/test/seo-indexation-hardening.test.ts
+          src/test/responsive-seo-regressions.test.ts
+          --reporter=verbose
+
+      - name: Run complete test suite
+        run: pnpm test
+
+      - name: Lint all sources
+        run: pnpm run lint
+
+      - name: Typecheck application
+        run: pnpm run typecheck
+
+      - name: Build application
+        run: pnpm run build
+
+      - name: Build production SEO output
+        run: pnpm run build:prod
+
+      - name: Commit only validated final implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            supabase/migrations/20260829220000_public_registry_restaurant_listings.sql \
+            supabase/migrations/20260829220500_seed_public_registry_restaurants.sql \
+            public/images/public-listings/*.svg \
+            src/App.tsx \
+            src/components/RestaurantCard.tsx \
+            src/lib/privilegedSignupRecovery.ts \
+            src/lib/publicRestaurantIllustrations.ts \
+            src/pages/Auth.tsx \
+            src/pages/LocalRestaurants.tsx \
+            src/pages/PublicRestaurantListingDetail.tsx \
+            src/pages/Recherche.tsx \
+            src/test/public-registry-listings.test.ts \
+            src/test/route-wiring.test.ts \
+            src/test/seo-growth.test.ts
+
+          git rm -f \
+            .github/apply-public-reg-listings.py \
+            .github/finalize-public-reg-patch.py \
+            .github/enhance-public-reg-listings.py \
+            .github/workflows/_finalize-public-reg-listings.yml
+
+          git diff --cached --check
+          echo '--- Final change set ---'
+          git diff --cached --stat
+          echo '--- Unstaged files (must be empty) ---'
+          test -z "$(git diff --name-only)"
+          git commit -m "feat(restaurants): add public indexed restaurant listings"
+          git push origin HEAD:feat/public-reg-restaurant-listings-final
