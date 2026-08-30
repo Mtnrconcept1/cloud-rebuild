@@ -2,8 +2,9 @@
 """Generate TOK public REG/SITG listings from the user-provided workbook selection.
 
 The 2,230 source establishments are frozen by stable public ID_ETABLISSEMENT values.
-Current SITG data is preferred. If SITG no longer exposes a selected establishment,
-a privacy-minimized snapshot from the workbook dated 2026-05-26 is used instead.
+Current SITG data is preferred when it still matches the frozen restaurant/bar scope.
+A privacy-minimized workbook snapshot dated 2026-05-26 is the fallback for records
+that disappeared, changed scope, or lost required public location fields.
 No email, fax, IDE, company size, secondary/scraped phone or photo is requested/stored.
 """
 
@@ -25,7 +26,6 @@ ARCGIS_QUERY_URL = "https://vector.sitg.ge.ch/arcgis/rest/services/REG_ENTREPRIS
 SOURCE_SELECTION_DATE = "2026-05-26"
 SOURCE_REFRESH_DATE = "2026-08-30"
 EXPECTED_COUNT = 2230
-EXPECTED_FALLBACK_COUNT = 97
 ALLOWED_NOGA = {"561001", "561003", "563001", "563002"}
 ID_DIRECTORY = Path("scripts/public-reg-ids")
 FALLBACK_PATH = Path("scripts/public-reg-fallback.b64")
@@ -47,12 +47,7 @@ def load_stable_ids() -> list[str]:
     paths = sorted(ID_DIRECTORY.glob("*.txt"))
     if len(paths) != 12:
         raise RuntimeError(f"Expected 12 stable REG ID files, got {len(paths)}")
-    stable_ids = [
-        line.strip()
-        for path in paths
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    stable_ids = [line.strip() for path in paths for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     if len(stable_ids) != EXPECTED_COUNT or len(set(stable_ids)) != EXPECTED_COUNT:
         raise RuntimeError(f"Frozen workbook selection must contain exactly {EXPECTED_COUNT} unique stable REG IDs")
     if any(not re.fullmatch(r"[A-Za-z0-9-]+", value) for value in stable_ids):
@@ -63,8 +58,8 @@ def load_stable_ids() -> list[str]:
 def load_fallback() -> dict[str, dict]:
     encoded = FALLBACK_PATH.read_text(encoding="utf-8").strip()
     records = json.loads(zlib.decompress(base64.b64decode(encoded)).decode("utf-8"))
-    if not isinstance(records, list) or len(records) != EXPECTED_FALLBACK_COUNT:
-        raise RuntimeError(f"Expected {EXPECTED_FALLBACK_COUNT} workbook fallback rows")
+    if not isinstance(records, list) or not records:
+        raise RuntimeError("Workbook fallback must contain a non-empty list")
     result = {}
     for record in records:
         if not isinstance(record, dict) or set(record) != FALLBACK_KEYS:
@@ -119,12 +114,12 @@ def normalize_live(stable_id: str, feature: dict) -> dict:
     type_reg = str(attrs.get("TYPE_REG") or "").strip()
     code_noga = str(attrs.get("CODE_NOGA") or "").strip()
     if type_reg != "Etablissement" or code_noga not in ALLOWED_NOGA:
-        raise RuntimeError(f"Live REG ID {stable_id} changed outside restaurant/bar scope")
+        raise ValueError(f"scope:{type_reg}:{code_noga}")
     name = str(attrs.get("NOM") or "").strip()
     address = str(attrs.get("ADRESSE") or "").strip()
     city = str(attrs.get("PHYS_LOCALITE") or attrs.get("PHYS_COMMUNE") or "").strip()
     if not name or not address or not city:
-        raise RuntimeError(f"Live REG ID {stable_id} lacks required public location fields")
+        raise ValueError("required_location_field_missing")
     complement = str(attrs.get("COMPLEMENT_LOCALI") or "").strip()
     website = str(attrs.get("SITE_INTERNET") or "").strip() or None
     if website and not re.match(r"^https?://", website, re.I):
@@ -163,25 +158,32 @@ def main():
     features = []
     for offset in range(0, len(stable_ids), 200):
         features.extend(fetch_batch(stable_ids[offset:offset + 200]))
-    live_by_id = {
-        str((feature.get("attributes") or {}).get("ID_ETABLISSEMENT") or "").strip(): feature
-        for feature in features
-    }
-    missing = sorted(set(stable_ids) - set(live_by_id))
-    uncovered = sorted(set(missing) - set(fallback))
-    if uncovered:
-        raise RuntimeError(f"No source data available for {len(uncovered)} stable REG IDs: {uncovered}")
-    if set(fallback) != set(missing):
-        unexpected = sorted(set(fallback) - set(missing))
-        raise RuntimeError(f"Fallback snapshot no longer matches live-missing IDs; refresh review required: {unexpected}")
+    live_by_id = {str((feature.get("attributes") or {}).get("ID_ETABLISSEMENT") or "").strip(): feature for feature in features}
 
     normalized = []
+    unresolved = []
+    fallback_reasons = []
     for stable_id in stable_ids:
-        normalized.append(
-            normalize_live(stable_id, live_by_id[stable_id])
-            if stable_id in live_by_id
-            else normalize_fallback(fallback[stable_id])
-        )
+        feature = live_by_id.get(stable_id)
+        if feature is None:
+            if stable_id in fallback:
+                normalized.append(normalize_fallback(fallback[stable_id]))
+                fallback_reasons.append((stable_id, "missing_live"))
+            else:
+                unresolved.append((stable_id, "missing_live"))
+            continue
+        try:
+            normalized.append(normalize_live(stable_id, feature))
+        except ValueError as exc:
+            if stable_id in fallback:
+                normalized.append(normalize_fallback(fallback[stable_id]))
+                fallback_reasons.append((stable_id, str(exc)))
+            else:
+                unresolved.append((stable_id, str(exc)))
+
+    if unresolved:
+        details = ", ".join(f"{stable_id}({reason})" for stable_id, reason in unresolved)
+        raise RuntimeError(f"Workbook snapshot fallback required for {len(unresolved)} additional REG IDs: {details}")
 
     base_counts = {}
     for record in normalized:
@@ -205,17 +207,16 @@ def main():
         if record["provenance"] == "workbook_snapshot":
             fallback_used += 1
         rows.append("(" + ", ".join([
-            sql_quote(SOURCE_LABEL), sql_quote(SOURCE_URL), sql_quote(stable_id),
-            sql_quote(record["collected_on"]), sql_quote(record["name"]), sql_quote(record["category"]),
-            sql_quote(record.get("activity_detail")), sql_quote(record["address"]), sql_quote(record.get("postal_code")),
-            sql_quote(record["city"]), sql_quote(record.get("municipality")), sql_quote(record.get("phone")),
-            sql_quote(record.get("website_url")), sql_quote(record.get("latitude")), sql_quote(record.get("longitude")),
-            sql_quote(slug),
+            sql_quote(SOURCE_LABEL), sql_quote(SOURCE_URL), sql_quote(stable_id), sql_quote(record["collected_on"]),
+            sql_quote(record["name"]), sql_quote(record["category"]), sql_quote(record.get("activity_detail")),
+            sql_quote(record["address"]), sql_quote(record.get("postal_code")), sql_quote(record["city"]),
+            sql_quote(record.get("municipality")), sql_quote(record.get("phone")), sql_quote(record.get("website_url")),
+            sql_quote(record.get("latitude")), sql_quote(record.get("longitude")), sql_quote(slug),
         ]) + ")")
 
     sql = """-- Generated from the exact user-provided REG/SITG workbook selection.
 -- Stable ID_ETABLISSEMENT identifiers: {expected} source establishments.
--- {live_count} rows refreshed from live SITG on {refresh_date}; {fallback_count} rows preserved from the public workbook snapshot dated {selection_date} because the live API no longer returns those stable IDs.
+-- {live_count} rows refreshed from live SITG on {refresh_date}; {fallback_count} rows preserved from the public workbook snapshot dated {selection_date} because live data was missing, out of the frozen restaurant/bar scope, or incomplete.
 -- Only public professional fields needed by TOK are stored. No email, fax, IDE, secondary phone, photo or scraped contact is included.
 
 insert into public.public_restaurant_listings (
@@ -277,10 +278,10 @@ $$;
         values=",\n".join(rows),
         source_label=SOURCE_LABEL.replace("'", "''"),
     )
-    if fallback_used != EXPECTED_FALLBACK_COUNT:
-        raise RuntimeError(f"Expected to use {EXPECTED_FALLBACK_COUNT} fallback rows, used {fallback_used}")
     OUTPUT_PATH.write_text(sql, encoding="utf-8")
     print(f"Generated {OUTPUT_PATH}: {EXPECTED_COUNT - fallback_used} live + {fallback_used} workbook snapshot rows")
+    if fallback_reasons:
+        print("Fallback provenance:", ", ".join(f"{stable_id}:{reason}" for stable_id, reason in fallback_reasons))
 
 
 if __name__ == "__main__":
