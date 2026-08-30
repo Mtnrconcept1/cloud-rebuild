@@ -14,8 +14,14 @@
   ],
   "icons": [
     {
-      "src": "/logotok.png",
-      "sizes": "1691x1099",
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     }
@@ -44,8 +50,8 @@
       "url": "/mon-espace?source=pwa-shortcut",
       "icons": [
         {
-          "src": "/logotok.png",
-          "sizes": "1691x1099",
+          "src": "/favicon-192x192.png",
+          "sizes": "192x192",
           "type": "image/png"
         }
       ]
@@ -57,8 +63,8 @@
       "url": "/recherche?mode=reservation",
       "icons": [
         {
-          "src": "/logotok.png",
-          "sizes": "1691x1099",
+          "src": "/favicon-192x192.png",
+          "sizes": "192x192",
           "type": "image/png"
         }
       ]
@@ -70,8 +76,8 @@
       "url": "/ventes-flash",
       "icons": [
         {
-          "src": "/logotok.png",
-          "sizes": "1691x1099",
+          "src": "/favicon-192x192.png",
+          "sizes": "192x192",
           "type": "image/png"
         }
       ]
@@ -83,8 +89,8 @@
       "url": "/actualites",
       "icons": [
         {
-          "src": "/logotok.png",
-          "sizes": "1691x1099",
+          "src": "/favicon-192x192.png",
+          "sizes": "192x192",
           "type": "image/png"
         }
       ]
