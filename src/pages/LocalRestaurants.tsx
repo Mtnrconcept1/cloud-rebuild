@@ -17,6 +17,7 @@ import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCa
 const supabase = getSupabase();
 const RestaurantDetail = lazy(() => import("./RestaurantDetail"));
 const STOPPIN_VENUE_RADIUS_KM = 5;
+const STOPPIN_PLACE_LABEL_MAX_LENGTH = 160;
 
 const CITY_LABELS: Record<string, string> = {
   geneve: "Genève",
@@ -234,8 +235,16 @@ function getPageDescription(city: string, category: string, district: string, in
   return `Trouvez un restaurant à ${city} avec TOK : comparez les cuisines, la réservation, la commande et les offres locales.`;
 }
 
-function buildRestaurantJsonLd(restaurants: any[], city: string, category: string, district: string, intent: string, path: string) {
-  const pageName = getPageName(city, category, district, intent);
+function buildRestaurantJsonLd(
+  restaurants: any[],
+  city: string,
+  category: string,
+  district: string,
+  intent: string,
+  path: string,
+  venueName?: string,
+) {
+  const pageName = getPageName(city, category, district, intent, venueName);
   const itemList = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -372,14 +381,51 @@ function parseVenueSlug(venueSlug: string) {
         .split("-")
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(" ");
-      return { venueName, city: label, citySlug };
+      return {
+        venueName,
+        city: label,
+        citySlug,
+        venueBaseSlug: venuePart,
+        routeSlug: normalized,
+      };
     }
   }
   const venueName = normalized
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
-  return { venueName, city: "Genève", citySlug: "geneve" };
+  return {
+    venueName,
+    city: "Genève",
+    citySlug: "geneve",
+    venueBaseSlug: normalized,
+    routeSlug: normalized,
+  };
+}
+
+function resolveStoppinPlaceLabel(
+  value: string | null,
+  venueInfo: ReturnType<typeof parseVenueSlug> | null,
+) {
+  if (!value || !venueInfo) return "";
+  const sanitizedValue = Array.from(value.normalize("NFC"), (character) => {
+    const codePoint = character.codePointAt(0) ?? 0;
+    return codePoint < 32 || codePoint === 127 ? " " : character;
+  }).join("");
+  const candidate = sanitizedValue.replace(/\s+/g, " ").trim();
+
+  if (
+    !candidate
+    || candidate.length > STOPPIN_PLACE_LABEL_MAX_LENGTH
+    || /[<>]/.test(candidate)
+  ) {
+    return "";
+  }
+
+  const candidateSlug = slugifyRestaurantSegment(candidate);
+  const matchesRoute = candidateSlug === venueInfo.venueBaseSlug
+    || candidateSlug === venueInfo.routeSlug;
+  return matchesRoute ? candidate : "";
 }
 
 export default function LocalRestaurants() {
@@ -389,7 +435,8 @@ export default function LocalRestaurants() {
   const params = useParams<{ city?: string; category?: string; restaurantSlug?: string; venueSlug?: string }>();
   const [searchParams] = useSearchParams();
   const venueInfo = params.venueSlug ? parseVenueSlug(params.venueSlug) : null;
-  const venueName = venueInfo?.venueName;
+  const exactStoppinPlaceLabel = resolveStoppinPlaceLabel(searchParams.get("place"), venueInfo);
+  const venueName = exactStoppinPlaceLabel || venueInfo?.venueName;
   const venueLatitude = parseCoordinate(searchParams.get("lat"), -90, 90);
   const venueLongitude = parseCoordinate(searchParams.get("lng"), -180, 180);
   const hasVenueCoordinates = Boolean(
@@ -541,8 +588,8 @@ export default function LocalRestaurants() {
   const title = getPageTitle(city, category, district, intent, venueName);
   const description = getPageDescription(city, category, district, intent, venueName);
   const jsonLd = useMemo(
-    () => buildRestaurantJsonLd(restaurants, city, category, district, intent, path),
-    [category, city, district, intent, path, restaurants],
+    () => buildRestaurantJsonLd(restaurants, city, category, district, intent, path, venueName),
+    [category, city, district, intent, path, restaurants, venueName],
   );
   const localSeoLinks = useMemo(
     () => buildLocalSeoLinks(params.city, city, category, district, intent, restaurants),

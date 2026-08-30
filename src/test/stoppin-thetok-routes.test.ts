@@ -15,18 +15,41 @@ describe("Stoppin <-> TheTok link integration", () => {
     expect(appSource).toContain('path="/restaurants-pres/:venueSlug"');
   });
 
-  it("handles venueSlug and trusted coordinates in LocalRestaurants.tsx", () => {
+  it("handles venueSlug, exact Stoppin labels and trusted coordinates in LocalRestaurants.tsx", () => {
     expect(localRestaurantsSource).toContain("parseVenueSlug");
+    expect(localRestaurantsSource).toContain("resolveStoppinPlaceLabel");
+    expect(localRestaurantsSource).toContain("venueBaseSlug");
+    expect(localRestaurantsSource).toContain("routeSlug");
     expect(localRestaurantsSource).toContain("venueSlug");
+    expect(localRestaurantsSource).toContain('searchParams.get("place")');
     expect(localRestaurantsSource).toContain('searchParams.get("lat")');
     expect(localRestaurantsSource).toContain('searchParams.get("lng")');
     expect(localRestaurantsSource).toContain('"search_restaurants_nearby"');
     expect(localRestaurantsSource).toContain("Où manger près de");
   });
 
+  it("uses the exact validated place label consistently in visible and structured SEO copy", () => {
+    expect(localRestaurantsSource).toContain("exactStoppinPlaceLabel || venueInfo?.venueName");
+    expect(localRestaurantsSource).toContain("candidateSlug === venueInfo.venueBaseSlug");
+    expect(localRestaurantsSource).toContain("candidateSlug === venueInfo.routeSlug");
+    expect(localRestaurantsSource).toContain(
+      "buildRestaurantJsonLd(restaurants, city, category, district, intent, path, venueName)",
+    );
+    expect(localRestaurantsSource).toContain(
+      "[category, city, district, intent, path, restaurants, venueName]",
+    );
+  });
+
   it("does not misuse the venue name as a restaurant full-text query", () => {
     expect(localRestaurantsSource).not.toContain("p_query: venueName");
+    expect(localRestaurantsSource).not.toContain("p_search_text: venueName");
+    expect(localRestaurantsSource).toContain("p_search_text: null");
     expect(localRestaurantsSource).toContain("p_query: district || null");
+  });
+
+  it("keeps the canonical nearby path independent from Stoppin query parameters", () => {
+    expect(localRestaurantsSource).toContain("`/restaurants-pres/${params.venueSlug}`");
+    expect(localRestaurantsSource).not.toContain("buildCanonicalUrl(`${path}?");
   });
 
   it("does not hardcode cross-project venue inventory in prerender-seo.mjs", () => {
