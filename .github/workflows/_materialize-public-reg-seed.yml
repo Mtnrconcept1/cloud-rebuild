@@ -41,17 +41,30 @@ jobs:
               raise SystemExit('Seed was not materialized')
           if sql.count("'REG/SITG – Répertoire des entreprises et établissements'") < 2230:
               raise SystemExit('Seed does not contain all 2230 source rows')
-          forbidden = [
-              'EMAIL', 'E_MAIL', 'FAX', 'IDE_ENTREPRISE', 'TAILLE_ENTREPRISE',
-              'TEL_SECONDAIRE', 'TELEPHONE2', 'SCRAPED', 'PHOTO_URL'
+
+          match = re.search(
+              r"insert\s+into\s+public\.public_restaurant_listings\s*\((.*?)\)\s*values",
+              sql,
+              flags=re.I | re.S,
+          )
+          if not match:
+              raise SystemExit('Unable to locate the static seed INSERT')
+          columns = [part.strip().lower() for part in match.group(1).split(',')]
+          expected_columns = [
+              'source', 'source_url', 'source_ref', 'source_collected_on', 'name', 'category',
+              'activity_detail', 'address', 'postal_code', 'city', 'municipality', 'phone',
+              'website_url', 'latitude', 'longitude', 'slug'
           ]
-          upper_sql = sql.upper()
-          found = [token for token in forbidden if token in upper_sql]
-          if found:
-              raise SystemExit(f'Forbidden/private fields detected in seed: {found}')
+          if columns != expected_columns:
+              raise SystemExit(f'Unexpected seed columns: {columns}')
+
+          if re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", sql):
+              raise SystemExit('Email-like data detected in seed values')
+          if 'mailto:' in sql.lower():
+              raise SystemExit('mailto data detected in seed values')
           if 'urllib' in sql or 'arcgis/rest' in sql.lower():
               raise SystemExit('Generated seed must be static and network-free')
-          print(f'Validated static seed: {len(ids)} frozen source rows')
+          print(f'Validated static seed: {len(ids)} frozen source rows; columns={len(columns)}')
           PY
 
       - name: Stage standalone artifact
