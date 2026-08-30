@@ -30,18 +30,9 @@ ID_DIRECTORY = Path("scripts/public-reg-ids")
 OUTPUT_PATH = Path("supabase/migrations/20260829220500_seed_public_registry_restaurants.sql")
 
 OUT_FIELDS = ",".join([
-    "ID_ETABLISSEMENT",
-    "TYPE_REG",
-    "NOM",
-    "COMPLEMENT_LOCALI",
-    "CODE_NOGA",
-    "ACTIVITE_DETAIL",
-    "TEL_PRINCIPAL",
-    "SITE_INTERNET",
-    "ADRESSE",
-    "PHYS_NPA",
-    "PHYS_LOCALITE",
-    "PHYS_COMMUNE",
+    "ID_ETABLISSEMENT", "TYPE_REG", "NOM", "COMPLEMENT_LOCALI", "CODE_NOGA",
+    "ACTIVITE_DETAIL", "TEL_PRINCIPAL", "SITE_INTERNET", "ADRESSE", "PHYS_NPA",
+    "PHYS_LOCALITE", "PHYS_COMMUNE",
 ])
 
 
@@ -90,7 +81,8 @@ def main():
     for offset in range(0, len(stable_ids), 200): features.extend(fetch_batch(stable_ids[offset:offset + 200]))
     by_id = {str((feature.get("attributes") or {}).get("ID_ETABLISSEMENT") or "").strip(): feature for feature in features}
     missing = sorted(set(stable_ids) - set(by_id))
-    if missing: raise RuntimeError(f"SITG no longer returns {len(missing)} selected stable REG IDs: {missing[:20]}")
+    if missing:
+        raise RuntimeError(f"SITG no longer returns {len(missing)} selected stable REG IDs: {missing}")
 
     staged, base_counts = [], {}
     for stable_id in stable_ids:
@@ -137,6 +129,7 @@ set source_url = excluded.source_url, source_collected_on = excluded.source_coll
 where public.public_restaurant_listings.claim_status = 'unclaimed'
   and public.public_restaurant_listings.claimed_restaurant_id is null;
 
+-- Keep every source row for provenance, but hide exact same-place duplicates from discovery.
 update public.public_restaurant_listings set is_published = true, updated_at = now()
 where source = '{source_label}' and claim_status <> 'claimed';
 
@@ -150,9 +143,9 @@ with ranked as (
 )
 update public.public_restaurant_listings as listing
 set is_published = false, updated_at = now()
-from ranked
-where ranked.id = listing.id and ranked.rn > 1;
+from ranked where ranked.id = listing.id and ranked.rn > 1;
 
+-- Do not duplicate a restaurant that already has a live TOK profile.
 update public.public_restaurant_listings as listing
 set is_published = false, updated_at = now()
 where listing.source = '{source_label}' and listing.claim_status <> 'claimed'
