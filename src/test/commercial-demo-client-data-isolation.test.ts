@@ -95,7 +95,7 @@ describe("commercial demo client data isolation", () => {
     expect(detail).toContain('["restaurant-media", restaurantId, demoSessionKey]');
   });
 
-  it("never reaches the SECURITY DEFINER restaurant catalog RPC in client demo mode", () => {
+  it("never reaches the SECURITY DEFINER restaurant discovery RPC in client demo mode", () => {
     const index = readFileSync("src/pages/Index.tsx", "utf8");
     const search = readFileSync("src/pages/Recherche.tsx", "utf8");
     const local = readFileSync("src/pages/LocalRestaurants.tsx", "utf8");
@@ -109,17 +109,17 @@ describe("commercial demo client data isolation", () => {
     expect(guardedHomeRailCalls).toHaveLength(homeRailCalls.length);
     expect(index.match(/search_restaurants_catalog/g) ?? []).toHaveLength(1);
 
-    expect(search.match(/search_restaurants_catalog/g) ?? []).toHaveLength(1);
+    expect(search.match(/search_restaurant_discovery_catalog/g) ?? []).toHaveLength(1);
     expectDemoGuardBeforeProductionCall(
       search,
-      '(supabase.rpc as any)("search_restaurants_catalog"',
+      '(supabase.rpc as any)("search_restaurant_discovery_catalog"',
       "if (isCommercialDemoClient)",
     );
 
-    expect(local.match(/search_restaurants_catalog/g) ?? []).toHaveLength(1);
+    expect(local.match(/search_restaurant_discovery_catalog/g) ?? []).toHaveLength(1);
     expectDemoGuardBeforeProductionCall(
       local,
-      '(supabase.rpc as any)("search_restaurants_catalog"',
+      '(supabase.rpc as any)("search_restaurant_discovery_catalog"',
       "if (isCommercialDemoClient)",
     );
   });

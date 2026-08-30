@@ -151,7 +151,7 @@ describe("SEO growth readiness", () => {
     expect(page).toContain("MIN_SPECIALIZED_LOCAL_RESTAURANTS");
     expect(page).toContain("Restaurants à");
     expect(page).toContain("Découvrez");
-    expect(page).toContain("search_restaurants_catalog");
+    expect(page).toContain("search_restaurant_discovery_catalog");
     expect(page).toContain('lazy(() => import("./RestaurantDetail"))');
     expect(page).not.toContain("restaurants.length === 0))");
     expect(page).toContain("hasConfirmedEmptyInventory");

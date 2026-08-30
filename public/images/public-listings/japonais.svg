@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
+  <title id="title">Illustration TOK — Japonais</title>
+  <desc id="desc">Illustration générique de catégorie, ne représentant pas un établissement précis.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff7ed"/>
+      <stop offset="0.52" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f8fafc"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e11d48"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#0f172a" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="750" rx="54" fill="url(#bg)"/>
+  <circle cx="1020" cy="115" r="170" fill="#e11d48" opacity="0.10"/>
+  <circle cx="135" cy="640" r="230" fill="#111827" opacity="0.08"/>
+  <g transform="translate(135 92)" filter="url(#shadow)">
+    <rect width="930" height="566" rx="48" fill="#fff" opacity="0.94"/>
+    <g transform="translate(90 76)">
+      <circle cx="210" cy="210" r="168" fill="#f8fafc" stroke="url(#accent)" stroke-width="18"/>
+      <circle cx="210" cy="210" r="112" fill="none" stroke="#cbd5e1" stroke-width="10"/>
+      <path d="M70 65v290M42 65v112c0 26 18 44 42 44s42-18 42-44V65M350 65v290M350 65c56 38 70 98 0 156" fill="none" stroke="#334155" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="210" cy="210" r="34" fill="url(#accent)"/>
+    </g>
+    <g transform="translate(500 155)">
+      <text x="0" y="0" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="34" font-weight="800" fill="#e11d48">TOK • IMAGE D’ILLUSTRATION</text>
+      <text x="0" y="88" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="68" font-weight="900" fill="#0f172a">Japonais</text>
+      <rect x="0" y="128" width="300" height="14" rx="7" fill="url(#accent)"/>
+      <text x="0" y="205" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="27" font-weight="600" fill="#64748b">Visuel générique de catégorie</text>
+      <text x="0" y="246" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="25" fill="#64748b">Ne représente pas nécessairement le restaurant.</text>
+    </g>
+  </g>
+</svg>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Bike, Heart, MapPin, Percent, Sparkles } from "lucide-react";
+import { ArrowRight, Bike, Database, Heart, ImageIcon, MapPin, Percent, Phone, Sparkles } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import { getOptimizedImageSizes, getOptimizedImageSrcSet, getOptimizedImageUrl }
 import type { CampaignCreativeConfig } from "@/lib/campaignCreative";
 import { selectRestaurantCardReservationSlots } from "@/lib/reservationAvailability";
 import { getConfiguredServiceSettings } from "@/lib/serviceSettings";
+import { getPublicRestaurantIllustration } from "@/lib/publicRestaurantIllustrations";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
 const supabase = getSupabase();
@@ -31,9 +32,13 @@ interface RestaurantCardProps {
   rating: number;
   reviewCount: number;
   imageUrl: string;
-  priceRange: number;
+  priceRange: number | null;
   deliveryAvailable: boolean;
   city: string;
+  isPublicIndexedListing?: boolean;
+  listingSource?: string | null;
+  listingClaimStatus?: string | null;
+  phone?: string | null;
   address?: string;
   slug?: string | null;
   openingHours?: Json | null;
@@ -197,6 +202,10 @@ export default function RestaurantCard({
   slug,
   openingHours,
   supportsReservation,
+  isPublicIndexedListing = false,
+  listingSource,
+  listingClaimStatus,
+  phone,
   sponsoredCampaignId,
   sponsoredPromoImage,
   sponsoredCampaignTitle,
@@ -214,9 +223,10 @@ export default function RestaurantCard({
   const activeFeatures = isCommercialDemoClient
     ? new Set(commercialDemoFrame.snapshot.active_features)
     : globalActiveFeatures;
-  const resolvedImage = getImageUrl(sponsoredPromoImage || imageUrl, cuisine);
-  const optimizedImage = getOptimizedImageUrl(resolvedImage, "card");
-  const optimizedSrcSet = getOptimizedImageSrcSet(resolvedImage, "card");
+  const publicIllustration = getPublicRestaurantIllustration({ name, cuisine });
+  const resolvedImage = isPublicIndexedListing ? publicIllustration.src : getImageUrl(sponsoredPromoImage || imageUrl, cuisine);
+  const optimizedImage = isPublicIndexedListing ? resolvedImage : getOptimizedImageUrl(resolvedImage, "card");
+  const optimizedSrcSet = isPublicIndexedListing ? undefined : getOptimizedImageSrcSet(resolvedImage, "card");
   const organicImpressionTracked = useRef(false);
   const isSponsored = Boolean(sponsoredCampaignId);
   const showDelivery = activeFeatures.has("livraison") && deliveryAvailable;
@@ -240,11 +250,12 @@ export default function RestaurantCard({
         .maybeSingle();
       return Boolean(data);
     },
-    enabled: Boolean(user && !isCommercialDemoClient),
+    enabled: Boolean(user && !isCommercialDemoClient && !isPublicIndexedListing),
   });
 
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isPublicIndexedListing) return;
     if (isCommercialDemoClient) {
       toast({ title: "Favori simulé", description: "Le compte et les favoris de production restent inchangés." });
       return;
@@ -275,7 +286,7 @@ export default function RestaurantCard({
         .limit(1);
       return data?.[0]?.discount_percent || 0;
     },
-    enabled: !isCommercialDemoClient,
+    enabled: !isCommercialDemoClient && !isPublicIndexedListing,
   });
 
   const reservationCardNow = useMemo(() => new Date(), []);
@@ -300,7 +311,7 @@ export default function RestaurantCard({
 
       return (data as ReservationCardProfile | null) || null;
     },
-    enabled: !isCommercialDemoClient && shouldFetchReservationProfile && supportsReservation !== false,
+    enabled: !isCommercialDemoClient && shouldFetchReservationProfile && !isPublicIndexedListing && supportsReservation !== false,
     staleTime: 60_000,
   });
 
@@ -326,7 +337,7 @@ export default function RestaurantCard({
 
       return normalizeSlotAvailabilityRows(data);
     },
-    enabled: !isCommercialDemoClient && canShowReservationSlots,
+    enabled: !isCommercialDemoClient && canShowReservationSlots && !isPublicIndexedListing,
     staleTime: 30_000,
     retry: 1,
   });
@@ -358,7 +369,7 @@ export default function RestaurantCard({
   const discountBadgeLabel = hasDiscount ? `Jusqu’à -${discountPercentLabel}%` : null;
   const discountShortLabel = hasDiscount ? `-${discountPercentLabel}%` : null;
   useEffect(() => {
-    if (isCommercialDemoClient) return;
+    if (isCommercialDemoClient || isPublicIndexedListing) return;
     if (isSponsored && sponsoredCampaignId) return;
     if (organicImpressionTracked.current) return;
     organicImpressionTracked.current = true;
@@ -367,10 +378,10 @@ export default function RestaurantCard({
     }
   }, [id, isCommercialDemoClient, isSponsored, sponsoredCampaignId]);
 
-  const restaurantPath = buildRestaurantSeoPath({ id, name, city, slug });
+  const restaurantPath = isPublicIndexedListing && slug ? `/restaurant-indexe/${encodeURIComponent(slug)}` : buildRestaurantSeoPath({ id, name, city, slug });
 
   const trackRestaurantNavigation = () => {
-    if (isCommercialDemoClient) return;
+    if (isCommercialDemoClient || isPublicIndexedListing) return;
     if (isSponsored && sponsoredCampaignId) {
       trackSponsoredClick(sponsoredCampaignId, id, "restaurant_card");
     } else {
@@ -425,7 +436,7 @@ export default function RestaurantCard({
             address={address}
             rating={rating}
             reviewCount={reviewCount}
-            priceRange={priceRange}
+            priceRange={priceRange || 2}
             headline={sponsoredHeading}
             body={sponsoredDescription}
             discountLabel={discountBadgeLabel || undefined}
@@ -464,7 +475,7 @@ export default function RestaurantCard({
             height={400}
             srcSet={optimizedSrcSet}
             sizes={optimizedSrcSet ? getOptimizedImageSizes("card") : undefined}
-            alt={name}
+            alt={isPublicIndexedListing ? `Image d’illustration ${publicIllustration.label.toLowerCase()}` : name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
             decoding="async"
@@ -478,6 +489,16 @@ export default function RestaurantCard({
                 <SponsoredContextPill tone="restaurant" />
               </>
             ) : null}
+            {isPublicIndexedListing ? (
+              <>
+                <Badge className="gap-1 border-none bg-slate-900/85 text-[9px] font-bold text-white shadow-sm backdrop-blur-md">
+                  <Database className="h-3 w-3" /> Indexé depuis une base publique
+                </Badge>
+                <Badge className="gap-1 border border-white/30 bg-white/90 text-[9px] font-bold text-slate-900 shadow-sm backdrop-blur-md">
+                  <ImageIcon className="h-3 w-3" /> Image d’illustration
+                </Badge>
+              </>
+            ) : null}
             {showDelivery ? (
               <Badge className="gap-1 border-none bg-primary/95 text-[9px] font-bold uppercase text-white shadow-sm backdrop-blur-md">
                 <Bike className="h-3 w-3" /> Livraison
@@ -485,12 +506,15 @@ export default function RestaurantCard({
             ) : null}
           </div>
 
-          <button
-            className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white dark:border dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_0_22px_rgba(255,255,255,0.08)] dark:hover:bg-slate-900"
-            onClick={toggleFavorite}
-          >
-            <Heart className={isFavorite ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-muted-foreground dark:text-white/80"} />
-          </button>
+          {!isPublicIndexedListing ? (
+            <button
+              data-card-action="favorite"
+              className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white dark:border dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_0_22px_rgba(255,255,255,0.08)] dark:hover:bg-slate-900"
+              onClick={toggleFavorite}
+            >
+              <Heart className={isFavorite ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-muted-foreground dark:text-white/80"} />
+            </button>
+          ) : null}
 
           {discountBadgeLabel ? (
             <div className="absolute bottom-3 left-3 right-3 flex items-end">
@@ -519,8 +543,9 @@ export default function RestaurantCard({
               </h3>
               <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90 dark:text-slate-200/90">
                 {cuisine ? <span className="max-w-full truncate">{cuisine}</span> : null}
-                {cuisine ? <span className="text-border">/</span> : null}
-                <PriceRangeIcons range={priceRange} />
+                {cuisine && priceRange ? <span className="text-border">/</span> : null}
+                {priceRange ? <PriceRangeIcons range={priceRange} /> : null}
+                {isPublicIndexedListing ? <span className="normal-case tracking-normal text-muted-foreground">{listingClaimStatus === "claim_pending" ? "Revendication en cours" : listingSource || "Source publique"}</span> : null}
               </div>
             </div>
 
@@ -550,6 +575,19 @@ export default function RestaurantCard({
               Ouvrez la fiche pour voir le menu, les disponibilités et les détails.
             </p>
           )}
+
+          {isPublicIndexedListing && phone ? (
+            <a
+              href={`tel:${phone}`}
+              data-card-action="public-phone"
+              onClick={stopNestedCardAction}
+              className="mt-3 inline-flex w-fit items-center gap-2 text-sm font-semibold text-primary hover:underline"
+              aria-label={`Appeler ${name} au ${phone}`}
+            >
+              <Phone className="h-4 w-4" />
+              {phone}
+            </a>
+          ) : null}
 
           {isSponsored ? (
             <div className="mt-3 rounded-[22px] border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,248,230,0.95),rgba(255,255,255,0.94))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-amber-300/25 dark:bg-[linear-gradient(135deg,rgba(251,191,36,0.16),rgba(15,23,42,0.88))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_0_28px_rgba(249,115,22,0.16)]">

@@ -171,6 +171,7 @@ function toAbsoluteSeoImage(value: unknown) {
 
 function toCardProps(restaurant: any) {
   const categoryNames = Array.isArray(restaurant?.category_names) ? restaurant.category_names : [];
+  const isPublicIndexedListing = restaurant.listing_kind === "public_registry";
   return {
     id: restaurant.id,
     slug: restaurant.slug || null,
@@ -179,12 +180,16 @@ function toCardProps(restaurant: any) {
     rating: restaurant.rating || 0,
     reviewCount: restaurant.review_count || 0,
     imageUrl: restaurant.image_url || "",
-    priceRange: restaurant.price_range || 2,
-    deliveryAvailable: Boolean(restaurant.delivery_available),
+    priceRange: isPublicIndexedListing ? null : restaurant.price_range || 2,
+    deliveryAvailable: isPublicIndexedListing ? false : Boolean(restaurant.delivery_available),
     city: restaurant.city || "",
     address: restaurant.address || "",
     openingHours: Object.prototype.hasOwnProperty.call(restaurant, "opening_hours") ? restaurant.opening_hours : undefined,
-    supportsReservation: Object.prototype.hasOwnProperty.call(restaurant, "supports_reservation") ? restaurant.supports_reservation : undefined,
+    supportsReservation: isPublicIndexedListing ? false : Object.prototype.hasOwnProperty.call(restaurant, "supports_reservation") ? restaurant.supports_reservation : undefined,
+    isPublicIndexedListing,
+    listingSource: restaurant.listing_source || null,
+    listingClaimStatus: restaurant.listing_claim_status || null,
+    phone: restaurant.phone || null,
   };
 }
 
@@ -566,7 +571,7 @@ export default function LocalRestaurants() {
         return filterRestaurantsByIntent(data || [], intent);
       }
 
-      const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
+      const { data, error } = await (supabase.rpc as any)("search_restaurant_discovery_catalog", {
         p_query: district || null,
         p_city: city,
         p_cuisine: category || null,

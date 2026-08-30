@@ -58,6 +58,7 @@ const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const Recherche = lazy(() => import("./pages/Recherche"));
 const LocalRestaurants = lazy(() => import("./pages/LocalRestaurants"));
 const RestaurantDetail = lazy(() => import("./pages/RestaurantDetail"));
+const PublicRestaurantListingDetail = lazy(() => import("./pages/PublicRestaurantListingDetail"));
 const RestaurantBookingRedirect = lazy(() => import("./pages/RestaurantBookingRedirect"));
 const AntiGaspi = lazy(() => import("./pages/AntiGaspi"));
 const Panier = lazy(() => import("./pages/Panier"));
@@ -559,6 +560,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/oauth/consent" element={<OAuthConsent />} />
           <Route path="/recherche" element={<ClientSurfaceRoute><Recherche /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
+          <Route path="/restaurant-indexe/:slug" element={<ClientSurfaceRoute><PublicRestaurantListingDetail /></ClientSurfaceRoute>} />
           <Route path="/restaurants-pres/:venueSlug" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city/r/:restaurantSlug" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city/:category" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />

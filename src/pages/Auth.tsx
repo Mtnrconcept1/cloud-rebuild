@@ -179,6 +179,7 @@ type PrivilegedSignupPayload = {
   contractSignature?: RestaurateurContractSignature;
   contractContentSha256?: string | null;
   commercialReferralToken?: string;
+  claimRestaurantId?: string;
 };
 
 type SignupApplicationSubmission = {
@@ -700,6 +701,7 @@ async function finalizeSignupApplication(
           ? {
               onboarding_source: "auth_signup_confirmed",
               signup_operation_id: operationId,
+              public_listing_id: payload.claimRestaurantId || null,
               selected_subscription_plan_id:
                 payload.onboardingChoices?.subscriptionPlanId || null,
               selected_subscription_billing_period:
@@ -901,6 +903,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
   const logoSrc = useTokLogoSrc();
   const [searchParams] = useSearchParams();
+  const claimRestaurantSlug = String(searchParams.get("claimRestaurant") || "").trim().toLowerCase();
   const [commercialReferralToken, setCommercialReferralToken] = useState(() => {
     const fromUrl = String(searchParams.get("commercialReferral") || "").trim();
     if (fromUrl || typeof window === "undefined") return fromUrl;
@@ -940,6 +943,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const [roleMode, setRoleMode] = useState<SignupRole>(initialRole);
   const [signupForm, setSignupForm] =
     useState<SignupFormState>(EMPTY_SIGNUP_FORM);
+  const [claimRestaurantId, setClaimRestaurantId] = useState("");
+  const [, setClaimRestaurantName] = useState("");
   const [loading, setLoading] = useState(false);
   const [forgotPassword, setForgotPassword] = useState(false);
   const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(
@@ -988,6 +993,37 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     useFeatureFlagSnapshot();
   const courierSignupEnabled = activeFeatures.has("espace-livreur");
   const annualBillingEnabled = activeFeatures.has("billing-fair-growth-annual");
+
+  useEffect(() => {
+    if (!claimRestaurantSlug || isLogin || roleMode !== "restaurateur") return;
+    let cancelled = false;
+    void (supabase.rpc as any)("get_public_restaurant_listing", { p_slug: claimRestaurantSlug })
+      .then(({ data, error }: { data?: any[] | null; error?: Error | null }) => {
+        if (cancelled) return;
+        if (error) throw error;
+        const listing = (data || [])[0];
+        if (!listing || listing.claim_status !== "unclaimed") {
+          toast({ title: "Fiche non revendicable", description: "Cette fiche est déjà revendiquée ou en cours de vérification.", variant: "destructive" });
+          return;
+        }
+        setClaimRestaurantId(String(listing.id || ""));
+        setClaimRestaurantName(String(listing.name || ""));
+        toast({ title: "Fiche publique chargée", description: `Les informations publiques de ${String(listing.name || "cet établissement")} ont été préremplies. Complétez les informations légales pour revendiquer la fiche.` });
+        setSignupForm((current) => ({
+          ...current,
+          restaurantName: current.restaurantName || String(listing.name || ""),
+          businessName: current.businessName || String(listing.name || ""),
+          city: current.city || String(listing.city || ""),
+          address: current.address || String(listing.address || ""),
+          phone: current.phone || String(listing.phone || ""),
+        }));
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        toast({ title: "Fiche indisponible", description: error instanceof Error ? error.message : "Impossible de charger la fiche publique.", variant: "destructive" });
+      });
+    return () => { cancelled = true; };
+  }, [claimRestaurantSlug, isLogin, roleMode, toast]);
 
   useEffect(() => {
     authMountedRef.current = true;
@@ -1040,6 +1076,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           email: current.email || draft.email,
         }));
         setRoleMode(draft.role);
+        if (draft.claimRestaurantId) setClaimRestaurantId(draft.claimRestaurantId);
         privilegedSignupOperationRef.current = {
           key: `${draft.email}:${draft.role}`,
           id: draft.operationId,
@@ -1352,6 +1389,9 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             : undefined;
         const recoveredReferralToken =
           recovery?.commercialReferralToken || commercialReferralToken;
+        const recoveredClaimRestaurantId =
+          recovery?.claimRestaurantId || String(safe.public_listing_id || claimRestaurantId || "");
+        if (recoveredClaimRestaurantId) setClaimRestaurantId(recoveredClaimRestaurantId);
 
         privilegedSignupOperationRef.current = {
           key: `${user.id}:${draft.requested_role}`,
@@ -1444,6 +1484,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           commercialReferralToken:
             draft.requested_role === "restaurateur"
               ? recoveredReferralToken || undefined
+              : undefined,
+          claimRestaurantId:
+            draft.requested_role === "restaurateur"
+              ? recoveredClaimRestaurantId || undefined
               : undefined,
         };
 
@@ -1946,6 +1990,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
               submittedRole === "restaurateur"
                 ? commercialReferralToken || undefined
                 : undefined,
+            claimRestaurantId:
+              submittedRole === "restaurateur"
+                ? claimRestaurantId || undefined
+                : undefined,
           });
         } catch {
           recoveryDraftSaved = false;
@@ -1987,6 +2035,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                     signup_subscription_billing_period:
                       submittedRole === "restaurateur"
                         ? submittedOnboardingChoices.subscriptionBillingPeriod
+                        : null,
+                    signup_public_listing_id:
+                      submittedRole === "restaurateur"
+                        ? claimRestaurantId || null
                         : null,
                   }
                 : {}),
@@ -2076,6 +2128,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         commercialReferralToken:
           submittedRole === "restaurateur"
             ? commercialReferralToken || undefined
+            : undefined,
+        claimRestaurantId:
+          submittedRole === "restaurateur"
+            ? claimRestaurantId || undefined
             : undefined,
       };
 

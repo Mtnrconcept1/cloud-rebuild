@@ -199,6 +199,7 @@ function getRestaurantCuisineSummary(restaurant: any): string {
 }
 
 function toCardProps(r: any) {
+  const isPublicIndexedListing = r.listing_kind === "public_registry";
   return {
     id: r.id,
     slug: r.slug || null,
@@ -207,17 +208,21 @@ function toCardProps(r: any) {
     rating: r.rating || 0,
     reviewCount: r.review_count || 0,
     imageUrl: r.image_url || "",
-    priceRange: r.price_range || 2,
-    deliveryAvailable: !!r.delivery_available,
+    priceRange: isPublicIndexedListing ? null : r.price_range || 2,
+    deliveryAvailable: isPublicIndexedListing ? false : !!r.delivery_available,
     city: r.city || "",
     address: r.address || "",
     openingHours: Object.prototype.hasOwnProperty.call(r, "opening_hours") ? r.opening_hours : undefined,
-    supportsReservation: Object.prototype.hasOwnProperty.call(r, "supports_reservation") ? r.supports_reservation : undefined,
-    sponsoredCampaignId: r.campaign_id || undefined,
-    sponsoredPromoImage: r.promo_image || undefined,
-    sponsoredCampaignTitle: r.campaign_title || undefined,
-    sponsoredCampaignBody: r.campaign_body || undefined,
-    sponsoredCampaignCreative: r.campaign_creative || undefined,
+    supportsReservation: isPublicIndexedListing ? false : Object.prototype.hasOwnProperty.call(r, "supports_reservation") ? r.supports_reservation : undefined,
+    isPublicIndexedListing,
+    listingSource: r.listing_source || null,
+    listingClaimStatus: r.listing_claim_status || null,
+    phone: r.phone || null,
+    sponsoredCampaignId: isPublicIndexedListing ? undefined : r.campaign_id || undefined,
+    sponsoredPromoImage: isPublicIndexedListing ? undefined : r.promo_image || undefined,
+    sponsoredCampaignTitle: isPublicIndexedListing ? undefined : r.campaign_title || undefined,
+    sponsoredCampaignBody: isPublicIndexedListing ? undefined : r.campaign_body || undefined,
+    sponsoredCampaignCreative: isPublicIndexedListing ? undefined : r.campaign_creative || undefined,
   };
 }
 
@@ -288,7 +293,7 @@ export default function Recherche() {
           }] : [],
         }));
       }
-      const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
+      const { data, error } = await (supabase.rpc as any)("search_restaurant_discovery_catalog", {
         p_query: activeQuery || null,
         p_city: city || null,
         p_cuisine: cuisine || null,

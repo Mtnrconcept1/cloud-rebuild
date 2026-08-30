@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { isCaptchaEnabled } from "@/lib/captcha";
 import { submitContactSupport } from "@/lib/support/contactSupport";
+import { getPublicRestaurantIllustration } from "@/lib/publicRestaurantIllustrations";
 
 const supabase = getSupabase();
 
@@ -111,6 +112,7 @@ export default function PublicRestaurantListingDetail() {
   }
 
   const claimPending = listing.claim_status === "claim_pending";
+  const illustration = getPublicRestaurantIllustration({ name: listing.name, activity: listing.activity_detail, category: listing.category });
 
   const submitRemovalRequest = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -159,14 +161,25 @@ export default function PublicRestaurantListingDetail() {
     <main className="min-h-screen bg-background">
       <div className="container max-w-5xl space-y-6 py-8 md:py-12">
         <section className="overflow-hidden rounded-3xl border bg-card shadow-sm">
-          <div className="flex min-h-56 items-center justify-center bg-gradient-to-br from-muted via-background to-primary/10 p-8 text-center">
-            <div className="space-y-3">
-              <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl border bg-background shadow-sm">
-                <Database className="h-8 w-8 text-primary" />
+          <div className="relative min-h-72 overflow-hidden bg-muted">
+            <img
+              src={illustration.src}
+              alt={`Image d’illustration ${illustration.label.toLowerCase()}`}
+              className="absolute inset-0 h-full w-full object-cover"
+              width={1200}
+              height={750}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/35 to-slate-950/10" />
+            <div className="relative flex min-h-72 items-end p-6 text-white md:p-9">
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <Badge className="gap-1 bg-slate-950/80 text-white"><Database className="h-3.5 w-3.5" /> Indexé depuis une base de données publique</Badge>
+                  <Badge className="bg-white/90 text-slate-900">Image d’illustration · {illustration.label}</Badge>
+                </div>
+                <h1 className="font-display text-3xl font-bold md:text-5xl">{listing.name}</h1>
+                <p className="text-white/85">{listing.category === "Bar" ? "Bar" : "Restaurant / café"} · {listing.city}</p>
+                <p className="max-w-2xl text-xs text-white/75">Visuel générique de catégorie : il ne représente pas nécessairement cet établissement.</p>
               </div>
-              <Badge variant="secondary">Indexé depuis une base de données publique</Badge>
-              <h1 className="font-display text-3xl font-bold md:text-5xl">{listing.name}</h1>
-              <p className="text-muted-foreground">{listing.category === "Bar" ? "Bar" : "Restaurant / café"} · {listing.city}</p>
             </div>
           </div>
 
@@ -176,7 +189,7 @@ export default function PublicRestaurantListingDetail() {
                 <ShieldCheck className="h-4 w-4" />
                 <AlertTitle>Fiche publique non revendiquée</AlertTitle>
                 <AlertDescription>
-                  Cette fiche a été indexée à partir du Répertoire des entreprises et établissements du canton de Genève (REG/SITG), une base de données publique. TOK n'affiche ici que des informations professionnelles publiques et n'utilise aucune photo tierce pour cette fiche.
+                  Cette fiche a été indexée à partir du Répertoire des entreprises et établissements du canton de Genève (REG/SITG), une base de données publique. TOK n'affiche ici que des informations professionnelles publiques. Le visuel de catégorie est une illustration générique créée pour TOK et ne constitue pas une photo de cet établissement.
                   {sourceDateLabel ? ` Données de référence actualisées le ${sourceDateLabel}.` : ""}
                 </AlertDescription>
               </Alert>
@@ -185,7 +198,7 @@ export default function PublicRestaurantListingDetail() {
                 <h2 className="font-semibold">Informations publiques</h2>
                 <p className="flex items-start gap-2 text-sm"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span>{listing.address}{listing.postal_code ? `, ${listing.postal_code}` : ""} {listing.city}</span></p>
                 {listing.activity_detail ? <p className="text-sm text-muted-foreground">Activité déclarée : {listing.activity_detail}</p> : null}
-                {listing.phone ? <a className="flex items-center gap-2 text-sm text-primary hover:underline" href={`tel:${listing.phone}`}><Phone className="h-4 w-4" />{listing.phone}</a> : null}
+                {listing.phone ? <a className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline" href={`tel:${listing.phone}`} aria-label={`Appeler ${listing.name} au ${listing.phone}`}><Phone className="h-4 w-4" /><span><span className="sr-only">Téléphone professionnel public : </span>{listing.phone}</span></a> : null}
                 {listing.website_url ? <a className="inline-flex items-center gap-2 text-sm text-primary hover:underline" href={listing.website_url} target="_blank" rel="noreferrer">Site internet public <ExternalLink className="h-3.5 w-3.5" /></a> : null}
                 <a className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary" href={listing.source_url} target="_blank" rel="noreferrer">Consulter la source REG/SITG <ExternalLink className="h-3.5 w-3.5" /></a>
               </div>
@@ -217,7 +230,7 @@ export default function PublicRestaurantListingDetail() {
                 <div className="space-y-2"><Label htmlFor="removal-email">Email de contact</Label><Input id="removal-email" type="email" value={requesterEmail} onChange={(event) => setRequesterEmail(event.target.value)} autoComplete="email" /></div>
               </div>
               <div className="space-y-2"><Label htmlFor="removal-reason">Motif de la demande</Label><Textarea id="removal-reason" value={removalReason} onChange={(event) => setRemovalReason(event.target.value)} rows={5} placeholder="Expliquez votre lien avec l'établissement et pourquoi la fiche doit être supprimée." /></div>
-              {isCaptchaEnabled() ? <TurnstileCaptcha onVerify={setCaptchaToken} onExpire={() => setCaptchaToken("")} /> : null}
+              {isCaptchaEnabled() ? <TurnstileCaptcha action="public_contact" onTokenChange={setCaptchaToken} /> : null}
               <div className="flex flex-wrap gap-3"><Button type="submit" disabled={submittingRemoval}>{submittingRemoval ? "Envoi…" : "Envoyer la demande"}</Button><Button type="button" variant="ghost" onClick={() => setShowRemovalForm(false)}>Annuler</Button></div>
             </form>
           </section>
