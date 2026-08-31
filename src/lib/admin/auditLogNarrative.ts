@@ -122,6 +122,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "floorplan-ai": "la génération IA d’un plan de salle",
   "restaurant-advisor": "les recommandations IA au restaurateur",
   "enrich-directory-images": "l’enrichissement automatique des images des restaurants de l’annuaire",
+  "verify-directory-commercial-names": "la vérification automatique des noms commerciaux des restaurants de l’annuaire",
   "enrich-restaurants": "l’enrichissement des fiches restaurant",
   "scrape-restaurants": "la collecte de fiches restaurant",
   "google-actions-center": "la synchronisation avec Google Actions Center",
