@@ -8,6 +8,8 @@ import { initCapacitorPlugins } from "@/lib/capacitor-init";
 import { installCommercialProspectionMarkerTheme } from "@/lib/commercialProspectionMarkerTheme";
 import { initMonitoring } from "@/lib/monitoring";
 import { isNative } from "@/lib/platform";
+import DirectoryRestaurantOwnershipNotice from "@/components/DirectoryRestaurantOwnershipNotice";
+import DirectoryClaimPersistenceBridge from "@/components/DirectoryClaimPersistenceBridge";
 
 // Restore dark mode preference
 const storedTheme = localStorage.getItem("theme");
@@ -25,6 +27,8 @@ initMonitoring();
 createRoot(document.getElementById("root")!).render(
   <>
     <App />
+    <DirectoryRestaurantOwnershipNotice />
+    <DirectoryClaimPersistenceBridge />
     <Analytics />
   </>
 );
