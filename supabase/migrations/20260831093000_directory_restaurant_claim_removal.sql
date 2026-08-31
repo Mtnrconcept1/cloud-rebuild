@@ -183,4 +183,4 @@ COMMENT ON TABLE public.restaurant_directory_claim_requests IS
 COMMENT ON TABLE public.restaurant_directory_removal_requests IS
   'Authenticated removal requests for unclaimed directory listings. A minimum of two private ownership evidence documents is required; no automatic deletion occurs.';
 
-PERFORM pg_notify('pgrst', 'reload schema');
+NOTIFY pgrst, 'reload schema';
