@@ -131,6 +131,9 @@ verify_jwt = false
 [functions.dispatch-timeout]
 verify_jwt = false
 
+[functions.enrich-directory-images]
+verify_jwt = false
+
 [functions.enrich-restaurants]
 verify_jwt = false
 
