@@ -3,21 +3,21 @@ import { useEffect } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 
 const supabase = getSupabase();
+const fromUntyped = supabase.from.bind(supabase) as (relation: string) => any;
 
 async function persistClaimIntent(restaurantId: string) {
   const { data: userData } = await supabase.auth.getUser();
   const user = userData.user;
   if (!user) return;
 
-  const { data: restaurant, error: restaurantError } = await supabase
-    .from("restaurants")
+  const { data: restaurant, error: restaurantError } = await fromUntyped("restaurants")
     .select("id, name, address, city, is_directory_listing")
     .eq("id", restaurantId)
     .eq("is_directory_listing", true)
     .maybeSingle();
   if (restaurantError || !restaurant) return;
 
-  const { error } = await supabase.from("restaurant_directory_claim_requests").insert({
+  const { error } = await fromUntyped("restaurant_directory_claim_requests").insert({
     restaurant_id: restaurant.id,
     requester_id: user.id,
     restaurant_name: restaurant.name,
