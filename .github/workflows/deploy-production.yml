@@ -656,6 +656,7 @@ jobs:
             pnpm dlx "vercel@${VERCEL_CLI_VERSION}" deploy \
               --prebuilt \
               --prod \
+              --archive=tgz \
               --token="$VERCEL_TOKEN" \
               --meta githubCommitSha="$GITHUB_SHA" \
               --env "SUPABASE_URL=$PRODUCTION_SUPABASE_URL" \
