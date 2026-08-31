@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
@@ -23,6 +23,7 @@ import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFr
 import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
+const SEARCH_PAGE_SIZE = 90;
 
 type SortValue =
   | "pertinence"
@@ -258,7 +259,13 @@ export default function Recherche() {
     setQuery(activeQuery);
   }, [activeQuery]);
 
-  const { data: organicSearchResults = [], isLoading } = useQuery({
+  const {
+    data: organicSearchPages,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: [
       "restaurants-search",
       activeQuery,
@@ -272,9 +279,11 @@ export default function Recherche() {
       deliveryEnabled,
       demoSessionKey,
     ],
-    queryFn: async () => {
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const offset = Number(pageParam) || 0;
       if (isCommercialDemoClient) {
-        return getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot).map((restaurant) => ({
+        const items = getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot).map((restaurant) => ({
           ...restaurant,
           is_active: true,
           status: "demo",
@@ -287,6 +296,7 @@ export default function Recherche() {
             slug: String(restaurant.cuisine_type).toLowerCase(),
           }] : [],
         }));
+        return { items, rawCount: items.length, nextOffset: null as number | null };
       }
       const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
         p_query: activeQuery || null,
@@ -297,13 +307,13 @@ export default function Recherche() {
         p_min_rating: minRatingDb || 0,
         p_sort_by: sortBy,
         p_sort_direction: sortDirection,
-        p_limit: 90,
-        p_offset: 0,
+        p_limit: SEARCH_PAGE_SIZE,
+        p_offset: offset,
       });
 
       if (error) throw error;
-
-      return (data || []).map((restaurant: any) => ({
+      const rawItems = data || [];
+      const items = rawItems.map((restaurant: any) => ({
         ...restaurant,
         _categories: Array.isArray(restaurant?.category_names)
           ? restaurant.category_names.map((name: string, index: number) => ({
@@ -312,8 +322,19 @@ export default function Recherche() {
           }))
           : [],
       }));
+      return {
+        items,
+        rawCount: rawItems.length,
+        nextOffset: rawItems.length === SEARCH_PAGE_SIZE ? offset + SEARCH_PAGE_SIZE : null,
+      };
     },
+    getNextPageParam: (lastPage) => lastPage.nextOffset ?? undefined,
   });
+
+  const organicSearchResults = useMemo(
+    () => organicSearchPages?.pages.flatMap((page) => page.items) ?? [],
+    [organicSearchPages],
+  );
 
   const { data: cuisineOptions = [] } = useQuery({
     queryKey: ["search-cuisine-options", demoSessionKey],
@@ -465,7 +486,7 @@ export default function Recherche() {
               </div>
               <div className="rounded-2xl bg-primary/5 px-4 py-3 text-right dark:border dark:border-primary/25 dark:bg-primary/10 dark:shadow-[0_0_26px_rgba(249,115,22,0.16)]">
                 <p className="text-2xl font-bold text-primary dark:text-orange-300">{mergedCards.length}</p>
-                <p className="text-xs text-muted-foreground dark:text-slate-300">restaurant(s) visible(s)</p>
+                <p className="text-xs text-muted-foreground dark:text-slate-300">restaurant(s) chargé(s)</p>
               </div>
             </div>
 
@@ -600,7 +621,7 @@ export default function Recherche() {
             ))}
           </div>
         ) : mergedCards.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold dark:text-white">{promo === "true" ? "Bons plans disponibles" : "Sélection disponible"}</p>
@@ -610,13 +631,26 @@ export default function Recherche() {
                     : "Affinez si nécessaire, sinon ouvrez directement une fiche restaurant."}
                 </p>
               </div>
-              <p className="text-sm font-medium text-muted-foreground dark:text-slate-300"><span className="text-foreground dark:text-white">{mergedCards.length}</span> resultat(s)</p>
+              <p className="text-sm font-medium text-muted-foreground dark:text-slate-300"><span className="text-foreground dark:text-white">{mergedCards.length}</span> resultat(s) chargés</p>
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {mergedCards.map((restaurant: any) => (
                 <RestaurantCard key={`${restaurant.id}-${restaurant.campaign_id || "organic"}`} {...toCardProps(restaurant)} />
               ))}
             </div>
+            {hasNextPage && !isCommercialDemoClient ? (
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-w-56 rounded-full"
+                  onClick={() => void fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? "Chargement…" : "Charger plus de restaurants"}
+                </Button>
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="neon-panel rounded-[28px] border border-dashed py-20 text-center text-muted-foreground dark:text-slate-300">
