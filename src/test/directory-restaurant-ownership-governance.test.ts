@@ -21,8 +21,9 @@ describe("directory restaurant ownership governance", () => {
     const component = read("src/components/DirectoryRestaurantOwnershipNotice.tsx");
     const persistence = read("src/components/DirectoryClaimPersistenceBridge.tsx");
 
-    expect(component).toContain('params.set("type", "restaurateur")');
-    expect(component).toContain('params.set("claimRestaurant", restaurant.id)');
+    expect(component).toContain('type: "restaurateur"');
+    expect(component).toContain('claimRestaurant: restaurant.id');
+    expect(component).toContain('claimName: restaurant.name');
     expect(component).toContain('businessName: params.get("claimName")');
     expect(component).toContain('restaurantName: params.get("claimName")');
     expect(component).toContain('setControlledField(id, value)');
