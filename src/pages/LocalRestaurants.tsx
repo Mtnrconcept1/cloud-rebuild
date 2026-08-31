@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { MapPin, Search } from "lucide-react";
 
 import RestaurantCard from "@/components/RestaurantCard";
@@ -18,6 +18,7 @@ const supabase = getSupabase();
 const RestaurantDetail = lazy(() => import("./RestaurantDetail"));
 const STOPPIN_VENUE_RADIUS_KM = 5;
 const STOPPIN_PLACE_LABEL_MAX_LENGTH = 160;
+const LOCAL_RESTAURANT_PAGE_SIZE = 60;
 
 const CITY_LABELS: Record<string, string> = {
   geneve: "Genève",
@@ -523,11 +524,14 @@ export default function LocalRestaurants() {
         : `/restaurants/${params.city}`;
 
   const {
-    data: restaurants = [],
+    data: restaurantPages,
     isLoading,
     isError,
     isSuccess: isListingSuccess,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: [
       "local-restaurants",
       city,
@@ -543,9 +547,15 @@ export default function LocalRestaurants() {
       && !resolvedRestaurantId
       && !isExplicitRestaurantRoute
       && (!slugCandidate || legacySlugMiss),
-    queryFn: async () => {
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const offset = Number(pageParam) || 0;
       if (isCommercialDemoClient) {
-        return filterRestaurantsByIntent(demoRestaurants, intent);
+        return {
+          items: filterRestaurantsByIntent(demoRestaurants, intent),
+          rawCount: demoRestaurants.length,
+          nextOffset: null as number | null,
+        };
       }
 
       if (hasVenueCoordinates && venueLatitude !== null && venueLongitude !== null) {
@@ -558,12 +568,17 @@ export default function LocalRestaurants() {
           p_max_price_range: 4,
           p_search_text: null,
           p_delivery_only: false,
-          p_limit: 60,
-          p_offset: 0,
+          p_limit: LOCAL_RESTAURANT_PAGE_SIZE,
+          p_offset: offset,
         });
 
         if (error) throw error;
-        return filterRestaurantsByIntent(data || [], intent);
+        const rawItems = data || [];
+        return {
+          items: filterRestaurantsByIntent(rawItems, intent),
+          rawCount: rawItems.length,
+          nextOffset: rawItems.length === LOCAL_RESTAURANT_PAGE_SIZE ? offset + LOCAL_RESTAURANT_PAGE_SIZE : null,
+        };
       }
 
       const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
@@ -575,15 +590,25 @@ export default function LocalRestaurants() {
         p_min_rating: 0,
         p_sort_by: "pertinence",
         p_sort_direction: "desc",
-        p_limit: 60,
-        p_offset: 0,
+        p_limit: LOCAL_RESTAURANT_PAGE_SIZE,
+        p_offset: offset,
       });
 
       if (error) throw error;
-      return filterRestaurantsByIntent(data || [], intent);
+      const rawItems = data || [];
+      return {
+        items: filterRestaurantsByIntent(rawItems, intent),
+        rawCount: rawItems.length,
+        nextOffset: rawItems.length === LOCAL_RESTAURANT_PAGE_SIZE ? offset + LOCAL_RESTAURANT_PAGE_SIZE : null,
+      };
     },
+    getNextPageParam: (lastPage) => lastPage.nextOffset ?? undefined,
   });
 
+  const restaurants = useMemo(
+    () => restaurantPages?.pages.flatMap((page) => page.items) ?? [],
+    [restaurantPages],
+  );
   const pageName = getPageName(city, category, district, intent, venueName);
   const title = getPageTitle(city, category, district, intent, venueName);
   const description = getPageDescription(city, category, district, intent, venueName);
@@ -598,9 +623,9 @@ export default function LocalRestaurants() {
   const knownListingRoute = Boolean(
     knownCitySegment && (!routeSegment || knownDistrictSegment || knownCategorySegment || knownIntentSegment),
   );
-  const hasConfirmedEmptyInventory = isListingSuccess && restaurants.length === 0;
+  const hasConfirmedEmptyInventory = isListingSuccess && restaurants.length === 0 && !hasNextPage;
   const minimumInventory = category || district || intent ? MIN_SPECIALIZED_LOCAL_RESTAURANTS : 1;
-  const hasThinInventory = isListingSuccess && restaurants.length < minimumInventory;
+  const hasThinInventory = isListingSuccess && restaurants.length < minimumInventory && !hasNextPage;
   const unknownListingRoute = hasConfirmedEmptyInventory && !knownListingRoute;
 
   if (categoryAliasRedirect) {
@@ -730,11 +755,28 @@ export default function LocalRestaurants() {
               <div key={item} className="h-[300px] animate-pulse rounded-2xl bg-muted" />
             ))}
           </div>
-        ) : !isError && restaurants.length > 0 ? (
-          <section className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {restaurants.map((restaurant: any) => (
-              <RestaurantCard key={restaurant.id} {...toCardProps(restaurant)} />
-            ))}
+        ) : !isError && (restaurants.length > 0 || hasNextPage) ? (
+          <section className="space-y-6">
+            {restaurants.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {restaurants.map((restaurant: any) => (
+                  <RestaurantCard key={restaurant.id} {...toCardProps(restaurant)} />
+                ))}
+              </div>
+            ) : null}
+            {hasNextPage ? (
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-w-56 rounded-full"
+                  onClick={() => void fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? "Chargement…" : "Charger plus de restaurants"}
+                </Button>
+              </div>
+            ) : null}
           </section>
         ) : (
           <section className="rounded-2xl border border-dashed p-10 text-center">
