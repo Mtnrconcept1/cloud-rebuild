@@ -172,6 +172,10 @@ function toAbsoluteSeoImage(value: unknown) {
 
 function toCardProps(restaurant: any) {
   const categoryNames = Array.isArray(restaurant?.category_names) ? restaurant.category_names : [];
+  const rawDistanceKm = restaurant?.distance_km;
+  const distanceKm = rawDistanceKm === null || rawDistanceKm === undefined
+    ? null
+    : Number(rawDistanceKm);
   return {
     id: restaurant.id,
     slug: restaurant.slug || null,
@@ -183,6 +187,7 @@ function toCardProps(restaurant: any) {
     priceRange: restaurant.price_range || 2,
     deliveryAvailable: Boolean(restaurant.delivery_available),
     city: restaurant.city || "",
+    distanceKm: Number.isFinite(distanceKm) ? distanceKm : null,
     address: restaurant.address || "",
     openingHours: Object.prototype.hasOwnProperty.call(restaurant, "opening_hours") ? restaurant.opening_hours : undefined,
     supportsReservation: Object.prototype.hasOwnProperty.call(restaurant, "supports_reservation") ? restaurant.supports_reservation : undefined,
@@ -429,6 +434,34 @@ function resolveStoppinPlaceLabel(
   return matchesRoute ? candidate : "";
 }
 
+type EmbeddedStoppinVenueContext = {
+  place: string;
+  latitude: number;
+  longitude: number;
+};
+
+function readEmbeddedStoppinVenueContext(
+  venueInfo: ReturnType<typeof parseVenueSlug> | null,
+): EmbeddedStoppinVenueContext | null {
+  if (!venueInfo || typeof document === "undefined") return null;
+  const element = document.getElementById("tok-stoppin-venue-context");
+  if (!element) return null;
+
+  try {
+    const payload = JSON.parse(element.textContent || "{}") as Record<string, unknown>;
+    if (slugifyRestaurantSegment(String(payload.tokSlug || "")) !== venueInfo.routeSlug) {
+      return null;
+    }
+    const place = resolveStoppinPlaceLabel(String(payload.place || ""), venueInfo);
+    const latitude = parseCoordinate(String(payload.latitude ?? ""), -90, 90);
+    const longitude = parseCoordinate(String(payload.longitude ?? ""), -180, 180);
+    if (!place || latitude === null || longitude === null) return null;
+    return { place, latitude, longitude };
+  } catch {
+    return null;
+  }
+}
+
 export default function LocalRestaurants() {
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
@@ -436,10 +469,15 @@ export default function LocalRestaurants() {
   const params = useParams<{ city?: string; category?: string; restaurantSlug?: string; venueSlug?: string }>();
   const [searchParams] = useSearchParams();
   const venueInfo = params.venueSlug ? parseVenueSlug(params.venueSlug) : null;
+  const embeddedStoppinVenueContext = readEmbeddedStoppinVenueContext(venueInfo);
   const exactStoppinPlaceLabel = resolveStoppinPlaceLabel(searchParams.get("place"), venueInfo);
-  const venueName = exactStoppinPlaceLabel || venueInfo?.venueName;
-  const venueLatitude = parseCoordinate(searchParams.get("lat"), -90, 90);
-  const venueLongitude = parseCoordinate(searchParams.get("lng"), -180, 180);
+  const venueName = exactStoppinPlaceLabel || embeddedStoppinVenueContext?.place || venueInfo?.venueName;
+  const venueLatitude = parseCoordinate(searchParams.get("lat"), -90, 90)
+    ?? embeddedStoppinVenueContext?.latitude
+    ?? null;
+  const venueLongitude = parseCoordinate(searchParams.get("lng"), -180, 180)
+    ?? embeddedStoppinVenueContext?.longitude
+    ?? null;
   const hasVenueCoordinates = Boolean(
     venueName && venueLatitude !== null && venueLongitude !== null,
   );
@@ -695,15 +733,13 @@ export default function LocalRestaurants() {
 
   return (
     <main className="min-h-screen bg-background">
-      {!isLoading ? (
-        <LocalRestaurantsSeo
-          title={title}
-          description={description}
-          path={path}
-          jsonLd={jsonLd}
-          robots={isError || hasThinInventory ? "noindex,follow,noarchive" : undefined}
-        />
-      ) : null}
+      <LocalRestaurantsSeo
+        title={title}
+        description={description}
+        path={path}
+        jsonLd={jsonLd}
+        robots={!isLoading && (isError || hasThinInventory) ? "noindex,follow,noarchive" : undefined}
+      />
       <div className="container space-y-8 py-8">
         <section className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">

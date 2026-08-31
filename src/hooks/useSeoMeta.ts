@@ -162,12 +162,22 @@ function normalizeRoutePath(path: string) {
   return `/${pathOnly.replace(/^\/+|\/+$/g, "")}`;
 }
 
+const NEARBY_RESTAURANTS_ROUTE_PATTERN = /^\/restaurants-pres\/[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function getDynamicPublicRouteFallback(path: string) {
+  if (!NEARBY_RESTAURANTS_ROUTE_PATTERN.test(path)) return null;
+  return {
+    title: "Restaurants à proximité | TOK",
+    description: "Trouvez les restaurants les plus proches de ce lieu, avec leur distance et leurs informations utiles sur TOK.",
+  };
+}
+
 function isPrivateRoute(path: string) {
   return PRIVATE_ROUTE_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 }
 
 function isKnownPublicRoute(path: string) {
-  if (PUBLIC_ROUTE_FALLBACKS[path]) return true;
+  if (PUBLIC_ROUTE_FALLBACKS[path] || getDynamicPublicRouteFallback(path)) return true;
   return [
     "/actualites",
     "/tok-one",
@@ -189,21 +199,23 @@ function isKnownPublicRoute(path: string) {
 function applyFallbackMetadata(path: string) {
   const normalizedPath = normalizeRoutePath(path);
   const privateRoute = isPrivateRoute(normalizedPath);
-  const fallback = PUBLIC_ROUTE_FALLBACKS[normalizedPath] || {
+  const dynamicFallback = getDynamicPublicRouteFallback(normalizedPath);
+  const knownPublicRoute = isKnownPublicRoute(normalizedPath);
+  const fallback = PUBLIC_ROUTE_FALLBACKS[normalizedPath] || dynamicFallback || {
     title: privateRoute
       ? "Espace sécurisé | TOK"
-      : isKnownPublicRoute(normalizedPath)
+      : knownPublicRoute
         ? "TOK - Restaurants, offres et réservations"
         : "Page introuvable | TOK",
     description: privateRoute
       ? "Accédez à votre espace sécurisé TOK."
-      : isKnownPublicRoute(normalizedPath)
-      ? "Découvrez les restaurants, réservations, commandes et offres locales disponibles sur TOK."
-      : "Cette page n'est pas disponible.",
+      : knownPublicRoute
+        ? "Découvrez les restaurants, réservations, commandes et offres locales disponibles sur TOK."
+        : "Cette page n'est pas disponible.",
   };
   const canonicalUrl = buildCanonicalUrl(normalizedPath);
   const imageUrl = `${DEFAULT_BASE_URL}${DEFAULT_IMAGE_PATH}`;
-  const robots = privateRoute || !isKnownPublicRoute(normalizedPath) ? NOINDEX_ROBOTS : INDEX_ROBOTS;
+  const robots = privateRoute || !knownPublicRoute ? NOINDEX_ROBOTS : INDEX_ROBOTS;
 
   document.title = fallback.title;
   upsertMeta("meta[name='description']", { name: "description", content: fallback.description });

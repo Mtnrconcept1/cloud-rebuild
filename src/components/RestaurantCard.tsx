@@ -34,6 +34,7 @@ interface RestaurantCardProps {
   priceRange: number;
   deliveryAvailable: boolean;
   city: string;
+  distanceKm?: number | null;
   address?: string;
   slug?: string | null;
   openingHours?: Json | null;
@@ -103,6 +104,14 @@ function normalizeCuisine(value: string): string {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+function formatDistance(distanceKm: number | null | undefined) {
+  if (distanceKm === null || distanceKm === undefined || !Number.isFinite(distanceKm) || distanceKm < 0) {
+    return "";
+  }
+  if (distanceKm < 1) return `${Math.round(distanceKm * 1000)} m`;
+  return `${new Intl.NumberFormat("fr-CH", { maximumFractionDigits: 1 }).format(distanceKm)} km`;
 }
 
 function getImageUrl(imageUrl: string, cuisine: string): string {
@@ -193,6 +202,7 @@ export default function RestaurantCard({
   priceRange,
   deliveryAvailable,
   city,
+  distanceKm,
   address,
   slug,
   openingHours,
@@ -203,6 +213,7 @@ export default function RestaurantCard({
   sponsoredCampaignBody,
   sponsoredCampaignCreative,
 }: RestaurantCardProps) {
+  const distanceLabel = formatDistance(distanceKm);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -537,7 +548,9 @@ export default function RestaurantCard({
           <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground dark:text-slate-300">
             <span className="inline-flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-primary/75" />
-              <span className="font-medium text-foreground/90 dark:text-white/90">{city}</span>
+              <span className="font-medium text-foreground/90 dark:text-white/90">
+                {city}{distanceLabel ? ` · ${distanceLabel}` : ""}
+              </span>
             </span>
           </div>
 

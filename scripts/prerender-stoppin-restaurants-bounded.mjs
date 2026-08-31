@@ -216,7 +216,16 @@ function preferredPlaceLabel(venue) {
   return tokSlug.replace(/-/g, " ");
 }
 
-async function injectRuntimeContext(venues) {
+function escapeJsonForHtml(value) {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
+async function injectVenueContext(venues) {
   if (PUBLIC_ONLY) return 0;
   let updated = 0;
   for (const venue of venues) {
@@ -231,9 +240,14 @@ async function injectRuntimeContext(venues) {
     } catch {
       continue;
     }
-    if (html.includes('id="tok-stoppin-runtime-context"')) continue;
-    const place = preferredPlaceLabel(venue);
-    const script = `<script id="tok-stoppin-runtime-context">(()=>{try{const u=new URL(window.location.href);let c=false;if(!u.searchParams.has("lat")){u.searchParams.set("lat",${JSON.stringify(String(latitude))});c=true}if(!u.searchParams.has("lng")){u.searchParams.set("lng",${JSON.stringify(String(longitude))});c=true}if(!u.searchParams.has("place")){u.searchParams.set("place",${JSON.stringify(place)});c=true}if(c)history.replaceState(history.state,"",u.pathname+"?"+u.searchParams.toString()+u.hash)}catch{}})();</script>`;
+    if (html.includes('id="tok-stoppin-venue-context"')) continue;
+    const context = escapeJsonForHtml({
+      tokSlug,
+      place: preferredPlaceLabel(venue),
+      latitude,
+      longitude,
+    });
+    const script = `<script id="tok-stoppin-venue-context" type="application/json">${context}</script>`;
     html = html.replace("</head>", `  ${script}\n</head>`);
     await writeFile(filePath, html, "utf8");
     updated += 1;
@@ -258,10 +272,10 @@ async function main() {
 
   try {
     await import("./prerender-stoppin-restaurants.mjs");
-    const hydratedPages = await injectRuntimeContext(bounded.venues);
+    const contextualPages = await injectVenueContext(bounded.venues);
     console.log(
       `SEO Stoppin bbox: ${restaurantCoordinates.length} restaurants répartis sur ${bounded.tileCount} zone(s), `
-        + `${bounded.venues.length} lieux Stoppin utiles, ${hydratedPages} page(s) synchronisée(s) avec React.`,
+        + `${bounded.venues.length} lieux Stoppin utiles, ${contextualPages} page(s) synchronisée(s) avec React.`,
     );
   } finally {
     if (previousFeedUrl === undefined) delete process.env.SEO_STOPPIN_VENUE_FEED_URL;

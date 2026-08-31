@@ -70,12 +70,14 @@ describe("programmatic restaurant SEO with Stoppin", () => {
     expect(stoppinPrerender).toContain('robotsTag = \'<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">\'');
   });
 
-  it("keeps direct Google landings spatially coherent after React hydration", () => {
-    expect(boundedStoppinPrerender).toContain('id="tok-stoppin-runtime-context"');
-    expect(boundedStoppinPrerender).toContain('u.searchParams.set("lat"');
-    expect(boundedStoppinPrerender).toContain('u.searchParams.set("lng"');
-    expect(boundedStoppinPrerender).toContain('u.searchParams.set("place"');
-    expect(boundedStoppinPrerender).toContain("history.replaceState");
+  it("keeps direct Google landings spatially coherent without mutating the canonical URL", () => {
+    expect(boundedStoppinPrerender).toContain('id="tok-stoppin-venue-context"');
+    expect(boundedStoppinPrerender).toContain('type="application/json"');
+    expect(boundedStoppinPrerender).toContain("escapeJsonForHtml");
+    expect(boundedStoppinPrerender).toContain("preferredPlaceLabel(venue)");
+    expect(boundedStoppinPrerender).toContain("latitude");
+    expect(boundedStoppinPrerender).toContain("longitude");
+    expect(boundedStoppinPrerender).not.toContain("history.replaceState");
   });
 
   it("turns directory listings into factually distinct public HTML pages", () => {
