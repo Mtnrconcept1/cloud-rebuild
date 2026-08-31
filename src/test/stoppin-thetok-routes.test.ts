@@ -9,6 +9,8 @@ const srcRoot = resolve(repoRoot, "src");
 const appSource = readFileSync(resolve(srcRoot, "App.tsx"), "utf8");
 const prerenderSource = readFileSync(resolve(repoRoot, "scripts/prerender-seo.mjs"), "utf8");
 const localRestaurantsSource = readFileSync(resolve(srcRoot, "pages/LocalRestaurants.tsx"), "utf8");
+const restaurantCardSource = readFileSync(resolve(srcRoot, "components/RestaurantCard.tsx"), "utf8");
+const seoMetaSource = readFileSync(resolve(srcRoot, "hooks/useSeoMeta.ts"), "utf8");
 
 describe("Stoppin <-> TheTok link integration", () => {
   it("defines the /restaurants-pres/:venueSlug route in App.tsx", () => {
@@ -29,7 +31,9 @@ describe("Stoppin <-> TheTok link integration", () => {
   });
 
   it("uses the exact validated place label consistently in visible and structured SEO copy", () => {
-    expect(localRestaurantsSource).toContain("exactStoppinPlaceLabel || venueInfo?.venueName");
+    expect(localRestaurantsSource).toContain(
+      "exactStoppinPlaceLabel || embeddedStoppinVenueContext?.place || venueInfo?.venueName",
+    );
     expect(localRestaurantsSource).toContain("candidateSlug === venueInfo.venueBaseSlug");
     expect(localRestaurantsSource).toContain("candidateSlug === venueInfo.routeSlug");
     expect(localRestaurantsSource).toContain(
@@ -38,6 +42,29 @@ describe("Stoppin <-> TheTok link integration", () => {
     expect(localRestaurantsSource).toContain(
       "[category, city, district, intent, path, restaurants, venueName]",
     );
+  });
+
+  it("keeps nearby-route metadata indexable while inventory is loading", () => {
+    expect(seoMetaSource).toContain("NEARBY_RESTAURANTS_ROUTE_PATTERN");
+    expect(seoMetaSource).toContain("getDynamicPublicRouteFallback");
+    expect(seoMetaSource).toContain("privateRoute || !knownPublicRoute ? NOINDEX_ROBOTS : INDEX_ROBOTS");
+    expect(localRestaurantsSource).toContain(
+      'robots={!isLoading && (isError || hasThinInventory) ? "noindex,follow,noarchive" : undefined}',
+    );
+    expect(localRestaurantsSource).not.toContain("{!isLoading ? (");
+  });
+
+  it("hydrates the canonical URL from a validated embedded venue context", () => {
+    expect(localRestaurantsSource).toContain("readEmbeddedStoppinVenueContext");
+    expect(localRestaurantsSource).toContain('getElementById("tok-stoppin-venue-context")');
+    expect(localRestaurantsSource).toContain("embeddedStoppinVenueContext?.latitude");
+    expect(localRestaurantsSource).toContain("embeddedStoppinVenueContext?.longitude");
+  });
+
+  it("surfaces the RPC distance on nearby restaurant cards", () => {
+    expect(localRestaurantsSource).toContain("distanceKm: Number.isFinite(distanceKm) ? distanceKm : null");
+    expect(restaurantCardSource).toContain("distanceKm?: number | null");
+    expect(restaurantCardSource).toContain("formatDistance(distanceKm)");
   });
 
   it("does not misuse the venue name as a restaurant full-text query", () => {
