@@ -260,7 +260,7 @@ describe("vercel config", () => {
     expect(workflow).not.toContain("vercel@latest");
     expect(workflow).toContain('pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --prod --token="$VERCEL_TOKEN"');
     expect(workflow).toMatch(
-      /pnpm dlx "vercel@\$\{VERCEL_CLI_VERSION\}" deploy \\\s+--prebuilt \\\s+--prod \\\s+--token="\$VERCEL_TOKEN"/,
+      /pnpm dlx "vercel@\$\{VERCEL_CLI_VERSION\}" deploy \\\s+--prebuilt \\\s+--prod \\\s+--archive=tgz \\\s+--token="\$VERCEL_TOKEN"/,
     );
     expect(workflow).toContain('--env "SUPABASE_URL=$PRODUCTION_SUPABASE_URL"');
     expect(workflow).toContain('--env "SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY"');
