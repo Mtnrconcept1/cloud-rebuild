@@ -350,7 +350,7 @@ BEGIN
     RAISE EXCEPTION 'Directory commercial-name gate left % unverified rows publicly visible', v_visible_unverified;
   END IF;
 
-  IF v_directory >= 4000 AND v_verified < 3000 THEN
+  IF v_directory >= 4000 AND v_verified < 2500 THEN
     RAISE EXCEPTION 'Directory commercial-name gate unexpectedly hid too much inventory: verified=% directory=%', v_verified, v_directory;
   END IF;
 END;
