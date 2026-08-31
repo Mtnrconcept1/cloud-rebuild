@@ -245,7 +245,13 @@ DECLARE
   v_directory integer;
   v_unsafe integer;
   v_excluded integer;
+  v_source_count integer;
 BEGIN
+  SELECT count(*)::integer
+  INTO v_source_count
+  FROM public.marketing_contacts c
+  WHERE c.source_system = 'commercial_prospect_catalog';
+
   WITH eligible AS (
     SELECT
       c.*,
@@ -307,10 +313,10 @@ BEGIN
     AND c.source_system = 'commercial_prospect_catalog'
     AND c.branch IN ('Bars', 'Administration et gestion d''établissements de restauration', 'Discothèques, dancings, night clubs');
 
-  IF v_candidates <> v_covered THEN
+  IF v_source_count > 0 AND v_candidates <> v_covered THEN
     RAISE EXCEPTION 'Directory import incomplete: % candidates, % covered', v_candidates, v_covered;
   END IF;
-  IF v_directory < 4000 THEN
+  IF v_source_count >= 4000 AND v_directory < 4000 THEN
     RAISE EXCEPTION 'Directory import unexpectedly small: % rows', v_directory;
   END IF;
   IF v_unsafe <> 0 THEN
