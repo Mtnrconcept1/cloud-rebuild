@@ -54,7 +54,8 @@ describe("public restaurant directory pagination and images", () => {
     expect(worker).toContain("parseRobotsPolicy");
     expect(worker).toContain("crawl-delay");
     expect(worker).toContain("og:image");
-    expect(worker).toContain("application/ld+json");
+    expect(worker).toContain("addJsonImageValues");
+    expect(worker).toContain('add(image, "jsonld")');
     expect(worker).toContain('attrs["data-src"]');
     expect(worker).toContain("validateImageUrl");
     expect(worker).toContain("getLeadHints");
