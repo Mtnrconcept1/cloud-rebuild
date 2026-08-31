@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-const MIGRATION_PATH = "supabase/migrations/20260831063500_public_geneva_restaurant_directory.sql";
+const MIGRATION_PATH = "supabase/migrations/20260831043504_public_geneva_restaurant_directory.sql";
 
 function readMigration() {
   return readFileSync(resolve(process.cwd(), MIGRATION_PATH), "utf8");
