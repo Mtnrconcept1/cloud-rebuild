@@ -9,6 +9,9 @@ function read(path: string) {
 
 describe("directory commercial restaurant name governance", () => {
   const migration = read("supabase/migrations/20260831144500_directory_commercial_name_gate.sql");
+  const displayNameHardening = read(
+    "supabase/migrations/20260901182818_harden_directory_restaurant_display_names.sql",
+  );
   const worker = read("supabase/functions/verify-directory-commercial-names/index.ts");
 
   it("hides unverified legal-entity directory names from every public restaurant read path", () => {
@@ -31,6 +34,37 @@ describe("directory commercial restaurant name governance", () => {
     expect(migration).toContain("legal_name = COALESCE(NULLIF(btrim(r.legal_name), ''), r.name)");
     expect(migration).toContain("c.branch = 'Restaurant référencé sur TheFork'");
     expect(migration).toContain("Restaurants, cafés, snack-bar, tea-rooms et salons de dégustation de glaces");
+  });
+
+  it("fails closed for registry labels that may contain a proprietor or legal entity", () => {
+    expect(displayNameHardening).toContain("directory_registry_name_needs_commercial_verification");
+    expect(displayNameHardening).toContain("position(',' IN value) > 0");
+    expect(displayNameHardening).toContain("position('/' IN value) > 0");
+    expect(displayNameHardening).toContain("OR name_key !~");
+    expect(displayNameHardening).toContain("titulaire|succursale|proprietaire|zweigniederlassung");
+    expect(displayNameHardening).toContain("pending_registry_commercial_name_recheck");
+    expect(displayNameHardening).toContain("directory_public_name_verified = false");
+    expect(displayNameHardening).toContain("restaurants_01_protect_directory_public_name_quality");
+    expect(displayNameHardening).toContain("v_ambiguous_visible");
+  });
+
+  it("protects the reported Ahmet Sahin case while retaining the verified Les Ormeaux listing", () => {
+    expect(displayNameHardening).toContain("public.normalize_search_text(r.name) = 'ahmet sahin'");
+    expect(displayNameHardening).toContain("maria otilia de oliveira martins teixeira");
+    expect(displayNameHardening).toContain("public.normalize_search_text(r.name) = 'les ormeaux'");
+    expect(displayNameHardening).toContain("Route de Chancy 25");
+    expect(displayNameHardening).toContain("Petit-Lancy");
+    expect(displayNameHardening).toContain("official_website_manual_review");
+    expect(displayNameHardening).toContain("https://www.pizzeria-les-ormeaux.ch/");
+    expect(displayNameHardening).toContain("Ahmet Sahin legal identity must not be displayed as a restaurant name");
+  });
+
+  it("preserves every raw label for review instead of deleting directory data", () => {
+    expect(displayNameHardening).toContain(
+      "legal_name = COALESCE(NULLIF(btrim(r.legal_name), ''), r.name)",
+    );
+    expect(displayNameHardening).not.toMatch(/DELETE\s+FROM\s+public\.restaurants/i);
+    expect(displayNameHardening).not.toMatch(/DROP\s+TABLE/i);
   });
 
   it("queues unresolved names separately from image jobs and remains resumable", () => {
