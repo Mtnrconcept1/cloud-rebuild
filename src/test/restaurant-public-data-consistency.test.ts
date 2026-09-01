@@ -41,4 +41,14 @@ describe("public restaurant data consistency", () => {
     expect(migration).toContain("v_duplicate_visible");
     expect(migration).toContain("v_inconsistent_public");
   });
+
+  it("uses a neutral placeholder instead of presenting stock food as a restaurant photo", () => {
+    const card = read("src/components/RestaurantCard.tsx");
+    const placeholder = read("public/images/tok-restaurant-placeholder.svg");
+
+    expect(card).toContain('default: "/images/tok-restaurant-placeholder.svg"');
+    expect(card).not.toContain('default: "/images/mixed-grill-platter.jpeg"');
+    expect(placeholder).toContain("Photo à venir");
+    expect(placeholder).toContain("image vérifiée");
+  });
 });
