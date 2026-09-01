@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Search, SlidersHorizontal, X } from "lucide-react";
@@ -23,7 +23,7 @@ import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFr
 import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
-const SEARCH_PAGE_SIZE = 90;
+const SEARCH_PAGE_SIZE = 54;
 
 type SortValue =
   | "pertinence"
@@ -236,6 +236,7 @@ export default function Recherche() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeQuery = searchParams.get("q") || "";
   const [query, setQuery] = useState(activeQuery);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const cuisine = searchParams.get("cuisine") || "";
   const city = searchParams.get("city") || "";
   const promo = searchParams.get("promo") || "";
@@ -296,9 +297,9 @@ export default function Recherche() {
             slug: String(restaurant.cuisine_type).toLowerCase(),
           }] : [],
         }));
-        return { items, rawCount: items.length, nextOffset: null as number | null };
+        return { items, totalCount: items.length, nextOffset: null as number | null };
       }
-      const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
+      const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog_page", {
         p_query: activeQuery || null,
         p_city: city || null,
         p_cuisine: cuisine || null,
@@ -312,7 +313,8 @@ export default function Recherche() {
       });
 
       if (error) throw error;
-      const rawItems = data || [];
+      const page = Array.isArray(data) ? data[0] : data;
+      const rawItems = Array.isArray(page?.items) ? page.items : [];
       const items = rawItems.map((restaurant: any) => ({
         ...restaurant,
         _categories: Array.isArray(restaurant?.category_names)
@@ -322,10 +324,16 @@ export default function Recherche() {
           }))
           : [],
       }));
+      const parsedTotalCount = Number(page?.total_count);
+      const parsedNextOffset = Number(page?.next_offset);
       return {
         items,
-        rawCount: rawItems.length,
-        nextOffset: rawItems.length === SEARCH_PAGE_SIZE ? offset + SEARCH_PAGE_SIZE : null,
+        totalCount: Number.isFinite(parsedTotalCount) ? parsedTotalCount : items.length,
+        nextOffset: page?.next_offset === null
+          || page?.next_offset === undefined
+          || !Number.isFinite(parsedNextOffset)
+          ? null
+          : parsedNextOffset,
       };
     },
     getNextPageParam: (lastPage) => lastPage.nextOffset ?? undefined,
@@ -334,6 +342,9 @@ export default function Recherche() {
   const organicSearchResults = useMemo(
     () => organicSearchPages?.pages.flatMap((page) => page.items) ?? [],
     [organicSearchPages],
+  );
+  const organicSearchTotal = Number(
+    organicSearchPages?.pages[0]?.totalCount ?? organicSearchResults.length,
   );
 
   const { data: cuisineOptions = [] } = useQuery({
@@ -466,6 +477,27 @@ export default function Recherche() {
   }, [activeQuery, city, cuisine, sortedCuisineOptions, price, minRating10, deliveryEnabled, delivery, promo]);
 
   useEffect(() => {
+    if (isCommercialDemoClient || !hasNextPage || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isCommercialDemoClient, isFetchingNextPage]);
+
+  useEffect(() => {
     if (!isCommercialDemoClient && mergedCards.length > 0 && (activeQuery || cuisine || city)) {
       trackSearch(activeQuery || cuisine || city, mergedCards.length);
     }
@@ -485,8 +517,8 @@ export default function Recherche() {
                 </p>
               </div>
               <div className="rounded-2xl bg-primary/5 px-4 py-3 text-right dark:border dark:border-primary/25 dark:bg-primary/10 dark:shadow-[0_0_26px_rgba(249,115,22,0.16)]">
-                <p className="text-2xl font-bold text-primary dark:text-orange-300">{mergedCards.length}</p>
-                <p className="text-xs text-muted-foreground dark:text-slate-300">restaurant(s) chargé(s)</p>
+                <p className="text-2xl font-bold text-primary dark:text-orange-300">{organicSearchTotal.toLocaleString("fr-CH")}</p>
+                <p className="text-xs text-muted-foreground dark:text-slate-300">restaurant(s) disponible(s)</p>
               </div>
             </div>
 
@@ -631,7 +663,12 @@ export default function Recherche() {
                     : "Affinez si nécessaire, sinon ouvrez directement une fiche restaurant."}
                 </p>
               </div>
-              <p className="text-sm font-medium text-muted-foreground dark:text-slate-300"><span className="text-foreground dark:text-white">{mergedCards.length}</span> resultat(s) chargés</p>
+              <p className="text-sm font-medium text-muted-foreground dark:text-slate-300">
+                <span className="text-foreground dark:text-white">{mergedCards.length}</span>
+                {" "}sur{" "}
+                <span className="text-foreground dark:text-white">{organicSearchTotal.toLocaleString("fr-CH")}</span>
+                {" "}restaurant(s) chargé(s)
+              </p>
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {mergedCards.map((restaurant: any) => (
@@ -639,17 +676,27 @@ export default function Recherche() {
               ))}
             </div>
             {hasNextPage && !isCommercialDemoClient ? (
-              <div className="flex justify-center">
+              <div
+                ref={loadMoreRef}
+                className="flex min-h-20 items-center justify-center"
+                aria-live="polite"
+              >
                 <Button
                   type="button"
                   variant="outline"
-                  className="min-w-56 rounded-full"
+                  className="min-w-64 rounded-full"
                   onClick={() => void fetchNextPage()}
                   disabled={isFetchingNextPage}
                 >
-                  {isFetchingNextPage ? "Chargement…" : "Charger plus de restaurants"}
+                  {isFetchingNextPage
+                    ? `Chargement de ${SEARCH_PAGE_SIZE} restaurants…`
+                    : `Charger les ${SEARCH_PAGE_SIZE} suivants`}
                 </Button>
               </div>
+            ) : organicSearchTotal > 0 ? (
+              <p className="text-center text-sm text-muted-foreground dark:text-slate-300">
+                Tous les restaurants correspondants sont affichés.
+              </p>
             ) : null}
           </div>
         ) : (

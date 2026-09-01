@@ -13,16 +13,36 @@ describe("public restaurant directory pagination and images", () => {
     const localPage = read("src/pages/LocalRestaurants.tsx");
 
     expect(searchPage).toContain("useInfiniteQuery");
-    expect(searchPage).toContain("const SEARCH_PAGE_SIZE = 90");
+    expect(searchPage).toContain("const SEARCH_PAGE_SIZE = 54");
+    expect(searchPage).toContain('"search_restaurants_catalog_page"');
+    expect(searchPage).toContain("total_count");
     expect(searchPage).toContain("p_offset: offset");
     expect(searchPage).toContain("getNextPageParam");
-    expect(searchPage).toContain("Charger plus de restaurants");
+    expect(searchPage).toContain("IntersectionObserver");
+    expect(searchPage).toContain('rootMargin: "600px 0px"');
+    expect(searchPage).toContain("loadMoreRef");
+    expect(searchPage).toContain("organicSearchTotal");
+    expect(searchPage).toContain("Charger les \${SEARCH_PAGE_SIZE} suivants");
 
     expect(localPage).toContain("useInfiniteQuery");
     expect(localPage).toContain("const LOCAL_RESTAURANT_PAGE_SIZE = 60");
     expect(localPage).toContain("p_offset: offset");
     expect(localPage).toContain("rawItems.length === LOCAL_RESTAURANT_PAGE_SIZE");
     expect(localPage).toContain("Charger plus de restaurants");
+  });
+
+  it("returns stable visible pages with an exact filtered total", () => {
+    const migration = read("supabase/migrations/20260901170943_public_restaurant_catalog_infinite_scroll.sql");
+
+    expect(migration).toContain("search_restaurants_catalog_page");
+    expect(migration).toContain("LEAST(GREATEST(COALESCE(p_limit, 54), 1), 54)");
+    expect(migration).toContain("WHERE public.restaurant_is_publicly_visible(result.id)");
+    expect(migration).toContain("count(*)::bigint AS total_count");
+    expect(migration).toContain("row_number() OVER");
+    expect(migration).toContain("visible.id ASC");
+    expect(migration).toContain("PUBLIC must not execute catalog pagination directly");
+    expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.search_restaurants_catalog_page");
+    expect(migration).toContain("TO anon, authenticated, service_role");
   });
 
   it("keeps native image enrichment resumable, polite, SSRF-safe and directory-scoped", () => {
