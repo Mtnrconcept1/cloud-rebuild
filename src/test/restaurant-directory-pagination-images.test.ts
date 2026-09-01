@@ -22,7 +22,7 @@ describe("public restaurant directory pagination and images", () => {
     expect(searchPage).toContain('rootMargin: "600px 0px"');
     expect(searchPage).toContain("loadMoreRef");
     expect(searchPage).toContain("organicSearchTotal");
-    expect(searchPage).toContain("Charger les \${SEARCH_PAGE_SIZE} suivants");
+    expect(searchPage).toContain("Charger les ${SEARCH_PAGE_SIZE} suivants");
 
     expect(localPage).toContain("useInfiniteQuery");
     expect(localPage).toContain("const LOCAL_RESTAURANT_PAGE_SIZE = 60");
