@@ -756,6 +756,18 @@ function extractInternalLinks(pageUrl: string, html: string) {
   return output.slice(0, MAX_PAGES_PER_SITE - 1);
 }
 
+function responseTotalLength(response: Response) {
+  const contentRange = response.headers.get("content-range");
+  if (response.status === 206 && contentRange) {
+    const totalMatch = contentRange.match(/\/(\d+)$/);
+    const totalLength = Number(totalMatch?.[1] || 0);
+    if (Number.isFinite(totalLength) && totalLength > 0) return totalLength;
+  }
+
+  const contentLength = Number(response.headers.get("content-length") || 0);
+  return Number.isFinite(contentLength) && contentLength > 0 ? contentLength : 0;
+}
+
 async function validateImageUrl(imageUrl: string) {
   const url = normalizeHttpUrl(imageUrl);
   if (!url) return null;
@@ -777,9 +789,9 @@ async function validateImageUrl(imageUrl: string) {
       return null;
     }
     const contentType = (response.headers.get("content-type") || "").toLowerCase();
-    const contentLength = Number(response.headers.get("content-length") || 0);
+    const totalLength = responseTotalLength(response);
     const validType = ["image/jpeg", "image/png", "image/webp", "image/avif"].some((type) => contentType.startsWith(type));
-    const valid = response.ok && validType && (!contentLength || contentLength >= 8_000);
+    const valid = response.ok && validType && (!totalLength || totalLength >= 8_000);
     await response.body?.cancel().catch(() => undefined);
     return valid ? finalUrl.toString() : null;
   } catch {
