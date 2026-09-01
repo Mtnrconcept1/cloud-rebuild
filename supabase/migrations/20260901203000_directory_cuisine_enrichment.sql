@@ -2,6 +2,8 @@
 -- Generated from 4049 restaurant records. Seed SHA-256: a583e76e1f6bcd8003a1ffc3b54784462c7fae28acad2e5588e8596c2ba6a4bb
 -- Sources are retained per restaurant/cuisine pair; no category is inferred from an unverified web homonym.
 
+BEGIN;
+
 CREATE TABLE IF NOT EXISTS public.restaurant_cuisine_evidence (
   restaurant_id uuid NOT NULL REFERENCES public.restaurants(id) ON DELETE CASCADE,
   cuisine_id uuid NOT NULL REFERENCES public.cuisines(id) ON DELETE CASCADE,
@@ -2849,7 +2851,7 @@ AS $function$
 DECLARE
   v_limit integer := LEAST(GREATEST(COALESCE(p_limit, 3), 1), 5);
 BEGIN
-  IF auth.role() <> 'service_role' THEN
+  IF auth.role() IS DISTINCT FROM 'service_role' THEN
     RAISE EXCEPTION 'service_role required';
   END IF;
 
@@ -2903,7 +2905,7 @@ AS $function$
 DECLARE
   v_count integer := 0;
 BEGIN
-  IF auth.role() <> 'service_role' THEN
+  IF auth.role() IS DISTINCT FROM 'service_role' THEN
     RAISE EXCEPTION 'service_role required';
   END IF;
   IF NOT EXISTS (
@@ -3031,6 +3033,52 @@ ON public.restaurants
 FOR EACH ROW
 EXECUTE FUNCTION public.enqueue_directory_cuisine_research();
 
+CREATE OR REPLACE FUNCTION public.mark_directory_cuisine_job_satisfied()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_count integer;
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM public.restaurants
+    WHERE id = NEW.restaurant_id AND is_directory_listing IS TRUE
+  ) THEN
+    SELECT count(*)::integer
+    INTO v_count
+    FROM public.restaurant_cuisines
+    WHERE restaurant_id = NEW.restaurant_id;
+
+    INSERT INTO public.restaurant_directory_cuisine_jobs (
+      restaurant_id,
+      status,
+      evidence_count,
+      next_attempt_at
+    )
+    VALUES (NEW.restaurant_id, 'success', v_count, NULL)
+    ON CONFLICT (restaurant_id) DO UPDATE
+    SET status = 'success',
+        evidence_count = v_count,
+        next_attempt_at = NULL,
+        locked_at = NULL,
+        last_error = NULL,
+        updated_at = now();
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.mark_directory_cuisine_job_satisfied() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS restaurant_cuisines_mark_directory_job_satisfied
+  ON public.restaurant_cuisines;
+CREATE TRIGGER restaurant_cuisines_mark_directory_job_satisfied
+AFTER INSERT ON public.restaurant_cuisines
+FOR EACH ROW
+EXECUTE FUNCTION public.mark_directory_cuisine_job_satisfied();
+
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
@@ -3068,3 +3116,5 @@ END;
 $schedule$;
 
 NOTIFY pgrst, 'reload schema';
+
+COMMIT;

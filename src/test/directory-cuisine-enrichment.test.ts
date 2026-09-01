@@ -31,10 +31,11 @@ describe("restaurant directory cuisine enrichment", () => {
     expect(migration).toContain("restaurant_directory_cuisine_jobs");
     expect(migration).toContain("FOR UPDATE OF job SKIP LOCKED");
     expect(migration).toContain("job.attempts < 5");
-    expect(migration).toContain("auth.role() <> 'service_role'");
+    expect(migration).toContain("auth.role() IS DISTINCT FROM 'service_role'");
     expect(migration).toContain("service_apply_directory_cuisine_evidence");
     expect(migration).toContain("jsonb_array_length(p_assignments) > 12");
     expect(migration).toContain("restaurants_enqueue_directory_cuisine_research");
+    expect(migration).toContain("restaurant_cuisines_mark_directory_job_satisfied");
     expect(migration).toContain("tok-directory-cuisine-enrichment");
     expect(migration).toContain("/enrich-directory-cuisines");
     expect(migration).toContain("x-internal-cron-secret");
