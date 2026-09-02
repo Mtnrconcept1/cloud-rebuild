@@ -12,6 +12,7 @@ function read(path: string) {
 }
 
 const migrationPath = "supabase/migrations/20260902060000_directory_cuisine_osm_backfill.sql";
+const precisionMigrationPath = "supabase/migrations/20260902061000_directory_cuisine_osm_precision_guards.sql";
 const functionPath = "supabase/functions/enrich-directory-cuisines-osm/index.ts";
 
 describe("directory cuisine OSM backfill", () => {
@@ -58,6 +59,16 @@ describe("directory cuisine OSM backfill", () => {
     expect(worker).toContain("uniqueVeryNear");
     expect(worker).toContain("best.score >= 12");
     expect(worker).not.toContain('slug: "international", label: "International", confidence: 0.5');
+  });
+
+  it("rejects generic regional evidence instead of guessing a national cuisine", () => {
+    const precision = read(precisionMigrationPath);
+
+    expect(precision).toContain("restaurant_cuisine_evidence_reject_generic_osm_regional");
+    expect(precision).toContain("NEW.source_kind = 'openstreetmap_live'");
+    expect(precision).toContain("NEW.evidence ->> 'matched_osm_value' = 'regional'");
+    expect(precision).toContain("RETURN NULL");
+    expect(precision).toContain("OSM cuisine trigger functions must not be publicly executable");
   });
 
   it("queries only food amenities through bounded Overpass calls and has endpoint failover", () => {
