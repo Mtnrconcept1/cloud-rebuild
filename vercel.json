@@ -218,6 +218,16 @@
       "permanent": false
     },
     {
+      "source": "/restaurants/carouge-ge",
+      "destination": "/restaurants/carouge",
+      "statusCode": 301
+    },
+    {
+      "source": "/restaurants/carouge-ge/:path*",
+      "destination": "/restaurants/carouge/:path*",
+      "statusCode": 301
+    },
+    {
       "source": "/sitemap-seo.xml",
       "destination": "/sitemap.xml",
       "permanent": true
