@@ -113,6 +113,12 @@ function runRetry(
       encoding: "utf8",
       env: {
         ...process.env,
+        // These tests exercise retry/isolation behavior, not the production
+        // stale-head gate. Do not inherit ambient GitHub Actions production
+        // variables from the parent CI job into the temporary workspace.
+        GITHUB_ACTIONS: "false",
+        GITHUB_REF_NAME: "test",
+        GITHUB_SHA: "test-sha",
         PATH: `${workspace.binDir}:${process.env.PATH || ""}`,
         CALL_LOG: workspace.callLog,
         STATE_DIR: workspace.stateDir,
