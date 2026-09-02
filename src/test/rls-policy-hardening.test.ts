@@ -27,6 +27,20 @@ describe("RLS policy hardening", () => {
     expect(sql).not.toContain("WITH CHECK (true)");
   });
 
+  it("keeps public cuisine taxonomy readable without exposing has_role to anon", () => {
+    const sql = readSource("supabase/migrations/20260902114500_fix_public_cuisine_catalog_rls.sql");
+    const publicPolicy = sql.match(/CREATE POLICY "cuisines_public_select"[\s\S]*?;/i)?.[0] || "";
+    const adminPolicy = sql.match(/CREATE POLICY "cuisines_admin_select_archived"[\s\S]*?;/i)?.[0] || "";
+
+    expect(publicPolicy).toContain("TO PUBLIC");
+    expect(publicPolicy).toContain("USING (archived_at IS NULL)");
+    expect(publicPolicy).not.toContain("has_role");
+    expect(adminPolicy).toContain("TO authenticated");
+    expect(adminPolicy).toContain("public.has_role(auth.uid(), 'admin')");
+    expect(sql).toContain("GRANT SELECT ON public.cuisines TO anon, authenticated;");
+    expect(sql).not.toMatch(/GRANT\s+EXECUTE[\s\S]*?has_role[\s\S]*?TO\s+anon/i);
+  });
+
   it("removes generic authenticated policies from targeted operational tables", () => {
     const sql = readMigration();
     const protectedTables = [
