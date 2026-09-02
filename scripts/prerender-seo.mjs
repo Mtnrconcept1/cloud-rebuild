@@ -14,13 +14,23 @@ const PUBLIC_DIR = path.resolve(ROOT, "public");
 const PUBLIC_ONLY = process.argv.includes("--public-only");
 const MAX_DYNAMIC_RESTAURANTS = Math.max(1, Number(process.env.SEO_SITEMAP_MAX_RESTAURANTS || 10000) || 10000);
 const MAX_DYNAMIC_ACTUALITES = Math.max(1, Number(process.env.SEO_SITEMAP_MAX_ACTUALITES || 10000) || 10000);
-const MIN_LOCAL_RESTAURANTS = Math.max(1, Number(process.env.SEO_MIN_LOCAL_RESTAURANTS || 1) || 1);
+const MIN_LOCAL_RESTAURANTS = Math.max(1, Number(process.env.SEO_MIN_LOCAL_RESTAURANTS || 3) || 3);
 const MIN_SPECIALIZED_LOCAL_RESTAURANTS = Math.max(
   2,
   Number(process.env.SEO_MIN_SPECIALIZED_LOCAL_RESTAURANTS || 3) || 3,
 );
+// Une page cuisine/quartier/intention n'a de valeur que si elle sélectionne réellement un
+// sous-ensemble de sa page ville. Au-delà de ce taux de couverture elle duplique la page parente
+// et n'est ni indexée ni publiée dans le sitemap.
+const MAX_LOCAL_PARENT_COVERAGE = Math.min(
+  1,
+  Math.max(0.1, Number(process.env.SEO_MAX_LOCAL_PARENT_COVERAGE || 0.8) || 0.8),
+);
 const MIN_ACTUALITE_TEXT_LENGTH = Math.max(1, Number(process.env.SEO_MIN_ACTUALITE_TEXT_LENGTH || 80) || 80);
 const RESTAURANT_PRERENDER_BATCH_SIZE = 500;
+const CUISINE_LINK_BATCH_SIZE = 1000;
+const MAX_CUISINE_LINKS = Math.max(1000, Number(process.env.SEO_MAX_CUISINE_LINKS || 50000) || 50000);
+const MAX_NEARBY_RESTAURANT_LINKS = Math.max(0, Number(process.env.SEO_MAX_NEARBY_LINKS || 6) || 6);
 const ACTUALITES_PRERENDER_BATCH_SIZE = 500;
 
 const SITEMAP_GROUPS = [
@@ -124,6 +134,15 @@ const LOCAL_CUISINES = [
   { slug: "street-food", label: "Street food" },
   { slug: "coreen", label: "Coréen" },
   { slug: "grec", label: "Grec" },
+  { slug: "brasserie", label: "Brasserie" },
+  { slug: "grillades", label: "Grillades" },
+  { slug: "tacos", label: "Tacos" },
+  { slug: "portugais", label: "Portugais" },
+  { slug: "peruvien", label: "Péruvien" },
+  { slug: "americain", label: "Américain" },
+  { slug: "fruits-de-mer", label: "Fruits de mer" },
+  { slug: "crepes", label: "Crêpes" },
+  { slug: "ethiopien", label: "Éthiopien" },
 ];
 
 const CUISINE_SLUG_ALIASES = new Map([
@@ -138,13 +157,32 @@ const CUISINE_SLUG_ALIASES = new Map([
   ["vegetarian", "vegetarien"],
   ["desserts", "dessert"],
   ["streetfood", "street-food"],
+  ["fruitsdemer", "fruits-de-mer"],
+  ["fruits-mer", "fruits-de-mer"],
+  ["creperie", "crepes"],
+  ["crepe", "crepes"],
+  ["peruvienne", "peruvien"],
+  ["portugaise", "portugais"],
+  ["americaine", "americain"],
+  ["ethiopienne", "ethiopien"],
+  ["grillade", "grillades"],
+  ["coreenne", "coreen"],
+  ["grecque", "grec"],
+  ["mexicaine", "mexicain"],
+  ["marocaine", "marocain"],
+  ["thailandais", "thai"],
+  ["thailandaise", "thai"],
+  ["chinoise", "chinois"],
+  ["suissee", "suisse"],
 ]);
 
-function extractRestaurantCuisineSlugs(value) {
+function extractRestaurantCuisineSlugs(value, extraSlugs = []) {
   const knownSlugs = new Set(LOCAL_CUISINES.map((cuisine) => cuisine.slug));
-  return String(value || "")
+  const fromFreeText = String(value || "")
     .split(/[,;|/]+/)
-    .map((part) => part.replace(/\+\s*\d+\s*$/, "").trim())
+    .map((part) => part.replace(/\+\s*\d+\s*$/, "").trim());
+  // `restaurant_cuisines` est la source structurée et vérifiée ; `cuisine_type` reste le texte libre historique.
+  return [...fromFreeText, ...(Array.isArray(extraSlugs) ? extraSlugs : [])]
     .map((part) => CUISINE_SLUG_ALIASES.get(slugify(part)) || slugify(part))
     .filter((cuisineSlug, index, cuisineSlugs) =>
       knownSlugs.has(cuisineSlug) && cuisineSlugs.indexOf(cuisineSlug) === index
@@ -1362,6 +1400,55 @@ function loadPublicEnvFiles() {
   }
 }
 
+// `restaurants.cuisine_type` n'est renseigné que pour une minorité de fiches, alors que la table
+// `restaurant_cuisines` porte les cuisines vérifiées et leur provenance. Sans cette lecture, les pages
+// ville x cuisine et les `servesCuisine` ignorent la majorité de l'inventaire réellement qualifié.
+async function collectVerifiedCuisinesByRestaurant(supabase) {
+  const byRestaurant = new Map();
+  try {
+    for (let offset = 0; ; offset += CUISINE_LINK_BATCH_SIZE) {
+      const { data, error } = await supabase
+        .from("restaurant_cuisines")
+        .select("restaurant_id, cuisines(slug, name)")
+        .order("restaurant_id", { ascending: true })
+        .range(offset, offset + CUISINE_LINK_BATCH_SIZE - 1);
+      if (error || !Array.isArray(data)) {
+        console.warn(`SEO cuisines: lecture impossible (${error?.message || "réponse invalide"}).`);
+        return byRestaurant;
+      }
+      for (const row of data) {
+        const restaurantId = row?.restaurant_id;
+        const slug = row?.cuisines?.slug;
+        if (!restaurantId || !slug) continue;
+        const entry = byRestaurant.get(restaurantId) || { slugs: [], labels: [] };
+        if (!entry.slugs.includes(slug)) {
+          entry.slugs.push(slug);
+          entry.labels.push(String(row.cuisines.name || slug));
+        }
+        byRestaurant.set(restaurantId, entry);
+      }
+      if (data.length < CUISINE_LINK_BATCH_SIZE) break;
+      if (offset + CUISINE_LINK_BATCH_SIZE >= MAX_CUISINE_LINKS) break;
+    }
+  } catch (error) {
+    console.warn(`SEO cuisines: lecture impossible (${error?.message || error}).`);
+  }
+  return byRestaurant;
+}
+
+function haversineKm(a, b) {
+  if (![a?.latitude, a?.longitude, b?.latitude, b?.longitude].every((value) => Number.isFinite(Number(value)))) {
+    return Number.POSITIVE_INFINITY;
+  }
+  const toRad = (value) => (Number(value) * Math.PI) / 180;
+  const dLat = toRad(Number(b.latitude) - Number(a.latitude));
+  const dLon = toRad(Number(b.longitude) - Number(a.longitude));
+  const lat1 = toRad(Number(a.latitude));
+  const lat2 = toRad(Number(b.latitude));
+  const h = Math.sin(dLat / 2) ** 2 + Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
 async function collectDynamicRestaurantPages() {
   loadPublicEnvFiles();
 
@@ -1402,6 +1489,7 @@ async function collectDynamicRestaurantPages() {
     }
 
     const restaurants = data.filter((restaurant) => restaurant?.id && restaurant?.name);
+    const verifiedCuisines = await collectVerifiedCuisinesByRestaurant(supabase);
     const localGroups = new Map();
 
     const registerLocalPage = (page, restaurant) => {
@@ -1414,13 +1502,29 @@ async function collectDynamicRestaurantPages() {
       localGroups.set(pathName, existing);
     };
 
-    const restaurantPages = restaurants.map((restaurant) => {
+    // Première passe : résoudre la cuisine réelle de chaque fiche puis constituer les regroupements locaux.
+    const resolvedRestaurants = restaurants.map((restaurant) => {
       const city = String(restaurant.city || "Genève").trim() || "Genève";
       const citySlug = slugify(city);
       const cuisine = String(restaurant.cuisine_type || "").trim();
-      const cuisineSlugs = extractRestaurantCuisineSlugs(cuisine);
-      const restaurantPath = buildRestaurantSeoPath(restaurant);
+      const verified = verifiedCuisines.get(restaurant.id) || { slugs: [], labels: [] };
+      const cuisineSlugs = extractRestaurantCuisineSlugs(cuisine, verified.slugs);
+      // Le texte libre historique reste prioritaire ; les cuisines vérifiées comblent les fiches vides.
+      const effectiveCuisineType = cuisine || verified.labels.join(", ");
+      return {
+        restaurant: effectiveCuisineType === cuisine
+          ? restaurant
+          : { ...restaurant, cuisine_type: effectiveCuisineType },
+        city,
+        citySlug,
+        cuisine: effectiveCuisineType,
+        cuisineSlugs,
+        restaurantPath: buildRestaurantSeoPath(restaurant),
+      };
+    });
 
+    for (const entry of resolvedRestaurants) {
+      const { restaurant, city, citySlug, cuisineSlugs } = entry;
       if (citySlug) {
         registerLocalPage({
           type: "city",
@@ -1449,6 +1553,80 @@ async function collectDynamicRestaurantPages() {
           intentSlug: intent.slug,
         }, restaurant);
       }
+    }
+
+    // Le catalogue importé contient des homonymes : soit de vraies succursales (adresses distinctes),
+    // soit la même adresse dupliquée. Les premières méritent un titre désambiguïsé, les secondes
+    // une seule page indexable — sinon Google reçoit des titres et des contenus identiques.
+    const addressKey = (value) => String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+    const nameKey = (value) => String(value || "").trim().toLowerCase();
+    const homonymCountByCity = new Map();
+    const strictDuplicateGroups = new Map();
+    for (const { restaurant, citySlug } of resolvedRestaurants) {
+      const nameScope = `${citySlug}|${nameKey(restaurant.name)}`;
+      homonymCountByCity.set(nameScope, (homonymCountByCity.get(nameScope) || 0) + 1);
+      const strictScope = `${nameScope}|${addressKey(restaurant.address)}`;
+      const group = strictDuplicateGroups.get(strictScope) || [];
+      group.push(String(restaurant.slug || restaurant.id));
+      strictDuplicateGroups.set(strictScope, group);
+    }
+    // Choix déterministe du représentant : le build doit rester reproductible d'une exécution à l'autre.
+    for (const group of strictDuplicateGroups.values()) group.sort();
+
+    const isRedundantDuplicate = ({ restaurant, citySlug }) => {
+      const strictScope = `${citySlug}|${nameKey(restaurant.name)}|${addressKey(restaurant.address)}`;
+      const group = strictDuplicateGroups.get(strictScope) || [];
+      return group.length > 1 && group[0] !== String(restaurant.slug || restaurant.id);
+    };
+
+    const disambiguationSuffix = ({ restaurant, citySlug }) => {
+      const nameScope = `${citySlug}|${nameKey(restaurant.name)}`;
+      if ((homonymCountByCity.get(nameScope) || 0) < 2) return "";
+      const address = String(restaurant.address || "").trim();
+      return address ? ` – ${address}` : "";
+    };
+
+    // Une fiche isolée ne transmet aucun signal : elle doit relier sa ville, ses cuisines réelles
+    // et ses voisines immédiates, en ne pointant que vers des pages locales réellement publiables.
+    const buildRestaurantLinks = ({ restaurant, restaurantPath, city, citySlug, cuisineSlugs }) => {
+      const cuisineLinks = cuisineSlugs
+        .filter((cuisineSlug) => {
+          const group = localGroups.get(`/restaurants/${citySlug}/${cuisineSlug}`);
+          return (group?.restaurants.length || 0) >= MIN_SPECIALIZED_LOCAL_RESTAURANTS;
+        })
+        .map((cuisineSlug) => {
+          const definition = LOCAL_CUISINES.find((item) => item.slug === cuisineSlug);
+          const label = definition?.label || cuisineSlug;
+          return {
+            href: `/restaurants/${citySlug}/${cuisineSlug}`,
+            label: cuisineSlug === "pizza" ? `Pizzerias à ${city}` : `Restaurants ${label} à ${city}`,
+          };
+        });
+
+      const cityGroup = localGroups.get(`/restaurants/${citySlug}`);
+      const nearbyLinks = (cityGroup?.restaurants || [])
+        .filter((candidate) => candidate.id !== restaurant.id)
+        .map((candidate) => ({ candidate, distanceKm: haversineKm(restaurant, candidate) }))
+        .sort((left, right) => left.distanceKm - right.distanceKm)
+        .slice(0, MAX_NEARBY_RESTAURANT_LINKS)
+        .map(({ candidate }) => ({
+          href: buildRestaurantSeoPath(candidate),
+          label: String(candidate.name),
+        }));
+
+      return [
+        { href: `/restaurants/${citySlug}`, label: `Restaurants à ${city}` },
+        ...cuisineLinks,
+        ...nearbyLinks,
+        { href: "/recherche", label: "Rechercher un restaurant" },
+      ].filter((link, index, links) =>
+        link.href !== restaurantPath && links.findIndex((candidate) => candidate.href === link.href) === index
+      );
+    };
+
+    // Seconde passe : construire les fiches, désormais capables de pointer vers leurs pages locales soeurs.
+    const restaurantPages = resolvedRestaurants.map((entry) => {
+      const { restaurant, city, citySlug, cuisine, cuisineSlugs, restaurantPath } = entry;
 
       const restaurantSeo = buildRestaurantSeoModel({
         restaurant,
@@ -1464,22 +1642,32 @@ async function collectDynamicRestaurantPages() {
 
       const sourceDescription = String(restaurant.description || "").replace(/\s+/g, " ").trim();
       const openingHoursItems = restaurantSeo.openingHoursRows.map(
-        (entry) => `${entry.label} : ${entry.hours}`,
+        (row) => `${row.label} : ${row.hours}`,
       );
       const serviceItems = restaurantSeo.serviceLabels.length > 0
         ? [`Services renseignés : ${restaurantSeo.serviceLabels.join(", ")}`]
         : [];
 
+      // Deux succursales homonymes doivent porter un titre et un H1 distincts, sans inventer de donnée :
+      // seule l'adresse réellement enregistrée sert à les différencier.
+      const suffix = disambiguationSuffix(entry);
+      const redundant = isRedundantDuplicate(entry);
+      const title = suffix
+        ? restaurantSeo.title.replace(/ \| TOK$/, `${suffix} | TOK`)
+        : restaurantSeo.title;
+
       return {
         path: restaurantPath,
-        title: restaurantSeo.title,
+        title,
         description: restaurantSeo.description,
         priority: "0.7",
         changefreq: "weekly",
         lastmod: restaurant.updated_at,
         image: restaurantSeo.image || DEFAULT_IMAGE,
+        // Même nom et même adresse : une seule des fiches peut être indexée.
+        ...(redundant ? { includeInSitemap: false, robots: "noindex,follow,noarchive" } : {}),
         staticContent: {
-          heading: `${restaurant.name}, restaurant à ${city}`,
+          heading: `${restaurant.name}, restaurant à ${city}${suffix}`,
           paragraphs: [
             sourceDescription || restaurantSeo.description,
             restaurantSeo.lastUpdatedLabel
@@ -1507,10 +1695,7 @@ async function collectDynamicRestaurantPages() {
               ],
             },
           ].filter(Boolean),
-          links: [
-            { href: `/restaurants/${citySlug}`, label: `Restaurants à ${city}` },
-            { href: "/recherche", label: "Rechercher un restaurant" },
-          ],
+          links: buildRestaurantLinks({ restaurant, restaurantPath, city, citySlug, cuisineSlugs }),
         },
         jsonLd: [restaurantSeo.jsonLd],
       };
@@ -1521,8 +1706,20 @@ async function collectDynamicRestaurantPages() {
         priority: page.type === "city" ? "0.8" : "0.7",
         lastmod,
         restaurants: localRestaurants,
+        // Sert à détecter les pages filles qui reprennent tout l'inventaire de leur ville.
+        parentInventoryCount: page.type === "city"
+          ? null
+          : localGroups.get(`/restaurants/${page.citySlug}`)?.restaurants.length ?? null,
       }),
     );
+
+    const redundantCount = resolvedRestaurants.filter(isRedundantDuplicate).length;
+    if (redundantCount > 0) {
+      console.warn(
+        `SEO fiches: ${redundantCount} fiche(s) partageant nom et adresse avec une autre servie(s) en noindex `
+          + "et exclue(s) du sitemap (doublon strict).",
+      );
+    }
 
     return [...cityCategoryPages, ...restaurantPages];
   } catch (error) {
@@ -1713,6 +1910,17 @@ async function collectSeoPages() {
   const pages = dedupePages([...publicPages, ...restaurantPages, ...enabledActualitesPages]);
   const minimumInventoryForLocalPage = (page) =>
     page.localPageType === "city" ? MIN_LOCAL_RESTAURANTS : MIN_SPECIALIZED_LOCAL_RESTAURANTS;
+  // Une page cuisine/quartier/intention qui reprend (quasiment) tout l'inventaire de sa ville n'apporte
+  // aucun contenu propre : c'est un doublon de la page ville, que Google traite en duplicate/soft 404.
+  const duplicatesParentCity = (page) => {
+    if (page.seoKind !== "local-listing" || page.localPageType === "city") return false;
+    const parentInventory = Number(page.parentInventoryCount || 0);
+    if (parentInventory <= 0) return false;
+    return Number(page.inventoryCount || 0) >= parentInventory * MAX_LOCAL_PARENT_COVERAGE;
+  };
+  const isDemotedLocalPage = (page) => page.seoKind === "local-listing"
+    && (Number(page.inventoryCount || 0) < minimumInventoryForLocalPage(page) || duplicatesParentCity(page));
+
   const thinLocalPages = pages.filter(
     (page) => page.seoKind === "local-listing"
       && Number(page.inventoryCount || 0) < minimumInventoryForLocalPage(page),
@@ -1722,13 +1930,18 @@ async function collectSeoPages() {
       `SEO local: ${thinLocalPages.length} page(s) sans inventaire suffisant servie(s) en noindex et exclue(s) du sitemap.`,
     );
   }
-  return pages.map((page) => {
-    const thinLocalPage = page.seoKind === "local-listing"
-      && Number(page.inventoryCount || 0) < minimumInventoryForLocalPage(page);
-    return thinLocalPage
+  const duplicateLocalPages = pages.filter(duplicatesParentCity);
+  if (duplicateLocalPages.length > 0) {
+    console.warn(
+      `SEO local: ${duplicateLocalPages.length} page(s) reprenant l'inventaire de leur ville servie(s) en noindex `
+        + "et exclue(s) du sitemap (doublon de la page ville).",
+    );
+  }
+  return pages.map((page) => (
+    isDemotedLocalPage(page)
       ? { ...page, includeInSitemap: false, robots: "noindex,follow,noarchive" }
-      : page;
-  });
+      : page
+  ));
 }
 
 function normalizeSitemapDate(value) {
