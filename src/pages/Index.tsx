@@ -40,12 +40,14 @@ import {
   type ProgressiveReservationOffer,
 } from "@/lib/progressiveReservationOffers";
 import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
+import { shuffleRestaurantsWithVisuals } from "@/lib/randomizedRestaurantOrder";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
 
 const supabase = getSupabase();
 const NearbyRestaurantsMap = lazy(() => import("@/components/NearbyRestaurantsMap"));
 const HOME_MAP_RESTAURANTS_LIMIT = 100;
 const HOME_RAIL_GEO_CANDIDATE_LIMIT = 100;
+const HOME_RAIL_RANDOM_CANDIDATE_LIMIT = 24;
 const HOME_NEARBY_RADIUS_KM = 5;
 const PROGRESSIVE_OFFERS_TABLE = "reservation_progressive_offers";
 
@@ -185,11 +187,14 @@ export default function Index() {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [userCoordinates, setUserCoordinates] = useState<Coordinates | null>(null);
   const mapSectionRef = useRef<HTMLElement | null>(null);
+  const homepageShuffleSeed = useRef(Math.floor(Math.random() * 1_000_000_000));
   const todayServiceDate = useMemo(() => toLocalDateInputValue(new Date(nowMs)), [nowMs]);
   const geolocationQueryKey = userCoordinates
     ? `${userCoordinates.latitude.toFixed(4)}:${userCoordinates.longitude.toFixed(4)}`
     : "unavailable";
-  const railCandidateLimit = userCoordinates ? HOME_RAIL_GEO_CANDIDATE_LIMIT : undefined;
+  const railCandidateLimit = userCoordinates
+    ? HOME_RAIL_GEO_CANDIDATE_LIMIT
+    : HOME_RAIL_RANDOM_CANDIDATE_LIMIT;
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 400);
@@ -285,7 +290,7 @@ export default function Index() {
       : fetchHomeRail({
         sortBy: "popularite",
         deliveryOnly: deliveryEnabled,
-        limit: railCandidateLimit || 4,
+        limit: railCandidateLimit,
       }),
   });
 
@@ -293,14 +298,14 @@ export default function Index() {
     queryKey: ["home-rail-dinner", geolocationQueryKey, demoSessionKey],
     queryFn: () => isCommercialDemoClient
       ? demoRestaurants
-      : fetchHomeRail({ sortBy: "plus_reserves_mois", limit: railCandidateLimit || 4 }),
+      : fetchHomeRail({ sortBy: "plus_reserves_mois", limit: railCandidateLimit }),
   });
 
   const { data: offersRail = [] } = useQuery({
     queryKey: ["home-rail-offers", geolocationQueryKey, demoSessionKey],
     queryFn: () => isCommercialDemoClient
       ? demoRestaurants
-      : fetchHomeRail({ sortBy: "promotion", limit: railCandidateLimit || 4 }),
+      : fetchHomeRail({ sortBy: "promotion", limit: railCandidateLimit }),
   });
 
   const progressiveOffersBaseQuery = {
@@ -341,8 +346,12 @@ export default function Index() {
   });
 
   const visibleProgressiveOffers = useMemo(() => {
+    const imageBackedOffers = progressiveOffers.filter((offer) => {
+      const restaurant = getProgressiveOfferRestaurant(offer) as any;
+      return Boolean(String(restaurant?.image_url || "").trim());
+    });
     const localizedOffers = userCoordinates
-      ? progressiveOffers.filter((offer) => {
+      ? imageBackedOffers.filter((offer) => {
         const restaurant = getProgressiveOfferRestaurant(offer) as any;
         return Boolean(restaurant) && isRestaurantWithinRadius(
           restaurant,
@@ -350,7 +359,7 @@ export default function Index() {
           HOME_NEARBY_RADIUS_KM,
         );
       })
-      : progressiveOffers;
+      : imageBackedOffers;
 
     return selectDailyProgressiveOffers(localizedOffers, {
       reservationDate: todayServiceDate,
@@ -362,7 +371,7 @@ export default function Index() {
     queryKey: ["home-rail-trending", geolocationQueryKey, demoSessionKey],
     queryFn: () => isCommercialDemoClient
       ? demoRestaurants
-      : fetchHomeRail({ sortBy: "note", limit: userCoordinates ? HOME_RAIL_GEO_CANDIDATE_LIMIT : 6 }),
+      : fetchHomeRail({ sortBy: "note", limit: railCandidateLimit }),
   });
 
   const { data: userContext } = useQuery({
@@ -458,7 +467,7 @@ export default function Index() {
       : fetchHomeRail({
         city: userCoordinates ? null : userContext?.city || null,
         sortBy: "popularite",
-        limit: railCandidateLimit || 4,
+        limit: railCandidateLimit,
       }),
   });
 
@@ -473,11 +482,17 @@ export default function Index() {
   });
 
   const localizeCards = (restaurants: any[], maxItems: number) => {
-    if (!userCoordinates) return restaurants.slice(0, maxItems);
-    return filterRestaurantsWithinRadius(
-      restaurants,
-      userCoordinates,
-      HOME_NEARBY_RADIUS_KM,
+    const localizedRestaurants = userCoordinates
+      ? filterRestaurantsWithinRadius(
+        restaurants,
+        userCoordinates,
+        HOME_NEARBY_RADIUS_KM,
+      )
+      : restaurants;
+
+    return shuffleRestaurantsWithVisuals(
+      localizedRestaurants,
+      `${homepageShuffleSeed.current}:${maxItems}`,
     ).slice(0, maxItems);
   };
 
