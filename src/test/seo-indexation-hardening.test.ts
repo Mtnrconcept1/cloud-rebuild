@@ -186,6 +186,71 @@ describe("SEO indexation and crawler hardening", () => {
     expect(prerender).toContain("return address ? ` – ${address}` : \"\";");
   });
 
+  it("derives every city URL from the shared identity module, in both SEO scripts", () => {
+    const prerender = read("scripts/prerender-seo.mjs");
+    const directoryHardening = read("scripts/harden-directory-restaurant-seo.mjs");
+
+    // Le comportement lui-même est couvert par seo-city-identity.test.ts. Ce qui compte ici, c'est que
+    // les deux scripts partagent la même source : une copie divergente ferait chercher les fiches à une
+    // URL et les écrire à une autre.
+    for (const script of [prerender, directoryHardening]) {
+      expect(script).toContain('from "../src/lib/seo/cityIdentity.mjs"');
+      expect(script).toContain("pickOneRestaurantPerPath");
+    }
+    expect(prerender).toContain("citySlug as citySlugOf");
+    expect(prerender).toContain("const citySlug = citySlugOf(restaurant.city");
+    expect(prerender).toContain("const city = cityLabel(restaurant.city)");
+    expect(directoryHardening).toContain("const city = citySlug(restaurant.city");
+    // Aucun script ne doit redéfinir la règle localement.
+    for (const script of [prerender, directoryHardening]) {
+      expect(script).not.toContain("const SWISS_CANTON_SUFFIX");
+      expect(script).not.toContain("function cityLabel(");
+    }
+    // Le conflit d'URL doit rester visible dans les logs de build, jamais silencieux.
+    expect(prerender).toContain("partageant l'URL d'une autre");
+    expect(directoryHardening).toContain("partageant l'URL d'une autre");
+  });
+
+  it("migrates the Carouge catalog under a single spelling without breaking its unique index", () => {
+    const migration = read("supabase/migrations/20260902190000_normalize_carouge_city_variant.sql");
+
+    // Les fiches en double doivent être fusionnées AVANT la normalisation : l'index unique porte sur
+    // (lower(city), slug) sans filtre sur is_active, donc renommer une jumelle ferait échouer la migration.
+    const mergeStep = migration.indexOf("SET is_active = false");
+    const renameStep = migration.indexOf("SET city = 'Carouge'");
+    expect(mergeStep).toBeGreaterThan(-1);
+    expect(renameStep).toBeGreaterThan(mergeStep);
+
+    // Rien n'est supprimé : la désactivation est réversible.
+    expect(migration).not.toMatch(/\bDELETE\s+FROM\s+public\.restaurants\b/i);
+    expect(migration).not.toMatch(/\bDROP\s+TABLE\b/i);
+    // Les données de la jumelle sont reprises avant sa désactivation, jamais inventées.
+    expect(migration).toContain("INSERT INTO public.restaurant_cuisines");
+    expect(migration).toContain("ON CONFLICT (restaurant_id, cuisine_id) DO NOTHING");
+    expect(migration).toContain("COALESCE(btrim(kept.phone), '') = ''");
+    // Le NOT EXISTS protège l'index unique contre tout slug déjà pris côté « Carouge ».
+    expect(migration).toContain("AND NOT EXISTS (");
+    expect(migration).toContain("lower(COALESCE(other.city, '')) = 'carouge'");
+    expect(migration).toContain("BEGIN;");
+    expect(migration).toContain("COMMIT;");
+  });
+
+  it("redirects the retired Carouge spelling to the canonical commune URLs", () => {
+    const vercel = JSON.parse(read("vercel.json")) as {
+      redirects?: { source: string; destination: string; permanent?: boolean }[];
+    };
+
+    for (const [source, destination] of [
+      ["/restaurants/carouge-ge", "/restaurants/carouge"],
+      ["/restaurants/carouge-ge/:path*", "/restaurants/carouge/:path*"],
+    ]) {
+      const redirect = vercel.redirects?.find((entry) => entry.source === source);
+      expect(redirect, `redirection manquante pour ${source}`).toBeDefined();
+      expect(redirect?.destination).toBe(destination);
+      expect(redirect?.permanent).toBe(true);
+    }
+  });
+
   it("redirects sitemap URLs still registered in Search Console to the live index", () => {
     const vercel = JSON.parse(read("vercel.json")) as {
       redirects?: { source: string; destination: string; permanent?: boolean }[];

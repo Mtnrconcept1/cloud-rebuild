@@ -5,6 +5,11 @@ import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
 import { buildRestaurantSeoModel } from "../src/lib/seo/restaurantEntity.mjs";
+import {
+  cityLabel,
+  citySlug as citySlugOf,
+  pickOneRestaurantPerPath,
+} from "../src/lib/seo/cityIdentity.mjs";
 
 const CANONICAL_ORIGIN = "https://www.thetok.ch";
 const DEFAULT_IMAGE = `${CANONICAL_ORIGIN}/fond3.png`;
@@ -1278,7 +1283,7 @@ function slugify(value) {
 }
 
 function buildRestaurantSeoPath(restaurant) {
-  const citySlug = slugify(restaurant.city || "geneve");
+  const citySlug = citySlugOf(restaurant.city || "geneve");
   const restaurantSlug = slugify(restaurant.slug || "");
 
   if (citySlug && restaurantSlug) {
@@ -1503,9 +1508,9 @@ async function collectDynamicRestaurantPages() {
     };
 
     // Première passe : résoudre la cuisine réelle de chaque fiche puis constituer les regroupements locaux.
-    const resolvedRestaurants = restaurants.map((restaurant) => {
-      const city = String(restaurant.city || "Genève").trim() || "Genève";
-      const citySlug = slugify(city);
+    let resolvedRestaurants = restaurants.map((restaurant) => {
+      const city = cityLabel(restaurant.city) || "Genève";
+      const citySlug = citySlugOf(city);
       const cuisine = String(restaurant.cuisine_type || "").trim();
       const verified = verifiedCuisines.get(restaurant.id) || { slugs: [], labels: [] };
       const cuisineSlugs = extractRestaurantCuisineSlugs(cuisine, verified.slugs);
@@ -1522,6 +1527,22 @@ async function collectDynamicRestaurantPages() {
         restaurantPath: buildRestaurantSeoPath(restaurant),
       };
     });
+
+    // Deux fiches peuvent résoudre vers la même URL (même commune, même slug), typiquement lorsqu'un
+    // import a créé la même adresse sous deux orthographes de ville. `dedupePages` en garderait une au
+    // hasard de l'ordre de lecture : on tranche ici, de façon reproductible et visible.
+    const preferredRestaurants = pickOneRestaurantPerPath(
+      resolvedRestaurants.map((entry) => ({ ...entry, city: entry.restaurant.city, id: entry.restaurant.id })),
+      (entry) => entry.restaurantPath,
+    );
+    const pathConflicts = resolvedRestaurants.length - preferredRestaurants.size;
+    if (pathConflicts > 0) {
+      console.warn(
+        `SEO fiches: ${pathConflicts} fiche(s) partageant l'URL d'une autre; la variante à l'orthographe `
+          + "de ville canonique est conservée.",
+      );
+    }
+    resolvedRestaurants = [...preferredRestaurants.values()];
 
     for (const entry of resolvedRestaurants) {
       const { restaurant, city, citySlug, cuisineSlugs } = entry;

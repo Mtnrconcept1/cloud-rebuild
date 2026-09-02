@@ -26,7 +26,7 @@ describe("programmatic restaurant SEO with Stoppin", () => {
     expect(prerender).toContain('.from("restaurants")');
     expect(prerender).toContain('.eq("is_active", true)');
     // Deux `map` successifs sans filtre intermédiaire : chaque fiche active reste éligible.
-    expect(prerender).toContain("const resolvedRestaurants = restaurants.map");
+    expect(prerender).toContain("resolvedRestaurants = restaurants.map");
     expect(prerender).toContain("const restaurantPages = resolvedRestaurants.map");
     expect(prerender).toContain("buildRestaurantSeoPath(restaurant)");
   });
