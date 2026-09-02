@@ -48,6 +48,7 @@ function candidate(
 ): HomeRestaurantCandidate {
   return {
     id,
+    name: `Restaurant ${id}`,
     image_url: `https://example.com/${id}.jpg`,
     city: "Genève",
     cuisine_type: category,

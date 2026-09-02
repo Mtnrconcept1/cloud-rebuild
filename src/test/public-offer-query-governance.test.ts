@@ -53,8 +53,10 @@ describe("public offer query governance", () => {
     const dashboardReservations = read("src/pages/dashboard/DashboardReservations.tsx");
     const socialFeed = read("src/hooks/useSocialFeed.ts");
 
-    expect(home).toContain("HOME_MAP_RESTAURANTS_LIMIT");
-    expect(home).toContain(".limit(HOME_MAP_RESTAURANTS_LIMIT)");
+    expect(home).toContain("const HOME_CANDIDATE_POOL_LIMIT = 54");
+    expect(home).toContain("p_limit: Math.min(Math.max(limit, 1), HOME_CANDIDATE_POOL_LIMIT)");
+    expect(home).toContain("const allRestaurants = shouldLoadMap ? homeSections.mapRestaurants : [];");
+    expect(home).not.toContain("HOME_MAP_RESTAURANTS_LIMIT");
     expect(chefsTable).toContain(".limit(CHEFS_TABLE_DROPS_LIMIT)");
     expect(dashboardReservations).toContain(".limit(DASHBOARD_RESERVATIONS_FETCH_LIMIT)");
     expect(socialFeed).toContain(".limit(RESTAURANT_SOCIAL_POSTS_LIMIT)");

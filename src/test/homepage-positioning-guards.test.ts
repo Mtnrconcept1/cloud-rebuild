@@ -41,7 +41,8 @@ describe("homepage positioning guards", () => {
     expect(features).toContain("Zéro attente");
     expect(features).toContain("Offres anti-gaspi & Tables du Chef");
     expect(features).toContain("Miamz solidaires");
-    expect(index).toContain("Réservations et plaisir");
+    expect(index).toContain("Pour ce soir");
+    expect(index).toContain("Sélection variée du soir");
     expect(index).toContain("Près de chez vous");
     expect(index).toContain("À ne pas manquer");
   });

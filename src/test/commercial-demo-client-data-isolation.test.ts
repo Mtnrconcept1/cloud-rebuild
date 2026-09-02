@@ -100,12 +100,16 @@ describe("commercial demo client data isolation", () => {
     const search = readFileSync("src/pages/Recherche.tsx", "utf8");
     const local = readFileSync("src/pages/LocalRestaurants.tsx", "utf8");
 
-    const guardedHomeCandidateCalls = index.match(
+    const guardedDiscoveryPool = index.match(
       /queryFn:\s*\(\)\s*=>\s*isCommercialDemoClient\s*\?\s*Promise\.resolve\(demoRestaurants as HomeRestaurantCandidate\[\]\)\s*:\s*fetchHomeCandidatePool\(\{/g,
+    ) ?? [];
+    const guardedOfferPool = index.match(
+      /queryFn:\s*\(\)\s*=>\s*isCommercialDemoClient\s*\?\s*Promise\.resolve\(\[\] as HomeRestaurantCandidate\[\]\)\s*:\s*fetchHomeCandidatePool\(\{/g,
     ) ?? [];
 
     expect(index.match(/:\s*fetchHomeCandidatePool\(\{/g) ?? []).toHaveLength(2);
-    expect(guardedHomeCandidateCalls).toHaveLength(2);
+    expect(guardedDiscoveryPool).toHaveLength(1);
+    expect(guardedOfferPool).toHaveLength(1);
     expect(index.match(/search_restaurants_catalog_page/g) ?? []).toHaveLength(1);
     expect(index.match(/\.from\("restaurants"\)/g) ?? []).toHaveLength(2);
 

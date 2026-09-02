@@ -9,12 +9,15 @@ import {
 } from "@/lib/randomizedRestaurantOrder";
 
 export type HomeRestaurantCandidate = RestaurantWithVisual & {
-  id?: unknown;
-  city?: unknown;
-  cuisine_type?: unknown;
+  id: string;
+  name: string;
+  city?: string | null;
+  address?: string | null;
+  image_url?: string | null;
+  cuisine_type?: string | null;
   category_names?: unknown;
   category_slugs?: unknown;
-  rating?: unknown;
+  rating?: number | null;
   review_count?: unknown;
   monthly_reservations?: unknown;
   monthly_orders?: unknown;
