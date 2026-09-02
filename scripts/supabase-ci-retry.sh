@@ -1,7 +1,41 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+supabase_ci_assert_current_production_head() {
+  if [[ "${GITHUB_ACTIONS:-}" != "true" ]]; then
+    return 0
+  fi
+
+  case "${GITHUB_REF_NAME:-}" in
+    main|master) ;;
+    *) return 0 ;;
+  esac
+
+  if [[ -z "${GITHUB_SHA:-}" ]]; then
+    echo "::error::Refusing Supabase production deploy because GITHUB_SHA is missing."
+    return 1
+  fi
+
+  local remote_sha
+  if ! remote_sha="$(git ls-remote --heads origin "refs/heads/${GITHUB_REF_NAME}" | awk 'NR == 1 { print $1 }')"; then
+    echo "::error::Unable to resolve the current ${GITHUB_REF_NAME} head; refusing Supabase production deploy."
+    return 1
+  fi
+
+  if [[ -z "$remote_sha" ]]; then
+    echo "::error::Current ${GITHUB_REF_NAME} head resolved to an empty SHA; refusing Supabase production deploy."
+    return 1
+  fi
+
+  if [[ "$remote_sha" != "$GITHUB_SHA" ]]; then
+    echo "::error::Refusing Supabase production deploy from stale commit ${GITHUB_SHA}; current ${GITHUB_REF_NAME} is ${remote_sha}. Let the newer production workflow deploy instead."
+    return 1
+  fi
+}
+
 supabase_ci_retry() {
+  supabase_ci_assert_current_production_head || return $?
+
   if [[ "${1:-}" == "functions" ]] && [[ "${2:-}" == "deploy" ]]; then
     supabase_ci_deploy_functions_individually "${@:3}"
     return $?
