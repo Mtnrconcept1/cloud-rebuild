@@ -237,17 +237,17 @@ describe("SEO indexation and crawler hardening", () => {
 
   it("redirects the retired Carouge spelling to the canonical commune URLs", () => {
     const vercel = JSON.parse(read("vercel.json")) as {
-      redirects?: { source: string; destination: string; permanent?: boolean }[];
+      redirects?: { source: string; destination: string; statusCode?: number }[];
     };
 
     for (const [source, destination] of [
       ["/restaurants/carouge-ge", "/restaurants/carouge"],
       ["/restaurants/carouge-ge/:path*", "/restaurants/carouge/:path*"],
     ]) {
-      const redirect = vercel.redirects?.find((entry) => entry.source === source);
-      expect(redirect, `redirection manquante pour ${source}`).toBeDefined();
-      expect(redirect?.destination).toBe(destination);
-      expect(redirect?.permanent).toBe(true);
+      const redirects = vercel.redirects?.filter((entry) => entry.source === source) ?? [];
+      expect(redirects, `redirection unique attendue pour ${source}`).toEqual([
+        { source, destination, statusCode: 301 },
+      ]);
     }
   });
 

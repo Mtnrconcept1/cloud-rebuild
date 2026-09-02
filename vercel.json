@@ -243,16 +243,6 @@
       "permanent": true
     },
     {
-      "source": "/restaurants/carouge-ge",
-      "destination": "/restaurants/carouge",
-      "permanent": true
-    },
-    {
-      "source": "/restaurants/carouge-ge/:path*",
-      "destination": "/restaurants/carouge/:path*",
-      "permanent": true
-    },
-    {
       "source": "/restaurants/vand-uvres",
       "destination": "/restaurants/vandoeuvres",
       "permanent": true
