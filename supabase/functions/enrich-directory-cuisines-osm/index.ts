@@ -13,34 +13,10 @@ const MAX_BATCH_SIZE = 24;
 const OSM_RADIUS_METERS = 140;
 const MAX_ERROR_LENGTH = 500;
 const OVERPASS_TIMEOUT_MS = 12_000;
-const WEBSITE_TIMEOUT_MS = 6_000;
-const MAX_SITE_CHARACTERS = 900_000;
-const MAX_SITE_PAGES = 3;
 const USER_AGENT = "TOK-Restaurant-Cuisine-Verifier/1.0 (+https://www.thetok.ch)";
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
-];
-
-const REJECTED_SITE_HOSTS = [
-  "google.com",
-  "google.ch",
-  "bing.com",
-  "facebook.com",
-  "instagram.com",
-  "linkedin.com",
-  "tiktok.com",
-  "youtube.com",
-  "tripadvisor.com",
-  "tripadvisor.ch",
-  "thefork.com",
-  "thefork.ch",
-  "local.ch",
-  "search.ch",
-  "yelp.com",
-  "ubereats.com",
-  "just-eat.ch",
-  "smood.ch",
 ];
 
 const GENERIC_NAME_TOKENS = new Set([
@@ -109,13 +85,6 @@ type OsmElement = {
   tags?: Record<string, string>;
 };
 
-type CuisineAssignment = {
-  slug: string;
-  label: string;
-  confidence: number;
-  evidence: Record<string, unknown>;
-};
-
 type MatchResult = {
   element: OsmElement;
   distanceMeters: number;
@@ -123,13 +92,16 @@ type MatchResult = {
   signals: string[];
 };
 
-type SiteRule = {
+type CuisineAssignment = {
   slug: string;
   label: string;
-  phrases: string[];
+  confidence: number;
+  evidence: Record<string, unknown>;
 };
 
-const OSM_CUISINE_MAP: Record<string, Array<[string, string, number]>> = {
+type CuisineMapValue = readonly [slug: string, label: string, confidence: number];
+
+const OSM_CUISINE_MAP: Record<string, readonly CuisineMapValue[]> = {
   african: [["africain", "Africain", 0.95]],
   american: [["americain", "Americain", 0.95]],
   argentinian: [["argentin", "Argentin", 0.96]],
@@ -147,7 +119,6 @@ const OSM_CUISINE_MAP: Record<string, Array<[string, string, number]>> = {
   korean: [["coreen", "Coreen", 0.98]],
   crepe: [["crepes", "Crepes", 0.96]],
   dessert: [["desserts", "Desserts", 0.94]],
-  donut: [["desserts", "Desserts", 0.91]],
   eritrean: [["erythreen", "Erythreen", 0.98]],
   spanish: [["espagnol", "Espagnol", 0.98]],
   ethiopian: [["ethiopien", "Ethiopien", 0.98]],
@@ -185,6 +156,7 @@ const OSM_CUISINE_MAP: Record<string, Array<[string, string, number]>> = {
   chicken: [["poulet", "Poulet", 0.94]],
   fried_chicken: [["poulet", "Poulet", 0.97], ["americain", "Americain", 0.88]],
   ramen: [["ramen", "Ramen", 0.99], ["japonais", "Japonais", 0.94]],
+  regional: [["suisse", "Suisse", 0.90]],
   russian: [["russe", "Russe", 0.98]],
   sandwich: [["sandwich", "Sandwich", 0.98]],
   steak: [["steakhouse", "Steakhouse", 0.95]],
@@ -201,51 +173,39 @@ const OSM_CUISINE_MAP: Record<string, Array<[string, string, number]>> = {
   swiss: [["suisse", "Suisse", 0.99]],
 };
 
-const SITE_RULES: SiteRule[] = [
-  { slug: "italien", label: "Italien", phrases: ["cuisine italienne", "italian cuisine", "ristorante italiano", "trattoria italiana"] },
-  { slug: "pizza", label: "Pizza", phrases: ["pizzeria", "pizza napolitaine", "pizza au feu de bois", "neapolitan pizza"] },
-  { slug: "francais", label: "Francais", phrases: ["cuisine francaise", "french cuisine", "cuisine du marche"] },
-  { slug: "suisse", label: "Suisse", phrases: ["cuisine suisse", "swiss cuisine", "fondue", "raclette", "rosti"] },
-  { slug: "japonais", label: "Japonais", phrases: ["cuisine japonaise", "japanese cuisine", "izakaya"] },
-  { slug: "sushi", label: "Sushi", phrases: ["sushi", "sashimi", "nigiri"] },
-  { slug: "ramen", label: "Ramen", phrases: ["ramen"] },
-  { slug: "chinois", label: "Chinois", phrases: ["cuisine chinoise", "chinese cuisine", "dim sum", "sichuan", "cantonaise"] },
-  { slug: "thai", label: "Thai", phrases: ["cuisine thailandaise", "thai cuisine", "pad thai", "tom yum"] },
-  { slug: "vietnamien", label: "Vietnamien", phrases: ["cuisine vietnamienne", "vietnamese cuisine", "pho bo", "banh mi"] },
-  { slug: "coreen", label: "Coreen", phrases: ["cuisine coreenne", "korean cuisine", "bibimbap", "bulgogi"] },
-  { slug: "indien", label: "Indien", phrases: ["cuisine indienne", "indian cuisine", "tandoori", "biryani", "naan"] },
-  { slug: "libanais", label: "Libanais", phrases: ["cuisine libanaise", "lebanese cuisine", "mezze libanais"] },
-  { slug: "moyen-orient", label: "Moyen-Orient", phrases: ["middle eastern cuisine", "cuisine du moyen orient", "falafel", "hummus"] },
-  { slug: "marocain", label: "Marocain", phrases: ["cuisine marocaine", "moroccan cuisine", "tajine", "couscous marocain"] },
-  { slug: "espagnol", label: "Espagnol", phrases: ["cuisine espagnole", "spanish cuisine", "paella"] },
-  { slug: "tapas", label: "Tapas", phrases: ["tapas", "bar a tapas"] },
-  { slug: "portugais", label: "Portugais", phrases: ["cuisine portugaise", "portuguese cuisine", "bacalhau"] },
-  { slug: "grec", label: "Grec", phrases: ["cuisine grecque", "greek cuisine", "moussaka"] },
-  { slug: "mexicain", label: "Mexicain", phrases: ["cuisine mexicaine", "mexican cuisine", "tacos mexicains", "quesadilla"] },
-  { slug: "peruvien", label: "Peruvien", phrases: ["cuisine peruvienne", "peruvian cuisine", "ceviche"] },
-  { slug: "venezuelien", label: "Venezuelien", phrases: ["cuisine venezuelienne", "venezuelan cuisine", "arepa"] },
-  { slug: "erythreen", label: "Erythreen", phrases: ["cuisine erythreenne", "eritrean cuisine"] },
-  { slug: "ethiopien", label: "Ethiopien", phrases: ["cuisine ethiopienne", "ethiopian cuisine", "injera"] },
-  { slug: "turc", label: "Turc", phrases: ["cuisine turque", "turkish cuisine"] },
-  { slug: "kebab", label: "Kebab", phrases: ["kebab", "doner"] },
-  { slug: "burger", label: "Burger", phrases: ["smash burger", "burger maison", "gourmet burger"] },
-  { slug: "americain", label: "Americain", phrases: ["american cuisine", "american diner", "fried chicken"] },
-  { slug: "brunch", label: "Brunch", phrases: ["brunch", "sunday brunch"] },
-  { slug: "cafe", label: "Cafe", phrases: ["coffee shop", "specialty coffee", "cafe restaurant"] },
-  { slug: "salon-de-the", label: "Salon de the", phrases: ["tea room", "tearoom", "salon de the"] },
-  { slug: "glaces", label: "Glaces", phrases: ["gelateria", "glacier artisanal", "ice cream shop"] },
-  { slug: "fruits-de-mer", label: "Fruits de mer", phrases: ["seafood restaurant", "fruits de mer", "poissons et fruits de mer"] },
-  { slug: "grillades", label: "Grillades", phrases: ["grill restaurant", "restaurant de grillades", "barbecue"] },
-  { slug: "steakhouse", label: "Steakhouse", phrases: ["steakhouse", "steak house"] },
-  { slug: "mediterraneen", label: "Mediterraneen", phrases: ["cuisine mediterraneenne", "mediterranean cuisine"] },
-  { slug: "vegetarien", label: "Vegetarien", phrases: ["vegetarian restaurant", "cuisine vegetarienne"] },
-  { slug: "vegan", label: "Vegan", phrases: ["vegan restaurant", "cuisine vegan", "plant based menu"] },
-  { slug: "halal", label: "Halal", phrases: ["halal restaurant", "viande certifiee halal"] },
-  { slug: "poke", label: "Poke", phrases: ["poke bowl", "poke bowls"] },
-  { slug: "bubble-tea", label: "Bubble Tea", phrases: ["bubble tea", "boba tea"] },
+const VERIFIED_NAME_RULES: Array<{
+  slug: string;
+  label: string;
+  pattern: RegExp;
+}> = [
+  { slug: "pizza", label: "Pizza", pattern: /\b(pizza|pizzeria|pizzas)\b/ },
+  { slug: "sushi", label: "Sushi", pattern: /\bsushi\b/ },
+  { slug: "japonais", label: "Japonais", pattern: /\b(japon|japanese|izakaya)\b/ },
+  { slug: "ramen", label: "Ramen", pattern: /\bramen\b/ },
+  { slug: "thai", label: "Thai", pattern: /\b(thai|thailand)\b/ },
+  { slug: "chinois", label: "Chinois", pattern: /\b(chinois|chinese|sichuan|canton)\b/ },
+  { slug: "coreen", label: "Coreen", pattern: /\b(coreen|korean)\b/ },
+  { slug: "indien", label: "Indien", pattern: /\b(india|indien|indian|tandoori|biryani)\b/ },
+  { slug: "libanais", label: "Libanais", pattern: /\b(liban|libanais|lebanese)\b/ },
+  { slug: "marocain", label: "Marocain", pattern: /\b(maroc|marocain|moroccan)\b/ },
+  { slug: "mexicain", label: "Mexicain", pattern: /\b(mexic|mexican)\b/ },
+  { slug: "kebab", label: "Kebab", pattern: /\b(kebab|doner)\b/ },
+  { slug: "poke", label: "Poke", pattern: /\bpoke\b/ },
+  { slug: "burger", label: "Burger", pattern: /\b(burger|burgers)\b/ },
+  { slug: "tacos", label: "Tacos", pattern: /\btacos?\b/ },
+  { slug: "crepes", label: "Crepes", pattern: /\b(crepe|creperie|galette)\b/ },
+  { slug: "glaces", label: "Glaces", pattern: /\b(glacier|gelateria|gelato)\b/ },
+  { slug: "cafe", label: "Cafe", pattern: /\b(cafe|coffee)\b/ },
+  { slug: "salon-de-the", label: "Salon de the", pattern: /\b(tea room|tearoom|salon de the)\b/ },
+  { slug: "brunch", label: "Brunch", pattern: /\bbrunch\b/ },
+  { slug: "portugais", label: "Portugais", pattern: /\b(portugal|portugais|portuguese)\b/ },
+  { slug: "grec", label: "Grec", pattern: /\b(grec|greek)\b/ },
+  { slug: "ethiopien", label: "Ethiopien", pattern: /\b(ethiop|ethiopian)\b/ },
+  { slug: "erythreen", label: "Erythreen", pattern: /\b(erythre|eritrea|eritrean)\b/ },
+  { slug: "iranien", label: "Iranien", pattern: /\b(iran|iranien|persian|persan)\b/ },
+  { slug: "turc", label: "Turc", pattern: /\b(turc|turkish)\b/ },
+  { slug: "vietnamien", label: "Vietnamien", pattern: /\b(vietnam|vietnamese)\b/ },
 ];
-
-const dnsSafetyCache = new Map<string, Promise<boolean>>();
 
 function boundedBatchSize(value: unknown) {
   const parsed = Number(value);
@@ -280,24 +240,6 @@ function hostOf(value: unknown) {
   } catch {
     return "";
   }
-}
-
-function normalizeHttpUrl(value: unknown) {
-  const raw = String(value || "").trim();
-  if (!raw) return null;
-  try {
-    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
-    if (!/^https?:$/.test(url.protocol)) return null;
-    url.hash = "";
-    return url;
-  } catch {
-    return null;
-  }
-}
-
-function isRejectedSiteHost(host: string) {
-  const normalized = host.toLowerCase().replace(/^www\./, "");
-  return REJECTED_SITE_HOSTS.some((blocked) => normalized === blocked || normalized.endsWith(`.${blocked}`));
 }
 
 function restaurantHouseNumber(address: string | null) {
@@ -335,11 +277,6 @@ function elementCoordinates(element: OsmElement) {
   return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
 }
 
-function osmAddress(element: OsmElement) {
-  const tags = element.tags || {};
-  return `${tags["addr:street"] || ""} ${tags["addr:housenumber"] || ""}`.trim();
-}
-
 function scoreOsmMatch(restaurant: RestaurantRow, element: OsmElement, lead: LeadHint | null) {
   if (restaurant.latitude == null || restaurant.longitude == null) return null;
   const coordinates = elementCoordinates(element);
@@ -361,7 +298,7 @@ function scoreOsmMatch(restaurant: RestaurantRow, element: OsmElement, lead: Lea
   const restaurantNumber = restaurantHouseNumber(restaurant.address);
   const candidateNumber = normalizeText(tags["addr:housenumber"] || "");
   const restaurantStreet = streetTokens(restaurant.address);
-  const candidateStreet = streetTokens(tags["addr:street"] || osmAddress(element));
+  const candidateStreet = streetTokens(tags["addr:street"] || "");
   const streetSimilarity = tokenSimilarity(restaurantStreet, candidateStreet);
 
   let score = 0;
@@ -438,6 +375,7 @@ function selectBestOsmMatch(restaurant: RestaurantRow, elements: OsmElement[], l
   if (restaurant.directory_public_name_verified === true) {
     return best.score >= 10 && (strongIdentity || exactAddress) ? best : null;
   }
+
   return best.score >= 12 && (
     best.signals.includes("same_phone")
     || best.signals.includes("same_website")
@@ -457,6 +395,7 @@ function buildOverpassQuery(restaurants: RestaurantRow[]) {
 async function fetchOverpassElements(restaurants: RestaurantRow[]) {
   const query = buildOverpassQuery(restaurants);
   let lastError = "overpass_unavailable";
+
   for (const endpoint of OVERPASS_ENDPOINTS) {
     try {
       const response = await fetch(endpoint, {
@@ -471,6 +410,7 @@ async function fetchOverpassElements(restaurants: RestaurantRow[]) {
       });
       if (!response.ok) {
         lastError = `overpass_http_${response.status}`;
+        await response.body?.cancel().catch(() => undefined);
         continue;
       }
       const payload = await response.json() as { elements?: OsmElement[] };
@@ -485,7 +425,16 @@ async function fetchOverpassElements(restaurants: RestaurantRow[]) {
       lastError = error instanceof Error ? error.message : "overpass_failed";
     }
   }
+
   throw new Error(lastError);
+}
+
+function cuisineTokens(value: unknown) {
+  return String(value || "")
+    .toLowerCase()
+    .split(/[;,|/]+/)
+    .map((token) => normalizeText(token).replace(/\s+/g, "_"))
+    .filter(Boolean);
 }
 
 function addAssignment(
@@ -500,15 +449,7 @@ function addAssignment(
   assignments.set(slug, { slug, label, confidence, evidence });
 }
 
-function cuisineTokens(value: unknown) {
-  return String(value || "")
-    .toLowerCase()
-    .split(/[;,|/]+/)
-    .map((token) => token.trim().replace(/[\s-]+/g, "_"))
-    .filter(Boolean);
-}
-
-function assignmentsFromOsm(match: MatchResult) {
+function assignmentsFromOsm(restaurant: RestaurantRow, match: MatchResult) {
   const tags = match.element.tags || {};
   const assignments = new Map<string, CuisineAssignment>();
   const rawCuisine = String(tags.cuisine || "").trim();
@@ -525,217 +466,109 @@ function assignmentsFromOsm(match: MatchResult) {
 
   for (const token of cuisineTokens(rawCuisine)) {
     for (const [slug, label, confidence] of OSM_CUISINE_MAP[token] || []) {
-      addAssignment(assignments, slug, label, confidence, { ...baseEvidence, matched_osm_value: token });
+      addAssignment(assignments, slug, label, confidence, {
+        ...baseEvidence,
+        matched_osm_value: token,
+      });
     }
   }
 
   const amenity = normalizeText(tags.amenity).replace(/\s+/g, "_");
-  if (amenity === "cafe") addAssignment(assignments, "cafe", "Cafe", 0.94, { ...baseEvidence, extraction_method: "osm_amenity", matched_osm_value: "cafe" });
-  if (amenity === "bar" || amenity === "pub") addAssignment(assignments, "bar", "Bar", 0.94, { ...baseEvidence, extraction_method: "osm_amenity", matched_osm_value: amenity });
-  if (amenity === "ice_cream") addAssignment(assignments, "glaces", "Glaces", 0.97, { ...baseEvidence, extraction_method: "osm_amenity", matched_osm_value: "ice_cream" });
-
-  const yesLike = (value: unknown) => ["yes", "only", "main"].includes(normalizeText(value));
-  if (yesLike(tags["diet:vegan"])) addAssignment(assignments, "vegan", "Vegan", 0.95, { ...baseEvidence, extraction_method: "osm_diet_tag", matched_osm_value: "diet:vegan" });
-  if (yesLike(tags["diet:vegetarian"])) addAssignment(assignments, "vegetarien", "Vegetarien", 0.95, { ...baseEvidence, extraction_method: "osm_diet_tag", matched_osm_value: "diet:vegetarian" });
-  if (yesLike(tags["diet:halal"])) addAssignment(assignments, "halal", "Halal", 0.95, { ...baseEvidence, extraction_method: "osm_diet_tag", matched_osm_value: "diet:halal" });
-  if (yesLike(tags.breakfast)) addAssignment(assignments, "petit-dejeuner", "Petit-dejeuner", 0.91, { ...baseEvidence, extraction_method: "osm_meal_tag", matched_osm_value: "breakfast" });
-
-  return [...assignments.values()].slice(0, 12);
-}
-
-function isPrivateIpv4(value: string) {
-  const parts = value.split(".").map(Number);
-  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return true;
-  const [a, b] = parts;
-  return a === 0 || a === 10 || a === 127
-    || (a === 100 && b >= 64 && b <= 127)
-    || (a === 169 && b === 254)
-    || (a === 172 && b >= 16 && b <= 31)
-    || (a === 192 && b === 168)
-    || a >= 224;
-}
-
-function isPrivateIpv6(value: string) {
-  const normalized = value.toLowerCase().replace(/^\[|\]$/g, "");
-  if (normalized.startsWith("::ffff:")) return isPrivateIpv4(normalized.slice("::ffff:".length));
-  return normalized === "::" || normalized === "::1" || normalized.startsWith("fc")
-    || normalized.startsWith("fd") || normalized.startsWith("fe8") || normalized.startsWith("fe9")
-    || normalized.startsWith("fea") || normalized.startsWith("feb") || normalized.startsWith("2001:db8:");
-}
-
-async function hostIsPublic(hostname: string) {
-  const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
-  if (!host || host === "localhost" || host.endsWith(".local") || host.endsWith(".internal")) return false;
-  if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)) return !isPrivateIpv4(host);
-  if (host.includes(":")) return !isPrivateIpv6(host);
-  if (!dnsSafetyCache.has(host)) {
-    dnsSafetyCache.set(host, (async () => {
-      const records: string[] = [];
-      const [ipv4, ipv6] = await Promise.allSettled([Deno.resolveDns(host, "A"), Deno.resolveDns(host, "AAAA")]);
-      if (ipv4.status === "fulfilled") records.push(...ipv4.value);
-      if (ipv6.status === "fulfilled") records.push(...ipv6.value);
-      return records.length > 0 && records.every((address) => address.includes(":") ? !isPrivateIpv6(address) : !isPrivateIpv4(address));
-    })());
-  }
-  return await dnsSafetyCache.get(host)!;
-}
-
-async function fetchText(url: URL, timeoutMs = WEBSITE_TIMEOUT_MS) {
-  if (!/^https?:$/.test(url.protocol) || isRejectedSiteHost(url.hostname) || !await hostIsPublic(url.hostname)) return null;
-  const response = await fetch(url, {
-    method: "GET",
-    redirect: "follow",
-    signal: AbortSignal.timeout(timeoutMs),
-    headers: { "User-Agent": USER_AGENT, Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.1" },
-  });
-  const finalUrl = new URL(response.url || url.toString());
-  if (!/^https?:$/.test(finalUrl.protocol) || isRejectedSiteHost(finalUrl.hostname) || !await hostIsPublic(finalUrl.hostname)) {
-    await response.body?.cancel().catch(() => undefined);
-    return null;
-  }
-  const contentType = (response.headers.get("content-type") || "").toLowerCase();
-  if (!response.ok || !contentType.includes("text/html")) {
-    await response.body?.cancel().catch(() => undefined);
-    return null;
-  }
-  const text = (await response.text()).slice(0, MAX_SITE_CHARACTERS);
-  return { url: finalUrl.toString(), html: text };
-}
-
-function stripHtml(value: string) {
-  return value
-    .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&(?:amp|nbsp);/gi, " ")
-    .replace(/&#39;|&apos;/gi, "'")
-    .replace(/&quot;/gi, '"')
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function collectServesCuisine(node: unknown, output: string[], depth = 0) {
-  if (depth > 8 || node == null) return;
-  if (Array.isArray(node)) {
-    for (const item of node) collectServesCuisine(item, output, depth + 1);
-    return;
-  }
-  if (typeof node !== "object") return;
-  const record = node as Record<string, unknown>;
-  const rawTypes = Array.isArray(record["@type"]) ? record["@type"] : [record["@type"]];
-  const types = rawTypes.map(normalizeText);
-  const foodBusiness = types.some((type) => ["restaurant", "foodestablishment", "bakery", "cafeorcoffeeshop", "barorpub", "icecreamshop"].includes(type));
-  if (foodBusiness && record.servesCuisine != null) {
-    const values = Array.isArray(record.servesCuisine) ? record.servesCuisine : [record.servesCuisine];
-    for (const value of values) if (typeof value === "string") output.push(value);
-  }
-  for (const value of Object.values(record)) collectServesCuisine(value, output, depth + 1);
-}
-
-function siteAssignments(html: string, sourceUrl: string) {
-  const assignments = new Map<string, CuisineAssignment>();
-  for (const match of html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
-    try {
-      const values: string[] = [];
-      collectServesCuisine(JSON.parse(match[1]), values);
-      for (const value of values) {
-        for (const token of cuisineTokens(value)) {
-          for (const [slug, label, confidence] of OSM_CUISINE_MAP[token] || []) {
-            addAssignment(assignments, slug, label, Math.max(confidence, 0.98), {
-              extraction_method: "jsonld_serves_cuisine",
-              source_url: sourceUrl,
-              matched_phrase: value,
-            });
-          }
-        }
-      }
-    } catch {
-      // Publisher JSON-LD can be invalid; verified visible text remains usable.
-    }
-  }
-
-  const text = normalizeText(stripHtml(html).slice(0, 260_000));
-  for (const rule of SITE_RULES) {
-    const phrase = rule.phrases.map(normalizeText).find((candidate) => text.includes(candidate));
-    if (!phrase) continue;
-    const index = text.indexOf(phrase);
-    addAssignment(assignments, rule.slug, rule.label, 0.94, {
-      extraction_method: "official_page_phrase",
-      source_url: sourceUrl,
-      matched_phrase: phrase,
-      excerpt: text.slice(Math.max(0, index - 100), Math.min(text.length, index + phrase.length + 180)),
+  if (amenity === "cafe") {
+    addAssignment(assignments, "cafe", "Cafe", 0.94, {
+      ...baseEvidence,
+      extraction_method: "osm_amenity",
+      matched_osm_value: "cafe",
     });
   }
-  return [...assignments.values()].slice(0, 12);
-}
+  if (amenity === "bar" || amenity === "pub") {
+    addAssignment(assignments, "bar", "Bar", 0.94, {
+      ...baseEvidence,
+      extraction_method: "osm_amenity",
+      matched_osm_value: amenity,
+    });
+  }
+  if (amenity === "ice_cream") {
+    addAssignment(assignments, "glaces", "Glaces", 0.97, {
+      ...baseEvidence,
+      extraction_method: "osm_amenity",
+      matched_osm_value: "ice_cream",
+    });
+  }
 
-function extractUsefulLinks(pageUrl: string, html: string) {
-  const output: string[] = [];
-  const host = hostOf(pageUrl);
-  const seen = new Set<string>();
-  for (const match of html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
-    try {
-      const url = new URL(match[1], pageUrl);
-      if (!/^https?:$/.test(url.protocol) || hostOf(url.toString()) !== host) continue;
-      const blob = normalizeText(`${url.pathname} ${stripHtml(match[2])}`);
-      if (!/(menu|carte|cuisine|food|restaurant|brunch)/.test(blob)) continue;
-      url.hash = "";
-      const canonical = `${url.origin}${url.pathname}`;
-      if (seen.has(canonical)) continue;
-      seen.add(canonical);
-      output.push(canonical);
-      if (output.length >= MAX_SITE_PAGES - 1) break;
-    } catch {
-      // Ignore invalid publisher links.
+  const yesLike = (value: unknown) => ["yes", "only", "main"].includes(normalizeText(value));
+  if (yesLike(tags["diet:vegan"])) {
+    addAssignment(assignments, "vegan", "Vegan", 0.95, {
+      ...baseEvidence,
+      extraction_method: "osm_diet_tag",
+      matched_osm_value: "diet:vegan",
+    });
+  }
+  if (yesLike(tags["diet:vegetarian"])) {
+    addAssignment(assignments, "vegetarien", "Vegetarien", 0.95, {
+      ...baseEvidence,
+      extraction_method: "osm_diet_tag",
+      matched_osm_value: "diet:vegetarian",
+    });
+  }
+  if (yesLike(tags["diet:halal"])) {
+    addAssignment(assignments, "halal", "Halal", 0.95, {
+      ...baseEvidence,
+      extraction_method: "osm_diet_tag",
+      matched_osm_value: "diet:halal",
+    });
+  }
+  if (yesLike(tags.breakfast)) {
+    addAssignment(assignments, "petit-dejeuner", "Petit-dejeuner", 0.91, {
+      ...baseEvidence,
+      extraction_method: "osm_meal_tag",
+      matched_osm_value: "breakfast",
+    });
+  }
+
+  // Name-based inference is deliberately limited to verified public names and
+  // explicit culinary words. It is only used after the OSM identity match.
+  if (restaurant.directory_public_name_verified === true) {
+    const verifiedName = normalizeText(`${restaurant.name} ${tags.name || ""}`);
+    for (const rule of VERIFIED_NAME_RULES) {
+      if (!rule.pattern.test(verifiedName)) continue;
+      addAssignment(assignments, rule.slug, rule.label, 0.90, {
+        ...baseEvidence,
+        extraction_method: "verified_matched_name_inference",
+        matched_name: tags.name || restaurant.name,
+      });
     }
   }
-  return output;
-}
 
-async function assignmentsFromVerifiedWebsite(element: OsmElement) {
-  const tags = element.tags || {};
-  const website = normalizeHttpUrl(tags.website || tags["contact:website"]);
-  if (!website || isRejectedSiteHost(website.hostname)) return null;
-  try {
-    const root = await fetchText(website);
-    if (!root) return null;
-    const assignments = new Map<string, CuisineAssignment>();
-    for (const assignment of siteAssignments(root.html, root.url)) assignments.set(assignment.slug, assignment);
-    if (assignments.size === 0) {
-      for (const link of extractUsefulLinks(root.url, root.html)) {
-        const page = await fetchText(new URL(link));
-        if (!page) continue;
-        for (const assignment of siteAssignments(page.html, page.url)) {
-          const current = assignments.get(assignment.slug);
-          if (!current || assignment.confidence > current.confidence) assignments.set(assignment.slug, assignment);
-        }
-        if (assignments.size > 0) break;
-      }
-    }
-    return { sourceUrl: root.url, assignments: [...assignments.values()].slice(0, 12) };
-  } catch {
-    return null;
-  }
+  return [...assignments.values()]
+    .sort((left, right) => right.confidence - left.confidence || left.slug.localeCompare(right.slug))
+    .slice(0, 12);
 }
 
 async function loadLeadHints(supabase: any, restaurants: RestaurantRow[]) {
-  const references = restaurants.map((restaurant) => restaurant.directory_source_reference).filter(Boolean) as string[];
+  const references = restaurants
+    .map((restaurant) => restaurant.directory_source_reference)
+    .filter(Boolean) as string[];
   if (references.length === 0) return new Map<string, LeadHint>();
+
   const { data, error } = await supabase
     .from("marketing_contacts")
     .select("source_reference,website,phone")
     .eq("source_system", "commercial_prospect_catalog")
     .in("source_reference", [...new Set(references)]);
   if (error) throw new Error(`lead_hints_failed:${error.message}`);
-  return new Map((data || []).map((row: LeadHint) => [String(row.source_reference || ""), row]));
+
+  return new Map(
+    (data || []).map((row: LeadHint) => [String(row.source_reference || ""), row]),
+  );
 }
 
-function retryIso(daysOrHours: { days?: number; hours?: number }) {
-  const milliseconds = (daysOrHours.days || 0) * 86_400_000 + (daysOrHours.hours || 0) * 3_600_000;
+function retryIso(input: { days?: number; hours?: number }) {
+  const milliseconds = (input.days || 0) * 86_400_000 + (input.hours || 0) * 3_600_000;
   return new Date(Date.now() + milliseconds).toISOString();
 }
 
-async function updateOsmJob(supabase: any, restaurantId: string, values: Record<string, unknown>) {
+async function updateJob(supabase: any, restaurantId: string, values: Record<string, unknown>) {
   const { error } = await supabase
     .from("restaurant_directory_cuisine_osm_jobs")
     .update({ ...values, locked_at: null, updated_at: new Date().toISOString() })
@@ -743,7 +576,7 @@ async function updateOsmJob(supabase: any, restaurantId: string, values: Record<
   if (error) throw new Error(`osm_job_update_failed:${error.message}`);
 }
 
-async function statusSnapshot(supabase: any) {
+async function getStatus(supabase: any) {
   const statuses = ["pending", "processing", "success", "not_found", "error"] as const;
   const rows = await Promise.all(statuses.map(async (status) => {
     const { count, error } = await supabase
@@ -764,21 +597,37 @@ Deno.serve(async (req) => {
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
   try {
-    actor = await authenticateRequest(req, { allowServiceRole: true, allowSchedulerSecret: true });
+    actor = await authenticateRequest(req, {
+      allowServiceRole: true,
+      allowSchedulerSecret: true,
+    });
     requireRole(actor, ["admin"]);
     const supabase = actor.adminClient;
     const body = req.method === "GET" ? {} : await req.json().catch(() => ({}));
     const mode = String(body?.mode || "process_batch");
-    if (mode === "status") return jsonResponse({ success: true, jobs: await statusSnapshot(supabase) }, 200, corsHeaders);
+
+    if (mode === "status") {
+      return jsonResponse({ success: true, jobs: await getStatus(supabase) }, 200, corsHeaders);
+    }
     if (mode !== "process_batch") throw new HttpError(400, "Invalid mode");
 
-    const { data: claimed, error: claimError } = await supabase.rpc("service_claim_directory_cuisine_osm_jobs", {
-      p_limit: boundedBatchSize(body?.limit),
-    });
+    const { data: claimed, error: claimError } = await supabase.rpc(
+      "service_claim_directory_cuisine_osm_jobs",
+      { p_limit: boundedBatchSize(body?.limit) },
+    );
     if (claimError) throw new Error(`osm_claim_failed:${claimError.message}`);
+
     const restaurantIds = (claimed || []).map((row: { restaurant_id: string }) => row.restaurant_id);
     if (restaurantIds.length === 0) {
-      return jsonResponse({ success: true, claimed: 0, resolved: 0, not_found: 0, errors: 0, jobs: await statusSnapshot(supabase) }, 200, corsHeaders);
+      return jsonResponse({
+        success: true,
+        engine: "osm_overpass_verified_cuisine",
+        claimed: 0,
+        resolved: 0,
+        not_found: 0,
+        errors: 0,
+        jobs: await getStatus(supabase),
+      }, 200, corsHeaders);
     }
 
     const { data: restaurantRows, error: restaurantsError } = await supabase
@@ -786,6 +635,7 @@ Deno.serve(async (req) => {
       .select("id,name,address,city,phone,latitude,longitude,directory_source_reference,directory_public_name_verified,is_directory_listing")
       .in("id", restaurantIds);
     if (restaurantsError) throw new Error(`restaurant_load_failed:${restaurantsError.message}`);
+
     const restaurants = (restaurantRows || []) as RestaurantRow[];
     const leadHints = await loadLeadHints(supabase, restaurants);
     const elements = await fetchOverpassElements(restaurants);
@@ -796,8 +646,17 @@ Deno.serve(async (req) => {
 
     for (const restaurantId of restaurantIds) {
       const restaurant = restaurants.find((row) => row.id === restaurantId);
-      if (!restaurant || restaurant.is_directory_listing !== true || restaurant.latitude == null || restaurant.longitude == null) {
-        await updateOsmJob(supabase, restaurantId, { status: "error", next_attempt_at: null, last_error: "directory_restaurant_or_coordinates_missing" });
+      if (
+        !restaurant
+        || restaurant.is_directory_listing !== true
+        || restaurant.latitude == null
+        || restaurant.longitude == null
+      ) {
+        await updateJob(supabase, restaurantId, {
+          status: "error",
+          next_attempt_at: null,
+          last_error: "directory_restaurant_or_coordinates_missing",
+        });
         errors++;
         continue;
       }
@@ -806,7 +665,7 @@ Deno.serve(async (req) => {
         const lead = leadHints.get(String(restaurant.directory_source_reference || "")) || null;
         const match = selectBestOsmMatch(restaurant, elements, lead);
         if (!match) {
-          await updateOsmJob(supabase, restaurantId, {
+          await updateJob(supabase, restaurantId, {
             status: "not_found",
             next_attempt_at: retryIso({ days: 14 }),
             last_error: "no_verified_osm_match",
@@ -816,72 +675,61 @@ Deno.serve(async (req) => {
         }
 
         const sourceUrl = `https://www.openstreetmap.org/${match.element.type}/${match.element.id}`;
-        const osmAssignments = assignmentsFromOsm(match);
-        if (osmAssignments.length > 0) {
-          const { data: evidenceCount, error: applyError } = await supabase.rpc("service_apply_directory_cuisine_osm_evidence", {
+        const assignments = assignmentsFromOsm(restaurant, match);
+        if (assignments.length === 0) {
+          await updateJob(supabase, restaurantId, {
+            status: "not_found",
+            next_attempt_at: retryIso({ days: 14 }),
+            source_page_url: sourceUrl,
+            last_error: "verified_osm_match_without_cuisine_evidence",
+          });
+          notFound++;
+          continue;
+        }
+
+        const { data: evidenceCount, error: applyError } = await supabase.rpc(
+          "service_apply_directory_cuisine_osm_evidence",
+          {
             p_restaurant_id: restaurantId,
             p_source_url: sourceUrl,
-            p_assignments: osmAssignments,
-          });
-          if (applyError) throw new Error(`osm_apply_failed:${applyError.message}`);
-          await updateOsmJob(supabase, restaurantId, {
-            status: "success",
-            next_attempt_at: null,
-            source_page_url: sourceUrl,
-            evidence_count: Number(evidenceCount || osmAssignments.length),
-            last_error: null,
-          });
-          resolved++;
-          continue;
-        }
+            p_assignments: assignments,
+          },
+        );
+        if (applyError) throw new Error(`osm_apply_failed:${applyError.message}`);
 
-        const websiteResult = await assignmentsFromVerifiedWebsite(match.element);
-        if (websiteResult && websiteResult.assignments.length > 0) {
-          const { data: evidenceCount, error: applyError } = await supabase.rpc("service_apply_directory_cuisine_evidence", {
-            p_restaurant_id: restaurantId,
-            p_source_url: websiteResult.sourceUrl,
-            p_assignments: websiteResult.assignments,
-          });
-          if (applyError) throw new Error(`official_site_apply_failed:${applyError.message}`);
-          await updateOsmJob(supabase, restaurantId, {
-            status: "success",
-            next_attempt_at: null,
-            source_page_url: websiteResult.sourceUrl,
-            evidence_count: Number(evidenceCount || websiteResult.assignments.length),
-            last_error: null,
-          });
-          resolved++;
-          continue;
-        }
-
-        await updateOsmJob(supabase, restaurantId, {
-          status: "not_found",
-          next_attempt_at: retryIso({ days: 14 }),
+        await updateJob(supabase, restaurantId, {
+          status: "success",
+          next_attempt_at: null,
           source_page_url: sourceUrl,
-          last_error: "verified_osm_match_without_cuisine_evidence",
+          evidence_count: Number(evidenceCount || assignments.length),
+          last_error: null,
         });
-        notFound++;
+        resolved++;
       } catch (error) {
         errors++;
         const message = (error instanceof Error ? error.message : "unknown").slice(0, MAX_ERROR_LENGTH);
-        await updateOsmJob(supabase, restaurantId, {
+        await updateJob(supabase, restaurantId, {
           status: "error",
           next_attempt_at: retryIso({ hours: 6 }),
           last_error: message,
         }).catch(() => undefined);
-        log.warn("osm_cuisine_enrichment_failed", { restaurant_id: restaurantId, message });
+        log.warn("osm_cuisine_enrichment_failed", {
+          restaurant_id: restaurantId,
+          message,
+        });
       }
     }
 
     const result = {
       success: true,
-      engine: "osm_overpass_plus_official_site",
+      engine: "osm_overpass_verified_cuisine",
       claimed: restaurantIds.length,
       resolved,
       not_found: notFound,
       errors,
-      jobs: await statusSnapshot(supabase),
+      jobs: await getStatus(supabase),
     };
+
     await writeAuditLog({
       adminClient: supabase,
       actor,
@@ -898,9 +746,12 @@ Deno.serve(async (req) => {
         errors,
       },
     });
+
     return jsonResponse(result, 200, corsHeaders);
   } catch (error) {
-    log.error("request_failed", { message: error instanceof Error ? error.message : "unknown" });
+    log.error("request_failed", {
+      message: error instanceof Error ? error.message : "unknown",
+    });
     return jsonResponse(
       { success: false, error: error instanceof Error ? error.message : "Unknown error" },
       error instanceof HttpError ? error.status : 500,
