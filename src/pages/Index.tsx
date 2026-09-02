@@ -21,7 +21,6 @@ import { useCart } from "@/lib/cart-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { getCurrentPosition } from "@/lib/geolocation-native";
 import {
-  filterRestaurantsWithinRadius,
   isRestaurantWithinRadius,
   type Coordinates,
 } from "@/lib/nearbyRestaurants";
@@ -40,14 +39,16 @@ import {
   type ProgressiveReservationOffer,
 } from "@/lib/progressiveReservationOffers";
 import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
-import { shuffleRestaurantsWithVisuals } from "@/lib/randomizedRestaurantOrder";
+import {
+  buildHomeRestaurantSections,
+  type HomeRestaurantCandidate,
+} from "@/lib/homeRestaurantDiscovery";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
 
 const supabase = getSupabase();
 const NearbyRestaurantsMap = lazy(() => import("@/components/NearbyRestaurantsMap"));
-const HOME_MAP_RESTAURANTS_LIMIT = 100;
-const HOME_RAIL_GEO_CANDIDATE_LIMIT = 100;
-const HOME_RAIL_RANDOM_CANDIDATE_LIMIT = 24;
+const HOME_CANDIDATE_POOL_LIMIT = 54;
+const HOME_OFFER_CANDIDATE_LIMIT = 12;
 const HOME_NEARBY_RADIUS_KM = 5;
 const PROGRESSIVE_OFFERS_TABLE = "reservation_progressive_offers";
 
@@ -72,11 +73,9 @@ type SearchSort =
   | "mieux_notes_mois"
   | "plus_reserves_mois";
 
-type HomeRailParams = {
+type HomeCandidatePoolParams = {
   city?: string | null;
-  query?: string | null;
   sortBy?: SearchSort;
-  deliveryOnly?: boolean;
   limit?: number;
 };
 
@@ -111,22 +110,49 @@ function mapSearchRailRestaurant(row: any) {
   };
 }
 
-async function fetchHomeRail(params: HomeRailParams) {
-  const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
-    p_query: params.query || null,
-    p_city: params.city || null,
+async function fetchHomeCandidatePool({
+  city = null,
+  sortBy = "pertinence",
+  limit = HOME_CANDIDATE_POOL_LIMIT,
+}: HomeCandidatePoolParams): Promise<HomeRestaurantCandidate[]> {
+  const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog_page", {
+    p_query: null,
+    p_city: city || null,
     p_cuisine: null,
     p_price_range: null,
-    p_delivery_only: params.deliveryOnly || false,
+    p_delivery_only: false,
     p_min_rating: 0,
-    p_sort_by: params.sortBy || "popularite",
+    p_sort_by: sortBy,
     p_sort_direction: "desc",
-    p_limit: params.limit || 4,
+    p_limit: Math.min(Math.max(limit, 1), HOME_CANDIDATE_POOL_LIMIT),
     p_offset: 0,
   });
 
   if (error) throw error;
-  return ((data || []) as any[]).map(mapSearchRailRestaurant);
+  const page = Array.isArray(data) ? data[0] : data;
+  const rawItems = Array.isArray(page?.items) ? page.items : [];
+  const candidates = rawItems.map(mapSearchRailRestaurant) as HomeRestaurantCandidate[];
+  const ids = candidates
+    .map((restaurant) => String(restaurant?.id || ""))
+    .filter(Boolean);
+
+  if (ids.length === 0) return candidates;
+
+  const { data: restaurantDetails, error: detailsError } = await supabase
+    .from("restaurants")
+    .select("id, latitude, longitude, opening_hours, supports_reservation, supports_dinein, supports_pickup")
+    .in("id", ids);
+
+  if (detailsError) return candidates;
+
+  const detailsById = new Map(
+    ((restaurantDetails || []) as any[]).map((restaurant) => [String(restaurant.id), restaurant]),
+  );
+
+  return candidates.map((restaurant) => ({
+    ...restaurant,
+    ...(detailsById.get(String(restaurant?.id || "")) || {}),
+  }));
 }
 
 function buildSearchLink(params: Record<string, string | null | undefined | boolean>) {
@@ -180,7 +206,6 @@ export default function Index() {
       : [],
     [commercialDemoFrame, isCommercialDemoClient],
   );
-  const deliveryEnabled = activeFeatures.has("livraison");
   const campaignsEnabled = activeFeatures.has("campagnes-pub");
   const [isVisible, setIsVisible] = useState(false);
   const [shouldLoadMap, setShouldLoadMap] = useState(false);
@@ -192,9 +217,6 @@ export default function Index() {
   const geolocationQueryKey = userCoordinates
     ? `${userCoordinates.latitude.toFixed(4)}:${userCoordinates.longitude.toFixed(4)}`
     : "unavailable";
-  const railCandidateLimit = userCoordinates
-    ? HOME_RAIL_GEO_CANDIDATE_LIMIT
-    : HOME_RAIL_RANDOM_CANDIDATE_LIMIT;
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 400);
@@ -265,49 +287,6 @@ export default function Index() {
     enabled: campaignsEnabled && !isCommercialDemoClient,
   });
 
-  const { data: allRestaurants } = useQuery({
-    queryKey: ["all-restaurants-map", geolocationQueryKey, demoSessionKey],
-    enabled: shouldLoadMap,
-    queryFn: async () => {
-      if (isCommercialDemoClient) return demoRestaurants;
-      const { data } = await supabase
-        .from("restaurants")
-        .select("id, name, cuisine_type, rating, city, address, image_url, latitude, longitude")
-        .eq("is_active", true)
-        .order("rating", { ascending: false })
-        .limit(HOME_MAP_RESTAURANTS_LIMIT);
-      const restaurants = data || [];
-      return userCoordinates
-        ? filterRestaurantsWithinRadius(restaurants, userCoordinates, HOME_NEARBY_RADIUS_KM)
-        : restaurants;
-    },
-  });
-
-  const { data: lunchRail = [] } = useQuery({
-    queryKey: ["home-rail-lunch", deliveryEnabled, geolocationQueryKey, demoSessionKey],
-    queryFn: () => isCommercialDemoClient
-      ? demoRestaurants
-      : fetchHomeRail({
-        sortBy: "popularite",
-        deliveryOnly: deliveryEnabled,
-        limit: railCandidateLimit,
-      }),
-  });
-
-  const { data: dinnerRail = [] } = useQuery({
-    queryKey: ["home-rail-dinner", geolocationQueryKey, demoSessionKey],
-    queryFn: () => isCommercialDemoClient
-      ? demoRestaurants
-      : fetchHomeRail({ sortBy: "plus_reserves_mois", limit: railCandidateLimit }),
-  });
-
-  const { data: offersRail = [] } = useQuery({
-    queryKey: ["home-rail-offers", geolocationQueryKey, demoSessionKey],
-    queryFn: () => isCommercialDemoClient
-      ? demoRestaurants
-      : fetchHomeRail({ sortBy: "promotion", limit: railCandidateLimit }),
-  });
-
   const progressiveOffersBaseQuery = {
     queryKey: ["home-progressive-reservation-offers", todayServiceDate],
   };
@@ -366,13 +345,6 @@ export default function Index() {
       maxOffers: 3,
     });
   }, [progressiveOffers, todayServiceDate, userCoordinates]);
-
-  const { data: trendingRail = [] } = useQuery({
-    queryKey: ["home-rail-trending", geolocationQueryKey, demoSessionKey],
-    queryFn: () => isCommercialDemoClient
-      ? demoRestaurants
-      : fetchHomeRail({ sortBy: "note", limit: railCandidateLimit }),
-  });
 
   const { data: userContext } = useQuery({
     queryKey: ["home-user-context", user?.id, demoSessionKey],
@@ -459,15 +431,26 @@ export default function Index() {
     },
   });
 
-  const { data: cityRail = [] } = useQuery({
-    queryKey: ["home-rail-city", userContext?.city || "", geolocationQueryKey, demoSessionKey],
-    enabled: Boolean(userCoordinates || userContext?.city),
+  const candidateCity = userCoordinates ? null : userContext?.city || null;
+  const { data: homeCandidates = [] } = useQuery({
+    queryKey: ["home-candidate-pool", candidateCity || "", demoSessionKey],
     queryFn: () => isCommercialDemoClient
-      ? demoRestaurants
-      : fetchHomeRail({
-        city: userCoordinates ? null : userContext?.city || null,
-        sortBy: "popularite",
-        limit: railCandidateLimit,
+      ? Promise.resolve(demoRestaurants as HomeRestaurantCandidate[])
+      : fetchHomeCandidatePool({
+        city: candidateCity,
+        sortBy: "pertinence",
+        limit: HOME_CANDIDATE_POOL_LIMIT,
+      }),
+  });
+
+  const { data: offerCandidates = [] } = useQuery({
+    queryKey: ["home-offer-candidate-pool", candidateCity || "", demoSessionKey],
+    queryFn: () => isCommercialDemoClient
+      ? Promise.resolve([] as HomeRestaurantCandidate[])
+      : fetchHomeCandidatePool({
+        city: candidateCity,
+        sortBy: "promotion",
+        limit: HOME_OFFER_CANDIDATE_LIMIT,
       }),
   });
 
@@ -481,23 +464,8 @@ export default function Index() {
     },
   });
 
-  const localizeCards = (restaurants: any[], maxItems: number) => {
-    const localizedRestaurants = userCoordinates
-      ? filterRestaurantsWithinRadius(
-        restaurants,
-        userCoordinates,
-        HOME_NEARBY_RADIUS_KM,
-      )
-      : restaurants;
-
-    return shuffleRestaurantsWithVisuals(
-      localizedRestaurants,
-      `${homepageShuffleSeed.current}:${maxItems}`,
-    ).slice(0, maxItems);
-  };
-
-  const sponsoredCards = localizeCards(
-    (sponsoredCampaigns || [])
+  const sponsoredRestaurantCandidates = useMemo(
+    () => (sponsoredCampaigns || [])
       .map((campaign: any) => {
         const restaurant = campaign.restaurants;
         if (!restaurant) return null;
@@ -508,81 +476,100 @@ export default function Index() {
           campaign_title: campaign.title || null,
           campaign_body: campaign.body || null,
           campaign_creative: campaign.channels?.creative || null,
-        };
+        } as HomeRestaurantCandidate;
       })
-      .filter(Boolean) as any[],
-    6,
+      .filter(Boolean) as HomeRestaurantCandidate[],
+    [sponsoredCampaigns],
+  );
+
+  const progressiveRestaurantIds = useMemo(
+    () => visibleProgressiveOffers
+      .map((offer) => getProgressiveOfferRestaurant(offer)?.id || offer.restaurant_id)
+      .map((value) => String(value || ""))
+      .filter(Boolean),
+    [visibleProgressiveOffers],
   );
 
   const currentHour = new Date().getHours();
   const lunchFocus = currentHour < 16;
-  const organicLunchCards = localizeCards(lunchRail as any[], 4);
-  const organicDinnerCards = localizeCards(dinnerRail as any[], 4);
-  const primaryBaseCards = lunchFocus ? organicLunchCards : organicDinnerCards;
-  const primarySponsoredCards = prioritizeSponsoredCards(primaryBaseCards, sponsoredCards, {
+  const homeSections = useMemo(
+    () => buildHomeRestaurantSections({
+      candidates: homeCandidates,
+      offerCandidates,
+      personalRestaurants: (userContext?.personalRestaurants || []) as HomeRestaurantCandidate[],
+      sponsoredRestaurants: sponsoredRestaurantCandidates,
+      reservedRestaurantIds: progressiveRestaurantIds,
+      userCoordinates,
+      userCity: userContext?.city || null,
+      radiusKm: HOME_NEARBY_RADIUS_KM,
+      seed: homepageShuffleSeed.current,
+      lunchFocus,
+    }),
+    [
+      homeCandidates,
+      lunchFocus,
+      offerCandidates,
+      progressiveRestaurantIds,
+      sponsoredRestaurantCandidates,
+      userContext?.city,
+      userContext?.personalRestaurants,
+      userCoordinates,
+    ],
+  );
+
+  const primaryBaseCards = lunchFocus ? homeSections.lunchCards : homeSections.dinnerCards;
+  const primarySponsoredCards = prioritizeSponsoredCards(primaryBaseCards, homeSections.sponsoredCards, {
     topSlots: 3,
     maxItems: primaryBaseCards.length || undefined,
   });
-  const lunchCards = lunchFocus ? primarySponsoredCards : organicLunchCards;
-  const dinnerCards = lunchFocus ? organicDinnerCards : primarySponsoredCards;
-  const offersCards = localizeCards(offersRail as any[], 4);
-  const trendingCards = localizeCards(trendingRail as any[], 6);
-  const personalCards = localizeCards((userContext?.personalRestaurants || []) as any[], 4);
-  const localCards = localizeCards(cityRail as any[], 4);
+  const lunchCards = lunchFocus ? primarySponsoredCards : homeSections.lunchCards;
+  const dinnerCards = lunchFocus ? homeSections.dinnerCards : primarySponsoredCards;
+  const offersCards = homeSections.offersCards;
+  const trendingCards = homeSections.trendingCards;
+  const personalCards = homeSections.personalCards;
+  const localCards = homeSections.localCards;
+  const allRestaurants = shouldLoadMap ? homeSections.mapRestaurants : [];
+  const trendingIsSignalBased = homeSections.trendingMode === "trending";
   const hasSavedCity = Boolean(userContext?.city);
   const hasProfileName = Boolean(userContext?.fullName);
   const profileNeedsAttention = Boolean(user && (!hasSavedCity || !hasProfileName));
   const primaryRail = lunchFocus
     ? {
       title: "Pour ce midi",
-      subtitle: deliveryEnabled ? "Rapide et fiable" : "Sélection du midi",
+      subtitle: "Sélection variée du midi",
       icon: SunMedium,
       iconColor: "text-amber-500",
       restaurants: lunchCards,
       linkText: "Voir plus pour le midi",
-      linkTo: buildSearchLink({
-        city: userCoordinates ? null : userContext?.city || null,
-        sort: "popularite",
-        delivery: deliveryEnabled ? "true" : undefined,
-      }),
+      linkTo: buildSearchLink({ city: userCoordinates ? null : userContext?.city || null }),
     }
     : {
       title: "Pour ce soir",
-      subtitle: "Réservations et plaisir",
+      subtitle: "Sélection variée du soir",
       icon: MoonStar,
       iconColor: "text-indigo-500",
       restaurants: dinnerCards,
       linkText: "Voir plus pour le soir",
-      linkTo: buildSearchLink({
-        city: userCoordinates ? null : userContext?.city || null,
-        sort: "plus_reserves_mois",
-      }),
+      linkTo: buildSearchLink({ city: userCoordinates ? null : userContext?.city || null }),
     };
   const secondaryRail = lunchFocus
     ? {
       title: "Pour ce soir",
-      subtitle: "Réservations et plaisir",
+      subtitle: "Sélection variée du soir",
       icon: MoonStar,
       iconColor: "text-indigo-500",
       restaurants: dinnerCards,
       linkText: "Voir plus pour le soir",
-      linkTo: buildSearchLink({
-        city: userCoordinates ? null : userContext?.city || null,
-        sort: "plus_reserves_mois",
-      }),
+      linkTo: buildSearchLink({ city: userCoordinates ? null : userContext?.city || null }),
     }
     : {
       title: "Pour ce midi",
-      subtitle: deliveryEnabled ? "Rapide et fiable" : "Sélection du midi",
+      subtitle: "Sélection variée du midi",
       icon: SunMedium,
       iconColor: "text-amber-500",
       restaurants: lunchCards,
       linkText: "Voir plus pour le midi",
-      linkTo: buildSearchLink({
-        city: userCoordinates ? null : userContext?.city || null,
-        sort: "popularite",
-        delivery: deliveryEnabled ? "true" : undefined,
-      }),
+      linkTo: buildSearchLink({ city: userCoordinates ? null : userContext?.city || null }),
     };
   const showSecondaryRail = secondaryRail.restaurants.length > 0;
   const showTrendingRail = trendingCards.length > 0;
@@ -876,21 +863,23 @@ export default function Index() {
           </section>
         </motion.div>
 
-        <motion.div variants={sectionBounce}>
-          <RestaurantSection
-            title="Bons plans du moment"
-            subtitle="Offres actives"
-            icon={BadgePercent}
-            iconColor="text-emerald-500"
-            restaurants={offersCards}
-            bgClass="bg-emerald-50/75 dark:bg-emerald-950/10"
-            accentClassName="bg-emerald-500/80"
-            headerTheme="emerald"
-            headerImageSrc={SECTION_HEADER_IMAGES.offers}
-            linkText="Voir toutes les offres"
-            linkTo={buildSearchLink({ sort: "promotion", promo: true, city: userCoordinates ? null : userContext?.city || null })}
-          />
-        </motion.div>
+        {offersCards.length > 0 ? (
+          <motion.div variants={sectionBounce}>
+            <RestaurantSection
+              title="Bons plans du moment"
+              subtitle="Offres actives"
+              icon={BadgePercent}
+              iconColor="text-emerald-500"
+              restaurants={offersCards}
+              bgClass="bg-emerald-50/75 dark:bg-emerald-950/10"
+              accentClassName="bg-emerald-500/80"
+              headerTheme="emerald"
+              headerImageSrc={SECTION_HEADER_IMAGES.offers}
+              linkText="Voir toutes les offres"
+              linkTo={buildSearchLink({ sort: "promotion", promo: true, city: userCoordinates ? null : userContext?.city || null })}
+            />
+          </motion.div>
+        ) : null}
 
         {showSecondaryRail ? (
           <motion.div variants={sectionBounce}>
@@ -913,16 +902,20 @@ export default function Index() {
         {showTrendingRail ? (
           <motion.div variants={sectionBounce}>
             <RestaurantSection
-              title="Tendances en ce moment"
-              subtitle="Tops"
-              icon={TrendingUp}
+              title={trendingIsSignalBased ? "Tendances en ce moment" : "À découvrir"}
+              subtitle={trendingIsSignalBased ? "Tops" : "Sélection variée"}
+              icon={trendingIsSignalBased ? TrendingUp : Compass}
               iconColor="text-primary"
               restaurants={trendingCards}
               bgClass="bg-slate-50/90 dark:bg-slate-900/30"
               accentClassName="bg-primary/80"
               headerTheme="orange"
-              headerImageSrc={SECTION_HEADER_IMAGES.trending}
-              linkTo={buildSearchLink({ sort: "note", city: userCoordinates ? null : userContext?.city || null })}
+              headerImageSrc={trendingIsSignalBased ? SECTION_HEADER_IMAGES.trending : SECTION_HEADER_IMAGES.nearby}
+              linkText={trendingIsSignalBased ? "Voir les tendances" : "Explorer d'autres restaurants"}
+              linkTo={buildSearchLink({
+                city: userCoordinates ? null : userContext?.city || null,
+                sort: trendingIsSignalBased ? "note" : undefined,
+              })}
             />
           </motion.div>
         ) : null}

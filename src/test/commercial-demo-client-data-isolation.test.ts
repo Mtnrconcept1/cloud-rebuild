@@ -81,7 +81,7 @@ describe("commercial demo client data isolation", () => {
 
     expect(index).toContain("getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot)");
     expect(index).toContain('enabled: campaignsEnabled && !isCommercialDemoClient');
-    expect(index).toContain("if (isCommercialDemoClient) return demoRestaurants");
+    expect(index).toContain("? Promise.resolve(demoRestaurants as HomeRestaurantCandidate[])");
     expect(index).toContain("if (isCommercialDemoClient) return [] as ProgressiveReservationOffer[]");
     expect(index).toContain('["home-user-context", user?.id, demoSessionKey]');
     expect(search).toContain('["search-cuisine-options", demoSessionKey]');
@@ -100,14 +100,14 @@ describe("commercial demo client data isolation", () => {
     const search = readFileSync("src/pages/Recherche.tsx", "utf8");
     const local = readFileSync("src/pages/LocalRestaurants.tsx", "utf8");
 
-    const homeRailCalls = index.match(/fetchHomeRail\(\{/g) ?? [];
-    const guardedHomeRailCalls = index.match(
-      /queryFn:\s*\(\)\s*=>\s*isCommercialDemoClient\s*\?\s*demoRestaurants\s*:\s*fetchHomeRail\(\{/g,
+    const guardedHomeCandidateCalls = index.match(
+      /queryFn:\s*\(\)\s*=>\s*isCommercialDemoClient\s*\?\s*Promise\.resolve\(demoRestaurants as HomeRestaurantCandidate\[\]\)\s*:\s*fetchHomeCandidatePool\(\{/g,
     ) ?? [];
 
-    expect(homeRailCalls).toHaveLength(5);
-    expect(guardedHomeRailCalls).toHaveLength(homeRailCalls.length);
-    expect(index.match(/search_restaurants_catalog/g) ?? []).toHaveLength(1);
+    expect(index.match(/:\s*fetchHomeCandidatePool\(\{/g) ?? []).toHaveLength(2);
+    expect(guardedHomeCandidateCalls).toHaveLength(2);
+    expect(index.match(/search_restaurants_catalog_page/g) ?? []).toHaveLength(1);
+    expect(index.match(/\.from\("restaurants"\)/g) ?? []).toHaveLength(2);
 
     expect(search.match(/search_restaurants_catalog_page/g) ?? []).toHaveLength(1);
     expectDemoGuardBeforeProductionCall(
