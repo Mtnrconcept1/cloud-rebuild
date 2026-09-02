@@ -66,7 +66,7 @@ describe("directory cuisine OSM backfill", () => {
     expect(worker).toContain("https://overpass-api.de/api/interpreter");
     expect(worker).toContain("https://overpass.kumi.systems/api/interpreter");
     expect(worker).toContain("OSM_RADIUS_METERS = 140");
-    expect(worker).toContain('amenity\"~\"^(restaurant|cafe|fast_food|bar|pub|ice_cream)$');
+    expect(worker).toContain('amenity"~"^(restaurant|cafe|fast_food|bar|pub|ice_cream)$');
     expect(worker).toContain("AbortSignal.timeout(OVERPASS_TIMEOUT_MS)");
   });
 
@@ -76,7 +76,7 @@ describe("directory cuisine OSM backfill", () => {
 
     expect(migration).toContain("tok-directory-cuisine-osm-enrichment");
     expect(migration).toContain("/enrich-directory-cuisines-osm");
-    expect(migration).toContain('{\"mode\":\"process_batch\",\"limit\":24,\"source\":\"cron\"}');
+    expect(migration).toContain('{"mode":"process_batch","limit":24,"source":"cron"}');
     expect(migration).toContain("FROM vault.decrypted_secrets");
     expect(migration).toContain("WHERE name = 'internal_cron_secret'");
     expect(config).toContain("[functions.enrich-directory-cuisines-osm]\nverify_jwt = false");
