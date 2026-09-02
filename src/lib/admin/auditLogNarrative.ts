@@ -123,6 +123,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "restaurant-advisor": "les recommandations IA au restaurateur",
   "enrich-directory-images": "l’enrichissement automatique des images des restaurants de l’annuaire",
   "enrich-directory-cuisines": "l’enrichissement vérifié des cuisines des restaurants de l’annuaire",
+  "enrich-directory-cuisines-osm": "la vérification géolocalisée des cuisines des restaurants de l’annuaire via OpenStreetMap",
   "verify-directory-commercial-names": "la vérification automatique des noms commerciaux des restaurants de l’annuaire",
   "enrich-restaurants": "l’enrichissement des fiches restaurant",
   "scrape-restaurants": "la collecte de fiches restaurant",
@@ -173,6 +174,7 @@ const ACTION_PURPOSE: Record<string, string> = {
   cancel_payment_attempt: "annuler une tentative de paiement",
   complete_restaurant_credit_pack_checkout: "finaliser l’achat d’un pack de crédits",
   reject_public_analytics_event: "rejeter un événement d’analyse non conforme",
+  directory_cuisine_osm_enrichment_batch: "vérifier un lot de cuisines depuis des établissements OpenStreetMap recoupés",
   invoke: "exécuter la fonction",
 };
 
