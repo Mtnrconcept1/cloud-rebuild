@@ -231,6 +231,36 @@
       "source": "/sitemap-index.xml",
       "destination": "/sitemap.xml",
       "permanent": true
+    },
+    {
+      "source": "/restaurants/carouge-ge",
+      "destination": "/restaurants/carouge",
+      "permanent": true
+    },
+    {
+      "source": "/restaurants/carouge-ge/:path*",
+      "destination": "/restaurants/carouge/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/restaurants/vand-uvres",
+      "destination": "/restaurants/vandoeuvres",
+      "permanent": true
+    },
+    {
+      "source": "/restaurants/vand-uvres/:path*",
+      "destination": "/restaurants/vandoeuvres/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/restaurants/corsier-ge",
+      "destination": "/restaurants/corsier",
+      "permanent": true
+    },
+    {
+      "source": "/restaurants/corsier-ge/:path*",
+      "destination": "/restaurants/corsier/:path*",
+      "permanent": true
     }
   ],
   "headers": [

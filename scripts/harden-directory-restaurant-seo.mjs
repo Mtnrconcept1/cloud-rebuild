@@ -4,6 +4,8 @@ import path from "node:path";
 
 import { createClient } from "@supabase/supabase-js";
 
+import { cityLabel, citySlug, pickOneRestaurantPerPath } from "../src/lib/seo/cityIdentity.mjs";
+
 const ROOT = process.cwd();
 const DIST_DIR = path.resolve(ROOT, "dist");
 const PUBLIC_DIR = path.resolve(ROOT, "public");
@@ -50,10 +52,13 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+// L'identité de commune vient du module partagé : ce script doit produire exactement la même URL que
+// prerender-seo.mjs, sinon il cherche les fiches au mauvais endroit et les laisse silencieusement sans
+// enrichissement ni lien de revendication.
 function restaurantPath(restaurant) {
-  const citySlug = slugify(restaurant.city || "geneve");
+  const city = citySlug(restaurant.city || "geneve");
   const restaurantSlug = slugify(restaurant.slug || "");
-  if (citySlug && restaurantSlug) return `/restaurants/${citySlug}/r/${restaurantSlug}`;
+  if (city && restaurantSlug) return `/restaurants/${city}/r/${restaurantSlug}`;
   return restaurant.id ? `/restaurant/${restaurant.id}` : null;
 }
 
@@ -68,7 +73,7 @@ function coreFactsReady(restaurant) {
 
 function directoryMetaDescription(restaurant) {
   const name = String(restaurant.name || "Restaurant").trim();
-  const city = String(restaurant.city || "Genève").trim();
+  const city = cityLabel(restaurant.city) || "Genève";
   const address = String(restaurant.address || "").trim();
   const cuisine = String(restaurant.cuisine_type || "").trim();
   const detail = cuisine ? ` Cuisine ${cuisine.toLowerCase()}.` : "";
@@ -78,7 +83,7 @@ function directoryMetaDescription(restaurant) {
 
 function factualParagraph(restaurant) {
   const facts = [
-    `${restaurant.name} est référencé à ${restaurant.address}, ${restaurant.city}`,
+    `${restaurant.name} est référencé à ${restaurant.address}, ${cityLabel(restaurant.city)}`,
     restaurant.cuisine_type ? `La cuisine renseignée est ${restaurant.cuisine_type}` : null,
     restaurant.phone ? `Le numéro public renseigné est ${restaurant.phone}` : null,
   ].filter(Boolean);
@@ -86,7 +91,7 @@ function factualParagraph(restaurant) {
 }
 
 function renderDirectoryFacts(restaurant) {
-  const citySlug = slugify(restaurant.city);
+  const city = citySlug(restaurant.city);
   const claimParams = new URLSearchParams({
     type: "restaurateur",
     claimRestaurant: String(restaurant.id),
@@ -94,7 +99,7 @@ function renderDirectoryFacts(restaurant) {
   });
   const rows = [
     ["Adresse", restaurant.address],
-    ["Commune", restaurant.city],
+    ["Commune", cityLabel(restaurant.city)],
     ["Cuisine", restaurant.cuisine_type],
     ["Téléphone public", restaurant.phone],
   ].filter(([, value]) => String(value || "").trim());
@@ -107,7 +112,7 @@ function renderDirectoryFacts(restaurant) {
     <p>${escapeHtml(factualParagraph(restaurant))}</p>
     <ul>${facts}</ul>
     <nav aria-label="Liens utiles pour ${escapeHtml(restaurant.name)}">
-      <a href="/restaurants/${escapeHtml(citySlug)}">Voir les restaurants à ${escapeHtml(restaurant.city)}</a>
+      <a href="/restaurants/${escapeHtml(city)}">Voir les restaurants à ${escapeHtml(cityLabel(restaurant.city))}</a>
       · <a href="/auth?${escapeHtml(claimParams.toString())}">Revendiquer cette fiche restaurant</a>
     </nav>
   </section>`;
@@ -223,7 +228,18 @@ async function hardenHtml(restaurants) {
 }
 
 async function main() {
-  const restaurants = await collectDirectoryRestaurants();
+  const collected = await collectDirectoryRestaurants();
+  // Deux fiches peuvent viser la même URL. Sans ce filtre, la dernière lue écraserait les métadonnées
+  // de celle que le prérendu a retenue : un titre et une description qui ne parlent pas du même
+  // établissement. La règle partagée garantit que les deux scripts désignent la même titulaire.
+  const restaurants = [...pickOneRestaurantPerPath(
+    collected.filter((restaurant) => restaurantPath(restaurant)),
+    restaurantPath,
+  ).values()];
+  const shadowed = collected.length - restaurants.length;
+  if (shadowed > 0) {
+    console.log(`SEO annuaire: ${shadowed} fiche(s) partageant l'URL d'une autre, ignorée(s).`);
+  }
   if (!restaurants.length) {
     console.log("SEO annuaire: aucune fiche publique à durcir; build inchangé.");
     return;
