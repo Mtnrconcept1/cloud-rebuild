@@ -137,6 +137,9 @@ verify_jwt = false
 [functions.enrich-directory-cuisines]
 verify_jwt = false
 
+[functions.enrich-directory-cuisines-osm]
+verify_jwt = false
+
 [functions.verify-directory-commercial-names]
 verify_jwt = false
 
