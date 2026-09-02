@@ -78,6 +78,9 @@ describe("public restaurant directory pagination and images", () => {
     expect(worker).toContain('add(image, "jsonld")');
     expect(worker).toContain('attrs["data-src"]');
     expect(worker).toContain("validateImageUrl");
+    expect(worker).toContain('response.headers.get("content-range")');
+    expect(worker).toContain("response.status === 206");
+    expect(worker).toContain("responseTotalLength(response)");
     expect(worker).toContain("getLeadHints");
     expect(worker).toContain("scoreSiteIdentity");
     expect(worker).not.toContain('.from("restaurant_media")');
