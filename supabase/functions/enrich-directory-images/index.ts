@@ -19,10 +19,15 @@ const MAX_IMAGE_CANDIDATES = 10;
 const MIN_DISCOVERED_SITE_SCORE = 7;
 const MIN_EMAIL_SITE_SCORE = 4;
 const MIN_IMAGE_SCORE = 10;
+const MIN_SEARCH_IDENTITY_SCORE = 12;
 const FETCH_TIMEOUT_MS = 6_000;
 const IMAGE_TIMEOUT_MS = 6_000;
+const SEARCH_TIMEOUT_MS = 10_000;
+const MAX_STORED_IMAGE_BYTES = 9_500_000;
 const DEFAULT_CRAWL_DELAY_MS = 300;
 const USER_AGENT = "TOK-Directory-Scraper/1.0 (+https://www.thetok.ch)";
+const FIRECRAWL_SEARCH_URL = "https://api.firecrawl.dev/v2/search";
+const RESTAURANT_IMAGE_BUCKET = "restaurant-images";
 
 const REJECTED_IMAGE_PARTS = [
   "logo",
@@ -151,6 +156,30 @@ type ImageCandidate = {
   imageUrl: string;
   pageUrl: string;
   score: number;
+  identityScore: number;
+  method: "official_site" | "exact_name_address_search";
+  searchQuery?: string;
+};
+
+type FirecrawlWebResult = {
+  url?: unknown;
+  title?: unknown;
+  description?: unknown;
+  markdown?: unknown;
+};
+
+type FirecrawlImageResult = {
+  url?: unknown;
+  title?: unknown;
+  imageUrl?: unknown;
+  imageWidth?: unknown;
+  imageHeight?: unknown;
+};
+
+type DownloadedImage = {
+  bytes: Uint8Array;
+  contentType: "image/jpeg" | "image/png" | "image/webp";
+  extension: "jpg" | "png" | "webp";
 };
 
 type RobotsRule = {
@@ -608,9 +637,9 @@ async function discoverWebsite(restaurant: RestaurantRow, hints: LeadHints): Pro
       const fallbackPage = await fetchHtmlPage(httpFallback);
       if (!fallbackPage) continue;
       const identityScore = scoreSiteIdentity(restaurant, fallbackPage.html, fallbackPage.url);
-      const minimumScore = candidate.method === "catalog_website"
-        ? 0
-        : candidate.method === "business_email_domain" ? MIN_EMAIL_SITE_SCORE : MIN_DISCOVERED_SITE_SCORE;
+      const minimumScore = candidate.method === "business_email_domain"
+        ? MIN_EMAIL_SITE_SCORE
+        : MIN_DISCOVERED_SITE_SCORE;
       if (identityScore >= minimumScore) {
         return { ...fallbackPage, identityScore, discoveryMethod: candidate.method };
       }
@@ -619,9 +648,9 @@ async function discoverWebsite(restaurant: RestaurantRow, hints: LeadHints): Pro
     if (!page) continue;
 
     const identityScore = scoreSiteIdentity(restaurant, page.html, page.url);
-    const minimumScore = candidate.method === "catalog_website"
-      ? 0
-      : candidate.method === "business_email_domain" ? MIN_EMAIL_SITE_SCORE : MIN_DISCOVERED_SITE_SCORE;
+    const minimumScore = candidate.method === "business_email_domain"
+      ? MIN_EMAIL_SITE_SCORE
+      : MIN_DISCOVERED_SITE_SCORE;
     if (identityScore >= minimumScore) {
       return { ...page, identityScore, discoveryMethod: candidate.method };
     }
@@ -687,7 +716,15 @@ function extractImageCandidates(
     else if (page.discoveryMethod === "business_email_domain") score += 1;
 
     const existing = candidates.get(resolved);
-    if (!existing || score > existing.score) candidates.set(resolved, { imageUrl: resolved, pageUrl: page.url, score });
+    if (!existing || score > existing.score) {
+      candidates.set(resolved, {
+        imageUrl: resolved,
+        pageUrl: page.url,
+        score,
+        identityScore: page.identityScore,
+        method: "official_site",
+      });
+    }
   };
 
   for (const match of page.html.matchAll(/<meta\b[^>]*>/gi)) {
@@ -799,7 +836,140 @@ async function validateImageUrl(imageUrl: string) {
   }
 }
 
+function searchIdentityScore(restaurant: RestaurantRow, value: unknown) {
+  const blob = normalizeText(value);
+  const normalizedName = normalizeText(restaurant.name);
+  const nameTokens = meaningfulNameTokens(restaurant.name);
+  const normalizedAddress = normalizeText(restaurant.address);
+  const addressNumber = normalizedAddress.match(/\b\d+[a-z]?\b/)?.[0] || "";
+  const addressTokens = normalizedAddress
+    .split(" ")
+    .filter((token) => token.length >= 3 && !/^\d+$/.test(token) && !["rue", "route", "chemin", "avenue", "place", "quai", "geneve"].includes(token));
+
+  const fullNameMatch = Boolean(normalizedName && blob.includes(normalizedName));
+  const nameTokenRatio = nameTokens.length > 0
+    ? nameTokens.filter((token) => blob.includes(token)).length / nameTokens.length
+    : 0;
+  const nameMatched = fullNameMatch || nameTokenRatio >= 0.75;
+
+  const fullAddressMatch = Boolean(normalizedAddress && blob.includes(normalizedAddress));
+  const addressTokenMatches = addressTokens.filter((token) => blob.includes(token)).length;
+  const addressTokenRatio = addressTokens.length > 0 ? addressTokenMatches / addressTokens.length : 0;
+  const numberMatched = Boolean(addressNumber && blob.includes(addressNumber));
+  const addressMatched = fullAddressMatch
+    || (numberMatched && addressTokenMatches >= 1)
+    || (addressTokenMatches >= 2 && addressTokenRatio >= 0.6);
+
+  let score = 0;
+  if (fullNameMatch) score += 7;
+  else if (nameTokenRatio >= 0.75) score += 5;
+  if (fullAddressMatch) score += 8;
+  else {
+    if (numberMatched) score += 3;
+    if (addressTokenRatio >= 0.6 && addressTokenMatches >= 1) score += 5;
+  }
+  if (normalizeText(restaurant.city) && blob.includes(normalizeText(restaurant.city))) score += 2;
+  return { score, nameMatched, addressMatched };
+}
+
+function canonicalSearchPage(value: unknown) {
+  const url = normalizeHttpUrl(typeof value === "string" ? value : "");
+  if (!url) return "";
+  url.search = "";
+  url.hash = "";
+  return url.toString().replace(/\/$/, "");
+}
+
+async function findExactSearchImage(restaurant: RestaurantRow): Promise<ImageCandidate | null> {
+  const apiKey = Deno.env.get("FIRECRAWL_API_KEY")?.trim();
+  if (!apiKey || !String(restaurant.address || "").trim()) return null;
+
+  const searchQuery = `"${restaurant.name}" "${restaurant.address}" ${restaurant.city || "Genève"} restaurant photos`;
+  let payload: any;
+  try {
+    const response = await fetch(FIRECRAWL_SEARCH_URL, {
+      method: "POST",
+      signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: searchQuery,
+        sources: ["web", "images"],
+        limit: 5,
+        location: "Geneva,Switzerland",
+        country: "CH",
+        safe: true,
+      }),
+    });
+    if (!response.ok) return null;
+    payload = await response.json();
+  } catch {
+    return null;
+  }
+
+  const webResults = Array.isArray(payload?.data?.web) ? payload.data.web as FirecrawlWebResult[] : [];
+  const imageResults = Array.isArray(payload?.data?.images) ? payload.data.images as FirecrawlImageResult[] : [];
+  const verifiedPages = new Set<string>();
+  const verifiedHosts = new Set<string>();
+
+  for (const result of webResults) {
+    const pageUrl = canonicalSearchPage(result.url);
+    if (!pageUrl) continue;
+    const identity = searchIdentityScore(
+      restaurant,
+      `${String(result.title || "")} ${String(result.description || "")} ${String(result.markdown || "")} ${pageUrl}`,
+    );
+    if (identity.score < MIN_SEARCH_IDENTITY_SCORE || !identity.nameMatched || !identity.addressMatched) continue;
+    verifiedPages.add(pageUrl);
+    verifiedHosts.add(hostOf(pageUrl));
+  }
+
+  const ranked: ImageCandidate[] = [];
+  for (const result of imageResults) {
+    const imageUrl = String(result.imageUrl || "").trim();
+    const pageUrl = canonicalSearchPage(result.url);
+    if (!imageUrl || !pageUrl || !looksLikeUsableImageUrl(imageUrl)) continue;
+
+    const width = Number(result.imageWidth || 0);
+    const height = Number(result.imageHeight || 0);
+    if ((width > 0 && width < 600) || (height > 0 && height < 400)) continue;
+
+    const ownIdentity = searchIdentityScore(restaurant, `${String(result.title || "")} ${pageUrl}`);
+    const sourceHost = hostOf(pageUrl);
+    const exactPageVerified = verifiedPages.has(pageUrl);
+    const officialHostVerified = Boolean(sourceHost && !isRejectedSiteHost(sourceHost) && verifiedHosts.has(sourceHost));
+    const ownIdentityVerified = ownIdentity.score >= MIN_SEARCH_IDENTITY_SCORE
+      && ownIdentity.nameMatched
+      && ownIdentity.addressMatched;
+    if (!exactPageVerified && !officialHostVerified && !ownIdentityVerified) continue;
+
+    let score = ownIdentity.score + (exactPageVerified ? 8 : officialHostVerified ? 5 : 3);
+    if (width >= 1200 && height >= 675) score += 4;
+    else if (width >= 800 && height >= 450) score += 2;
+    ranked.push({
+      imageUrl,
+      pageUrl,
+      score,
+      identityScore: Math.max(ownIdentity.score, exactPageVerified ? MIN_SEARCH_IDENTITY_SCORE : 0),
+      method: "exact_name_address_search",
+      searchQuery,
+    });
+  }
+
+  ranked.sort((left, right) => right.score - left.score);
+  for (const candidate of ranked.slice(0, MAX_IMAGE_CANDIDATES)) {
+    const validated = await validateImageUrl(candidate.imageUrl);
+    if (validated) return { ...candidate, imageUrl: validated };
+  }
+  return null;
+}
+
 async function findBestImage(supabase: any, restaurant: RestaurantRow): Promise<ImageCandidate | null> {
+  const searched = await findExactSearchImage(restaurant);
+  if (searched) return searched;
+
   const hints = await getLeadHints(supabase, restaurant.directory_source_reference);
   const homepage = await discoverWebsite(restaurant, hints);
   if (!homepage) return null;
@@ -827,6 +997,161 @@ async function findBestImage(supabase: any, restaurant: RestaurantRow): Promise<
     if (validated) return { ...candidate, imageUrl: validated };
   }
   return null;
+}
+
+async function downloadImage(imageUrl: string): Promise<DownloadedImage> {
+  const url = normalizeHttpUrl(imageUrl);
+  if (!url) throw new Error("image_url_invalid");
+  const policy = await getRobotsPolicy(url);
+  if (!robotsAllows(policy, url)) throw new Error("image_disallowed_by_robots");
+  await respectCrawlDelay(url, policy.crawlDelayMs);
+
+  const { response, finalUrl } = await fetchPublic(url, {
+    timeoutMs: IMAGE_TIMEOUT_MS,
+    headers: { Accept: "image/webp,image/png,image/jpeg;q=0.9" },
+  });
+  const finalPolicy = finalUrl.origin === url.origin ? policy : await getRobotsPolicy(finalUrl);
+  if (!robotsAllows(finalPolicy, finalUrl)) {
+    await response.body?.cancel().catch(() => undefined);
+    throw new Error("image_redirect_disallowed_by_robots");
+  }
+
+  const rawContentType = (response.headers.get("content-type") || "").toLowerCase().split(";")[0].trim();
+  const mimeMap: Record<string, DownloadedImage["extension"]> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+  };
+  if (!response.ok || !mimeMap[rawContentType]) {
+    await response.body?.cancel().catch(() => undefined);
+    throw new Error("image_type_not_supported");
+  }
+  const announcedLength = responseTotalLength(response);
+  if (announcedLength > MAX_STORED_IMAGE_BYTES) {
+    await response.body?.cancel().catch(() => undefined);
+    throw new Error("image_too_large");
+  }
+  if (!response.body) throw new Error("image_body_missing");
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_STORED_IMAGE_BYTES) throw new Error("image_too_large");
+      chunks.push(value);
+    }
+  } finally {
+    await reader.cancel().catch(() => undefined);
+  }
+  if (total < 8_000) throw new Error("image_too_small");
+
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return {
+    bytes,
+    contentType: rawContentType as DownloadedImage["contentType"],
+    extension: mimeMap[rawContentType],
+  };
+}
+
+function restaurantFileStem(name: string) {
+  return normalizeText(name).replace(/\s+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70) || "restaurant";
+}
+
+async function persistRestaurantImage(supabase: any, restaurant: RestaurantRow, candidate: ImageCandidate) {
+  const downloaded = await downloadImage(candidate.imageUrl);
+  const digestInput = new ArrayBuffer(downloaded.bytes.byteLength);
+  new Uint8Array(digestInput).set(downloaded.bytes);
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", digestInput));
+  const hash = [...digest].map((value) => value.toString(16).padStart(2, "0")).join("").slice(0, 24);
+  const storagePath = `${restaurant.id}/directory/${restaurantFileStem(restaurant.name)}-${hash}.${downloaded.extension}`;
+  const publicUrl = supabase.storage.from(RESTAURANT_IMAGE_BUCKET).getPublicUrl(storagePath).data.publicUrl;
+  let uploadedByThisCall = false;
+
+  const { error: uploadError } = await supabase.storage
+    .from(RESTAURANT_IMAGE_BUCKET)
+    .upload(storagePath, downloaded.bytes, {
+      cacheControl: "31536000",
+      contentType: downloaded.contentType,
+      upsert: false,
+    });
+  if (uploadError) {
+    const duplicate = /already exists|duplicate|409/i.test(String(uploadError.message || uploadError));
+    if (!duplicate) throw new Error(`restaurant_image_storage_upload_failed:${uploadError.message}`);
+  } else {
+    uploadedByThisCall = true;
+  }
+
+  let mediaId: string | null = null;
+  const { data: existingMedia, error: existingError } = await supabase
+    .from("restaurant_media")
+    .select("id")
+    .eq("storage_bucket", RESTAURANT_IMAGE_BUCKET)
+    .eq("storage_path", storagePath)
+    .maybeSingle();
+  if (existingError) throw new Error(`restaurant_media_lookup_failed:${existingError.message}`);
+  mediaId = existingMedia?.id || null;
+
+  if (!mediaId) {
+    const { data: insertedMedia, error: mediaError } = await supabase
+      .from("restaurant_media")
+      .insert({
+        restaurant_id: restaurant.id,
+        media_url: publicUrl,
+        media_type: "photo",
+        alt_text: `Photo du restaurant ${restaurant.name}`,
+        is_cover: true,
+        position: 0,
+        storage_bucket: RESTAURANT_IMAGE_BUCKET,
+        storage_path: storagePath,
+        metadata: {
+          source: "directory_image_enrichment",
+          provider: candidate.method === "exact_name_address_search" ? "firecrawl_search_v2" : "official_site",
+          search_query: candidate.searchQuery || null,
+          source_page_url: candidate.pageUrl,
+          source_image_url: candidate.imageUrl,
+          identity_score: candidate.identityScore,
+          candidate_score: candidate.score,
+          imported_at: new Date().toISOString(),
+        },
+      })
+      .select("id")
+      .single();
+    if (mediaError) {
+      if (uploadedByThisCall) {
+        await supabase.storage.from(RESTAURANT_IMAGE_BUCKET).remove([storagePath]).catch(() => undefined);
+      }
+      throw new Error(`restaurant_media_insert_failed:${mediaError.message}`);
+    }
+    mediaId = insertedMedia.id;
+  }
+
+  const { data: updatedRestaurant, error: updateError } = await supabase
+    .from("restaurants")
+    .update({ image_url: publicUrl, updated_at: new Date().toISOString() })
+    .eq("id", restaurant.id)
+    .eq("is_directory_listing", true)
+    .or("image_url.is.null,image_url.eq.")
+    .select("id")
+    .maybeSingle();
+  if (updateError || !updatedRestaurant) {
+    const { data: current } = await supabase.from("restaurants").select("image_url").eq("id", restaurant.id).maybeSingle();
+    if (String(current?.image_url || "") !== publicUrl) {
+      if (mediaId && !existingMedia) await supabase.from("restaurant_media").delete().eq("id", mediaId);
+      if (uploadedByThisCall) await supabase.storage.from(RESTAURANT_IMAGE_BUCKET).remove([storagePath]);
+      throw new Error(updateError ? `restaurant_image_update_failed:${updateError.message}` : "restaurant_image_update_lost_race");
+    }
+  }
+
+  return { publicUrl, storagePath, mediaId };
 }
 
 function retryDelayIso(kind: "not_found" | "error") {
@@ -881,6 +1206,9 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: true, jobs: await getStatus(supabase) }, 200, corsHeaders);
     }
     if (mode !== "process_batch") throw new HttpError(400, "Invalid mode");
+    if (!Deno.env.get("FIRECRAWL_API_KEY")?.trim()) {
+      throw new HttpError(503, "FIRECRAWL_API_KEY not configured");
+    }
 
     const limit = boundedBatchSize(body?.limit);
     const { data: claimed, error: claimError } = await supabase.rpc(
@@ -930,24 +1258,7 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const { data: updatedRestaurant, error: updateError } = await supabase
-          .from("restaurants")
-          .update({ image_url: candidate.imageUrl, updated_at: new Date().toISOString() })
-          .eq("id", restaurantId)
-          .eq("is_directory_listing", true)
-          .or("image_url.is.null,image_url.eq.")
-          .select("id")
-          .maybeSingle();
-        if (updateError) throw new Error(`restaurant_image_update_failed:${updateError.message}`);
-
-        if (!updatedRestaurant) {
-          const { data: current } = await supabase
-            .from("restaurants")
-            .select("image_url")
-            .eq("id", restaurantId)
-            .maybeSingle();
-          if (!String(current?.image_url || "").trim()) throw new Error("restaurant_image_update_lost_race");
-        }
+        await persistRestaurantImage(supabase, row, candidate);
 
         await updateJob(supabase, restaurantId, {
           status: "success",
@@ -978,7 +1289,7 @@ Deno.serve(async (req) => {
 
     const result = {
       success: true,
-      engine: "native_scraper",
+      engine: "exact_name_address_search_with_official_site_fallback",
       claimed: restaurantIds.length,
       enriched: successCount,
       not_found: notFoundCount,
@@ -995,7 +1306,7 @@ Deno.serve(async (req) => {
       status: "success",
       targetEntityType: "restaurants",
       metadata: {
-        engine: "native_scraper",
+        engine: "exact_name_address_search_with_official_site_fallback",
         source: String(body?.source || "manual"),
         claimed: restaurantIds.length,
         enriched: successCount,

@@ -45,8 +45,9 @@ describe("public restaurant directory pagination and images", () => {
     expect(migration).toContain("TO anon, authenticated, service_role");
   });
 
-  it("keeps native image enrichment resumable, polite, SSRF-safe and directory-scoped", () => {
+  it("keeps exact-address image enrichment resumable, identity-checked, stored and directory-scoped", () => {
     const migration = read("supabase/migrations/20260831081000_directory_image_enrichment.sql");
+    const searchBackfill = read("supabase/migrations/20260902055545_exact_directory_image_search_backfill.sql");
     const worker = read("supabase/functions/enrich-directory-images/index.ts");
 
     expect(migration).toContain("restaurant_directory_image_jobs");
@@ -57,9 +58,19 @@ describe("public restaurant directory pagination and images", () => {
     expect(migration).toContain("x-internal-cron-secret");
     expect(migration).toContain("/enrich-directory-images");
 
-    expect(worker).not.toContain("FIRECRAWL_API_KEY");
-    expect(worker).not.toContain("api.firecrawl.dev");
-    expect(worker).toContain('engine: "native_scraper"');
+    expect(searchBackfill).toContain("nullif(btrim(r.image_url), '') IS NULL");
+    expect(searchBackfill).toContain("attempts = 0");
+    expect(searchBackfill).not.toContain("UPDATE public.restaurants");
+
+    expect(worker).toContain("FIRECRAWL_API_KEY");
+    expect(worker).toContain("https://api.firecrawl.dev/v2/search");
+    expect(worker).toContain('sources: ["web", "images"]');
+    expect(worker).toContain('`"${restaurant.name}" "${restaurant.address}"');
+    expect(worker).toContain("MIN_SEARCH_IDENTITY_SCORE");
+    expect(worker).toContain("identity.nameMatched");
+    expect(worker).toContain("identity.addressMatched");
+    expect(worker).toContain('method: "exact_name_address_search"');
+    expect(worker).toContain('engine: "exact_name_address_search_with_official_site_fallback"');
     expect(worker).toContain("const MAX_BATCH_SIZE = 3");
     expect(worker).toContain("allowSchedulerSecret: true");
     expect(worker).toContain("is_directory_listing");
@@ -78,11 +89,20 @@ describe("public restaurant directory pagination and images", () => {
     expect(worker).toContain('add(image, "jsonld")');
     expect(worker).toContain('attrs["data-src"]');
     expect(worker).toContain("validateImageUrl");
+    expect(worker).toContain("MAX_STORED_IMAGE_BYTES = 9_500_000");
+    expect(worker).toContain('const RESTAURANT_IMAGE_BUCKET = "restaurant-images"');
+    expect(worker).toContain("restaurantFileStem(restaurant.name)");
+    expect(worker).toContain("crypto.subtle.digest(\"SHA-256\"");
+    expect(worker).toContain(".upload(storagePath, downloaded.bytes");
+    expect(worker).toContain('.from("restaurant_media")');
+    expect(worker).toContain('storage_bucket: RESTAURANT_IMAGE_BUCKET');
+    expect(worker).toContain('source_page_url: candidate.pageUrl');
+    expect(worker).toContain('source_image_url: candidate.imageUrl');
+    expect(worker).toContain('.or("image_url.is.null,image_url.eq.")');
     expect(worker).toContain('response.headers.get("content-range")');
     expect(worker).toContain("response.status === 206");
     expect(worker).toContain("responseTotalLength(response)");
     expect(worker).toContain("getLeadHints");
     expect(worker).toContain("scoreSiteIdentity");
-    expect(worker).not.toContain('.from("restaurant_media")');
   });
 });
