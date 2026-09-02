@@ -11,6 +11,7 @@ import {
 export type HomeRestaurantCandidate = RestaurantWithVisual & {
   id: string;
   name: string;
+  campaign_id?: string | number | null;
   city?: string | null;
   address?: string | null;
   image_url?: string | null;
