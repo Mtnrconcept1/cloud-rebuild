@@ -24,7 +24,7 @@ describe("SEO public directory name hardening", () => {
     expect(decodeDirectoryText("Caf&eacute;-Restaurant La Caf")).toBe("Café-Restaurant La Caf");
   });
 
-  it("falls back to a non-corporate establishment name for objective web artefacts", () => {
+  it("falls back to a non-corporate establishment name for unambiguous web artefacts", () => {
     expect(chooseEffectiveDirectoryName(directoryRow({
       name: "Monsite",
       legal_name: "Le Samouraï",
@@ -32,16 +32,18 @@ describe("SEO public directory name hardening", () => {
     }))).toBe("Le Samouraï");
 
     expect(chooseEffectiveDirectoryName(directoryRow({
-      name: "Mamasan Web",
-      legal_name: "Mamasan - Pâquis",
-      slug: "mamasan-paquis-1c1d4df5",
-    }))).toBe("Mamasan - Pâquis");
-
-    expect(chooseEffectiveDirectoryName(directoryRow({
       name: "zaïzaï.ch",
       legal_name: "Zaï Zaï",
       slug: "zai-zai",
     }))).toBe("Zaï Zaï");
+  });
+
+  it("keeps ambiguous branch-like fallbacks conservative for the dedicated artefact pass", () => {
+    expect(chooseEffectiveDirectoryName(directoryRow({
+      name: "Mamasan Web",
+      legal_name: "Mamasan - Pâquis",
+      slug: "mamasan-paquis-1c1d4df5",
+    }))).toBe("Mamasan Web");
   });
 
   it("fixes a proprietor captured as Restaurant JSON-LD only when the venue identity is independently supported", () => {
