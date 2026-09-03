@@ -22,6 +22,8 @@ Le projet historique `cloud-rebuild` ne doit plus être utilisé comme cible de 
 
 La production doit passer par le workflow GitHub Actions du dépôt. Ne pas déclencher de déploiement manuel Vercel depuis une session locale sans décision explicite.
 
+Si un push sur `main` n'instancie exceptionnellement pas le workflow `Deploy Production`, créer un nouveau push non fonctionnel et documenté sur `main`. Le workflow de production compare le nouveau head au dernier commit réellement déployé (`automation/production-deployed`) et doit ainsi rattraper les changements applicatifs restés en attente au lieu de supposer que le push précédent a été livré.
+
 ## Secrets Edge Functions
 
 - `SPONSORED_EVENT_SIGNING_SECRET` : optionnel tant que le tracking sponsorise n'a pas de fournisseur de jetons signes. Si ce secret est configure dans Supabase Edge Functions, `track-sponsored-event` exige `eventSignature` et `signedAt` sur chaque impression, clic ou conversion sponsorisee.
