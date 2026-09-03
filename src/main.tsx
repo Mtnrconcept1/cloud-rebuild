@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import "./index.css";
 import "./home-section-headers.css";
 import "./styles/commercial-prospection-markers.css";
+import "./styles/golden-tok-chefs-table.css";
 import { initCapacitorPlugins } from "@/lib/capacitor-init";
 import { installCommercialProspectionMarkerTheme } from "@/lib/commercialProspectionMarkerTheme";
 import { initMonitoring } from "@/lib/monitoring";
