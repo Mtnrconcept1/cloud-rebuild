@@ -12,8 +12,8 @@ import {
   normalizeNearDuplicateName,
   removeNearDuplicatesFromSitemap,
 } from "./harden-seo-near-duplicates.mjs";
-import { hardenSeoInventoryConsistency } from "./harden-seo-inventory-consistency.mjs";
-import { hardenSeoCrawl } from "./harden-seo-crawl.mjs";
+import { reconcileSeoInventory } from "./harden-seo-inventory-consistency.mjs";
+import { optimizeSeoCrawl } from "./harden-seo-crawl.mjs";
 
 const ROOT = process.cwd();
 const DIST_DIR = path.resolve(ROOT, process.env.SEO_DIST_DIR || "dist");
@@ -225,8 +225,8 @@ export async function hardenSeoFinalQuality() {
 
   // A final dedupe changes the effective inventory. Recompute counts, then strip every
   // parent link/JSON-LD reference that still points at a newly noindexed detail page.
-  await hardenSeoInventoryConsistency();
-  await hardenSeoCrawl();
+  await reconcileSeoInventory();
+  await optimizeSeoCrawl();
 
   console.log(
     `SEO final quality ready: ${rows.length} row(s), ${overrides.size} domain-name override(s), ${duplicatePlan.loserToWinner.size} article duplicate(s), ${changedFiles} HTML file(s) updated.`,
