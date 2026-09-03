@@ -67,7 +67,8 @@ describe("TOK Connect frontend integration", () => {
     expect(page).toContain("DEFAULT_CHATGPT_FUNCTIONS_BASE_URL");
     expect(page).toContain("CHATGPT_FUNCTIONS_BASE_URL");
     expect(page).toContain("/tok-connect-api");
-    expect(page).toContain("https://www.thetok.ch/mcp");
+    expect(page).toContain('const CANONICAL_ORIGIN = "https://www.thetok.ch"');
+    expect(page).toContain('const CHATGPT_MCP_SERVER_URL = `${CANONICAL_ORIGIN}/mcp`');
     expect(page).toContain("/tok-connect-oauth/authorize");
     expect(page).toContain("Autopilot avanc");
     expect(page).toContain("selectedActor");
