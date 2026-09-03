@@ -1,0 +1,36 @@
+/* Golden TOK — Table du Chef hero artwork override.
+ * Keep this last in the cascade so each theme downloads only its own hero asset.
+ */
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading {
+  background-image: url('/Image%20Codex%203%20sept.%202026,%2011_06_16.png') !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-heading {
+  background-image: url('/Image%20Codex%203%20sept.%202026,%2011_12_46.png') !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+}
+
+/* Avoid decorative overlays obscuring artwork that already contains its own tonal treatment. */
+html body [data-golden-tok-chefs-table] .golden-tok-heading::before {
+  display: none !important;
+}
+
+@media (max-width: 1023px) {
+  html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading {
+    background-image: url('/Image%20Codex%203%20sept.%202026,%2011_06_16.png') !important;
+    background-position: center center !important;
+    background-size: cover !important;
+  }
+
+  html.dark body [data-golden-tok-chefs-table] .golden-tok-heading {
+    background-image: url('/Image%20Codex%203%20sept.%202026,%2011_12_46.png') !important;
+    background-position: center center !important;
+    background-size: cover !important;
+  }
+}
