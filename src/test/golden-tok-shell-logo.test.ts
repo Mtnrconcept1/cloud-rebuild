@@ -29,18 +29,24 @@ describe("Golden TOK public chrome", () => {
     expect(wizard).toContain("golden-tok-benefits");
   });
 
-  it("loads V2 then the responsive V3 refinement after the base Golden TOK theme", () => {
+  it("loads the reference-driven V4 refinement after the hero artwork layer", () => {
     const main = read("src/main.tsx");
     const v2 = read("src/styles/golden-tok-chefs-table-v2.css");
     const v3 = read("src/styles/golden-tok-chefs-table-v3.css");
+    const hero = read("src/styles/golden-tok-chefs-table-hero.css");
+    const v4 = read("src/styles/golden-tok-chefs-table-v4.css");
 
     const baseIndex = main.indexOf("golden-tok-chefs-table.css");
     const v2Index = main.indexOf("golden-tok-chefs-table-v2.css");
     const v3Index = main.indexOf("golden-tok-chefs-table-v3.css");
+    const heroIndex = main.indexOf("golden-tok-chefs-table-hero.css");
+    const v4Index = main.indexOf("golden-tok-chefs-table-v4.css");
 
     expect(baseIndex).toBeGreaterThan(-1);
     expect(v2Index).toBeGreaterThan(baseIndex);
     expect(v3Index).toBeGreaterThan(v2Index);
+    expect(heroIndex).toBeGreaterThan(v3Index);
+    expect(v4Index).toBeGreaterThan(heroIndex);
 
     expect(v2).toContain("grid-template-columns: repeat(12, minmax(0, 1fr))");
     expect(v2).toContain("tok-reference-food-02.webp");
@@ -60,5 +66,13 @@ describe("Golden TOK public chrome", () => {
     expect(v3).toContain("scroll-snap-type: none");
     expect(v3).toContain("@media (max-width: 520px)");
     expect(v3).toContain("@media (max-width: 380px)");
+
+    expect(hero).toContain("11_06_16.png");
+    expect(hero).toContain("11_12_46.png");
+    expect(v4).toContain('content: "La Tok\\A d’Or"');
+    expect(v4).toContain('content: "LA TOK D’OR"');
+    expect(v4).toContain("background: transparent !important");
+    expect(v4).toContain("golden-tok-header-action");
+    expect(v4).toContain("@media (max-width: 520px)");
   });
 });
