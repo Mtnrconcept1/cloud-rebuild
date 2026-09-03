@@ -5,6 +5,9 @@ import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const migrationPath = "supabase/migrations/20260607063751_authenticated_security_audit_hardening.sql";
+const GATEWAY_DEFAULT_TOMBSTONES = new Map([
+  ["stripe-setup", "STRIPE_SETUP_RETIRED"],
+]);
 
 function read(path: string) {
   const absolutePath = resolve(root, path);
@@ -22,7 +25,7 @@ function getVerifyJwt(config: string, functionName: string) {
 }
 
 describe("authenticated security audit hardening", () => {
-  it("declares an explicit Supabase Edge Function auth policy for every function directory", () => {
+  it("declares an explicit Supabase Edge Function auth policy for every active function directory", () => {
     const config = read("supabase/config.toml");
     const functionNames = readdirSync(resolve(root, "supabase/functions"), { withFileTypes: true })
       .filter((entry) => entry.isDirectory() && entry.name !== "_shared")
@@ -31,8 +34,24 @@ describe("authenticated security audit hardening", () => {
 
     expect(functionNames.length).toBeGreaterThan(0);
     for (const functionName of functionNames) {
+      const tombstoneMarker = GATEWAY_DEFAULT_TOMBSTONES.get(functionName);
+      if (tombstoneMarker) {
+        const source = read(`supabase/functions/${functionName}/index.ts`);
+        expect(source).toContain(tombstoneMarker);
+        expect(source).toContain("status: 410");
+        expect(source).not.toMatch(/Deno\.env|getStripe|STRIPE_SECRET|service[_-]?role/i);
+        continue;
+      }
+
       expect(["true", "false"]).toContain(getVerifyJwt(config, functionName));
     }
+  });
+
+  it("keeps gateway-default tombstones on the authenticated Supabase CLI default", () => {
+    const deployHelper = read("scripts/supabase-ci-retry.sh");
+
+    expect(GATEWAY_DEFAULT_TOMBSTONES.size).toBeGreaterThan(0);
+    expect(deployHelper).not.toContain("--no-verify-jwt");
   });
 
   it("uses handler-level auth instead of Supabase gateway JWT verification for ES256-compatible functions", () => {

@@ -173,7 +173,7 @@ describe("admin audit log narrative", () => {
     expect(summarizeAuditLog(edgeLog({ actorType: "user", actorLabel: "u-42" }))).toContain("L’utilisateur u-42");
   });
 
-  it("names every deployed Edge Function so no log falls back to its slug", () => {
+  it("names every active Edge Function so no audit log falls back to its slug", () => {
     const module = read("src/lib/admin/auditLogNarrative.ts");
     const dictionary = module.split("const FUNCTION_PURPOSE")[1].split("};")[0];
     const covered = new Set(Array.from(dictionary.matchAll(/"([a-z0-9-]+)":/g), (match) => match[1]));
@@ -182,8 +182,18 @@ describe("admin audit log narrative", () => {
       .filter((entry) => entry.isDirectory() && !entry.name.startsWith("_"))
       .map((entry) => entry.name);
 
+    const retiredWithoutAuditSideEffects = new Set(
+      deployed.filter((name) => {
+        const source = read(`supabase/functions/${name}/index.ts`);
+        return source.includes("STRIPE_SETUP_RETIRED")
+          && source.includes("status: 410")
+          && !/Deno\.env|getStripe|STRIPE_SECRET|service[_-]?role/i.test(source);
+      }),
+    );
+
     expect(deployed.length).toBeGreaterThan(50);
-    const missing = deployed.filter((name) => !covered.has(name));
+    expect(retiredWithoutAuditSideEffects).toEqual(new Set(["stripe-setup"]));
+    const missing = deployed.filter((name) => !covered.has(name) && !retiredWithoutAuditSideEffects.has(name));
     expect(missing, `fonctions sans description métier : ${missing.join(", ")}`).toEqual([]);
   });
 
