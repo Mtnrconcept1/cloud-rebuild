@@ -1,0 +1,315 @@
+/* Golden TOK — La Tok d'Or V4
+ * Reference-driven visual refinement for the public Chef Table route.
+ * Presentation only: reservation, cart and checkout logic remain unchanged.
+ */
+
+/* Remove every legacy plate/card treatment around the centered brand mark. */
+html body [data-golden-tok-chefs-table] .golden-tok-rail,
+html body [data-golden-tok-chefs-table] .golden-tok-rail > div:first-child,
+html body [data-golden-tok-chefs-table] .golden-tok-rail > div:first-child::before,
+html body [data-golden-tok-chefs-table] .golden-tok-rail > div:first-child::after {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-rail::before,
+html body [data-golden-tok-chefs-table] .golden-tok-rail::after {
+  display: none !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-rail > div:first-child {
+  overflow: visible !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-rail > div:first-child > img {
+  display: block !important;
+  mix-blend-mode: normal !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Reference composition: compact logo masthead followed by one dominant editorial hero. */
+html body [data-golden-tok-chefs-table] .golden-tok-rail {
+  padding-top: clamp(16px, 2.4vw, 30px) !important;
+  padding-bottom: clamp(6px, 1vw, 12px) !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-rail > div:first-child {
+  width: clamp(116px, 11vw, 168px) !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-stage {
+  gap: clamp(14px, 1.5vw, 20px) !important;
+  padding-top: clamp(8px, 1.2vw, 16px) !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading {
+  min-height: clamp(470px, 46vw, 650px) !important;
+  border-radius: clamp(22px, 2vw, 30px) !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  overflow: hidden !important;
+  box-shadow: 0 26px 70px rgba(77, 48, 4, 0.14) !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading {
+  border-color: rgba(183, 122, 18, 0.34) !important;
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-heading {
+  border-color: rgba(214, 165, 65, 0.44) !important;
+  box-shadow: 0 30px 86px rgba(0, 0, 0, 0.58), 0 0 42px rgba(190, 128, 23, 0.08) !important;
+}
+
+/* Add a controlled readability veil without obscuring the supplied food artwork. */
+html body [data-golden-tok-chefs-table] .golden-tok-heading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading::after {
+  background: linear-gradient(90deg, rgba(255, 253, 248, 0.96) 0%, rgba(255, 253, 248, 0.85) 28%, rgba(255, 253, 248, 0.38) 50%, rgba(255, 253, 248, 0.04) 72%);
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-heading::after {
+  background: linear-gradient(90deg, rgba(4, 4, 3, 0.94) 0%, rgba(4, 4, 3, 0.82) 31%, rgba(4, 4, 3, 0.34) 52%, rgba(4, 4, 3, 0.04) 72%);
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading > div:first-child,
+html body [data-golden-tok-chefs-table] .golden-tok-header-action {
+  z-index: 2 !important;
+}
+
+/* Visible product naming: La Tok d'Or. Keep the existing DOM/business identifier untouched. */
+html body [data-golden-tok-chefs-table] .golden-tok-heading h1 {
+  font-size: 0 !important;
+  line-height: 1 !important;
+  max-width: 7ch !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading h1::after {
+  content: "La Tok\A d’Or";
+  white-space: pre;
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3.4rem, 6vw, 6.3rem);
+  font-weight: 600;
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading h1::after {
+  color: #0c0a07;
+  text-shadow: 0 2px 16px rgba(255, 255, 255, 0.38);
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-heading h1::after {
+  color: #fffaf0;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.68);
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading p:first-of-type {
+  color: #c38a24 !important;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.08);
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading h1 + p {
+  max-width: 360px !important;
+  font-size: clamp(1rem, 1.4vw, 1.2rem) !important;
+  font-weight: 500 !important;
+  line-height: 1.55 !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading h1 + p {
+  color: #2f2a23 !important;
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.72);
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-heading h1 + p {
+  color: #f1e7d6 !important;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.75);
+}
+
+/* Notification bar: wide, readable and anchored to the hero bottom like the references. */
+html body [data-golden-tok-chefs-table] .golden-tok-header-action {
+  left: clamp(22px, 3.5vw, 52px) !important;
+  right: clamp(22px, 3.5vw, 52px) !important;
+  bottom: clamp(20px, 2.7vw, 34px) !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-header-action button {
+  width: min(100%, 720px) !important;
+  min-height: 58px !important;
+  justify-content: center !important;
+  border-radius: 18px !important;
+  border-color: #c99126 !important;
+  background: rgba(10, 10, 8, 0.94) !important;
+  color: #f5c85f !important;
+  font-size: clamp(0.95rem, 1.3vw, 1.12rem) !important;
+  font-weight: 650 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Stepper and live availability adopt the same clean card language. */
+html body [data-golden-tok-chefs-table] .golden-tok-stepper,
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:first-child {
+  border-radius: 22px !important;
+  min-height: 82px !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-stepper {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(183, 122, 18, 0.26) !important;
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-stepper {
+  background: linear-gradient(180deg, #121210, #0b0b0a) !important;
+  border-color: rgba(205, 150, 47, 0.34) !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:first-child {
+  background: linear-gradient(100deg, #11100d, #090908) !important;
+  border-color: rgba(210, 157, 55, 0.6) !important;
+}
+
+/* Rename the first offer badge visually to keep the user-facing vocabulary consistent. */
+html body [data-golden-tok-chefs-table] .golden-tok-content article > div:first-child > div:nth-child(3) > div:first-child > span:first-child {
+  font-size: 0 !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-content article > div:first-child > div:nth-child(3) > div:first-child > span:first-child::after {
+  content: "LA TOK D’OR";
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+}
+
+/* Improve card contrast and avoid low-contrast muted text in both themes. */
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-content article {
+  border-color: rgba(183, 122, 18, 0.26) !important;
+  box-shadow: 0 18px 52px rgba(91, 55, 4, 0.1) !important;
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-content article {
+  border-color: rgba(213, 161, 58, 0.36) !important;
+  background: #0a0a09 !important;
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-content article .text-muted-foreground {
+  color: rgba(244, 236, 222, 0.78) !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-content article .text-muted-foreground {
+  color: #5f574d !important;
+}
+
+@media (max-width: 820px) {
+  html body [data-golden-tok-chefs-table] .golden-tok-rail {
+    padding-top: 10px !important;
+    padding-bottom: 4px !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-rail > div:first-child {
+    width: clamp(104px, 30vw, 132px) !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading {
+    min-height: clamp(520px, 132vw, 680px) !important;
+    padding: 28px 24px 108px !important;
+    background-position: 58% center !important;
+  }
+
+  html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading::after {
+    background: linear-gradient(180deg, rgba(255, 253, 248, 0.9) 0%, rgba(255, 253, 248, 0.52) 34%, rgba(255, 253, 248, 0.03) 62%);
+  }
+
+  html.dark body [data-golden-tok-chefs-table] .golden-tok-heading::after {
+    background: linear-gradient(180deg, rgba(3, 3, 3, 0.86) 0%, rgba(3, 3, 3, 0.48) 34%, rgba(3, 3, 3, 0.02) 62%);
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading > div:first-child {
+    max-width: 82% !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1::after {
+    font-size: clamp(3.2rem, 15vw, 5rem);
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1 + p {
+    max-width: 275px !important;
+    margin-top: 18px !important;
+    font-size: clamp(0.96rem, 4vw, 1.12rem) !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-header-action {
+    left: 20px !important;
+    right: 20px !important;
+    bottom: 18px !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-header-action button {
+    width: 100% !important;
+    min-height: 56px !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-stepper,
+  html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:first-child {
+    min-height: 72px !important;
+    border-radius: 18px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  html body [data-golden-tok-chefs-table] > div.relative.mx-auto.grid {
+    padding-inline: 10px !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading {
+    min-height: 560px !important;
+    border-radius: 20px !important;
+    padding: 24px 20px 100px !important;
+    background-position: 61% center !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading > div:first-child {
+    max-width: 88% !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading p:first-of-type {
+    margin-bottom: 12px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.32em !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1::after {
+    font-size: clamp(3rem, 15.5vw, 4.4rem);
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1 + p {
+    max-width: 240px !important;
+    font-size: 1rem !important;
+    line-height: 1.45 !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-header-action {
+    left: 16px !important;
+    right: 16px !important;
+    bottom: 14px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body [data-golden-tok-chefs-table] .golden-tok-content article {
+    transform: none !important;
+  }
+}
