@@ -19,6 +19,9 @@ jobs:
           fetch-depth: 0
           ref: work/tok-connect-mcp-pulse-widget-20260903
 
+      - name: Clean historical MCP merge marker
+        run: node scripts/_clean-tok-connect-mcp-conflict.mjs
+
       - name: Apply deterministic TOK Connect and Pulse patch
         run: node scripts/_apply-tok-connect-pulse-finalization.mjs
 
