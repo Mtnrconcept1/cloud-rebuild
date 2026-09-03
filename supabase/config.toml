@@ -125,6 +125,10 @@ verify_jwt = false
 [functions.stripe-worker]
 verify_jwt = false
 
+# Legacy privileged bootstrap endpoint: permanent authenticated tombstone.
+[functions.stripe-setup]
+verify_jwt = true
+
 [functions.stripe-subscription-reconcile]
 verify_jwt = false
 
@@ -263,7 +267,6 @@ verify_jwt = false
 
 [functions.google-actions-center-sync]
 verify_jwt = false
-
 
 [functions.ai-campaign-studio]
 verify_jwt = false
