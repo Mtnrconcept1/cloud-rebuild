@@ -14,4 +14,17 @@ describe("Golden TOK public chrome", () => {
     expect(footer).toContain("useTokLogoSrc");
     expect(logoHook).toContain("getTokLogoSrcForPath(pathname)");
   });
+
+  it("keeps the Chef Table visual shell aligned with the Golden TOK desktop and mobile layouts", () => {
+    const wizard = read("src/components/FeatureWizard.tsx");
+
+    expect(wizard).toContain("data-golden-tok-chefs-table");
+    expect(wizard).toContain("golden-tok-rail");
+    expect(wizard).toContain("golden-tok-stage");
+    expect(wizard).toContain("grid-template-columns: minmax(0, 1fr) 320px");
+    expect(wizard).toContain("scroll-snap-type: x mandatory");
+    expect(wizard).toContain("body:has([data-golden-tok-chefs-table]) header.sticky");
+    expect(wizard).toContain("body:has([data-golden-tok-chefs-table]) footer");
+    expect(wizard).toContain("golden-tok-benefits");
+  });
 });
