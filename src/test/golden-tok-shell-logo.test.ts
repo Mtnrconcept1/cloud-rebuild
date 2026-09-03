@@ -20,6 +20,7 @@ describe("Golden TOK public chrome", () => {
 
     expect(wizard).toContain("data-golden-tok-chefs-table");
     expect(wizard).toContain("golden-tok-rail");
+    expect(wizard).toContain('alt="Golden TOK"');
     expect(wizard).toContain("golden-tok-stage");
     expect(wizard).toContain("grid-template-columns: minmax(0, 1fr) 320px");
     expect(wizard).toContain("scroll-snap-type: x mandatory");
@@ -28,14 +29,19 @@ describe("Golden TOK public chrome", () => {
     expect(wizard).toContain("golden-tok-benefits");
   });
 
-  it("loads the approved V2 light/dark responsive layer after the base Golden TOK theme", () => {
+  it("loads V2 then the responsive V3 refinement after the base Golden TOK theme", () => {
     const main = read("src/main.tsx");
     const v2 = read("src/styles/golden-tok-chefs-table-v2.css");
+    const v3 = read("src/styles/golden-tok-chefs-table-v3.css");
 
-    expect(main.indexOf("golden-tok-chefs-table.css")).toBeGreaterThan(-1);
-    expect(main.indexOf("golden-tok-chefs-table-v2.css")).toBeGreaterThan(
-      main.indexOf("golden-tok-chefs-table.css"),
-    );
+    const baseIndex = main.indexOf("golden-tok-chefs-table.css");
+    const v2Index = main.indexOf("golden-tok-chefs-table-v2.css");
+    const v3Index = main.indexOf("golden-tok-chefs-table-v3.css");
+
+    expect(baseIndex).toBeGreaterThan(-1);
+    expect(v2Index).toBeGreaterThan(baseIndex);
+    expect(v3Index).toBeGreaterThan(v2Index);
+
     expect(v2).toContain("grid-template-columns: repeat(12, minmax(0, 1fr))");
     expect(v2).toContain("tok-reference-food-02.webp");
     expect(v2).toContain(".golden-tok-stage:has(.golden-tok-content [class~=\"border-dashed\"])");
@@ -45,5 +51,14 @@ describe("Golden TOK public chrome", () => {
     expect(v2).toContain("@media (max-width: 390px)");
     expect(v2).toContain("button:focus-visible");
     expect(v2).toContain("button:disabled");
+
+    expect(v3).toContain(".golden-tok-rail");
+    expect(v3).toContain("repeat(auto-fit, minmax(min(100%, 610px), 1fr))");
+    expect(v3).toContain("container-type: inline-size");
+    expect(v3).toContain("@container golden-drop (min-width: 840px)");
+    expect(v3).toContain("@container golden-drop (min-width: 560px) and (max-width: 839px)");
+    expect(v3).toContain("scroll-snap-type: none");
+    expect(v3).toContain("@media (max-width: 520px)");
+    expect(v3).toContain("@media (max-width: 380px)");
   });
 });
