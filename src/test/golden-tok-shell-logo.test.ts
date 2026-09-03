@@ -27,4 +27,23 @@ describe("Golden TOK public chrome", () => {
     expect(wizard).toContain("body:has([data-golden-tok-chefs-table]) footer");
     expect(wizard).toContain("golden-tok-benefits");
   });
+
+  it("loads the approved V2 light/dark responsive layer after the base Golden TOK theme", () => {
+    const main = read("src/main.tsx");
+    const v2 = read("src/styles/golden-tok-chefs-table-v2.css");
+
+    expect(main.indexOf("golden-tok-chefs-table.css")).toBeGreaterThan(-1);
+    expect(main.indexOf("golden-tok-chefs-table-v2.css")).toBeGreaterThan(
+      main.indexOf("golden-tok-chefs-table.css"),
+    );
+    expect(v2).toContain("grid-template-columns: repeat(12, minmax(0, 1fr))");
+    expect(v2).toContain("tok-reference-food-02.webp");
+    expect(v2).toContain(".golden-tok-stage:has(.golden-tok-content [class~=\"border-dashed\"])");
+    expect(v2).toContain("html:not(.dark)");
+    expect(v2).toContain("html.dark");
+    expect(v2).toContain("@media (max-width: 820px)");
+    expect(v2).toContain("@media (max-width: 390px)");
+    expect(v2).toContain("button:focus-visible");
+    expect(v2).toContain("button:disabled");
+  });
 });
