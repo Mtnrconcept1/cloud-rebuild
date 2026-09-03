@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { BadgePercent, BellRing, CalendarClock, Check, Flame, Smartphone, Sparkles, Utensils, Widgets } from "lucide-react";
+import { BadgePercent, BellRing, CalendarClock, Check, Flame, LayoutGrid, Smartphone, Sparkles, Utensils } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
@@ -99,6 +99,9 @@ export default function TokPulse() {
                 Le vrai widget TOK Pulse est une extension WidgetKit de l’<strong className="text-white">app iOS native TOK</strong>.
                 Il affiche les signaux utiles de TOK et ouvre directement la bonne expérience.
               </p>
+              <p className="max-w-2xl text-sm leading-6 text-orange-50/65">
+                Un widget TOK qui agit comme un gros bouton vivant. Aucun faux compteur marketing.
+              </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -158,7 +161,7 @@ export default function TokPulse() {
 
       <section className="mx-auto grid max-w-6xl gap-4 px-4 pb-16 sm:px-6 lg:grid-cols-2 lg:px-8">
         <div className="rounded-3xl border border-orange-300/20 bg-white/[0.055] p-6 sm:p-7">
-          <div className="mb-4 flex items-center gap-3"><Widgets className="h-6 w-6 text-orange-300" /><h2 className="text-2xl font-black">Ajouter le vrai widget iPhone</h2></div>
+          <div className="mb-4 flex items-center gap-3"><LayoutGrid className="h-6 w-6 text-orange-300" /><h2 className="text-2xl font-black">Ajouter le vrai widget iPhone</h2></div>
           <ol className="space-y-3 text-orange-50/76">
             <li><strong className="text-white">1.</strong> Installe ou mets à jour l’app iOS TOK.</li>
             <li><strong className="text-white">2.</strong> Fais un appui long sur l’écran d’accueil puis touche « Modifier » / « Ajouter un widget ».</li>
