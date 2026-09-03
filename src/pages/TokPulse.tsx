@@ -35,7 +35,7 @@ const fallbackPulse: PulsePayload = {
 
 function internalPath(url: string) {
   try {
-    const parsed = new URL(url, window.location.origin);
+    const parsed = new URL(url, "https://www.thetok.ch");
     return `${parsed.pathname}${parsed.search}`;
   } catch {
     return "/tok-pulse";

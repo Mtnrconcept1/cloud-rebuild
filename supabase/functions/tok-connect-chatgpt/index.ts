@@ -472,11 +472,11 @@ Deno.serve(async (req) => {
       scopes_supported: OIDC_SCOPES,
       bearer_methods_supported: ["header"],
       resource_documentation: `${PUBLIC_ORIGIN}/tok-connect/developer`,
-    }), { status: 200, headers: new Headers({ ...Object.fromEntries(corsHeaders.entries()), "content-type": "application/json", "cache-control": "no-store", "mcp-protocol-version": "2025-11-25" }) });
+    }), { status: 200, headers: new Headers({ ...corsHeaders, "content-type": "application/json", "cache-control": "no-store", "mcp-protocol-version": "2025-11-25" }) });
   }
 
-  if (req.method === "GET") return new Response(null, { status: 405, headers: new Headers({ ...Object.fromEntries(corsHeaders.entries()), allow: "POST, OPTIONS", "cache-control": "no-store", "mcp-protocol-version": "2025-11-25" }) });
-  if (req.method !== "POST") return new Response(null, { status: 405, headers: new Headers({ ...Object.fromEntries(corsHeaders.entries()), allow: "POST, OPTIONS" }) });
+  if (req.method === "GET") return new Response(null, { status: 405, headers: new Headers({ ...corsHeaders, allow: "POST, OPTIONS", "cache-control": "no-store", "mcp-protocol-version": "2025-11-25" }) });
+  if (req.method !== "POST") return new Response(null, { status: 405, headers: new Headers({ ...corsHeaders, allow: "POST, OPTIONS" }) });
 
   const length = Number(req.headers.get("content-length") || 0);
   if (length > MAX_BODY_BYTES) return new Response(JSON.stringify(jsonRpcError(null, -32600, "Request body too large")), { status: 413, headers: responseHeaders(req) });

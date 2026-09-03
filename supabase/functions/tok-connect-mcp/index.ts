@@ -79,7 +79,6 @@ const ACTION_WINDOW_HTML = `<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-<<<<<<< Updated upstream
       /* Design tokens copied verbatim from the TOK application (src/index.css)
          so the ChatGPT widget renders with the product's real identity rather
          than an approximation. Light and dark follow the reader's theme. */
@@ -915,22 +914,6 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         .tok-restaurant-grid { grid-template-columns: 1fr; }
         .sandbox-head { display: block; }
       }
-=======
-      body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: #f8fafc; }
-      iframe { border: none; width: 100vw; height: 100vh; display: block; }
-      #loader {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface, #fff);
-  z-index: 10;
-  font-family: sans-serif;
-  color: var(--color-brand-primary);
-  font-weight: bold;
-}
->>>>>>> Stashed changes
     </style>
   </head>
   <body>
@@ -943,7 +926,6 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       let iframeReady = false;
       let pendingState = null;
 
-<<<<<<< Updated upstream
       function getState() {
         return window.openai && window.openai.widgetState && Array.isArray(window.openai.widgetState.actions)
           ? window.openai.widgetState.actions
@@ -1149,11 +1131,6 @@ const ACTION_WINDOW_HTML = `<!doctype html>
               '<div class="guardrail">' + escapeHtml(guardrail) + '</div>'
             ).join("") + '</div>' +
             '</div>';
-=======
-      function sendToIframe(state) {
-        if (!iframeReady || !iframe.contentWindow) {
-          pendingState = state;
->>>>>>> Stashed changes
           return;
         }
         iframe.contentWindow.postMessage({ type: "mcp_widget_update", state }, "*");

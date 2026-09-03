@@ -27,13 +27,13 @@ Deno.serve(async (req) => {
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
   if (req.method !== "GET") {
-    return new Response(null, { status: 405, headers: new Headers({ ...Object.fromEntries(corsHeaders.entries()), allow: "GET, OPTIONS" }) });
+    return new Response(null, { status: 405, headers: new Headers({ ...corsHeaders, allow: "GET, OPTIONS" }) });
   }
 
   if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
     return new Response(JSON.stringify({ error: "pulse_widget_not_configured" }), {
       status: 503,
-      headers: new Headers({ ...Object.fromEntries(corsHeaders.entries()), "content-type": "application/json", "cache-control": "no-store" }),
+      headers: new Headers({ ...corsHeaders, "content-type": "application/json", "cache-control": "no-store" }),
     });
   }
 
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     console.error("tok-pulse-widget", firstError);
     return new Response(JSON.stringify({ error: "pulse_widget_data_unavailable" }), {
       status: 503,
-      headers: new Headers({ ...Object.fromEntries(corsHeaders.entries()), "content-type": "application/json", "cache-control": "no-store" }),
+      headers: new Headers({ ...corsHeaders, "content-type": "application/json", "cache-control": "no-store" }),
     });
   }
 
@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
   return new Response(JSON.stringify(payload), {
     status: 200,
     headers: new Headers({
-      ...Object.fromEntries(corsHeaders.entries()),
+      ...corsHeaders,
       "content-type": "application/json; charset=utf-8",
       "cache-control": CACHE_CONTROL,
       "x-content-type-options": "nosniff",

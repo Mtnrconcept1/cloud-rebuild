@@ -345,3 +345,18 @@ corepack pnpm run supabase:doctor:prod
 ```
 
 La production reste pilotee par GitHub Actions. Ne pas pousser directement des secrets, ne pas modifier les variables d'environnement depuis Codex et ne pas appliquer de migration production a la main.
+
+## Gateway ChatGPT v3
+
+L'URL publique reste **uniquement** `https://www.thetok.ch/mcp`. Vercel la route maintenant vers `tok-connect-chatgpt`, une gateway qui agrège côté serveur :
+
+- le MCP transactionnel historique `tok-connect-mcp` ;
+- le catalogue de parcours interne `tok-connect-full-app-mcp` ;
+- les outils standard `search` / `fetch` ;
+- les lectures restaurant, menu et TOK Credits ;
+- la prévisualisation d'annulation ;
+- la création et l'annulation réelles de réservations lorsque l'utilisateur final a explicitement confirmé et qu'une clé d'idempotence est fournie.
+
+Les paiements, remboursements, publications, débits de crédits et mutations administrateur ne deviennent pas autonomes. ChatGPT peut les découvrir, les expliquer, les simuler et préparer un paquet de confirmation, puis TOK conserve l'exécution dans son flux protégé.
+
+Le widget MCP est servi en `text/html;profile=mcp-app` et la gateway remplace la ressource historique qui contenait un marqueur de conflit CSS résiduel.

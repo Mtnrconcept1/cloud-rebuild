@@ -297,3 +297,9 @@ verify_jwt = false
 # cryptographically verified against Apple's certificate chain in the handler.
 [functions.apple-storekit-webhook]
 verify_jwt = false
+
+[functions.tok-connect-chatgpt]
+verify_jwt = false
+
+[functions.tok-pulse-widget]
+verify_jwt = false
