@@ -104,3 +104,7 @@ corepack pnpm test -- tok-connect-full-app-mcp
 ```
 
 Le test vérifie que la fonction est enregistrée, que les surfaces majeures de TOK sont présentes et que les actions à risque restent bloquées derrière un paquet de confirmation humaine.
+
+## Consolidation dans la gateway canonique
+
+Depuis la gateway ChatGPT v3, les outils de ce serveur historique sont agrégés derrière `https://www.thetok.ch/mcp`. `tok-connect-full-app-mcp` reste une implémentation interne et **ne doit pas être enregistré comme second connecteur ChatGPT**.

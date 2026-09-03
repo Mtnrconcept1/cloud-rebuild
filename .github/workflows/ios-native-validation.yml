@@ -75,7 +75,7 @@ jobs:
       - name: Sync Capacitor iOS project
         run: pnpm exec cap sync ios
 
-      - name: Compile native app without signing
+      - name: Compile native app and Pulse widget without signing
         shell: bash
         run: |
           set -euo pipefail
@@ -84,7 +84,7 @@ jobs:
             -scheme App \
             -configuration Release \
             -destination 'generic/platform=iOS' \
-            PRODUCT_BUNDLE_IDENTIFIER='ch.thetok.app' \
+            TOK_APP_BUNDLE_ID='ch.thetok.app' \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             clean build

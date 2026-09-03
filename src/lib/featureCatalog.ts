@@ -194,8 +194,8 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "tok-pulse",
     label: "TOK Pulse",
-    description: "Garde la démonstration PWA hors du parcours client tant qu’elle n’est pas reliée à des données réelles.",
-    defaultEnabled: false,
+    description: "Widget iPhone natif TOK Pulse et raccourcis mobiles alimentés par les données publiques TOK.",
+    defaultEnabled: true,
     group: "client_features",
     routeTargets: ["/tok-pulse"],
   },

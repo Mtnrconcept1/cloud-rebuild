@@ -25,7 +25,7 @@ describe("iOS App Store bundle identity", () => {
   });
 
   it("forces and verifies the bundle identifier on the archived iOS app", () => {
-    expect(releaseWorkflow).toContain('PRODUCT_BUNDLE_IDENTIFIER="$IOS_BUNDLE_ID"');
+    expect(releaseWorkflow).toContain('TOK_APP_BUNDLE_ID="$IOS_BUNDLE_ID"');
     expect(releaseWorkflow).toContain("Print :ApplicationProperties:CFBundleIdentifier");
     expect(releaseWorkflow).toContain('if [[ "$actual_bundle_id" != "$IOS_BUNDLE_ID" ]]');
   });
