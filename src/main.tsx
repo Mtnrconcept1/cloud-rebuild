@@ -8,6 +8,7 @@ import "./styles/golden-tok-chefs-table.css";
 import "./styles/golden-tok-chefs-table-v2.css";
 import "./styles/golden-tok-chefs-table-v3.css";
 import "./styles/golden-tok-chefs-table-hero.css";
+import "./styles/golden-tok-chefs-table-v4.css";
 import { initCapacitorPlugins } from "@/lib/capacitor-init";
 import { installCommercialProspectionMarkerTheme } from "@/lib/commercialProspectionMarkerTheme";
 import { initMonitoring } from "@/lib/monitoring";
