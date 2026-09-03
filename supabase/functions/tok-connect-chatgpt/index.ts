@@ -50,7 +50,8 @@ const GATEWAY_TOOLS = [
   {
     name: "search",
     title: "Search TOK restaurants",
-    description: "Search the live TOK restaurant catalogue for ChatGPT knowledge and discovery. Authenticated users receive their authorized production view; unauthenticated calls remain sandbox-safe.",
+    description: "Search the live TOK restaurant catalogue for an authenticated TOK Connect user within the scopes and grants authorized by TOK.",
+    securitySchemes: OAUTH_SECURITY,
     inputSchema: {
       type: "object",
       required: ["query"],
@@ -69,6 +70,7 @@ const GATEWAY_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOOL_UI_META },
   },
   {
     name: "fetch",
