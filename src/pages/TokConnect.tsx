@@ -52,7 +52,7 @@ function getChatGptFunctionsBaseUrl() {
 }
 
 const CHATGPT_FUNCTIONS_BASE_URL = getChatGptFunctionsBaseUrl();
-const CHATGPT_MCP_SERVER_URL = `${CHATGPT_FUNCTIONS_BASE_URL}/tok-connect-mcp`;
+const CHATGPT_MCP_SERVER_URL = `${CANONICAL_ORIGIN}/mcp`;
 const CHATGPT_OAUTH_AUTHORIZATION_URL = `${CHATGPT_FUNCTIONS_BASE_URL}/tok-connect-oauth/authorize`;
 const CHATGPT_OAUTH_TOKEN_URL = `${CHATGPT_FUNCTIONS_BASE_URL}/tok-connect-oauth`;
 const CHATGPT_REST_API_URL = `${CHATGPT_FUNCTIONS_BASE_URL}/tok-connect-api`;

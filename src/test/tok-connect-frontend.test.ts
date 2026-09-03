@@ -67,7 +67,7 @@ describe("TOK Connect frontend integration", () => {
     expect(page).toContain("DEFAULT_CHATGPT_FUNCTIONS_BASE_URL");
     expect(page).toContain("CHATGPT_FUNCTIONS_BASE_URL");
     expect(page).toContain("/tok-connect-api");
-    expect(page).toContain("/tok-connect-mcp");
+    expect(page).toContain("https://www.thetok.ch/mcp");
     expect(page).toContain("/tok-connect-oauth/authorize");
     expect(page).toContain("Autopilot avanc");
     expect(page).toContain("selectedActor");
@@ -105,7 +105,7 @@ describe("TOK Connect frontend integration", () => {
     expect(admin).toContain("fetchWithFreshAccessToken");
     expect(admin).toContain("Checklist ChatGPT MCP");
     expect(admin).toContain("CHATGPT_MCP_SERVER_URL");
-    expect(admin).toContain("tok-connect-mcp");
+    expect(admin).toContain("https://www.thetok.ch/mcp");
     expect(admin).toContain("CHATGPT_OAUTH_AUTHORIZATION_URL");
     expect(admin).toContain("CHATGPT_OAUTH_TOKEN_URL");
     expect(admin).toContain("tok-connect-oauth");
