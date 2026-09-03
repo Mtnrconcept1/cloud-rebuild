@@ -138,6 +138,8 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "tok-connect-portal": "le portail partenaires TOK Connect",
   "tok-connect-webhook-dispatch": "l’envoi des webhooks aux partenaires TOK Connect",
   "tok-connect-full-app-mcp": "la surface MCP applicative TOK Connect",
+  "tok-connect-chatgpt": "la passerelle MCP publique TOK Connect utilisée par ChatGPT",
+  "tok-pulse-widget": "l’agrégation publique des signaux affichés par le widget TOK Pulse",
   "validate-order-preview": "la simulation du prix d’une commande",
 };
 
