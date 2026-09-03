@@ -24,21 +24,21 @@ describe("SEO public directory name hardening", () => {
     expect(decodeDirectoryText("Caf&eacute;-Restaurant La Caf")).toBe("Café-Restaurant La Caf");
   });
 
-  it("falls back to a non-corporate establishment name for unambiguous web artefacts", () => {
+  it("falls back to a non-corporate establishment name for an unambiguous generic site label", () => {
     expect(chooseEffectiveDirectoryName(directoryRow({
       name: "Monsite",
       legal_name: "Le Samouraï",
       slug: "le-samourai",
     }))).toBe("Le Samouraï");
+  });
 
+  it("keeps domain and branch-like artefacts conservative for the dedicated web-artifact pass", () => {
     expect(chooseEffectiveDirectoryName(directoryRow({
       name: "zaïzaï.ch",
       legal_name: "Zaï Zaï",
       slug: "zai-zai",
-    }))).toBe("Zaï Zaï");
-  });
+    }))).toBe("zaïzaï.ch");
 
-  it("keeps ambiguous branch-like fallbacks conservative for the dedicated artefact pass", () => {
     expect(chooseEffectiveDirectoryName(directoryRow({
       name: "Mamasan Web",
       legal_name: "Mamasan - Pâquis",
