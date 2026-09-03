@@ -354,7 +354,7 @@ export function AdminRouteFrame({
         <RoleSpaceSwitcher compact />
         <Link
           to="/parametres/securite"
-          className="hidden h-11 items-center rounded-full border border-border/70 bg-background/95 px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent md:flex"
+          className="hidden h-11 items-center rounded-full border border-border/70 bg-background/95 px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted md:flex"
         >
           Paramètres
         </Link>

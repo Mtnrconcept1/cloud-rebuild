@@ -81,9 +81,9 @@ describe("TOK Connect frontend integration", () => {
 
     expect(css).toContain("::selection");
     expect(css).toContain("::-moz-selection");
-    expect(css).toContain("rgba(255, 106, 26, 0.82)");
+    expect(css).toContain("hsl(var(--brand) / 0.85)");
     expect(css).toContain(".dark ::selection");
-    expect(css).toContain("rgba(255, 170, 64, 0.92)");
+    expect(css).toContain("hsl(var(--brand) / 0.9)");
   });
 
   it("adds operational TOK Connect consoles for admins and restaurateurs", () => {

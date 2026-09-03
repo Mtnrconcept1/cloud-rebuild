@@ -26,7 +26,7 @@ export default function SolidaritySection({ donatedPoints }: SolidaritySectionPr
   const progressPercent = Math.min(100, Math.round((progressValue / nextGoalPoints) * 100));
 
   return (
-    <section className="border-y border-pink-500/10 bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.16),rgba(255,255,255,0.86)_48%,rgba(255,255,255,0.98))] py-5 dark:bg-pink-500/10 md:py-6">
+    <section className="border-y border-pink-500/10 bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.16),rgba(255,255,255,0.86)_48%,rgba(255,255,255,0.98))] py-5 dark:border-pink-400/15 dark:bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.16),rgba(28,20,18,0.9)_52%,hsl(var(--background)))] md:py-6">
       <div className="container">
         <div
           data-testid="solidarity-card"

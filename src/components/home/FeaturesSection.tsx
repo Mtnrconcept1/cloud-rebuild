@@ -65,46 +65,61 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
   if (visiblePrimaryPillars.length === 0 && visibleFeatures.length === 0) return null;
 
   return (
-    <section className="border-y border-border/70 bg-gradient-to-b from-background to-secondary/20 py-10 dark:border-white/10 dark:from-background dark:via-slate-950/40 dark:to-orange-950/10 md:py-14">
-      <div className="container space-y-6">
-        <div className="space-y-2 rounded-xl border border-primary/15 bg-primary/10 px-4 py-4 text-center shadow-[0_12px_34px_rgba(15,23,42,0.045)] dark:border-orange-300/20 dark:bg-orange-500/15">
-          <div className="flex items-center justify-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary dark:drop-shadow-[0_0_16px_rgba(249,115,22,0.55)]" />
-            <h2 className="font-display text-2xl font-bold dark:text-white md:text-3xl">Trois raisons de choisir TOK</h2>
-          </div>
-          <p className="mx-auto max-w-lg text-sm text-muted-foreground dark:text-slate-300">
+    <section className="relative border-y border-border/70 bg-surface-sunken py-12 md:py-16">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(70%_100%_at_50%_0%,hsl(var(--brand)/0.10),transparent_70%)]"
+      />
+      <div className="container relative space-y-8">
+        <header className="mx-auto max-w-2xl space-y-3 text-center">
+          <p className="section-eyebrow justify-center">
+            <Sparkles className="h-4 w-4" />
+            Pourquoi TOK
+          </p>
+          <h2 className="font-display text-display-md font-bold">Trois raisons de choisir TOK</h2>
+          <p className="mx-auto max-w-lg text-[0.95rem] leading-6 text-muted-foreground">
             Une lecture simple : moins d&apos;attente, plus d&apos;offres locales, plus d&apos;impact solidaire.
           </p>
-        </div>
+        </header>
 
         {visiblePrimaryPillars.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-3">
             {visiblePrimaryPillars.map((feature) => {
-            const Icon = feature.icon;
-            return (
-              <Link
-                key={feature.to}
-                to={feature.to}
-                className="neon-card group flex min-h-[180px] flex-col justify-between rounded-2xl border bg-card p-5 transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/20 dark:bg-card/90"
-              >
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${feature.bg}`}>
-                  <Icon className={`h-6 w-6 ${feature.fg}`} />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-base font-extrabold leading-tight dark:text-white">{feature.label}</h3>
-                  <p className="text-sm leading-6 text-muted-foreground dark:text-slate-300">{feature.desc}</p>
-                </div>
-              </Link>
-            );
+              const Icon = feature.icon;
+              return (
+                <Link
+                  key={feature.to}
+                  to={feature.to}
+                  className="neon-card group relative flex min-h-[190px] flex-col justify-between overflow-hidden rounded-2xl border bg-card p-6 shadow-sm transition-[transform,box-shadow,border-color] duration-base ease-out-soft hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.45),transparent)] opacity-0 transition-opacity duration-base ease-out-soft group-hover:opacity-100"
+                  />
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl ring-1 ring-inset ring-border/60 ${feature.bg}`}>
+                    <Icon className={`h-6 w-6 ${feature.fg}`} />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-[1.0625rem] font-bold leading-tight tracking-[-0.018em] transition-colors duration-fast ease-out-soft group-hover:text-primary">
+                      {feature.label}
+                    </h3>
+                    <p className="text-sm leading-6 text-muted-foreground">{feature.desc}</p>
+                  </div>
+                </Link>
+              );
             })}
           </div>
         ) : null}
 
         {visibleFeatures.length > 0 ? (
-          <div className="space-y-3">
-            <p className="text-center text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Modules complémentaires activés
-            </p>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <hr className="rule-soft flex-1" />
+              <p className="whitespace-nowrap text-[0.7rem] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Modules complémentaires activés
+              </p>
+              <hr className="rule-soft flex-1" />
+            </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {visibleFeatures.map((feature) => {
                 const Icon = feature.icon;
@@ -112,14 +127,16 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
                   <Link
                     key={feature.to}
                     to={feature.to}
-                    className="group flex items-center gap-3 rounded-xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/20 dark:bg-card/90"
+                    className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-xs transition-[transform,box-shadow,border-color] duration-base ease-out-soft hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                   >
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${feature.bg}`}>
                       <Icon className={`h-4 w-4 ${feature.fg}`} />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="truncate text-sm font-semibold leading-tight dark:text-white">{feature.label}</h3>
-                      <p className="truncate text-[11px] leading-snug text-muted-foreground dark:text-slate-300">{feature.desc}</p>
+                      <h3 className="truncate text-sm font-semibold leading-tight transition-colors duration-fast ease-out-soft group-hover:text-primary">
+                        {feature.label}
+                      </h3>
+                      <p className="truncate text-[11px] leading-snug text-muted-foreground">{feature.desc}</p>
                     </div>
                   </Link>
                 );

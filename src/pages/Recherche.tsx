@@ -565,10 +565,10 @@ export default function Recherche() {
                   onCitySelect={(selectedCity) => updateFilter("city", selectedCity)}
                   placeholder="Ville..."
                   className="w-40"
-                  inputClassName="h-[44px] text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-400"
+                  inputClassName="h-[44px] text-xs"
                 />
                 <Select value={cuisine} onValueChange={(v) => updateFilter("cuisine", v)}>
-                  <SelectTrigger className="h-[44px] w-40 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
+                  <SelectTrigger className="h-[44px] w-auto min-w-[10.5rem] text-xs"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
                   <SelectContent>
                     {sortedCuisineOptions.map((entry: any) => (
                       <SelectItem key={entry.id || entry.slug || entry.name} value={String(entry.slug || entry.name).toLowerCase()}>
@@ -578,7 +578,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={price} onValueChange={(v) => updateFilter("price", v)}>
-                  <SelectTrigger className="h-[44px] w-24 text-xs font-bold uppercase dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Budget" /></SelectTrigger>
+                  <SelectTrigger className="h-[44px] w-auto min-w-[7.5rem] text-xs font-bold uppercase"><SelectValue placeholder="Budget" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">CHF</SelectItem>
                     <SelectItem value="2">CHF++</SelectItem>
@@ -586,7 +586,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={minRatingSelectValue} onValueChange={(v) => updateFilter("rating", v)}>
-                  <SelectTrigger className="h-[44px] w-28 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Note minimum" /></SelectTrigger>
+                  <SelectTrigger className="h-[44px] w-auto min-w-[9.5rem] text-xs"><SelectValue placeholder="Note minimum" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Toutes les notes</SelectItem>
                     <SelectItem value="9">9.0+/10</SelectItem>
@@ -599,7 +599,7 @@ export default function Recherche() {
                     type="button"
                     variant={delivery === "true" ? "default" : "outline"}
                     onClick={() => updateFilter("delivery", delivery === "true" ? "" : "true")}
-                    className="h-[44px] gap-1 text-xs dark:border-white/20 dark:shadow-[0_0_18px_rgba(249,115,22,0.14)]"
+                    className="h-[44px] gap-1 text-xs"
                   >
                     <Badge variant={delivery === "true" ? "secondary" : "default"} className="h-4 px-1 text-[10px]">Oui</Badge>
                     Livraison
@@ -608,9 +608,9 @@ export default function Recherche() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-                <span className="whitespace-nowrap text-sm font-medium text-muted-foreground dark:text-slate-300">Trier par :</span>
+                <span className="whitespace-nowrap text-sm font-medium text-muted-foreground">Trier par :</span>
                 <Select value={sortBy} onValueChange={(v) => updateFilter("sort", v)}>
-                  <SelectTrigger className="h-[44px] bg-secondary/20 text-xs font-semibold dark:border-white/20 dark:bg-slate-950/80 dark:text-white xl:w-44"><SelectValue placeholder="Pertinence" /></SelectTrigger>
+                  <SelectTrigger className="h-[44px] w-auto min-w-[11rem] text-xs font-semibold"><SelectValue placeholder="Pertinence" /></SelectTrigger>
                   <SelectContent>
                     {SORT_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -618,7 +618,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={sortDirection} onValueChange={(v) => updateFilter("order", v)}>
-                  <SelectTrigger className="h-[44px] w-32 bg-secondary/20 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Ordre" /></SelectTrigger>
+                  <SelectTrigger className="h-[44px] w-auto min-w-[9.5rem] text-xs"><SelectValue placeholder="Ordre" /></SelectTrigger>
                   <SelectContent>
                     {ORDER_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>

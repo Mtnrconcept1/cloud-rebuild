@@ -152,7 +152,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
           imageSrc="/desig app/assiette.png"
           theme="orange"
           className="mb-4"
-          titleClassName="text-3xl sm:text-4xl md:text-5xl"
+          titleClassName="text-[1.55rem] min-[380px]:text-[1.8rem] sm:text-4xl md:text-5xl"
           illustrationClassName="right-4 sm:right-6 md:right-8"
           imageClassName="-translate-x-6 sm:-translate-x-8 md:-translate-x-8"
           actions={

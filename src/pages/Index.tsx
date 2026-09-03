@@ -850,7 +850,7 @@ export default function Index() {
                 contentClassName="z-30 max-w-[12rem] pr-0 sm:max-w-xs sm:pr-20 md:z-30 md:max-w-lg md:pr-48"
                 illustrationClassName="z-[60] right-4 -top-6 w-44 sm:right-6 sm:-top-8 sm:w-72 md:right-8 md:-top-10 md:w-[26rem]"
                 imageClassName="right-0 h-44 w-44 translate-x-0 sm:h-72 sm:w-72 md:h-[26rem] md:w-[26rem]"
-                titleClassName="text-[1.9rem] leading-[1.05] sm:text-4xl md:text-5xl"
+                titleClassName="text-[1.55rem] leading-[1.06] min-[380px]:text-[1.8rem] sm:text-4xl md:text-5xl"
               />
               <div className="space-y-4">
                 {isCommercialDemoClient ? (
@@ -934,7 +934,7 @@ export default function Index() {
                 theme="blue"
                 linkText="Voir la liste"
                 linkTo={buildSearchLink({ city: userCoordinates ? null : userContext?.city || null })}
-                titleClassName="text-3xl sm:text-4xl md:text-5xl"
+                titleClassName="text-[1.55rem] min-[380px]:text-[1.8rem] sm:text-4xl md:text-5xl"
               />
               {shouldLoadMap ? (
                 <Suspense

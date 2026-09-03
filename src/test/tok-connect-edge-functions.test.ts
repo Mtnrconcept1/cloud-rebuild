@@ -170,7 +170,7 @@ describe("TOK Connect Edge Functions", () => {
 
     // The widget must not drift from the product: these are the exact tokens
     // declared in src/index.css, not hand-picked approximations.
-    for (const token of ["24 95% 53%", "152 55% 45%", "222 30% 5%", "222 28% 11%", "156 58% 47%"]) {
+    for (const token of ["16 89% 44%", "158 64% 34%", "24 16% 7%", "24 14% 11%", "158 58% 44%"]) {
       expect(appCss).toContain(token);
       expect(source).toContain(token);
     }

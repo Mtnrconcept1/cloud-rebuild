@@ -33,53 +33,56 @@ const themeClasses: Record<
     iconBubble: string;
   }
 > = {
+  // Each theme is a single hue family: a tonal glow behind the illustration
+  // fading into a near-background base. The previous two-hue washes
+  // (peach into mint, blue into violet) muddied every panel.
   orange: {
     panel:
-      "border-orange-200/70 bg-[radial-gradient(circle_at_78%_18%,rgba(255,186,112,0.55),transparent_16rem),linear-gradient(135deg,#fff7ed_0%,#ffedd5_48%,#dcfce7_100%)] dark:border-orange-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(249,115,22,0.26),transparent_16rem),linear-gradient(135deg,rgba(67,20,7,0.78),rgba(17,24,39,0.96))]",
-    eyebrow: "text-orange-600 dark:text-orange-200",
-    iconBubble: "bg-orange-500/12 text-orange-600 dark:bg-orange-300/15 dark:text-orange-200",
+      "border-orange-200/70 bg-[radial-gradient(110%_130%_at_86%_4%,rgba(255,138,48,0.32),transparent_62%),linear-gradient(175deg,#fff5ea_0%,#fffcf8_78%)] dark:border-orange-400/20 dark:bg-[radial-gradient(110%_130%_at_86%_4%,rgba(249,115,22,0.24),transparent_62%),linear-gradient(175deg,hsl(24_15%_13%)_0%,hsl(24_16%_9%)_78%)]",
+    eyebrow: "text-orange-700 dark:text-orange-200",
+    iconBubble: "bg-orange-500/12 text-orange-700 ring-1 ring-orange-500/20 dark:bg-orange-300/12 dark:text-orange-200 dark:ring-orange-300/20",
   },
   rose: {
     panel:
-      "border-rose-200/70 bg-[radial-gradient(circle_at_78%_18%,rgba(251,113,133,0.36),transparent_16rem),linear-gradient(135deg,#fff1f2_0%,#fce7f3_48%,#fff7ed_100%)] dark:border-rose-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(244,114,182,0.22),transparent_16rem),linear-gradient(135deg,rgba(76,5,25,0.76),rgba(17,24,39,0.96))]",
-    eyebrow: "text-pink-600 dark:text-pink-200",
-    iconBubble: "bg-pink-500/12 text-pink-600 dark:bg-pink-300/15 dark:text-pink-200",
+      "border-rose-200/70 bg-[radial-gradient(110%_130%_at_86%_4%,rgba(244,63,94,0.24),transparent_62%),linear-gradient(175deg,#fff4f5_0%,#fffbfb_78%)] dark:border-rose-400/20 dark:bg-[radial-gradient(110%_130%_at_86%_4%,rgba(244,63,94,0.22),transparent_62%),linear-gradient(175deg,hsl(350_14%_13%)_0%,hsl(348_16%_9%)_78%)]",
+    eyebrow: "text-rose-700 dark:text-rose-200",
+    iconBubble: "bg-rose-500/12 text-rose-700 ring-1 ring-rose-500/20 dark:bg-rose-300/12 dark:text-rose-200 dark:ring-rose-300/20",
   },
   sky: {
     panel:
-      "border-sky-200/70 bg-[radial-gradient(circle_at_78%_18%,rgba(125,211,252,0.46),transparent_16rem),linear-gradient(135deg,#f0f9ff_0%,#e0f2fe_50%,#ecfeff_100%)] dark:border-sky-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(56,189,248,0.22),transparent_16rem),linear-gradient(135deg,rgba(8,47,73,0.74),rgba(17,24,39,0.96))]",
-    eyebrow: "text-sky-600 dark:text-sky-200",
-    iconBubble: "bg-sky-500/12 text-sky-600 dark:bg-sky-300/15 dark:text-sky-200",
+      "border-sky-200/70 bg-[radial-gradient(110%_130%_at_86%_4%,rgba(56,189,248,0.28),transparent_62%),linear-gradient(175deg,#f1faff_0%,#fbfdff_78%)] dark:border-sky-400/20 dark:bg-[radial-gradient(110%_130%_at_86%_4%,rgba(56,189,248,0.20),transparent_62%),linear-gradient(175deg,hsl(205_18%_13%)_0%,hsl(206_20%_9%)_78%)]",
+    eyebrow: "text-sky-700 dark:text-sky-200",
+    iconBubble: "bg-sky-500/12 text-sky-700 ring-1 ring-sky-500/20 dark:bg-sky-300/12 dark:text-sky-200 dark:ring-sky-300/20",
   },
   amber: {
     panel:
-      "border-amber-200/80 bg-[radial-gradient(circle_at_78%_18%,rgba(251,191,36,0.46),transparent_16rem),linear-gradient(135deg,#fffbeb_0%,#fef3c7_48%,#fff7ed_100%)] dark:border-amber-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(245,158,11,0.24),transparent_16rem),linear-gradient(135deg,rgba(69,26,3,0.76),rgba(17,24,39,0.96))]",
+      "border-amber-200/80 bg-[radial-gradient(110%_130%_at_86%_4%,rgba(251,191,36,0.34),transparent_62%),linear-gradient(175deg,#fff9e8_0%,#fffdf6_78%)] dark:border-amber-400/20 dark:bg-[radial-gradient(110%_130%_at_86%_4%,rgba(245,158,11,0.24),transparent_62%),linear-gradient(175deg,hsl(36_16%_13%)_0%,hsl(34_18%_9%)_78%)]",
     eyebrow: "text-amber-700 dark:text-amber-200",
-    iconBubble: "bg-amber-500/12 text-amber-700 dark:bg-amber-300/15 dark:text-amber-200",
+    iconBubble: "bg-amber-500/12 text-amber-700 ring-1 ring-amber-500/20 dark:bg-amber-300/12 dark:text-amber-200 dark:ring-amber-300/20",
   },
   indigo: {
     panel:
-      "border-indigo-200/70 bg-[radial-gradient(circle_at_78%_18%,rgba(165,180,252,0.48),transparent_16rem),linear-gradient(135deg,#eef2ff_0%,#e0e7ff_48%,#f5f3ff_100%)] dark:border-indigo-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(129,140,248,0.24),transparent_16rem),linear-gradient(135deg,rgba(30,27,75,0.78),rgba(17,24,39,0.96))]",
-    eyebrow: "text-indigo-600 dark:text-indigo-200",
-    iconBubble: "bg-indigo-500/12 text-indigo-600 dark:bg-indigo-300/15 dark:text-indigo-200",
+      "border-indigo-200/70 bg-[radial-gradient(110%_130%_at_86%_4%,rgba(129,140,248,0.28),transparent_62%),linear-gradient(175deg,#f3f4ff_0%,#fbfbff_78%)] dark:border-indigo-400/20 dark:bg-[radial-gradient(110%_130%_at_86%_4%,rgba(129,140,248,0.22),transparent_62%),linear-gradient(175deg,hsl(246_16%_14%)_0%,hsl(246_18%_10%)_78%)]",
+    eyebrow: "text-indigo-700 dark:text-indigo-200",
+    iconBubble: "bg-indigo-500/12 text-indigo-700 ring-1 ring-indigo-500/20 dark:bg-indigo-300/12 dark:text-indigo-200 dark:ring-indigo-300/20",
   },
   emerald: {
     panel:
-      "border-emerald-200/80 bg-[radial-gradient(circle_at_78%_18%,rgba(110,231,183,0.5),transparent_16rem),linear-gradient(135deg,#ecfdf5_0%,#d1fae5_50%,#f0fdfa_100%)] dark:border-emerald-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(52,211,153,0.22),transparent_16rem),linear-gradient(135deg,rgba(6,78,59,0.74),rgba(17,24,39,0.96))]",
+      "border-emerald-200/80 bg-[radial-gradient(110%_130%_at_86%_4%,rgba(16,185,129,0.26),transparent_62%),linear-gradient(175deg,#eefbf5_0%,#f9fdfb_78%)] dark:border-emerald-400/20 dark:bg-[radial-gradient(110%_130%_at_86%_4%,rgba(16,185,129,0.20),transparent_62%),linear-gradient(175deg,hsl(160_14%_12%)_0%,hsl(160_16%_9%)_78%)]",
     eyebrow: "text-emerald-700 dark:text-emerald-200",
-    iconBubble: "bg-emerald-500/12 text-emerald-700 dark:bg-emerald-300/15 dark:text-emerald-200",
+    iconBubble: "bg-emerald-500/12 text-emerald-700 ring-1 ring-emerald-500/20 dark:bg-emerald-300/12 dark:text-emerald-200 dark:ring-emerald-300/20",
   },
   blue: {
     panel:
-      "border-blue-200/70 bg-[radial-gradient(circle_at_78%_18%,rgba(147,197,253,0.48),transparent_16rem),linear-gradient(135deg,#eff6ff_0%,#dbeafe_48%,#eef2ff_100%)] dark:border-blue-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(96,165,250,0.22),transparent_16rem),linear-gradient(135deg,rgba(30,58,138,0.72),rgba(17,24,39,0.96))]",
-    eyebrow: "text-blue-600 dark:text-blue-200",
-    iconBubble: "bg-blue-500/12 text-blue-600 dark:bg-blue-300/15 dark:text-blue-200",
+      "border-blue-200/70 bg-[radial-gradient(110%_130%_at_86%_4%,rgba(59,130,246,0.26),transparent_62%),linear-gradient(175deg,#f1f6ff_0%,#fbfcff_78%)] dark:border-blue-400/20 dark:bg-[radial-gradient(110%_130%_at_86%_4%,rgba(59,130,246,0.22),transparent_62%),linear-gradient(175deg,hsl(220_18%_13%)_0%,hsl(220_20%_9%)_78%)]",
+    eyebrow: "text-blue-700 dark:text-blue-200",
+    iconBubble: "bg-blue-500/12 text-blue-700 ring-1 ring-blue-500/20 dark:bg-blue-300/12 dark:text-blue-200 dark:ring-blue-300/20",
   },
   slate: {
     panel:
-      "border-slate-200/80 bg-[radial-gradient(circle_at_78%_18%,rgba(148,163,184,0.34),transparent_16rem),linear-gradient(135deg,#f8fafc_0%,#f1f5f9_48%,#fff7ed_100%)] dark:border-slate-300/15 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(148,163,184,0.16),transparent_16rem),linear-gradient(135deg,rgba(15,23,42,0.9),rgba(17,24,39,0.98))]",
-    eyebrow: "text-slate-600 dark:text-slate-200",
-    iconBubble: "bg-slate-500/12 text-slate-600 dark:bg-slate-300/15 dark:text-slate-200",
+      "border-border bg-[radial-gradient(110%_130%_at_86%_4%,rgba(168,152,138,0.24),transparent_62%),linear-gradient(175deg,#faf7f4_0%,#fffdfb_78%)] dark:border-border dark:bg-[radial-gradient(110%_130%_at_86%_4%,rgba(168,152,138,0.14),transparent_62%),linear-gradient(175deg,hsl(24_14%_13%)_0%,hsl(24_16%_9%)_78%)]",
+    eyebrow: "text-muted-foreground",
+    iconBubble: "bg-foreground/[0.06] text-foreground/70 ring-1 ring-border",
   },
 };
 
@@ -157,14 +160,15 @@ export default function SectionShowcaseHeader({
     <div
       data-section-showcase-header
       className={cn(
-        "relative isolate min-h-[238px] overflow-visible rounded-[2rem] border px-5 pb-20 pt-6 shadow-[0_24px_55px_rgba(15,23,42,0.10)] sm:min-h-[258px] sm:px-7 sm:pt-7 md:min-h-[286px] md:px-8 md:pt-8",
+        "relative isolate min-h-[238px] overflow-visible rounded-[2rem] border px-5 pb-20 pt-6 shadow-lg sm:min-h-[258px] sm:px-7 sm:pt-7 md:min-h-[286px] md:px-8 md:pt-8",
         palette.panel,
         className,
       )}
     >
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[2rem]">
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.78),rgba(255,255,255,0.18)_58%,rgba(255,255,255,0))] dark:bg-[linear-gradient(90deg,rgba(15,23,42,0.38),rgba(15,23,42,0.08)_58%,rgba(15,23,42,0))]" />
-        <div className="absolute -bottom-24 left-1/2 h-40 w-[148%] -translate-x-1/2 rounded-[100%] bg-background shadow-[0_-16px_45px_rgba(255,255,255,0.62)] dark:bg-slate-950 dark:shadow-[0_-16px_45px_rgba(15,23,42,0.55)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(94deg,rgba(255,255,255,0.62)_0%,rgba(255,255,255,0.18)_46%,rgba(255,255,255,0)_72%)] dark:bg-[linear-gradient(94deg,rgba(0,0,0,0.34)_0%,rgba(0,0,0,0.10)_48%,rgba(0,0,0,0)_74%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent,hsl(var(--background)/0.72)_72%,hsl(var(--background)/0.94))]" />
+        <div className="absolute inset-0 rounded-[2rem] ring-1 ring-inset ring-white/50 dark:ring-white/[0.06]" />
       </div>
 
       <motion.div
@@ -194,13 +198,13 @@ export default function SectionShowcaseHeader({
           contentClassName,
         )}
       >
-        <div className={cn("mb-4 flex min-w-0 max-w-full items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] min-[380px]:mb-5 min-[380px]:text-xs min-[380px]:tracking-[0.18em]", iconColor || palette.eyebrow)}>
-          <span className={cn("grid h-8 w-8 place-items-center rounded-full", palette.iconBubble)}>
+        <div className={cn("mb-4 flex min-w-0 max-w-full items-center gap-2.5 text-[0.68rem] font-bold uppercase tracking-[0.16em] min-[380px]:mb-5 min-[380px]:text-xs min-[380px]:tracking-[0.2em]", iconColor || palette.eyebrow)}>
+          <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-full", palette.iconBubble)}>
             <Icon className="h-4 w-4 fill-current" />
           </span>
           <span className="min-w-0 break-words">{subtitle}</span>
         </div>
-        <h2 className={cn("font-display text-3xl font-bold leading-[1.02] tracking-normal text-slate-950 min-[380px]:text-4xl dark:text-white sm:text-5xl md:text-6xl", titleClassName)}>
+        <h2 className={cn("font-display text-[1.55rem] font-bold leading-[1.05] tracking-[-0.022em] text-foreground [hyphens:auto] min-[380px]:text-[1.8rem] sm:text-5xl md:text-6xl", titleClassName)}>
           {title}
         </h2>
       </div>
@@ -215,12 +219,12 @@ export default function SectionShowcaseHeader({
             <Button
               variant="ghost"
               size="sm"
-              className="h-11 max-w-full rounded-full bg-white/55 px-4 text-sm font-bold text-slate-950 shadow-sm backdrop-blur-sm hover:bg-white/80 hover:text-primary dark:bg-slate-950/35 dark:text-white dark:hover:bg-white/10 dark:hover:text-orange-200"
+              className="group/cta h-11 max-w-full rounded-full border border-border/70 bg-surface-raised/80 px-4 text-sm font-bold text-foreground shadow-sm backdrop-blur-sm transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/40 hover:bg-surface-raised hover:text-primary hover:shadow-md"
               asChild
             >
               <Link to={linkTo}>
                 <span className="min-w-0 truncate">{linkText}</span>
-                <ChevronRight className="ml-1 h-4 w-4 shrink-0" />
+                <ChevronRight className="ml-1 h-4 w-4 shrink-0 transition-transform duration-base ease-out-soft group-hover/cta:translate-x-0.5" />
               </Link>
             </Button>
           ) : null}

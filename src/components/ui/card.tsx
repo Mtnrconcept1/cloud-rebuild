@@ -1,17 +1,18 @@
 import * as React from "react";
+import type { VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
+import { cardVariants } from "@/components/ui/card-variants";
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "neon-card min-w-0 max-w-full rounded-lg border bg-card text-card-foreground shadow-sm dark:border-white/20 dark:bg-card/95 dark:shadow-[0_18px_58px_rgba(0,0,0,0.5),0_0_32px_rgba(249,115,22,0.12)]",
-      className
-    )}
-    {...props}
-  />
-));
+export interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant, interactive, ...props }, ref) => (
+    <div ref={ref} className={cn(cardVariants({ variant, interactive }), className)} {...props} />
+  ),
+);
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
@@ -23,14 +24,18 @@ CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn("min-w-0 break-words text-2xl font-semibold leading-tight tracking-tight", className)} {...props} />
+    <h3
+      ref={ref}
+      className={cn("min-w-0 break-words text-xl font-semibold leading-tight tracking-[-0.022em]", className)}
+      {...props}
+    />
   ),
 );
 CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn("min-w-0 break-words text-sm text-muted-foreground", className)} {...props} />
+    <p ref={ref} className={cn("min-w-0 break-words text-sm leading-6 text-muted-foreground", className)} {...props} />
   ),
 );
 CardDescription.displayName = "CardDescription";

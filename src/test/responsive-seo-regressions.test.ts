@@ -23,7 +23,7 @@ describe("responsive and SEO regression guards", () => {
   });
 
   it("constrains shared primitives to the viewport and keeps overlays above fixed chrome", () => {
-    const card = read("src/components/ui/card.tsx");
+    const card = read("src/components/ui/card.tsx") + read("src/components/ui/card-variants.ts");
     const dialog = read("src/components/ui/dialog.tsx");
     const sheet = read("src/components/ui/sheet.tsx");
     const alertDialog = read("src/components/ui/alert-dialog.tsx");

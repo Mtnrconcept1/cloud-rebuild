@@ -37,7 +37,7 @@ const scaleIn = {
 };
 
 const desktopFieldInputClassName =
-  "h-auto border-none bg-transparent px-0 py-0 text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] shadow-none focus-visible:ring-0 md:text-[1.03rem] dark:text-slate-50 dark:placeholder:text-slate-200/90";
+  "h-auto border-none bg-transparent px-0 py-0 text-[1.03rem] font-semibold text-foreground shadow-none placeholder:text-muted-foreground/80 focus-visible:ring-0 md:text-[1.03rem]";
 
 const newsletterConditions = [
   "Le bonus de bienvenue est réservé aux nouveaux comptes TOK qui s'inscrivent à la newsletter depuis cette offre.",
@@ -124,8 +124,8 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
             <motion.div variants={scaleIn} className="mt-auto space-y-2 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-4 min-[360px]:px-6 min-[390px]:px-8">
               <form onSubmit={handleSearch} className="space-y-1.5">
-              <div className="flex h-[40px] items-center gap-3 rounded-full bg-white px-5 shadow-[0_12px_22px_rgba(34,16,5,0.22)] min-[390px]:h-[42px]">
-                <MapPin className="h-4 w-4 shrink-0 text-[#ff4017]" />
+              <div className="flex h-[40px] items-center gap-3 rounded-full bg-white px-5 shadow-lg transition-shadow duration-base ease-out-soft focus-within:ring-[3px] focus-within:ring-ring/25 min-[390px]:h-[42px]">
+                <MapPin className="h-4 w-4 shrink-0 text-primary" />
                 <CityAutocomplete
                   value={city}
                   onCitySelect={(selectedCity) => setCity(selectedCity)}
@@ -137,7 +137,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 />
               </div>
 
-              <div className="flex h-[42px] items-center gap-3 rounded-full bg-white pl-5 pr-1.5 shadow-[0_12px_22px_rgba(34,16,5,0.22)] min-[390px]:h-[44px]">
+              <div className="flex h-[42px] items-center gap-3 rounded-full bg-white pl-5 pr-1.5 shadow-lg transition-shadow duration-base ease-out-soft focus-within:ring-[3px] focus-within:ring-ring/25 min-[390px]:h-[44px]">
                 <Search className="h-4 w-4 shrink-0 text-[#6b7280]" />
                 <input
                   type="text"
@@ -149,7 +149,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <button
                   type="submit"
                   aria-label="Rechercher"
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#ff4017] text-white shadow-[0_10px_20px_rgba(255,64,23,0.30)] transition hover:bg-[#ff5a25] active:scale-95 min-[390px]:h-9 min-[390px]:w-9"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-gradient text-primary-foreground shadow-brand transition-[filter,transform] duration-fast ease-out-soft hover:brightness-110 active:scale-95 min-[390px]:h-9 min-[390px]:w-9"
                 >
                   <Search className="h-4 w-4" />
                 </button>
@@ -158,7 +158,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               <div className="grid grid-cols-2 gap-2 pt-0">
                 <button
                   type="submit"
-                  className="flex h-[42px] items-center justify-center gap-2 rounded-full bg-[#ff4017] px-3 text-[0.74rem] font-extrabold text-white shadow-[0_12px_22px_rgba(255,64,23,0.32)] transition hover:bg-[#ff5a25] active:translate-y-px min-[390px]:h-[44px] min-[390px]:text-[0.8rem]"
+                  className="flex h-[42px] items-center justify-center gap-2 rounded-full bg-brand-gradient px-3 text-[0.74rem] font-extrabold text-primary-foreground shadow-brand transition-[filter,transform] duration-fast ease-out-soft hover:brightness-110 active:translate-y-px min-[390px]:h-[44px] min-[390px]:text-[0.8rem]"
                 >
                   <Utensils className="h-4 w-4 shrink-0" />
                   Je veux manger
@@ -195,7 +195,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                     <button
                       type="button"
                       onClick={() => navigate("/auth")}
-                      className="h-[30px] rounded-full bg-[#ff6418] px-4 text-[0.7rem] font-extrabold text-white shadow-[0_10px_18px_rgba(255,100,24,0.30)] transition hover:bg-[#ff711f] min-[390px]:h-[32px] min-[390px]:text-[0.74rem]"
+                      className="h-[30px] rounded-full bg-brand-gradient px-4 text-[0.7rem] font-extrabold text-primary-foreground shadow-brand transition-[filter] duration-fast ease-out-soft hover:brightness-110 min-[390px]:h-[32px] min-[390px]:text-[0.74rem]"
                     >
                       Inscrivez-vous
                     </button>
@@ -240,13 +240,13 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           />
 
           <motion.div variants={fadeUp} className="relative isolate max-w-[960px] space-y-3">
-            <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[132%] w-[114%] -translate-x-1/2 -translate-y-1/2 rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,1)_0%,rgba(255,255,255,0.96)_38%,rgba(255,255,255,0.62)_64%,transparent_88%)] opacity-[0.94] blur-3xl" aria-hidden="true" />
-            <div aria-hidden="true" className="font-display text-[clamp(3rem,6.2vw,5.15rem)] font-bold leading-[0.96] tracking-normal text-[#21314b] dark:text-white dark:drop-shadow-[0_0_30px_rgba(255,255,255,0.16)]">
+            <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[128%] w-[110%] -translate-x-1/2 -translate-y-1/2 rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(255,252,248,0.97)_0%,rgba(255,251,246,0.86)_42%,rgba(255,250,244,0.42)_68%,transparent_88%)] blur-3xl dark:bg-[radial-gradient(ellipse_at_center,rgba(14,11,9,0.88)_0%,rgba(14,11,9,0.64)_46%,transparent_86%)]" aria-hidden="true" />
+            <div aria-hidden="true" className="font-display text-[clamp(2.9rem,6vw,5rem)] font-bold leading-[0.97] tracking-[-0.028em] text-foreground">
               <span className="block">Réservez, commandez et profitez</span>
-              <span className="block italic text-[#ff6b1c]">des meilleures offres food à Genève</span>
+              <span className="block italic text-gradient">des meilleures offres food à Genève</span>
             </div>
-            <p className="mx-auto max-w-[760px] text-[1.35rem] font-medium text-[#33445e] dark:text-slate-100 md:text-[1.55rem]">
-              Gagnez du temps, cumulez des <span className="font-semibold text-[#ff6b1c]">Miamz</span> et transformez vos repas en impact solidaire.
+            <p className="mx-auto max-w-[720px] text-[1.2rem] font-medium leading-[1.5] text-foreground/75 md:text-[1.38rem]">
+              Gagnez du temps, cumulez des <span className="font-bold text-primary">Miamz</span> et transformez vos repas en impact solidaire.
             </p>
           </motion.div>
 
@@ -255,8 +255,8 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             onSubmit={handleSearch}
             className="mt-8 w-full max-w-[560px] space-y-4"
           >
-            <div className="flex h-[66px] items-center gap-3 rounded-full border border-white/90 bg-white px-6 shadow-[0_18px_40px_rgba(104,70,29,0.14)] dark:border-orange-200/30 dark:bg-slate-950/90 dark:shadow-[0_0_38px_rgba(249,115,22,0.22),inset_0_1px_0_rgba(255,255,255,0.08)]">
-              <MapPin className="h-5 w-5 shrink-0 text-[#8c95a3] dark:text-orange-200" />
+            <div className="flex h-[64px] items-center gap-3 rounded-full border border-border/60 bg-surface-raised px-6 shadow-lg transition-[box-shadow,border-color] duration-base ease-out-soft focus-within:border-primary/50 focus-within:shadow-xl focus-within:ring-[3px] focus-within:ring-ring/20">
+              <MapPin className="h-5 w-5 shrink-0 text-primary" />
               <CityAutocomplete
                 value={city}
                 onCitySelect={(selectedCity) => setCity(selectedCity)}
@@ -268,23 +268,23 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               />
             </div>
 
-            <div className="flex h-[66px] items-center gap-3 rounded-full border border-white/90 bg-white px-6 shadow-[0_18px_40px_rgba(104,70,29,0.14)] dark:border-orange-200/30 dark:bg-slate-950/90 dark:shadow-[0_0_38px_rgba(249,115,22,0.22),inset_0_1px_0_rgba(255,255,255,0.08)]">
-              <Search className="h-5 w-5 shrink-0 text-[#8c95a3] dark:text-orange-200" />
+            <div className="flex h-[64px] items-center gap-3 rounded-full border border-border/60 bg-surface-raised px-6 shadow-lg transition-[box-shadow,border-color] duration-base ease-out-soft focus-within:border-primary/50 focus-within:shadow-xl focus-within:ring-[3px] focus-within:ring-ring/20">
+              <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cuisine, nom de restaurant..."
-                  className="min-w-0 flex-1 bg-transparent text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] focus:outline-none dark:text-slate-50 dark:placeholder:text-slate-200/90"
+                  className="min-w-0 flex-1 bg-transparent text-[1.03rem] font-semibold text-foreground placeholder:text-muted-foreground/80 focus:outline-none"
               />
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="submit"
-                className="group relative h-[68px] overflow-hidden rounded-full bg-[#ff6b1c] px-6 text-base font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_22px_46px_rgba(255,107,28,0.34)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#ff7528] hover:shadow-[0_26px_54px_rgba(255,107,28,0.42)] active:translate-y-0"
+                className="group relative h-[64px] overflow-hidden rounded-full bg-brand-gradient px-6 text-base font-extrabold uppercase tracking-[0.06em] text-primary-foreground shadow-brand transition-[transform,box-shadow,filter] duration-base ease-out-soft hover:-translate-y-0.5 hover:brightness-110 hover:shadow-xl active:translate-y-0"
               >
-                <span className="pointer-events-none absolute inset-x-10 top-1 h-12 rounded-full bg-white/20 blur-2xl" />
+                <span aria-hidden="true" className="pointer-events-none absolute inset-x-10 top-0 h-10 rounded-full bg-white/25 blur-2xl" />
                 <span className="relative inline-flex items-center justify-center gap-2">
                   <Search className="h-5 w-5" />
                   Je veux manger
@@ -293,10 +293,10 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               <button
                 type="button"
                 onClick={() => navigate("/restaurateurs/geneve")}
-                className="h-[68px] rounded-full border border-white/90 bg-white px-6 text-base font-extrabold uppercase tracking-[0.05em] text-[#25354e] shadow-[0_18px_40px_rgba(104,70,29,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#fff7f1] active:translate-y-0 dark:border-orange-200/30 dark:bg-slate-950/90 dark:text-white"
+                className="h-[64px] rounded-full border border-border/60 bg-surface-raised px-6 text-base font-extrabold uppercase tracking-[0.05em] text-foreground shadow-lg transition-[transform,box-shadow,border-color] duration-base ease-out-soft hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-xl active:translate-y-0"
               >
                 <span className="inline-flex items-center justify-center gap-2">
-                  <ChefHat className="h-5 w-5 text-[#ff6b1c]" />
+                  <ChefHat className="h-5 w-5 text-primary" />
                   Je suis restaurateur
                 </span>
               </button>
@@ -304,17 +304,17 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           </motion.form>
 
           <motion.div variants={scaleIn} className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <div className="neon-chip flex items-center gap-3 rounded-full border border-white/80 bg-white/90 px-5 py-3 shadow-[0_14px_28px_rgba(104,70,29,0.12)]">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#fff2e8]">
-                <Star className="h-4 w-4 text-[#ff6b1c]" />
+            <div className="neon-chip flex items-center gap-3 rounded-full border border-border/60 bg-surface-raised/90 px-5 py-3 shadow-md backdrop-blur-sm">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary-soft">
+                <Star className="h-4 w-4 fill-primary/25 text-primary" />
               </span>
-              <span className="text-sm font-bold text-[#25354e] dark:text-white">4.8/5</span>
+              <span className="text-sm font-bold text-foreground">4.8/5</span>
             </div>
-            <div className="neon-chip flex items-center gap-3 rounded-full border border-white/80 bg-white/90 px-5 py-3 shadow-[0_14px_28px_rgba(104,70,29,0.12)]">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#fff2e8]">
-                <MapPin className="h-4 w-4 text-[#ff6b1c]" />
+            <div className="neon-chip flex items-center gap-3 rounded-full border border-border/60 bg-surface-raised/90 px-5 py-3 shadow-md backdrop-blur-sm">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary-soft">
+                <MapPin className="h-4 w-4 text-primary" />
               </span>
-              <span className="text-sm font-bold text-[#25354e] dark:text-white">Restaurants locaux partenaires</span>
+              <span className="text-sm font-bold text-foreground">Restaurants locaux partenaires</span>
             </div>
           </motion.div>
         </motion.div>
@@ -324,7 +324,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             initial={{ y: 60, opacity: 0 }}
             animate={contentVisible ? { y: 0, opacity: 1 } : { y: 60, opacity: 0 }}
             transition={{ delay: 0.8, type: "spring", stiffness: 120, damping: 14 }}
-            className="relative z-10 border-t border-white/10 bg-white/95 px-4 py-3 backdrop-blur-md dark:bg-slate-900/95"
+            className="relative z-10 border-t border-border/60 bg-surface-raised/92 px-4 py-3.5 backdrop-blur-xl"
           >
             <div className="container flex flex-col items-center justify-between gap-3 sm:flex-row">
               <p className="text-center text-sm font-semibold text-foreground sm:text-left">
@@ -342,13 +342,13 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigate("/auth")}
-                  className="rounded-full bg-primary px-6 py-2 text-sm font-bold text-white shadow-md transition hover:bg-primary/90"
+                  className="rounded-full bg-brand-gradient px-6 py-2.5 text-sm font-bold text-primary-foreground shadow-brand transition-[filter,transform] duration-base ease-out-soft hover:-translate-y-0.5 hover:brightness-110"
                 >
                   Inscrivez-vous
                 </button>
                 <button
                   onClick={() => setShowNewsletter(false)}
-                  className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                  className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition-colors duration-fast ease-out-soft hover:bg-muted hover:text-foreground"
                   aria-label="Fermer"
                 >
                   <X className="h-4 w-4" />

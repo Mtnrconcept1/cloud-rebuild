@@ -49,16 +49,17 @@ describe("navbar action stability", () => {
 
   it("keeps flash sales visibly distinct in desktop and mobile navigation", () => {
     expect(source).toContain("Zap,");
-    expect(source).toContain('<Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />');
-    expect(source).toContain("text-amber-600 transition-colors hover:text-orange-600");
+    expect(source).toContain('<Zap className="h-4 w-4 fill-amber-400/40 text-amber-500 dark:text-amber-300" />');
+    // Desktop tabs share navLinkClass(); flash sales keeps its amber override.
+    expect(source).toContain('navLinkClass(location.pathname === "/ventes-flash"), "text-amber-700');
     expect(source).toContain("text-amber-600 hover:text-orange-600");
   });
 
   it("keeps the desktop actualites tab immediately after explorer", () => {
     const desktopNavigationStart = source.indexOf('<NavigationMenu className="hidden xl:flex">');
-    const explorerIndex = source.indexOf('to="/recherche" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"', desktopNavigationStart);
-    const actualitesIndex = source.indexOf('to="/actualites" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"', desktopNavigationStart);
-    const antiWasteIndex = source.indexOf('to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80"', desktopNavigationStart);
+    const explorerIndex = source.indexOf('to="/recherche" className={navLinkClass(', desktopNavigationStart);
+    const actualitesIndex = source.indexOf('to="/actualites" className={navLinkClass(', desktopNavigationStart);
+    const antiWasteIndex = source.indexOf('to="/anti-gaspi" className={cn(navLinkClass(', desktopNavigationStart);
 
     expect(desktopNavigationStart).toBeGreaterThan(-1);
     expect(explorerIndex).toBeGreaterThan(desktopNavigationStart);
@@ -83,7 +84,7 @@ describe("navbar action stability", () => {
 
   it("keeps the desktop restaurants tab beside the notification actions", () => {
     const notificationIndex = source.indexOf("<NotificationBell");
-    const restaurantsActionIndex = source.indexOf('className="hidden h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground xl:inline-flex"');
+    const restaurantsActionIndex = source.indexOf('className="hidden h-10 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold text-muted-foreground transition-colors duration-fast ease-out-soft hover:bg-muted hover:text-foreground xl:inline-flex"');
     const accountMenuIndex = source.indexOf('<DropdownMenu modal={false} open={accountMenuOpen}');
 
     expect(notificationIndex).toBeGreaterThan(-1);

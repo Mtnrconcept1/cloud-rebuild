@@ -615,7 +615,7 @@ export default function Profil() {
               favorites.map((f) => {
                 const r = f.restaurants;
                 return (
-                  <Link key={f.id} to={`/restaurant/${r?.id}`} className="flex items-center gap-4 p-3 border rounded-xl bg-card hover:bg-accent transition-colors">
+                  <Link key={f.id} to={`/restaurant/${r?.id}`} className="flex items-center gap-4 p-3 border rounded-xl bg-card hover:bg-muted transition-colors">
                     <img src={r?.image_url || "/images/kebab-box-spread.jpeg"} alt={r?.name} className="w-12 h-12 rounded-lg object-cover" />
                     <div>
                       <p className="font-semibold text-sm">{r?.name}</p>

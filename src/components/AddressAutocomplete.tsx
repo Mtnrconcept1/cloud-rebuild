@@ -470,7 +470,7 @@ export default function AddressAutocomplete({
               <li
                 key={suggestion.key}
                 onClick={() => handleSelect(suggestion)}
-                className="flex cursor-pointer items-start gap-3 border-b px-3 py-2 transition-colors last:border-0 hover:bg-accent hover:text-accent-foreground"
+                className="flex cursor-pointer items-start gap-3 border-b px-3 py-2 transition-colors last:border-0 hover:bg-muted hover:text-foreground"
               >
                 <div className="mt-0.5">
                   <MapPin className="h-4 w-4 text-primary" />

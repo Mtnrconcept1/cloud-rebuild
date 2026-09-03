@@ -75,7 +75,10 @@ describe("homepage positioning guards", () => {
     expect(showcaseHeader).toContain("illustrationClassName");
     expect(showcaseHeader).toContain("radial-gradient");
     expect(showcaseHeader).toContain("linear-gradient");
-    expect(showcaseHeader).toContain("rounded-[100%]");
+    // The panel used to hide its lower third behind an ellipse of page
+    // background; it now fades into the page instead.
+    expect(showcaseHeader).not.toContain("rounded-[100%]");
+    expect(showcaseHeader).toContain("absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent,hsl(var(--background)/0.72)_72%,hsl(var(--background)/0.94))]");
     expect(showcaseHeader).toContain("data-section-illustration");
     expect(showcaseHeader).toContain("motion.div");
     expect(showcaseHeader).toContain("useReducedMotion");
@@ -117,7 +120,9 @@ describe("homepage positioning guards", () => {
     expect(index).toContain('nearby: "/desig app/chefsection2.png"');
     expect(solidarity).toContain("border-y border-pink-500/10");
     expect(features).toContain("border-y border-border/70");
-    expect(features).toContain("border-primary/15 bg-primary/10");
+    // The boxed primary-tinted heading became a sunken band with a brand glow.
+    expect(features).toContain("bg-surface-sunken");
+    expect(features).toContain("hsl(var(--brand)/0.10)");
   });
 
   it("keeps public discovery rails visible for signed-in users", () => {
