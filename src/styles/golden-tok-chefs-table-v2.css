@@ -1,0 +1,705 @@
+/* Golden TOK — Table du Chef V2
+ * Final visual layer matching the approved light/dark desktop + mobile design.
+ * Loaded after golden-tok-chefs-table.css and scoped to this route only.
+ */
+
+/* Shell: full-width editorial canvas, no legacy side rail. */
+html body [data-golden-tok-chefs-table] > div.relative.mx-auto.grid {
+  display: block !important;
+  width: 100% !important;
+  max-width: 1600px !important;
+  padding-inline: clamp(12px, 2vw, 28px) !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-rail {
+  display: none !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-stage {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+  width: 100% !important;
+  padding: clamp(14px, 2vw, 28px) 0 28px !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-content,
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] {
+  display: contents !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > * {
+  margin-top: 0 !important;
+}
+
+/* Hero */
+html body [data-golden-tok-chefs-table] .golden-tok-heading {
+  grid-column: 1 / -1 !important;
+  grid-row: 1 !important;
+  position: relative !important;
+  display: block !important;
+  isolation: isolate;
+  min-height: clamp(360px, 35vw, 505px) !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  padding: clamp(34px, 4.3vw, 68px) !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading {
+  border: 1px solid rgba(172, 111, 8, 0.18) !important;
+  background:
+    linear-gradient(90deg, rgba(255,253,248,.995) 0%, rgba(255,253,248,.98) 34%, rgba(255,253,248,.79) 48%, rgba(255,253,248,.18) 68%, rgba(255,253,248,.03) 100%),
+    radial-gradient(circle at 18% 16%, rgba(198,137,23,.10), transparent 31%),
+    url('/tok-reference-food-webp/tok-reference-food-02.webp') 81% 50% / cover no-repeat !important;
+  box-shadow: 0 20px 60px rgba(76,48,3,.09), inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-heading {
+  border: 1px solid rgba(217,168,66,.32) !important;
+  background:
+    linear-gradient(90deg, rgba(7,7,6,.99) 0%, rgba(7,7,6,.97) 34%, rgba(7,7,6,.82) 49%, rgba(7,7,6,.26) 71%, rgba(7,7,6,.08) 100%),
+    radial-gradient(circle at 20% 18%, rgba(198,137,23,.12), transparent 30%),
+    url('/tok-reference-food-webp/tok-reference-food-02.webp') 81% 50% / cover no-repeat !important;
+  box-shadow: 0 30px 90px rgba(0,0,0,.52), inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 0 33%, rgba(197,137,24,.13) 33.15%, transparent 33.35%),
+    linear-gradient(115deg, transparent 0 38%, rgba(197,137,24,.07) 38.1%, transparent 38.3%);
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading > div:first-child {
+  position: relative !important;
+  z-index: 2 !important;
+  display: block !important;
+  max-width: min(570px, 48%) !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading > div:first-child > div:first-child {
+  display: none !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading > div:first-child > div:last-child {
+  width: 100% !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading h1 {
+  max-width: 8.5ch !important;
+  margin: 0 !important;
+  font-family: Georgia, 'Times New Roman', serif !important;
+  font-size: clamp(3.35rem, 5.4vw, 5.55rem) !important;
+  font-weight: 600 !important;
+  line-height: .91 !important;
+  letter-spacing: -.055em !important;
+  text-wrap: balance;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading h1 {
+  color: #0b0a08 !important;
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-heading h1 {
+  color: #fff8e9 !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading p:first-of-type {
+  margin-bottom: 14px !important;
+  color: #a86b06 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: .38em !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-heading h1 + p {
+  max-width: 430px !important;
+  margin-top: 26px !important;
+  font-size: clamp(.95rem, 1.35vw, 1.12rem) !important;
+  line-height: 1.7 !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading h1 + p {
+  color: #51483d !important;
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-heading h1 + p {
+  color: #d4c9b7 !important;
+}
+
+/* Premium underline matching the mockup. */
+html body [data-golden-tok-chefs-table] .golden-tok-heading > div:first-child > div:last-child::after {
+  content: "";
+  display: block;
+  width: 52px;
+  height: 4px;
+  margin-top: 22px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d39a22, #a86b06);
+}
+
+/* Notification CTA floats over the food image, like the approved design. */
+html body [data-golden-tok-chefs-table] .golden-tok-header-action {
+  position: absolute !important;
+  z-index: 4 !important;
+  right: clamp(20px, 3vw, 42px) !important;
+  bottom: clamp(20px, 3vw, 38px) !important;
+  padding: 0 !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-header-action button {
+  min-height: 46px !important;
+  border: 1px solid #c89224 !important;
+  border-radius: 14px !important;
+  background: rgba(12,12,10,.94) !important;
+  color: #f4ca60 !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.24) !important;
+  backdrop-filter: blur(10px);
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-header-action button:hover {
+  background: #1b1812 !important;
+  color: #ffe49d !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-header-action button:focus-visible,
+html body [data-golden-tok-chefs-table] button:focus-visible {
+  outline: 3px solid rgba(219,161,45,.40) !important;
+  outline-offset: 3px !important;
+}
+
+/* Stepper + live strip */
+html body [data-golden-tok-chefs-table] .golden-tok-stepper {
+  grid-column: 1 / span 7 !important;
+  grid-row: 2 !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 76px !important;
+  border-radius: 18px !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-stepper {
+  border: 1px solid #e8d6b5 !important;
+  background: rgba(255,255,255,.93) !important;
+  box-shadow: 0 12px 32px rgba(78,48,2,.06) !important;
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-stepper {
+  border: 1px solid rgba(210,159,55,.30) !important;
+  background: linear-gradient(180deg, #151411, #0f0f0d) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-stepper-label-active {
+  color: #17130e !important;
+}
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-stepper-label-idle {
+  color: #71685d !important;
+}
+html.dark body [data-golden-tok-chefs-table] .golden-tok-stepper-label-active {
+  color: #fff4dd !important;
+}
+html.dark body [data-golden-tok-chefs-table] .golden-tok-stepper-label-idle {
+  color: #b7ad9e !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:first-child {
+  grid-column: 8 / -1 !important;
+  grid-row: 2 !important;
+  min-height: 76px !important;
+  align-self: stretch !important;
+  border: 1px solid rgba(212,162,62,.54) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(100deg, #11110f, #0a0b09) !important;
+  color: #f7edda !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 12px 30px rgba(0,0,0,.12) !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:first-child > div:first-child {
+  background: #d49a25 !important;
+  box-shadow: 0 0 0 6px rgba(212,154,37,.11), 0 0 18px rgba(212,154,37,.35) !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:first-child span {
+  color: #f2cf76 !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:first-child .ml-auto {
+  border-color: rgba(221,175,73,.72) !important;
+  background: #15140f !important;
+  color: #ffdc7f !important;
+}
+
+/* Main content placement. Empty state sits left; premium benefits sit right. */
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:nth-child(2) {
+  grid-column: 1 / -1 !important;
+  grid-row: 3 !important;
+  min-width: 0 !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-stage:has(.golden-tok-content [class~="border-dashed"]) .golden-tok-content > [class~="space-y-8"] > div:nth-child(2) {
+  grid-column: 1 / span 4 !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-benefits {
+  grid-column: 1 / -1 !important;
+  grid-row: 4 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-stage:has(.golden-tok-content [class~="border-dashed"]) .golden-tok-benefits {
+  grid-column: 5 / -1 !important;
+  grid-row: 3 !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-benefits > .grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  height: 100% !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-benefit {
+  position: relative !important;
+  min-width: 0 !important;
+  min-height: 315px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  padding: 22px 16px 126px !important;
+  border: 1px solid !important;
+  border-radius: 19px !important;
+  text-align: center !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-benefit {
+  border-color: #ebd9b7 !important;
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: 0 12px 36px rgba(72,44,2,.06) !important;
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-benefit {
+  border-color: rgba(210,158,54,.27) !important;
+  background: linear-gradient(180deg, #121210, #0d0d0c) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025) !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-benefit::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 112px;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-benefit:nth-child(1)::after {
+  background-image: linear-gradient(180deg, transparent, rgba(10,8,4,.08)), url('/tok-reference-food-webp/tok-reference-food-01.webp');
+}
+html body [data-golden-tok-chefs-table] .golden-tok-benefit:nth-child(2)::after {
+  background-image: linear-gradient(180deg, transparent, rgba(10,8,4,.08)), url('/tok-reference-food-webp/tok-reference-food-04.webp');
+  filter: saturate(.15) contrast(1.08);
+}
+html body [data-golden-tok-chefs-table] .golden-tok-benefit:nth-child(3)::after {
+  background-image: linear-gradient(180deg, transparent, rgba(10,8,4,.08)), url('/tok-reference-food-webp/tok-reference-food-06.webp');
+}
+html body [data-golden-tok-chefs-table] .golden-tok-benefit:nth-child(4)::after {
+  background-image: linear-gradient(180deg, transparent, rgba(10,8,4,.12)), url('/tok-reference-food-webp/tok-reference-food-08.webp');
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-benefit-icon {
+  width: 48px !important;
+  height: 48px !important;
+  border: 1px solid #c68d1d !important;
+  background: transparent !important;
+  color: #bd7d0a !important;
+  box-shadow: none !important;
+}
+html.dark body [data-golden-tok-chefs-table] .golden-tok-benefit-icon {
+  color: #e0ae42 !important;
+  border-color: rgba(218,170,71,.62) !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-benefit-title {
+  color: #17130e !important;
+}
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-benefit-description {
+  color: #685f54 !important;
+}
+html.dark body [data-golden-tok-chefs-table] .golden-tok-benefit-title {
+  color: #fff4df !important;
+}
+html.dark body [data-golden-tok-chefs-table] .golden-tok-benefit-description {
+  color: #bdb3a4 !important;
+}
+
+/* Empty state */
+html body [data-golden-tok-chefs-table] .golden-tok-content [class~="border-dashed"] {
+  min-height: 315px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-style: solid !important;
+  border-radius: 19px !important;
+  padding: 34px 24px !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-content [class~="border-dashed"] {
+  border-color: #ead7b3 !important;
+  background:
+    radial-gradient(circle at 50% 24%, rgba(198,139,28,.08), transparent 32%),
+    repeating-linear-gradient(45deg, rgba(177,116,11,.025) 0 1px, transparent 1px 20px),
+    #fffdfa !important;
+  color: #17130e !important;
+  box-shadow: 0 12px 36px rgba(72,44,2,.06) !important;
+}
+
+html.dark body [data-golden-tok-chefs-table] .golden-tok-content [class~="border-dashed"] {
+  border-color: rgba(210,158,54,.28) !important;
+  background:
+    radial-gradient(circle at 50% 24%, rgba(198,139,28,.10), transparent 32%),
+    #0f0f0d !important;
+  color: #f7edda !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-content [class~="border-dashed"] > svg {
+  width: 64px !important;
+  height: 64px !important;
+  padding: 17px !important;
+  border: 1px solid #c89223 !important;
+  border-radius: 999px !important;
+  background: #11100d !important;
+  color: #efc557 !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,.16) !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-content [class~="border-dashed"] h2 {
+  color: #17130e !important;
+}
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-content [class~="border-dashed"] p {
+  color: #665d52 !important;
+}
+html.dark body [data-golden-tok-chefs-table] .golden-tok-content [class~="border-dashed"] h2 {
+  color: #fff5e1 !important;
+}
+html.dark body [data-golden-tok-chefs-table] .golden-tok-content [class~="border-dashed"] p {
+  color: #bfb5a6 !important;
+}
+
+/* Real drops: wide premium cards, full-width section. */
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > [class~="grid"][class~="gap-6"] {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+html body [data-golden-tok-chefs-table] .golden-tok-content article {
+  min-width: 0 !important;
+  width: 100% !important;
+  border-radius: 22px !important;
+}
+
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-content article {
+  border-color: #e4ca96 !important;
+  background: #fffdfa !important;
+  color: #17130e !important;
+}
+html.dark body [data-golden-tok-chefs-table] .golden-tok-content article {
+  border-color: rgba(212,164,66,.30) !important;
+  background: #11110f !important;
+  color: #f6ead0 !important;
+}
+
+/* Semantic text contrast in all cards/confirmation/cart states. */
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-content :is(.text-foreground, h2:not([class*="text-white"]), p.font-display) {
+  color: #17130e !important;
+}
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-content .text-muted-foreground {
+  color: #62594f !important;
+}
+html.dark body [data-golden-tok-chefs-table] .golden-tok-content :is(.text-foreground, h2:not([class*="text-white"]), p.font-display) {
+  color: #f7edda !important;
+}
+html.dark body [data-golden-tok-chefs-table] .golden-tok-content .text-muted-foreground {
+  color: #c2b8aa !important;
+}
+
+/* Sticky checkout always remains dark and readable in both themes. */
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > .sticky {
+  grid-column: 1 / -1 !important;
+  position: relative !important;
+  bottom: auto !important;
+  z-index: 20 !important;
+}
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > .sticky > div {
+  color: #fff7e8 !important;
+  background: linear-gradient(135deg, #11110f, #080907) !important;
+  border-color: rgba(213,164,64,.52) !important;
+}
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > .sticky :is(p,span) {
+  color: inherit;
+}
+
+/* Bottom reassurance strip from the approved mockup. */
+html body [data-golden-tok-chefs-table] .golden-tok-stage::after {
+  content: "Paiement 100% sécurisé   •   Annulation facile   •   Support dédié   •   Chefs vérifiés   •   Anti-gaspi engagé";
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 62px;
+  padding: 14px 22px;
+  border: 1px solid;
+  border-radius: 18px;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+  word-spacing: .12em;
+}
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-stage::after {
+  border-color: #ead9ba;
+  background: rgba(255,255,255,.87);
+  color: #554b3d;
+}
+html.dark body [data-golden-tok-chefs-table] .golden-tok-stage::after {
+  border-color: rgba(211,161,61,.26);
+  background: #11110f;
+  color: #c8bdab;
+}
+
+/* Header contrast safety. */
+html:not(.dark) body:has([data-golden-tok-chefs-table]) header.sticky {
+  background: rgba(255,254,251,.97) !important;
+  color: #17130e !important;
+  border-color: rgba(164,103,6,.16) !important;
+}
+html:not(.dark) body:has([data-golden-tok-chefs-table]) header.sticky :is(a,button,span,p) {
+  color: inherit;
+}
+html:not(.dark) body:has([data-golden-tok-chefs-table]) header.sticky .text-muted-foreground {
+  color: #5b5247 !important;
+}
+html.dark body:has([data-golden-tok-chefs-table]) header.sticky {
+  background: rgba(8,8,7,.98) !important;
+  color: #f7edda !important;
+  border-color: rgba(210,159,55,.28) !important;
+}
+html.dark body:has([data-golden-tok-chefs-table]) header.sticky .text-muted-foreground {
+  color: #c4b9aa !important;
+}
+
+/* Disabled controls must remain legible, not disappear. */
+html body [data-golden-tok-chefs-table] button:disabled {
+  opacity: .58 !important;
+}
+
+/* Tablet */
+@media (max-width: 1100px) {
+  html body [data-golden-tok-chefs-table] .golden-tok-stage {
+    gap: 14px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading {
+    min-height: 430px !important;
+    padding: 38px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading > div:first-child {
+    max-width: 51% !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1 {
+    font-size: clamp(3rem, 6.5vw, 4.6rem) !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit {
+    min-height: 295px !important;
+  }
+}
+
+/* Mobile + narrow tablet */
+@media (max-width: 820px) {
+  html body [data-golden-tok-chefs-table] > div.relative.mx-auto.grid {
+    padding-inline: 10px !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-stage {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding-top: 10px !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading,
+  html body [data-golden-tok-chefs-table] .golden-tok-stepper,
+  html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:first-child,
+  html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:nth-child(2),
+  html body [data-golden-tok-chefs-table] .golden-tok-benefits,
+  html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > .sticky {
+    order: initial !important;
+    width: 100% !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading {
+    min-height: 475px !important;
+    border-radius: 21px !important;
+    padding: 28px 22px !important;
+  }
+
+  html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading {
+    background:
+      linear-gradient(90deg, rgba(255,253,248,.99) 0%, rgba(255,253,248,.95) 47%, rgba(255,253,248,.42) 67%, rgba(255,253,248,.05) 100%),
+      url('/tok-reference-food-webp/tok-reference-food-02.webp') 80% 28% / auto 60% no-repeat,
+      #fffdf8 !important;
+  }
+  html.dark body [data-golden-tok-chefs-table] .golden-tok-heading {
+    background:
+      linear-gradient(90deg, rgba(7,7,6,.99) 0%, rgba(7,7,6,.96) 47%, rgba(7,7,6,.46) 68%, rgba(7,7,6,.07) 100%),
+      url('/tok-reference-food-webp/tok-reference-food-02.webp') 80% 28% / auto 60% no-repeat,
+      #070706 !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-heading > div:first-child {
+    max-width: 63% !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1 {
+    max-width: 7ch !important;
+    font-size: clamp(2.65rem, 11vw, 4.1rem) !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1 + p {
+    max-width: 22ch !important;
+    margin-top: 20px !important;
+    font-size: .88rem !important;
+    line-height: 1.55 !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-header-action {
+    left: 22px !important;
+    right: auto !important;
+    bottom: 22px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-header-action button {
+    min-height: 44px !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-stepper {
+    min-height: 76px !important;
+    border-radius: 16px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:first-child {
+    min-height: 64px !important;
+    border-radius: 16px !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-content [class~="border-dashed"] {
+    min-height: 285px !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-benefits > .grid {
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    gap: 8px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit {
+    min-height: 146px !important;
+    padding: 18px 10px !important;
+    border-radius: 16px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit::after {
+    display: none !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit-icon {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > [class~="grid"][class~="gap-6"] {
+    display: flex !important;
+    gap: 12px !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding: 2px 2px 10px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-content article {
+    flex: 0 0 min(88vw, 390px) !important;
+    scroll-snap-align: start;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > [class~="grid"][class~="gap-6"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  html body [data-golden-tok-chefs-table] .golden-tok-stage::after {
+    min-height: 52px;
+    padding: 12px 14px;
+    border-radius: 15px;
+    font-size: 10px;
+    word-spacing: .05em;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 390px) {
+  html body [data-golden-tok-chefs-table] .golden-tok-heading {
+    min-height: 445px !important;
+    padding: 24px 17px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading > div:first-child {
+    max-width: 67% !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1 {
+    font-size: clamp(2.35rem, 12vw, 3.2rem) !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1 + p {
+    max-width: 20ch !important;
+    font-size: .79rem !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-header-action {
+    left: 17px !important;
+    bottom: 17px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-header-action button {
+    font-size: 12px !important;
+    padding-inline: 13px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-stepper {
+    padding-inline: 10px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-stepper button {
+    padding-right: 6px !important;
+    font-size: 12px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:first-child {
+    padding: 12px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > div:first-child p {
+    font-size: 12px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit-title {
+    font-size: 12px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit-description {
+    font-size: 10px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body [data-golden-tok-chefs-table] *,
+  html body [data-golden-tok-chefs-table] *::before,
+  html body [data-golden-tok-chefs-table] *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
