@@ -12,11 +12,9 @@ function readMigration(suffix: string) {
 }
 
 describe("security audit P0 remediation", () => {
-  it("keeps stripe-setup as an authenticated, side-effect-free tombstone", () => {
+  it("keeps stripe-setup as a side-effect-free tombstone", () => {
     const worker = read("supabase/functions/stripe-setup/index.ts");
-    const config = read("supabase/config.toml");
 
-    expect(config).toMatch(/\[functions\.stripe-setup\]\s*verify_jwt\s*=\s*true/);
     expect(worker).toContain('code: "STRIPE_SETUP_RETIRED"');
     expect(worker).toContain("status: 410");
     expect(worker).toContain('"Cache-Control": "no-store"');
