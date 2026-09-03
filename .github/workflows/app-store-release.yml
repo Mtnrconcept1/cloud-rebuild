@@ -284,7 +284,7 @@ jobs:
             -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
             -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            PRODUCT_BUNDLE_IDENTIFIER="$IOS_BUNDLE_ID" \
+            TOK_APP_BUNDLE_ID="$IOS_BUNDLE_ID" \
             MARKETING_VERSION="$MARKETING_VERSION_INPUT" \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER_INPUT" \
             clean archive
