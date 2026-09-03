@@ -5,11 +5,22 @@ import { fileURLToPath } from "node:url";
 const DEFAULT_TARGETS = [
   {
     url: "https://www.thetok.ch/",
-    expect: ["TOK", "Communes avec inventaire public"],
+    expect: [
+      "TOK - Restaurants à Genève : adresses, réservation et commande",
+      "Communes avec inventaire public",
+      "Restaurants à Genève et dans les communes genevoises",
+    ],
+    reject: ["restaurant en Suisse"],
   },
   {
     url: "https://www.thetok.ch/recherche",
-    expect: ["Trouvez un restaurant par commune, cuisine et besoin", "Communes disponibles", "Cuisines et recherches locales"],
+    expect: [
+      "Recherche de restaurants à Genève | TOK",
+      "Trouvez un restaurant par commune, cuisine et besoin",
+      "Communes disponibles",
+      "Cuisines et recherches locales",
+    ],
+    reject: ["Suisse romande"],
   },
   {
     url: "https://www.thetok.ch/actualites",
@@ -33,6 +44,7 @@ const DEFAULT_TARGETS = [
     expect: [
       "https://www.thetok.ch/sitemap-pages.xml",
       "https://www.thetok.ch/sitemap-restaurants.xml",
+      "<lastmod>2026-09-03</lastmod>",
     ],
   },
   {
@@ -44,7 +56,7 @@ const DEFAULT_TARGETS = [
   },
   {
     url: "https://www.thetok.ch/sitemap-restaurants.xml",
-    expect: ["<urlset", "https://www.thetok.ch/restaurants/"],
+    expect: ["<urlset", "https://www.thetok.ch/restaurants/", "<lastmod>2026-09-03</lastmod>"],
     reject: ["moto911.com", "Safran_Open", "menus_side_image.7077f229.jpeg"],
   },
   {
@@ -53,8 +65,26 @@ const DEFAULT_TARGETS = [
     reject: ["adresses actives est répertoriées sur cette page"],
   },
   {
+    url: "https://www.thetok.ch/restaurants/carouge",
+    expect: [
+      "Restaurants à Carouge : bonnes adresses | TOK",
+      "adresses, cuisines et services disponibles",
+    ],
+    reject: ["réserver une table | TOK"],
+  },
+  {
+    url: "https://www.thetok.ch/restaurants/lausanne",
+    expect: ["noindex,nofollow,noarchive"],
+  },
+  {
     url: "https://www.thetok.ch/restaurants/carouge/r/creperie-du-vieux-carouge",
     expect: ["Crêperie du Vieux-Carouge", "tok-nearby-seo-context", "distances sont calculées à vol d’oiseau"],
+  },
+  {
+    url: "https://www.thetok.ch/restaurants/carouge/r/le-jardin-de-pinchat",
+    expect: ["Le Jardin de Pinchat", "tok-nearby-seo-context"],
+    jsonLdExpect: ['"priceRange":"$$"'],
+    jsonLdReject: ["fond3.png", "kebab-box-spread.jpeg", "CHF CHF"],
   },
   {
     url: "https://www.thetok.ch/restaurants/geneve/r/le-samourai",
@@ -118,6 +148,11 @@ async function fetchText(target) {
   return { response, text };
 }
 
+function jsonLdPayload(text) {
+  const match = String(text).match(/<script\b[^>]*id=["']tok-page-json-ld["'][^>]*>([\s\S]*?)<\/script>/i);
+  return match?.[1] || "";
+}
+
 export async function runPostDeployCheck(targets = DEFAULT_TARGETS) {
   const failures = [];
 
@@ -144,6 +179,20 @@ export async function runPostDeployCheck(targets = DEFAULT_TARGETS) {
       for (const rejected of target.reject || []) {
         if (text.includes(rejected)) {
           failures.push(`${target.url} contains rejected content: ${rejected}`);
+        }
+      }
+
+      if ((target.jsonLdExpect?.length || 0) > 0 || (target.jsonLdReject?.length || 0) > 0) {
+        const jsonLd = jsonLdPayload(text);
+        if (!jsonLd) {
+          failures.push(`${target.url} is missing tok-page-json-ld`);
+        } else {
+          for (const expected of target.jsonLdExpect || []) {
+            if (!jsonLd.includes(expected)) failures.push(`${target.url} JSON-LD is missing expected content: ${expected}`);
+          }
+          for (const rejected of target.jsonLdReject || []) {
+            if (jsonLd.includes(rejected)) failures.push(`${target.url} JSON-LD contains rejected content: ${rejected}`);
+          }
         }
       }
 
