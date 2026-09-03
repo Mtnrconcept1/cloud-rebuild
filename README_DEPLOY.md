@@ -24,6 +24,8 @@ La production doit passer par le workflow GitHub Actions du dépôt. Ne pas déc
 
 Si un push sur `main` n'instancie exceptionnellement pas le workflow `Deploy Production`, créer un nouveau push non fonctionnel et documenté sur `main`. Le workflow de production compare le nouveau head au dernier commit réellement déployé (`automation/production-deployed`) et doit ainsi rattraper les changements applicatifs restés en attente au lieu de supposer que le push précédent a été livré.
 
+Rattrapage validé le 3 septembre 2026 pour la livraison SEO #616 : le merge applicatif `1d6af316515e5abfaf20f4df060d424661cb133e` n'avait pas instancié immédiatement `Deploy Production`; ce commit documentaire sert uniquement à réémettre le signal `push: main` sans modifier le comportement de l'application.
+
 ## Secrets Edge Functions
 
 - `SPONSORED_EVENT_SIGNING_SECRET` : optionnel tant que le tracking sponsorise n'a pas de fournisseur de jetons signes. Si ce secret est configure dans Supabase Edge Functions, `track-sponsored-event` exige `eventSignature` et `signedAt` sur chaque impression, clic ou conversion sponsorisee.
