@@ -23,9 +23,10 @@ describe("SEO growth readiness", () => {
     expect(html).toContain('rel="canonical" href="https://www.thetok.ch/"');
     expect(html).toContain('property="og:url" content="https://www.thetok.ch/"');
     expect(html).toContain('property="og:image" content="https://www.thetok.ch/fond3.png"');
-    expect(html).toContain("tok - réservez, commandez et trouvez");
-    expect(html).toContain("restaurants pas chers");
+    expect(html).toContain("tok - restaurants à genève : adresses, réservation et commande");
+    expect(html).toContain("communes genevoises");
     expect(html).toContain("genève");
+    expect(html).not.toContain("villes suisses");
     expect(html).not.toContain('name="keywords"');
   });
 
@@ -35,9 +36,9 @@ describe("SEO growth readiness", () => {
 
     expect(html).not.toMatch(MOJIBAKE_PATTERN);
     expect(prerender).not.toMatch(MOJIBAKE_PATTERN);
-    expect(html).toContain("TOK - Réservez, commandez et trouvez");
-    expect(html).toContain("Réservation restaurant");
-    expect(html).toContain("villes suisses");
+    expect(html).toContain("TOK - Restaurants à Genève : adresses, réservation et commande");
+    expect(html).toContain("Trouvez des restaurants à Genève et dans les communes genevoises");
+    expect(html).not.toContain("villes suisses");
   });
 
   it("publishes sitemap and robots entries for public local and B2B pages", () => {
