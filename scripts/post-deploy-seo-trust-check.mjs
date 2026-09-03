@@ -1,3 +1,5 @@
+import { pathToFileURL } from "node:url";
+
 const ORIGIN = String(process.env.TOK_PUBLIC_ORIGIN || "https://www.thetok.ch").replace(/\/+$/, "");
 const TIMEOUT_MS = Math.max(2000, Number(process.env.POST_DEPLOY_TIMEOUT_MS || 15000) || 15000);
 
@@ -65,7 +67,7 @@ export async function runSeoTrustPostDeployCheck() {
   console.log("[post-deploy-seo-trust] OK");
 }
 
-if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   runSeoTrustPostDeployCheck().catch((error) => {
     console.error(error);
     process.exit(1);
