@@ -25,6 +25,15 @@ jobs:
       - name: Apply deterministic TOK Connect and Pulse patch
         run: node scripts/_apply-tok-connect-pulse-finalization.mjs
 
+      - name: Restore workflow files handled by the GitHub connector
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout HEAD -- \
+            .github/workflows/_tok-connect-pulse-agent-patch.yml \
+            .github/workflows/app-store-release.yml \
+            .github/workflows/ios-native-validation.yml
+
       - name: Validate generated configuration
         shell: bash
         run: |
