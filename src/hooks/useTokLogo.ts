@@ -1,13 +1,18 @@
 import { useEffect } from "react";
 
-import { DEFAULT_TOK_LOGO_SRC, getTokLogoForDate } from "@/lib/tokLogo";
+import {
+  DEFAULT_TOK_LOGO_SRC,
+  getTokLogoForDate,
+  getTokLogoSrcForPath,
+} from "@/lib/tokLogo";
 
 export function useTokLogo() {
   return getTokLogoForDate();
 }
 
 export function useTokLogoSrc() {
-  return DEFAULT_TOK_LOGO_SRC;
+  const pathname = typeof window === "undefined" ? "" : window.location.pathname;
+  return getTokLogoSrcForPath(pathname);
 }
 
 export function useTokLogoDocumentIcons() {
