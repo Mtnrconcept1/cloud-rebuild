@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { classifyRecoveryEmailProviderError } from "../../supabase/functions/crm-mfa-recovery/provider-error.ts";
@@ -94,5 +97,37 @@ describe("CRM MFA Resend provider error classification", () => {
 
     expect(classified.metadata.provider_error_code).toBeNull();
     expect(classified.message).toBe("recovery_email_delivery_failed");
+  });
+});
+
+describe("CRM MFA recovery handler integration", () => {
+  const handler = readFileSync(
+    resolve(
+      process.cwd(),
+      "supabase/functions/crm-mfa-recovery/index.ts",
+    ),
+    "utf8",
+  );
+
+  it("uses the safe provider classifier", () => {
+    expect(handler).toContain('from "./provider-error.ts"');
+    expect(handler).toContain("classifyRecoveryEmailProviderError(response)");
+    expect(handler).toContain("error instanceof RecoveryEmailProviderError");
+    expect(handler).toContain("...providerMetadata");
+  });
+
+  it("makes Resend delivery idempotent for each recovery challenge", () => {
+    expect(handler).toContain("challengeId: string");
+    expect(handler).toContain(
+      '"Idempotency-Key": `crm-mfa-recovery-${challengeId}`',
+    );
+    expect(handler).toContain('"User-Agent": "TOK-CRM-MFA-Recovery/1.0"');
+    expect(handler).toContain("sendRecoveryEmail(email, code, challengeId)");
+  });
+
+  it("does not log or audit the raw provider response", () => {
+    expect(handler).not.toContain("await response.text()");
+    expect(handler).not.toContain("providerMessage");
+    expect(handler).not.toContain("errorBody");
   });
 });
