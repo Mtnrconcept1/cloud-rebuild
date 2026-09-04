@@ -105,4 +105,22 @@ describe("public restaurant directory pagination and images", () => {
     expect(worker).toContain("getLeadHints");
     expect(worker).toContain("scoreSiteIdentity");
   });
+
+  it("keeps official-site discovery operational when Firecrawl is not configured", () => {
+    const worker = read("supabase/functions/enrich-directory-images/index.ts");
+    const handler = worker.slice(worker.indexOf("Deno.serve"));
+
+    expect(worker).toContain(
+      'if (!apiKey || !String(restaurant.address || "").trim()) return null;',
+    );
+    expect(handler).not.toContain(
+      'if (!Deno.env.get("FIRECRAWL_API_KEY")?.trim())',
+    );
+    expect(handler).not.toContain(
+      'throw new HttpError(503, "FIRECRAWL_API_KEY not configured")',
+    );
+    expect(worker).toContain("const searched = await findExactSearchImage(restaurant)");
+    expect(worker).toContain("const hints = await getLeadHints");
+    expect(worker).toContain("const homepage = await discoverWebsite");
+  });
 });
