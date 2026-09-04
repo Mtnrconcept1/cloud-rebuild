@@ -38,11 +38,10 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - name: Checkout pull request head
+      - name: Checkout pull request merge commit
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
+          fetch-depth: 2
           persist-credentials: false
 
       - name: Enable pnpm
@@ -58,15 +57,15 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run every changed test file
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         shell: bash
         run: |
           set -euo pipefail
 
+          base_sha="$(git rev-parse HEAD^1)"
+          head_sha="$(git rev-parse HEAD^2)"
+
           mapfile -d '' test_files < <(
-            git diff --name-only -z --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" -- \
+            git diff --name-only -z --diff-filter=ACMR "$base_sha" "$head_sha" -- \
               'src/**/*.test.ts' \
               'src/**/*.test.tsx' \
               'src/**/*.spec.ts' \
