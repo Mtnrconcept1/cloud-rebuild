@@ -17,11 +17,75 @@ function normalizeHost(value) {
 }
 
 function parseIpv4(address) {
-  const octets = address.split(".").map((part) => Number.parseInt(part, 10));
-  if (octets.length !== 4 || octets.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) {
-    return null;
-  }
+  const parts = address.split(".");
+  if (parts.length !== 4 || parts.some((part) => !/^\d{1,3}$/.test(part))) return null;
+
+  const octets = parts.map((part) => Number.parseInt(part, 10));
+  if (octets.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return null;
   return octets;
+}
+
+function isBlockedIpv4Octets(octets) {
+  const [a, b, c] = octets;
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 0 && c === 0) ||
+    (a === 192 && b === 0 && c === 2) ||
+    (a === 192 && b === 88 && c === 99) ||
+    (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    (a === 198 && b === 51 && c === 100) ||
+    (a === 203 && b === 0 && c === 113) ||
+    a >= 224
+  );
+}
+
+function parseIpv6Words(address) {
+  let source = address;
+  if (source.includes(".")) {
+    const lastColon = source.lastIndexOf(":");
+    if (lastColon < 0) return null;
+    const ipv4 = parseIpv4(source.slice(lastColon + 1));
+    if (!ipv4) return null;
+    const high = ((ipv4[0] << 8) | ipv4[1]).toString(16);
+    const low = ((ipv4[2] << 8) | ipv4[3]).toString(16);
+    source = `${source.slice(0, lastColon)}:${high}:${low}`;
+  }
+
+  const compressed = source.split("::");
+  if (compressed.length > 2) return null;
+
+  const left = compressed[0] ? compressed[0].split(":") : [];
+  const right = compressed.length === 2 && compressed[1] ? compressed[1].split(":") : [];
+  let words;
+
+  if (compressed.length === 2) {
+    const missing = 8 - left.length - right.length;
+    if (missing < 1) return null;
+    words = [...left, ...Array(missing).fill("0"), ...right];
+  } else {
+    if (left.length !== 8) return null;
+    words = left;
+  }
+
+  if (words.length !== 8 || words.some((word) => !/^[0-9a-f]{1,4}$/i.test(word))) return null;
+  return words.map((word) => Number.parseInt(word, 16));
+}
+
+function embeddedIpv4Octets(address) {
+  const words = parseIpv6Words(address);
+  if (!words) return null;
+
+  const ipv4Compatible = words.slice(0, 6).every((word) => word === 0);
+  const ipv4Mapped = words.slice(0, 5).every((word) => word === 0) && words[5] === 0xffff;
+  if (!ipv4Compatible && !ipv4Mapped) return null;
+
+  return [words[6] >> 8, words[6] & 0xff, words[7] >> 8, words[7] & 0xff];
 }
 
 export function isBlockedIpAddress(value) {
@@ -29,26 +93,12 @@ export function isBlockedIpAddress(value) {
   const version = isIP(address);
   if (version === 4) {
     const octets = parseIpv4(address);
-    if (!octets) return true;
-    const [a, b, c] = octets;
-    return (
-      a === 0 ||
-      a === 10 ||
-      a === 127 ||
-      (a === 100 && b >= 64 && b <= 127) ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 0 && c === 0) ||
-      (a === 192 && b === 0 && c === 2) ||
-      (a === 192 && b === 88 && c === 99) ||
-      (a === 192 && b === 168) ||
-      (a === 198 && (b === 18 || b === 19)) ||
-      (a === 198 && b === 51 && c === 100) ||
-      (a === 203 && b === 0 && c === 113) ||
-      a >= 224
-    );
+    return !octets || isBlockedIpv4Octets(octets);
   }
   if (version !== 6) return false;
+
+  const embeddedIpv4 = embeddedIpv4Octets(address);
+  if (embeddedIpv4 && isBlockedIpv4Octets(embeddedIpv4)) return true;
 
   return (
     address === "::" ||
@@ -57,10 +107,7 @@ export function isBlockedIpAddress(value) {
     address.startsWith("fd") ||
     /^fe[89ab]/.test(address) ||
     address.startsWith("ff") ||
-    address.startsWith("2001:db8:") ||
-    address.startsWith("::ffff:127.") ||
-    address.startsWith("::ffff:10.") ||
-    address.startsWith("::ffff:192.168.")
+    address.startsWith("2001:db8:")
   );
 }
 

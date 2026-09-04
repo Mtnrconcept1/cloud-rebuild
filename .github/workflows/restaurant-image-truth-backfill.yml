@@ -180,6 +180,7 @@ jobs:
       - name: Verify current images and discover official candidates
         if: ${{ steps.bounds.outputs.dry_run != 'true' }}
         env:
+          NODE_OPTIONS: --import=./scripts/restaurant-image-safe-fetch-hook.mjs
           MAX_ROUNDS: ${{ steps.bounds.outputs.max_rounds }}
           VERIFY_LIMIT: ${{ steps.bounds.outputs.verify_limit }}
           DISCOVERY_LIMIT: ${{ steps.bounds.outputs.discovery_limit }}
