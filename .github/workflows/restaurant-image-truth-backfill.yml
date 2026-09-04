@@ -1,6 +1,11 @@
 name: Restaurant Image Truth Backfill
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/restaurant-image-truth-backfill.yml"
   schedule:
     - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
@@ -62,7 +67,7 @@ jobs:
       INPUT_VERIFY_LIMIT: ${{ inputs.verify_limit || '20' }}
       INPUT_DISCOVERY_LIMIT: ${{ inputs.discovery_limit || '15' }}
       INPUT_CONCURRENCY: ${{ inputs.concurrency || '1' }}
-      INPUT_RUN_LEGACY: ${{ inputs.run_legacy_enrichment || 'true' }}
+      INPUT_RUN_LEGACY: ${{ inputs.run_legacy_enrichment || 'false' }}
       INPUT_DRY_RUN: ${{ inputs.dry_run || 'false' }}
       IMAGE_TRUTH_SUMMARY_PATH: restaurant-image-truth-summary.json
 
