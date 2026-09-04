@@ -1,0 +1,219 @@
+name: Restaurant Image Truth Backfill
+
+on:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+    inputs:
+      max_rounds:
+        description: "Bounded verification/discovery rounds"
+        required: true
+        default: "5"
+        type: string
+      verify_limit:
+        description: "Image reviews claimed per round (1-25)"
+        required: true
+        default: "20"
+        type: string
+      discovery_limit:
+        description: "Official-page discovery jobs claimed per round (1-25)"
+        required: true
+        default: "15"
+        type: string
+      concurrency:
+        description: "Concurrent external operations (1-3)"
+        required: true
+        default: "1"
+        type: string
+      run_legacy_enrichment:
+        description: "Continue verified-name and image-candidate enrichment"
+        required: true
+        default: true
+        type: boolean
+      dry_run:
+        description: "Read statistics only; do not claim or settle jobs"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: restaurant-image-truth-backfill-production
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: 22
+  SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
+
+jobs:
+  backfill:
+    name: Verify and expand restaurant images
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 55
+    env:
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      INTERNAL_CRON_SECRET: ${{ secrets.INTERNAL_CRON_SECRET || secrets.CRON_SECRET }}
+      TOK_IMAGE_TRUTH_MODEL: ${{ vars.TOK_IMAGE_TRUTH_MODEL || 'gpt-4.1-mini' }}
+      INPUT_MAX_ROUNDS: ${{ inputs.max_rounds || '5' }}
+      INPUT_VERIFY_LIMIT: ${{ inputs.verify_limit || '20' }}
+      INPUT_DISCOVERY_LIMIT: ${{ inputs.discovery_limit || '15' }}
+      INPUT_CONCURRENCY: ${{ inputs.concurrency || '1' }}
+      INPUT_RUN_LEGACY: ${{ inputs.run_legacy_enrichment || 'true' }}
+      INPUT_DRY_RUN: ${{ inputs.dry_run || 'false' }}
+      IMAGE_TRUTH_SUMMARY_PATH: restaurant-image-truth-summary.json
+
+    steps:
+      - name: Checkout immutable workflow revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Validate bounded inputs and credentials
+        id: bounds
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$SUPABASE_SERVICE_ROLE_KEY" ]]; then
+            echo "::error::SUPABASE_SERVICE_ROLE_KEY is required."
+            exit 1
+          fi
+          echo "::add-mask::$SUPABASE_SERVICE_ROLE_KEY"
+
+          if [[ "$INPUT_DRY_RUN" != "true" && -z "$OPENAI_API_KEY" ]]; then
+            echo "::error::OPENAI_API_KEY is required outside dry-run mode."
+            exit 1
+          fi
+          if [[ -n "$OPENAI_API_KEY" ]]; then
+            echo "::add-mask::$OPENAI_API_KEY"
+          fi
+          if [[ -n "$INTERNAL_CRON_SECRET" ]]; then
+            echo "::add-mask::$INTERNAL_CRON_SECRET"
+          fi
+
+          validate_integer() {
+            local value="$1"
+            local minimum="$2"
+            local maximum="$3"
+            local label="$4"
+            if [[ ! "$value" =~ ^[0-9]+$ ]] || (( value < minimum || value > maximum )); then
+              echo "::error::${label} must be an integer between ${minimum} and ${maximum}."
+              exit 1
+            fi
+          }
+
+          validate_integer "$INPUT_MAX_ROUNDS" 1 30 max_rounds
+          validate_integer "$INPUT_VERIFY_LIMIT" 1 25 verify_limit
+          validate_integer "$INPUT_DISCOVERY_LIMIT" 1 25 discovery_limit
+          validate_integer "$INPUT_CONCURRENCY" 1 3 concurrency
+
+          echo "max_rounds=$INPUT_MAX_ROUNDS" >> "$GITHUB_OUTPUT"
+          echo "verify_limit=$INPUT_VERIFY_LIMIT" >> "$GITHUB_OUTPUT"
+          echo "discovery_limit=$INPUT_DISCOVERY_LIMIT" >> "$GITHUB_OUTPUT"
+          echo "concurrency=$INPUT_CONCURRENCY" >> "$GITHUB_OUTPUT"
+          echo "run_legacy=$INPUT_RUN_LEGACY" >> "$GITHUB_OUTPUT"
+          echo "dry_run=$INPUT_DRY_RUN" >> "$GITHUB_OUTPUT"
+
+      - name: Read current catalogue statistics
+        if: ${{ steps.bounds.outputs.dry_run == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error --max-time 30 \
+            -X POST "$SUPABASE_URL/rest/v1/rpc/get_restaurant_image_truth_stats" \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            --data '{}' \
+            | jq '{dry_run:true, catalog:.}' \
+            > "$IMAGE_TRUTH_SUMMARY_PATH"
+
+      - name: Continue legacy name and image candidate enrichment
+        if: ${{ steps.bounds.outputs.dry_run != 'true' && steps.bounds.outputs.run_legacy == 'true' }}
+        continue-on-error: true
+        env:
+          MAX_ROUNDS: ${{ steps.bounds.outputs.max_rounds }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          invoke_worker() {
+            local function_name="$1"
+            local payload="$2"
+            local headers=(
+              -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"
+              -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"
+              -H "Content-Type: application/json"
+            )
+            if [[ -n "$INTERNAL_CRON_SECRET" ]]; then
+              headers+=( -H "x-internal-cron-secret: $INTERNAL_CRON_SECRET" )
+            fi
+
+            curl --fail-with-body --silent --show-error \
+              --retry 2 --retry-all-errors --max-time 60 \
+              -X POST "$SUPABASE_URL/functions/v1/$function_name" \
+              "${headers[@]}" \
+              --data "$payload" \
+              >/dev/null
+          }
+
+          for (( round = 1; round <= MAX_ROUNDS; round += 1 )); do
+            invoke_worker \
+              verify-directory-commercial-names \
+              '{"mode":"process_batch","limit":10,"source":"github_actions_image_truth"}' \
+              || echo "::warning::Commercial-name enrichment round ${round} did not complete."
+            invoke_worker \
+              enrich-directory-images \
+              '{"mode":"process_batch","limit":10,"source":"github_actions_image_truth"}' \
+              || echo "::warning::Directory-image enrichment round ${round} did not complete."
+          done
+
+      - name: Verify current images and discover official candidates
+        if: ${{ steps.bounds.outputs.dry_run != 'true' }}
+        env:
+          NODE_OPTIONS: --import=./scripts/restaurant-image-safe-fetch-hook.mjs
+          MAX_ROUNDS: ${{ steps.bounds.outputs.max_rounds }}
+          VERIFY_LIMIT: ${{ steps.bounds.outputs.verify_limit }}
+          DISCOVERY_LIMIT: ${{ steps.bounds.outputs.discovery_limit }}
+          WORKER_CONCURRENCY: ${{ steps.bounds.outputs.concurrency }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/restaurant-image-truth-worker.mjs \
+            --rounds "$MAX_ROUNDS" \
+            --verify-limit "$VERIFY_LIMIT" \
+            --discovery-limit "$DISCOVERY_LIMIT" \
+            --concurrency "$WORKER_CONCURRENCY"
+
+      - name: Validate non-sensitive summary
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$IMAGE_TRUTH_SUMMARY_PATH"
+          jq -e 'type == "object" and (.catalog | type) == "object"' \
+            "$IMAGE_TRUTH_SUMMARY_PATH" >/dev/null
+          if grep -Eiq '(service_role|openai_api_key|authorization|bearer[[:space:]]+[a-z0-9])' \
+            "$IMAGE_TRUTH_SUMMARY_PATH"; then
+            echo "::error::The summary contains a forbidden credential marker."
+            exit 1
+          fi
+          jq . "$IMAGE_TRUTH_SUMMARY_PATH"
+
+      - name: Upload catalogue progress summary
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: restaurant-image-truth-summary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: restaurant-image-truth-summary.json
+          if-no-files-found: error
+          retention-days: 14
