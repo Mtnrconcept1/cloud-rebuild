@@ -9,6 +9,10 @@ const edgeFunction = readFileSync(
   "supabase/functions/crm-mfa-recovery/index.ts",
   "utf8",
 );
+const providerError = readFileSync(
+  "supabase/functions/crm-mfa-recovery/provider-error.ts",
+  "utf8",
+);
 const runtimePreflight = readFileSync(
   "scripts/verify-supabase-runtime-security.mjs",
   "utf8",
@@ -24,11 +28,11 @@ function jsonResponse(value: unknown, status = 200) {
 describe("CRM MFA Resend readiness", () => {
   it("classifies an unverified sender domain without exposing provider text", () => {
     expect(edgeFunction).toContain("RecoveryEmailProviderError");
-    expect(edgeFunction).toContain("recovery_email_sender_domain_unverified");
     expect(edgeFunction).toContain('"Idempotency-Key": `crm-mfa-recovery-${challengeId}`');
     expect(edgeFunction).toContain('"User-Agent": "TOK-CRM-MFA-Recovery/1.0"');
-    expect(edgeFunction).toContain("provider_status");
-    expect(edgeFunction).toContain("provider_error_code");
+    expect(providerError).toContain("recovery_email_sender_domain_unverified");
+    expect(providerError).toContain("provider_status");
+    expect(providerError).toContain("provider_error_code");
     expect(edgeFunction).not.toContain("throw new HttpError(502, \"recovery_email_delivery_failed\")");
   });
 
