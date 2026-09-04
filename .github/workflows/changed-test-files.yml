@@ -79,4 +79,4 @@ jobs:
           fi
 
           printf 'Executing changed test: %q\n' "${test_files[@]}"
-          pnpm exec vitest run --mode production -- "${test_files[@]}"
+          pnpm exec vitest run --mode production "${test_files[@]}"
