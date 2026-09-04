@@ -6,8 +6,8 @@ const migration = readFileSync(
   "supabase/migrations/20260904173200_restaurant_image_discovery_trigger.sql",
   "utf8",
 );
-const pipelineMigration = readFileSync(
-  "supabase/migrations/20260904173000_restaurant_image_truth_pipeline.sql",
+const claimEligibilityMigration = readFileSync(
+  "supabase/migrations/20260904173400_restaurant_image_discovery_claim_eligibility.sql",
   "utf8",
 );
 
@@ -43,22 +43,13 @@ describe("restaurant image discovery continuation trigger", () => {
   });
 
   it("applies restaurant eligibility to every claimable discovery status", () => {
-    const start = pipelineMigration.indexOf(
-      "CREATE OR REPLACE FUNCTION public.claim_restaurant_image_discovery_jobs",
-    );
-    const end = pipelineMigration.indexOf(
-      "REVOKE ALL ON FUNCTION public.claim_restaurant_image_discovery_jobs",
-      start,
-    );
-    const claimFunction = pipelineMigration.slice(start, end);
-
-    expect(claimFunction).toMatch(
+    expect(claimEligibilityMigration).toMatch(
       /WHERE\s+\(\s*\(\s*jobs\.status[\s\S]*?\)\s+OR\s+\([\s\S]*?\)\s*\)\s+AND\s+COALESCE\(restaurant\.is_active, false\)/,
     );
-    expect(claimFunction).toContain(
+    expect(claimEligibilityMigration).toContain(
       "AND COALESCE(restaurant.directory_public_name_verified, false)",
     );
-    expect(claimFunction).toContain(
+    expect(claimEligibilityMigration).toContain(
       "AND NULLIF(btrim(restaurant.image_url), '') IS NULL",
     );
   });
@@ -71,5 +62,13 @@ describe("restaurant image discovery continuation trigger", () => {
     );
     expect(migration).not.toMatch(/DELETE\s+FROM/i);
     expect(migration).not.toMatch(/DROP\s+(?:TABLE|COLUMN|SCHEMA)/i);
+
+    expect(claimEligibilityMigration).toContain("SECURITY DEFINER");
+    expect(claimEligibilityMigration).toContain("SET search_path = ''");
+    expect(claimEligibilityMigration).toContain(
+      "GRANT EXECUTE ON FUNCTION public.claim_restaurant_image_discovery_jobs(integer)",
+    );
+    expect(claimEligibilityMigration).not.toMatch(/DELETE\s+FROM/i);
+    expect(claimEligibilityMigration).not.toMatch(/DROP\s+(?:TABLE|COLUMN|SCHEMA)/i);
   });
 });
