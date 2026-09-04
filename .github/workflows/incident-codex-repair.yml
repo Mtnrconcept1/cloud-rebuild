@@ -186,8 +186,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .codex-runtime
+          chmod 700 .codex-runtime
           cp "${RUNNER_TEMP}/tok-incident-context.json" .codex-runtime/incident-context.json
-          chmod 600 .codex-runtime/incident-context.json
+          chmod 400 .codex-runtime/incident-context.json
           printf '.codex-runtime/\n' >> .git/info/exclude
 
       - name: Notify repair start
@@ -282,6 +283,7 @@ jobs:
         run: |
           set -euo pipefail
           FILE_COUNT=0
+          MAX_REPAIR_FILE_BYTES=5242880
 
           while IFS= read -r -d '' FILE; do
             [[ -n "$FILE" ]] || continue
@@ -301,6 +303,14 @@ jobs:
             if [[ -L "$FILE" ]]; then
               echo "::error file=$FILE::Symlink changes are not allowed in an automatic repair."
               exit 1
+            fi
+
+            if [[ -e "$FILE" ]]; then
+              FILE_SIZE="$(stat -c '%s' -- "$FILE")"
+              if (( FILE_SIZE > MAX_REPAIR_FILE_BYTES )); then
+                echo "::error file=$FILE::Repair file exceeds the 5 MiB per-file safety limit."
+                exit 1
+              fi
             fi
 
             if [[ "$FILE" == supabase/migrations/*.sql ]]; then
@@ -488,6 +498,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          MAX_REPAIR_FILE_BYTES=5242880
+
           if [[ ! "$REPAIR_BRANCH" =~ ^codex/incident-[0-9a-fA-F]{8}-[0-9]+-[0-9]+$ ]]; then
             echo "::error::Invalid repair branch name."
             exit 1
@@ -512,6 +524,13 @@ jobs:
             if [[ -L "$FILE" ]]; then
               echo "::error file=$FILE::Symlink changes are not publishable."
               exit 1
+            fi
+            if [[ -e "$FILE" ]]; then
+              FILE_SIZE="$(stat -c '%s' -- "$FILE")"
+              if (( FILE_SIZE > MAX_REPAIR_FILE_BYTES )); then
+                echo "::error file=$FILE::File exceeds the 5 MiB publishing safety limit."
+                exit 1
+              fi
             fi
             if [[ "$FILE" == supabase/migrations/*.sql ]] && git cat-file -e "${BASE_SHA}:${FILE}" 2>/dev/null; then
               echo "::error file=$FILE::Existing migrations are immutable."
