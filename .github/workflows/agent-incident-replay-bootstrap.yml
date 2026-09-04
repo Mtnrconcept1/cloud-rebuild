@@ -25,8 +25,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base64 --decode .github/agent/incident-replay-hardening.py.gz.b64 \
-            | gzip --decompress \
+          gzip --decompress --stdout .github/agent/incident-replay-hardening.py.gz \
             > .github/agent/apply_incident_replay_hardening.py
           test "$(sha256sum .github/agent/apply_incident_replay_hardening.py | awk '{print $1}')" \
             = "365b033fe67e56d8deae4bdcb62fedec323d7f22620466cc6c308e4455b8ee71"
@@ -40,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -f \
-            .github/agent/incident-replay-hardening.py.gz.b64 \
+            .github/agent/incident-replay-hardening.py.gz \
             .github/agent/apply_incident_replay_hardening.py \
             .github/workflows/agent-incident-replay-bootstrap.yml
 
