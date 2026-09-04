@@ -29,7 +29,7 @@ jobs:
             | gzip --decompress \
             > .github/agent/apply_incident_replay_hardening.py
           test "$(sha256sum .github/agent/apply_incident_replay_hardening.py | awk '{print $1}')" \
-            = "eb77e9272a760778c49565d81cf91c9cf515b4e6892e3caf99c215d95473bcb0"
+            = "365b033fe67e56d8deae4bdcb62fedec323d7f22620466cc6c308e4455b8ee71"
           python3 -m py_compile .github/agent/apply_incident_replay_hardening.py
 
       - name: Apply exact-source transformations
