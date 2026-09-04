@@ -6,6 +6,10 @@ const migration = readFileSync(
   "supabase/migrations/20260904173200_restaurant_image_discovery_trigger.sql",
   "utf8",
 );
+const pipelineMigration = readFileSync(
+  "supabase/migrations/20260904173000_restaurant_image_truth_pipeline.sql",
+  "utf8",
+);
 
 describe("restaurant image discovery continuation trigger", () => {
   it("queues image discovery when a directory name becomes verified", () => {
@@ -27,7 +31,36 @@ describe("restaurant image discovery continuation trigger", () => {
     expect(migration).toContain(
       "COALESCE(NEW.directory_public_name_verified, false)",
     );
-    expect(migration).toContain("NULLIF(btrim(NEW.image_url), '') IS NULL");
+
+    const imageGuard = migration.indexOf(
+      "OR NULLIF(btrim(NEW.image_url), '') IS NOT NULL",
+    );
+    const discoveryInsert = migration.indexOf(
+      "INSERT INTO public.restaurant_image_discovery_jobs",
+    );
+    expect(imageGuard).toBeGreaterThanOrEqual(0);
+    expect(imageGuard).toBeLessThan(discoveryInsert);
+  });
+
+  it("applies restaurant eligibility to every claimable discovery status", () => {
+    const start = pipelineMigration.indexOf(
+      "CREATE OR REPLACE FUNCTION public.claim_restaurant_image_discovery_jobs",
+    );
+    const end = pipelineMigration.indexOf(
+      "REVOKE ALL ON FUNCTION public.claim_restaurant_image_discovery_jobs",
+      start,
+    );
+    const claimFunction = pipelineMigration.slice(start, end);
+
+    expect(claimFunction).toMatch(
+      /WHERE\s+\(\s*\(\s*jobs\.status[\s\S]*?\)\s+OR\s+\([\s\S]*?\)\s*\)\s+AND\s+COALESCE\(restaurant\.is_active, false\)/,
+    );
+    expect(claimFunction).toContain(
+      "AND COALESCE(restaurant.directory_public_name_verified, false)",
+    );
+    expect(claimFunction).toContain(
+      "AND NULLIF(btrim(restaurant.image_url), '') IS NULL",
+    );
   });
 
   it("keeps the continuation additive and service-internal", () => {
