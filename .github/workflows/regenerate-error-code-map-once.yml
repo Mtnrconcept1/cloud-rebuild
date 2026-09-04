@@ -1,0 +1,57 @@
+name: Regenerate Error Code Map Once
+
+on:
+  push:
+    branches:
+      - fix/audit-remediation-20260904
+    paths:
+      - ".github/workflows/regenerate-error-code-map-once.yml"
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10.28.1"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/audit-remediation-20260904
+          fetch-depth: 1
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate map
+        run: pnpm run generate:error-code-map
+
+      - name: Commit generated artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- supabase/functions/_shared/error-code-map.ts; then
+            echo "Error-code map is already current."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add supabase/functions/_shared/error-code-map.ts
+          git commit -m "chore: regenerate error code map"
+          git push origin HEAD:fix/audit-remediation-20260904
