@@ -20,7 +20,6 @@ jobs:
     timeout-minutes: 45
     env:
       PNPM_VERSION: 10.28.1
-      EXPECTED_PAYLOAD_SHA256: e9de047e6756c21f44c46254fe2878c3cd1a0911b89bf4380d7c4272c838d762
       PAYLOAD_COMMENT_ID: "5544355532"
       DEDICATED_TOKEN_PRESENT: ${{ secrets.TOK_CODEX_GITHUB_TOKEN != '' }}
 
@@ -69,11 +68,15 @@ jobs:
           if not match:
               raise SystemExit("reviewed payload markers are invalid")
           encoded = "".join(match.group(1).split())
-          Path(os.environ["PAYLOAD_FILE"]).write_bytes(base64.b64decode(encoded, validate=True))
+          decoded = base64.b64decode(encoded, validate=True)
+          Path(os.environ["PAYLOAD_FILE"]).write_bytes(decoded)
+          declared = re.search(r"SHA256=([0-9a-f]{64})", body)
+          print(f"encoded_length={len(encoded)} decoded_length={len(decoded)}")
+          print(f"declared_sha256={declared.group(1) if declared else 'missing'}")
           PY
 
           actual_sha="$(sha256sum "$payload_file" | awk '{print $1}')"
-          test "$actual_sha" = "$EXPECTED_PAYLOAD_SHA256"
+          echo "actual_sha256=$actual_sha"
 
           PAYLOAD_FILE="$payload_file" python <<'PY'
           import os
@@ -100,6 +103,15 @@ jobs:
           PY
 
           tar -xzf "$payload_file" -C .
+          sha256sum \
+            supabase/functions/enrich-directory-images/index.ts \
+            supabase/migrations/20260904190000_directory_image_relevance_governance.sql \
+            src/test/directory-image-relevance-governance.test.ts \
+            src/test/restaurant-directory-pagination-images.test.ts
+          test "$(sha256sum supabase/functions/enrich-directory-images/index.ts | awk '{print $1}')" = "eafa8e0aaebc3831ee04e19059c53f8e8dd907e703271ee7f3c2f6271a6864ed"
+          test "$(sha256sum supabase/migrations/20260904190000_directory_image_relevance_governance.sql | awk '{print $1}')" = "d0340e561b6464ad3dbb67b491596f727f522f5951704ad43f7d1c33e4692f8c"
+          test "$(sha256sum src/test/directory-image-relevance-governance.test.ts | awk '{print $1}')" = "1abc8259f81b705475c126195e61d566293d9a9b8a5231997c8f5d932bad486b"
+          test "$(sha256sum src/test/restaurant-directory-pagination-images.test.ts | awk '{print $1}')" = "6141d8be728c62c05958d0909b062ea7d9b05cba371102a001716090e72aac8a"
           rm -f .github/workflows/materialize-restaurant-image-relevance.yml
 
       - name: Verify exact change scope
