@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 316 error codes mapped from supabase/functions/**.
+// 315 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -608,7 +608,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "crm_mfa_factor_reset_failed": [
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
-      "line": 264
+      "line": 293
     }
   ],
   "daily_dish_claim_unavailable": [
@@ -1216,7 +1216,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
-      "line": 303
+      "line": 332
     },
     {
       "file": "supabase/functions/customer-memory/index.ts",
@@ -1312,7 +1312,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_recovery_challenge": [
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
-      "line": 212
+      "line": 241
     }
   ],
   "invalid_repair_branch": [
@@ -1488,7 +1488,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
-      "line": 99
+      "line": 128
     },
     {
       "file": "supabase/functions/google-actions-center-sync/index.ts",
@@ -1522,7 +1522,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "mfa_factors_lookup_failed": [
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
-      "line": 248
+      "line": 277
     }
   ],
   "missing_required_answers": [
@@ -1734,31 +1734,25 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "recovery_challenge_close_failed": [
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
-      "line": 274
+      "line": 303
     }
   ],
   "recovery_challenge_create_failed": [
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
-      "line": 157
+      "line": 186
     }
   ],
   "recovery_challenge_verification_failed": [
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
-      "line": 227
-    }
-  ],
-  "recovery_email_delivery_failed": [
-    {
-      "file": "supabase/functions/crm-mfa-recovery/index.ts",
-      "line": 83
+      "line": 256
     }
   ],
   "recovery_email_unavailable": [
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
-      "line": 55
+      "line": 77
     }
   ],
   "redirect_uri_mismatch": [
@@ -2468,7 +2462,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "verified_account_email_required": [
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
-      "line": 127
+      "line": 156
     }
   ],
   "verified_media_source_required": [

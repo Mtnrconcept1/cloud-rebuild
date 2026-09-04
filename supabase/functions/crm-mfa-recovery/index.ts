@@ -10,6 +10,10 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
+import {
+  classifyRecoveryEmailProviderError,
+  type RecoveryEmailProviderMetadata,
+} from "./provider-error.ts";
 
 const FUNCTION_NAME = "crm-mfa-recovery";
 const CRM_MFA_FRIENDLY_NAME = "TOK CRM";
@@ -17,6 +21,20 @@ const CODE_LENGTH = 8;
 const CODE_TTL_MINUTES = 10;
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+class RecoveryEmailProviderError extends HttpError {
+  readonly providerMetadata: RecoveryEmailProviderMetadata;
+
+  constructor(
+    status: number,
+    message: string,
+    providerMetadata: RecoveryEmailProviderMetadata,
+  ) {
+    super(status, message);
+    this.name = "RecoveryEmailProviderError";
+    this.providerMetadata = providerMetadata;
+  }
+}
 
 function normalizeCode(value: unknown) {
   return typeof value === "string" ? value.replace(/\s+/g, "") : "";
@@ -50,7 +68,11 @@ function maskEmail(email: string) {
   return `${visible}${"*".repeat(Math.max(3, localPart.length - visible.length))}@${domain}`;
 }
 
-async function sendRecoveryEmail(email: string, code: string) {
+async function sendRecoveryEmail(
+  email: string,
+  code: string,
+  challengeId: string,
+) {
   const resendApiKey = getEnv("RESEND_API_KEY");
   if (!resendApiKey) throw new HttpError(503, "recovery_email_unavailable");
 
@@ -59,6 +81,8 @@ async function sendRecoveryEmail(email: string, code: string) {
     headers: {
       Authorization: `Bearer ${resendApiKey}`,
       "Content-Type": "application/json",
+      "Idempotency-Key": `crm-mfa-recovery-${challengeId}`,
+      "User-Agent": "TOK-CRM-MFA-Recovery/1.0",
     },
     body: JSON.stringify({
       from: Deno.env.get("EMAIL_FROM") || "TOK <noreply@thetok.ch>",
@@ -80,7 +104,12 @@ async function sendRecoveryEmail(email: string, code: string) {
   });
 
   if (!response.ok) {
-    throw new HttpError(502, "recovery_email_delivery_failed");
+    const classified = await classifyRecoveryEmailProviderError(response);
+    throw new RecoveryEmailProviderError(
+      classified.status,
+      classified.message,
+      classified.metadata,
+    );
   }
 }
 
@@ -158,7 +187,7 @@ Deno.serve(async (req) => {
       }
 
       try {
-        await sendRecoveryEmail(email, code);
+        await sendRecoveryEmail(email, code, challengeId);
       } catch (emailError) {
         await adminClient
           .from("crm_mfa_recovery_challenges")
@@ -304,7 +333,16 @@ Deno.serve(async (req) => {
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "internal_error";
-    log.error("request_failed", { action, status, message });
+    const providerMetadata = error instanceof RecoveryEmailProviderError
+      ? error.providerMetadata
+      : {};
+
+    log.error("request_failed", {
+      action,
+      status,
+      message,
+      ...providerMetadata,
+    });
 
     await writeAuditLog({
       adminClient,
@@ -319,7 +357,7 @@ Deno.serve(async (req) => {
       targetEntityType: "crm_mfa_recovery_challenge",
       targetEntityId: challengeId,
       errorMessage: message,
-      metadata: { rid: log.rid },
+      metadata: { rid: log.rid, ...providerMetadata },
     });
 
     return jsonResponse({ error: message, rid: log.rid }, status, corsHeaders);
