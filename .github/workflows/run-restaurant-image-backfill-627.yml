@@ -1,0 +1,223 @@
+name: Run restaurant image backfill after PR 627
+
+on:
+  push:
+    branches:
+      - ops/run-restaurant-image-backfill-627
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: run-restaurant-image-backfill-627
+  cancel-in-progress: false
+
+jobs:
+  deploy-and-backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: "627"
+      BACKFILL_WORKFLOW: restaurant-image-truth-backfill.yml
+
+    steps:
+      - name: Wait for the guarded pull request merge
+        id: merge
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 240); do
+            PR_JSON="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+              --json state,mergedAt,mergeCommit,url)"
+            STATE="$(jq -r '.state' <<<"$PR_JSON")"
+            MERGED_AT="$(jq -r '.mergedAt // empty' <<<"$PR_JSON")"
+            if [[ "$STATE" == "MERGED" || -n "$MERGED_AT" ]]; then
+              MERGE_SHA="$(jq -r '.mergeCommit.oid' <<<"$PR_JSON")"
+              test -n "$MERGE_SHA"
+              test "$MERGE_SHA" != "null"
+              echo "merge_sha=$MERGE_SHA" >> "$GITHUB_OUTPUT"
+              echo "pr_url=$(jq -r '.url' <<<"$PR_JSON")" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if [[ "$STATE" == "CLOSED" ]]; then
+              echo "::error::PR $PR_NUMBER was closed without merge."
+              exit 1
+            fi
+            sleep 15
+          done
+          echo "::error::PR $PR_NUMBER was not merged within the bounded wait."
+          exit 1
+
+      - name: Wait for the official production deployment
+        id: deployment
+        env:
+          MERGE_SHA: ${{ steps.merge.outputs.merge_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOY_RUN_ID=""
+          for attempt in $(seq 1 240); do
+            RUNS="$(gh run list --repo "$GITHUB_REPOSITORY" \
+              --workflow "Deploy Production" \
+              --commit "$MERGE_SHA" \
+              --json databaseId,status,conclusion,url,headSha,event \
+              --limit 20)"
+            DEPLOY_RUN_ID="$(jq -r --arg sha "$MERGE_SHA" '
+              map(select(.headSha == $sha))
+              | sort_by(.databaseId)
+              | last
+              | .databaseId // empty
+            ' <<<"$RUNS")"
+            if [[ -n "$DEPLOY_RUN_ID" ]]; then
+              break
+            fi
+            sleep 15
+          done
+          test -n "$DEPLOY_RUN_ID"
+          gh run watch "$DEPLOY_RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+          DEPLOY_JSON="$(gh run view "$DEPLOY_RUN_ID" --repo "$GITHUB_REPOSITORY" \
+            --json status,conclusion,url,headSha)"
+          test "$(jq -r '.status' <<<"$DEPLOY_JSON")" = "completed"
+          test "$(jq -r '.conclusion' <<<"$DEPLOY_JSON")" = "success"
+          test "$(jq -r '.headSha' <<<"$DEPLOY_JSON")" = "$MERGE_SHA"
+          echo "run_id=$DEPLOY_RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "run_url=$(jq -r '.url' <<<"$DEPLOY_JSON")" >> "$GITHUB_OUTPUT"
+
+      - name: Run bounded image verification and catalogue growth
+        id: backfill
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/tok-image-backfill"
+          STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          LAST_RUN_ID=""
+          LAST_SUMMARY=""
+
+          dispatch_backfill() {
+            gh workflow run "$BACKFILL_WORKFLOW" \
+              --repo "$GITHUB_REPOSITORY" \
+              --ref main \
+              -f max_rounds=20 \
+              -f verify_limit=25 \
+              -f discovery_limit=25 \
+              -f concurrency=3 \
+              -f run_legacy_enrichment=true \
+              -f dry_run=false
+          }
+
+          find_dispatched_run() {
+            local not_before="$1"
+            local run_id=""
+            for attempt in $(seq 1 60); do
+              RUNS="$(gh run list --repo "$GITHUB_REPOSITORY" \
+                --workflow "$BACKFILL_WORKFLOW" \
+                --event workflow_dispatch \
+                --branch main \
+                --json databaseId,status,conclusion,url,createdAt,headBranch \
+                --limit 30)"
+              run_id="$(jq -r --arg not_before "$not_before" '
+                map(select(.createdAt >= $not_before and .headBranch == "main"))
+                | sort_by(.databaseId)
+                | last
+                | .databaseId // empty
+              ' <<<"$RUNS")"
+              if [[ -n "$run_id" ]]; then
+                printf '%s' "$run_id"
+                return 0
+              fi
+              sleep 10
+            done
+            return 1
+          }
+
+          download_summary() {
+            local run_id="$1"
+            local destination="${RUNNER_TEMP}/tok-image-backfill/${run_id}"
+            mkdir -p "$destination"
+            gh run download "$run_id" --repo "$GITHUB_REPOSITORY" --dir "$destination"
+            local summary
+            summary="$(find "$destination" -type f -name restaurant-image-truth-summary.json -print -quit)"
+            test -n "$summary"
+            jq -e 'type == "object" and (.catalog | type) == "object"' "$summary" >/dev/null
+            printf '%s' "$summary"
+          }
+
+          for round in 1 2 3; do
+            DISPATCH_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            dispatch_backfill
+            RUN_ID="$(find_dispatched_run "$DISPATCH_AT")"
+            test -n "$RUN_ID"
+            gh run watch "$RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+            RUN_JSON="$(gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" \
+              --json status,conclusion,url)"
+            test "$(jq -r '.status' <<<"$RUN_JSON")" = "completed"
+            test "$(jq -r '.conclusion' <<<"$RUN_JSON")" = "success"
+
+            SUMMARY="$(download_summary "$RUN_ID")"
+            cp "$SUMMARY" "${RUNNER_TEMP}/tok-image-backfill/summary-${round}.json"
+            LAST_RUN_ID="$RUN_ID"
+            LAST_SUMMARY="${RUNNER_TEMP}/tok-image-backfill/summary-${round}.json"
+
+            PENDING="$(jq '(.catalog.reviews_pending // 0) + (.catalog.discovery_pending // 0)' "$LAST_SUMMARY")"
+            if (( PENDING == 0 )); then
+              break
+            fi
+          done
+
+          test -n "$LAST_RUN_ID"
+          test -s "$LAST_SUMMARY"
+          cp "$LAST_SUMMARY" "${RUNNER_TEMP}/tok-image-backfill/final-summary.json"
+          echo "last_run_id=$LAST_RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "started_at=$STARTED_AT" >> "$GITHUB_OUTPUT"
+
+      - name: Publish non-sensitive production summary on the pull request
+        env:
+          DEPLOY_RUN_URL: ${{ steps.deployment.outputs.run_url }}
+          LAST_RUN_ID: ${{ steps.backfill.outputs.last_run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SUMMARY="${RUNNER_TEMP}/tok-image-backfill/final-summary.json"
+          CATALOG="$(jq -c '.catalog' "$SUMMARY")"
+          BACKFILL_RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${LAST_RUN_ID}"
+
+          cat > "${RUNNER_TEMP}/tok-image-backfill-comment.md" <<EOF
+          ## Vérification des images restaurant — production
+
+          Le déploiement officiel a réussi, puis les lots bornés de vérification et de remplissage ont été exécutés.
+
+          - Déploiement : ${DEPLOY_RUN_URL}
+          - Dernier lot de contrôle : ${BACKFILL_RUN_URL}
+          - Statistiques finales :
+
+          \`\`\`json
+          ${CATALOG}
+          \`\`\`
+
+          Les images rejetées ou ambiguës ne sont pas publiées comme images vérifiées. Aucun original Storage n'a été supprimé. Les files planifiées continuent ensuite à traiter les nouveaux noms et candidats.
+          EOF
+
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --body-file "${RUNNER_TEMP}/tok-image-backfill-comment.md"
+
+      - name: Upload all bounded-run summaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: restaurant-image-backfill-pr-627-${{ github.run_id }}
+          path: ${{ runner.temp }}/tok-image-backfill/*.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Remove temporary operational branch
+        if: ${{ success() }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api \
+            --method DELETE \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/$GITHUB_REPOSITORY/git/refs/heads/ops/run-restaurant-image-backfill-627"
