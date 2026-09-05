@@ -77,13 +77,13 @@ const APP_BRIDGE_TOOLS = [
   {
     name: "tok_data",
     title: "Read or mutate an allowlisted TOK data surface",
-    description: "Read or mutate the small allowlist of TOK tables that the application itself accesses directly under RLS. All queries use the authenticated user's JWT; writes require confirmation and idempotency, and update/delete require filters.",
+    description: "Read or mutate a server-allowlisted TOK data surface under the authenticated user's RLS identity. Transactional tables are read-only; direct writes exist only for tables the application itself edits under RLS. Writes require confirmation and idempotency, and update/delete require filters.",
     securitySchemes: OAUTH_SECURITY,
     inputSchema: {
       type: "object",
       required: ["table", "operation"],
       properties: {
-        table: { type: "string", enum: ["profiles", "user_profiles", "favorites", "notification_preferences", "reviews", "social_post_comments", "social_post_saves", "menu_items", "restaurant_promotions", "restaurant_hours", "restaurant_branches", "social_posts"] },
+        table: { type: "string", pattern: "^[A-Za-z_][A-Za-z0-9_]*$", maxLength: 120 },
         operation: { type: "string", enum: ["select", "insert", "update", "delete"] },
         select: { type: "string", maxLength: 500 },
         limit: { type: "integer", minimum: 1, maximum: 100 },
