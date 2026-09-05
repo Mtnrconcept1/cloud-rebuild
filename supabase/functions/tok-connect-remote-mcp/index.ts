@@ -15,6 +15,7 @@ const PUBLIC_ORIGIN = (Deno.env.get("TOK_CONNECT_PUBLIC_ORIGIN") || "https://www
 const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") || "https://wwcrtyoueexyxkkikaos.supabase.co").replace(/\/$/, "");
 const UPSTREAM_MCP_URL = `${SUPABASE_URL}/functions/v1/tok-connect-chatgpt`;
 const APP_BRIDGE_URL = `${SUPABASE_URL}/functions/v1/tok-connect-app-bridge`;
+const COMMERCIAL_BRIDGE_URL = `${SUPABASE_URL}/functions/v1/tok-connect-commercial-bridge`;
 const AUTHORIZATION_SERVER = `${SUPABASE_URL}/auth/v1`;
 const RESOURCE_METADATA_URL = `${PUBLIC_ORIGIN}/.well-known/oauth-protected-resource`;
 const OIDC_SCOPES = ["openid", "email", "profile"];
@@ -109,6 +110,31 @@ const APP_BRIDGE_TOOLS = [
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     _meta: { securitySchemes: OAUTH_SECURITY },
   },
+  {
+    name: "tok_commercial",
+    title: "Operate the authenticated TOK commercial workspace",
+    description: "Use commercial-only TOK RPCs, read commercial RLS data, or provision the isolated demo session. The commercial bridge requires the commercial or admin role; mutating RPCs and demo provisioning require confirmation and idempotency.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: {
+      type: "object",
+      required: ["action"],
+      properties: {
+        action: { type: "string", enum: ["list", "rpc", "read", "demo_session"] },
+        rpc_name: { type: "string", maxLength: 160 },
+        args: { type: "object" },
+        table: { type: "string", maxLength: 160 },
+        select: { type: "string", maxLength: 500 },
+        limit: { type: "integer", minimum: 1, maximum: 100 },
+        filters: { type: "array", maxItems: 20, items: { type: "object" } },
+        payload: { type: "object" },
+        confirmed_by_user: { type: "boolean" },
+        idempotency_key: { type: "string", minLength: 8, maxLength: 120, pattern: "^[A-Za-z0-9:_-]+$" },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY },
+  },
 ];
 
 const APP_BRIDGE_TOOL_NAMES = new Set(APP_BRIDGE_TOOLS.map((tool) => tool.name));
@@ -139,27 +165,22 @@ function requestHeaders(req: Request, rpc: McpJsonRpcRequest) {
     "content-type": "application/json",
     accept: req.headers.get("accept") || "application/json, text/event-stream",
   });
-
   for (const name of ["authorization", "origin", "user-agent", "last-event-id"]) {
     const value = req.headers.get(name);
     if (value) headers.set(name, value);
   }
-
   const protocolVersion = req.headers.get("mcp-protocol-version");
   headers.set(
     "mcp-protocol-version",
     protocolVersion === "2026-07-28" ? INTERNAL_MCP_PROTOCOL_VERSION : protocolVersion || INTERNAL_MCP_PROTOCOL_VERSION,
   );
-
   const sessionId = req.headers.get("mcp-session-id");
   if (sessionId && protocolVersion !== "2026-07-28") headers.set("mcp-session-id", sessionId);
-
   headers.set("mcp-method", rpc.method);
   if (rpc.method === "tools/call") {
     const toolName = typeof rpc.params?.name === "string" ? rpc.params.name : "";
     if (toolName) headers.set("mcp-name", toolName);
   }
-
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
   if (anonKey) headers.set("apikey", anonKey);
   return headers;
@@ -175,7 +196,6 @@ function responseHeaders(req: Request, upstream?: Response) {
     "mcp-protocol-version",
     req.headers.get("mcp-protocol-version") || upstream?.headers.get("mcp-protocol-version") || MCP_LATEST_PROTOCOL_VERSION,
   );
-
   for (const name of ["www-authenticate", "mcp-session-id"]) {
     const value = upstream?.headers.get(name);
     if (value && !(name === "mcp-session-id" && req.headers.get("mcp-protocol-version") === "2026-07-28")) {
@@ -192,17 +212,13 @@ function normalizeInitialize(payload: unknown, request: McpJsonRpcRequest) {
   if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
   const next = { ...(result as Record<string, unknown>) };
   next.protocolVersion = negotiateMcpProtocolVersion(request.params);
-  next.serverInfo = { name: "TOK Connect Remote MCP", version: "5.0.0" };
-  next.instructions = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. Once authenticated, use tok_list_capabilities to discover the actions authorized by the user's TOK roles. Reads run under the user's JWT and RLS. Real writes, payments, refunds, publications and admin actions use allowlisted TOK backends or business RPCs and require explicit confirmation plus idempotency where applicable. Service-role, scheduler-only and webhook-only operations are never exposed.";
+  next.serverInfo = { name: "TOK Connect Remote MCP", version: "5.1.0" };
+  next.instructions = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. Once authenticated, use tok_list_capabilities to discover the actions authorized by the user's TOK roles. Reads run under the user's JWT and RLS. Real writes, payments, refunds, publications and admin actions use allowlisted TOK backends or business RPCs and require explicit confirmation plus idempotency where applicable. The commercial role is isolated behind tok_commercial. Service-role, scheduler-only and webhook-only operations are never exposed.";
   return { ...rpc, result: next };
 }
 
 async function upstreamRequest(req: Request, rpc: McpJsonRpcRequest) {
-  return await fetch(UPSTREAM_MCP_URL, {
-    method: "POST",
-    headers: requestHeaders(req, rpc),
-    body: JSON.stringify(rpc),
-  });
+  return await fetch(UPSTREAM_MCP_URL, { method: "POST", headers: requestHeaders(req, rpc), body: JSON.stringify(rpc) });
 }
 
 function mergeTools(payload: unknown) {
@@ -218,40 +234,35 @@ function mergeTools(payload: unknown) {
 
 function authToolResult(message = "Connexion TOK requise pour cette action.") {
   const challenge = `Bearer resource_metadata="${RESOURCE_METADATA_URL}"`;
-  return {
-    content: [{ type: "text", text: message }],
-    isError: true,
-    _meta: { "mcp/www_authenticate": [challenge] },
-  };
+  return { content: [{ type: "text", text: message }], isError: true, _meta: { "mcp/www_authenticate": [challenge] } };
 }
 
 function bridgeToolBody(name: string, args: JsonRecord) {
   if (name === "tok_list_capabilities") return { mode: "edge", action: "list" };
   if (name === "tok_invoke_capability") return {
-    mode: "edge",
-    capability: args.capability,
-    method: args.method,
+    mode: "edge", capability: args.capability, method: args.method, payload: args.payload || {},
+    confirmed_by_user: args.confirmed_by_user, idempotency_key: args.idempotency_key,
+  };
+  if (name === "tok_invoke_rpc") return {
+    mode: "rpc", rpc_name: args.rpc_name, args: args.args || {},
+    confirmed_by_user: args.confirmed_by_user, idempotency_key: args.idempotency_key,
+  };
+  if (name === "tok_commercial") return {
+    action: args.action,
+    rpc_name: args.rpc_name,
+    args: args.args || {},
+    table: args.table,
+    select: args.select,
+    limit: args.limit,
+    filters: args.filters || [],
     payload: args.payload || {},
     confirmed_by_user: args.confirmed_by_user,
     idempotency_key: args.idempotency_key,
   };
-  if (name === "tok_invoke_rpc") return {
-    mode: "rpc",
-    rpc_name: args.rpc_name,
-    args: args.args || {},
-    confirmed_by_user: args.confirmed_by_user,
-    idempotency_key: args.idempotency_key,
-  };
   return {
-    mode: "data",
-    table: args.table,
-    operation: args.operation,
-    select: args.select,
-    limit: args.limit,
-    filters: args.filters || [],
-    values: args.values,
-    confirmed_by_user: args.confirmed_by_user,
-    idempotency_key: args.idempotency_key,
+    mode: "data", table: args.table, operation: args.operation, select: args.select, limit: args.limit,
+    filters: args.filters || [], values: args.values,
+    confirmed_by_user: args.confirmed_by_user, idempotency_key: args.idempotency_key,
   };
 }
 
@@ -264,20 +275,15 @@ async function callAppBridge(req: Request, rpc: McpJsonRpcRequest, name: string)
   const headers = new Headers({ "content-type": "application/json", accept: "application/json", authorization });
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
   if (anonKey) headers.set("apikey", anonKey);
-  const response = await fetch(APP_BRIDGE_URL, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(bridgeToolBody(name, args)),
-  });
+  const targetUrl = name === "tok_commercial" ? COMMERCIAL_BRIDGE_URL : APP_BRIDGE_URL;
+  const response = await fetch(targetUrl, { method: "POST", headers, body: JSON.stringify(bridgeToolBody(name, args)) });
   const payload = await response.json().catch(() => ({ ok: false, error: { code: "tok_connect_bridge_invalid_response", message: "tok_connect_bridge_invalid_response" } })) as JsonRecord;
   if (response.status === 401) return jsonRpcResult(rpc.id, authToolResult());
   const text = payload.ok === false
     ? String((payload.error as JsonRecord | undefined)?.message || (payload.error as JsonRecord | undefined)?.code || "TOK action failed")
     : JSON.stringify(payload);
   return jsonRpcResult(rpc.id, {
-    content: [{ type: "text", text }],
-    structuredContent: payload,
-    ...(response.ok ? {} : { isError: true }),
+    content: [{ type: "text", text }], structuredContent: payload, ...(response.ok ? {} : { isError: true }),
   });
 }
 
@@ -289,11 +295,9 @@ async function relay(req: Request, rpc: McpJsonRpcRequest) {
       return new Response(JSON.stringify(payload), { status: 200, headers: responseHeaders(req) });
     }
   }
-
   const upstream = await upstreamRequest(req, rpc);
   const text = await upstream.text();
   if (!text) return new Response(null, { status: upstream.status, headers: responseHeaders(req, upstream) });
-
   try {
     const parsed = JSON.parse(text);
     const payload = rpc.method === "initialize"
@@ -312,7 +316,6 @@ Deno.serve(async (req) => {
   if (!isRemoteMcpOriginAllowed(req)) return new Response(null, { status: 403, headers: corsHeaders });
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
-
   const url = new URL(req.url);
   if (url.searchParams.get("tok_connect_route") === "protected-resource") {
     return new Response(JSON.stringify({
@@ -324,29 +327,13 @@ Deno.serve(async (req) => {
       mcp_protocol_versions_supported: ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"],
     }), {
       status: 200,
-      headers: new Headers({
-        ...corsHeaders,
-        "content-type": "application/json",
-        "cache-control": "no-store",
-        "mcp-protocol-version": MCP_LATEST_PROTOCOL_VERSION,
-      }),
+      headers: new Headers({ ...corsHeaders, "content-type": "application/json", "cache-control": "no-store", "mcp-protocol-version": MCP_LATEST_PROTOCOL_VERSION }),
     });
   }
-
   if (req.method === "GET") {
-    return new Response(null, {
-      status: 405,
-      headers: new Headers({
-        ...corsHeaders,
-        allow: "POST, OPTIONS",
-        "cache-control": "no-store",
-        "mcp-protocol-version": MCP_LATEST_PROTOCOL_VERSION,
-      }),
-    });
+    return new Response(null, { status: 405, headers: new Headers({ ...corsHeaders, allow: "POST, OPTIONS", "cache-control": "no-store", "mcp-protocol-version": MCP_LATEST_PROTOCOL_VERSION }) });
   }
-  if (req.method !== "POST") {
-    return new Response(null, { status: 405, headers: new Headers({ ...corsHeaders, allow: "POST, OPTIONS" }) });
-  }
+  if (req.method !== "POST") return new Response(null, { status: 405, headers: new Headers({ ...corsHeaders, allow: "POST, OPTIONS" }) });
 
   let rpc: McpJsonRpcRequest | null = null;
   try {
