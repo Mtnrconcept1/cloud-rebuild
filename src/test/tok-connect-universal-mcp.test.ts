@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const transport = readFileSync("supabase/functions/_shared/mcp-http.ts", "utf8");
+const cors = readFileSync("supabase/functions/_shared/cors.ts", "utf8");
 const remoteGateway = readFileSync("supabase/functions/tok-connect-remote-mcp/index.ts", "utf8");
 const actionGateway = readFileSync("supabase/functions/tok-connect-chatgpt/index.ts", "utf8");
 const vercel = readFileSync("vercel.json", "utf8");
@@ -18,6 +19,13 @@ describe("TOK Connect universal remote MCP", () => {
     expect(transport).toContain('"2025-11-25"');
     expect(transport).toContain('"2025-06-18"');
     expect(transport).toContain('"2025-03-26"');
+  });
+
+  it("allows browser-based Claude and ChatGPT clients to send MCP 2026 routing headers", () => {
+    expect(cors).toContain('"https://chatgpt.com"');
+    expect(cors).toContain('"https://claude.ai"');
+    expect(cors).toContain('"mcp-method"');
+    expect(cors).toContain('"mcp-name"');
   });
 
   it("keeps one public provider-neutral MCP endpoint for ChatGPT, Claude and generic agents", () => {
