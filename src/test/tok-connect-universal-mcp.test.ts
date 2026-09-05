@@ -25,6 +25,8 @@ describe("TOK Connect universal remote MCP", () => {
     expect(vercel).toContain("tok-connect-remote-mcp");
     expect(remoteGateway).toContain("MCP_LATEST_PROTOCOL_VERSION");
     expect(remoteGateway).toContain("assertMcpRoutingHeaders");
+    expect(remoteGateway).toContain("negotiateMcpProtocolVersion");
+    expect(remoteGateway).toContain("next.protocolVersion = negotiateMcpProtocolVersion(request.params)");
     expect(remoteGateway).toContain('headers.set("mcp-method", rpc.method)');
     expect(remoteGateway).toContain('headers.set("mcp-name", toolName)');
     expect(remoteGateway).toContain('name: "TOK Connect Remote MCP"');
