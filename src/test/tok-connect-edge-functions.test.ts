@@ -16,6 +16,9 @@ describe("TOK Connect Edge Functions", () => {
       "tok-connect-oauth",
       "tok-connect-api",
       "tok-connect-mcp",
+      "tok-connect-full-app-mcp",
+      "tok-connect-chatgpt",
+      "tok-connect-remote-mcp",
       "tok-connect-portal",
       "tok-connect-webhook-dispatch",
     ]) {
@@ -168,8 +171,6 @@ describe("TOK Connect Edge Functions", () => {
     const source = read("supabase/functions/tok-connect-mcp/index.ts");
     const appCss = read("src/index.css");
 
-    // The widget must not drift from the product: these are the exact tokens
-    // declared in src/index.css, not hand-picked approximations.
     for (const token of ["24 95% 53%", "152 55% 45%", "222 30% 5%", "222 28% 11%", "156 58% 47%"]) {
       expect(appCss).toContain(token);
       expect(source).toContain(token);
@@ -180,14 +181,10 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("--tok-font-display");
     expect(source).toContain("color-scheme: light dark");
     expect(source).toContain("@media (prefers-color-scheme: dark)");
-
-    // Legacy hardcoded palette and generic font stack are gone.
     expect(source).not.toContain("--tok-orange");
     expect(source).not.toContain("#ff6b14");
     expect(source).not.toContain("font-family: Inter,");
     expect(source).not.toContain("color: #111827;");
-
-    // Fonts only render when their origins are declared to the widget CSP.
     expect(source).toContain("WIDGET_RESOURCE_DOMAINS");
     expect(source).toContain("https://fonts.googleapis.com");
     expect(source).toContain("https://fonts.gstatic.com");
@@ -209,6 +206,7 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("negotiateMcpProtocolVersion");
     expect(source).toContain("isMcpNotification");
     expect(source).toContain("mcpAcceptedResponse");
+    expect(transport).toContain('"2026-07-28"');
     expect(transport).toContain('"2025-11-25"');
     expect(transport).toContain("assertMcpContentType");
     expect(source).toContain("TOK Connect DEV noauth");

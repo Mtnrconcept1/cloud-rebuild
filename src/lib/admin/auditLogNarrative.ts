@@ -139,6 +139,9 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "tok-connect-webhook-dispatch": "l’envoi des webhooks aux partenaires TOK Connect",
   "tok-connect-full-app-mcp": "la surface MCP applicative TOK Connect",
   "tok-connect-chatgpt": "la passerelle MCP publique TOK Connect utilisée par ChatGPT",
+  "tok-connect-remote-mcp": "la passerelle MCP distante universelle TOK Connect pour Claude, ChatGPT et les autres agents compatibles",
+  "tok-connect-app-bridge": "la passerelle d’exécution authentifiée entre les agents MCP et les capacités métier TOK",
+  "tok-connect-commercial-bridge": "la passerelle MCP authentifiée et isolée de l’espace commercial TOK",
   "tok-pulse-widget": "l’agrégation publique des signaux affichés par le widget TOK Pulse",
   "validate-order-preview": "la simulation du prix d’une commande",
 };
@@ -218,10 +221,6 @@ type ErrorRule = {
   explain: ErrorExplanation;
 };
 
-/**
- * Ordered rules: the first match wins, so specific codes come before the
- * generic families.
- */
 const ERROR_RULES: ErrorRule[] = [
   {
     match: /^missing stripe-signature header$/i,
@@ -355,7 +354,7 @@ const ERROR_RULES: ErrorRule[] = [
     match: /DEMO_SIDE_EFFECT_BLOCKED/i,
     explain: {
       cause: "Une action à effet externe a été tentée depuis l’environnement de démonstration, où elle est volontairement désactivée.",
-      impact: "Aucun effet réel : le garde-fou a fonctionné et protège la production des manipulations de démonstration.",
+      impact: "Aucun effet réel : le garde-fou a fonctionné et protège la production des manipulations de démonstration commerciale.",
       recommendation: "Aucune action. Ce message confirme que l’isolation de la démonstration commerciale tient.",
     },
   },
@@ -441,7 +440,6 @@ function stripTrailingDot(value: string) {
   return value.replace(/\s*\.\s*$/, "");
 }
 
-/** `send-email:process_email_queue` → `process_email_queue`. */
 function extractActionKey(action: string, functionName: string) {
   const raw = normalizeText(action);
   if (!raw) return "";
@@ -449,18 +447,12 @@ function extractActionKey(action: string, functionName: string) {
   return raw.startsWith(prefix) ? raw.slice(prefix.length) : raw;
 }
 
-/** Turns a technical identifier into words. Only for raw snake/kebab case. */
 export function humanizeIdentifier(value: string) {
   const normalized = normalizeText(value).replace(/[_-]+/g, " ").trim();
   if (!normalized) return "";
   return capitalizeFirst(normalized);
 }
 
-/**
- * Capitalises a sentence that is already written in French. Unlike
- * `humanizeIdentifier` it preserves hyphens, so "e-mails" never becomes
- * "e mails".
- */
 function capitalizeFirst(value: string) {
   const normalized = normalizeText(value);
   if (!normalized) return "";
@@ -503,7 +495,6 @@ export function explainAuditError(errorMessage: string): ErrorExplanation | null
   return ERROR_RULES.find((rule) => rule.match.test(message))?.explain ?? null;
 }
 
-/** A Stripe webhook action is the event name, e.g. `charge.refunded`. */
 function describeStripeEvent(action: string) {
   const event = normalizeText(action);
   if (!event.includes(".")) return null;
@@ -623,7 +614,6 @@ export function describeAuditLog(input: AuditNarrativeInput): AuditNarrative {
   return input.source === "data" ? buildDataNarrative(input) : buildEdgeNarrative(input);
 }
 
-/** Compact one-line version used in the log table. */
 export function summarizeAuditLog(input: AuditNarrativeInput) {
   return describeAuditLog(input).headline;
 }

@@ -5,15 +5,18 @@ import { describe, expect, it } from "vitest";
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("TOK Connect ChatGPT finalization", () => {
+  const remoteGateway = read("supabase/functions/tok-connect-remote-mcp/index.ts");
   const gateway = read("supabase/functions/tok-connect-chatgpt/index.ts");
   const canonical = read("supabase/functions/tok-connect-mcp/index.ts");
   const config = read("supabase/config.toml");
   const vercel = read("vercel.json");
 
-  it("keeps one public MCP route and sends it through the ChatGPT gateway", () => {
+  it("keeps one public MCP route and sends it through the universal gateway to ChatGPT actions", () => {
     expect(vercel).toContain('"source": "/mcp"');
-    expect(vercel).toContain("functions/v1/tok-connect-chatgpt");
+    expect(vercel).toContain("functions/v1/tok-connect-remote-mcp");
+    expect(remoteGateway).toContain("functions/v1/tok-connect-chatgpt");
     expect(vercel).toContain("tok_connect_route=protected-resource");
+    expect(config).toContain("[functions.tok-connect-remote-mcp]");
     expect(config).toContain("[functions.tok-connect-chatgpt]");
     expect(config).toContain("[functions.tok-connect-mcp]");
   });

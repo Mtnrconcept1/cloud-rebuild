@@ -572,7 +572,7 @@
           "value": "www.thetok.ch"
         }
       ],
-      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-chatgpt"
+      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp"
     },
     {
       "source": "/.well-known/oauth-protected-resource",
@@ -582,7 +582,7 @@
           "value": "www.thetok.ch"
         }
       ],
-      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-chatgpt?tok_connect_route=protected-resource"
+      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp?tok_connect_route=protected-resource"
     },
     {
       "source": "/functions/v1/:path*",
