@@ -22,6 +22,7 @@
  *   - https://demo-client.thetok.ch                    (focused client demo)
  *   - https://demo-restaurateur.thetok.ch              (focused restaurant demo)
  *   - https://demo-livreur.thetok.ch                   (focused courier demo)
+ *   - https://chatgpt.com, https://claude.ai            (remote MCP clients)
  *   - capacitor://localhost, ionic://localhost         (iOS WKWebView)
  *   - http://localhost, https://localhost              (Android WebView + web dev)
  *   - http://localhost:<port>                          (Vite dev server)
@@ -40,6 +41,7 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://demo-restaurateur.thetok.ch",
   "https://demo-livreur.thetok.ch",
   "https://chatgpt.com",
+  "https://claude.ai",
   "https://cloud-rebuild-recovered.vercel.app",
   "capacitor://localhost",
   "ionic://localhost",
@@ -70,6 +72,8 @@ const ALLOWED_HEADERS = [
   "stripe-signature",
   "mcp-protocol-version",
   "mcp-session-id",
+  "mcp-method",
+  "mcp-name",
   "last-event-id",
 ].join(", ");
 
@@ -170,5 +174,3 @@ export const corsHeadersStatic: Record<string, string> = {
   "Access-Control-Allow-Headers": ALLOWED_HEADERS,
   "Vary": "Origin",
 };
-
-
