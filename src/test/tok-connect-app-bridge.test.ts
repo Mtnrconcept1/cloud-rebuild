@@ -55,7 +55,7 @@ describe("TOK Connect authenticated application bridge", () => {
       "ai-accounting-agent",
       "ai-admin-monitor",
       "ai-guardian",
-    ]) expect(bridge).toContain(`functionName: \"${functionName}\"`);
+    ]) expect(bridge).toContain(`functionName: "${functionName}"`);
 
     expect(bridge).toContain("EDGE_CAPABILITIES[capabilityName]");
     expect(bridge).not.toContain("functionName: String(body");
@@ -108,7 +108,7 @@ describe("TOK Connect authenticated application bridge", () => {
 
   it("publishes the full-app execution bridge as normal authenticated MCP tools", () => {
     for (const tool of ["tok_list_capabilities", "tok_invoke_capability", "tok_invoke_rpc", "tok_data", "tok_commercial"]) {
-      expect(remote).toContain(`name: \"${tool}\"`);
+      expect(remote).toContain(`name: "${tool}"`);
     }
     expect(remote).toContain("APP_BRIDGE_URL");
     expect(remote).toContain("mcp/www_authenticate");
