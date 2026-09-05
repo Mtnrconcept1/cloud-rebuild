@@ -21,11 +21,14 @@ describe("TOK Connect universal remote MCP", () => {
     expect(transport).toContain('"2025-03-26"');
   });
 
-  it("allows browser-based Claude and ChatGPT clients to send MCP 2026 routing headers", () => {
+  it("allows browser-based Claude and ChatGPT clients to send MCP 2026 routing headers without widening Claude CORS globally", () => {
     expect(cors).toContain('"https://chatgpt.com"');
-    expect(cors).toContain('"https://claude.ai"');
+    expect(cors).not.toContain('"https://claude.ai"');
     expect(cors).toContain('"mcp-method"');
     expect(cors).toContain('"mcp-name"');
+    expect(remoteGateway).toContain('const CLAUDE_ORIGIN = "https://claude.ai"');
+    expect(remoteGateway).toContain("remoteCorsHeaders");
+    expect(remoteGateway).toContain("isRemoteMcpOriginAllowed");
   });
 
   it("keeps one public provider-neutral MCP endpoint for ChatGPT, Claude and generic agents", () => {
