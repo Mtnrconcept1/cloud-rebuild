@@ -304,5 +304,8 @@ verify_jwt = false
 [functions.tok-connect-remote-mcp]
 verify_jwt = false
 
+[functions.tok-connect-app-bridge]
+verify_jwt = false
+
 [functions.tok-pulse-widget]
 verify_jwt = false
