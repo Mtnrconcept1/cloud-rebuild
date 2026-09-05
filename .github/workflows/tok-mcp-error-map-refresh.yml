@@ -1,0 +1,44 @@
+name: TOK MCP error map refresh
+
+on:
+  push:
+    branches:
+      - feat/tok-connect-universal-mcp-20260905
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tok-mcp-error-map-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'Mtnrconcept1/cloud-rebuild'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/tok-connect-universal-mcp-20260905
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Generate deterministic error map
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "feat/tok-connect-universal-mcp-20260905"
+          node scripts/generate-error-code-map.mjs
+          git diff --check
+          if git diff --quiet -- supabase/functions/_shared/error-code-map.ts; then
+            echo "error-code-map.ts already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- supabase/functions/_shared/error-code-map.ts
+          git diff --cached --name-only | grep -Fx 'supabase/functions/_shared/error-code-map.ts'
+          test "$(git diff --cached --name-only | wc -l | tr -d ' ')" = "1"
+          git commit -m "chore(tok-connect): refresh generated error map"
+          git push origin HEAD:feat/tok-connect-universal-mcp-20260905
