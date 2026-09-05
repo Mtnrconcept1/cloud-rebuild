@@ -17,6 +17,20 @@ const UPSTREAM_MCP_URL = `${SUPABASE_URL}/functions/v1/tok-connect-chatgpt`;
 const AUTHORIZATION_SERVER = `${SUPABASE_URL}/auth/v1`;
 const OIDC_SCOPES = ["openid", "email", "profile"];
 const INTERNAL_MCP_PROTOCOL_VERSION = "2025-11-25";
+const CLAUDE_ORIGIN = "https://claude.ai";
+
+function remoteCorsHeaders(req: Request) {
+  const headers = buildCorsHeaders(req);
+  if (req.headers.get("origin") === CLAUDE_ORIGIN) {
+    headers["Access-Control-Allow-Origin"] = CLAUDE_ORIGIN;
+    headers["Access-Control-Allow-Credentials"] = "true";
+  }
+  return headers;
+}
+
+function isRemoteMcpOriginAllowed(req: Request) {
+  return isRequestOriginAllowed(req) || req.headers.get("origin") === CLAUDE_ORIGIN;
+}
 
 function jsonRpcError(id: McpJsonRpcRequest["id"], code: number, message: string) {
   return { jsonrpc: "2.0", id: id ?? null, error: { code, message } };
@@ -54,7 +68,7 @@ function requestHeaders(req: Request, rpc: McpJsonRpcRequest) {
 }
 
 function responseHeaders(req: Request, upstream?: Response) {
-  const headers = new Headers(buildCorsHeaders(req));
+  const headers = new Headers(remoteCorsHeaders(req));
   headers.set("cache-control", "no-store");
   headers.set("x-content-type-options", "nosniff");
   headers.set("x-robots-tag", "noindex, nofollow, nosnippet, noarchive");
@@ -105,8 +119,8 @@ async function relay(req: Request, rpc: McpJsonRpcRequest) {
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = buildCorsHeaders(req);
-  if (!isRequestOriginAllowed(req)) return new Response(null, { status: 403, headers: corsHeaders });
+  const corsHeaders = remoteCorsHeaders(req);
+  if (!isRemoteMcpOriginAllowed(req)) return new Response(null, { status: 403, headers: corsHeaders });
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
 
