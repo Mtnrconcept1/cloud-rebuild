@@ -14,10 +14,104 @@ import {
 const PUBLIC_ORIGIN = (Deno.env.get("TOK_CONNECT_PUBLIC_ORIGIN") || "https://www.thetok.ch").replace(/\/$/, "");
 const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") || "https://wwcrtyoueexyxkkikaos.supabase.co").replace(/\/$/, "");
 const UPSTREAM_MCP_URL = `${SUPABASE_URL}/functions/v1/tok-connect-chatgpt`;
+const APP_BRIDGE_URL = `${SUPABASE_URL}/functions/v1/tok-connect-app-bridge`;
 const AUTHORIZATION_SERVER = `${SUPABASE_URL}/auth/v1`;
+const RESOURCE_METADATA_URL = `${PUBLIC_ORIGIN}/.well-known/oauth-protected-resource`;
 const OIDC_SCOPES = ["openid", "email", "profile"];
 const INTERNAL_MCP_PROTOCOL_VERSION = "2025-11-25";
 const CLAUDE_ORIGIN = "https://claude.ai";
+const OAUTH_SECURITY = [{ type: "oauth2", scopes: OIDC_SCOPES }];
+
+type JsonRecord = Record<string, unknown>;
+
+const APP_BRIDGE_TOOLS = [
+  {
+    name: "tok_list_capabilities",
+    title: "List authenticated TOK capabilities",
+    description: "List the real TOK application capabilities, RPC families and RLS-backed data surfaces available to the authenticated user's roles.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY },
+  },
+  {
+    name: "tok_invoke_capability",
+    title: "Execute a TOK application capability",
+    description: "Execute an allowlisted TOK Edge Function using the authenticated user's JWT. Sensitive actions require explicit user confirmation and an idempotency key. The downstream TOK backend rechecks roles, ownership, payments and business rules.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: {
+      type: "object",
+      required: ["capability"],
+      properties: {
+        capability: { type: "string", minLength: 1, maxLength: 120 },
+        method: { type: "string", enum: ["GET", "POST"] },
+        payload: { type: "object" },
+        confirmed_by_user: { type: "boolean" },
+        idempotency_key: { type: "string", minLength: 8, maxLength: 120, pattern: "^[A-Za-z0-9:_-]+$" },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY },
+  },
+  {
+    name: "tok_invoke_rpc",
+    title: "Execute an authorized TOK business RPC",
+    description: "Execute a TOK restaurant_* or admin_* business RPC with the authenticated user's database identity. Restaurant RPCs require restaurateur access; admin RPCs require the admin role. Confirmation and idempotency are mandatory.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: {
+      type: "object",
+      required: ["rpc_name", "args", "confirmed_by_user", "idempotency_key"],
+      properties: {
+        rpc_name: { type: "string", pattern: "^(restaurant_|admin_)[A-Za-z0-9_]+$", maxLength: 160 },
+        args: { type: "object" },
+        confirmed_by_user: { type: "boolean", const: true },
+        idempotency_key: { type: "string", minLength: 8, maxLength: 120, pattern: "^[A-Za-z0-9:_-]+$" },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY },
+  },
+  {
+    name: "tok_data",
+    title: "Read or mutate an allowlisted TOK data surface",
+    description: "Read or mutate the small allowlist of TOK tables that the application itself accesses directly under RLS. All queries use the authenticated user's JWT; writes require confirmation and idempotency, and update/delete require filters.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: {
+      type: "object",
+      required: ["table", "operation"],
+      properties: {
+        table: { type: "string", enum: ["profiles", "user_profiles", "favorites", "notification_preferences", "reviews", "social_post_comments", "social_post_saves", "menu_items", "restaurant_promotions", "restaurant_hours", "restaurant_branches", "social_posts"] },
+        operation: { type: "string", enum: ["select", "insert", "update", "delete"] },
+        select: { type: "string", maxLength: 500 },
+        limit: { type: "integer", minimum: 1, maximum: 100 },
+        filters: {
+          type: "array",
+          maxItems: 20,
+          items: {
+            type: "object",
+            required: ["column", "value"],
+            properties: {
+              column: { type: "string", pattern: "^[A-Za-z_][A-Za-z0-9_]*$" },
+              operator: { type: "string", enum: ["eq", "neq", "is", "in"] },
+              value: {},
+            },
+            additionalProperties: false,
+          },
+        },
+        values: {},
+        confirmed_by_user: { type: "boolean" },
+        idempotency_key: { type: "string", minLength: 8, maxLength: 120, pattern: "^[A-Za-z0-9:_-]+$" },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY },
+  },
+];
+
+const APP_BRIDGE_TOOL_NAMES = new Set(APP_BRIDGE_TOOLS.map((tool) => tool.name));
 
 function remoteCorsHeaders(req: Request) {
   const headers = buildCorsHeaders(req);
@@ -30,6 +124,10 @@ function remoteCorsHeaders(req: Request) {
 
 function isRemoteMcpOriginAllowed(req: Request) {
   return isRequestOriginAllowed(req) || req.headers.get("origin") === CLAUDE_ORIGIN;
+}
+
+function jsonRpcResult(id: McpJsonRpcRequest["id"], result: unknown) {
+  return { jsonrpc: "2.0", id: id ?? null, result };
 }
 
 function jsonRpcError(id: McpJsonRpcRequest["id"], code: number, message: string) {
@@ -94,24 +192,115 @@ function normalizeInitialize(payload: unknown, request: McpJsonRpcRequest) {
   if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
   const next = { ...(result as Record<string, unknown>) };
   next.protocolVersion = negotiateMcpProtocolVersion(request.params);
-  next.serverInfo = { name: "TOK Connect Remote MCP", version: "4.0.0" };
-  next.instructions = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. Reads and previews respect TOK grants. Real reservation creation and cancellation require OAuth, explicit end-user confirmation and idempotency. Payments, refunds, publications, credit debits and admin mutations remain inside their protected TOK flows.";
+  next.serverInfo = { name: "TOK Connect Remote MCP", version: "5.0.0" };
+  next.instructions = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. Once authenticated, use tok_list_capabilities to discover the actions authorized by the user's TOK roles. Reads run under the user's JWT and RLS. Real writes, payments, refunds, publications and admin actions use allowlisted TOK backends or business RPCs and require explicit confirmation plus idempotency where applicable. Service-role, scheduler-only and webhook-only operations are never exposed.";
   return { ...rpc, result: next };
 }
 
-async function relay(req: Request, rpc: McpJsonRpcRequest) {
-  const upstream = await fetch(UPSTREAM_MCP_URL, {
+async function upstreamRequest(req: Request, rpc: McpJsonRpcRequest) {
+  return await fetch(UPSTREAM_MCP_URL, {
     method: "POST",
     headers: requestHeaders(req, rpc),
     body: JSON.stringify(rpc),
   });
-  const text = await upstream.text();
-  if (rpc.method !== "initialize" || !text) {
-    return new Response(text || null, { status: upstream.status, headers: responseHeaders(req, upstream) });
+}
+
+function mergeTools(payload: unknown) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return payload;
+  const rpc = payload as JsonRecord;
+  const result = rpc.result;
+  if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
+  const tools = Array.isArray((result as JsonRecord).tools) ? (result as JsonRecord).tools as unknown[] : [];
+  const seen = new Set(tools.map((tool) => tool && typeof tool === "object" ? String((tool as JsonRecord).name || "") : ""));
+  const additions = APP_BRIDGE_TOOLS.filter((tool) => !seen.has(tool.name));
+  return { ...rpc, result: { ...(result as JsonRecord), tools: [...tools, ...additions] } };
+}
+
+function authToolResult(message = "Connexion TOK requise pour cette action.") {
+  const challenge = `Bearer resource_metadata="${RESOURCE_METADATA_URL}"`;
+  return {
+    content: [{ type: "text", text: message }],
+    isError: true,
+    _meta: { "mcp/www_authenticate": [challenge] },
+  };
+}
+
+function bridgeToolBody(name: string, args: JsonRecord) {
+  if (name === "tok_list_capabilities") return { mode: "edge", action: "list" };
+  if (name === "tok_invoke_capability") return {
+    mode: "edge",
+    capability: args.capability,
+    method: args.method,
+    payload: args.payload || {},
+    confirmed_by_user: args.confirmed_by_user,
+    idempotency_key: args.idempotency_key,
+  };
+  if (name === "tok_invoke_rpc") return {
+    mode: "rpc",
+    rpc_name: args.rpc_name,
+    args: args.args || {},
+    confirmed_by_user: args.confirmed_by_user,
+    idempotency_key: args.idempotency_key,
+  };
+  return {
+    mode: "data",
+    table: args.table,
+    operation: args.operation,
+    select: args.select,
+    limit: args.limit,
+    filters: args.filters || [],
+    values: args.values,
+    confirmed_by_user: args.confirmed_by_user,
+    idempotency_key: args.idempotency_key,
+  };
+}
+
+async function callAppBridge(req: Request, rpc: McpJsonRpcRequest, name: string) {
+  const authorization = req.headers.get("authorization");
+  if (!authorization) return jsonRpcResult(rpc.id, authToolResult());
+  const args = rpc.params?.arguments && typeof rpc.params.arguments === "object" && !Array.isArray(rpc.params.arguments)
+    ? rpc.params.arguments as JsonRecord
+    : {};
+  const headers = new Headers({ "content-type": "application/json", accept: "application/json", authorization });
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
+  if (anonKey) headers.set("apikey", anonKey);
+  const response = await fetch(APP_BRIDGE_URL, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(bridgeToolBody(name, args)),
+  });
+  const payload = await response.json().catch(() => ({ ok: false, error: { code: "tok_connect_bridge_invalid_response", message: "tok_connect_bridge_invalid_response" } })) as JsonRecord;
+  if (response.status === 401) return jsonRpcResult(rpc.id, authToolResult());
+  const text = payload.ok === false
+    ? String((payload.error as JsonRecord | undefined)?.message || (payload.error as JsonRecord | undefined)?.code || "TOK action failed")
+    : JSON.stringify(payload);
+  return jsonRpcResult(rpc.id, {
+    content: [{ type: "text", text }],
+    structuredContent: payload,
+    ...(response.ok ? {} : { isError: true }),
+  });
+}
+
+async function relay(req: Request, rpc: McpJsonRpcRequest) {
+  if (rpc.method === "tools/call") {
+    const name = typeof rpc.params?.name === "string" ? rpc.params.name : "";
+    if (APP_BRIDGE_TOOL_NAMES.has(name)) {
+      const payload = await callAppBridge(req, rpc, name);
+      return new Response(JSON.stringify(payload), { status: 200, headers: responseHeaders(req) });
+    }
   }
 
+  const upstream = await upstreamRequest(req, rpc);
+  const text = await upstream.text();
+  if (!text) return new Response(null, { status: upstream.status, headers: responseHeaders(req, upstream) });
+
   try {
-    const payload = normalizeInitialize(JSON.parse(text), rpc);
+    const parsed = JSON.parse(text);
+    const payload = rpc.method === "initialize"
+      ? normalizeInitialize(parsed, rpc)
+      : rpc.method === "tools/list"
+        ? mergeTools(parsed)
+        : parsed;
     return new Response(JSON.stringify(payload), { status: upstream.status, headers: responseHeaders(req, upstream) });
   } catch {
     return new Response(text, { status: upstream.status, headers: responseHeaders(req, upstream) });
