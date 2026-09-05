@@ -140,6 +140,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "tok-connect-full-app-mcp": "la surface MCP applicative TOK Connect",
   "tok-connect-chatgpt": "la passerelle MCP publique TOK Connect utilisée par ChatGPT",
   "tok-connect-remote-mcp": "la passerelle MCP distante universelle TOK Connect pour Claude, ChatGPT et les autres agents compatibles",
+  "tok-connect-app-bridge": "la passerelle d’exécution authentifiée entre les agents MCP et les capacités métier TOK",
   "tok-pulse-widget": "l’agrégation publique des signaux affichés par le widget TOK Pulse",
   "validate-order-preview": "la simulation du prix d’une commande",
 };
