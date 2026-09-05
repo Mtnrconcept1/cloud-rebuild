@@ -14,12 +14,8 @@ type JsonRecord = Record<string, unknown>;
 type BridgeMode = "edge" | "rpc" | "data";
 type DataOperation = "select" | "insert" | "update" | "delete";
 type FilterOperator = "eq" | "neq" | "is" | "in";
-
-type BridgeFilter = {
-  column: string;
-  operator?: FilterOperator;
-  value: unknown;
-};
+type BridgeFilter = { column: string; operator?: FilterOperator; value: unknown };
+type DataPolicy = { roles: string[]; operations: DataOperation[] };
 
 type EdgeCapability = {
   functionName: string;
@@ -38,6 +34,8 @@ const IDEMPOTENCY_KEY = /^[A-Za-z0-9:_-]{8,120}$/;
 const SAFE_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const MAX_RESPONSE_CHARS = 750_000;
 const MAX_SELECT_LIMIT = 100;
+const READ: DataOperation[] = ["select"];
+const CRUD: DataOperation[] = ["select", "insert", "update", "delete"];
 
 const EDGE_CAPABILITIES: Record<string, EdgeCapability> = {
   "orders.validate": { functionName: "validate-order", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "orders", description: "Valider une commande avec les règles métier TOK." },
@@ -46,47 +44,83 @@ const EDGE_CAPABILITIES: Record<string, EdgeCapability> = {
   "orders.checkout.cancel_pending": { functionName: "cancel-pending-order-checkout", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "payments", description: "Annuler un checkout de commande encore en attente." },
   "orders.match_group.authorize": { functionName: "authorize-match-group-order", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "payments", description: "Autoriser la part d'une commande groupée." },
   "orders.match_group.confirm": { functionName: "confirm-match-group-authorization", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "payments", description: "Confirmer une autorisation de commande groupée." },
+  "payment.attempt.status": { functionName: "payment-attempt-status", roles: [], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "payments", description: "Lire l'état d'une tentative de paiement appartenant à l'utilisateur." },
+  "payment.attempt.cancel": { functionName: "cancel-payment-attempt", roles: [], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "payments", description: "Annuler une tentative de paiement appartenant à l'utilisateur." },
   "reservations.classic.create": { functionName: "create-reservation", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "reservations", description: "Créer une réservation classique réelle." },
   "reservations.zero_attente.create": { functionName: "create-zero-attente-reservation", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "reservations", description: "Créer une réservation Zéro Attente réelle." },
   "reservations.golden_tok.create": { functionName: "create-chefs-table-reservation", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "reservations", description: "Créer une réservation La Tok d'Or réelle." },
   "subscription.tok_one.manage": { functionName: "manage-tok-one-subscription", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "subscriptions", description: "Gérer l'abonnement client TOK One." },
   "account.delete": { functionName: "delete-account", roles: [], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "account", description: "Supprimer le compte de l'utilisateur authentifié via le flux RGPD TOK." },
+  "support.contact": { functionName: "contact-support", roles: [], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "support", description: "Créer une demande de support via le backend TOK." },
   "ai.client.chat": { functionName: "ai-client-chat", roles: ["client"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "ai", description: "Utiliser l'assistant IA client TOK." },
-  "restaurant.orders.status": { functionName: "restaurant-order-status", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "restaurant_operations", description: "Modifier un statut de commande restaurant avec contrôles serveur." },
-  "restaurant.subscription.manage": { functionName: "manage-restaurant-subscription", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "subscriptions", description: "Gérer l'abonnement restaurateur." },
-  "restaurant.stripe_connect.onboard": { functionName: "stripe-connect-onboard", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "payments", description: "Démarrer l'onboarding Stripe Connect du restaurant." },
-  "restaurant.stripe_connect.status": { functionName: "stripe-connect-status", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "payments", description: "Lire le statut Stripe Connect du restaurant." },
-  "restaurant.campaign.generate": { functionName: "generate-campaign", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "marketing", description: "Générer une campagne via le flux TOK existant." },
-  "restaurant.campaign.portal": { functionName: "campaign-portal", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "marketing", description: "Piloter les opérations du portail campagnes." },
-  "restaurant.social.boost": { functionName: "create-social-post-boost", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "marketing", description: "Créer une mise en avant sponsorisée d'une publication." },
-  "restaurant.floorplan.ai": { functionName: "floorplan-ai", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "ai", description: "Utiliser l'IA du plan de salle." },
-  "restaurant.advisor": { functionName: "restaurant-advisor", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "ai", description: "Utiliser l'assistant conseiller restaurateur." },
-  "restaurant.ai.agent": { functionName: "ai-restaurant-agent", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "ai", description: "Utiliser les agents IA restaurateur." },
-  "restaurant.ai.image": { functionName: "ai-image-enhance", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "ai", description: "Générer ou retoucher un visuel via PhotoPro." },
-  "restaurant.ai.daily_dish": { functionName: "daily-dish-ai", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "ai", description: "Générer le plat du jour via le backend TOK." },
-  "restaurant.menu.import_image": { functionName: "menu-image-import", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "menu", description: "Extraire un menu depuis des images." },
-  "restaurant.media.manage": { functionName: "restaurant-media-governance", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "media", description: "Gérer les médias restaurant via le backend gouverné." },
-  "restaurant.invoices.generate": { functionName: "generate-invoices", roles: ["restaurateur", "restaurant_owner", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "billing", description: "Générer les factures autorisées." },
+  "ai.customer.memory": { functionName: "customer-memory", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "ai", description: "Lire ou mettre à jour la mémoire client consentie via le backend dédié." },
+
+  "restaurant.orders.status": { functionName: "restaurant-order-status", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "restaurant_operations", description: "Modifier un statut de commande restaurant avec contrôles serveur." },
+  "restaurant.subscription.manage": { functionName: "manage-restaurant-subscription", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "subscriptions", description: "Gérer l'abonnement restaurateur." },
+  "restaurant.stripe_connect.onboard": { functionName: "stripe-connect-onboard", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "payments", description: "Démarrer l'onboarding Stripe Connect du restaurant." },
+  "restaurant.stripe_connect.status": { functionName: "stripe-connect-status", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "payments", description: "Lire le statut Stripe Connect du restaurant." },
+  "restaurant.campaign.generate": { functionName: "generate-campaign", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "marketing", description: "Générer une campagne via le flux TOK existant." },
+  "restaurant.campaign.portal": { functionName: "campaign-portal", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "marketing", description: "Piloter les opérations du portail campagnes." },
+  "restaurant.social.boost": { functionName: "create-social-post-boost", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "marketing", description: "Créer une mise en avant sponsorisée d'une publication." },
+  "restaurant.floorplan.ai": { functionName: "floorplan-ai", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "ai", description: "Utiliser l'IA du plan de salle." },
+  "restaurant.advisor": { functionName: "restaurant-advisor", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "ai", description: "Utiliser l'assistant conseiller restaurateur." },
+  "restaurant.ai.agent": { functionName: "ai-restaurant-agent", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "ai", description: "Utiliser les agents IA restaurateur." },
+  "restaurant.ai.tools": { functionName: "ai-restaurant-tools", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "ai", description: "Utiliser les outils IA opérationnels restaurateur." },
+  "restaurant.ai.image": { functionName: "ai-image-enhance", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "ai", description: "Générer ou retoucher un visuel via PhotoPro." },
+  "restaurant.ai.daily_dish": { functionName: "daily-dish-ai", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "ai", description: "Générer le plat du jour via le backend TOK." },
+  "restaurant.ai.campaign_studio": { functionName: "ai-campaign-studio", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "ai", description: "Utiliser le studio IA de campagne avec crédits TOK." },
+  "restaurant.ai.social_copy": { functionName: "ai-social-post-copy", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "ai", description: "Générer les textes de publication sociale du restaurant." },
+  "restaurant.menu.import_image": { functionName: "menu-image-import", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "menu", description: "Extraire un menu depuis des images." },
+  "restaurant.media.manage": { functionName: "restaurant-media-governance", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "media", description: "Gérer les médias restaurant via le backend gouverné." },
+  "restaurant.invoices.generate": { functionName: "generate-invoices", roles: ["restaurateur", "admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "billing", description: "Générer les factures autorisées." },
+
   "courier.portal": { functionName: "courier-portal", roles: ["courier", "admin"], methods: ["GET", "POST"], confirmationRequired: true, idempotencyRequired: true, category: "courier", description: "Piloter les actions du portail livreur." },
+
   "admin.refund": { functionName: "process-refund", roles: ["admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "admin_finance", description: "Traiter un remboursement via le flux admin sécurisé." },
   "admin.restaurant.adjustment": { functionName: "admin-restaurant-adjustment", roles: ["admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "admin", description: "Appliquer un ajustement administratif restaurant." },
   "admin.commercial.provision": { functionName: "provision-commercial-accounts", roles: ["admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "admin", description: "Provisionner des comptes commerciaux avec les contrôles admin existants." },
+  "admin.dispatch.order": { functionName: "dispatch-order", roles: ["admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "admin_operations", description: "Déclencher un dispatch de commande via le backend admin." },
+  "admin.dispatch.timeout": { functionName: "dispatch-timeout", roles: ["admin"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "admin_operations", description: "Traiter les commandes sans livreur via le backend admin." },
   "admin.ai.chat": { functionName: "ai-admin-dashboard-chat", roles: ["admin"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "ai", description: "Utiliser l'assistant IA du dashboard admin." },
+  "admin.ai.support": { functionName: "ai-admin-support", roles: ["admin"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "ai", description: "Utiliser l'assistant IA de support admin." },
+  "admin.ai.accounting": { functionName: "ai-accounting-agent", roles: ["admin"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "ai", description: "Utiliser l'assistant IA comptable." },
+  "admin.ai.monitor": { functionName: "ai-admin-monitor", roles: ["admin"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "ai", description: "Utiliser la surveillance IA administrative." },
+  "admin.ai.guardian": { functionName: "ai-guardian", roles: ["admin"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "ai", description: "Utiliser l'analyse IA de sécurité et santé de plateforme." },
 };
 
-const DATA_TABLE_ROLES: Record<string, string[]> = {
-  profiles: [],
-  user_profiles: [],
-  favorites: ["client", "admin"],
-  notification_preferences: [],
-  reviews: ["client", "admin"],
-  social_post_comments: [],
-  social_post_saves: [],
-  menu_items: ["restaurateur", "restaurant_owner", "admin"],
-  restaurant_promotions: ["restaurateur", "restaurant_owner", "admin"],
-  restaurant_hours: ["restaurateur", "restaurant_owner", "admin"],
-  restaurant_branches: ["restaurateur", "restaurant_owner", "admin"],
-  social_posts: ["restaurateur", "restaurant_owner", "admin"],
+const DATA_POLICIES: Record<string, DataPolicy> = {
+  profiles: { roles: [], operations: ["select", "update"] },
+  user_profiles: { roles: [], operations: ["select", "update"] },
+  favorites: { roles: ["client", "admin"], operations: ["select", "insert", "delete"] },
+  notification_preferences: { roles: [], operations: ["select", "insert", "update"] },
+  reviews: { roles: ["client", "admin"], operations: CRUD },
+  social_post_comments: { roles: [], operations: CRUD },
+  social_post_saves: { roles: [], operations: ["select", "insert", "delete"] },
+  menu_items: { roles: ["restaurateur", "admin"], operations: CRUD },
+  restaurant_promotions: { roles: ["restaurateur", "admin"], operations: CRUD },
+  restaurant_hours: { roles: ["restaurateur", "admin"], operations: CRUD },
+  restaurant_branches: { roles: ["restaurateur", "admin"], operations: CRUD },
+  social_posts: { roles: ["restaurateur", "admin"], operations: CRUD },
+
+  orders: { roles: [], operations: READ },
+  order_items: { roles: [], operations: READ },
+  reservations: { roles: [], operations: READ },
+  notifications: { roles: [], operations: READ },
+  notification_subscriptions: { roles: [], operations: READ },
+  payment_transactions: { roles: [], operations: READ },
+  loyalty_accounts: { roles: ["client", "admin"], operations: READ },
+  loyalty_transactions: { roles: ["client", "admin"], operations: READ },
+  anti_waste_offers: { roles: [], operations: READ },
+  flash_sales: { roles: [], operations: READ },
+  support_tickets: { roles: [], operations: READ },
+  tok_one_subscriptions: { roles: ["client", "admin"], operations: READ },
+  user_subscriptions: { roles: ["client", "admin"], operations: READ },
+  user_subscription_plans: { roles: [], operations: READ },
+  user_meal_subscription_settings: { roles: ["client", "admin"], operations: READ },
+  restaurant_ai_subscriptions: { roles: ["restaurateur", "admin"], operations: READ },
+  restaurant_subscription_plans: { roles: [], operations: READ },
+  restaurant_invoices: { roles: ["restaurateur", "admin"], operations: READ },
+  restaurant_staff: { roles: ["restaurateur", "admin"], operations: READ },
 };
 
 function isRecord(value: unknown): value is JsonRecord {
@@ -116,9 +150,7 @@ function assertRoles(actor: RequestActor, allowedRoles: string[]) {
 }
 
 function assertConfirmation(body: JsonRecord, required: boolean) {
-  if (required && body.confirmed_by_user !== true) {
-    throw new HttpError(409, "tok_connect_human_confirmation_required");
-  }
+  if (required && body.confirmed_by_user !== true) throw new HttpError(409, "tok_connect_human_confirmation_required");
 }
 
 function readIdempotencyKey(body: JsonRecord, required: boolean) {
@@ -132,7 +164,7 @@ async function claimIdempotency(actor: RequestActor, key: string, operation: str
   if (!actor.userId) throw new HttpError(401, "tok_connect_user_required");
   const { data: existing, error: readError } = await actor.adminClient
     .from(IDEMPOTENCY_TABLE)
-    .select("request_hash,response_body,status_code,expires_at")
+    .select("request_hash,response_body,status_code")
     .eq("user_id", actor.userId)
     .eq("idempotency_key", key)
     .maybeSingle();
@@ -144,7 +176,6 @@ async function claimIdempotency(actor: RequestActor, key: string, operation: str
     }
     throw new HttpError(409, "tok_connect_idempotency_request_in_progress");
   }
-
   const { error: insertError } = await actor.adminClient.from(IDEMPOTENCY_TABLE).insert({
     user_id: actor.userId,
     idempotency_key: key,
@@ -166,8 +197,8 @@ async function completeIdempotency(actor: RequestActor, key: string, responseBod
 }
 
 function publicCapabilities(actor: RequestActor) {
-  return Object.entries(EDGE_CAPABILITIES)
-    .filter(([, capability]) => capability.roles.length === 0 || capability.roles.some((role) => actor.roles.includes(role)) || actor.isAdmin)
+  const capabilities = Object.entries(EDGE_CAPABILITIES)
+    .filter(([, capability]) => capability.roles.length === 0 || capability.roles.some((role) => actor.roles.includes(role)))
     .map(([name, capability]) => ({
       name,
       mode: "edge",
@@ -177,6 +208,27 @@ function publicCapabilities(actor: RequestActor) {
       confirmation_required: capability.confirmationRequired,
       idempotency_required: capability.idempotencyRequired,
     }));
+  const dataSurfaces = Object.entries(DATA_POLICIES)
+    .filter(([, policy]) => policy.roles.length === 0 || policy.roles.some((role) => actor.roles.includes(role)))
+    .map(([table, policy]) => ({ table, operations: policy.operations }));
+  const rpcPrefixes = actor.roles.includes("admin")
+    ? ["admin_", "restaurant_"]
+    : actor.roles.includes("restaurateur")
+      ? ["restaurant_"]
+      : [];
+  return { capabilities, dataSurfaces, rpcPrefixes };
+}
+
+function edgeUrl(capability: EdgeCapability, method: "GET" | "POST", payload: JsonRecord) {
+  const url = new URL(`${SUPABASE_URL}/functions/v1/${capability.functionName}`);
+  if (method === "GET") {
+    for (const [key, value] of Object.entries(payload)) {
+      if (value === undefined || value === null) continue;
+      if (Array.isArray(value)) value.forEach((item) => url.searchParams.append(key, String(item)));
+      else if (typeof value !== "object") url.searchParams.set(key, String(value));
+    }
+  }
+  return url.toString();
 }
 
 async function invokeEdge(req: Request, actor: RequestActor, body: JsonRecord) {
@@ -203,7 +255,7 @@ async function invokeEdge(req: Request, actor: RequestActor, body: JsonRecord) {
   if (idempotencyKey) headers.set("idempotency-key", idempotencyKey);
   if (method === "POST") headers.set("content-type", "application/json");
 
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/${capability.functionName}`, {
+  const response = await fetch(edgeUrl(capability, method, payload), {
     method,
     headers,
     ...(method === "POST" ? { body: JSON.stringify(payload) } : {}),
@@ -225,7 +277,7 @@ async function invokeEdge(req: Request, actor: RequestActor, body: JsonRecord) {
 
 function rpcRole(name: string) {
   if (name.startsWith("admin_")) return ["admin"];
-  if (name.startsWith("restaurant_")) return ["restaurateur", "restaurant_owner", "admin"];
+  if (name.startsWith("restaurant_")) return ["restaurateur", "admin"];
   throw new HttpError(403, "tok_connect_rpc_not_allowlisted");
 }
 
@@ -249,10 +301,12 @@ async function invokeRpc(actor: RequestActor, body: JsonRecord) {
   return { statusCode, payload: result };
 }
 
-function tableRoles(table: string) {
-  const roles = DATA_TABLE_ROLES[table];
-  if (!roles) throw new HttpError(403, "tok_connect_table_not_allowlisted");
-  return roles;
+function dataPolicy(actor: RequestActor, table: string, operation: DataOperation) {
+  const policy = DATA_POLICIES[table];
+  if (!policy) throw new HttpError(403, "tok_connect_table_not_allowlisted");
+  assertRoles(actor, policy.roles);
+  if (!policy.operations.includes(operation)) throw new HttpError(403, "tok_connect_data_operation_not_allowed");
+  return policy;
 }
 
 function applyFilters(query: any, filters: BridgeFilter[]) {
@@ -273,10 +327,10 @@ function applyFilters(query: any, filters: BridgeFilter[]) {
 async function invokeData(actor: RequestActor, body: JsonRecord) {
   const table = typeof body.table === "string" ? body.table.trim() : "";
   assertIdentifier(table, "table");
-  assertRoles(actor, tableRoles(table));
   if (!actor.userClient) throw new HttpError(401, "tok_connect_user_client_required");
   const operation = String(body.operation || "select") as DataOperation;
   if (!["select", "insert", "update", "delete"].includes(operation)) throw new HttpError(400, "tok_connect_data_operation_invalid");
+  dataPolicy(actor, table, operation);
   const filters = Array.isArray(body.filters) ? body.filters as BridgeFilter[] : [];
   const mutation = operation !== "select";
   if (mutation && filters.length === 0 && operation !== "insert") throw new HttpError(400, "tok_connect_mutation_filter_required");
@@ -322,7 +376,6 @@ Deno.serve(async (req) => {
 
   let actor: RequestActor | null = null;
   let body: JsonRecord = {};
-  let statusCode = 500;
   let auditAction = "invoke";
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
@@ -333,8 +386,8 @@ Deno.serve(async (req) => {
     const mode = String(body.mode || "") as BridgeMode;
 
     if (mode === "edge" && body.action === "list") {
-      statusCode = 200;
-      return jsonResponse({ ok: true, capabilities: publicCapabilities(actor), rpc_prefixes: actor.isAdmin ? ["admin_", "restaurant_"] : actor.roles.some((role) => ["restaurateur", "restaurant_owner"].includes(role)) ? ["restaurant_"] : [], data_tables: Object.keys(DATA_TABLE_ROLES).filter((table) => DATA_TABLE_ROLES[table].length === 0 || DATA_TABLE_ROLES[table].some((role) => actor!.roles.includes(role)) || actor!.isAdmin) }, 200, corsHeaders);
+      const catalog = publicCapabilities(actor);
+      return jsonResponse({ ok: true, capabilities: catalog.capabilities, rpc_prefixes: catalog.rpcPrefixes, data_surfaces: catalog.dataSurfaces }, 200, corsHeaders);
     }
 
     let result: { statusCode: number; payload: JsonRecord };
@@ -350,13 +403,30 @@ Deno.serve(async (req) => {
     } else {
       throw new HttpError(400, "tok_connect_bridge_mode_invalid");
     }
-    statusCode = result.statusCode;
-    await writeAuditLog({ adminClient: actor.adminClient, functionName: FUNCTION_NAME, action: auditAction, actor, request: req, status: result.statusCode < 400 ? "success" : "failure", errorMessage: result.statusCode >= 400 ? String((result.payload.error as JsonRecord | undefined)?.message || "downstream_error") : null, metadata: { mode, idempotency_key_present: Boolean(body.idempotency_key) } });
+    await writeAuditLog({
+      adminClient: actor.adminClient,
+      functionName: FUNCTION_NAME,
+      action: auditAction,
+      actor,
+      request: req,
+      status: result.statusCode < 400 ? "success" : "failure",
+      errorMessage: result.statusCode >= 400 ? String((result.payload.error as JsonRecord | undefined)?.message || "downstream_error") : null,
+      metadata: { mode, idempotency_key_present: Boolean(body.idempotency_key) },
+    });
     return jsonResponse(result.payload, result.statusCode, corsHeaders);
   } catch (error) {
-    statusCode = error instanceof HttpError ? error.status : 500;
+    const statusCode = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "tok_connect_app_bridge_error";
-    if (actor) await writeAuditLog({ adminClient: actor.adminClient, functionName: FUNCTION_NAME, action: auditAction, actor, request: req, status: "failure", errorMessage: message, metadata: { idempotency_key_present: Boolean(body.idempotency_key) } });
+    if (actor) await writeAuditLog({
+      adminClient: actor.adminClient,
+      functionName: FUNCTION_NAME,
+      action: auditAction,
+      actor,
+      request: req,
+      status: "failure",
+      errorMessage: message,
+      metadata: { idempotency_key_present: Boolean(body.idempotency_key) },
+    });
     return jsonResponse({ ok: false, error: { code: message, message } }, statusCode, corsHeaders);
   }
 });
