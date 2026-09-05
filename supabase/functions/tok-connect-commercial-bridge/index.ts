@@ -46,7 +46,6 @@ const COMMERCIAL_RPC_NAMES = new Set([
 ]);
 
 const COMMERCIAL_READ_TABLES = new Set([
-  "commercial_prospect_catalog",
   "commercial_prospect_followups",
   "commercial_prospect_followup_history",
   "commercial_commissions",
@@ -57,7 +56,6 @@ const COMMERCIAL_READ_TABLES = new Set([
   "commercial_contract_acceptances",
   "commercial_contract_versions",
   "commercial_statements",
-  "commercial_earning_events",
 ]);
 
 function isRecord(value: unknown): value is JsonRecord {
