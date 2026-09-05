@@ -8,6 +8,7 @@ export type McpJsonRpcRequest = {
 };
 
 export const MCP_PROTOCOL_VERSIONS = [
+  "2026-07-28",
   "2025-11-25",
   "2025-06-18",
   "2025-03-26",
@@ -51,7 +52,6 @@ export async function parseMcpJsonRpcRequest(req: Request): Promise<McpJsonRpcRe
     throw new McpProtocolError(-32700, "parse_error");
   }
 
-  // JSON-RPC batching was removed from MCP in protocol version 2025-06-18.
   if (
     !isRecord(value) ||
     value.jsonrpc !== "2.0" ||
@@ -76,12 +76,6 @@ export async function parseMcpJsonRpcRequest(req: Request): Promise<McpJsonRpcRe
 }
 
 export function assertMcpContentType(req: Request) {
-  // Compare the media type only. Matching the raw header meant a spec-legal
-  // "application/json ; charset=utf-8" — RFC 9110 allows whitespace before the
-  // parameter separator — was rejected with 415 before any handler ran, which
-  // is indistinguishable from sending the wrong type entirely. Parameters and
-  // surrounding whitespace are stripped; a genuinely wrong media type such as
-  // text/plain is still refused.
   const mediaType = (req.headers.get("content-type") || "")
     .split(";")[0]
     .trim()
@@ -104,15 +98,34 @@ export function negotiateMcpProtocolVersion(params: Record<string, unknown> | un
 export function assertMcpProtocolVersion(req: Request, method: string) {
   if (method === "initialize") return;
   const version = req.headers.get("MCP-Protocol-Version");
-  if (!version) return; // Backward compatibility with pre-2025-06-18 clients.
+  if (!version) return;
   if (!MCP_PROTOCOL_VERSIONS.includes(version as (typeof MCP_PROTOCOL_VERSIONS)[number])) {
     throw new McpProtocolError(-32600, "unsupported_mcp_protocol_version");
   }
 }
 
+export function assertMcpRoutingHeaders(req: Request, rpc: McpJsonRpcRequest) {
+  const version = req.headers.get("MCP-Protocol-Version");
+  const methodHeader = req.headers.get("Mcp-Method");
+  const nameHeader = req.headers.get("Mcp-Name");
+  const uses2026Routing = version === "2026-07-28" || Boolean(methodHeader) || Boolean(nameHeader);
+  if (!uses2026Routing) return;
+
+  if (!methodHeader) throw new McpProtocolError(-32600, "mcp_method_header_required");
+  if (methodHeader !== rpc.method) throw new McpProtocolError(-32600, "mcp_method_header_mismatch");
+
+  if (rpc.method === "tools/call") {
+    const toolName = typeof rpc.params?.name === "string" ? rpc.params.name : "";
+    if (!nameHeader) throw new McpProtocolError(-32600, "mcp_name_header_required");
+    if (!toolName || nameHeader !== toolName) {
+      throw new McpProtocolError(-32600, "mcp_name_header_mismatch");
+    }
+  }
+}
+
 export function assertMcpAcceptHeader(req: Request) {
   const accept = (req.headers.get("Accept") || "*/*").toLowerCase();
-  if (accept.includes("*/*") || accept.includes("application/json")) {
+  if (accept.includes("*/*") || accept.includes("application/json") || accept.includes("text/event-stream")) {
     return;
   }
   throw new McpProtocolError(-32600, "mcp_accept_header_invalid", 406);
