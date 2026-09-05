@@ -16,15 +16,19 @@ describe("TOK Connect authenticated application bridge", () => {
     expect(config).toContain("[functions.tok-connect-app-bridge]");
   });
 
-  it("exposes allowlisted real TOK backends for the principal application domains", () => {
+  it("exposes allowlisted real TOK backends for all primary authenticated role domains", () => {
     for (const functionName of [
       "validate-order",
       "create-checkout",
       "complete-order-checkout",
+      "payment-attempt-status",
+      "cancel-payment-attempt",
       "create-reservation",
       "create-zero-attente-reservation",
       "create-chefs-table-reservation",
       "manage-tok-one-subscription",
+      "contact-support",
+      "customer-memory",
       "restaurant-order-status",
       "manage-restaurant-subscription",
       "stripe-connect-onboard",
@@ -33,29 +37,57 @@ describe("TOK Connect authenticated application bridge", () => {
       "create-social-post-boost",
       "floorplan-ai",
       "ai-restaurant-agent",
+      "ai-restaurant-tools",
       "ai-image-enhance",
       "daily-dish-ai",
+      "ai-campaign-studio",
+      "ai-social-post-copy",
       "menu-image-import",
       "restaurant-media-governance",
       "courier-portal",
       "process-refund",
       "admin-restaurant-adjustment",
       "provision-commercial-accounts",
+      "dispatch-order",
+      "dispatch-timeout",
       "ai-admin-dashboard-chat",
+      "ai-admin-support",
+      "ai-accounting-agent",
+      "ai-admin-monitor",
+      "ai-guardian",
     ]) expect(bridge).toContain(`functionName: \"${functionName}\"`);
 
     expect(bridge).toContain("EDGE_CAPABILITIES[capabilityName]");
     expect(bridge).not.toContain("functionName: String(body");
   });
 
-  it("keeps generic RPC and data execution bounded by role families, RLS and explicit allowlists", () => {
+  it("keeps generic RPC and data execution bounded by role families, RLS and per-table operation policies", () => {
     expect(bridge).toContain('if (name.startsWith("admin_")) return ["admin"]');
     expect(bridge).toContain('if (name.startsWith("restaurant_"))');
     expect(bridge).toContain("actor.userClient.rpc(rpcName, args)");
-    expect(bridge).toContain("DATA_TABLE_ROLES");
-    for (const table of ["profiles", "favorites", "menu_items", "restaurant_promotions", "restaurant_hours", "social_posts"]) {
-      expect(bridge).toContain(`${table}:`);
-    }
+    expect(bridge).toContain("DATA_POLICIES");
+    expect(bridge).toContain("tok_connect_data_operation_not_allowed");
+    for (const table of [
+      "profiles",
+      "favorites",
+      "menu_items",
+      "restaurant_promotions",
+      "orders",
+      "order_items",
+      "reservations",
+      "notifications",
+      "payment_transactions",
+      "loyalty_accounts",
+      "loyalty_transactions",
+      "support_tickets",
+      "tok_one_subscriptions",
+      "user_subscriptions",
+      "restaurant_invoices",
+    ]) expect(bridge).toContain(`${table}:`);
+
+    expect(bridge).toContain('orders: { roles: [], operations: READ }');
+    expect(bridge).toContain('reservations: { roles: [], operations: READ }');
+    expect(bridge).toContain('payment_transactions: { roles: [], operations: READ }');
     expect(bridge).toContain("actor.userClient.from(table)");
     expect(bridge).toContain("tok_connect_table_not_allowlisted");
     expect(bridge).toContain("tok_connect_rpc_not_allowlisted");
@@ -75,7 +107,7 @@ describe("TOK Connect authenticated application bridge", () => {
   });
 
   it("publishes the full-app execution bridge as normal authenticated MCP tools", () => {
-    for (const tool of ["tok_list_capabilities", "tok_invoke_capability", "tok_invoke_rpc", "tok_data"]) {
+    for (const tool of ["tok_list_capabilities", "tok_invoke_capability", "tok_invoke_rpc", "tok_data", "tok_commercial"]) {
       expect(remote).toContain(`name: \"${tool}\"`);
     }
     expect(remote).toContain("APP_BRIDGE_URL");
