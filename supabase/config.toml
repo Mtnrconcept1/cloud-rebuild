@@ -307,5 +307,8 @@ verify_jwt = false
 [functions.tok-connect-app-bridge]
 verify_jwt = false
 
+[functions.tok-connect-commercial-bridge]
+verify_jwt = false
+
 [functions.tok-pulse-widget]
 verify_jwt = false
