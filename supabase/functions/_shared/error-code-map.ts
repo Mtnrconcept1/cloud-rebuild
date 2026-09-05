@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 315 error codes mapped from supabase/functions/**.
+// 334 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -2201,6 +2201,24 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 674
     }
   ],
+  "tok_connect_bridge_mode_invalid": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 404
+    }
+  ],
+  "tok_connect_capability_method_not_allowed": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 241
+    }
+  ],
+  "tok_connect_capability_not_found": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 237
+    }
+  ],
   "tok_connect_client_inactive": [
     {
       "file": "supabase/functions/_shared/tok-connect-auth.ts",
@@ -2217,10 +2235,60 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 600
     }
   ],
+  "tok_connect_commercial_action_invalid": [
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 207
+    }
+  ],
+  "tok_connect_commercial_rpc_not_allowlisted": [
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 138
+    }
+  ],
+  "tok_connect_commercial_table_not_allowlisted": [
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 174
+    }
+  ],
   "tok_connect_daily_reservation_limit_exceeded": [
     {
       "file": "supabase/functions/_shared/tok-connect-auth.ts",
       "line": 244
+    }
+  ],
+  "tok_connect_data_operation_invalid": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 332
+    }
+  ],
+  "tok_connect_data_operation_not_allowed": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 308
+    }
+  ],
+  "tok_connect_filter_invalid": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 315
+    },
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 125
+    }
+  ],
+  "tok_connect_filter_operator_invalid": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 322
+    },
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 131
     }
   ],
   "tok_connect_grant_not_found": [
@@ -2229,10 +2297,56 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 389
     }
   ],
+  "tok_connect_human_confirmation_required": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 153
+    },
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 86
+    }
+  ],
+  "tok_connect_idempotency_key_required": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 159
+    },
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 81
+    }
+  ],
+  "tok_connect_idempotency_key_reused_with_different_body": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 173
+    },
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 98
+    }
+  ],
+  "tok_connect_idempotency_request_in_progress": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 177
+    },
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 100
+    }
+  ],
   "tok_connect_mcp_grant_required": [
     {
       "file": "supabase/functions/_shared/tok-connect-auth.ts",
       "line": 223
+    }
+  ],
+  "tok_connect_mutation_filter_required": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 336
     }
   ],
   "tok_connect_oauth_client_id_required": [
@@ -2303,6 +2417,18 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 1073
     }
   ],
+  "tok_connect_rpc_not_allowlisted": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 281
+    }
+  ],
+  "tok_connect_table_not_allowlisted": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 306
+    }
+  ],
   "tok_connect_token_client_mismatch": [
     {
       "file": "supabase/functions/_shared/tok-connect-auth.ts",
@@ -2341,10 +2467,54 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 307
     }
   ],
+  "tok_connect_user_client_required": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 294
+    },
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 330
+    },
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 145
+    },
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 175
+    }
+  ],
   "tok_connect_user_required": [
     {
       "file": "supabase/functions/_shared/tok-connect-auth.ts",
       "line": 163
+    },
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 146
+    },
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 164
+    },
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 382
+    },
+    {
+      "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
+      "line": 90
+    }
+  ],
+  "tok_connect_values_required": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 353
+    },
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 356
     }
   ],
   "tok_connect_webhook_endpoint_inactive": [
