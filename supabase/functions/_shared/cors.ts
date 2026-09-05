@@ -22,7 +22,7 @@
  *   - https://demo-client.thetok.ch                    (focused client demo)
  *   - https://demo-restaurateur.thetok.ch              (focused restaurant demo)
  *   - https://demo-livreur.thetok.ch                   (focused courier demo)
- *   - https://chatgpt.com, https://claude.ai            (remote MCP clients)
+ *   - https://chatgpt.com                              (remote MCP client)
  *   - capacitor://localhost, ionic://localhost         (iOS WKWebView)
  *   - http://localhost, https://localhost              (Android WebView + web dev)
  *   - http://localhost:<port>                          (Vite dev server)
@@ -41,7 +41,6 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://demo-restaurateur.thetok.ch",
   "https://demo-livreur.thetok.ch",
   "https://chatgpt.com",
-  "https://claude.ai",
   "https://cloud-rebuild-recovered.vercel.app",
   "capacitor://localhost",
   "ionic://localhost",
