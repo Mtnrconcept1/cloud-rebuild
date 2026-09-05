@@ -71,11 +71,16 @@ describe("TOK Connect MCP HTTP protocol helpers", () => {
   });
 
   it("negotiates the latest stable protocol while retaining declared compatibility", () => {
-    expect(MCP_LATEST_PROTOCOL_VERSION).toBe("2025-11-25");
-    expect(MCP_PROTOCOL_VERSIONS).toEqual(["2025-11-25", "2025-06-18", "2025-03-26"]);
+    expect(MCP_LATEST_PROTOCOL_VERSION).toBe("2026-07-28");
+    expect(MCP_PROTOCOL_VERSIONS).toEqual(["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"]);
+    expect(negotiateMcpProtocolVersion({ protocolVersion: "2026-07-28" })).toBe("2026-07-28");
     expect(negotiateMcpProtocolVersion({ protocolVersion: "2025-06-18" })).toBe("2025-06-18");
-    expect(negotiateMcpProtocolVersion({ protocolVersion: "unsupported" })).toBe("2025-11-25");
+    expect(negotiateMcpProtocolVersion({ protocolVersion: "unsupported" })).toBe("2026-07-28");
 
+    expect(() => assertMcpProtocolVersion(
+      mcpRequest("{}", { "MCP-Protocol-Version": "2026-07-28" }),
+      "tools/list",
+    )).not.toThrow();
     expect(() => assertMcpProtocolVersion(
       mcpRequest("{}", { "MCP-Protocol-Version": "2025-11-25" }),
       "tools/list",
@@ -110,16 +115,16 @@ describe("TOK Connect MCP HTTP protocol helpers", () => {
       Accept: "application/json, text/event-stream",
     }))).not.toThrow();
     expect(() => assertMcpAcceptHeader(mcpRequest("{}", {
-      Accept: "text/html",
-    }))).toThrowError(expect.objectContaining({ httpStatus: 406 }));
-    expect(() => assertMcpAcceptHeader(mcpRequest("{}", {
       Accept: "text/event-stream",
+    }))).not.toThrow();
+    expect(() => assertMcpAcceptHeader(mcpRequest("{}", {
+      Accept: "text/html",
     }))).toThrowError(expect.objectContaining({ httpStatus: 406 }));
 
     const accepted = mcpAcceptedResponse({ "Access-Control-Allow-Origin": "https://chatgpt.com" });
     expect(accepted.status).toBe(202);
     expect(await accepted.text()).toBe("");
-    expect(accepted.headers.get("MCP-Protocol-Version")).toBe("2025-11-25");
+    expect(accepted.headers.get("MCP-Protocol-Version")).toBe("2026-07-28");
 
     const methodNotAllowed = mcpMethodNotAllowedResponse({});
     expect(methodNotAllowed.status).toBe(405);
