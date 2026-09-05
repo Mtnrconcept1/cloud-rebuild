@@ -6,6 +6,7 @@ import {
   assertMcpContentType,
   assertMcpProtocolVersion,
   assertMcpRoutingHeaders,
+  negotiateMcpProtocolVersion,
   parseMcpJsonRpcRequest,
   type McpJsonRpcRequest,
 } from "../_shared/mcp-http.ts";
@@ -14,7 +15,6 @@ const PUBLIC_ORIGIN = (Deno.env.get("TOK_CONNECT_PUBLIC_ORIGIN") || "https://www
 const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") || "https://wwcrtyoueexyxkkikaos.supabase.co").replace(/\/$/, "");
 const UPSTREAM_MCP_URL = `${SUPABASE_URL}/functions/v1/tok-connect-chatgpt`;
 const AUTHORIZATION_SERVER = `${SUPABASE_URL}/auth/v1`;
-const RESOURCE_METADATA_URL = `${PUBLIC_ORIGIN}/.well-known/oauth-protected-resource`;
 const OIDC_SCOPES = ["openid", "email", "profile"];
 const INTERNAL_MCP_PROTOCOL_VERSION = "2025-11-25";
 
@@ -73,13 +73,13 @@ function responseHeaders(req: Request, upstream?: Response) {
   return headers;
 }
 
-function normalizeInitialize(payload: unknown) {
+function normalizeInitialize(payload: unknown, request: McpJsonRpcRequest) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return payload;
   const rpc = payload as Record<string, unknown>;
   const result = rpc.result;
   if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
   const next = { ...(result as Record<string, unknown>) };
-  next.protocolVersion = MCP_LATEST_PROTOCOL_VERSION;
+  next.protocolVersion = negotiateMcpProtocolVersion(request.params);
   next.serverInfo = { name: "TOK Connect Remote MCP", version: "4.0.0" };
   next.instructions = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. Reads and previews respect TOK grants. Real reservation creation and cancellation require OAuth, explicit end-user confirmation and idempotency. Payments, refunds, publications, credit debits and admin mutations remain inside their protected TOK flows.";
   return { ...rpc, result: next };
@@ -97,7 +97,7 @@ async function relay(req: Request, rpc: McpJsonRpcRequest) {
   }
 
   try {
-    const payload = normalizeInitialize(JSON.parse(text));
+    const payload = normalizeInitialize(JSON.parse(text), rpc);
     return new Response(JSON.stringify(payload), { status: upstream.status, headers: responseHeaders(req, upstream) });
   } catch {
     return new Response(text, { status: upstream.status, headers: responseHeaders(req, upstream) });
