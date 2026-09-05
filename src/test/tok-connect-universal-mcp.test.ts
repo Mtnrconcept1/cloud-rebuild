@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const transport = readFileSync("supabase/functions/_shared/mcp-http.ts", "utf8");
-const gateway = readFileSync("supabase/functions/tok-connect-chatgpt/index.ts", "utf8");
+const remoteGateway = readFileSync("supabase/functions/tok-connect-remote-mcp/index.ts", "utf8");
+const actionGateway = readFileSync("supabase/functions/tok-connect-chatgpt/index.ts", "utf8");
 const vercel = readFileSync("vercel.json", "utf8");
 
 describe("TOK Connect universal remote MCP", () => {
@@ -21,23 +22,24 @@ describe("TOK Connect universal remote MCP", () => {
 
   it("keeps one public provider-neutral MCP endpoint for ChatGPT, Claude and generic agents", () => {
     expect(vercel).toContain('"source": "/mcp"');
-    expect(vercel).toContain("tok-connect-chatgpt");
-    expect(gateway).toContain("MCP_LATEST_PROTOCOL_VERSION");
-    expect(gateway).toContain("assertMcpRoutingHeaders");
-    expect(gateway).toContain('headers.set("mcp-method", rpc.method)');
-    expect(gateway).toContain('headers.set("mcp-name", toolName)');
-    expect(gateway).toContain('name: "TOK Connect Remote MCP"');
-    expect(gateway).not.toContain('name: "TOK Connect for ChatGPT"');
-    expect(gateway).toContain("Claude, ChatGPT and other MCP clients");
+    expect(vercel).toContain("tok-connect-remote-mcp");
+    expect(remoteGateway).toContain("MCP_LATEST_PROTOCOL_VERSION");
+    expect(remoteGateway).toContain("assertMcpRoutingHeaders");
+    expect(remoteGateway).toContain('headers.set("mcp-method", rpc.method)');
+    expect(remoteGateway).toContain('headers.set("mcp-name", toolName)');
+    expect(remoteGateway).toContain('name: "TOK Connect Remote MCP"');
+    expect(remoteGateway).toContain("Claude, ChatGPT and other MCP clients");
+    expect(remoteGateway).toContain("tok-connect-chatgpt");
+    expect(remoteGateway).toContain("mcp_protocol_versions_supported");
   });
 
   it("retains real guarded actions instead of exposing only previews", () => {
-    expect(gateway).toContain('name: "create_reservation"');
-    expect(gateway).toContain('name: "cancel_reservation"');
-    expect(gateway).toContain("confirmed_by_user");
-    expect(gateway).toContain("idempotency_key");
-    expect(gateway).toContain('metadata: { source: "tok_connect_remote_mcp" }');
-    expect(gateway).toContain("destructiveHint: true");
-    expect(gateway).toContain("resource_metadata");
+    expect(actionGateway).toContain('name: "create_reservation"');
+    expect(actionGateway).toContain('name: "cancel_reservation"');
+    expect(actionGateway).toContain("confirmed_by_user");
+    expect(actionGateway).toContain("idempotency_key");
+    expect(actionGateway).toContain("destructiveHint: true");
+    expect(actionGateway).toContain("resource_metadata");
+    expect(actionGateway).toContain('confirmed_by: "end_user"');
   });
 });
