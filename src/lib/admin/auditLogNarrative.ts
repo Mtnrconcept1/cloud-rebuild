@@ -141,6 +141,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "tok-connect-chatgpt": "la passerelle MCP publique TOK Connect utilisée par ChatGPT",
   "tok-connect-remote-mcp": "la passerelle MCP distante universelle TOK Connect pour Claude, ChatGPT et les autres agents compatibles",
   "tok-connect-app-bridge": "la passerelle d’exécution authentifiée entre les agents MCP et les capacités métier TOK",
+  "tok-connect-commercial-bridge": "la passerelle MCP authentifiée et isolée de l’espace commercial TOK",
   "tok-pulse-widget": "l’agrégation publique des signaux affichés par le widget TOK Pulse",
   "validate-order-preview": "la simulation du prix d’une commande",
 };
@@ -353,7 +354,7 @@ const ERROR_RULES: ErrorRule[] = [
     match: /DEMO_SIDE_EFFECT_BLOCKED/i,
     explain: {
       cause: "Une action à effet externe a été tentée depuis l’environnement de démonstration, où elle est volontairement désactivée.",
-      impact: "Aucun effet réel : le garde-fou a fonctionné et protège la production des manipulations de démonstration.",
+      impact: "Aucun effet réel : le garde-fou a fonctionné et protège la production des manipulations de démonstration commerciale.",
       recommendation: "Aucune action. Ce message confirme que l’isolation de la démonstration commerciale tient.",
     },
   },
