@@ -16,6 +16,7 @@ const UPSTREAM_MCP_URL = `${SUPABASE_URL}/functions/v1/tok-connect-chatgpt`;
 const AUTHORIZATION_SERVER = `${SUPABASE_URL}/auth/v1`;
 const RESOURCE_METADATA_URL = `${PUBLIC_ORIGIN}/.well-known/oauth-protected-resource`;
 const OIDC_SCOPES = ["openid", "email", "profile"];
+const INTERNAL_MCP_PROTOCOL_VERSION = "2025-11-25";
 
 function jsonRpcError(id: McpJsonRpcRequest["id"], code: number, message: string) {
   return { jsonrpc: "2.0", id: id ?? null, error: { code, message } };
@@ -33,7 +34,10 @@ function requestHeaders(req: Request, rpc: McpJsonRpcRequest) {
   }
 
   const protocolVersion = req.headers.get("mcp-protocol-version");
-  if (protocolVersion) headers.set("mcp-protocol-version", protocolVersion);
+  headers.set(
+    "mcp-protocol-version",
+    protocolVersion === "2026-07-28" ? INTERNAL_MCP_PROTOCOL_VERSION : protocolVersion || INTERNAL_MCP_PROTOCOL_VERSION,
+  );
 
   const sessionId = req.headers.get("mcp-session-id");
   if (sessionId && protocolVersion !== "2026-07-28") headers.set("mcp-session-id", sessionId);
@@ -75,6 +79,7 @@ function normalizeInitialize(payload: unknown) {
   const result = rpc.result;
   if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
   const next = { ...(result as Record<string, unknown>) };
+  next.protocolVersion = MCP_LATEST_PROTOCOL_VERSION;
   next.serverInfo = { name: "TOK Connect Remote MCP", version: "4.0.0" };
   next.instructions = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. Reads and previews respect TOK grants. Real reservation creation and cancellation require OAuth, explicit end-user confirmation and idempotency. Payments, refunds, publications, credit debits and admin mutations remain inside their protected TOK flows.";
   return { ...rpc, result: next };
