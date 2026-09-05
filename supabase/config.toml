@@ -301,5 +301,8 @@ verify_jwt = false
 [functions.tok-connect-chatgpt]
 verify_jwt = false
 
+[functions.tok-connect-remote-mcp]
+verify_jwt = false
+
 [functions.tok-pulse-widget]
 verify_jwt = false
