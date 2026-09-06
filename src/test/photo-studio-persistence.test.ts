@@ -512,7 +512,8 @@ describe("TOK photo studio persistence", () => {
     expect(aiFunction).toContain("marketing_reference_mismatch");
     expect(aiFunction).toContain("normalizeReferenceMediaIds");
     expect(aiFunction).toContain('.in("id", requestedMediaIds)');
-    expect(aiFunction).toContain('reference_source: marketingAssetMode ? "server_current_restaurant_media" : "request_payload"');
+    expect(aiFunction).toContain('const referenceSource = resolvedReferences ? "server_current_restaurant_media" : "request_payload";');
+    expect(aiFunction).toContain("reference_source: referenceSource");
     expect(aiFunction).toContain("requested_reference_media_ids");
     expect(aiFunction).toContain("reference_media_ids");
     expect(aiFunction).toContain("requestedReferenceImageUrls");
