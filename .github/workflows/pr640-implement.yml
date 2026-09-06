@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare implementation script
+        run: python3 scripts/pr640-fix-script.py
+
       - name: Apply implementation patch
         run: python3 scripts/pr640-implement.py
 
@@ -44,7 +47,7 @@ jobs:
         run: git diff --check
 
       - name: Remove temporary implementation files
-        run: rm .github/workflows/pr640-implement.yml scripts/pr640-implement.py
+        run: rm .github/workflows/pr640-implement.yml scripts/pr640-implement.py scripts/pr640-fix-script.py
 
       - name: Commit implementation
         shell: bash
