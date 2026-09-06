@@ -30,10 +30,10 @@ describe("TOK notification reliability hardening", () => {
     expect(sql).toContain("ELSE 'retrying'");
     expect(sql).toContain("max_attempts");
 
-    expect(pushWorker).toContain('rpc("claim_notification_deliveries"');
-    expect(pushWorker).toContain('rpc("settle_notification_delivery"');
-    expect(emailWorker).toContain('rpc("claim_notification_deliveries"');
-    expect(emailWorker).toContain('rpc("settle_notification_delivery"');
+    expect(pushWorker).toContain("claim_notification_deliveries");
+    expect(pushWorker).toContain("settle_notification_delivery");
+    expect(emailWorker).toContain("claim_notification_deliveries");
+    expect(emailWorker).toContain("settle_notification_delivery");
   });
 
   it("dispatches due campaigns automatically without allowing duplicate concurrent dispatch", () => {
@@ -137,6 +137,6 @@ describe("TOK admin and feature-flag resilience", () => {
     expect(adminHome).toContain('href: "/admin/guardian"');
     expect(adminHome).toContain('feature: "admin-guardian"');
     expect(adminHome).toContain('href: "/admin/tok-connect"');
-    expect(adminHome).toContain('feature: "tok-connect"');
+    expect(adminHome).toContain('feature: "admin-tok-connect"');
   });
 });

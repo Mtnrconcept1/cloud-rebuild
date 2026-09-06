@@ -539,6 +539,8 @@ export async function getAdminDashboardChatMessages(conversationId: string) {
 const TOK_OPENAI_USD_TO_CHF_RATE = 0.81;
 
 const TEXT_MODEL_PRICING_USD_PER_M_TOKEN: Record<string, { input: number; output: number }> = {
+"gpt-5.6-terra": { input: 2, output: 12 },
+"gpt-5.6-luna": { input: 0.2, output: 1.2 },
   "gpt-5.5": { input: 5, output: 30 },
   "gpt-5.4-mini": { input: 0.75, output: 4.5 },
 };

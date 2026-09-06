@@ -246,8 +246,8 @@ describe("TOK AI platform plan", () => {
     const clientSupport = readProjectFile("supabase/functions/ai-client-support/index.ts");
 
     expect(helper).toContain("selectTokAiModel");
-    expect(helper).toContain("gpt-5.4-mini");
-    expect(helper).toContain("gpt-5.5");
+    expect(helper).toContain("gpt-5.6-luna");
+    expect(helper).toContain("gpt-5.6-terra");
 
     expect(clientSupport).toContain("Aucun remboursement automatique");
     expect(clientSupport).toContain("escalade humaine");

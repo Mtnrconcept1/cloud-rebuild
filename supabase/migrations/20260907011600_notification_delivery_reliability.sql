@@ -426,15 +426,15 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.claim_notification_deliveries(text, integer, uuid, integer) FROM PUBLIC, anon;
-REVOKE ALL ON FUNCTION public.settle_notification_delivery(uuid, uuid, boolean, boolean, text, text, text) FROM PUBLIC, anon;
-REVOKE ALL ON FUNCTION public.queue_notification_deliveries(uuid, uuid, text, jsonb) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.claim_notification_deliveries(text, integer, uuid, integer) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.settle_notification_delivery(uuid, uuid, boolean, boolean, text, text, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.queue_notification_deliveries(uuid, uuid, text, jsonb) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.admin_dispatch_notification_campaign(uuid) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.dispatch_due_notification_campaigns(integer) FROM PUBLIC, anon;
 
-GRANT EXECUTE ON FUNCTION public.claim_notification_deliveries(text, integer, uuid, integer) TO authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.settle_notification_delivery(uuid, uuid, boolean, boolean, text, text, text) TO authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.queue_notification_deliveries(uuid, uuid, text, jsonb) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.claim_notification_deliveries(text, integer, uuid, integer) TO service_role;
+GRANT EXECUTE ON FUNCTION public.settle_notification_delivery(uuid, uuid, boolean, boolean, text, text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.queue_notification_deliveries(uuid, uuid, text, jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.admin_dispatch_notification_campaign(uuid) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.dispatch_due_notification_campaigns(integer) TO authenticated, service_role;
 
