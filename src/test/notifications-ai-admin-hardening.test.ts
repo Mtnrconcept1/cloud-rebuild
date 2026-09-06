@@ -27,7 +27,7 @@ describe("TOK notification reliability hardening", () => {
     expect(sql).toContain("FOR UPDATE SKIP LOCKED");
     expect(sql).toContain("attempts = nd.attempts + 1");
     expect(sql).toContain("CREATE OR REPLACE FUNCTION public.settle_notification_delivery");
-    expect(sql).toContain("status = 'retrying'");
+    expect(sql).toContain("ELSE 'retrying'");
     expect(sql).toContain("max_attempts");
 
     expect(pushWorker).toContain('rpc("claim_notification_deliveries"');
