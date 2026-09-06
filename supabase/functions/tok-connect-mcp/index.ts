@@ -914,6 +914,33 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         .tok-restaurant-grid { grid-template-columns: 1fr; }
         .sandbox-head { display: block; }
       }
+      /* Shell layout for the action window. The widget is a thin host: it embeds
+         the real TOK Connect surface (/tok-connect/mcp-widget) and relays MCP
+         state to it, so the frame must fill the ChatGPT viewport and the loader
+         must cover it until the embedded page reports it is ready. */
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+      #mcp-frame {
+        display: block;
+        width: 100%;
+        height: 100vh;
+        border: 0;
+      }
+      #loader {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--tok-surface);
+        color: var(--tok-primary);
+        font-family: var(--tok-font-sans);
+        font-weight: 700;
+      }
     </style>
   </head>
   <body>
@@ -926,211 +953,9 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       let iframeReady = false;
       let pendingState = null;
 
-      function getState() {
-        return window.openai && window.openai.widgetState && Array.isArray(window.openai.widgetState.actions)
-          ? window.openai.widgetState.actions
-          : [];
-      }
-
-      function setState(actions) {
-        if (window.openai && typeof window.openai.setWidgetState === "function") {
-          window.openai.setWidgetState({ actions: actions.slice(0, 20) });
-        }
-      }
-
-      function summarizeContent(content) {
-        if (!Array.isArray(content)) return "Aucun contenu textuel recu.";
-        const text = content
-          .map((item) => item && item.text ? String(item.text) : "")
-          .filter(Boolean)
-          .join(" ");
-        return text.length > 170 ? text.slice(0, 170) + "..." : text || "Action terminee.";
-      }
-
-      function parseToolPayload(rawOutput, content) {
-        const candidates = [];
-        if (rawOutput && typeof rawOutput === "object") {
-          candidates.push(rawOutput);
-          if (rawOutput.structuredContent) candidates.push(rawOutput.structuredContent);
-        }
-        if (Array.isArray(content)) {
-          content.forEach((item) => {
-            if (item && typeof item.text === "string") {
-              try {
-                candidates.push(JSON.parse(item.text));
-              } catch (_error) {
-                // Plain text tool output is expected for a few legacy MCP calls.
-              }
-            }
-          });
-        }
-        return candidates.find((candidate) =>
-          candidate && typeof candidate === "object" && (
-            Array.isArray(candidate.restaurants) ||
-            Array.isArray(candidate.slots) ||
-            candidate.reservation_preview ||
-            candidate.campaign_preview ||
-            candidate.estimate ||
-            candidate.performance ||
-            candidate.autopilot_plan
-          )
-        ) || {};
-      }
-
-      function moduleIcon(moduleId) {
-        const icons = {
-          studio_marketing: "IA",
-          photopro: "4K",
-          reservation: "RS",
-          commande: "CMD",
-          zero_attente: "0A",
-          chefs_table: "CT",
-          multi_resto: "MR",
-          ventes_flash: "VF",
-          actualites: "ACT",
-          campagnes: "ADS",
-          crm: "CRM",
-          commercial: "COM",
-          admin_supervision: "ADM",
-        };
-        return icons[moduleId] || "TOK";
-      }
-
-      function renderInitialShowcase() {
-        return (
-          '<div class="tok-empty">' +
-          '<p>Demandez a ChatGPT de simuler une reservation, une commande, PhotoPro, Studio Marketing ou un autre module TOK. La fenetre affichera le parcours comme une mini-application TOK.</p>' +
-          '<div class="tok-showcase-grid">' +
-          renderToolCard({ id: "reservation", title: "Reservation rapide", surface: "client", safe_actions: ["Recherche", "Creneaux", "Confirmation"] }) +
-          renderToolCard({ id: "studio_marketing", title: "Studio Marketing", surface: "restaurateur", safe_actions: ["Brief", "Credits", "Preview"] }) +
-          '</div>' +
-          '</div>'
-        );
-      }
-
-      function renderToolCard(module) {
-        const actions = Array.isArray(module.safe_actions) ? module.safe_actions.slice(0, 3) : [];
-        return (
-          '<div class="tok-tool-card">' +
-          '<div class="tok-card-row">' +
-          '<span class="tok-tool-icon">' + escapeHtml(moduleIcon(module.id)) + '</span>' +
-          '<span class="tok-miamz-pill">' + escapeHtml(module.surface || "TOK") + '</span>' +
-          '</div>' +
-          '<strong>' + escapeHtml(module.title || "Module TOK") + '</strong>' +
-          '<p>' + escapeHtml((module.entrypoints || []).slice(0, 3).join(" > ") || "Parcours visible dans ChatGPT.") + '</p>' +
-          '<div class="tok-service-row">' + actions.map((action) => '<span class="tok-service-pill">' + escapeHtml(action) + '</span>').join("") + '</div>' +
-          '</div>'
-        );
-      }
-
-      function renderModuleCards(modules) {
-        if (!Array.isArray(modules) || !modules.length) return "";
-        return '<div class="tok-showcase-grid">' + modules.map(renderToolCard).join("") + '</div>';
-      }
-
-      function renderRestaurantCards(restaurants) {
-        if (!Array.isArray(restaurants) || !restaurants.length) return "";
-        return (
-          '<div class="tok-restaurant-grid">' +
-          restaurants.slice(0, 6).map((restaurant) => {
-            const rating = restaurant.rating || restaurant.average_rating || "4.8";
-            const cuisine = [restaurant.cuisine_type, restaurant.city].filter(Boolean).join(" · ") || "Restaurant TOK";
-            return (
-              '<article class="tok-restaurant-card">' +
-              '<div class="tok-restaurant-media"><span class="tok-sponsored-pill">TOK Connect</span></div>' +
-              '<div class="tok-restaurant-body">' +
-              '<div class="tok-card-row">' +
-              '<div><p class="tok-card-meta">' + escapeHtml(cuisine) + '</p><h3 class="tok-card-title">' + escapeHtml(restaurant.name || "Restaurant TOK") + '</h3></div>' +
-              '<span class="tok-rating-pill">★ ' + escapeHtml(rating) + '</span>' +
-              '</div>' +
-              '<div class="tok-service-row">' +
-              '<span class="tok-service-pill">' + escapeHtml(restaurant.supports_reservation ? "Reservation" : "Decouverte") + '</span>' +
-              '<span class="tok-service-pill">Miamz</span>' +
-              '</div>' +
-              '</div>' +
-              '</article>'
-            );
-          }).join("") +
-          '</div>'
-        );
-      }
-
-      function renderSlots(slots) {
-        if (!Array.isArray(slots) || !slots.length) return "";
-        return (
-          '<div class="tok-summary-card">' +
-          '<div class="tok-card-row"><strong>Creneaux disponibles</strong><span class="tok-miamz-pill">Temps reel</span></div>' +
-          '<div class="tok-slot-row">' + slots.slice(0, 12).map((slot) => {
-            const label = slot.time || slot.starts_at || slot.slot_time || slot.label || "Creneau";
-            return '<span class="tok-slot-pill">' + escapeHtml(label) + '</span>';
-          }).join("") + '</div>' +
-          '</div>'
-        );
-      }
-
-      function renderToolPayload(payload) {
-        if (!payload || typeof payload !== "object") return "";
-        if (Array.isArray(payload.restaurants)) return renderRestaurantCards(payload.restaurants);
-        if (Array.isArray(payload.slots)) return renderSlots(payload.slots);
-        if (payload.reservation_preview) {
-          const preview = payload.reservation_preview;
-          return (
-            '<div class="tok-confirmation">' +
-            '<strong>Reservation prete a confirmer</strong>' +
-            '<p>' + escapeHtml([preview.date, preview.time, preview.party_size ? preview.party_size + " convive(s)" : ""].filter(Boolean).join(" · ")) + '</p>' +
-            '<span class="tok-miamz-pill">Validation client requise</span>' +
-            '</div>'
-          );
-        }
-        if (payload.campaign_preview) {
-          const preview = payload.campaign_preview;
-          return (
-            '<div class="tok-summary-card">' +
-            '<div class="tok-card-row"><strong>Preview campagne</strong><span class="tok-miamz-pill">Credits TOK</span></div>' +
-            '<p>' + escapeHtml(preview.objective || "Campagne sponsorisee en preview.") + '</p>' +
-            '<div class="tok-service-row"><span class="tok-service-pill">' + escapeHtml(preview.status || "preview") + '</span><span class="tok-service-pill">Validation humaine</span></div>' +
-            '</div>'
-          );
-        }
-        if (payload.estimate) {
-          return (
-            '<div class="tok-summary-card">' +
-            '<div class="tok-card-row"><strong>Coût estime</strong><span class="tok-rating-pill">' + escapeHtml(payload.estimate.credits || 0) + ' cr.</span></div>' +
-            '<p>Le solde restaurateur doit couvrir cette action avant toute execution reelle.</p>' +
-            '</div>'
-          );
-        }
-        if (payload.autopilot_plan) {
-          const plan = payload.autopilot_plan;
-          return (
-            '<div class="tok-summary-card">' +
-            '<div class="tok-card-row"><strong>Autopilot TOK borne</strong><span class="tok-miamz-pill">' + escapeHtml(plan.status || "preview") + '</span></div>' +
-            '<p>' + escapeHtml(plan.objective || "Plan prepare sans mutation.") + '</p>' +
-            renderModuleCards((plan.actions || []).map((action) => ({ id: action.type, title: action.title, surface: action.execution_mode, safe_actions: ["Preview", "Validation"] }))) +
-            '</div>'
-          );
-        }
-        if (payload.performance) {
-          return (
-            '<div class="tok-summary-card">' +
-            '<div class="tok-card-row"><strong>Performance restaurant</strong><span class="tok-miamz-pill">Lecture seule</span></div>' +
-            '<p>Signaux agreges charges pour analyse et recommandations sans mutation.</p>' +
-            '</div>'
-          );
-        }
-        return "";
-      }
-
-      function renderSandbox(sandbox, structured, payload) {
-        if (structured && Array.isArray(structured.modules)) {
-          sandboxEl.innerHTML =
-            '<div class="tok-widget-stack">' +
-            '<div class="tok-summary-card"><strong>Outils TOK disponibles</strong><p>' + escapeHtml(structured.answer || "Catalogue des modules interrogeables par ChatGPT.") + '</p></div>' +
-            renderModuleCards(structured.modules) +
-            '<div class="guardrails">' + (Array.isArray(structured.guardrails) ? structured.guardrails : []).map((guardrail) =>
-              '<div class="guardrail">' + escapeHtml(guardrail) + '</div>'
-            ).join("") + '</div>' +
-            '</div>';
+      function sendToIframe(state) {
+        if (!iframeReady || !iframe.contentWindow) {
+          pendingState = state;
           return;
         }
         iframe.contentWindow.postMessage({ type: "mcp_widget_update", state }, "*");
