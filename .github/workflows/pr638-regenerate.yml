@@ -1,0 +1,72 @@
+name: PR638 regenerate generated artifacts
+
+on:
+  push:
+    branches:
+      - fix/ai-studios-reference-safety-20260906
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/ai-studios-reference-safety-20260906
+          fetch-depth: 1
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate error code map
+        run: pnpm run generate:error-code-map
+
+      - name: Update generalized reference-source contract test
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'src/test/photo-studio-persistence.test.ts';
+          const before = `    expect(aiFunction).toContain('reference_source: marketingAssetMode ? "server_current_restaurant_media" : "request_payload"');`;
+          const after = `    expect(aiFunction).toContain('const referenceSource = resolvedReferences ? "server_current_restaurant_media" : "request_payload";');\n    expect(aiFunction).toContain("reference_source: referenceSource");`;
+          const source = fs.readFileSync(path, 'utf8');
+          if (!source.includes(before)) {
+            throw new Error('Expected stale reference_source assertion was not found');
+          }
+          fs.writeFileSync(path, source.replace(before, after), 'utf8');
+          NODE
+
+      - name: Verify affected AI and generated-map tests
+        run: pnpm exec vitest run --mode production src/test/photo-studio-persistence.test.ts src/test/incident-evidence-depth.test.ts src/test/ai-image-reference-security.test.ts
+
+      - name: Remove temporary workflow
+        run: rm .github/workflows/pr638-regenerate.yml
+
+      - name: Validate diff
+        run: git diff --check
+
+      - name: Commit regenerated artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/test/photo-studio-persistence.test.ts supabase/functions/_shared/error-code-map.ts .github/workflows/pr638-regenerate.yml
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git commit -m "test(ai): refresh reference contracts and error map"
+          git push origin HEAD:fix/ai-studios-reference-safety-20260906
