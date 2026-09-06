@@ -8,11 +8,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getFloorPlanInteractiveFrame, getFloorPlanItemResizeBehavior, isReservableFloorPlanItem } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
+import {
+  FLOOR_PLAN_SHEET_BACKGROUND,
+  FLOOR_PLAN_SHEET_FLOOR_CLASS,
+  FLOOR_PLAN_SHEET_FLOOR_INLAY_CLASS,
+  FLOOR_PLAN_SHEET_GRID_IMAGE,
+  FLOOR_PLAN_SHEET_STAGE_CLASS,
+  FLOOR_PLAN_SHEET_WALL_CLASS,
+  createFloorPlanSheetScale,
+} from "./floorPlanSheet";
 import type { StudioDraftTable, StudioRenderedTableFrame } from "./studioShared";
 import { useFloorPlanZoomViewport, FLOOR_PLAN_MIN_ZOOM, FLOOR_PLAN_MAX_ZOOM } from "./useFloorPlanZoomViewport";
 
-const BASE_CANVAS_WIDTH = 1040;
-const BASE_CANVAS_HEIGHT = 760;
 const STUDIO_RESIZE_HANDLES = [
   { key: "nw", className: "-left-2.5 -top-2.5", cursor: "nwse-resize" },
   { key: "n", className: "left-1/2 -top-2.5 -translate-x-1/2", cursor: "ns-resize" },
@@ -74,11 +81,7 @@ export default function StudioCanvas({
   getRenderedFrame,
 }: StudioCanvasProps) {
   const canvasRatio = `${canvasWidth} / ${canvasHeight}`;
-  const canvasChromeScale = Math.max(
-    0.1,
-    Math.min(canvasWidth / BASE_CANVAS_WIDTH, canvasHeight / BASE_CANVAS_HEIGHT),
-  );
-  const getScaledCanvasToken = (value: number, minimum = 1) => `${Math.max(minimum, Math.round(value * canvasChromeScale))}px`;
+  const getScaledCanvasToken = createFloorPlanSheetScale(canvasWidth, canvasHeight);
 
   useEffect(() => {
     const viewport = canvasViewportRef.current;
@@ -159,19 +162,19 @@ export default function StudioCanvas({
   };
 
   return (
-    <Card className="flex h-[min(68svh,680px)] min-h-[430px] flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:h-full xl:min-h-0">
-      <CardHeader className="border-b border-slate-200/80 px-4 py-3">
+    <Card className="flex h-[min(68svh,680px)] min-h-[430px] flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm xl:h-full xl:min-h-0">
+      <CardHeader className="border-b border-border/70 px-4 py-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <CardTitle className="text-lg text-slate-950">{selectedSector}</CardTitle>
-            <CardDescription className="mt-1 text-sm text-slate-500">Touchez un élément, puis déplacez-le ou ouvrez ses réglages.</CardDescription>
+            <CardTitle className="text-lg text-foreground">{selectedSector}</CardTitle>
+            <CardDescription className="mt-1 text-sm text-muted-foreground">Touchez un élément, puis déplacez-le ou ouvrez ses réglages.</CardDescription>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
+            <Badge variant="outline" className="rounded-full border-border bg-card text-muted-foreground">
               Template global
             </Badge>
-            <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white px-1 py-1 shadow-sm">
+            <div className="flex items-center gap-1 rounded-2xl border border-border bg-card px-1 py-1 shadow-sm">
               <span className="min-w-14 text-center text-sm font-semibold">{canvasZoomLabel}</span>
               <Button
                 type="button"
@@ -196,7 +199,7 @@ export default function StudioCanvas({
                 <ZoomIn className="h-4 w-4" />
               </Button>
             </div>
-            <Button type="button" variant="outline" className="h-11 rounded-2xl border-slate-200 bg-white" onClick={recenter}>
+            <Button type="button" variant="outline" className="h-11 rounded-2xl border-border bg-card" onClick={recenter}>
               <Move className="mr-2 h-4 w-4" />
               Recentrer
             </Button>
@@ -205,22 +208,22 @@ export default function StudioCanvas({
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col p-2">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
-          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain rounded-xl border border-slate-200/80 bg-white/80 shadow-inner" role="region" aria-label={`Plan du secteur ${selectedSector}`}>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-muted p-2">
+          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain rounded-xl border border-border/70 bg-background/60 shadow-inner" role="region" aria-label={`Plan du secteur ${selectedSector}`}>
             <div style={{ width: canvasWidth * canvasZoom, height: canvasHeight * canvasZoom }}>
               <div
                 ref={canvasRef}
                 data-floor-plan-canvas="stage"
-                className="relative shrink-0 origin-top-left overflow-hidden border border-slate-300/70 shadow-inner"
+                className={FLOOR_PLAN_SHEET_STAGE_CLASS}
                 style={{
                   width: `${canvasWidth}px`,
                   height: `${canvasHeight}px`,
                   aspectRatio: canvasRatio,
                   transform: `scale(${canvasZoom})`,
                   borderRadius: getScaledCanvasToken(28, 8),
-                  backgroundImage: "linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px)",
+                  backgroundImage: FLOOR_PLAN_SHEET_GRID_IMAGE,
                   backgroundSize: `${getScaledCanvasToken(36, 8)} ${getScaledCanvasToken(36, 8)}, ${getScaledCanvasToken(36, 8)} ${getScaledCanvasToken(36, 8)}`,
-                  backgroundColor: "#f6f7fb",
+                  backgroundColor: FLOOR_PLAN_SHEET_BACKGROUND,
                 }}
                 onClick={(event) => {
                   if (event.target === event.currentTarget) {
@@ -229,7 +232,7 @@ export default function StudioCanvas({
                 }}
               >
                 <div
-                  className="pointer-events-none absolute border-[#36373d]"
+                  className={FLOOR_PLAN_SHEET_WALL_CLASS}
                   style={{
                     inset: getScaledCanvasToken(24, 3),
                     borderRadius: getScaledCanvasToken(36, 8),
@@ -237,14 +240,14 @@ export default function StudioCanvas({
                   }}
                 />
                 <div
-                  className="pointer-events-none absolute bg-[linear-gradient(145deg,rgba(225,192,149,0.9),rgba(192,151,111,0.92))]"
+                  className={FLOOR_PLAN_SHEET_FLOOR_CLASS}
                   style={{
                     inset: getScaledCanvasToken(46, 6),
                     borderRadius: getScaledCanvasToken(26, 6),
                   }}
                 />
                 <div
-                  className="pointer-events-none absolute border border-white/25"
+                  className={FLOOR_PLAN_SHEET_FLOOR_INLAY_CLASS}
                   style={{
                     inset: getScaledCanvasToken(64, 8),
                     borderRadius: getScaledCanvasToken(16, 4),

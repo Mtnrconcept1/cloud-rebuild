@@ -1,6 +1,8 @@
 import type { Database, Json } from "@/integrations/supabase/types";
 import { reservationsOverlap, type FloorPlanTableLayout } from "@/lib/floorPlan";
 
+import { FLOOR_PLAN_TONE_CLASS } from "./floorPlanTones";
+
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -77,14 +79,15 @@ export function getReservationCustomerLabel(reservation: ServiceReservation) {
   return reservation.customer?.full_name || "Client sans nom";
 }
 
+// Rendu dans le châssis (files d'attente, tiroir de table) : suit le thème.
 export function getReservationStatusTone(status: string | null | undefined) {
   switch (String(status || "").toLowerCase()) {
     case "confirmed":
-      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      return FLOOR_PLAN_TONE_CLASS.emerald;
     case "pending":
-      return "bg-amber-50 text-amber-700 border-amber-200";
+      return FLOOR_PLAN_TONE_CLASS.amber;
     case "arrived":
-      return "bg-sky-50 text-sky-700 border-sky-200";
+      return FLOOR_PLAN_TONE_CLASS.sky;
     case "seated":
     case "installed":
     case "occupied":
@@ -92,11 +95,11 @@ export function getReservationStatusTone(status: string | null | undefined) {
     case "served":
     case "dessert":
     case "bill_requested":
-      return "bg-orange-50 text-orange-800 border-orange-200";
+      return FLOOR_PLAN_TONE_CLASS.orange;
     case "no_show":
-      return "bg-rose-50 text-rose-700 border-rose-200";
+      return FLOOR_PLAN_TONE_CLASS.rose;
     default:
-      return "bg-muted text-muted-foreground border-border";
+      return FLOOR_PLAN_TONE_CLASS.neutral;
   }
 }
 
@@ -437,6 +440,8 @@ function getOverlappingAssignmentCount(assignments: ServiceReservation[]) {
   return overlapCount;
 }
 
+// Tons peints *sur* la feuille du plan (halos et pastilles posés sur le
+// canevas) : ils restent clairs dans les deux thèmes, cf. floorPlanSheet.ts.
 export function getTableServiceState({
   isReservable,
   assignments,

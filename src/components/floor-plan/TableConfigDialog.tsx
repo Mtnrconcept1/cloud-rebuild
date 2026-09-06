@@ -46,6 +46,9 @@ import {
 } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
+import { FLOOR_PLAN_PREVIEW_TILE_CLASS } from "./floorPlanSheet";
+import { FLOOR_PLAN_TONE_CLASS } from "./floorPlanTones";
+
 import { FloorPlanItemIllustration } from "./FloorPlanItemIllustration";
 
 type TableConfig = {
@@ -90,32 +93,32 @@ const LAYOUT_PRESET_COPY: Record<TableLayoutPreset, { label: string; description
   balanced: {
     label: "Équilibré",
     description: "Répartition automatique classique, idéale pour aller vite sans réfléchir aux côtés.",
-    tone: "bg-sky-50 text-sky-700",
+    tone: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
   },
   stools: {
     label: "Tabourets",
     description: "Même logique automatique, mais pensée pour une ambiance comptoir ou snack.",
-    tone: "bg-violet-50 text-violet-700",
+    tone: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
   },
   "bench-one-side": {
     label: "Banquette d'un côté",
     description: "Une banquette sur la longueur et les places restantes en face. Pratique pour les murs.",
-    tone: "bg-amber-50 text-amber-700",
+    tone: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
   },
   "bench-two-sides": {
     label: "Banquettes face à face",
     description: "Deux longues banquettes opposées, idéale pour les tables rectangulaires centrales.",
-    tone: "bg-orange-50 text-orange-700",
+    tone: "bg-orange-500/10 text-orange-700 dark:text-orange-300",
   },
   corner: {
     label: "Angle",
     description: "Un coin banquette prêt à poser, puis des places simples pour compléter sans superposition.",
-    tone: "bg-emerald-50 text-emerald-700",
+    tone: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   },
   custom: {
     label: "Manuel",
     description: "Déverrouillez chaque zone uniquement si vous avez un besoin atypique à affiner à la main.",
-    tone: "bg-slate-100 text-slate-700",
+    tone: "bg-muted text-muted-foreground",
   },
 };
 
@@ -429,7 +432,7 @@ function SeatCountInput({
 }) {
   return (
     <div className="min-w-0 space-y-2">
-      <Label className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">{label}</Label>
+      <Label className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">{label}</Label>
       <div className="relative">
         <Input
           type="number"
@@ -437,9 +440,9 @@ function SeatCountInput({
           step={1}
           value={value}
           onChange={(event) => onChange(clampInput(Number(event.target.value), value))}
-          className="h-11 min-w-0 rounded-2xl border-slate-200 bg-white pr-10 text-base font-semibold text-slate-900"
+          className="h-11 min-w-0 rounded-2xl border-border bg-card pr-10 text-base font-semibold text-foreground"
         />
-        <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-slate-400">{suffix}</span>
+        <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-muted-foreground">{suffix}</span>
       </div>
     </div>
   );
@@ -462,21 +465,21 @@ function LayoutPresetCard({
       className={cn(
         "rounded-[24px] border px-4 py-4 text-left transition",
         active
-          ? "border-slate-950 bg-slate-950 text-white shadow-[0_18px_40px_-28px_rgba(15,23,42,0.8)]"
-          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50",
+          ? "border-primary bg-primary text-primary-foreground shadow-[0_18px_40px_-28px_hsl(var(--primary)/0.8)]"
+          : "border-border bg-card hover:border-border hover:bg-muted",
       )}
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold leading-5">{copy.label}</p>
-          <p className={cn("mt-2 text-sm leading-5", active ? "text-slate-200" : "text-slate-500")}>
+          <p className={cn("mt-2 text-sm leading-5", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
             {copy.description}
           </p>
         </div>
         <span className={cn(
           "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]",
-          active ? "bg-white/12 text-white" : copy.tone,
+          active ? "bg-primary-foreground/15 text-primary-foreground" : copy.tone,
         )}>
           {preset === "custom" ? "Manuel" : "Auto"}
         </span>
@@ -501,19 +504,19 @@ function ZoneSeatCard({
   return (
     <div className={cn(
       "min-w-0 overflow-hidden rounded-[22px] border p-4 transition",
-      state.enabled ? "border-slate-900 bg-slate-950/[0.03]" : "border-slate-200 bg-white",
+      state.enabled ? "border-primary/50 bg-primary/5" : "border-border bg-card",
     )}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="break-words text-sm font-semibold leading-5 text-slate-900">{label}</p>
-          <p className="mt-1 text-xs leading-5 text-slate-500">Une seule famille d'assise par zone pour empêcher les chevauchements.</p>
+          <p className="break-words text-sm font-semibold leading-5 text-foreground">{label}</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">Une seule famille d'assise par zone pour empêcher les chevauchements.</p>
         </div>
         <Checkbox checked={state.enabled} onCheckedChange={(checked) => onToggle(checked === true)} />
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_96px]">
         <Select value={state.type} disabled={!state.enabled} onValueChange={(value) => onTypeChange(value as FloorPlanLinearSeatType)}>
-          <SelectTrigger className="h-11 min-w-0 rounded-2xl border-slate-200 bg-white">
+          <SelectTrigger className="h-11 min-w-0 rounded-2xl border-border bg-card">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -533,16 +536,16 @@ function ZoneSeatCard({
             disabled={!state.enabled}
             value={state.count}
             onChange={(event) => onCountChange(clampInput(Number(event.target.value), state.count))}
-            className="h-11 min-w-0 rounded-2xl border-slate-200 bg-white pr-10 text-center font-semibold"
+            className="h-11 min-w-0 rounded-2xl border-border bg-card pr-10 text-center font-semibold"
           />
-          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
             pl.
           </span>
         </div>
       </div>
 
       {state.enabled && state.type === "bench" ? (
-        <p className="mt-3 text-xs leading-5 text-slate-500">
+        <p className="mt-3 text-xs leading-5 text-muted-foreground">
           La longueur de la banquette est calculee automatiquement depuis le nombre de places.
         </p>
       ) : null}
@@ -568,21 +571,21 @@ function CornerBenchCard({
   return (
     <div className={cn(
       "min-w-0 overflow-hidden rounded-[22px] border p-4 transition",
-      state.enabled ? "border-amber-300 bg-amber-50/60" : "border-slate-200 bg-white",
+      state.enabled ? "border-amber-300 bg-amber-50/60 dark:border-amber-500/40 dark:bg-amber-500/10" : "border-border bg-card",
     )}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="break-words text-sm font-semibold leading-5 text-slate-900">{label}</p>
-          <p className="mt-1 text-xs leading-5 text-slate-500">
+          <p className="break-words text-sm font-semibold leading-5 text-foreground">{label}</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
             2 places utilisent uniquement l'image d'angle. Les places en plus ajoutent des modules droits.
           </p>
         </div>
-        <Sofa className={cn("h-4 w-4", state.enabled ? "text-amber-600" : "text-slate-300")} />
+        <Sofa className={cn("h-4 w-4", state.enabled ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground/50")} />
       </div>
 
       <div className="mt-4">
         <Select value={state.enabled ? "corner-bench" : "none"} onValueChange={(value) => onModeChange(value === "corner-bench")}>
-          <SelectTrigger className="h-11 min-w-0 rounded-2xl border-slate-200 bg-white">
+          <SelectTrigger className="h-11 min-w-0 rounded-2xl border-border bg-card">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -594,7 +597,7 @@ function CornerBenchCard({
 
       {state.enabled ? (
         <>
-          <div className="mt-4 rounded-2xl border border-amber-200 bg-white/80 px-3 py-2 text-sm font-semibold text-amber-800">
+          <div className={cn("mt-4 rounded-2xl border px-3 py-2 text-sm font-semibold", FLOOR_PLAN_TONE_CLASS.amber)}>
             Capacite du banc: {capacity} places
           </div>
           <div className="mt-4 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(126px,1fr))]">
@@ -756,22 +759,22 @@ export default function TableConfigDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[min(96dvh,980px)] max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[1120px] overflow-hidden rounded-[24px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,247,251,0.98))] p-0 shadow-[0_40px_120px_-52px_rgba(15,23,42,0.48)] sm:rounded-[32px]">
+      <DialogContent className="h-[min(96dvh,980px)] max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[1120px] overflow-hidden rounded-[24px] border border-border bg-background p-0 shadow-2xl sm:rounded-[32px]">
         <div className="grid h-full min-h-0 grid-rows-[minmax(0,2fr)_minmax(0,3fr)] gap-0 sm:grid-rows-[minmax(0,5fr)_minmax(0,6fr)] lg:grid-cols-[minmax(272px,312px)_minmax(0,1fr)] lg:grid-rows-1">
-          <div className="min-h-0 overflow-hidden border-b border-slate-200/80 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.92),rgba(241,245,249,0.98))] lg:border-b-0 lg:border-r">
+          <div className="min-h-0 overflow-hidden border-b border-border/70 bg-muted/40 lg:border-b-0 lg:border-r">
             <div data-dialog-scroll-area className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain p-4 sm:p-6">
               <DialogHeader className="space-y-3 pr-10 text-left">
-                <DialogTitle className="flex min-w-0 flex-wrap items-center gap-2 text-xl text-slate-950">
-                  <Armchair className="h-5 w-5 text-slate-600" />
+                <DialogTitle className="flex min-w-0 flex-wrap items-center gap-2 text-xl text-foreground">
+                  <Armchair className="h-5 w-5 text-muted-foreground" />
                   {isEditing ? "Modifier la table" : "Configurer la table"}
                 </DialogTitle>
-                <DialogDescription className="max-w-sm text-sm leading-6 text-slate-500">
+                <DialogDescription className="max-w-sm text-sm leading-6 text-muted-foreground">
                   Commencez par la base, choisissez une disposition rapide, puis n'ouvrez les réglages fins que si c'est réellement utile.
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="mt-5 rounded-[28px] border border-white/80 bg-white/85 p-4 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.4)] sm:p-5">
-                <div className="flex h-40 items-center justify-center rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.9),rgba(241,245,249,0.92))] sm:h-52">
+              <div className="mt-5 rounded-[28px] border border-border bg-card p-4 shadow-lg sm:p-5">
+                <div className={cn("flex h-40 items-center justify-center rounded-[24px] border sm:h-52", FLOOR_PLAN_PREVIEW_TILE_CLASS)}>
                   <FloorPlanItemIllustration
                     kind="table"
                     shape={shape}
@@ -788,39 +791,39 @@ export default function TableConfigDialog({
                 </div>
 
                 <div className="mt-4 space-y-3">
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  <div className="rounded-2xl border border-border bg-muted/50 p-3">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                       <Sparkles className="h-3.5 w-3.5" />
                       Disposition active
                     </div>
-                    <p className="mt-2 text-base font-semibold text-slate-900">{presetCopy.label}</p>
-                    <p className="mt-1 text-sm leading-5 text-slate-500">{presetCopy.description}</p>
+                    <p className="mt-2 text-base font-semibold text-foreground">{presetCopy.label}</p>
+                    <p className="mt-1 text-sm leading-5 text-muted-foreground">{presetCopy.description}</p>
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    <div className="rounded-2xl border border-border bg-muted/50 p-3">
+                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                         <Armchair className="h-3.5 w-3.5" />
                         Couverts
                       </div>
-                      <p className="mt-2 text-lg font-semibold text-slate-900">{resolved.capacity}</p>
-                      <p className="mt-1 text-sm text-slate-500">cible {targetCapacity}</p>
+                      <p className="mt-2 text-lg font-semibold text-foreground">{resolved.capacity}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">cible {targetCapacity}</p>
                     </div>
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    <div className="rounded-2xl border border-border bg-muted/50 p-3">
+                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                         <Footprints className="h-3.5 w-3.5" />
                         Zones
                       </div>
-                      <p className="mt-2 text-lg font-semibold text-slate-900">{activeZoneCount}</p>
-                      <p className="mt-1 text-sm text-slate-500">zones actives</p>
+                      <p className="mt-2 text-lg font-semibold text-foreground">{activeZoneCount}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">zones actives</p>
                     </div>
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    <div className="rounded-2xl border border-border bg-muted/50 p-3">
+                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                         <Sofa className="h-3.5 w-3.5" />
                         Angles
                       </div>
-                      <p className="mt-2 text-lg font-semibold text-slate-900">{cornerBenchConfigs.length}</p>
-                      <p className="mt-1 text-sm text-slate-500">{cornerBenchCapacity} pl.</p>
+                      <p className="mt-2 text-lg font-semibold text-foreground">{cornerBenchConfigs.length}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{cornerBenchCapacity} pl.</p>
                     </div>
                   </div>
                 </div>
@@ -831,25 +834,25 @@ export default function TableConfigDialog({
           <div className="flex min-h-0 flex-col overflow-hidden">
             <div data-dialog-scroll-area className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
               <div className="space-y-6">
-                <div className="rounded-[26px] border border-slate-200 bg-white/80 p-4 sm:p-5">
+                <div className="rounded-[26px] border border-border bg-background/80 p-4 sm:p-5">
                   <div className="mb-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">1. Base</p>
-                    <p className="mt-1 text-sm text-slate-500">Choisissez la forme et la capacité cible. Les dimensions se calculent automatiquement.</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">1. Base</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Choisissez la forme et la capacité cible. Les dimensions se calculent automatiquement.</p>
                   </div>
 
                   <div className="space-y-4">
                     <div className="space-y-3">
-                      <Label className="text-sm font-semibold text-slate-700">Forme</Label>
+                      <Label className="text-sm font-semibold text-foreground">Forme</Label>
                       <ToggleGroup
                         type="single"
                         value={shape}
                         onValueChange={(value) => value && handleShapeChange(value as FloorPlanTableShape)}
                         className="grid min-w-0 grid-cols-2 gap-2"
                       >
-                        <ToggleGroupItem value="rect" className="h-12 min-w-0 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-medium data-[state=on]:border-slate-900 data-[state=on]:bg-slate-900 data-[state=on]:text-white">
+                        <ToggleGroupItem value="rect" className="h-12 min-w-0 rounded-2xl border border-border bg-card px-3 text-sm font-medium data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
                           Rectangle
                         </ToggleGroupItem>
-                        <ToggleGroupItem value="round" className="h-12 min-w-0 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-medium data-[state=on]:border-slate-900 data-[state=on]:bg-slate-900 data-[state=on]:text-white">
+                        <ToggleGroupItem value="round" className="h-12 min-w-0 rounded-2xl border border-border bg-card px-3 text-sm font-medium data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
                           Ronde
                         </ToggleGroupItem>
                       </ToggleGroup>
@@ -857,7 +860,7 @@ export default function TableConfigDialog({
 
                     <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
                       <div className="min-w-0 space-y-2">
-                        <Label htmlFor="table-target-capacity" className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Capacité cible</Label>
+                        <Label htmlFor="table-target-capacity" className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Capacité cible</Label>
                         <div className="relative">
                           <Input
                             id="table-target-capacity"
@@ -866,9 +869,9 @@ export default function TableConfigDialog({
                             step={1}
                             value={targetCapacity}
                             onChange={(event) => setTargetCapacity(clampInput(Number(event.target.value), targetCapacity))}
-                            className="h-11 min-w-0 rounded-2xl border-slate-200 bg-white pr-12 text-base font-semibold text-slate-900"
+                            className="h-11 min-w-0 rounded-2xl border-border bg-card pr-12 text-base font-semibold text-foreground"
                           />
-                          <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-slate-400">pl.</span>
+                          <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-muted-foreground">pl.</span>
                         </div>
                       </div>
 
@@ -876,13 +879,13 @@ export default function TableConfigDialog({
                   </div>
                 </div>
 
-                <div className="rounded-[26px] border border-slate-200 bg-white/80 p-4 sm:p-5">
+                <div className="rounded-[26px] border border-border bg-background/80 p-4 sm:p-5">
                   <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">2. Disposition</p>
-                      <p className="mt-1 text-sm text-slate-500">Choisissez un modèle rapide. Il génère automatiquement une configuration propre sans superposition.</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">2. Disposition</p>
+                      <p className="mt-1 text-sm text-muted-foreground">Choisissez un modèle rapide. Il génère automatiquement une configuration propre sans superposition.</p>
                     </div>
-                    <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-semibold text-slate-900">
+                    <div className="rounded-full border border-border bg-muted px-3 py-1 text-sm font-semibold text-foreground">
                       {resolved.capacity} pl. calculées
                     </div>
                   </div>
@@ -899,11 +902,11 @@ export default function TableConfigDialog({
                   </div>
                 </div>
 
-                <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen} className="rounded-[26px] border border-slate-200 bg-white/80">
+                <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen} className="rounded-[26px] border border-border bg-background/80">
                   <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-4 sm:px-5">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">3. Affiner</p>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">3. Affiner</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
                         {layoutPreset === "custom"
                           ? "Vous êtes en mode manuel. Chaque modification s'applique directement aux zones actives."
                           : "Les réglages fins sont masqués par défaut. Ouvrez-les seulement si la disposition rapide ne suffit pas."}
@@ -916,23 +919,23 @@ export default function TableConfigDialog({
                         </Button>
                       ) : null}
                       <CollapsibleTrigger asChild>
-                        <Button type="button" variant="ghost" size="icon" className="h-10 w-10 rounded-2xl text-slate-600 hover:bg-slate-100">
+                        <Button type="button" variant="ghost" size="icon" className="h-10 w-10 rounded-2xl text-muted-foreground hover:bg-muted">
                           {advancedOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </Button>
                       </CollapsibleTrigger>
                     </div>
                   </div>
-                  <CollapsibleContent className="border-t border-slate-200 px-4 py-4 sm:px-5">
+                  <CollapsibleContent className="border-t border-border px-4 py-4 sm:px-5">
                     <div className="space-y-5">
-                      <div className="rounded-[22px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-500">
+                      <div className="rounded-[22px] border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
                         Toute modification ici bascule automatiquement en mode manuel pour vous laisser le contrôle total, zone par zone.
                       </div>
 
                       <div>
                         <div className="mb-3 flex items-center justify-between gap-3">
                           <div>
-                            <p className="text-sm font-semibold text-slate-900">Assises par zone</p>
-                            <p className="text-xs text-slate-500">Activez uniquement les zones utiles pour garder un visuel propre et logique.</p>
+                            <p className="text-sm font-semibold text-foreground">Assises par zone</p>
+                            <p className="text-xs text-muted-foreground">Activez uniquement les zones utiles pour garder un visuel propre et logique.</p>
                           </div>
                         </div>
                         <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(248px,100%),1fr))]">
@@ -952,10 +955,10 @@ export default function TableConfigDialog({
                       {shape === "rect" ? (
                         <div>
                           <div className="mb-3 flex items-center gap-2">
-                            <Sofa className="h-4 w-4 text-amber-600" />
+                            <Sofa className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                             <div>
-                              <p className="text-sm font-semibold text-slate-900">Bancs d'angle</p>
-                              <p className="text-xs text-slate-500">À activer seulement si vous composez une table murale ou un coin salon.</p>
+                              <p className="text-sm font-semibold text-foreground">Bancs d'angle</p>
+                              <p className="text-xs text-muted-foreground">À activer seulement si vous composez une table murale ou un coin salon.</p>
                             </div>
                           </div>
                           <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(248px,100%),1fr))]">
@@ -977,15 +980,15 @@ export default function TableConfigDialog({
                 </Collapsible>
 
                 {!canSubmit ? (
-                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  <div className={cn("rounded-2xl border px-4 py-3 text-sm", FLOOR_PLAN_TONE_CLASS.rose)}>
                     Activez au moins une zone d'assise ou un banc d'angle avant d'ajouter la table.
                   </div>
                 ) : null}
               </div>
             </div>
 
-            <DialogFooter className="shrink-0 flex-col-reverse gap-2 border-t border-slate-200 px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <div className="text-sm text-slate-500">
+            <DialogFooter className="shrink-0 flex-col-reverse gap-2 border-t border-border px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <div className="text-sm text-muted-foreground">
                 {layoutPreset === "custom" ? "Mode manuel actif" : `Auto: ${presetCopy.label.toLowerCase()}`}
               </div>
               <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row">

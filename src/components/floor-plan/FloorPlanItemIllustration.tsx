@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import DynamicTableSvg from "./DynamicTableSvg";
 import { BuffetSvg as EventBuffetSvg, CakeTableSvg, DancefloorSvg, DjBoothSvg, SofaSvg, StageSvg } from "./EventFurnitureSvg";
 import { FLOOR_PLAN_ASSETS } from "./floorPlanAssets";
+import { FLOOR_PLAN_PREVIEW_TILE_CLASS } from "./floorPlanSheet";
 
 type FloorPlanItemIllustrationProps = {
   kind: FloorPlanItemKind;
@@ -254,7 +255,7 @@ export function FloorPlanPresetIcon({
   className,
 }: Pick<FloorPlanItemIllustrationProps, "kind" | "shape" | "className">) {
   return (
-    <div className={cn("flex h-16 w-16 items-center justify-center rounded-[22px] border border-slate-200 bg-white/90 p-2 shadow-sm", className)}>
+    <div className={cn("flex h-16 w-16 items-center justify-center rounded-[22px] border p-2 shadow-sm", FLOOR_PLAN_PREVIEW_TILE_CLASS, className)}>
       <FloorPlanItemIllustration kind={kind} shape={shape} className="block h-full w-full" />
     </div>
   );

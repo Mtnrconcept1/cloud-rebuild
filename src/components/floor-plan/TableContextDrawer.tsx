@@ -15,6 +15,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
+import { FLOOR_PLAN_TONE_CLASS } from "./floorPlanTones";
 import {
   type ReservationPlacementScore,
   type ReservationDropState,
@@ -115,17 +116,17 @@ function CompactSection({
   children: ReactNode;
 }) {
   return (
-    <AccordionItem value={value} className="overflow-hidden rounded-[22px] border border-slate-200 bg-white px-4 shadow-sm">
-      <AccordionTrigger className="py-3 text-left outline-none hover:no-underline focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-0">
+    <AccordionItem value={value} className="overflow-hidden rounded-[22px] border border-border bg-card px-4 shadow-sm">
+      <AccordionTrigger className="py-3 text-left outline-none hover:no-underline focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0">
         <div className="flex min-w-0 flex-1 items-center gap-3 pr-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-muted text-foreground">
             {icon}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-slate-950">{title}</p>
-            <p className="mt-0.5 truncate text-xs text-slate-500">{subtitle}</p>
+            <p className="truncate text-sm font-semibold text-foreground">{title}</p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
           </div>
-          <span className="max-w-[42vw] truncate text-right text-xs font-semibold text-slate-700 sm:max-w-[220px]">
+          <span className="max-w-[42vw] truncate text-right text-xs font-semibold text-foreground sm:max-w-[220px]">
             {summary}
           </span>
         </div>
@@ -189,10 +190,10 @@ export default function TableContextDrawer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[960px] flex-col gap-0 overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(245,247,251,0.98))] p-0 shadow-2xl sm:max-h-[760px] sm:rounded-[28px]">
+      <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[960px] flex-col gap-0 overflow-hidden rounded-[28px] border border-border bg-background p-0 shadow-2xl sm:max-h-[760px] sm:rounded-[28px]">
         <DialogHeader className="shrink-0 px-5 pb-2 pt-5 pr-12 text-left sm:px-6 sm:pr-12">
-          <DialogTitle className="text-xl text-slate-950">{title}</DialogTitle>
-          <DialogDescription className="text-slate-500">
+          <DialogTitle className="text-xl text-foreground">{title}</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Actions rapides pour le service. La sélection active reste au premier plan sans inspecteur permanent.
           </DialogDescription>
         </DialogHeader>
@@ -202,33 +203,33 @@ export default function TableContextDrawer({
             {(selectedReservation || selectedTable) ? (
               <div className="grid gap-3 lg:grid-cols-2">
                 {selectedReservation ? (
-                  <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                  <div className="rounded-[22px] border border-border bg-card px-4 py-3 shadow-sm">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-muted text-foreground">
                         <UserRound className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate text-base font-semibold text-slate-950">
+                          <p className="truncate text-base font-semibold text-foreground">
                             {getReservationCustomerLabel(selectedReservation)}
                           </p>
                           {isZeroAttenteReservation(selectedReservation) ? (
-                            <Badge className="border border-teal-200 bg-teal-50 text-teal-800">Zéro Attente</Badge>
+                            <Badge className={cn("border", FLOOR_PLAN_TONE_CLASS.teal)}>Zéro Attente</Badge>
                           ) : null}
                           <Badge className={cn("border", getReservationStatusTone(selectedReservation.status))}>
                             {selectedReservation.status || "pending"}
                           </Badge>
                         </div>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                           <span>{getShortDateLabel(selectedReservation.date)}</span>
                           <span>{getSafeTime(selectedReservation.time)}</span>
                           <span>{selectedReservation.party_size} pers.</span>
                           {selectedReservationAssignedTable ? (
-                            <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
+                            <Badge variant="outline" className="border-border bg-muted text-foreground">
                               {selectedReservationAssignedTable.table_number}
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
+                            <Badge variant="outline" className={cn(FLOOR_PLAN_TONE_CLASS.amber)}>
                               Sans table
                             </Badge>
                           )}
@@ -237,7 +238,7 @@ export default function TableContextDrawer({
                     </div>
 
                     {selectedReservationSpecialRequest ? (
-                      <div className="mt-3 line-clamp-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                      <div className="mt-3 line-clamp-2 rounded-2xl border border-dashed border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
                         {selectedReservationSpecialRequest}
                       </div>
                     ) : null}
@@ -246,25 +247,25 @@ export default function TableContextDrawer({
                 ) : null}
 
                 {selectedTable ? (
-                  <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                  <div className="rounded-[22px] border border-border bg-card px-4 py-3 shadow-sm">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-muted text-foreground">
                         <Table2 className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate text-base font-semibold text-slate-950">{selectedTable.table_number}</p>
+                          <p className="truncate text-base font-semibold text-foreground">{selectedTable.table_number}</p>
                           {selectedTableIsReservable ? (
-                            <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
+                            <Badge variant="outline" className="border-border bg-muted text-foreground">
                               {selectedTable.capacity} couverts
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
+                            <Badge variant="outline" className="border-border bg-muted text-foreground">
                               Mobilier
                             </Badge>
                           )}
                         </div>
-                        <p className="mt-1.5 text-sm text-slate-500">
+                        <p className="mt-1.5 text-sm text-muted-foreground">
                           {selectedTableAssignments.length > 0
                             ? `${selectedTableAssignments.length} réservation(s) visibles sur cette table.`
                             : "Aucune réservation visible sur cette table."}
@@ -277,22 +278,22 @@ export default function TableContextDrawer({
             ) : null}
 
             {selectedReservation && bestCompatibleTable ? (
-              <div className="rounded-[24px] border border-orange-200 bg-[linear-gradient(135deg,rgba(255,247,237,0.96),rgba(255,255,255,0.98))] p-4 shadow-sm">
+              <div className="rounded-[24px] border border-primary/25 bg-[linear-gradient(135deg,hsl(var(--primary)/0.12),hsl(var(--card)))] p-4 shadow-sm">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge className="border border-orange-200 bg-orange-100 text-orange-900">Table recommandee</Badge>
-                      <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">
+                      <Badge className={cn("border", FLOOR_PLAN_TONE_CLASS.orange)}>Table recommandee</Badge>
+                      <Badge variant="outline" className="border-border bg-card text-foreground">
                         Score {bestCompatibleTable.placement.score}/100
                       </Badge>
                     </div>
                     <div className="mt-2 flex flex-wrap items-baseline gap-2">
-                      <p className="text-lg font-bold text-slate-950">{bestCompatibleTable.table.table_number}</p>
-                      <p className="text-sm text-slate-600">{bestCompatibleTable.table.capacity} couverts</p>
+                      <p className="text-lg font-bold text-foreground">{bestCompatibleTable.table.table_number}</p>
+                      <p className="text-sm text-muted-foreground">{bestCompatibleTable.table.capacity} couverts</p>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {bestCompatibleTable.placement.reasons.slice(0, 3).map((reason) => (
-                        <span key={reason} className="rounded-full border border-orange-100 bg-white px-2 py-1 text-xs font-medium text-slate-700">
+                        <span key={reason} className="rounded-full border border-primary/20 bg-card px-2 py-1 text-xs font-medium text-foreground">
                           {reason}
                         </span>
                       ))}
@@ -325,21 +326,21 @@ export default function TableContextDrawer({
                         key={table.id}
                         type="button"
                         variant="outline"
-                        className="h-auto justify-between gap-3 rounded-2xl border-slate-200 px-4 py-3 text-left"
+                        className="h-auto justify-between gap-3 rounded-2xl border-border px-4 py-3 text-left"
                         onClick={() => onAssignReservationToTable(selectedReservation.id, table.id)}
                       >
                         <span className="min-w-0">
                           <span className="flex min-w-0 items-center gap-2">
                             <span className="truncate font-semibold">{table.table_number}</span>
-                            <Badge variant="outline" className="shrink-0 border-orange-200 bg-orange-50 text-orange-800">
+                            <Badge variant="outline" className={cn("shrink-0", FLOOR_PLAN_TONE_CLASS.orange)}>
                               {placement.score}/100
                             </Badge>
                           </span>
-                          <span className="mt-1 block truncate text-xs text-slate-500">
+                          <span className="mt-1 block truncate text-xs text-muted-foreground">
                             {placement.reasons[0] || `${table.capacity} couv.`}
                           </span>
                         </span>
-                        <span className="shrink-0 text-xs text-slate-500">{table.capacity} couv.</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">{table.capacity} couv.</span>
                       </Button>
                     ))}
                   </div>
@@ -360,11 +361,11 @@ export default function TableContextDrawer({
                         key={reservation.id}
                         type="button"
                         variant="outline"
-                        className="h-auto justify-between rounded-2xl border-slate-200 px-4 py-3 text-left"
+                        className="h-auto justify-between rounded-2xl border-border px-4 py-3 text-left"
                         onClick={() => onAssignReservationToTable(reservation.id, selectedTable.id)}
                       >
                         <span className="font-semibold">{getReservationCustomerLabel(reservation)}</span>
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-muted-foreground">
                           {getSafeTime(reservation.time)} · {reservation.party_size} pers.
                         </span>
                       </Button>
@@ -386,11 +387,11 @@ export default function TableContextDrawer({
                       <button
                         key={reservation.id}
                         type="button"
-                        className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100"
+                        className="flex items-center justify-between rounded-2xl border border-border bg-muted/50 px-4 py-3 text-left transition-colors hover:bg-muted"
                         onClick={() => onSelectReservation(reservation.id)}
                       >
-                        <span className="font-medium text-slate-900">{getReservationCustomerLabel(reservation)}</span>
-                        <span className="text-sm text-slate-500">{getSafeTime(reservation.time)}</span>
+                        <span className="font-medium text-foreground">{getReservationCustomerLabel(reservation)}</span>
+                        <span className="text-sm text-muted-foreground">{getSafeTime(reservation.time)}</span>
                       </button>
                     ))}
                   </div>
@@ -409,34 +410,34 @@ export default function TableContextDrawer({
                     <Badge className={cn(
                       "border",
                       selectedReservationPaymentDetails.isPaid
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                        : "border-amber-200 bg-amber-50 text-amber-700",
+                        ? FLOOR_PLAN_TONE_CLASS.emerald
+                        : FLOOR_PLAN_TONE_CLASS.amber,
                     )}>
                       {selectedReservationPaymentDetails.isPaid ? "Payé" : "À régler"}
                     </Badge>
                     {selectedReservationPaymentDetails.paymentMethod ? (
-                      <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
+                      <Badge variant="outline" className="border-border bg-muted text-muted-foreground">
                         {selectedReservationPaymentDetails.paymentMethod}
                       </Badge>
                     ) : null}
                   </div>
 
-                  <div className="space-y-2 text-sm text-slate-600">
+                  <div className="space-y-2 text-sm text-muted-foreground">
                     <div className="flex items-center justify-between gap-3">
                       <span>Montant</span>
-                      <span className="font-semibold text-slate-950">
+                      <span className="font-semibold text-foreground">
                         {formatCurrency(selectedReservationPaymentDetails.totalAmount) || "Non renseigné"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span>Instrument</span>
-                      <span className="text-right font-medium text-slate-900">
+                      <span className="text-right font-medium text-foreground">
                         {selectedReservationPaymentDetails.cardLabel || "Non renseigné"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span>Référence</span>
-                      <span className="text-right font-medium text-slate-900">
+                      <span className="text-right font-medium text-foreground">
                         {selectedReservationPaymentDetails.orderReference
                           || selectedReservationPaymentDetails.checkoutSessionId
                           || "Non renseignée"}
@@ -456,15 +457,15 @@ export default function TableContextDrawer({
                 >
                   <div className="space-y-2">
                     {selectedReservationPreorderItems.map((item, index) => (
-                      <div key={`${item.menuItemId || item.name}-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+                      <div key={`${item.menuItemId || item.name}-${index}`} className="rounded-2xl border border-border bg-muted px-3 py-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="font-medium text-slate-900">{item.name}</p>
-                            <p className="text-sm text-slate-500">
+                            <p className="font-medium text-foreground">{item.name}</p>
+                            <p className="text-sm text-muted-foreground">
                               {item.quantity} x {formatCurrency(item.unitPrice) || "Prix indisponible"}
                             </p>
                           </div>
-                          <span className="shrink-0 text-sm font-semibold text-slate-950">
+                          <span className="shrink-0 text-sm font-semibold text-foreground">
                             {formatCurrency(item.totalPrice) || "Prix indisponible"}
                           </span>
                         </div>
@@ -475,10 +476,10 @@ export default function TableContextDrawer({
               ) : null}
             </Accordion>
 
-            {(selectedReservation || selectedTable) ? <Separator className="bg-slate-200" /> : null}
+            {(selectedReservation || selectedTable) ? <Separator className="bg-border" /> : null}
 
             {selectedReservation || selectedTable ? (
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 <CalendarClock className="h-4 w-4" />
                 <span>La modale reste contextuelle: elle disparaît dès que vous fermez la sélection active.</span>
               </div>
@@ -486,7 +487,7 @@ export default function TableContextDrawer({
           </div>
         </div>
 
-        <DialogFooter className="shrink-0 border-t border-slate-200 px-5 pb-4 pt-3 sm:px-6">
+        <DialogFooter className="shrink-0 border-t border-border px-5 pb-4 pt-3 sm:px-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
             {selectedReservation && selectedTable && selectedTableIsReservable ? (
               <Button

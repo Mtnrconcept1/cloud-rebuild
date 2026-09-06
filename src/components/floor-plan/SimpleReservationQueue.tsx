@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
+import { FLOOR_PLAN_TONE_CLASS } from "./floorPlanTones";
 import {
   type ReservationDropState,
   type ReservationTableRecommendation,
@@ -67,27 +68,27 @@ export default function SimpleReservationQueue({
   ), [assignedReservations, draftAssignments, unassignedReservations]);
 
   return (
-    <Card className="flex h-full min-h-[420px] flex-col overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-4 py-3">
+    <Card className="flex h-full min-h-[420px] flex-col overflow-hidden rounded-2xl border-border bg-card shadow-sm">
+      <div className="border-b border-border px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-bold text-slate-950">Clients</h2>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <h2 className="text-base font-bold text-foreground">Clients</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {unassignedReservations.length} à placer · {assignedReservations.length} placée(s)
             </p>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-700">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Users className="h-4 w-4" />
           </div>
         </div>
 
         <div className="relative mt-3">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={reservationQuery}
             onChange={(event) => onReservationQueryChange(event.target.value)}
             placeholder="Rechercher un client"
-            className="h-10 rounded-xl border-slate-200 bg-slate-50 pl-9"
+            className="h-10 rounded-xl border-border bg-muted pl-9"
           />
         </div>
       </div>
@@ -95,11 +96,11 @@ export default function SimpleReservationQueue({
       <ScrollArea className="min-h-0 flex-1">
         <div className="space-y-2 p-3">
           {reservationsLoading ? (
-            <p className="py-10 text-center text-sm text-slate-500">Chargement…</p>
+            <p className="py-10 text-center text-sm text-muted-foreground">Chargement…</p>
           ) : reservations.length === 0 ? (
             <div className="py-12 text-center">
-              <Users className="mx-auto h-7 w-7 text-slate-300" />
-              <p className="mt-2 text-sm font-medium text-slate-700">Aucun client pour ce service</p>
+              <Users className="mx-auto h-7 w-7 text-muted-foreground/60" />
+              <p className="mt-2 text-sm font-medium text-foreground">Aucun client pour ce service</p>
             </div>
           ) : reservations.map((reservation) => {
             const tableId = draftAssignments[reservation.id]
@@ -133,8 +134,8 @@ export default function SimpleReservationQueue({
                 className={cn(
                   "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-colors",
                   isSelected
-                    ? "border-orange-300 bg-orange-50 shadow-sm"
-                    : "border-slate-200 bg-white hover:bg-slate-50",
+                    ? "border-primary/40 bg-primary/10 shadow-sm"
+                    : "border-border bg-card hover:bg-muted",
                   isDragging && "opacity-50",
                 )}
               >
@@ -142,7 +143,7 @@ export default function SimpleReservationQueue({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-8 touch-none rounded-lg text-slate-400"
+                  className="h-9 w-8 touch-none rounded-lg text-muted-foreground"
                   aria-label={`Déplacer ${getReservationCustomerLabel(reservation)}`}
                   onPointerDown={(event) => onReservationHandlePointerDown(event, reservation.id)}
                   onClick={(event) => event.stopPropagation()}
@@ -152,14 +153,14 @@ export default function SimpleReservationQueue({
 
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-2">
-                    <p className="truncate text-sm font-semibold text-slate-950">
+                    <p className="truncate text-sm font-semibold text-foreground">
                       {getReservationCustomerLabel(reservation)}
                     </p>
                     {isZeroAttenteReservation(reservation) ? (
-                      <span className="h-2 w-2 shrink-0 rounded-full bg-teal-500" title="Zéro Attente" />
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-teal-500 dark:bg-teal-400" title="Zéro Attente" />
                     ) : null}
                   </div>
-                  <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                  <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Clock3 className="h-3 w-3" />
                     {getSafeTime(reservation.time)} · {reservation.party_size} pers.
                   </p>
@@ -169,7 +170,7 @@ export default function SimpleReservationQueue({
                   {assignedTable ? (
                     <button
                       type="button"
-                      className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 text-xs font-bold text-emerald-800"
+                      className={cn("inline-flex h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-bold", FLOOR_PLAN_TONE_CLASS.emerald)}
                       onClick={(event) => {
                         event.stopPropagation();
                         onReleaseReservation(reservation.id);
@@ -182,7 +183,7 @@ export default function SimpleReservationQueue({
                   ) : recommendation && onAssignReservationToTable ? (
                     <button
                       type="button"
-                      className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-2.5 text-xs font-bold text-orange-800"
+                      className={cn("inline-flex h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-bold", FLOOR_PLAN_TONE_CLASS.orange)}
                       onClick={(event) => {
                         event.stopPropagation();
                         onAssignReservationToTable(reservation.id, recommendation.table.id);
@@ -195,7 +196,7 @@ export default function SimpleReservationQueue({
                   ) : selectedTable && canUseSelectedTable && onAssignReservationToTable ? (
                     <button
                       type="button"
-                      className="h-9 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700"
+                      className="h-9 rounded-xl border border-border bg-card px-2.5 text-xs font-bold text-foreground"
                       onClick={(event) => {
                         event.stopPropagation();
                         onAssignReservationToTable(reservation.id, selectedTable.id);
@@ -204,7 +205,7 @@ export default function SimpleReservationQueue({
                       {selectedTable.table_number}
                     </button>
                   ) : (
-                    <span className="inline-flex h-9 items-center rounded-xl border border-amber-200 bg-amber-50 px-2.5 text-xs font-semibold text-amber-800">
+                    <span className={cn("inline-flex h-9 items-center rounded-xl border px-2.5 text-xs font-semibold", FLOOR_PLAN_TONE_CLASS.amber)}>
                       À placer
                     </span>
                   )}

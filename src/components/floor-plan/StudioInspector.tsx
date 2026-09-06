@@ -10,6 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { getFloorPlanItemResizeBehavior, getFloorPlanItemTypeLabel, getMinimumTableSize } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
+import { FLOOR_PLAN_PREVIEW_TILE_CLASS } from "./floorPlanSheet";
+import { FLOOR_PLAN_TONE_CLASS } from "./floorPlanTones";
 import type { StudioDraftTable } from "./studioShared";
 
 type SelectedTableDimensions = {
@@ -68,24 +70,24 @@ export default function StudioInspector({
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="space-y-2 border-b border-slate-200/80 pb-3">
+      <div className="space-y-2 border-b border-border/70 pb-3">
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Réglages</h2>
-          <p className="mt-1 text-xs text-slate-500">Nom, secteur, rotation et taille.</p>
+          <h2 className="text-base font-semibold text-foreground">Réglages</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Nom, secteur, rotation et taille.</p>
         </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto py-3">
         {!selectedTable ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center">
-            <LayoutPanelTop className="mx-auto h-6 w-6 text-slate-400" />
-            <p className="mt-3 text-sm font-medium text-slate-700">Aucune sélection</p>
-            <p className="mt-1 text-xs text-slate-500">Touchez un élément du canevas.</p>
+          <div className="rounded-2xl border border-dashed border-border bg-muted px-4 py-8 text-center">
+            <LayoutPanelTop className="mx-auto h-6 w-6 text-muted-foreground" />
+            <p className="mt-3 text-sm font-medium text-foreground">Aucune sélection</p>
+            <p className="mt-1 text-xs text-muted-foreground">Touchez un élément du canevas.</p>
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
-              <div className="flex h-28 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+            <div className="rounded-2xl border border-border bg-card px-3 py-3 shadow-sm">
+              <div className={cn("flex h-28 items-center justify-center rounded-xl border", FLOOR_PLAN_PREVIEW_TILE_CLASS)}>
                 <FloorPlanItemIllustration
                   kind={selectedTable.layout.kind}
                   shape={selectedTable.layout.shape}
@@ -105,19 +107,19 @@ export default function StudioInspector({
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="rounded-full border-slate-200 bg-slate-50 text-slate-700">
+                <Badge variant="outline" className="rounded-full border-border bg-muted text-foreground">
                   {getFloorPlanItemTypeLabel(selectedTable.layout.kind, selectedTable.layout.shape)}
                 </Badge>
                 {selectedTableIsReservable ? (
-                  <Badge variant="outline" className="rounded-full border-sky-200 bg-sky-50 text-sky-700">
+                  <Badge variant="outline" className={cn("rounded-full", FLOOR_PLAN_TONE_CLASS.sky)}>
                     {selectedTable.capacity} couverts
                   </Badge>
                 ) : null}
                 <Badge variant="outline" className={cn(
                   "rounded-full",
                   selectedTable.is_active
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-slate-200 bg-slate-50 text-slate-500",
+                    ? FLOOR_PLAN_TONE_CLASS.emerald
+                    : FLOOR_PLAN_TONE_CLASS.neutral,
                 )}>
                   {selectedTable.is_active ? "Actif" : "Masqué"}
                 </Badge>
@@ -146,25 +148,25 @@ export default function StudioInspector({
             </div>
 
             {selectedTableIsReservable ? (
-              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              <div className="grid gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   <Armchair className="h-3.5 w-3.5" />
                   Assises
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Capacité</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-900">{selectedTable.capacity} couverts</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Capacité</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{selectedTable.capacity} couverts</p>
                   </div>
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Zones</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Zones</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">
                       {(selectedTable.layout.seatPlacements?.length || 0) + (selectedTable.layout.cornerBenchConfigs?.length || 0)} actives
                     </p>
                   </div>
                 </div>
                 {selectedTableDimensions ? (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                  <div className="rounded-2xl border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
                     Empreinte {Math.round(selectedTableDimensions.footprintWidth)} x {Math.round(selectedTableDimensions.footprintHeight)} px
                     {" - "}
                     plateau {Math.round(selectedTableDimensions.tableWidth)} x {Math.round(selectedTableDimensions.tableHeight)} px
@@ -176,8 +178,8 @@ export default function StudioInspector({
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              <div className="grid gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   <Ruler className="h-3.5 w-3.5" />
                   Taille du mobilier
                 </div>
@@ -255,7 +257,7 @@ export default function StudioInspector({
                     </Button>
                   </div>
                 ) : null}
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-muted-foreground">
                   {resizeBehavior?.ratioLocked
                     ? "Proportions verrouillées — le ratio est maintenu automatiquement."
                     : "Redimensionnement libre. Les petits objets restent manipulables directement sur le plan."}
@@ -263,7 +265,7 @@ export default function StudioInspector({
               </div>
             )}
 
-            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="grid gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
               <div className="space-y-1.5">
                 <Label>Rotation</Label>
                 <div className="flex items-center gap-2">
@@ -279,17 +281,17 @@ export default function StudioInspector({
                     }}
                     className="h-10 w-[110px] rounded-xl"
                   />
-                  <span className="text-xs text-slate-500">deg</span>
+                  <span className="text-xs text-muted-foreground">deg</span>
                   <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-xl" onClick={onRotateIncrement}>
                     <RotateCw className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
 
-              <div className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-border bg-muted px-3 py-2">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-slate-900">Visible sur le plan</p>
-                  <p className="text-sm text-slate-500">Désactivez un élément sans le supprimer définitivement.</p>
+                  <p className="font-medium text-foreground">Visible sur le plan</p>
+                  <p className="text-sm text-muted-foreground">Désactivez un élément sans le supprimer définitivement.</p>
                 </div>
                 <Switch checked={selectedTable.is_active} onCheckedChange={onToggleActive} />
               </div>

@@ -8,6 +8,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getFloorPlanInteractiveFrame, isReservableFloorPlanItem, type FloorPlanResizeHandle } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
+import {
+  FLOOR_PLAN_SHEET_BACKGROUND,
+  FLOOR_PLAN_SHEET_FLOOR_CLASS,
+  FLOOR_PLAN_SHEET_FLOOR_INLAY_CLASS,
+  FLOOR_PLAN_SHEET_GRID_IMAGE,
+  FLOOR_PLAN_SHEET_STAGE_CLASS,
+  FLOOR_PLAN_SHEET_WALL_CLASS,
+  createFloorPlanSheetScale,
+} from "./floorPlanSheet";
+import { FLOOR_PLAN_TONE_CLASS } from "./floorPlanTones";
 import { useFloorPlanZoomViewport, FLOOR_PLAN_MIN_ZOOM, FLOOR_PLAN_MAX_ZOOM } from "./useFloorPlanZoomViewport";
 import {
   type RenderedTableFrame,
@@ -63,8 +73,6 @@ type ServiceBoardProps = {
   ) => { top: number; right: number; bottom: number; left: number };
 };
 
-const BASE_CANVAS_WIDTH = 1040;
-const BASE_CANVAS_HEIGHT = 760;
 const SERVICE_RESIZE_HANDLES: Array<{ key: FloorPlanResizeHandle; className: string; cursor: string }> = [
   { key: "nw", className: "-left-1.5 -top-1.5", cursor: "nwse-resize" },
   { key: "n", className: "left-1/2 -top-1.5 -translate-x-1/2", cursor: "ns-resize" },
@@ -76,6 +84,9 @@ const SERVICE_RESIZE_HANDLES: Array<{ key: FloorPlanResizeHandle; className: str
   { key: "w", className: "-left-1.5 top-1/2 -translate-y-1/2", cursor: "ew-resize" },
 ];
 
+// Tons peints *sur* la feuille du plan : ils sont lus sur le fond clair du
+// canevas, pas sur celui de la page, donc ils restent clairs dans les deux
+// thèmes (cf. floorPlanSheet.ts). Pour le châssis, voir FLOOR_PLAN_TONE_CLASS.
 function getSurfaceState({
   isReservable,
   assignmentsCount,
@@ -193,11 +204,7 @@ export default function ServiceBoard({
   getTableContentPadding,
 }: ServiceBoardProps) {
   const canvasRatio = `${canvasWidth} / ${canvasHeight}`;
-  const canvasChromeScale = Math.max(
-    0.1,
-    Math.min(canvasWidth / BASE_CANVAS_WIDTH, canvasHeight / BASE_CANVAS_HEIGHT),
-  );
-  const getScaledCanvasToken = (value: number, minimum = 1) => `${Math.max(minimum, Math.round(value * canvasChromeScale))}px`;
+  const getScaledCanvasToken = createFloorPlanSheetScale(canvasWidth, canvasHeight);
 
   useEffect(() => {
     const viewport = canvasViewportRef.current;
@@ -254,25 +261,25 @@ export default function ServiceBoard({
   };
 
   return (
-    <Card className="flex h-[min(68svh,680px)] min-h-[430px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:h-full xl:min-h-0">
-      <CardHeader className="space-y-3 border-b border-slate-200/80 px-4 py-3">
+    <Card className="flex h-[min(68svh,680px)] min-h-[430px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm xl:h-full xl:min-h-0">
+      <CardHeader className="space-y-3 border-b border-border/70 px-4 py-3">
         <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <CardTitle className="text-lg text-slate-950">{selectedSector}</CardTitle>
-            <CardDescription className="mt-1 text-sm text-slate-500">{subtitle}</CardDescription>
+            <CardTitle className="text-lg text-foreground">{selectedSector}</CardTitle>
+            <CardDescription className="mt-1 text-sm text-muted-foreground">{subtitle}</CardDescription>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="rounded-full border-slate-200 bg-slate-50 text-slate-700">
+            <Badge variant="outline" className={cn("rounded-full", FLOOR_PLAN_TONE_CLASS.neutral)}>
               Tables {visibleTablesCount}
             </Badge>
-            <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">
+            <Badge variant="outline" className={cn("rounded-full", FLOOR_PLAN_TONE_CLASS.emerald)}>
               Libres {availableTablesCount}
             </Badge>
-            <Badge variant="outline" className="rounded-full border-amber-200 bg-amber-50 text-amber-700">
+            <Badge variant="outline" className={cn("rounded-full", FLOOR_PLAN_TONE_CLASS.amber)}>
               Sans table {unassignedReservationsCount}
             </Badge>
-            <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white px-1 py-1 shadow-sm">
+            <div className="flex items-center gap-1 rounded-2xl border border-border bg-card px-1 py-1 shadow-sm">
               <span className="min-w-14 text-center text-sm font-semibold">{canvasZoomLabel}</span>
               <Button
                 type="button"
@@ -301,28 +308,28 @@ export default function ServiceBoard({
         </div>
 
         {activeReservationLabel ? (
-          <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-amber-700 shadow-sm">
+          <div className={cn("flex items-start gap-3 rounded-2xl px-3 py-2", FLOOR_PLAN_TONE_CLASS.amber)}>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-card text-amber-700 shadow-sm dark:bg-amber-500/15 dark:text-amber-200">
               <Grip className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700">Placement en cours</p>
-              <p className="mt-1 truncate text-sm font-semibold text-amber-950">{activeReservationLabel}</p>
-              <p className="text-xs text-amber-800">Glissez vers une table compatible.</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">Placement en cours</p>
+              <p className="mt-1 truncate text-sm font-semibold text-amber-950 dark:text-amber-50">{activeReservationLabel}</p>
+              <p className="text-xs text-amber-800 dark:text-amber-200/80">Glissez vers une table compatible.</p>
             </div>
           </div>
         ) : null}
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col p-2">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
-          <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200/80 bg-white/80 p-2 shadow-inner">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-muted p-2">
+          <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-border/70 bg-background/60 p-2 shadow-inner">
             <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain" role="region" aria-label={`Plan de service du secteur ${selectedSector}`}>
               <div style={{ width: canvasWidth * canvasZoom, height: canvasHeight * canvasZoom }}>
                 <div
                   ref={canvasRef}
                   data-floor-plan-canvas="stage"
-                  className="relative shrink-0 origin-top-left overflow-hidden border border-slate-300/70 shadow-inner"
+                  className={FLOOR_PLAN_SHEET_STAGE_CLASS}
                   onDragOver={onCanvasDragOver}
                   onDrop={onCanvasDrop}
                   onDragLeave={onCanvasDragLeave}
@@ -337,13 +344,13 @@ export default function ServiceBoard({
                     aspectRatio: canvasRatio,
                     transform: `scale(${canvasZoom})`,
                     borderRadius: getScaledCanvasToken(28, 8),
-                    backgroundImage: "linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px)",
+                    backgroundImage: FLOOR_PLAN_SHEET_GRID_IMAGE,
                     backgroundSize: `${getScaledCanvasToken(36, 8)} ${getScaledCanvasToken(36, 8)}, ${getScaledCanvasToken(36, 8)} ${getScaledCanvasToken(36, 8)}`,
-                    backgroundColor: "#f6f7fb",
+                    backgroundColor: FLOOR_PLAN_SHEET_BACKGROUND,
                   }}
                 >
                   <div
-                    className="pointer-events-none absolute border-[#36373d]"
+                    className={FLOOR_PLAN_SHEET_WALL_CLASS}
                     style={{
                       inset: getScaledCanvasToken(24, 3),
                       borderRadius: getScaledCanvasToken(36, 8),
@@ -351,14 +358,14 @@ export default function ServiceBoard({
                     }}
                   />
                   <div
-                    className="pointer-events-none absolute bg-[linear-gradient(145deg,rgba(225,192,149,0.9),rgba(192,151,111,0.92))]"
+                    className={FLOOR_PLAN_SHEET_FLOOR_CLASS}
                     style={{
                       inset: getScaledCanvasToken(46, 6),
                       borderRadius: getScaledCanvasToken(26, 6),
                     }}
                   />
                   <div
-                    className="pointer-events-none absolute border border-white/25"
+                    className={FLOOR_PLAN_SHEET_FLOOR_INLAY_CLASS}
                     style={{
                       inset: getScaledCanvasToken(64, 8),
                       borderRadius: getScaledCanvasToken(16, 4),
