@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 334 error codes mapped from supabase/functions/**.
+// 338 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -70,11 +70,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_credits_exhausted": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1005
+      "line": 1113
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1338
+      "line": 1446
     }
   ],
   "ai_empty_response": [
@@ -130,11 +130,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 666
+      "line": 753
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1003
+      "line": 1111
     }
   ],
   "ai_quota_exceeded": [
@@ -166,11 +166,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 669
+      "line": 756
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 997
+      "line": 1105
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
@@ -230,7 +230,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1358
+      "line": 1466
     },
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
@@ -988,29 +988,29 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_edit_timeout": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 990
+      "line": 1098
     }
   ],
   "image_edit_transient_failure": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 991
+      "line": 1099
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 995
+      "line": 1103
     }
   ],
   "image_empty_response": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1212
+      "line": 1320
     }
   ],
   "image_generation_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1385
+      "line": 1493
     }
   ],
   "image_id_required": [
@@ -1040,7 +1040,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_missing_payload": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1222
+      "line": 1330
     },
     {
       "file": "supabase/functions/commercial-demo-ai/index.ts",
@@ -1056,7 +1056,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_reference_edit_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1198
+      "line": 1306
     }
   ],
   "image_request_rejected": [
@@ -1080,7 +1080,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_url_unreachable": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1218
+      "line": 1326
     }
   ],
   "incident_bound_to_another_github_run": [
@@ -1378,19 +1378,19 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "marketing_reference_ids_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 371
+      "line": 415
     }
   ],
   "marketing_reference_mismatch": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 391
+      "line": 435
     }
   ],
   "marketing_reference_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 397
+      "line": 441
     }
   ],
   "mcp_method_not_found": [
@@ -1667,6 +1667,18 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 68
     }
   ],
+  "photo_style_reference_mismatch": [
+    {
+      "file": "supabase/functions/ai-image-enhance/index.ts",
+      "line": 476
+    }
+  ],
+  "photo_style_reference_required": [
+    {
+      "file": "supabase/functions/ai-image-enhance/index.ts",
+      "line": 484
+    }
+  ],
   "premium_required": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
@@ -1788,7 +1800,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "reference_image_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 857
+      "line": 964
     }
   ],
   "reference_image_too_large": [
@@ -2002,7 +2014,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1384
+      "line": 1492
     },
     {
       "file": "supabase/functions/ai-restaurant-agent/index.ts",
@@ -2080,31 +2092,43 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "source_image_edit_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1007
+      "line": 1115
     }
   ],
   "source_image_invalid_type": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 759
+      "line": 866
+    }
+  ],
+  "source_image_timeout": [
+    {
+      "file": "supabase/functions/ai-image-enhance/index.ts",
+      "line": 851
     }
   ],
   "source_image_too_large": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 762
+      "line": 869
     }
   ],
   "source_image_unreachable": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 757
+      "line": 864
+    }
+  ],
+  "source_image_unsafe_url": [
+    {
+      "file": "supabase/functions/ai-image-enhance/index.ts",
+      "line": 859
     }
   ],
   "source_image_unsupported_type": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 760
+      "line": 867
     }
   ],
   "sponsored_touch_identity_conflict": [
