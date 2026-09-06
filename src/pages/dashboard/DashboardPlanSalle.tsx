@@ -41,6 +41,7 @@ import StudioInspector from "@/components/floor-plan/StudioInspector";
 import StudioPalette from "@/components/floor-plan/StudioPalette";
 import TableConfigDialog from "@/components/floor-plan/TableConfigDialog";
 import TableContextDrawer from "@/components/floor-plan/TableContextDrawer";
+import { FLOOR_PLAN_TONE_CLASS } from "@/components/floor-plan/floorPlanTones";
 import { getRecommendedTableByReservation, scoreReservationPlacement } from "@/components/floor-plan/serviceShared";
 import type { StudioLibraryTab } from "@/components/floor-plan/studioShared";
 import { Badge } from "@/components/ui/badge";
@@ -3305,7 +3306,7 @@ export default function DashboardPlanSalle() {
       return {
         label: "Sauvegarde en cours",
         detail: "Les derniers ajustements sont en train d'être synchronisés.",
-        tone: "border-amber-200 bg-amber-50 text-amber-800",
+        tone: FLOOR_PLAN_TONE_CLASS.amber,
       };
     }
 
@@ -3314,12 +3315,12 @@ export default function DashboardPlanSalle() {
         ? {
             label: "Template à enregistrer",
             detail: "De nouveaux éléments doivent être sauvegardés avant diffusion.",
-            tone: "border-amber-200 bg-amber-50 text-amber-800",
+            tone: FLOOR_PLAN_TONE_CLASS.amber,
           }
         : {
             label: "Template synchronise",
             detail: "La structure de salle est à jour.",
-            tone: "border-emerald-200 bg-emerald-50 text-emerald-800",
+            tone: FLOOR_PLAN_TONE_CLASS.emerald,
           };
     }
 
@@ -3329,34 +3330,34 @@ export default function DashboardPlanSalle() {
           detail: serviceAssignmentsDirty
             ? "Les derniers placements seront sauvegardés automatiquement."
             : "Les derniers déplacements seront sauvegardés automatiquement.",
-          tone: "border-sky-200 bg-sky-50 text-sky-800",
+          tone: FLOOR_PLAN_TONE_CLASS.sky,
         }
       : {
           label: "Plan du jour synchronise",
           detail: "Les placements affichés correspondent à la version en base.",
-          tone: "border-emerald-200 bg-emerald-50 text-emerald-800",
+          tone: FLOOR_PLAN_TONE_CLASS.emerald,
         };
   })();
 
   return (
     <DashboardLayout contentWidth="full" mainClassName="p-2 pb-24 sm:p-3 md:p-4">
       <div className="flex min-h-[calc(100vh-2rem)] flex-col gap-3 xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden">
-        <header className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm sm:px-4">
+        <header className="shrink-0 rounded-2xl border border-border bg-card px-3 py-3 shadow-sm sm:px-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">Plan de salle</h1>
+                <h1 className="font-display text-xl font-bold tracking-tight text-foreground sm:text-2xl">Plan de salle</h1>
                 <span aria-live="polite" className={cn("hidden rounded-full border px-2.5 py-1 text-[11px] font-semibold sm:inline-flex", saveStatus.tone)}>
                   {saveStatus.label}
                 </span>
               </div>
-              <p className="mt-1 truncate text-sm text-slate-500">
+              <p className="mt-1 truncate text-sm text-muted-foreground">
                 {selectedRestaurant?.name || "Sélectionnez un restaurant"}
               </p>
             </div>
 
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+              <div className="inline-flex rounded-xl border border-border bg-muted p-1">
                 <Button
                   type="button"
                   size="sm"
@@ -3377,7 +3378,7 @@ export default function DashboardPlanSalle() {
                 </Button>
               </div>
 
-              <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1">
+              <div className="flex items-center rounded-xl border border-border bg-card p-1">
                 <Button
                   type="button"
                   variant="ghost"
@@ -3461,7 +3462,7 @@ export default function DashboardPlanSalle() {
           </div>
         </header>
 
-        {restaurantsLoading ? <p className="text-sm text-slate-500">Chargement…</p> : null}
+        {restaurantsLoading ? <p className="text-sm text-muted-foreground">Chargement…</p> : null}
         {restaurantsError || branchesError || tablesError || floorPlanVariantsError || layoutOverridesError || reservationsError || slotsError ? (
           <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
             Une partie du plan n’a pas pu être chargée. Réessayez dans un instant.
@@ -3470,7 +3471,7 @@ export default function DashboardPlanSalle() {
 
         {!selectedId && !restaurantsLoading ? (
           <Card>
-            <CardContent className="py-10 text-center text-slate-500">
+            <CardContent className="py-10 text-center text-muted-foreground">
               Sélectionnez un restaurant pour ouvrir son plan de salle.
             </CardContent>
           </Card>
@@ -3484,8 +3485,8 @@ export default function DashboardPlanSalle() {
                 className="h-36 w-36 bg-transparent sm:h-44 sm:w-44"
               />
               <div>
-                <h2 className="text-lg font-bold text-slate-950">Créez votre salle principale</h2>
-                <p className="mt-1 text-sm text-slate-500">Vous pourrez ensuite ajouter et déplacer vos tables.</p>
+                <h2 className="text-lg font-bold text-foreground">Créez votre salle principale</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Vous pourrez ensuite ajouter et déplacer vos tables.</p>
               </div>
               <Button onClick={() => createDefaultBranchMutation.mutate()} disabled={createDefaultBranchMutation.isPending}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -3498,13 +3499,13 @@ export default function DashboardPlanSalle() {
         {selectedBranch ? (
           <div className="flex min-h-0 flex-1 flex-col gap-3 xl:overflow-hidden">
             <div className={cn(
-              "grid shrink-0 gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm",
+              "grid shrink-0 gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm",
               isTemplateMode
                 ? "grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_minmax(200px,1fr)]"
                 : "grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_170px_150px]",
             )}>
               <Select value={selectedBranchId || ""} onValueChange={setSelectedBranchId}>
-                <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white">
+                <SelectTrigger className="h-11 rounded-xl border-border bg-card">
                   <SelectValue placeholder="Salle" />
                 </SelectTrigger>
                 <SelectContent>
@@ -3515,7 +3516,7 @@ export default function DashboardPlanSalle() {
               </Select>
 
               <Select value={selectedSector} onValueChange={setSelectedSector}>
-                <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white">
+                <SelectTrigger className="h-11 rounded-xl border-border bg-card">
                   <SelectValue placeholder="Zone" />
                 </SelectTrigger>
                 <SelectContent>
@@ -3527,7 +3528,7 @@ export default function DashboardPlanSalle() {
 
               {isTemplateMode ? (
                 <Select value={activeVariantId || "current"} onValueChange={loadFloorPlanVariant}>
-                  <SelectTrigger className="col-span-2 h-11 rounded-xl border-slate-200 bg-white lg:col-span-1">
+                  <SelectTrigger className="col-span-2 h-11 rounded-xl border-border bg-card lg:col-span-1">
                     <SelectValue placeholder="Plan actif" />
                   </SelectTrigger>
                   <SelectContent>
@@ -3542,12 +3543,12 @@ export default function DashboardPlanSalle() {
                   <Input
                     type="date"
                     value={referenceDate}
-                    className="h-11 rounded-xl border-slate-200 bg-white"
+                    className="h-11 rounded-xl border-border bg-card"
                     onChange={(event) => setReferenceDate(event.target.value)}
                     aria-label="Date du service"
                   />
                   <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
-                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white">
+                    <SelectTrigger className="h-11 rounded-xl border-border bg-card">
                       <SelectValue placeholder="Service" />
                     </SelectTrigger>
                     <SelectContent>
@@ -3592,9 +3593,9 @@ export default function DashboardPlanSalle() {
                   <Tabs
                     value={toolPanelTab}
                     onValueChange={(value) => setToolPanelTab(value as "library" | "inspector")}
-                    className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+                    className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-sm"
                   >
-                    <TabsList className="grid h-10 w-full shrink-0 grid-cols-2 rounded-xl bg-slate-100 p-1">
+                    <TabsList className="grid h-10 w-full shrink-0 grid-cols-2 rounded-xl bg-muted p-1">
                       <TabsTrigger value="library" className="rounded-lg text-xs">Ajouter</TabsTrigger>
                       <TabsTrigger value="inspector" className="rounded-lg text-xs">Régler</TabsTrigger>
                     </TabsList>
@@ -3736,7 +3737,7 @@ export default function DashboardPlanSalle() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="sticky bottom-3 z-30 h-12 rounded-2xl border-slate-200 bg-white shadow-xl xl:hidden"
+                  className="sticky bottom-3 z-30 h-12 rounded-2xl border-border bg-card shadow-xl xl:hidden"
                   onClick={() => revealResponsivePanel("floor-plan-reservation-queue")}
                   aria-controls="floor-plan-reservation-queue"
                   aria-label={`Afficher les clients : ${unassignedVisibleReservations.length} à placer`}
@@ -3775,7 +3776,7 @@ export default function DashboardPlanSalle() {
 
       {pointerDraggedReservation && reservationPointerPosition ? (
         <div
-          className="pointer-events-none fixed z-[120] max-w-[220px] -translate-y-1/2 rounded-full border border-orange-200 bg-white px-3 py-2 shadow-xl"
+          className="pointer-events-none fixed z-[120] max-w-[220px] -translate-y-1/2 rounded-full border border-primary/30 bg-popover px-3 py-2 shadow-xl"
           style={{
             left: Math.min(
               Math.max(8, reservationPointerPosition.clientX + 16),
@@ -3787,7 +3788,7 @@ export default function DashboardPlanSalle() {
             ),
           }}
         >
-          <p className="truncate text-sm font-semibold text-slate-950">{getReservationCustomerLabel(pointerDraggedReservation)}</p>
+          <p className="truncate text-sm font-semibold text-foreground">{getReservationCustomerLabel(pointerDraggedReservation)}</p>
         </div>
       ) : null}
 

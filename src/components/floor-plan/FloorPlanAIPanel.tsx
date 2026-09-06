@@ -322,7 +322,7 @@ export default function FloorPlanAIPanel({
 
         {importImage ? (
           <div className="space-y-1.5">
-            <div className="overflow-hidden rounded-lg border bg-white dark:bg-slate-900">
+            <div className="overflow-hidden rounded-lg border bg-card">
               <img src={importImage.dataUrl} alt="Aperçu du plan importé" className="h-24 w-full object-contain" />
             </div>
             <div className="flex items-center justify-between gap-2">
