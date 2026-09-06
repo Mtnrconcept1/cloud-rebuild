@@ -10,6 +10,7 @@ import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { OPENAI_API_KEY } from "../_shared/openai.ts";
 import { assertTokCreditSpendRecorded } from "../_shared/restaurant-credits.ts";
+import { fetchPublicUrl } from "../_shared/safe-public-fetch.ts";
 
 type ImageEnhanceResult = {
   title: string;
@@ -83,6 +84,15 @@ const MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY = [
   "marketing_brand_visual",
 ] as const;
 const MARKETING_REFERENCE_MEDIA_TYPES = [...MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY];
+const PHOTO_STYLE_REFERENCE_MEDIA_TYPES = [
+  "photo",
+  "photo_ai_tok",
+  "menu_visual",
+  "marketing_logo",
+  "marketing_business_card",
+  "marketing_menu",
+  "marketing_brand_visual",
+] as const;
 const MARKETING_REFERENCE_STORAGE_SEGMENT = "/marketing-assets/";
 const MARKETING_REFERENCE_BUCKET = Deno.env.get("TOK_MARKETING_REFERENCE_BUCKET")?.trim() || "restaurant-images";
 const SUPPORTED_SOURCE_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -312,6 +322,15 @@ type MarketingReferenceRow = {
   created_at: string | null;
 };
 
+type PhotoStyleReferenceRow = {
+  id: string;
+  media_url: string;
+  media_type: typeof PHOTO_STYLE_REFERENCE_MEDIA_TYPES[number];
+  storage_bucket: string | null;
+  storage_path: string | null;
+  created_at: string | null;
+};
+
 function toMarketingReferenceRow(raw: Record<string, unknown>): MarketingReferenceRow | null {
   const mediaType = typeof raw.media_type === "string" ? raw.media_type : "";
   if (!MARKETING_REFERENCE_MEDIA_TYPES.includes(mediaType as typeof MARKETING_REFERENCE_MEDIA_TYPES[number])) return null;
@@ -324,6 +343,24 @@ function toMarketingReferenceRow(raw: Record<string, unknown>): MarketingReferen
     id,
     media_url: url,
     media_type: mediaType as typeof MARKETING_REFERENCE_MEDIA_TYPES[number],
+    storage_bucket: typeof raw.storage_bucket === "string" ? raw.storage_bucket : null,
+    storage_path: typeof raw.storage_path === "string" ? raw.storage_path : null,
+    created_at: typeof raw.created_at === "string" ? raw.created_at : null,
+  };
+}
+
+function toPhotoStyleReferenceRow(raw: Record<string, unknown>): PhotoStyleReferenceRow | null {
+  const mediaType = typeof raw.media_type === "string" ? raw.media_type : "";
+  if (!PHOTO_STYLE_REFERENCE_MEDIA_TYPES.includes(mediaType as typeof PHOTO_STYLE_REFERENCE_MEDIA_TYPES[number])) return null;
+
+  const url = sanitizeUrl(raw.media_url);
+  const id = typeof raw.id === "string" ? raw.id : "";
+  if (!id || !url) return null;
+
+  return {
+    id,
+    media_url: url,
+    media_type: mediaType as typeof PHOTO_STYLE_REFERENCE_MEDIA_TYPES[number],
     storage_bucket: typeof raw.storage_bucket === "string" ? raw.storage_bucket : null,
     storage_path: typeof raw.storage_path === "string" ? raw.storage_path : null,
     created_at: typeof raw.created_at === "string" ? raw.created_at : null,
@@ -356,6 +393,13 @@ function selectMarketingReferenceRows(rows: MarketingReferenceRow[]) {
 }
 
 function getMarketingReferenceFingerprint(rows: MarketingReferenceRow[]) {
+  return rows
+    .map((row) => `${row.media_type}:${row.id}:${row.storage_path || ""}`)
+    .join("|")
+    .slice(0, 900);
+}
+
+function getPhotoStyleReferenceFingerprint(rows: PhotoStyleReferenceRow[]) {
   return rows
     .map((row) => `${row.media_type}:${row.id}:${row.storage_path || ""}`)
     .join("|")
@@ -403,6 +447,49 @@ async function resolveCurrentMarketingReferences(
     ids: selectedRows.map((row) => row.id),
     mediaTypes: selectedRows.map((row) => row.media_type),
     fingerprint: getMarketingReferenceFingerprint(selectedRows),
+  };
+}
+
+async function resolveCurrentPhotoStyleReferences(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  restaurantId: string,
+  requestedMediaIds: string[],
+) {
+  if (!requestedMediaIds.length) return null;
+
+  const { data, error } = await actor.adminClient
+    .from("restaurant_media")
+    .select("id, media_url, media_type, storage_bucket, storage_path, created_at")
+    .eq("restaurant_id", restaurantId)
+    .in("media_type", [...PHOTO_STYLE_REFERENCE_MEDIA_TYPES])
+    .in("id", requestedMediaIds)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new HttpError(500, error.message);
+
+  const rows = (data || [])
+    .map((row: Record<string, unknown>) => toPhotoStyleReferenceRow(row))
+    .filter((row: PhotoStyleReferenceRow | null): row is PhotoStyleReferenceRow => Boolean(row));
+  const rowById = new Map(rows.map((row) => [row.id, row]));
+  const missingIds = requestedMediaIds.filter((id) => !rowById.has(id));
+  if (missingIds.length) {
+    throw new HttpError(409, "photo_style_reference_mismatch");
+  }
+
+  const selectedRows = requestedMediaIds
+    .map((id) => rowById.get(id))
+    .filter((row): row is PhotoStyleReferenceRow => Boolean(row));
+
+  if (!selectedRows.length) {
+    throw new HttpError(400, "photo_style_reference_required");
+  }
+
+  return {
+    rows: selectedRows,
+    urls: selectedRows.map((row) => row.media_url),
+    ids: selectedRows.map((row) => row.id),
+    mediaTypes: selectedRows.map((row) => row.media_type),
+    fingerprint: getPhotoStyleReferenceFingerprint(selectedRows),
   };
 }
 
@@ -753,7 +840,27 @@ function buildMarketingVisualResult(input: {
 }
 
 async function fetchImageBlob(url: string) {
-  const response = await fetchWithTimeout(url, {}, SOURCE_IMAGE_TIMEOUT_MS, "source_image_timeout");
+  let response: Response;
+  try {
+    response = await fetchPublicUrl(url, {
+      timeoutMs: SOURCE_IMAGE_TIMEOUT_MS,
+      maxRedirects: 3,
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "";
+    if (reason === "request_timeout") throw new HttpError(503, "source_image_timeout");
+    if ([
+      "invalid_url",
+      "unsafe_protocol",
+      "unsafe_credentials",
+      "unsafe_or_private_host",
+      "redirect_limit",
+    ].includes(reason)) {
+      throw new HttpError(400, "source_image_unsafe_url");
+    }
+    throw error;
+  }
+
   if (!response.ok) throw new HttpError(400, "source_image_unreachable");
   const contentType = normalizeImageMimeType(response.headers.get("content-type"), url);
   if (!contentType.startsWith("image/")) throw new HttpError(400, "source_image_invalid_type");
@@ -928,6 +1035,7 @@ function shouldFallbackFromMarketingReferenceError(error: unknown) {
     return false;
   }
 
+  if (message === "source_image_unsafe_url") return false;
   if (message.startsWith("source_image_")) return true;
   if (!message.startsWith("image_edit_failed:")) return false;
 
@@ -1387,7 +1495,15 @@ Deno.serve(async (req) => {
     const marketingReferences = marketingAssetMode
       ? await resolveCurrentMarketingReferences(actor, restaurantId, requestedReferenceMediaIds)
       : null;
-    const referenceImageUrls = marketingReferences?.urls || requestedReferenceImageUrls;
+    const photoStyleReferences = !marketingAssetMode && sourceImageUrl && requestedReferenceMediaIds.length
+      ? await resolveCurrentPhotoStyleReferences(actor, restaurantId, requestedReferenceMediaIds)
+      : null;
+    const resolvedReferences = marketingReferences || photoStyleReferences;
+    const referenceImageUrls = resolvedReferences?.urls || requestedReferenceImageUrls;
+    const referenceSource = resolvedReferences ? "server_current_restaurant_media" : "request_payload";
+    const resolvedReferenceMediaIds = resolvedReferences?.ids || [];
+    const resolvedReferenceMediaTypes = resolvedReferences?.mediaTypes || [];
+    const resolvedReferenceFingerprint = resolvedReferences?.fingerprint || null;
 
     const rl = createRateLimiter(actor.adminClient, FUNCTION_NAME);
     await rl.consume(`user:${actor.userId}`, { maxRequests: 20, windowSeconds: 600 });
@@ -1603,12 +1719,17 @@ Deno.serve(async (req) => {
         reference_image_urls: referenceImageUrls,
         reference_image_count: referenceImageUrls.length,
         requested_reference_image_count: requestedReferenceImageUrls.length,
-        reference_source: marketingAssetMode ? "server_current_restaurant_media" : "request_payload",
+        reference_source: referenceSource,
         requested_reference_media_ids: requestedReferenceMediaIds,
-        reference_media_ids: marketingReferences?.ids || [],
-        reference_media_types: marketingReferences?.mediaTypes || [],
-        reference_fingerprint: marketingReferences?.fingerprint || null,
-        reference_identity_scope: marketingAssetMode ? "current_uploaded_restaurant_resources" : "source_or_tok_photo_studio",
+        reference_media_ids: resolvedReferenceMediaIds,
+        reference_media_types: resolvedReferenceMediaTypes,
+        reference_fingerprint: resolvedReferenceFingerprint,
+        photo_style_reference_ids: photoStyleReferences?.ids || [],
+        reference_identity_scope: marketingAssetMode
+          ? "current_uploaded_restaurant_resources"
+          : photoStyleReferences
+          ? "current_restaurant_photo_style_reference"
+          : "source_or_tok_photo_studio",
         original_prompt: prompt,
         generation_seed: activeGenerationSeed,
         dish_name: dishName,
@@ -1676,11 +1797,12 @@ Deno.serve(async (req) => {
         marketing_asset_mode: marketingAssetMode,
         reference_image_count: referenceImageUrls.length,
         requested_reference_image_count: requestedReferenceImageUrls.length,
-        reference_source: marketingAssetMode ? "server_current_restaurant_media" : "request_payload",
+        reference_source: referenceSource,
         requested_reference_media_ids: requestedReferenceMediaIds,
-        reference_media_ids: marketingReferences?.ids || [],
-        reference_media_types: marketingReferences?.mediaTypes || [],
-        reference_fingerprint: marketingReferences?.fingerprint || null,
+        reference_media_ids: resolvedReferenceMediaIds,
+        reference_media_types: resolvedReferenceMediaTypes,
+        reference_fingerprint: resolvedReferenceFingerprint,
+        photo_style_reference_ids: photoStyleReferences?.ids || [],
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
         image_fallback_used: imageFallbackUsed,
@@ -1723,11 +1845,12 @@ Deno.serve(async (req) => {
         marketing_asset_mode: marketingAssetMode,
         reference_image_count: referenceImageUrls.length,
         requested_reference_image_count: requestedReferenceImageUrls.length,
-        reference_source: marketingAssetMode ? "server_current_restaurant_media" : "request_payload",
+        reference_source: referenceSource,
         requested_reference_media_ids: requestedReferenceMediaIds,
-        reference_media_ids: marketingReferences?.ids || [],
-        reference_media_types: marketingReferences?.mediaTypes || [],
-        reference_fingerprint: marketingReferences?.fingerprint || null,
+        reference_media_ids: resolvedReferenceMediaIds,
+        reference_media_types: resolvedReferenceMediaTypes,
+        reference_fingerprint: resolvedReferenceFingerprint,
+        photo_style_reference_ids: photoStyleReferences?.ids || [],
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
         image_fallback_used: imageFallbackUsed,
