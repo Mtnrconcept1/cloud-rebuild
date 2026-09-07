@@ -1,4 +1,4 @@
-import { CalendarClock, CreditCard, Receipt, Table2, UserRound } from "lucide-react";
+import { CalendarClock, CreditCard, Receipt, Star, Table2, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -67,6 +67,11 @@ type TableContextDrawerProps = {
   onReleaseReservation: (reservationId: string) => void;
   onSelectReservation: (reservationId: string) => void;
   onSelectTable: (tableId: string) => void;
+  /** Table attitrée au client de la réservation affichée, s'il en a une. */
+  preferredTableId?: string | null;
+  /** `null` retire l'attribution. Absent = fonction indisponible (démo). */
+  onSetPreferredTable?: (userId: string, tableId: string | null) => void;
+  preferredTablePending?: boolean;
 };
 
 function formatCurrency(value: number | null | undefined) {
@@ -158,6 +163,9 @@ export default function TableContextDrawer({
   onReleaseReservation,
   onSelectReservation,
   onSelectTable,
+  preferredTableId,
+  onSetPreferredTable,
+  preferredTablePending = false,
 }: TableContextDrawerProps) {
   const title = selectedReservation && selectedTable
     ? `${selectedTable.table_number} · ${getReservationCustomerLabel(selectedReservation)}`
@@ -188,6 +196,12 @@ export default function TableContextDrawer({
     : "Aucun paiement";
   const bestCompatibleTable = selectedReservation && compatibleTables.length > 0 ? compatibleTables[0] : null;
 
+  // « Attitrer » se lit depuis la table où le client est effectivement posé :
+  // c'est le geste naturel du service. À défaut, la table sélectionnée.
+  const habitTable = selectedReservationAssignedTable
+    ?? (selectedTableIsReservable ? selectedTable : null);
+  const isHabitTablePreferred = !!habitTable && preferredTableId === habitTable.id;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[960px] flex-col gap-0 overflow-hidden rounded-[28px] border border-border bg-background p-0 shadow-2xl sm:max-h-[760px] sm:rounded-[28px]">
@@ -215,6 +229,12 @@ export default function TableContextDrawer({
                           </p>
                           {isZeroAttenteReservation(selectedReservation) ? (
                             <Badge className={cn("border", FLOOR_PLAN_TONE_CLASS.teal)}>Zéro Attente</Badge>
+                          ) : null}
+                          {preferredTableId ? (
+                            <Badge className={cn("gap-1 border", FLOOR_PLAN_TONE_CLASS.amber)}>
+                              <Star className="h-3 w-3 fill-current" />
+                              Habitué
+                            </Badge>
                           ) : null}
                           <Badge className={cn("border", getReservationStatusTone(selectedReservation.status))}>
                             {selectedReservation.status || "pending"}
@@ -499,6 +519,23 @@ export default function TableContextDrawer({
                 {selectedPairDropState?.ok
                   ? `Affecter à ${selectedTable.table_number}`
                   : selectedPairDropState?.reason || "Affectation impossible"}
+              </Button>
+            ) : null}
+            {habitTable && selectedReservation && onSetPreferredTable ? (
+              <Button
+                type="button"
+                variant={isHabitTablePreferred ? "secondary" : "outline"}
+                className="h-9 rounded-xl"
+                disabled={preferredTablePending}
+                onClick={() => onSetPreferredTable(
+                  selectedReservation.user_id,
+                  isHabitTablePreferred ? null : habitTable.id,
+                )}
+              >
+                <Star className={cn("mr-2 h-4 w-4", isHabitTablePreferred && "fill-current")} />
+                {isHabitTablePreferred
+                  ? `Ne plus attitrer ${habitTable.table_number}`
+                  : `Toujours ${habitTable.table_number} pour ce client`}
               </Button>
             ) : null}
             {selectedReservationAssignedTableId ? (
