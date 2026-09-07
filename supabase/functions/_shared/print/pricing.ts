@@ -12,10 +12,11 @@ function roundUp(value: number, increment: number) {
 }
 
 /**
- * Cloudprinter documents the root product `price` and shipping quote `price`
- * as VAT-inclusive. The accompanying `vat` values are the VAT part already
- * contained in those prices and are persisted for accounting only; they MUST
- * NOT be added again to the provider cost.
+ * Cloudprinter `/orders/quote` returns the root product `price` excluding VAT
+ * and shipping, with product `vat` shown separately. Each shipping quote
+ * `price` already includes its VAT and exposes the `vat` part for accounting.
+ * Therefore provider cost is: product price + product VAT + shipping price.
+ * Shipping VAT must never be added a second time.
  *
  * The first TheTok launch is CHF-only. We request CHF from Cloudprinter and
  * reject a quote returned in another currency rather than inventing an FX rate.
@@ -27,11 +28,11 @@ export function calculatePrintRetailPrice(input: PrintRetailPricingInput): Print
   }
 
   const productCents = toMoneyCents(input.providerProductAmount);
+  const productVatCents = toMoneyCents(input.providerProductVat);
   const shippingCents = toMoneyCents(input.providerShippingAmount);
-  // Validate VAT fields even though they are informational/included in price.
-  toMoneyCents(input.providerProductVat);
+  // Validate for accounting consistency; already included in shippingCents.
   toMoneyCents(input.providerShippingVat);
-  const providerCostCents = productCents + shippingCents;
+  const providerCostCents = productCents + productVatCents + shippingCents;
 
   const marginBps = Math.max(0, Math.min(50_000, Math.round(input.marginBps)));
   const percentageMargin = Math.ceil(providerCostCents * marginBps / 10_000);
