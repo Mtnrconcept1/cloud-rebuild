@@ -1,0 +1,68 @@
+name: PR648 Refresh Demo Contracts
+
+on:
+  push:
+    branches:
+      - codex/fix-commercial-multispace-demo-20260907
+    paths:
+      - .github/workflows/pr648-contract-refresh.yml
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+
+jobs:
+  refresh:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: codex/fix-commercial-multispace-demo-20260907
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - run: corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Update stale contracts
+        run: python3 scripts/pr648-update-stale-contracts.py
+      - name: Verify demo contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec vitest run --mode production \
+            src/test/commercial-demo-client-home.test.ts \
+            src/test/commercial-demo-host-payment-isolation.test.ts \
+            src/test/commercial-demo-visible-navigation-isolation.test.ts \
+            src/test/commercial-demo-dedicated-project.test.ts \
+            src/test/commercial-demo-role-workspaces.test.ts \
+            src/test/commercial-multi-space-demo.test.ts \
+            src/test/customer-order-tracking-no-simulation.test.ts \
+            src/test/commercial-demo-payment-simulator.test.ts \
+            src/test/demo-workspace-access.test.ts \
+            src/test/deploy-production-secret-scope.test.ts \
+            src/test/commercial-demo-active-tools.test.ts \
+            src/test/commercial-multispace-demo-parity-regression.test.ts \
+            src/test/tok-ai-platform-plan.test.ts
+          pnpm run typecheck
+          git diff --check
+      - name: Commit cleaned contract refresh
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f scripts/pr648-update-stale-contracts.py
+          rm -f .github/workflows/pr648-contract-refresh.yml
+          rm -f .github/workflows/pr648-shard-diagnostics.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "test(demo): align contracts with Stripe Test multi-space"
+          git push origin HEAD:codex/fix-commercial-multispace-demo-20260907
