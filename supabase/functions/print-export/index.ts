@@ -36,6 +36,20 @@ async function signedUrl(adminClient: any, path: string | null) {
   return data?.signedUrl || null;
 }
 
+async function bestEffortRollback(adminClient: any, path: string, documentId: string, documentInserted: boolean) {
+  try {
+    await adminClient.storage.from(BUCKET).remove([path]);
+  } catch {
+    // The orphaned private object is preferable to masking the primary DB error.
+  }
+  if (!documentInserted) return;
+  try {
+    await adminClient.from("print_documents").delete().eq("id", documentId);
+  } catch {
+    // The cleanup path is best-effort and must never hide the original failure.
+  }
+}
+
 Deno.serve(async (req) => {
   const cors = buildCorsHeaders(req);
   const preflightResponse = handleCorsPreflight(req, cors);
@@ -178,8 +192,7 @@ Deno.serve(async (req) => {
       });
       if (exportError) throw exportError;
     } catch (error) {
-      await adminClient.storage.from(BUCKET).remove([path]).catch(() => undefined);
-      if (documentInserted) await adminClient.from("print_documents").delete().eq("id", documentId).catch(() => undefined);
+      await bestEffortRollback(adminClient, path, documentId, documentInserted);
       throw error;
     }
 
