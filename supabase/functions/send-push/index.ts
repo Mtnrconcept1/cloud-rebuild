@@ -227,6 +227,30 @@ function base64UrlEncode(bytes: Uint8Array) {
     .replace(/=+$/g, "");
 }
 
+async function settleNotificationDelivery(
+  supabaseAdmin: any,
+  input: {
+    id: string;
+    leaseToken: string;
+    success: boolean;
+    terminal?: boolean;
+    terminalStatus?: "failed" | "skipped";
+    lastError?: string | null;
+    provider?: string | null;
+  },
+) {
+  const { error } = await supabaseAdmin.rpc("settle_notification_delivery", {
+    p_delivery_id: input.id,
+    p_lease_token: input.leaseToken,
+    p_success: input.success,
+    p_terminal: input.terminal ?? false,
+    p_terminal_status: input.terminalStatus ?? "failed",
+    p_last_error: input.lastError ?? null,
+    p_provider: input.provider ?? null,
+  });
+  if (error) throw error;
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
@@ -252,20 +276,13 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Fetch queued push notification deliveries
-    let deliveriesQuery = supabaseAdmin
-      .from("notification_deliveries")
-      .select("*, notifications!inner(*)")
-      .eq("channel", "push")
-      .eq("status", "queued")
-      .order("created_at", { ascending: true })
-      .limit(50);
-
-    if (userIdFilter) {
-      deliveriesQuery = deliveriesQuery.eq("notifications.user_id", userIdFilter);
-    }
-
-    const { data: deliveries, error } = await deliveriesQuery;
+    // Claim deliveries atomically so concurrent cron/admin invocations cannot double-send.
+    const { data: deliveries, error } = await supabaseAdmin.rpc("claim_notification_deliveries", {
+      p_channel: "push",
+      p_limit: 50,
+      p_user_id: userIdFilter,
+      p_lease_seconds: 120,
+    });
 
     if (error) throw error;
     if (!deliveries || deliveries.length === 0) {
@@ -295,12 +312,21 @@ Deno.serve(async (req) => {
 
     for (const delivery of deliveries) {
       try {
-        const notification = (delivery as any).notifications;
-        if (!notification) {
-          await supabaseAdmin
-            .from("notification_deliveries")
-            .update({ status: "failed", last_error: "Notification not found" })
-            .eq("id", delivery.id);
+        const notification = {
+          user_id: delivery.notification_user_id,
+          title: delivery.notification_title,
+          body: delivery.notification_body,
+          data: delivery.notification_data,
+        };
+        if (!notification.user_id) {
+          await settleNotificationDelivery(supabaseAdmin, {
+            id: delivery.id,
+            leaseToken: delivery.lease_token,
+            success: false,
+            terminal: true,
+            terminalStatus: "failed",
+            lastError: "Notification not found",
+          });
           failed++;
           continue;
         }
@@ -313,10 +339,15 @@ Deno.serve(async (req) => {
           .eq("enabled", true);
 
         if (!tokens || tokens.length === 0) {
-          await supabaseAdmin
-            .from("notification_deliveries")
-            .update({ status: "skipped", last_error: "No active device tokens" })
-            .eq("id", delivery.id);
+          await settleNotificationDelivery(supabaseAdmin, {
+            id: delivery.id,
+            leaseToken: delivery.lease_token,
+            success: false,
+            terminal: true,
+            terminalStatus: "skipped",
+            lastError: "No active device tokens",
+            provider: "fcm",
+          });
           skipped++;
           continue;
         }
@@ -394,26 +425,33 @@ Deno.serve(async (req) => {
           }
         }
 
-        await supabaseAdmin
-          .from("notification_deliveries")
-          .update({
-            status: anySent ? "sent" : "failed",
-            sent_at: anySent ? new Date().toISOString() : null,
-            last_error: anySent ? null : "All tokens failed",
-          })
-          .eq("id", delivery.id);
+        await settleNotificationDelivery(supabaseAdmin, {
+          id: delivery.id,
+          leaseToken: delivery.lease_token,
+          success: anySent,
+          terminal: false,
+          lastError: anySent ? null : "All tokens failed",
+          provider: "fcm",
+        });
 
         if (anySent) sent++;
         else failed++;
       } catch (err) {
         log.error("Error processing delivery", { message: err instanceof Error ? err.message : "unknown" });
-        await supabaseAdmin
-          .from("notification_deliveries")
-          .update({
-            status: "failed",
-            last_error: err instanceof Error ? err.message : "Unknown error",
-          })
-          .eq("id", delivery.id);
+        try {
+          await settleNotificationDelivery(supabaseAdmin, {
+            id: delivery.id,
+            leaseToken: delivery.lease_token,
+            success: false,
+            terminal: false,
+            lastError: err instanceof Error ? err.message : "Unknown error",
+            provider: "fcm",
+          });
+        } catch (settleError) {
+          log.error("Unable to settle push delivery", {
+            message: settleError instanceof Error ? settleError.message : "unknown",
+          });
+        }
         failed++;
       }
     }

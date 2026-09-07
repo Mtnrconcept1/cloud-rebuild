@@ -498,6 +498,12 @@ Deno.serve(async (req) => {
     }
 
     if (action !== "generate") throw new HttpError(400, "invalid_action");
+    const { data: featureEnabled, error: featureFlagError } = await actor.adminClient.rpc(
+      "is_feature_flag_active",
+      { p_flag_name: "ai_marketing_campaigns" },
+    );
+    if (featureFlagError) throw new HttpError(500, "feature_flag_check_unavailable");
+    if (featureEnabled !== true) throw new HttpError(503, "feature_disabled");
     if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
 
     const prompt = sanitizeMultilineText(body.prompt, 4000);

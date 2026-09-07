@@ -58,7 +58,8 @@ describe("TOK AI tools foundation", () => {
 
     expect(helper).toContain("OPENAI_API_KEY");
     expect(helper).toContain("OPENAI_MODEL");
-    expect(helper).toContain("gpt-5.5");
+    expect(helper).toContain("gpt-5.6-luna");
+    expect(helper).toContain("gpt-5.6-terra");
     expect(helper).toContain("https://api.openai.com/v1/responses");
     expect(helper).toContain("store: false");
     expect(helper).toContain("text");

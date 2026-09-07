@@ -1,4 +1,5 @@
 import { HttpError } from "./auth.ts";
+import { AI_SECURITY_SYSTEM_PROMPT, buildAiSecurityContext } from "./ai-security.ts";
 export {
   TOK_OPENAI_COST_CHF_PER_CREDIT,
   TOK_OPENAI_USD_TO_CHF_RATE,
@@ -8,9 +9,9 @@ export {
 } from "./ai-pricing.ts";
 
 export const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY")?.trim() || "";
-export const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL")?.trim() || "gpt-5.5";
-const TOK_AI_MINI_MODEL = Deno.env.get("OPENAI_MODEL_TOK_MINI")?.trim() || "gpt-5.4-mini";
-const TOK_AI_STRATEGIC_MODEL = Deno.env.get("OPENAI_MODEL_TOK_STRATEGIC")?.trim() || "gpt-5.5";
+export const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL")?.trim() || "gpt-5.6-terra";
+const TOK_AI_MINI_MODEL = Deno.env.get("OPENAI_MODEL_TOK_MINI")?.trim() || "gpt-5.6-luna";
+const TOK_AI_STRATEGIC_MODEL = Deno.env.get("OPENAI_MODEL_TOK_STRATEGIC")?.trim() || "gpt-5.6-terra";
 const TOK_AI_INCIDENT_TRIAGE_MODEL = Deno.env.get("OPENAI_MODEL_TOK_INCIDENT_TRIAGE")?.trim() || TOK_AI_MINI_MODEL;
 const TOK_AI_INCIDENT_DEEP_MODEL = Deno.env.get("OPENAI_MODEL_TOK_INCIDENT_DEEP")?.trim() || "gpt-5.6-terra";
 const TOK_AI_SUPPORT_RESOLUTION_MODEL = Deno.env.get("OPENAI_MODEL_TOK_SUPPORT_RESOLUTION")?.trim() || TOK_AI_MINI_MODEL;
@@ -138,6 +139,29 @@ function buildTextFormat(
   };
 }
 
+    function secureOpenAIInput(input: OpenAIMessage[]): OpenAIMessage[] {
+      const userInput = input
+        .filter((message) => message.role === "user")
+        .map((message) => message.content);
+      const securityContext = buildAiSecurityContext(userInput);
+      const hardBlockLabels = new Set(["instruction_override", "prompt_boundary_attack"]);
+      const shouldBlock = securityContext.risk.score >= 6
+        && securityContext.risk.labels.some((label) => hardBlockLabels.has(label));
+
+      if (shouldBlock) {
+        throw new HttpError(400, "ai_input_rejected");
+      }
+
+      return [
+        {
+          role: "system",
+          content: `${AI_SECURITY_SYSTEM_PROMPT}
+${securityContext.instruction}`,
+        },
+        ...input,
+      ];
+    }
+
 export async function createOpenAIResponse(options: OpenAIRequestOptions) {
   if (!OPENAI_API_KEY) {
     throw new HttpError(503, "ai_service_unavailable");
@@ -145,7 +169,7 @@ export async function createOpenAIResponse(options: OpenAIRequestOptions) {
 
   const payload: Record<string, unknown> = {
     model: options.model || OPENAI_MODEL,
-    input: options.input,
+    input: secureOpenAIInput(options.input),
     store: false,
     text: buildTextFormat(options.jsonSchema, options.verbosity),
   };

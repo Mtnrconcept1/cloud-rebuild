@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 338 error codes mapped from supabase/functions/**.
+// 339 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -80,7 +80,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_empty_response": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 328
+      "line": 352
     },
     {
       "file": "supabase/functions/commercial-demo-ai/index.ts",
@@ -89,6 +89,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
       "line": 1221
+    }
+  ],
+  "ai_input_rejected": [
+    {
+      "file": "supabase/functions/_shared/openai.ts",
+      "line": 152
     }
   ],
   "ai_invalid_plan": [
@@ -100,7 +106,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_invalid_response": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 338
+      "line": 362
     },
     {
       "file": "supabase/functions/ai-social-post-copy/index.ts",
@@ -126,7 +132,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_provider_billing_unavailable": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 204
+      "line": 228
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
@@ -162,7 +168,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_rate_limited": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 200
+      "line": 224
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
@@ -180,7 +186,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_service_error": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 207
+      "line": 231
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
@@ -194,7 +200,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_service_unavailable": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 143
+      "line": 167
     },
     {
       "file": "supabase/functions/ai-accounting-agent/index.ts",
@@ -214,7 +220,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-campaign-studio/index.ts",
-      "line": 501
+      "line": 507
     },
     {
       "file": "supabase/functions/ai-client-chat/index.ts",
@@ -230,7 +236,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1466
+      "line": 1478
     },
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
@@ -244,7 +250,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_timeout": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 191
+      "line": 215
     }
   ],
   "ai_usage_recording_failed": [
@@ -763,6 +769,18 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   ],
   "feature_disabled": [
     {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 506
+    },
+    {
+      "file": "supabase/functions/ai-image-enhance/index.ts",
+      "line": 1461
+    },
+    {
+      "file": "supabase/functions/customer-memory/index.ts",
+      "line": 433
+    },
+    {
       "file": "supabase/functions/daily-dish-ai/index.ts",
       "line": 398
     },
@@ -775,6 +793,18 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/_shared/commercial-demo-ai.ts",
       "line": 180
+    },
+    {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 505
+    },
+    {
+      "file": "supabase/functions/ai-image-enhance/index.ts",
+      "line": 1460
+    },
+    {
+      "file": "supabase/functions/customer-memory/index.ts",
+      "line": 432
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
@@ -1010,7 +1040,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_generation_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1493
+      "line": 1505
     }
   ],
   "image_id_required": [
@@ -1688,7 +1718,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "prompt_required": [
     {
       "file": "supabase/functions/ai-campaign-studio/index.ts",
-      "line": 504
+      "line": 510
     },
     {
       "file": "supabase/functions/commercial-demo-ai/index.ts",
@@ -2014,7 +2044,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1492
+      "line": 1504
     },
     {
       "file": "supabase/functions/ai-restaurant-agent/index.ts",

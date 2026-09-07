@@ -59,11 +59,20 @@ export type FeatureFlagAuditLog = {
 };
 
 export const FEATURE_FLAGS_CACHE_TTL_MS = 180_000;
+export const FEATURE_FLAGS_FETCH_MAX_ATTEMPTS = 3;
 
 let featureFlagsCache: { isAdmin: boolean; fetchedAt: number; flags: FeatureFlag[] } | null = null;
+const lastKnownGoodFeatureFlags: { admin: FeatureFlag[] | null; public: FeatureFlag[] | null } = {
+  admin: null,
+  public: null,
+};
 
 export function invalidateFeatureFlagsCache() {
   featureFlagsCache = null;
+}
+
+function waitForFeatureFlagRetry(attempt: number) {
+  return new Promise((resolve) => globalThis.setTimeout(resolve, Math.min(600, 120 * attempt)));
 }
 
 export const FEATURE_FLAG_PRESETS: FeatureFlagPreset[] = [
@@ -186,34 +195,48 @@ async function fetchFlags(isAdmin = false): Promise<FeatureFlag[]> {
     return featureFlagsCache.flags;
   }
 
-  try {
-    const { data, error } = await getSupabase()
-      .from("feature_flags")
-      .select("id, name, label, description, is_active")
-      .order("created_at", { ascending: true });
+  const cacheKey = isAdmin ? "admin" : "public";
+  for (let attempt = 1; attempt <= FEATURE_FLAGS_FETCH_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const { data, error } = await getSupabase()
+        .from("feature_flags")
+        .select("id, name, label, description, is_active")
+        .order("created_at", { ascending: true });
 
-    if (error || !Array.isArray(data)) {
-      return buildSafeFallbackFlags();
+      if (error || !Array.isArray(data)) {
+        throw new Error("feature_flag_fetch_failed");
+      }
+
+      const rows = data as FeatureFlagRow[];
+      const existingNames = new Set(rows.map((row) => String(row.name || "")));
+      const missingDefaults = FEATURE_DEFINITIONS.filter((definition) => !existingNames.has(definition.name));
+
+      if (missingDefaults.length > 0 && isAdmin) {
+        await seedMissingDefaultsViaRpc(missingDefaults);
+      }
+
+      const resolvedFlags = resolveFlags(rows);
+      featureFlagsCache = {
+        isAdmin,
+        fetchedAt: Date.now(),
+        flags: resolvedFlags,
+      };
+      lastKnownGoodFeatureFlags[cacheKey] = resolvedFlags;
+      return resolvedFlags;
+    } catch {
+      if (attempt < FEATURE_FLAGS_FETCH_MAX_ATTEMPTS) {
+        await waitForFeatureFlagRetry(attempt);
+      }
     }
-
-    const rows = data as FeatureFlagRow[];
-    const existingNames = new Set(rows.map((row) => String(row.name || "")));
-    const missingDefaults = FEATURE_DEFINITIONS.filter((definition) => !existingNames.has(definition.name));
-
-    if (missingDefaults.length > 0 && isAdmin) {
-      await seedMissingDefaultsViaRpc(missingDefaults);
-    }
-
-    const resolvedFlags = resolveFlags(rows);
-    featureFlagsCache = {
-      isAdmin,
-      fetchedAt: Date.now(),
-      flags: resolvedFlags,
-    };
-    return resolvedFlags;
-  } catch {
-    return buildSafeFallbackFlags();
   }
+
+  const lastKnownGood = lastKnownGoodFeatureFlags[cacheKey];
+  console.warn("[feature-flags] feature_flag_fetch_failed", {
+    isAdmin,
+    attempts: FEATURE_FLAGS_FETCH_MAX_ATTEMPTS,
+    hasLastKnownGood: Boolean(lastKnownGood),
+  });
+  return lastKnownGood || buildSafeFallbackFlags();
 }
 
 async function toggleFlagViaRpc(

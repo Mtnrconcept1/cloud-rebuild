@@ -111,6 +111,22 @@ export async function getWebPushStatus(userId: string): Promise<WebPushStatus> {
   };
 }
 
+export async function isCurrentWebPushEnabled(userId: string) {
+  const token = readWebPushToken();
+  if (!token) return false;
+
+  const { count, error } = await getSupabase()
+    .from("device_tokens")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("platform", "web")
+    .eq("token", token)
+    .eq("enabled", true);
+
+  if (error) throw new Error(error.message);
+  return Number(count || 0) > 0;
+}
+
 export async function enableWebPush(userId: string) {
   if (!("Notification" in window) || !("serviceWorker" in navigator)) {
     return { ok: false, reason: "Notifications non supportees sur ce navigateur." };

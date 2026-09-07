@@ -72,6 +72,29 @@ function buildNotificationEmailBody(notification: any) {
   };
 }
 
+async function settleNotificationDelivery(
+  supabaseAdmin: any,
+  input: {
+    id: string;
+    leaseToken: string;
+    success: boolean;
+    terminal?: boolean;
+    terminalStatus?: "failed" | "skipped";
+    lastError?: string | null;
+  },
+) {
+  const { error } = await supabaseAdmin.rpc("settle_notification_delivery", {
+    p_delivery_id: input.id,
+    p_lease_token: input.leaseToken,
+    p_success: input.success,
+    p_terminal: input.terminal ?? false,
+    p_terminal_status: input.terminalStatus ?? "failed",
+    p_last_error: input.lastError ?? null,
+    p_provider: "resend",
+  });
+  if (error) throw error;
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
@@ -107,19 +130,15 @@ Deno.serve(async (req) => {
         .order("created_at", { ascending: true })
         .limit(10);
 
-    let notificationQuery = supabaseAdmin
-      .from("notification_deliveries")
-      .select("id, target, notifications!inner(*)")
-      .eq("channel", "email")
-      .eq("status", "queued")
-      .order("created_at", { ascending: true })
-      .limit(10);
-
-    if (userIdFilter) {
-      notificationQuery = notificationQuery.eq("notifications.user_id", userIdFilter);
-    }
-
-    const { data: notificationEmails, error: notificationEmailError } = await notificationQuery;
+    const { data: notificationEmails, error: notificationEmailError } = await supabaseAdmin.rpc(
+      "claim_notification_deliveries",
+      {
+        p_channel: "email",
+        p_limit: 10,
+        p_user_id: userIdFilter,
+        p_lease_seconds: 120,
+      },
+    );
 
     if (error) throw error;
     if (notificationEmailError) throw notificationEmailError;
@@ -176,14 +195,22 @@ Deno.serve(async (req) => {
     }
 
     for (const delivery of notificationEmails || []) {
-      const notification = (delivery as any).notifications;
-      const target = delivery.target || notification?.target || null;
+      const notification = {
+        title: delivery.notification_title,
+        body: delivery.notification_body,
+        data: delivery.notification_data,
+      };
+      const target = delivery.target || null;
 
-      if (!notification || !target) {
-        await supabaseAdmin
-          .from("notification_deliveries")
-          .update({ status: "failed", last_error: "Notification or target email missing" })
-          .eq("id", delivery.id);
+      if (!notification.title || !target) {
+        await settleNotificationDelivery(supabaseAdmin, {
+          id: delivery.id,
+          leaseToken: delivery.lease_token,
+          success: false,
+          terminal: true,
+          terminalStatus: "skipped",
+          lastError: "Notification or target email missing",
+        });
         continue;
       }
 
@@ -196,22 +223,28 @@ Deno.serve(async (req) => {
           html: body.html,
         });
 
-        await supabaseAdmin
-          .from("notification_deliveries")
-          .update({
-            status: "sent",
-            sent_at: new Date().toISOString(),
-            last_error: null,
-          })
-          .eq("id", delivery.id);
+        await settleNotificationDelivery(supabaseAdmin, {
+          id: delivery.id,
+          leaseToken: delivery.lease_token,
+          success: true,
+        });
 
         notificationProcessed++;
       } catch (deliveryError: unknown) {
         const errMsg = deliveryError instanceof Error ? deliveryError.message : "Unknown error";
-        await supabaseAdmin
-          .from("notification_deliveries")
-          .update({ status: "failed", last_error: errMsg })
-          .eq("id", delivery.id);
+        try {
+          await settleNotificationDelivery(supabaseAdmin, {
+            id: delivery.id,
+            leaseToken: delivery.lease_token,
+            success: false,
+            terminal: false,
+            lastError: errMsg,
+          });
+        } catch (settleError) {
+          log.error("Unable to settle notification email delivery", {
+            message: settleError instanceof Error ? settleError.message : "unknown",
+          });
+        }
         notificationFailed++;
         lastDeliveryError = errMsg;
       }

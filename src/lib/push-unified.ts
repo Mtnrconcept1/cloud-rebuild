@@ -18,6 +18,16 @@ export async function disablePush(userId: string) {
   return disableWebPush(userId);
 }
 
+export async function isCurrentPushEnabled(userId: string) {
+  if (isNative()) {
+    const { isCurrentNativePushEnabled } = await import("@/lib/push-native");
+    return isCurrentNativePushEnabled(userId);
+  }
+
+  const { isCurrentWebPushEnabled } = await import("@/lib/push");
+  return isCurrentWebPushEnabled(userId);
+}
+
 export async function disablePushForCurrentSession(userId: string) {
   if (isNative()) {
     const { unregisterNativePush } = await import("@/lib/push-native");
