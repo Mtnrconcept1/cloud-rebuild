@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { getSupabase } from "@/integrations/supabase/client";
 import {
   deleteAiCreationRecord,
   getAiCreationImageUrl,
@@ -15,14 +14,13 @@ import {
   type AiCreationRecord,
 } from "@/lib/ai/aiCreationJobs";
 import {
-  buildRestaurantMediaAiMetadata,
   shouldApplyTokWatermarkToRestaurantMedia,
   type RestaurantMediaWatermarkSubscription,
 } from "@/lib/ai/restaurantMediaMetadata";
+import { addAiCreationToRestaurantGallery } from "@/lib/ai/restaurantGallery";
 import { formatAiImageGenerationError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
 import { CheckCircle2, ImagePlus, Loader2, Maximize2, Sparkles, Trash2, TriangleAlert } from "lucide-react";
 
-const supabase = getSupabase();
 
 type Props = {
   restaurantId: string | null | undefined;
@@ -84,48 +82,43 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
 
   const addCreationToGallery = async (record: AiCreationRecord) => {
     if (!restaurantId || record.status !== "completed") return;
-    const imageUrl = record.result?.gallery_image_url;
-    if (!imageUrl) {
+    const assetId = record.result?.assetId;
+    if (!assetId) {
       toast({
         title: "Galerie indisponible",
-        description: "Cette création n'a pas d'URL publique stable. Relancez la génération avant de l'ajouter.",
+        description: "Cette création n'a pas d'identifiant serveur persistant. Relancez la génération avant de l'ajouter.",
         variant: "destructive",
       });
       return;
     }
 
     setAddingId(record.id);
-    const { error } = await supabase.from("restaurant_media").insert({
-      restaurant_id: restaurantId,
-      media_url: imageUrl,
-      alt_text: record.result?.alt_text || record.result?.title || record.title || "Création TOK",
-      media_type: "photo_ai_tok",
-      uploaded_by: userId || null,
-      position: currentPhotoCount,
-      storage_bucket: record.result?.gallery_storage_bucket,
-      storage_path: record.result?.gallery_storage_path,
-      metadata: buildRestaurantMediaAiMetadata({
-        result: record.result,
+    try {
+      await addAiCreationToRestaurantGallery({
+        restaurantId,
+        assetId,
+        altText: record.result?.alt_text || record.result?.title || record.title || "Création TOK",
         dishName: record.title,
         tool: record.tool,
-        createdAt: record.completedAt || record.updatedAt || record.createdAt,
         tokWatermarkRequired: shouldApplyTokWatermarkToRestaurantMedia({
           mediaType: "photo_ai_tok",
           metadata: { tool: record.tool },
           subscription: watermarkSubscription,
         }),
-      }),
-    });
-    setAddingId(null);
-
-    if (error) {
-      toast({ title: "Erreur", description: toPublicErrorMessage(error, "Ajout à la galerie impossible. Réessayez dans quelques instants."), variant: "destructive" });
-      return;
+        positionHint: currentPhotoCount,
+      });
+      markAiCreationAddedToGallery(record.id);
+      onGalleryUpdated();
+      toast({ title: "Création ajoutée à la galerie" });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: toPublicErrorMessage(error, "Ajout à la galerie impossible. Réessayez dans quelques instants."),
+        variant: "destructive",
+      });
+    } finally {
+      setAddingId(null);
     }
-
-    markAiCreationAddedToGallery(record.id);
-    onGalleryUpdated();
-    toast({ title: "Création ajoutée à la galerie" });
   };
 
   const deleteCreation = (record: AiCreationRecord) => {

@@ -74,7 +74,8 @@ const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", fal
 const INTERACTIVE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_INTERACTIVE_IMAGE_TIMEOUT_MS", 42_000, 50_000);
 const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS", 12_000, 30_000);
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
-const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";
+const REQUESTED_GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "restaurant-images";
+const GALLERY_BUCKET = REQUESTED_GALLERY_BUCKET === "restaurant-images" ? REQUESTED_GALLERY_BUCKET : "restaurant-images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
 const MARKETING_REFERENCE_LIMIT = 4;
 const MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY = [
@@ -1352,7 +1353,7 @@ async function storeGeneratedImage(
     if (signed?.signedUrl) imageUrl = signed.signedUrl;
   }
 
-  const galleryPath = `ai-gallery/${restaurantId}/${id}.png`;
+  const galleryPath = `${restaurantId}/ai-gallery/${id}.png`;
   const { error: galleryUploadError } = await actor.adminClient.storage.from(GALLERY_BUCKET).upload(galleryPath, bytes, {
     contentType: "image/png",
     upsert: false,

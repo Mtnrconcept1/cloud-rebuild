@@ -191,12 +191,12 @@ describe("TOK AI tools foundation", () => {
     const client = readProjectFile("src/lib/ai/tokAiClient.ts");
     const studio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
 
-    expect(source).toContain('TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images"');
+    expect(source).toContain('TOK_GALLERY_IMAGE_BUCKET")?.trim() || "restaurant-images"');
     expect(source).toContain("storage.from(GALLERY_BUCKET).upload");
     expect(source).toContain("gallery_image_url");
     expect(client).toContain("gallery_image_url: string | null");
-    expect(studio).toContain("media_url: result.gallery_image_url");
-    expect(studio).not.toContain("media_url: result.generated_image_url");
+    expect(studio).toContain("addAiCreationToRestaurantGallery");
+    expect(studio).not.toContain('supabase.from("restaurant_media").insert({');
   });
 
   it("lets PhotoPro and Marketing Studio reuse a selected image style safely", () => {

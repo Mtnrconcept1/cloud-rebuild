@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 339 error codes mapped from supabase/functions/**.
+// 341 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -70,11 +70,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_credits_exhausted": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1113
+      "line": 1114
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1446
+      "line": 1447
     }
   ],
   "ai_empty_response": [
@@ -136,11 +136,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 753
+      "line": 754
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1111
+      "line": 1112
     }
   ],
   "ai_quota_exceeded": [
@@ -172,11 +172,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 756
+      "line": 757
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1105
+      "line": 1106
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
@@ -236,7 +236,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1478
+      "line": 1479
     },
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
@@ -774,7 +774,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1461
+      "line": 1462
     },
     {
       "file": "supabase/functions/customer-memory/index.ts",
@@ -800,7 +800,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1460
+      "line": 1461
     },
     {
       "file": "supabase/functions/customer-memory/index.ts",
@@ -1018,35 +1018,39 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_edit_timeout": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1098
+      "line": 1099
     }
   ],
   "image_edit_transient_failure": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1099
+      "line": 1100
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1103
+      "line": 1104
     }
   ],
   "image_empty_response": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1320
+      "line": 1321
     }
   ],
   "image_generation_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1505
+      "line": 1506
     }
   ],
   "image_id_required": [
     {
       "file": "supabase/functions/analyze-restaurant-image/index.ts",
       "line": 241
+    },
+    {
+      "file": "supabase/functions/restaurant-media-governance/index.ts",
+      "line": 121
     }
   ],
   "image_invalid_magic_bytes": [
@@ -1070,7 +1074,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_missing_payload": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1330
+      "line": 1331
     },
     {
       "file": "supabase/functions/commercial-demo-ai/index.ts",
@@ -1086,7 +1090,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_reference_edit_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1306
+      "line": 1307
     }
   ],
   "image_request_rejected": [
@@ -1110,7 +1114,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_url_unreachable": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1326
+      "line": 1327
     }
   ],
   "incident_bound_to_another_github_run": [
@@ -1408,19 +1412,19 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "marketing_reference_ids_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 415
+      "line": 416
     }
   ],
   "marketing_reference_mismatch": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 435
+      "line": 436
     }
   ],
   "marketing_reference_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 441
+      "line": 442
     }
   ],
   "mcp_method_not_found": [
@@ -1464,13 +1468,29 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "media_id_required": [
     {
       "file": "supabase/functions/restaurant-media-governance/index.ts",
-      "line": 81
+      "line": 272
     }
   ],
   "media_not_found": [
     {
       "file": "supabase/functions/restaurant-media-governance/index.ts",
-      "line": 90
+      "line": 133
+    },
+    {
+      "file": "supabase/functions/restaurant-media-governance/index.ts",
+      "line": 281
+    }
+  ],
+  "media_public_url_missing": [
+    {
+      "file": "supabase/functions/restaurant-media-governance/index.ts",
+      "line": 174
+    }
+  ],
+  "media_storage_invalid": [
+    {
+      "file": "supabase/functions/restaurant-media-governance/index.ts",
+      "line": 139
     }
   ],
   "memory_item_not_found": [
@@ -1534,7 +1554,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/restaurant-media-governance/index.ts",
-      "line": 70
+      "line": 107
     },
     {
       "file": "supabase/functions/tok-connect-oauth/index.ts",
@@ -1700,13 +1720,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "photo_style_reference_mismatch": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 476
+      "line": 477
     }
   ],
   "photo_style_reference_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 484
+      "line": 485
     }
   ],
   "premium_required": [
@@ -1830,7 +1850,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "reference_image_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 964
+      "line": 965
     }
   ],
   "reference_image_too_large": [
@@ -2044,7 +2064,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1504
+      "line": 1505
     },
     {
       "file": "supabase/functions/ai-restaurant-agent/index.ts",
@@ -2065,6 +2085,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/menu-image-import/index.ts",
       "line": 134
+    },
+    {
+      "file": "supabase/functions/restaurant-media-governance/index.ts",
+      "line": 120
     }
   ],
   "restaurant_required_for_agent_run_approval": [
@@ -2122,43 +2146,43 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "source_image_edit_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1115
+      "line": 1116
     }
   ],
   "source_image_invalid_type": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 866
+      "line": 867
     }
   ],
   "source_image_timeout": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 851
+      "line": 852
     }
   ],
   "source_image_too_large": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 869
+      "line": 870
     }
   ],
   "source_image_unreachable": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 864
+      "line": 865
     }
   ],
   "source_image_unsafe_url": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 859
+      "line": 860
     }
   ],
   "source_image_unsupported_type": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 867
+      "line": 868
     }
   ],
   "sponsored_touch_identity_conflict": [
@@ -2638,7 +2662,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/restaurant-media-governance/index.ts",
-      "line": 80
+      "line": 271
     }
   ],
   "unsupported_channel": [

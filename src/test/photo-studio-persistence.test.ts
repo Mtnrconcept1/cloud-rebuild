@@ -19,6 +19,7 @@ describe("TOK photo studio persistence", () => {
   const publicErrorMessages = readFileSync(resolve(process.cwd(), "src/lib/publicErrorMessages.ts"), "utf8");
   const metadataHelper = readFileSync(resolve(process.cwd(), "src/lib/ai/restaurantMediaMetadata.ts"), "utf8");
   const aiImageFunction = readFileSync(resolve(process.cwd(), "supabase/functions/ai-image-enhance/index.ts"), "utf8");
+  const mediaGovernance = readFileSync(resolve(process.cwd(), "supabase/functions/restaurant-media-governance/index.ts"), "utf8");
 
   it("persists the generated result across component remounts and tab focus changes", () => {
     expect(source).toContain("useSessionStorageState");
@@ -115,12 +116,14 @@ describe("TOK photo studio persistence", () => {
     expect(imageUpload).toContain("Vous devez sélectionner une image.");
   });
 
-  it("adds generated images to the gallery through a stable public gallery URL", () => {
-    expect(source).toContain("result.gallery_image_url");
-    expect(source).toContain("media_url: result.gallery_image_url");
-    expect(source).toContain("storage_bucket: result.gallery_storage_bucket");
-    expect(source).toContain("storage_path: result.gallery_storage_path");
-    expect(source).toContain("metadata: buildRestaurantMediaAiMetadata");
+  it("adds generated images to the gallery through the governed server adoption path", () => {
+    expect(source).toContain("addAiCreationToRestaurantGallery");
+    expect(source).toContain("assetId: result.assetId");
+    expect(source).not.toContain('supabase.from("restaurant_media").insert({');
+    expect(mediaGovernance).toContain('action === "add_ai_creation_to_gallery"');
+    expect(mediaGovernance).toContain('storage_bucket: RESTAURANT_MEDIA_BUCKET');
+    expect(mediaGovernance).toContain('storage_path: targetPath');
+    expect(mediaGovernance).toContain('gallery_image_url: galleryImageUrl');
     expect(source).not.toContain("media_url: result.generated_image_url");
   });
 
@@ -178,10 +181,14 @@ describe("TOK photo studio persistence", () => {
     expect(metadataHelper).toContain("tok_watermark_required");
     expect(source).toContain('tool: "photopro"');
     expect(source).toContain("tokWatermarkRequired: shouldApplyTokWatermark");
-    expect(aiCreationsGallery).toContain("metadata: buildRestaurantMediaAiMetadata");
+    expect(mediaGovernance).toContain("metadata: mediaMetadata");
+    expect(mediaGovernance).toContain("generated_asset_id: asset.id");
+    expect(mediaGovernance).toContain("ai_model: asset.model");
+    expect(mediaGovernance).toContain("tok_watermark_required: tokWatermarkRequired");
     expect(aiCreationsGallery).toContain("tool: record.tool");
     expect(aiCreationsGallery).toContain("tokWatermarkRequired: shouldApplyTokWatermarkToRestaurantMedia");
-    expect(aiCreationsGallery).toContain("createdAt: record.completedAt");
+    expect(mediaGovernance).toContain("generated_at: asset.created_at");
+    expect(aiCreationsGallery).not.toContain("createdAt: record.completedAt");
     expect(dashboardPhotos).toContain("metadata, created_at");
     expect(dashboardPhotos).toContain("getGalleryAiDescription");
     expect(dashboardPhotos).toContain("Logo TOK:");
@@ -324,9 +331,12 @@ describe("TOK photo studio persistence", () => {
     expect(aiCreationsGallery).toContain("deleteAiCreationRecord");
     expect(aiCreationsGallery).toContain("Supprimer");
     expect(aiCreationsGallery).toContain("La photo deja ajoutee reste dans la galerie");
-    expect(aiCreationsGallery).toContain('from("restaurant_media").insert');
-    expect(aiCreationsGallery).toContain("media_url: imageUrl");
-    expect(aiCreationsGallery).toContain('media_type: "photo_ai_tok"');
+    expect(aiCreationsGallery).toContain("addAiCreationToRestaurantGallery");
+    expect(aiCreationsGallery).toContain("assetId");
+    expect(aiCreationsGallery).not.toContain('from("restaurant_media").insert');
+    expect(mediaGovernance).toContain('.from("restaurant_media")');
+    expect(mediaGovernance).toContain('.insert({');
+    expect(mediaGovernance).toContain('media_type: "photo_ai_tok"');
   });
 
   it("shows the marketing references continuation action only from render settings", () => {
