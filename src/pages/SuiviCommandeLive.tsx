@@ -12,7 +12,6 @@ import {
   Package,
   Phone,
   Route,
-  ShoppingBag,
   Store,
   Truck,
 } from "lucide-react";
