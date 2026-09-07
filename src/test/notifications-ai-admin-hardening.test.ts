@@ -63,11 +63,14 @@ describe("TOK push activation coverage", () => {
   it("exposes explicit push activation from the role-agnostic account security page", () => {
     const settings = readProjectFile("src/components/notifications/PushNotificationSettings.tsx");
     const securityPage = readProjectFile("src/pages/AccountSecurity.tsx");
+    const unifiedPush = readProjectFile("src/lib/push-unified.ts");
 
     expect(settings).toContain("enablePush");
     expect(settings).toContain("disablePush");
-    expect(settings).toContain('from("device_tokens")');
-    expect(settings).toContain("Activer les notifications push");
+    expect(settings).toContain("isCurrentPushEnabled");
+    expect(settings).toContain("if (!result.ok)");
+    expect(settings).toContain("result.reason");
+    expect(unifiedPush).toContain("isCurrentPushEnabled");
     expect(securityPage).toContain("PushNotificationSettings");
   });
 });
