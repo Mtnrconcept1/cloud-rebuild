@@ -15,6 +15,12 @@ replace_required(
     "    expect(governance).toContain('storage.from(\"restaurant-images\").upload(');\n"
     "    expect(governance).toContain('targetPath,');",
 )
+replace_required(
+    "src/test/ai-gallery-print-media-contract.test.ts",
+    "    expect(galleryClient).toContain('invokeSupabaseFunction(\"restaurant-media-governance\"');",
+    "    expect(galleryClient).toContain('invokeSupabaseFunction<AddAiCreationToGalleryResult>');\n"
+    "    expect(galleryClient).toContain('\"restaurant-media-governance\"');",
+)
 
 photo_test = Path("src/test/photo-studio-persistence.test.ts")
 source = photo_test.read_text()
@@ -55,6 +61,13 @@ new_metadata = '''    expect(mediaGovernance).toContain("metadata: mediaMetadata
 if old_metadata not in source:
     raise SystemExit("photo persistence metadata marker missing")
 source = source.replace(old_metadata, new_metadata, 1)
+
+old_created_at = '    expect(aiCreationsGallery).toContain("createdAt: record.completedAt");'
+new_created_at = '''    expect(mediaGovernance).toContain("generated_at: asset.created_at");
+    expect(aiCreationsGallery).not.toContain("createdAt: record.completedAt");'''
+if old_created_at not in source:
+    raise SystemExit("photo persistence creation timestamp marker missing")
+source = source.replace(old_created_at, new_created_at, 1)
 
 old_creation_contract = '''    expect(aiCreationsGallery).toContain('from("restaurant_media").insert');
     expect(aiCreationsGallery).toContain("media_url: imageUrl");
