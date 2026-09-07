@@ -101,6 +101,20 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     resolve: {
       alias: {
+        // Keep the large legacy studio source untouched and wrap only the
+        // application's absolute import with TheTok Print. The shell imports
+        // the legacy module relatively, so this exact alias cannot recurse.
+        "@/components/dashboard/TokAiMarketingStudio": path.resolve(
+          __dirname,
+          "./src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
+        ),
+        // App.tsx lazy-loads this relative specifier. The exact alias appends
+        // the print operations console while the shell imports AdminCompta
+        // relatively, keeping the accounting implementation unchanged.
+        "./pages/admin/AdminCompta": path.resolve(
+          __dirname,
+          "./src/pages/admin/AdminComptaPrintShell.tsx",
+        ),
         "@": path.resolve(__dirname, "./src"),
       },
     },
