@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
           media_type: "photo_ai_tok",
           uploaded_by: actor.userId,
           position: nextPosition,
-          is_primary: false,
+          is_cover: false,
           storage_bucket: RESTAURANT_MEDIA_BUCKET,
           storage_path: targetPath,
           metadata: mediaMetadata,
