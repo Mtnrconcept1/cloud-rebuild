@@ -1,0 +1,42 @@
+name: PR642 final contract alignment
+
+on:
+  push:
+    branches:
+      - fix/ai-gallery-print-media-20260907
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/ai-gallery-print-media-20260907
+          fetch-depth: 1
+      - run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Align stale source contracts
+        run: python scripts/pr642_align_final_contracts.py
+      - name: Verify affected full-shard contracts
+        run: pnpm exec vitest run --mode production src/test/commercial-demo-ai-workspaces.test.ts src/test/restaurant-media-governance.test.ts src/test/ai-gallery-print-media-contract.test.ts src/test/photo-studio-persistence.test.ts
+      - name: Remove temporary patch files
+        run: rm .github/workflows/pr642-final-contracts.yml scripts/pr642_align_final_contracts.py
+      - name: Validate diff
+        run: git diff --check
+      - name: Commit contract alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "test(ai): align governed gallery contracts"
+          git push origin HEAD:fix/ai-gallery-print-media-20260907
