@@ -154,6 +154,22 @@ export async function registerNativePush(userId: string): Promise<{ ok: boolean;
   }
 }
 
+export async function isCurrentNativePushEnabled(userId: string) {
+  const storedToken = readNativePushToken();
+  if (!storedToken) return false;
+
+  const { count, error } = await getSupabase()
+    .from("device_tokens")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("platform", getPlatform())
+    .eq("token", storedToken)
+    .eq("enabled", true);
+
+  if (error) throw new Error(error.message);
+  return Number(count || 0) > 0;
+}
+
 export async function unregisterNativePush(userId: string): Promise<{ ok: boolean; reason?: string }> {
   const storedToken = readNativePushToken();
 
@@ -186,7 +202,6 @@ export function setupNativePushListeners(navigateFn: (url: string) => void) {
     PushNotifications.addListener("pushNotificationReceived", (notification) => {
       showForegroundPushToast(notification, navigateFn);
     }),
-
     PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
       navigateFn(getNotificationTarget(action.notification));
     }),
