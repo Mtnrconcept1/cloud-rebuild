@@ -185,13 +185,15 @@ describe("TheTok Print foundation contracts", () => {
   it("reconciles an ambiguous Cloudprinter create timeout before any create retry", () => {
     const provider = readRequired("supabase/functions/_shared/print/cloudprinter.ts");
     const orchestrator = readRequired("supabase/functions/print-orchestrator/index.ts");
+    const reconcileInstruction = "const existing = await provider.getOrder(providerReference);";
+    const createInstruction = "const createOrder = () => provider.createOrder({";
 
     expect(provider).toContain("/orders/add");
     expect(provider).toContain("/orders/info");
     expect(provider).toContain("Deliberately no automatic retry");
-    expect(orchestrator).toContain("getOrder(providerReference)");
-    expect(orchestrator).toContain("createOrder");
-    expect(orchestrator.indexOf("getOrder(providerReference)")).toBeLessThan(orchestrator.indexOf("createOrder"));
+    expect(orchestrator).toContain(reconcileInstruction);
+    expect(orchestrator).toContain(createInstruction);
+    expect(orchestrator.indexOf(reconcileInstruction)).toBeLessThan(orchestrator.indexOf(createInstruction));
     expect(orchestrator).toContain("reconciled_after_ambiguous_create");
     expect(orchestrator).toContain("TOKP_");
   });
