@@ -107,6 +107,17 @@ describe("TOK AI server governance", () => {
     expect(sql).toContain("REVOKE ALL ON FUNCTION public.check_restaurant_ai_quota");
     expect(sql).toContain("GRANT EXECUTE ON FUNCTION public.check_restaurant_ai_quota");
   });
+
+  it("enforces image-generation kill switches before the OpenAI image request", () => {
+    const imageFunction = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+
+    expect(imageFunction).toContain("requireActiveAiFeature");
+    expect(imageFunction).toContain('"ai_premium_image_generation"');
+    expect(imageFunction).toContain('marketingAssetMode ? "ai_marketing_campaigns" : "ai_photo_enhancer"');
+    expect(imageFunction).toContain('rpc("is_feature_flag_active"');
+    expect(imageFunction).toContain("feature_flag_check_unavailable");
+    expect(imageFunction).toContain("feature_disabled");
+  });
 });
 
 describe("TOK admin and feature-flag resilience", () => {
