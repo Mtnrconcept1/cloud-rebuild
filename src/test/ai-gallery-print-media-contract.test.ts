@@ -49,7 +49,7 @@ describe("TheTok Print AI creation discovery", () => {
   it("loads persisted AI generations as printable assets without requiring gallery publication first", () => {
     const composer = readProjectFile("src/components/dashboard/marketing-print/PrintComposerDialog.tsx");
 
-    expect(composer).toContain('.from("ai_generated_assets")');
+    expect(composer).toContain('(supabase.from as any)("ai_generated_assets")');
     expect(composer).toContain('metadata->>gallery_storage_bucket');
     expect(composer).toContain('metadata->>gallery_storage_path');
     expect(composer).toContain("mergePrintableAssets");
