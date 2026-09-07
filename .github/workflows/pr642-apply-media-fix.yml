@@ -1,0 +1,325 @@
+name: PR642 apply gallery and print fix
+
+on:
+  push:
+    branches:
+      - fix/ai-gallery-print-media-20260907
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/ai-gallery-print-media-20260907
+          fetch-depth: 1
+      - run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Patch gallery and print paths
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          def replace_required(path, old, new):
+              p = Path(path)
+              source = p.read_text()
+              if old not in source:
+                  raise SystemExit(f"missing marker in {path}: {old[:100]!r}")
+              p.write_text(source.replace(old, new, 1))
+
+          # New image generations must obey the live restaurant_media trigger even
+          # when an old environment override still says `images`.
+          replace_required(
+              "supabase/functions/ai-image-enhance/index.ts",
+              'const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";',
+              'const REQUESTED_GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "restaurant-images";\nconst GALLERY_BUCKET = REQUESTED_GALLERY_BUCKET === "restaurant-images" ? REQUESTED_GALLERY_BUCKET : "restaurant-images";',
+          )
+          replace_required(
+              "supabase/functions/ai-image-enhance/index.ts",
+              'const galleryPath = `ai-gallery/${restaurantId}/${id}.png`;',
+              'const galleryPath = `${restaurantId}/ai-gallery/${id}.png`;',
+          )
+          replace_required(
+              "supabase/functions/restaurant-media-governance/index.ts",
+              'actor.adminClient.storage.from(RESTAURANT_MEDIA_BUCKET).upload(\n          targetPath,',
+              'actor.adminClient.storage.from("restaurant-images").upload(\n          targetPath,',
+          )
+
+          # Existing source contract now points to the governed public bucket and
+          # to the server adoption helper rather than a direct REST insert.
+          tok_test = Path("src/test/tok-ai-tools.test.ts")
+          source = tok_test.read_text()
+          source = source.replace(
+              'expect(source).toContain(\'TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images"\');',
+              'expect(source).toContain(\'TOK_GALLERY_IMAGE_BUCKET")?.trim() || "restaurant-images"\');',
+          )
+          source = source.replace(
+              'expect(studio).toContain("media_url: result.gallery_image_url");\n    expect(studio).not.toContain("media_url: result.generated_image_url");',
+              'expect(studio).toContain("addAiCreationToRestaurantGallery");\n    expect(studio).not.toContain(\'supabase.from("restaurant_media").insert({\');',
+          )
+          tok_test.write_text(source)
+
+          # Mes créations: call the server with the persisted generated asset id.
+          p = Path("src/components/dashboard/AiCreationsGallery.tsx")
+          source = p.read_text()
+          source = source.replace('import { getSupabase } from "@/integrations/supabase/client";\n', '')
+          source = source.replace(
+              'import {\n  buildRestaurantMediaAiMetadata,\n  shouldApplyTokWatermarkToRestaurantMedia,\n  type RestaurantMediaWatermarkSubscription,\n} from "@/lib/ai/restaurantMediaMetadata";',
+              'import {\n  shouldApplyTokWatermarkToRestaurantMedia,\n  type RestaurantMediaWatermarkSubscription,\n} from "@/lib/ai/restaurantMediaMetadata";\nimport { addAiCreationToRestaurantGallery } from "@/lib/ai/restaurantGallery";',
+          )
+          source = source.replace('\nconst supabase = getSupabase();\n', '\n')
+          start = source.index('  const addCreationToGallery = async (record: AiCreationRecord) => {')
+          end = source.index('  const deleteCreation = (record: AiCreationRecord) => {', start)
+          replacement = '''  const addCreationToGallery = async (record: AiCreationRecord) => {
+    if (!restaurantId || record.status !== "completed") return;
+    const assetId = record.result?.assetId;
+    if (!assetId) {
+      toast({
+        title: "Galerie indisponible",
+        description: "Cette création n'a pas d'identifiant serveur persistant. Relancez la génération avant de l'ajouter.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAddingId(record.id);
+    try {
+      await addAiCreationToRestaurantGallery({
+        restaurantId,
+        assetId,
+        altText: record.result?.alt_text || record.result?.title || record.title || "Création TOK",
+        dishName: record.title,
+        tool: record.tool,
+        tokWatermarkRequired: shouldApplyTokWatermarkToRestaurantMedia({
+          mediaType: "photo_ai_tok",
+          metadata: { tool: record.tool },
+          subscription: watermarkSubscription,
+        }),
+        positionHint: currentPhotoCount,
+      });
+      markAiCreationAddedToGallery(record.id);
+      onGalleryUpdated();
+      toast({ title: "Création ajoutée à la galerie" });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: toPublicErrorMessage(error, "Ajout à la galerie impossible. Réessayez dans quelques instants."),
+        variant: "destructive",
+      });
+    } finally {
+      setAddingId(null);
+    }
+  };
+
+'''
+          source = source[:start] + replacement + source[end:]
+          p.write_text(source)
+
+          # PhotoPro: same governed adoption path, preserving the demo branch.
+          p = Path("src/components/dashboard/TokAiPhotoStudioV2.tsx")
+          source = p.read_text()
+          source = source.replace('import { getSupabase } from "@/integrations/supabase/client";\n', '')
+          source = source.replace('  buildRestaurantMediaAiMetadata,\n', '')
+          source = source.replace(
+              'import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";',
+              'import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";\nimport { addAiCreationToRestaurantGallery } from "@/lib/ai/restaurantGallery";',
+          )
+          source = source.replace('\nconst supabase = getSupabase();\n', '\n')
+          start = source.index('  const addToGallery = async () => {')
+          end = source.index('  const downloadGeneratedPhoto = async () => {', start)
+          old_block = source[start:end]
+          demo_start = old_block.index('    if (isCommercialDemo && commercialDemoFrame) {')
+          direct_start = old_block.index('    const { error } = await supabase.from("restaurant_media").insert({')
+          prefix_and_demo = old_block[:direct_start]
+          production = '''    if (!result.assetId) {
+      return toast({
+        title: "Galerie indisponible",
+        description: "Le visuel TOK n'a pas d'identifiant serveur persistant. Relancez la génération avant l'ajout.",
+        variant: "destructive",
+      });
+    }
+
+    try {
+      await addAiCreationToRestaurantGallery({
+        restaurantId,
+        assetId: result.assetId,
+        altText: result.alt_text || result.title || draft.dishName || "Visuel TOK",
+        dishName: draft.dishName,
+        tool: "photopro",
+        tokWatermarkRequired: shouldApplyTokWatermark,
+        positionHint: currentPhotoCount,
+      });
+      toast({ title: "Ajouté à la galerie" });
+      onGalleryUpdated();
+    } catch (error) {
+      return toast({
+        title: "Erreur",
+        description: toPublicErrorMessage(error, "Ajout à la galerie impossible. Réessayez dans quelques instants."),
+        variant: "destructive",
+      });
+    }
+  };
+
+'''
+          source = source[:start] + prefix_and_demo + production + source[end:]
+          p.write_text(source)
+
+          # TheTok Print: merge published restaurant media with persisted AI assets.
+          p = Path("src/components/dashboard/marketing-print/PrintComposerDialog.tsx")
+          source = p.read_text()
+          source = source.replace(
+              '  createdAt: string;\n};',
+              '  createdAt: string;\n  sourceGenerationId: string | null;\n  dedupeKey: string;\n};',
+              1,
+          )
+          start = source.index('async function loadPrintableAssets(restaurantId: string): Promise<PrintableAsset[]> {')
+          end = source.index('function formatMoney(', start)
+          replacement = '''async function resolvePrintableStorageUrl(storageBucket: string, storagePath: string, fallbackUrl: string) {
+  if (!storageBucket || !storagePath) return fallbackUrl;
+  if (["images", "restaurant-images"].includes(storageBucket)) {
+    return supabase.storage.from(storageBucket).getPublicUrl(storagePath).data.publicUrl || fallbackUrl;
+  }
+  const signed = await supabase.storage.from(storageBucket).createSignedUrl(storagePath, 60 * 60);
+  return signed.data?.signedUrl || fallbackUrl;
+}
+
+async function materializePrintableAsset(input: {
+  id: string;
+  sourceGenerationId: string | null;
+  name: string;
+  mediaUrl: string;
+  storageBucket: string;
+  storagePath: string;
+  createdAt: string;
+  dedupeKey: string;
+}) {
+  const url = await resolvePrintableStorageUrl(input.storageBucket, input.storagePath, input.mediaUrl);
+  const mimeType = inferMime(input.storagePath, url);
+  if (!mimeType || !url.startsWith("https://")) return null;
+  try {
+    const size = await imageDimensions(url);
+    return {
+      id: input.id,
+      sourceGenerationId: input.sourceGenerationId,
+      name: input.name,
+      url,
+      widthPx: size.width,
+      heightPx: size.height,
+      mimeType,
+      createdAt: input.createdAt,
+      dedupeKey: input.dedupeKey,
+    } satisfies PrintableAsset;
+  } catch {
+    return null;
+  }
+}
+
+function mergePrintableAssets(restaurantMediaAssets: PrintableAsset[], generatedAssets: PrintableAsset[]) {
+  const seen = new Set<string>();
+  return [...restaurantMediaAssets, ...generatedAssets]
+    .filter((asset) => {
+      const key = asset.dedupeKey || asset.url.split("?")[0];
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    .slice(0, 30);
+}
+
+async function loadPrintableAssets(restaurantId: string): Promise<PrintableAsset[]> {
+  const [restaurantMediaResult, generatedResult] = await Promise.all([
+    supabase
+      .from("restaurant_media")
+      .select("id, media_url, alt_text, media_type, storage_bucket, storage_path, created_at, generated_asset_id:metadata->>generated_asset_id")
+      .eq("restaurant_id", restaurantId)
+      .in("media_type", ["photo_ai_tok", "marketing_brand_visual", "photo"])
+      .order("created_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("ai_generated_assets")
+      .select("id, asset_url, title, asset_type, storage_bucket, storage_path, created_at, gallery_storage_bucket:metadata->>gallery_storage_bucket, gallery_storage_path:metadata->>gallery_storage_path")
+      .eq("restaurant_id", restaurantId)
+      .eq("status", "stored")
+      .order("created_at", { ascending: false })
+      .limit(30),
+  ]);
+
+  if (restaurantMediaResult.error && generatedResult.error) throw restaurantMediaResult.error;
+  if (restaurantMediaResult.error) console.warn("[print] restaurant_media_unavailable", restaurantMediaResult.error.message);
+  if (generatedResult.error) console.warn("[print] ai_generated_assets_unavailable", generatedResult.error.message);
+
+  const restaurantMediaAssets = (await Promise.all((restaurantMediaResult.data || []).map(async (row) =>
+    materializePrintableAsset({
+      id: `media:${row.id}`,
+      sourceGenerationId: typeof row.generated_asset_id === "string" ? row.generated_asset_id : null,
+      name: row.alt_text || (row.media_type === "photo_ai_tok" ? "Création IA" : "Visuel restaurant"),
+      mediaUrl: typeof row.media_url === "string" ? row.media_url : "",
+      storageBucket: typeof row.storage_bucket === "string" ? row.storage_bucket : "",
+      storagePath: typeof row.storage_path === "string" ? row.storage_path : "",
+      createdAt: row.created_at,
+      dedupeKey: typeof row.generated_asset_id === "string" && row.generated_asset_id ? `ai:${row.generated_asset_id}` : `media:${row.storage_bucket || ""}:${row.storage_path || row.id}`,
+    })
+  ))).filter((asset): asset is PrintableAsset => Boolean(asset));
+
+  const generatedAssets = (await Promise.all((generatedResult.data || []).map(async (row) => {
+    const galleryBucket = typeof row.gallery_storage_bucket === "string" ? row.gallery_storage_bucket : "";
+    const galleryPath = typeof row.gallery_storage_path === "string" ? row.gallery_storage_path : "";
+    const storageBucket = galleryBucket || (typeof row.storage_bucket === "string" ? row.storage_bucket : "");
+    const storagePath = galleryPath || (typeof row.storage_path === "string" ? row.storage_path : "");
+    return materializePrintableAsset({
+      id: `ai:${row.id}`,
+      sourceGenerationId: row.id,
+      name: row.title || (row.asset_type === "campaign_visual" ? "Création Marketing Studio" : "Création IA TOK"),
+      mediaUrl: typeof row.asset_url === "string" ? row.asset_url : "",
+      storageBucket,
+      storagePath,
+      createdAt: row.created_at,
+      dedupeKey: `ai:${row.id}`,
+    });
+  }))).filter((asset): asset is PrintableAsset => Boolean(asset));
+
+  return mergePrintableAssets(restaurantMediaAssets, generatedAssets);
+}
+
+'''
+          source = source[:start] + replacement + source[end:]
+          source = source.replace(
+              'sourceGenerationId: selectedAsset.id,',
+              'sourceGenerationId: selectedAsset.sourceGenerationId || selectedAsset.id,',
+          )
+          p.write_text(source)
+          PY
+      - name: Regenerate error code map
+        run: pnpm run generate:error-code-map
+      - name: Verify focused regression suite
+        run: >-
+          pnpm exec vitest run --mode production
+          src/test/ai-gallery-print-media-contract.test.ts
+          src/test/tok-ai-tools.test.ts
+          src/test/photo-studio-persistence.test.ts
+          src/test/ai-image-reference-security.test.ts
+          src/test/incident-evidence-depth.test.ts
+          src/test/marketing-print*.test.ts
+      - name: Remove temporary workflow
+        run: rm .github/workflows/pr642-apply-media-fix.yml
+      - name: Validate diff
+        run: git diff --check
+      - name: Commit patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(ai): route gallery media through governed storage"
+          git push origin HEAD:fix/ai-gallery-print-media-20260907
