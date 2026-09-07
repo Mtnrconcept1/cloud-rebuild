@@ -11,7 +11,6 @@ import ImageUpload from "@/components/ImageUpload";
 import AiStyleReferencePicker, { type AiStyleReferenceValue } from "@/components/dashboard/AiStyleReferencePicker";
 import { useToast } from "@/hooks/use-toast";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
-import { getSupabase } from "@/integrations/supabase/client";
 import type { TokImageFormat, TokImageGenerationResult } from "@/lib/ai/tokAiClient";
 import {
   requestAiCreationNotificationPermission,
@@ -25,11 +24,11 @@ import {
 } from "@/lib/ai/imagePricing";
 import { createTokGenerationSeed, sanitizeTokGenerationSeed } from "@/lib/ai/generationSeed";
 import {
-  buildRestaurantMediaAiMetadata,
   isTokProOrHigherRestaurantSubscription,
   type RestaurantMediaWatermarkSubscription,
 } from "@/lib/ai/restaurantMediaMetadata";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
+import { addAiCreationToRestaurantGallery } from "@/lib/ai/restaurantGallery";
 import { formatAiImageGenerationError, isTokCreditError, toPublicErrorMessage } from "@/lib/publicErrorMessages";
 import { AlertCircle, CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
@@ -37,7 +36,6 @@ import { Link } from "react-router-dom";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { readCommercialDemoToolState, writeCommercialDemoToolState } from "@/lib/commercialDemoRestaurantTools";
 
-const supabase = getSupabase();
 const STUDIO_BRIEF =
   "Génère une image de qualité photographique professionnelle studio, digne des meilleurs food photographe. Au besoin, change l’angle de vue mais préserve les ingrédients du plat tout en améliorant la fraîcheur, l’éclairage, la profondeur de champ. Si le produit est coupé, tronqué, partiellement hors cadre ou sort de l'image, génère la partie manquante en élargissant l'angle ou en modifiant l'angle de vue, sans changer le produit, ses ingrédients, ses logos, ses textes ou son packaging. Le produit doit être parfaitement mis en valeur.";
 const PHOTO_PRO_CREATIVE_DIRECTION =
@@ -307,31 +305,33 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       onGalleryUpdated();
       return;
     }
-    const { error } = await supabase.from("restaurant_media").insert({
-      restaurant_id: restaurantId,
-      media_url: result.gallery_image_url,
-      alt_text: result.alt_text || result.title || draft.dishName || "Visuel TOK",
-      media_type: "photo_ai_tok",
-      uploaded_by: userId || null,
-      position: currentPhotoCount,
-      storage_bucket: result.gallery_storage_bucket,
-      storage_path: result.gallery_storage_path,
-      metadata: buildRestaurantMediaAiMetadata({
-        result,
+    if (!result.assetId) {
+      return toast({
+        title: "Galerie indisponible",
+        description: "Le visuel TOK n'a pas d'identifiant serveur persistant. Relancez la génération avant l'ajout.",
+        variant: "destructive",
+      });
+    }
+
+    try {
+      await addAiCreationToRestaurantGallery({
+        restaurantId,
+        assetId: result.assetId,
+        altText: result.alt_text || result.title || draft.dishName || "Visuel TOK",
         dishName: draft.dishName,
         tool: "photopro",
         tokWatermarkRequired: shouldApplyTokWatermark,
-      }),
-    });
-    if (error) {
+        positionHint: currentPhotoCount,
+      });
+      toast({ title: "Ajouté à la galerie" });
+      onGalleryUpdated();
+    } catch (error) {
       return toast({
         title: "Erreur",
         description: toPublicErrorMessage(error, "Ajout à la galerie impossible. Réessayez dans quelques instants."),
         variant: "destructive",
       });
     }
-    toast({ title: "Ajouté à la galerie" });
-    onGalleryUpdated();
   };
 
   const downloadGeneratedPhoto = async () => {

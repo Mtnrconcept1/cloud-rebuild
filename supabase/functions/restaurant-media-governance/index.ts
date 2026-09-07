@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
         const { data: sourceBlob, error: downloadError } = await actor.adminClient.storage.from(sourceBucket).download(sourcePath);
         if (downloadError || !sourceBlob) throw new HttpError(500, downloadError?.message || "media_source_download_failed");
 
-        const { error: uploadError } = await actor.adminClient.storage.from(RESTAURANT_MEDIA_BUCKET).upload(
+        const { error: uploadError } = await actor.adminClient.storage.from("restaurant-images").upload(
           targetPath,
           sourceBlob,
           {

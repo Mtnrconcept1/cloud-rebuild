@@ -30,6 +30,8 @@ type PrintableAsset = {
   heightPx: number;
   mimeType: "image/jpeg" | "image/png";
   createdAt: string;
+  sourceGenerationId: string | null;
+  dedupeKey: string;
 };
 
 type ShippingAddress = {
@@ -74,43 +76,112 @@ function imageDimensions(url: string) {
   });
 }
 
-async function loadPrintableAssets(restaurantId: string): Promise<PrintableAsset[]> {
-  const { data, error } = await supabase
-    .from("restaurant_media")
-    .select("id, media_url, alt_text, media_type, storage_bucket, storage_path, created_at")
-    .eq("restaurant_id", restaurantId)
-    .in("media_type", ["photo_ai_tok", "marketing_brand_visual", "photo"])
-    .order("created_at", { ascending: false })
-    .limit(18);
-  if (error) throw error;
-
-  const assets: PrintableAsset[] = [];
-  for (const row of data || []) {
-    const mimeType = inferMime(row.storage_path, row.media_url);
-    if (!mimeType) continue;
-    let url = typeof row.media_url === "string" ? row.media_url : "";
-    if (row.storage_bucket && row.storage_path) {
-      const signed = await supabase.storage.from(row.storage_bucket).createSignedUrl(row.storage_path, 60 * 60);
-      if (signed.error || !signed.data?.signedUrl) continue;
-      url = signed.data.signedUrl;
-    }
-    if (!url.startsWith("https://")) continue;
-    try {
-      const size = await imageDimensions(url);
-      assets.push({
-        id: row.id,
-        name: row.alt_text || (row.media_type === "photo_ai_tok" ? "Création IA" : "Visuel restaurant"),
-        url,
-        widthPx: size.width,
-        heightPx: size.height,
-        mimeType,
-        createdAt: row.created_at,
-      });
-    } catch {
-      // Ignore an expired or corrupt thumbnail without blocking the rest.
-    }
+async function resolvePrintableStorageUrl(storageBucket: string, storagePath: string, fallbackUrl: string) {
+  if (!storageBucket || !storagePath) return fallbackUrl;
+  if (["images", "restaurant-images"].includes(storageBucket)) {
+    return supabase.storage.from(storageBucket).getPublicUrl(storagePath).data.publicUrl || fallbackUrl;
   }
-  return assets;
+  const signed = await supabase.storage.from(storageBucket).createSignedUrl(storagePath, 60 * 60);
+  return signed.data?.signedUrl || fallbackUrl;
+}
+
+async function materializePrintableAsset(input: {
+  id: string;
+  sourceGenerationId: string | null;
+  name: string;
+  mediaUrl: string;
+  storageBucket: string;
+  storagePath: string;
+  createdAt: string;
+  dedupeKey: string;
+}) {
+  const url = await resolvePrintableStorageUrl(input.storageBucket, input.storagePath, input.mediaUrl);
+  const mimeType = inferMime(input.storagePath, url);
+  if (!mimeType || !url.startsWith("https://")) return null;
+  try {
+    const size = await imageDimensions(url);
+    return {
+      id: input.id,
+      sourceGenerationId: input.sourceGenerationId,
+      name: input.name,
+      url,
+      widthPx: size.width,
+      heightPx: size.height,
+      mimeType,
+      createdAt: input.createdAt,
+      dedupeKey: input.dedupeKey,
+    } satisfies PrintableAsset;
+  } catch {
+    return null;
+  }
+}
+
+function mergePrintableAssets(restaurantMediaAssets: PrintableAsset[], generatedAssets: PrintableAsset[]) {
+  const seen = new Set<string>();
+  return [...restaurantMediaAssets, ...generatedAssets]
+    .filter((asset) => {
+      const key = asset.dedupeKey || asset.url.split("?")[0];
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    .slice(0, 30);
+}
+
+async function loadPrintableAssets(restaurantId: string): Promise<PrintableAsset[]> {
+  const [restaurantMediaResult, generatedResult] = await Promise.all([
+    supabase
+      .from("restaurant_media")
+      .select("id, media_url, alt_text, media_type, storage_bucket, storage_path, created_at, generated_asset_id:metadata->>generated_asset_id")
+      .eq("restaurant_id", restaurantId)
+      .in("media_type", ["photo_ai_tok", "marketing_brand_visual", "photo"])
+      .order("created_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("ai_generated_assets")
+      .select("id, asset_url, title, asset_type, storage_bucket, storage_path, created_at, gallery_storage_bucket:metadata->>gallery_storage_bucket, gallery_storage_path:metadata->>gallery_storage_path")
+      .eq("restaurant_id", restaurantId)
+      .eq("status", "stored")
+      .order("created_at", { ascending: false })
+      .limit(30),
+  ]);
+
+  if (restaurantMediaResult.error && generatedResult.error) throw restaurantMediaResult.error;
+  if (restaurantMediaResult.error) console.warn("[print] restaurant_media_unavailable", restaurantMediaResult.error.message);
+  if (generatedResult.error) console.warn("[print] ai_generated_assets_unavailable", generatedResult.error.message);
+
+  const restaurantMediaAssets = (await Promise.all((restaurantMediaResult.data || []).map(async (row) =>
+    materializePrintableAsset({
+      id: `media:${row.id}`,
+      sourceGenerationId: typeof row.generated_asset_id === "string" ? row.generated_asset_id : null,
+      name: row.alt_text || (row.media_type === "photo_ai_tok" ? "Création IA" : "Visuel restaurant"),
+      mediaUrl: typeof row.media_url === "string" ? row.media_url : "",
+      storageBucket: typeof row.storage_bucket === "string" ? row.storage_bucket : "",
+      storagePath: typeof row.storage_path === "string" ? row.storage_path : "",
+      createdAt: row.created_at,
+      dedupeKey: typeof row.generated_asset_id === "string" && row.generated_asset_id ? `ai:${row.generated_asset_id}` : `media:${row.storage_bucket || ""}:${row.storage_path || row.id}`,
+    })
+  ))).filter((asset): asset is PrintableAsset => Boolean(asset));
+
+  const generatedAssets = (await Promise.all((generatedResult.data || []).map(async (row) => {
+    const galleryBucket = typeof row.gallery_storage_bucket === "string" ? row.gallery_storage_bucket : "";
+    const galleryPath = typeof row.gallery_storage_path === "string" ? row.gallery_storage_path : "";
+    const storageBucket = galleryBucket || (typeof row.storage_bucket === "string" ? row.storage_bucket : "");
+    const storagePath = galleryPath || (typeof row.storage_path === "string" ? row.storage_path : "");
+    return materializePrintableAsset({
+      id: `ai:${row.id}`,
+      sourceGenerationId: row.id,
+      name: row.title || (row.asset_type === "campaign_visual" ? "Création Marketing Studio" : "Création IA TOK"),
+      mediaUrl: typeof row.asset_url === "string" ? row.asset_url : "",
+      storageBucket,
+      storagePath,
+      createdAt: row.created_at,
+      dedupeKey: `ai:${row.id}`,
+    });
+  }))).filter((asset): asset is PrintableAsset => Boolean(asset));
+
+  return mergePrintableAssets(restaurantMediaAssets, generatedAssets);
 }
 
 function formatMoney(cents: number, currency = "CHF") {
@@ -212,7 +283,7 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
         widthPx: selectedAsset.widthPx,
         heightPx: selectedAsset.heightPx,
       },
-      sourceGenerationId: selectedAsset.id,
+      sourceGenerationId: selectedAsset.sourceGenerationId || selectedAsset.id,
       texts,
       qr: qrUrl.trim() ? { value: qrUrl.trim(), x: 0.70, y: 0.70, size: 0.18 } : null,
       orientation: selectedVariant.widthMm > selectedVariant.heightMm ? "landscape" : "portrait",

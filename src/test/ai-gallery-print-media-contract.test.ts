@@ -29,12 +29,14 @@ describe("TOK AI gallery storage contract", () => {
     expect(governance).toContain('action === "add_ai_creation_to_gallery"');
     expect(governance).toContain('.from("ai_generated_assets")');
     expect(governance).toContain('storage.from(sourceBucket).download(sourcePath)');
-    expect(governance).toContain('storage.from("restaurant-images").upload(targetPath');
+    expect(governance).toContain('storage.from("restaurant-images").upload(');
+    expect(governance).toContain('targetPath,');
     expect(governance).toContain('.from("restaurant_media")');
     expect(governance).toContain('.insert({');
     expect(governance).toContain('targetPath = `${restaurantId}/ai-gallery/${assetId}.png`');
 
-    expect(galleryClient).toContain('invokeSupabaseFunction("restaurant-media-governance"');
+    expect(galleryClient).toContain('invokeSupabaseFunction<AddAiCreationToGalleryResult>');
+    expect(galleryClient).toContain('"restaurant-media-governance"');
     expect(galleryClient).toContain('action: "add_ai_creation_to_gallery"');
     expect(creations).toContain("addAiCreationToRestaurantGallery");
     expect(photoPro).toContain("addAiCreationToRestaurantGallery");
