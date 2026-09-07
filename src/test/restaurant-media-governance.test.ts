@@ -77,6 +77,7 @@ describe("restaurant media governance", () => {
     const photoStudio = read("src/components/dashboard/TokAiPhotoStudioV2.tsx");
     const aiClient = read("src/lib/ai/tokAiClient.ts");
     const aiFunction = read("supabase/functions/ai-image-enhance/index.ts");
+    const governance = read("supabase/functions/restaurant-media-governance/index.ts");
     const types = read("src/integrations/supabase/types.ts");
     const migration = findMigration();
 
@@ -85,8 +86,12 @@ describe("restaurant media governance", () => {
     expect(imageUpload).toContain("onChange(data.publicUrl, { storageBucket: bucket, storagePath: filePath })");
     expect(dashboardPhotos).toContain("storage_bucket");
     expect(dashboardPhotos).toContain("storage_path");
-    expect(photoStudio).toContain("gallery_storage_bucket");
-    expect(photoStudio).toContain("gallery_storage_path");
+    expect(photoStudio).toContain("addAiCreationToRestaurantGallery");
+    expect(photoStudio).not.toContain('supabase.from("restaurant_media").insert({');
+    expect(governance).toContain("storage_bucket: RESTAURANT_MEDIA_BUCKET");
+    expect(governance).toContain("storage_path: targetPath");
+    expect(governance).toContain("gallery_storage_bucket: RESTAURANT_MEDIA_BUCKET");
+    expect(governance).toContain("gallery_storage_path: targetPath");
     expect(aiClient).toContain("gallery_storage_bucket: string | null");
     expect(aiClient).toContain("gallery_storage_path: string | null");
     expect(aiFunction).toContain("gallery_storage_bucket: generated?.gallery_storage_bucket");

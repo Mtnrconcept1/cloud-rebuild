@@ -285,8 +285,13 @@ describe("commercial demo AI workspaces", () => {
     expect(photoStudio).toContain('const isCommercialDemo = commercialDemoFrame?.surface === "restaurant"');
     expect(photoStudio).toContain("buildCommercialDemoPhotoPalette");
     expect(photoStudio).toContain('writeCommercialDemoToolState(sessionId, "photos-gallery", next)');
-    expect(photoStudio.indexOf("if (isCommercialDemo && commercialDemoFrame)", photoStudio.indexOf("const addToGallery")))
-      .toBeLessThan(photoStudio.indexOf('.from("restaurant_media")', photoStudio.indexOf("const addToGallery")));
+    const addToGalleryStart = photoStudio.indexOf("const addToGallery");
+    const demoGalleryBranch = photoStudio.indexOf("if (isCommercialDemo && commercialDemoFrame)", addToGalleryStart);
+    const governedGalleryCall = photoStudio.indexOf("addAiCreationToRestaurantGallery", addToGalleryStart);
+    expect(demoGalleryBranch).toBeGreaterThanOrEqual(0);
+    expect(governedGalleryCall).toBeGreaterThanOrEqual(0);
+    expect(demoGalleryBranch).toBeLessThan(governedGalleryCall);
+    expect(photoStudio).not.toContain('supabase.from("restaurant_media").insert({');
     expect(photoStudio).toContain("Générer avec OpenAI · crédits Démo illimités");
     expect(photoStudio).toContain("transmise temporairement à OpenAI uniquement lors de la retouche");
   });
