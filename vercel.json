@@ -290,6 +290,15 @@
       ]
     },
     {
+      "source": "/assets/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/auth",
       "headers": [
         {
@@ -509,7 +518,7 @@
       "headers": [
         {
           "key": "X-Robots-Tag",
-          "value": "noindex, nofollow, noarchive"
+          "value": "noindex, nofollow,noarchive"
         },
         {
           "key": "Cache-Control",
