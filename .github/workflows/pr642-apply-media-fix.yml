@@ -25,12 +25,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Apply gallery and print patch
         run: python scripts/pr642_apply_media_fix.py
+      - name: Update regression contracts
+        run: python scripts/pr642_update_contracts.py
       - name: Regenerate error code map
         run: pnpm run generate:error-code-map
       - name: Verify focused regression suite
         run: pnpm exec vitest run --mode production src/test/ai-gallery-print-media-contract.test.ts src/test/tok-ai-tools.test.ts src/test/photo-studio-persistence.test.ts src/test/ai-image-reference-security.test.ts src/test/incident-evidence-depth.test.ts src/test/marketing-print*.test.ts
       - name: Remove temporary patch files
-        run: rm .github/workflows/pr642-apply-media-fix.yml scripts/pr642_apply_media_fix.py
+        run: rm .github/workflows/pr642-apply-media-fix.yml scripts/pr642_apply_media_fix.py scripts/pr642_update_contracts.py
       - name: Validate diff
         run: git diff --check
       - name: Commit patch
