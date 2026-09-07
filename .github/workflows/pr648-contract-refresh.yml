@@ -33,7 +33,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Update stale contracts
-        run: python3 scripts/pr648-update-stale-contracts.py
+        run: |
+          python3 scripts/pr648-update-stale-contracts.py
+          python3 scripts/pr648-fix-secret-scope.py
       - name: Verify demo contracts
         shell: bash
         run: |
@@ -59,6 +61,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -f scripts/pr648-update-stale-contracts.py
+          rm -f scripts/pr648-fix-secret-scope.py
           rm -f .github/workflows/pr648-contract-refresh.yml
           rm -f .github/workflows/pr648-shard-diagnostics.yml
           git config user.name "github-actions[bot]"
