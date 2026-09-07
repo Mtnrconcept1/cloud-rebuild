@@ -4,9 +4,8 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { disablePush, enablePush } from "@/lib/push-unified";
+import { disablePush, enablePush, isCurrentPushEnabled } from "@/lib/push-unified";
 
 export default function PushNotificationSettings() {
   const { user } = useAuth();
@@ -21,21 +20,13 @@ export default function PushNotificationSettings() {
       return;
     }
 
-    const { data, error } = await getSupabase()
-      .from("device_tokens")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("enabled", true)
-      .limit(1);
-
-    if (error) {
+    try {
+      setEnabled(await isCurrentPushEnabled(user.id));
+    } catch {
       console.warn("[push-settings] device_token_status_unavailable", { user_authenticated: true });
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setEnabled((data || []).length > 0);
-    setLoading(false);
   }, [user?.id]);
 
   useEffect(() => {
@@ -47,13 +38,19 @@ export default function PushNotificationSettings() {
 
     setSaving(true);
     try {
-      if (enabled) {
-        await disablePush(user.id);
-        toast.success("Notifications push désactivées sur cet appareil.");
-      } else {
-        await enablePush(user.id);
-        toast.success("Notifications push activées.");
+      const result = enabled
+        ? await disablePush(user.id)
+        : await enablePush(user.id);
+
+      if (!result.ok) {
+        throw new Error(result.reason || "Impossible de modifier les notifications push.");
       }
+
+      toast.success(
+        enabled
+          ? "Notifications push désactivées sur cet appareil."
+          : "Notifications push activées.",
+      );
       await refresh();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Impossible de modifier les notifications push.";
