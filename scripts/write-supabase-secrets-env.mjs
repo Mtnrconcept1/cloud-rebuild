@@ -104,9 +104,16 @@ if (liveWebhookSecret) {
   ensureDefault(entries, "STRIPE_WEBHOOK_SIGNING_SECRET_LIVE", liveWebhookSecret);
 }
 
-// Print provider is fail-closed. Merely deploying the code never enables live
-// fulfillment; an explicit CLOUDPRINTER_MODE=sandbox|live must be provisioned.
-ensureDefault(entries, "CLOUDPRINTER_MODE", "disabled");
+const cloudprinterCredentialsProvided = entries.some(([name]) =>
+  name === "CLOUDPRINTER_API_KEY" || name === "CLOUDPRINTER_WEBHOOK_API_KEY"
+);
+if (cloudprinterCredentialsProvided) {
+  // Provisioning credentials without an explicit mode must remain fail-closed.
+  // Generic deployments provide neither Cloudprinter credentials nor mode, so
+  // they preserve whichever sandbox/live mode the dedicated workflow provisioned.
+  ensureDefault(entries, "CLOUDPRINTER_MODE", "disabled");
+}
+
 ensureDefault(entries, "ENVIRONMENT", "production");
 ensureDefault(entries, "APP_ENV", "production");
 

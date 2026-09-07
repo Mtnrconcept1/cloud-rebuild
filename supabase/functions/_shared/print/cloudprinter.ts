@@ -20,6 +20,8 @@ const CLOUDPRINTER_API_BASE = "https://api.cloudprinter.com/cloudcore/1.0";
 const REQUEST_TIMEOUT_MS = 20_000;
 const SAFE_RETRY_DELAYS_MS = [250, 750];
 
+let cloudprinterHttpClient: Deno.HttpClient | null = null;
+
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -50,6 +52,16 @@ function asNullableNumber(value: unknown): number | null {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getCloudprinterHttpClient() {
+  if (!cloudprinterHttpClient) {
+    cloudprinterHttpClient = Deno.createHttpClient({
+      http1: true,
+      http2: false,
+    });
+  }
+  return cloudprinterHttpClient;
 }
 
 export class CloudprinterError extends Error {
@@ -133,6 +145,7 @@ async function postCloudprinter(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cloudprinterPayload(payload)),
         signal: controller.signal,
+        client: getCloudprinterHttpClient(),
       });
       const body = await parseBody(response);
       if (options.notFound?.includes(response.status)) return null;
