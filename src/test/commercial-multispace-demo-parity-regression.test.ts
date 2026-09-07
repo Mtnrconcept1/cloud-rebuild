@@ -16,7 +16,7 @@ describe("commercial multi-space demo parity", () => {
     const actorGrid = read("src/components/commercial/CommercialDemoActorBrowserGrid.tsx");
     const frame = read("src/lib/commercialDemoFrame.ts");
 
-    expect(frame).toContain('"client" | "restaurant" | "courier" | "commercial"');
+    expect(frame).toContain('CommercialDemoActorSurface | "commercial"');
     expect(browserGrid).toContain('buildCommercialDemoFrameUrl("commercial"');
     expect(browserGrid).toContain('data-browser-surface="commercial"');
     expect(actorGrid).toContain('surface: "client"');
