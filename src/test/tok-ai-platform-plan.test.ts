@@ -203,6 +203,8 @@ describe("TOK AI platform plan", () => {
     const featureCatalog = readProjectFile("src/lib/featureCatalog.ts");
     const aide = readProjectFile("src/pages/Aide.tsx");
     const suiviCommande = readProjectFile("src/pages/SuiviCommande.tsx");
+    const suiviCommandeLive = readProjectFile("src/pages/SuiviCommandeLive.tsx");
+    const demoOrderTracking = readProjectFile("src/components/commercial/CommercialDemoOrderTracking.tsx");
     const commandes = readProjectFile("src/pages/Commandes.tsx");
 
     for (const route of [
@@ -234,7 +236,10 @@ describe("TOK AI platform plan", () => {
     }
 
     expect(aide).toContain("TokAiSupportChat");
-    expect(suiviCommande).toContain("TokAiSupportChat");
+    expect(suiviCommande).toContain("SuiviCommandeLive");
+    expect(suiviCommande).toContain("CommercialDemoOrderTracking");
+    expect(suiviCommandeLive).toContain("TokAiSupportChat");
+    expect(demoOrderTracking).toContain("TokAiSupportChat");
     expect(commandes).toContain("TokAiSupportChat");
   });
 
