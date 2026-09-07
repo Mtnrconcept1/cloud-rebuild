@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Loader2,
@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  confirmCommercialDemoCheckout,
   createCommercialDemoSession,
   getCommercialDemoSnapshot,
   resetCommercialDemoSession,
@@ -26,8 +27,8 @@ import {
   type CommercialDemoSnapshot,
 } from "@/lib/commercialDemoJourney";
 import { isCommercialDemoFrameMessage, parseCommercialDemoFramePath } from "@/lib/commercialDemoFrame";
+import { isStripeTestCheckoutSessionId } from "@/lib/commercialDemoHostSecurity";
 import type { CommercialDemoRealtimeStatus } from "@/lib/commercialDemoRealtime";
-import { isDemoWorkspaceSurface } from "@/lib/demoWorkspaces";
 import { cn } from "@/lib/utils";
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
@@ -66,22 +67,28 @@ const REALTIME_PRESENTATION = {
   animate: boolean;
 }>;
 
-function getInitialSessionId() {
-  if (typeof window === "undefined") return "";
-  try {
-    return window.sessionStorage.getItem(DEMO_SESSION_STORAGE_KEY) || "";
-  } catch {
-    return "";
+function getInitialCheckoutParams() {
+  if (typeof window === "undefined") {
+    return { sessionId: "", stripeSessionId: "", returnedFromCheckout: false, checkoutCancelled: false };
   }
+  const params = new URLSearchParams(window.location.search);
+  let storedSessionId = "";
+  try {
+    storedSessionId = window.sessionStorage.getItem(DEMO_SESSION_STORAGE_KEY) || "";
+  } catch {
+    // The demo still works without persistence in restrictive privacy modes.
+  }
+  const stripeSessionId = params.get("stripe_session_id") || "";
+  return {
+    sessionId: params.get("demo_session_id") || storedSessionId,
+    stripeSessionId: isStripeTestCheckoutSessionId(stripeSessionId) ? stripeSessionId : "",
+    returnedFromCheckout: params.get("demo_checkout") === "success"
+      && isStripeTestCheckoutSessionId(stripeSessionId),
+    checkoutCancelled: params.get("demo_checkout") === "cancelled",
+  };
 }
 
-function getRequestedDemoSurface() {
-  if (typeof window === "undefined") return undefined;
-  const surface = new URLSearchParams(window.location.search).get("surface");
-  return isDemoWorkspaceSurface(surface) ? surface : undefined;
-}
-
-function updateDemoSessionUrl(sessionId: string) {
+function updateDemoSessionUrl(sessionId: string, clearCheckoutParams = true) {
   if (typeof window === "undefined") return;
   try {
     window.sessionStorage.setItem(DEMO_SESSION_STORAGE_KEY, sessionId);
@@ -90,8 +97,10 @@ function updateDemoSessionUrl(sessionId: string) {
   }
   const url = new URL(window.location.href);
   url.searchParams.delete("demo_session_id");
-  url.searchParams.delete("stripe_session_id");
-  url.searchParams.delete("demo_checkout");
+  if (clearCheckoutParams) {
+    url.searchParams.delete("stripe_session_id");
+    url.searchParams.delete("demo_checkout");
+  }
   window.history.replaceState(window.history.state, "", url);
 }
 
@@ -158,12 +167,13 @@ function ActivityFeed({ snapshot }: { snapshot: CommercialDemoSnapshot }) {
 }
 
 export default function CommercialMultiSpaceDemo() {
-  const [sessionId, setSessionId] = useState(getInitialSessionId);
-  const requestedSurface = getRequestedDemoSurface();
+  const [initialParams] = useState(getInitialCheckoutParams);
+  const [sessionId, setSessionId] = useState(initialParams.sessionId);
   const [realtimeStatus, setRealtimeStatus] = useState<CommercialDemoRealtimeStatus>(() => (
     typeof navigator !== "undefined" && navigator.onLine === false ? "offline" : "connecting"
   ));
   const queryClient = useQueryClient();
+  const automaticConfirmationRef = useRef("");
 
   const bootstrapQuery = useQuery({
     queryKey: ["commercial-demo-bootstrap", sessionId || "new"],
@@ -176,8 +186,8 @@ export default function CommercialMultiSpaceDemo() {
   useEffect(() => {
     if (!effectiveSessionId) return;
     if (!sessionId) setSessionId(effectiveSessionId);
-    updateDemoSessionUrl(effectiveSessionId);
-  }, [effectiveSessionId, sessionId]);
+    updateDemoSessionUrl(effectiveSessionId, !initialParams.returnedFromCheckout);
+  }, [effectiveSessionId, initialParams.returnedFromCheckout, sessionId]);
 
   const snapshotQuery = useQuery({
     queryKey: ["commercial-demo-snapshot", effectiveSessionId],
@@ -208,7 +218,57 @@ export default function CommercialMultiSpaceDemo() {
     },
   });
 
-  const combinedError = bootstrapQuery.error || snapshotQuery.error || resetMutation.error;
+  const confirmMutation = useMutation({
+    mutationFn: async () => {
+      if (!snapshot?.session.demo_restaurant_id || !initialParams.stripeSessionId) {
+        throw new Error("Session Stripe Test de retour introuvable.");
+      }
+      return confirmCommercialDemoCheckout({
+        demoRestaurantId: snapshot.session.demo_restaurant_id,
+        demoSessionId: snapshot.session.id,
+        stripeSessionId: initialParams.stripeSessionId,
+      });
+    },
+    onSuccess: (result) => {
+      queryClient.setQueryData(["commercial-demo-snapshot", effectiveSessionId], result.snapshot);
+      updateDemoSessionUrl(effectiveSessionId);
+    },
+  });
+  const confirmCheckout = confirmMutation.mutate;
+
+  useEffect(() => {
+    if (!initialParams.returnedFromCheckout || !initialParams.stripeSessionId || !snapshot) return;
+    if (automaticConfirmationRef.current === initialParams.stripeSessionId) return;
+    automaticConfirmationRef.current = initialParams.stripeSessionId;
+    confirmCheckout();
+  }, [confirmCheckout, initialParams.returnedFromCheckout, initialParams.stripeSessionId, snapshot]);
+
+  useEffect(() => {
+    if (!effectiveSessionId) return;
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || event.source === window || !isCommercialDemoFrameMessage(event.data)) return;
+      if (event.data.sessionId !== effectiveSessionId) return;
+      let sourceFrame;
+      try {
+        sourceFrame = parseCommercialDemoFramePath((event.source as Window | null)?.location.pathname || "");
+      } catch {
+        return;
+      }
+      if (!sourceFrame || sourceFrame.surface !== "client" || sourceFrame.sessionId !== effectiveSessionId) return;
+      let checkoutUrl: URL;
+      try {
+        checkoutUrl = new URL(event.data.checkoutUrl);
+      } catch {
+        return;
+      }
+      if (checkoutUrl.protocol !== "https:" || checkoutUrl.hostname !== "checkout.stripe.com") return;
+      window.location.assign(checkoutUrl.toString());
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [effectiveSessionId]);
+
+  const combinedError = bootstrapQuery.error || snapshotQuery.error || resetMutation.error || confirmMutation.error;
   const startFreshSession = () => {
     try {
       window.sessionStorage.removeItem(DEMO_SESSION_STORAGE_KEY);
@@ -249,10 +309,10 @@ export default function CommercialMultiSpaceDemo() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-100"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Console commerciale</Badge>
               <RealtimeConnectionBadge status={realtimeStatus} />
-              <Badge variant="outline" className="rounded-full border-violet-300 text-violet-700"><TestTube2 className="mr-1.5 h-3.5 w-3.5" />Paiement simulé · aucun débit</Badge>
+              <Badge variant="outline" className="rounded-full border-violet-300 text-violet-700"><TestTube2 className="mr-1.5 h-3.5 w-3.5" />Stripe Test uniquement</Badge>
             </div>
             <h1 className="mt-2 break-words font-serif text-2xl font-black tracking-tight sm:text-3xl">Contrôle à distance des trois comptes</h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">La console pilote simultanément les véritables interfaces Client, Restaurateur et Livreur. Tous les outils actifs dans l’Admin restent disponibles ; le paiement est accepté par le simulateur Démo sans appeler Stripe.</p>
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">La console pilote simultanément les véritables interfaces Client, Restaurateur et Livreur. Tous les outils actifs dans l’Admin restent disponibles ; seul le paiement utilise Stripe Test.</p>
           </div>
           <Button type="button" variant="outline" className="h-10 shrink-0 rounded-xl" onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
             {resetMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}Réinitialiser
@@ -260,16 +320,15 @@ export default function CommercialMultiSpaceDemo() {
         </div>
         <details className="mt-2 text-xs text-muted-foreground">
           <summary className="cursor-pointer select-none font-semibold text-sky-700"><ShieldCheck className="mr-1.5 inline h-3.5 w-3.5" />Isolation de la démonstration</summary>
-          <p className="mt-2 rounded-xl border border-sky-200 bg-sky-50/80 p-3 leading-5 text-sky-950 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">Chaque fenêtre charge sa propre SPA et son propre historique. Les actions métier restent confinées au restaurant Démo et à ses tables dédiées ; OpenAI fonctionne côté serveur et le paiement simulé déclenche le véritable parcours de commande sans fournisseur financier.</p>
+          <p className="mt-2 rounded-xl border border-sky-200 bg-sky-50/80 p-3 leading-5 text-sky-950 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">Chaque fenêtre charge sa propre SPA et son propre historique. Les actions métier restent confinées au restaurant Démo et à ses tables dédiées ; OpenAI fonctionne côté serveur et les paiements utilisent exclusivement Stripe Test.</p>
         </details>
+        {initialParams.checkoutCancelled ? <div className="mt-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950" role="status"><strong>Paiement test annulé.</strong> Aucun débit n'a eu lieu ; relancez-le depuis la fenêtre client.</div> : null}
+        {confirmMutation.isPending ? <div className="mt-3 flex items-center gap-2 rounded-2xl border bg-muted/30 p-4 text-sm" role="status"><Loader2 className="h-4 w-4 animate-spin" />Vérification serveur du paiement Stripe Test…</div> : null}
       </section>
 
       {combinedError ? <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100" role="alert"><strong>Action non exécutée.</strong> {errorMessage(combinedError)}</div> : null}
 
-      <CommercialDemoBrowserGrid
-        sessionId={snapshot.session.id}
-        initialSurface={requestedSurface}
-      />
+      <CommercialDemoBrowserGrid sessionId={snapshot.session.id} />
 
       <CommercialDemoConsoleAi
         sessionId={snapshot.session.id}

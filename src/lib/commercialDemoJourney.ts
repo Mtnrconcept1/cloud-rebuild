@@ -3,6 +3,7 @@ import {
   getCommercialDemoRealtimeUpdate,
   type CommercialDemoRealtimeStatus,
 } from "@/lib/commercialDemoRealtime";
+import { isStripeTestCheckoutSessionId } from "@/lib/commercialDemoHostSecurity";
 import {
   invokeCommercialDemoFunction,
   invokeCommercialDemoRpc,
@@ -131,17 +132,30 @@ export type CommercialDemoReservationTransitionAction =
   | "restaurant_mark_no_show"
   | "client_cancel";
 
-export type CommercialDemoPaymentSimulationResult = {
-  paid: true;
-  simulated: true;
-  payment_status: "test_paid";
-  mode: "simulated";
-  payment_provider: "none";
-  simulation_id: string;
+export type CommercialDemoCheckoutCreateResult = {
+  checkout_url: string;
+  stripe_session_id: string;
+  mode: "test";
+  demo_order_id: string;
+  demo_session_id: string;
+};
+
+export type CommercialDemoCheckoutConfirmResult = {
+  paid: boolean;
+  payment_status: string;
+  mode: "test";
+  stripe_session_id: string;
   demo_order_id: string;
   demo_session_id: string;
   snapshot: CommercialDemoSnapshot;
 };
+
+/**
+ * Compatibility type for callers that historically used the instant payment
+ * simulator. The function now opens Stripe Test and intentionally never
+ * resolves in the current document because Checkout navigates the top window.
+ */
+export type CommercialDemoPaymentSimulationResult = CommercialDemoCheckoutConfirmResult;
 
 export class CommercialDemoApiError extends Error {
   code: string;
@@ -192,17 +206,12 @@ async function toFunctionApiError(error: unknown, fallback: string) {
   return new CommercialDemoApiError(getErrorMessage(error, fallback), getErrorCode(error));
 }
 
-function assertDemoPaymentSimulation(value: unknown) {
+function assertTestMode(value: unknown) {
   const record = asRecord(value);
-  if (
-    record.mode !== "simulated"
-    || record.simulated !== true
-    || record.payment_provider !== "none"
-    || !/^demo_sim_[0-9a-f]{48}$/.test(String(record.simulation_id || ""))
-  ) {
+  if (record.mode !== "test" || !isStripeTestCheckoutSessionId(record.stripe_session_id)) {
     throw new CommercialDemoApiError(
-      "Le serveur n'a pas confirmé une simulation de paiement isolée.",
-      "DEMO_PAYMENT_SIMULATION_REQUIRED",
+      "Le serveur n'a pas confirmé une session Stripe Test. Le paiement a été bloqué par sécurité.",
+      "DEMO_STRIPE_MODE_REQUIRED",
     );
   }
   return record;
@@ -304,26 +313,117 @@ export async function resetCommercialDemoSession(sessionId: string) {
   });
 }
 
+export async function createCommercialDemoCheckout({
+  demoRestaurantId,
+  demoSessionId,
+  returnUrl,
+}: {
+  demoRestaurantId: string;
+  demoSessionId: string;
+  returnUrl: string;
+}) {
+  try {
+    const data = await invokeCommercialDemoFunction<CommercialDemoCheckoutCreateResult>(
+      "commercial-demo-checkout",
+      {
+        action: "create",
+        demo_restaurant_id: demoRestaurantId,
+        demo_session_id: demoSessionId,
+        return_url: returnUrl,
+      },
+    );
+    return assertTestMode(data) as CommercialDemoCheckoutCreateResult;
+  } catch (error) {
+    throw await toFunctionApiError(error, "Le paiement Stripe Test ne peut pas être ouvert.");
+  }
+}
+
+export function buildCommercialDemoCheckoutReturnUrl(sessionId: string) {
+  const url = new URL("/commercial/demo-live", window.location.origin);
+  url.searchParams.set("demo_session_id", sessionId);
+  return url.toString();
+}
+
+export function openCommercialDemoCheckout(sessionId: string, checkoutUrl: string, stripeSessionId: string) {
+  if (!isStripeTestCheckoutSessionId(stripeSessionId)) {
+    throw new CommercialDemoApiError("Session Stripe Test invalide. Ouverture bloquée.", "INVALID_TEST_STRIPE_SESSION");
+  }
+  const url = new URL(checkoutUrl);
+  if (url.protocol !== "https:" || url.hostname !== "checkout.stripe.com") {
+    throw new CommercialDemoApiError("URL Stripe Test invalide. Ouverture bloquée.", "INVALID_CHECKOUT_URL");
+  }
+  if (window.parent === window) {
+    window.location.assign(url.toString());
+    return;
+  }
+  window.parent.postMessage({
+    type: "commercial-demo:open-checkout",
+    sessionId,
+    stripeSessionId,
+    checkoutUrl: url.toString(),
+  }, window.location.origin);
+}
+
+export async function confirmCommercialDemoCheckout({
+  demoRestaurantId,
+  demoSessionId,
+  stripeSessionId,
+}: {
+  demoRestaurantId: string;
+  demoSessionId: string;
+  stripeSessionId: string;
+}) {
+  try {
+    const data = await invokeCommercialDemoFunction<CommercialDemoCheckoutConfirmResult>(
+      "commercial-demo-checkout",
+      {
+        action: "confirm",
+        demo_restaurant_id: demoRestaurantId,
+        demo_session_id: demoSessionId,
+        stripe_session_id: stripeSessionId,
+      },
+    );
+    return assertTestMode(data) as CommercialDemoCheckoutConfirmResult;
+  } catch (error) {
+    throw await toFunctionApiError(error, "Le paiement Stripe Test n'a pas pu être vérifié.");
+  }
+}
+
+function clearCommercialDemoClientCartStorage(sessionId: string) {
+  if (typeof window === "undefined") return;
+  const namespace = `miamz-demo:${sessionId}:client`;
+  try {
+    window.localStorage.removeItem(`${namespace}-cart`);
+    window.localStorage.removeItem(`${namespace}-cart-metadata`);
+    window.localStorage.removeItem(`${namespace}-order-mode`);
+  } catch {
+    // Restrictive browser storage modes must not block Stripe Test checkout.
+  }
+}
+
+/**
+ * Backward-compatible entrypoint used by the current cart and demo shortcut.
+ * It no longer simulates a successful payment: it creates a real Stripe Test
+ * Checkout session, clears only the isolated demo cart, then navigates the
+ * presentation to checkout.stripe.com. The orchestrator confirms cs_test_* on
+ * return and refreshes every embedded space from the shared demo snapshot.
+ */
 export async function simulateCommercialDemoPayment({
   demoRestaurantId,
   demoSessionId,
 }: {
   demoRestaurantId: string;
   demoSessionId: string;
-}) {
-  try {
-    const data = await invokeCommercialDemoFunction<CommercialDemoPaymentSimulationResult>(
-      "commercial-demo-checkout",
-      {
-        action: "simulate",
-        demo_restaurant_id: demoRestaurantId,
-        demo_session_id: demoSessionId,
-      },
-    );
-    return assertDemoPaymentSimulation(data) as CommercialDemoPaymentSimulationResult;
-  } catch (error) {
-    throw await toFunctionApiError(error, "Le paiement simulé n'a pas pu être confirmé.");
-  }
+}): Promise<CommercialDemoPaymentSimulationResult> {
+  const checkout = await createCommercialDemoCheckout({
+    demoRestaurantId,
+    demoSessionId,
+    returnUrl: buildCommercialDemoCheckoutReturnUrl(demoSessionId),
+  });
+  clearCommercialDemoClientCartStorage(demoSessionId);
+  openCommercialDemoCheckout(demoSessionId, checkout.checkout_url, checkout.stripe_session_id);
+
+  return await new Promise<CommercialDemoPaymentSimulationResult>(() => undefined);
 }
 
 export function subscribeToCommercialDemoSession(
@@ -400,5 +500,3 @@ export function getCommercialDemoPresetItems(
     unit_amount_cents: Math.round(Number(item.price) * 100),
   }));
 }
-
-

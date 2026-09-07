@@ -29,6 +29,7 @@ const COMMERCIAL_DEMO_CLIENT_EXACT_PATHS = new Set([
 
 const COMMERCIAL_DEMO_CLIENT_PATH_PREFIXES = [
   "/restaurant/",
+  "/commande/",
   "/actualites/",
 ] as const;
 
@@ -51,13 +52,13 @@ export function isCommercialDemoClientPathAllowed(pathname: string) {
 
 /**
  * Normalizes links emitted by the real client dashboard before they are sent
- * to the embedded browser history. Production discovery and order-detail URLs
- * are redirected to their isolated demo equivalents.
+ * to the embedded browser history. Production discovery URLs are redirected
+ * to their isolated demo equivalent; order details remain available because
+ * SuiviCommande swaps to the shared commercial-demo snapshot inside the frame.
  */
 export function getCommercialDemoClientTarget(target: string) {
   const url = new URL(target, "https://thetok.ch");
 
-  if (url.pathname.startsWith("/commande/")) return "/commandes";
   if (PRODUCTION_DISCOVERY_PATH_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
     return "/recherche";
   }
