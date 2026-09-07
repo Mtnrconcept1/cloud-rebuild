@@ -236,7 +236,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1466
+      "line": 1478
     },
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
@@ -773,6 +773,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 506
     },
     {
+      "file": "supabase/functions/ai-image-enhance/index.ts",
+      "line": 1461
+    },
+    {
       "file": "supabase/functions/customer-memory/index.ts",
       "line": 433
     },
@@ -793,6 +797,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-campaign-studio/index.ts",
       "line": 505
+    },
+    {
+      "file": "supabase/functions/ai-image-enhance/index.ts",
+      "line": 1460
     },
     {
       "file": "supabase/functions/customer-memory/index.ts",
@@ -1032,7 +1040,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_generation_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1493
+      "line": 1505
     }
   ],
   "image_id_required": [
@@ -2036,7 +2044,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1492
+      "line": 1504
     },
     {
       "file": "supabase/functions/ai-restaurant-agent/index.ts",

@@ -1449,6 +1449,18 @@ async function requireTokCreditBalance(
   return balance;
 }
 
+async function requireActiveAiFeature(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  featureName: string,
+) {
+  const { data, error } = await actor.adminClient.rpc("is_feature_flag_active", {
+    p_flag_name: featureName,
+  });
+
+  if (error) throw new HttpError(500, "feature_flag_check_unavailable");
+  if (data !== true) throw new HttpError(503, "feature_disabled");
+}
+
 Deno.serve(async (req) => {
   const cors = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, cors);
@@ -1492,6 +1504,8 @@ Deno.serve(async (req) => {
     if (!restaurantId) throw new HttpError(400, "restaurant_required");
     if (!generateImage) throw new HttpError(400, "image_generation_required");
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
+    await requireActiveAiFeature(actor, "ai_premium_image_generation");
+    await requireActiveAiFeature(actor, marketingAssetMode ? "ai_marketing_campaigns" : "ai_photo_enhancer");
     const marketingReferences = marketingAssetMode
       ? await resolveCurrentMarketingReferences(actor, restaurantId, requestedReferenceMediaIds)
       : null;
