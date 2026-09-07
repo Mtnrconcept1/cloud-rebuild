@@ -21,6 +21,8 @@ describe("commercial demo active tools and reservations", () => {
   const cart = read("src/pages/Panier.tsx");
   const cartProvider = read("src/lib/cart.tsx");
   const clientHome = read("src/pages/ClientDashboardHome.tsx");
+  const suiviCommande = read("src/pages/SuiviCommande.tsx");
+  const demoOrderTracking = read("src/components/commercial/CommercialDemoOrderTracking.tsx");
   const tokOne = read("src/hooks/useTokOne.ts");
   const menu = read("src/pages/dashboard/DashboardMenu.tsx");
   const crm = read("src/pages/dashboard/DashboardCrm.tsx");
@@ -84,12 +86,16 @@ describe("commercial demo active tools and reservations", () => {
     expect(service).toContain("menu_item_id?: string");
   });
 
-  it("keeps demo client navigation away from production order details", () => {
+  it("keeps demo order details isolated while preserving route and AI parity", () => {
     expect(app).toContain("isPathAllowed: isCommercialDemoClientPathAllowed");
     expect(clientRoutes).toContain('"/restaurant/"');
-    expect(clientRoutes).not.toContain('"/commande/",');
-    expect(clientRoutes).toContain('if (url.pathname.startsWith("/commande/")) return "/commandes";');
+    expect(clientRoutes).toContain('"/commande/"');
+    expect(clientRoutes).not.toContain('if (url.pathname.startsWith("/commande/")) return "/commandes";');
     expect(clientHome).toContain("getCommercialDemoClientTarget(target)");
+    expect(suiviCommande).toContain("CommercialDemoOrderTracking");
+    expect(demoOrderTracking).toContain("useCommercialDemoFrame");
+    expect(demoOrderTracking).not.toContain('.from("orders")');
+    expect(demoOrderTracking).toContain("TokAiSupportChat");
     expect(clientLayout).toContain('featuresAny: ["reservation", "commandes"]');
     expect(clientLayout).toContain("demoOnly: true");
     expect(clientLayout).toContain("return !item.demoOnly && hasActiveFeature");
