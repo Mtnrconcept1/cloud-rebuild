@@ -104,9 +104,16 @@ if (liveWebhookSecret) {
   ensureDefault(entries, "STRIPE_WEBHOOK_SIGNING_SECRET_LIVE", liveWebhookSecret);
 }
 
-// The dedicated Cloudprinter provisioning workflow owns CLOUDPRINTER_MODE.
-// Omitting it from a generic deployment preserves an existing explicit sandbox/live
-// selection; the Edge runtime still defaults a missing or invalid mode to disabled.
+const cloudprinterCredentialsProvided = entries.some(([name]) =>
+  name === "CLOUDPRINTER_API_KEY" || name === "CLOUDPRINTER_WEBHOOK_API_KEY"
+);
+if (cloudprinterCredentialsProvided) {
+  // Provisioning credentials without an explicit mode must remain fail-closed.
+  // Generic deployments provide neither Cloudprinter credentials nor mode, so
+  // they preserve whichever sandbox/live mode the dedicated workflow provisioned.
+  ensureDefault(entries, "CLOUDPRINTER_MODE", "disabled");
+}
+
 ensureDefault(entries, "ENVIRONMENT", "production");
 ensureDefault(entries, "APP_ENV", "production");
 
