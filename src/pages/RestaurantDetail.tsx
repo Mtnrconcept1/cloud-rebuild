@@ -666,8 +666,10 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const heroImage = coverPhoto?.media_url || restaurant?.image_url || "/images/kebab-box-spread.jpeg";
   const optimizedHeroImage = getOptimizedImageUrl(heroImage, "hero");
   const optimizedHeroSrcSet = getOptimizedImageSrcSet(heroImage, "hero");
+  const reviewCount = Math.max(Number(restaurant?.review_count) || 0, reviews?.length || 0);
   const avgRating = avgRating10.toFixed(1);
-  const reviewCount = restaurant?.review_count || reviews?.length || 0;
+  const hasPublicRating = reviewCount > 0 && avgRating10 > 0;
+  const showPublicPhone = Boolean(restaurant?.phone) && restaurant?.is_directory_listing !== true;
   const restaurantCanonicalPath = canonicalPath
     || (!isCommercialDemoClient && restaurant
       ? buildRestaurantSeoPath(restaurant)
@@ -941,8 +943,15 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
             </div>
             <h1 className="font-display text-3xl md:text-5xl font-bold text-white">{restaurant.name}</h1>
             <div className="flex items-center gap-4 mt-3">
-              <div className="flex items-center gap-1.5 bg-primary rounded-lg px-3 py-1.5"><Star className="h-4 w-4 fill-primary-foreground text-primary-foreground" /><span className="font-bold text-primary-foreground text-sm">{avgRating}/10</span></div>
-              <span className="text-white/80 text-sm">{reviewCount} avis</span><span className="text-white/50">·</span><span className="text-white/80"><PriceRangeIcons range={restaurant.price_range || 2} /></span>
+              {hasPublicRating ? (
+                <>
+                  <div className="flex items-center gap-1.5 bg-primary rounded-lg px-3 py-1.5"><Star className="h-4 w-4 fill-primary-foreground text-primary-foreground" /><span className="font-bold text-primary-foreground text-sm">{avgRating}/10</span></div>
+                  <span className="text-white/80 text-sm">{reviewCount} avis</span>
+                </>
+              ) : (
+                <span className="rounded-lg bg-white/15 px-3 py-1.5 text-sm font-semibold text-white/90 backdrop-blur-sm">Pas encore d’avis</span>
+              )}
+              <span className="text-white/50">·</span><span className="text-white/80"><PriceRangeIcons range={restaurant.price_range || 2} /></span>
             </div>
           </div>
         </div>
@@ -967,7 +976,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
           <div className="flex-1 min-w-0 space-y-6">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground p-4 rounded-xl bg-card border">
               <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" />{restaurant.address}, {restaurant.city}</span>
-              {restaurant.phone && <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary" />{restaurant.phone}</span>}
+              {showPublicPhone && <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary" />{restaurant.phone}</span>}
             </div>
             <section
               aria-labelledby="restaurant-data-freshness"
@@ -1449,9 +1458,19 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div className="md:col-span-1 space-y-6">
                     <div className="text-center p-6 bg-secondary/20 rounded-2xl border">
-                      <p className="font-display text-5xl font-bold text-primary">{avgRating}</p>
-                      <div className="flex justify-center my-2">{[1, 2, 3, 4, 5].map((s) => (<Star key={s} className={`h-4 w-4 ${s <= Math.round(Number(avgRating) / 2) ? "fill-primary text-primary" : "text-muted"}`} />))}</div>
-                      <p className="text-sm text-muted-foreground">{reviewCount} avis publiés</p>
+                      {hasPublicRating ? (
+                        <>
+                          <p className="font-display text-5xl font-bold text-primary">{avgRating}</p>
+                          <div className="flex justify-center my-2">{[1, 2, 3, 4, 5].map((s) => (<Star key={s} className={`h-4 w-4 ${s <= Math.round(Number(avgRating) / 2) ? "fill-primary text-primary" : "text-muted"}`} />))}</div>
+                          <p className="text-sm text-muted-foreground">{reviewCount} avis publiés</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-display text-3xl font-bold text-primary">—</p>
+                          <p className="mt-2 text-sm font-semibold text-muted-foreground">Pas encore d’avis</p>
+                          <p className="mt-1 text-xs text-muted-foreground">Aucun avis publié</p>
+                        </>
+                      )}
                     </div>
                     <div className="space-y-2">
                       {ratingDistribution.map(({ score, count, percent }) => (
