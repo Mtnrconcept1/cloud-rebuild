@@ -1,0 +1,63 @@
+name: PR640 wire image AI kill switches
+
+on:
+  push:
+    branches:
+      - fix/notifications-ai-admin-hardening-20260907
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/notifications-ai-admin-hardening-20260907
+          fetch-depth: 1
+      - run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Patch image AI feature enforcement
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'supabase/functions/ai-image-enhance/index.ts';
+          let source = fs.readFileSync(path, 'utf8');
+          if (!source.includes('async function requireActiveAiFeature(')) {
+            const marker = 'Deno.serve(async (req) => {';
+            const helper = `async function requireActiveAiFeature(\n  actor: Awaited<ReturnType<typeof authenticateRequest>>,\n  featureName: string,\n) {\n  const { data, error } = await actor.adminClient.rpc("is_feature_flag_active", {\n    p_flag_name: featureName,\n  });\n\n  if (error) throw new HttpError(500, "feature_flag_check_unavailable");\n  if (data !== true) throw new HttpError(503, "feature_disabled");\n}\n\n`;
+            if (!source.includes(marker)) throw new Error('Deno serve marker missing');
+            source = source.replace(marker, helper + marker);
+          }
+          const accessMarker = '    const restaurant = await requireRestaurantAccess(actor, restaurantId);\n    const marketingReferences = marketingAssetMode';
+          const replacement = '    const restaurant = await requireRestaurantAccess(actor, restaurantId);\n    await requireActiveAiFeature(actor, "ai_premium_image_generation");\n    await requireActiveAiFeature(actor, marketingAssetMode ? "ai_marketing_campaigns" : "ai_photo_enhancer");\n    const marketingReferences = marketingAssetMode';
+          if (!source.includes('marketingAssetMode ? "ai_marketing_campaigns" : "ai_photo_enhancer"')) {
+            if (!source.includes(accessMarker)) throw new Error('Restaurant access marker missing');
+            source = source.replace(accessMarker, replacement);
+          }
+          fs.writeFileSync(path, source, 'utf8');
+          NODE
+      - name: Regenerate error-code map
+        run: pnpm run generate:error-code-map
+      - name: Verify focused contracts
+        run: pnpm exec vitest run --mode production src/test/notifications-ai-admin-hardening.test.ts src/test/ai-image-reference-security.test.ts src/test/incident-evidence-depth.test.ts src/test/tok-ai-tools.test.ts
+      - name: Remove temporary workflow
+        run: rm .github/workflows/pr640-ai-image-killswitch.yml
+      - name: Validate diff
+        run: git diff --check
+      - name: Commit patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add supabase/functions/ai-image-enhance/index.ts supabase/functions/_shared/error-code-map.ts .github/workflows/pr640-ai-image-killswitch.yml
+          git commit -m "fix(ai): enforce image-generation feature flags"
+          git push origin HEAD:fix/notifications-ai-admin-hardening-20260907
