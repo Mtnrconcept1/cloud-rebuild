@@ -320,6 +320,84 @@ export function getRecommendedTableByReservation({
   return recommendations;
 }
 
+/**
+ * Répartit d'un coup les réservations sans table.
+ *
+ * `getRecommendedTableByReservation` évalue chaque réservation isolément, à
+ * carte figée : deux réservations peuvent donc se voir recommander la même
+ * table. Pour un placement en masse il faut avancer séquentiellement et tenir
+ * compte des tables posées au tour précédent, d'où cette fonction distincte.
+ *
+ * Ordre de passage : les grands groupes d'abord. Les grandes tables sont la
+ * ressource rare ; les placer en dernier laisse des groupes sans solution alors
+ * qu'une autre répartition en aurait casé davantage.
+ *
+ * La table attitrée d'un client passe avant le score, exactement comme le fait
+ * le placement serveur à la création d'une réservation.
+ */
+export function planAutomaticPlacement({
+  reservations,
+  tables,
+  assignments,
+  preferredTableByUserId,
+  canPlace,
+  getPlacementScore,
+}: {
+  reservations: ServiceReservation[];
+  tables: ServiceDraftTable[];
+  assignments: Record<string, string | null>;
+  preferredTableByUserId?: Map<string, string>;
+  canPlace: (
+    reservationId: string,
+    tableId: string,
+    workingAssignments: Record<string, string | null>,
+  ) => boolean;
+  getPlacementScore: (
+    reservation: ServiceReservation,
+    table: ServiceDraftTable,
+    workingAssignments: Record<string, string | null>,
+  ) => ReservationPlacementScore;
+}): Record<string, string> {
+  const working: Record<string, string | null> = { ...assignments };
+  const placed: Record<string, string> = {};
+
+  const queue = [...reservations]
+    .filter((reservation) => !working[reservation.id])
+    .sort((left, right) => (
+      Number(right.party_size || 0) - Number(left.party_size || 0)
+      || getSafeTime(left.time).localeCompare(getSafeTime(right.time))
+      || left.id.localeCompare(right.id)
+    ));
+
+  queue.forEach((reservation) => {
+    const preferredTableId = preferredTableByUserId?.get(reservation.user_id);
+    if (preferredTableId
+      && tables.some((table) => table.id === preferredTableId)
+      && canPlace(reservation.id, preferredTableId, working)) {
+      working[reservation.id] = preferredTableId;
+      placed[reservation.id] = preferredTableId;
+      return;
+    }
+
+    const best = tables
+      .filter((table) => canPlace(reservation.id, table.id, working))
+      .map((table) => ({ table, ...getPlacementScore(reservation, table, working) }))
+      .sort((left, right) => (
+        right.score - left.score
+        || left.wastedSeats - right.wastedSeats
+        || left.table.capacity - right.table.capacity
+        || left.table.table_number.localeCompare(right.table.table_number, "fr")
+      ))[0];
+
+    if (!best) return;
+
+    working[reservation.id] = best.table.id;
+    placed[reservation.id] = best.table.id;
+  });
+
+  return placed;
+}
+
 function getReservationDurationMinutes(reservation: ServiceReservation) {
   const rawDuration = getReservationMetadataRecord(reservation).duration_minutes
     ?? getReservationMetadataRecord(reservation).durationMinutes;

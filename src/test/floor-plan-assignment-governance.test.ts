@@ -23,7 +23,12 @@ function latestMigrationContaining(pattern: RegExp) {
 
 describe("floor plan assignment governance", () => {
   it("adds an audited transactional RPC for reservation table assignments", () => {
-    const sql = latestMigrationContaining(/restaurant_save_floor_plan_assignments/i);
+    // Cible la migration qui *définit* la fonction : une simple mention (un
+    // commentaire d'une migration plus récente, par exemple) ne doit pas
+    // détourner la recherche vers un fichier qui ne la déclare pas.
+    const sql = latestMigrationContaining(
+      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.restaurant_save_floor_plan_assignments/i,
+    );
 
     expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.restaurant_save_floor_plan_assignments/i);
     expect(sql).toContain("pg_advisory_xact_lock");

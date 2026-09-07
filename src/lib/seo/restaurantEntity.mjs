@@ -394,6 +394,7 @@ export function buildRestaurantSeoModel({
     Math.round(toFiniteNumber(reviewCount) ?? toFiniteNumber(restaurant.review_count) ?? 0),
   );
   const normalizedAverageRating = toFiniteNumber(averageRating) ?? toFiniteNumber(restaurant.rating);
+  const isDirectoryListing = restaurant.is_directory_listing === true;
   const reviewSchemas = buildReviewSchemas(reviews, canonicalUrl);
   const title = buildTitle(restaurant, cuisines);
   const description = buildDescription(
@@ -485,7 +486,7 @@ export function buildRestaurantSeoModel({
     image: imageUrls,
     servesCuisine: cuisines,
     priceRange: getPriceRange(restaurant.price_range),
-    telephone: cleanText(restaurant.phone),
+    telephone: isDirectoryListing ? null : cleanText(restaurant.phone),
     address,
     geo: hasValidGeo
       ? {
@@ -495,7 +496,7 @@ export function buildRestaurantSeoModel({
       }
       : null,
     openingHoursSpecification: openingHours.specifications,
-    acceptsReservations: restaurant.supports_reservation === true,
+    acceptsReservations: restaurant.supports_reservation === true ? true : null,
     aggregateRating,
     review: reviewSchemas,
     hasMenu: menu ? { "@id": menu["@id"] } : null,

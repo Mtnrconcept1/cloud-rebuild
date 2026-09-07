@@ -1,5 +1,12 @@
 import { HttpError } from "../auth.ts";
 import type { PrintProvider } from "./provider.ts";
+import {
+  CloudprinterError,
+  type CloudprinterRequestOptions,
+  type CloudprinterTransportResponse,
+  cloudprinterRequestBody,
+  requestCloudprinter,
+} from "./request.ts";
 import type {
   PrintProviderCancelResult,
   PrintProviderCreateOrderRequest,
@@ -16,11 +23,11 @@ import type {
 } from "./types.ts";
 import { validatePrintAddress, validatePrintProviderFile } from "./security.ts";
 
+export { CloudprinterError } from "./request.ts";
+
 const CLOUDPRINTER_API_BASE = "https://api.cloudprinter.com/cloudcore/1.0";
 const REQUEST_TIMEOUT_MS = 20_000;
-const SAFE_RETRY_DELAYS_MS = [250, 750];
-
-let cloudprinterHttpClient: Deno.HttpClient | null = null;
+const MAX_PROVIDER_RESPONSE_BYTES = 5_000_000;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -50,42 +57,6 @@ function asNullableNumber(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function getCloudprinterHttpClient() {
-  if (!cloudprinterHttpClient) {
-    cloudprinterHttpClient = Deno.createHttpClient({
-      http1: true,
-      http2: false,
-    });
-  }
-  return cloudprinterHttpClient;
-}
-
-export class CloudprinterError extends Error {
-  status: number | null;
-  retryable: boolean;
-  ambiguous: boolean;
-  code: string;
-
-  constructor(input: {
-    code: string;
-    message: string;
-    status?: number | null;
-    retryable?: boolean;
-    ambiguous?: boolean;
-  }) {
-    super(input.message);
-    this.name = "CloudprinterError";
-    this.code = input.code;
-    this.status = input.status ?? null;
-    this.retryable = input.retryable === true;
-    this.ambiguous = input.ambiguous === true;
-  }
-}
-
 export function getCloudprinterMode(): PrintProviderMode {
   const value = String(Deno.env.get("CLOUDPRINTER_MODE") || "disabled").trim().toLowerCase();
   if (value === "sandbox" || value === "live") return value;
@@ -100,94 +71,51 @@ function getCloudprinterApiKey() {
   return key;
 }
 
-function cloudprinterPayload(payload: Record<string, unknown>) {
-  return { apikey: getCloudprinterApiKey(), ...payload };
-}
-
-function safeProviderMessage(status: number, body: unknown) {
-  const record = asRecord(body);
-  const candidate = asString(record.message || record.error || record.description);
-  return candidate ? candidate.replace(/[\r\n]+/g, " ").slice(0, 300) : `Cloudprinter HTTP ${status}`;
-}
-
-async function parseBody(response: Response) {
-  if (response.status === 204) return null;
-  const text = await response.text();
-  if (!text) return null;
+/**
+ * Standard `fetch` over HTTPS.
+ *
+ * The previous transport built a custom HTTP/1.1-only client through Deno's
+ * unstable HTTP client factory, which the Supabase Edge runtime does not
+ * expose. That call threw inside the guarded block and surfaced as an
+ * indistinguishable "Cloudprinter unavailable", so no unstable runtime API
+ * belongs on this path. Cloudprinter answers `fetch` over TLS 1.2 with ALPN
+ * h2 negotiated normally.
+ */
+async function cloudprinterTransport(path: string, body: string): Promise<CloudprinterTransportResponse> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    return { raw_text: text.slice(0, 300) };
+    const response = await fetch(`${CLOUDPRINTER_API_BASE}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body,
+      signal: controller.signal,
+    });
+    const declaredLength = Number(response.headers.get("content-length") || 0);
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_PROVIDER_RESPONSE_BYTES) {
+      throw Object.assign(new Error("Cloudprinter response too large"), { code: "ERR_RESPONSE_TOO_LARGE" });
+    }
+    const text = response.status === 204 ? "" : await response.text();
+    if (text.length > MAX_PROVIDER_RESPONSE_BYTES) {
+      throw Object.assign(new Error("Cloudprinter response too large"), { code: "ERR_RESPONSE_TOO_LARGE" });
+    }
+    return { status: response.status, text };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
-type PostOptions = {
-  expected: number[];
-  notFound?: number[];
-  safeRetry?: boolean;
-  ambiguousOnFailure?: boolean;
-};
-
-async function postCloudprinter(
+function postCloudprinter(
   path: string,
   payload: Record<string, unknown>,
-  options: PostOptions,
+  options: CloudprinterRequestOptions,
 ): Promise<unknown | null> {
-  const attempts = options.safeRetry ? SAFE_RETRY_DELAYS_MS.length + 1 : 1;
-  let lastError: unknown = null;
-
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-    try {
-      const response = await fetch(`${CLOUDPRINTER_API_BASE}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(cloudprinterPayload(payload)),
-        signal: controller.signal,
-        client: getCloudprinterHttpClient(),
-      });
-      const body = await parseBody(response);
-      if (options.notFound?.includes(response.status)) return null;
-      if (options.expected.includes(response.status)) return body;
-
-      const retryable = response.status === 429 || response.status >= 500;
-      const providerError = new CloudprinterError({
-        code: `cloudprinter_http_${response.status}`,
-        message: safeProviderMessage(response.status, body),
-        status: response.status,
-        retryable,
-        ambiguous: Boolean(options.ambiguousOnFailure && retryable),
-      });
-      if (!options.safeRetry || !retryable || attempt >= attempts - 1) throw providerError;
-      lastError = providerError;
-    } catch (error) {
-      if (error instanceof CloudprinterError) {
-        if (!options.safeRetry || !error.retryable || attempt >= attempts - 1) throw error;
-        lastError = error;
-      } else {
-        const aborted = error instanceof DOMException && error.name === "AbortError";
-        const providerError = new CloudprinterError({
-          code: aborted ? "cloudprinter_timeout" : "cloudprinter_unreachable",
-          message: aborted ? "Cloudprinter timeout" : "Cloudprinter unavailable",
-          retryable: true,
-          ambiguous: options.ambiguousOnFailure === true,
-        });
-        if (!options.safeRetry || attempt >= attempts - 1) throw providerError;
-        lastError = providerError;
-      }
-    } finally {
-      clearTimeout(timeout);
-    }
-
-    if (attempt < SAFE_RETRY_DELAYS_MS.length) await sleep(SAFE_RETRY_DELAYS_MS[attempt]);
-  }
-
-  throw lastError instanceof Error ? lastError : new CloudprinterError({
-    code: "cloudprinter_unknown",
-    message: "Cloudprinter unavailable",
-    retryable: true,
-  });
+  // Credentials are resolved BEFORE the retry loop on purpose. A missing key or
+  // a disabled mode is a TheTok configuration fault, not a provider outage: it
+  // must reach the caller as CLOUDPRINTER_NOT_CONFIGURED / CLOUDPRINTER_DISABLED
+  // instead of being retried and logged as a network failure.
+  const body = cloudprinterRequestBody(payload, getCloudprinterApiKey());
+  return requestCloudprinter({ transport: cloudprinterTransport, path, body, options });
 }
 
 function specMap(rawSpecs: unknown) {

@@ -14,6 +14,8 @@ import {
 } from "./harden-seo-near-duplicates.mjs";
 import { reconcileSeoInventory } from "./harden-seo-inventory-consistency.mjs";
 import { optimizeSeoCrawl } from "./harden-seo-crawl.mjs";
+import { hardenSeoIndexableInventory } from "./harden-seo-indexable-inventory.mjs";
+import { hardenPerformanceDelivery } from "./harden-performance-delivery.mjs";
 
 const ROOT = process.cwd();
 const DIST_DIR = path.resolve(ROOT, process.env.SEO_DIST_DIR || "dist");
@@ -227,6 +229,12 @@ export async function hardenSeoFinalQuality() {
   // parent link/JSON-LD reference that still points at a newly noindexed detail page.
   await reconcileSeoInventory();
   await optimizeSeoCrawl();
+
+  // The audit-quality gate must run after every legacy SEO pass so thin directory pages
+  // cannot be reintroduced by a later sitemap/content rewrite. It also reruns inventory
+  // reconciliation after applying its noindex decisions.
+  await hardenSeoIndexableInventory();
+  await hardenPerformanceDelivery();
 
   console.log(
     `SEO final quality ready: ${rows.length} row(s), ${overrides.size} domain-name override(s), ${duplicatePlan.loserToWinner.size} article duplicate(s), ${changedFiles} HTML file(s) updated.`,

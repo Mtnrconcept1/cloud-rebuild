@@ -77,6 +77,8 @@ function CuisinePhoto({
           src={src}
           alt=""
           aria-hidden="true"
+          width={117}
+          height={117}
           loading="lazy"
           decoding="async"
           className={[
@@ -114,7 +116,7 @@ function CuisinePhoto({
           style={{
             backgroundImage: "url(/images/miniatures/bulle.png)",
             backgroundSize: "100% 100%",
-            fontFamily: "'Bubblegum Sans', cursive",
+            fontFamily: "'Playball', cursive",
           }}
         >
           {label}
