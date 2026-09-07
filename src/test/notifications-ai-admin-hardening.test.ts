@@ -66,11 +66,12 @@ describe("TOK push activation coverage", () => {
     const unifiedPush = readProjectFile("src/lib/push-unified.ts");
 
     expect(settings).toContain("enablePush");
-    expect(settings).toContain("disablePush");
+    expect(settings).toContain("disablePushForCurrentSession");
     expect(settings).toContain("isCurrentPushEnabled");
     expect(settings).toContain("if (!result.ok)");
     expect(settings).toContain("result.reason");
     expect(unifiedPush).toContain("isCurrentPushEnabled");
+    expect(unifiedPush).toContain("disablePushForCurrentSession");
     expect(securityPage).toContain("PushNotificationSettings");
   });
 });
