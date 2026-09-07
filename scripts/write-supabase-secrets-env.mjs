@@ -34,6 +34,10 @@ const allowedNames = [
   "TOK_AI_IMAGE_BUCKET",
   "TOK_GALLERY_IMAGE_BUCKET",
   "TOK_SOURCE_IMAGE_TIMEOUT_MS",
+  "CLOUDPRINTER_API_KEY",
+  "CLOUDPRINTER_WEBHOOK_API_KEY",
+  "CLOUDPRINTER_MODE",
+  "PRINT_SUPPORT_EMAIL",
   "RESEND_API_KEY",
   "EMAIL_FROM",
   "OPS_CONTROL_SECRET",
@@ -100,6 +104,9 @@ if (liveWebhookSecret) {
   ensureDefault(entries, "STRIPE_WEBHOOK_SIGNING_SECRET_LIVE", liveWebhookSecret);
 }
 
+// Print provider is fail-closed. Merely deploying the code never enables live
+// fulfillment; an explicit CLOUDPRINTER_MODE=sandbox|live must be provisioned.
+ensureDefault(entries, "CLOUDPRINTER_MODE", "disabled");
 ensureDefault(entries, "ENVIRONMENT", "production");
 ensureDefault(entries, "APP_ENV", "production");
 
