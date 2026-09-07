@@ -104,9 +104,9 @@ if (liveWebhookSecret) {
   ensureDefault(entries, "STRIPE_WEBHOOK_SIGNING_SECRET_LIVE", liveWebhookSecret);
 }
 
-// Print provider is fail-closed. Merely deploying the code never enables live
-// fulfillment; an explicit CLOUDPRINTER_MODE=sandbox|live must be provisioned.
-ensureDefault(entries, "CLOUDPRINTER_MODE", "disabled");
+// The dedicated Cloudprinter provisioning workflow owns CLOUDPRINTER_MODE.
+// Omitting it from a generic deployment preserves an existing explicit sandbox/live
+// selection; the Edge runtime still defaults a missing or invalid mode to disabled.
 ensureDefault(entries, "ENVIRONMENT", "production");
 ensureDefault(entries, "APP_ENV", "production");
 
