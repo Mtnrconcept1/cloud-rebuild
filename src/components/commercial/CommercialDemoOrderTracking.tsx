@@ -1,10 +1,11 @@
 import { CheckCircle2, ChevronRight, Clock3, MapPin, PackageCheck, Store, Truck } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
+import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import TokAiSupportChat from "@/components/support/TokAiSupportChat";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { cn } from "@/lib/utils";
 
 const ORDER_STEPS = [
@@ -144,6 +145,15 @@ export default function CommercialDemoOrderTracking() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      <div className="mt-5">
+        <TokAiSupportChat
+          orderId={order.id}
+          restaurantId={snapshot.demo_restaurant.id}
+          context={{ page: "suivi-commande", status: order.status, surface: "client" }}
+          compact
+        />
       </div>
     </main>
   );
