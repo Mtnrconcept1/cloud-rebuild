@@ -71,7 +71,7 @@ export default function PrintOrdersPanel({ restaurantId }: { restaurantId: strin
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold">{formatMoney(order.customer_amount_cents, order.customer_currency)}</p>
-                  <p className="text-xs capitalize text-muted-foreground">{order.status.replaceAll("_", " ")}</p>
+                  <p className="text-xs capitalize text-muted-foreground">{order.status.replace(/_/g, " ")}</p>
                 </div>
               </button>
             ))}
