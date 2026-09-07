@@ -33,6 +33,7 @@ describe("commercial multi-space demo parity", () => {
     expect(journey).toContain("confirmCommercialDemoCheckout");
     expect(journey).toContain("isStripeTestCheckoutSessionId");
     expect(journey).toContain("checkout.stripe.com");
+    expect(journey).toContain("commercial-demo:open-checkout");
     expect(journey).not.toContain('payment_provider: "none"');
     expect(checkout).toContain("getCommercialDemoStripeRuntime");
     expect(checkout).toContain("stripe.checkout.sessions.create");
@@ -40,7 +41,6 @@ describe("commercial multi-space demo parity", () => {
     expect(checkout).not.toContain("commercial_demo_confirm_simulated_payment");
     expect(checkout).toContain("requireDedicatedDemoRuntime()");
     expect(checkout).toContain("restaurant.is_active !== true");
-    expect(multiSpace).toContain("commercial-demo:open-checkout");
     expect(multiSpace).toContain("confirmCommercialDemoCheckout");
     expect(multiSpace).toContain("checkout.stripe.com");
   });
