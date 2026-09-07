@@ -1,3 +1,5 @@
+import { request as httpsRequest } from "node:https";
+
 import { HttpError } from "../auth.ts";
 import type { PrintProvider } from "./provider.ts";
 import type {
@@ -18,9 +20,8 @@ import { validatePrintAddress, validatePrintProviderFile } from "./security.ts";
 
 const CLOUDPRINTER_API_BASE = "https://api.cloudprinter.com/cloudcore/1.0";
 const REQUEST_TIMEOUT_MS = 20_000;
+const MAX_PROVIDER_RESPONSE_BYTES = 5_000_000;
 const SAFE_RETRY_DELAYS_MS = [250, 750];
-
-let cloudprinterHttpClient: Deno.HttpClient | null = null;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -54,21 +55,12 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function getCloudprinterHttpClient() {
-  if (!cloudprinterHttpClient) {
-    cloudprinterHttpClient = Deno.createHttpClient({
-      http1: true,
-      http2: false,
-    });
-  }
-  return cloudprinterHttpClient;
-}
-
 export class CloudprinterError extends Error {
   status: number | null;
   retryable: boolean;
   ambiguous: boolean;
   code: string;
+  transportCode: string | null;
 
   constructor(input: {
     code: string;
@@ -76,6 +68,7 @@ export class CloudprinterError extends Error {
     status?: number | null;
     retryable?: boolean;
     ambiguous?: boolean;
+    transportCode?: string | null;
   }) {
     super(input.message);
     this.name = "CloudprinterError";
@@ -83,6 +76,7 @@ export class CloudprinterError extends Error {
     this.status = input.status ?? null;
     this.retryable = input.retryable === true;
     this.ambiguous = input.ambiguous === true;
+    this.transportCode = input.transportCode ?? null;
   }
 }
 
@@ -110,15 +104,93 @@ function safeProviderMessage(status: number, body: unknown) {
   return candidate ? candidate.replace(/[\r\n]+/g, " ").slice(0, 300) : `Cloudprinter HTTP ${status}`;
 }
 
-async function parseBody(response: Response) {
-  if (response.status === 204) return null;
-  const text = await response.text();
-  if (!text) return null;
+function parseBodyText(status: number, text: string) {
+  if (status === 204 || !text) return null;
   try {
     return JSON.parse(text) as unknown;
   } catch {
     return { raw_text: text.slice(0, 300) };
   }
+}
+
+function cloudprinterNetworkErrorCode(error: unknown) {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = String((error as { code?: unknown }).code || "").trim();
+    if (/^[A-Za-z0-9_]{2,64}$/.test(code)) return code.toLowerCase();
+  }
+  return "unknown";
+}
+
+type CloudprinterTransportResponse = {
+  status: number;
+  body: unknown | null;
+};
+
+function postCloudprinterTransport(
+  path: string,
+  payload: Record<string, unknown>,
+): Promise<CloudprinterTransportResponse> {
+  const url = new URL(`${CLOUDPRINTER_API_BASE}${path}`);
+  const requestBody = JSON.stringify(cloudprinterPayload(payload));
+  const contentLength = new TextEncoder().encode(requestBody).byteLength;
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const rejectOnce = (error: unknown) => {
+      if (settled) return;
+      settled = true;
+      reject(error);
+    };
+
+    const request = httpsRequest({
+      protocol: url.protocol,
+      hostname: url.hostname,
+      port: url.port || 443,
+      path: `${url.pathname}${url.search}`,
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Content-Length": String(contentLength),
+        Connection: "close",
+      },
+      minVersion: "TLSv1.2",
+      maxVersion: "TLSv1.2",
+    }, (response) => {
+      response.setEncoding("utf8");
+      let responseText = "";
+      let responseBytes = 0;
+
+      response.on("data", (chunk: string) => {
+        if (settled) return;
+        responseBytes += new TextEncoder().encode(chunk).byteLength;
+        if (responseBytes > MAX_PROVIDER_RESPONSE_BYTES) {
+          const error = Object.assign(new Error("Cloudprinter response too large"), {
+            code: "ERR_RESPONSE_TOO_LARGE",
+          });
+          response.destroy();
+          rejectOnce(error);
+          return;
+        }
+        responseText += chunk;
+      });
+
+      response.on("error", rejectOnce);
+      response.on("end", () => {
+        if (settled) return;
+        settled = true;
+        const status = Number(response.statusCode || 0);
+        resolve({ status, body: parseBodyText(status, responseText) });
+      });
+    });
+
+    request.setTimeout(REQUEST_TIMEOUT_MS, () => {
+      const timeoutError = Object.assign(new Error("Cloudprinter timeout"), { code: "ETIMEDOUT" });
+      request.destroy(timeoutError);
+    });
+    request.on("error", rejectOnce);
+    request.end(requestBody);
+  });
 }
 
 type PostOptions = {
@@ -137,25 +209,17 @@ async function postCloudprinter(
   let lastError: unknown = null;
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const response = await fetch(`${CLOUDPRINTER_API_BASE}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(cloudprinterPayload(payload)),
-        signal: controller.signal,
-        client: getCloudprinterHttpClient(),
-      });
-      const body = await parseBody(response);
+      const response = await postCloudprinterTransport(path, payload);
+      const body = response.body;
       if (options.notFound?.includes(response.status)) return null;
       if (options.expected.includes(response.status)) return body;
 
-      const retryable = response.status === 429 || response.status >= 500;
+      const retryable = response.status === 429 || response.status >= 500 || response.status === 0;
       const providerError = new CloudprinterError({
-        code: `cloudprinter_http_${response.status}`,
-        message: safeProviderMessage(response.status, body),
-        status: response.status,
+        code: response.status > 0 ? `cloudprinter_http_${response.status}` : "cloudprinter_invalid_response",
+        message: response.status > 0 ? safeProviderMessage(response.status, body) : "Cloudprinter unavailable",
+        status: response.status || null,
         retryable,
         ambiguous: Boolean(options.ambiguousOnFailure && retryable),
       });
@@ -166,18 +230,18 @@ async function postCloudprinter(
         if (!options.safeRetry || !error.retryable || attempt >= attempts - 1) throw error;
         lastError = error;
       } else {
-        const aborted = error instanceof DOMException && error.name === "AbortError";
+        const transportCode = cloudprinterNetworkErrorCode(error);
+        const timedOut = transportCode === "etimedout" || transportCode === "esockettimedout";
         const providerError = new CloudprinterError({
-          code: aborted ? "cloudprinter_timeout" : "cloudprinter_unreachable",
-          message: aborted ? "Cloudprinter timeout" : "Cloudprinter unavailable",
+          code: timedOut ? "cloudprinter_timeout" : "cloudprinter_unreachable",
+          message: timedOut ? "Cloudprinter timeout" : "Cloudprinter unavailable",
           retryable: true,
           ambiguous: options.ambiguousOnFailure === true,
+          transportCode,
         });
         if (!options.safeRetry || attempt >= attempts - 1) throw providerError;
         lastError = providerError;
       }
-    } finally {
-      clearTimeout(timeout);
     }
 
     if (attempt < SAFE_RETRY_DELAYS_MS.length) await sleep(SAFE_RETRY_DELAYS_MS[attempt]);
@@ -276,8 +340,8 @@ function parseQuote(body: unknown): PrintProviderQuote {
     }
   }
   return {
-    // Cloudprinter documents both product `price` and shipping quote `price` as
-    // VAT-inclusive; `vat` is the included VAT part and must not be added again.
+    // Cloudprinter returns the root product price excluding VAT and shipping.
+    // Product VAT is separate; each shipping quote price already includes its VAT.
     productPrice: asNumber(raw.price),
     productVat: asNumber(raw.vat),
     currency: asString(raw.currency).toUpperCase(),
