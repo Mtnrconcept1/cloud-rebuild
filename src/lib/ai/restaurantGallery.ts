@@ -28,21 +28,18 @@ export type AddAiCreationToGalleryResult = {
 };
 
 export async function addAiCreationToRestaurantGallery(input: AddAiCreationToGalleryInput) {
-  const { data, error } = await invokeSupabaseFunction<AddAiCreationToGalleryResult>(
-    "restaurant-media-governance",
-    {
-      body: {
-        action: "add_ai_creation_to_gallery",
-        restaurantId: input.restaurantId,
-        assetId: input.assetId,
-        altText: input.altText || null,
-        dishName: input.dishName || null,
-        tool: input.tool || "unknown",
-        tokWatermarkRequired: input.tokWatermarkRequired ?? null,
-        positionHint: input.positionHint ?? null,
-      },
+  const { data, error } = await invokeSupabaseFunction<AddAiCreationToGalleryResult>("restaurant-media-governance", {
+    body: {
+      action: "add_ai_creation_to_gallery",
+      restaurantId: input.restaurantId,
+      assetId: input.assetId,
+      altText: input.altText || null,
+      dishName: input.dishName || null,
+      tool: input.tool || "unknown",
+      tokWatermarkRequired: input.tokWatermarkRequired ?? null,
+      positionHint: input.positionHint ?? null,
     },
-  );
+  });
 
   if (error) throw error;
   if (!data?.ok) throw new Error("Ajout à la galerie impossible.");
