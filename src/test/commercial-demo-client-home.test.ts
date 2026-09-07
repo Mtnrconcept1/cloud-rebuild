@@ -34,7 +34,8 @@ describe("commercial demo real client dashboard home", () => {
   it("keeps every client-home link inside the isolated frame allowlist", () => {
     expect(clientHome).toContain("function getClientDashboardHomeTarget");
     expect(clientHome).toContain("return getCommercialDemoClientTarget(target)");
-    expect(clientRoutes).toContain('if (url.pathname.startsWith("/commande/")) return "/commandes";');
+    expect(clientRoutes).toContain('"/commande/"');
+    expect(clientRoutes).not.toContain('if (url.pathname.startsWith("/commande/")) return "/commandes";');
     expect(clientRoutes).toContain("isCommercialDemoClientPathAllowed(url.pathname)");
     expect(clientRoutes).toContain('return "/recherche";');
     expect(clientHome).toContain("to={clientTarget(action.to)}");

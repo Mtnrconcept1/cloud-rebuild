@@ -8,8 +8,9 @@ function read(path: string) {
 }
 
 describe("customer order tracking fallback", () => {
-  it("does not advance a delivery to completed with local simulation timers", () => {
-    const page = read("src/pages/SuiviCommande.tsx");
+  it("does not advance a live delivery to completed with local simulation timers", () => {
+    const page = read("src/pages/SuiviCommandeLive.tsx");
+    const wrapper = read("src/pages/SuiviCommande.tsx");
 
     expect(page).not.toContain("SIMULATION_PHASE_SECONDS");
     expect(page).not.toContain("simulationPhase");
@@ -20,5 +21,7 @@ describe("customer order tracking fallback", () => {
     expect(page).toContain("hasLiveCourierFlow ? liveTracking : null");
     expect(page).toContain("Statut restaurant");
     expect(page).toContain("Aucun flux livreur n'est encore disponible");
+    expect(wrapper).toContain("CommercialDemoOrderTracking");
+    expect(wrapper).toContain("SuiviCommandeLive");
   });
 });

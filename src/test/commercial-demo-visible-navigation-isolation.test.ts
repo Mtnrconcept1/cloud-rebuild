@@ -58,7 +58,7 @@ describe("commercial demo visible navigation isolation", () => {
     expect(clientRoutes).toContain('"/restaurant/"');
     expect(clientRoutes).toContain('"/actualites/"');
     expect(app).toContain('<Route path="/actualites/:postId"');
-    expect(clientRoutes).not.toContain('"/commande/",');
+    expect(clientRoutes).toContain('"/commande/",');
 
     expect(app).toContain('allowedPaths: ["/dashboard"]');
     expect(app).toContain('allowedPrefixes: ["/dashboard/"]');

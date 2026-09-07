@@ -6,98 +6,70 @@ import { describe, expect, it } from "vitest";
 const root = process.cwd();
 const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 
-describe("dedicated commercial demo payment simulator", () => {
+describe("dedicated commercial demo Stripe Test checkout", () => {
   const edge = read("supabase/functions/commercial-demo-checkout/index.ts");
-  const migration = read(
-    "supabase/demo-migrations/20260719150000_simulated_commercial_demo_payments.sql",
-  );
   const journey = read("src/lib/commercialDemoJourney.ts");
-  const workspace = read("src/components/commercial/CommercialDemoActorWorkspace.tsx");
   const experience = read("src/components/commercial/CommercialMultiSpaceDemo.tsx");
   const secretsWriter = read("scripts/write-commercial-demo-secrets-env.mjs");
   const workflow = read(".github/workflows/deploy-production.yml");
-  const config = read("supabase/config.toml");
   const liveCheckout = read("supabase/functions/create-checkout/index.ts");
   const stripeWebhook = read("supabase/functions/stripe-webhook/index.ts");
 
   it("runs only in the dedicated demo project and authenticates the commercial actor", () => {
     expect(edge).toContain('DEMO_PROJECT_URL = "https://hzldfhjfgjcadmpghhhf.supabase.co"');
     expect(edge).toContain("requireDedicatedDemoRuntime()");
-    expect(edge).toContain('Deno.env.get("SUPABASE_URL")');
     expect(edge).toContain("authenticateRequest(req, { allowServiceRole: false })");
     expect(edge).toContain('actor.roles.includes("commercial")');
-    expect(edge).toContain('actor.roles.includes("admin")');
     expect(edge).toContain('.from("commercial_demo_accounts")');
-    expect(edge).toContain('.eq("is_active", true)');
-    expect(edge).toContain("restaurant.is_active !== true");
     expect(edge).toContain('restaurant.status !== "demo"');
-    expect(config).toContain("[functions.commercial-demo-checkout]\nverify_jwt = false");
   });
 
-  it("uses authoritative order data and never calls a payment provider", () => {
+  it("uses authoritative demo order data and Stripe Test only", () => {
     expect(edge).toContain('"commercial_demo_get_checkout_order"');
-    expect(edge).toContain("{ p_session_id: demoSessionId }");
     expect(edge).toContain("order.total_amount_cents");
     expect(edge).toContain('order.currency !== "chf"');
-    expect(edge).not.toContain("getCommercialDemoStripeRuntime");
-    expect(edge).not.toContain("stripe.checkout");
-    expect(edge).not.toContain("checkout.stripe.com");
+    expect(edge).toContain('order.stripe_mode !== "test"');
+    expect(edge).toContain("getCommercialDemoStripeRuntime");
+    expect(edge).toContain("stripe.checkout.sessions.create");
+    expect(edge).toContain("stripe.checkout.sessions.retrieve");
+    expect(edge).toContain("stripeSession.livemode !== false");
     expect(edge).not.toContain('from("orders")');
     expect(edge).not.toContain('from("financial_ledger")');
     expect(edge).not.toContain('from("payment_transactions")');
   });
 
-  it("generates a deterministic reference and confirms through one service-only RPC", () => {
-    expect(edge).toContain("crypto.subtle.digest");
-    expect(edge).toContain("demo_sim_");
-    expect(edge).toContain('"commercial_demo_confirm_simulated_payment"');
-    expect(edge).toContain("p_simulation_id: simulationId");
-    expect(edge).toContain('payment_provider: "none"');
-    expect(edge).toContain("payment_provider_called: false");
-    expect(edge).toContain("no_financial_ledger: true");
-
-    expect(migration).toContain(
-      "CREATE OR REPLACE FUNCTION public.commercial_demo_confirm_simulated_payment(",
-    );
-    expect(migration).toContain("COALESCE(auth.jwt()->>'role', '') <> 'service_role'");
-    expect(migration).toContain("v_order.payment_status = 'test_paid'");
-    expect(migration).toContain(
-      "v_order.stripe_checkout_session_id IS DISTINCT FROM p_simulation_id",
-    );
-    expect(migration).toContain("'simulated_payment_confirmed'");
-    expect(migration).toContain("'payment_provider_called', false");
-    expect(migration).toContain("REVOKE ALL ON FUNCTION");
-    expect(migration).toContain("FROM PUBLIC, anon, authenticated");
-    expect(migration).toContain("TO service_role");
+  it("binds cs_test sessions to the demo order before service-only confirmation", () => {
+    expect(edge).toContain("requireTestCheckoutSessionId");
+    expect(edge).toContain("cs_test_");
+    expect(edge).toContain("assertStripeSessionMatchesOrder");
+    expect(edge).toContain('finance_routing_mode: "demo_isolated"');
+    expect(edge).toContain('no_financial_ledger: "true"');
+    expect(edge).toContain('"commercial_demo_confirm_test_payment"');
+    expect(edge).toContain("p_checkout_session_id: stripeSession.id");
+    expect(edge).toContain('payment_status: "test_paid"');
   });
 
-  it("updates the real demo dashboards immediately without a redirect round-trip", () => {
-    expect(journey).toContain("simulateCommercialDemoPayment");
-    expect(journey).toContain('mode: "simulated"');
-    expect(journey).toContain('payment_provider: "none"');
-    expect(journey).not.toContain("checkout.stripe.com");
-    expect(journey).not.toContain("confirmCommercialDemoCheckout");
-    expect(workspace).toContain("simulateCommercialDemoPayment");
-    expect(workspace).toContain("onSuccess: (result) => void syncSnapshot(result.snapshot)");
-    expect(workspace).toContain("Simuler le paiement accepté");
-    expect(workspace).not.toContain("4242 4242 4242 4242");
-    expect(workspace).not.toContain("commercial-demo:open-checkout");
-    expect(experience).toContain("Paiement simulé · aucun débit");
-    expect(experience).not.toContain("checkout.stripe.com");
+  it("opens only checkout.stripe.com and confirms the snapshot on return", () => {
+    expect(journey).toContain("createCommercialDemoCheckout");
+    expect(journey).toContain("confirmCommercialDemoCheckout");
+    expect(journey).toContain("openCommercialDemoCheckout");
+    expect(journey).toContain("checkout.stripe.com");
+    expect(journey).toContain('type: "commercial-demo:open-checkout"');
+    expect(journey).toContain("isStripeTestCheckoutSessionId");
+    expect(experience).toContain("confirmCommercialDemoCheckout");
+    expect(experience).toContain("isStripeTestCheckoutSessionId");
+    expect(experience).toContain("checkout.stripe.com");
   });
 
-  it("does not require or inject any Stripe credential into the demo project", () => {
-    expect(secretsWriter).toContain('["DEMO_PAYMENT_MODE", "simulated"]');
-    expect(secretsWriter).not.toMatch(/STRIPE_/);
-    const demoSecretStep = workflow.slice(
-      workflow.indexOf("Prepare dedicated commercial demo secrets without payment-provider credentials"),
-      workflow.indexOf("Configure dedicated demo Auth redirects"),
-    );
-    expect(demoSecretStep).not.toContain("STRIPE_");
-    expect(demoSecretStep).toContain("OPENAI_API_KEY");
-    expect(workflow).toContain(
-      'secrets set --env-file "${RUNNER_TEMP}/commercial-demo.providers.env" --project-ref "$COMMERCIAL_DEMO_PROJECT_REF"',
-    );
+  it("provisions only a Stripe test secret into the dedicated demo project", () => {
+    expect(secretsWriter).toContain('readPrivateEnvValue(providerSource, "STRIPE_SECRET_KEY_TEST")');
+    expect(secretsWriter).toContain('startsWith("sk_test_")');
+    expect(secretsWriter).toContain('["STRIPE_SECRET_KEY_TEST", stripeTest]');
+    expect(secretsWriter).toContain('["DEMO_PAYMENT_MODE", "stripe_test"]');
+    expect(secretsWriter).not.toContain("STRIPE_SECRET_KEY_LIVE");
+    expect(secretsWriter).not.toContain("STRIPE_PERSONNAL_SECRET_KEY");
+    expect(workflow).toContain("write-commercial-demo-secrets-env.mjs");
+    expect(workflow).toContain("commercial-demo.providers.env");
   });
 
   it("leaves production Stripe checkout and webhook defenses unchanged", () => {

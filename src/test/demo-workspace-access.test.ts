@@ -87,7 +87,8 @@ describe("real and demo workspace access", () => {
     expect(singleDemo).toContain("SURFACE_HOME");
     expect(singleDemo).toContain("Vue multi-dashboard");
     expect(singleDemo).toContain("commercial-demo-single-frame");
-    expect(browserGrid).toContain('() => ["client", "restaurant", "courier"]');
+    expect(browserGrid).toContain('data-browser-surface="commercial"');
+    expect(browserGrid).toContain("<CommercialDemoActorBrowserGrid");
     expect(demoExperience).toContain("<CommercialDemoBrowserGrid");
   });
 

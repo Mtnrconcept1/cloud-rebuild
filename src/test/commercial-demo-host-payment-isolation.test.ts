@@ -90,11 +90,10 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     expect(edge).toContain("OPENAI_API_KEY");
   });
 
-  it("installs the browser guard before auth and validates the simulated payment across frames", () => {
+  it("installs the browser guard before auth and validates Stripe Test checkout across frames", () => {
     const app = read("src/App.tsx");
     const boundary = read("src/components/commercial/CommercialDemoHostSecurityBoundary.tsx");
     const journey = read("src/lib/commercialDemoJourney.ts");
-    const actor = read("src/components/commercial/CommercialDemoActorWorkspace.tsx");
     const orchestrator = read("src/components/commercial/CommercialMultiSpaceDemo.tsx");
     const cart = read("src/pages/Panier.tsx");
 
@@ -103,17 +102,18 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     expect(boundary).toContain("shouldBlockCommercialDemoHostRequest");
     expect(boundary).toContain("production-transaction-blocked");
     expect(journey).toContain("simulateCommercialDemoPayment");
-    expect(journey).toContain('action: "simulate"');
-    expect(journey).toContain('payment_provider: "none"');
-    expect(actor).toContain("onSuccess: (result) => void syncSnapshot(result.snapshot)");
-    expect(actor).toContain("Simuler le paiement accepté");
-    expect(orchestrator).toContain("Paiement simulé · aucun débit");
+    expect(journey).toContain("createCommercialDemoCheckout");
+    expect(journey).toContain("openCommercialDemoCheckout");
+    expect(journey).toContain("checkout.stripe.com");
+    expect(journey).toContain('type: "commercial-demo:open-checkout"');
+    expect(journey).not.toContain('payment_provider: "none"');
+    expect(orchestrator).toContain("confirmCommercialDemoCheckout");
+    expect(orchestrator).toContain("isStripeTestCheckoutSessionId");
+    expect(orchestrator).toContain("checkout.stripe.com");
     expect(cart).toContain("simulateCommercialDemoPayment");
-    expect(cart).toContain("Paiement simulé accepté");
-    expect(cart).not.toContain("checkout.stripe_session_id");
   });
 
-  it("rejects the commercial host in live checkout and confines the simulator to the demo project", () => {
+  it("rejects the commercial host in live checkout and confines Stripe Test to the demo project", () => {
     const liveCheckout = read("supabase/functions/create-checkout/index.ts");
     const sharedGuard = read("supabase/functions/_shared/commercial-demo-host.ts");
     const demoCheckout = read("supabase/functions/commercial-demo-checkout/index.ts");
@@ -123,25 +123,17 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     expect(hostGuardIndex).toBeLessThan(liveCheckout.indexOf("authenticateRequest(req"));
     expect(hostGuardIndex).toBeLessThan(liveCheckout.indexOf("getStripeRuntimeForCheckoutKind(effectiveKind)"));
     expect(liveCheckout).toContain("COMMERCIAL_DEMO_LIVE_CHECKOUT_BLOCKED");
-    expect(liveCheckout).toContain("if (isCommercialDemoUrl(return_url))");
-    expect(liveCheckout).toContain('assertProductionFlowAllowed(actor, "paiement réel")');
-    expect(liveCheckout.indexOf('assertProductionFlowAllowed(actor, "paiement réel")'))
-      .toBeLessThan(liveCheckout.indexOf("getStripeRuntimeForCheckoutKind(effectiveKind)"));
     expect(sharedGuard).toContain('COMMERCIAL_DEMO_HOSTNAME = "commercial.thetok.ch"');
-    expect(sharedGuard).toContain('req.headers.get("origin")');
-    expect(sharedGuard).toContain('req.headers.get("referer")');
-    expect(sharedGuard).toContain('"commercial.thetok.ch"');
-    expect(demoCheckout).toContain("if (!isCommercialDemoCheckoutRequestAllowed(req))");
-    expect(demoCheckout).toContain("COMMERCIAL_DEMO_HOST_REQUIRED");
     expect(demoCheckout).toContain("requireDedicatedDemoRuntime()");
-    expect(demoCheckout).toContain('DEMO_PROJECT_URL = "https://hzldfhjfgjcadmpghhhf.supabase.co"');
-    expect(demoCheckout).toContain('payment_provider: "none"');
-    expect(demoCheckout).not.toContain("getCommercialDemoStripeRuntime");
-    expect(demoCheckout).not.toContain("normalizeCheckoutReturnUrl");
-    expect(demoCheckout).not.toContain("STRIPE_SECRET_KEY");
-    expect(sharedGuard).toContain('supabaseHostname.endsWith(".supabase.co")');
-    expect(sharedGuard).toContain('hostname === "localhost"');
-    expect(sharedGuard).toContain('hostname.endsWith(".test")');
+    expect(demoCheckout).toContain("getCommercialDemoStripeRuntime");
+    expect(demoCheckout).toContain("stripe.checkout.sessions.create");
+    expect(demoCheckout).toContain("stripe.checkout.sessions.retrieve");
+    expect(demoCheckout).toContain("stripeSession.livemode !== false");
+    expect(demoCheckout).toContain('"commercial_demo_confirm_test_payment"');
+    expect(demoCheckout).toContain('stripeRuntime.mode !== "test"');
+    expect(demoCheckout).not.toContain('from("orders")');
+    expect(demoCheckout).not.toContain('from("financial_ledger")');
+    expect(demoCheckout).not.toContain("STRIPE_SECRET_KEY_LIVE");
   });
 
   it("blocks commercial identities before every sensitive production flow", () => {
@@ -199,14 +191,19 @@ describe("commercial.thetok.ch production transaction isolation", () => {
     expect(headers.Vary).toBe("Origin");
   });
 
-  it("does not open a payment-provider return path on the commercial host", () => {
+  it("opens only the validated Stripe Test return path on the commercial host", () => {
     const demoCheckout = read("supabase/functions/commercial-demo-checkout/index.ts");
     const orchestrator = read("src/components/commercial/CommercialMultiSpaceDemo.tsx");
 
-    expect(demoCheckout).not.toContain("return_url");
-    expect(demoCheckout).not.toContain("checkout.stripe.com");
-    expect(orchestrator).not.toContain("demo_checkout=success");
-    expect(orchestrator).not.toContain("commercial-demo:open-checkout");
+    expect(demoCheckout).toContain("return_url");
+    expect(demoCheckout).toContain("buildReturnUrl");
+    expect(demoCheckout).toContain('url.pathname = "/commercial/demo-live"');
+    expect(demoCheckout).toContain('url.searchParams.set("demo_checkout", state)');
+    expect(demoCheckout).toContain('url.searchParams.set("stripe_session_id", "{CHECKOUT_SESSION_ID}")');
+    expect(orchestrator).toContain("isStripeTestCheckoutSessionId");
+    expect(orchestrator).toContain("checkout.stripe.com");
+    expect(orchestrator).toContain("event.source as Window");
+    expect(orchestrator).toContain('sourceFrame.surface !== "client"');
   });
 
   it("blocks production order/reservation rows and reads at the database boundary", () => {

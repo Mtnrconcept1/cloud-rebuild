@@ -65,15 +65,16 @@ describe("dedicated commercial demo project", () => {
     );
   });
 
-  it("syncs real AI keys without injecting any payment-provider credential", () => {
+  it("syncs real AI keys and only a Stripe Test credential into the dedicated demo project", () => {
     expect(secretsWriter).toContain('["OPENAI_API_KEY", requireSecret("OPENAI_API_KEY")]');
-    expect(secretsWriter).toContain('["DEMO_PAYMENT_MODE", "simulated"]');
-    expect(secretsWriter).not.toMatch(/STRIPE_/);
-    const demoSecretStep = workflow.slice(
-      workflow.indexOf("Prepare dedicated commercial demo secrets without payment-provider credentials"),
-      workflow.indexOf("Configure dedicated demo Auth redirects"),
-    );
-    expect(demoSecretStep).not.toContain("STRIPE_");
+    expect(secretsWriter).toContain('readPrivateEnvValue(providerSource, "STRIPE_SECRET_KEY_TEST")');
+    expect(secretsWriter).toContain('startsWith("sk_test_")');
+    expect(secretsWriter).toContain('["STRIPE_SECRET_KEY_TEST", stripeTest]');
+    expect(secretsWriter).toContain('["DEMO_PAYMENT_MODE", "stripe_test"]');
+    expect(secretsWriter).not.toContain("STRIPE_SECRET_KEY_LIVE");
+    expect(secretsWriter).not.toContain("STRIPE_PERSONNAL_SECRET_KEY");
+    expect(workflow).toContain("write-commercial-demo-secrets-env.mjs");
+    expect(workflow).toContain("commercial-demo.providers.env");
     expect(workflow).toContain(
       'secrets set --env-file "${RUNNER_TEMP}/commercial-demo.providers.env" --project-ref "$COMMERCIAL_DEMO_PROJECT_REF"',
     );

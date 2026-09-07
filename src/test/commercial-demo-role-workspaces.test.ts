@@ -26,22 +26,26 @@ describe("commercial demo role workspaces", () => {
   const checkout = read("supabase/functions/commercial-demo-checkout/index.ts");
 
   it("always exposes the client restaurant and courier dashboards", () => {
-    expect(browserGrid).toContain('type RemoteBrowserSurface = Exclude<CommercialDemoFrameSurface, "commercial">');
-    expect(browserGrid).toContain('() => ["client", "restaurant", "courier"]');
-    expect(browserGrid).not.toContain('surface: "commercial"');
-    expect(browserGrid).not.toContain("thirdSurface");
+    expect(browserGrid).toContain('type ActorBrowserSurface = Exclude<CommercialDemoFrameSurface, "commercial">');
+    expect(browserGrid).toContain('buildCommercialDemoFrameUrl("commercial"');
+    expect(browserGrid).toContain('data-browser-surface="commercial"');
+    expect(browserGrid).toContain("<CommercialDemoActorBrowserGrid");
     expect(multiSpace).toContain("Client, Restaurateur et Livreur");
     expect(consoleAi).toContain('visible_spaces: ["client", "restaurant", "courier"]');
   });
 
-  it("simulates accepted payments without contacting Stripe", () => {
-    expect(multiSpace).toContain("Paiement simulé · aucun débit");
+  it("uses Stripe Test only and keeps production finance isolated", () => {
+    expect(multiSpace).toContain("Stripe Test uniquement");
+    expect(multiSpace).toContain("confirmCommercialDemoCheckout");
+    expect(multiSpace).toContain("checkout.stripe.com");
     expect(checkout).toContain("requireDedicatedDemoRuntime()");
-    expect(checkout).toContain('payment_provider: "none"');
-    expect(checkout).toContain("payment_provider_called: false");
-    expect(checkout).toContain("no_financial_ledger: true");
-    expect(checkout).not.toContain("STRIPE_SECRET_KEY");
-    expect(checkout).not.toContain("stripe.checkout");
+    expect(checkout).toContain("getCommercialDemoStripeRuntime");
+    expect(checkout).toContain("stripe.checkout.sessions.create");
+    expect(checkout).toContain("stripeSession.livemode !== false");
+    expect(checkout).toContain('"commercial_demo_confirm_test_payment"');
+    expect(checkout).toContain('finance_routing_mode: "demo_isolated"');
+    expect(checkout).not.toContain('from("financial_ledger")');
+    expect(checkout).not.toContain("STRIPE_SECRET_KEY_LIVE");
   });
 
   it("uses the server OpenAI gateway for every remaining demo AI workflow", () => {

@@ -12,6 +12,7 @@ describe("commercial real multi-dashboard demonstration", () => {
   const page = read("src/pages/CommercialDemoLive.tsx");
   const experience = read("src/components/commercial/CommercialMultiSpaceDemo.tsx");
   const browsers = read("src/components/commercial/CommercialDemoBrowserGrid.tsx");
+  const actorBrowsers = read("src/components/commercial/CommercialDemoActorBrowserGrid.tsx");
   const courierLayout = read("src/components/CourierDashboardLayout.tsx");
   const courierHome = read("src/pages/courier/CourierHome.tsx");
   const commercialChrome = read("src/components/commercial/CommercialWorkspaceChrome.tsx");
@@ -22,72 +23,44 @@ describe("commercial real multi-dashboard demonstration", () => {
   const notifications = read("src/hooks/useNotificationCenter.ts");
   const service = read("src/lib/commercialDemoJourney.ts");
 
-  it("mounts real same-origin SPA instances with isolated browser histories", () => {
+  it("mounts the commercial frame plus real actor SPA instances with isolated browser histories", () => {
     expect(app).toContain("getCommercialDemoFrameConfig()");
     expect(app).toContain("<BrowserRouter basename={commercialDemoFrame?.basename}>");
-    expect(app).toContain("<CommercialDemoFrameAuthBoundary");
-    expect(app).toContain("<CommercialDemoFrameProvider");
-    expect(browsers).toContain("<iframe");
-    expect(browsers).toContain('surface: "client"');
-    expect(browsers).toContain('surface: "restaurant"');
-    expect(browsers).toContain('surface: "courier"');
-    expect(browsers).toContain('initialPath: "/mon-espace"');
-    expect(browsers).toContain('initialPath: "/dashboard"');
-    expect(browsers).toContain('initialPath: "/courier"');
-    expect(browsers).toContain("ResizeObserver");
-    expect(browsers).toContain("frameWindow.history.back()");
-    expect(browsers).toContain("frameWindow.history.forward()");
-    expect(browsers).toContain("frameWindow.location.reload()");
-    expect(browsers).toContain('type: "commercial-demo:navigate"');
-    expect(browsers).not.toContain("frameWindow.location.assign(initialUrl)");
-    expect(browsers).toContain('layout === "control"');
-    expect(browsers).toContain('layout === "mosaic"');
-    expect(browsers).toContain('() => ["client", "restaurant", "courier"]');
-    expect(browsers).toContain("visibleBrowsers.map");
-    expect(browsers).toContain("isCommercialDemoFrameEscapeMessage");
-    expect(browsers).toContain("event.source !== frameRef.current?.contentWindow");
-    expect(browsers).toContain("buildCommercialDemoFrameUrl(definition.surface");
-    expect(browsers).not.toContain("buildRemoteBrowserUrl");
-    expect(browsers).not.toContain("setInterval(");
+    expect(browsers).toContain('buildCommercialDemoFrameUrl("commercial"');
+    expect(browsers).toContain('data-browser-surface="commercial"');
+    expect(browsers).toContain("<CommercialDemoActorBrowserGrid");
+    expect(actorBrowsers).toContain("<iframe");
+    expect(actorBrowsers).toContain('surface: "client"');
+    expect(actorBrowsers).toContain('surface: "restaurant"');
+    expect(actorBrowsers).toContain('surface: "courier"');
+    expect(actorBrowsers).toContain('initialPath: "/mon-espace"');
+    expect(actorBrowsers).toContain('initialPath: "/dashboard"');
+    expect(actorBrowsers).toContain('initialPath: "/courier"');
+    expect(actorBrowsers).toContain("ResizeObserver");
+    expect(actorBrowsers).toContain("frameWindow.history.back()");
+    expect(actorBrowsers).toContain("frameWindow.history.forward()");
+    expect(actorBrowsers).toContain("frameWindow.location.reload()");
+    expect(actorBrowsers).toContain('type: "commercial-demo:navigate"');
     expect(page).toContain("overflow-x-hidden");
   });
 
-  it("keeps the remote-control console responsive, observable and safe to reset", () => {
-    const stateBridgeSource = browsers.slice(
-      browsers.indexOf("const handleMessage"),
-      browsers.indexOf("const withFrameWindow"),
-    );
-
-    expect(browsers).toContain('type ViewportMode = "auto" | ViewportPreset');
-    expect(browsers).toContain("useResponsiveViewportPreset()");
-    expect(browsers).toContain("VIEWPORT_MODE_ORDER.map");
-    expect(browsers).toContain('referrerPolicy="no-referrer"');
-    expect(browsers).toContain('key={`${definition.surface}:${sessionId}`}');
-    expect(browsers).toContain("<CommercialDemoBrowserGridSession");
-    expect(browsers).toContain("key={sessionId}");
-    expect(browsers).toContain("initialSurface={initialSurface}");
-    expect(browsers).toContain("runtimes[browser.surface].unreadCount");
-    expect(browsers).toContain("const visibleOrder = useMemo");
-    expect(browsers).toContain("{BROWSERS.map((definition) => {");
-    expect(browsers).toContain("style={{ order: visualIndex >= 0 ? visualIndex : BROWSERS.length }}");
-    expect(browsers).not.toContain("orderedBrowsers");
-    expect(browsers).toContain("h-[clamp(28rem,calc(100svh-18rem),48rem)]");
-    expect(browsers).toContain("md:grid-cols-2 md:grid-rows-2 xl:grid-cols-3 xl:grid-rows-1");
-    expect(browsers).toContain('layout === "control" ? "hidden lg:block" : "hidden md:block"');
-    expect(browsers).toContain("z-[1600]");
-    expect(browsers).toContain('event.data.navigationType === "PUSH"');
-    expect(browsers).toContain("sameRuntime(current[surface], runtime)");
-    expect(stateBridgeSource).toContain("sameRuntime(current, next)");
-    expect(stateBridgeSource).toContain("runtimeRef.current = next");
-    expect(stateBridgeSource).toContain("onRuntimeChange(definition.surface, next)");
-    expect(stateBridgeSource).not.toContain("setRuntime((current)");
+  it("keeps the actor remote-control console responsive, observable and safe to reset", () => {
+    expect(actorBrowsers).toContain('type ViewportMode = "auto" | ViewportPreset');
+    expect(actorBrowsers).toContain("useResponsiveViewportPreset()");
+    expect(actorBrowsers).toContain("VIEWPORT_MODE_ORDER.map");
+    expect(actorBrowsers).toContain('referrerPolicy="no-referrer"');
+    expect(actorBrowsers).toContain('key={`${definition.surface}:${sessionId}`}');
+    expect(actorBrowsers).toContain('layout === "control"');
+    expect(actorBrowsers).toContain('layout === "mosaic"');
+    expect(actorBrowsers).toContain("isCommercialDemoFrameEscapeMessage");
+    expect(actorBrowsers).toContain("event.source !== frameRef.current?.contentWindow");
   });
 
   it("confines every frame to its demo-safe routes while exposing active restaurant tools", () => {
     expect(app).toContain("COMMERCIAL_DEMO_FRAME_ROUTE_POLICY");
     expect(app).toContain("isPathAllowed: isCommercialDemoClientPathAllowed");
     expect(clientRoutes).toContain('"/restaurant/"');
-    expect(clientRoutes).not.toContain('"/commande/",');
+    expect(clientRoutes).toContain('"/commande/",');
     expect(app).toContain('allowedPaths: ["/dashboard"]');
     expect(app).toContain('allowedPrefixes: ["/dashboard/"]');
     expect(app).toContain('allowedPaths: ["/courier", "/courier/jobs", "/courier/notifications", "/courier/earnings", "/courier/profile"]');
@@ -207,17 +180,17 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(courierLayout).not.toContain("isCommercialDemoFrameWindow()");
   });
 
-  it("simulates accepted payment server-side and refreshes every real dashboard", () => {
+  it("opens Stripe Test and confirms the paid snapshot across every real dashboard", () => {
     expect(workspace).toContain("simulateCommercialDemoPayment");
-    expect(workspace).toContain("onSuccess: (result) => void syncSnapshot(result.snapshot)");
-    expect(workspace).toContain("Simuler le paiement accepté");
-    expect(workspace).not.toContain("commercial-demo:open-checkout");
-    expect(workspace).not.toContain("checkout.stripe.com");
-    expect(experience).toContain("Paiement simulé · aucun débit");
-    expect(experience).not.toContain("confirmCommercialDemoCheckout");
+    expect(experience).toContain("confirmCommercialDemoCheckout");
+    expect(experience).toContain("isStripeTestCheckoutSessionId");
+    expect(experience).toContain("checkout.stripe.com");
     expect(service).toContain('"commercial-demo-checkout"');
-    expect(service).toContain('action: "simulate"');
-    expect(service).toContain('payment_provider: "none"');
+    expect(service).toContain('action: "create"');
+    expect(service).toContain('action: "confirm"');
+    expect(service).toContain("createCommercialDemoCheckout");
+    expect(service).toContain("openCommercialDemoCheckout");
+    expect(service).not.toContain('payment_provider: "none"');
   });
 
   it("keeps the demo source of truth outside production orders, dispatch and accounting", () => {

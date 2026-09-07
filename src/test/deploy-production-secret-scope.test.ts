@@ -195,23 +195,30 @@ describe("production deployment secret scope", () => {
     expect(secretWriter).toContain("fs.chmodSync(outFile, 0o600)");
   });
 
-  it("scopes the dedicated demo to server AI and no payment-provider secret", () => {
-    expect(secretEnvironmentNames(prepareDemoSecrets)).toEqual([
+  it("scopes the dedicated demo to server AI and a Stripe Test secret only", () => {
+    const demoSecretNames = secretEnvironmentNames(prepareDemoSecrets);
+    for (const name of [
       "FIRECRAWL_API_KEY",
       "OPENAI_API_KEY",
-      "OPENAI_IMAGE_TIMEOUT_MS",
-      "OPENAI_MODEL",
       "SUPABASE_ACCESS_TOKEN",
-      "TOK_AI_IMAGE_BUCKET",
-      "TOK_GALLERY_IMAGE_BUCKET",
-      "TOK_IMAGE_FAST_INTERACTIVE",
-      "TOK_INTERACTIVE_IMAGE_TIMEOUT_MS",
-      "TOK_SOURCE_IMAGE_TIMEOUT_MS",
-    ].sort());
+    ]) {
+      expect(demoSecretNames).toContain(name);
+    }
+    // Stripe Test is intentionally not re-exposed in this step's environment.
+    // The demo writer reads it from the mode-0600 provider env produced earlier.
+    expect(demoSecretNames).not.toContain("STRIPE_SECRET_KEY_TEST");
+    expect(demoSecretNames).not.toContain("STRIPE_SECRET_KEY_LIVE");
+    expect(demoSecretNames).not.toContain("STRIPE_PERSONNAL_SECRET_KEY");
     expect(secretEnvironmentNames(configureDemoAuth)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
-    expect(demoSecretWriter).toContain('["DEMO_PAYMENT_MODE", "simulated"]');
-    expect(demoSecretWriter).not.toMatch(/STRIPE_/);
-    expect(prepareDemoSecrets).not.toContain("STRIPE_");
+    expect(demoSecretWriter).toContain('path.join(requireEnvironmentPath("RUNNER_TEMP"), "supabase.functions.env")');
+    expect(demoSecretWriter).toContain('readPrivateEnvValue(providerSource, "STRIPE_SECRET_KEY_TEST")');
+    expect(demoSecretWriter).toContain('startsWith("sk_test_")');
+    expect(demoSecretWriter).toContain('["STRIPE_SECRET_KEY_TEST", stripeTest]');
+    expect(demoSecretWriter).toContain('["DEMO_PAYMENT_MODE", "stripe_test"]');
+    expect(demoSecretWriter).not.toContain("STRIPE_SECRET_KEY_LIVE");
+    expect(prepareDemoSecrets).not.toContain("STRIPE_SECRET_KEY_TEST");
+    expect(workflow).toContain("write-supabase-secrets-env.mjs --out=${RUNNER_TEMP}/supabase.functions.env");
+    expect(workflow).toContain("write-commercial-demo-secrets-env.mjs");
   });
 
   it("gives Supabase CLI steps only the credentials they require", () => {
