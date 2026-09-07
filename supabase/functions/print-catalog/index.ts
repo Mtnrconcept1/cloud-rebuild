@@ -8,7 +8,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
-import { getPrintProvider } from "../_shared/print/cloudprinter.ts";
+import { CloudprinterError, getPrintProvider } from "../_shared/print/cloudprinter.ts";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -17,6 +17,37 @@ function asRecord(value: unknown): Record<string, unknown> {
 function toNumber(value: unknown, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+/** PostgREST puts `in` filters and upserts in one request, so both are chunked. */
+const CATALOG_BATCH_SIZE = 100;
+
+function chunk<T>(rows: T[], size: number): T[][] {
+  const batches: T[][] = [];
+  for (let index = 0; index < rows.length; index += size) batches.push(rows.slice(index, index + size));
+  return batches;
+}
+
+/**
+ * Operator-facing reason a provider call failed.
+ *
+ * A disabled or unconfigured Cloudprinter mode is an admin action, not an
+ * internal fault, and hiding it behind "Erreur interne" is what made the empty
+ * catalogue impossible to diagnose from the audit log. These codes carry no
+ * credentials and no request payload.
+ */
+function providerDiagnostics(error: unknown): Record<string, unknown> | null {
+  if (error instanceof CloudprinterError) {
+    return {
+      code: error.code,
+      ...(error.status ? { providerStatus: error.status } : {}),
+      ...(error.transportCode ? { transportCode: error.transportCode } : {}),
+    };
+  }
+  if (error instanceof HttpError && /^CLOUDPRINTER_[A-Z_]+$/.test(error.message)) {
+    return { code: error.message };
+  }
+  return null;
 }
 
 Deno.serve(async (req) => {
@@ -116,35 +147,47 @@ Deno.serve(async (req) => {
     if (action === "sync") {
       const remoteProducts = await provider.getProducts();
       const references = remoteProducts.map((product) => product.reference);
-      const { data: existingRows, error: existingError } = references.length
-        ? await adminClient
+
+      // Cloudprinter returns hundreds of references: a single `in` filter would
+      // overflow the request line and a per-product upsert would exhaust the
+      // function's wall clock before the catalogue is written.
+      const existingRows: any[] = [];
+      for (const batch of chunk(references, CATALOG_BATCH_SIZE)) {
+        const { data, error: existingError } = await adminClient
           .from("print_provider_products")
           .select("id, provider_reference, print_product_id, active")
           .eq("provider", "cloudprinter")
-          .in("provider_reference", references)
-        : { data: [], error: null };
-      if (existingError) throw existingError;
-      const existing = new Map((existingRows || []).map((row: any) => [row.provider_reference, row]));
+          .in("provider_reference", batch);
+        if (existingError) throw existingError;
+        existingRows.push(...(data || []));
+      }
+      const existing = new Map(existingRows.map((row: any) => [row.provider_reference, row]));
 
-      for (const remote of remoteProducts) {
+      const syncedAt = new Date().toISOString();
+      const upsertRows = remoteProducts.map((remote) => {
         const current = existing.get(remote.reference) as any;
-        const { error: upsertError } = await adminClient.from("print_provider_products").upsert({
-          ...(current?.id ? { id: current.id } : {}),
+        return {
           provider: "cloudprinter",
           provider_reference: remote.reference,
           provider_name: remote.name,
           provider_note: remote.description,
+          // An admin mapping and its activation are never reset by a resync.
           print_product_id: current?.print_product_id || null,
           active: current?.active === true,
           raw_snapshot: remote.raw,
-          synced_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "provider,provider_reference" });
+          synced_at: syncedAt,
+          updated_at: syncedAt,
+        };
+      });
+      for (const batch of chunk(upsertRows, CATALOG_BATCH_SIZE)) {
+        const { error: upsertError } = await adminClient
+          .from("print_provider_products")
+          .upsert(batch, { onConflict: "provider,provider_reference" });
         if (upsertError) throw upsertError;
       }
 
       // Hydrate detailed specs only for mappings explicitly selected by an admin.
-      const mapped = (existingRows || []).filter((row: any) => row.print_product_id);
+      const mapped = existingRows.filter((row: any) => row.print_product_id);
       let hydrated = 0;
       for (const row of mapped.slice(0, 50)) {
         const details = await provider.getProduct(row.provider_reference);
@@ -214,6 +257,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message.replace(/[\r\n]+/g, " ").slice(0, 500) : "Erreur catalogue impression";
+    const diagnostics = providerDiagnostics(error);
     await writeAuditLog({
       adminClient,
       actor,
@@ -223,7 +267,11 @@ Deno.serve(async (req) => {
       status: "failure",
       targetEntityType: "print_provider_products",
       errorMessage: message,
+      ...(diagnostics ? { metadata: { provider_error: diagnostics } } : {}),
     });
-    return jsonResponse({ error: status >= 500 ? "Erreur interne catalogue impression" : message }, status, cors);
+    return jsonResponse({
+      error: status >= 500 && !diagnostics ? "Erreur interne catalogue impression" : message,
+      ...(diagnostics ? { providerError: diagnostics } : {}),
+    }, status, cors);
   }
 });
