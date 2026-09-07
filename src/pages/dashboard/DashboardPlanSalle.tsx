@@ -10,12 +10,14 @@ import {
 } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Check,
   Copy,
   Grip,
   Layers,
   LayoutPanelTop,
   PanelRightClose,
   PanelRightOpen,
+  Pencil,
   Pin,
   PinOff,
   Plus,
@@ -42,7 +44,7 @@ import StudioPalette from "@/components/floor-plan/StudioPalette";
 import TableConfigDialog from "@/components/floor-plan/TableConfigDialog";
 import TableContextDrawer from "@/components/floor-plan/TableContextDrawer";
 import { FLOOR_PLAN_TONE_CLASS } from "@/components/floor-plan/floorPlanTones";
-import { getRecommendedTableByReservation, scoreReservationPlacement } from "@/components/floor-plan/serviceShared";
+import { getRecommendedTableByReservation, planAutomaticPlacement, scoreReservationPlacement } from "@/components/floor-plan/serviceShared";
 import type { StudioLibraryTab } from "@/components/floor-plan/studioShared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1325,6 +1327,28 @@ export default function DashboardPlanSalle() {
     enabled: !!selectedBranchId && persistedTableIds.length > 0,
   });
   const reservationSlots = reservationSlotsData ?? EMPTY_SLOTS;
+
+  // Tables attitrées : un client habitué retrouve sa table sans que le
+  // restaurateur ait à y penser. La démo commerciale n'en a pas.
+  const { data: preferredTablesData } = useQuery({
+    queryKey: ["floor-plan-preferred-tables", selectedBranchId],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("restaurant_preferred_tables" as any))
+        .select("user_id, table_id")
+        .eq("branch_id", selectedBranchId!);
+      if (error) throw error;
+      return (data || []) as unknown as Array<{ user_id: string; table_id: string }>;
+    },
+    enabled: !!selectedBranchId && !isCommercialDemo,
+  });
+
+  const preferredTableByUserId = useMemo(() => {
+    const map = new Map<string, string>();
+    (preferredTablesData || []).forEach((row) => {
+      if (row.user_id && row.table_id) map.set(row.user_id, row.table_id);
+    });
+    return map;
+  }, [preferredTablesData]);
 
   useEffect(() => {
     if (!branches.length) {
@@ -3045,56 +3069,56 @@ export default function DashboardPlanSalle() {
       return;
     }
 
-    const nextAssignments = { ...draftAssignments };
-    const reservationsToPlace = unassignedVisibleReservations
-      .slice()
-      .sort((left, right) => (
-        Number(right.party_size || 0) - Number(left.party_size || 0)
-        || getSafeTime(left.time).localeCompare(getSafeTime(right.time), "fr")
-      ));
-    const placed: Array<{ reservation: ReservationWithCustomer; table: DraftTable; score: number }> = [];
-
-    reservationsToPlace.forEach((reservation) => {
-      const bestSuggestion = visibleReservableTables
-        .filter((table) => getReservationDropStateForAssignments(reservation.id, table.id, nextAssignments).ok)
-        .map((table) => ({
-          table,
-          placement: scoreReservationPlacement({
-            reservation,
-            table,
-            currentTableLoad: getTableAssignmentLoad(table.id, nextAssignments),
-            currentTableReservations: getTableAssignedReservations(table.id, nextAssignments),
-          }),
-        }))
-        .sort((left, right) => {
-          return right.placement.score - left.placement.score
-            || left.table.capacity - right.table.capacity
-            || left.table.table_number.localeCompare(right.table.table_number, "fr");
-        })[0] || null;
-
-      if (!bestSuggestion) return;
-      nextAssignments[reservation.id] = bestSuggestion.table.id;
-      placed.push({
+    // L'algorithme vit dans serviceShared (couvert par des tests unitaires) :
+    // la page ne fournit que les règles métier du plan courant.
+    const placed = planAutomaticPlacement({
+      reservations: unassignedVisibleReservations,
+      tables: visibleReservableTables,
+      assignments: draftAssignments,
+      preferredTableByUserId,
+      canPlace: (reservationId, tableId, working) => (
+        getReservationDropStateForAssignments(reservationId, tableId, working).ok
+      ),
+      getPlacementScore: (reservation, table, working) => scoreReservationPlacement({
         reservation,
-        table: bestSuggestion.table,
-        score: bestSuggestion.placement.score,
-      });
+        table,
+        currentTableLoad: getTableAssignmentLoad(table.id, working),
+        currentTableReservations: getTableAssignedReservations(table.id, working),
+      }),
     });
 
-    if (placed.length === 0) {
+    const placedCount = Object.keys(placed).length;
+    if (placedCount === 0) {
       toast({
         title: "Aucun placement possible",
-        description: "Aucune réservation visible ne trouve une table compatible sans conflit.",
+        description: unassignedVisibleReservations.length === 0
+          ? "Toutes les réservations affichées ont déjà une table."
+          : "Aucune réservation visible ne trouve une table compatible sans conflit.",
       });
       return;
     }
 
-    const lastPlaced = placed[placed.length - 1];
-    commitHistorySnapshot(buildHistorySnapshot(draftTables, nextAssignments, lastPlaced?.table.id || selectedTableId));
-    setSelectedReservationId(lastPlaced?.reservation.id || null);
+    const nextAssignments = { ...draftAssignments, ...placed };
+    const lastReservationId = Object.keys(placed)[placedCount - 1];
+    commitHistorySnapshot(buildHistorySnapshot(
+      draftTables,
+      nextAssignments,
+      placed[lastReservationId] || selectedTableId,
+    ));
+    setSelectedReservationId(lastReservationId || null);
+
+    const habitCount = Object.entries(placed).filter(([reservationId, tableId]) => {
+      const reservation = reservationsById.get(reservationId);
+      return !!reservation && preferredTableByUserId.get(reservation.user_id) === tableId;
+    }).length;
+    const remaining = unassignedVisibleReservations.length - placedCount;
+
     toast({
-      title: "Placement automatique applique",
-      description: `${placed.length} réservation(s) placée(s). Dernier score: ${lastPlaced.score}/100.`,
+      title: `${placedCount} réservation${placedCount > 1 ? "s" : ""} placée${placedCount > 1 ? "s" : ""}`,
+      description: [
+        habitCount > 0 ? `${habitCount} habitué(s) à leur table` : null,
+        remaining > 0 ? `${remaining} sans table libre assez grande` : null,
+      ].filter(Boolean).join(" · ") || "Vous pouvez encore ajuster avant d'enregistrer.",
     });
   };
 
@@ -3116,6 +3140,36 @@ export default function DashboardPlanSalle() {
     commitHistorySnapshot(buildHistorySnapshot(draftTables, nextAssignments, tableId));
     setSelectedReservationId(reservationId);
   };
+
+  /** Attitre la table courante au client, ou retire l'attribution. */
+  const setPreferredTableMutation = useMutation({
+    mutationFn: async ({ userId, tableId }: { userId: string; tableId: string | null }) => {
+      if (!selectedBranchId) throw new Error("Aucune salle sélectionnée.");
+      const { error } = await (supabase.rpc as any)("restaurant_set_preferred_table", {
+        p_branch_id: selectedBranchId,
+        p_user_id: userId,
+        p_table_id: tableId,
+      });
+      if (error) throw error;
+      return { userId, tableId };
+    },
+    onSuccess: ({ tableId }) => {
+      queryClient.invalidateQueries({ queryKey: ["floor-plan-preferred-tables", selectedBranchId] });
+      toast({
+        title: tableId ? "Table attitrée" : "Attribution retirée",
+        description: tableId
+          ? "À sa prochaine réservation, ce client retrouvera cette table si elle est libre."
+          : "Ce client sera de nouveau placé comme les autres.",
+      });
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Attribution impossible",
+        description: error instanceof Error ? error.message : "Réessayez dans un instant.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const clearReservationAssignment = (reservationId: string) => {
     const nextAssignments = { ...draftAssignments, [reservationId]: null };
@@ -3357,26 +3411,33 @@ export default function DashboardPlanSalle() {
             </div>
 
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <div className="inline-flex rounded-xl border border-border bg-muted p-1">
+              {/*
+                Une seule vue : le plan du jour. Modifier la salle est un
+                détour explicite, pas un onglet parallèle qu'il faut d'abord
+                comprendre pour se servir de l'outil.
+              */}
+              {isTemplateMode ? (
                 <Button
                   type="button"
-                  size="sm"
-                  variant={editMode === "service" ? "default" : "ghost"}
-                  className="h-9 rounded-lg px-3"
+                  variant="secondary"
+                  className="h-11 rounded-xl"
                   onClick={() => setEditMode("service")}
                 >
-                  Service
+                  <Check className="mr-2 h-4 w-4" />
+                  Terminer
                 </Button>
+              ) : (
                 <Button
                   type="button"
-                  size="sm"
-                  variant={editMode === "template" ? "default" : "ghost"}
-                  className="h-9 rounded-lg px-3"
+                  variant="outline"
+                  className="h-11 rounded-xl"
                   onClick={() => setEditMode("template")}
+                  disabled={!selectedBranch}
                 >
-                  Configurer
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Modifier la salle
                 </Button>
-              </div>
+              )}
 
               <div className="flex items-center rounded-xl border border-border bg-card p-1">
                 <Button
@@ -3498,37 +3559,41 @@ export default function DashboardPlanSalle() {
 
         {selectedBranch ? (
           <div className="flex min-h-0 flex-1 flex-col gap-3 xl:overflow-hidden">
-            <div className={cn(
-              "grid shrink-0 gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm",
-              isTemplateMode
-                ? "grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_minmax(200px,1fr)]"
-                : "grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_170px_150px]",
-            )}>
-              <Select value={selectedBranchId || ""} onValueChange={setSelectedBranchId}>
-                <SelectTrigger className="h-11 rounded-xl border-border bg-card">
-                  <SelectValue placeholder="Salle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/*
+              Un sélecteur n'apparaît que s'il y a réellement un choix à faire :
+              un restaurant d'une seule salle et d'une seule zone ne voit que la
+              date et le service.
+            */}
+            <div className="flex shrink-0 flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm">
+              {branches.length > 1 ? (
+                <Select value={selectedBranchId || ""} onValueChange={setSelectedBranchId}>
+                  <SelectTrigger className="h-11 w-[minmax(0,180px)] min-w-[150px] flex-1 rounded-xl border-border bg-card">
+                    <SelectValue placeholder="Salle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map((branch) => (
+                      <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
 
-              <Select value={selectedSector} onValueChange={setSelectedSector}>
-                <SelectTrigger className="h-11 rounded-xl border-border bg-card">
-                  <SelectValue placeholder="Zone" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sectorOptions.map((sector) => (
-                    <SelectItem key={sector} value={sector}>{sector}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {sectorOptions.length > 1 ? (
+                <Select value={selectedSector} onValueChange={setSelectedSector}>
+                  <SelectTrigger className="h-11 min-w-[150px] flex-1 rounded-xl border-border bg-card">
+                    <SelectValue placeholder="Zone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sectorOptions.map((sector) => (
+                      <SelectItem key={sector} value={sector}>{sector}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
 
               {isTemplateMode ? (
                 <Select value={activeVariantId || "current"} onValueChange={loadFloorPlanVariant}>
-                  <SelectTrigger className="col-span-2 h-11 rounded-xl border-border bg-card lg:col-span-1">
+                  <SelectTrigger className="h-11 min-w-[180px] flex-1 rounded-xl border-border bg-card">
                     <SelectValue placeholder="Plan actif" />
                   </SelectTrigger>
                   <SelectContent>
@@ -3543,12 +3608,12 @@ export default function DashboardPlanSalle() {
                   <Input
                     type="date"
                     value={referenceDate}
-                    className="h-11 rounded-xl border-border bg-card"
+                    className="h-11 min-w-[150px] flex-1 rounded-xl border-border bg-card"
                     onChange={(event) => setReferenceDate(event.target.value)}
                     aria-label="Date du service"
                   />
                   <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
-                    <SelectTrigger className="h-11 rounded-xl border-border bg-card">
+                    <SelectTrigger className="h-11 min-w-[140px] flex-1 rounded-xl border-border bg-card">
                       <SelectValue placeholder="Service" />
                     </SelectTrigger>
                     <SelectContent>
@@ -3816,6 +3881,11 @@ export default function DashboardPlanSalle() {
           if (assignedTableId) setSelectedTableId(assignedTableId);
         }}
         onSelectTable={setSelectedTableId}
+        preferredTableId={selectedReservation ? preferredTableByUserId.get(selectedReservation.user_id) ?? null : null}
+        onSetPreferredTable={isCommercialDemo
+          ? undefined
+          : (userId, tableId) => setPreferredTableMutation.mutate({ userId, tableId })}
+        preferredTablePending={setPreferredTableMutation.isPending}
       />
 
       <TableConfigDialog
