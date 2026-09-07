@@ -102,4 +102,13 @@ describe("restaurant media governance", () => {
     expect(migration).toContain("ADD COLUMN IF NOT EXISTS storage_path text");
     expect(migration).toContain("NOTIFY pgrst, 'reload schema'");
   });
+
+  it("keeps AI gallery adoption aligned with the restaurant_media cover schema", () => {
+    const governance = read("supabase/functions/restaurant-media-governance/index.ts");
+    const migration = findMigration();
+
+    expect(migration).toContain("WHERE is_cover = true");
+    expect(governance).toContain("is_cover: false");
+    expect(governance).not.toContain("is_primary:");
+  });
 });
