@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth-context";
-import { disablePush, enablePush, isCurrentPushEnabled } from "@/lib/push-unified";
+import { disablePushForCurrentSession, enablePush, isCurrentPushEnabled } from "@/lib/push-unified";
 
 export default function PushNotificationSettings() {
   const { user } = useAuth();
@@ -39,7 +39,7 @@ export default function PushNotificationSettings() {
     setSaving(true);
     try {
       const result = enabled
-        ? await disablePush(user.id)
+        ? await disablePushForCurrentSession(user.id)
         : await enablePush(user.id);
 
       if (!result.ok) {
