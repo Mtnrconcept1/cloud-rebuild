@@ -8,7 +8,9 @@ import {
   deleteAiCreationRecord,
   getAiCreationImageUrl,
   getAiCreationRecords,
+  loadPersistedAiCreationRecords,
   markAiCreationAddedToGallery,
+  mergeAiCreationRecordSources,
   subscribeAiCreationRecords,
   useAiCreationRecovery,
   type AiCreationRecord,
@@ -63,17 +65,44 @@ function getStatusBadge(record: AiCreationRecord) {
 
 export default function AiCreationsGallery({ restaurantId, userId, currentPhotoCount, watermarkSubscription, onGalleryUpdated }: Props) {
   const { toast } = useToast();
-  const [records, setRecords] = useState<AiCreationRecord[]>(() => getAiCreationRecords());
+  const [localRecords, setLocalRecords] = useState<AiCreationRecord[]>(() => getAiCreationRecords());
+  const [persistedRecords, setPersistedRecords] = useState<AiCreationRecord[]>([]);
+  const [persistedLoading, setPersistedLoading] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
   const [previewRecord, setPreviewRecord] = useState<AiCreationRecord | null>(null);
 
-  useEffect(() => subscribeAiCreationRecords(setRecords), []);
+  useEffect(() => subscribeAiCreationRecords(setLocalRecords), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!restaurantId) {
+      setPersistedRecords([]);
+      setPersistedLoading(false);
+      return () => { cancelled = true; };
+    }
+
+    setPersistedLoading(true);
+    void loadPersistedAiCreationRecords({ restaurantId, userId })
+      .then((nextRecords) => {
+        if (!cancelled) setPersistedRecords(nextRecords);
+      })
+      .finally(() => {
+        if (!cancelled) setPersistedLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [restaurantId, userId]);
 
   // Leaving the app aborts an in-flight generation, but the Edge Function still
   // stores the visual and charges the credits. Re-attach those so a paid image is
   // never silently lost.
   useAiCreationRecovery(restaurantId, userId);
 
+  const records = useMemo(
+    () => mergeAiCreationRecordSources(localRecords, persistedRecords),
+    [localRecords, persistedRecords],
+  );
+  const localRecordIds = useMemo(() => new Set(localRecords.map((record) => record.id)), [localRecords]);
   const restaurantRecords = useMemo(() => {
     if (!restaurantId) return [];
     return records.filter((record) => record.restaurantId === restaurantId);
@@ -107,7 +136,13 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
         }),
         positionHint: currentPhotoCount,
       });
-      markAiCreationAddedToGallery(record.id);
+      if (localRecordIds.has(record.id)) {
+        markAiCreationAddedToGallery(record.id);
+      } else {
+        setPersistedRecords((current) => current.map((item) => (
+          item.id === record.id ? { ...item, galleryAdded: true } : item
+        )));
+      }
       onGalleryUpdated();
       toast({ title: "Création ajoutée à la galerie" });
     } catch (error) {
@@ -157,7 +192,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
         </CardContent>
       </Card>
 
-      {!restaurantRecords.length ? (
+      {!persistedLoading && !restaurantRecords.length ? (
         <Card>
           <CardContent className="py-12 text-center text-sm text-muted-foreground">
             Aucune création IA pour ce restaurant.
@@ -170,6 +205,7 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
           const imageUrl = getAiCreationImageUrl(record);
           const canAddToGallery = record.status === "completed" && Boolean(record.result?.gallery_image_url) && !record.galleryAdded;
           const generationSeed = record.generationSeed || record.result?.generation_seed || "";
+          const isLocalRecord = localRecordIds.has(record.id);
 
           return (
             <Card key={record.id} className="min-w-0 overflow-hidden">
@@ -247,17 +283,19 @@ export default function AiCreationsGallery({ restaurantId, userId, currentPhotoC
                       Ajouter à la galerie
                     </Button>
                   )}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => deleteCreation(record)}
-                    disabled={addingId === record.id}
-                    className="min-h-10 gap-2 border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 sm:w-auto"
-                    aria-label={`Supprimer ${record.title} de Mes creations`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Supprimer
-                  </Button>
+                  {isLocalRecord && !record.result?.assetId ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => deleteCreation(record)}
+                      disabled={addingId === record.id}
+                      className="min-h-10 gap-2 border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 sm:w-auto"
+                      aria-label={`Supprimer ${record.title} de Mes creations`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Supprimer
+                    </Button>
+                  ) : null}
                 </div>
               </CardContent>
             </Card>
