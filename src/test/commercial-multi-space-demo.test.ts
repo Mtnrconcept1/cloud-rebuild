@@ -30,9 +30,11 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).toContain("<iframe");
     expect(browsers).toContain('surface: "client"');
     expect(browsers).toContain('surface: "restaurant"');
+    expect(browsers).toContain('surface: "commercial"');
     expect(browsers).toContain('surface: "courier"');
     expect(browsers).toContain('initialPath: "/mon-espace"');
     expect(browsers).toContain('initialPath: "/dashboard"');
+    expect(browsers).toContain('initialPath: "/commercial"');
     expect(browsers).toContain('initialPath: "/courier"');
     expect(browsers).toContain("ResizeObserver");
     expect(browsers).toContain("frameWindow.history.back()");
@@ -42,7 +44,8 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).not.toContain("frameWindow.location.assign(initialUrl)");
     expect(browsers).toContain('layout === "control"');
     expect(browsers).toContain('layout === "mosaic"');
-    expect(browsers).toContain('() => ["client", "restaurant", "courier"]');
+    expect(browsers).toContain('() => ["client", "restaurant", "commercial", "courier"]');
+    expect(browsers).not.toContain("thirdSurface");
     expect(browsers).toContain("visibleBrowsers.map");
     expect(browsers).toContain("isCommercialDemoFrameEscapeMessage");
     expect(browsers).toContain("event.source !== frameRef.current?.contentWindow");
@@ -65,14 +68,14 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(browsers).toContain('key={`${definition.surface}:${sessionId}`}');
     expect(browsers).toContain("<CommercialDemoBrowserGridSession");
     expect(browsers).toContain("key={sessionId}");
-    expect(browsers).toContain("initialSurface={initialSurface}");
     expect(browsers).toContain("runtimes[browser.surface].unreadCount");
     expect(browsers).toContain("const visibleOrder = useMemo");
     expect(browsers).toContain("{BROWSERS.map((definition) => {");
     expect(browsers).toContain("style={{ order: visualIndex >= 0 ? visualIndex : BROWSERS.length }}");
     expect(browsers).not.toContain("orderedBrowsers");
     expect(browsers).toContain("h-[clamp(28rem,calc(100svh-18rem),48rem)]");
-    expect(browsers).toContain("md:grid-cols-2 md:grid-rows-2 xl:grid-cols-3 xl:grid-rows-1");
+    expect(browsers).toContain("lg:grid-rows-3");
+    expect(browsers).toContain("md:grid-cols-2 md:grid-rows-2 2xl:grid-cols-4 2xl:grid-rows-1");
     expect(browsers).toContain('layout === "control" ? "hidden lg:block" : "hidden md:block"');
     expect(browsers).toContain("z-[1600]");
     expect(browsers).toContain('event.data.navigationType === "PUSH"');
@@ -207,17 +210,20 @@ describe("commercial real multi-dashboard demonstration", () => {
     expect(courierLayout).not.toContain("isCommercialDemoFrameWindow()");
   });
 
-  it("simulates accepted payment server-side and refreshes every real dashboard", () => {
-    expect(workspace).toContain("simulateCommercialDemoPayment");
-    expect(workspace).toContain("onSuccess: (result) => void syncSnapshot(result.snapshot)");
-    expect(workspace).toContain("Simuler le paiement accepté");
-    expect(workspace).not.toContain("commercial-demo:open-checkout");
-    expect(workspace).not.toContain("checkout.stripe.com");
-    expect(experience).toContain("Paiement simulé · aucun débit");
-    expect(experience).not.toContain("confirmCommercialDemoCheckout");
+  it("opens a Stripe Test checkout and confirms it server-side before refreshing dashboards", () => {
+    expect(workspace).toContain("createCommercialDemoCheckout");
+    expect(workspace).toContain("sendCheckoutToParent");
+    expect(workspace).toContain("isStripeTestCheckoutSessionId");
+    expect(workspace).toContain("4242 4242 4242 4242");
+    expect(workspace).toContain("Payer avec Stripe Test");
+    expect(experience).toContain("confirmCommercialDemoCheckout");
+    expect(experience).toContain("checkout.stripe.com");
+    expect(experience).toContain("Stripe Test uniquement");
     expect(service).toContain('"commercial-demo-checkout"');
-    expect(service).toContain('action: "simulate"');
-    expect(service).toContain('payment_provider: "none"');
+    expect(service).toContain('action: "create"');
+    expect(service).toContain('action: "confirm"');
+    expect(service).toContain("openCommercialDemoCheckout");
+    expect(service).not.toContain('action: "simulate"');
   });
 
   it("keeps the demo source of truth outside production orders, dispatch and accounting", () => {
