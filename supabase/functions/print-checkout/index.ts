@@ -18,6 +18,7 @@ import {
   sealPaymentAttemptRequest,
 } from "../_shared/payment-attempts.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import { getCloudprinterDefaultOptions } from "../_shared/print/options.ts";
 import { validatePrintAddress } from "../_shared/print/security.ts";
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -81,13 +82,14 @@ Deno.serve(async (req) => {
 
     const { data: exportRow, error: exportError } = await adminClient
       .from("print_exports")
-      .select("id, status, md5, sha256, provider_product_id, production_storage_path")
+      .select("id, status, md5, sha256, provider_product_id, production_storage_path, product_spec_snapshot")
       .eq("id", quote.print_export_id)
       .eq("restaurant_id", restaurantId)
       .maybeSingle();
     if (exportError) throw exportError;
     if (!exportRow || exportRow.status !== "approved") throw new HttpError(409, "Le BAT approuvé est requis avant paiement");
     if (exportRow.provider_product_id !== quote.provider_product_id) throw new HttpError(409, "Le produit du devis ne correspond plus au BAT");
+    const providerOptions = getCloudprinterDefaultOptions(exportRow.product_spec_snapshot);
 
     const { data: providerProduct, error: providerError } = await adminClient
       .from("print_provider_products")
@@ -151,6 +153,7 @@ Deno.serve(async (req) => {
       export_id: exportRow.id,
       export_sha256: exportRow.sha256,
       provider_product_id: providerProduct.id,
+      provider_options: providerOptions,
       quantity: quote.quantity,
       customer_amount_cents: quote.customer_amount_cents,
       customer_currency: "CHF",
@@ -202,7 +205,7 @@ Deno.serve(async (req) => {
         quantity: quote.quantity,
         title: logicalProduct.display_name,
         provider_product_reference: providerProduct.provider_reference,
-        options: [],
+        options: providerOptions,
         file_snapshot: {
           export_id: exportRow.id,
           md5: exportRow.md5,
@@ -268,7 +271,12 @@ Deno.serve(async (req) => {
         status: "success",
         targetEntityType: "print_orders",
         targetEntityId: orderId,
-        metadata: { restaurant_id: restaurantId, payment_attempt_id: acquiredAttempt.attemptId, amount_cents: quote.customer_amount_cents },
+        metadata: {
+          restaurant_id: restaurantId,
+          payment_attempt_id: acquiredAttempt.attemptId,
+          amount_cents: quote.customer_amount_cents,
+          provider_option_count: providerOptions.length,
+        },
       });
 
       return jsonResponse({
