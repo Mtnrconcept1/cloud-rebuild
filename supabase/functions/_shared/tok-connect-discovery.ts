@@ -396,7 +396,7 @@ export function normalizeDiscoveryText(value: string): string {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[’']/g, " ")
-    .replace(/[^a-zA-Z0-9\s\-\/]/g, " ")
+    .replace(/[^a-zA-Z0-9\s/-]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
@@ -458,7 +458,7 @@ export function extractDiscoveryCity(raw: string): string | null {
     if (pattern.test(normalized)) return titleCaseCity(city);
   }
 
-  const prepositions = /(?:^|\s)(?:a|au|aux|en|sur|dans|vers|pres de|proche de|autour de|cote de|in|near|around|at)\s+([a-z][a-z\-]{2,}(?:\s[a-z][a-z\-]{2,})?)/g;
+  const prepositions = /(?:^|\s)(?:a|au|aux|en|sur|dans|vers|pres de|proche de|autour de|cote de|in|near|around|at)\s+([a-z][a-z-]{2,}(?:\s[a-z][a-z-]{2,})?)/g;
   let match: RegExpExecArray | null;
   while ((match = prepositions.exec(normalized)) !== null) {
     const candidate = match[1].trim();
@@ -493,9 +493,9 @@ function isoDate(offsetDays: number, today: Date): string {
 
 export function extractDiscoveryDate(raw: string, today = new Date()): string | null {
   const normalized = normalizeDiscoveryText(raw);
-  const explicit = normalized.match(/(\d{4})[-\/](\d{2})[-\/](\d{2})/);
+  const explicit = normalized.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
   if (explicit) return `${explicit[1]}-${explicit[2]}-${explicit[3]}`;
-  const european = normalized.match(/(?:^|\s)(\d{1,2})[-\/](\d{1,2})(?:[-\/](\d{2,4}))?(?:\s|$)/);
+  const european = normalized.match(/(?:^|\s)(\d{1,2})[-/](\d{1,2})(?:[-/](\d{2,4}))?(?:\s|$)/);
   if (european) {
     const day = european[1].padStart(2, "0");
     const month = european[2].padStart(2, "0");
@@ -537,7 +537,7 @@ export function parseTokDiscoveryRequest(raw: string, today = new Date()): TokDi
     // Les alias les plus longs d'abord : "poke bowl" avant "bowl".
     const aliases = [...cuisine.aliases].sort((a, b) => b.length - a.length);
     for (const alias of aliases) {
-      const pattern = new RegExp(`(^|\\s)${alias.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}(s?)(\\s|$)`, "g");
+      const pattern = new RegExp(`(^|\\s)${alias.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}(s?)(\\s|$)`, "g");
       let match: RegExpExecArray | null;
       while ((match = pattern.exec(normalized)) !== null) {
         const index = match.index + match[1].length;
