@@ -80,6 +80,25 @@ test("distingue les contrôles de transaction SQL des corps PL/pgSQL", () => {
     hasTopLevelTransactionControl("BEGIN; CREATE TABLE example (id integer); COMMIT;"),
     true,
   );
+  assert.equal(
+    hasTopLevelTransactionControl(
+      "BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE; SELECT 1; COMMIT;",
+    ),
+    true,
+  );
+  assert.equal(
+    hasTopLevelTransactionControl("START TRANSACTION READ WRITE; SELECT 1; ROLLBACK;"),
+    true,
+  );
+  assert.equal(
+    hasTopLevelTransactionControl(`
+      -- BEGIN;
+      SELECT 'ROLLBACK;';
+      /* COMMIT; */
+      DO $$ BEGIN PERFORM 1; END $$;
+    `),
+    false,
+  );
 });
 
 test("normalise les chemins Windows et relatifs", () => {
