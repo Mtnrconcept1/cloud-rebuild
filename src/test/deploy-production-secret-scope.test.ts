@@ -195,7 +195,7 @@ describe("production deployment secret scope", () => {
     expect(secretWriter).toContain("fs.chmodSync(outFile, 0o600)");
   });
 
-  it("scopes the dedicated demo to server AI and no payment-provider secret", () => {
+  it("scopes the dedicated demo to server AI and a test-only Stripe secret", () => {
     expect(secretEnvironmentNames(prepareDemoSecrets)).toEqual([
       "FIRECRAWL_API_KEY",
       "OPENAI_API_KEY",
@@ -209,9 +209,16 @@ describe("production deployment secret scope", () => {
       "TOK_SOURCE_IMAGE_TIMEOUT_MS",
     ].sort());
     expect(secretEnvironmentNames(configureDemoAuth)).toEqual(["SUPABASE_ACCESS_TOKEN"]);
-    expect(demoSecretWriter).toContain('["DEMO_PAYMENT_MODE", "simulated"]');
-    expect(demoSecretWriter).not.toMatch(/STRIPE_/);
-    expect(prepareDemoSecrets).not.toContain("STRIPE_");
+    expect(demoSecretWriter).toContain("readPrivateProviderSecrets()");
+    expect(demoSecretWriter).toContain("providerSecrets.STRIPE_SECRET_KEY_TEST");
+    expect(demoSecretWriter).toContain('startsWith("sk_test_")');
+    expect(demoSecretWriter).toContain('["STRIPE_SECRET_KEY", stripeTestSecret]');
+    expect(demoSecretWriter).toContain('["STRIPE_SECRET_KEY_TEST", stripeTestSecret]');
+    expect(demoSecretWriter).not.toContain("STRIPE_SECRET_KEY_LIVE");
+    expect(demoSecretWriter).not.toContain("sk_live_");
+    // The demo step inherits the private provider file prepared by the preceding
+    // step, so no additional Stripe GitHub secret is exposed in this step env.
+    expect(prepareDemoSecrets).not.toContain("STRIPE_SECRET_KEY_TEST: ${{ secrets.");
   });
 
   it("gives Supabase CLI steps only the credentials they require", () => {
