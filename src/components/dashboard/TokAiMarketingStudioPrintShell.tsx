@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import TokAiMarketingStudioCore from "./TokAiMarketingStudio";
 import MarketingOutputControls from "./marketing-print/MarketingOutputControls";
+import MarketingStudioPrintCatalogBridge from "./marketing-print/MarketingStudioPrintCatalogBridge";
 import PrintComposerDialog from "./marketing-print/PrintComposerDialog";
 import PrintOrdersPanel from "./marketing-print/PrintOrdersPanel";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
@@ -13,23 +14,26 @@ type Props = {
 /**
  * Runtime shell around the existing Marketing Studio.
  *
- * The large legacy generator remains the creative editor. This shell owns the
- * final-output contract: TheTok/social exact rasters and Cloudprinter geometry.
- * Keeping provider access here prevents the core editor from depending on a
- * print provider while every image request still receives the selected target
- * through the exact TOK AI client alias.
+ * The legacy generator remains the creative editor. This shell owns the
+ * final-output contract: TheTok/social exact rasters, Cloudprinter geometry
+ * and the Print Composer. The bridge replaces only the visible support choices
+ * while destination=print, without coupling the core editor to Cloudprinter.
  */
 export default function TokAiMarketingStudioPrintShell({ restaurantId }: Props) {
   const commercialDemoFrame = useCommercialDemoFrame();
   const canPrint = Boolean(restaurantId && !commercialDemoFrame);
   const [printComposerOpen, setPrintComposerOpen] = useState(false);
+  const studioRootRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="space-y-6">
       <MarketingOutputControls restaurantId={restaurantId} printEnabled={canPrint} />
 
-      <TokAiMarketingStudioCore
-        restaurantId={restaurantId}
+      <div ref={studioRootRef}>
+        <TokAiMarketingStudioCore restaurantId={restaurantId} />
+      </div>
+      <MarketingStudioPrintCatalogBridge
+        rootRef={studioRootRef}
         printEnabled={canPrint}
         onOpenPrintComposer={canPrint ? () => setPrintComposerOpen(true) : undefined}
       />
