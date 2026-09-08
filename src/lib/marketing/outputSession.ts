@@ -1,4 +1,4 @@
-import type { TokImageGenerationRequest } from "@/lib/ai/tokAiClient";
+import type { TokImageGenerationRequest } from "../ai/tokAiClient";
 import {
   DIGITAL_MARKETING_OUTPUT_TARGETS,
   MAX_PRINT_UPSCALE_FACTOR,
