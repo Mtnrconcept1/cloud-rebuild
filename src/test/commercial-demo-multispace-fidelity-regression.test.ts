@@ -60,7 +60,9 @@ describe("commercial demo multi-space fidelity regression", () => {
     expect(journey).not.toContain('action: "simulate"');
 
     expect(multiSpace).toContain("confirmCommercialDemoCheckout");
-    expect(multiSpace).toContain('type: "commercial-demo:open-checkout"');
+    expect(multiSpace).toContain("isCommercialDemoFrameMessage(event.data)");
+    expect(multiSpace).toContain('sourceFrame.surface !== "client"');
+    expect(multiSpace).toContain('checkoutUrl.hostname !== "checkout.stripe.com"');
     expect(multiSpace).toContain("Stripe Test uniquement");
   });
 
