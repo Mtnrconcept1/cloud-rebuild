@@ -6,6 +6,7 @@ export type PrintCatalogProduct = {
   slug: string;
   displayName: string;
   category: string;
+  marketingToolId?: string | null;
   description: string | null;
   variants: PrintProductSpec[];
 };
