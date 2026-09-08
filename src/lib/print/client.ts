@@ -61,6 +61,13 @@ export async function getPrintCatalog(restaurantId: string) {
   });
 }
 
+export async function getPrintGenerationCatalog(restaurantId: string) {
+  return invokePrint<{ products: PrintCatalogProduct[] }>("print-catalog", {
+    action: "generation_catalog",
+    restaurantId,
+  });
+}
+
 export async function createPrintExport(input: {
   restaurantId: string;
   providerProductId: string;
