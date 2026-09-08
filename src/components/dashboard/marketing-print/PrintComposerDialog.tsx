@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import { renderMarketingOutputBlob } from "@/lib/marketing/imageOutput";
 import { createMarketingPrintDocument, type MarketingPrintDocument, type PrintProductSpec } from "@/lib/print/document";
 import { runPrintPreflight } from "@/lib/print/preflight";
+import { buildPrintRenderingPlan } from "@/lib/print/rendering";
 import {
   approvePrintExport,
   createPrintExport,
@@ -18,9 +20,10 @@ import {
 } from "@/lib/print/client";
 import { createPrintCheckout } from "@/lib/print/checkout";
 import PrintProof from "./PrintProof";
-import { CreditCard, Loader2, Printer, RefreshCw } from "lucide-react";
+import { AlertTriangle, CreditCard, Loader2, Printer, RefreshCw } from "lucide-react";
 
 const supabase = getSupabase();
+const PRINT_RENDER_BUCKET = "restaurant-images";
 
 type PrintableAsset = {
   id: string;
@@ -225,11 +228,15 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
   const [exportId, setExportId] = useState<string | null>(null);
   const [approved, setApproved] = useState(false);
   const [quote, setQuote] = useState<PrintQuoteResult | null>(null);
+  const [preparedDocument, setPreparedDocument] = useState<MarketingPrintDocument | null>(null);
   const [working, setWorking] = useState<"export" | "approve" | "quote" | "checkout" | null>(null);
 
   const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || assets[0] || null;
   const variants = catalog.flatMap((product) => product.variants);
   const selectedVariant = variants.find((variant) => variant.providerProductId === selectedVariantId) || variants[0] || null;
+  const selectedProduct = selectedVariant
+    ? catalog.find((product) => product.variants.some((variant) => variant.providerProductId === selectedVariant.providerProductId)) || null
+    : null;
 
   useEffect(() => {
     if (!open) return;
@@ -278,12 +285,14 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
     setExportId(null);
     setApproved(false);
     setQuote(null);
+    setPreparedDocument(null);
   }, [selectedVariantId]);
 
   useEffect(() => {
     setExportId(null);
     setApproved(false);
     setQuote(null);
+    setPreparedDocument(null);
   }, [selectedAssetId, title, subtitle, price, cta, qrUrl]);
 
   const document = useMemo<MarketingPrintDocument | null>(() => {
@@ -309,18 +318,86 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
     });
   }, [selectedAsset, selectedVariant, title, subtitle, price, cta, qrUrl]);
 
-  const preflight = document && selectedVariant ? runPrintPreflight(document, selectedVariant) : null;
+  const renderingPlan = useMemo(() => {
+    if (!selectedAsset || !selectedVariant || !selectedProduct) return null;
+    try {
+      return buildPrintRenderingPlan({ asset: selectedAsset, product: selectedProduct, variant: selectedVariant });
+    } catch {
+      return null;
+    }
+  }, [selectedAsset, selectedProduct, selectedVariant]);
+
+  const plannedDocument = useMemo<MarketingPrintDocument | null>(() => {
+    if (!document || !renderingPlan) return document;
+    return {
+      ...document,
+      background: {
+        ...document.background,
+        widthPx: renderingPlan.target.widthPx,
+        heightPx: renderingPlan.target.heightPx,
+      },
+      rendering: renderingPlan.rendering,
+    };
+  }, [document, renderingPlan]);
+
+  const preflight = plannedDocument && selectedVariant ? runPrintPreflight(plannedDocument, selectedVariant) : null;
 
   async function createExport() {
-    if (!document || !selectedVariant || !preflight?.ready) return;
+    if (!document || !selectedVariant || !selectedProduct || !renderingPlan || renderingPlan.blocked || !preflight?.ready) return;
     setWorking("export");
+    let uploadedPath: string | null = null;
     try {
-      const result = await createPrintExport({ restaurantId, providerProductId: selectedVariant.providerProductId, document });
+      const rendered = await renderMarketingOutputBlob({
+        sourceUrl: document.background.url,
+        target: renderingPlan.target,
+        mimeType: "image/png",
+      });
+      if (rendered.quality === "upscale_blocked") throw new Error("Ce visuel dépasse le plafond d’agrandissement 2,5× pour l’impression.");
+
+      uploadedPath = `${restaurantId}/print-renders/${crypto.randomUUID()}.png`;
+      const { error: uploadError } = await supabase.storage.from(PRINT_RENDER_BUCKET).upload(uploadedPath, rendered.blob, {
+        contentType: "image/png",
+        upsert: false,
+        cacheControl: "3600",
+      });
+      if (uploadError) throw uploadError;
+      const publicUrl = supabase.storage.from(PRINT_RENDER_BUCKET).getPublicUrl(uploadedPath).data.publicUrl;
+      if (!publicUrl?.startsWith("https://")) throw new Error("URL du raster d’impression indisponible.");
+
+      const exactDocument: MarketingPrintDocument = {
+        ...document,
+        background: {
+          url: publicUrl,
+          mimeType: "image/png",
+          widthPx: rendered.widthPx,
+          heightPx: rendered.heightPx,
+        },
+        rendering: {
+          ...renderingPlan.rendering,
+          sourceWidthPx: rendered.sourceWidthPx,
+          sourceHeightPx: rendered.sourceHeightPx,
+          upscaleFactor: rendered.upscaleFactor,
+        },
+      };
+      const exactPreflight = runPrintPreflight(exactDocument, selectedVariant);
+      if (!exactPreflight.ready) {
+        throw new Error(exactPreflight.blocking.map((item) => item.message).join(" ") || "Le raster final ne passe pas le préflight.");
+      }
+
+      const result = await createPrintExport({ restaurantId, providerProductId: selectedVariant.providerProductId, document: exactDocument });
+      setPreparedDocument(exactDocument);
       setExportId(result.exportId);
       setApproved(false);
       setQuote(null);
-      toast({ title: "BAT généré", description: "Le PDF d’impression a passé le préflight serveur." });
+      uploadedPath = null;
+      toast({
+        title: "BAT généré",
+        description: `Raster ${rendered.widthPx}×${rendered.heightPx} px préparé à ${renderingPlan.target.targetDpi} DPI puis validé par le préflight serveur.`,
+      });
     } catch (error) {
+      if (uploadedPath) {
+        await supabase.storage.from(PRINT_RENDER_BUCKET).remove([uploadedPath]).catch(() => undefined);
+      }
       toast({ title: "BAT impossible", description: error instanceof Error ? error.message : "Erreur de préparation.", variant: "destructive" });
     } finally {
       setWorking(null);
@@ -384,7 +461,7 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
       <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>TheTok Print</DialogTitle>
-          <DialogDescription>Transformez une création du Marketing Studio en fichier conforme à l’imprimeur, approuvez le BAT puis commandez sans quitter TheTok.</DialogDescription>
+          <DialogDescription>Transformez une création du Marketing Studio en raster exact puis en PDF conforme à l’imprimeur, approuvez le BAT et commandez sans quitter TheTok.</DialogDescription>
         </DialogHeader>
 
         {loading ? (
@@ -392,7 +469,7 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
         ) : assets.length === 0 ? (
           <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">Générez d’abord une création dans Marketing Studio ou ajoutez un visuel PNG/JPG à votre galerie.</div>
         ) : variants.length === 0 ? (
-          <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">Le catalogue d’impression est prêt côté TheTok, mais aucun produit Cloudprinter n’est encore mappé et activé. L’administrateur doit synchroniser le compte fournisseur.</div>
+          <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">Le catalogue d’impression est prêt côté TheTok, mais aucun produit Cloudprinter actif avec une géométrie fiable n’est disponible. L’administrateur doit corriger ou hydrater le mapping fournisseur.</div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
             <div className="space-y-5">
@@ -410,6 +487,26 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
                   <SelectContent>{catalog.flatMap((product) => product.variants.map((variant) => <SelectItem key={variant.providerProductId} value={variant.providerProductId}>{product.displayName} · {variant.widthMm} × {variant.heightMm} mm</SelectItem>))}</SelectContent>
                 </Select>
               </div>
+
+              {renderingPlan && selectedVariant ? (
+                <div className={renderingPlan.blocked
+                  ? "rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100"
+                  : renderingPlan.quality === "upscale_allowed"
+                    ? "rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100"
+                    : "rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100"}
+                >
+                  <p className="font-bold">Géométrie de production</p>
+                  <p className="mt-1">
+                    {selectedVariant.widthMm}×{selectedVariant.heightMm} mm à plat · bleed {selectedVariant.bleedMm} mm · {renderingPlan.target.targetDpi} DPI · {renderingPlan.target.widthPx}×{renderingPlan.target.heightPx} px.
+                  </p>
+                  {renderingPlan.target.print?.foldedWidthMm && renderingPlan.target.print.foldedHeightMm ? (
+                    <p className="mt-1">Format fermé : {renderingPlan.target.print.foldedWidthMm}×{renderingPlan.target.print.foldedHeightMm} mm.</p>
+                  ) : null}
+                  <p className="mt-1 text-xs opacity-80">Source {selectedAsset?.widthPx}×{selectedAsset?.heightPx} · rééchantillonnage théorique {renderingPlan.rendering.upscaleFactor.toFixed(2)}×.</p>
+                  {renderingPlan.blocked ? <p className="mt-2 flex items-center gap-1.5 font-bold"><AlertTriangle className="h-4 w-4" />Dépassement du plafond 2,5× : choisissez une autre création ou un autre support.</p> : null}
+                </div>
+              ) : null}
+
               <div className="grid gap-3 sm:grid-cols-2">
                 <div><Label>Titre</Label><Input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={80} /></div>
                 <div><Label>Prix / accroche courte</Label><Input value={price} onChange={(event) => setPrice(event.target.value)} placeholder="CHF 39.–" maxLength={40} /></div>
@@ -436,9 +533,9 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
             </div>
 
             <div className="space-y-4">
-              {document && selectedVariant ? <PrintProof document={document} product={selectedVariant} approved={approved} /> : null}
+              {(preparedDocument || plannedDocument) && selectedVariant ? <PrintProof document={(preparedDocument || plannedDocument)!} product={selectedVariant} approved={approved} /> : null}
               <div className="flex flex-wrap gap-2">
-                {!exportId ? <Button disabled={!preflight?.ready || working !== null} onClick={() => void createExport()}>{working === "export" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Générer le BAT</Button> : null}
+                {!exportId ? <Button disabled={!preflight?.ready || Boolean(renderingPlan?.blocked) || working !== null} onClick={() => void createExport()}>{working === "export" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Préparer le raster & générer le BAT</Button> : null}
                 {exportId && !approved ? <Button disabled={working !== null} onClick={() => void approve()}>{working === "approve" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}J’approuve ce BAT</Button> : null}
                 {approved && !quote ? <Button disabled={working !== null} onClick={() => void quoteOrder()}>{working === "quote" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}Calculer le prix livré</Button> : null}
                 {quote ? <Button disabled={working !== null} onClick={() => void checkout()}>{working === "checkout" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}Payer {formatMoney(quote.customerAmountCents, quote.customerCurrency)}</Button> : null}

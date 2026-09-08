@@ -22,6 +22,7 @@ import type {
   PrintProviderShippingQuote,
 } from "./types.ts";
 import { validatePrintAddress, validatePrintProviderFile } from "./security.ts";
+import { parseCloudprinterProductGeometry } from "./product-geometry.ts";
 
 export { CloudprinterError } from "./request.ts";
 
@@ -138,21 +139,23 @@ function parseProductDetails(body: unknown, fallbackReference: string): PrintPro
   const reference = asString(raw.reference) || fallbackReference;
   if (!reference) throw new CloudprinterError({ code: "cloudprinter_product_invalid", message: "Invalid Cloudprinter product" });
   const specs = specMap(raw.specs);
+  const specifications = Object.fromEntries(specs.entries());
+  const geometry = parseCloudprinterProductGeometry(specifications);
   return {
     reference,
     name: asString(raw.name) || reference,
     description: asNullableString(raw.note),
-    widthMm: specNumber(specs, "The exact width of the item in mm."),
-    heightMm: specNumber(specs, "The exact height of the item in mm."),
-    bleedMm: specNumber(specs, "Bleed in mm"),
-    safeMarginMm: specNumber(specs, "The page safety margin in mm"),
+    widthMm: geometry.widthMm,
+    heightMm: geometry.heightMm,
+    bleedMm: geometry.bleedMm,
+    safeMarginMm: geometry.safeMarginMm,
     printableSides: specNumber(specs, "Number of printable sides"),
     orientation: asNullableString(specs.get("orientation of the product")),
     printTechnology: asNullableString(specs.get("print technology")),
     minimumQuantity: specNumber(specs, "Minimum order quantity"),
     quantityStep: specNumber(specs, "Per set order quantity"),
     options: asArray(raw.options).map(asRecord),
-    specifications: Object.fromEntries(specs.entries()),
+    specifications,
     raw,
   };
 }
