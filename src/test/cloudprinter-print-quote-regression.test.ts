@@ -28,6 +28,11 @@ describe("Cloudprinter quote regression", () => {
         message: "Product count is invalid",
       },
     })).toBe("Product count is invalid");
+
+    expect(safeProviderMessage(400, {
+      error: "Bad request",
+      info: "Missing required product option",
+    })).toBe("Missing required product option");
   });
 
   it("selects only valid Cloudprinter default product options", () => {
