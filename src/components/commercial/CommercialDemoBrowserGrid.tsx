@@ -478,7 +478,6 @@ function BrowserWindow({
 function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) {
   const autoPreset = useResponsiveViewportPreset();
   const [activeSurface, setActiveSurface] = useState<RemoteBrowserSurface>("client");
-  const [thirdSurface, setThirdSurface] = useState<"commercial" | "courier">("commercial");
   const [layout, setLayout] = useState<ConsoleLayout>("control");
   const [fullscreenSurface, setFullscreenSurface] = useState<RemoteBrowserSurface | null>(null);
   const [runtimes, setRuntimes] = useState<Record<RemoteBrowserSurface, FrameRuntime>>(() => ({
@@ -511,8 +510,8 @@ function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) 
   }, [fullscreenSurface]);
 
   const visibleSurfaces = useMemo<RemoteBrowserSurface[]>(
-    () => ["client", "restaurant", thirdSurface],
-    [thirdSurface],
+    () => ["client", "restaurant", "commercial", "courier"],
+    [],
   );
   const visibleBrowsers = useMemo(
     () => visibleSurfaces
@@ -524,14 +523,6 @@ function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) 
     const active = visibleSurfaces.includes(activeSurface) ? activeSurface : visibleSurfaces[0];
     return [active, ...visibleSurfaces.filter((surface) => surface !== active)];
   }, [activeSurface, visibleSurfaces]);
-
-  const selectThirdSurface = (surface: "commercial" | "courier") => {
-    const replacingActiveSurface = activeSurface === thirdSurface;
-    const replacingFullscreenSurface = fullscreenSurface === thirdSurface;
-    setThirdSurface(surface);
-    if (replacingActiveSurface) setActiveSurface(surface);
-    if (replacingFullscreenSurface) setFullscreenSurface(null);
-  };
 
   return (
     <section className="min-w-0" aria-label="Console commerciale de contrôle à distance">
@@ -561,19 +552,6 @@ function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) 
           })}
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-1">
-          <div className="flex items-center rounded-xl border bg-muted/30 p-1" aria-label="Troisième session affichée">
-            <button type="button" className={cn("flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold", thirdSurface === "commercial" && "bg-background shadow-sm")} onClick={() => selectThirdSurface("commercial")} aria-pressed={thirdSurface === "commercial"}>
-              <PanelsTopLeft className="h-4 w-4" />Commercial
-            </button>
-            <button type="button" className={cn("flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold", thirdSurface === "courier" && "bg-background shadow-sm")} onClick={() => selectThirdSurface("courier")} aria-pressed={thirdSurface === "courier"}>
-              <Bike className="h-4 w-4" />Livreur
-              {runtimes.courier.unreadCount > 0 ? (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white" aria-label={`${runtimes.courier.unreadCount} notification(s) livreur non lue(s)`}>
-                  {runtimes.courier.unreadCount}
-                </span>
-              ) : null}
-            </button>
-          </div>
           <div className="flex items-center rounded-xl border bg-muted/30 p-1" aria-label="Disposition des écrans">
             <button type="button" className={cn("flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold", layout === "control" && "bg-background shadow-sm")} onClick={() => setLayout("control")} aria-pressed={layout === "control"}>
               <PanelsTopLeft className="h-4 w-4" />Contrôle
@@ -589,8 +567,8 @@ function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) 
         className={cn(
           "grid h-[clamp(28rem,calc(100svh-18rem),48rem)] min-w-0 gap-3 sm:h-[clamp(30rem,calc(100dvh-16rem),54rem)] lg:h-[clamp(34rem,calc(100dvh-13rem),60rem)]",
           layout === "control"
-            ? "lg:grid-cols-[minmax(0,2fr)_minmax(22rem,1fr)] lg:grid-rows-2"
-            : "md:grid-cols-2 md:grid-rows-2 xl:grid-cols-3 xl:grid-rows-1",
+            ? "lg:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)] lg:grid-rows-3"
+            : "md:grid-cols-2 md:grid-rows-2 2xl:grid-cols-4 2xl:grid-rows-1",
         )}
         data-console-layout={layout}
       >
@@ -607,9 +585,9 @@ function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) 
                 "min-h-0 min-w-0",
                 !visible && "hidden",
                 visible && !active && (layout === "control" ? "hidden lg:block" : "hidden md:block"),
-                layout === "control" && visualIndex === 0 && "lg:row-span-2",
+                layout === "control" && visualIndex === 0 && "lg:row-span-3",
                 layout === "control" && visualIndex > 0 && "lg:col-start-2",
-                layout === "mosaic" && "xl:min-h-[42rem]",
+                layout === "mosaic" && "2xl:min-h-[42rem]",
               )}
             >
               <BrowserWindow
@@ -630,7 +608,7 @@ function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) 
         })}
       </div>
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        Les sessions restent connectées en permanence. Sélectionnez une fenêtre puis naviguez dedans comme sur un ordinateur distant.
+        Les quatre sessions restent connectées en permanence. Sélectionnez une fenêtre puis naviguez dedans comme sur un ordinateur distant.
       </p>
     </section>
   );
