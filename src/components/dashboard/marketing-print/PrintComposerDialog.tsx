@@ -10,6 +10,7 @@ import { renderMarketingOutputBlob } from "@/lib/marketing/imageOutput";
 import { createMarketingPrintDocument, type MarketingPrintDocument, type PrintProductSpec } from "@/lib/print/document";
 import { runPrintPreflight } from "@/lib/print/preflight";
 import { buildPrintRenderingPlan } from "@/lib/print/rendering";
+import { normalizePrintOrderQuantity } from "@/lib/print/quantity";
 import {
   approvePrintExport,
   createPrintExport,
@@ -66,6 +67,13 @@ type ShippingAddress = {
   state: string;
   country: string;
   phone: string;
+};
+
+type PrintComposerDialogProps = {
+  restaurantId: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  showTrigger?: boolean;
 };
 
 const EMPTY_ADDRESS: ShippingAddress = {
@@ -210,9 +218,19 @@ function formatMoney(cents: number, currency = "CHF") {
   return new Intl.NumberFormat("fr-CH", { style: "currency", currency }).format(cents / 100);
 }
 
-export default function PrintComposerDialog({ restaurantId }: { restaurantId: string }) {
+export default function PrintComposerDialog({
+  restaurantId,
+  open: controlledOpen,
+  onOpenChange,
+  showTrigger = true,
+}: PrintComposerDialogProps) {
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (controlledOpen === undefined) setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
   const [loading, setLoading] = useState(false);
   const [assets, setAssets] = useState<PrintableAsset[]>([]);
   const [catalog, setCatalog] = useState<PrintCatalogProduct[]>([]);
@@ -254,7 +272,7 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
       const firstVariant = (nextCatalog.products || []).flatMap((product) => product.variants)[0];
       if (firstVariant) {
         setSelectedVariantId(firstVariant.providerProductId);
-        setQuantity(firstVariant.minimumQuantity || 1);
+        setQuantity(normalizePrintOrderQuantity(250, firstVariant.minimumQuantity, firstVariant.quantityStep));
       }
       const restaurant = restaurantResult.data;
       if (restaurant) {
@@ -276,17 +294,16 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
 
   useEffect(() => {
     if (!selectedVariant) return;
-    setQuantity((current) => {
-      if (current < selectedVariant.minimumQuantity) return selectedVariant.minimumQuantity;
-      const offset = current - selectedVariant.minimumQuantity;
-      const remainder = offset % selectedVariant.quantityStep;
-      return remainder === 0 ? current : current + (selectedVariant.quantityStep - remainder);
-    });
+    setQuantity((current) => normalizePrintOrderQuantity(
+      current,
+      selectedVariant.minimumQuantity,
+      selectedVariant.quantityStep,
+    ));
     setExportId(null);
     setApproved(false);
     setQuote(null);
     setPreparedDocument(null);
-  }, [selectedVariantId]);
+  }, [selectedVariantId, selectedVariant]);
 
   useEffect(() => {
     setExportId(null);
@@ -419,10 +436,16 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
   }
 
   async function quoteOrder() {
-    if (!exportId || !approved) return;
+    if (!exportId || !approved || !selectedVariant) return;
+    const normalizedQuantity = normalizePrintOrderQuantity(
+      quantity,
+      selectedVariant.minimumQuantity,
+      selectedVariant.quantityStep,
+    );
+    setQuantity(normalizedQuantity);
     setWorking("quote");
     try {
-      const result = await createPrintQuote({ restaurantId, exportId, quantity, country: "CH" });
+      const result = await createPrintQuote({ restaurantId, exportId, quantity: normalizedQuantity, country: "CH" });
       setQuote(result);
     } catch (error) {
       toast({ title: "Prix indisponible", description: error instanceof Error ? error.message : "Impossible d’obtenir le devis.", variant: "destructive" });
@@ -454,10 +477,12 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button type="button" className="gap-2"><Printer className="h-4 w-4" /> Imprimer une création</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      {showTrigger ? (
+        <DialogTrigger asChild>
+          <Button type="button" className="gap-2"><Printer className="h-4 w-4" /> Imprimer une création</Button>
+        </DialogTrigger>
+      ) : null}
       <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>TheTok Print</DialogTitle>
@@ -514,7 +539,26 @@ export default function PrintComposerDialog({ restaurantId }: { restaurantId: st
               <div><Label>Sous-titre</Label><Input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} maxLength={120} /></div>
               <div><Label>Appel à l’action</Label><Input value={cta} onChange={(event) => setCta(event.target.value)} maxLength={80} /></div>
               <div><Label>QR code (optionnel)</Label><Input value={qrUrl} onChange={(event) => setQrUrl(event.target.value)} placeholder="https://www.thetok.ch/..." /></div>
-              <div><Label>Quantité</Label><Input type="number" min={selectedVariant?.minimumQuantity || 1} step={selectedVariant?.quantityStep || 1} value={quantity} onChange={(event) => setQuantity(Math.max(1, Number(event.target.value) || 1))} /></div>
+              <div>
+                <Label>Quantité</Label>
+                <Input
+                  type="number"
+                  min={selectedVariant?.minimumQuantity || 1}
+                  step={selectedVariant?.quantityStep || 1}
+                  value={quantity}
+                  onChange={(event) => setQuantity(Math.max(1, Number(event.target.value) || 1))}
+                  onBlur={() => selectedVariant && setQuantity(normalizePrintOrderQuantity(
+                    quantity,
+                    selectedVariant.minimumQuantity,
+                    selectedVariant.quantityStep,
+                  ))}
+                />
+                {selectedVariant ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Minimum {selectedVariant.minimumQuantity} · quantités suivantes par lots de {selectedVariant.quantityStep}.
+                  </p>
+                ) : null}
+              </div>
 
               <div className="rounded-2xl border p-4">
                 <p className="mb-3 text-sm font-semibold">Adresse de livraison</p>
