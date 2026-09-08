@@ -24,6 +24,7 @@ describe("commercial demo multi-space fidelity regression", () => {
     expect(browserGrid).toContain('initialPath: "/commercial"');
     expect(browserGrid).toContain('() => ["client", "restaurant", "commercial", "courier"]');
     expect(browserGrid).toContain("commercial: initialRuntime");
+    expect(browserGrid).not.toContain("thirdSurface");
     expect(multiSpace).toContain("quatre");
     expect(multiSpace).toContain("Client, Restaurateur, Commercial et Livreur");
   });
@@ -49,9 +50,15 @@ describe("commercial demo multi-space fidelity regression", () => {
     expect(actorWorkspace).toContain("4242 4242 4242 4242");
     expect(actorWorkspace).toContain("createCommercialDemoCheckout");
     expect(actorWorkspace).toContain("Payer avec Stripe Test");
-    expect(cart).toContain("createCommercialDemoCheckout");
-    expect(cart).toContain("openCommercialDemoCheckout");
-    expect(cart).not.toContain("simulateCommercialDemoPayment");
+
+    // Panier keeps a compatibility name, but that bridge must itself open the
+    // exact same validated Stripe Test Checkout and never accept payment locally.
+    expect(cart).toContain("simulateCommercialDemoPayment");
+    expect(journey).toContain("Compatibility bridge");
+    expect(journey).toContain("const checkout = await createCommercialDemoCheckout");
+    expect(journey).toContain("openCommercialDemoCheckout(");
+    expect(journey).not.toContain('action: "simulate"');
+
     expect(multiSpace).toContain("confirmCommercialDemoCheckout");
     expect(multiSpace).toContain('type: "commercial-demo:open-checkout"');
     expect(multiSpace).toContain("Stripe Test uniquement");
