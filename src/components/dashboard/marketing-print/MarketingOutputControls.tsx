@@ -166,7 +166,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
               aria-pressed={destination === "print"}
               onClick={() => handleDestination("print")}
             >
-              <Printer className="h-4 w-4" />Formats Cloudprinter
+              <Printer className="h-4 w-4" />Impression Cloudprinter
             </button>
           </div>
 
