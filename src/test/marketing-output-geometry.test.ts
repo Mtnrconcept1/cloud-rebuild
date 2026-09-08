@@ -136,8 +136,9 @@ describe("Marketing Studio output geometry", () => {
 
   it("blocks print targets whose required crop-aware upscale exceeds x2.5", () => {
     const [target] = buildPrintMarketingOutputTargets([
-      printProduct({ category: "restaurant_menu", marketingToolId: "restaurant_menu", widthMm: 300, heightMm: 500, bleedMm: 3 }),
+      printProduct({ category: "restaurant_menu", marketingToolId: "restaurant_menu", widthMm: 240, heightMm: 350, bleedMm: 3 }),
     ] as any);
+    expect(target.widthPx * target.heightPx).toBeLessThan(20_000_000);
     const plan = calculateMarketingOutputPlan(1024, 1536, target);
     expect(plan.upscaleFactor).toBeGreaterThan(MAX_PRINT_UPSCALE_FACTOR);
     expect(plan.quality).toBe("upscale_blocked");
