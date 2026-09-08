@@ -23,7 +23,8 @@ export function getActiveMarketingOutputTarget() {
 export function applyMarketingOutputTargetToImageRequest<T extends TokImageGenerationRequest>(
   request: T,
 ): T {
-  if (request.marketingAssetMode !== true || !activeOutputTarget) return request;
+  if (request.marketingAssetMode !== true) return request;
+  if (!activeOutputTarget) throw new Error("MARKETING_OUTPUT_TARGET_REQUIRED");
 
   const target = activeOutputTarget;
   const expectedPlan = calculateMarketingOutputPlan(
