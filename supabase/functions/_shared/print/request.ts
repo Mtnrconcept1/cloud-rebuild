@@ -110,10 +110,31 @@ export function parseCloudprinterBody(status: number, text: string): unknown | n
   }
 }
 
+function safeNestedProviderText(value: unknown, depth = 0): string {
+  if (depth > 3 || value == null) return "";
+  if (typeof value === "string") return value.trim();
+  if (Array.isArray(value)) {
+    for (const entry of value.slice(0, 5)) {
+      const candidate = safeNestedProviderText(entry, depth + 1);
+      if (candidate) return candidate;
+    }
+    return "";
+  }
+  if (typeof value !== "object") return "";
+  const record = value as Record<string, unknown>;
+  for (const key of ["message", "description", "detail", "reason", "error", "errors"]) {
+    if (!(key in record)) continue;
+    const candidate = safeNestedProviderText(record[key], depth + 1);
+    if (candidate) return candidate;
+  }
+  return "";
+}
+
 export function safeProviderMessage(status: number, body: unknown) {
-  const record = asRecord(body);
-  const candidate = asText(record.message || record.error || record.description);
-  return candidate ? candidate.replace(/[\r\n]+/g, " ").slice(0, 300) : `Cloudprinter HTTP ${status}`;
+  const candidate = safeNestedProviderText(body);
+  return candidate
+    ? candidate.replace(/[\r\n\t]+/g, " ").replace(/\s{2,}/g, " ").trim().slice(0, 300)
+    : `Cloudprinter HTTP ${status}`;
 }
 
 /**
