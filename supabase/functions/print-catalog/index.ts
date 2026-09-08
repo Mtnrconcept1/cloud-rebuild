@@ -19,6 +19,28 @@ function toNumber(value: unknown, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function positiveGeometry(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function geometryMatchesLogicalProduct(product: any, variant: any) {
+  const width = positiveGeometry(variant.width_mm);
+  const height = positiveGeometry(variant.height_mm);
+  if (!width || !height) return false;
+
+  const expectedWidth = positiveGeometry(product?.default_width_mm);
+  const expectedHeight = positiveGeometry(product?.default_height_mm);
+  if (!expectedWidth || !expectedHeight) return true;
+
+  const toleranceMm = 1.5;
+  const direct = Math.abs(width - expectedWidth) <= toleranceMm
+    && Math.abs(height - expectedHeight) <= toleranceMm;
+  const rotated = Math.abs(width - expectedHeight) <= toleranceMm
+    && Math.abs(height - expectedWidth) <= toleranceMm;
+  return direct || rotated;
+}
+
 /** PostgREST puts `in` filters and upserts in one request, so both are chunked. */
 const CATALOG_BATCH_SIZE = 100;
 
@@ -71,7 +93,7 @@ Deno.serve(async (req) => {
 
       const { data: products, error: productError } = await adminClient
         .from("print_products")
-        .select("id, slug, display_name, category, description, default_width_mm, default_height_mm, default_orientation, sort_order")
+        .select("id, slug, display_name, category, description, marketing_tool_id, default_width_mm, default_height_mm, default_orientation, sort_order")
         .eq("active", true)
         .order("sort_order", { ascending: true });
       if (productError) throw productError;
@@ -80,7 +102,7 @@ Deno.serve(async (req) => {
       const { data: variants, error: variantError } = productIds.length
         ? await adminClient
           .from("print_provider_products")
-          .select("id, print_product_id, provider_reference, width_mm, height_mm, bleed_mm, safe_margin_mm, printable_sides, orientation, print_technology, minimum_quantity, quantity_step, options")
+          .select("id, print_product_id, provider_reference, width_mm, height_mm, bleed_mm, safe_margin_mm, printable_sides, orientation, print_technology, minimum_quantity, quantity_step, options, specifications")
           .in("print_product_id", productIds)
           .eq("active", true)
           .order("provider_reference", { ascending: true })
@@ -89,14 +111,18 @@ Deno.serve(async (req) => {
 
       const byProduct = new Map<string, any[]>();
       for (const variant of variants || []) {
+        const logicalProduct = (products || []).find((product: any) => product.id === variant.print_product_id);
+        // Fail closed: an active provider mapping is not orderable until detailed
+        // /products/info geometry has been hydrated and matches its logical product.
+        if (!logicalProduct || !geometryMatchesLogicalProduct(logicalProduct, variant)) continue;
         const rows = byProduct.get(variant.print_product_id) || [];
         rows.push({
           productId: variant.print_product_id,
           providerProductId: variant.id,
           providerReference: variant.provider_reference,
-          displayName: (products || []).find((product: any) => product.id === variant.print_product_id)?.display_name || variant.provider_reference,
-          widthMm: toNumber(variant.width_mm),
-          heightMm: toNumber(variant.height_mm),
+          displayName: logicalProduct.display_name || variant.provider_reference,
+          widthMm: positiveGeometry(variant.width_mm),
+          heightMm: positiveGeometry(variant.height_mm),
           bleedMm: Math.max(0, toNumber(variant.bleed_mm)),
           safeMarginMm: Math.max(0, toNumber(variant.safe_margin_mm, 3)),
           printableSides: Math.max(1, Math.round(toNumber(variant.printable_sides, 1))),
@@ -105,6 +131,7 @@ Deno.serve(async (req) => {
           minimumQuantity: Math.max(1, Math.round(toNumber(variant.minimum_quantity, 1))),
           quantityStep: Math.max(1, Math.round(toNumber(variant.quantity_step, 1))),
           options: Array.isArray(variant.options) ? variant.options : [],
+          specifications: asRecord(variant.specifications),
         });
         byProduct.set(variant.print_product_id, rows);
       }
@@ -115,6 +142,7 @@ Deno.serve(async (req) => {
           slug: product.slug,
           displayName: product.display_name,
           category: product.category,
+          marketingToolId: product.marketing_tool_id,
           description: product.description,
           variants: byProduct.get(product.id) || [],
         })).filter((product: any) => product.variants.length > 0),
