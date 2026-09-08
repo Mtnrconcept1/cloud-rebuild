@@ -53,14 +53,19 @@ export function parseAddedDemoMigrations(diffOutput) {
 
 export function hasTopLevelTransactionControl(sql) {
   const executableSql = String(sql)
+    // PL/pgSQL and DO bodies use PostgreSQL dollar quotes. Remove those before
+    // scanning so a procedural BEGIN ... END block cannot be confused with a
+    // migration-managed SQL transaction.
     .replace(/\$([A-Za-z_][A-Za-z0-9_]*|)\$[\s\S]*?\$\1\$/g, "")
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/--[^\r\n]*/g, "")
     .replace(/'(?:''|[^'])*'/g, "");
 
-  return /(?:^|;)\s*(?:BEGIN(?:\s+(?:WORK|TRANSACTION))?|START\s+TRANSACTION|COMMIT(?:\s+(?:WORK|TRANSACTION))?|ROLLBACK(?:\s+(?:WORK|TRANSACTION))?)\s*;/im.test(
-    executableSql,
-  );
+  return executableSql
+    .split(";")
+    .map((statement) => statement.trim())
+    .filter(Boolean)
+    .some((statement) => /^(?:BEGIN\b|START\s+TRANSACTION\b|COMMIT\b|ROLLBACK\b)/i.test(statement));
 }
 
 function requireEnv(name) {
