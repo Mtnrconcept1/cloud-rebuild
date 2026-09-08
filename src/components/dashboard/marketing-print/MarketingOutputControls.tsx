@@ -20,7 +20,7 @@ import {
   type MarketingOutputTarget,
 } from "@/lib/marketing/outputGeometry";
 import { setActiveMarketingOutputTarget } from "@/lib/marketing/outputSession";
-import { getPrintCatalog } from "@/lib/print/client";
+import { getPrintGenerationCatalog } from "@/lib/print/client";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -46,8 +46,8 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const catalogQuery = useQuery({
-    queryKey: ["marketing-output-print-catalog", restaurantId],
-    queryFn: () => getPrintCatalog(String(restaurantId)),
+    queryKey: ["marketing-output-generation-catalog", restaurantId],
+    queryFn: () => getPrintGenerationCatalog(String(restaurantId)),
     enabled: Boolean(printEnabled && restaurantId),
     staleTime: 5 * 60 * 1000,
     retry: 1,
@@ -166,7 +166,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
               aria-pressed={destination === "print"}
               onClick={() => handleDestination("print")}
             >
-              <Printer className="h-4 w-4" />Impression Cloudprinter
+              <Printer className="h-4 w-4" />Formats Cloudprinter
             </button>
           </div>
 
@@ -198,6 +198,12 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
           </label>
         </div>
 
+        {destination === "print" ? (
+          <p className="rounded-xl border bg-background/70 px-3 py-2 text-xs text-muted-foreground">
+            Ce catalogue sert à générer aux dimensions Cloudprinter réellement hydratées. La disponibilité à la commande est contrôlée séparément dans TheTok Print : un support multi-face ou multi-page peut être généré au bon format tout en restant non commandable tant que le composeur PDF correspondant n’est pas pris en charge.
+          </p>
+        ) : null}
+
         {selectedTarget ? (
           <div className={cn(
             "rounded-2xl border p-3 text-sm",
@@ -218,7 +224,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
           <div className="rounded-2xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" role="status">
             {catalogQuery.isLoading
               ? "Hydratation du catalogue Cloudprinter…"
-              : "Aucun format Cloudprinter actif avec une géométrie fiable n’est disponible. Utilisez la sortie digitale ou corrigez le mapping dans l’Admin impression."}
+              : "Aucun format Cloudprinter mappé avec une géométrie fiable n’est disponible. Utilisez la sortie digitale ou corrigez le mapping dans l’Admin impression."}
           </div>
         ) : null}
 
