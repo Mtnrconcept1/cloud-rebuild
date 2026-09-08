@@ -80,20 +80,27 @@ describe("Marketing Studio Cloudprinter destination", () => {
     });
   });
 
-  it("renders Cloudprinter products instead of the generic support grid in print mode", () => {
+  it("renders mapped Cloudprinter products through the shell bridge and keeps provider access out of the legacy core", () => {
     const studio = read("src/components/dashboard/TokAiMarketingStudio.tsx");
     const shell = read("src/components/dashboard/TokAiMarketingStudioPrintShell.tsx");
+    const bridge = read("src/components/dashboard/marketing-print/MarketingStudioPrintCatalogBridge.tsx");
     const composer = read("src/components/dashboard/marketing-print/PrintComposerDialog.tsx");
 
-    expect(studio).toContain("getMarketingOutputSessionSnapshot");
-    expect(studio).toContain("subscribeMarketingOutputSession");
-    expect(studio).toContain('marketingOutputSession.destination === "print"');
-    expect(studio).toContain("printSupportTargets.map");
-    expect(studio).toContain("Imprimer une création");
-    expect(studio).toContain("onOpenPrintComposer");
+    expect(bridge).toContain("subscribeMarketingOutputSession");
+    expect(bridge).toContain('outputSession.destination === "print"');
+    expect(bridge).toContain("printSupportTargets");
+    expect(bridge).toContain("printSupportTargets.map");
+    expect(bridge).toContain('button.style.display = "none"');
+    expect(bridge).toContain("marketing-format");
+    expect(bridge).toContain("marketing-orientation");
+    expect(bridge).toContain("Imprimer une création");
+    expect(bridge).toContain("createPortal");
+    expect(shell).toContain("MarketingStudioPrintCatalogBridge");
     expect(shell).toContain("printComposerOpen");
     expect(shell).toContain("showTrigger={false}");
     expect(shell).not.toContain("Du visuel à l’imprimé, sans quitter TheTok");
     expect(composer).toContain("showTrigger");
+    expect(studio).not.toContain("getPrintGenerationCatalog");
+    expect(studio).not.toContain("CloudprinterProvider");
   });
 });
