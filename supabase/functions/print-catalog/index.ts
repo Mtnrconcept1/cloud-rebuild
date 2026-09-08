@@ -15,6 +15,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function toNumber(value: unknown, fallback = 0) {
+  if (value === null || value === undefined || value === "") return fallback;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
@@ -39,6 +40,42 @@ function geometryMatchesLogicalProduct(product: any, variant: any) {
   const rotated = Math.abs(width - expectedHeight) <= toleranceMm
     && Math.abs(height - expectedWidth) <= toleranceMm;
   return direct || rotated;
+}
+
+function printablePageCount(variant: any) {
+  const specifications = asRecord(variant.specifications);
+  return Math.max(1, Math.round(toNumber(specifications["number of printable pages"], 1)));
+}
+
+function selectGenerationVariant(variants: any[]) {
+  return [...variants].sort((left, right) => {
+    if (left.active !== right.active) return left.active ? -1 : 1;
+    const sideDifference = toNumber(left.printable_sides, 1) - toNumber(right.printable_sides, 1);
+    if (sideDifference !== 0) return sideDifference;
+    const pageDifference = printablePageCount(left) - printablePageCount(right);
+    if (pageDifference !== 0) return pageDifference;
+    return String(left.provider_reference || "").localeCompare(String(right.provider_reference || ""));
+  })[0] || null;
+}
+
+function buildVariantPayload(variant: any, logicalProduct: any) {
+  return {
+    productId: variant.print_product_id,
+    providerProductId: variant.id,
+    providerReference: variant.provider_reference,
+    displayName: logicalProduct.display_name || variant.provider_reference,
+    widthMm: positiveGeometry(variant.width_mm),
+    heightMm: positiveGeometry(variant.height_mm),
+    bleedMm: Math.max(0, toNumber(variant.bleed_mm)),
+    safeMarginMm: Math.max(0, toNumber(variant.safe_margin_mm, 3)),
+    printableSides: Math.max(1, Math.round(toNumber(variant.printable_sides, 1))),
+    orientation: variant.orientation,
+    printTechnology: variant.print_technology,
+    minimumQuantity: Math.max(1, Math.round(toNumber(variant.minimum_quantity, variant.quantity_step || 1))),
+    quantityStep: Math.max(1, Math.round(toNumber(variant.quantity_step, 1))),
+    options: Array.isArray(variant.options) ? variant.options : [],
+    specifications: asRecord(variant.specifications),
+  };
 }
 
 /** PostgREST puts `in` filters and upserts in one request, so both are chunked. */
@@ -85,11 +122,12 @@ Deno.serve(async (req) => {
     const body = asRecord(await req.json().catch(() => ({})));
     const action = String(body.action || "list").trim().toLowerCase();
 
-    if (action === "list") {
+    if (action === "list" || action === "generation_catalog") {
       requireRole(actor, ["restaurateur", "admin"]);
       const restaurantId = String(body.restaurantId || "").trim();
       if (!restaurantId) throw new HttpError(400, "restaurantId requis");
       await requireRestaurantAccess(actor, restaurantId);
+      const includeInactiveMapped = action === "generation_catalog";
 
       const { data: products, error: productError } = await adminClient
         .from("print_products")
@@ -99,41 +137,39 @@ Deno.serve(async (req) => {
       if (productError) throw productError;
 
       const productIds = (products || []).map((product: any) => product.id);
-      const { data: variants, error: variantError } = productIds.length
-        ? await adminClient
+      let variantQuery = productIds.length
+        ? adminClient
           .from("print_provider_products")
-          .select("id, print_product_id, provider_reference, width_mm, height_mm, bleed_mm, safe_margin_mm, printable_sides, orientation, print_technology, minimum_quantity, quantity_step, options, specifications")
+          .select("id, print_product_id, provider_reference, active, width_mm, height_mm, bleed_mm, safe_margin_mm, printable_sides, orientation, print_technology, minimum_quantity, quantity_step, options, specifications")
           .in("print_product_id", productIds)
-          .eq("active", true)
-          .order("provider_reference", { ascending: true })
+        : null;
+      if (variantQuery && !includeInactiveMapped) variantQuery = variantQuery.eq("active", true);
+      const { data: variants, error: variantError } = variantQuery
+        ? await variantQuery.order("provider_reference", { ascending: true })
         : { data: [], error: null };
       if (variantError) throw variantError;
 
-      const byProduct = new Map<string, any[]>();
+      const validByProduct = new Map<string, any[]>();
       for (const variant of variants || []) {
         const logicalProduct = (products || []).find((product: any) => product.id === variant.print_product_id);
-        // Fail closed: an active provider mapping is not orderable until detailed
-        // /products/info geometry has been hydrated and matches its logical product.
+        // A provider mapping is never exposed until /products/info geometry has
+        // been hydrated and matches its provider-agnostic TheTok product.
         if (!logicalProduct || !geometryMatchesLogicalProduct(logicalProduct, variant)) continue;
-        const rows = byProduct.get(variant.print_product_id) || [];
-        rows.push({
-          productId: variant.print_product_id,
-          providerProductId: variant.id,
-          providerReference: variant.provider_reference,
-          displayName: logicalProduct.display_name || variant.provider_reference,
-          widthMm: positiveGeometry(variant.width_mm),
-          heightMm: positiveGeometry(variant.height_mm),
-          bleedMm: Math.max(0, toNumber(variant.bleed_mm)),
-          safeMarginMm: Math.max(0, toNumber(variant.safe_margin_mm, 3)),
-          printableSides: Math.max(1, Math.round(toNumber(variant.printable_sides, 1))),
-          orientation: variant.orientation,
-          printTechnology: variant.print_technology,
-          minimumQuantity: Math.max(1, Math.round(toNumber(variant.minimum_quantity, 1))),
-          quantityStep: Math.max(1, Math.round(toNumber(variant.quantity_step, 1))),
-          options: Array.isArray(variant.options) ? variant.options : [],
-          specifications: asRecord(variant.specifications),
-        });
-        byProduct.set(variant.print_product_id, rows);
+        const rows = validByProduct.get(variant.print_product_id) || [];
+        rows.push(variant);
+        validByProduct.set(variant.print_product_id, rows);
+      }
+
+      const byProduct = new Map<string, any[]>();
+      for (const product of products || []) {
+        const validRows = validByProduct.get(product.id) || [];
+        const selectedRows = includeInactiveMapped
+          ? [selectGenerationVariant(validRows)].filter(Boolean)
+          : validRows;
+        byProduct.set(
+          product.id,
+          selectedRows.map((variant) => buildVariantPayload(variant, product)),
+        );
       }
 
       return jsonResponse({
