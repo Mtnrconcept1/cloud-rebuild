@@ -49,7 +49,8 @@ describe("Marketing Studio exact output targets", () => {
     expect(controls).toContain("Impression Cloudprinter");
     expect(controls).toContain("DIGITAL_MARKETING_OUTPUT_TARGETS");
     expect(controls).toContain("buildPrintMarketingOutputTargets");
-    expect(controls).toContain("getPrintCatalog");
+    expect(controls).toContain("getPrintGenerationCatalog");
+    expect(controls).not.toContain("getPrintCatalog(String(restaurantId))");
     expect(controls).toContain("downloadMarketingOutput");
     expect(shell).toContain("<MarketingOutputControls");
     expect(core).not.toContain("getPrintCatalog");
