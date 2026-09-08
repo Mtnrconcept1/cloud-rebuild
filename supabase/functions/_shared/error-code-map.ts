@@ -996,7 +996,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "idempotency_key_reused_with_different_arguments": [
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1836
+      "line": 1961
     }
   ],
   "idempotency_key_reused_with_different_body": [
@@ -1434,7 +1434,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2676
+      "line": 2835
     }
   ],
   "mcp_prompt_not_found": [
@@ -1444,7 +1444,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2649
+      "line": 2808
     }
   ],
   "mcp_tool_not_found": [
@@ -1458,11 +1458,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2387
+      "line": 2536
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2431
+      "line": 2580
     }
   ],
   "media_id_required": [

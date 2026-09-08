@@ -218,6 +218,8 @@ La route publique fournit le resource server MCP, la decouverte OAuth protegee e
 
 Tools v1 autorises:
 
+- `discover_restaurants`
+- `get_restaurant_details`
 - `search_restaurants`
 - `get_real_time_availability`
 - `prepare_reservation`
@@ -225,6 +227,27 @@ Tools v1 autorises:
 - `estimate_campaign_credit_cost`
 - `generate_campaign_preview`
 - `build_autopilot_plan`
+
+### Module visuel de decouverte
+
+`discover_restaurants` est l'outil a appeler des qu'une personne demande des restaurants. Il accepte la demande brute
+dans `request` et comprend seul les quantites par cuisine, la ville, la date et le nombre de convives: "3 pizzerias et
+2 restaurants de sushi a Geneve" produit exactement trois pizzerias et deux sushis, classes par note. Le modele peut
+forcer la repartition avec `selections: [{ cuisine, count }]` et borner le total avec `limit`.
+
+Le classement combine une note bayesienne (une note parfaite sur deux avis ne passe pas devant un 4,7 sur 400 avis),
+le volume d'avis, l'affinite avec la cuisine demandee et les signaux TOK (coup de coeur, reservation disponible,
+photo). Une categorie sans adresse active est signalee dans `notes` et completee par les meilleures tables voisines
+plutot que de rendre une liste courte sans explication.
+
+Les deux outils declarent `openai/outputTemplate` vers la ressource MCP Apps
+`ui://tok-connect/restaurant-discovery-v1.html` (`text/html;profile=mcp-app`). ChatGPT ouvre donc un vrai module TOK:
+cartes classees, filtres par cuisine, puis fiche complete au clic (presentation, note et avis, adresse, horaires,
+plats phares, creneaux, reservation). La fiche est chargee par le module lui-meme via `window.openai.callTool`
+(`get_restaurant_details`, marque `openai/widgetAccessible`), sans nouvel aller-retour par le modele.
+
+`search` (contrat connecteur ChatGPT) passe par le meme moteur: il renvoie `results` pour le modele et la selection
+complete pour le module. L'apercu local du module est servi sur `/tok-connect/mcp-widget`.
 
 La sandbox MCP renvoie des fixtures deterministes et ne declenche pas de mutation production. Les outils qui lisent des donnees privees ou creent un run exigent OAuth; ils restent limites par identite, roles, grants restaurant et feature flags.
 

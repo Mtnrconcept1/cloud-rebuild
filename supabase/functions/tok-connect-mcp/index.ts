@@ -32,6 +32,20 @@ import {
   recordTokConnectApiRequest,
   type TokConnectTokenContext,
 } from "../_shared/tok-connect-auth.ts";
+import {
+  TokDiscoveryError,
+  buildSandboxDiscoveryPayload,
+  buildSandboxRestaurantDetail,
+  runTokDiscovery,
+  runTokRestaurantDetail,
+  type TokDiscoveryClient,
+} from "../_shared/tok-connect-discovery.ts";
+import {
+  TOK_DISCOVERY_RESOURCE_URI,
+  buildTokDiscoveryResourceContents,
+  buildTokDiscoveryResourceDescriptor,
+  buildTokDiscoveryToolMeta,
+} from "../_shared/tok-connect-discovery-widget.ts";
 
 type McpHandleResult = {
   payload: Record<string, unknown>;
@@ -1560,14 +1574,115 @@ const TOK_CONNECT_ACTION_WINDOW_TOOL: TokConnectMcpTool = {
   },
 };
 
+/** Outil vedette : transforme une demande libre en module visuel TOK. */
+const TOK_CONNECT_DISCOVERY_TOOL: TokConnectMcpTool = {
+  name: "discover_restaurants",
+  title: "Sélection de restaurants TOK",
+  description:
+    "Ouvre le module TOK et affiche une sélection de restaurants classés par note. Utilise cet outil dès qu'une personne demande des restaurants, des adresses ou une sélection (par exemple « 3 pizzerias et 2 restaurants de sushi à Genève ») : transmets sa demande complète dans `request`, l'outil comprend les quantités par type de cuisine, la ville, la date et le nombre de convives, puis renvoie des fiches cliquables. Ne reformule pas la liste en texte : le module l'affiche déjà.",
+  requiredScopes: ["restaurants:read"],
+  inputSchema: {
+    type: "object",
+    properties: {
+      request: {
+        type: "string",
+        maxLength: 400,
+        description: "La demande de la personne, telle qu'elle l'a formulée (« 3 pizzerias et 2 sushis à Genève »).",
+      },
+      city: { type: "string", maxLength: 80, description: "Ville ciblée si elle est connue en dehors du texte." },
+      selections: {
+        type: "array",
+        maxItems: 6,
+        description: "Répartition explicite par cuisine, prioritaire sur l'analyse du texte.",
+        items: {
+          type: "object",
+          required: ["cuisine"],
+          properties: {
+            cuisine: { type: "string", maxLength: 60 },
+            count: { type: "integer", minimum: 1, maximum: 10 },
+          },
+          additionalProperties: false,
+        },
+      },
+      limit: { type: "integer", minimum: 1, maximum: 20, description: "Nombre total maximum de restaurants affichés." },
+      party_size: { type: "integer", minimum: 1, maximum: 20 },
+      date: { type: "string", format: "date" },
+      requires_reservation: { type: "boolean", description: "Ne garder que les adresses réservables via TOK." },
+    },
+    additionalProperties: false,
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      title: { type: "string" },
+      summary: { type: "string" },
+      city: { type: ["string", "null"] },
+      groups: { type: "array", items: { type: "object" } },
+      restaurants: { type: "array", items: { type: "object" } },
+      notes: { type: "array", items: { type: "string" } },
+    },
+    required: ["restaurants"],
+    additionalProperties: true,
+  },
+  annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  _meta: buildTokDiscoveryToolMeta({
+    invoking: "TOK sélectionne les meilleures tables…",
+    invoked: "Sélection TOK affichée",
+  }),
+};
+
+/** Fiche complète : appelée par le module quand on clique sur une carte. */
+const TOK_CONNECT_RESTAURANT_DETAILS_TOOL: TokConnectMcpTool = {
+  name: "get_restaurant_details",
+  title: "Fiche restaurant TOK",
+  description:
+    "Ouvre la fiche complète d'un restaurant TOK : présentation, note et avis, adresse, horaires, plats phares et créneaux de réservation. Le module de sélection appelle cet outil quand la personne clique sur une carte.",
+  requiredScopes: ["restaurants:read"],
+  inputSchema: {
+    type: "object",
+    required: ["restaurant_id"],
+    properties: {
+      restaurant_id: { type: "string", format: "uuid" },
+      include_menu: { type: "boolean" },
+      include_availability: { type: "boolean" },
+      date: { type: "string", format: "date" },
+    },
+    additionalProperties: false,
+  },
+  outputSchema: {
+    type: "object",
+    properties: { detail: { type: "object" } },
+    required: ["detail"],
+    additionalProperties: true,
+  },
+  annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  _meta: buildTokDiscoveryToolMeta({
+    invoking: "Ouverture de la fiche TOK…",
+    invoked: "Fiche TOK ouverte",
+  }),
+};
+
 const MCP_TOOLS: TokConnectMcpTool[] = [
-  ...SAFE_TOK_CONNECT_MCP_TOOLS,
+  TOK_CONNECT_DISCOVERY_TOOL,
+  TOK_CONNECT_RESTAURANT_DETAILS_TOOL,
+  ...SAFE_TOK_CONNECT_MCP_TOOLS.map((tool) =>
+    tool.name === "search_restaurants"
+      ? {
+        ...tool,
+        // La recherche renvoie désormais la sélection complète (titre, groupes,
+        // cartes) : le schéma doit l'autoriser en plus de `restaurants`.
+        outputSchema: { ...tool.outputSchema, additionalProperties: true },
+        _meta: buildTokDiscoveryToolMeta({ invoking: "Recherche TOK…", invoked: "Résultats TOK affichés" }),
+      }
+      : tool
+  ),
   TOK_CONNECT_APP_QUERY_TOOL,
   TOK_CONNECT_APP_SANDBOX_TOOL,
   TOK_CONNECT_ACTION_WINDOW_TOOL,
 ];
 
 const MCP_RESOURCES = [
+  buildTokDiscoveryResourceDescriptor(TOK_CONNECT_PUBLIC_ORIGIN),
   {
     uri: ACTION_WINDOW_RESOURCE_URI,
     name: "TOK Connect action window",
@@ -1618,6 +1733,16 @@ const MCP_RESOURCES = [
 ];
 
 const MCP_PROMPTS = [
+  {
+    name: "restaurant_selection",
+    description: "Afficher dans le module TOK une sélection de restaurants (par exemple 3 pizzerias et 2 sushis à Genève) classée par note.",
+    arguments: [
+      { name: "request", required: true },
+      { name: "city", required: false },
+      { name: "party_size", required: false },
+      { name: "date", required: false },
+    ],
+  },
   {
     name: "prepare_guest_reservation",
     description: "Turn a guest request into a confirmation-ready TOK reservation preview.",
@@ -2132,50 +2257,74 @@ function buildActionWindowResult(args: Record<string, unknown> = {}) {
   };
 }
 
+function toDiscoveryClient(context: TokConnectTokenContext) {
+  return context.adminClient as unknown as TokDiscoveryClient;
+}
+
+function toHttpError(error: unknown) {
+  if (error instanceof TokDiscoveryError) return new HttpError(error.status, error.message);
+  return error;
+}
+
+async function buildDiscoveryResult(context: TokConnectTokenContext, args: Record<string, unknown>) {
+  if (context.environment === "sandbox") {
+    return buildTokConnectMcpJsonResult(buildSandboxDiscoveryPayload(args, TOK_CONNECT_PUBLIC_ORIGIN));
+  }
+  try {
+    return buildTokConnectMcpJsonResult(
+      await runTokDiscovery({ client: toDiscoveryClient(context), args, origin: TOK_CONNECT_PUBLIC_ORIGIN }),
+    );
+  } catch (error) {
+    throw toHttpError(error);
+  }
+}
+
+async function buildRestaurantDetailResult(context: TokConnectTokenContext, args: Record<string, unknown>) {
+  if (context.environment === "sandbox") {
+    return buildTokConnectMcpJsonResult({ detail: buildSandboxRestaurantDetail(args, TOK_CONNECT_PUBLIC_ORIGIN) });
+  }
+  try {
+    return buildTokConnectMcpJsonResult({
+      detail: await runTokRestaurantDetail({ client: toDiscoveryClient(context), args, origin: TOK_CONNECT_PUBLIC_ORIGIN }),
+    });
+  } catch (error) {
+    throw toHttpError(error);
+  }
+}
+
 async function callTool(
   context: TokConnectTokenContext,
   name: string,
   args: Record<string, unknown>,
 ) {
   const restaurantId = typeof args.restaurant_id === "string" ? args.restaurant_id : "";
-  if (context.environment === "sandbox") {
+  // Les outils qui alimentent le module visuel ont leurs propres fixtures : la
+  // fixture historique de `search_restaurants` ne porte pas les champs de carte.
+  const rendersDiscoveryModule = name === "discover_restaurants"
+    || name === "get_restaurant_details"
+    || name === "search_restaurants";
+  if (context.environment === "sandbox" && !rendersDiscoveryModule) {
     const sandboxResult = getTokConnectSandboxMcpToolResult(name, args);
     if (sandboxResult) return sandboxResult;
   }
 
   switch (name) {
+    case "discover_restaurants":
+      return await buildDiscoveryResult(context, args);
+
+    case "get_restaurant_details":
+      return await buildRestaurantDetailResult(context, args);
+
     case "search_restaurants": {
       const limit = Math.min(Number(args.limit || 10), 25);
-      if (context.environment === "sandbox") {
-        return buildTokConnectMcpJsonResult({
-          restaurants: [
-            { id: "00000000-0000-4000-8000-000000000101", name: "TOK Sandbox Brasserie", city: args.city || "Genève" },
-          ],
-        });
-      }
-
-      let query = context.adminClient
-        .from("restaurants")
-        .select("id, name, cuisine_type, city, rating, supports_reservation")
-        .eq("is_active", true)
-        .order("rating", { ascending: false })
-        .limit(limit);
-
-      if (typeof args.city === "string" && args.city.trim()) {
-        query = query.ilike("city", `%${args.city.trim()}%`);
-      }
-      if (typeof args.cuisine === "string" && args.cuisine.trim()) {
-        query = query.ilike("cuisine_type", `%${args.cuisine.trim()}%`);
-      }
-      if (typeof args.query === "string" && args.query.trim()) {
-        const safeQuery = args.query.trim().replace(/[%_,().]/g, " ").slice(0, 120);
-        query = query.ilike("name", `%${safeQuery}%`);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw new HttpError(500, error.message);
-      return buildTokConnectMcpJsonResult({ restaurants: data || [] });
+      // Même contrat visuel que discover_restaurants : le module s'ouvre aussi
+      // sur une recherche simple, et le modèle garde une liste lisible.
+      return await buildDiscoveryResult(context, {
+        request: [args.query, args.cuisine].filter((part) => typeof part === "string" && part).join(" "),
+        ...(typeof args.city === "string" && args.city ? { city: args.city } : {}),
+        ...(typeof args.cuisine === "string" && args.cuisine ? { selections: [{ cuisine: args.cuisine, count: limit }] } : {}),
+        limit,
+      });
     }
 
     case "get_real_time_availability": {
@@ -2515,6 +2664,16 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
 
     case "resources/read": {
       const uri = String(rpc.params?.uri || "tok://restaurants");
+      if (uri === TOK_DISCOVERY_RESOURCE_URI) {
+        return {
+          payload: rpcResult(rpc.id, {
+            contents: [buildTokDiscoveryResourceContents(TOK_CONNECT_PUBLIC_ORIGIN)],
+          }),
+          context: hasBearerToken(req) ? await authorizeMcp(req) : null,
+          route: hasBearerToken(req) ? "MCP resources/read discovery" : "MCP resources/read discovery noauth",
+          scopes: [],
+        };
+      }
       if (uri === ACTION_WINDOW_RESOURCE_URI) {
         return {
           payload: rpcResult(rpc.id, {

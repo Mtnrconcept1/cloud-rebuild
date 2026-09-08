@@ -152,7 +152,7 @@ const tokConnectDeploymentSteps = [
   {
     title: "Tester de bout en bout",
     action:
-      "Tester search_restaurants, get_real_time_availability, prepare_reservation, webhook.test, les logs et les quotas.",
+      "Tester discover_restaurants (le module visuel s'ouvre dans ChatGPT), get_restaurant_details, get_real_time_availability, prepare_reservation, webhook.test, les logs et les quotas.",
     result: "Chaque appel produit un request_id traçable et les webhooks sont signés.",
   },
   {
