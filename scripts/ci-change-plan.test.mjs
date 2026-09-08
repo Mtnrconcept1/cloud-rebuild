@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 
 import {
+  hasTopLevelTransactionControl,
   parseAddedDemoMigrations,
   parseMigrationPath,
 } from "./apply-commercial-demo-migrations.mjs";
@@ -46,6 +48,56 @@ test("refuse la modification d'une migration démo déjà versionnée", () => {
       "M\tsupabase/demo-migrations/20260719170000_existing.sql",
     ),
     /append-only/,
+  );
+});
+
+test("distingue les contrôles de transaction SQL des corps PL/pgSQL", () => {
+  const functionMigration = `
+    CREATE FUNCTION public.example()
+    RETURNS void
+    LANGUAGE plpgsql
+    AS $function$
+    BEGIN
+      PERFORM 1;
+    END;
+    $function$;
+  `;
+
+  assert.equal(hasTopLevelTransactionControl(functionMigration), false);
+  assert.equal(
+    hasTopLevelTransactionControl(
+      readFileSync(
+        new URL(
+          "../supabase/demo-migrations/20260908013000_unlimit_commercial_demo_ai_presentation.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ),
+    false,
+  );
+  assert.equal(
+    hasTopLevelTransactionControl("BEGIN; CREATE TABLE example (id integer); COMMIT;"),
+    true,
+  );
+  assert.equal(
+    hasTopLevelTransactionControl(
+      "BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE; SELECT 1; COMMIT;",
+    ),
+    true,
+  );
+  assert.equal(
+    hasTopLevelTransactionControl("START TRANSACTION READ WRITE; SELECT 1; ROLLBACK;"),
+    true,
+  );
+  assert.equal(
+    hasTopLevelTransactionControl(`
+      -- BEGIN;
+      SELECT 'ROLLBACK;';
+      /* COMMIT; */
+      DO $$ BEGIN PERFORM 1; END $$;
+    `),
+    false,
   );
 });
 

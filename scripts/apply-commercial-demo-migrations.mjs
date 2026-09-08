@@ -51,6 +51,23 @@ export function parseAddedDemoMigrations(diffOutput) {
   return migrations.sort((left, right) => left.version.localeCompare(right.version));
 }
 
+export function hasTopLevelTransactionControl(sql) {
+  const executableSql = String(sql)
+    // PL/pgSQL and DO bodies use PostgreSQL dollar quotes. Remove those before
+    // scanning so a procedural BEGIN ... END block cannot be confused with a
+    // migration-managed SQL transaction.
+    .replace(/\$([A-Za-z_][A-Za-z0-9_]*|)\$[\s\S]*?\$\1\$/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/--[^\r\n]*/g, "")
+    .replace(/'(?:''|[^'])*'/g, "");
+
+  return executableSql
+    .split(";")
+    .map((statement) => statement.trim())
+    .filter(Boolean)
+    .some((statement) => /^(?:BEGIN\b|START\s+TRANSACTION\b|COMMIT\b|ROLLBACK\b)/i.test(statement));
+}
+
 function requireEnv(name) {
   const value = String(process.env[name] || "").trim();
   if (!value) throw new Error(`${name} is required.`);
@@ -170,7 +187,7 @@ async function applyMigration(context, migration, headSha) {
     return "skipped";
   }
 
-  if (/^\s*(BEGIN|COMMIT|ROLLBACK)\b/im.test(sql)) {
+  if (hasTopLevelTransactionControl(sql)) {
     throw new Error(
       `Dedicated demo migration ${migration.path} must not manage its own transaction.`,
     );
