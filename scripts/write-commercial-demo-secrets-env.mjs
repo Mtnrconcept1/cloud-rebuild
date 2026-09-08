@@ -35,6 +35,12 @@ writePrivateEnv(productionOut, [
   ["DEMO_SUPABASE_SECRET_KEY", demoSecret],
 ]);
 
+const providerSecrets = readPrivateProviderSecrets();
+const stripeTestSecret = clean(providerSecrets.STRIPE_SECRET_KEY_TEST);
+if (!stripeTestSecret || !stripeTestSecret.startsWith("sk_test_")) {
+  throw new Error("STRIPE_SECRET_KEY_TEST must be an sk_test key before provisioning the commercial demo project");
+}
+
 const demoEntries = [
   ["OPENAI_API_KEY", requireSecret("OPENAI_API_KEY")],
   ["OPENAI_MODEL", clean(process.env.OPENAI_MODEL)],
@@ -45,17 +51,18 @@ const demoEntries = [
   ["TOK_GALLERY_IMAGE_BUCKET", clean(process.env.TOK_GALLERY_IMAGE_BUCKET)],
   ["TOK_SOURCE_IMAGE_TIMEOUT_MS", clean(process.env.TOK_SOURCE_IMAGE_TIMEOUT_MS)],
   ["FIRECRAWL_API_KEY", clean(process.env.FIRECRAWL_API_KEY)],
+  ["STRIPE_SECRET_KEY", stripeTestSecret],
+  ["STRIPE_SECRET_KEY_TEST", stripeTestSecret],
   ["ALLOWED_ORIGINS", "https://commercial.thetok.ch"],
   ["APP_BASE_URL", "https://commercial.thetok.ch"],
   ["PUBLIC_APP_URL", "https://commercial.thetok.ch"],
   ["SITE_URL", "https://commercial.thetok.ch"],
   ["ENVIRONMENT", "commercial_demo"],
   ["APP_ENV", "commercial_demo"],
-  ["DEMO_PAYMENT_MODE", "simulated"],
 ].filter(([, value]) => value);
 
 writePrivateEnv(demoOut, demoEntries);
-console.log("Prepared dedicated commercial demo secret files without payment-provider credentials (values hidden).");
+console.log("Prepared dedicated commercial demo secrets with server AI and Stripe Test credentials (values hidden).");
 
 function requireAbsolute(value, name) {
   if (!value || !path.isAbsolute(value)) {
@@ -74,6 +81,37 @@ function requireSecret(name) {
   const value = clean(process.env[name]);
   if (!value) throw new Error(`${name} is required for the dedicated demo project`);
   return value;
+}
+
+function readPrivateProviderSecrets() {
+  const runtimeTemp = clean(process.env.RUNNER_TEMP);
+  if (!runtimeTemp || !path.isAbsolute(runtimeTemp)) {
+    throw new Error("RUNNER_TEMP is required to read the private provider secret file");
+  }
+  const providerFile = path.join(runtimeTemp, "supabase.functions.env");
+  if (!fs.existsSync(providerFile)) {
+    throw new Error("Private provider secret file is missing before commercial demo provisioning");
+  }
+
+  const entries = {};
+  for (const rawLine of fs.readFileSync(providerFile, "utf8").split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const separator = line.indexOf("=");
+    if (separator <= 0) continue;
+    const name = line.slice(0, separator).trim();
+    const encoded = line.slice(separator + 1).trim();
+    let value = encoded;
+    if (encoded.startsWith('"')) {
+      try {
+        value = JSON.parse(encoded);
+      } catch {
+        throw new Error(`Invalid quoted value in private provider file for ${name}`);
+      }
+    }
+    entries[name] = value;
+  }
+  return entries;
 }
 
 function quote(value) {

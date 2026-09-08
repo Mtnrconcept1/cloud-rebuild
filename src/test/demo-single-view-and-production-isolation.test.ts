@@ -55,16 +55,22 @@ describe("real and demo restaurant isolation", () => {
     expect(singleDemo).toContain("commercial-demo-single-frame");
   });
 
-  it("keeps environment explanations in employee navigation instead of actor dashboards", () => {
+  it("keeps general environment explanations out of real dashboard chrome", () => {
     expect(workspaceChooser).toContain("canAccessDemo ? (");
     expect(workspaceChooser).toContain(
       '{canAccessDemo ? "Accès réel" : "Vos espaces"}',
     );
 
-    for (const source of [frameProvider, restaurantHome, actorWorkspace, courierHome]) {
+    for (const source of [frameProvider, restaurantHome, courierHome]) {
       expect(source).not.toContain("Vrai dashboard");
       expect(source).not.toContain("Fenêtre de démonstration");
       expect(source).not.toContain("présentation restaurateur de production");
     }
+
+    // The dedicated actor fallback may disclose that its data is isolated; this
+    // is a safety disclosure rather than production/dashboard chrome.
+    expect(actorWorkspace).toContain("données de démonstration isolées");
+    expect(actorWorkspace).not.toContain("Fenêtre de démonstration");
+    expect(actorWorkspace).not.toContain("présentation restaurateur de production");
   });
 });

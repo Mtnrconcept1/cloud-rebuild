@@ -48,7 +48,7 @@ import {
 } from "@/lib/commercialDemoFrame";
 import { cn } from "@/lib/utils";
 
-type RemoteBrowserSurface = Exclude<CommercialDemoFrameSurface, "commercial">;
+type RemoteBrowserSurface = CommercialDemoFrameSurface;
 
 type BrowserDefinition = {
   surface: RemoteBrowserSurface;
@@ -88,6 +88,14 @@ const BROWSERS: BrowserDefinition[] = [
     initialPath: "/dashboard",
     icon: Store,
     badgeClassName: "border-orange-300 bg-orange-50 text-orange-700 dark:bg-orange-400/10 dark:text-orange-100",
+  },
+  {
+    surface: "commercial",
+    title: "Compte commercial",
+    accountLabel: "Votre espace commercial",
+    initialPath: "/commercial",
+    icon: PanelsTopLeft,
+    badgeClassName: "border-violet-300 bg-violet-50 text-violet-700 dark:bg-violet-400/10 dark:text-violet-100",
   },
   {
     surface: "courier",
@@ -335,7 +343,7 @@ function BrowserWindow({
       className={cn(
         "group relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[1.35rem] border bg-background shadow-[0_22px_65px_rgba(15,23,42,0.16)] transition-[border-color,box-shadow]",
         active ? "border-orange-400/70 ring-2 ring-orange-400/15" : "border-border/70",
-        fullscreen && "fixed bottom-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] left-[calc(env(safe-area-inset-left,0px)+0.5rem)] right-[calc(env(safe-area-inset-right,0px)+0.5rem)] top-[calc(env(safe-area-inset-top,0px)+0.5rem)] z-[1600] rounded-2xl shadow-[0_40px_120px_rgba(2,6,23,0.55)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] sm:left-[calc(env(safe-area-inset-left,0px)+1rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1rem)] sm:top-[calc(env(safe-area-inset-top,0px)+1rem)]",
+        fullscreen && "fixed inset-2 z-[1600] rounded-2xl shadow-[0_40px_120px_rgba(2,6,23,0.55)] sm:inset-4",
       )}
       role={fullscreen ? "dialog" : undefined}
       aria-modal={fullscreen ? true : undefined}
@@ -467,23 +475,16 @@ function BrowserWindow({
   );
 }
 
-function CommercialDemoBrowserGridSession({
-  sessionId,
-  initialSurface,
-}: {
-  sessionId: string;
-  initialSurface?: RemoteBrowserSurface;
-}) {
+function CommercialDemoBrowserGridSession({ sessionId }: { sessionId: string }) {
   const autoPreset = useResponsiveViewportPreset();
-  const [activeSurface, setActiveSurface] = useState<RemoteBrowserSurface>(
-    initialSurface || "client",
-  );
+  const [activeSurface, setActiveSurface] = useState<RemoteBrowserSurface>("client");
   const [layout, setLayout] = useState<ConsoleLayout>("control");
   const [fullscreenSurface, setFullscreenSurface] = useState<RemoteBrowserSurface | null>(null);
   const [runtimes, setRuntimes] = useState<Record<RemoteBrowserSurface, FrameRuntime>>(() => ({
     client: initialRuntime(BROWSERS[0]),
     restaurant: initialRuntime(BROWSERS[1]),
-    courier: initialRuntime(BROWSERS[2]),
+    commercial: initialRuntime(BROWSERS[2]),
+    courier: initialRuntime(BROWSERS[3]),
   }));
 
   const updateRuntime = useCallback((surface: RemoteBrowserSurface, runtime: FrameRuntime) => {
@@ -493,10 +494,6 @@ function CommercialDemoBrowserGridSession({
   const closeFullscreenFromFrame = useCallback((surface: RemoteBrowserSurface) => {
     setFullscreenSurface((current) => current === surface ? null : current);
   }, []);
-
-  useEffect(() => {
-    if (initialSurface) setActiveSurface(initialSurface);
-  }, [initialSurface]);
 
   useEffect(() => {
     if (!fullscreenSurface) return;
@@ -513,7 +510,7 @@ function CommercialDemoBrowserGridSession({
   }, [fullscreenSurface]);
 
   const visibleSurfaces = useMemo<RemoteBrowserSurface[]>(
-    () => ["client", "restaurant", "courier"],
+    () => ["client", "restaurant", "commercial", "courier"],
     [],
   );
   const visibleBrowsers = useMemo(
@@ -570,8 +567,8 @@ function CommercialDemoBrowserGridSession({
         className={cn(
           "grid h-[clamp(28rem,calc(100svh-18rem),48rem)] min-w-0 gap-3 sm:h-[clamp(30rem,calc(100dvh-16rem),54rem)] lg:h-[clamp(34rem,calc(100dvh-13rem),60rem)]",
           layout === "control"
-            ? "lg:grid-cols-[minmax(0,2fr)_minmax(22rem,1fr)] lg:grid-rows-2"
-            : "md:grid-cols-2 md:grid-rows-2 xl:grid-cols-3 xl:grid-rows-1",
+            ? "lg:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)] lg:grid-rows-3"
+            : "md:grid-cols-2 md:grid-rows-2 2xl:grid-cols-4 2xl:grid-rows-1",
         )}
         data-console-layout={layout}
       >
@@ -588,9 +585,9 @@ function CommercialDemoBrowserGridSession({
                 "min-h-0 min-w-0",
                 !visible && "hidden",
                 visible && !active && (layout === "control" ? "hidden lg:block" : "hidden md:block"),
-                layout === "control" && visualIndex === 0 && "lg:row-span-2",
+                layout === "control" && visualIndex === 0 && "lg:row-span-3",
                 layout === "control" && visualIndex > 0 && "lg:col-start-2",
-                layout === "mosaic" && "xl:min-h-[42rem]",
+                layout === "mosaic" && "2xl:min-h-[42rem]",
               )}
             >
               <BrowserWindow
@@ -611,24 +608,12 @@ function CommercialDemoBrowserGridSession({
         })}
       </div>
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        Les sessions restent connectées en permanence. Sélectionnez une fenêtre puis naviguez dedans comme sur un ordinateur distant.
+        Les quatre sessions restent connectées en permanence. Sélectionnez une fenêtre puis naviguez dedans comme sur un ordinateur distant.
       </p>
     </section>
   );
 }
 
-export default function CommercialDemoBrowserGrid({
-  sessionId,
-  initialSurface,
-}: {
-  sessionId: string;
-  initialSurface?: RemoteBrowserSurface;
-}) {
-  return (
-    <CommercialDemoBrowserGridSession
-      key={sessionId}
-      sessionId={sessionId}
-      initialSurface={initialSurface}
-    />
-  );
+export default function CommercialDemoBrowserGrid({ sessionId }: { sessionId: string }) {
+  return <CommercialDemoBrowserGridSession key={sessionId} sessionId={sessionId} />;
 }

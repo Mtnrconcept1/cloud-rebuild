@@ -25,23 +25,28 @@ describe("commercial demo role workspaces", () => {
   const activeInvariantMigration = read("supabase/migrations/20260719124500_keep_commercial_demo_restaurants_active.sql");
   const checkout = read("supabase/functions/commercial-demo-checkout/index.ts");
 
-  it("always exposes the client restaurant and courier dashboards", () => {
-    expect(browserGrid).toContain('type RemoteBrowserSurface = Exclude<CommercialDemoFrameSurface, "commercial">');
-    expect(browserGrid).toContain('() => ["client", "restaurant", "courier"]');
-    expect(browserGrid).not.toContain('surface: "commercial"');
+  it("always exposes the client restaurant commercial and courier dashboards", () => {
+    expect(browserGrid).toContain("type RemoteBrowserSurface = CommercialDemoFrameSurface");
+    expect(browserGrid).toContain('() => ["client", "restaurant", "commercial", "courier"]');
+    expect(browserGrid).toContain('surface: "commercial"');
     expect(browserGrid).not.toContain("thirdSurface");
-    expect(multiSpace).toContain("Client, Restaurateur et Livreur");
-    expect(consoleAi).toContain('visible_spaces: ["client", "restaurant", "courier"]');
+    expect(multiSpace).toContain("Client, Restaurateur, Commercial et Livreur");
+    expect(consoleAi).toContain('entrypoint: "commercial_multi_space_console"');
   });
 
-  it("simulates accepted payments without contacting Stripe", () => {
-    expect(multiSpace).toContain("Paiement simulé · aucun débit");
-    expect(checkout).toContain("requireDedicatedDemoRuntime()");
-    expect(checkout).toContain('payment_provider: "none"');
-    expect(checkout).toContain("payment_provider_called: false");
+  it("uses Stripe Test without touching production accounting or Connect", () => {
+    expect(multiSpace).toContain("Stripe Test uniquement");
+    expect(checkout).toContain("getCommercialDemoStripeRuntime");
+    expect(checkout).toContain('stripeRuntime.mode !== "test"');
+    expect(checkout).toContain('"STRIPE_SECRET_KEY_TEST"');
+    expect(checkout).toContain("stripe.checkout.sessions.create");
+    expect(checkout).toContain("stripe.checkout.sessions.retrieve");
+    expect(checkout).toContain("stripeSession.livemode !== false");
     expect(checkout).toContain("no_financial_ledger: true");
-    expect(checkout).not.toContain("STRIPE_SECRET_KEY");
-    expect(checkout).not.toContain("stripe.checkout");
+    expect(checkout).toContain("restaurant.stripe_account_id");
+    expect(checkout).toContain("restaurant.stripe_connect_charges_enabled === true");
+    expect(checkout).not.toContain('from("financial_ledger")');
+    expect(checkout).not.toContain('from("payment_transactions")');
   });
 
   it("uses the server OpenAI gateway for every remaining demo AI workflow", () => {

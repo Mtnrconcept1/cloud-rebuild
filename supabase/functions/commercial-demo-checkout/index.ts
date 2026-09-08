@@ -1,4 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import type Stripe from "npm:stripe@18.5.0";
+
 import {
   HttpError,
   authenticateRequest,
@@ -8,23 +10,32 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
-import { isCommercialDemoCheckoutRequestAllowed } from "../_shared/commercial-demo-host.ts";
+import {
+  COMMERCIAL_DEMO_HOSTNAME,
+  isCommercialDemoCheckoutRequestAllowed,
+  isCommercialDemoLocalOrTestHostname,
+  isCommercialDemoProductionRuntime,
+} from "../_shared/commercial-demo-host.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
+import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
+import { getCommercialDemoStripeRuntime } from "../_shared/stripe-client.ts";
 
 const FUNCTION_NAME = "commercial-demo-checkout";
+const CHECKOUT_KIND = "commercial-demo-order";
 const DEMO_ENVIRONMENT = "commercial_demo";
-const DEMO_PROJECT_URL = "https://hzldfhjfgjcadmpghhhf.supabase.co";
-const PAYMENT_MODE = "simulated";
 const MAX_DEMO_TOTAL_CENTS = 100_000;
+const CHECKOUT_TTL_SECONDS = 31 * 60;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-type DemoCheckoutAction = "simulate" | "create" | "confirm";
+type DemoCheckoutAction = "create" | "confirm";
 
 type DemoCheckoutBody = {
   action?: unknown;
   demo_restaurant_id?: unknown;
   demo_session_id?: unknown;
+  return_url?: unknown;
+  stripe_session_id?: unknown;
 };
 
 type DemoCheckoutOrder = {
@@ -55,10 +66,18 @@ function requireUuid(value: unknown, field: string) {
   return normalized;
 }
 
+function requireTestCheckoutSessionId(value: unknown) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  if (!/^cs_test_[A-Za-z0-9_]+$/.test(normalized)) {
+    throw new DemoCheckoutError(400, "INVALID_TEST_STRIPE_SESSION", "Session Stripe test invalide");
+  }
+  return normalized;
+}
+
 function normalizeAction(value: unknown): DemoCheckoutAction {
   const normalized = String(value || "create").trim().toLowerCase();
-  if (normalized === "simulate" || normalized === "create" || normalized === "confirm") return normalized;
-  throw new DemoCheckoutError(400, "INVALID_DEMO_CHECKOUT_ACTION", "Action de paiement simulé invalide");
+  if (normalized === "create" || normalized === "confirm") return normalized;
+  throw new DemoCheckoutError(400, "INVALID_DEMO_CHECKOUT_ACTION", "Action de paiement démo invalide");
 }
 
 function normalizeOrder(raw: unknown): DemoCheckoutOrder {
@@ -79,16 +98,16 @@ function normalizeOrder(raw: unknown): DemoCheckoutOrder {
   };
 
   if (
-    !UUID_PATTERN.test(order.order_id) ||
-    !UUID_PATTERN.test(order.session_id) ||
-    !UUID_PATTERN.test(order.commercial_user_id)
+    !UUID_PATTERN.test(order.order_id)
+    || !UUID_PATTERN.test(order.session_id)
+    || !UUID_PATTERN.test(order.commercial_user_id)
   ) {
     throw new DemoCheckoutError(500, "INVALID_DEMO_ORDER_CONTEXT", "Contexte de commande démo invalide");
   }
   if (
-    !Number.isSafeInteger(order.total_amount_cents) ||
-    order.total_amount_cents < 50 ||
-    order.total_amount_cents > MAX_DEMO_TOTAL_CENTS
+    !Number.isSafeInteger(order.total_amount_cents)
+    || order.total_amount_cents < 50
+    || order.total_amount_cents > MAX_DEMO_TOTAL_CENTS
   ) {
     throw new DemoCheckoutError(400, "INVALID_DEMO_ORDER_TOTAL", "Montant de commande démo invalide");
   }
@@ -106,22 +125,36 @@ async function sha256Hex(value: string) {
     .join("");
 }
 
-function requireDedicatedDemoRuntime() {
-  const runtimeUrl = String(Deno.env.get("SUPABASE_URL") || "").replace(/\/+$/, "");
-  if (runtimeUrl !== DEMO_PROJECT_URL) {
-    throw new DemoCheckoutError(
-      403,
-      "DEDICATED_DEMO_PROJECT_REQUIRED",
-      "Le simulateur de paiement fonctionne uniquement dans le projet Démo dédié",
-    );
+function buildReturnUrl(rawReturnUrl: unknown, state: "success" | "cancelled") {
+  const normalized = normalizeCheckoutReturnUrl(rawReturnUrl, {
+    additionalAllowedHosts: [COMMERCIAL_DEMO_HOSTNAME],
+  });
+  if (!normalized) {
+    throw new DemoCheckoutError(400, "INVALID_RETURN_URL", "URL de retour invalide");
   }
-}
 
-async function buildSimulationReference(order: DemoCheckoutOrder) {
-  const digest = await sha256Hex(
-    `${DEMO_ENVIRONMENT}:${order.commercial_user_id}:${order.session_id}:${order.order_id}`,
-  );
-  return `demo_sim_${digest.slice(0, 48)}`;
+  const url = new URL(normalized);
+  const returnHost = url.hostname.toLowerCase().replace(/\.$/, "");
+  const productionRuntime = isCommercialDemoProductionRuntime();
+  const isAllowedProductionReturn = returnHost === COMMERCIAL_DEMO_HOSTNAME;
+  const isAllowedDevelopmentReturn = !productionRuntime
+    && isCommercialDemoLocalOrTestHostname(returnHost);
+  if (!isAllowedProductionReturn && !isAllowedDevelopmentReturn) {
+    throw new DemoCheckoutError(400, "INVALID_RETURN_URL", "Origine de retour non autorisée");
+  }
+
+  url.pathname = "/commercial/demo-live";
+  url.hash = "";
+  url.searchParams.set("demo_checkout", state);
+  if (state === "success") {
+    url.searchParams.set("stripe_session_id", "{CHECKOUT_SESSION_ID}");
+  } else {
+    url.searchParams.delete("stripe_session_id");
+  }
+  const serialized = url.toString();
+  return state === "success"
+    ? serialized.replace("%7BCHECKOUT_SESSION_ID%7D", "{CHECKOUT_SESSION_ID}")
+    : serialized;
 }
 
 async function getAuthorizedOrder(input: {
@@ -154,9 +187,6 @@ async function getAuthorizedOrder(input: {
     throw new DemoCheckoutError(403, "FORBIDDEN", "Cette commande appartient à une autre démonstration");
   }
 
-  // Validate the authoritative mapping even for administrators. This binds
-  // the order to one active commercial demo account and one non-public demo
-  // restaurant without ever trusting a restaurant id supplied by the client.
   const { data: mapping, error: mappingError } = await actor.adminClient
     .from("commercial_demo_accounts")
     .select("user_id,demo_restaurant_id,is_active")
@@ -182,19 +212,45 @@ async function getAuthorizedOrder(input: {
     throw new DemoCheckoutError(500, "DEMO_RESTAURANT_LOOKUP_FAILED", "Vérification du restaurant démo impossible");
   }
   if (
-    !restaurant ||
-    restaurant.is_demo !== true ||
-    restaurant.is_active !== true ||
-    restaurant.status !== "demo" ||
-    restaurant.stripe_account_id ||
-    restaurant.stripe_connect_details_submitted === true ||
-    restaurant.stripe_connect_charges_enabled === true ||
-    restaurant.stripe_connect_payouts_enabled === true
+    !restaurant
+    || restaurant.is_demo !== true
+    || restaurant.is_active !== true
+    || restaurant.status !== "demo"
+    || restaurant.stripe_account_id
+    || restaurant.stripe_connect_details_submitted === true
+    || restaurant.stripe_connect_charges_enabled === true
+    || restaurant.stripe_connect_payouts_enabled === true
   ) {
     throw new DemoCheckoutError(403, "DEMO_RESTAURANT_REQUIRED", "Restaurant de démonstration isolé requis");
   }
 
   return order;
+}
+
+function assertStripeSessionMatchesOrder(input: {
+  stripeSession: Stripe.Checkout.Session;
+  order: DemoCheckoutOrder;
+  demoRestaurantId: string;
+}) {
+  const { stripeSession, order, demoRestaurantId } = input;
+  const metadata = stripeSession.metadata || {};
+  if (
+    stripeSession.livemode !== false
+    || !String(stripeSession.id || "").startsWith("cs_test_")
+    || stripeSession.mode !== "payment"
+    || stripeSession.client_reference_id !== order.order_id
+    || metadata.checkout_kind !== CHECKOUT_KIND
+    || metadata.demo_environment !== DEMO_ENVIRONMENT
+    || metadata.demo_order_id !== order.order_id
+    || metadata.demo_session_id !== order.session_id
+    || metadata.demo_restaurant_id !== demoRestaurantId
+    || metadata.demo_commercial_user_id !== order.commercial_user_id
+    || metadata.stripe_mode !== "test"
+    || Number(stripeSession.amount_total) !== order.total_amount_cents
+    || String(stripeSession.currency || "").toLowerCase() !== order.currency
+  ) {
+    throw new DemoCheckoutError(409, "STRIPE_SESSION_MISMATCH", "Session Stripe incompatible avec la commande démo");
+  }
 }
 
 Deno.serve(async (req) => {
@@ -219,7 +275,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    requireDedicatedDemoRuntime();
     actor = await authenticateRequest(req, { allowServiceRole: false });
     if (!actor.userId) {
       throw new DemoCheckoutError(401, "AUTH_REQUIRED", "Authentification requise");
@@ -239,38 +294,127 @@ Deno.serve(async (req) => {
     } catch {
       throw new DemoCheckoutError(400, "INVALID_DEMO_CHECKOUT_REQUEST", "Corps JSON invalide");
     }
+
     action = normalizeAction(body.action);
     const demoRestaurantId = requireUuid(body.demo_restaurant_id, "demo_restaurant_id");
     const demoSessionId = requireUuid(body.demo_session_id, "demo_session_id");
-    const order = await getAuthorizedOrder({
-      actor,
-      demoRestaurantId,
-      demoSessionId,
-    });
+    const order = await getAuthorizedOrder({ actor, demoRestaurantId, demoSessionId });
     demoOrderId = order.order_id;
 
-    if (!["requires_payment", "test_paid"].includes(order.payment_status)) {
-      throw new DemoCheckoutError(409, "DEMO_ORDER_NOT_PAYABLE", "Cette commande démo n'est pas payable");
+    const stripeRuntime = getCommercialDemoStripeRuntime();
+    if (
+      stripeRuntime.mode !== "test"
+      || !["STRIPE_SECRET_KEY_TEST", "STRIPE_TOK_ONE_TEST_SECRET_KEY"].includes(stripeRuntime.secretKeyName)
+    ) {
+      throw new DemoCheckoutError(503, "INVALID_TEST_STRIPE_KEY", "Clé Stripe test dédiée invalide");
+    }
+    const stripe = stripeRuntime.stripe;
+
+    if (action === "create") {
+      if (order.payment_status !== "requires_payment") {
+        throw new DemoCheckoutError(409, "DEMO_ORDER_NOT_PAYABLE", "Cette commande démo n'est pas payable");
+      }
+
+      const successUrl = buildReturnUrl(body.return_url, "success");
+      const cancelUrl = buildReturnUrl(body.return_url, "cancelled");
+      const idempotencyKey = `commercial-demo-checkout:${await sha256Hex(
+        `${order.commercial_user_id}:${order.session_id}:${order.order_id}`,
+      )}`;
+      const metadata = {
+        checkout_kind: CHECKOUT_KIND,
+        demo_environment: DEMO_ENVIRONMENT,
+        demo_order_id: order.order_id,
+        demo_session_id: order.session_id,
+        demo_restaurant_id: demoRestaurantId,
+        demo_commercial_user_id: order.commercial_user_id,
+        demo_created_by_user_id: actor.userId,
+        stripe_mode: "test",
+        finance_routing_mode: "demo_isolated",
+        no_financial_ledger: "true",
+      };
+
+      const stripeSession = await stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: ["card"],
+        client_reference_id: order.order_id,
+        line_items: [{
+          quantity: 1,
+          price_data: {
+            currency: order.currency,
+            unit_amount: order.total_amount_cents,
+            product_data: {
+              name: `Commande test ${order.order_number}`.slice(0, 120),
+              description: "Paiement Stripe TEST — démonstration commerciale TOK, aucun débit réel.",
+              metadata: {
+                demo_environment: DEMO_ENVIRONMENT,
+                demo_order_id: order.order_id,
+              },
+            },
+          },
+        }],
+        metadata,
+        payment_intent_data: { metadata },
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_TTL_SECONDS,
+      }, { idempotencyKey });
+
+      assertStripeSessionMatchesOrder({ stripeSession, order, demoRestaurantId });
+      if (!stripeSession.url) {
+        throw new DemoCheckoutError(502, "DEMO_STRIPE_SESSION_WITHOUT_URL", "Stripe n'a pas retourné d'URL de paiement");
+      }
+
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: FUNCTION_NAME,
+        action: "create_test_checkout",
+        status: "success",
+        targetEntityType: "commercial_demo_order",
+        targetEntityId: order.order_id,
+        metadata: {
+          demo_environment: DEMO_ENVIRONMENT,
+          stripe_mode: "test",
+          stripe_session_id: stripeSession.id,
+          amount_cents: order.total_amount_cents,
+          currency: order.currency,
+          no_financial_ledger: true,
+        },
+      });
+
+      return jsonResponse({
+        checkout_url: stripeSession.url,
+        stripe_session_id: stripeSession.id,
+        mode: "test",
+        demo_order_id: order.order_id,
+        demo_session_id: order.session_id,
+      }, 200, corsHeaders);
     }
 
-    const simulationId = await buildSimulationReference(order);
+    const stripeSessionId = requireTestCheckoutSessionId(body.stripe_session_id);
+    const stripeSession = await stripe.checkout.sessions.retrieve(stripeSessionId, {
+      expand: ["payment_intent"],
+    });
+    assertStripeSessionMatchesOrder({ stripeSession, order, demoRestaurantId });
+
+    if (stripeSession.payment_status !== "paid" || stripeSession.status !== "complete") {
+      throw new DemoCheckoutError(409, "DEMO_PAYMENT_NOT_COMPLETED", "Le paiement Stripe test n'est pas terminé");
+    }
+
+    const paymentIntentId = typeof stripeSession.payment_intent === "string"
+      ? stripeSession.payment_intent
+      : stripeSession.payment_intent?.id || null;
     const { data: snapshot, error: confirmError } = await actor.adminClient.rpc(
-      "commercial_demo_confirm_simulated_payment",
+      "commercial_demo_confirm_test_payment",
       {
         p_order_id: order.order_id,
-        p_simulation_id: simulationId,
+        p_checkout_session_id: stripeSession.id,
+        p_payment_intent_id: paymentIntentId,
       },
     );
     if (confirmError) {
-      log.error("commercial_demo_payment_simulation_rejected", {
-        demoOrderId: order.order_id,
-        errorCode: confirmError.code || null,
-      });
-      throw new DemoCheckoutError(
-        409,
-        "DEMO_PAYMENT_SIMULATION_REJECTED",
-        "La simulation du paiement démo a été refusée",
-      );
+      throw new DemoCheckoutError(409, "DEMO_PAYMENT_CONFIRMATION_REJECTED", "Confirmation du paiement démo refusée");
     }
 
     await writeAuditLog({
@@ -278,28 +422,24 @@ Deno.serve(async (req) => {
       actor,
       request: req,
       functionName: FUNCTION_NAME,
-      action: "confirm_simulated_payment",
+      action: "confirm_test_checkout",
       status: "success",
       targetEntityType: "commercial_demo_order",
       targetEntityId: order.order_id,
       metadata: {
         demo_environment: DEMO_ENVIRONMENT,
-        payment_mode: PAYMENT_MODE,
-        payment_provider_called: false,
-        simulation_id: simulationId,
-        amount_cents: order.total_amount_cents,
-        currency: order.currency,
+        stripe_mode: "test",
+        stripe_session_id: stripeSession.id,
+        payment_intent_id: paymentIntentId,
         no_financial_ledger: true,
       },
     });
 
     return jsonResponse({
       paid: true,
-      simulated: true,
       payment_status: "test_paid",
-      mode: PAYMENT_MODE,
-      payment_provider: "none",
-      simulation_id: simulationId,
+      mode: "test",
+      stripe_session_id: stripeSession.id,
       demo_order_id: order.order_id,
       demo_session_id: order.session_id,
       snapshot,
@@ -310,6 +450,10 @@ Deno.serve(async (req) => {
       ? error.code
       : httpError?.status === 401
       ? "AUTH_REQUIRED"
+      : httpError?.message === "DEMO_STRIPE_NOT_CONFIGURED"
+      ? "DEMO_STRIPE_NOT_CONFIGURED"
+      : httpError?.message === "INVALID_TEST_STRIPE_KEY"
+      ? "INVALID_TEST_STRIPE_KEY"
       : httpError?.status === 429
       ? "RATE_LIMITED"
       : "DEMO_CHECKOUT_FAILED";
@@ -318,11 +462,15 @@ Deno.serve(async (req) => {
       ? error.message
       : code === "AUTH_REQUIRED"
       ? "Authentification requise"
+      : code === "DEMO_STRIPE_NOT_CONFIGURED"
+      ? "Le paiement Stripe test n'est pas configuré"
+      : code === "INVALID_TEST_STRIPE_KEY"
+      ? "La clé Stripe de démonstration doit être une clé test"
       : code === "RATE_LIMITED"
       ? "Trop de tentatives de paiement démo"
-      : "La simulation du paiement de démonstration a échoué";
+      : "Le paiement de démonstration a échoué";
 
-    log.error("commercial_demo_payment_simulation_failed", {
+    log.error("commercial_demo_checkout_failed", {
       action,
       code,
       status,
@@ -335,12 +483,12 @@ Deno.serve(async (req) => {
         actor,
         request: req,
         functionName: FUNCTION_NAME,
-        action: `${action}_simulated_payment`,
+        action: `${action}_test_checkout`,
         status: "failure",
         targetEntityType: "commercial_demo_order",
         targetEntityId: demoOrderId || null,
         errorMessage: safeMessage,
-        metadata: { code, demo_environment: DEMO_ENVIRONMENT, payment_mode: PAYMENT_MODE },
+        metadata: { code, demo_environment: DEMO_ENVIRONMENT },
       });
     } catch {
       // The original, sanitized error response remains authoritative.
