@@ -1,4 +1,9 @@
 import { buildCorsHeaders, handleCorsPreflight, isRequestOriginAllowed } from "../_shared/cors.ts";
+import {
+  TOK_DISCOVERY_RESOURCE_URI,
+  buildTokDiscoveryResourceContents,
+  buildTokDiscoveryToolMeta,
+} from "../_shared/tok-connect-discovery-widget.ts";
 
 const PUBLIC_ORIGIN = (Deno.env.get("TOK_CONNECT_PUBLIC_ORIGIN") || "https://www.thetok.ch").replace(/\/$/, "");
 const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") || "https://wwcrtyoueexyxkkikaos.supabase.co").replace(/\/$/, "");
@@ -45,12 +50,18 @@ const TOOL_UI_META = {
   "openai/outputTemplate": ACTION_WINDOW_RESOURCE_URI,
   "openai/widgetAccessible": true,
 };
+// Les outils qui renvoient des restaurants ouvrent le vrai module TOK
+// (cartes cliquables + fiche) plutôt que la console d'actions générique.
+const DISCOVERY_UI_META = buildTokDiscoveryToolMeta({
+  invoking: "TOK sélectionne les meilleures tables…",
+  invoked: "Sélection TOK affichée",
+});
 
 const GATEWAY_TOOLS = [
   {
     name: "search",
     title: "Search TOK restaurants",
-    description: "Search the live TOK restaurant catalogue for an authenticated TOK Connect user within the scopes and grants authorized by TOK.",
+    description: "Search the live TOK restaurant catalogue and open the TOK selection module with clickable restaurant cards. For a request that names several cuisines or counts (\"3 pizzerias and 2 sushi places in Geneva\"), prefer discover_restaurants.",
     securitySchemes: OAUTH_SECURITY,
     inputSchema: {
       type: "object",
@@ -65,12 +76,16 @@ const GATEWAY_TOOLS = [
     },
     outputSchema: {
       type: "object",
-      properties: { results: { type: "array", items: { type: "object" } } },
+      properties: {
+        results: { type: "array", items: { type: "object" } },
+        restaurants: { type: "array", items: { type: "object" } },
+        groups: { type: "array", items: { type: "object" } },
+      },
       required: ["results"],
-      additionalProperties: false,
+      additionalProperties: true,
     },
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOOL_UI_META },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...DISCOVERY_UI_META },
   },
   {
     name: "fetch",
@@ -195,12 +210,16 @@ function jsonRpcError(id: JsonRpcRequest["id"], code: number, message: string, d
   return { jsonrpc: "2.0", id: id ?? null, error: { code, message, ...(data === undefined ? {} : { data }) } };
 }
 
-function toolResult(data: unknown, text?: string, isError = false) {
+function toolResult(data: unknown, text?: string, isError = false, resourceUri = ACTION_WINDOW_RESOURCE_URI) {
   return {
     content: [{ type: "text", text: text || JSON.stringify(data) }],
     structuredContent: data && typeof data === "object" ? data : { value: data },
     ...(isError ? { isError: true } : {}),
-    _meta: { ui: { resourceUri: ACTION_WINDOW_RESOURCE_URI }, "openai/outputTemplate": ACTION_WINDOW_RESOURCE_URI },
+    _meta: {
+      ui: { resourceUri },
+      "openai/outputTemplate": resourceUri,
+      "openai/widgetAccessible": true,
+    },
   };
 }
 
@@ -315,40 +334,55 @@ async function handleGatewayTool(req: Request, rpc: JsonRpcRequest, name: string
   const args = argsOf(rpc);
 
   if (name === "search") {
+    // La recherche passe par le moteur de découverte : ChatGPT reçoit le
+    // contrat `results` attendu par les connecteurs, et le module TOK reçoit
+    // la sélection complète à afficher.
     const forwarded: JsonRpcRequest = {
       jsonrpc: "2.0",
       id: rpc.id,
       method: "tools/call",
       params: {
-        name: "search_restaurants",
+        name: "discover_restaurants",
         arguments: {
-          query: args.query,
-          city: args.city,
-          cuisine: args.cuisine,
-          limit: args.limit || 10,
+          request: String(args.query || ""),
+          ...(args.city ? { city: String(args.city) } : {}),
+          ...(args.cuisine ? { selections: [{ cuisine: String(args.cuisine) }] } : {}),
+          limit: Number(args.limit) > 0 ? Math.min(20, Number(args.limit)) : 8,
         },
       },
     };
     const internal = await internalMcp(CANONICAL_MCP, forwarded, req);
     if (!internal.json || internal.json.error) return internal.json || jsonRpcError(rpc.id, -32000, "TOK search unavailable");
     const result = internal.json.result as JsonObject | undefined;
-    const structured = result?.structuredContent as JsonObject | undefined;
-    const restaurants = Array.isArray(structured?.restaurants) ? structured?.restaurants : [];
+    // Une demande de connexion TOK doit remonter telle quelle : la réécrire en
+    // « 0 résultat » priverait ChatGPT du défi d'authentification.
+    if (result?.isError === true || !result?.structuredContent) return internal.json;
+    const selection = result.structuredContent as JsonObject;
+    const restaurants = Array.isArray(selection.restaurants) ? selection.restaurants : [];
     const results = restaurants.map((restaurant) => {
       const item = restaurant as JsonObject;
       const id = String(item.id || "");
       const name = String(item.name || "Restaurant TOK");
       const city = String(item.city || "");
-      const cuisine = String(item.cuisine_type || item.cuisine || "");
+      const cuisine = String(item.cuisine || item.cuisine_type || "");
+      const rating = item.rating ? `${item.rating}/5` : "";
       return {
         id,
         title: name,
-        url: `${PUBLIC_ORIGIN}/restaurant/${encodeURIComponent(id)}`,
-        text: [name, cuisine, city].filter(Boolean).join(" · "),
-        metadata: { city, cuisine },
+        url: String(item.url || `${PUBLIC_ORIGIN}/restaurant/${encodeURIComponent(id)}`),
+        text: [name, cuisine, city, rating].filter(Boolean).join(" · "),
+        metadata: { city, cuisine, rating: item.rating ?? null, review_count: item.review_count ?? null },
       };
     });
-    return jsonRpcResult(rpc.id, toolResult({ results }));
+    return jsonRpcResult(
+      rpc.id,
+      toolResult(
+        { ...selection, results },
+        String(selection.summary || `${results.length} restaurant(s) TOK`),
+        false,
+        TOK_DISCOVERY_RESOURCE_URI,
+      ),
+    );
   }
 
   if (name === "fetch") {
@@ -494,6 +528,12 @@ Deno.serve(async (req) => {
 
     if (rpc.method === "resources/read") {
       const uri = String(rpc.params?.uri || "");
+      if (uri === TOK_DISCOVERY_RESOURCE_URI) {
+        return new Response(
+          JSON.stringify(jsonRpcResult(rpc.id, { contents: [buildTokDiscoveryResourceContents(PUBLIC_ORIGIN)] })),
+          { status: 200, headers: responseHeaders(req) },
+        );
+      }
       if (uri === ACTION_WINDOW_RESOURCE_URI) return new Response(JSON.stringify(cleanActionResource(rpc.id)), { status: 200, headers: responseHeaders(req) });
       return await fallbackRead(req, rpc);
     }
@@ -515,7 +555,7 @@ Deno.serve(async (req) => {
       const result = canonical.json.result;
       if (result && typeof result === "object" && !Array.isArray(result)) {
         (result as JsonObject).serverInfo = { name: "TOK Connect for ChatGPT", version: "3.0.0" };
-        (result as JsonObject).instructions = "TOK Connect exposes the TOK application through one secured MCP gateway. Use reads and previews freely within grants; create or cancel reservations only after explicit user confirmation. Payments, refunds, publications, credit debits and admin mutations stay inside protected TOK flows.";
+        (result as JsonObject).instructions = "TOK Connect exposes the TOK application through one secured MCP gateway. When someone asks for restaurants, a shortlist, or a selection of places to eat - including compound requests such as '3 pizzerias and 2 sushi restaurants in Geneva' - call discover_restaurants with their request verbatim: it opens the TOK module with ranked, clickable restaurant cards, so do not repeat the list as text, just add a short comment. Use get_restaurant_details for one venue's full card. Use reads and previews freely within grants; create or cancel reservations only after explicit user confirmation. Payments, refunds, publications, credit debits and admin mutations stay inside protected TOK flows.";
       }
       return new Response(JSON.stringify(canonical.json), { status: canonical.response.status, headers: responseHeaders(req, canonical.response) });
     }
