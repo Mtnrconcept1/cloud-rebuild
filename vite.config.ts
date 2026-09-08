@@ -108,6 +108,15 @@ export default defineConfig(({ mode }) => {
           __dirname,
           "./src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
         ),
+        // The Marketing Studio identifies image calls with marketingAssetMode.
+        // This exact alias applies the selected final output target immediately
+        // before the existing TOK AI client, while the wrapper imports the base
+        // client relatively to avoid recursion. Non-marketing requests remain
+        // unchanged.
+        "@/lib/ai/tokAiClient": path.resolve(
+          __dirname,
+          "./src/lib/ai/tokAiClientMarketingOutputShell.ts",
+        ),
         // App.tsx lazy-loads this relative specifier. The exact alias appends
         // the print operations console while the shell imports AdminCompta
         // relatively, keeping the accounting implementation unchanged.
