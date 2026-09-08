@@ -9,8 +9,9 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
-import { getPrintProvider } from "../_shared/print/cloudprinter.ts";
+import { CloudprinterError, getPrintProvider } from "../_shared/print/cloudprinter.ts";
 import { calculatePrintRetailPrice } from "../_shared/print/pricing.ts";
+import { isCloudprinterOrderQuantityValid } from "../_shared/print/quantity.ts";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -26,6 +27,13 @@ function requireQuantity(value: unknown) {
   const quantity = Math.round(Number(value));
   if (!Number.isFinite(quantity) || quantity < 1 || quantity > 1_000_000) throw new HttpError(400, "Quantité invalide");
   return quantity;
+}
+
+function providerHttpStatus(error: CloudprinterError) {
+  const providerStatus = error.status;
+  if (providerStatus === 429) return 503;
+  if (providerStatus && providerStatus >= 400 && providerStatus < 500) return 422;
+  return 502;
 }
 
 Deno.serve(async (req) => {
@@ -79,7 +87,7 @@ Deno.serve(async (req) => {
 
     const minimumQuantity = Math.max(1, Math.round(Number(providerProduct.minimum_quantity || 1)));
     const quantityStep = Math.max(1, Math.round(Number(providerProduct.quantity_step || 1)));
-    if (quantity < minimumQuantity || (quantity - minimumQuantity) % quantityStep !== 0) {
+    if (!isCloudprinterOrderQuantityValid(quantity, minimumQuantity, quantityStep)) {
       throw new HttpError(400, `Quantité invalide : minimum ${minimumQuantity}, pas ${quantityStep}`);
     }
 
@@ -178,8 +186,16 @@ Deno.serve(async (req) => {
       expiresAt: quote.expires_at,
     }, 201, cors);
   } catch (error) {
-    const status = error instanceof HttpError ? error.status : 500;
-    const message = error instanceof Error ? error.message.replace(/[\r\n]+/g, " ").slice(0, 500) : "Erreur devis impression";
+    const providerFailure = error instanceof CloudprinterError ? error : null;
+    const providerStatus = providerFailure?.status ?? null;
+    const status = providerFailure
+      ? providerHttpStatus(providerFailure)
+      : error instanceof HttpError
+        ? error.status
+        : 500;
+    const message = error instanceof Error
+      ? error.message.replace(/[\r\n\t]+/g, " ").replace(/\s{2,}/g, " ").trim().slice(0, 500)
+      : "Erreur devis impression";
     await writeAuditLog({
       adminClient,
       actor,
@@ -189,7 +205,29 @@ Deno.serve(async (req) => {
       status: "failure",
       targetEntityType: "print_quotes",
       errorMessage: message,
+      ...(providerFailure
+        ? {
+          metadata: {
+            provider_error: {
+              code: providerFailure.code,
+              providerStatus,
+              transportCode: providerFailure.transportCode,
+              retryable: providerFailure.retryable,
+            },
+          },
+        }
+        : {}),
     });
-    return jsonResponse({ error: status >= 500 ? "Erreur interne devis impression" : message }, status, cors);
+    return jsonResponse({
+      error: providerFailure || status < 500 ? message : "Erreur interne devis impression",
+      ...(providerFailure
+        ? {
+          providerError: {
+            code: providerFailure.code,
+            providerStatus,
+          },
+        }
+        : {}),
+    }, status, cors);
   }
 });
