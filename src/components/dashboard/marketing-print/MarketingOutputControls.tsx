@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Download, Loader2, MonitorSmartphone, Printer, Share2 } from "lucide-react";
 
@@ -19,7 +19,11 @@ import {
   type MarketingOutputDestination,
   type MarketingOutputTarget,
 } from "@/lib/marketing/outputGeometry";
-import { setActiveMarketingOutputTarget } from "@/lib/marketing/outputSession";
+import {
+  getMarketingOutputSessionSnapshot,
+  setMarketingOutputSession,
+  subscribeMarketingOutputSession,
+} from "@/lib/marketing/outputSession";
 import { getPrintGenerationCatalog } from "@/lib/print/client";
 import { cn } from "@/lib/utils";
 
@@ -35,12 +39,15 @@ function targetDescription(target: MarketingOutputTarget) {
   const folded = target.print.foldedWidthMm && target.print.foldedHeightMm
     ? ` · fermé ${target.print.foldedWidthMm}×${target.print.foldedHeightMm} mm`
     : "";
-  return `${target.print.widthMm}×${target.print.heightMm} mm à plat${folded} · bleed ${target.print.bleedMm} mm · ${target.targetDpi} DPI · ${target.widthPx}×${target.heightPx} px`;
+  return `${target.print.widthMm}×${target.print.heightMm} mm à plat${folded} · bleed ${target.print.bleedMm} mm · marge sûre ${target.print.safeMarginMm} mm · ${target.targetDpi} DPI · ${target.widthPx}×${target.heightPx} px`;
 }
 
 export default function MarketingOutputControls({ restaurantId, printEnabled }: Props) {
-  const [destination, setDestination] = useState<MarketingOutputDestination>("digital");
-  const [selectedId, setSelectedId] = useState(DIGITAL_MARKETING_OUTPUT_TARGETS[0]?.id || "");
+  const outputSession = useSyncExternalStore(
+    subscribeMarketingOutputSession,
+    getMarketingOutputSessionSnapshot,
+    getMarketingOutputSessionSnapshot,
+  );
   const [records, setRecords] = useState<AiCreationRecord[]>(() => getAiCreationRecords());
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
@@ -57,27 +64,37 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
     () => buildPrintMarketingOutputTargets(catalogQuery.data?.products || []),
     [catalogQuery.data?.products],
   );
+  const destination = outputSession.destination;
   const availableTargets = destination === "print" ? printTargets : DIGITAL_MARKETING_OUTPUT_TARGETS;
-
-  useEffect(() => subscribeAiCreationRecords(setRecords), []);
-
-  useEffect(() => {
-    if (availableTargets.some((target) => target.id === selectedId)) return;
-    setSelectedId(availableTargets[0]?.id || "");
-  }, [availableTargets, selectedId]);
-
-  const selectedTarget = availableTargets.find((target) => target.id === selectedId) || null;
+  const selectedTarget = availableTargets.find((target) => target.id === outputSession.target?.id) || null;
+  const selectedId = selectedTarget?.id || "";
   const expectedPlan = selectedTarget
     ? calculateMarketingOutputPlan(selectedTarget.nativeWidthPx, selectedTarget.nativeHeightPx, selectedTarget)
     : null;
   const printBlocked = selectedTarget?.destination === "print" && expectedPlan?.quality === "upscale_blocked";
 
+  useEffect(() => subscribeAiCreationRecords(setRecords), []);
+
   useEffect(() => {
-    setActiveMarketingOutputTarget(printBlocked ? null : selectedTarget);
-  }, [printBlocked, selectedTarget]);
+    const nextTarget = availableTargets.find((target) => target.id === outputSession.target?.id)
+      || availableTargets[0]
+      || null;
+    setMarketingOutputSession({
+      destination,
+      targets: availableTargets,
+      target: nextTarget && !(nextTarget.destination === "print"
+        && calculateMarketingOutputPlan(nextTarget.nativeWidthPx, nextTarget.nativeHeightPx, nextTarget).quality === "upscale_blocked")
+        ? nextTarget
+        : null,
+    });
+  }, [availableTargets, destination, outputSession.target?.id]);
 
   useEffect(() => () => {
-    setActiveMarketingOutputTarget(DIGITAL_MARKETING_OUTPUT_TARGETS[0] || null);
+    setMarketingOutputSession({
+      destination: "digital",
+      targets: DIGITAL_MARKETING_OUTPUT_TARGETS,
+      target: DIGITAL_MARKETING_OUTPUT_TARGETS[0] || null,
+    });
   }, []);
 
   const latestMarketingCreation = records.find((record) => (
@@ -88,8 +105,24 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
 
   const handleDestination = (next: MarketingOutputDestination) => {
     if (next === "print" && !printEnabled) return;
-    setDestination(next);
-    setSelectedId((next === "print" ? printTargets : DIGITAL_MARKETING_OUTPUT_TARGETS)[0]?.id || "");
+    const nextTargets = next === "print" ? printTargets : DIGITAL_MARKETING_OUTPUT_TARGETS;
+    setMarketingOutputSession({
+      destination: next,
+      targets: nextTargets,
+      target: nextTargets[0] || null,
+    });
+    setDownloadError(null);
+  };
+
+  const handleTarget = (targetId: string) => {
+    const target = availableTargets.find((candidate) => candidate.id === targetId) || null;
+    if (!target) return;
+    const plan = calculateMarketingOutputPlan(target.nativeWidthPx, target.nativeHeightPx, target);
+    setMarketingOutputSession({
+      destination,
+      targets: availableTargets,
+      target: target.destination === "print" && plan.quality === "upscale_blocked" ? null : target,
+    });
     setDownloadError(null);
   };
 
@@ -174,7 +207,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
             Format final exact
             <select
               value={selectedId}
-              onChange={(event) => setSelectedId(event.target.value)}
+              onChange={(event) => handleTarget(event.target.value)}
               className="mt-2 h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary"
               disabled={destination === "print" && (catalogQuery.isLoading || availableTargets.length === 0)}
             >
@@ -200,7 +233,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
 
         {destination === "print" ? (
           <p className="rounded-xl border bg-background/70 px-3 py-2 text-xs text-muted-foreground">
-            Ce catalogue sert à générer aux dimensions Cloudprinter réellement hydratées. La disponibilité à la commande est contrôlée séparément dans TheTok Print : un support multi-face ou multi-page peut être généré au bon format tout en restant non commandable tant que le composeur PDF correspondant n’est pas pris en charge.
+            Seuls les produits réellement mappés au catalogue Cloudprinter apparaissent dans le Studio. La génération respecte leur format à plat, leur fond perdu et leur marge de sécurité. La disponibilité à la commande reste contrôlée séparément par TheTok Print.
           </p>
         ) : null}
 
