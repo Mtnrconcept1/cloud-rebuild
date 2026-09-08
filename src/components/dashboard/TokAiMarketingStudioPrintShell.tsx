@@ -1,4 +1,5 @@
 import TokAiMarketingStudioCore from "./TokAiMarketingStudio";
+import MarketingOutputControls from "./marketing-print/MarketingOutputControls";
 import PrintComposerDialog from "./marketing-print/PrintComposerDialog";
 import PrintOrdersPanel from "./marketing-print/PrintOrdersPanel";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,10 +13,11 @@ type Props = {
 /**
  * Runtime shell around the existing Marketing Studio.
  *
- * The legacy generator stays untouched. Vite maps only the app's absolute
- * Marketing Studio import to this shell; this file imports the original module
- * relatively, so existing generator behavior and its source-contract tests stay
- * stable while physical print commerce remains an isolated domain.
+ * The large legacy generator remains the creative editor. This shell owns the
+ * final-output contract: TheTok/social exact rasters and Cloudprinter geometry.
+ * Keeping provider access here prevents the core editor from depending on a
+ * print provider while every image request still receives the selected target
+ * through the exact TOK AI client alias.
  */
 export default function TokAiMarketingStudioPrintShell({ restaurantId }: Props) {
   const commercialDemoFrame = useCommercialDemoFrame();
@@ -23,6 +25,8 @@ export default function TokAiMarketingStudioPrintShell({ restaurantId }: Props) 
 
   return (
     <div className="space-y-6">
+      <MarketingOutputControls restaurantId={restaurantId} printEnabled={canPrint} />
+
       <TokAiMarketingStudioCore restaurantId={restaurantId} />
 
       {canPrint && restaurantId ? (
@@ -36,7 +40,7 @@ export default function TokAiMarketingStudioPrintShell({ restaurantId }: Props) 
                 <div>
                   <p className="font-semibold">Du visuel à l’imprimé, sans quitter TheTok</p>
                   <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                    Choisissez une création récente, adaptez-la au support, contrôlez le BAT, obtenez le prix livré puis payez via Stripe. TheTok gère ensuite l’impression et le suivi.
+                    La cible Cloudprinter choisie en haut pilote la géométrie du visuel. Contrôlez ensuite le BAT, obtenez le prix livré puis payez via Stripe. TheTok gère l’impression et le suivi.
                   </p>
                 </div>
               </div>
