@@ -26,6 +26,17 @@ export type PrintQrElement = {
   size: number;
 };
 
+export type PrintRenderingMetadata = {
+  targetWidthPx: number;
+  targetHeightPx: number;
+  targetDpi: number;
+  sourceWidthPx: number;
+  sourceHeightPx: number;
+  upscaleFactor: number;
+  cropMode: "cover";
+  strategy: "high_quality_resample";
+};
+
 export type MarketingPrintDocument = {
   version: 1;
   title: string;
@@ -34,6 +45,7 @@ export type MarketingPrintDocument = {
   logo?: PrintImageAsset | null;
   texts: PrintTextElement[];
   qr?: PrintQrElement | null;
+  rendering?: PrintRenderingMetadata | null;
   layout: {
     orientation: "portrait" | "landscape" | "square";
     backgroundPosition?: "cover" | "contain";
@@ -56,6 +68,7 @@ export type PrintProductSpec = {
   minimumQuantity: number;
   quantityStep: number;
   options: Array<Record<string, unknown>>;
+  specifications?: Record<string, unknown>;
 };
 
 export type PrintPreflightIssue = {
@@ -78,6 +91,7 @@ export function createMarketingPrintDocument(input: {
   logo?: PrintImageAsset | null;
   texts?: PrintTextElement[];
   qr?: PrintQrElement | null;
+  rendering?: PrintRenderingMetadata | null;
   orientation?: "portrait" | "landscape" | "square";
 }): MarketingPrintDocument {
   return {
@@ -88,6 +102,7 @@ export function createMarketingPrintDocument(input: {
     logo: input.logo || null,
     texts: input.texts || [],
     qr: input.qr || null,
+    rendering: input.rendering || null,
     layout: {
       orientation: input.orientation || "portrait",
       backgroundPosition: "cover",
