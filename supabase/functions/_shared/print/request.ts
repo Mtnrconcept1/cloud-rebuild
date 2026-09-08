@@ -122,7 +122,7 @@ function safeNestedProviderText(value: unknown, depth = 0): string {
   }
   if (typeof value !== "object") return "";
   const record = value as Record<string, unknown>;
-  for (const key of ["message", "description", "detail", "reason", "error", "errors"]) {
+  for (const key of ["message", "description", "detail", "reason", "info", "error", "errors"]) {
     if (!(key in record)) continue;
     const candidate = safeNestedProviderText(record[key], depth + 1);
     if (candidate) return candidate;

@@ -10,6 +10,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { CloudprinterError, getPrintProvider } from "../_shared/print/cloudprinter.ts";
+import { getCloudprinterDefaultOptions } from "../_shared/print/options.ts";
 import { calculatePrintRetailPrice } from "../_shared/print/pricing.ts";
 import { isCloudprinterOrderQuantityValid } from "../_shared/print/quantity.ts";
 
@@ -91,6 +92,7 @@ Deno.serve(async (req) => {
       throw new HttpError(400, `Quantité invalide : minimum ${minimumQuantity}, pas ${quantityStep}`);
     }
 
+    const providerOptions = getCloudprinterDefaultOptions(exportRow.product_spec_snapshot);
     const provider = getPrintProvider();
     const providerQuote = await provider.getQuote({
       country,
@@ -100,6 +102,7 @@ Deno.serve(async (req) => {
         reference: `quote-${exportId}`,
         product: providerProduct.provider_reference,
         count: quantity,
+        options: providerOptions,
       }],
     });
     if (providerQuote.currency !== "CHF") throw new HttpError(409, "PRINT_QUOTE_CURRENCY_UNSUPPORTED");
@@ -167,6 +170,7 @@ Deno.serve(async (req) => {
       metadata: {
         restaurant_id: restaurantId,
         quantity,
+        provider_option_count: providerOptions.length,
         customer_currency: retail.customerCurrency,
         customer_amount_cents: retail.customerAmountCents,
       },
