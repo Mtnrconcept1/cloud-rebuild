@@ -1,4 +1,4 @@
-import type { TokImageFormat } from "@/lib/ai/tokAiClient";
+import type { TokImageFormat } from "../ai/tokAiClient";
 
 export type MarketingOutputDestination = "digital" | "print";
 export type MarketingOutputQuality = "native_or_downscale" | "upscale_allowed" | "upscale_blocked";
