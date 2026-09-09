@@ -105,6 +105,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "print-admin": "l’administration du service d’impression TheTok",
   "print-catalog": "la synchronisation du catalogue de produits d’impression",
   "print-checkout": "l’ouverture du paiement d’une commande d’impression",
+  "print-sandbox-complete": "la finalisation contrôlée d’une commande d’impression gratuite en environnement Sandbox",
   "print-export": "la préparation et le contrôle du fichier prêt à imprimer",
   "print-orchestrator": "l’orchestration des commandes d’impression payées",
   "print-order-action": "les actions de suivi, d’annulation et de réimpression d’une commande d’impression",
