@@ -47,6 +47,24 @@ describe("authenticated security audit hardening", () => {
     }
   });
 
+  it("does not declare Supabase Edge Functions that no longer exist on disk", () => {
+    const config = read("supabase/config.toml");
+    const activeFunctionNames = new Set(
+      readdirSync(resolve(root, "supabase/functions"), { withFileTypes: true })
+        .filter((entry) => entry.isDirectory() && entry.name !== "_shared")
+        .map((entry) => entry.name),
+    );
+    const configuredFunctionNames = Array.from(
+      config.matchAll(/^\[functions\.([^\]]+)\]\s*$/gm),
+      (match) => match[1],
+    ).sort();
+    const staleFunctionNames = configuredFunctionNames
+      .filter((functionName) => !activeFunctionNames.has(functionName))
+      .sort();
+
+    expect(staleFunctionNames).toEqual([]);
+  });
+
   it("keeps gateway-default tombstones on the authenticated Supabase CLI default", () => {
     const deployHelper = read("scripts/supabase-ci-retry.sh");
 
