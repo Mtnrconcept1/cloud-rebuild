@@ -48,7 +48,7 @@ describe("TOK Connect frontend integration", () => {
     expect(page).toContain("#api-rest");
     expect(page).toContain("#mcp-server");
     expect(page).toContain("#webhooks");
-    expect(page).toContain("#deployer-mcp-api");
+    expect(page).toContain('id="deployer-mcp-api"');
     expect(page).toContain("Ajouter TOK Connect dans ChatGPT");
     expect(page).toContain("https://www.thetok.ch/mcp");
     expect(page).toContain("Choisir OAuth");
