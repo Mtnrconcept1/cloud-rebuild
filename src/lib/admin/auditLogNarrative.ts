@@ -145,6 +145,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "tok-connect-api": "l’API partenaires TOK Connect",
   "tok-connect-oauth": "l’authentification OAuth de TOK Connect",
   "tok-connect-portal": "le portail partenaires TOK Connect",
+  "tok-connect-admin": "l’administration des accès MCP TOK Connect",
   "tok-connect-webhook-dispatch": "l’envoi des webhooks aux partenaires TOK Connect",
   "tok-connect-full-app-mcp": "la surface MCP applicative TOK Connect",
   "tok-connect-chatgpt": "la passerelle MCP publique TOK Connect utilisée par ChatGPT",
