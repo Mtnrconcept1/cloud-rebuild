@@ -9,7 +9,7 @@ const migration = readFileSync(
 );
 
 describe("observability maintenance performance guards", () => {
-  it("indexes the hot retention and audit cursor paths without assuming ownership of pg_cron tables", () => {
+  it("indexes hot paths without assuming ownership of Supabase extension tables", () => {
     expect(migration).toContain("idx_cron_job_run_details_start_time");
     expect(migration).toContain("ON cron.job_run_details (start_time)");
     expect(migration).toContain("pg_has_role(current_user, v_cron_owner, 'MEMBER')");
@@ -19,6 +19,9 @@ describe("observability maintenance performance guards", () => {
     expect(migration).toContain("ON public.audit_log (created_at DESC, id DESC)");
     expect(migration).toContain("idx_net_http_response_id");
     expect(migration).toContain("ON net._http_response (id)");
+    expect(migration).toContain("pg_has_role(current_user, v_net_owner, 'MEMBER')");
+    expect(migration).toContain("pg_get_userbyid(v_net_owner)");
+    expect(migration).toContain("Skipping net._http_response index");
   });
 
   it("keeps maintenance deletes bounded and lowers cache-retention churn", () => {
