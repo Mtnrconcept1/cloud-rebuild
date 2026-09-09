@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fafafa"/><stop offset="1" stop-color="#f4f4f5"/></linearGradient>
+    <linearGradient id="tok" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff5a14"/><stop offset="1" stop-color="#ffad00"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#111827" flood-opacity=".10"/></filter>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <text x="90" y="80" font-family="Arial,sans-serif" font-size="24" font-weight="700" fill="#171717">ChatGPT</text>
+  <rect x="905" y="108" width="585" height="72" rx="26" fill="#e9e9eb"/>
+  <text x="936" y="153" font-family="Arial,sans-serif" font-size="20" fill="#171717">Ouvre la fiche du premier restaurant.</text>
+  <circle cx="110" cy="235" r="25" fill="#fff" stroke="#ddd"/>
+  <text x="110" y="241" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="800" fill="#171717">TOK</text>
+  <text x="150" y="241" font-family="Arial,sans-serif" font-size="18" fill="#171717">Voici la fiche détaillée dans TOK Connect.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="180" y="285" width="1240" height="625" rx="32" fill="#fff" stroke="#e8e1da"/>
+    <rect x="180" y="285" width="1240" height="92" rx="32" fill="#fff"/>
+    <line x1="180" y1="377" x2="1420" y2="377" stroke="#eee9e4"/>
+    <rect x="206" y="305" width="54" height="54" rx="17" fill="url(#tok)"/>
+    <text x="233" y="338" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="900" fill="#fff">TOK</text>
+    <text x="280" y="329" font-family="Arial,sans-serif" font-size="21" font-weight="800" fill="#171717">Vesuvio Genève</text>
+    <text x="280" y="353" font-family="Arial,sans-serif" font-size="13" fill="#756e67">Pizzeria napolitaine · Eaux-Vives</text>
+    <rect x="1245" y="316" width="145" height="34" rx="17" fill="#fff7ee" stroke="#f5d7ba"/>
+    <text x="1318" y="338" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="800" fill="#c85914">★ 4,8 · 412 avis</text>
+
+    <rect x="210" y="410" width="470" height="275" rx="24" fill="#6f321c"/>
+    <circle cx="445" cy="548" r="105" fill="#ece2cf"/>
+    <circle cx="445" cy="548" r="82" fill="#df4b2d"/>
+    <circle cx="445" cy="548" r="48" fill="#f6cc71"/>
+    <circle cx="415" cy="520" r="11" fill="#4f7a3f"/><circle cx="470" cy="567" r="11" fill="#4f7a3f"/><circle cx="482" cy="520" r="10" fill="#4f7a3f"/>
+
+    <text x="730" y="435" font-family="Georgia,serif" font-size="34" font-weight="700" fill="#171717">Vesuvio Genève</text>
+    <text x="730" y="474" font-family="Arial,sans-serif" font-size="16" fill="#756e67">Rue des Eaux-Vives 42 · Genève</text>
+    <text x="730" y="510" font-family="Arial,sans-serif" font-size="16" fill="#171717">Ouvert aujourd’hui · 18:30–23:00</text>
+    <text x="730" y="548" font-family="Arial,sans-serif" font-size="15" fill="#756e67">Pizza napolitaine · Terrasse · Végétarien</text>
+
+    <rect x="730" y="585" width="170" height="42" rx="21" fill="#fff4e8" stroke="#f4d5b7"/>
+    <text x="815" y="612" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="800" fill="#ae4b10">19:30 disponible</text>
+    <rect x="912" y="585" width="170" height="42" rx="21" fill="#fff4e8" stroke="#f4d5b7"/>
+    <text x="997" y="612" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="800" fill="#ae4b10">20:00 disponible</text>
+
+    <rect x="730" y="658" width="315" height="58" rx="18" fill="url(#tok)"/>
+    <text x="888" y="694" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="900" fill="#fff">Réserver avec TOK</text>
+    <rect x="1060" y="658" width="240" height="58" rx="18" fill="#fff" stroke="#ddd"/>
+    <text x="1180" y="694" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="800" fill="#171717">Voir le menu</text>
+
+    <line x1="210" y1="755" x2="1390" y2="755" stroke="#eee9e4"/>
+    <text x="210" y="800" font-family="Arial,sans-serif" font-size="15" font-weight="800" fill="#171717">Pourquoi TOK le recommande</text>
+    <text x="210" y="830" font-family="Arial,sans-serif" font-size="14" fill="#756e67">Très bien noté, disponibilité confirmée ce soir et excellente fiabilité des avis.</text>
+    <text x="210" y="870" font-family="Arial,sans-serif" font-size="12" fill="#756e67">TOK Connect · fiche de démonstration</text>
+  </g>
+</svg>
