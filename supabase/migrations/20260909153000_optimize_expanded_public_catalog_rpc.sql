@@ -298,12 +298,22 @@ BEGIN
         v_query = ''
         OR (v_ts_query IS NOT NULL AND enriched.search_vector @@ v_ts_query)
         OR (v_prefix_ts_query IS NOT NULL AND enriched.search_vector @@ v_prefix_ts_query)
+        OR public.normalize_search_text(enriched.name) LIKE '%' || v_query || '%'
+        OR public.normalize_search_text(enriched.description) LIKE '%' || v_query || '%'
+        OR public.normalize_search_text(enriched.cuisine_type) LIKE '%' || v_query || '%'
         OR enriched.category_blob LIKE '%' || v_query || '%'
+        OR public.normalize_search_text(enriched.address) LIKE '%' || v_query || '%'
+        OR public.normalize_search_text(enriched.city) LIKE '%' || v_query || '%'
         OR enriched.matched_via_menu
         OR EXISTS (
           SELECT 1
           FROM unnest(v_tokens) AS token(value)
-          WHERE enriched.category_blob LIKE '%' || token.value || '%'
+          WHERE public.normalize_search_text(enriched.name) LIKE '%' || token.value || '%'
+             OR public.normalize_search_text(enriched.description) LIKE '%' || token.value || '%'
+             OR public.normalize_search_text(enriched.cuisine_type) LIKE '%' || token.value || '%'
+             OR enriched.category_blob LIKE '%' || token.value || '%'
+             OR public.normalize_search_text(enriched.address) LIKE '%' || token.value || '%'
+             OR public.normalize_search_text(enriched.city) LIKE '%' || token.value || '%'
         )
       )
   ),
