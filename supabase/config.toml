@@ -242,9 +242,6 @@ verify_jwt = false
 [functions.stripe-subscription-reconcile]
 verify_jwt = false
 
-[functions.stripe-secrets-cleanup]
-verify_jwt = false
-
 [functions.settle-developer-statement]
 verify_jwt = false
 
@@ -255,9 +252,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.validate-order]
-verify_jwt = false
-
-[functions.validate-order-preview]
 verify_jwt = false
 
 [functions.submit-signup-application]
@@ -306,9 +300,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.print-reconcile]
-verify_jwt = false
-
-[functions.social-analytics-snapshot]
 verify_jwt = false
 
 [functions.tok-connect-oauth]
