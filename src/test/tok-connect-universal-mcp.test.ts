@@ -21,6 +21,19 @@ describe("TOK Connect universal remote MCP", () => {
     expect(transport).toContain('"2025-03-26"');
   });
 
+  it("implements the 2026 discovery lifecycle instead of only advertising the protocol revision", () => {
+    expect(remoteGateway).toContain('const MODERN_MCP_PROTOCOL_VERSION = "2026-07-28"');
+    expect(remoteGateway).toContain('rpc.method === "server/discover"');
+    expect(remoteGateway).toContain("buildServerDiscoverResult");
+    expect(remoteGateway).toContain("supportedVersions: [MODERN_MCP_PROTOCOL_VERSION]");
+    expect(remoteGateway).toContain('"io.modelcontextprotocol/serverInfo": REMOTE_SERVER_INFO');
+    expect(remoteGateway).toContain("normalizeModernResult");
+    expect(remoteGateway).toContain('resultType: "complete"');
+    expect(remoteGateway).toContain("ttlMs: 30_000");
+    expect(remoteGateway).toContain('cacheScope: "public"');
+    expect(remoteGateway).toContain('next.cacheScope = "private"');
+  });
+
   it("allows browser-based Claude and ChatGPT clients to send MCP 2026 routing headers without widening Claude CORS globally", () => {
     expect(cors).toContain('"https://chatgpt.com"');
     expect(cors).not.toContain('"https://claude.ai"');

@@ -19,9 +19,19 @@ const COMMERCIAL_BRIDGE_URL = `${SUPABASE_URL}/functions/v1/tok-connect-commerci
 const AUTHORIZATION_SERVER = `${SUPABASE_URL}/auth/v1`;
 const RESOURCE_METADATA_URL = `${PUBLIC_ORIGIN}/.well-known/oauth-protected-resource`;
 const OIDC_SCOPES = ["openid", "email", "profile"];
+const MODERN_MCP_PROTOCOL_VERSION = "2026-07-28";
 const INTERNAL_MCP_PROTOCOL_VERSION = "2025-11-25";
 const CLAUDE_ORIGIN = "https://claude.ai";
 const OAUTH_SECURITY = [{ type: "oauth2", scopes: OIDC_SCOPES }];
+const REMOTE_SERVER_INFO = { name: "TOK Connect Remote MCP", version: "5.2.0" } as const;
+const REMOTE_INSTRUCTIONS = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. When the user asks for restaurants, a shortlist or a selection of places to eat - including compound requests such as '3 pizzerias and 2 sushi restaurants in Geneva' - call discover_restaurants and pass their request verbatim in `request`: it opens the TOK restaurant module with ranked, clickable cards, so answer with a short sentence instead of repeating the list. get_restaurant_details opens one venue's full card. Once authenticated, use tok_list_capabilities to discover the actions authorized by the user's TOK roles. Reads run under the user's JWT and RLS. Real writes, payments, refunds, publications and admin actions use allowlisted TOK backends or business RPCs and require explicit confirmation plus idempotency where applicable. The commercial role is isolated behind tok_commercial. Service-role, scheduler-only and webhook-only operations are never exposed.";
+const MODERN_CACHEABLE_METHODS = new Set([
+  "tools/list",
+  "prompts/list",
+  "resources/list",
+  "resources/templates/list",
+  "resources/read",
+]);
 
 type JsonRecord = Record<string, unknown>;
 
@@ -152,6 +162,10 @@ function isRemoteMcpOriginAllowed(req: Request) {
   return isRequestOriginAllowed(req) || req.headers.get("origin") === CLAUDE_ORIGIN;
 }
 
+function isModernMcpRequest(req: Request) {
+  return req.headers.get("mcp-protocol-version") === MODERN_MCP_PROTOCOL_VERSION;
+}
+
 function jsonRpcResult(id: McpJsonRpcRequest["id"], result: unknown) {
   return { jsonrpc: "2.0", id: id ?? null, result };
 }
@@ -172,10 +186,10 @@ function requestHeaders(req: Request, rpc: McpJsonRpcRequest) {
   const protocolVersion = req.headers.get("mcp-protocol-version");
   headers.set(
     "mcp-protocol-version",
-    protocolVersion === "2026-07-28" ? INTERNAL_MCP_PROTOCOL_VERSION : protocolVersion || INTERNAL_MCP_PROTOCOL_VERSION,
+    protocolVersion === MODERN_MCP_PROTOCOL_VERSION ? INTERNAL_MCP_PROTOCOL_VERSION : protocolVersion || INTERNAL_MCP_PROTOCOL_VERSION,
   );
   const sessionId = req.headers.get("mcp-session-id");
-  if (sessionId && protocolVersion !== "2026-07-28") headers.set("mcp-session-id", sessionId);
+  if (sessionId && protocolVersion !== MODERN_MCP_PROTOCOL_VERSION) headers.set("mcp-session-id", sessionId);
   headers.set("mcp-method", rpc.method);
   if (rpc.method === "tools/call") {
     const toolName = typeof rpc.params?.name === "string" ? rpc.params.name : "";
@@ -198,7 +212,7 @@ function responseHeaders(req: Request, upstream?: Response) {
   );
   for (const name of ["www-authenticate", "mcp-session-id"]) {
     const value = upstream?.headers.get(name);
-    if (value && !(name === "mcp-session-id" && req.headers.get("mcp-protocol-version") === "2026-07-28")) {
+    if (value && !(name === "mcp-session-id" && isModernMcpRequest(req))) {
       headers.set(name, value);
     }
   }
@@ -212,9 +226,42 @@ function normalizeInitialize(payload: unknown, request: McpJsonRpcRequest) {
   if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
   const next = { ...(result as Record<string, unknown>) };
   next.protocolVersion = negotiateMcpProtocolVersion(request.params);
-  next.serverInfo = { name: "TOK Connect Remote MCP", version: "5.1.0" };
-  next.instructions = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. When the user asks for restaurants, a shortlist or a selection of places to eat - including compound requests such as '3 pizzerias and 2 sushi restaurants in Geneva' - call discover_restaurants and pass their request verbatim in `request`: it opens the TOK restaurant module with ranked, clickable cards, so answer with a short sentence instead of repeating the list. get_restaurant_details opens one venue's full card. Once authenticated, use tok_list_capabilities to discover the actions authorized by the user's TOK roles. Reads run under the user's JWT and RLS. Real writes, payments, refunds, publications and admin actions use allowlisted TOK backends or business RPCs and require explicit confirmation plus idempotency where applicable. The commercial role is isolated behind tok_commercial. Service-role, scheduler-only and webhook-only operations are never exposed.";
+  next.serverInfo = REMOTE_SERVER_INFO;
+  next.instructions = REMOTE_INSTRUCTIONS;
   return { ...rpc, result: next };
+}
+
+function buildServerDiscoverResult(id: McpJsonRpcRequest["id"]) {
+  return jsonRpcResult(id, {
+    resultType: "complete",
+    supportedVersions: [MODERN_MCP_PROTOCOL_VERSION],
+    capabilities: { tools: {}, resources: {}, prompts: {} },
+    _meta: { "io.modelcontextprotocol/serverInfo": REMOTE_SERVER_INFO },
+    instructions: REMOTE_INSTRUCTIONS,
+    ttlMs: 30_000,
+    cacheScope: "public",
+  });
+}
+
+function normalizeModernResult(req: Request, rpc: McpJsonRpcRequest, payload: unknown) {
+  if (!isModernMcpRequest(req) || !payload || typeof payload !== "object" || Array.isArray(payload)) return payload;
+  const response = payload as JsonRecord;
+  const result = response.result;
+  if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
+  const current = result as JsonRecord;
+  const currentMeta = current._meta && typeof current._meta === "object" && !Array.isArray(current._meta)
+    ? current._meta as JsonRecord
+    : {};
+  const next: JsonRecord = {
+    ...current,
+    resultType: typeof current.resultType === "string" ? current.resultType : "complete",
+    _meta: { ...currentMeta, "io.modelcontextprotocol/serverInfo": REMOTE_SERVER_INFO },
+  };
+  if (MODERN_CACHEABLE_METHODS.has(rpc.method)) {
+    if (typeof next.ttlMs !== "number") next.ttlMs = 30_000;
+    if (next.cacheScope !== "public" && next.cacheScope !== "private") next.cacheScope = "private";
+  }
+  return { ...response, result: next };
 }
 
 async function upstreamRequest(req: Request, rpc: McpJsonRpcRequest) {
@@ -288,10 +335,13 @@ async function callAppBridge(req: Request, rpc: McpJsonRpcRequest, name: string)
 }
 
 async function relay(req: Request, rpc: McpJsonRpcRequest) {
+  if (rpc.method === "server/discover") {
+    return new Response(JSON.stringify(buildServerDiscoverResult(rpc.id)), { status: 200, headers: responseHeaders(req) });
+  }
   if (rpc.method === "tools/call") {
     const name = typeof rpc.params?.name === "string" ? rpc.params.name : "";
     if (APP_BRIDGE_TOOL_NAMES.has(name)) {
-      const payload = await callAppBridge(req, rpc, name);
+      const payload = normalizeModernResult(req, rpc, await callAppBridge(req, rpc, name));
       return new Response(JSON.stringify(payload), { status: 200, headers: responseHeaders(req) });
     }
   }
@@ -300,11 +350,12 @@ async function relay(req: Request, rpc: McpJsonRpcRequest) {
   if (!text) return new Response(null, { status: upstream.status, headers: responseHeaders(req, upstream) });
   try {
     const parsed = JSON.parse(text);
-    const payload = rpc.method === "initialize"
+    const compatiblePayload = rpc.method === "initialize"
       ? normalizeInitialize(parsed, rpc)
       : rpc.method === "tools/list"
         ? mergeTools(parsed)
         : parsed;
+    const payload = normalizeModernResult(req, rpc, compatiblePayload);
     return new Response(JSON.stringify(payload), { status: upstream.status, headers: responseHeaders(req, upstream) });
   } catch {
     return new Response(text, { status: upstream.status, headers: responseHeaders(req, upstream) });
@@ -324,7 +375,7 @@ Deno.serve(async (req) => {
       scopes_supported: OIDC_SCOPES,
       bearer_methods_supported: ["header"],
       resource_documentation: `${PUBLIC_ORIGIN}/tok-connect/developer`,
-      mcp_protocol_versions_supported: ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"],
+      mcp_protocol_versions_supported: [MODERN_MCP_PROTOCOL_VERSION, "2025-11-25", "2025-06-18", "2025-03-26"],
     }), {
       status: 200,
       headers: new Headers({ ...corsHeaders, "content-type": "application/json", "cache-control": "no-store", "mcp-protocol-version": MCP_LATEST_PROTOCOL_VERSION }),
