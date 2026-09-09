@@ -17,7 +17,11 @@ import {
   requireClientPaymentAttemptId,
   sealPaymentAttemptRequest,
 } from "../_shared/payment-attempts.ts";
-import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import {
+  getStripeRuntimeForCheckoutKind,
+  getStripeRuntimeForCheckoutKindAndMode,
+} from "../_shared/stripe-client.ts";
+import { getCloudprinterMode } from "../_shared/print/cloudprinter.ts";
 import { getCloudprinterDefaultOptions } from "../_shared/print/options.ts";
 import { validatePrintAddress } from "../_shared/print/security.ts";
 
@@ -109,7 +113,14 @@ Deno.serve(async (req) => {
     if (logicalError) throw logicalError;
     if (!logicalProduct) throw new HttpError(409, "Produit TheTok indisponible");
 
-    const stripeRuntime = getStripeRuntimeForCheckoutKind("marketing-print");
+    const providerMode = getCloudprinterMode();
+    if (providerMode === "disabled") throw new HttpError(503, "Cloudprinter est désactivé");
+    const isSandbox = providerMode === "sandbox";
+    const stripeRuntime = isSandbox
+      ? getStripeRuntimeForCheckoutKindAndMode("marketing-print", "test")
+      : getStripeRuntimeForCheckoutKind("marketing-print");
+    const checkoutAmountCents = isSandbox ? 0 : Number(quote.customer_amount_cents);
+
     acquiredAttempt = await acquirePaymentAttempt({
       adminClient,
       operationKey: clientPaymentAttemptId,
@@ -117,10 +128,15 @@ Deno.serve(async (req) => {
       restaurantId,
       kind: "marketing_print_order",
       mode: stripeRuntime.mode,
-      amountCents: Number(quote.customer_amount_cents),
+      amountCents: checkoutAmountCents,
       currency: "CHF",
       leaseSeconds: 180,
-      metadata: { quote_id: quote.id, print_export_id: exportRow.id },
+      metadata: {
+        quote_id: quote.id,
+        print_export_id: exportRow.id,
+        provider_mode: providerMode,
+        quoted_customer_amount_cents: Number(quote.customer_amount_cents),
+      },
     });
 
     const { data: existingOrder, error: existingOrderError } = await adminClient
@@ -140,10 +156,11 @@ Deno.serve(async (req) => {
             checkoutSessionId: session.id,
             checkoutUrl: session.url,
             reused: true,
+            sandbox: isSandbox,
           }, 200, cors);
         }
       }
-      throw new HttpError(409, acquiredAttempt.state === "finalized" ? "Cette impression est déjà payée" : "Paiement impression déjà en cours");
+      throw new HttpError(409, acquiredAttempt.state === "finalized" ? "Cette impression est déjà finalisée" : "Paiement impression déjà en cours");
     }
     if (!acquiredAttempt.leaseToken) throw new HttpError(409, "Lease paiement indisponible");
 
@@ -154,8 +171,10 @@ Deno.serve(async (req) => {
       export_sha256: exportRow.sha256,
       provider_product_id: providerProduct.id,
       provider_options: providerOptions,
+      provider_mode: providerMode,
       quantity: quote.quantity,
-      customer_amount_cents: quote.customer_amount_cents,
+      customer_amount_cents: checkoutAmountCents,
+      quoted_customer_amount_cents: Number(quote.customer_amount_cents),
       customer_currency: "CHF",
       shipping_address: shippingAddress,
     };
@@ -185,7 +204,7 @@ Deno.serve(async (req) => {
         provider: quote.provider,
         provider_reference: providerReference,
         customer_currency: "CHF",
-        customer_amount_cents: quote.customer_amount_cents,
+        customer_amount_cents: checkoutAmountCents,
         quantity: quote.quantity,
         shipping_address: shippingAddress,
         selected_shipping: {
@@ -218,8 +237,13 @@ Deno.serve(async (req) => {
 
     const base = returnBase(req);
     const callbackPath = `/dashboard/photos?print_order_id=${encodeURIComponent(orderId)}`;
-    const successUrl = `${base}${callbackPath}&payment_attempt_id=${encodeURIComponent(clientPaymentAttemptId)}&status=success`;
+    const standardSuccessUrl = `${base}${callbackPath}&payment_attempt_id=${encodeURIComponent(clientPaymentAttemptId)}&status=success`;
     const cancelUrl = `${base}${callbackPath}&payment_attempt_id=${encodeURIComponent(clientPaymentAttemptId)}&status=cancelled`;
+    const supabaseUrl = String(Deno.env.get("SUPABASE_URL") || "").trim().replace(/\/+$/, "");
+    if (isSandbox && !supabaseUrl) throw new HttpError(503, "URL Supabase indisponible pour le retour Sandbox");
+    const successUrl = isSandbox
+      ? `${supabaseUrl}/functions/v1/print-sandbox-complete?session_id={CHECKOUT_SESSION_ID}`
+      : standardSuccessUrl;
     const metadata = {
       payment_attempt_version: "2",
       payment_attempt_id: acquiredAttempt.attemptId,
@@ -228,27 +252,35 @@ Deno.serve(async (req) => {
       checkout_kind: "marketing-print",
       print_order_id: orderId,
       restaurant_id: restaurantId,
+      stripe_mode: stripeRuntime.mode,
+      print_sandbox: isSandbox ? "true" : "false",
+      provider_mode: providerMode,
+      no_financial_ledger: isSandbox ? "true" : "false",
+      checkout_amount_cents: String(checkoutAmountCents),
+      quoted_customer_amount_cents: String(Number(quote.customer_amount_cents)),
     };
 
     try {
       const session = await stripeRuntime.stripe.checkout.sessions.create({
         mode: "payment",
-        payment_method_types: ["card"],
+        ...(isSandbox ? {} : { payment_method_types: ["card" as const] }),
         line_items: [{
           quantity: 1,
           price_data: {
             currency: "chf",
-            unit_amount: Number(quote.customer_amount_cents),
+            unit_amount: checkoutAmountCents,
             product_data: {
               name: `Impression TheTok — ${logicalProduct.display_name}`,
-              description: `${quote.quantity} exemplaires`,
+              description: isSandbox
+                ? `${quote.quantity} exemplaires · test Cloudprinter Sandbox · aucun débit`
+                : `${quote.quantity} exemplaires`,
             },
           },
         }],
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata,
-        payment_intent_data: { metadata },
+        ...(isSandbox ? {} : { payment_intent_data: { metadata } }),
       }, { idempotencyKey: acquiredAttempt.stripeIdempotencyKey });
       if (!session.url) throw new Error("STRIPE_CHECKOUT_URL_MISSING");
 
@@ -259,7 +291,12 @@ Deno.serve(async (req) => {
         checkoutSessionId: session.id,
         paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null,
         sessionExpiresAt: session.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
-        metadata: { print_order_id: orderId, provider_reference: providerReference },
+        metadata: {
+          print_order_id: orderId,
+          provider_reference: providerReference,
+          provider_mode: providerMode,
+          quoted_customer_amount_cents: Number(quote.customer_amount_cents),
+        },
       });
 
       await writeAuditLog({
@@ -274,7 +311,10 @@ Deno.serve(async (req) => {
         metadata: {
           restaurant_id: restaurantId,
           payment_attempt_id: acquiredAttempt.attemptId,
-          amount_cents: quote.customer_amount_cents,
+          amount_cents: checkoutAmountCents,
+          quoted_customer_amount_cents: Number(quote.customer_amount_cents),
+          provider_mode: providerMode,
+          stripe_mode: stripeRuntime.mode,
           provider_option_count: providerOptions.length,
         },
       });
@@ -284,6 +324,9 @@ Deno.serve(async (req) => {
         paymentAttemptId: clientPaymentAttemptId,
         checkoutSessionId: session.id,
         checkoutUrl: session.url,
+        sandbox: isSandbox,
+        amountCents: checkoutAmountCents,
+        quotedAmountCents: Number(quote.customer_amount_cents),
       }, 200, cors);
     } catch (error) {
       await failPaymentAttempt({
