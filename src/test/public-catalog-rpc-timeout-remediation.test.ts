@@ -26,6 +26,33 @@ describe("expanded public restaurant catalogue timeout remediation", () => {
     expect(migration).not.toMatch(/SET\s+statement_timeout/i);
   });
 
+  it("preserves historical substring matching alongside indexed full-text search", () => {
+    expect(existsSync(migrationPath)).toBe(true);
+    if (!existsSync(migrationPath)) return;
+
+    const migration = readFileSync(migrationPath, "utf8");
+    const filteredSection = migration.match(
+      /filtered AS MATERIALIZED \(([\s\S]*?)\),\s*page_rows AS MATERIALIZED/,
+    )?.[1] || "";
+
+    expect(filteredSection).toContain(
+      "public.normalize_search_text(enriched.name) LIKE '%' || v_query || '%'",
+    );
+    expect(filteredSection).toContain(
+      "public.normalize_search_text(enriched.description) LIKE '%' || v_query || '%'",
+    );
+    expect(filteredSection).toContain(
+      "public.normalize_search_text(enriched.cuisine_type) LIKE '%' || v_query || '%'",
+    );
+    expect(filteredSection).toContain(
+      "public.normalize_search_text(enriched.address) LIKE '%' || v_query || '%'",
+    );
+    expect(filteredSection).toContain(
+      "public.normalize_search_text(enriched.city) LIKE '%' || v_query || '%'",
+    );
+    expect(filteredSection).toContain("FROM unnest(v_tokens) AS token(value)");
+  });
+
   it("keeps verified restaurants visible without restoring the image gate", () => {
     expect(existsSync(migrationPath)).toBe(true);
     if (!existsSync(migrationPath)) return;
