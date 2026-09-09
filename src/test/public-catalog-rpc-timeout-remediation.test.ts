@@ -34,23 +34,26 @@ describe("expanded public restaurant catalogue timeout remediation", () => {
     const filteredSection = migration.match(
       /filtered AS MATERIALIZED \(([\s\S]*?)\),\s*page_rows AS MATERIALIZED/,
     )?.[1] || "";
+    const whereSection = filteredSection.match(
+      /FROM enriched\s+WHERE\s+([\s\S]*)$/,
+    )?.[1] || "";
 
-    expect(filteredSection).toContain(
+    expect(whereSection).toContain(
       "public.normalize_search_text(enriched.name) LIKE '%' || v_query || '%'",
     );
-    expect(filteredSection).toContain(
+    expect(whereSection).toContain(
       "public.normalize_search_text(enriched.description) LIKE '%' || v_query || '%'",
     );
-    expect(filteredSection).toContain(
+    expect(whereSection).toContain(
       "public.normalize_search_text(enriched.cuisine_type) LIKE '%' || v_query || '%'",
     );
-    expect(filteredSection).toContain(
+    expect(whereSection).toContain(
       "public.normalize_search_text(enriched.address) LIKE '%' || v_query || '%'",
     );
-    expect(filteredSection).toContain(
+    expect(whereSection).toContain(
       "public.normalize_search_text(enriched.city) LIKE '%' || v_query || '%'",
     );
-    expect(filteredSection).toContain("FROM unnest(v_tokens) AS token(value)");
+    expect(whereSection).toContain("FROM unnest(v_tokens) AS token(value)");
   });
 
   it("keeps verified restaurants visible without restoring the image gate", () => {
