@@ -3,8 +3,34 @@
 -- removal of exact duplicate indexes confirmed by the Supabase advisor and
 -- production pg_stat_user_indexes.
 
-CREATE INDEX IF NOT EXISTS idx_cron_job_run_details_start_time
-  ON cron.job_run_details (start_time);
+-- pg_cron owns cron.job_run_details on managed Supabase projects. PostgreSQL
+-- only allows the table owner (or a member of that role) to create an index on
+-- it, so keep the optimization where ownership permits it and otherwise skip
+-- only this extension-owned index instead of blocking the whole deployment.
+DO $cron_index$
+DECLARE
+  v_cron_owner oid;
+BEGIN
+  SELECT c.relowner
+  INTO v_cron_owner
+  FROM pg_catalog.pg_class AS c
+  JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'cron'
+    AND c.relname = 'job_run_details'
+    AND c.relkind = 'r';
+
+  IF v_cron_owner IS NULL THEN
+    RAISE NOTICE 'Skipping cron.job_run_details index: managed pg_cron table is unavailable';
+  ELSIF pg_has_role(current_user, v_cron_owner, 'MEMBER') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_cron_job_run_details_start_time ON cron.job_run_details (start_time)';
+    EXECUTE 'COMMENT ON INDEX cron.idx_cron_job_run_details_start_time IS ''Retention lookup for bounded deletion of old pg_cron run details.''';
+  ELSE
+    RAISE NOTICE 'Skipping cron.job_run_details index: current role % is not a member of table owner %',
+      current_user,
+      pg_get_userbyid(v_cron_owner);
+  END IF;
+END;
+$cron_index$;
 
 CREATE INDEX IF NOT EXISTS idx_audit_log_created_at_id_desc
   ON public.audit_log (created_at DESC, id DESC);
@@ -17,9 +43,6 @@ CREATE INDEX IF NOT EXISTS idx_net_http_response_id
 
 COMMENT ON INDEX public.idx_audit_log_created_at_id_desc IS
   'Cursor pagination for admin audit history ordered by created_at/id.';
-
-COMMENT ON INDEX cron.idx_cron_job_run_details_start_time IS
-  'Retention lookup for bounded deletion of old pg_cron run details.';
 
 COMMENT ON INDEX net.idx_net_http_response_id IS
   'Supports incremental net._http_response mirroring by id.';
