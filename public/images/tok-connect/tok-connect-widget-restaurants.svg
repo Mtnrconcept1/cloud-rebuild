@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fafafa"/><stop offset="1" stop-color="#f4f4f5"/></linearGradient>
+    <linearGradient id="tok" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff5a14"/><stop offset="1" stop-color="#ffad00"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#111827" flood-opacity=".10"/></filter>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <text x="90" y="80" font-family="Arial,sans-serif" font-size="24" font-weight="700" fill="#171717">ChatGPT</text>
+  <rect x="835" y="110" width="655" height="72" rx="26" fill="#e9e9eb"/>
+  <text x="865" y="154" font-family="Arial,sans-serif" font-size="20" fill="#171717">Trouve-moi 3 bonnes pizzerias à Genève pour ce soir.</text>
+  <circle cx="110" cy="235" r="25" fill="#fff" stroke="#ddd"/>
+  <text x="110" y="241" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="800" fill="#171717">TOK</text>
+  <text x="150" y="241" font-family="Arial,sans-serif" font-size="18" fill="#171717">Voici une sélection TOK. Ouvre une fiche directement dans le module.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="150" y="285" width="1340" height="615" rx="30" fill="#fff" stroke="#e8e1da"/>
+    <line x1="150" y1="375" x2="1490" y2="375" stroke="#eee9e4"/>
+    <rect x="175" y="305" width="54" height="54" rx="17" fill="url(#tok)"/>
+    <text x="202" y="338" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="900" fill="#fff">TOK</text>
+    <text x="248" y="328" font-family="Arial,sans-serif" font-size="21" font-weight="800" fill="#171717">Sélection TOK</text>
+    <text x="248" y="352" font-family="Arial,sans-serif" font-size="13" fill="#756e67">Restaurants recommandés à Genève</text>
+    <rect x="1310" y="316" width="150" height="34" rx="17" fill="#fff7ee" stroke="#f5d7ba"/>
+    <text x="1385" y="338" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="800" fill="#c85914">3 restaurants</text>
+
+    <text x="178" y="420" font-family="Georgia,serif" font-size="30" font-weight="700" fill="#171717">Les meilleures pizzerias pour ce soir</text>
+    <text x="178" y="450" font-family="Arial,sans-serif" font-size="14" fill="#756e67">Classées par note, fiabilité des avis et disponibilité TOK.</text>
+
+    <g transform="translate(178 480)">
+      <rect width="390" height="330" rx="22" fill="#fff" stroke="#ece7e1"/>
+      <path d="M22 0h346a22 22 0 0 1 22 22v128H0V22A22 22 0 0 1 22 0" fill="#6f321c"/>
+      <circle cx="195" cy="78" r="62" fill="#ece2cf"/><circle cx="195" cy="78" r="48" fill="#df4b2d"/><circle cx="195" cy="78" r="29" fill="#f6cc71"/>
+      <rect x="14" y="14" width="44" height="30" rx="15" fill="#161616"/><text x="36" y="34" text-anchor="middle" font-family="Arial" font-size="12" font-weight="800" fill="#fff">#1</text>
+      <text x="20" y="184" font-family="Arial" font-size="18" font-weight="800" fill="#171717">Vesuvio Genève</text>
+      <text x="20" y="213" font-family="Arial" font-size="13" fill="#756e67">Pizzeria napolitaine · Eaux-Vives</text>
+      <text x="20" y="242" font-family="Arial" font-size="14" font-weight="800" fill="#d75e18">★ 4,8 · 412 avis · $$</text>
+      <rect x="20" y="266" width="95" height="30" rx="15" fill="#fff4e8" stroke="#f4d5b7"/><text x="68" y="286" text-anchor="middle" font-family="Arial" font-size="11" font-weight="700" fill="#ae4b10">Réservation</text>
+      <rect x="123" y="266" width="142" height="30" rx="15" fill="#fff4e8" stroke="#f4d5b7"/><text x="194" y="286" text-anchor="middle" font-family="Arial" font-size="11" font-weight="700" fill="#ae4b10">Coup de cœur TOK</text>
+    </g>
+    <g transform="translate(605 480)">
+      <rect width="390" height="330" rx="22" fill="#fff" stroke="#ece7e1"/>
+      <path d="M22 0h346a22 22 0 0 1 22 22v128H0V22A22 22 0 0 1 22 0" fill="#2f6154"/>
+      <circle cx="195" cy="78" r="62" fill="#f2eadb"/><circle cx="195" cy="78" r="48" fill="#508a73"/><circle cx="195" cy="78" r="29" fill="#f4d6a7"/>
+      <rect x="14" y="14" width="44" height="30" rx="15" fill="#161616"/><text x="36" y="34" text-anchor="middle" font-family="Arial" font-size="12" font-weight="800" fill="#fff">#2</text>
+      <text x="20" y="184" font-family="Arial" font-size="18" font-weight="800" fill="#171717">Trattoria Carouge</text>
+      <text x="20" y="213" font-family="Arial" font-size="13" fill="#756e67">Italien · Carouge</text>
+      <text x="20" y="242" font-family="Arial" font-size="14" font-weight="800" fill="#d75e18">★ 4,7 · 286 avis · $$</text>
+      <rect x="20" y="266" width="132" height="30" rx="15" fill="#fff4e8" stroke="#f4d5b7"/><text x="86" y="286" text-anchor="middle" font-family="Arial" font-size="11" font-weight="700" fill="#ae4b10">19:30 disponible</text>
+    </g>
+    <g transform="translate(1032 480)">
+      <rect width="390" height="330" rx="22" fill="#fff" stroke="#ece7e1"/>
+      <path d="M22 0h346a22 22 0 0 1 22 22v128H0V22A22 22 0 0 1 22 0" fill="#6e3557"/>
+      <circle cx="195" cy="78" r="62" fill="#eee1d2"/><circle cx="195" cy="78" r="48" fill="#a33c43"/><circle cx="195" cy="78" r="29" fill="#e8a66e"/>
+      <rect x="14" y="14" width="44" height="30" rx="15" fill="#161616"/><text x="36" y="34" text-anchor="middle" font-family="Arial" font-size="12" font-weight="800" fill="#fff">#3</text>
+      <text x="20" y="184" font-family="Arial" font-size="18" font-weight="800" fill="#171717">Forno Pâquis</text>
+      <text x="20" y="213" font-family="Arial" font-size="13" fill="#756e67">Pizza romaine · Pâquis</text>
+      <text x="20" y="242" font-family="Arial" font-size="14" font-weight="800" fill="#d75e18">★ 4,6 · 191 avis · $</text>
+      <rect x="20" y="266" width="82" height="30" rx="15" fill="#fff4e8" stroke="#f4d5b7"/><text x="61" y="286" text-anchor="middle" font-family="Arial" font-size="11" font-weight="700" fill="#ae4b10">Sur place</text>
+      <rect x="110" y="266" width="94" height="30" rx="15" fill="#fff4e8" stroke="#f4d5b7"/><text x="157" y="286" text-anchor="middle" font-family="Arial" font-size="11" font-weight="700" fill="#ae4b10">À emporter</text>
+    </g>
+    <text x="178" y="860" font-family="Arial" font-size="12" fill="#756e67">TOK Connect · données de démonstration</text>
+  </g>
+</svg>
