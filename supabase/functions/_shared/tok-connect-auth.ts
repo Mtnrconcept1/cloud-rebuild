@@ -79,47 +79,6 @@ function readJwtPayload(token: string): Record<string, unknown> {
   }
 }
 
-function asMetadataRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : {};
-}
-
-function getTokConnectQuotaPerMinute(
-  metadata: unknown,
-  key: "tok_connect_quota_per_minute" | "tok_connect_partner_quota_per_minute",
-  fallback: number,
-) {
-  const raw = asMetadataRecord(metadata)[key];
-  const quota = typeof raw === "number" ? raw : Number(raw);
-  if (!Number.isFinite(quota)) return fallback;
-  return Math.max(1, Math.min(Math.floor(quota), 10_000));
-}
-
-/**
- * Every TOK Connect restaurant read inherits the global Admin access switch.
- * The proxy only changes SELECTs on the restaurants table; writes, logs and all
- * other tables keep the normal service-role client. This makes revocation apply
- * automatically to discovery, details and future restaurant-reading tools.
- */
-export function withTokConnectRestaurantVisibility(adminClient: EdgeSupabaseClient): EdgeSupabaseClient {
-  return new Proxy(adminClient as any, {
-    get(target, property, receiver) {
-      if (property !== "from") return Reflect.get(target, property, receiver);
-      return (table: string) => {
-        const builder = target.from(table);
-        if (table !== "restaurants") return builder;
-        return new Proxy(builder, {
-          get(builderTarget, builderProperty, builderReceiver) {
-            if (builderProperty !== "select") return Reflect.get(builderTarget, builderProperty, builderReceiver);
-            return (...args: unknown[]) => builderTarget.select(...args).eq("tok_connect_mcp_enabled", true);
-          },
-        });
-      };
-    },
-  }) as EdgeSupabaseClient;
-}
-
 async function authenticateSupabaseOAuthToken(
   adminClient: EdgeSupabaseClient,
   rawToken: string,
@@ -132,6 +91,8 @@ async function authenticateSupabaseOAuthToken(
   const oauthClientId = typeof claims.client_id === "string" ? claims.client_id : null;
   if (!oauthClientId) throw new HttpError(401, "tok_connect_oauth_client_id_required");
 
+  // Supabase OAuth currently exposes OIDC scopes. TOK business permissions are
+  // enforced against user ownership/staff roles in assertTokConnectRestaurantGrant.
   const scopes = [...ALL_TOK_CONNECT_SCOPES];
   try {
     assertTokConnectScopes(scopes, requiredScopes);
@@ -154,6 +115,23 @@ async function authenticateSupabaseOAuthToken(
   };
 }
 
+function asMetadataRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function getTokConnectQuotaPerMinute(
+  metadata: unknown,
+  key: "tok_connect_quota_per_minute" | "tok_connect_partner_quota_per_minute",
+  fallback: number,
+) {
+  const raw = asMetadataRecord(metadata)[key];
+  const quota = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(quota)) return fallback;
+  return Math.max(1, Math.min(Math.floor(quota), 10_000));
+}
+
 export async function assertTokConnectFeatureEnabled(
   adminClient: EdgeSupabaseClient,
   flagName: string,
@@ -168,25 +146,6 @@ export async function assertTokConnectFeatureEnabled(
   if (!data?.is_active) throw new HttpError(403, `tok_connect_feature_disabled:${flagName}`);
 }
 
-async function assertTokConnectRestaurantMcpEnabled(
-  restaurantId: string,
-) {
-  // Use an unfiltered server client so a revoked restaurant can be distinguished
-  // from an unknown id and can later be re-authorized by the Admin console.
-  const adminClient = createAdminClient();
-  const { data: restaurant, error } = await adminClient
-    .from("restaurants")
-    .select("id, tok_connect_mcp_enabled")
-    .eq("id", restaurantId)
-    .maybeSingle<{ id: string; tok_connect_mcp_enabled: boolean | null }>();
-
-  if (error) throw new HttpError(500, error.message);
-  if (!restaurant) throw new HttpError(404, "tok_connect_restaurant_not_found");
-  if (restaurant.tok_connect_mcp_enabled === false) {
-    throw new HttpError(403, "tok_connect_restaurant_mcp_disabled");
-  }
-}
-
 export async function assertTokConnectRestaurantGrant(
   context: TokConnectTokenContext,
   restaurantId: string,
@@ -199,8 +158,6 @@ export async function assertTokConnectRestaurantGrant(
 ) {
   if (!restaurantId) throw new HttpError(400, "restaurant_id_required");
   if (context.environment === "sandbox") return null;
-
-  await assertTokConnectRestaurantMcpEnabled(restaurantId);
 
   if (context.authMode === "supabase_oauth") {
     if (!context.userId) throw new HttpError(401, "tok_connect_user_required");
@@ -411,8 +368,16 @@ export async function recordTokConnectApiRequest(input: {
       latency_ms: Math.max(0, Date.now() - input.startedAt),
       idempotency_key: input.idempotencyKey || null,
       error_code: input.errorCode || null,
+      // OAuth callers (ChatGPT and any other MCP client) have no partner row, so
+      // partner_id/client_id above stay null. Without this the request log keeps
+      // no trace at all of *who* called, and the restaurateur dashboard cannot
+      // show which connector is live. Keep the identity in the metadata blob.
       request_metadata: {
         ...buildRequestMetadata(input.request),
+        // Protocol headers, kept because a request rejected at the transport
+        // gate (415 mcp_content_type_invalid) never reaches a handler: without
+        // these the log records that a client was turned away but not why, and
+        // the platform log API is not always available to fill the gap.
         content_type: input.request.headers.get("content-type"),
         accept: input.request.headers.get("accept"),
         mcp_protocol_version: input.request.headers.get("mcp-protocol-version"),
@@ -476,4 +441,27 @@ export async function enqueueTokConnectWebhookDeliveries(input: {
   }
 
   return rows.length;
+}
+
+/**
+ * Applies the Admin restaurant access switch to every TOK Connect read that
+ * starts from the authenticated context. Non-restaurant tables and all writes
+ * keep the normal service-role behaviour.
+ */
+export function withTokConnectRestaurantVisibility(adminClient: EdgeSupabaseClient): EdgeSupabaseClient {
+  return new Proxy(adminClient as any, {
+    get(target, property, receiver) {
+      if (property !== "from") return Reflect.get(target, property, receiver);
+      return (table: string) => {
+        const builder = target.from(table);
+        if (table !== "restaurants") return builder;
+        return new Proxy(builder, {
+          get(builderTarget, builderProperty, builderReceiver) {
+            if (builderProperty !== "select") return Reflect.get(builderTarget, builderProperty, builderReceiver);
+            return (...args: unknown[]) => builderTarget.select(...args).eq("tok_connect_mcp_enabled", true);
+          },
+        });
+      };
+    },
+  }) as EdgeSupabaseClient;
 }
