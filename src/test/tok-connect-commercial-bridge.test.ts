@@ -33,10 +33,13 @@ describe("TOK Connect commercial bridge", () => {
     expect(bridge).toContain('const DEMO_PROJECT_REF = "hzldfhjfgjcadmpghhhf"');
   });
 
-  it("publishes the commercial workspace through the universal remote MCP", () => {
+  it("keeps the commercial workspace defined internally but outside the public read-only MCP catalogue", () => {
     expect(remote).toContain('name: "tok_commercial"');
     expect(remote).toContain("COMMERCIAL_BRIDGE_URL");
     expect(remote).toContain('name === "tok_commercial" ? COMMERCIAL_BRIDGE_URL : APP_BRIDGE_URL');
-    expect(remote).toContain("The commercial role is isolated behind tok_commercial");
+    expect(remote).toContain("The commercial role remains isolated behind its guarded backend");
+    expect(remote).toContain("filterPublicReadOnlyTools");
+    expect(remote).toContain("annotations?.readOnlyHint === true");
+    expect(remote).toContain("public_mcp_read_only");
   });
 });
