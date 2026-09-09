@@ -290,6 +290,9 @@ verify_jwt = false
 [functions.print-checkout]
 verify_jwt = false
 
+[functions.print-sandbox-complete]
+verify_jwt = false
+
 [functions.print-export]
 verify_jwt = false
 
