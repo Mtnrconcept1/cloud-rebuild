@@ -74,11 +74,13 @@ Deno.serve(async (req) => {
     const metadata = session.metadata || {};
 
     const validSandboxSession =
-      metadata.checkout_kind === "marketing-print"
+      metadata.payment_attempt_version === "2"
+      && metadata.checkout_kind === "marketing-print"
       && metadata.print_sandbox === "true"
       && metadata.provider_mode === "sandbox"
       && metadata.no_financial_ledger === "true"
       && metadata.stripe_mode === "test"
+      && metadata.checkout_amount_cents === "0"
       && session.livemode === false
       && session.mode === "payment"
       && session.payment_status === "no_payment_required"
@@ -103,6 +105,7 @@ Deno.serve(async (req) => {
     if (
       attempt.kind !== "marketing_print_order"
       || attempt.mode !== "test"
+      || !["session_bound", "finalized"].includes(String(attempt.state || ""))
       || Number(attempt.amount_cents) !== 0
       || String(attempt.currency || "").toUpperCase() !== "CHF"
       || attempt.restaurant_id !== restaurantId
@@ -123,6 +126,7 @@ Deno.serve(async (req) => {
       order.restaurant_id !== restaurantId
       || order.owner_user_id !== attempt.owner_user_id
       || order.payment_attempt_id !== attempt.id
+      || !["pending", "paid"].includes(String(order.payment_status || ""))
       || Number(order.customer_amount_cents) !== 0
       || String(order.customer_currency || "").toUpperCase() !== "CHF"
     ) {
