@@ -47,6 +47,18 @@ verify_jwt = false
 [functions.ai-restaurant-tools]
 verify_jwt = false
 
+[functions.ai-campaign-studio]
+verify_jwt = false
+
+[functions.ai-guardian]
+verify_jwt = false
+
+[functions.ai-marketing-agent]
+verify_jwt = false
+
+[functions.ai-support-resolution]
+verify_jwt = false
+
 [functions.authorize-match-group-order]
 verify_jwt = false
 
@@ -107,6 +119,9 @@ verify_jwt = false
 [functions.create-zero-attente-reservation]
 verify_jwt = false
 
+[functions.customer-memory]
+verify_jwt = false
+
 [functions.delete-account]
 verify_jwt = false
 
@@ -117,15 +132,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.dispatch-order]
-verify_jwt = false
-
-[functions.stripe-webhook]
-verify_jwt = false
-
-[functions.stripe-worker]
-verify_jwt = false
-
-[functions.stripe-subscription-reconcile]
 verify_jwt = false
 
 [functions.dispatch-timeout]
@@ -153,6 +159,12 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.google-actions-center]
+verify_jwt = false
+
+[functions.google-actions-center-sync]
+verify_jwt = false
+
+[functions.aligro-catalog-sync]
 verify_jwt = false
 
 [functions.notification-dispatch]
@@ -221,6 +233,18 @@ verify_jwt = false
 [functions.stripe-connect-status]
 verify_jwt = false
 
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.stripe-worker]
+verify_jwt = false
+
+[functions.stripe-subscription-reconcile]
+verify_jwt = false
+
+[functions.stripe-secrets-cleanup]
+verify_jwt = false
+
 [functions.settle-developer-statement]
 verify_jwt = false
 
@@ -233,7 +257,58 @@ verify_jwt = false
 [functions.validate-order]
 verify_jwt = false
 
+[functions.validate-order-preview]
+verify_jwt = false
+
 [functions.submit-signup-application]
+verify_jwt = false
+
+[functions.sync-apple-storekit]
+verify_jwt = false
+
+[functions.apple-storekit-webhook]
+verify_jwt = false
+
+[functions.marketing-orchestrator]
+verify_jwt = false
+
+[functions.marketing-provider-webhook]
+verify_jwt = false
+
+[functions.marketing-unsubscribe]
+verify_jwt = false
+
+[functions.cloudprinter-webhook]
+verify_jwt = false
+
+[functions.print-admin]
+verify_jwt = false
+
+[functions.print-catalog]
+verify_jwt = false
+
+[functions.print-checkout]
+verify_jwt = false
+
+[functions.print-sandbox-complete]
+verify_jwt = false
+
+[functions.print-export]
+verify_jwt = false
+
+[functions.print-orchestrator]
+verify_jwt = false
+
+[functions.print-order-action]
+verify_jwt = false
+
+[functions.print-quote]
+verify_jwt = false
+
+[functions.print-reconcile]
+verify_jwt = false
+
+[functions.social-analytics-snapshot]
 verify_jwt = false
 
 [functions.tok-connect-oauth]
@@ -251,99 +326,27 @@ verify_jwt = false
 [functions.tok-connect-portal]
 verify_jwt = false
 
+[functions.tok-connect-admin]
+verify_jwt = false
+
 [functions.tok-connect-webhook-dispatch]
-verify_jwt = false
-
-# Legacy public demo credentials endpoint: permanent authenticated tombstone.
-[functions.provision-commercial-demo-logins]
-verify_jwt = true
-
-[functions.aligro-catalog-sync]
-verify_jwt = false
-
-[functions.google-actions-center-sync]
-verify_jwt = false
-
-[functions.ai-campaign-studio]
-verify_jwt = false
-
-[functions.customer-memory]
-verify_jwt = false
-
-[functions.ai-support-resolution]
-verify_jwt = false
-
-[functions.ai-guardian]
-verify_jwt = false
-
-[functions.ai-marketing-agent]
-verify_jwt = false
-
-[functions.marketing-unsubscribe]
-verify_jwt = false
-
-[functions.marketing-orchestrator]
-verify_jwt = false
-
-[functions.marketing-provider-webhook]
-verify_jwt = false
-
-# StoreKit purchase sync authenticates the Supabase user inside the handler.
-[functions.sync-apple-storekit]
-verify_jwt = false
-
-# Apple calls this webhook without a Supabase JWT. Its signedPayload JWS is
-# cryptographically verified against Apple's certificate chain in the handler.
-[functions.apple-storekit-webhook]
-verify_jwt = false
-
-[functions.tok-connect-chatgpt]
-verify_jwt = false
-
-[functions.tok-connect-remote-mcp]
 verify_jwt = false
 
 [functions.tok-connect-app-bridge]
 verify_jwt = false
 
+[functions.tok-connect-chatgpt]
+verify_jwt = false
+
 [functions.tok-connect-commercial-bridge]
+verify_jwt = false
+
+[functions.tok-connect-remote-mcp]
 verify_jwt = false
 
 [functions.tok-pulse-widget]
 verify_jwt = false
 
-# TheTok Print user functions authenticate/authorize inside the handler;
-# scheduler functions validate the existing internal cron secret and the
-# Cloudprinter webhook validates its dedicated provider API key in the payload.
-[functions.print-catalog]
-verify_jwt = false
-
-[functions.print-export]
-verify_jwt = false
-
-[functions.print-quote]
-verify_jwt = false
-
-[functions.print-checkout]
-verify_jwt = false
-
-# Stripe redirects here after a no-cost Sandbox Checkout. The handler retrieves
-# the cs_test_* session server-side and validates every Print Sandbox marker
-# before finalizing any payment attempt or print order.
-[functions.print-sandbox-complete]
-verify_jwt = false
-
-[functions.print-orchestrator]
-verify_jwt = false
-
-[functions.cloudprinter-webhook]
-verify_jwt = false
-
-[functions.print-reconcile]
-verify_jwt = false
-
-[functions.print-order-action]
-verify_jwt = false
-
-[functions.print-admin]
-verify_jwt = false
+# Legacy public demo credentials endpoint: permanent authenticated tombstone.
+[functions.provision-commercial-demo-logins]
+verify_jwt = true

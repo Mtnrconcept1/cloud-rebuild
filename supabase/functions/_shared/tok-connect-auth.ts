@@ -101,7 +101,7 @@ async function authenticateSupabaseOAuthToken(
   }
 
   return {
-    adminClient,
+    adminClient: withTokConnectRestaurantVisibility(adminClient),
     tokenId: data.user.id,
     partnerId: data.user.id,
     clientUuid: oauthClientId,
@@ -318,7 +318,7 @@ export async function authenticateTokConnectToken(
     .eq("id", tokenRow.id);
 
   return {
-    adminClient,
+    adminClient: withTokConnectRestaurantVisibility(adminClient),
     tokenId: tokenRow.id,
     partnerId: tokenRow.partner_id,
     clientUuid: tokenRow.client_id,
@@ -441,4 +441,27 @@ export async function enqueueTokConnectWebhookDeliveries(input: {
   }
 
   return rows.length;
+}
+
+/**
+ * Applies the Admin restaurant access switch to every TOK Connect read that
+ * starts from the authenticated context. Non-restaurant tables and all writes
+ * keep the normal service-role behaviour.
+ */
+export function withTokConnectRestaurantVisibility(adminClient: EdgeSupabaseClient): EdgeSupabaseClient {
+  return new Proxy(adminClient as any, {
+    get(target, property, receiver) {
+      if (property !== "from") return Reflect.get(target, property, receiver);
+      return (table: string) => {
+        const builder = target.from(table);
+        if (table !== "restaurants") return builder;
+        return new Proxy(builder, {
+          get(builderTarget, builderProperty, builderReceiver) {
+            if (builderProperty !== "select") return Reflect.get(builderTarget, builderProperty, builderReceiver);
+            return (...args: unknown[]) => builderTarget.select(...args).eq("tok_connect_mcp_enabled", true);
+          },
+        });
+      };
+    },
+  }) as EdgeSupabaseClient;
 }
