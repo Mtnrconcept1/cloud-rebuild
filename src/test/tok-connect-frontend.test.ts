@@ -38,7 +38,7 @@ describe("TOK Connect frontend integration", () => {
     expect(portal).toContain("Exemple MCP");
   });
 
-  it("surfaces all TOK Connect entry points and the simplified MCP/API deployment path on the public page", () => {
+  it("surfaces all TOK Connect entry points and the simplified ChatGPT install path on the public page", () => {
     const page = read("src/pages/TokConnect.tsx");
 
     expect(page).toContain("Accès rapides TOK Connect");
@@ -49,32 +49,18 @@ describe("TOK Connect frontend integration", () => {
     expect(page).toContain("#mcp-server");
     expect(page).toContain("#webhooks");
     expect(page).toContain("#deployer-mcp-api");
-    expect(page).toContain("Déployer MCP/API en 5 actions");
-    expect(page).toContain("ChatGPT MCP en 3 minutes");
-    expect(page).toContain("CHATGPT_MCP_SERVER_URL");
-    expect(page).toContain("CHATGPT_OAUTH_AUTHORIZATION_URL");
-    expect(page).toContain("CHATGPT_OAUTH_TOKEN_URL");
-    expect(page).toContain("CHATGPT_REST_API_URL");
-    expect(page).toContain("Champ ChatGPT");
-    expect(page).toContain("Valeur TOK à coller");
-    expect(page).toContain("Dynamic Client Registration");
-    expect(page).toContain("invalid_client");
-    expect(page).toContain("même environnement");
-    expect(page).toContain("Ne collez jamais l'URL OAuth token dans URL du serveur");
-    expect(page).toContain("/images/tok-connect/chatgpt-mcp-new-app.png");
-    expect(page).toContain("/images/tok-connect/chatgpt-mcp-oauth-endpoints.png");
+    expect(page).toContain("Ajouter TOK Connect dans ChatGPT");
+    expect(page).toContain("https://www.thetok.ch/mcp");
+    expect(page).toContain("Choisir OAuth");
+    expect(page).toContain("Se connecter à TOK");
     expect(page).toContain("Ce que TOK Connect sait faire");
-    expect(page).toContain("DEFAULT_CHATGPT_FUNCTIONS_BASE_URL");
-    expect(page).toContain("CHATGPT_FUNCTIONS_BASE_URL");
-    expect(page).toContain("/tok-connect-api");
-    expect(page).toContain('const CANONICAL_ORIGIN = "https://www.thetok.ch"');
-    expect(page).toContain('const CHATGPT_MCP_SERVER_URL = `${CANONICAL_ORIGIN}/mcp`');
-    expect(page).toContain("/tok-connect-oauth/authorize");
-    expect(page).toContain("Autopilot avanc");
-    expect(page).toContain("selectedActor");
-    expect(page).toContain("Envoyer");
-    expect(page).toContain("Simule une demande libre");
-    expect(page).toContain("tok-plan-step-enter");
+    expect(page).toContain("tok-connect-widget-restaurants.svg");
+    expect(page).toContain("tok-connect-widget-details.svg");
+
+    expect(page).not.toContain("Dynamic Client Registration");
+    expect(page).not.toContain("Client OAuth défini par l'utilisateur");
+    expect(page).not.toContain("CHATGPT_OAUTH_AUTHORIZATION_URL");
+    expect(page).not.toContain("CHATGPT_OAUTH_TOKEN_URL");
   });
 
   it("keeps text selection visible across TOK pages", () => {
@@ -92,34 +78,20 @@ describe("TOK Connect frontend integration", () => {
     const dashboard = read("src/pages/dashboard/DashboardTokConnect.tsx");
 
     expect(admin).toContain("Supervision TOK Connect");
-    expect(admin).toContain("tok-connect-portal");
-    expect(admin).toContain("approve-partner");
-    expect(admin).toContain("suspend-partner");
-    expect(admin).toContain("revoke-partner");
-    expect(admin).toContain("revoke-client");
-    expect(admin).toContain("upsert-restaurant-grant");
-    expect(admin).toContain("update-client-policy");
-    expect(admin).toContain("approve-agent-run");
-    expect(admin).toContain("reject-agent-run");
-    expect(admin).toContain("selectedPartnerId");
-    expect(admin).toContain("grantForm");
+    expect(admin).toContain("tok-connect-admin");
+    expect(admin).toContain("admin-overview");
+    expect(admin).toContain("set-restaurant-mcp-access");
+    expect(admin).toContain("Restaurants autorisés au MCP");
+    expect(admin).toContain("Rechercher un restaurant");
+    expect(admin).toContain("Autoriser l’accès MCP");
+    expect(admin).toContain("Révoquer l’accès MCP");
     expect(admin).toContain("fetchWithFreshAccessToken");
-    expect(admin).toContain("Checklist ChatGPT MCP");
-    expect(admin).toContain("CHATGPT_MCP_SERVER_URL");
     expect(admin).toContain("https://www.thetok.ch/mcp");
-    expect(admin).toContain("CHATGPT_OAUTH_AUTHORIZATION_URL");
-    expect(admin).toContain("CHATGPT_OAUTH_TOKEN_URL");
-    expect(admin).toContain("tok-connect-oauth");
-    expect(admin).toContain("client_secret_basic");
-    expect(admin).toContain("invalid_client");
-    expect(admin).toContain("même environnement");
-    expect(admin).toContain("Client OAuth défini par l'utilisateur");
-    expect(admin).toContain("Périmètres par défaut");
-    expect(admin).toContain("Secret affiché une seule fois");
-    expect(admin).toContain("tok_connect_partners");
-    expect(admin).toContain("tok_connect_api_requests");
-    expect(admin).toContain("tok_connect_agent_runs");
+    expect(admin).toContain("Diagnostic technique");
     expect(admin).toContain("ADMIN_TOK_CONNECT_LOG_LIMIT");
+    expect(admin).not.toContain("Checklist ChatGPT MCP");
+    expect(admin).not.toContain("selectedPartnerId");
+    expect(admin).not.toContain("grantForm");
 
     expect(dashboard).toContain("Consentements partenaires");
     expect(dashboard).toContain("tok_connect_restaurant_grants");
@@ -133,9 +105,6 @@ describe("TOK Connect frontend integration", () => {
   it("gives restaurateurs a self-service ChatGPT connection panel inside the standard dashboard shell", () => {
     const dashboard = read("src/pages/dashboard/DashboardTokConnect.tsx");
 
-    // This page used to render a bare <main> with hardcoded slate colours: it
-    // was the only dashboard route without the shared shell, so it had no
-    // sidebar, no dark mode and no way to discover the MCP endpoint.
     expect(dashboard).toContain("DashboardLayout");
     expect(dashboard).toContain("DashboardPageHero");
     expect(dashboard).not.toContain("bg-slate-50");
@@ -150,10 +119,6 @@ describe("TOK Connect frontend integration", () => {
   it("reports the real ChatGPT/OAuth connection state instead of promising a partner consent row", () => {
     const dashboard = read("src/pages/dashboard/DashboardTokConnect.tsx");
 
-    // ChatGPT authenticates through Supabase OAuth, which never writes to
-    // tok_connect_restaurant_grants. The page used to tell restaurateurs a
-    // consent would "appear below" and that ChatGPT otherwise only saw demo
-    // data — both false, leaving a working connection looking broken.
     expect(dashboard).toContain("mcp-connection-status");
     expect(dashboard).toContain("Connexion ChatGPT");
     expect(dashboard).toContain("Aucun appel MCP enregistré pour ce restaurant.");
@@ -170,8 +135,6 @@ describe("TOK Connect frontend integration", () => {
     expect(portal).toContain("requireRestaurantAccess");
     expect(portal).toContain('.is("partner_id", null)');
 
-    // Without these two the request log carries neither the restaurant nor the
-    // OAuth client, so the dashboard has nothing to display.
     expect(mcp).toContain("restaurantId: typeof args.restaurant_id === \"string\"");
     expect(sharedAuth).toContain("oauth_client_id: input.context.oauthClientId");
   });
