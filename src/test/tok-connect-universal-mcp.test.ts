@@ -59,6 +59,17 @@ describe("TOK Connect universal remote MCP", () => {
     expect(remoteGateway).toContain("mcp_protocol_versions_supported");
   });
 
+  it("exposes a ChatGPT-compatible read/fetch catalogue on the public MCP without deleting the guarded TOK actions", () => {
+    expect(actionGateway).toContain('name: "search"');
+    expect(actionGateway).toContain('name: "fetch"');
+    expect(actionGateway).toContain('name: "create_reservation"');
+    expect(actionGateway).toContain('name: "cancel_reservation"');
+    expect(remoteGateway).toContain("filterPublicReadOnlyTools");
+    expect(remoteGateway).toContain("resolvePublicReadOnlyToolNames");
+    expect(remoteGateway).toContain("public_mcp_read_only");
+    expect(remoteGateway).toContain("annotations?.readOnlyHint === true");
+  });
+
   it("retains real guarded actions instead of exposing only previews", () => {
     expect(actionGateway).toContain('name: "create_reservation"');
     expect(actionGateway).toContain('name: "cancel_reservation"');

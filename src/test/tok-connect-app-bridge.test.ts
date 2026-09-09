@@ -106,14 +106,18 @@ describe("TOK Connect authenticated application bridge", () => {
     expect(migration).toContain("grant all on table public.tok_connect_mcp_action_idempotency to service_role");
   });
 
-  it("publishes the full-app execution bridge as normal authenticated MCP tools", () => {
+  it("keeps the full execution bridge defined internally while the public MCP publishes only read-only tools", () => {
     for (const tool of ["tok_list_capabilities", "tok_invoke_capability", "tok_invoke_rpc", "tok_data", "tok_commercial"]) {
       expect(remote).toContain(`name: "${tool}"`);
     }
     expect(remote).toContain("APP_BRIDGE_URL");
     expect(remote).toContain("mcp/www_authenticate");
     expect(remote).toContain("mergeTools");
+    expect(remote).toContain("filterPublicReadOnlyTools");
+    expect(remote).toContain("resolvePublicReadOnlyToolNames");
+    expect(remote).toContain("public_mcp_read_only");
     expect(remote).toContain("callAppBridge");
+    expect(remote).toContain("annotations?.readOnlyHint === true");
     expect(remote).toContain("Service-role, scheduler-only and webhook-only operations are never exposed");
   });
 });
