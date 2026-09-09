@@ -79,42 +79,6 @@ function readJwtPayload(token: string): Record<string, unknown> {
   }
 }
 
-async function authenticateSupabaseOAuthToken(
-  adminClient: EdgeSupabaseClient,
-  rawToken: string,
-  requiredScopes: string[],
-): Promise<TokConnectTokenContext> {
-  const { data, error } = await adminClient.auth.getUser(rawToken);
-  if (error || !data.user) throw new HttpError(401, "tok_connect_token_invalid");
-
-  const claims = readJwtPayload(rawToken);
-  const oauthClientId = typeof claims.client_id === "string" ? claims.client_id : null;
-  if (!oauthClientId) throw new HttpError(401, "tok_connect_oauth_client_id_required");
-
-  // Supabase OAuth exposes the authenticated user. TOK business permissions
-  // remain server-side and are enforced in assertTokConnectRestaurantGrant.
-  const scopes = [...ALL_TOK_CONNECT_SCOPES];
-  try {
-    assertTokConnectScopes(scopes, requiredScopes);
-  } catch {
-    throw new HttpError(403, `tok_connect_scope_required:${requiredScopes.join(",")}`);
-  }
-
-  return {
-    adminClient,
-    tokenId: data.user.id,
-    partnerId: data.user.id,
-    clientUuid: oauthClientId,
-    scopes,
-    environment: "production",
-    clientQuotaPerMinute: 240,
-    partnerQuotaPerMinute: 600,
-    authMode: "supabase_oauth",
-    userId: data.user.id,
-    oauthClientId,
-  };
-}
-
 function asMetadataRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -132,6 +96,64 @@ function getTokConnectQuotaPerMinute(
   return Math.max(1, Math.min(Math.floor(quota), 10_000));
 }
 
+/**
+ * Every TOK Connect restaurant read inherits the global Admin access switch.
+ * The proxy only changes SELECTs on the restaurants table; writes, logs and all
+ * other tables keep the normal service-role client. This makes revocation apply
+ * automatically to discovery, details and future restaurant-reading tools.
+ */
+export function withTokConnectRestaurantVisibility(adminClient: EdgeSupabaseClient): EdgeSupabaseClient {
+  return new Proxy(adminClient as any, {
+    get(target, property, receiver) {
+      if (property !== "from") return Reflect.get(target, property, receiver);
+      return (table: string) => {
+        const builder = target.from(table);
+        if (table !== "restaurants") return builder;
+        return new Proxy(builder, {
+          get(builderTarget, builderProperty, builderReceiver) {
+            if (builderProperty !== "select") return Reflect.get(builderTarget, builderProperty, builderReceiver);
+            return (...args: unknown[]) => builderTarget.select(...args).eq("tok_connect_mcp_enabled", true);
+          },
+        });
+      };
+    },
+  }) as EdgeSupabaseClient;
+}
+
+async function authenticateSupabaseOAuthToken(
+  adminClient: EdgeSupabaseClient,
+  rawToken: string,
+  requiredScopes: string[],
+): Promise<TokConnectTokenContext> {
+  const { data, error } = await adminClient.auth.getUser(rawToken);
+  if (error || !data.user) throw new HttpError(401, "tok_connect_token_invalid");
+
+  const claims = readJwtPayload(rawToken);
+  const oauthClientId = typeof claims.client_id === "string" ? claims.client_id : null;
+  if (!oauthClientId) throw new HttpError(401, "tok_connect_oauth_client_id_required");
+
+  const scopes = [...ALL_TOK_CONNECT_SCOPES];
+  try {
+    assertTokConnectScopes(scopes, requiredScopes);
+  } catch {
+    throw new HttpError(403, `tok_connect_scope_required:${requiredScopes.join(",")}`);
+  }
+
+  return {
+    adminClient: withTokConnectRestaurantVisibility(adminClient),
+    tokenId: data.user.id,
+    partnerId: data.user.id,
+    clientUuid: oauthClientId,
+    scopes,
+    environment: "production",
+    clientQuotaPerMinute: 240,
+    partnerQuotaPerMinute: 600,
+    authMode: "supabase_oauth",
+    userId: data.user.id,
+    oauthClientId,
+  };
+}
+
 export async function assertTokConnectFeatureEnabled(
   adminClient: EdgeSupabaseClient,
   flagName: string,
@@ -147,10 +169,12 @@ export async function assertTokConnectFeatureEnabled(
 }
 
 async function assertTokConnectRestaurantMcpEnabled(
-  context: TokConnectTokenContext,
   restaurantId: string,
 ) {
-  const { data: restaurant, error } = await context.adminClient
+  // Use an unfiltered server client so a revoked restaurant can be distinguished
+  // from an unknown id and can later be re-authorized by the Admin console.
+  const adminClient = createAdminClient();
+  const { data: restaurant, error } = await adminClient
     .from("restaurants")
     .select("id, tok_connect_mcp_enabled")
     .eq("id", restaurantId)
@@ -176,10 +200,7 @@ export async function assertTokConnectRestaurantGrant(
   if (!restaurantId) throw new HttpError(400, "restaurant_id_required");
   if (context.environment === "sandbox") return null;
 
-  // This flag is the global kill switch for a restaurant. It is deliberately
-  // checked before both Supabase OAuth and legacy partner grants so the Admin
-  // button has one unambiguous meaning: revoked means inaccessible everywhere.
-  await assertTokConnectRestaurantMcpEnabled(context, restaurantId);
+  await assertTokConnectRestaurantMcpEnabled(restaurantId);
 
   if (context.authMode === "supabase_oauth") {
     if (!context.userId) throw new HttpError(401, "tok_connect_user_required");
@@ -340,7 +361,7 @@ export async function authenticateTokConnectToken(
     .eq("id", tokenRow.id);
 
   return {
-    adminClient,
+    adminClient: withTokConnectRestaurantVisibility(adminClient),
     tokenId: tokenRow.id,
     partnerId: tokenRow.partner_id,
     clientUuid: tokenRow.client_id,
