@@ -23,8 +23,8 @@ const MODERN_MCP_PROTOCOL_VERSION = "2026-07-28";
 const INTERNAL_MCP_PROTOCOL_VERSION = "2025-11-25";
 const CLAUDE_ORIGIN = "https://claude.ai";
 const OAUTH_SECURITY = [{ type: "oauth2", scopes: OIDC_SCOPES }];
-const REMOTE_SERVER_INFO = { name: "TOK Connect Remote MCP", version: "5.2.0" } as const;
-const REMOTE_INSTRUCTIONS = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. When the user asks for restaurants, a shortlist or a selection of places to eat - including compound requests such as '3 pizzerias and 2 sushi restaurants in Geneva' - call discover_restaurants and pass their request verbatim in `request`: it opens the TOK restaurant module with ranked, clickable cards, so answer with a short sentence instead of repeating the list. get_restaurant_details opens one venue's full card. Once authenticated, use tok_list_capabilities to discover the actions authorized by the user's TOK roles. Reads run under the user's JWT and RLS. Real writes, payments, refunds, publications and admin actions use allowlisted TOK backends or business RPCs and require explicit confirmation plus idempotency where applicable. The commercial role is isolated behind tok_commercial. Service-role, scheduler-only and webhook-only operations are never exposed.";
+const REMOTE_SERVER_INFO = { name: "TOK Connect Remote MCP", version: "5.3.0" } as const;
+const REMOTE_INSTRUCTIONS = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. The public endpoint is read-only for broad ChatGPT compatibility. When the user asks for restaurants, a shortlist or a selection of places to eat - including compound requests such as '3 pizzerias and 2 sushi restaurants in Geneva' - call discover_restaurants and pass their request verbatim in `request`: it opens the TOK restaurant module with ranked, clickable cards, so answer with a short sentence instead of repeating the list. get_restaurant_details opens one venue's full card. Authenticated reads still run under the user's JWT and RLS. Real writes, payments, refunds, publications and admin actions remain available only through guarded TOK backends and are not published by this public MCP surface. The commercial role remains isolated behind its guarded backend. Service-role, scheduler-only and webhook-only operations are never exposed.";
 const MODERN_CACHEABLE_METHODS = new Set([
   "tools/list",
   "prompts/list",
@@ -32,6 +32,7 @@ const MODERN_CACHEABLE_METHODS = new Set([
   "resources/templates/list",
   "resources/read",
 ]);
+const PUBLIC_MCP_READ_ONLY_ERROR = "public_mcp_read_only";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -148,6 +149,36 @@ const APP_BRIDGE_TOOLS = [
 ];
 
 const APP_BRIDGE_TOOL_NAMES = new Set(APP_BRIDGE_TOOLS.map((tool) => tool.name));
+const PUBLIC_READ_ONLY_TOOL_NAMES = new Set<string>();
+
+function isReadOnlyTool(tool: unknown) {
+  if (!tool || typeof tool !== "object" || Array.isArray(tool)) return false;
+  const annotations = (tool as JsonRecord).annotations as JsonRecord | undefined;
+  return annotations?.readOnlyHint === true;
+}
+
+function filterPublicReadOnlyTools(payload: unknown) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return payload;
+  const rpc = payload as JsonRecord;
+  const result = rpc.result;
+  if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
+  const upstreamTools = Array.isArray((result as JsonRecord).tools) ? (result as JsonRecord).tools as unknown[] : [];
+  const seen = new Set(upstreamTools.map((tool) => tool && typeof tool === "object" ? String((tool as JsonRecord).name || "") : ""));
+  const additions = APP_BRIDGE_TOOLS.filter((tool) => isReadOnlyTool(tool) && !seen.has(tool.name));
+  const tools = [...upstreamTools, ...additions].filter(isReadOnlyTool);
+
+  PUBLIC_READ_ONLY_TOOL_NAMES.clear();
+  for (const tool of tools) {
+    const name = tool && typeof tool === "object" ? String((tool as JsonRecord).name || "") : "";
+    if (name) PUBLIC_READ_ONLY_TOOL_NAMES.add(name);
+  }
+
+  return { ...rpc, result: { ...(result as JsonRecord), tools } };
+}
+
+function mergeTools(payload: unknown) {
+  return filterPublicReadOnlyTools(payload);
+}
 
 function remoteCorsHeaders(req: Request) {
   const headers = buildCorsHeaders(req);
@@ -268,15 +299,31 @@ async function upstreamRequest(req: Request, rpc: McpJsonRpcRequest) {
   return await fetch(UPSTREAM_MCP_URL, { method: "POST", headers: requestHeaders(req, rpc), body: JSON.stringify(rpc) });
 }
 
-function mergeTools(payload: unknown) {
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return payload;
-  const rpc = payload as JsonRecord;
-  const result = rpc.result;
-  if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
-  const tools = Array.isArray((result as JsonRecord).tools) ? (result as JsonRecord).tools as unknown[] : [];
-  const seen = new Set(tools.map((tool) => tool && typeof tool === "object" ? String((tool as JsonRecord).name || "") : ""));
-  const additions = APP_BRIDGE_TOOLS.filter((tool) => !seen.has(tool.name));
-  return { ...rpc, result: { ...(result as JsonRecord), tools: [...tools, ...additions] } };
+async function resolvePublicReadOnlyToolNames(req: Request) {
+  if (PUBLIC_READ_ONLY_TOOL_NAMES.size > 0) return new Set(PUBLIC_READ_ONLY_TOOL_NAMES);
+
+  const listingRpc: McpJsonRpcRequest = {
+    jsonrpc: "2.0",
+    id: "tok-public-read-only-tools",
+    method: "tools/list",
+    params: {},
+  };
+  const upstream = await upstreamRequest(req, listingRpc);
+  const text = await upstream.text();
+  if (upstream.ok && text) {
+    try {
+      filterPublicReadOnlyTools(JSON.parse(text));
+    } catch {
+      // Fall through to the local read-only bridge tools below.
+    }
+  }
+
+  if (PUBLIC_READ_ONLY_TOOL_NAMES.size === 0) {
+    for (const tool of APP_BRIDGE_TOOLS) {
+      if (isReadOnlyTool(tool)) PUBLIC_READ_ONLY_TOOL_NAMES.add(tool.name);
+    }
+  }
+  return new Set(PUBLIC_READ_ONLY_TOOL_NAMES);
 }
 
 function authToolResult(message = "Connexion TOK requise pour cette action.") {
@@ -340,6 +387,13 @@ async function relay(req: Request, rpc: McpJsonRpcRequest) {
   }
   if (rpc.method === "tools/call") {
     const name = typeof rpc.params?.name === "string" ? rpc.params.name : "";
+    const readOnlyToolNames = await resolvePublicReadOnlyToolNames(req);
+    if (!name || !readOnlyToolNames.has(name)) {
+      return new Response(JSON.stringify(jsonRpcError(rpc.id, -32602, PUBLIC_MCP_READ_ONLY_ERROR)), {
+        status: 400,
+        headers: responseHeaders(req),
+      });
+    }
     if (APP_BRIDGE_TOOL_NAMES.has(name)) {
       const payload = normalizeModernResult(req, rpc, await callAppBridge(req, rpc, name));
       return new Response(JSON.stringify(payload), { status: 200, headers: responseHeaders(req) });
