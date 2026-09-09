@@ -28,17 +28,17 @@ async function buildAdminOverview(adminClient: ReturnType<typeof createAdminClie
       .limit(1500),
     adminClient
       .from("tok_connect_partners")
-      .select("id, name, slug, status, environment, contact_email, created_at")
+      .select("id, name, partner_type, status, environment, website_url, contact_email, created_at")
       .order("created_at", { ascending: false })
       .limit(100),
     adminClient
       .from("tok_connect_clients")
-      .select("id, partner_id, name, client_id, status, environment, allowed_scopes, created_at, last_used_at")
+      .select("id, partner_id, name, client_id, status, environment, allowed_scopes, created_at")
       .order("created_at", { ascending: false })
       .limit(150),
     adminClient
       .from("tok_connect_agent_runs")
-      .select("id, partner_id, client_id, restaurant_id, tool_name, status, created_at, updated_at")
+      .select("id, partner_id, restaurant_id, tool_name, status, created_at")
       .order("created_at", { ascending: false })
       .limit(100),
     adminClient
@@ -73,8 +73,6 @@ async function buildAdminOverview(adminClient: ReturnType<typeof createAdminClie
     (profilesResult.data || []).map((profile: any) => [stringValue(profile.user_id), stringValue(profile.full_name)]),
   );
 
-  // Auth remains the source of truth for account email. The admin overview only
-  // exposes it to an authenticated TOK admin and never returns password/session data.
   const authByUser = new Map<string, { email: string; fullName: string }>();
   for (let page = 1; page <= 10; page += 1) {
     const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 100 });
@@ -94,6 +92,15 @@ async function buildAdminOverview(adminClient: ReturnType<typeof createAdminClie
   const partnerById = new Map(partners.map((partner: any) => [stringValue(partner.id), partner]));
   const clientById = new Map(clients.map((client: any) => [stringValue(client.id), client]));
   const restaurantById = new Map(restaurants.map((restaurant: any) => [stringValue(restaurant.id), restaurant]));
+
+  const lastRequestByClient = new Map<string, string>();
+  for (const request of requests as any[]) {
+    const clientId = stringValue(request.client_id);
+    const createdAt = stringValue(request.created_at);
+    if (clientId && createdAt && !lastRequestByClient.has(clientId)) {
+      lastRequestByClient.set(clientId, createdAt);
+    }
+  }
 
   const humanRestaurants = restaurants.map((restaurant: any) => {
     const ownerId = stringValue(restaurant.owner_id);
@@ -119,24 +126,23 @@ async function buildAdminOverview(adminClient: ReturnType<typeof createAdminClie
       partner_name: partner?.name || "TOK Connect",
       status: client.status || "unknown",
       environment: client.environment || null,
-      last_used_at: client.last_used_at || null,
+      last_used_at: lastRequestByClient.get(stringValue(client.id)) || null,
       allowed_scopes: Array.isArray(client.allowed_scopes) ? client.allowed_scopes : [],
     };
   });
 
   const humanRuns = agentRuns.map((run: any) => {
     const partner = partnerById.get(stringValue(run.partner_id)) as any;
-    const client = clientById.get(stringValue(run.client_id)) as any;
     const restaurant = restaurantById.get(stringValue(run.restaurant_id)) as any;
     return {
       run_id: run.id,
-      agent_name: client?.name || partner?.name || "Agent TOK Connect",
+      agent_name: partner?.name || "Agent TOK Connect",
       partner_name: partner?.name || "TOK Connect",
       restaurant_name: restaurant?.name || null,
       tool_name: run.tool_name || null,
       status: run.status || null,
       created_at: run.created_at || null,
-      updated_at: run.updated_at || null,
+      updated_at: null,
     };
   });
 
@@ -166,6 +172,8 @@ async function buildAdminOverview(adminClient: ReturnType<typeof createAdminClie
       partners: partners.map((partner: any) => ({
         partner_id: partner.id,
         partner_name: partner.name,
+        partner_type: partner.partner_type,
+        website_url: partner.website_url || null,
         status: partner.status,
         environment: partner.environment,
       })),
@@ -222,8 +230,6 @@ Deno.serve(async (req) => {
       if (updateError) throw new HttpError(500, updateError.message);
 
       if (body.enabled === false) {
-        // Legacy partner grants stay auditable but cannot keep MCP access alive
-        // after a global Admin revocation.
         const { error: grantError } = await adminClient
           .from("tok_connect_restaurant_grants")
           .update({ allow_mcp: false, updated_at: new Date().toISOString() })
