@@ -35,20 +35,41 @@ $cron_index$;
 CREATE INDEX IF NOT EXISTS idx_audit_log_created_at_id_desc
   ON public.audit_log (created_at DESC, id DESC);
 
--- sync_net_http_response_cache filters and orders net._http_response by id.
--- Production only had the extension's created-at index, forcing avoidable
--- scans/sorts for each synchronization pass.
-CREATE INDEX IF NOT EXISTS idx_net_http_response_id
-  ON net._http_response (id);
+-- pg_net owns net._http_response on managed Supabase projects. As with pg_cron,
+-- creating an index directly on an extension-owned table requires membership in
+-- the owner role. Keep the optimization where permitted and otherwise skip only
+-- this index so the rest of the maintenance migration can still deploy.
+DO $net_index$
+DECLARE
+  v_net_owner oid;
+BEGIN
+  SELECT c.relowner
+  INTO v_net_owner
+  FROM pg_catalog.pg_class AS c
+  JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'net'
+    AND c.relname = '_http_response'
+    AND c.relkind IN ('r', 'p');
+
+  IF v_net_owner IS NULL THEN
+    RAISE NOTICE 'Skipping net._http_response index: managed pg_net table is unavailable';
+  ELSIF pg_has_role(current_user, v_net_owner, 'MEMBER') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_net_http_response_id ON net._http_response (id)';
+    EXECUTE 'COMMENT ON INDEX net.idx_net_http_response_id IS ''Supports incremental net._http_response mirroring by id.''';
+  ELSE
+    RAISE NOTICE 'Skipping net._http_response index: current role % is not a member of table owner %',
+      current_user,
+      pg_get_userbyid(v_net_owner);
+  END IF;
+END;
+$net_index$;
 
 COMMENT ON INDEX public.idx_audit_log_created_at_id_desc IS
   'Cursor pagination for admin audit history ordered by created_at/id.';
 
-COMMENT ON INDEX net.idx_net_http_response_id IS
-  'Supports incremental net._http_response mirroring by id.';
-
 -- Keep sync batches bounded even if a caller supplies an unexpectedly large
--- limit. The source id index above is the important I/O optimization.
+-- limit. The source id index above is the important I/O optimization when the
+-- managed pg_net table is indexable by the current role.
 CREATE OR REPLACE FUNCTION public.sync_net_http_response_cache(p_limit integer DEFAULT 2000)
 RETURNS integer
 LANGUAGE plpgsql
