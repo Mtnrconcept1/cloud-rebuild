@@ -91,8 +91,8 @@ async function authenticateSupabaseOAuthToken(
   const oauthClientId = typeof claims.client_id === "string" ? claims.client_id : null;
   if (!oauthClientId) throw new HttpError(401, "tok_connect_oauth_client_id_required");
 
-  // Supabase OAuth currently exposes OIDC scopes. TOK business permissions are
-  // enforced against user ownership/staff roles in assertTokConnectRestaurantGrant.
+  // Supabase OAuth exposes the authenticated user. TOK business permissions
+  // remain server-side and are enforced in assertTokConnectRestaurantGrant.
   const scopes = [...ALL_TOK_CONNECT_SCOPES];
   try {
     assertTokConnectScopes(scopes, requiredScopes);
@@ -146,6 +146,23 @@ export async function assertTokConnectFeatureEnabled(
   if (!data?.is_active) throw new HttpError(403, `tok_connect_feature_disabled:${flagName}`);
 }
 
+async function assertTokConnectRestaurantMcpEnabled(
+  context: TokConnectTokenContext,
+  restaurantId: string,
+) {
+  const { data: restaurant, error } = await context.adminClient
+    .from("restaurants")
+    .select("id, tok_connect_mcp_enabled")
+    .eq("id", restaurantId)
+    .maybeSingle<{ id: string; tok_connect_mcp_enabled: boolean | null }>();
+
+  if (error) throw new HttpError(500, error.message);
+  if (!restaurant) throw new HttpError(404, "tok_connect_restaurant_not_found");
+  if (restaurant.tok_connect_mcp_enabled === false) {
+    throw new HttpError(403, "tok_connect_restaurant_mcp_disabled");
+  }
+}
+
 export async function assertTokConnectRestaurantGrant(
   context: TokConnectTokenContext,
   restaurantId: string,
@@ -158,6 +175,11 @@ export async function assertTokConnectRestaurantGrant(
 ) {
   if (!restaurantId) throw new HttpError(400, "restaurant_id_required");
   if (context.environment === "sandbox") return null;
+
+  // This flag is the global kill switch for a restaurant. It is deliberately
+  // checked before both Supabase OAuth and legacy partner grants so the Admin
+  // button has one unambiguous meaning: revoked means inaccessible everywhere.
+  await assertTokConnectRestaurantMcpEnabled(context, restaurantId);
 
   if (context.authMode === "supabase_oauth") {
     if (!context.userId) throw new HttpError(401, "tok_connect_user_required");
@@ -368,16 +390,8 @@ export async function recordTokConnectApiRequest(input: {
       latency_ms: Math.max(0, Date.now() - input.startedAt),
       idempotency_key: input.idempotencyKey || null,
       error_code: input.errorCode || null,
-      // OAuth callers (ChatGPT and any other MCP client) have no partner row, so
-      // partner_id/client_id above stay null. Without this the request log keeps
-      // no trace at all of *who* called, and the restaurateur dashboard cannot
-      // show which connector is live. Keep the identity in the metadata blob.
       request_metadata: {
         ...buildRequestMetadata(input.request),
-        // Protocol headers, kept because a request rejected at the transport
-        // gate (415 mcp_content_type_invalid) never reaches a handler: without
-        // these the log records that a client was turned away but not why, and
-        // the platform log API is not always available to fill the gap.
         content_type: input.request.headers.get("content-type"),
         accept: input.request.headers.get("accept"),
         mcp_protocol_version: input.request.headers.get("mcp-protocol-version"),
