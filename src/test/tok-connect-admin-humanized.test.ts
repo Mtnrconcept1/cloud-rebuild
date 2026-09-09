@@ -7,32 +7,31 @@ function read(relativePath: string) {
 }
 
 describe("TOK Connect admin humanized workflow", () => {
-  it("gives every restaurant a real global MCP access switch enforced by OAuth and discovery", () => {
+  it("gives every restaurant a real global MCP access switch enforced by OAuth and all restaurant reads", () => {
     const migration = read("supabase/migrations/20260909014500_tok_connect_restaurant_mcp_access.sql");
     const auth = read("supabase/functions/_shared/tok-connect-auth.ts");
-    const discovery = read("supabase/functions/_shared/tok-connect-discovery.ts");
-    const portal = read("supabase/functions/tok-connect-portal/index.ts");
+    const adminApi = read("supabase/functions/tok-connect-admin/index.ts");
 
     expect(migration).toContain("tok_connect_mcp_enabled");
     expect(migration).toContain("DEFAULT true");
     expect(auth).toContain("tok_connect_mcp_enabled");
     expect(auth).toContain("tok_connect_restaurant_mcp_disabled");
-    expect(discovery).toContain("tok_connect_mcp_enabled");
-    expect(discovery).toContain('.eq("tok_connect_mcp_enabled", true)');
-    expect(portal).toContain('"set-restaurant-mcp-access"');
-    expect(portal).toContain("tok_connect_mcp_enabled");
+    expect(auth).toContain("withTokConnectRestaurantVisibility");
+    expect(auth).toContain('.eq("tok_connect_mcp_enabled", true)');
+    expect(adminApi).toContain('"set-restaurant-mcp-access"');
+    expect(adminApi).toContain("tok_connect_mcp_enabled");
   });
 
   it("loads an enriched admin overview with human restaurant, owner, partner and agent names", () => {
-    const portal = read("supabase/functions/tok-connect-portal/index.ts");
+    const adminApi = read("supabase/functions/tok-connect-admin/index.ts");
 
-    expect(portal).toContain('"admin-overview"');
-    expect(portal).toContain("restaurant_name");
-    expect(portal).toContain("owner_name");
-    expect(portal).toContain("owner_email");
-    expect(portal).toContain("partner_name");
-    expect(portal).toContain("agent_name");
-    expect(portal).toContain("profiles");
+    expect(adminApi).toContain('"admin-overview"');
+    expect(adminApi).toContain("restaurant_name");
+    expect(adminApi).toContain("owner_name");
+    expect(adminApi).toContain("owner_email");
+    expect(adminApi).toContain("partner_name");
+    expect(adminApi).toContain("agent_name");
+    expect(adminApi).toContain("profiles");
   });
 
   it("lets an admin pick a restaurant by name and authorize or revoke MCP access in one click", () => {
