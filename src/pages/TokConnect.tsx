@@ -21,8 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
 
 const PAGE_PATH = "/tok-connect";
-const CANONICAL_ORIGIN = "https://www.thetok.ch";
-const CHATGPT_MCP_SERVER_URL = `${CANONICAL_ORIGIN}/mcp`;
+const CHATGPT_MCP_SERVER_URL = "https://www.thetok.ch/mcp";
 
 const quickLinks: Array<{ label: string; helper: string; href: string; icon: LucideIcon }> = [
   {
@@ -48,6 +47,12 @@ const quickLinks: Array<{ label: string; helper: string; href: string; icon: Luc
     helper: "Vue restaurateur et état de connexion",
     href: "/dashboard/tok-connect",
     icon: Table2,
+  },
+  {
+    label: "Capacités MCP",
+    helper: "Recherche, disponibilités et réservations",
+    href: "#mcp-server",
+    icon: Bot,
   },
   {
     label: "API REST",
@@ -89,13 +94,13 @@ const installSteps = [
 const screenshots = [
   {
     title: "Une sélection de restaurants directement dans ChatGPT",
-    src: "/images/tok-connect/tok-connect-widget-restaurants.png",
+    src: "/images/tok-connect/tok-connect-widget-restaurants.svg",
     alt: "Widget TOK Connect affichant une sélection de restaurants dans ChatGPT",
     body: "Une demande comme « trois pizzerias et deux sushis à Genève » ouvre un vrai module TOK avec des cartes classées, photos, notes et informations utiles.",
   },
   {
     title: "Une fiche restaurant complète au clic",
-    src: "/images/tok-connect/tok-connect-widget-details.png",
+    src: "/images/tok-connect/tok-connect-widget-details.svg",
     alt: "Widget TOK Connect affichant la fiche détaillée d'un restaurant",
     body: "Le clic sur une carte ouvre la fiche : adresse, horaires, menu, réservation et contexte restaurant sans quitter la conversation.",
   },
@@ -140,7 +145,7 @@ export default function TokConnect() {
   useSeoMeta({
     title: "TOK Connect — TOK dans ChatGPT",
     description: "Connectez TOK à ChatGPT avec une seule URL MCP et OAuth, puis découvrez restaurants, disponibilités et réservations dans un module visuel.",
-    canonical: `${CANONICAL_ORIGIN}${PAGE_PATH}`,
+    path: PAGE_PATH,
   });
 
   async function copyMcpUrl() {
