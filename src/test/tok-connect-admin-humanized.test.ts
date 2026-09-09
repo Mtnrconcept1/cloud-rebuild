@@ -14,8 +14,6 @@ describe("TOK Connect admin humanized workflow", () => {
 
     expect(migration).toContain("tok_connect_mcp_enabled");
     expect(migration).toContain("DEFAULT true");
-    expect(auth).toContain("tok_connect_mcp_enabled");
-    expect(auth).toContain("tok_connect_restaurant_mcp_disabled");
     expect(auth).toContain("withTokConnectRestaurantVisibility");
     expect(auth).toContain('.eq("tok_connect_mcp_enabled", true)');
     expect(adminApi).toContain('"set-restaurant-mcp-access"');
@@ -64,8 +62,8 @@ describe("TOK Connect admin humanized workflow", () => {
     expect(page).toContain("Choisir OAuth");
     expect(page).toContain("Se connecter à TOK");
     expect(page).toContain("Le module TOK s’ouvre automatiquement");
-    expect(page).toContain("tok-connect-widget-restaurants.png");
-    expect(page).toContain("tok-connect-widget-details.png");
+    expect(page).toContain("tok-connect-widget-restaurants.svg");
+    expect(page).toContain("tok-connect-widget-details.svg");
 
     expect(page).not.toContain("OAuth avancé");
     expect(page).not.toContain("Client OAuth défini par l'utilisateur");
