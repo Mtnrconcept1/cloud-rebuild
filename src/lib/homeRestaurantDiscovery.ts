@@ -231,6 +231,28 @@ function selectWithFallback<T extends HomeRestaurantCandidate>(
   return [...preferredCards, ...fallbackCards];
 }
 
+function selectWithCrossSectionReuse<T extends HomeRestaurantCandidate>(
+  preferred: readonly T[],
+  fallback: readonly T[],
+  options: {
+    seed: number | string;
+    limit: number;
+    excludedIds: ReadonlySet<string>;
+  },
+): T[] {
+  const uniqueCards = selectWithFallback(preferred, fallback, options);
+  if (uniqueCards.length >= options.limit) return uniqueCards;
+
+  const sectionIds = new Set(uniqueCards.map((restaurant) => restaurantId(restaurant)));
+  const reusableCards = selectWithFallback(preferred, fallback, {
+    seed: `${String(options.seed)}:reuse`,
+    limit: options.limit - uniqueCards.length,
+    excludedIds: sectionIds,
+  });
+
+  return [...uniqueCards, ...reusableCards];
+}
+
 function addRestaurantIds(
   target: Set<string>,
   restaurants: readonly HomeRestaurantCandidate[],
@@ -307,7 +329,7 @@ export function buildHomeRestaurantSections<T extends HomeRestaurantCandidate>({
   addRestaurantIds(usedIds, personalCards);
   addRestaurantIds(usedIds, sponsoredCards);
 
-  const offersCards = selectDiverseRestaurants(scopedOfferCandidates, {
+  const offersCards = selectWithCrossSectionReuse(scopedOfferCandidates, scopedOfferCandidates, {
     seed: `${String(seed)}:offers`,
     limit: sectionSize,
     excludedIds: usedIds,
@@ -318,7 +340,7 @@ export function buildHomeRestaurantSections<T extends HomeRestaurantCandidate>({
   const eligibleTrendPool = filterUniqueVisuals(trendPool, usedIds);
   const hasEnoughTrendSignals = eligibleTrendPool.length >= 3;
   const trendSignalCards = hasEnoughTrendSignals
-    ? selectDiverseRestaurants(eligibleTrendPool, {
+    ? selectWithCrossSectionReuse(eligibleTrendPool, trendPool, {
       seed: `${String(seed)}:trending`,
       limit: trendingSize,
       excludedIds: usedIds,
@@ -326,7 +348,7 @@ export function buildHomeRestaurantSections<T extends HomeRestaurantCandidate>({
     : [];
   addRestaurantIds(usedIds, trendSignalCards);
 
-  const localCards = selectDiverseRestaurants(scopedCandidates, {
+  const localCards = selectWithCrossSectionReuse(scopedCandidates, scopedCandidates, {
     seed: `${String(seed)}:local`,
     limit: sectionSize,
     excludedIds: usedIds,
@@ -340,7 +362,7 @@ export function buildHomeRestaurantSections<T extends HomeRestaurantCandidate>({
     preferred: readonly T[],
     sectionKey: "lunch" | "dinner",
   ) => {
-    const cards = selectWithFallback(preferred, scopedCandidates, {
+    const cards = selectWithCrossSectionReuse(preferred, scopedCandidates, {
       seed: `${String(seed)}:${sectionKey}`,
       limit: sectionSize,
       excludedIds: usedIds,
@@ -364,7 +386,7 @@ export function buildHomeRestaurantSections<T extends HomeRestaurantCandidate>({
     : "discover";
   const trendingCards = hasEnoughTrendSignals
     ? trendSignalCards
-    : selectDiverseRestaurants(scopedCandidates, {
+    : selectWithCrossSectionReuse(scopedCandidates, scopedCandidates, {
       seed: `${String(seed)}:discover`,
       limit: trendingSize,
       excludedIds: usedIds,
