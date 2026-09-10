@@ -45,7 +45,7 @@ jobs:
   web_bundle:
     name: Build production web bundle
     needs: validation
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: Production
     env:
       VITE_SUPABASE_PROJECT_ID: wwcrtyoueexyxkkikaos
@@ -77,14 +77,14 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 1
 
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -108,7 +108,7 @@ jobs:
   app_store_preflight:
     name: Verify App Store Connect
     needs: validation
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: app-store-production
     outputs:
       app_id: ${{ steps.appstore.outputs.app_id }}
@@ -195,14 +195,14 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 1
 
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
