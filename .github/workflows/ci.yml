@@ -35,7 +35,7 @@ jobs:
     name: validate
     if: ${{ always() }}
     needs: validation
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Verify reusable validation
