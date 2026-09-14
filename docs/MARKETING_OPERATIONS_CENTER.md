@@ -56,7 +56,7 @@ Les canaux publics ne créent aucune livraison individuelle. Les canaux directs 
 5. **Approuver la campagne** avec une justification, puis approuver et programmer chaque élément calendrier séparément.
 6. **Exécuter** par le cron ou le bouton de traitement des éléments dus, uniquement après levée explicite de la pause globale. Pour une tâche d’appel/e-mail, indiquer un motif : le serveur revalide la pause, la plage 08:00–20:00 en Suisse, la révision approuvée, la base légale et l’opposition avant de retourner ponctuellement la cible dans une réponse `no-store`. La valeur n’entre jamais dans le snapshot ni dans l’audit.
 7. **Suivre** les statuts, erreurs et résultats dans Journal et Résultats. Une nouvelle tentative n’est possible que si le parent reste approuvé, le contact reste éligible et la limite de tentatives n’est pas atteinte.
-8. **Traiter la prospection assistée** depuis Prospection & backlinks : allowlister une cible après contrôles, saisir une opportunité publique, soumettre un brouillon, l’approuver, puis consigner manuellement la publication et la preuve du backlink. Aucune étape ne déclenche un post externe.
+8. **Traiter la prospection assistée** depuis Prospection & backlinks : autoriser une cible après contrôles, saisir une opportunité publique, soumettre un brouillon, l’approuver, puis consigner manuellement la publication et la preuve du backlink. Aucune étape ne déclenche un post externe.
 
 ## Garde-fous présents
 
