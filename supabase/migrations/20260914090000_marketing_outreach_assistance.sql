@@ -579,8 +579,11 @@ BEGIN
      OR char_length(v_title) NOT BETWEEN 3 AND 200
      OR v_status NOT IN ('discovered','draft','pending_review')
      OR v_relevance < 0 OR v_relevance > 1
-     OR (v_suggested_link !~ '^/' OR v_suggested_link ~ '^//')
-       AND v_suggested_link !~ '^https://(www[.])?thetok[.]ch(/|$)'
+     OR NOT (
+       v_suggested_link = '/'
+       OR (v_suggested_link ~ '^/' AND v_suggested_link !~ '^//')
+       OR v_suggested_link ~ '^https://(www[.])?thetok[.]ch(/|$)'
+     )
      OR v_fingerprint !~ '^[0-9a-f]{64}$'
      OR cardinality(v_risk_flags) > 8 THEN
     RAISE EXCEPTION 'Outreach opportunity fields are invalid' USING ERRCODE = '22023';
