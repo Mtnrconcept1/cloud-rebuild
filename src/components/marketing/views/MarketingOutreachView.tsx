@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  BookOpen,
   CheckCircle2,
   ExternalLink,
   FileCheck2,
@@ -320,9 +321,9 @@ export default function MarketingOutreachView({
     <div className="space-y-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">Acquisition responsable</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-700 dark:text-orange-300">Acquisition responsable</p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Prospection & backlinks</h1>
-          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+          <p className="mt-2 max-w-3xl text-sm text-slate-700 dark:text-slate-300">
             Centralisez les forums, annuaires, partenaires et preuves de liens sans automatiser le spam.
           </p>
         </div>
@@ -332,8 +333,57 @@ export default function MarketingOutreachView({
         </Button>
       </div>
 
-      <Alert className="border-amber-500/30 bg-amber-500/5">
-        <ShieldCheck className="h-4 w-4 text-amber-600" />
+      <Card className="border-slate-300 bg-slate-100/80 dark:border-slate-700 dark:bg-slate-900/80" aria-labelledby="outreach-guide-title">
+        <CardHeader>
+          <CardTitle id="outreach-guide-title" className="flex items-center gap-2 text-base text-slate-950 dark:text-white">
+            <BookOpen className="h-5 w-5 text-orange-700 dark:text-orange-300" aria-hidden="true" />
+            Mode d’emploi — 4 étapes
+          </CardTitle>
+          <p className="text-sm text-slate-700 dark:text-slate-300">
+            Cet écran prépare des contributions utiles et documente les liens. TOK ne publie rien à votre place.
+            Pour les règles détaillées du centre, ouvrez « Mode d’emploi » dans la navigation.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <ol className="grid gap-3 md:grid-cols-2">
+            <li className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white dark:bg-orange-500 dark:text-slate-950" aria-hidden="true">1</span>
+              <div>
+                <p className="font-semibold text-slate-950 dark:text-white">Autoriser une cible</p>
+                <p className="mt-1 text-sm leading-relaxed text-slate-700 dark:text-slate-300">Ajoutez un forum, annuaire, partenaire, média ou communauté. Vérifiez robots.txt et les conditions avant de choisir « Autorisé ».</p>
+              </div>
+            </li>
+            <li className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white dark:bg-orange-500 dark:text-slate-950" aria-hidden="true">2</span>
+              <div>
+                <p className="font-semibold text-slate-950 dark:text-white">Repérer une opportunité</p>
+                <p className="mt-1 text-sm leading-relaxed text-slate-700 dark:text-slate-300">Collez l’URL publique du fil ou de la page, décrivez le contexte et proposez un angle réellement utile. Les risques bloquent l’étape suivante.</p>
+              </div>
+            </li>
+            <li className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white dark:bg-orange-500 dark:text-slate-950" aria-hidden="true">3</span>
+              <div>
+                <p className="font-semibold text-slate-950 dark:text-white">Préparer puis approuver</p>
+                <p className="mt-1 text-sm leading-relaxed text-slate-700 dark:text-slate-300">Rédigez le brouillon, soumettez-le à la revue, puis ajoutez un motif d’approbation. Cette action journalise la décision et n’envoie aucun message.</p>
+              </div>
+            </li>
+            <li className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white dark:bg-orange-500 dark:text-slate-950" aria-hidden="true">4</span>
+              <div>
+                <p className="font-semibold text-slate-950 dark:text-white">Publier et documenter</p>
+                <p className="mt-1 text-sm leading-relaxed text-slate-700 dark:text-slate-300">Publiez manuellement sur le site autorisé, collez l’URL publique, notez le résultat, puis enregistrez la preuve du backlink et son attribut rel.</p>
+              </div>
+            </li>
+          </ol>
+          <div className="rounded-xl border border-sky-300 bg-sky-50 p-3 text-sm text-sky-950 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-100">
+            <p className="font-semibold">Ce que TOK automatise</p>
+            <p className="mt-1 leading-relaxed">Contrôle des champs et des transitions, protection contre les doublons, rafraîchissement des indicateurs et journal d’audit. La recherche du site, la lecture de ses règles, la rédaction finale, la publication externe et la preuve restent humaines.</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Alert className="border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
+        <ShieldCheck className="h-4 w-4 text-amber-700 dark:text-amber-300" />
         <AlertTitle>Mode assisté — validation humaine obligatoire</AlertTitle>
         <AlertDescription>
           Aucune publication automatique : les cibles sont allowlistées, les brouillons sont relus et chaque résultat est journalisé.
@@ -368,7 +418,7 @@ export default function MarketingOutreachView({
         ].map(([label, value]) => (
           <Card key={label as string}>
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">{label}</p>
+              <p className="text-xs text-slate-700 dark:text-slate-300">{label}</p>
               <p className="mt-2 text-2xl font-bold">{Number(value).toLocaleString("fr-CH")}</p>
             </CardContent>
           </Card>
@@ -378,8 +428,8 @@ export default function MarketingOutreachView({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
           <div>
-            <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5 text-orange-600" />Cibles vérifiées</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">Un domaine n’est utilisable qu’après contrôle des règles, de la pertinence et de robots.txt.</p>
+            <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5 text-orange-700 dark:text-orange-300" />Cibles vérifiées</CardTitle>
+            <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">Un domaine n’est utilisable qu’après contrôle des règles, de la pertinence et de robots.txt.</p>
           </div>
           <Button type="button" size="sm" onClick={() => setTargetFormOpen((open) => !open)}><Plus className="mr-2 h-4 w-4" />Ajouter</Button>
         </CardHeader>
@@ -406,25 +456,25 @@ export default function MarketingOutreachView({
             <div className="grid gap-3 lg:grid-cols-2">
               {data.targets.map((target) => (
                 <div key={target.id} className="rounded-2xl border p-4">
-                  <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-semibold">{target.name}</p><p className="mt-1 truncate text-xs text-muted-foreground">{target.domain} · {KIND_LABELS[target.kind]}</p></div>{stateBadge(target.status)}</div>
-                  <a className="mt-3 block truncate text-xs text-orange-700 hover:underline" href={target.url} target="_blank" rel="noreferrer">{target.url}<ExternalLink className="ml-1 inline h-3 w-3" /></a>
-                  <p className="mt-2 text-xs text-muted-foreground">Pertinence {(target.relevanceScore * 100).toFixed(0)} % · Mode {target.publicationMode === "manual" ? "manuel" : "API réservé"}</p>
-                  {target.status === "allowlisted" ? <p className="mt-2 text-xs text-emerald-700 dark:text-emerald-300">Robots et conditions contrôlés.</p> : null}
+                  <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-semibold">{target.name}</p><p className="mt-1 truncate text-xs text-slate-700 dark:text-slate-300">{target.domain} · {KIND_LABELS[target.kind]}</p></div>{stateBadge(target.status)}</div>
+                  <a className="mt-3 block truncate text-xs text-orange-800 hover:underline dark:text-orange-300" href={target.url} target="_blank" rel="noreferrer">{target.url}<ExternalLink className="ml-1 inline h-3 w-3" /></a>
+                  <p className="mt-2 text-xs text-slate-700 dark:text-slate-300">Pertinence {(target.relevanceScore * 100).toFixed(0)} % · Mode {target.publicationMode === "manual" ? "manuel" : "API réservé"}</p>
+                  {target.status === "allowlisted" ? <p className="mt-2 text-xs text-emerald-800 dark:text-emerald-200">Robots et conditions contrôlés.</p> : null}
                 </div>
               ))}
             </div>
-          ) : <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Aucune cible enregistrée. Commencez par un domaine réellement pertinent et autorisé.</p>}
+          ) : <p className="rounded-xl border border-dashed p-5 text-sm text-slate-700 dark:text-slate-300">Aucune cible enregistrée. Commencez par un domaine réellement pertinent et autorisé.</p>}
         </CardContent>
       </Card>
 
       <div className="grid gap-5 xl:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-3">
-            <div><CardTitle className="flex items-center gap-2"><FileCheck2 className="h-5 w-5 text-sky-600" />Opportunités</CardTitle><p className="mt-1 text-sm text-muted-foreground">Threads et pages à traiter, sans scraping ni envoi automatique.</p></div>
+            <div><CardTitle className="flex items-center gap-2"><FileCheck2 className="h-5 w-5 text-sky-600" />Opportunités</CardTitle><p className="mt-1 text-sm text-slate-700 dark:text-slate-300">Threads et pages à traiter, sans scraping ni envoi automatique.</p></div>
             <Button type="button" size="sm" variant="outline" disabled={!allowlistedTargets.length} onClick={() => setOpportunityFormOpen((open) => !open)}><Plus className="mr-2 h-4 w-4" />Ajouter</Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!allowlistedTargets.length ? <p className="rounded-xl bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">Allowlistez d’abord une cible après contrôle des règles et de la pertinence.</p> : null}
+            {!allowlistedTargets.length ? <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">Allowlistez d’abord une cible après contrôle des règles et de la pertinence.</p> : null}
             {opportunityFormOpen ? (
               <div className="space-y-3 rounded-2xl border bg-muted/20 p-4">
                 <div><Label htmlFor="outreach-opportunity-target">Cible</Label><Select value={opportunityForm.targetId} onValueChange={(targetId) => setOpportunityForm((current) => ({ ...current, targetId }))}><SelectTrigger id="outreach-opportunity-target" className="mt-2"><SelectValue placeholder="Choisir une cible" /></SelectTrigger><SelectContent>{allowlistedTargets.map((target) => <SelectItem key={target.id} value={target.id}>{target.name} · {target.domain}</SelectItem>)}</SelectContent></Select></div>
@@ -442,10 +492,10 @@ export default function MarketingOutreachView({
               const publishedUrl = publishedUrls[opportunity.id] || "";
               return (
                 <div key={opportunity.id} className="rounded-2xl border p-4">
-                  <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="font-semibold">{opportunity.title}</p><p className="mt-1 truncate text-xs text-muted-foreground">{opportunity.targetDomain} · {opportunity.sourceUrl}</p></div>{stateBadge(opportunity.status)}</div>
-                  {opportunity.suggestedAngle ? <p className="mt-3 text-sm text-muted-foreground">{opportunity.suggestedAngle}</p> : null}
+                  <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="font-semibold">{opportunity.title}</p><p className="mt-1 truncate text-xs text-slate-700 dark:text-slate-300">{opportunity.targetDomain} · {opportunity.sourceUrl}</p></div>{stateBadge(opportunity.status)}</div>
+                  {opportunity.suggestedAngle ? <p className="mt-3 text-sm text-slate-700 dark:text-slate-300">{opportunity.suggestedAngle}</p> : null}
                   {opportunity.riskFlags.length ? <p className="mt-2 rounded-lg bg-rose-500/10 p-2 text-xs text-rose-700 dark:text-rose-300">Risque à traiter avant approbation : {opportunity.riskFlags.join(", ")}</p> : null}
-                  {draft ? <p className="mt-2 text-xs text-muted-foreground">Brouillon : {draft.status}{draft.aiAssisted ? " · assisté" : ""}</p> : null}
+                  {draft ? <p className="mt-2 text-xs text-slate-700 dark:text-slate-300">Brouillon : {draft.status}{draft.aiAssisted ? " · assisté" : ""}</p> : null}
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     {draft && ["draft", "pending_review"].includes(draft.status) ? <Button type="button" size="sm" disabled={!canMutateBackend || pending === "approve-" + draft.id || opportunity.status !== "pending_review"} onClick={() => approveDraft(draft.id)}><CheckCircle2 className="mr-2 h-4 w-4" />Approuver le brouillon</Button> : null}
                     {["approved", "published"].includes(opportunity.status) ? <Button type="button" size="sm" variant="outline" onClick={() => recordResult(opportunity, "won")} disabled={!canMutateBackend || pending === "result-" + opportunity.id || note.length < 8}><CheckCircle2 className="mr-2 h-4 w-4" />Marquer gagné</Button> : null}
@@ -454,13 +504,13 @@ export default function MarketingOutreachView({
                   {["approved", "published"].includes(opportunity.status) ? <div className="mt-3 space-y-2"><Input value={publishedUrl} onChange={(event) => setPublishedUrls((current) => ({ ...current, [opportunity.id]: event.target.value }))} placeholder="URL publique de la réponse publiée" aria-label={`URL publiée pour ${opportunity.title}`} /><Textarea value={note} onChange={(event) => setResultNotes((current) => ({ ...current, [opportunity.id]: event.target.value }))} placeholder="Note de résultat (minimum 8 caractères)" maxLength={2000} aria-label={`Note pour ${opportunity.title}`} /></div> : null}
                 </div>
               );
-            }) : <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Aucune opportunité. Ajoutez uniquement des conversations où une réponse utile est attendue.</p>}
+            }) : <p className="rounded-xl border border-dashed p-5 text-sm text-slate-700 dark:text-slate-300">Aucune opportunité. Ajoutez uniquement des conversations où une réponse utile est attendue.</p>}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-3">
-            <div><CardTitle className="flex items-center gap-2"><FileCheck2 className="h-5 w-5 text-violet-600" />Brouillons à relire</CardTitle><p className="mt-1 text-sm text-muted-foreground">La validation journalise le motif ; elle n’envoie rien.</p></div>
+            <div><CardTitle className="flex items-center gap-2"><FileCheck2 className="h-5 w-5 text-violet-600" />Brouillons à relire</CardTitle><p className="mt-1 text-sm text-slate-700 dark:text-slate-300">La validation journalise le motif ; elle n’envoie rien.</p></div>
             <Button type="button" size="sm" variant="outline" disabled={!data.opportunities.length} onClick={() => setDraftFormOpen((open) => !open)}><Plus className="mr-2 h-4 w-4" />Préparer</Button>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -476,17 +526,17 @@ export default function MarketingOutreachView({
               <div key={draft.id} className="rounded-2xl border p-4">
                 <div className="flex items-start justify-between gap-3"><p className="font-semibold">{draft.opportunityTitle}</p>{stateBadge(draft.status)}</div>
                 {draft.subject ? <p className="mt-2 text-sm font-medium">{draft.subject}</p> : null}
-                <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-sm text-muted-foreground">{draft.body}</p>
+                <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">{draft.body}</p>
                 {["draft", "pending_review"].includes(draft.status) ? <div className="mt-3 space-y-2"><Textarea value={approvalReason} onChange={(event) => setApprovalReason(event.target.value)} maxLength={500} aria-label={`Motif d’approbation pour ${draft.opportunityTitle}`} /><Button type="button" size="sm" disabled={!canMutateBackend || pending === "approve-" + draft.id || approvalReason.trim().length < 8} onClick={() => approveDraft(draft.id)}><CheckCircle2 className="mr-2 h-4 w-4" />Approuver et journaliser</Button></div> : null}
               </div>
-            )) : <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Aucun brouillon. La file reste vide tant qu’aucune cible allowlistée n’a été choisie.</p>}
+            )) : <p className="rounded-xl border border-dashed p-5 text-sm text-slate-700 dark:text-slate-300">Aucun brouillon. La file reste vide tant qu’aucune cible allowlistée n’a été choisie.</p>}
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
-          <div><CardTitle className="flex items-center gap-2"><Link2 className="h-5 w-5 text-emerald-600" />Backlinks gagnés</CardTitle><p className="mt-1 text-sm text-muted-foreground">Enregistrez une preuve publique ; aucun achat ni schéma de liens n’est déclenché par TOK.</p></div>
+          <div><CardTitle className="flex items-center gap-2"><Link2 className="h-5 w-5 text-emerald-600" />Backlinks gagnés</CardTitle><p className="mt-1 text-sm text-slate-700 dark:text-slate-300">Enregistrez une preuve publique ; aucun achat ni schéma de liens n’est déclenché par TOK.</p></div>
           <Button type="button" size="sm" variant="outline" onClick={() => setBacklinkFormOpen((open) => !open)}><Plus className="mr-2 h-4 w-4" />Ajouter</Button>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -502,13 +552,13 @@ export default function MarketingOutreachView({
           ) : null}
           {data.backlinks.length ? (
             <div className="grid gap-3 lg:grid-cols-2">
-              {data.backlinks.map((backlink) => <div key={backlink.id} className="rounded-2xl border p-4"><div className="flex items-start justify-between gap-3"><p className="truncate text-sm font-semibold">{backlink.opportunityTitle || "Lien documenté"}</p>{stateBadge(backlink.status)}</div><a href={backlink.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 block truncate text-xs text-orange-700 hover:underline">{backlink.sourceUrl}</a><p className="mt-2 truncate text-xs text-muted-foreground">→ {backlink.targetUrl} · rel={backlink.rel}</p>{backlink.verificationNote ? <p className="mt-2 text-xs text-muted-foreground">{backlink.verificationNote}</p> : null}</div>)}
+              {data.backlinks.map((backlink) => <div key={backlink.id} className="rounded-2xl border p-4"><div className="flex items-start justify-between gap-3"><p className="truncate text-sm font-semibold">{backlink.opportunityTitle || "Lien documenté"}</p>{stateBadge(backlink.status)}</div><a href={backlink.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 block truncate text-xs text-orange-800 hover:underline dark:text-orange-300">{backlink.sourceUrl}</a><p className="mt-2 truncate text-xs text-slate-700 dark:text-slate-300">→ {backlink.targetUrl} · rel={backlink.rel}</p>{backlink.verificationNote ? <p className="mt-2 text-xs text-slate-700 dark:text-slate-300">{backlink.verificationNote}</p> : null}</div>)}
             </div>
-          ) : <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Aucun backlink vérifié. Un lien est un résultat à documenter, jamais une promesse automatique.</p>}
+          ) : <p className="rounded-xl border border-dashed p-5 text-sm text-slate-700 dark:text-slate-300">Aucun backlink vérifié. Un lien est un résultat à documenter, jamais une promesse automatique.</p>}
         </CardContent>
       </Card>
 
-      <p className="flex items-start gap-2 text-xs text-muted-foreground"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />Les connecteurs API externes et la publication automatique restent désactivés tant qu’un adaptateur officiel, un quota et une revue de conformité ne sont pas configurés.</p>
+      <p className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />Les connecteurs API externes et la publication automatique restent désactivés tant qu’un adaptateur officiel, un quota et une revue de conformité ne sont pas configurés.</p>
     </div>
   );
 }
