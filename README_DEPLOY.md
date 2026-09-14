@@ -20,11 +20,15 @@ Le projet historique `cloud-rebuild` ne doit plus être utilisé comme cible de 
 
 ## Procédure production
 
-La production doit passer par le workflow GitHub Actions du dépôt. Ne pas déclencher de déploiement manuel Vercel depuis une session locale sans décision explicite.
+Le frontend de production est déployé par l’intégration Git native de Vercel sur le dépôt `Mtnrconcept1/cloud-rebuild` :
 
-Si un push sur `main` n'instancie exceptionnellement pas le workflow `Deploy Production`, créer un nouveau push non fonctionnel et documenté sur `main`. Le workflow de production compare le nouveau head au dernier commit réellement déployé (`automation/production-deployed`) et doit ainsi rattraper les changements applicatifs restés en attente au lieu de supposer que le push précédent a été livré.
+1. ouvrir une PR vers `main` ;
+2. attendre que les checks obligatoires soient verts ;
+3. merger la PR ;
+4. Vercel détecte le nouveau commit sur `main`, exécute `pnpm install --frozen-lockfile` puis `pnpm run build:prod` et publie la version complète ;
+5. vérifier les domaines officiels et exécuter `pnpm run deploy:postcheck`.
 
-Rattrapage validé le 3 septembre 2026 pour la livraison SEO #616 : le merge applicatif `1d6af316515e5abfaf20f4df060d424661cb133e` n'avait pas instancié immédiatement `Deploy Production`; ce commit documentaire sert uniquement à réémettre le signal `push: main` sans modifier le comportement de l'application.
+Le workflow GitHub Actions de production reste disponible pour les migrations Supabase et les Edge Functions lorsque nécessaire. Il ne doit pas lancer un second déploiement frontend en parallèle de Vercel Git.
 
 ## Secrets Edge Functions
 
