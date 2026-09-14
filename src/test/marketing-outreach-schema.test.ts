@@ -50,7 +50,7 @@ describe("marketing outreach assistance", () => {
     expect(migration).toContain("Publication automatique désactivée");
   });
 
-  it("keeps the service boundary closed to the six outreach operations", () => {
+  it("keeps the service boundary closed to the outreach operations", () => {
     const names = [
       "admin_list_marketing_outreach",
       "admin_upsert_marketing_outreach_target",
