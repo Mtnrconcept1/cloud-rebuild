@@ -201,35 +201,35 @@ function FaqSection({ section }: { section: Section }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200">
+    <div className="overflow-hidden rounded-lg border border-slate-300 dark:border-slate-700">
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
-        className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50"
+        className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-100 dark:hover:bg-slate-800"
       >
         <ChevronDown
-          className={cn("mt-0.5 h-4 w-4 shrink-0 text-slate-400 transition-transform", open && "rotate-180")}
+          className={cn("mt-0.5 h-4 w-4 shrink-0 text-slate-800 dark:text-slate-200 dark:text-slate-300 dark:text-slate-400 transition-transform", open && "rotate-180")}
           aria-hidden
         />
         <span className="min-w-0">
-          <span className="block text-sm font-semibold text-slate-900">{section.title}</span>
-          <span className="block text-xs text-slate-500">{section.summary}</span>
+          <span className="block text-sm font-semibold text-slate-950 dark:text-white">{section.title}</span>
+          <span className="block text-xs text-slate-800 dark:text-slate-200 dark:text-slate-300">{section.summary}</span>
         </span>
       </button>
       {open ? (
-        <div className="space-y-4 border-t border-slate-100 bg-slate-50/60 px-4 py-4">
+        <div className="space-y-4 border-t border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900 px-4 py-4">
           {section.body.map((block, index) => (
             <div key={index} className="space-y-2">
               {block.heading ? (
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-800 dark:text-slate-200 dark:text-slate-300">
                   {block.heading}
                 </h3>
               ) : null}
               <ul className="space-y-1.5">
                 {block.lines.map((line, lineIndex) => (
-                  <li key={lineIndex} className="flex gap-2 text-sm leading-relaxed text-slate-700">
-                    <span aria-hidden className="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-400" />
+                  <li key={lineIndex} className="flex gap-2 text-sm leading-relaxed text-slate-800 dark:text-slate-200">
+                    <span aria-hidden className="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-500 dark:bg-slate-400" />
                     <span>{line}</span>
                   </li>
                 ))}
@@ -245,7 +245,7 @@ function FaqSection({ section }: { section: Section }) {
 export default function MarketingFaqView() {
   return (
     <div className="space-y-6">
-      <Alert className="border-sky-200 bg-sky-50 text-sky-900">
+      <Alert className="border-sky-300 bg-sky-50 text-sky-950 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-100">
         <ShieldCheck className="h-4 w-4" />
         <AlertTitle>Ce document décrit les règles réellement appliquées</AlertTitle>
         <AlertDescription>
@@ -268,15 +268,15 @@ export default function MarketingFaqView() {
         </CardContent>
       </Card>
 
-      <Card className="border-amber-200">
+      <Card className="border-amber-300 dark:border-amber-800">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base text-amber-900">
+          <CardTitle className="flex items-center gap-2 text-base text-amber-950 dark:text-amber-100">
             <KeyRound className="h-4 w-4" aria-hidden />
             Démarrage rapide
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ol className="space-y-2 text-sm leading-relaxed text-slate-700">
+          <ol className="space-y-2 text-sm leading-relaxed text-slate-800 dark:text-slate-200">
             {[
               "Configurer les clés du fournisseur IA et du fournisseur d'e-mail dans les secrets des fonctions Supabase.",
               "Importer les prospects avec leurs coordonnées, puis vérifier la couverture dans Audiences.",
@@ -296,7 +296,7 @@ export default function MarketingFaqView() {
         </CardContent>
       </Card>
 
-      <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+      <Alert className="border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-100">
         <AlertTriangle className="h-4 w-4" />
         <AlertTitle>Responsabilité de l'expéditeur</AlertTitle>
         <AlertDescription>
