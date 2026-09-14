@@ -89,7 +89,8 @@ CREATE TABLE IF NOT EXISTS public.marketing_outreach_opportunities (
   context text NOT NULL DEFAULT '' CHECK (char_length(context) <= 3000),
   suggested_angle text NOT NULL DEFAULT '' CHECK (char_length(suggested_angle) <= 1200),
   suggested_link text NOT NULL DEFAULT '/restaurants' CHECK (
-    suggested_link ~ '^/'
+    suggested_link = '/'
+    OR (suggested_link ~ '^/' AND suggested_link !~ '^//')
     OR suggested_link ~ '^https://(www[.])?thetok[.]ch(/|$)'
   ),
   status text NOT NULL DEFAULT 'discovered' CHECK (status IN (
@@ -578,7 +579,7 @@ BEGIN
      OR char_length(v_title) NOT BETWEEN 3 AND 200
      OR v_status NOT IN ('discovered','draft','pending_review')
      OR v_relevance < 0 OR v_relevance > 1
-     OR v_suggested_link !~ '^/'
+     OR (v_suggested_link !~ '^/' OR v_suggested_link ~ '^//')
        AND v_suggested_link !~ '^https://(www[.])?thetok[.]ch(/|$)'
      OR v_fingerprint !~ '^[0-9a-f]{64}$'
      OR cardinality(v_risk_flags) > 8 THEN
