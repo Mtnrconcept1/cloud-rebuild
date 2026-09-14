@@ -72,6 +72,10 @@ describe("marketing outreach assistance", () => {
     expect(chrome).toContain('id: "outreach"');
     expect(workspace).toContain("MarketingOutreachView");
     expect(view).toContain("validation humaine obligatoire");
+    expect(view).toContain("Mode d’emploi — 4 étapes");
+    expect(view).toContain("TOK ne publie rien à votre place.");
+    expect(view).toContain("dark:text-slate-300");
+    expect(view).toContain("border-sky-300 bg-sky-50");
     expect(view).toContain("Aucune publication automatique");
     expect(view).toContain("approveDraft");
   });
