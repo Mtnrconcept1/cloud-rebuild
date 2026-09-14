@@ -72,6 +72,6 @@ describe("marketing outreach assistance", () => {
     expect(workspace).toContain("MarketingOutreachView");
     expect(view).toContain("validation humaine obligatoire");
     expect(view).toContain("Aucune publication automatique");
-    expect(view).toContain("onApproveDraft");
+    expect(view).toContain("approveDraft");
   });
 });
