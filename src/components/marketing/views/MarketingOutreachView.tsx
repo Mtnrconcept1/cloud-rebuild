@@ -321,7 +321,7 @@ export default function MarketingOutreachView({
           </p>
         </div>
         <Button type="button" variant="outline" onClick={() => { void outreachQuery.refetch(); }} disabled={outreachQuery.isFetching}>
-          <RefreshCw className={\`mr-2 h-4 w-4 \${outreachQuery.isFetching ? "animate-spin" : ""}\`} />
+          <RefreshCw className={`mr-2 h-4 w-4 ${outreachQuery.isFetching ? "animate-spin" : ""}`} />
           Actualiser
         </Button>
       </div>
@@ -445,7 +445,7 @@ export default function MarketingOutreachView({
                     {["approved", "published"].includes(opportunity.status) ? <Button type="button" size="sm" variant="outline" onClick={() => recordResult(opportunity, "won")} disabled={!canMutateBackend || pending === "result-" + opportunity.id || note.length < 8}><CheckCircle2 className="mr-2 h-4 w-4" />Marquer gagné</Button> : null}
                     {opportunity.status === "approved" ? <Button type="button" size="sm" variant="outline" onClick={() => recordResult(opportunity, "published")} disabled={!canMutateBackend || pending === "result-" + opportunity.id || note.length < 8 || !publishedUrl.startsWith("https://")}><ExternalLink className="mr-2 h-4 w-4" />Marquer publié</Button> : null}
                   </div>
-                  {["approved", "published"].includes(opportunity.status) ? <div className="mt-3 space-y-2"><Input value={publishedUrl} onChange={(event) => setPublishedUrls((current) => ({ ...current, [opportunity.id]: event.target.value }))} placeholder="URL publique de la réponse publiée" aria-label={\`URL publiée pour \${opportunity.title}\`} /><Textarea value={note} onChange={(event) => setResultNotes((current) => ({ ...current, [opportunity.id]: event.target.value }))} placeholder="Note de résultat (minimum 8 caractères)" maxLength={2000} aria-label={\`Note pour \${opportunity.title}\`} /></div> : null}
+                  {["approved", "published"].includes(opportunity.status) ? <div className="mt-3 space-y-2"><Input value={publishedUrl} onChange={(event) => setPublishedUrls((current) => ({ ...current, [opportunity.id]: event.target.value }))} placeholder="URL publique de la réponse publiée" aria-label={`URL publiée pour ${opportunity.title}`} /><Textarea value={note} onChange={(event) => setResultNotes((current) => ({ ...current, [opportunity.id]: event.target.value }))} placeholder="Note de résultat (minimum 8 caractères)" maxLength={2000} aria-label={`Note pour ${opportunity.title}`} /></div> : null}
                 </div>
               );
             }) : <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Aucune opportunité. Ajoutez uniquement des conversations où une réponse utile est attendue.</p>}
@@ -471,7 +471,7 @@ export default function MarketingOutreachView({
                 <div className="flex items-start justify-between gap-3"><p className="font-semibold">{draft.opportunityTitle}</p>{stateBadge(draft.status)}</div>
                 {draft.subject ? <p className="mt-2 text-sm font-medium">{draft.subject}</p> : null}
                 <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-sm text-muted-foreground">{draft.body}</p>
-                {["draft", "pending_review"].includes(draft.status) ? <div className="mt-3 space-y-2"><Textarea value={approvalReason} onChange={(event) => setApprovalReason(event.target.value)} maxLength={500} aria-label={\`Motif d’approbation pour \${draft.opportunityTitle}\`} /><Button type="button" size="sm" disabled={!canMutateBackend || pending === "approve-" + draft.id || approvalReason.trim().length < 8} onClick={() => approveDraft(draft.id)}><CheckCircle2 className="mr-2 h-4 w-4" />Approuver et journaliser</Button></div> : null}
+                {["draft", "pending_review"].includes(draft.status) ? <div className="mt-3 space-y-2"><Textarea value={approvalReason} onChange={(event) => setApprovalReason(event.target.value)} maxLength={500} aria-label={`Motif d’approbation pour ${draft.opportunityTitle}`} /><Button type="button" size="sm" disabled={!canMutateBackend || pending === "approve-" + draft.id || approvalReason.trim().length < 8} onClick={() => approveDraft(draft.id)}><CheckCircle2 className="mr-2 h-4 w-4" />Approuver et journaliser</Button></div> : null}
               </div>
             )) : <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Aucun brouillon. La file reste vide tant qu’aucune cible allowlistée n’a été choisie.</p>}
           </CardContent>
