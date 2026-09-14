@@ -13,6 +13,7 @@ Le centre d’opérations marketing est une surface d’administration isolée d
 | Exécution | Notifications `in_app` consenties ; matérialisation de tâches `manual_call` et `manual_email` ; révélation ponctuelle motivée puis clôture humaine avec note ; cron calendrier | Email, push, visites et réseaux sociaux uniquement après données/adaptateur réellement disponibles et testés | Vault, Edge Functions, `pg_cron`, `pg_net`, pause globale, approbations, limites et test interne |
 | Journal et résultats | Statuts des éléments et livraisons, destinataire masqué, canal, fournisseur, tentatives, dates, erreurs, événements et agrégats envoyés/livrés/cliqués/convertis | Accusés réels et conversions fournisseur après webhooks/adaptateurs | Définir les identifiants de conversion et valider la qualité des événements ; les KPI actuels ne constituent pas une attribution marketing complète |
 | Automatisations | Le planificateur calendrier est la seule automatisation exécutable. Une règle personnalisée peut être décrite et enregistrée en pause | Moteur de règles à concevoir puis brancher ; aucun moteur n’est fourni par cette livraison | Revue métier, juridique et technique avant toute future activation |
+| Prospection & backlinks | Cibles allowlistées, opportunités contextualisées, brouillons relus, résultats et preuves de liens enregistrés | Adaptateur officiel/API et publication assistée uniquement après revue dédiée | Contrôle robots/conditions, pertinence, quotas, base légale si contact, preuve publique et approbation humaine |
 
 ## Ce que l’outil ne fait pas
 
@@ -25,7 +26,11 @@ Cette livraison n’implémente pas :
 - de génération automatique de contenu ;
 - d’adaptateur Resend, Firebase, Meta, TikTok, LinkedIn, YouTube, Telegram, Google Business ou site web ;
 - d’achat média, de canal payant ou de promesse de coût fournisseur nul ;
-- d’envoi automatisé de prospection froide.
+- d’envoi automatisé de prospection froide ;
+- de publication aveugle sur des forums, annuaires ou réseaux ;
+- d’achat de liens, de schémas de liens ou de promesse de backlink.
+
+La vue **Prospection & backlinks** est volontairement assistée : l’administrateur ajoute une cible publique, confirme robots.txt et les conditions, documente une opportunité pertinente, prépare un brouillon puis l’approuve avec un motif. L’application ne fait aucun scraping derrière authentification, aucun appel arbitraire vers une URL et aucune publication tant qu’un adaptateur officiel n’est pas configuré. Les backlinks sont enregistrés comme résultats observés ; les attributs rel="sponsored", nofollow ou ugc restent disponibles pour les contributions concernées.
 
 La recommandation affichée dans le wizard de campagne est **déterministe et sans ML** : elle part du type d’audience et ne retient que les canaux dont l’état backend est `available` ou `manual`. L’opérateur garde la décision finale. Même si une ligne d’intégration externe était marquée `connected` prématurément, l’orchestrateur bloque le canal tant que son adaptateur n’est pas déployé.
 
@@ -51,6 +56,7 @@ Les canaux publics ne créent aucune livraison individuelle. Les canaux directs 
 5. **Approuver la campagne** avec une justification, puis approuver et programmer chaque élément calendrier séparément.
 6. **Exécuter** par le cron ou le bouton de traitement des éléments dus, uniquement après levée explicite de la pause globale. Pour une tâche d’appel/e-mail, indiquer un motif : le serveur revalide la pause, la plage 08:00–20:00 en Suisse, la révision approuvée, la base légale et l’opposition avant de retourner ponctuellement la cible dans une réponse `no-store`. La valeur n’entre jamais dans le snapshot ni dans l’audit.
 7. **Suivre** les statuts, erreurs et résultats dans Journal et Résultats. Une nouvelle tentative n’est possible que si le parent reste approuvé, le contact reste éligible et la limite de tentatives n’est pas atteinte.
+8. **Traiter la prospection assistée** depuis Prospection & backlinks : allowlister une cible après contrôles, saisir une opportunité publique, soumettre un brouillon, l’approuver, puis consigner manuellement la publication et la preuve du backlink. Aucune étape ne déclenche un post externe.
 
 ## Garde-fous présents
 
