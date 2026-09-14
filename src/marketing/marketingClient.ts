@@ -14,6 +14,8 @@ import type {
   MarketingAudienceEstimate,
   MarketingAutomation,
   MarketingAutomationDraft,
+  MarketingBacklink,
+  MarketingBacklinkInput,
   MarketingCalendarItem,
   MarketingCampaign,
   MarketingCampaignDraft,
@@ -24,6 +26,15 @@ import type {
   MarketingDelivery,
   MarketingDeliveryListParams,
   MarketingIntegration,
+  MarketingOutreachDraft,
+  MarketingOutreachDraftInput,
+  MarketingOutreachKind,
+  MarketingOutreachOpportunity,
+  MarketingOutreachOperation,
+  MarketingOutreachOpportunityDraft,
+  MarketingOutreachSnapshot,
+  MarketingOutreachTarget,
+  MarketingOutreachTargetDraft,
   MarketingOverview,
   MarketingProspect,
   MarketingManualTarget,
@@ -91,6 +102,20 @@ function safeErrorMessage(error: unknown) {
 }
 
 async function invokeRpc<T>(name: string, args: UnknownRecord): Promise<T> {
+  const payload = await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.rpc, {
+    method: "POST",
+    body: { operation: name, args },
+  });
+  const envelope = asRecord(payload);
+  if (Object.prototype.hasOwnProperty.call(envelope, "data")) return envelope.data as T;
+  if (Object.prototype.hasOwnProperty.call(envelope, "result")) return envelope.result as T;
+  return payload as T;
+}
+
+export async function invokeOutreachRpc<T>(
+  name: MarketingOutreachOperation,
+  args: UnknownRecord,
+): Promise<T> {
   const payload = await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.rpc, {
     method: "POST",
     body: { operation: name, args },
@@ -178,6 +203,113 @@ function normalizeDelivery(value: unknown, fallback?: MarketingDelivery): Market
     createdAt: asString(pick(row, "created_at", "createdAt"), fallback?.createdAt || new Date().toISOString()),
     updatedAt: asString(pick(row, "updated_at", "updatedAt"), fallback?.updatedAt || new Date().toISOString()),
     errorCode: asString(pick(row, "error_code", "errorCode"), fallback?.errorCode || "") || null,
+  };
+}
+
+function normalizeOutreachTarget(value: unknown): MarketingOutreachTarget {
+  const row = asRecord(value);
+  return {
+    id: asString(pick(row, "id"), crypto.randomUUID()),
+    kind: asString(pick(row, "kind"), "community") as MarketingOutreachKind,
+    name: asString(pick(row, "name"), "Cible sans nom"),
+    domain: asString(pick(row, "domain")),
+    url: asString(pick(row, "url")),
+    status: asString(pick(row, "status"), "candidate") as MarketingOutreachTarget["status"],
+    relevanceScore: asNumber(pick(row, "relevance_score", "relevanceScore"), 0.5),
+    robotsCheckedAt: asString(pick(row, "robots_checked_at", "robotsCheckedAt")) || null,
+    termsCheckedAt: asString(pick(row, "terms_checked_at", "termsCheckedAt")) || null,
+    publicationMode: asString(pick(row, "publication_mode", "publicationMode"), "manual") as MarketingOutreachTarget["publicationMode"],
+    provider: asString(pick(row, "provider")) || null,
+    frequencyCapHours: asNumber(pick(row, "frequency_cap_hours", "frequencyCapHours"), 168),
+    notes: asString(pick(row, "notes")),
+    createdAt: asString(pick(row, "created_at", "createdAt"), new Date().toISOString()),
+    updatedAt: asString(pick(row, "updated_at", "updatedAt"), new Date().toISOString()),
+  };
+}
+
+function normalizeOutreachOpportunity(value: unknown): MarketingOutreachOpportunity {
+  const row = asRecord(value);
+  return {
+    id: asString(pick(row, "id"), crypto.randomUUID()),
+    targetId: asString(pick(row, "target_id", "targetId")),
+    targetName: asString(pick(row, "target_name", "targetName"), "Cible"),
+    targetDomain: asString(pick(row, "target_domain", "targetDomain")),
+    sourceUrl: asString(pick(row, "source_url", "sourceUrl")),
+    title: asString(pick(row, "title"), "Opportunité"),
+    context: asString(pick(row, "context")),
+    suggestedAngle: asString(pick(row, "suggested_angle", "suggestedAngle")),
+    suggestedLink: asString(pick(row, "suggested_link", "suggestedLink"), "/restaurants"),
+    status: asString(pick(row, "status"), "discovered") as MarketingOutreachOpportunity["status"],
+    relevanceScore: asNumber(pick(row, "relevance_score", "relevanceScore"), 0.5),
+    riskFlags: asArray(pick(row, "risk_flags", "riskFlags")).map(String).slice(0, 8),
+    fingerprint: asString(pick(row, "fingerprint")),
+    approvedBy: asString(pick(row, "approved_by", "approvedBy")) || null,
+    approvedAt: asString(pick(row, "approved_at", "approvedAt")) || null,
+    publishedUrl: asString(pick(row, "published_url", "publishedUrl")) || null,
+    publishedAt: asString(pick(row, "published_at", "publishedAt")) || null,
+    resultNote: asString(pick(row, "result_note", "resultNote")),
+    createdAt: asString(pick(row, "created_at", "createdAt"), new Date().toISOString()),
+    updatedAt: asString(pick(row, "updated_at", "updatedAt"), new Date().toISOString()),
+  };
+}
+
+function normalizeOutreachDraft(value: unknown): MarketingOutreachDraft {
+  const row = asRecord(value);
+  return {
+    id: asString(pick(row, "id"), crypto.randomUUID()),
+    opportunityId: asString(pick(row, "opportunity_id", "opportunityId")),
+    opportunityTitle: asString(pick(row, "opportunity_title", "opportunityTitle"), "Opportunité"),
+    subject: asString(pick(row, "subject")),
+    body: asString(pick(row, "body")),
+    status: asString(pick(row, "status"), "draft") as MarketingOutreachDraft["status"],
+    aiAssisted: asBoolean(pick(row, "ai_assisted", "aiAssisted")),
+    similarityHash: asString(pick(row, "similarity_hash", "similarityHash")),
+    approvedBy: asString(pick(row, "approved_by", "approvedBy")) || null,
+    approvedAt: asString(pick(row, "approved_at", "approvedAt")) || null,
+    sentAt: asString(pick(row, "sent_at", "sentAt")) || null,
+    resultNote: asString(pick(row, "result_note", "resultNote")),
+    createdAt: asString(pick(row, "created_at", "createdAt"), new Date().toISOString()),
+    updatedAt: asString(pick(row, "updated_at", "updatedAt"), new Date().toISOString()),
+  };
+}
+
+function normalizeBacklink(value: unknown): MarketingBacklink {
+  const row = asRecord(value);
+  return {
+    id: asString(pick(row, "id"), crypto.randomUUID()),
+    opportunityId: asString(pick(row, "opportunity_id", "opportunityId")) || null,
+    opportunityTitle: asString(pick(row, "opportunity_title", "opportunityTitle")) || null,
+    sourceUrl: asString(pick(row, "source_url", "sourceUrl")),
+    targetUrl: asString(pick(row, "target_url", "targetUrl")),
+    rel: asString(pick(row, "rel"), "nofollow") as MarketingBacklink["rel"],
+    status: asString(pick(row, "status"), "prospect") as MarketingBacklink["status"],
+    observedAt: asString(pick(row, "observed_at", "observedAt")) || null,
+    verificationNote: asString(pick(row, "verification_note", "verificationNote")),
+    createdAt: asString(pick(row, "created_at", "createdAt"), new Date().toISOString()),
+    updatedAt: asString(pick(row, "updated_at", "updatedAt"), new Date().toISOString()),
+  };
+}
+
+function normalizeOutreachSnapshot(value: unknown): MarketingOutreachSnapshot {
+  const row = asRecord(value);
+  const metrics = asRecord(pick(row, "metrics"));
+  const nextCursor = pick(row, "next_cursor", "nextCursor");
+  return {
+    targets: asArray(pick(row, "targets")).map(normalizeOutreachTarget),
+    opportunities: asArray(pick(row, "opportunities")).map(normalizeOutreachOpportunity),
+    drafts: asArray(pick(row, "drafts")).map(normalizeOutreachDraft),
+    backlinks: asArray(pick(row, "backlinks")).map(normalizeBacklink),
+    metrics: {
+      targetsCount: asNumber(pick(metrics, "targets_count", "targetsCount")),
+      allowlistedTargets: asNumber(pick(metrics, "allowlisted_targets", "allowlistedTargets")),
+      pendingOpportunities: asNumber(pick(metrics, "pending_opportunities", "pendingOpportunities")),
+      approvedOpportunities: asNumber(pick(metrics, "approved_opportunities", "approvedOpportunities")),
+      publishedOpportunities: asNumber(pick(metrics, "published_opportunities", "publishedOpportunities")),
+      verifiedBacklinks: asNumber(pick(metrics, "verified_backlinks", "verifiedBacklinks")),
+    },
+    nextCursor: nextCursor ? Object.fromEntries(
+      Object.entries(asRecord(nextCursor)).map(([key, item]) => [key, String(item)]),
+    ) : null,
   };
 }
 
@@ -961,4 +1093,119 @@ export async function runMarketingOrchestrator(action: "run_due" | "run_item", i
   if (Object.prototype.hasOwnProperty.call(envelope, "data")) return envelope.data;
   if (Object.prototype.hasOwnProperty.call(envelope, "result")) return envelope.result;
   return payload;
+}
+
+
+export async function loadMarketingOutreach(options: {
+  kind?: MarketingOutreachKind | null;
+  status?: string | null;
+  limit?: number;
+} = {}): Promise<MarketingOutreachSnapshot> {
+  const limit = options.limit ?? 100;
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+    throw new Error("Taille de liste outreach invalide.");
+  }
+  const result = await invokeOutreachRpc<unknown>("admin_list_marketing_outreach", {
+    p_kind: options.kind || null,
+    p_status: options.status || null,
+    p_limit: limit,
+    p_cursor_updated_at: null,
+    p_cursor_id: null,
+  });
+  return normalizeOutreachSnapshot(result);
+}
+
+export async function upsertMarketingOutreachTarget(draft: MarketingOutreachTargetDraft) {
+  const result = await invokeOutreachRpc<unknown>("admin_upsert_marketing_outreach_target", {
+    p_payload: {
+      ...(draft.id ? { id: draft.id } : {}),
+      kind: draft.kind,
+      name: draft.name.trim(),
+      domain: draft.domain.trim().toLowerCase(),
+      url: draft.url.trim(),
+      status: draft.status,
+      relevance_score: draft.relevanceScore,
+      robots_checked_at: draft.robotsCheckedAt || null,
+      terms_checked_at: draft.termsCheckedAt || null,
+      publication_mode: "manual",
+      frequency_cap_hours: draft.frequencyCapHours || 168,
+      notes: draft.notes.trim(),
+    },
+    p_expected_updated_at: null,
+  });
+  return normalizeOutreachTarget(result);
+}
+
+export async function upsertMarketingOutreachOpportunity(draft: MarketingOutreachOpportunityDraft) {
+  const result = await invokeOutreachRpc<unknown>("admin_upsert_marketing_outreach_opportunity", {
+    p_payload: {
+      ...(draft.id ? { id: draft.id } : {}),
+      target_id: draft.targetId,
+      source_url: draft.sourceUrl.trim(),
+      title: draft.title.trim(),
+      context: draft.context.trim(),
+      suggested_angle: draft.suggestedAngle.trim(),
+      suggested_link: draft.suggestedLink.trim() || "/restaurants",
+      status: draft.status,
+      relevance_score: draft.relevanceScore,
+      risk_flags: draft.riskFlags,
+      ...(draft.fingerprint ? { fingerprint: draft.fingerprint } : {}),
+    },
+    p_expected_updated_at: null,
+  });
+  return normalizeOutreachOpportunity(result);
+}
+
+export async function upsertMarketingOutreachDraft(draft: MarketingOutreachDraftInput) {
+  const result = await invokeOutreachRpc<unknown>("admin_upsert_marketing_outreach_draft", {
+    p_payload: {
+      ...(draft.id ? { id: draft.id } : {}),
+      opportunity_id: draft.opportunityId,
+      subject: draft.subject.trim(),
+      body: draft.body.trim(),
+      status: draft.status,
+      ai_assisted: draft.aiAssisted,
+      ...(draft.similarityHash ? { similarity_hash: draft.similarityHash } : {}),
+    },
+    p_expected_updated_at: null,
+  });
+  return normalizeOutreachDraft(result);
+}
+
+export async function approveMarketingOutreachDraft(draftId: string, reason: string) {
+  return invokeOutreachRpc<UnknownRecord>("admin_approve_marketing_outreach_draft", {
+    p_draft_id: draftId,
+    p_reason: reason.trim(),
+  });
+}
+
+export async function recordMarketingOutreachResult(
+  opportunityId: string,
+  status: "published" | "won" | "lost" | "rejected",
+  note: string,
+  publishedUrl?: string | null,
+) {
+  return invokeOutreachRpc<UnknownRecord>("admin_record_marketing_outreach_result", {
+    p_opportunity_id: opportunityId,
+    p_status: status,
+    p_note: note.trim(),
+    p_published_url: publishedUrl?.trim() || null,
+  });
+}
+
+export async function upsertMarketingBacklink(input: MarketingBacklinkInput) {
+  const result = await invokeOutreachRpc<unknown>("admin_upsert_marketing_backlink", {
+    p_payload: {
+      ...(input.id ? { id: input.id } : {}),
+      ...(input.opportunityId ? { opportunity_id: input.opportunityId } : {}),
+      source_url: input.sourceUrl.trim(),
+      target_url: input.targetUrl.trim(),
+      rel: input.rel,
+      status: input.status,
+      observed_at: input.observedAt || null,
+      verification_note: input.verificationNote.trim(),
+    },
+    p_expected_updated_at: null,
+  });
+  return normalizeBacklink(result);
 }

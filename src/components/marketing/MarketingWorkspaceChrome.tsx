@@ -18,6 +18,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Sparkles,
+  Target,
   Users,
 } from "lucide-react";
 
@@ -61,6 +62,7 @@ const NAV_ITEMS: Array<{
   { id: "activity", label: "Journal des envois", shortLabel: "Journal", description: "Qui, quand, canal et résultat", icon: ListChecks },
   { id: "results", label: "Résultats", shortLabel: "Résultats", description: "Performance et attribution", icon: BarChart3 },
   { id: "integrations", label: "Intégrations", shortLabel: "Intégrations", description: "État réel des fournisseurs", icon: Link2 },
+  { id: "outreach", label: "Prospection & backlinks", shortLabel: "Outreach", description: "Cibles, brouillons et preuves de liens", icon: Target },
   { id: "faq", label: "Mode d'emploi", shortLabel: "Aide", description: "Fonctionnement, règles et paramétrage", icon: BookOpen },
 ];
 

@@ -73,7 +73,22 @@ export const MARKETING_OPERATION_NAMES = [
 
 export type MarketingOperation = (typeof MARKETING_OPERATION_NAMES)[number];
 
-const MARKETING_OPERATION_ALLOWLIST = new Set<string>(MARKETING_OPERATION_NAMES);
+export const MARKETING_OUTREACH_OPERATION_NAMES = [
+  "admin_list_marketing_outreach",
+  "admin_upsert_marketing_outreach_target",
+  "admin_upsert_marketing_outreach_opportunity",
+  "admin_upsert_marketing_outreach_draft",
+  "admin_approve_marketing_outreach_draft",
+  "admin_record_marketing_outreach_result",
+  "admin_upsert_marketing_backlink",
+] as const;
+
+export type MarketingOutreachOperation = (typeof MARKETING_OUTREACH_OPERATION_NAMES)[number];
+
+const MARKETING_OPERATION_ALLOWLIST = new Set<string>([
+  ...MARKETING_OPERATION_NAMES,
+  ...MARKETING_OUTREACH_OPERATION_NAMES,
+]);
 
 type HeaderValue = string | string[] | undefined;
 
@@ -1427,7 +1442,12 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
   try {
-    const result = await serviceRpc(config, "service_execute_marketing_admin_operation", {
+    const serviceOperation = MARKETING_OUTREACH_OPERATION_NAMES.includes(
+      operation as MarketingOutreachOperation,
+    )
+      ? "service_execute_marketing_outreach_operation"
+      : "service_execute_marketing_admin_operation";
+    const result = await serviceRpc(config, serviceOperation, {
       p_sid_hash: session.sessionHash,
       p_csrf_hash: session.csrfHash,
       p_operation: operation,

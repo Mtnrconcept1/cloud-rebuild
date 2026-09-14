@@ -9,9 +9,22 @@ export const MARKETING_VIEWS = [
   "results",
   "integrations",
   "faq",
+  "outreach",
 ] as const;
 
 export type MarketingView = (typeof MARKETING_VIEWS)[number];
+
+export const MARKETING_OUTREACH_OPERATION_NAMES = [
+  "admin_list_marketing_outreach",
+  "admin_upsert_marketing_outreach_target",
+  "admin_upsert_marketing_outreach_opportunity",
+  "admin_upsert_marketing_outreach_draft",
+  "admin_approve_marketing_outreach_draft",
+  "admin_record_marketing_outreach_result",
+  "admin_upsert_marketing_backlink",
+] as const;
+
+export type MarketingOutreachOperation = (typeof MARKETING_OUTREACH_OPERATION_NAMES)[number];
 export type MarketingChannelId =
   | "tok_news"
   | "in_app"
@@ -335,6 +348,159 @@ export type MarketingIntegration = {
   configuredAt: string | null;
   lastCheckedAt: string;
   actionLabel: string;
+};
+
+export type MarketingOutreachKind = "forum" | "directory" | "partner" | "press" | "community";
+export type MarketingOutreachTargetStatus = "candidate" | "allowlisted" | "paused" | "blocked";
+export type MarketingOutreachOpportunityStatus =
+  | "discovered"
+  | "draft"
+  | "pending_review"
+  | "approved"
+  | "rejected"
+  | "published"
+  | "won"
+  | "lost";
+export type MarketingOutreachDraftStatus = "draft" | "pending_review" | "approved" | "sent" | "rejected";
+export type MarketingBacklinkRel = "follow" | "nofollow" | "sponsored" | "ugc";
+export type MarketingBacklinkStatus = "prospect" | "requested" | "verified" | "lost" | "rejected";
+
+export type MarketingOutreachTarget = {
+  id: string;
+  kind: MarketingOutreachKind;
+  name: string;
+  domain: string;
+  url: string;
+  status: MarketingOutreachTargetStatus;
+  relevanceScore: number;
+  robotsCheckedAt: string | null;
+  termsCheckedAt: string | null;
+  publicationMode: "manual" | "api";
+  provider: string | null;
+  frequencyCapHours: number;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MarketingOutreachOpportunity = {
+  id: string;
+  targetId: string;
+  targetName: string;
+  targetDomain: string;
+  sourceUrl: string;
+  title: string;
+  context: string;
+  suggestedAngle: string;
+  suggestedLink: string;
+  status: MarketingOutreachOpportunityStatus;
+  relevanceScore: number;
+  riskFlags: string[];
+  fingerprint: string;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  publishedUrl: string | null;
+  publishedAt: string | null;
+  resultNote: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MarketingOutreachDraft = {
+  id: string;
+  opportunityId: string;
+  opportunityTitle: string;
+  subject: string;
+  body: string;
+  status: MarketingOutreachDraftStatus;
+  aiAssisted: boolean;
+  similarityHash: string;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  sentAt: string | null;
+  resultNote: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MarketingBacklink = {
+  id: string;
+  opportunityId: string | null;
+  opportunityTitle: string | null;
+  sourceUrl: string;
+  targetUrl: string;
+  rel: MarketingBacklinkRel;
+  status: MarketingBacklinkStatus;
+  observedAt: string | null;
+  verificationNote: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MarketingOutreachSnapshot = {
+  targets: MarketingOutreachTarget[];
+  opportunities: MarketingOutreachOpportunity[];
+  drafts: MarketingOutreachDraft[];
+  backlinks: MarketingBacklink[];
+  metrics: {
+    targetsCount: number;
+    allowlistedTargets: number;
+    pendingOpportunities: number;
+    approvedOpportunities: number;
+    publishedOpportunities: number;
+    verifiedBacklinks: number;
+  };
+  nextCursor: Record<string, string> | null;
+};
+
+export type MarketingOutreachTargetDraft = {
+  id?: string;
+  kind: MarketingOutreachKind;
+  name: string;
+  domain: string;
+  url: string;
+  status: MarketingOutreachTargetStatus;
+  relevanceScore: number;
+  robotsCheckedAt?: string | null;
+  termsCheckedAt?: string | null;
+  publicationMode?: "manual";
+  frequencyCapHours?: number;
+  notes: string;
+};
+
+export type MarketingOutreachOpportunityDraft = {
+  id?: string;
+  targetId: string;
+  sourceUrl: string;
+  title: string;
+  context: string;
+  suggestedAngle: string;
+  suggestedLink: string;
+  status: "discovered" | "draft" | "pending_review";
+  relevanceScore: number;
+  riskFlags: string[];
+  fingerprint?: string;
+};
+
+export type MarketingOutreachDraftInput = {
+  id?: string;
+  opportunityId: string;
+  subject: string;
+  body: string;
+  status: "draft" | "pending_review";
+  aiAssisted: boolean;
+  similarityHash?: string;
+};
+
+export type MarketingBacklinkInput = {
+  id?: string;
+  opportunityId?: string | null;
+  sourceUrl: string;
+  targetUrl: string;
+  rel: MarketingBacklinkRel;
+  status: MarketingBacklinkStatus;
+  observedAt?: string | null;
+  verificationNote: string;
 };
 
 export type MarketingSnapshot = {

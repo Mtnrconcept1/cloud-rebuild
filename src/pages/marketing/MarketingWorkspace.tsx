@@ -10,6 +10,7 @@ import MarketingCalendarView from "@/components/marketing/views/MarketingCalenda
 import MarketingCampaignsView from "@/components/marketing/views/MarketingCampaignsView";
 import MarketingIntegrationsView from "@/components/marketing/views/MarketingIntegrationsView";
 import MarketingOverviewView from "@/components/marketing/views/MarketingOverviewView";
+import MarketingOutreachView from "@/components/marketing/views/MarketingOutreachView";
 import MarketingResultsView from "@/components/marketing/views/MarketingResultsView";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,8 @@ export default function MarketingWorkspace() {
         return <MarketingResultsView snapshot={operations.snapshot} filters={filters} onFiltersChange={updateFilters} />;
       case "integrations":
         return <MarketingIntegrationsView snapshot={operations.snapshot} filters={filters} onFiltersChange={updateFilters} />;
+      case "outreach":
+        return <MarketingOutreachView canMutateBackend={operations.canMutateBackend} />;
       case "overview":
       default:
         return <MarketingOverviewView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} runPending={operations.pendingAction === "run-due"} onRunDue={operations.runDue} onNavigate={setView} />;
