@@ -182,16 +182,22 @@ export default function MarketingOutreachView({
     data.drafts.map((draft) => [draft.opportunityId, draft]),
   ), [data.drafts]);
 
-  const run = async (key: string, action: () => Promise<unknown>, success: string) => {
-    if (!canMutateBackend || pending) return;
+  const run = async (
+    key: string,
+    action: () => Promise<unknown>,
+    success: string,
+  ): Promise<boolean> => {
+    if (!canMutateBackend || pending) return false;
     setPending(key);
     setNotice(null);
     try {
       await action();
       await outreachQuery.refetch();
       setNotice({ tone: "success", message: success });
+      return true;
     } catch (error) {
       setNotice({ tone: "error", message: safeError(error) });
+      return false;
     } finally {
       setPending(null);
     }
@@ -215,8 +221,8 @@ export default function MarketingOutreachView({
         termsCheckedAt: evidenceDate(targetForm.termsCheckedAt || ""),
       }),
       "Cible enregistrée. L’autorisation reste distincte de la publication.",
-    ).then(() => {
-      if (!pending) {
+    ).then((ok) => {
+      if (ok) {
         setTargetForm(DEFAULT_TARGET);
         setTargetFormOpen(false);
       }
@@ -236,8 +242,8 @@ export default function MarketingOutreachView({
         suggestedLink: opportunityForm.suggestedLink.trim() || "/restaurants",
       }),
       "Opportunité enregistrée en brouillon. Préparez un message et soumettez-le à validation.",
-    ).then(() => {
-      if (!pending) {
+    ).then((ok) => {
+      if (ok) {
         setOpportunityForm(DEFAULT_OPPORTUNITY);
         setOpportunityFormOpen(false);
       }
@@ -254,8 +260,8 @@ export default function MarketingOutreachView({
         body: draftForm.body.trim(),
       }),
       "Brouillon soumis à la revue humaine. Aucun message n’a été envoyé.",
-    ).then(() => {
-      if (!pending) {
+    ).then((ok) => {
+      if (ok) {
         setDraftForm(DEFAULT_DRAFT);
         setDraftFormOpen(false);
       }
@@ -302,8 +308,8 @@ export default function MarketingOutreachView({
         observedAt: backlinkForm.status === "verified" ? new Date().toISOString() : null,
       }),
       "Backlink enregistré. La vérification repose sur une preuve humaine.",
-    ).then(() => {
-      if (!pending) {
+    ).then((ok) => {
+      if (ok) {
         setBacklinkForm(DEFAULT_BACKLINK);
         setBacklinkFormOpen(false);
       }
