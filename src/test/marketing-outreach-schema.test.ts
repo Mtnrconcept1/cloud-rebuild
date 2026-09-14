@@ -46,6 +46,7 @@ describe("marketing outreach assistance", () => {
     expect(migration).toContain("127.");
     expect(migration).toContain("Private or local outreach target is not allowed");
     expect(migration).toContain("^https://(www[.])?thetok[.]ch(/|$)");
+    expect(migration).toContain("OR NOT (");
     expect(migration).toContain("rel IN ('follow','nofollow','sponsored','ugc')");
     expect(migration).toContain("Publication automatique désactivée");
   });
