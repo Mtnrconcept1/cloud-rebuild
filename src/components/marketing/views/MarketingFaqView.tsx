@@ -209,12 +209,12 @@ function FaqSection({ section }: { section: Section }) {
         className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-100 dark:hover:bg-slate-800"
       >
         <ChevronDown
-          className={cn("mt-0.5 h-4 w-4 shrink-0 text-slate-800 dark:text-slate-200 dark:text-slate-300 dark:text-slate-400 transition-transform", open && "rotate-180")}
+          className={cn("mt-0.5 h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400 transition-transform", open && "rotate-180")}
           aria-hidden
         />
         <span className="min-w-0">
           <span className="block text-sm font-semibold text-slate-950 dark:text-white">{section.title}</span>
-          <span className="block text-xs text-slate-800 dark:text-slate-200 dark:text-slate-300">{section.summary}</span>
+          <span className="block text-xs text-slate-700 dark:text-slate-300">{section.summary}</span>
         </span>
       </button>
       {open ? (
@@ -222,7 +222,7 @@ function FaqSection({ section }: { section: Section }) {
           {section.body.map((block, index) => (
             <div key={index} className="space-y-2">
               {block.heading ? (
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-800 dark:text-slate-200 dark:text-slate-300">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">
                   {block.heading}
                 </h3>
               ) : null}
