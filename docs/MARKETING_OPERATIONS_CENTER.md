@@ -68,7 +68,7 @@ Les canaux publics ne créent aucune livraison individuelle. Les canaux directs 
 - Fenêtre individuelle en heure suisse, avec claims arrêtés avant 20 h ; les canaux publics restent manuels dans l’implémentation actuelle.
 - Plafond journalier par défaut de 500 livraisons et pression de contact par défaut de 72 heures.
 - Leases, idempotence, verrouillage `SKIP LOCKED`, nombre maximal de tentatives et backoff pour les échecs rejouables.
-- Aucun accès marketing direct accordé à `authenticated` : les 24 opérations interactives passent par un dispatcher `service_role` à liste blanche, qui revalide la session opaque, le CSRF, le rôle admin et le feature flag dans la même transaction. Les fonctions worker/provider restent séparées, RLS est activée et les mutations sont auditées avec l’identité de l’administrateur BFF.
+- Aucun accès marketing direct accordé à `authenticated` : les opérations interactives (24 opérations du centre et 7 opérations de prospection assistée) passent par des dispatchers `service_role` à liste blanche, qui revalident la session opaque, le CSRF, le rôle admin et le feature flag dans la même transaction. Les fonctions worker/provider restent séparées, RLS est activée et les mutations sont auditées avec l’identité de l’administrateur BFF.
 - Cibles masquées et fingerprints non réversibles dans les vues admin ; seule la révélation ponctuelle d’une tâche `manual_call`/`manual_email` peut retourner une coordonnée brute, sans cache, après contrôles et audit du motif. Aucun secret fournisseur dans le navigateur.
 - Recherche et pagination des contacts/livraisons exécutées côté serveur avec total exact ; les champs de recherche n’incluent jamais e-mail, téléphone ni cible brute.
 - Chaque octroi, changement, réaffirmation, révocation ou opposition de base légale crée une preuve typée dans `marketing_lawful_basis_evidence`. Cette table est append-only, sans droit direct navigateur/service-role, et son audit ne reprend ni note ni source potentiellement sensibles.
@@ -121,7 +121,7 @@ curl -I https://marketing.thetok.ch/marketing
 3. Pendant le challenge MFA, les jetons Supabase sont chiffrés en base avec `marketing_bff_encryption_secret`, indexés par le hash d’un cookie pending opaque et supprimés au plus tard après dix minutes.
 4. Après un TOTP `aal2` frais, le BFF invalide sa session Supabase locale et crée une session marketing opaque de quatre heures. Le navigateur reçoit `__Host-tok_marketing_sid` en `HttpOnly` et un jeton CSRF séparé ; aucun access token, refresh token, factor ID, challenge ID ou clé service-role n’est exposé.
 5. Chaque lecture ou mutation revalide le hash de session, le CSRF pour les mutations, le rôle admin et le feature flag. Le logout révoque la session en base avant d’effacer les cookies.
-6. Les 24 RPC interactives sont les seules opérations acceptées par le dispatcher. Un bearer admin Supabase générique ne possède aucun droit direct sur les tables/RPC marketing et l’Edge orchestrateur refuse explicitement les JWT utilisateur.
+6. Les RPC interactives du centre et les 7 opérations d’outreach sont les seules opérations acceptées par leurs dispatchers dédiés. Un bearer admin Supabase générique ne possède aucun droit direct sur les tables/RPC marketing et l’Edge orchestrateur refuse explicitement les JWT utilisateur.
 
 Le stockage SSO historique des autres surfaces TheTOK n’est donc jamais monté ni consulté par l’application marketing ; le vol d’un bearer générique sur un domaine frère ne suffit pas à appeler ce backend privilégié.
 
@@ -143,7 +143,8 @@ pnpm vitest run \
   src/test/marketing-zurich-time.test.ts \
   src/test/supabase-cors.test.ts \
   src/test/vercel-rewrites.test.ts \
-  src/test/feature-flags.test.ts
+  src/test/feature-flags.test.ts \
+  src/test/marketing-outreach-schema.test.ts
 pnpm lint
 pnpm run build:prod
 ```
