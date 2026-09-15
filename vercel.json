@@ -269,7 +269,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://www.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.sentry.io https://sentry.io https://photon.komoot.io https://router.project-osrm.org https://www.gstatic.com https://fcmregistrations.googleapis.com https://firebaseinstallations.googleapis.com https://fcm.googleapis.com https://firestore.googleapis.com https://api.openai.com; frame-src 'self' https://www.thetok.ch https://cloud-rebuild-recovered.vercel.app https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:; media-src 'self' blob: https:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+          "value": "default-src 'self'; script-src 'self' 'sha256-B8dDVyUaq0ZHicjFqiXHTb5hUzz69+1HfIp7Sa1goac=' 'sha256-WSYxWIg0Mh8iqVqAKdfbvFMb19Hu5J/LhtPyv5oHwKA=' https://www.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.sentry.io https://sentry.io https://photon.komoot.io https://router.project-osrm.org https://www.gstatic.com https://fcmregistrations.googleapis.com https://firebaseinstallations.googleapis.com https://fcm.googleapis.com https://firestore.googleapis.com https://api.openai.com; frame-src 'self' https://www.thetok.ch https://cloud-rebuild-recovered.vercel.app https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:; media-src 'self' blob: https:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
         },
         {
           "key": "X-Content-Type-Options",
@@ -545,6 +545,15 @@
       ]
     },
     {
+      "source": "/tok-connect/mcp-widget",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
       "source": "/:surface(functions|api)/:path*",
       "headers": [
         {
@@ -679,6 +688,10 @@
     },
     {
       "source": "/tok-connect/developer/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tok-connect/mcp-widget",
       "destination": "/index.html"
     }
   ]
