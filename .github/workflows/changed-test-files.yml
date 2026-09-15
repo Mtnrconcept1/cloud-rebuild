@@ -34,7 +34,10 @@ env:
 jobs:
   changed-tests:
     name: changed-tests
-    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     timeout-minutes: 20
 
     steps:
@@ -44,14 +47,14 @@ jobs:
           fetch-depth: 2
           persist-credentials: false
 
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

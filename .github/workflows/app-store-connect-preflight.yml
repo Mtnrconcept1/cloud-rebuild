@@ -24,7 +24,7 @@ concurrency:
 jobs:
   preflight:
     name: Authenticate and locate Thetok
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: app-store-production
     env:
       APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
