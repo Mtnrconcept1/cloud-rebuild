@@ -24,6 +24,7 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 
+import AdminTheForkVisibilityControl from "@/components/admin/AdminTheForkVisibilityControl";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
@@ -304,6 +305,11 @@ export default function AdminMobileNavigation() {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pl-[calc(env(safe-area-inset-left,0px)+1rem)] pr-[calc(env(safe-area-inset-right,0px)+1rem)]">
+      {pathname === "/admin/restaurants" ? (
+        <div className="pointer-events-auto mr-2 flex items-center">
+          <AdminTheForkVisibilityControl />
+        </div>
+      ) : null}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetTrigger asChild>
           <Button
