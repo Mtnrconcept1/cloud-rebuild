@@ -26,6 +26,8 @@ Si un push sur `main` n'instancie exceptionnellement pas le workflow `Deploy Pro
 
 Rattrapage validé le 3 septembre 2026 pour la livraison SEO #616 : le merge applicatif `1d6af316515e5abfaf20f4df060d424661cb133e` n'avait pas instancié immédiatement `Deploy Production`; ce commit documentaire sert uniquement à réémettre le signal `push: main` sans modifier le comportement de l'application.
 
+Rattrapage demandé le 15 septembre 2026 après le merge du mode restaurants TheFork (`3438b08961a3bb33e240bfabf1eb6989da2a78c1`) afin de réémettre le signal `push: main` vers le projet Vercel officiel `cloud-rebuild-recovered`, sans modifier le comportement de l'application.
+
 ## Secrets Edge Functions
 
 - `SPONSORED_EVENT_SIGNING_SECRET` : optionnel tant que le tracking sponsorise n'a pas de fournisseur de jetons signes. Si ce secret est configure dans Supabase Edge Functions, `track-sponsored-event` exige `eventSignature` et `signedAt` sur chaque impression, clic ou conversion sponsorisee.
