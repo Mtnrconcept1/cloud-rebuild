@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ChefHat, MapPin, Search, Star, Utensils, X } from "lucide-react";
 
 import CityAutocomplete from "@/components/CityAutocomplete";
+import DesktopHomeHero from "@/components/home/DesktopHomeHero";
 import {
   Dialog,
   DialogContent,
@@ -86,6 +87,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
       <h1 className="sr-only">
         Réservez, commandez et profitez des meilleures offres food à Genève
       </h1>
+      <DesktopHomeHero />
       <section data-testid="mobile-hero-shell" className="relative min-h-[calc(100svh_-_66px_-_env(safe-area-inset-top,0px))] overflow-hidden bg-[#edf7ff] md:hidden">
         <div className="absolute inset-0 bg-[url('/fondacceuil.png')] bg-[length:100%_auto] bg-[position:50%_0%] bg-no-repeat" aria-hidden="true" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,250,240,0.68)_0%,rgba(255,250,240,0.12)_34%,rgba(67,32,11,0.06)_62%,rgba(22,10,4,0.54)_100%)]" aria-hidden="true" />
@@ -210,7 +212,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
       <section
         ref={heroRef}
-        className="relative hidden min-h-[calc(100dvh_-_80px_-_env(safe-area-inset-top,0px))] flex-col overflow-hidden md:flex lg:min-h-[calc(100dvh_-_116px_-_env(safe-area-inset-top,0px))]"
+        className="relative hidden min-h-[calc(100dvh_-_80px_-_env(safe-area-inset-top,0px))] flex-col overflow-hidden md:flex lg:hidden"
       >
         <motion.div
           className="absolute inset-0 bg-[url('/chefbg.webp')] bg-cover bg-no-repeat bg-center will-change-transform"
@@ -226,7 +228,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
         <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_220px_rgba(71,39,14,0.08)] dark:shadow-[inset_0_0_240px_rgba(0,0,0,0.56)]" />
 
         <motion.div
-          className="relative z-10 flex flex-1 flex-col items-center justify-start px-6 pb-14 pt-14 text-center lg:pt-16"
+          className="relative z-10 flex flex-1 flex-col items-center justify-start px-6 pb-14 pt-14 text-center"
           style={{ transform: "translateY(calc(var(--scroll-y, 0px) * -0.12))" }}
           variants={stagger}
           initial="hidden"
@@ -235,7 +237,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           <motion.img
             src={logoSrc}
             alt="Tok"
-            className="mb-2 h-36 w-auto object-contain drop-shadow-[0_14px_30px_rgba(122,73,25,0.18)] dark:drop-shadow-[0_0_36px_rgba(255,123,24,0.34)] lg:h-40"
+            className="mb-2 h-36 w-auto object-contain drop-shadow-[0_14px_30px_rgba(122,73,25,0.18)] dark:drop-shadow-[0_0_36px_rgba(255,123,24,0.34)]"
             variants={fadeUp}
           />
 
@@ -275,7 +277,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cuisine, nom de restaurant..."
-                  className="min-w-0 flex-1 bg-transparent text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] focus:outline-none dark:text-slate-50 dark:placeholder:text-slate-200/90"
+                className="min-w-0 flex-1 bg-transparent text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] focus:outline-none dark:text-slate-50 dark:placeholder:text-slate-200/90"
               />
             </div>
 
