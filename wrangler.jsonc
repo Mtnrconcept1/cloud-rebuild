@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "cloud-rebuild",
+  "compatibility_date": "2026-09-16",
+  "preview_urls": true,
+  "assets": {
+    "directory": "./dist"
+  }
+}
