@@ -5,19 +5,12 @@ import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const workerPath = resolve(root, "supabase/functions/enrich-thefork-images/index.ts");
+const siteDiscoveryWorkerPath = resolve(root, "supabase/functions/discover-thefork-official-sites/index.ts");
 const truthWorkerPath = resolve(root, "supabase/functions/verify-directory-image-truth/index.ts");
-const migrationPath = resolve(
-  root,
-  "supabase/migrations/20260917213000_claim_thefork_image_discovery_jobs.sql",
-);
-const priorityMigrationPath = resolve(
-  root,
-  "supabase/migrations/20260917221000_prioritize_thefork_image_truth_reviews.sql",
-);
-const priorityFixMigrationPath = resolve(
-  root,
-  "supabase/migrations/20260917222000_fix_thefork_truth_priority_internal_call.sql",
-);
+const migrationPath = resolve(root, "supabase/migrations/20260917213000_claim_thefork_image_discovery_jobs.sql");
+const priorityMigrationPath = resolve(root, "supabase/migrations/20260917221000_prioritize_thefork_image_truth_reviews.sql");
+const priorityFixMigrationPath = resolve(root, "supabase/migrations/20260917222000_fix_thefork_truth_priority_internal_call.sql");
+const siteDiscoveryMigrationPath = resolve(root, "supabase/migrations/20260917223000_thefork_official_site_discovery.sql");
 
 function read(path: string) {
   return readFileSync(path, "utf8");
@@ -28,10 +21,8 @@ describe("TheFork directory image enrichment completion", () => {
     expect(existsSync(workerPath)).toBe(true);
     expect(existsSync(migrationPath)).toBe(true);
     if (!existsSync(workerPath) || !existsSync(migrationPath)) return;
-
     const worker = read(workerPath);
     const migration = read(migrationPath);
-
     expect(worker).toContain("service_claim_thefork_image_discovery_jobs");
     expect(worker).toContain("verifiedOfficialPages");
     expect(worker).toContain('"verified_search_result"');
@@ -46,7 +37,6 @@ describe("TheFork directory image enrichment completion", () => {
     expect(existsSync(migrationPath)).toBe(true);
     if (!existsSync(migrationPath)) return;
     const migration = read(migrationPath);
-
     expect(migration).toContain("invoke_directory_image_truth_worker");
     expect(migration).toContain("invoke_thefork_image_recovery_worker");
     expect(migration).toContain("marketing_edge_url");
@@ -62,7 +52,6 @@ describe("TheFork directory image enrichment completion", () => {
     if (!existsSync(priorityMigrationPath) || !existsSync(priorityFixMigrationPath)) return;
     const migration = read(priorityMigrationPath);
     const fix = read(priorityFixMigrationPath);
-
     expect(migration).toContain("prioritize_thefork_image_truth_reviews");
     expect(migration).toContain("Restaurant référencé sur TheFork");
     expect(migration).toContain("next_attempt_at");
@@ -73,11 +62,27 @@ describe("TheFork directory image enrichment completion", () => {
     expect(fix).not.toContain("auth.role()");
   });
 
+  it("discovers official domains mentioned inside search result descriptions", () => {
+    expect(existsSync(siteDiscoveryWorkerPath)).toBe(true);
+    expect(existsSync(siteDiscoveryMigrationPath)).toBe(true);
+    if (!existsSync(siteDiscoveryWorkerPath) || !existsSync(siteDiscoveryMigrationPath)) return;
+    const worker = read(siteDiscoveryWorkerPath);
+    const migration = read(siteDiscoveryMigrationPath);
+    expect(worker).toContain("extractCandidateUrlsFromSearchResult");
+    expect(worker).toContain("result.description");
+    expect(worker).toContain("verifyOfficialSiteIdentity");
+    expect(worker).toContain("marketing_contacts");
+    expect(worker).toContain("thefork_site_discovery:verified");
+    expect(worker).toContain("function isTheForkHost");
+    expect(migration).toContain("service_claim_thefork_official_site_discovery_jobs");
+    expect(migration).toContain("FOR UPDATE OF job SKIP LOCKED");
+    expect(migration).toContain("tok-thefork-official-site-discovery");
+  });
+
   it("never imports images from TheFork-owned hosts across country domains", () => {
     expect(existsSync(workerPath)).toBe(true);
     if (!existsSync(workerPath)) return;
     const worker = read(workerPath);
-
     expect(worker).toContain("function isTheForkHost");
     expect(worker).toContain("if (isTheForkHost(normalized)) return true");
     expect(worker).toContain("isRejectedSiteHost(sourceHost) || isRejectedSiteHost(imageHost)");
@@ -89,20 +94,16 @@ describe("TheFork directory image enrichment completion", () => {
     if (!existsSync(workerPath)) return;
     const worker = read(workerPath);
     const recovery = worker.match(/async function recoverRestaurantImage[\s\S]*?\n}\n\nasync function updateJob/)?.[0] || "";
-
     expect(recovery).toContain("getLeadHints");
     expect(recovery).toContain("crawlOfficialSite");
     expect(recovery).toContain("discoverOfficialSiteWithSearch");
-    expect(recovery.indexOf("crawlOfficialSite")).toBeLessThan(
-      recovery.indexOf("discoverOfficialSiteWithSearch"),
-    );
+    expect(recovery.indexOf("crawlOfficialSite")).toBeLessThan(recovery.indexOf("discoverOfficialSiteWithSearch"));
   });
 
   it("stores only validated official-site images in TOK Storage before quarantine verification", () => {
     expect(existsSync(workerPath)).toBe(true);
     if (!existsSync(workerPath)) return;
     const worker = read(workerPath);
-
     expect(worker).toContain('const RESTAURANT_IMAGE_BUCKET = "restaurant-images"');
     expect(worker).toContain("persistRestaurantImage");
     expect(worker).toContain('provider: "verified_official_site"');
@@ -115,7 +116,6 @@ describe("TheFork directory image enrichment completion", () => {
     expect(existsSync(truthWorkerPath)).toBe(true);
     if (!existsSync(truthWorkerPath)) return;
     const verifier = read(truthWorkerPath);
-
     expect(verifier).toContain("tok-official-source-verifier-v1");
     expect(verifier).toContain("imageDimensions");
     expect(verifier).toContain("restaurant_directory_image_jobs");
