@@ -33,6 +33,20 @@ describe("TheFork directory image enrichment completion", () => {
     expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.service_claim_thefork_image_discovery_jobs");
   });
 
+  it("schedules both truth verification and TheFork recovery through environment-bound edge URLs", () => {
+    expect(existsSync(migrationPath)).toBe(true);
+    if (!existsSync(migrationPath)) return;
+    const migration = read(migrationPath);
+
+    expect(migration).toContain("invoke_directory_image_truth_worker");
+    expect(migration).toContain("invoke_thefork_image_recovery_worker");
+    expect(migration).toContain("marketing_edge_url");
+    expect(migration).toContain("internal_cron_secret");
+    expect(migration).toContain("tok-directory-image-truth-verifier");
+    expect(migration).toContain("tok-thefork-image-recovery");
+    expect(migration).not.toContain("vault.decrypted_secrets s WHERE s.name = 'SUPABASE_SERVICE_ROLE_KEY'");
+  });
+
   it("never imports images from TheFork-owned hosts across country domains", () => {
     expect(existsSync(workerPath)).toBe(true);
     if (!existsSync(workerPath)) return;
@@ -58,7 +72,7 @@ describe("TheFork directory image enrichment completion", () => {
     );
   });
 
-  it("stores only validated official-site images in TOK Storage", () => {
+  it("stores only validated official-site images in TOK Storage before quarantine verification", () => {
     expect(existsSync(workerPath)).toBe(true);
     if (!existsSync(workerPath)) return;
     const worker = read(workerPath);
@@ -66,7 +80,8 @@ describe("TheFork directory image enrichment completion", () => {
     expect(worker).toContain('const RESTAURANT_IMAGE_BUCKET = "restaurant-images"');
     expect(worker).toContain("persistRestaurantImage");
     expect(worker).toContain('provider: "verified_official_site"');
-    expect(worker).toContain("restaurant_media");
+    expect(worker).toContain("restaurant_image_truth_reviews");
     expect(worker).toContain("MAX_STORED_IMAGE_BYTES");
+    expect(worker).toContain("quarantine_not_created");
   });
 });
