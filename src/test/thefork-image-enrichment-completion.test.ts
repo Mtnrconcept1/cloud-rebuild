@@ -10,6 +10,10 @@ const migrationPath = resolve(
   root,
   "supabase/migrations/20260917213000_claim_thefork_image_discovery_jobs.sql",
 );
+const priorityMigrationPath = resolve(
+  root,
+  "supabase/migrations/20260917221000_prioritize_thefork_image_truth_reviews.sql",
+);
 
 function read(path: string) {
   return readFileSync(path, "utf8");
@@ -34,7 +38,7 @@ describe("TheFork directory image enrichment completion", () => {
     expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.service_claim_thefork_image_discovery_jobs");
   });
 
-  it("schedules both truth verification and TheFork recovery through environment-bound edge URLs", () => {
+  it("schedules recovery and truth verification through environment-bound edge URLs", () => {
     expect(existsSync(migrationPath)).toBe(true);
     if (!existsSync(migrationPath)) return;
     const migration = read(migrationPath);
@@ -46,6 +50,19 @@ describe("TheFork directory image enrichment completion", () => {
     expect(migration).toContain("tok-directory-image-truth-verifier");
     expect(migration).toContain("tok-thefork-image-recovery");
     expect(migration).not.toContain("vault.decrypted_secrets s WHERE s.name = 'SUPABASE_SERVICE_ROLE_KEY'");
+  });
+
+  it("prioritizes TheFork truth reviews without changing the generic claim queue", () => {
+    expect(existsSync(priorityMigrationPath)).toBe(true);
+    if (!existsSync(priorityMigrationPath)) return;
+    const migration = read(priorityMigrationPath);
+
+    expect(migration).toContain("service_claim_thefork_image_truth_reviews");
+    expect(migration).toContain("FOR UPDATE OF reviews SKIP LOCKED");
+    expect(migration).toContain("Restaurant référencé sur TheFork");
+    expect(migration).toContain("invoke_thefork_image_truth_worker");
+    expect(migration).toContain("tok-thefork-image-truth-verifier");
+    expect(migration).not.toContain("CREATE OR REPLACE FUNCTION public.claim_restaurant_image_truth_reviews");
   });
 
   it("never imports images from TheFork-owned hosts across country domains", () => {
@@ -97,6 +114,7 @@ describe("TheFork directory image enrichment completion", () => {
     expect(verifier).toContain("source_page_url, source_image_url");
     expect(verifier).toContain("settle_restaurant_image_truth_review");
     expect(verifier).toContain("official_source_identity_verified");
+    expect(verifier).toContain("service_claim_thefork_image_truth_reviews");
     expect(verifier).not.toContain("OPENAI_API_KEY");
   });
 });
