@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const workerPath = resolve(root, "supabase/functions/enrich-thefork-images/index.ts");
+const truthWorkerPath = resolve(root, "supabase/functions/verify-directory-image-truth/index.ts");
 const migrationPath = resolve(
   root,
   "supabase/migrations/20260917213000_claim_thefork_image_discovery_jobs.sql",
@@ -25,7 +26,7 @@ describe("TheFork directory image enrichment completion", () => {
 
     expect(worker).toContain("service_claim_thefork_image_discovery_jobs");
     expect(worker).toContain("verifiedOfficialPages");
-    expect(worker).toContain('discoveryMethod: "verified_search_result"');
+    expect(worker).toContain('"verified_search_result"');
     expect(worker).toContain("isLikelyOfficialRestaurantHost");
     expect(migration).toContain("FOR UPDATE OF job SKIP LOCKED");
     expect(migration).toContain("Restaurant référencé sur TheFork");
@@ -83,5 +84,19 @@ describe("TheFork directory image enrichment completion", () => {
     expect(worker).toContain("restaurant_image_truth_reviews");
     expect(worker).toContain("MAX_STORED_IMAGE_BYTES");
     expect(worker).toContain("quarantine_not_created");
+  });
+
+  it("verifies high-confidence official-source images without requiring OpenAI credits", () => {
+    expect(existsSync(truthWorkerPath)).toBe(true);
+    if (!existsSync(truthWorkerPath)) return;
+    const verifier = read(truthWorkerPath);
+
+    expect(verifier).toContain("tok-official-source-verifier-v1");
+    expect(verifier).toContain("imageDimensions");
+    expect(verifier).toContain("restaurant_directory_image_jobs");
+    expect(verifier).toContain("source_page_url, source_image_url");
+    expect(verifier).toContain("settle_restaurant_image_truth_review");
+    expect(verifier).toContain("official_source_identity_verified");
+    expect(verifier).not.toContain("OPENAI_API_KEY");
   });
 });
