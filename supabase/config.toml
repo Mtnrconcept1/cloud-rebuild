@@ -140,6 +140,9 @@ verify_jwt = false
 [functions.enrich-directory-images]
 verify_jwt = false
 
+[functions.enrich-thefork-images]
+verify_jwt = false
+
 [functions.enrich-directory-cuisines]
 verify_jwt = false
 
