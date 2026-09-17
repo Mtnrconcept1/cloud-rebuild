@@ -52,17 +52,17 @@ describe("TheFork directory image enrichment completion", () => {
     expect(migration).not.toContain("vault.decrypted_secrets s WHERE s.name = 'SUPABASE_SERVICE_ROLE_KEY'");
   });
 
-  it("prioritizes TheFork truth reviews without changing the generic claim queue", () => {
+  it("prioritizes TheFork truth reviews without replacing the generic SKIP LOCKED claim", () => {
     expect(existsSync(priorityMigrationPath)).toBe(true);
     if (!existsSync(priorityMigrationPath)) return;
     const migration = read(priorityMigrationPath);
 
-    expect(migration).toContain("service_claim_thefork_image_truth_reviews");
-    expect(migration).toContain("FOR UPDATE OF reviews SKIP LOCKED");
+    expect(migration).toContain("prioritize_thefork_image_truth_reviews");
     expect(migration).toContain("Restaurant référencé sur TheFork");
-    expect(migration).toContain("invoke_thefork_image_truth_worker");
-    expect(migration).toContain("tok-thefork-image-truth-verifier");
+    expect(migration).toContain("next_attempt_at");
+    expect(migration).toContain("invoke_directory_image_truth_worker");
     expect(migration).not.toContain("CREATE OR REPLACE FUNCTION public.claim_restaurant_image_truth_reviews");
+    expect(migration).not.toContain("service_claim_thefork_image_truth_reviews");
   });
 
   it("never imports images from TheFork-owned hosts across country domains", () => {
@@ -114,7 +114,6 @@ describe("TheFork directory image enrichment completion", () => {
     expect(verifier).toContain("source_page_url, source_image_url");
     expect(verifier).toContain("settle_restaurant_image_truth_review");
     expect(verifier).toContain("official_source_identity_verified");
-    expect(verifier).toContain("service_claim_thefork_image_truth_reviews");
     expect(verifier).not.toContain("OPENAI_API_KEY");
   });
 });
