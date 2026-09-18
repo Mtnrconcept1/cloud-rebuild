@@ -545,7 +545,7 @@ async function processOne(supabase: any, job: ClaimRow) {
       status: "not_found",
       next_attempt_at: transient ? new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString() : null,
       last_error: transient
-        ? "thefork_recovery:permanent:no_verified_official_image"
+        ? "thefork_site_discovery:retry"
         : "thefork_recovery:permanent:site_discovery_exhausted",
     }).catch(() => undefined);
     return { restaurant_id: job.restaurant_id, status: "error", error: message };
