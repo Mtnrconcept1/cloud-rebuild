@@ -2,8 +2,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const FUNCTION_NAME = "discover-thefork-official-sites";
 const FIRECRAWL_SEARCH_URL = "https://api.firecrawl.dev/v2/search";
-const DEFAULT_BATCH_SIZE = 8;
-const MAX_BATCH_SIZE = 15;
+const DEFAULT_BATCH_SIZE = 1;
+const MAX_BATCH_SIZE = 2;
 const FETCH_TIMEOUT_MS = 7_000;
 const SEARCH_TIMEOUT_MS = 12_000;
 const MAX_HTML_CHARACTERS = 900_000;
