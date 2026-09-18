@@ -45,17 +45,16 @@ describe("TheFork directory image enrichment completion", () => {
     expect(migration).not.toContain("vault.decrypted_secrets s WHERE s.name = 'SUPABASE_SERVICE_ROLE_KEY'");
   });
 
-  it("prioritizes TheFork truth reviews without replacing the generic SKIP LOCKED claim", () => {
+  it("claims only TheFork truth reviews with SKIP LOCKED leasing", () => {
     expect(existsSync(priorityMigrationPath)).toBe(true);
     if (!existsSync(priorityMigrationPath)) return;
     const migration = read(priorityMigrationPath);
-    expect(migration).toContain("prioritize_thefork_image_truth_reviews");
+    expect(migration).toContain("service_claim_thefork_image_truth_reviews");
     expect(migration).toContain("Restaurant référencé sur TheFork");
-    expect(migration).toContain("next_attempt_at");
-    expect(migration).toContain("invoke_directory_image_truth_worker");
-    expect(migration).not.toContain("CREATE OR REPLACE FUNCTION public.claim_restaurant_image_truth_reviews");
-    expect(migration).toContain("REVOKE ALL ON FUNCTION public.prioritize_thefork_image_truth_reviews");
-    expect(migration).not.toContain("auth.role()");
+    expect(migration).toContain("FOR UPDATE OF review SKIP LOCKED");
+    expect(migration).toContain("auth.role()");
+    expect(migration).toContain("REVOKE ALL ON FUNCTION public.service_claim_thefork_image_truth_reviews");
+    expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.service_claim_thefork_image_truth_reviews");
   });
 
   it("discovers official domains mentioned inside search result descriptions", () => {
@@ -116,6 +115,7 @@ describe("TheFork directory image enrichment completion", () => {
     expect(verifier).toContain("imageDimensions");
     expect(verifier).toContain("restaurant_directory_image_jobs");
     expect(verifier).toContain("source_page_url, source_image_url");
+    expect(verifier).toContain("service_claim_thefork_image_truth_reviews");
     expect(verifier).toContain("settle_restaurant_image_truth_review");
     expect(verifier).toContain("official_source_identity_verified");
     expect(verifier).not.toContain("OPENAI_API_KEY");
