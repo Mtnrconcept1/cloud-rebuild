@@ -140,6 +140,15 @@ verify_jwt = false
 [functions.enrich-directory-images]
 verify_jwt = false
 
+[functions.enrich-thefork-images]
+verify_jwt = false
+
+[functions.verify-directory-image-truth]
+verify_jwt = false
+
+[functions.discover-thefork-official-sites]
+verify_jwt = false
+
 [functions.enrich-directory-cuisines]
 verify_jwt = false
 
