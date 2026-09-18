@@ -9,10 +9,8 @@ AS $function$
 DECLARE
   v_updated integer := 0;
 BEGIN
-  IF auth.role() IS DISTINCT FROM 'service_role' THEN
-    RAISE EXCEPTION 'service_role_required' USING ERRCODE = '42501';
-  END IF;
-
+  -- Called only from the private SECURITY DEFINER cron invoker. Access is
+  -- restricted by REVOKE/GRANT below, so no request JWT is required here.
   WITH prioritized AS (
     UPDATE public.restaurant_image_truth_reviews AS review
     SET
