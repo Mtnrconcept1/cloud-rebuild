@@ -8,7 +8,7 @@ const workerPath = resolve(root, "supabase/functions/enrich-thefork-images/index
 const siteDiscoveryWorkerPath = resolve(root, "supabase/functions/discover-thefork-official-sites/index.ts");
 const truthWorkerPath = resolve(root, "supabase/functions/verify-directory-image-truth/index.ts");
 const migrationPath = resolve(root, "supabase/migrations/20260917213000_claim_thefork_image_discovery_jobs.sql");
-const priorityMigrationPath = resolve(root, "supabase/migrations/20260917221000_prioritize_thefork_image_truth_reviews.sql");
+const priorityMigrationPath = resolve(root, "supabase/migrations/20260917221000_claim_thefork_image_truth_reviews.sql");
 const siteDiscoveryMigrationPath = resolve(root, "supabase/migrations/20260917223000_thefork_official_site_discovery.sql");
 
 function read(path: string) {
