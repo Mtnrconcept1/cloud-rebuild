@@ -770,7 +770,7 @@ Deno.serve(async (req) => {
     const limit = boundedBatchSize((body as any)?.limit);
 
     const { data: claimed, error: claimError } = await supabase.rpc(
-      "claim_restaurant_image_truth_reviews",
+      "service_claim_thefork_image_truth_reviews",
       { p_limit: limit },
     );
     if (claimError) return json({ success: false, error: `claim_failed:${claimError.message}` }, 500);
