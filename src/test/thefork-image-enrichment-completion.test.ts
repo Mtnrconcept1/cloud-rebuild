@@ -9,7 +9,6 @@ const siteDiscoveryWorkerPath = resolve(root, "supabase/functions/discover-thefo
 const truthWorkerPath = resolve(root, "supabase/functions/verify-directory-image-truth/index.ts");
 const migrationPath = resolve(root, "supabase/migrations/20260917213000_claim_thefork_image_discovery_jobs.sql");
 const priorityMigrationPath = resolve(root, "supabase/migrations/20260917221000_prioritize_thefork_image_truth_reviews.sql");
-const priorityFixMigrationPath = resolve(root, "supabase/migrations/20260917222000_fix_thefork_truth_priority_internal_call.sql");
 const siteDiscoveryMigrationPath = resolve(root, "supabase/migrations/20260917223000_thefork_official_site_discovery.sql");
 
 function read(path: string) {
@@ -48,18 +47,15 @@ describe("TheFork directory image enrichment completion", () => {
 
   it("prioritizes TheFork truth reviews without replacing the generic SKIP LOCKED claim", () => {
     expect(existsSync(priorityMigrationPath)).toBe(true);
-    expect(existsSync(priorityFixMigrationPath)).toBe(true);
-    if (!existsSync(priorityMigrationPath) || !existsSync(priorityFixMigrationPath)) return;
+    if (!existsSync(priorityMigrationPath)) return;
     const migration = read(priorityMigrationPath);
-    const fix = read(priorityFixMigrationPath);
     expect(migration).toContain("prioritize_thefork_image_truth_reviews");
     expect(migration).toContain("Restaurant référencé sur TheFork");
     expect(migration).toContain("next_attempt_at");
     expect(migration).toContain("invoke_directory_image_truth_worker");
     expect(migration).not.toContain("CREATE OR REPLACE FUNCTION public.claim_restaurant_image_truth_reviews");
-    expect(fix).toContain("CREATE OR REPLACE FUNCTION public.prioritize_thefork_image_truth_reviews");
-    expect(fix).toContain("REVOKE ALL ON FUNCTION public.prioritize_thefork_image_truth_reviews");
-    expect(fix).not.toContain("auth.role()");
+    expect(migration).toContain("REVOKE ALL ON FUNCTION public.prioritize_thefork_image_truth_reviews");
+    expect(migration).not.toContain("auth.role()");
   });
 
   it("discovers official domains mentioned inside search result descriptions", () => {
