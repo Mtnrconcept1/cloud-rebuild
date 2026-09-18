@@ -146,6 +146,19 @@ function meaningfulNameTokens(name: string) {
     .filter((token) => token.length >= 3 && !GENERIC_NAME_TOKENS.has(token));
 }
 
+function guessedOfficialDomains(name: string, city: string | null) {
+  const base = meaningfulNameTokens(name).join("-").slice(0, 55);
+  if (!base) return [];
+  const compact = base.replace(/-/g, "");
+  const citySlug = normalizeText(city).replace(/\s+/g, "-");
+  return Array.from(new Set([
+    `https://${base}.ch/`,
+    compact && compact !== base ? `https://${compact}.ch/` : "",
+    citySlug ? `https://${base}-${citySlug}.ch/` : "",
+    `https://${base}.com/`,
+  ].filter(Boolean)));
+}
+
 function hostOf(value: string | null | undefined) {
   try {
     return new URL(String(value || "")).hostname.toLowerCase().replace(/^www\./, "");
@@ -479,7 +492,7 @@ async function firecrawlSearch(job: ClaimRow) {
   if (!response.ok) {
     const text = await response.text().catch(() => "");
     const error = new Error(`firecrawl_search_${response.status}:${text.slice(0, 120)}`);
-    (error as any).transient = response.status === 408 || response.status === 429 || response.status >= 500;
+    (error as any).transient = response.status === 402 || response.status === 408 || response.status === 429 || response.status >= 500;
     throw error;
   }
   const payload = await response.json();
@@ -487,6 +500,11 @@ async function firecrawlSearch(job: ClaimRow) {
 }
 
 async function discoverOfficialSite(job: ClaimRow) {
+  for (const candidate of guessedOfficialDomains(job.restaurant_name, job.restaurant_city)) {
+    const verified = await verifyOfficialSiteIdentity(job, candidate);
+    if (verified) return verified;
+  }
+
   const results = await firecrawlSearch(job);
   const candidates = new Set<string>();
   for (const result of results) {
