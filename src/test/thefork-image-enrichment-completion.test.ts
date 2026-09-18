@@ -12,6 +12,7 @@ const priorityMigrationPath = resolve(root, "supabase/migrations/20260917221000_
 const siteDiscoveryMigrationPath = resolve(root, "supabase/migrations/20260917223000_thefork_official_site_discovery.sql");
 const siteDiscoveryHandoffMigrationPath = resolve(root, "supabase/migrations/20260917224000_fix_thefork_site_discovery_handoff.sql");
 const siteDiscoveryBackoffMigrationPath = resolve(root, "supabase/migrations/20260917225000_backoff_thefork_site_discovery_provider.sql");
+const leaseRecoveryMigrationPath = resolve(root, "supabase/migrations/20260917226000_recover_stale_thefork_image_worker_leases.sql");
 
 function read(path: string) {
   return readFileSync(path, "utf8");
@@ -87,6 +88,12 @@ describe("TheFork directory image enrichment completion", () => {
     const backoff = read(siteDiscoveryBackoffMigrationPath);
     expect(backoff).toContain("'0 */6 * * *'");
     expect(backoff).toContain("invoke_thefork_official_site_discovery_worker(1)");
+    expect(existsSync(leaseRecoveryMigrationPath)).toBe(true);
+    const leases = read(leaseRecoveryMigrationPath);
+    expect(leases).toContain("job.status = 'processing'");
+    expect(leases).toContain("job.locked_at < now() - interval '15 minutes'");
+    expect(leases).toContain("invoke_thefork_image_recovery_worker(2)");
+    expect(leases).toContain("invoke_directory_image_truth_worker(6)");
   });
 
   it("never imports images from TheFork-owned hosts across country domains", () => {
