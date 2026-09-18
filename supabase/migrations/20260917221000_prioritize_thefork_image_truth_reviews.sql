@@ -1,108 +1,92 @@
 BEGIN;
 
-CREATE OR REPLACE FUNCTION public.prioritize_thefork_image_truth_reviews()
-RETURNS integer
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = ''
-AS $function$
-DECLARE
-  v_updated integer := 0;
-BEGIN
-  -- Called only from the private SECURITY DEFINER cron invoker. Access is
-  -- restricted by REVOKE/GRANT below, so no request JWT is required here.
-  WITH prioritized AS (
-    UPDATE public.restaurant_image_truth_reviews AS review
-    SET
-      next_attempt_at = LEAST(
-        review.next_attempt_at,
-        timestamptz '2000-01-01 00:00:00+00'
-      ),
-      updated_at = now()
-    FROM public.restaurants AS restaurant
-    WHERE restaurant.id = review.restaurant_id
-      AND review.status IN ('queued', 'retry')
-      AND EXISTS (
-        SELECT 1
-        FROM public.marketing_contacts AS contact
-        WHERE contact.source_objectid::text = restaurant.directory_source_reference
-          AND contact.branch = 'Restaurant référencé sur TheFork'
-      )
-      AND review.next_attempt_at > timestamptz '2000-01-01 00:00:00+00'
-    RETURNING review.id
-  )
-  SELECT count(*)::integer INTO v_updated FROM prioritized;
-
-  RETURN v_updated;
-END;
-$function$;
-
-REVOKE ALL ON FUNCTION public.prioritize_thefork_image_truth_reviews()
-  FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.prioritize_thefork_image_truth_reviews()
-  TO service_role;
-
-CREATE OR REPLACE FUNCTION public.invoke_directory_image_truth_worker(
-  p_limit integer DEFAULT 10
+-- Dedicated lease-based claim for TheFork image truth reviews.
+-- This keeps the deterministic verifier scoped to the current TheFork backfill
+-- and leaves the generic global review queue untouched.
+CREATE OR REPLACE FUNCTION public.service_claim_thefork_image_truth_reviews(
+  p_limit integer DEFAULT 15
 )
-RETURNS bigint
+RETURNS TABLE (
+  review_id uuid,
+  lease_token uuid,
+  restaurant_id uuid,
+  restaurant_name text,
+  restaurant_address text,
+  restaurant_city text,
+  candidate_url text,
+  source_url text,
+  directory_source text,
+  attempt_number integer
+)
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $function$
 DECLARE
-  v_base_url text;
-  v_cron_secret text;
-  v_request_id bigint;
-  v_limit integer := LEAST(GREATEST(COALESCE(p_limit, 10), 1), 25);
+  v_limit integer := LEAST(GREATEST(COALESCE(p_limit, 15), 1), 25);
 BEGIN
-  -- Keep the existing generic SKIP LOCKED claim intact, but make currently
-  -- actionable TheFork reviews sort before the historical global backlog.
-  PERFORM public.prioritize_thefork_image_truth_reviews();
-
-  SELECT regexp_replace(
-    btrim(secret.decrypted_secret),
-    '/functions/v1/marketing-orchestrator$',
-    ''
-  )
-  INTO v_base_url
-  FROM vault.decrypted_secrets AS secret
-  WHERE secret.name = 'marketing_edge_url'
-  LIMIT 1;
-
-  SELECT btrim(secret.decrypted_secret)
-  INTO v_cron_secret
-  FROM vault.decrypted_secrets AS secret
-  WHERE secret.name = 'internal_cron_secret'
-  LIMIT 1;
-
-  IF NULLIF(v_cron_secret, '') IS NULL
-     OR COALESCE(v_base_url ~ '^https://[a-z0-9-]+[.]supabase[.]co$', false) IS NOT TRUE THEN
-    RETURN NULL;
+  IF auth.role() IS DISTINCT FROM 'service_role' THEN
+    RAISE EXCEPTION 'service_role_required' USING ERRCODE = '42501';
   END IF;
 
-  SELECT net.http_post(
-    url := v_base_url || '/functions/v1/verify-directory-image-truth',
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'x-internal-cron-secret', v_cron_secret
-    ),
-    body := jsonb_build_object(
-      'mode', 'process_batch',
-      'limit', v_limit,
-      'source', 'directory-image-truth-cron'
-    ),
-    timeout_milliseconds := 55000
+  RETURN QUERY
+  WITH candidates AS (
+    SELECT review.id
+    FROM public.restaurant_image_truth_reviews AS review
+    JOIN public.restaurants AS restaurant
+      ON restaurant.id = review.restaurant_id
+    WHERE (
+      review.status IN ('queued', 'retry')
+      AND review.next_attempt_at <= now()
+    ) OR (
+      review.status = 'processing'
+      AND review.lease_expires_at < now()
+    )
+    AND EXISTS (
+      SELECT 1
+      FROM public.marketing_contacts AS contact
+      WHERE contact.source_objectid::text = restaurant.directory_source_reference
+        AND contact.branch = 'Restaurant référencé sur TheFork'
+    )
+    ORDER BY review.next_attempt_at, review.created_at, review.id
+    FOR UPDATE OF review SKIP LOCKED
+    LIMIT v_limit
+  ), claimed AS (
+    UPDATE public.restaurant_image_truth_reviews AS review
+    SET
+      status = 'processing',
+      attempts = LEAST(review.attempts + 1, 20),
+      lease_token = gen_random_uuid(),
+      lease_expires_at = now() + interval '15 minutes',
+      updated_at = now()
+    FROM candidates
+    WHERE review.id = candidates.id
+    RETURNING review.*
   )
-  INTO v_request_id;
-
-  RETURN v_request_id;
+  SELECT
+    claimed.id,
+    claimed.lease_token,
+    restaurant.id,
+    restaurant.name,
+    restaurant.address,
+    restaurant.city,
+    claimed.candidate_url,
+    COALESCE(
+      claimed.source_url,
+      restaurant.directory_public_name_source_url,
+      restaurant.directory_source_reference
+    ),
+    restaurant.directory_source,
+    claimed.attempts
+  FROM claimed
+  JOIN public.restaurants AS restaurant
+    ON restaurant.id = claimed.restaurant_id;
 END;
 $function$;
 
-REVOKE ALL ON FUNCTION public.invoke_directory_image_truth_worker(integer)
+REVOKE ALL ON FUNCTION public.service_claim_thefork_image_truth_reviews(integer)
   FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.invoke_directory_image_truth_worker(integer)
+GRANT EXECUTE ON FUNCTION public.service_claim_thefork_image_truth_reviews(integer)
   TO service_role;
 
 COMMIT;
