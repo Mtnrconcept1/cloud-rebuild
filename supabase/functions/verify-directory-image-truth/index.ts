@@ -2,8 +2,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const FUNCTION_NAME = "verify-directory-image-truth";
 const VERIFIER_MODEL = "tok-official-source-verifier-v1";
-const DEFAULT_BATCH_SIZE = 15;
-const MAX_BATCH_SIZE = 25;
+const DEFAULT_BATCH_SIZE = 6;
+const MAX_BATCH_SIZE = 8;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MIN_IMAGE_BYTES = 12_000;
 const MIN_WIDTH = 500;
