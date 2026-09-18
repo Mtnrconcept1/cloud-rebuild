@@ -10,6 +10,7 @@ const truthWorkerPath = resolve(root, "supabase/functions/verify-directory-image
 const migrationPath = resolve(root, "supabase/migrations/20260917213000_claim_thefork_image_discovery_jobs.sql");
 const priorityMigrationPath = resolve(root, "supabase/migrations/20260917221000_claim_thefork_image_truth_reviews.sql");
 const siteDiscoveryMigrationPath = resolve(root, "supabase/migrations/20260917223000_thefork_official_site_discovery.sql");
+const siteDiscoveryHandoffMigrationPath = resolve(root, "supabase/migrations/20260917224000_fix_thefork_site_discovery_handoff.sql");
 
 function read(path: string) {
   return readFileSync(path, "utf8");
@@ -72,6 +73,11 @@ describe("TheFork directory image enrichment completion", () => {
     expect(migration).toContain("service_claim_thefork_official_site_discovery_jobs");
     expect(migration).toContain("FOR UPDATE OF job SKIP LOCKED");
     expect(migration).toContain("tok-thefork-official-site-discovery");
+    expect(existsSync(siteDiscoveryHandoffMigrationPath)).toBe(true);
+    const handoff = read(siteDiscoveryHandoffMigrationPath);
+    expect(handoff).toContain("thefork_recovery:permanent:no_verified_official_image");
+    expect(handoff).toContain("thefork_site_discovery:retry");
+    expect(worker).toContain("thefork_site_discovery:retry");
   });
 
   it("never imports images from TheFork-owned hosts across country domains", () => {
