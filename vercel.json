@@ -7,6 +7,7 @@
   "buildCommand": "pnpm run build:prod",
   "devCommand": "pnpm run dev",
   "outputDirectory": "dist",
+  "bulkRedirectsPath": ".vercel/stoppin-venue-redirects.json",
   "redirects": [
     {
       "source": "/",
@@ -216,6 +217,16 @@
       ],
       "destination": "https://admin.thetok.ch/admin/:path*",
       "permanent": false
+    },
+    {
+      "source": "/restaurants/carouge-ge/r/fernandes-de-almeida-restaurant-le-par",
+      "destination": "/restaurants/carouge/r/fernandes-de-almeida-restaurant-le-paradisio",
+      "statusCode": 301
+    },
+    {
+      "source": "/restaurants/carouge/r/fernandes-de-almeida-restaurant-le-par",
+      "destination": "/restaurants/carouge/r/fernandes-de-almeida-restaurant-le-paradisio",
+      "statusCode": 301
     },
     {
       "source": "/restaurants/carouge-ge",

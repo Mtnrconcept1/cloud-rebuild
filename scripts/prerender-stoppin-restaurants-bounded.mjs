@@ -5,6 +5,9 @@ import path from "node:path";
 
 import { createClient } from "@supabase/supabase-js";
 
+import { coordinate, dedupeVenuesByPlace, slugify } from "./lib/stoppin-venue-dedupe.mjs";
+import { writeAliasReport } from "./apply-stoppin-venue-redirects.mjs";
+
 const ROOT = process.cwd();
 const DIST_DIR = path.resolve(ROOT, "dist");
 const STOPPIN_ORIGIN = "https://stoppin.ch";
@@ -31,20 +34,6 @@ function loadPublicEnvFiles() {
       // Local public env files are optional in CI.
     }
   }
-}
-
-function coordinate(value, min, max) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed >= min && parsed <= max ? parsed : null;
-}
-
-function slugify(value) {
-  return String(value || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 async function collectRestaurantCoordinates() {
@@ -158,13 +147,13 @@ async function fetchVenueTile(tile, remaining) {
 
 async function collectBoundedVenues(points) {
   const tiles = buildTiles(points);
-  if (!tiles.length) return { venues: [], tileCount: 0, unavailable: false };
+  if (!tiles.length) return { venues: [], tileCount: 0, unavailable: false, aliasToCanonical: new Map() };
 
   const deduped = new Map();
   for (const tile of tiles) {
     if (deduped.size >= MAX_VENUES) break;
     const result = await fetchVenueTile(tile, MAX_VENUES - deduped.size);
-    if (result.unavailable) return { venues: [], tileCount: tiles.length, unavailable: true };
+    if (result.unavailable) return { venues: [], tileCount: tiles.length, unavailable: true, aliasToCanonical: new Map() };
     for (const venue of result.venues) {
       const tokSlug = slugify(venue?.tok_slug);
       if (!venue?.id || !tokSlug) continue;
@@ -172,7 +161,8 @@ async function collectBoundedVenues(points) {
       if (deduped.size >= MAX_VENUES) break;
     }
   }
-  return { venues: [...deduped.values()], tileCount: tiles.length, unavailable: false };
+  const { venues, aliasToCanonical } = dedupeVenuesByPlace([...deduped.values()]);
+  return { venues, tileCount: tiles.length, unavailable: false, aliasToCanonical };
 }
 
 async function startLocalFeedServer(venues) {
@@ -256,6 +246,8 @@ async function injectVenueContext(venues) {
 }
 
 async function main() {
+  const targetDir = PUBLIC_ONLY ? path.resolve(ROOT, "public") : DIST_DIR;
+  await writeAliasReport(targetDir, new Map());
   const restaurantCoordinates = await collectRestaurantCoordinates();
   if (!restaurantCoordinates.length) {
     console.warn("SEO Stoppin bbox: aucune coordonnée restaurant disponible; le générateur historique reste fail-soft.");
@@ -273,9 +265,11 @@ async function main() {
   try {
     await import("./prerender-stoppin-restaurants.mjs");
     const contextualPages = await injectVenueContext(bounded.venues);
+    await writeAliasReport(targetDir, bounded.aliasToCanonical);
     console.log(
       `SEO Stoppin bbox: ${restaurantCoordinates.length} restaurants répartis sur ${bounded.tileCount} zone(s), `
-        + `${bounded.venues.length} lieux Stoppin utiles, ${contextualPages} page(s) synchronisée(s) avec React.`,
+        + `${bounded.venues.length} lieux Stoppin utiles, ${contextualPages} page(s) synchronisée(s) avec React, `
+        + `${bounded.aliasToCanonical.size} doublon(s) de lieu neutralisé(s).`,
     );
   } finally {
     if (previousFeedUrl === undefined) delete process.env.SEO_STOPPIN_VENUE_FEED_URL;
