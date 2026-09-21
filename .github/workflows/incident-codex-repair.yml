@@ -19,7 +19,7 @@ concurrency:
 jobs:
   prepare:
     name: Generate isolated repair patch
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: production
     timeout-minutes: 45
     outputs:
@@ -386,7 +386,7 @@ jobs:
     name: Validate generated repair without secrets
     needs: prepare
     if: ${{ needs.prepare.result == 'success' && needs.prepare.outputs.changed == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     timeout-minutes: 45
     env:
       NODE_VERSION: 22
@@ -458,7 +458,7 @@ jobs:
       - prepare
       - validate
     if: ${{ needs.prepare.result == 'success' && needs.validate.result == 'success' && needs.prepare.outputs.changed == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: production
     timeout-minutes: 10
     outputs:
@@ -629,7 +629,7 @@ jobs:
       - validate
       - publish
     if: ${{ always() && needs.prepare.outputs.incident_id != '' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: production
     timeout-minutes: 5
     continue-on-error: true

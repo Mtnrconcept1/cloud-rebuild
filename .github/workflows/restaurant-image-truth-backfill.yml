@@ -56,7 +56,7 @@ env:
 jobs:
   backfill:
     name: Verify and expand restaurant images
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: production
     timeout-minutes: 55
     env:

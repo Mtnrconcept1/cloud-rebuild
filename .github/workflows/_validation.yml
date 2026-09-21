@@ -58,7 +58,7 @@ env:
 
 jobs:
   plan:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     outputs:
       base_sha: ${{ steps.impact.outputs.base_sha }}
       test_mode: ${{ steps.impact.outputs.test_mode }}
@@ -86,6 +86,11 @@ jobs:
         with:
           ref: ${{ inputs.head_sha }}
           fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Fetch comparison commit
         if: ${{ inputs.base_sha != '' }}
@@ -176,7 +181,7 @@ jobs:
           needs.plan.outputs.run_lint == 'true' ||
           needs.plan.outputs.run_typecheck == 'true' ||
           (needs.plan.outputs.run_build == 'true' && !inputs.skip_build) }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Checkout
@@ -185,14 +190,14 @@ jobs:
           ref: ${{ inputs.head_sha }}
           fetch-depth: 1
 
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -253,7 +258,7 @@ jobs:
   related_tests:
     needs: plan
     if: ${{ needs.plan.outputs.test_mode == 'affected' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Checkout
@@ -267,14 +272,14 @@ jobs:
           BASE_SHA: ${{ needs.plan.outputs.base_sha }}
         run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
 
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -287,7 +292,7 @@ jobs:
   full_tests:
     needs: plan
     if: ${{ needs.plan.outputs.test_mode == 'full' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     strategy:
       fail-fast: false
       matrix:
@@ -300,14 +305,14 @@ jobs:
           ref: ${{ inputs.head_sha }}
           fetch-depth: 1
 
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -324,7 +329,7 @@ jobs:
            needs.plan.outputs.auth_critical == 'true' ||
            needs.plan.outputs.supabase_critical == 'true' ||
            needs.plan.outputs.contract_tests != '') }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Checkout
@@ -333,14 +338,14 @@ jobs:
           ref: ${{ inputs.head_sha }}
           fetch-depth: 1
 
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -357,7 +362,7 @@ jobs:
   worker_tests:
     needs: plan
     if: ${{ needs.plan.outputs.run_worker_tests == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Checkout
@@ -366,14 +371,14 @@ jobs:
           ref: ${{ inputs.head_sha }}
           fetch-depth: 1
 
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -387,7 +392,7 @@ jobs:
   windows_worker_tests:
     needs: plan
     if: ${{ needs.plan.outputs.run_worker_tests == 'true' }}
-    runs-on: windows-latest
+    runs-on: [self-hosted, X64, Windows, cloud-rebuild-windows]
 
     steps:
       - name: Checkout
@@ -440,7 +445,7 @@ jobs:
       - critical_tests
       - worker_tests
       - windows_worker_tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Verify required validation jobs
