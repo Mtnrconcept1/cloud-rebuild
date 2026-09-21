@@ -83,7 +83,7 @@ Priorités absolues : paiement fiable, commande fiable, Supabase sécurisé, RLS
 - Integration Supabase avec migrations, fonctions Edge et types dans `src/integrations/supabase`.
 - Integration Stripe via fonctions Supabase et helpers frontend.
 - Workflow de production GitHub Actions present dans `.github/workflows/deploy-production.yml`.
-- Configuration Vercel presente dans `vercel.json`, avec `deploymentEnabled: false` pour eviter les previews automatiques.
+- Configuration Vercel présente dans `vercel.json`, avec `deploymentEnabled: true` pour autoriser les déploiements Git natifs (preview et production).
 - Scripts de verification, release readiness, ciblage Supabase et builds mobiles presents dans `package.json`.
 - Skills IDE TOK ajoutes dans `docs/skills/` pour encadrer la generation de code.
 - DNS `thetok.ch` gere cote Vercel DNS.
@@ -102,7 +102,7 @@ Priorités absolues : paiement fiable, commande fiable, Supabase sécurisé, RLS
 - Utiliser un worktree dédié lorsqu'un checkout local est disponible.
 - Si le checkout local est techniquement inaccessible mais que le connecteur GitHub est disponible, un mode connector-only est autorisé pour les changements non destructifs : branche dédiée, commit, PR et validation CI. Ne jamais prétendre qu'un worktree local a été utilisé dans ce cas.
 - Ne pas créer de preview Vercel sauf si la tâche l'exige explicitement.
-- Production uniquement via le workflow GitHub Actions prévu par le dépôt.
+- Déploiement frontend de production via l’intégration Git native Vercel ; le workflow GitHub Actions reste une voie de secours pour les opérations backend si nécessaire.
 - Ne pas modifier les cles ou secrets sans demande explicite.
 - Respecter les changements non commites deja presents : ne jamais les revert sans demande explicite.
 - Preferer les patterns existants du repo aux nouvelles abstractions.
