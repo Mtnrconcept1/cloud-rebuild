@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 
 import ChefHelpButton from "@/components/help/ChefHelpButton";
+import DesktopHomeNavbar from "@/components/home/DesktopHomeNavbar";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
@@ -187,8 +188,10 @@ export default function Navbar() {
 
   return (
     <>
+      {isMobileHomeHeader ? <DesktopHomeNavbar /> : null}
+
       {/* ─── Top utility bar ─── */}
-      {showClientSurface ? (
+      {showClientSurface && !isMobileHomeHeader ? (
         <div className="hidden w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 lg:block">
           <div className="container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground">
             <Link to="/restaurateurs/geneve" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
@@ -213,7 +216,7 @@ export default function Navbar() {
       {/* ─── Main header ─── */}
       <header
         ref={headerRef}
-        className={`sticky top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
+        className={`sticky top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white lg:hidden" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
         style={{
           opacity: isHeaderVisible ? 1 : 0,
           transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
@@ -231,21 +234,21 @@ export default function Navbar() {
                   <Link to="/recherche" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                     <Search className="h-4 w-4" />
                     Explorer
-                </Link>
-              </NavigationMenuItem>
-              {actualitesEnabled ? (
-                <NavigationMenuItem>
-                  <Link to="/actualites" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-                    <Newspaper className="h-4 w-4" />
-                    Actualités
                   </Link>
                 </NavigationMenuItem>
-              ) : null}
-              {antiWasteEnabled ? (
-                <NavigationMenuItem>
-                  <Link to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
-                    <Leaf className="h-4 w-4" />
-                    Anti-gaspi
+                {actualitesEnabled ? (
+                  <NavigationMenuItem>
+                    <Link to="/actualites" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                      <Newspaper className="h-4 w-4" />
+                      Actualités
+                    </Link>
+                  </NavigationMenuItem>
+                ) : null}
+                {antiWasteEnabled ? (
+                  <NavigationMenuItem>
+                    <Link to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
+                      <Leaf className="h-4 w-4" />
+                      Anti-gaspi
                     </Link>
                   </NavigationMenuItem>
                 ) : null}
@@ -254,11 +257,11 @@ export default function Navbar() {
                     <Link to="/ventes-flash" className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-amber-600 transition-colors hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300">
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
-                  </Link>
-                </NavigationMenuItem>
-              ) : null}
-              {tokOneEnabled ? (
-                <NavigationMenuItem>
+                    </Link>
+                  </NavigationMenuItem>
+                ) : null}
+                {tokOneEnabled ? (
+                  <NavigationMenuItem>
                     <Link to="/tok-one" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-violet-600 transition-colors hover:text-violet-500">
                       <Crown className="h-4 w-4" />
                       Tok One
