@@ -19,13 +19,14 @@ function sanitize(text) { return String(text).replace(/(?:sk_(?:live|test)_|whse
 function resultExitCode(report) {
   const blockers = { EXACT_SOURCE_FETCH_FAILED: 21, ORIGINAL_CONFIGURATION_HASH_MISMATCH: 22, SOURCE_TREE_MISMATCH: 23 };
   if (report.blocker) return blockers[report.blocker] || 24;
-  const expected = ['fetch-exact-source','exact-source-tree','pnpm-version','targeted-regressions','typecheck','lint','full-test-suite','application-build'];
+  const expected = ['fetch-exact-source','checkout-exact-source','exact-source-tree','pnpm-version','targeted-regressions','typecheck','lint','full-test-suite','application-build'];
   if (!report.sourceVerified || report.gates.length !== expected.length || !expected.every((label,i)=>report.gates[i].label === label)) return 25;
-  if (report.gates[0].code !== 0 || report.gates[1].code !== 0) return 26;
+  if (report.gates.slice(0,3).some(gate=>gate.code !== 0)) return 26;
   let mask = 0;
-  report.gates.slice(2).forEach((gate,i)=>{ if (gate.code !== 0) mask |= 1 << i; });
+  report.gates.slice(3).forEach((gate,i)=>{ if (gate.code !== 0) mask |= 1 << i; });
   return mask ? 64 + mask : report.passed === true ? 0 : 27;
 }
+function sourceWorktreeArgs(destination, target) { return ['worktree','add','--detach',destination,target]; }
 function prepareGitMetadata(cwd, env) {
   const options = { cwd, env, encoding:'utf8', timeout:20000, maxBuffer:1024*1024 };
   if (cp.spawnSync('git',['rev-parse','--git-dir'],options).status === 0) return false;
@@ -35,16 +36,15 @@ function prepareGitMetadata(cwd, env) {
 }
 async function main() {
   if (process.env.VERCEL_ENV !== 'preview' || !['ci/tok-682-vercel-validation-20260924','ci/tok-682-validation-signing-20260924'].includes(process.env.VERCEL_GIT_COMMIT_REF)) throw new Error('VALIDATION_PREVIEW_ONLY');
-  const config = fs.readFileSync('vercel.json');
-  const runnerPath = 'scripts/tok-ci-validation.cjs';
-  const runnerBytes = fs.readFileSync(runnerPath);
+  const root = process.cwd();
+  let activeCwd = root;
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'tok-validation-'));
   const env = publicTestEnv(process.env);
   const report = {kind:'validation-report-only-not-an-application-release', targetSha:TARGET, runnerSha:process.env.VERCEL_GIT_COMMIT_SHA, startedAt:new Date().toISOString(), node:process.version, sourceVerified:false, gates:[], passed:false};
   const logs = [];
   function run(label, executable, args, timeout=300000) {
     const started = Date.now();
-    const r = cp.spawnSync(executable,args,{env,encoding:'utf8',timeout,maxBuffer:32*1024*1024});
+    const r = cp.spawnSync(executable,args,{cwd:activeCwd,env,encoding:'utf8',timeout,maxBuffer:32*1024*1024});
     const log = sanitize((r.stdout||'') + '\n' + (r.stderr||'') + (r.error ? '\n'+r.error.message : ''));
     const entry = {label, command:[executable,...args], code:r.status, signal:r.signal, durationMs:Date.now()-started, logSha256:crypto.createHash('sha256').update(log).digest('hex')};
     report.gates.push(entry); logs.push({label,log});
@@ -55,15 +55,13 @@ async function main() {
     const freshGit = prepareGitMetadata(process.cwd(), env);
     report.freshGitMetadata = freshGit;
     if (run('fetch-exact-source','git',['fetch','--no-tags','--depth=1','https://github.com/Mtnrconcept1/cloud-rebuild.git',TARGET],120000).status !== 0) throw new Error('EXACT_SOURCE_FETCH_FAILED');
-    if (freshGit) {
-      const reset = cp.spawnSync('git',['reset','--mixed',TARGET],{env,encoding:'utf8',timeout:30000,maxBuffer:1024*1024});
-      if (reset.status !== 0) throw new Error('SOURCE_INDEX_INITIALIZATION_FAILED');
-    }
-    const original = cp.spawnSync('git',['show',TARGET+':vercel.json'],{env,timeout:10000,maxBuffer:1024*1024});
-    if (original.status !== 0 || gitBlobSha(original.stdout) !== CONFIG_BLOB) throw new Error('ORIGINAL_CONFIGURATION_HASH_MISMATCH');
-    fs.writeFileSync('vercel.json',original.stdout);
-    // Remove only this temporary harness so lint/tests see the exact PR tree.
-    fs.unlinkSync(runnerPath);
+    const sourceDir = path.join(tmp,'source');
+    if (run('checkout-exact-source','git',sourceWorktreeArgs(sourceDir,TARGET),120000).status !== 0) throw new Error('SOURCE_WORKTREE_FAILED');
+    activeCwd = sourceDir;
+    if (gitBlobSha(fs.readFileSync(path.join(sourceDir,'vercel.json'))) !== CONFIG_BLOB) throw new Error('ORIGINAL_CONFIGURATION_HASH_MISMATCH');
+    // The package manifest and lockfile are unchanged between runner and target.
+    // Reuse the frozen installed dependencies, never alter source to make tests pass.
+    fs.symlinkSync(path.join(root,'node_modules'),path.join(sourceDir,'node_modules'),'dir');
     if (run('exact-source-tree','git',['diff','--exit-code',TARGET,'--','.']).status !== 0) throw new Error('SOURCE_TREE_MISMATCH');
     report.sourceVerified = true;
     run('pnpm-version','pnpm',['--version']);
@@ -77,8 +75,6 @@ async function main() {
   } catch (error) {
     report.blocker = sanitize(error.message); report.passed = false;
   } finally {
-    fs.writeFileSync('vercel.json',config);
-    fs.writeFileSync(runnerPath,runnerBytes);
     report.finishedAt = new Date().toISOString();
     const output = path.resolve('tok-validation-report');
     fs.mkdirSync(output,{recursive:true});
@@ -91,5 +87,5 @@ async function main() {
     process.exitCode = resultExitCode(report);
   }
 }
-module.exports = { isPassed, publicTestEnv, gitBlobSha, sanitize, resultExitCode, prepareGitMetadata, main };
+module.exports = { isPassed, publicTestEnv, gitBlobSha, sanitize, resultExitCode, prepareGitMetadata, sourceWorktreeArgs, main };
 if (require.main === module) main().catch(e=>{ console.error(sanitize(e.message)); process.exitCode=1; });
