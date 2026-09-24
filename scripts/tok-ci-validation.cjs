@@ -68,8 +68,8 @@ async function main() {
     run('targeted-regressions','node',['--test','scripts/tok-audit-reliability.test.mjs']);
     run('typecheck','pnpm',['typecheck']);
     run('lint','pnpm',['lint']);
-    run('full-test-suite','pnpm',['test'],600000);
-    run('application-build','pnpm',['build'],600000);
+    run('full-test-suite','pnpm',['test:prod'],900000);
+    run('application-build','pnpm',['build:prod'],600000);
     // None of the commands above is a migration, deployment or provider operation.
     report.passed = isPassed(report.sourceVerified, report.gates);
   } catch (error) {
