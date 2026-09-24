@@ -257,7 +257,7 @@ test("keeps successful audit metadata and does not emit a false alarm", async ()
 
 // Migration contracts complement (not replace) real PostgreSQL/RLS integration tests.
 test("restricts exactly the six internal print RPCs without changing their bodies", () => {
-  const sql = source("supabase/migrations/20260924040000_restrict_internal_print_rpc_execution.sql");
+  const sql = source("supabase/migrations/20260924044424_restrict_internal_print_rpc_execution.sql");
   const signatures = [
     "advance_print_order_state(uuid, text, text, text, text, text, text, text, jsonb)",
     "advance_print_reorder_state(uuid, text, text, text, text, text, text)",
@@ -274,14 +274,14 @@ test("restricts exactly the six internal print RPCs without changing their bodie
   assert.doesNotMatch(sql, /CREATE OR REPLACE FUNCTION|ALTER DEFAULT PRIVILEGES|ON ALL FUNCTIONS|DROP FUNCTION/i);
 });
 test("qualifies the Storage object path in all three invoice-logo policies", () => {
-  const sql = source("supabase/migrations/20260924040100_qualify_invoice_logo_storage_paths.sql");
+  const sql = source("supabase/migrations/20260924044438_qualify_invoice_logo_storage_paths.sql");
   assert.equal((sql.match(/ALTER POLICY/g) || []).length, 3);
   assert.equal((sql.match(/storage\.foldername\(storage\.objects\.name\)/g) || []).length, 6);
   assert.doesNotMatch(sql, /foldername\((?:name|r\.name)\)/i);
   assert.doesNotMatch(sql, /DELETE FROM|UPDATE storage\.objects|DROP/i);
 });
 test("aligns the two broad public-read policies without restricting owner/admin policies", () => {
-  const sql = source("supabase/migrations/20260924040200_align_restaurant_public_read_policies.sql");
+  const sql = source("supabase/migrations/20260924044449_align_restaurant_public_read_policies.sql");
   assert.equal((sql.match(/ALTER POLICY/g) || []).length, 2);
   assert.equal((sql.match(/is_active IS TRUE/g) || []).length, 2);
   assert.equal((sql.match(/is_demo IS FALSE/g) || []).length, 2);
