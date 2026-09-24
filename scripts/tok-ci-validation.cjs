@@ -26,6 +26,13 @@ function resultExitCode(report) {
   report.gates.slice(2).forEach((gate,i)=>{ if (gate.code !== 0) mask |= 1 << i; });
   return mask ? 64 + mask : report.passed === true ? 0 : 27;
 }
+function prepareGitMetadata(cwd, env) {
+  const options = { cwd, env, encoding:'utf8', timeout:20000, maxBuffer:1024*1024 };
+  if (cp.spawnSync('git',['rev-parse','--git-dir'],options).status === 0) return false;
+  const init = cp.spawnSync('git',['init','--initial-branch=ci/tok-682-build-validation'],options);
+  if (init.status !== 0) throw new Error('SOURCE_GIT_INITIALIZATION_FAILED');
+  return true;
+}
 async function main() {
   if (process.env.VERCEL_ENV !== 'preview' || !['ci/tok-682-vercel-validation-20260924','ci/tok-682-validation-signing-20260924'].includes(process.env.VERCEL_GIT_COMMIT_REF)) throw new Error('VALIDATION_PREVIEW_ONLY');
   const config = fs.readFileSync('vercel.json');
@@ -45,7 +52,13 @@ async function main() {
     return r;
   }
   try {
+    const freshGit = prepareGitMetadata(process.cwd(), env);
+    report.freshGitMetadata = freshGit;
     if (run('fetch-exact-source','git',['fetch','--no-tags','--depth=1','https://github.com/Mtnrconcept1/cloud-rebuild.git',TARGET],120000).status !== 0) throw new Error('EXACT_SOURCE_FETCH_FAILED');
+    if (freshGit) {
+      const reset = cp.spawnSync('git',['reset','--mixed',TARGET],{env,encoding:'utf8',timeout:30000,maxBuffer:1024*1024});
+      if (reset.status !== 0) throw new Error('SOURCE_INDEX_INITIALIZATION_FAILED');
+    }
     const original = cp.spawnSync('git',['show',TARGET+':vercel.json'],{env,timeout:10000,maxBuffer:1024*1024});
     if (original.status !== 0 || gitBlobSha(original.stdout) !== CONFIG_BLOB) throw new Error('ORIGINAL_CONFIGURATION_HASH_MISMATCH');
     fs.writeFileSync('vercel.json',original.stdout);
@@ -78,5 +91,5 @@ async function main() {
     process.exitCode = resultExitCode(report);
   }
 }
-module.exports = { isPassed, publicTestEnv, gitBlobSha, sanitize, resultExitCode, main };
+module.exports = { isPassed, publicTestEnv, gitBlobSha, sanitize, resultExitCode, prepareGitMetadata, main };
 if (require.main === module) main().catch(e=>{ console.error(sanitize(e.message)); process.exitCode=1; });
