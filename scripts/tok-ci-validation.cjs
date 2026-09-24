@@ -14,6 +14,18 @@ function publicTestEnv(source) {
   return Object.assign(env, { CI:'true', NO_COLOR:'1', VITE_SUPABASE_URL:'https://example.supabase.co', VITE_SUPABASE_PUBLISHABLE_KEY:'ci-public-placeholder', VITE_SUPABASE_ANON_KEY:'ci-public-placeholder' });
 }
 function sanitize(text) { return String(text).replace(/(?:sk_(?:live|test)_|whsec_|sb_secret_|ghp_|gho_|github_pat_)[A-Za-z0-9_-]+/g, '[REDACTED]').replace(/Bearer\s+[A-Za-z0-9_.-]{20,}/gi,'Bearer [REDACTED]'); }
+// Actual gate exit codes are encoded for the deployment metadata when logs cannot be read.
+// A READY validation deployment requires every command to have succeeded.
+function resultExitCode(report) {
+  const blockers = { EXACT_SOURCE_FETCH_FAILED: 21, ORIGINAL_CONFIGURATION_HASH_MISMATCH: 22, SOURCE_TREE_MISMATCH: 23 };
+  if (report.blocker) return blockers[report.blocker] || 24;
+  const expected = ['fetch-exact-source','exact-source-tree','pnpm-version','targeted-regressions','typecheck','lint','full-test-suite','application-build'];
+  if (!report.sourceVerified || report.gates.length !== expected.length || !expected.every((label,i)=>report.gates[i].label === label)) return 25;
+  if (report.gates[0].code !== 0 || report.gates[1].code !== 0) return 26;
+  let mask = 0;
+  report.gates.slice(2).forEach((gate,i)=>{ if (gate.code !== 0) mask |= 1 << i; });
+  return mask ? 64 + mask : report.passed === true ? 0 : 27;
+}
 async function main() {
   if (process.env.VERCEL_ENV !== 'preview' || !['ci/tok-682-vercel-validation-20260924','ci/tok-682-validation-signing-20260924'].includes(process.env.VERCEL_GIT_COMMIT_REF)) throw new Error('VALIDATION_PREVIEW_ONLY');
   const config = fs.readFileSync('vercel.json');
@@ -62,8 +74,9 @@ async function main() {
     const escape = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     fs.writeFileSync(path.join(output,'index.html'),'<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>TOK — rapport de validation uniquement</title><h1>'+ (report.passed ? 'Validations exécutées : réussies' : 'Validations : échec ou blocage')+'</h1><p>La publication de ce rapport ne signifie pas que les tests ont réussi. Aucun site applicatif ni changement de production n’est publié ici.</p><pre>'+escape(JSON.stringify(report,null,2))+'</pre></html>');
     fs.writeFileSync(path.join(tmp,'result.json'),JSON.stringify(report,null,2));
-    console.log('TOK_REPORT_ONLY passed='+report.passed+' target='+TARGET);
+    console.log('TOK_VALIDATION passed='+report.passed+' target='+TARGET);
+    process.exitCode = resultExitCode(report);
   }
 }
-module.exports = { isPassed, publicTestEnv, gitBlobSha, sanitize, main };
+module.exports = { isPassed, publicTestEnv, gitBlobSha, sanitize, resultExitCode, main };
 if (require.main === module) main().catch(e=>{ console.error(sanitize(e.message)); process.exitCode=1; });
