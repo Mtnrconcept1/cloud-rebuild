@@ -162,7 +162,7 @@ export async function writeAuditLog(input: AuditLogInput) {
   const authMode = input.actor?.authMode || null;
 
   try {
-    await input.adminClient.from("edge_function_audit_logs").insert({
+    const { error: insertError } = await input.adminClient.from("edge_function_audit_logs").insert({
       function_name: input.functionName,
       action: input.action || "invoke",
       actor_user_id: actorUserId,
@@ -178,8 +178,19 @@ export async function writeAuditLog(input: AuditLogInput) {
         ...(input.metadata || {}),
       },
     });
+    if (insertError) throw insertError;
   } catch (error) {
-    console.error("[audit] write failure:", error);
+    // Keep the non-throwing contract: audit failure must not replay a payment.
+    // Never send database details or customer payloads to the fallback logger.
+    const code = error && typeof error === "object" && "code" in error
+      && typeof error.code === "string" && /^[A-Z0-9_]{1,32}$/i.test(error.code)
+      ? error.code
+      : "audit_write_failed";
+    console.error("[audit] write failure:", {
+      function_name: input.functionName,
+      action: input.action || "invoke",
+      code,
+    });
   }
 }
 

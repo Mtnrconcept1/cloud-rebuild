@@ -140,6 +140,11 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
     .maybeSingle();
   if (orderError) throw orderError;
   if (!order) throw new HttpError(404, "Commande impression introuvable");
+  // A stale payment flag must never restart a canceled/refunded fulfillment.
+  if (["canceled", "refunded"].includes(order.status)) {
+    await completeJob(adminClient, job, { status: "canceled", result: { terminal_order: true } });
+    return { id: job.id, status: "canceled", terminalOrder: true };
+  }
   if (order.payment_status !== "paid") throw new HttpError(409, "PRINT_ORDER_NOT_PAID");
   if (["submitted", "validated", "producing", "produced", "packed", "shipped", "delivered"].includes(order.status)) {
     await completeJob(adminClient, job, { status: "completed", result: { already_submitted: true } });
@@ -182,7 +187,7 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
   // This makes a retry safe after an ambiguous /orders/add timeout.
   const existing = await provider.getOrder(providerReference);
   if (existing) {
-    await adminClient.rpc("advance_print_order_state", {
+    const { error: stateError } = await adminClient.rpc("advance_print_order_state", {
       p_order_id: order.id,
       p_state: "submitted",
       p_provider_state: existing.stateCode || existing.state,
@@ -193,6 +198,7 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
       p_message: "Commande fournisseur réconciliée",
       p_metadata: { reconciled: true },
     });
+    if (stateError) throw stateError;
     await completeJob(adminClient, job, { status: "completed", result: { reconciled: true } });
     return { id: job.id, status: "completed", reconciled: true };
   }
@@ -224,7 +230,7 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
     if (error instanceof CloudprinterError && error.ambiguous) {
       const reconciled = await provider.getOrder(providerReference);
       if (reconciled) {
-        await adminClient.rpc("advance_print_order_state", {
+        const { error: stateError } = await adminClient.rpc("advance_print_order_state", {
           p_order_id: order.id,
           p_state: "submitted",
           p_provider_state: reconciled.stateCode || reconciled.state,
@@ -235,6 +241,7 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
           p_message: "Commande retrouvée après réponse fournisseur ambiguë",
           p_metadata: { reconciled_after_ambiguous_create: true },
         });
+        if (stateError) throw stateError;
         await completeJob(adminClient, job, { status: "completed", result: { reconciled_after_timeout: true } });
         return { id: job.id, status: "completed", reconciledAfterTimeout: true };
       }
@@ -242,7 +249,7 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
     throw error;
   }
 
-  await adminClient.rpc("advance_print_order_state", {
+  const { error: stateError } = await adminClient.rpc("advance_print_order_state", {
     p_order_id: order.id,
     p_state: "submitted",
     p_provider_state: "submitted",
@@ -253,6 +260,7 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
     p_message: "Commande transmise au réseau d’impression",
     p_metadata: { provider_reference: providerReference },
   });
+  if (stateError) throw stateError;
   await completeJob(adminClient, job, { status: "completed", result: { provider_reference: providerReference } });
   return { id: job.id, status: "completed", providerReference };
 }
@@ -269,7 +277,10 @@ Deno.serve(async (req) => {
     actor = await authenticateRequest(req, { allowServiceRole: true, allowSchedulerSecret: true });
     if (actor.authMode === "user_jwt") requireRole(actor, ["admin"]);
     const body = asRecord(await req.json().catch(() => ({})));
-    const limit = Math.max(1, Math.min(50, Math.round(Number(body.limit || 10))));
+    const limit = body.limit ?? 10;
+    if (typeof limit !== "number" || !Number.isInteger(limit) || limit < 1 || limit > 50) {
+      throw new HttpError(400, "PRINT_ORCHESTRATOR_INVALID_LIMIT");
+    }
 
     const finalizedPayments = await reconcileFinalizedPayments(adminClient, Math.min(50, limit * 5));
     const { data: jobs, error: claimError } = await adminClient.rpc("claim_print_fulfillment_jobs", {
@@ -288,14 +299,15 @@ Deno.serve(async (req) => {
           results.push({ id: job.id, status: "failed" });
         }
       } catch (error) {
-        const retryable = !(error instanceof HttpError && error.status >= 400 && error.status < 500)
-          || (error instanceof CloudprinterError && error.retryable);
+        const retryable = error instanceof CloudprinterError
+          ? error.retryable
+          : !(error instanceof HttpError && error.status >= 400 && error.status < 500);
         const status = retryable && job.attempt_count < job.max_attempts ? "retrying" : "failed";
         await completeJob(adminClient, job, {
           status,
           errorCode: error instanceof CloudprinterError ? error.code : "print_orchestrator_error",
           error: error instanceof Error ? error.message.slice(0, 500) : "Erreur fulfillment",
-        }).catch(() => undefined);
+        });
         results.push({ id: job.id, status });
       }
     }
