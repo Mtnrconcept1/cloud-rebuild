@@ -135,6 +135,16 @@ type RestaurantRow = {
   is_directory_listing: boolean;
 };
 
+type DiscoveryClaimRow = {
+  restaurant_id: string;
+  lease_token: string;
+  restaurant_name: string;
+  restaurant_address: string | null;
+  restaurant_city: string | null;
+  source_url: string | null;
+  attempt_number: number;
+};
+
 type LeadHints = {
   website: string | null;
   email: string | null;
@@ -1184,6 +1194,240 @@ async function getStatus(supabase: any) {
   return Object.fromEntries(entries);
 }
 
+
+async function preferredDiscoverySource(
+  supabase: any,
+  row: DiscoveryClaimRow,
+) {
+  const { data, error } = await supabase
+    .from("restaurant_directory_image_jobs")
+    .select("source_page_url")
+    .eq("restaurant_id", row.restaurant_id)
+    .maybeSingle();
+  if (error) throw new Error(`discovery_source_lookup_failed:${error.message}`);
+
+  const rawCandidates = [
+    String(data?.source_page_url || "").trim(),
+    String(row.source_url || "").trim(),
+  ].filter(Boolean);
+
+  for (const rawCandidate of rawCandidates) {
+    const candidate = normalizeHttpUrl(rawCandidate);
+    if (!candidate) continue;
+    const host = hostOf(candidate.toString());
+    if (!host || !host.includes(".") || isRejectedSiteHost(host)) continue;
+    return candidate.toString();
+  }
+
+  return null;
+}
+
+async function terminalDiscoveryCandidateUrls(
+  supabase: any,
+  restaurantId: string,
+) {
+  const { data, error } = await supabase
+    .from("restaurant_image_truth_reviews")
+    .select("candidate_url, status")
+    .eq("restaurant_id", restaurantId)
+    .in("status", ["verified", "rejected", "manual_review"]);
+  if (error) throw new Error(`discovery_review_lookup_failed:${error.message}`);
+
+  return new Set(
+    (data || [])
+      .map((review: { candidate_url?: string | null }) => String(review.candidate_url || "").trim())
+      .filter(Boolean),
+  );
+}
+
+async function updateDiscoverySourceUrl(
+  supabase: any,
+  row: DiscoveryClaimRow,
+  sourceUrl: string,
+) {
+  const { error } = await supabase
+    .from("restaurant_image_discovery_jobs")
+    .update({
+      source_url: sourceUrl,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("restaurant_id", row.restaurant_id)
+    .eq("lease_token", row.lease_token)
+    .eq("status", "processing");
+  if (error) throw new Error(`discovery_source_update_failed:${error.message}`);
+}
+
+async function settleDiscovery(
+  supabase: any,
+  row: DiscoveryClaimRow,
+  candidates: string[],
+  errorCode: string | null,
+) {
+  const { data, error } = await supabase.rpc(
+    "settle_restaurant_image_discovery_job",
+    {
+      p_restaurant_id: row.restaurant_id,
+      p_lease_token: row.lease_token,
+      p_candidates: candidates,
+      p_error: errorCode,
+    },
+  );
+  if (error) throw new Error(`discovery_settle_failed:${error.message}`);
+  return Number(data || 0);
+}
+
+async function completeDiscoveryAfterImageRace(
+  supabase: any,
+  row: DiscoveryClaimRow,
+) {
+  const { error } = await supabase
+    .from("restaurant_image_discovery_jobs")
+    .update({
+      status: "completed",
+      lease_token: null,
+      lease_expires_at: null,
+      last_error: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("restaurant_id", row.restaurant_id)
+    .eq("lease_token", row.lease_token)
+    .eq("status", "processing");
+  if (error) throw new Error(`discovery_completion_failed:${error.message}`);
+}
+
+async function discoverOfficialCandidates(
+  supabase: any,
+  row: DiscoveryClaimRow,
+) {
+  const { data: restaurantData, error: restaurantError } = await supabase
+    .from("restaurants")
+    .select("id, name, address, city, image_url, directory_source_reference, is_directory_listing")
+    .eq("id", row.restaurant_id)
+    .maybeSingle();
+  if (restaurantError) throw new Error(`discovery_restaurant_lookup_failed:${restaurantError.message}`);
+
+  if (!restaurantData || restaurantData.is_directory_listing !== true) {
+    await settleDiscovery(supabase, row, [], "directory_listing_missing");
+    return { candidates: 0, skipped: false, error: "directory_listing_missing" };
+  }
+
+  const restaurant = restaurantData as RestaurantRow;
+  if (String(restaurant.image_url || "").trim()) {
+    await completeDiscoveryAfterImageRace(supabase, row);
+    return { candidates: 0, skipped: true, error: null };
+  }
+
+  const sourceUrl = await preferredDiscoverySource(supabase, row);
+  if (!sourceUrl) {
+    await settleDiscovery(supabase, row, [], "official_source_missing_or_rejected");
+    return { candidates: 0, skipped: false, error: "official_source_missing_or_rejected" };
+  }
+
+  const homepage = await fetchHtmlPage(sourceUrl);
+  if (!homepage) {
+    await settleDiscovery(supabase, row, [], "official_source_unreachable_or_disallowed");
+    return { candidates: 0, skipped: false, error: "official_source_unreachable_or_disallowed" };
+  }
+
+  const homepageIdentity = scoreSiteIdentity(restaurant, homepage.html, homepage.url);
+  if (homepageIdentity < MIN_DISCOVERED_SITE_SCORE) {
+    await settleDiscovery(supabase, row, [], "official_source_identity_not_verified");
+    return { candidates: 0, skipped: false, error: "official_source_identity_not_verified" };
+  }
+
+  const rootPage: CrawledPage = {
+    ...homepage,
+    identityScore: homepageIdentity,
+    discoveryMethod: "catalog_website",
+  };
+  const pages: CrawledPage[] = [rootPage];
+
+  for (const link of extractInternalLinks(rootPage.url, rootPage.html).slice(0, 1)) {
+    const crawled = await fetchHtmlPage(link);
+    if (!crawled) continue;
+    pages.push({
+      ...crawled,
+      identityScore: Math.max(
+        rootPage.identityScore,
+        scoreSiteIdentity(restaurant, crawled.html, crawled.url),
+      ),
+      discoveryMethod: "catalog_website",
+    });
+  }
+
+  const officialHost = hostOf(rootPage.url);
+  const ranked = pages
+    .flatMap((page) => extractImageCandidates(restaurant, page, officialHost))
+    .sort((left, right) => right.score - left.score);
+
+  const terminal = await terminalDiscoveryCandidateUrls(supabase, row.restaurant_id);
+  const unique = [...new Map(ranked.map((candidate) => [candidate.imageUrl, candidate])).values()]
+    .filter((candidate) => !terminal.has(candidate.imageUrl));
+
+  const candidates: string[] = [];
+  for (const candidate of unique.slice(0, 6)) {
+    const validated = await validateImageUrl(candidate.imageUrl);
+    if (!validated || terminal.has(validated) || candidates.includes(validated)) continue;
+    candidates.push(validated);
+    if (candidates.length >= 4) break;
+  }
+
+  await updateDiscoverySourceUrl(supabase, row, rootPage.url);
+  const inserted = await settleDiscovery(
+    supabase,
+    row,
+    candidates,
+    candidates.length > 0 ? null : "no_new_official_candidate",
+  );
+  return {
+    candidates: Math.max(0, inserted),
+    skipped: false,
+    error: candidates.length > 0 ? null : "no_new_official_candidate",
+  };
+}
+
+async function processDiscoveryBatch(
+  supabase: any,
+  limit: number,
+) {
+  const { data: claimed, error: claimError } = await supabase.rpc(
+    "claim_restaurant_image_discovery_jobs_for_edge",
+    { p_limit: limit },
+  );
+  if (claimError) throw new Error(`discovery_claim_failed:${claimError.message}`);
+
+  const rows = (claimed || []) as DiscoveryClaimRow[];
+  let candidatesDiscovered = 0;
+  let errors = 0;
+  let skipped = 0;
+
+  for (const row of rows) {
+    try {
+      const result = await discoverOfficialCandidates(supabase, row);
+      candidatesDiscovered += result.candidates;
+      if (result.skipped) skipped += 1;
+      if (result.error) errors += 1;
+    } catch (error) {
+      errors += 1;
+      const message = (error instanceof Error ? error.message : "unknown").slice(0, MAX_ERROR_LENGTH);
+      try {
+        await settleDiscovery(supabase, row, [], message);
+      } catch {
+        // A lease can expire or be settled by a concurrent recovery path.
+      }
+    }
+  }
+
+  return {
+    success: true,
+    engine: "official_source_candidate_discovery",
+    claimed: rows.length,
+    candidates_discovered: candidatesDiscovered,
+    skipped,
+    errors,
+  };
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
@@ -1205,12 +1449,36 @@ Deno.serve(async (req) => {
     if (mode === "status") {
       return jsonResponse({ success: true, jobs: await getStatus(supabase) }, 200, corsHeaders);
     }
+
+    const limit = boundedBatchSize(body?.limit);
+    if (mode === "process_discovery_batch") {
+      const result = await processDiscoveryBatch(supabase, limit);
+
+      await writeAuditLog({
+        adminClient: supabase,
+        actor,
+        request: req,
+        functionName: "enrich-directory-images",
+        action: "directory_image_discovery_batch",
+        status: "success",
+        targetEntityType: "restaurants",
+        metadata: {
+          engine: result.engine,
+          source: String(body?.source || "manual"),
+          claimed: result.claimed,
+          candidates_discovered: result.candidates_discovered,
+          skipped: result.skipped,
+          errors: result.errors,
+        },
+      });
+
+      return jsonResponse(result, 200, corsHeaders);
+    }
+
     if (mode !== "process_batch") throw new HttpError(400, "Invalid mode");
     if (!Deno.env.get("FIRECRAWL_API_KEY")?.trim()) {
       throw new HttpError(503, "FIRECRAWL_API_KEY not configured");
     }
-
-    const limit = boundedBatchSize(body?.limit);
     const { data: claimed, error: claimError } = await supabase.rpc(
       "service_claim_directory_image_jobs",
       { p_limit: limit },
