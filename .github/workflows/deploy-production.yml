@@ -10,7 +10,6 @@ on:
 concurrency:
   group: production-deploy
   cancel-in-progress: false
-  queue: max
 
 permissions:
   contents: write
@@ -31,7 +30,7 @@ env:
 
 jobs:
   baseline:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     outputs:
       base_sha: ${{ steps.baseline.outputs.base_sha }}
 
@@ -71,7 +70,7 @@ jobs:
     if: >-
       ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' &&
           needs.validation.outputs.has_deployable_changes == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: production
 
     steps:
@@ -81,14 +80,14 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 1
 
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -167,7 +166,7 @@ jobs:
           needs.validation.result == 'success' &&
           needs.preflight.result == 'success' &&
           needs.validation.outputs.deploy_frontend == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: production
 
     env:
@@ -200,14 +199,14 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 1
 
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -250,7 +249,7 @@ jobs:
   configure_project_domains:
     needs: validation
     if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: production
 
     env:
@@ -338,7 +337,7 @@ jobs:
           (needs.validation.outputs.deploy_database == 'true' ||
            needs.validation.outputs.deploy_functions == 'true' ||
            needs.validation.outputs.sync_supabase_secrets == 'true') }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: production
 
     env:
@@ -596,7 +595,7 @@ jobs:
           needs.build_frontend.result == 'success' &&
           needs.configure_project_domains.result == 'success' &&
           (needs.deploy_supabase.result == 'success' || needs.deploy_supabase.result == 'skipped') }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: production
 
     env:
@@ -677,7 +676,7 @@ jobs:
           vars.PRODUCTION_DEPLOY_ENABLED == 'true' &&
           needs.validation.outputs.deploy_frontend == 'true' &&
           needs.deploy_frontend.result == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: production
 
     env:
@@ -829,7 +828,7 @@ jobs:
       - deploy_supabase
       - deploy_frontend
       - attach_marketing_domain
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Verify production workflow outcome
@@ -888,7 +887,7 @@ jobs:
       - baseline
       - deployment_gate
     if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Checkout deployed commit

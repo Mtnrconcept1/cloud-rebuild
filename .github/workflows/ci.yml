@@ -23,6 +23,9 @@ concurrency:
 
 jobs:
   validation:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     uses: ./.github/workflows/_validation.yml
     with:
       base_sha: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
@@ -33,9 +36,12 @@ jobs:
 
   validate:
     name: validate
-    if: ${{ always() }}
+    if: >-
+      always() &&
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository)
     needs: validation
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Verify reusable validation

@@ -20,7 +20,7 @@ env:
 
 jobs:
   configure:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     environment: production
     timeout-minutes: 10
     steps:

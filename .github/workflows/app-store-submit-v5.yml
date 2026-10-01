@@ -18,7 +18,7 @@ concurrency:
 jobs:
   submit:
     name: Configure availability and submit to App Review
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     timeout-minutes: 15
     environment: app-store-production
     env:
@@ -31,6 +31,11 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 2
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
 
       - name: Guard one-shot production submission
         if: github.event_name == 'push'

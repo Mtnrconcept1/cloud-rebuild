@@ -14,7 +14,7 @@ permissions:
 jobs:
   dispatch:
     name: Dispatch App Store Release 1.0 (6)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     timeout-minutes: 5
     steps:
       - name: Checkout repository
