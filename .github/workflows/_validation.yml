@@ -58,7 +58,7 @@ env:
 
 jobs:
   plan:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     outputs:
       base_sha: ${{ steps.impact.outputs.base_sha }}
       test_mode: ${{ steps.impact.outputs.test_mode }}
@@ -176,7 +176,7 @@ jobs:
           needs.plan.outputs.run_lint == 'true' ||
           needs.plan.outputs.run_typecheck == 'true' ||
           (needs.plan.outputs.run_build == 'true' && !inputs.skip_build) }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Checkout
@@ -253,7 +253,7 @@ jobs:
   related_tests:
     needs: plan
     if: ${{ needs.plan.outputs.test_mode == 'affected' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Checkout
@@ -287,7 +287,7 @@ jobs:
   full_tests:
     needs: plan
     if: ${{ needs.plan.outputs.test_mode == 'full' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
     strategy:
       fail-fast: false
       matrix:
@@ -324,7 +324,7 @@ jobs:
            needs.plan.outputs.auth_critical == 'true' ||
            needs.plan.outputs.supabase_critical == 'true' ||
            needs.plan.outputs.contract_tests != '') }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Checkout
@@ -357,7 +357,7 @@ jobs:
   worker_tests:
     needs: plan
     if: ${{ needs.plan.outputs.run_worker_tests == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Checkout
@@ -387,7 +387,7 @@ jobs:
   windows_worker_tests:
     needs: plan
     if: ${{ needs.plan.outputs.run_worker_tests == 'true' }}
-    runs-on: windows-latest
+    runs-on: [self-hosted, Windows, X64, cloud-rebuild-windows]
 
     steps:
       - name: Checkout
@@ -440,7 +440,7 @@ jobs:
       - critical_tests
       - worker_tests
       - windows_worker_tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, cloud-rebuild-linux]
 
     steps:
       - name: Verify required validation jobs
