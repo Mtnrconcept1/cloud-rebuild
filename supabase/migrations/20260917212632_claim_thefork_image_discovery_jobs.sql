@@ -1,13 +1,5 @@
 BEGIN;
 
--- Complete the TheFork directory image pipeline without exposing Vault secrets
--- or allowing the generic directory worker to compete for the same rows.
---
--- The generic worker already tried these records up to three times. This
--- migration isolates the remaining TheFork rows, schedules the image-truth
--- verifier that was missing from pg_cron, and gives the dedicated recovery
--- worker a SKIP LOCKED claim RPC.
-
 CREATE OR REPLACE FUNCTION public.service_claim_thefork_image_discovery_jobs(
   p_limit integer DEFAULT 5
 )
@@ -107,8 +99,6 @@ REVOKE ALL ON FUNCTION public.service_claim_thefork_image_discovery_jobs(integer
 GRANT EXECUTE ON FUNCTION public.service_claim_thefork_image_discovery_jobs(integer)
   TO service_role;
 
--- Environment-bound internal edge invocation. marketing_edge_url is already a
--- per-environment Vault secret; only its Supabase base URL is reused here.
 CREATE OR REPLACE FUNCTION public.invoke_directory_image_truth_worker(
   p_limit integer DEFAULT 10
 )
@@ -227,8 +217,6 @@ REVOKE ALL ON FUNCTION public.invoke_thefork_image_recovery_worker(integer)
 GRANT EXECUTE ON FUNCTION public.invoke_thefork_image_recovery_worker(integer)
   TO service_role;
 
--- Prevent the generic image cron from consuming the TheFork recovery backlog.
--- The dedicated claim RPC intentionally does not reject attempts=3.
 UPDATE public.restaurant_directory_image_jobs AS job
 SET
   status = 'not_found',
@@ -282,4 +270,4 @@ BEGIN
 END;
 $do$;
 
-COMMIT;
+COMMIT;;

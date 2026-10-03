@@ -682,4 +682,4 @@ END;
 $postflight$;
 
 NOTIFY pgrst, 'reload schema';
-COMMIT;
+COMMIT;;

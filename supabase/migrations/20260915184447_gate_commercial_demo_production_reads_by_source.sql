@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS scope_production_restaurants_for_commercial_demo_accounts ON public.restaurants;
+CREATE POLICY scope_production_restaurants_for_commercial_demo_accounts ON public.restaurants FOR SELECT TO authenticated USING (((NOT public.commercial_demo_current_user_is_restricted()) AND public.restaurant_address_city_is_consistent(address, city) AND (is_directory_listing IS FALSE OR directory_public_name_verified IS TRUE) AND public.restaurant_source_is_publicly_displayable(id)) OR id = public.commercial_demo_current_restaurant_id());;

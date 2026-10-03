@@ -41,3 +41,4 @@ WHERE last_error = 'thefork_recovery:permanent:site_discovery_exhausted'
   );
 
 COMMIT;
+;

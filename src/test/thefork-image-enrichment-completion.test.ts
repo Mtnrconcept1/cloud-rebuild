@@ -7,12 +7,12 @@ const root = process.cwd();
 const workerPath = resolve(root, "supabase/functions/enrich-thefork-images/index.ts");
 const siteDiscoveryWorkerPath = resolve(root, "supabase/functions/discover-thefork-official-sites/index.ts");
 const truthWorkerPath = resolve(root, "supabase/functions/verify-directory-image-truth/index.ts");
-const migrationPath = resolve(root, "supabase/migrations/20260917213000_claim_thefork_image_discovery_jobs.sql");
-const priorityMigrationPath = resolve(root, "supabase/migrations/20260917221000_claim_thefork_image_truth_reviews.sql");
-const siteDiscoveryMigrationPath = resolve(root, "supabase/migrations/20260917223000_thefork_official_site_discovery.sql");
-const siteDiscoveryHandoffMigrationPath = resolve(root, "supabase/migrations/20260917224000_fix_thefork_site_discovery_handoff.sql");
-const siteDiscoveryBackoffMigrationPath = resolve(root, "supabase/migrations/20260917225000_backoff_thefork_site_discovery_provider.sql");
-const leaseRecoveryMigrationPath = resolve(root, "supabase/migrations/20260917226000_recover_stale_thefork_image_worker_leases.sql");
+const migrationPath = resolve(root, "supabase/migrations/20260917212632_claim_thefork_image_discovery_jobs.sql");
+const priorityMigrationPath = resolve(root, "supabase/migrations/20260918031431_claim_thefork_image_truth_reviews.sql");
+const siteDiscoveryMigrationPath = resolve(root, "supabase/migrations/20260918031434_thefork_official_site_discovery.sql");
+const siteDiscoveryHandoffMigrationPath = resolve(root, "supabase/migrations/20260918031741_fix_thefork_site_discovery_handoff.sql");
+const siteDiscoveryBackoffMigrationPath = resolve(root, "supabase/migrations/20260918032031_backoff_thefork_site_discovery_provider.sql");
+const leaseRecoveryMigrationPath = resolve(root, "supabase/migrations/20260918032409_recover_stale_thefork_image_worker_leases.sql");
 
 function read(path: string) {
   return readFileSync(path, "utf8");

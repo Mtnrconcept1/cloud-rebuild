@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS production_hide_demo_restaurants ON public.restaurants;
+CREATE POLICY production_hide_demo_restaurants ON public.restaurants FOR SELECT TO anon, authenticated USING (is_demo IS FALSE AND public.restaurant_address_city_is_consistent(address, city) AND (is_directory_listing IS FALSE OR directory_public_name_verified IS TRUE) AND public.restaurant_source_is_publicly_displayable(id));;

@@ -228,3 +228,4 @@ END;
 $do$;
 
 COMMIT;
+;
