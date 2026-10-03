@@ -6,9 +6,9 @@
  * anyone enumerate identifiers and suppress contacts at will, so the link
  * carries an HMAC the endpoint verifies before acting.
  *
- * The secret is the one the provider webhook already uses: one fewer secret to
- * provision, and both surfaces are the same trust boundary — an unauthenticated
- * caller proving it holds a value only the sender could have produced.
+ * Callers provide a secret dedicated to unsubscribe links. Keeping that key
+ * separate from provider webhook credentials avoids coupling two independent
+ * trust boundaries; rotation policy lives in marketing-unsubscribe-secrets.ts.
  */
 
 const encoder = new TextEncoder();

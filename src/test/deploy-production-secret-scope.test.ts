@@ -138,6 +138,8 @@ describe("production deployment secret scope", () => {
       "FIREBASE_TOKEN_URI",
       "FIRECRAWL_API_KEY",
       "GITHUB_INCIDENT_TOKEN",
+      "MARKETING_UNSUBSCRIBE_LEGACY_SECRET",
+      "MARKETING_UNSUBSCRIBE_SECRET",
       "OPENAI_API_KEY",
       "OPENAI_IMAGE_TIMEOUT_MS",
       "OPENAI_MODEL",
@@ -265,6 +267,9 @@ describe("production deployment secret scope", () => {
     expect(preflightSupabaseAuth).toContain("ensure-supabase-auth-security.mjs");
     expect(preflightRuntimeSecurity).toContain("id: supabase_runtime_security");
     expect(preflightRuntimeSecurity).toContain("verify-supabase-runtime-security.mjs");
+    expect(preflight).toContain(
+      "MARKETING_UNSUBSCRIBE_SECRET: ${{ secrets.MARKETING_UNSUBSCRIBE_SECRET }}",
+    );
     expect(workflow).not.toContain("INTERNAL_CRON_SECRET: ${{ secrets.");
     expect(workflow).not.toContain("EMAIL_FROM: ${{ secrets.");
     expect(buildFrontend).toMatch(/needs:\n\s+- validation\n\s+- preflight/);

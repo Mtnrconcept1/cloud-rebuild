@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2, Send, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 
 import {
   MarketingChannelBadge,
@@ -18,6 +18,10 @@ import {
   marketingBffRequest,
 } from "@/marketing/marketingBffClient";
 import type { MarketingChannelId, MarketingSnapshot, MarketingView } from "@/marketing/types";
+import {
+  marketingZurichDateKey,
+  marketingZurichLocalDateTimeToIso,
+} from "@/marketing/zurichTime";
 
 /** Channels an operator can reasonably ask the agent to plan for. */
 const PROPOSABLE_CHANNELS: MarketingChannelId[] = [
@@ -58,10 +62,9 @@ type GenerateResult = {
 };
 
 function isoDay(offsetDays: number) {
-  const date = new Date();
-  date.setDate(date.getDate() + offsetDays);
-  date.setHours(9, 0, 0, 0);
-  return date.toISOString().slice(0, 10);
+  const current = marketingZurichDateKey(new Date());
+  const [year, month, day] = current.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + offsetDays)).toISOString().slice(0, 10);
 }
 
 function formatChf(value: number | string) {
@@ -89,40 +92,6 @@ export default function MarketingAgentView({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [runs, setRuns] = useState<AgentRun[]>([]);
-  const [launching, setLaunching] = useState(false);
-  const [launchNotice, setLaunchNotice] = useState<string | null>(null);
-
-  const launch = async () => {
-    if (!result?.campaign?.id) return;
-    setLaunching(true);
-    setLaunchNotice(null);
-    setError(null);
-    try {
-      const response = await marketingBffRequest<{
-        approvedCount: number;
-        rejectedCount: number;
-        dispatched: boolean;
-      }>(MARKETING_BFF_ENDPOINTS.launch, {
-        method: "POST",
-        timeoutMs: 60_000,
-        body: { campaignId: result.campaign.id, itemIds: result.items.map((item) => item.id) },
-      });
-      setLaunchNotice(
-        `${response.approvedCount} élément(s) approuvé(s)` +
-          (response.rejectedCount > 0 ? `, ${response.rejectedCount} refusé(s)` : "") +
-          (response.dispatched
-            ? ". L'envoi a démarré et suit la cadence automatique."
-            : ". L'envoi démarrera à la prochaine exécution planifiée."),
-      );
-    } catch (caught) {
-      setError(
-        caught instanceof MarketingBffError ? caught.message : "Le lancement a échoué.",
-      );
-    } finally {
-      setLaunching(false);
-    }
-  };
-
   const connectedChannels = useMemo(
     () =>
       new Set(
@@ -176,6 +145,13 @@ export default function MarketingAgentView({
       return;
     }
 
+    const startIso = marketingZurichLocalDateTimeToIso(`${startsAt}T09:00:00`);
+    const endIso = marketingZurichLocalDateTimeToIso(`${endsAt}T18:00:00`);
+    if (!startIso || !endIso) {
+      setError("La période contient une heure inexistante ou ambiguë en Europe/Zurich.");
+      return;
+    }
+
     setPending(true);
     try {
       const response = await marketingBffRequest<GenerateResult>(MARKETING_BFF_ENDPOINTS.agent, {
@@ -186,8 +162,8 @@ export default function MarketingAgentView({
           objective: objective.trim(),
           audienceHint: audienceHint.trim(),
           channels,
-          startsAt: new Date(`${startsAt}T09:00:00`).toISOString(),
-          endsAt: new Date(`${endsAt}T18:00:00`).toISOString(),
+          startsAt: startIso,
+          endsAt: endIso,
           itemCount,
         },
       });
@@ -381,35 +357,15 @@ export default function MarketingAgentView({
                 </li>
               ))}
             </ul>
-            {launchNotice ? (
-              <Alert className="border-emerald-200 bg-emerald-50 text-emerald-900">
-                <CheckCircle2 className="h-4 w-4" />
-                <AlertDescription>{launchNotice}</AlertDescription>
-              </Alert>
-            ) : null}
             <div className="flex flex-wrap gap-2">
-              <Button type="button" onClick={launch} disabled={launching || !canMutateBackend}>
-                {launching ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                    Lancement…
-                  </>
-                ) : (
-                  <>
-                    <Send className="mr-2 h-4 w-4" aria-hidden />
-                    Approuver et lancer la campagne
-                  </>
-                )}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => onNavigate("calendar")}>
-                Relire d'abord dans le calendrier
+              <Button type="button" onClick={() => onNavigate("calendar")}>
+                Relire et approuver les éléments
               </Button>
             </div>
             <p className="text-xs leading-relaxed text-slate-500">
-              Le lancement approuve la campagne et ses éléments, puis confie l'envoi à
-              l'orchestrateur. La cadence est gérée automatiquement : montée en charge
-              progressive, étalement sur la journée et par fournisseur de messagerie, arrêt
-              automatique si les rebonds ou les plaintes montent.
+              La génération ne donne aucune autorisation de diffusion. Chaque élément doit être
+              relu puis approuvé séparément dans le calendrier ; les canaux non confirmés restent
+              bloqués et la pause globale conserve toujours la priorité.
             </p>
           </CardContent>
         </Card>

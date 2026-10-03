@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  MARKETING_AUTOPILOT_OPERATION_NAMES,
   MARKETING_CSRF_COOKIE,
   MARKETING_OPERATION_NAMES,
   marketingLoginHandler,
@@ -114,6 +115,23 @@ describe("marketing server-only BFF", () => {
       "admin_suppress_marketing_contact",
       "admin_reveal_manual_delivery_target",
     ]));
+  });
+
+  it("keeps the autopilot control plane on a separate, non-publishing allowlist", () => {
+    expect(MARKETING_AUTOPILOT_OPERATION_NAMES).toEqual([
+      "admin_get_marketing_autopilot_dashboard",
+      "admin_prepare_marketing_automation_action",
+      "admin_simulate_marketing_automation",
+      "admin_update_marketing_provider_control",
+      "admin_upsert_marketing_asset",
+    ]);
+    expect(new Set(MARKETING_AUTOPILOT_OPERATION_NAMES).size).toBe(5);
+    expect(MARKETING_AUTOPILOT_OPERATION_NAMES.every((name) => name.startsWith("admin_"))).toBe(true);
+    expect(MARKETING_AUTOPILOT_OPERATION_NAMES.join(" ")).not.toMatch(/publish|send|spend|launch/i);
+
+    const source = readFileSync(resolve(process.cwd(), "server/marketingBff.ts"), "utf8");
+    expect(source).toContain("service_execute_marketing_autopilot_operation");
+    expect(source).toContain("MARKETING_AUTOPILOT_OPERATION_NAMES.includes");
   });
 
   it("rejects a non-allowlisted RPC before any session or database call", async () => {

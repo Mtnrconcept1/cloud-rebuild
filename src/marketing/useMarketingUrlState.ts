@@ -50,6 +50,32 @@ function validDate(value: string | null) {
   return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
 }
 
+function serializeMarketingState(current: URLSearchParams, state: MarketingUrlState) {
+  const next = new URLSearchParams(current);
+  const values: Record<string, string> = {
+    view: state.view,
+    q: state.query.trim(),
+    status: state.status,
+    channel: state.channel,
+    page: String(state.page),
+    from: state.from,
+    to: state.to,
+  };
+
+  for (const [key, value] of Object.entries(values)) {
+    const defaultValue = (
+      (key === "view" && value === "overview")
+      || (key === "status" && value === "all")
+      || (key === "channel" && value === "all")
+      || (key === "page" && value === "1")
+      || value === ""
+    );
+    if (defaultValue) next.delete(key);
+    else next.set(key, value);
+  }
+  return next;
+}
+
 export function useMarketingUrlState() {
   const [searchParams, setSearchParams] = useSearchParams();
   const state = useMemo<MarketingUrlState>(() => {
@@ -69,36 +95,23 @@ export function useMarketingUrlState() {
 
   const update = useCallback((patch: Partial<MarketingUrlState>) => {
     setSearchParams((current) => {
-      const next = new URLSearchParams(current);
-      const merged = { ...state, ...patch };
-      const values: Record<string, string> = {
-        view: merged.view,
-        q: merged.query.trim(),
-        status: merged.status,
-        channel: merged.channel,
-        page: String(merged.page),
-        from: merged.from,
-        to: merged.to,
-      };
-
-      for (const [key, value] of Object.entries(values)) {
-        const defaultValue = (
-          (key === "view" && value === "overview")
-          || (key === "status" && value === "all")
-          || (key === "channel" && value === "all")
-          || (key === "page" && value === "1")
-          || value === ""
-        );
-        if (defaultValue) next.delete(key);
-        else next.set(key, value);
-      }
-      return next;
+      return serializeMarketingState(current, { ...state, ...patch });
     }, { replace: true });
   }, [setSearchParams, state]);
 
   const setView = useCallback((view: MarketingView) => {
-    update({ view, page: 1, query: "", status: "all", channel: "all", from: "", to: "" });
-  }, [update]);
+    if (view === state.view) return;
+    setSearchParams((current) => serializeMarketingState(current, {
+      ...state,
+      view,
+      page: 1,
+      query: "",
+      status: "all",
+      channel: "all",
+      from: "",
+      to: "",
+    }), { replace: false });
+  }, [setSearchParams, state]);
 
   return { state, update, setView };
 }

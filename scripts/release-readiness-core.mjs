@@ -214,6 +214,13 @@ function inspectEdgeSecrets(env, report, providerBootstrapGraceActive) {
 }
 
 function inspectSupabaseRuntimeSecurity(env, report, providerBootstrapGraceActive) {
+  const unsubscribeSecret = clean(env.MARKETING_UNSUBSCRIBE_SECRET);
+  if (unsubscribeSecret.length < 32 || isPlaceholder(unsubscribeSecret)) {
+    report.required(
+      "Missing valid MARKETING_UNSUBSCRIBE_SECRET; production requires at least 32 non-placeholder characters.",
+    );
+  }
+
   const cronSecret = clean(env.INTERNAL_CRON_SECRET || env.CRON_SECRET);
   const cronConfirmed = hasConfirmedEvidence(
     env.SUPABASE_INTERNAL_CRON_VAULT_CONFIRMED,

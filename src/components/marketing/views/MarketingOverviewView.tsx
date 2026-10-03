@@ -3,8 +3,8 @@ import {
   CalendarClock,
   CheckCircle2,
   CircleGauge,
+  ListChecks,
   MousePointerClick,
-  PlayCircle,
   Send,
   Users,
 } from "lucide-react";
@@ -25,9 +25,6 @@ import type { MarketingSnapshot, MarketingView } from "@/marketing/types";
 
 export default function MarketingOverviewView({
   snapshot,
-  canMutateBackend,
-  runPending,
-  onRunDue,
   onNavigate,
 }: {
   snapshot: MarketingSnapshot;
@@ -67,11 +64,10 @@ export default function MarketingOverviewView({
             <Button
               type="button"
               className="border border-white/20 bg-white/10 text-white hover:bg-white/20"
-              disabled={!canMutateBackend || overview.globalPaused || !overview.schedulerReady || runPending}
-              onClick={onRunDue}
+              onClick={() => onNavigate("calendar")}
             >
-              <PlayCircle className="mr-2 h-4 w-4" />
-              Traiter les éléments dus
+              <ListChecks className="mr-2 h-4 w-4" />
+              Réviser les éléments dus
             </Button>
           </div>
         </div>

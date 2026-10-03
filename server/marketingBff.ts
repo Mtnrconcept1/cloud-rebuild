@@ -85,9 +85,28 @@ export const MARKETING_OUTREACH_OPERATION_NAMES = [
 
 export type MarketingOutreachOperation = (typeof MARKETING_OUTREACH_OPERATION_NAMES)[number];
 
+/**
+ * Autopilot owns its own SQL dispatcher so the additive control-plane
+ * migration does not have to replace the historical marketing dispatcher.
+ * Keeping this list separate also makes the fail-closed boundary reviewable:
+ * none of these operations can publish, contact a provider or spend money.
+ */
+export const MARKETING_AUTOPILOT_OPERATION_NAMES = [
+  "admin_get_marketing_autopilot_dashboard",
+  "admin_prepare_marketing_automation_action",
+  "admin_simulate_marketing_automation",
+  "admin_update_marketing_provider_control",
+  "admin_upsert_marketing_asset",
+] as const;
+
+export type MarketingAutopilotOperation = (
+  typeof MARKETING_AUTOPILOT_OPERATION_NAMES
+)[number];
+
 const MARKETING_OPERATION_ALLOWLIST = new Set<string>([
   ...MARKETING_OPERATION_NAMES,
   ...MARKETING_OUTREACH_OPERATION_NAMES,
+  ...MARKETING_AUTOPILOT_OPERATION_NAMES,
 ]);
 
 type HeaderValue = string | string[] | undefined;
@@ -1446,7 +1465,11 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
       operation as MarketingOutreachOperation,
     )
       ? "service_execute_marketing_outreach_operation"
-      : "service_execute_marketing_admin_operation";
+      : MARKETING_AUTOPILOT_OPERATION_NAMES.includes(
+          operation as MarketingAutopilotOperation,
+        )
+        ? "service_execute_marketing_autopilot_operation"
+        : "service_execute_marketing_admin_operation";
     const result = await serviceRpc(config, serviceOperation, {
       p_sid_hash: session.sessionHash,
       p_csrf_hash: session.csrfHash,
@@ -1525,18 +1548,10 @@ async function runMarketingOrchestrator(
 }
 
 /**
- * One action for what was three: approve the campaign, approve each of its
- * items, then ask the orchestrator to start.
- *
- * Every step goes through an operation that was already allowlisted, carrying
- * the same live session and CSRF proof, so nothing here weakens the approval
- * rule — it batches a human decision instead of replacing it. The operator is
- * still the one approving; they simply stop clicking once per item.
- *
- * Dispatch is best-effort on purpose: the approvals are what matter and they
- * are durable. If the orchestrator call fails, the campaign is approved and the
- * next scheduled run picks it up, which is a far better failure than approvals
- * that half-applied.
+ * Compatibility endpoint kept for already deployed clients. Batch approval
+ * used to combine campaign approval, item approval and immediate dispatch.
+ * That made it impossible to prove an item-by-item human review, so the route
+ * now authenticates the caller and fails closed without mutating anything.
  */
 async function launchMarketingCampaign(
   req: MarketingApiRequest,
@@ -1567,67 +1582,13 @@ async function launchMarketingCampaign(
 
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
-
-  const runOperation = (operation: string, args: JsonObject) =>
-    serviceRpc(config, "service_execute_marketing_admin_operation", {
-      p_sid_hash: session.sessionHash,
-      p_csrf_hash: session.csrfHash,
-      p_operation: operation,
-      p_args: args,
-    });
-
-  try {
-    await runOperation("admin_approve_marketing_campaign", {
-      p_campaign_id: campaignId,
-      p_reason: "Lancement depuis le centre marketing",
-    });
-  } catch (error) {
-    if (error instanceof DownstreamHttpError && error.status >= 400 && error.status < 500) {
-      throw new PublicBffError(400, "operation_rejected", "Opération refusée.");
-    }
-    throw error;
-  }
-
-  const approved: string[] = [];
-  const rejected: string[] = [];
-  for (const itemId of itemIds) {
-    try {
-      await runOperation("admin_approve_marketing_item", { p_item_id: itemId });
-      approved.push(itemId);
-    } catch {
-      // An item the database refuses — already sent, cancelled, or edited since
-      // — must not abort the ones that are still valid.
-      rejected.push(itemId);
-    }
-  }
-
-  let dispatched = false;
-  if (approved.length > 0) {
-    const response = await boundedFetch(
-      `${config.supabaseUrl}/functions/v1/marketing-orchestrator`,
-      {
-        method: "POST",
-        headers: {
-          apikey: config.serviceRoleKey,
-          Authorization: `Bearer ${config.serviceRoleKey}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          "x-marketing-actor-user-id": session.userId,
-        },
-        body: JSON.stringify({ action: "run_due", limit: 100 }),
-      },
-      ORCHESTRATOR_TIMEOUT_MS,
-    ).catch(() => null);
-    dispatched = Boolean(response?.ok);
-  }
-
-  sendJson(res, 200, {
-    ok: true,
-    campaignId,
-    approvedCount: approved.length,
-    rejectedCount: rejected.length,
-    dispatched,
-  });
+  void campaignId;
+  void itemIds;
+  throw new PublicBffError(
+    409,
+    "batch_launch_disabled",
+    "Relisez et approuvez chaque élément dans le calendrier.",
+  );
 }
 
 const MARKETING_CHANNEL_VALUES = new Set([

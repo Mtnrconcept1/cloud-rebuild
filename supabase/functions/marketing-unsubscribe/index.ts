@@ -1,5 +1,6 @@
 import { createAdminClient } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { readMarketingUnsubscribeSecrets } from "../_shared/marketing-unsubscribe-secrets.ts";
 import { verifyUnsubscribeToken } from "../_shared/marketing-unsubscribe-token.ts";
 
 /**
@@ -44,6 +45,15 @@ function htmlResponse() {
   });
 }
 
+async function verifyDeliveryId(token: string) {
+  const { verificationSecrets } = readMarketingUnsubscribeSecrets();
+  for (const secret of verificationSecrets) {
+    const deliveryId = await verifyUnsubscribeToken(token, secret);
+    if (deliveryId) return deliveryId;
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   const log = makeLogger("marketing-unsubscribe");
 
@@ -61,8 +71,7 @@ Deno.serve(async (req) => {
       token = new URLSearchParams(body).get("token")?.trim() || "";
     }
 
-    const secret = Deno.env.get("MARKETING_WEBHOOK_SECRET")?.trim() || "";
-    const deliveryId = await verifyUnsubscribeToken(token, secret);
+    const deliveryId = await verifyDeliveryId(token);
 
     if (deliveryId) {
       const { error } = await createAdminClient().rpc("service_unsubscribe_marketing_delivery", {
