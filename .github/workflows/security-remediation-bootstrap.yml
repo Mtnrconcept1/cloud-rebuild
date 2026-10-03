@@ -1,0 +1,421 @@
+name: Dependency security remediation (one-off)
+'on':
+  push:
+    branches:
+    - fix/dependabot-audit-20261003
+    paths:
+    - .github/workflows/security-remediation-bootstrap.yml
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: dependency-security-remediation-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  CI: 'true'
+  NODE_VERSION: 22.23.3
+  PNPM_VERSION: 10.28.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  PUPPETEER_SKIP_DOWNLOAD: 'true'
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+jobs:
+  validate:
+    if: ${{ github.repository == 'Mtnrconcept1/cloud-rebuild' && github.ref == 'refs/heads/fix/dependabot-audit-20261003'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      EVIDENCE: ${{ runner.temp }}/tok-dependency-security
+    steps:
+    - name: Checkout exact branch revision
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        ref: ${{ github.sha }}
+        fetch-depth: 2
+        persist-credentials: false
+    - name: Set up verified runtime
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        package-manager-cache: false
+    - name: Initialize isolated evidence and baseline
+      run: |
+        mkdir -p "$EVIDENCE"
+        corepack enable
+        corepack prepare pnpm@${PNPM_VERSION} --activate
+        git status --short --branch
+        test "$(git rev-parse HEAD^)" = 7456df56784add72f906bc4368df6fbf524a681b
+        pnpm install --frozen-lockfile --ignore-scripts
+        pnpm audit --json > "$EVIDENCE/audit-before.json" || test "$?" -eq 1
+        (cd workers/image-ai-worker && npm audit --package-lock-only --json) > "$EVIDENCE/audit-worker.json"
+    - name: Prove regression tests fail before correction
+      run: |
+        python3 - <<'PY'
+        from pathlib import Path
+        p = Path('scripts/dependency-security.test.mjs')
+        assert not p.exists()
+        p.write_text('// Run against installed dependencies, not mocked copies.\nimport assert from \'node:assert/strict\';\nimport { readFileSync, existsSync } from \'node:fs\';\nimport { createRequire } from \'node:module\';\nimport { test } from \'node:test\';\nconst require = createRequire(import.meta.url);\nconst root = new URL(\'../\', import.meta.url);\nconst fromTailwind = createRequire(require.resolve(\'tailwindcss\'));\nconst fromChokidar = createRequire(fromTailwind.resolve(\'chokidar\'));\nconst braces = fromChokidar(\'braces\');\nconst nested = (open, close, depth) => open.repeat(depth) + \'x\' + close.repeat(depth);\n\ntest(\'normal glob expansion and bounded nesting remain compatible\', () => {\n  assert.deepEqual(braces.expand(\'src/{pages,lib}/*.{ts,tsx}\'), [\n    \'src/pages/*.ts\', \'src/pages/*.tsx\', \'src/lib/*.ts\', \'src/lib/*.tsx\',\n  ]);\n  assert.deepEqual(braces.expand(\'{1..3}\'), [\'1\', \'2\', \'3\']);\n  assert.doesNotThrow(() => braces(nested(\'{\', \'}\', 128)));\n  assert.doesNotThrow(() => braces(nested(\'(\', \')\', 128)));\n});\n\nfor (const [label, pattern] of [\n  [\'braces\', nested(\'{\', \'}\', 129)],\n  [\'parentheses\', nested(\'(\', \')\', 129)],\n  [\'mixed nodes\', \'{(\'.repeat(65) + \'x\' + \')}\'.repeat(65)],\n  [\'unclosed nodes\', \'{\'.repeat(129) + \'x\'],\n]) {\n  test(`rejects excessive ${label} before recursive processing`, () => {\n    for (const operation of [braces, braces.parse, braces.compile, braces.expand]) {\n      assert.throws(() => operation(pattern), {\n        name: \'SyntaxError\', message: \'Pattern nesting exceeds the safety limit of 128\',\n      });\n    }\n  });\n}\n\ntest(\'escaped and quoted delimiters are not mistaken for nested AST nodes\', () => {\n  assert.doesNotThrow(() => braces(\'\\\\{\'.repeat(200)));\n  assert.doesNotThrow(() => braces(\'"\' + \'{\'.repeat(200) + \'"\'));\n  assert.doesNotThrow(() => braces(\'[\' + \'{\'.repeat(200) + \']\'));\n});\n\ntest(\'the vulnerable ZIP extractor is absent from the canonical dependency graph\', () => {\n  const lock = readFileSync(new URL(\'pnpm-lock.yaml\', root), \'utf8\');\n  assert.doesNotMatch(lock, /^\\s+extract-zip@/m);\n  assert.equal(existsSync(new URL(\'package-lock.json\', root)), false,\n    \'The unused root npm lock must not compete with the canonical pnpm graph\');\n});\n\ntest(\'security upgrades preserve React and Vite majors and require supported Node\', () => {\n  const manifest = JSON.parse(readFileSync(new URL(\'package.json\', root), \'utf8\'));\n  assert.equal(manifest.dependencies[\'react-router-dom\'], \'^7.18.4\');\n  assert.equal(manifest.devDependencies.vitest, \'^4.1.11\');\n  assert.equal(manifest.devDependencies.puppeteer, \'^25.12.0\');\n  assert.equal(manifest.engines.node, \'>=22.12.0\');\n  assert.match(manifest.dependencies.react, /^\\^18\\./);\n  assert.match(manifest.devDependencies.vite, /^\\^6\\./);\n  const deno = JSON.parse(readFileSync(new URL(\'deno.lock\', root), \'utf8\'));\n  for (const specifier of [\'npm:puppeteer@^25.12.0\', \'npm:react-router-dom@^7.18.4\', \'npm:vitest@^4.1.11\']) {\n    assert.ok(deno.workspace.packageJson.dependencies.includes(specifier));\n  }\n});\n', encoding="utf8")
+        p = Path('src/test/dependency-security.test.ts')
+        assert not p.exists()
+        p.write_text('import { execFileSync } from "node:child_process";\nimport { it } from "vitest";\n\nit("enforces the dependency security policy against installed packages", () => {\n  execFileSync(process.execPath, ["--test", "scripts/dependabot-policy.test.mjs", "scripts/dependency-security.test.mjs"], {\n    cwd: process.cwd(), encoding: "utf8", timeout: 30_000,\n  });\n});\n', encoding="utf8")
+        PY
+        if node --test scripts/dependency-security.test.mjs > "$EVIDENCE/security-red.log" 2>&1; then
+          echo 'Expected the security regression tests to fail before implementation.'
+          exit 1
+        fi
+        python3 - <<'PY'
+        from pathlib import Path
+        import os
+        s = (Path(os.environ['EVIDENCE'])/'security-red.log').read_text()
+        assert '# tests 8' in s and '# fail 6' in s and '# pass 2' in s
+        PY
+    - name: Apply scoped remediation and regenerate the real lockfile
+      run: |
+        python3 - <<'PY'
+        from pathlib import Path
+        import json
+        p = Path('package.json')
+        manifest = json.loads(p.read_text())
+        assert manifest['devDependencies']['vitest'] == '^3.2.6'
+        manifest['dependencies']['react-router-dom'] = '^7.18.4'
+        manifest['devDependencies']['vitest'] = '^4.1.11'
+        manifest['devDependencies']['puppeteer'] = '^25.12.0'
+        manifest['engines']['node'] = '>=22.12.0'
+        manifest['pnpm']['overrides'] = {
+            'protobufjs': '7.6.5', 'ws': '8.21.0',
+            'brace-expansion@^1.0.0': '1.1.21',
+            'brace-expansion@^2.0.0': '2.1.7',
+            'brace-expansion@^5.0.0': '5.0.12',
+            '@grpc/grpc-js@<1.13.6': '1.13.6',
+            '@humanfs/node@^0.16.0': '0.16.8',
+            '@xmldom/xmldom@^0.8.0': '0.8.15',
+            'undici@^7.0.0': '7.30.0', 'js-yaml@^4.0.0': '4.3.2',
+            'nanoid@^3.0.0': '3.3.19', 'postcss-selector-parser@^6.1.0': '6.1.4',
+            'tar@^7.0.0': '7.5.22', 'browserslist@^4.0.0': '4.29.3',
+            'baseline-browser-mapping@^2.0.0': '2.11.27',
+        }
+        p.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf8')
+        p = Path('pnpm-workspace.yaml')
+        s = p.read_text()
+        old = 'overrides:\n  protobufjs: 7.6.5\n  ws: 8.21.0\n  brace-expansion: ">=1.1.16"\n\n'
+        assert old in s
+        p.write_text(s.replace(old, ''), encoding='utf8')
+        assert 'pnpm install --frozen-lockfile' in Path('vercel.json').read_text()
+        assert 'npm ci --omit=dev --ignore-scripts' in Path('workers/image-ai-worker/Dockerfile').read_text()
+        Path('package-lock.json').unlink()
+        p = Path('deno.lock')
+        s = p.read_text()
+        for old, new in [('npm:puppeteer@^24.40.0', 'npm:puppeteer@^25.12.0'), ('npm:react-router-dom@^7.18.1', 'npm:react-router-dom@^7.18.4'), ('npm:vitest@^3.2.6', 'npm:vitest@^4.1.11')]:
+            assert s.count(old) == 1
+            s = s.replace(old, new)
+        p.write_text(s, encoding='utf8')
+        p = Path('src/lib/admin/auditLogNarrative.ts')
+        s = p.read_text()
+        marker = '  "enrich-directory-images":'
+        assert s.count(marker) == 1
+        s = s.replace(marker, '  "discover-thefork-official-sites": "la recherche des sites officiels des restaurants issus de TheFork",\n  "enrich-thefork-images": "l’enrichissement des photos des restaurants issus de TheFork",\n  "verify-directory-image-truth": "la vérification des photos de l’annuaire auprès de leurs sources officielles",\n' + marker)
+        p.write_text(s, encoding='utf8')
+        p = Path('src/test/admin-mobile-navigation.test.tsx')
+        s = p.read_text()
+        marker = '  useActiveFeatures: () => featureState.activeFeatures,\n'
+        assert marker in s
+        p.write_text(s.replace(marker, marker + '  useFeatureFlags: () => ({ flags: [], loading: false, setFlagState: vi.fn() }),\n'), encoding='utf8')
+        p = Path('src/test/marketing-outreach-schema.test.ts')
+        s = p.read_text()
+        old = '    expect(migration).toContain("127.");'
+        new = r"""    // The SQL uses [.] to match a literal dot, not the wildcard operator.
+            const privateHostPattern = migration.match(/v_host ~ '(\^\(10\[\.\][^']+)'/);
+            expect(privateHostPattern).not.toBeNull();
+            const privateHost = new RegExp(privateHostPattern![1]);
+            for (const address of ["127.0.0.1", "127.255.1.2", "10.1.2.3", "169.254.1.2", "192.168.1.1", "172.16.0.1", "172.31.255.254"]) {
+              expect(privateHost.test(address)).toBe(true);
+            }
+            for (const address of ["8.8.8.8", "172.15.0.1", "172.32.0.1"]) {
+              expect(privateHost.test(address)).toBe(false);
+            }"""
+        assert old in s
+        s = s.replace(old, new)
+        old = '    expect(migration).toContain("rel IN (\'follow\',\'nofollow\',\'sponsored\',\'ugc\')");'
+        new = r"""    expect(migration).toMatch(/rel IN \('follow',\s*'nofollow',\s*'sponsored',\s*'ugc'\)/);"""
+        assert old in s
+        p.write_text(s.replace(old, new), encoding='utf8')
+        p = Path('src/test/plan-phase1-readiness.test.ts')
+        s = p.read_text()
+        old = 'expect(pkg.engines.node).toBe(">=22.0.0");'
+        assert old in s
+        p.write_text(s.replace(old, 'expect(pkg.engines.node).toBe(">=22.12.0");'), encoding='utf8')
+        p = Path('README.md')
+        s = p.read_text()
+        assert '- Node.js `22`' in s
+        s = s.replace('- Node.js `22`', '- Node.js `22` (minimum `22.12.0`, requis par les outils de capture)')
+        needle = '## Commandes principales'
+        assert needle in s
+        s = s.replace(needle, 'Le verrouillage de référence est `pnpm-lock.yaml`. Ne pas générer de `package-lock.json` à la racine. Le worker autonome conserve son verrouillage npm pour son image Docker.\n\n' + needle)
+        p.write_text(s, encoding='utf8')
+        # This temporary bootstrap is not part of the final source tree being tested.
+        Path('.github/workflows/security-remediation-bootstrap.yml').unlink()
+        PY
+        pnpm patch braces@3.0.3 --edit-dir "$RUNNER_TEMP/tok-braces-patch"
+        python3 - <<'PY'
+        from pathlib import Path
+        import os
+        p = Path(os.environ['RUNNER_TEMP']) / 'tok-braces-patch/lib/parse.js'
+        s = p.read_text()
+        guard = "      // Bound AST depth before downstream recursive compile/expand/stringify.\n      if (stack.length > 128) {\n        throw new SyntaxError('Pattern nesting exceeds the safety limit of 128');\n      }\n\n"
+        for marker in ['    if (value === CHAR_LEFT_PARENTHESES) {\n', '    if (value === CHAR_LEFT_CURLY_BRACE) {\n']:
+            assert s.count(marker) == 1
+            s = s.replace(marker, marker + guard)
+        p.write_text(s, encoding='utf8')
+        PY
+        pnpm patch-commit "$RUNNER_TEMP/tok-braces-patch"
+        pnpm install --frozen-lockfile
+        pnpm rebuild @swc/core esbuild
+    - name: Audit every resolved dependency and verify the residual exception is not hidden
+      run: |
+        pnpm audit --json > "$EVIDENCE/audit-after.json" || test "$?" -eq 1
+        pnpm audit --prod --json > "$EVIDENCE/audit-prod-after.json"
+        node --test scripts/dependabot-policy.test.mjs scripts/dependency-security.test.mjs | tee "$EVIDENCE/security-green.log"
+        python3 - <<'PY'
+        from pathlib import Path
+        import json, os
+        root = Path(os.environ['EVIDENCE'])
+        audit = json.loads((root/'audit-after.json').read_text())
+        urls = {a['url'] for a in audit['advisories'].values()}
+        assert urls == {'https://github.com/advisories/GHSA-vfj7-8cjw-p6xm'}, urls
+        for filename in ['audit-prod-after.json', 'audit-worker.json']:
+            data = json.loads((root/filename).read_text())
+            assert all(v == 0 for v in data['metadata']['vulnerabilities'].values()), filename
+        assert 'ignoreGhsas' not in Path('pnpm-workspace.yaml').read_text()
+        assert 'braces@3.0.3' in json.loads(Path('package.json').read_text())['pnpm']['patchedDependencies']
+        print('Production and worker audits: zero. Full upstream audit: braces only; local behavioral patch tested separately.')
+        PY
+    - name: Typecheck and lint
+      run: |
+        pnpm typecheck | tee "$EVIDENCE/typecheck.log"
+        pnpm lint | tee "$EVIDENCE/lint.log"
+    - name: Run the complete production-mode test suite
+      run: |
+        pnpm exec vitest run --mode production --maxWorkers=2 --reporter=json --outputFile="$EVIDENCE/tests.json" 2>&1 | tee "$EVIDENCE/tests.log"
+    - name: Validate worker and complete build pipeline
+      run: |
+        pnpm --filter tok-image-ai-worker run syntax | tee "$EVIDENCE/worker-syntax.log"
+        pnpm --filter tok-image-ai-worker test | tee "$EVIDENCE/worker-tests.log"
+        pnpm build:prod 2>&1 | tee "$EVIDENCE/build.log"
+    - name: Verify real browser capture after Puppeteer migration
+      run: |
+        cat > "$EVIDENCE/browser-smoke.mjs" <<'JS'
+        import { createRequire } from 'node:module';
+        import { resolve } from 'node:path';
+        import assert from 'node:assert/strict';
+        const require = createRequire(resolve(process.cwd(), 'package.json'));
+        const { default: puppeteer } = await import(require.resolve('puppeteer'));
+        const browser = await puppeteer.launch({ executablePath: process.env.PUPPETEER_EXECUTABLE_PATH, headless: true, args: ['--no-sandbox'], defaultViewport: { width: 412, height: 915, deviceScaleFactor: 2.625 } });
+        try {
+          const page = await browser.newPage();
+          await page.setExtraHTTPHeaders({ 'Accept-Language': 'fr-FR,fr;q=0.9' });
+          await page.setContent('<!doctype html><title>TOK security smoke</title><button id="check">Verify</button><p id="state">ready</p><script>document.querySelector("button").onclick=()=>document.querySelector("p").textContent="verified";</script>');
+          const button = await page.$('#check'); assert.ok(button); await button.click();
+          assert.equal(await page.$eval('#state', el => el.textContent), 'verified');
+          const image = await page.screenshot({ type: 'png', fullPage: false });
+          assert.deepEqual(Array.from(image.slice(0, 8)), [137,80,78,71,13,10,26,10]);
+          console.log(JSON.stringify({ browser: await browser.version(), screenshotBytes: image.length, selectorClick: 'passed', screenshot: 'passed' }));
+        } finally { await browser.close(); }
+        JS
+        export PUPPETEER_EXECUTABLE_PATH="$(command -v google-chrome || command -v chromium || true)"
+        if [[ -z "$PUPPETEER_EXECUTABLE_PATH" ]]; then
+          pnpm exec puppeteer browsers install chrome
+          unset PUPPETEER_EXECUTABLE_PATH
+        fi
+        node "$EVIDENCE/browser-smoke.mjs" | tee "$EVIDENCE/browser-smoke.log"
+    - name: Create verified report and allowlisted publication bundle
+      run: |
+        python3 - <<'PY'
+        from pathlib import Path
+        import json, os, hashlib, shutil, collections
+        root = Path(os.environ['EVIDENCE'])
+        before = json.loads((root/'audit-before.json').read_text())
+        after = json.loads((root/'audit-after.json').read_text())
+        unique = {a['url']: a for a in before['advisories'].values()}
+        remaining = {a['url']: a for a in after['advisories'].values()}
+        tests = json.loads((root/'tests.json').read_text())
+        assert tests['numFailedTests'] == 0 and tests['numPassedTests'] > 2600
+        assert tests['success'] is True
+        worker = json.loads((root/'audit-worker.json').read_text())
+        assert worker['metadata']['vulnerabilities']['total'] == 0
+        patch_hash = hashlib.sha256(Path('patches/braces@3.0.3.patch').read_bytes()).hexdigest()
+        summary = {
+         'source_commit': os.environ['GITHUB_SHA'], 'run_id': os.environ['GITHUB_RUN_ID'],
+         'node': '22.23.3', 'pnpm': '10.28.1',
+         'before_unique_ghsa': len(unique), 'after_unique_ghsa': len(remaining),
+         'before_severity': dict(collections.Counter(a['severity'] for a in unique.values())),
+         'after_severity': dict(collections.Counter(a['severity'] for a in remaining.values())),
+         'production_vulnerabilities': 0, 'worker_vulnerabilities': 0,
+         'tests_passed': tests['numPassedTests'], 'tests_failed': tests['numFailedTests'],
+         'braces_patch_sha256': patch_hash,
+         'checks': ['frozen install', 'production audit', 'worker npm audit', '17 native security guards', 'full Vitest suite', 'typecheck', 'lint', 'production build', '31 worker tests', 'worker syntax', 'real browser screenshot'],
+        }
+        (root/'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
+        p = Path('docs/audits/DEPENDABOT_2026-10-03.md')
+        old = p.read_text()
+        annex = old.split('## Annexe — les 54 avis distincts', 1)[-1]
+        body = f"""# Remédiation des dépendances TOK — 3 octobre 2026
+
+        ## Résultat vérifié
+
+        Dépôt `Mtnrconcept1/cloud-rebuild`, PR #690, branche `fix/dependabot-audit-20261003`.
+        Validation isolée : exécution GitHub Actions {os.environ['GITHUB_RUN_ID']}, depuis {os.environ['GITHUB_SHA']} avec modifications candidates contrôlées par empreintes SHA-256.
+
+        - Avant : **{len(unique)} GHSA distincts** dans le graphe pnpm.
+        - Après : **{len(remaining)} GHSA distinct**, celui de `braces@3.0.3`, toujours visible dans l’audit officiel.
+        - Dépendances de production : **zéro vulnérabilité signalée** par `pnpm audit --prod`.
+        - Worker autonome : **zéro vulnérabilité signalée** par `npm audit --package-lock-only`.
+        - Tests applicatifs : **{tests['numPassedTests']} réussites, zéro échec**.
+
+        Ce n’est pas un export de l’onglet privé Dependabot ni une preuve d’absence de toutes les failles applicatives. Les alertes de `main` ne seront recalculées sur le nouveau graphe qu’après fusion. **Aucune fusion ni mise en production n’est effectuée par cette remédiation.**
+
+        ## Corrections
+
+        React Router passe à 7.18.4, Vitest à 4.1.11 et Puppeteer à 25.12.0. React 18 et Vite 6 sont conservés. Node 22.12.0 devient le minimum déclaré pour supporter Puppeteer ; la validation utilise Node 22.23.3.
+
+        Puppeteer 25 remplace sa chaîne d’extraction : `extract-zip`, qui n’a pas de correctif publié, est absent du nouveau verrouillage. Les APIs de sélection, clic et capture PNG sont vérifiées dans un véritable navigateur avec une page de test locale, sans requête de production.
+
+        Les dépendances indirectes sont corrigées par contraintes ciblées compatibles : gRPC 1.13.6, xmldom 0.8.15, humanfs 0.16.8, undici 7.30.0, js-yaml 4.3.2, nanoid 3.3.19, tar 7.5.22, browserslist 4.29.3 et autres bornes documentées dans `package.json`. Les branches majeures de brace-expansion sont contraintes séparément. Les overrides sont centralisés dans le manifeste ; aucun contournement de l’audit n’est ajouté.
+
+        Le verrouillage pnpm est régénéré avec pnpm 10.28.1. Les trois métadonnées de dépendances correspondantes dans `deno.lock` sont synchronisées, sans modifier les URLs distantes ni leurs empreintes. Le `package-lock.json` racine inutilisé est supprimé après vérification que README, Vercel et la CI emploient pnpm. **Le verrouillage npm du worker est conservé**, car son Dockerfile utilise réellement npm ci. Supprimer un ancien verrouillage ne remplace pas les corrections du graphe actif, qui ont été effectuées et auditées séparément.
+
+        ## Cas `braces` : atténuation locale, alerte amont conservée
+
+        L’avis GHSA-vfj7-8cjw-p6xm reste associé à la version publiée 3.0.3. Un patch pnpm versionné limite la profondeur de l’arbre à 128 nœuds avant les traitements récursifs. Il couvre les accolades, parenthèses, imbrications mixtes et groupes non fermés. Les délimiteurs échappés, cités et entre crochets restent acceptés.
+
+        Les tests comportementaux sont exécutés contre la dépendance réellement installée : six échecs attendus avant correction, puis huit réussites, auxquelles s’ajoutent les neuf contrôles de politique Dependabot. Leur wrapper fait maintenant partie de la suite Vitest standard.
+
+        Empreinte SHA-256 du patch : `{patch_hash}`.
+
+        **Ne pas annoncer zéro vulnérabilité dans l’audit complet : celui-ci conserve volontairement l’avis `braces`.** Cette atténuation protège les motifs chaîne testés ; elle n’est pas une attestation universelle sur des arbres AST arbitraires fournis directement à la bibliothèque. Remplacer le patch par un correctif amont compatible dès sa publication, après les mêmes tests.
+
+        ## Fiabilisation de la validation
+
+        Trois descriptions manquantes des fonctions d’images TheFork sont ajoutées au journal d’audit. Le mock de navigation admin est aligné sur le hook réel `useFeatureFlags`. Le test SQL reconnaît les points littéraux `[.]` et teste les adresses privées contre le motif présent dans la migration, sans modifier cette migration. Le contrat de runtime attend maintenant Node >=22.12.0.
+
+        Les deux échecs Bash observés dans l’environnement distant provenaient de l’absence de `/dev/fd`, pas d’un défaut de déploiement ; aucun script de production n’a été changé pour les masquer.
+
+        ## Vérifications effectuées
+
+        Installation figée ; audit de production ; audit npm du worker ; contrôle explicite du seul avis résiduel ; 17 contrôles Node ; suite Vitest complète en mode production ; typecheck ; lint ; build:prod ; tests et syntaxe du worker ; capture PNG dans un véritable navigateur.
+
+        Les commandes d’audit complètes restent reproductibles :
+
+        ```sh
+        pnpm install --frozen-lockfile
+        pnpm audit --prod --json
+        pnpm audit --json
+        node --test scripts/dependabot-policy.test.mjs scripts/dependency-security.test.mjs
+        pnpm test
+        pnpm typecheck
+        pnpm lint
+        pnpm build:prod
+        pnpm --filter tok-image-ai-worker test
+        ```
+
+        Le code retour non nul de l’audit complet correspond à l’avis amont `braces` conservé. Le build de validation emploie les variables publiques fictives de la CI : il valide le pipeline, pas l’exhaustivité des données SEO de production. Les avertissements de lint existants ne sont pas transformés en réussites silencieuses ; leur journal est conservé.
+
+        ## Périmètre et limites
+
+        Niveau de risque 3 : mises à jour de sécurité et outillage. Aucun secret, paiement, donnée client, fonction Edge, politique RLS ou migration n’est modifié. `deno.lock` contient un module distant Supabase et des métadonnées de workspace, pas un graphe npm exhaustif des Edge Functions ; ce travail ne prétend pas auditer toutes les dépendances distantes de toutes les fonctions.
+
+        Les interrupteurs d’administration GitHub et la liste authentifiée des alertes restent distincts de la configuration versionnée. Aucun statut d’activation non vérifié n’est revendiqué. La configuration Dependabot ajoutée dans cette PR deviendra effective après sa fusion sur la branche par défaut ; aucun avis n’est ignoré ou fermé artificiellement.
+
+        Le bootstrap de validation est limité à cette seule branche et ne s’exécute pas sur une pull request externe. La validation utilise un jeton lecture seule ; le job de publication séparé ne lance aucun code applicatif et ne copie que les fichiers explicitement autorisés, après contrôle de leurs empreintes. Le bootstrap temporaire doit être retiré après publication des résultats, puis la CI normale du SHA final vérifiée. Pas de merge automatique.
+
+        ## Retour arrière
+
+        Revert des commits de remédiation dans une nouvelle PR. Aucune base de données à restaurer. Ne pas réintroduire d’exclusion d’audit pour faire disparaître une alerte. Une régression liée à la limite de profondeur doit être analysée avec un motif de test réel avant toute modification du garde-fou.
+
+        ## Annexe — avis présents avant remédiation
+        """
+        p.write_text(body + annex, encoding='utf8')
+        files = ['README.md', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'deno.lock', 'patches/braces@3.0.3.patch', 'scripts/dependency-security.test.mjs', 'src/test/dependency-security.test.ts', 'src/lib/admin/auditLogNarrative.ts', 'src/test/admin-mobile-navigation.test.tsx', 'src/test/marketing-outreach-schema.test.ts', 'src/test/plan-phase1-readiness.test.ts', 'docs/audits/DEPENDABOT_2026-10-03.md']
+        hashes = {}
+        for filename in files:
+            data = Path(filename).read_bytes()
+            data.decode('utf8')
+            target = root/'files'/filename
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+            hashes[filename] = hashlib.sha256(data).hexdigest()
+        (root/'files.sha256.json').write_text(json.dumps(hashes, indent=2) + '\n')
+        (root/'deleted-paths.json').write_text(json.dumps(['package-lock.json']) + '\n')
+        print(json.dumps(summary, indent=2))
+        PY
+    - name: Preserve evidence and candidate files
+      if: ${{ always() }}
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: tok-dependency-security-${{ github.run_id }}
+        path: ${{ env.EVIDENCE }}
+        retention-days: 3
+        if-no-files-found: error
+        overwrite: true
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    if: ${{ github.repository == 'Mtnrconcept1/cloud-rebuild' && github.ref == 'refs/heads/fix/dependabot-audit-20261003'
+      }}
+    env:
+      EVIDENCE: ${{ runner.temp }}/tok-dependency-security
+    steps:
+    - name: Checkout without persistent credentials
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        ref: ${{ github.sha }}
+        fetch-depth: 1
+        persist-credentials: false
+    - name: Read only the validated artifact from this run
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        name: tok-dependency-security-${{ github.run_id }}
+        path: ${{ env.EVIDENCE }}
+    - name: Publish only the dedicated branch after hash verification
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        test "$GITHUB_REF_NAME" = 'fix/dependabot-audit-20261003'
+        remote_sha="$(git ls-remote origin "refs/heads/$GITHUB_REF_NAME" | cut -f1)"
+        test "$remote_sha" = "$GITHUB_SHA"
+        python3 - <<'PY'
+        from pathlib import Path
+        import os, json, hashlib
+        allowed = ['README.md', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'deno.lock', 'patches/braces@3.0.3.patch', 'scripts/dependency-security.test.mjs', 'src/test/dependency-security.test.ts', 'src/lib/admin/auditLogNarrative.ts', 'src/test/admin-mobile-navigation.test.tsx', 'src/test/marketing-outreach-schema.test.ts', 'src/test/plan-phase1-readiness.test.ts', 'docs/audits/DEPENDABOT_2026-10-03.md']
+        root = Path(os.environ['EVIDENCE'])
+        hashes = json.loads((root/'files.sha256.json').read_text())
+        assert set(hashes) == set(allowed)
+        assert json.loads((root/'deleted-paths.json').read_text()) == ['package-lock.json']
+        for filename in allowed:
+            source = root/'files'/filename
+            assert source.is_file() and not source.is_symlink()
+            data = source.read_bytes()
+            assert hashlib.sha256(data).hexdigest() == hashes[filename], filename
+            data.decode('utf8')
+            target = Path(filename)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+        Path('package-lock.json').unlink()
+        print('Verified and copied exactly', len(allowed), 'allowed UTF-8 files.')
+        PY
+        git add -- README.md package.json pnpm-lock.yaml pnpm-workspace.yaml deno.lock patches/braces@3.0.3.patch scripts/dependency-security.test.mjs src/test/dependency-security.test.ts src/lib/admin/auditLogNarrative.ts src/test/admin-mobile-navigation.test.tsx src/test/marketing-outreach-schema.test.ts src/test/plan-phase1-readiness.test.ts docs/audits/DEPENDABOT_2026-10-03.md
+        git add -u -- package-lock.json
+        git diff --cached --check
+        git diff --cached --stat
+        git config user.name 'github-actions[bot]'
+        git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+        git commit -m 'fix(security): remediate dependencies and guard recursive patterns'
+        auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+        git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin "HEAD:refs/heads/$GITHUB_REF_NAME"
+        echo "Published validated commit $(git rev-parse HEAD) on $GITHUB_REF_NAME; main unchanged."
