@@ -1,0 +1,192 @@
+diff --git a/scripts/apply-commercial-demo-migrations.mjs b/scripts/apply-commercial-demo-migrations.mjs
+--- a/scripts/apply-commercial-demo-migrations.mjs
++++ b/scripts/apply-commercial-demo-migrations.mjs
+@@ -221,28 +221,31 @@
+   return "applied";
+ }
+ 
++export function readDemoMigrationDiff({ baseSha, headSha, checkOnly, runGit = git }) {
++  if (!COMMIT_SHA.test(headSha) || (baseSha ? !COMMIT_SHA.test(baseSha) : !checkOnly)) {
++    throw new Error("Demo migration base and head must be full Git commit SHAs.");
++  }
++  // A first deployment has no successful baseline. Inspect all tracked demo
++  // migrations read-only rather than silently skipping them or blocking forever.
++  if (!baseSha) {
++    return runGit(["ls-tree", "-r", "--name-only", headSha, "--", MIGRATION_DIRECTORY])
++      .split("\n").filter(Boolean).map(file => `A\t${file}`).join("\n");
++  }
++  return runGit(["diff", "--name-status", "--diff-filter=ACDMRTUXB", baseSha, headSha, "--", MIGRATION_DIRECTORY]);
++}
++
+ export async function main() {
+   const token = requireEnv("SUPABASE_ACCESS_TOKEN");
+   const projectRef = requireEnv("COMMERCIAL_DEMO_PROJECT_REF");
+-  const baseSha = requireEnv("DEMO_MIGRATION_BASE_SHA");
++  const checkOnly = process.argv.includes("--check");
++  const baseSha = checkOnly ? String(process.env.DEMO_MIGRATION_BASE_SHA || "").trim() : requireEnv("DEMO_MIGRATION_BASE_SHA");
+   const headSha = requireEnv("DEMO_MIGRATION_HEAD_SHA");
+-
+-  if (!COMMIT_SHA.test(baseSha) || !COMMIT_SHA.test(headSha)) {
++  if (!COMMIT_SHA.test(headSha) || (baseSha && !COMMIT_SHA.test(baseSha))) {
+     throw new Error("Demo migration base and head must be full Git commit SHAs.");
+   }
+-
+-  ensureCommitAvailable(baseSha);
++  if (baseSha) ensureCommitAvailable(baseSha);
+   ensureCommitAvailable(headSha);
+-
+-  const diff = git([
+-    "diff",
+-    "--name-status",
+-    "--diff-filter=ACDMRTUXB",
+-    baseSha,
+-    headSha,
+-    "--",
+-    MIGRATION_DIRECTORY,
+-  ]);
++  const diff = readDemoMigrationDiff({ baseSha, headSha, checkOnly });
+   const migrations = parseAddedDemoMigrations(diff);
+ 
+   if (migrations.length === 0) {
+diff --git a/scripts/tok-deployment-regression.test.mjs b/scripts/tok-deployment-regression.test.mjs
+--- a/scripts/tok-deployment-regression.test.mjs
++++ b/scripts/tok-deployment-regression.test.mjs
+@@ -39,3 +39,16 @@
+  assert.throws(()=>planMigrationHistory([a,b],[{...remote[0],statements:['select 2;']}],[alias]),/PROVENANCE_MISMATCH/);
+  assert.deepEqual(planMigrationHistory([a,b],[],[alias]).excluded,[]);
+ });
++
++test('first deployment can inspect every demo migration without a baseline',async()=>{
++ const {readDemoMigrationDiff}=await import('./apply-commercial-demo-migrations.mjs');
++ const head='a'.repeat(40);const calls=[];
++ const diff=readDemoMigrationDiff({baseSha:'',headSha:head,checkOnly:true,runGit:args=>{calls.push(args);return 'supabase/demo-migrations/20261001000000_first.sql\n';}});
++ assert.equal(diff,'A\tsupabase/demo-migrations/20261001000000_first.sql');
++ assert.equal(calls[0][0],'ls-tree');
++ assert.throws(()=>readDemoMigrationDiff({baseSha:'',headSha:head,checkOnly:false,runGit:()=>''}),/base and head/);
++});
++test('invalid demo revision is rejected even during read-only preflight',async()=>{
++ const {readDemoMigrationDiff}=await import('./apply-commercial-demo-migrations.mjs');
++ assert.throws(()=>readDemoMigrationDiff({baseSha:'',headSha:'HEAD',checkOnly:true,runGit:()=>''}),/base and head/);
++});
+diff --git a/src/components/courier/DeliveryProofPanel.tsx b/src/components/courier/DeliveryProofPanel.tsx
+--- a/src/components/courier/DeliveryProofPanel.tsx
++++ b/src/components/courier/DeliveryProofPanel.tsx
+@@ -135,7 +135,8 @@
+ 
+         animationFrameRef.current = window.requestAnimationFrame(scanFrame);
+       } catch (error) {
+-        setScannerError(error instanceof Error && error.name === "NotAllowedError"
++        const permissionDenied = error !== null && typeof error === "object" && "name" in error && error.name === "NotAllowedError";
++        setScannerError(permissionDenied
+           ? "Accès caméra refusé. Autorisez la caméra dans le navigateur ou utilisez le code client ou la signature manuelle."
+           : "Impossible d’accéder à la caméra. Utilisez le code client ou la signature manuelle.");
+         setScannerActive(false);
+diff --git a/src/test/marketing-ai-agent.test.ts b/src/test/marketing-ai-agent.test.ts
+--- a/src/test/marketing-ai-agent.test.ts
++++ b/src/test/marketing-ai-agent.test.ts
+@@ -1,6 +1,7 @@
+ import { readFileSync } from "node:fs";
+ import { resolve } from "node:path";
+ import { describe, expect, it } from "vitest";
++import { getMarketingAdapterBlocker } from "../../supabase/functions/_shared/marketing-capabilities";
+ 
+ import {
+   MarketingPlanError,
+@@ -237,9 +238,10 @@
+     expect(orchestrator).toContain("response.status >= 500 || response.status === 429");
+   });
+ 
+-  it("names the missing credential for each dormant channel", () => {
++  it("identifies the undeployed adapter rather than promising credentials are sufficient", () => {
++    expect(orchestrator).toContain("getMarketingAdapterBlocker(delivery.channel)");
+     for (const channel of ["instagram", "facebook", "linkedin", "tiktok", "youtube"]) {
+-      expect(orchestrator).toContain(`["${channel}", "${channel}_credentials_missing"]`);
++      expect(getMarketingAdapterBlocker(channel)).toBe(`${channel}_adapter_not_deployed`);
+     }
+   });
+ 
+diff --git a/src/test/plan-phase1-readiness.test.ts b/src/test/plan-phase1-readiness.test.ts
+--- a/src/test/plan-phase1-readiness.test.ts
++++ b/src/test/plan-phase1-readiness.test.ts
+@@ -116,7 +116,7 @@
+     expect(retryScript).toContain("Unexpected\\ error\\ retrieving\\ remote\\ project\\ status");
+     expect(retryScript).toContain("ECONNRESET");
+ 
+-    expect(deployWorkflow.match(/source \.\/scripts\/supabase-ci-retry\.sh/g)?.length).toBe(4);
++    expect(deployWorkflow.match(/source \.\/scripts\/supabase-ci-retry\.sh/g)?.length).toBe(5);
+     expect(deployWorkflow).toContain(
+       'supabase_ci_retry link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"',
+     );
+@@ -124,7 +124,10 @@
+       'supabase_ci_retry secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"',
+     );
+     expect(deployWorkflow).toContain(
+-      'supabase_ci_retry db push --linked --include-all --yes --password "$SUPABASE_DB_PASSWORD"',
++      'supabase_ci_retry db push --workdir "$workspace" --linked --include-all --yes --password "$SUPABASE_DB_PASSWORD"',
++    );
++    expect(deployWorkflow).toContain(
++      'supabase_ci_retry db push --workdir "$workspace" --linked --include-all --dry-run --password "$SUPABASE_DB_PASSWORD"',
+     );
+     expect(deployWorkflow).toContain(
+       'supabase_ci_retry functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api',
+diff --git a/.github/workflows/tok-runtime-security.yml b/.github/workflows/tok-runtime-security.yml
+new file mode 100644
+--- /dev/null
++++ b/.github/workflows/tok-runtime-security.yml
+@@ -0,0 +1,56 @@
++name: TOK runtime security
++
++on:
++  pull_request:
++    paths:
++      - 'supabase/migrations/**'
++      - 'supabase/tests/tok-audit-runtime-hardening.sql'
++      - 'scripts/fixtures/tok-audit-schema.sql'
++      - '.github/workflows/tok-runtime-security.yml'
++  push:
++    branches: [main]
++    paths:
++      - 'supabase/migrations/**'
++      - 'supabase/tests/tok-audit-runtime-hardening.sql'
++      - 'scripts/fixtures/tok-audit-schema.sql'
++      - '.github/workflows/tok-runtime-security.yml'
++  workflow_dispatch:
++
++permissions:
++  contents: read
++
++jobs:
++  postgres-permissions:
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    services:
++      postgres:
++        image: postgres:17
++        env:
++          POSTGRES_PASSWORD: isolated_fixture_only
++          POSTGRES_DB: tok_audit_test
++        ports: ['5432:5432']
++        options: >-
++          --health-cmd pg_isready
++          --health-interval 5s
++          --health-timeout 5s
++          --health-retries 12
++    env:
++      PGHOST: localhost
++      PGPORT: '5432'
++      PGUSER: postgres
++      PGPASSWORD: isolated_fixture_only
++      PGDATABASE: tok_audit_test
++    steps:
++      - uses: actions/checkout@v6
++        with:
++          persist-credentials: false
++      - name: Verify targeted permissions on an isolated PostgreSQL fixture
++        shell: bash
++        run: |
++          set -euo pipefail
++          psql -v ON_ERROR_STOP=1 -f scripts/fixtures/tok-audit-schema.sql
++          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql
++          psql -v ON_ERROR_STOP=1 -f supabase/tests/tok-audit-runtime-hardening.sql
++          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql
++          psql -v ON_ERROR_STOP=1 -f supabase/tests/tok-audit-runtime-hardening.sql
