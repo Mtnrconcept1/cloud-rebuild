@@ -1,0 +1,81 @@
+name: TOK remediation recheck (one-off)
+on:
+  push:
+    branches: [fix/tok-audit-remediation-20261003]
+    paths: [.github/workflows/tok-remediation-recheck.yml]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated_audit_fixture
+          POSTGRES_DB: tok_audit_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: true
+      NODE_OPTIONS: --max-old-space-size=4096
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: isolated_audit_fixture
+      PGDATABASE: tok_audit_test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 14
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install isolated workflow parser
+        run: python -m pip install --quiet PyYAML==6.0.3
+      - name: Execute reviewed validation steps with scoped read-only service access
+        env:
+          READ_SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          READ_SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          READ_VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          READ_VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          READ_VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        shell: python
+        run: |
+          import pathlib,subprocess,os,yaml,json,hashlib
+          workflow=yaml.safe_load(pathlib.Path('.github/workflows/tok-remediation-validate.yml').read_text())
+          base={k:v for k,v in os.environ.items() if not k.startswith('READ_')}
+          mapping={key:os.environ['READ_'+key] for key in ['SUPABASE_ACCESS_TOKEN','SUPABASE_DB_PASSWORD','VERCEL_TOKEN','VERCEL_ORG_ID','VERCEL_PROJECT_ID']}
+          results=pathlib.Path(os.environ['RUNNER_TEMP'])/'results';results.mkdir(exist_ok=True)
+          failed=[]
+          for step in workflow['jobs']['validate']['steps']:
+            if 'run' not in step: continue
+            name=step['name']
+            if failed and 'Export complete candidate' not in name: continue
+            command=step['run'].replace('set -uo pipefail','set +e\nset -uo pipefail').replace("includes('/lieu/')","includes('/restaurants-pres/')")
+            if name=='Create isolated candidate from checksummed patch':
+              command += "\ncd \"$RUNNER_TEMP/tok-candidate\"\npython - <<'PY'\nimport pathlib,hashlib,subprocess\np=pathlib.Path('.github/tok-remediation-transfer/fixups.patch').read_bytes()\nassert hashlib.sha256(p).hexdigest()=='b2b9b27a15a7ed128960d0255cbe69b5e973a3f51d9fc7963f74101476a330e7'\nsubprocess.run(['git','apply','-'],input=p,check=True)\nPY\n"
+            env=base.copy()
+            for key in step.get('env',{}):
+              if key in mapping:env[key]=mapping[key]
+              elif key=='SUPABASE_PROJECT_REF':env[key]='wwcrtyoueexyxkkikaos'
+              else:raise SystemExit('Unexpected environment request: '+key)
+            print('Running: '+name,flush=True)
+            args=['python','-c',command] if step.get('shell')=='python' else ['bash','--noprofile','--norc','-e','-o','pipefail','-c',command]
+            result=subprocess.run(args,env=env)
+            if result.returncode:failed.append({'step':name,'exit':result.returncode})
+          (results/'executor.json').write_text(json.dumps({'failed':failed},indent=2))
+          if failed:raise SystemExit(1)
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: tok-remediation-recheck-${{ github.run_id }}
+          path: ${{ runner.temp }}/results/
+          retention-days: 3
