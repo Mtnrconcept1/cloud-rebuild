@@ -39,6 +39,8 @@ pnpm build:prod
 pnpm lint
 pnpm test
 pnpm test:prod
+pnpm docs:application-index:check
+pnpm docs:search -- marketing campagne
 ```
 
 ## Supabase
@@ -89,17 +91,16 @@ Consultez `.env.example` pour le modele local sans valeurs reelles.
 
 ## Deploiement
 
-La production est geree par GitHub Actions et Vercel. Le workflow de production :
+La production combine les contrôles et déploiements backend de GitHub Actions avec le déploiement frontend Git natif de Vercel :
 
 1. installe avec pnpm,
 2. valide lint/tests/build selon le workflow,
 3. cible Supabase production,
 4. pousse les migrations via les scripts du depot,
 5. synchronise les secrets Edge Functions autorises,
-6. deploie les fonctions Supabase,
-7. deploie le frontend Vercel si les secrets Vercel sont presents.
+6. deploie les fonctions Supabase.
 
-Ne creez pas de preview Vercel automatique depuis ce depot. La configuration `vercel.json` garde `deploymentEnabled: false`.
+Vercel construit et déploie le frontend depuis Git avec `deploymentEnabled: true` dans `vercel.json`. Les validations GitHub et le déploiement frontend restent deux preuves distinctes.
 
 ## Regles de contribution
 
@@ -112,6 +113,13 @@ Ne creez pas de preview Vercel automatique depuis ce depot. La configuration `ve
 - Garder les fichiers texte en UTF-8.
 
 ## Documentation projet
+
+La référence canonique générée de toute l’application, ses routes, ses fonctions et ses fichiers est :
+
+- [`docs/architecture/TOK_APPLICATION_REFERENCE.md`](docs/architecture/TOK_APPLICATION_REFERENCE.md)
+- [`docs/architecture/tok-application-search-index.json`](docs/architecture/tok-application-search-index.json)
+- [`docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md`](docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md)
+- [`docs/architecture/tok-runtime-evidence-2026-10-03.json`](docs/architecture/tok-runtime-evidence-2026-10-03.json)
 
 Les garde-fous agent et projet sont dans `docs/skills/`, notamment :
 

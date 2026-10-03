@@ -105,14 +105,25 @@ test("normalise les chemins Windows et relatifs", () => {
   assert.equal(normalizeFile(".\\src\\pages\\Home.tsx"), "src/pages/Home.tsx");
 });
 
-test("reconnaît une modification de documentation sans lancer la toolchain", () => {
+test("reconnaît une modification de documentation et contrôle l’index canonique", () => {
   const plan = buildChangePlan(["README.md", "docs/runbook.md"]);
 
   assert.equal(plan.docsOnly, true);
-  assert.equal(plan.installRequired, false);
+  assert.equal(plan.installRequired, true);
   assert.equal(plan.testMode, "none");
   assert.equal(plan.hasDeployableChanges, false);
   assert.equal(isDocumentationFile("docs/ci.md"), true);
+});
+
+test("une modification de la référence canonique impose la suite complète", () => {
+  const plan = buildChangePlan([
+    "docs/architecture/TOK_APPLICATION_REFERENCE.md",
+  ]);
+
+  assert.equal(plan.docsOnly, true);
+  assert.equal(plan.fullSuite, true);
+  assert.equal(plan.installRequired, true);
+  assert.equal(plan.testMode, "full");
 });
 
 test("cible les tests liés et le frontend pour une page React", () => {

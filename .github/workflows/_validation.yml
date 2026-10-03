@@ -67,6 +67,7 @@ jobs:
       run_build: ${{ steps.impact.outputs.run_build }}
       run_worker_tests: ${{ steps.impact.outputs.run_worker_tests }}
       dependency_audit: ${{ steps.impact.outputs.dependency_audit }}
+      install_required: ${{ steps.impact.outputs.install_required }}
       payment_critical: ${{ steps.impact.outputs.payment_critical }}
       accounting_critical: ${{ steps.impact.outputs.accounting_critical }}
       auth_critical: ${{ steps.impact.outputs.auth_critical }}
@@ -171,11 +172,7 @@ jobs:
 
   quality:
     needs: plan
-    if: >-
-      ${{ needs.plan.outputs.dependency_audit == 'true' ||
-          needs.plan.outputs.run_lint == 'true' ||
-          needs.plan.outputs.run_typecheck == 'true' ||
-          (needs.plan.outputs.run_build == 'true' && !inputs.skip_build) }}
+    if: ${{ needs.plan.outputs.install_required == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -196,6 +193,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify canonical application reference
+        run: pnpm run docs:application-index:check
 
       - name: Audit production dependencies
         id: dependency_audit
