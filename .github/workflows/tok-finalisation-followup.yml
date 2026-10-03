@@ -35,7 +35,7 @@ jobs:
           import os,pathlib,json,hashlib,subprocess,tarfile
           temp=pathlib.Path(os.environ['RUNNER_TEMP']);repo=pathlib.Path(os.environ['GITHUB_WORKSPACE']);previous=temp/'previous';out=temp/'followup';out.mkdir();work=temp/'final'
           report=json.loads((previous/'verification.json').read_text());assert report['base']=='b78debfda01f1e2eb9fd90c3b26563a94b3f0048'
-          assert {k:v for k,v in report['checks'].items() if v! =0}=={'tests':1}
+          assert {k:v for k,v in report['checks'].items() if v != 0}=={'tests':1}
           tests=json.loads((previous/'tests.json').read_text())
           failures={t['fullName'] for f in tests['testResults'] for t in f['assertionResults'] if t['status']=='failed'}
           assert failures=={'application search index covers all primary application registries','phase 1 launch audit plan readiness retries transient Supabase platform errors during production deploy'}
