@@ -7,6 +7,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { readMarketingUnsubscribeSecrets } from "../_shared/marketing-unsubscribe-secrets.ts";
 import { buildUnsubscribeToken } from "../_shared/marketing-unsubscribe-token.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import {
@@ -38,6 +39,8 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")?.trim() || "";
 const EMAIL_FROM = Deno.env.get("EMAIL_FROM")?.trim() || "Tok <noreply@thetok.ch>";
 const RESEND_TIMEOUT_MS = 20_000;
+const DELIVERY_LEASE_SECONDS = 180;
+const MAX_DELIVERIES_PER_RUN = 5;
 
 /**
  * Channels whose adapter exists but which cannot publish until an
@@ -66,7 +69,6 @@ function unsubscribeMailbox(from: string) {
   return (match ? match[1] : from).trim();
 }
 
-const UNSUBSCRIBE_SECRET = Deno.env.get("MARKETING_WEBHOOK_SECRET")?.trim() || "";
 const UNSUBSCRIBE_BASE = `${(Deno.env.get("SUPABASE_URL") || "").trim().replace(/\/+$/, "")}/functions/v1/marketing-unsubscribe`;
 
 /**
@@ -74,14 +76,10 @@ const UNSUBSCRIBE_BASE = `${(Deno.env.get("SUPABASE_URL") || "").trim().replace(
  * penalise a mailto: link on its own. The URL carries a signature so the public
  * endpoint cannot be used to suppress arbitrary contacts.
  */
-async function unsubscribeHeaders(deliveryId: string) {
+async function unsubscribeHeaders(deliveryId: string, signingSecret: string) {
   const mailto = `<mailto:${unsubscribeMailbox(EMAIL_FROM)}?subject=unsubscribe>`;
-  const token = await buildUnsubscribeToken(deliveryId, UNSUBSCRIBE_SECRET);
-  if (!token || !UNSUBSCRIBE_BASE.startsWith("https://")) {
-    // Without a secret the link would be forgeable, so fall back to mailto
-    // rather than publish an endpoint anyone could drive.
-    return { "List-Unsubscribe": mailto };
-  }
+  const token = await buildUnsubscribeToken(deliveryId, signingSecret);
+  if (!token) throw new Error("Unsubscribe token generation failed");
   const url = `${UNSUBSCRIBE_BASE}?token=${encodeURIComponent(token)}`;
   return {
     "List-Unsubscribe": `<${url}>, ${mailto}`,
@@ -98,7 +96,11 @@ type PreparedEmail = {
   text?: string;
 };
 
-async function sendViaResend(prepared: PreparedEmail, deliveryId: string) {
+async function sendViaResend(
+  prepared: PreparedEmail,
+  deliveryId: string,
+  unsubscribeSigningSecret: string,
+) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), RESEND_TIMEOUT_MS);
   try {
@@ -117,7 +119,7 @@ async function sendViaResend(prepared: PreparedEmail, deliveryId: string) {
         subject: prepared.subject,
         html: prepared.html,
         text: prepared.text,
-        headers: await unsubscribeHeaders(deliveryId),
+        headers: await unsubscribeHeaders(deliveryId, unsubscribeSigningSecret),
       }),
       signal: controller.signal,
     });
@@ -147,6 +149,33 @@ async function sendViaResend(prepared: PreparedEmail, deliveryId: string) {
  * row sits in 'processing' in between, so a crash never reads as a send.
  */
 async function processEmailDelivery(client: AdminClient, delivery: ClaimedDelivery) {
+  const { signingSecret } = readMarketingUnsubscribeSecrets();
+  if (!signingSecret) {
+    await invokeRpc(client, "complete_marketing_delivery", {
+      p_delivery_id: delivery.id,
+      p_lease_token: delivery.lease_token,
+      p_status: "blocked_configuration",
+      p_provider_message_id: null,
+      p_error_code: "unsubscribe_secret_missing",
+      p_error: "MARKETING_UNSUBSCRIBE_SECRET must contain at least 32 characters",
+      p_metadata: { channel: "email" },
+    });
+    return { id: delivery.id, status: "blocked_configuration" };
+  }
+
+  if (!UNSUBSCRIBE_BASE.startsWith("https://")) {
+    await invokeRpc(client, "complete_marketing_delivery", {
+      p_delivery_id: delivery.id,
+      p_lease_token: delivery.lease_token,
+      p_status: "blocked_configuration",
+      p_provider_message_id: null,
+      p_error_code: "unsubscribe_url_invalid",
+      p_error: "SUPABASE_URL must provide an HTTPS unsubscribe endpoint",
+      p_metadata: { channel: "email" },
+    });
+    return { id: delivery.id, status: "blocked_configuration" };
+  }
+
   if (!RESEND_API_KEY) {
     await invokeRpc(client, "complete_marketing_delivery", {
       p_delivery_id: delivery.id,
@@ -173,7 +202,7 @@ async function processEmailDelivery(client: AdminClient, delivery: ClaimedDelive
     return { id: delivery.id, status: prepared.status, reason: prepared.reason };
   }
 
-  const sent = await sendViaResend(prepared, delivery.id);
+  const sent = await sendViaResend(prepared, delivery.id, signingSecret);
   if (sent.ok) {
     await invokeRpc(client, "service_record_marketing_email_sent", {
       p_delivery_id: delivery.id,
@@ -389,12 +418,12 @@ Deno.serve(async (req) => {
       ? await invokeRpc<ClaimedItem[]>(client, "claim_marketing_item", {
         p_item_id: requiredString(payload.itemId, "itemId"),
         p_worker_id: `edge:${log.rid}`,
-        p_lease_seconds: 180,
+        p_lease_seconds: DELIVERY_LEASE_SECONDS,
       })
       : await invokeRpc<ClaimedItem[]>(client, "claim_due_marketing_items", {
         p_limit: limit,
         p_worker_id: `edge:${log.rid}`,
-        p_lease_seconds: 180,
+        p_lease_seconds: DELIVERY_LEASE_SECONDS,
       });
 
     if (action === "run_item" && (!Array.isArray(items) || items.length === 0)) {
@@ -403,10 +432,13 @@ Deno.serve(async (req) => {
     const itemResults = [];
     for (const item of Array.isArray(items) ? items : []) itemResults.push(await processItem(client, item));
 
+    // Delivery processing stays sequential so provider pacing remains stable.
+    // Five worst-case Resend timeouts consume 100 of the 180 lease seconds,
+    // leaving 80 seconds for preparation, completion and audit RPCs.
     const deliveries = await invokeRpc<ClaimedDelivery[]>(client, "claim_marketing_deliveries", {
-      p_limit: Math.min(500, limit * 20),
+      p_limit: Math.min(MAX_DELIVERIES_PER_RUN, limit),
       p_worker_id: `edge:${log.rid}`,
-      p_lease_seconds: 180,
+      p_lease_seconds: DELIVERY_LEASE_SECONDS,
     });
     const deliveryResults = [];
     for (const delivery of Array.isArray(deliveries) ? deliveries : []) {

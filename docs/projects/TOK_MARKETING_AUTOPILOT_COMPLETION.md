@@ -1,7 +1,28 @@
 # Projet — Finalisation de TOK Marketing Autopilot
 
-> Audit réalisé le 3 octobre 2026 sur `Mtnrconcept1/cloud-rebuild`, branche principale au commit
-> `9e7d9c8989142539f0223e6b3e0b66ccda29cc2e`.
+> Audit réalisé le 3 octobre 2026 sur `Mtnrconcept1/cloud-rebuild`. La référence a ensuite été
+> actualisée sur `main` au commit `2a6281fb4ee371ac737e355db41561629164eef0` avant le lot de
+> fondations Autopilot.
+
+## 0. Mise en œuvre du lot de fondations
+
+Le premier lot exécutable du plan est décrit dans le
+[runbook TOK Marketing Autopilot](../marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md). Il livre :
+
+- le registre de sept fournisseurs, séparé des canaux et fermé par défaut ;
+- les huit modèles d'automatisation TOK, désactivés, avec reçu de simulation obligatoire et brouillons
+  strictement idempotents ;
+- la gouvernance campagne, les UTM, les assets et leurs preuves de droits ;
+- l'attribution financière nullable, avec CAC distinct du CPA et motifs d'indisponibilité ;
+- un dispatcher BFF/SQL dédié, cinq opérations exactes et une RLS forcée ;
+- le cockpit Automatisations, Intégrations, Analytics et Gouvernance ;
+- la suppression du lancement groupé depuis l'agent IA ;
+- un secret de désinscription distinct, obligatoire avant Resend, et des lots d'orchestrateur bornés.
+
+Ce lot ne ferme pas le projet complet. Les connecteurs externes, imports des 30 assets, comptes,
+budgets, propriétés, décisions produit et canaris restent des conditions vérifiables. Les fournisseurs
+restent `unconfigured`/`paused`, les modèles `disabled` et les actions externes impossibles jusqu'à une
+future release dédiée.
 
 ## 1. Verdict exécutif
 

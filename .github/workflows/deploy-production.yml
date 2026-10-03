@@ -145,6 +145,7 @@ jobs:
           SUPABASE_INTERNAL_CRON_VAULT_EVIDENCE: ${{ steps.supabase_runtime_security.outputs.cron_evidence }}
           SUPABASE_RESEND_SECRET_CONFIRMED: ${{ steps.supabase_runtime_security.outputs.resend_confirmed }}
           SUPABASE_RESEND_SECRET_EVIDENCE: ${{ steps.supabase_runtime_security.outputs.resend_evidence }}
+          MARKETING_UNSUBSCRIBE_SECRET: ${{ secrets.MARKETING_UNSUBSCRIBE_SECRET }}
           EMAIL_FROM: ${{ vars.EMAIL_FROM || 'Tok <noreply@thetok.ch>' }}
           APP_BASE_URL: ${{ env.APP_BASE_URL }}
           PUBLIC_APP_URL: ${{ env.PUBLIC_APP_URL }}
@@ -420,6 +421,8 @@ jobs:
           STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET: ${{ secrets.STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET }}
           STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET: ${{ secrets.STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          MARKETING_UNSUBSCRIBE_SECRET: ${{ secrets.MARKETING_UNSUBSCRIBE_SECRET }}
+          MARKETING_UNSUBSCRIBE_LEGACY_SECRET: ${{ secrets.MARKETING_UNSUBSCRIBE_LEGACY_SECRET }}
           ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}

@@ -108,8 +108,12 @@ describe("orchestrator unsubscribe headers", () => {
     expect(orchestrator).toContain('"List-Unsubscribe-Post": "List-Unsubscribe=One-Click"');
   });
 
-  it("degrades to mailto rather than publishing a forgeable link", () => {
-    expect(orchestrator).toContain("if (!token || !UNSUBSCRIBE_BASE.startsWith(\"https://\"))");
-    expect(orchestrator).toContain('return { "List-Unsubscribe": mailto };');
+  it("bloque la livraison avant Resend lorsque le secret ou l'URL HTTPS manque", () => {
+    expect(orchestrator).toContain("if (!signingSecret)");
+    expect(orchestrator).toContain('p_status: "blocked_configuration"');
+    expect(orchestrator).toContain('p_error_code: "unsubscribe_secret_missing"');
+    expect(orchestrator).toContain("if (!UNSUBSCRIBE_BASE.startsWith(\"https://\"))");
+    expect(orchestrator).toContain('p_error_code: "unsubscribe_url_invalid"');
+    expect(orchestrator).not.toContain('return { "List-Unsubscribe": mailto };');
   });
 });

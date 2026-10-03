@@ -79,21 +79,21 @@ describe("email sending cadence", () => {
   });
 });
 
-describe("one-button launch", () => {
-  it("approves through the allowlisted operations with the live session proof", () => {
-    expect(bff).toContain('runOperation("admin_approve_marketing_campaign"');
-    expect(bff).toContain('runOperation("admin_approve_marketing_item"');
-    expect(bff).toContain("p_sid_hash: session.sessionHash");
-    expect(bff).toContain("p_csrf_hash: session.csrfHash");
+describe("retired one-button launch", () => {
+  it("keeps the compatibility route authenticated but fails closed before mutation", () => {
+    expect(bff).toContain("await activeSession(config, req, true)");
+    expect(bff).toContain("await ensureServiceAdmin(config, session.userId)");
+    expect(bff).toContain('"batch_launch_disabled"');
+    expect(bff).toContain("Relisez et approuvez chaque élément dans le calendrier");
   });
 
-  it("lets one refused item pass without aborting the valid ones", () => {
-    expect(bff).toContain("rejected.push(itemId)");
-  });
-
-  it("treats dispatch as best-effort because the approvals are what persist", () => {
-    expect(bff).toContain("dispatched = Boolean(response?.ok)");
-    expect(bff).toContain(".catch(() => null)");
+  it("does not batch approvals or dispatch the orchestrator", () => {
+    const start = bff.indexOf("async function launchMarketingCampaign");
+    const end = bff.indexOf("const MARKETING_CHANNEL_VALUES", start);
+    const launchHandler = bff.slice(start, end);
+    expect(launchHandler).not.toContain('"admin_approve_marketing_campaign"');
+    expect(launchHandler).not.toContain('"admin_approve_marketing_item"');
+    expect(launchHandler).not.toContain("marketing-orchestrator");
   });
 
   it("validates every identifier before touching the database", () => {
@@ -101,8 +101,10 @@ describe("one-button launch", () => {
     expect(bff).toContain("rawItems.length > 64");
   });
 
-  it("is reachable from the agent view as a single action", () => {
-    expect(view).toContain("MARKETING_BFF_ENDPOINTS.launch");
-    expect(view).toContain("Approuver et lancer la campagne");
+  it("is no longer exposed as a single action from the agent view", () => {
+    expect(view).not.toContain("MARKETING_BFF_ENDPOINTS.launch");
+    expect(view).not.toContain("Approuver et lancer la campagne");
+    expect(view).toContain("Relire et approuver les éléments");
+    expect(view).toContain("Chaque élément doit être");
   });
 });

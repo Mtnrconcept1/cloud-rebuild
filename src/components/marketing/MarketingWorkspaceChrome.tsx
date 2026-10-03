@@ -54,14 +54,15 @@ const NAV_ITEMS: Array<{
   icon: typeof Gauge;
 }> = [
   { id: "overview", label: "Vue d'ensemble", shortLabel: "Aperçu", description: "Santé, volumes et prochaines actions", icon: Gauge },
-  { id: "agent", label: "Agent IA", shortLabel: "Agent IA", description: "Génère une campagne complète en brouillon", icon: Sparkles },
+  { id: "agent", label: "Studio IA", shortLabel: "Studio IA", description: "Génère une campagne complète en brouillon", icon: Sparkles },
   { id: "calendar", label: "Calendrier", shortLabel: "Calendrier", description: "Publications et envois planifiés", icon: CalendarDays },
   { id: "campaigns", label: "Campagnes", shortLabel: "Campagnes", description: "Création, validation et diffusion", icon: Megaphone },
-  { id: "audiences", label: "Audiences & prospects", shortLabel: "Audiences", description: "Segments, ciblage et priorités", icon: Users },
+  { id: "audiences", label: "CRM & audiences", shortLabel: "CRM", description: "Segments, ciblage et priorités", icon: Users },
   { id: "automations", label: "Automatisations", shortLabel: "Automations", description: "Déclencheurs, règles et garde-fous", icon: Bot },
-  { id: "activity", label: "Journal des envois", shortLabel: "Journal", description: "Qui, quand, canal et résultat", icon: ListChecks },
-  { id: "results", label: "Résultats", shortLabel: "Résultats", description: "Performance et attribution", icon: BarChart3 },
+  { id: "activity", label: "Distribution", shortLabel: "Distribution", description: "Journal des envois et résultats", icon: ListChecks },
+  { id: "results", label: "Analytics", shortLabel: "Analytics", description: "Performance, provenance et attribution", icon: BarChart3 },
   { id: "integrations", label: "Intégrations", shortLabel: "Intégrations", description: "État réel des fournisseurs", icon: Link2 },
+  { id: "governance", label: "Gouvernance", shortLabel: "Gouvernance", description: "Autonomie, approbations et décisions", icon: ShieldCheck },
   { id: "outreach", label: "Prospection & backlinks", shortLabel: "Outreach", description: "Cibles, brouillons et preuves de liens", icon: Target },
   { id: "faq", label: "Mode d'emploi", shortLabel: "Aide", description: "Fonctionnement, règles et paramétrage", icon: BookOpen },
 ];
@@ -101,7 +102,7 @@ function Navigation({
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-semibold">{compact ? item.shortLabel : item.label}</span>
-              {!compact ? <span className={cn("mt-0.5 block truncate text-[11px]", selected ? "text-orange-50/80" : "text-slate-500")}>{item.description}</span> : null}
+              {!compact ? <span className={cn("mt-0.5 block truncate text-[11px]", selected ? "text-orange-50/90" : "text-slate-400")}>{item.description}</span> : null}
             </span>
             {selected ? <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
           </button>
@@ -182,7 +183,7 @@ export default function MarketingWorkspaceChrome({
             <span className={cn("h-2.5 w-2.5 rounded-full", snapshot.overview.globalPaused ? "bg-amber-400" : snapshot.overview.schedulerReady ? "bg-emerald-400" : "bg-rose-400")} />
           </div>
           <p className="mt-2 text-sm font-semibold">{runtimeLabel}</p>
-          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">{snapshot.overview.globalPaused && snapshot.overview.globalPauseReason ? snapshot.overview.globalPauseReason : "Mode gratuit · approbation obligatoire"}</p>
+          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-400">{snapshot.overview.globalPaused && snapshot.overview.globalPauseReason ? snapshot.overview.globalPauseReason : "Mode gratuit · approbation obligatoire"}</p>
         </div>
 
         <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">

@@ -5,6 +5,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import { inspectReleaseReadiness } from "../../scripts/release-readiness.mjs";
 
 const fixtures: string[] = [];
+const marketingUnsubscribeSecret = "u".repeat(32);
+const marketingUnsubscribeError =
+  "Missing valid MARKETING_UNSUBSCRIBE_SECRET; production requires at least 32 non-placeholder characters.";
 
 function makeFixture(name: string) {
   const root = path.join(process.cwd(), ".tmp", `release-readiness-${name}-${Date.now()}`);
@@ -90,6 +93,7 @@ describe("release readiness inspection", () => {
         INTERNAL_CRON_SECRET: "long-random-secret",
         RESEND_API_KEY: "re_123",
         EMAIL_FROM: "Tok <noreply@thetok.ch>",
+        MARKETING_UNSUBSCRIBE_SECRET: marketingUnsubscribeSecret,
         APP_BASE_URL: "https://www.thetok.ch",
         PUBLIC_APP_URL: "https://www.thetok.ch",
         ALLOWED_ORIGINS: "https://www.thetok.ch",
@@ -123,6 +127,7 @@ describe("release readiness inspection", () => {
         SUPABASE_INTERNAL_CRON_VAULT_EVIDENCE: "Live read-only Vault verification for production",
         SUPABASE_RESEND_SECRET_CONFIRMED: "true",
         SUPABASE_RESEND_SECRET_EVIDENCE: "Live Management API secret-name verification",
+        MARKETING_UNSUBSCRIBE_SECRET: marketingUnsubscribeSecret,
         SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
         SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "Management API live proof for issue #204",
       },
@@ -131,6 +136,40 @@ describe("release readiness inspection", () => {
 
     expect(result.ok).toBe(true);
     expect(result.errors).toEqual([]);
+  });
+
+  it("requires a valid primary unsubscribe secret while keeping the legacy secret optional", () => {
+    const root = makeFixture("unsubscribe-secret");
+
+    const missingPrimary = inspectReleaseReadiness({
+      root,
+      target: "web",
+      env: { MARKETING_UNSUBSCRIBE_LEGACY_SECRET: "l".repeat(32) },
+      strict: true,
+    });
+    const shortPrimary = inspectReleaseReadiness({
+      root,
+      target: "web",
+      env: { MARKETING_UNSUBSCRIBE_SECRET: "too-short" },
+      strict: true,
+    });
+    const placeholderPrimary = inspectReleaseReadiness({
+      root,
+      target: "web",
+      env: { MARKETING_UNSUBSCRIBE_SECRET: "replace-with-a-production-secret-value" },
+      strict: true,
+    });
+    const validPrimaryWithoutLegacy = inspectReleaseReadiness({
+      root,
+      target: "web",
+      env: { MARKETING_UNSUBSCRIBE_SECRET: marketingUnsubscribeSecret },
+      strict: true,
+    });
+
+    expect(missingPrimary.errors).toContain(marketingUnsubscribeError);
+    expect(shortPrimary.errors).toContain(marketingUnsubscribeError);
+    expect(placeholderPrimary.errors).toContain(marketingUnsubscribeError);
+    expect(validPrimaryWithoutLegacy.errors).not.toContain(marketingUnsubscribeError);
   });
 
   it("temporarily permits only absent Stripe public and Resend credentials during the active grace window", () => {
@@ -150,6 +189,7 @@ describe("release readiness inspection", () => {
         ALLOWED_ORIGINS: "https://www.thetok.ch",
         SUPABASE_INTERNAL_CRON_VAULT_CONFIRMED: "true",
         SUPABASE_INTERNAL_CRON_VAULT_EVIDENCE: "Live read-only Vault verification for production",
+        MARKETING_UNSUBSCRIBE_SECRET: marketingUnsubscribeSecret,
         SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
         SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "Management API live proof for issue #204",
       },
@@ -237,6 +277,7 @@ describe("release readiness inspection", () => {
         INTERNAL_CRON_SECRET: "long-random-secret",
         RESEND_API_KEY: "re_123",
         EMAIL_FROM: "Tok <noreply@thetok.ch>",
+        MARKETING_UNSUBSCRIBE_SECRET: marketingUnsubscribeSecret,
         APP_BASE_URL: "https://app.thetok.ch",
         PUBLIC_APP_URL: "https://www.thetok.ch",
         ALLOWED_ORIGINS: "https://app.thetok.ch,https://www.thetok.ch",
@@ -281,6 +322,7 @@ describe("release readiness inspection", () => {
         INTERNAL_CRON_SECRET: "long-random-secret",
         RESEND_API_KEY: "re_123",
         EMAIL_FROM: "Tok <noreply@thetok.ch>",
+        MARKETING_UNSUBSCRIBE_SECRET: marketingUnsubscribeSecret,
         APP_BASE_URL: "https://app.thetok.ch",
         PUBLIC_APP_URL: "https://www.thetok.ch",
         ALLOWED_ORIGINS: "https://app.thetok.ch,https://www.thetok.ch",
@@ -326,6 +368,7 @@ describe("release readiness inspection", () => {
         INTERNAL_CRON_SECRET: "long-random-secret",
         RESEND_API_KEY: "re_123",
         EMAIL_FROM: "Tok <noreply@thetok.ch>",
+        MARKETING_UNSUBSCRIBE_SECRET: marketingUnsubscribeSecret,
         APP_BASE_URL: "https://app.thetok.ch",
         PUBLIC_APP_URL: "https://www.thetok.ch",
         ALLOWED_ORIGINS: "https://app.thetok.ch,https://www.thetok.ch",

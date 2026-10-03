@@ -9,6 +9,7 @@ import MarketingAutomationsView from "@/components/marketing/views/MarketingAuto
 import MarketingCalendarView from "@/components/marketing/views/MarketingCalendarView";
 import MarketingCampaignsView from "@/components/marketing/views/MarketingCampaignsView";
 import MarketingIntegrationsView from "@/components/marketing/views/MarketingIntegrationsView";
+import MarketingGovernanceView from "@/components/marketing/views/MarketingGovernanceView";
 import MarketingOverviewView from "@/components/marketing/views/MarketingOverviewView";
 import MarketingOutreachView from "@/components/marketing/views/MarketingOutreachView";
 import MarketingResultsView from "@/components/marketing/views/MarketingResultsView";
@@ -16,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useMarketingAutopilot } from "@/marketing/useMarketingAutopilot";
 import { useMarketingOperations } from "@/marketing/useMarketingOperations";
 import { useMarketingUrlState } from "@/marketing/useMarketingUrlState";
 import { currentMarketingMonthRange } from "@/marketing/zurichTime";
@@ -33,6 +35,8 @@ function LoadingWorkspace() {
 
 export default function MarketingWorkspace() {
   const { state: filters, update: updateFilters, setView } = useMarketingUrlState();
+  const autopilotEnabled = ["automations", "integrations", "results", "governance"].includes(filters.view);
+  const autopilot = useMarketingAutopilot({ enabled: autopilotEnabled });
   const defaultCalendarRange = currentMarketingMonthRange();
   const operations = useMarketingOperations(filters.view === "calendar"
     ? {
@@ -56,13 +60,15 @@ export default function MarketingWorkspace() {
       case "audiences":
         return <MarketingAudiencesView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onNavigate={setView} onSyncSources={operations.syncSources} onLoadContactsPage={operations.loadContactsPage} contactsRevision={operations.contactsRevision} onQualifyContact={operations.qualifyRestaurantContact} onSuppressContact={operations.suppressContact} />;
       case "automations":
-        return <MarketingAutomationsView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onSave={operations.saveAutomation} />;
+        return <MarketingAutomationsView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} autopilot={autopilot.dashboard} autopilotLoading={autopilot.loading} autopilotError={autopilot.error} autopilotPendingAction={autopilot.pendingAction} simulation={autopilot.simulation} onRefreshAutopilot={() => { void autopilot.refresh(); }} onSimulate={autopilot.simulate} onPrepareDraft={autopilot.prepareDraft} onClearSimulation={autopilot.clearSimulation} onSave={operations.saveAutomation} />;
       case "activity":
         return <MarketingActivityView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onLoadDeliveriesPage={operations.loadDeliveriesPage} deliveriesRevision={operations.deliveriesRevision} onRetry={operations.retryDelivery} onRevealManualTarget={operations.revealManualTarget} onCompleteManual={operations.completeManualDelivery} />;
       case "results":
-        return <MarketingResultsView snapshot={operations.snapshot} filters={filters} onFiltersChange={updateFilters} />;
+        return <MarketingResultsView snapshot={operations.snapshot} filters={filters} autopilot={autopilot.dashboard} autopilotLoading={autopilot.loading} autopilotError={autopilot.error} onFiltersChange={updateFilters} onRefreshAutopilot={() => { void autopilot.refresh(); }} />;
       case "integrations":
-        return <MarketingIntegrationsView snapshot={operations.snapshot} filters={filters} onFiltersChange={updateFilters} />;
+        return <MarketingIntegrationsView snapshot={operations.snapshot} filters={filters} autopilot={autopilot.dashboard} autopilotLoading={autopilot.loading} autopilotError={autopilot.error} autopilotPendingAction={autopilot.pendingAction} onFiltersChange={updateFilters} onRefreshAutopilot={() => { void autopilot.refresh(); }} onSaveProviderControl={autopilot.saveProviderControl} />;
+      case "governance":
+        return <MarketingGovernanceView autopilot={autopilot.dashboard} loading={autopilot.loading} error={autopilot.error} refreshing={autopilot.refreshing} onRefresh={() => { void autopilot.refresh(); }} onNavigate={setView} />;
       case "outreach":
         return <MarketingOutreachView canMutateBackend={operations.canMutateBackend} />;
       case "overview":
@@ -88,6 +94,14 @@ export default function MarketingWorkspace() {
           <AlertTitle>{operations.notice.tone === "success" ? "Action confirmée" : operations.notice.tone === "warning" ? "Attention" : "Action impossible"}</AlertTitle>
           <AlertDescription>{operations.notice.message}</AlertDescription>
           <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1 h-9 w-9" onClick={operations.clearNotice} aria-label="Fermer le message"><X className="h-4 w-4" /></Button>
+        </Alert>
+      ) : null}
+      {autopilot.notice ? (
+        <Alert className={cn("mb-5 pr-12", autopilot.notice.tone === "success" && "border-emerald-500/25 bg-emerald-500/5", autopilot.notice.tone === "warning" && "border-amber-500/25 bg-amber-500/5")} variant={autopilot.notice.tone === "error" ? "destructive" : "default"}>
+          {autopilot.notice.tone === "success" ? <CheckCircle2 className="h-4 w-4" /> : autopilot.notice.tone === "error" ? <AlertCircle className="h-4 w-4" /> : <Info className="h-4 w-4" />}
+          <AlertTitle>{autopilot.notice.tone === "success" ? "Cockpit mis à jour" : autopilot.notice.tone === "warning" ? "Contrôle requis" : "Action Autopilot impossible"}</AlertTitle>
+          <AlertDescription>{autopilot.notice.message}</AlertDescription>
+          <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1 h-9 w-9" onClick={autopilot.clearNotice} aria-label="Fermer le message Autopilot"><X className="h-4 w-4" /></Button>
         </Alert>
       ) : null}
       {content}

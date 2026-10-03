@@ -8,6 +8,7 @@ export const MARKETING_VIEWS = [
   "activity",
   "results",
   "integrations",
+  "governance",
   "faq",
   "outreach",
 ] as const;
