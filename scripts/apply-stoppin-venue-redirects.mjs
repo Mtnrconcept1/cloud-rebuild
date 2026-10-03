@@ -112,6 +112,9 @@ export async function applyVenueRedirects(root = process.cwd()) {
   const output = path.resolve(root, ".vercel", "stoppin-venue-redirects.json");
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, `${JSON.stringify(redirects, null, 2)}\n`, "utf8");
+  // Vercel's middleware compiler does not support JSON import attributes.
+  // Emit a plain module from the same validated list, including when empty.
+  await writeFile(output.replace(/\.json$/, ".mjs"), `export default ${JSON.stringify(redirects)};\n`, "utf8");
   return redirects;
 }
 
