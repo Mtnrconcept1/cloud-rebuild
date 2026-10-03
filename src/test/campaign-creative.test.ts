@@ -153,12 +153,26 @@ describe("campaign creative studio", () => {
     expect(discountMarkup).toContain("-30%");
   });
 
+  it("preserves custom text colors in every placement", () => {
+    for (const variant of ["banner", "card", "push"] as const) {
+      const markup = renderToStaticMarkup(createElement(SponsoredRestaurantTemplateCard, {
+        variant,
+        restaurantName: "Quirinale",
+        creative: { text: { restaurant: { color: "#abcdef" } } },
+      }));
+      const container = document.createElement("div");
+      container.innerHTML = markup;
+      const name = Array.from(container.querySelectorAll("h3, p")).find((node) => node.textContent === "Quirinale");
+      expect(name).toHaveStyle({ color: "#abcdef" });
+    }
+  });
+
   it("keeps the sponsored restaurant hero title prominent without oversized overflow", () => {
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
     expect(templateCard).toContain("[overflow-wrap:anywhere] [text-wrap:balance]");
-    expect(templateCard).toContain("text-2xl sm:text-3xl md:text-[1.75rem] lg:text-[2.1rem] xl:text-[2.4rem] 2xl:text-[2.7rem]");
-    expect(templateCard).not.toContain("2xl:text-[4.8rem]");
+    expect(templateCard).toContain("text-2xl [@container_sponsored-banner_(min-width:40rem)]:text-3xl [@container_sponsored-banner_(min-width:48rem)]:text-[1.75rem] [@container_sponsored-banner_(min-width:64rem)]:text-[2.1rem] [@container_sponsored-banner_(min-width:80rem)]:text-[2.4rem] [@container_sponsored-banner_(min-width:96rem)]:text-[2.7rem]");
+    expect(templateCard).not.toContain("[@container_sponsored-banner_(min-width:96rem)]:text-[4.8rem]");
     expect(templateCard).not.toContain("mt-1 line-clamp-2 overflow-visible pb-2 leading-[1.04]");
   });
 
@@ -276,8 +290,8 @@ describe("campaign creative studio", () => {
     const card = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
     expect(dashboard).toContain("CampaignCreativeStudio");
-    expect(dashboard).toContain("CREATIVE_BANNER_PLACEMENT_OPTIONS");
-    expect(dashboard).toContain("CREATIVE_BANNER_SEPARATOR_OPTIONS");
+    expect(dashboard).not.toContain("CREATIVE_BANNER_PLACEMENT_OPTIONS");
+    expect(dashboard).not.toContain("CREATIVE_BANNER_SEPARATOR_OPTIONS");
     expect(dashboard).toContain("Textes personnalisables");
     expect(dashboard).toContain("Tous les textes de la bannière sont personnalisables");
     expect(dashboard).toContain("Chaque zone de texte dispose de son champ");

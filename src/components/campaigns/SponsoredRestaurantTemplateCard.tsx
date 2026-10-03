@@ -70,7 +70,13 @@ function getTypographyClass(style: CampaignCreativeTextStyle) {
 }
 
 function getTextInlineStyle(style: CampaignCreativeTextStyle): CSSProperties {
-  return { color: style.color };
+  // The default palette follows banner surfaces; custom colors remain explicit.
+  const themedDefaults: Record<string, string> = {
+    "#111827": "var(--sponsored-heading, #111827)",
+    "#334155": "var(--sponsored-body, #334155)",
+    "#64748b": "var(--sponsored-muted, #64748b)",
+  };
+  return { color: themedDefaults[style.color] ?? style.color };
 }
 
 function getCreativeCopy(
@@ -178,22 +184,23 @@ export function SponsoredRestaurantTemplateCard({
     return (
       <article
         className={cn(
-          "ad-banner-spotlight group relative isolate w-full overflow-hidden rounded-[30px] border border-orange-100 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_32px_82px_rgba(249,115,22,0.18)] dark:border-slate-800 dark:bg-slate-950",
+          "ad-banner-spotlight [container-type:inline-size] [container-name:sponsored-banner] group relative isolate w-full overflow-hidden rounded-[30px] border border-orange-100 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_32px_82px_rgba(249,115,22,0.18)] dark:border-slate-800 dark:bg-slate-950",
+          "dark:[--sponsored-heading:#f8fafc] dark:[--sponsored-body:#e2e8f0] dark:[--sponsored-muted:#cbd5e1]",
           compactBanner
-            ? "min-h-[268px] sm:min-h-[286px] md:min-h-[300px]"
-            : "min-h-[260px] sm:min-h-[280px] md:min-h-[260px] lg:min-h-[300px]",
+            ? "min-h-[268px]"
+            : "min-h-[260px]",
           className,
         )}
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_48%,rgba(255,122,24,0.16),transparent_35%),linear-gradient(90deg,#ffffff_0%,#fffaf3_48%,#ff7a18_100%)] dark:bg-[linear-gradient(90deg,#020617_0%,#111827_48%,#ff6b00_100%)]" />
-        <div className="absolute right-0 top-0 hidden h-full w-[58%] rounded-l-[150px] bg-gradient-to-br from-orange-200/80 via-orange-400/90 to-[#ff5a00] md:block" />
-        <div className="absolute right-[21%] top-1/2 hidden aspect-square h-[138%] -translate-y-1/2 rounded-full border-[20px] border-orange-500/90 bg-transparent md:block" />
-        <div className="absolute right-8 top-7 hidden h-[calc(100%-3.5rem)] w-[48%] rounded-[42px] border-[6px] border-white/95 bg-white/75 shadow-[0_24px_60px_rgba(15,23,42,0.22)] md:block dark:border-slate-900/95 dark:bg-slate-900/70" />
-        <div className="absolute bottom-0 right-0 h-1/2 w-full bg-gradient-to-t from-orange-500/[.18] to-transparent md:hidden" />
+        <div className="absolute right-0 top-0 hidden h-full w-[58%] rounded-l-[150px] bg-gradient-to-br from-orange-200/80 via-orange-400/90 to-[#ff5a00] [@container_sponsored-banner_(min-width:48rem)]:block" />
+        <div className="absolute right-[21%] top-1/2 hidden aspect-square h-[138%] -translate-y-1/2 rounded-full border-[20px] border-orange-500/90 bg-transparent [@container_sponsored-banner_(min-width:48rem)]:block" />
+        <div className="absolute right-8 top-7 hidden h-[calc(100%-3.5rem)] w-[48%] rounded-[42px] border-[6px] border-white/95 bg-white/75 shadow-[0_24px_60px_rgba(15,23,42,0.22)] [@container_sponsored-banner_(min-width:48rem)]:block dark:border-slate-900/95 dark:bg-slate-900/70" />
+        <div className="absolute bottom-0 right-0 h-1/2 w-full bg-gradient-to-t from-orange-500/[.18] to-transparent [@container_sponsored-banner_(min-width:48rem)]:hidden" />
 
         <div
           className={cn(
-            "relative z-10 grid items-stretch md:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] md:grid-rows-1",
+            "relative z-10 grid items-stretch [@container_sponsored-banner_(min-width:48rem)]:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] [@container_sponsored-banner_(min-width:48rem)]:grid-rows-1",
             compactBanner ? "grid-rows-[auto_minmax(116px,1fr)]" : "grid-rows-[auto_minmax(132px,1fr)]",
           )}
         >
@@ -201,8 +208,8 @@ export function SponsoredRestaurantTemplateCard({
             className={cn(
               "relative z-20 flex min-w-0 flex-col justify-center",
               compactBanner
-                ? "p-4 pb-2 sm:p-5 sm:pb-3 md:p-4 md:pr-7 lg:p-5 lg:pr-10 xl:p-6 xl:pr-14"
-                : "p-4 pb-3 sm:p-5 sm:pb-3 md:p-4 md:pb-4 md:pr-6 lg:p-6 lg:pr-10 xl:p-7 xl:pr-14 2xl:p-8 2xl:pr-16",
+                ? "p-4 pb-2 [@container_sponsored-banner_(min-width:40rem)]:p-5 [@container_sponsored-banner_(min-width:40rem)]:pb-3 [@container_sponsored-banner_(min-width:48rem)]:p-4 [@container_sponsored-banner_(min-width:48rem)]:pr-7 [@container_sponsored-banner_(min-width:64rem)]:p-5 [@container_sponsored-banner_(min-width:64rem)]:pr-10 [@container_sponsored-banner_(min-width:80rem)]:p-6 [@container_sponsored-banner_(min-width:80rem)]:pr-14"
+                : "p-4 pb-3 [@container_sponsored-banner_(min-width:40rem)]:p-5 [@container_sponsored-banner_(min-width:40rem)]:pb-3 [@container_sponsored-banner_(min-width:48rem)]:p-4 [@container_sponsored-banner_(min-width:48rem)]:pb-4 [@container_sponsored-banner_(min-width:48rem)]:pr-6 [@container_sponsored-banner_(min-width:64rem)]:p-6 [@container_sponsored-banner_(min-width:64rem)]:pr-10 [@container_sponsored-banner_(min-width:80rem)]:p-7 [@container_sponsored-banner_(min-width:80rem)]:pr-14 [@container_sponsored-banner_(min-width:96rem)]:p-8 [@container_sponsored-banner_(min-width:96rem)]:pr-16",
             )}
           >
             <div className="flex flex-wrap items-center gap-2.5">
@@ -216,14 +223,14 @@ export function SponsoredRestaurantTemplateCard({
               {showSecondaryBadge ? (
                 <span
                   className={cn("inline-flex max-w-full flex-wrap justify-center rounded-full bg-orange-50 px-4 py-2 text-center text-[10px] uppercase leading-4 tracking-[0.08em] text-primary ring-1 ring-orange-100 [overflow-wrap:anywhere] dark:bg-orange-400/10 dark:text-orange-100 dark:ring-orange-300/20", getTypographyClass(normalized.text.discount))}
-                  style={getTextInlineStyle(normalized.text.discount)}
+                  style={normalized.text.discount.color === "#ffffff" ? undefined : getTextInlineStyle(normalized.text.discount)}
                 >
                   {secondaryBadge}
                 </span>
               ) : null}
             </div>
 
-            <div className={cn("min-w-0 overflow-visible pb-3", compactBanner ? "mt-3 lg:mt-4" : "mt-4 lg:mt-4 xl:mt-5")}>
+            <div className={cn("min-w-0 overflow-visible pb-3", compactBanner ? "mt-3 [@container_sponsored-banner_(min-width:64rem)]:mt-4" : "mt-4 [@container_sponsored-banner_(min-width:64rem)]:mt-4 [@container_sponsored-banner_(min-width:80rem)]:mt-5")}>
               <p
                 className={cn("break-words text-[11px] uppercase leading-relaxed tracking-[0.32em] text-slate-500 [overflow-wrap:anywhere] dark:text-slate-300", getTypographyClass(normalized.text.eyebrow))}
                 style={getTextInlineStyle(normalized.text.eyebrow)}
@@ -234,8 +241,8 @@ export function SponsoredRestaurantTemplateCard({
                 className={cn(
                   "mt-2 max-w-full break-words pb-3 leading-[1.14] text-slate-950 [overflow-wrap:anywhere] [text-wrap:balance] dark:text-white",
                   compactBanner
-                    ? "text-2xl sm:text-3xl md:text-2xl lg:text-[2.15rem] xl:text-[2.4rem]"
-                    : "text-2xl sm:text-3xl md:text-[1.75rem] lg:text-[2.1rem] xl:text-[2.4rem] 2xl:text-[2.7rem]",
+                    ? "text-2xl [@container_sponsored-banner_(min-width:40rem)]:text-3xl [@container_sponsored-banner_(min-width:48rem)]:text-2xl [@container_sponsored-banner_(min-width:64rem)]:text-[2.15rem] [@container_sponsored-banner_(min-width:80rem)]:text-[2.4rem]"
+                    : "text-2xl [@container_sponsored-banner_(min-width:40rem)]:text-3xl [@container_sponsored-banner_(min-width:48rem)]:text-[1.75rem] [@container_sponsored-banner_(min-width:64rem)]:text-[2.1rem] [@container_sponsored-banner_(min-width:80rem)]:text-[2.4rem] [@container_sponsored-banner_(min-width:96rem)]:text-[2.7rem]",
                   getTypographyClass(normalized.text.restaurant),
                 )}
                 style={getTextInlineStyle(normalized.text.restaurant)}
@@ -245,7 +252,7 @@ export function SponsoredRestaurantTemplateCard({
               <p
                 className={cn(
                   "mt-1 break-words leading-tight text-primary [overflow-wrap:anywhere]",
-                  compactBanner ? "text-xl sm:text-2xl lg:text-xl xl:text-2xl" : "text-lg sm:text-xl lg:text-lg xl:text-xl 2xl:text-2xl",
+                  compactBanner ? "text-xl [@container_sponsored-banner_(min-width:40rem)]:text-2xl [@container_sponsored-banner_(min-width:64rem)]:text-xl [@container_sponsored-banner_(min-width:80rem)]:text-2xl" : "text-lg [@container_sponsored-banner_(min-width:40rem)]:text-xl [@container_sponsored-banner_(min-width:64rem)]:text-lg [@container_sponsored-banner_(min-width:80rem)]:text-xl [@container_sponsored-banner_(min-width:96rem)]:text-2xl",
                   getTypographyClass(normalized.text.tagline),
                 )}
                 style={getTextInlineStyle(normalized.text.tagline)}
@@ -260,7 +267,7 @@ export function SponsoredRestaurantTemplateCard({
                 )}
                 style={getTextInlineStyle(normalized.text.address)}
               >
-                <MapPin className="h-4 w-4 shrink-0 text-primary xl:h-5 xl:w-5" />
+                <MapPin className="h-4 w-4 shrink-0 text-primary [@container_sponsored-banner_(min-width:80rem)]:h-5 [@container_sponsored-banner_(min-width:80rem)]:w-5" />
                 <span className="min-w-0 break-words [overflow-wrap:anywhere]">{displayAddressCopy}</span>
               </p>
             </div>
@@ -281,7 +288,7 @@ export function SponsoredRestaurantTemplateCard({
               <span
                 className={cn(
                   "max-w-full break-words uppercase leading-none [overflow-wrap:anywhere] [text-wrap:balance]",
-                  compactBanner ? "text-base sm:text-lg" : "text-base sm:text-lg xl:text-xl",
+                  compactBanner ? "text-base [@container_sponsored-banner_(min-width:40rem)]:text-lg" : "text-base [@container_sponsored-banner_(min-width:40rem)]:text-lg [@container_sponsored-banner_(min-width:80rem)]:text-xl",
                   getTypographyClass(normalized.text.sealMain),
                 )}
                 style={getTextInlineStyle(normalized.text.sealMain)}
@@ -300,17 +307,17 @@ export function SponsoredRestaurantTemplateCard({
             <div
               className={cn(
                 "rounded-[26px] border border-orange-100 bg-white/[.86] shadow-[0_16px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-white/[.08]",
-                compactBanner ? "mt-3 p-3 sm:p-3.5 lg:mt-3 lg:p-3.5" : "mt-3 p-3 sm:p-3.5 lg:mt-3 lg:p-3.5 xl:mt-4 xl:p-4",
+                compactBanner ? "mt-3 p-3 [@container_sponsored-banner_(min-width:40rem)]:p-3.5 [@container_sponsored-banner_(min-width:64rem)]:mt-3 [@container_sponsored-banner_(min-width:64rem)]:p-3.5" : "mt-3 p-3 [@container_sponsored-banner_(min-width:40rem)]:p-3.5 [@container_sponsored-banner_(min-width:64rem)]:mt-3 [@container_sponsored-banner_(min-width:64rem)]:p-3.5 [@container_sponsored-banner_(min-width:80rem)]:mt-4 [@container_sponsored-banner_(min-width:80rem)]:p-4",
               )}
             >
               <div className={cn("flex items-start", compactBanner ? "gap-3" : "gap-4")}>
                 <div
                   className={cn(
-                    "hidden shrink-0 place-items-center rounded-full bg-orange-50 text-primary ring-1 ring-orange-100 sm:grid",
-                    compactBanner ? "h-10 w-10" : "h-12 w-12 xl:h-14 xl:w-14",
+                    "hidden shrink-0 place-items-center rounded-full bg-orange-50 text-primary ring-1 ring-orange-100 [@container_sponsored-banner_(min-width:40rem)]:grid",
+                    compactBanner ? "h-10 w-10" : "h-12 w-12 [@container_sponsored-banner_(min-width:80rem)]:h-14 [@container_sponsored-banner_(min-width:80rem)]:w-14",
                   )}
                 >
-                  <Sparkles className={compactBanner ? "h-4 w-4" : "h-5 w-5 xl:h-6 xl:w-6"} />
+                  <Sparkles className={compactBanner ? "h-4 w-4" : "h-5 w-5 [@container_sponsored-banner_(min-width:80rem)]:h-6 [@container_sponsored-banner_(min-width:80rem)]:w-6"} />
                 </div>
                 <OfferText creative={normalized} headline={displayOfferHeadline} body={displayOfferBody} compact fullyVisible />
               </div>
@@ -320,29 +327,29 @@ export function SponsoredRestaurantTemplateCard({
 
           <div
             className={cn(
-              "relative z-20 flex min-w-0 items-end pt-0 md:items-center",
+              "relative z-20 flex min-w-0 items-end pt-0 [@container_sponsored-banner_(min-width:48rem)]:items-center",
               compactBanner
-                ? "p-4 pt-0 sm:p-5 sm:pt-0 md:h-full md:p-4 md:pl-7 lg:h-full lg:p-5 lg:pl-9 xl:p-6 xl:pl-12"
-                : "p-4 pt-0 sm:p-5 sm:pt-0 md:h-full md:p-4 md:pl-6 lg:h-full lg:p-5 lg:pl-9 xl:p-6 xl:pl-12",
+                ? "p-4 pt-0 [@container_sponsored-banner_(min-width:40rem)]:p-5 [@container_sponsored-banner_(min-width:40rem)]:pt-0 [@container_sponsored-banner_(min-width:48rem)]:h-full [@container_sponsored-banner_(min-width:48rem)]:p-4 [@container_sponsored-banner_(min-width:48rem)]:pl-7 [@container_sponsored-banner_(min-width:64rem)]:h-full [@container_sponsored-banner_(min-width:64rem)]:p-5 [@container_sponsored-banner_(min-width:64rem)]:pl-9 [@container_sponsored-banner_(min-width:80rem)]:p-6 [@container_sponsored-banner_(min-width:80rem)]:pl-12"
+                : "p-4 pt-0 [@container_sponsored-banner_(min-width:40rem)]:p-5 [@container_sponsored-banner_(min-width:40rem)]:pt-0 [@container_sponsored-banner_(min-width:48rem)]:h-full [@container_sponsored-banner_(min-width:48rem)]:p-4 [@container_sponsored-banner_(min-width:48rem)]:pl-6 [@container_sponsored-banner_(min-width:64rem)]:h-full [@container_sponsored-banner_(min-width:64rem)]:p-5 [@container_sponsored-banner_(min-width:64rem)]:pl-9 [@container_sponsored-banner_(min-width:80rem)]:p-6 [@container_sponsored-banner_(min-width:80rem)]:pl-12",
             )}
           >
             <div
               data-sponsored-banner-media
               className={cn(
-                "relative w-full overflow-hidden rounded-[30px] border-[5px] border-white shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/[.35] md:h-full md:rounded-[36px] lg:h-full lg:rounded-[42px] dark:border-slate-900",
+                "relative w-full overflow-hidden rounded-[30px] border-[5px] border-white shadow-[0_24px_56px_rgba(15,23,42,0.24)] ring-1 ring-white/[.35] [@container_sponsored-banner_(min-width:48rem)]:h-full [@container_sponsored-banner_(min-width:48rem)]:rounded-[36px] [@container_sponsored-banner_(min-width:64rem)]:h-full [@container_sponsored-banner_(min-width:64rem)]:rounded-[42px] dark:border-slate-900",
                 // Un visuel carre occupe toute la largeur de sa colonne et
                 // imposait sa hauteur a la banniere entiere : plus la colonne
                 // est large, plus la carte grandit. Le plafond casse ce lien.
                 // Il ne peut pas rogner l'image, qui reste en object-contain.
                 compactBanner
-                  ? "max-h-[220px] min-h-[160px] bg-white sm:max-h-[240px] sm:min-h-[190px] md:max-h-[260px] md:min-h-[260px] dark:bg-slate-900"
-                  : "max-h-[240px] min-h-[140px] bg-white sm:max-h-[260px] sm:min-h-[160px] md:max-h-[300px] md:min-h-[220px] lg:max-h-[340px] dark:bg-slate-900",
+                  ? "max-h-[220px] min-h-[160px] bg-white [@container_sponsored-banner_(min-width:40rem)]:max-h-[240px] [@container_sponsored-banner_(min-width:40rem)]:min-h-[190px] [@container_sponsored-banner_(min-width:48rem)]:max-h-[260px] [@container_sponsored-banner_(min-width:48rem)]:min-h-[260px] dark:bg-slate-900"
+                  : "max-h-[240px] min-h-[140px] bg-white [@container_sponsored-banner_(min-width:40rem)]:max-h-[260px] [@container_sponsored-banner_(min-width:40rem)]:min-h-[160px] [@container_sponsored-banner_(min-width:48rem)]:max-h-[300px] [@container_sponsored-banner_(min-width:48rem)]:min-h-[220px] [@container_sponsored-banner_(min-width:64rem)]:max-h-[340px] dark:bg-slate-900",
               )}
             >
               <img
                 src={imageUrl || DEFAULT_IMAGE}
                 alt=""
-                className="h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-[1.025] sm:p-3"
+                className="absolute inset-0 h-full w-full object-contain p-2 [@container_sponsored-banner_(min-width:40rem)]:p-3"
                 onError={handleImageError}
                 loading="lazy"
                 decoding="async"

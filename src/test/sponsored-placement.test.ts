@@ -321,39 +321,39 @@ describe("prioritizeSponsoredCards", () => {
     expect(flashSalesPage).toContain('<CampaignBanner page="flash_sales" maxBanners={1} />');
     expect(banner).toContain('compactBanner={page === "home" || page === "flash_sales"}');
     expect(templateCard).toContain("compactBanner");
-    expect(templateCard).toContain("min-h-[268px] sm:min-h-[286px] md:min-h-[300px]");
-    expect(templateCard).toContain("max-h-[220px] min-h-[160px] bg-white sm:max-h-[240px] sm:min-h-[190px] md:max-h-[260px] md:min-h-[260px]");
+    expect(templateCard).toContain("min-h-[268px]");
+    expect(templateCard).toContain("max-h-[220px] min-h-[160px] bg-white [@container_sponsored-banner_(min-width:40rem)]:max-h-[240px] [@container_sponsored-banner_(min-width:40rem)]:min-h-[190px] [@container_sponsored-banner_(min-width:48rem)]:max-h-[260px] [@container_sponsored-banner_(min-width:48rem)]:min-h-[260px]");
     expect(templateCard).toContain("fullyVisible");
     expect(templateCard).toContain("object-contain");
-    expect(templateCard).not.toContain("lg:h-[268px]");
+    expect(templateCard).not.toContain("[@container_sponsored-banner_(min-width:64rem)]:h-[268px]");
     expect(templateCard).not.toContain("aspect-[16/5]");
-    expect(templateCard).not.toContain("lg:min-h-0");
+    expect(templateCard).not.toContain("[@container_sponsored-banner_(min-width:64rem)]:min-h-0");
   });
 
-  it("gives tablets the two-column banner layout instead of the tall mobile stack", () => {
+  it("uses the banner container width for the two-column layout", () => {
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
-    // The designed layout and its decorations used to start only at lg, so
-    // every tablet fell back to the stacked mobile block with oversized type.
-    expect(templateCard).toContain("md:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] md:grid-rows-1");
-    expect(templateCard).toContain("md:block");
-    expect(templateCard).toContain("md:hidden");
-    expect(templateCard).not.toContain("lg:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]");
+    // A wide viewport must not activate desktop columns inside a narrow modal.
+    // The layout and its decorations follow the banner's own available width.
+    expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] [@container_sponsored-banner_(min-width:48rem)]:grid-rows-1");
+    expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:block");
+    expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:hidden");
+    expect(templateCard).not.toContain("[@container_sponsored-banner_(min-width:64rem)]:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]");
 
     // The non-compact banner keeps a useful visual floor while its content
     // remains free to grow beyond it. The floor stays deliberately low: the
     // banner was reading as an oversized block, and since these are minimums —
     // never fixed heights — copy that needs more room still pushes the card
     // taller instead of being clipped.
-    expect(templateCard).toContain("min-h-[260px] sm:min-h-[280px] md:min-h-[260px] lg:min-h-[300px]");
+    expect(templateCard).toContain("min-h-[260px]");
     expect(templateCard).not.toContain("min-h-[520px]");
-    expect(templateCard).not.toContain("min-h-[400px] sm:min-h-[440px]");
+    expect(templateCard).not.toContain("min-h-[400px] [@container_sponsored-banner_(min-width:40rem)]:min-h-[440px]");
 
     // Le visuel est plafonne, sinon un fichier carre remplit la largeur de sa
     // colonne et impose sa hauteur a toute la banniere : sur un grand ecran
     // elle depassait 830px pour un contenu qui en demande 430. Le plafond ne
     // peut pas rogner l'image, qui reste en object-contain.
-    expect(templateCard).toContain("max-h-[240px] min-h-[140px] bg-white sm:max-h-[260px] sm:min-h-[160px] md:max-h-[300px] md:min-h-[220px] lg:max-h-[340px]");
+    expect(templateCard).toContain("max-h-[240px] min-h-[140px] bg-white [@container_sponsored-banner_(min-width:40rem)]:max-h-[260px] [@container_sponsored-banner_(min-width:40rem)]:min-h-[160px] [@container_sponsored-banner_(min-width:48rem)]:max-h-[300px] [@container_sponsored-banner_(min-width:48rem)]:min-h-[220px] [@container_sponsored-banner_(min-width:64rem)]:max-h-[340px]");
     expect(templateCard).not.toContain("grid h-full");
     expect(templateCard).toContain("min-w-0 break-words [overflow-wrap:anywhere]");
     expect(templateCard).toContain("data-sponsored-banner-seal");

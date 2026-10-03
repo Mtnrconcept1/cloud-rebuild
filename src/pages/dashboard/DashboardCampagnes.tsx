@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ComponentType } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -55,8 +55,6 @@ import { getSupabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_CAMPAIGN_CREATIVE,
   normalizeCampaignCreative,
-  type CampaignBannerSeparator,
-  type CampaignBannerTextPlacement,
   type CampaignCreativeConfig,
   type CampaignCreativeTextElement,
 } from "@/lib/campaignCreative";
@@ -1147,28 +1145,6 @@ const CREATIVE_STYLE_OPTIONS: Array<{
   { value: "italic", label: "Italique" },
 ];
 
-const CREATIVE_BANNER_PLACEMENT_OPTIONS: Array<{
-  value: CampaignBannerTextPlacement;
-  label: string;
-  description: string;
-}> = [
-  { value: "left", label: "Texte à gauche", description: "Photo à droite" },
-  { value: "right", label: "Texte à droite", description: "Photo à gauche" },
-  { value: "top", label: "Texte en haut", description: "Photo en bas" },
-  { value: "bottom", label: "Texte en bas", description: "Photo en haut" },
-];
-
-const CREATIVE_BANNER_SEPARATOR_OPTIONS: Array<{
-  value: CampaignBannerSeparator;
-  label: string;
-  description: string;
-}> = [
-  { value: "fade", label: "Fondu", description: "Transition douce" },
-  { value: "wave", label: "Vague", description: "Séparation organique" },
-  { value: "curve", label: "Courbe", description: "Découpe inclinée" },
-  { value: "straight", label: "Droite", description: "Séparation nette" },
-];
-
 function getCreativeCopyFallback(
   element: CampaignCreativeTextElement,
   input: {
@@ -1229,12 +1205,14 @@ function CampaignCreativeStudio({
   type: string;
   placementSelection: Record<CampaignPlacementOption, boolean>;
 }) {
+  const studioId = useId();
   const previewTitle = title.trim() || "La fondue du Quirinale";
   const previewBody = body.trim() || "Viens déguster la meilleure fondue de Genève!";
   const previewVariant = type === "push" ? "push" : type === "banner" || placementSelection.banner ? "banner" : "card";
 
   const updateCreative = useCallback((next: CampaignCreativeConfig) => {
-    onChange(normalizeCampaignCreative(next));
+    // Keep trailing spaces and empty fields while typing. Normalize on save.
+    onChange(next);
   }, [onChange]);
 
   const updateTextElement = useCallback((
@@ -1263,17 +1241,8 @@ function CampaignCreativeStudio({
     });
   }, [updateCreative, value]);
 
-  const updateBannerLayout = useCallback((
-    patch: Partial<Pick<CampaignCreativeConfig, "bannerTextPlacement" | "bannerSeparator">>,
-  ) => {
-    updateCreative({
-      ...value,
-      ...patch,
-    });
-  }, [updateCreative, value]);
-
   return (
-    <section className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-background via-orange-50/40 to-background p-4 shadow-sm dark:via-orange-950/15">
+    <section className="min-w-0 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-background via-orange-50/40 to-background p-4 shadow-sm [container-type:inline-size] [container-name:campaign-studio] dark:via-orange-950/15">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
@@ -1289,8 +1258,8 @@ function CampaignCreativeStudio({
         </Badge>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-        <div className={cn("mx-auto w-full", previewVariant === "banner" ? "max-w-full" : "max-w-[390px]")}>
+      <div className={cn("mt-4 grid min-w-0 gap-4", previewVariant !== "banner" && "[@container_campaign-studio_(min-width:56rem)]:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]")}>
+        <div className={cn("mx-auto min-w-0 w-full", previewVariant === "banner" ? "max-w-full" : "max-w-[390px]")}>
           <SponsoredRestaurantTemplateCard
             creative={value}
             imageUrl={imageUrl}
@@ -1307,62 +1276,7 @@ function CampaignCreativeStudio({
           </p>
         </div>
 
-        <div className="space-y-4">
-          {previewVariant === "banner" ? (
-            <div className="rounded-2xl border bg-background/80 p-3 shadow-sm">
-              <div>
-                <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  <Megaphone className="h-4 w-4" /> Composition bannière
-                </Label>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Réservez une zone lisible au texte et choisissez la transition avec la photo.
-                </p>
-              </div>
-
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {CREATIVE_BANNER_PLACEMENT_OPTIONS.map((option) => {
-                  const selected = value.bannerTextPlacement === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => updateBannerLayout({ bannerTextPlacement: option.value })}
-                      className={cn(
-                        "rounded-xl border px-3 py-2 text-left transition-all hover:border-primary/50",
-                        selected && "border-primary bg-primary/10 shadow-sm",
-                      )}
-                    >
-                      <span className="block text-xs font-semibold">{option.label}</span>
-                      <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">{option.description}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {CREATIVE_BANNER_SEPARATOR_OPTIONS.map((option) => {
-                  const selected = value.bannerSeparator === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => updateBannerLayout({ bannerSeparator: option.value })}
-                      className={cn(
-                        "min-h-14 rounded-xl border px-2 py-2 text-left transition-all hover:border-primary/50",
-                        selected && "border-primary bg-primary/10 shadow-sm",
-                      )}
-                    >
-                      <span className="block text-[11px] font-semibold">{option.label}</span>
-                      <span className="mt-0.5 block text-[10px] leading-3 text-muted-foreground">{option.description}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
-
+        <div className="min-w-0 space-y-4">
           <div className="rounded-2xl border bg-background/80 p-3 shadow-sm">
             <div>
               <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -1373,7 +1287,7 @@ function CampaignCreativeStudio({
               </p>
             </div>
 
-            <div className="mt-3 max-h-[540px] space-y-3 overflow-y-auto pr-1">
+            <div className="mt-3 space-y-3">
               {CREATIVE_TEXT_ELEMENTS.map((entry) => {
                 const textStyle = value.text[entry.id];
                 const fallbackText = getCreativeCopyFallback(entry.id, {
@@ -1386,24 +1300,27 @@ function CampaignCreativeStudio({
                   ctaLabel: "Découvrir l'offre",
                   discountLabel: "Jusqu'à -18%",
                 });
-                const textValue = value.copy[entry.id] || fallbackText;
+                const textValue = value.copy[entry.id] ?? "";
+                const fieldId = `${studioId}-${entry.id}`;
                 return (
                   <div
                     key={entry.id}
                     className="rounded-xl border bg-background/75 p-3 shadow-sm"
                   >
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <Label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                         {entry.label}
-                      </Label>
+                      </p>
                       <span className="text-[11px] text-muted-foreground">{entry.description}</span>
                     </div>
                     <div className="mt-2 space-y-1.5">
-                      <Label className="text-[11px] font-medium text-muted-foreground">
-                        Texte
+                      <Label htmlFor={`${fieldId}-text`} className="text-[11px] font-medium text-muted-foreground">
+                        Texte<span className="sr-only"> {entry.label}</span>
                       </Label>
                       <Input
+                        id={`${fieldId}-text`}
                         value={textValue}
+                        placeholder={fallbackText}
                         onChange={(event) => updateTextCopy(entry.id, event.target.value)}
                         className="h-10 rounded-xl"
                         maxLength={90}
@@ -1411,8 +1328,8 @@ function CampaignCreativeStudio({
                     </div>
                     <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
                       <div className="space-y-1.5">
-                        <Label className="text-[11px] font-medium text-muted-foreground">
-                          Police
+                        <Label htmlFor={`${fieldId}-font`} className="text-[11px] font-medium text-muted-foreground">
+                          Police<span className="sr-only"> {entry.label}</span>
                         </Label>
                         <Select
                           value={textStyle.font}
@@ -1420,7 +1337,7 @@ function CampaignCreativeStudio({
                             font: font as CampaignCreativeConfig["text"][CampaignCreativeTextElement]["font"],
                           })}
                         >
-                          <SelectTrigger className="h-10 rounded-xl">
+                          <SelectTrigger id={`${fieldId}-font`} className="h-10 rounded-xl">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -1432,8 +1349,8 @@ function CampaignCreativeStudio({
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label className="text-[11px] font-medium text-muted-foreground">
-                          Style
+                        <Label htmlFor={`${fieldId}-style`} className="text-[11px] font-medium text-muted-foreground">
+                          Style<span className="sr-only"> {entry.label}</span>
                         </Label>
                         <Select
                           value={textStyle.style}
@@ -1441,7 +1358,7 @@ function CampaignCreativeStudio({
                             style: style as CampaignCreativeConfig["text"][CampaignCreativeTextElement]["style"],
                           })}
                         >
-                          <SelectTrigger className="h-10 rounded-xl">
+                          <SelectTrigger id={`${fieldId}-style`} className="h-10 rounded-xl">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -1453,11 +1370,12 @@ function CampaignCreativeStudio({
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label className="text-[11px] font-medium text-muted-foreground">
-                          Couleur
+                        <Label htmlFor={`${fieldId}-color`} className="text-[11px] font-medium text-muted-foreground">
+                          Couleur<span className="sr-only"> {entry.label}</span>
                         </Label>
                         <div className="flex h-10 items-center gap-2 rounded-xl border bg-background px-2">
                           <input
+                            id={`${fieldId}-color`}
                             type="color"
                             value={textStyle.color}
                             onChange={(event) => updateTextElement(entry.id, { color: event.target.value })}
@@ -1541,6 +1459,7 @@ function CampaignForm({
   initial?: any;
   onSaved: () => void;
 }) {
+  const formId = useId();
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemo = commercialDemoFrame?.surface === "restaurant";
   const { toast } = useToast();
@@ -1837,7 +1756,7 @@ function CampaignForm({
     const campaignChannels = {
       ...existingChannels,
       ...placementSelection,
-      creative: campaignCreative,
+      creative: normalizeCampaignCreative(campaignCreative),
     };
     const safeTitle = title.trim().slice(0, copyLimit);
     const safeBody = body.trim().slice(0, Math.max(0, copyLimit - safeTitle.length));
@@ -1901,13 +1820,13 @@ function CampaignForm({
       ) : null}
 
       <div className="space-y-2">
-        <Label>Titre</Label>
-        <Input value={title} onChange={(event) => handleTitleChange(event.target.value)} maxLength={copyLimit} required placeholder="Ex: Offre spéciale week-end" />
+        <Label htmlFor={`${formId}-title`}>Titre</Label>
+        <Input id={`${formId}-title`} value={title} onChange={(event) => handleTitleChange(event.target.value)} maxLength={copyLimit} required placeholder="Ex: Offre spéciale week-end" />
       </div>
 
       <div className="space-y-2">
-        <Label>Description</Label>
-        <Textarea value={body} onChange={(event) => handleBodyChange(event.target.value)} maxLength={Math.max(0, copyLimit - title.length)} placeholder="Décrivez le message que verront vos clients..." rows={3} />
+        <Label htmlFor={`${formId}-body`}>Description</Label>
+        <Textarea id={`${formId}-body`} value={body} onChange={(event) => handleBodyChange(event.target.value)} maxLength={Math.max(0, copyLimit - title.length)} placeholder="Décrivez le message que verront vos clients..." rows={3} />
         <p className={cn("text-xs", copyLength >= copyLimit ? "text-primary font-semibold" : "text-muted-foreground")}>
           {copyLength}/{copyLimit} caractères pour ce format.
         </p>
@@ -1926,9 +1845,9 @@ function CampaignForm({
       />
 
       <div className="space-y-2">
-        <Label>Type de campagne</Label>
+        <Label htmlFor={`${formId}-type`}>Type de campagne</Label>
         <Select value={type} onValueChange={setType}>
-          <SelectTrigger>
+          <SelectTrigger id={`${formId}-type`}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -1993,8 +1912,9 @@ function CampaignForm({
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Budget de base (CHF)</Label>
+              <Label htmlFor={`${formId}-budget`}>Budget de base (CHF)</Label>
               <Input
+                id={`${formId}-budget`}
                 type="number"
                 step="0.01"
                 value={totalBudget}
@@ -2003,8 +1923,9 @@ function CampaignForm({
               />
             </div>
             <div className="space-y-2">
-              <Label>Duree (jours)</Label>
+              <Label htmlFor={`${formId}-duration`}>Durée (jours)</Label>
               <Input
+                id={`${formId}-duration`}
                 type="number"
                 min={1}
                 step="1"
@@ -2013,12 +1934,12 @@ function CampaignForm({
               />
             </div>
             <div className="space-y-2">
-              <Label>Date de début</Label>
-              <Input type="date" value={startsAt} onChange={(event) => setStartsAt(event.target.value || getDefaultCampaignStartDate())} />
+              <Label htmlFor={`${formId}-start`}>Date de début</Label>
+              <Input id={`${formId}-start`} type="date" value={startsAt} onChange={(event) => setStartsAt(event.target.value || getDefaultCampaignStartDate())} />
             </div>
             <div className="space-y-2">
-              <Label>Fin calculee</Label>
-              <Input type="date" value={endsAt} readOnly />
+              <Label htmlFor={`${formId}-end`}>Fin calculée</Label>
+              <Input id={`${formId}-end`} type="date" value={endsAt} readOnly />
             </div>
           </div>
 
