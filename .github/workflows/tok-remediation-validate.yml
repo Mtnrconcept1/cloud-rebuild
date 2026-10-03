@@ -1,0 +1,223 @@
+name: TOK remediation validation (one-off)
+on:
+  push:
+    branches: [fix/tok-audit-remediation-20261003]
+    paths: [.github/workflows/tok-remediation-validate.yml]
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated_audit_fixture
+          POSTGRES_DB: tok_audit_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: true
+      NODE_OPTIONS: --max-old-space-size=4096
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: isolated_audit_fixture
+      PGDATABASE: tok_audit_test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 12
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Create isolated candidate from checksummed patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain)"
+          test "$(git branch --show-current)" = "fix/tok-audit-remediation-20261003"
+          mkdir -p "$RUNNER_TEMP/results"
+          git worktree add -b "validation/tok-${GITHUB_RUN_ID}" "$RUNNER_TEMP/tok-candidate" HEAD
+          cd "$RUNNER_TEMP/tok-candidate"
+          test -z "$(git status --porcelain)"
+          cat AGENTS.md > "$RUNNER_TEMP/results/repository-instructions.txt"
+          python - <<'PY'
+          import pathlib,base64,lzma,hashlib,subprocess
+          parts=sorted(pathlib.Path('.github/tok-remediation-transfer').glob('patch-*.b64'))
+          if len(parts)!=4: raise SystemExit('Missing transfer part')
+          patch=lzma.decompress(base64.b64decode(''.join(p.read_text().strip() for p in parts),validate=True))
+          if hashlib.sha256(patch).hexdigest()!='c4c1e44357dc4cb2b5a33b4c620c7f9ddab14befaa2879b76a1d8037f838ceae': raise SystemExit('Candidate checksum mismatch')
+          subprocess.run(['git','apply','--check','-'],input=patch,check=True)
+          subprocess.run(['git','apply','-'],input=patch,check=True)
+          print('Verified and applied source candidate')
+          PY
+      - name: Restore only the 30 reviewed historical migration sources
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        shell: python
+        run: |
+          import os,pathlib,json,hashlib,urllib.request
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'tok-candidate'
+          manifest=json.loads((root/'docs/audits/TOK_RECOVERED_MIGRATIONS_2026-10-03.json').read_text())['migrations']
+          versions=[m['version'] for m in manifest]
+          if len(versions)!=30 or any(not v.isdigit() or len(v)!=14 for v in versions): raise SystemExit('Invalid reviewed manifest')
+          query="select version,name,statements from supabase_migrations.schema_migrations where version in ("+','.join("'"+v+"'" for v in versions)+") order by version"
+          req=urllib.request.Request('https://api.supabase.com/v1/projects/wwcrtyoueexyxkkikaos/database/query',data=json.dumps({'query':query,'read_only':True}).encode(),headers={'Authorization':'Bearer '+os.environ['SUPABASE_ACCESS_TOKEN'],'Content-Type':'application/json'})
+          with urllib.request.urlopen(req,timeout=45) as response: rows=json.load(response)
+          data={r['version']:r for r in rows}
+          for m in manifest:
+            row=data.get(m['version'])
+            if not row or row['name']!=m['name'] or not isinstance(row['statements'],list): raise SystemExit('Source provenance missing')
+            text=';\n'.join(row['statements'])
+            if hashlib.sha256(text.encode()).hexdigest()!=m['sha256']: raise SystemExit('Source provenance changed: '+m['version'])
+            target=root/m['path']
+            if target.exists(): raise SystemExit('Refusing to replace existing historical source')
+            target.write_text(text)
+          print('30 original migration files restored with exact verified SHA-256 values; no production writes')
+      - name: Install existing locked dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable && corepack prepare pnpm@10.28.1 --activate
+          cd "$RUNNER_TEMP/tok-candidate"
+          pnpm install --frozen-lockfile > "$RUNNER_TEMP/results/install.log" 2>&1
+      - name: Prove regression tests fail against baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/tok-candidate"
+          psql -v ON_ERROR_STOP=1 -f scripts/fixtures/tok-audit-schema.sql > "$RUNNER_TEMP/results/sql-fixture.log" 2>&1
+          if psql -v ON_ERROR_STOP=1 -f supabase/tests/tok-audit-runtime-hardening.sql > "$RUNNER_TEMP/results/sql-red.log" 2>&1; then
+            echo 'Baseline unexpectedly passed security regression tests'; exit 1
+          fi
+          grep -q 'ASSERTION:' "$RUNNER_TEMP/results/sql-red.log"
+          mkdir -p "$RUNNER_TEMP/candidate-originals"
+          cp src/components/courier/DeliveryProofPanel.tsx "$RUNNER_TEMP/candidate-originals/DeliveryProofPanel.tsx"
+          cp src/hooks/useSeoMeta.ts "$RUNNER_TEMP/candidate-originals/useSeoMeta.ts"
+          git show 68852d10feab466430e0f70f5e5b6ebfee414a59:src/components/courier/DeliveryProofPanel.tsx > src/components/courier/DeliveryProofPanel.tsx
+          git show 68852d10feab466430e0f70f5e5b6ebfee414a59:src/hooks/useSeoMeta.ts > src/hooks/useSeoMeta.ts
+          set +e
+          pnpm exec vitest run src/test/tok-camera-and-route-meta.test.tsx --maxWorkers=1 > "$RUNNER_TEMP/results/camera-red.log" 2>&1
+          result=$?
+          set -e
+          cp "$RUNNER_TEMP/candidate-originals/DeliveryProofPanel.tsx" src/components/courier/DeliveryProofPanel.tsx
+          cp "$RUNNER_TEMP/candidate-originals/useSeoMeta.ts" src/hooks/useSeoMeta.ts
+          test "$result" -ne 0
+          grep -Eq 'AssertionError|TestingLibraryElementError' "$RUNNER_TEMP/results/camera-red.log"
+          echo 'Observed SQL and UI regressions on the unmodified baseline'
+      - name: Run complete candidate validations and record all outcomes
+        shell: bash
+        run: |
+          set -uo pipefail
+          cd "$RUNNER_TEMP/tok-candidate"
+          run_check() {
+            name="$1"; shift
+            "$@" > "$RUNNER_TEMP/results/$name.log" 2>&1
+            result=$?
+            echo "$name=$result" | tee -a "$RUNNER_TEMP/results/checks.txt"
+            return 0
+          }
+          run_check sql-migration psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql
+          run_check sql-green psql -v ON_ERROR_STOP=1 -f supabase/tests/tok-audit-runtime-hardening.sql
+          run_check sql-idempotent psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql
+          run_check runtime node --test scripts/tok-runtime-regression.test.cjs
+          run_check deployment node --test scripts/tok-deployment-regression.test.mjs scripts/stoppin-venue-seo.test.mjs
+          run_check duplicate-migrations node scripts/ci-migration-content-guard.mjs
+          run_check typecheck pnpm run typecheck
+          run_check lint pnpm run lint
+          run_check tests pnpm exec vitest run --mode production --maxWorkers=2
+          run_check worker-syntax pnpm --filter tok-image-ai-worker syntax
+          run_check worker-tests pnpm --filter tok-image-ai-worker test
+          run_check audit-production pnpm audit --prod --audit-level=high
+          run_check audit-worker pnpm --filter tok-image-ai-worker audit --prod --audit-level=high
+      - name: Build candidate with production settings without deploying
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          cd "$RUNNER_TEMP/tok-candidate"
+          pnpm dlx vercel@55.0.0 pull --yes --environment=production --token="$VERCEL_TOKEN" > "$RUNNER_TEMP/results/vercel-pull.log" 2>&1
+          pull=$?
+          echo "vercel-pull=$pull" >> "$RUNNER_TEMP/results/checks.txt"
+          if test "$pull" -eq 0; then
+            pnpm dlx vercel@55.0.0 build --prod --token="$VERCEL_TOKEN" > "$RUNNER_TEMP/results/build.log" 2>&1
+            echo "build=$?" >> "$RUNNER_TEMP/results/checks.txt"
+          else
+            echo 'build=1' >> "$RUNNER_TEMP/results/checks.txt"
+          fi
+          node - <<'JS' > "$RUNNER_TEMP/results/build-routing.log" 2>&1
+          const fs=require('node:fs');
+          const assert=require('node:assert/strict');
+          const source=JSON.parse(fs.readFileSync('vercel.json','utf8'));
+          assert(!source.bulkRedirectsPath);
+          const out=JSON.parse(fs.readFileSync('.vercel/output/config.json','utf8'));
+          assert(!out.bulkRedirects);
+          const redirects=out.routes.filter(r=>r.status===301 && r.headers?.Location?.includes('/lieu/'));
+          assert(redirects.length>=28,`Missing HTTP redirects in built artifact: ${redirects.length}`);
+          console.log(JSON.stringify({standardSeoRedirects:redirects.length,bulkRedirects:false}));
+          JS
+          echo "build-routing=$?" >> "$RUNNER_TEMP/results/checks.txt"
+      - name: Verify actual production migration plan read-only
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
+        shell: bash
+        run: |
+          set -uo pipefail
+          cd "$RUNNER_TEMP/tok-candidate"
+          node scripts/prepare-migration-workspace.mjs "$RUNNER_TEMP/tok-read-only-plan" > "$RUNNER_TEMP/results/migration-provenance.log" 2>&1
+          preparation=$?
+          echo "migration-provenance=$preparation" >> "$RUNNER_TEMP/results/checks.txt"
+          if test "$preparation" -eq 0; then
+            pnpm exec supabase link --workdir "$RUNNER_TEMP/tok-read-only-plan" --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD" > "$RUNNER_TEMP/results/supabase-link.log" 2>&1
+            linked=$?
+            echo "supabase-link=$linked" >> "$RUNNER_TEMP/results/checks.txt"
+            if test "$linked" -eq 0; then
+              pnpm exec supabase db push --workdir "$RUNNER_TEMP/tok-read-only-plan" --linked --include-all --dry-run --password "$SUPABASE_DB_PASSWORD" > "$RUNNER_TEMP/results/migration-dry-run.log" 2>&1
+              echo "migration-dry-run=$?" >> "$RUNNER_TEMP/results/checks.txt"
+            fi
+          fi
+      - name: Export complete candidate and bounded validation evidence
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/tok-candidate"
+          git add -N .
+          git diff --check > "$RUNNER_TEMP/results/diff-check.log" 2>&1 || echo 'diff-check=1' >> "$RUNNER_TEMP/results/checks.txt"
+          git diff --binary > "$RUNNER_TEMP/results/candidate.patch"
+          git diff --name-only > "$RUNNER_TEMP/results/modified-files.txt"
+          python - <<'PY'
+          import pathlib,os,tarfile,hashlib,json
+          root=pathlib.Path.cwd(); out=pathlib.Path(os.environ['RUNNER_TEMP'])/'results'
+          names=(out/'modified-files.txt').read_text().splitlines()
+          with tarfile.open(out/'complete-modified-files.tgz','w:gz') as archive:
+            for name in names:
+              if (root/name).is_file(): archive.add(root/name,arcname=name)
+          (out/'candidate-hashes.json').write_text(json.dumps({name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in names if (root/name).is_file()},indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: tok-remediation-validation-${{ github.run_id }}
+          path: ${{ runner.temp }}/results/
+          retention-days: 3
+      - name: Require successful evidence without publishing incomplete code
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat "$RUNNER_TEMP/results/checks.txt"
+          ! grep -Ev '^[a-z-]+=0$' "$RUNNER_TEMP/results/checks.txt"
+          grep -q '^migration-dry-run=0$' "$RUNNER_TEMP/results/checks.txt"
+          echo 'All recorded validations passed. Candidate remains isolated until reviewed.'
