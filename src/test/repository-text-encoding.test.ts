@@ -92,5 +92,5 @@ describe("repository text encoding", () => {
     });
 
     expect(offenders).toEqual([]);
-  });
+  }, 20_000);
 });

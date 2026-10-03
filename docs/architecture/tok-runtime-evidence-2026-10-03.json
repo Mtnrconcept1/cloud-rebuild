@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "observedOn": "2026-10-03",
+  "source": "Supabase CLI read-only inspection",
+  "production": {
+    "projectRef": "wwcrtyoueexyxkkikaos",
+    "migrationsAligned": 518,
+    "publicSchema": {
+      "tables": 335,
+      "views": 4,
+      "rpcNames": 558,
+      "enums": 3
+    },
+    "edgeFunctions": {
+      "repository": 114,
+      "active": 118,
+      "missingFromRuntime": [],
+      "runtimeOnly": [
+        "print-sandbox-diagnose",
+        "recover-thefork-source-archive",
+        "tok-image-truth-probe",
+        "tok-places-coverage-probe"
+      ]
+    }
+  },
+  "demo": {
+    "projectRef": "hzldfhjfgjcadmpghhhf",
+    "edgeFunctions": {
+      "repository": 114,
+      "active": 114,
+      "missingFromRuntime": [],
+      "runtimeOnly": []
+    }
+  },
+  "committedSupabaseContract": {
+    "path": "src/integrations/supabase/types.ts",
+    "tables": 140,
+    "views": 0,
+    "rpcNames": 85,
+    "enums": 3
+  }
+}

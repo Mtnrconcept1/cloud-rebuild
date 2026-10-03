@@ -34,6 +34,12 @@ const FULL_SUITE_FILES = new Set([
   "scripts/release-readiness.mjs",
   "scripts/write-production-env.mjs",
   "scripts/write-supabase-secrets-env.mjs",
+  "docs/architecture/TOK_APPLICATION_REFERENCE.md",
+  "docs/architecture/tok-application-search-index.json",
+  "scripts/application-index-core.mjs",
+  "scripts/generate-application-index.mjs",
+  "scripts/search-application-index.mjs",
+  "src/test/application-search-index.test.ts",
 ]);
 
 const FRONTEND_ROOT_FILES = new Set([
@@ -246,7 +252,7 @@ export function buildChangePlan(rawFiles, options = {}) {
   const runBuild = fullSuite || deployFrontend;
   const dependencyAudit = dependencies || forceFull;
   const installRequired =
-    dependencyAudit || runLint || runTypecheck || runBuild || runTests || runWorkerTests;
+    docsOnly || dependencyAudit || runLint || runTypecheck || runBuild || runTests || runWorkerTests;
   const hasDeployableChanges =
     deployFrontend || deployDatabase || functionImpact.deployFunctions || syncSupabaseSecrets;
 
