@@ -1,0 +1,70 @@
+diff --git a/scripts/apply-commercial-demo-migrations.mjs b/scripts/apply-commercial-demo-migrations.mjs
+--- a/scripts/apply-commercial-demo-migrations.mjs
++++ b/scripts/apply-commercial-demo-migrations.mjs
+@@ -221,28 +221,31 @@
+   return "applied";
+ }
+ 
++export function readDemoMigrationDiff({ baseSha, headSha, checkOnly, runGit = git }) {
++  if (!COMMIT_SHA.test(headSha) || (baseSha ? !COMMIT_SHA.test(baseSha) : !checkOnly)) {
++    throw new Error("Demo migration base and head must be full Git commit SHAs.");
++  }
++  // A first deployment has no successful baseline. Inspect all tracked demo
++  // migrations read-only rather than silently skipping them or blocking forever.
++  if (!baseSha) {
++    return runGit(["ls-tree", "-r", "--name-only", headSha, "--", MIGRATION_DIRECTORY])
++      .split("\n").filter(Boolean).map(file => `A\t${file}`).join("\n");
++  }
++  return runGit(["diff", "--name-status", "--diff-filter=ACDMRTUXB", baseSha, headSha, "--", MIGRATION_DIRECTORY]);
++}
++
+ export async function main() {
+   const token = requireEnv("SUPABASE_ACCESS_TOKEN");
+   const projectRef = requireEnv("COMMERCIAL_DEMO_PROJECT_REF");
+-  const baseSha = requireEnv("DEMO_MIGRATION_BASE_SHA");
++  const checkOnly = process.argv.includes("--check");
++  const baseSha = checkOnly ? String(process.env.DEMO_MIGRATION_BASE_SHA || "").trim() : requireEnv("DEMO_MIGRATION_BASE_SHA");
+   const headSha = requireEnv("DEMO_MIGRATION_HEAD_SHA");
+-
+-  if (!COMMIT_SHA.test(baseSha) || !COMMIT_SHA.test(headSha)) {
++  if (!COMMIT_SHA.test(headSha) || (baseSha && !COMMIT_SHA.test(baseSha))) {
+     throw new Error("Demo migration base and head must be full Git commit SHAs.");
+   }
+-
+-  ensureCommitAvailable(baseSha);
++  if (baseSha) ensureCommitAvailable(baseSha);
+   ensureCommitAvailable(headSha);
+-
+-  const diff = git([
+-    "diff",
+-    "--name-status",
+-    "--diff-filter=ACDMRTUXB",
+-    baseSha,
+-    headSha,
+-    "--",
+-    MIGRATION_DIRECTORY,
+-  ]);
++  const diff = readDemoMigrationDiff({ baseSha, headSha, checkOnly });
+   const migrations = parseAddedDemoMigrations(diff);
+ 
+   if (migrations.length === 0) {
+diff --git a/scripts/tok-deployment-regression.test.mjs b/scripts/tok-deployment-regression.test.mjs
+--- a/scripts/tok-deployment-regression.test.mjs
++++ b/scripts/tok-deployment-regression.test.mjs
+@@ -39,3 +39,16 @@
+  assert.throws(()=>planMigrationHistory([a,b],[{...remote[0],statements:['select 2;']}],[alias]),/PROVENANCE_MISMATCH/);
+  assert.deepEqual(planMigrationHistory([a,b],[],[alias]).excluded,[]);
+ });
++
++test('first deployment can inspect every demo migration without a baseline',async()=>{
++ const {readDemoMigrationDiff}=await import('./apply-commercial-demo-migrations.mjs');
++ const head='a'.repeat(40);const calls=[];
++ const diff=readDemoMigrationDiff({baseSha:'',headSha:head,checkOnly:true,runGit:args=>{calls.push(args);return 'supabase/demo-migrations/20261001000000_first.sql\n';}});
++ assert.equal(diff,'A\tsupabase/demo-migrations/20261001000000_first.sql');
++ assert.equal(calls[0][0],'ls-tree');
++ assert.throws(()=>readDemoMigrationDiff({baseSha:'',headSha:head,checkOnly:false,runGit:()=>''}),/base and head/);
++});
++test('invalid demo revision is rejected even during read-only preflight',async()=>{
++ const {readDemoMigrationDiff}=await import('./apply-commercial-demo-migrations.mjs');
++ assert.throws(()=>readDemoMigrationDiff({baseSha:'',headSha:'HEAD',checkOnly:true,runGit:()=>''}),/base and head/);
++});
