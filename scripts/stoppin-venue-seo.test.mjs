@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { test } from "node:test";
 
 import { coordinate, dedupeVenuesByPlace, normalizedVenueName } from "./lib/stoppin-venue-dedupe.mjs";
@@ -119,6 +120,26 @@ test("emits a real 301 only to an indexable self-canonical HTML page", async (t)
   const redirects = await applyVenueRedirects(f.root);
   assert.deepEqual(redirects, ["/restaurants-pres/old", "/restaurants-pres/old/"].map((source) => ({ source, destination: "/restaurants-pres/canonical", statusCode: 301, caseSensitive: true, preserveQueryParams: true })));
   assert.deepEqual(JSON.parse(await readFile(f.output, "utf8")), redirects);
+});
+
+test("middleware serves generated aliases as same-origin 301s and leaves other routes untouched", async (t) => {
+  const f = await fixture(t, { old: "canonical", hidden: "missing" });
+  await f.addPage("canonical");
+  await applyVenueRedirects(f.root);
+  await writeFile(path.join(f.root, "package.json"), '{"type":"module"}');
+  await writeFile(path.join(f.root, "middleware.js"), await readFile(new URL("../middleware.js", import.meta.url)));
+  const { default: middleware, config } = await import(pathToFileURL(path.join(f.root, "middleware.js")).href);
+  assert.equal(config.matcher, "/restaurants-pres/:path*");
+  for (const method of ["GET", "HEAD"]) {
+    for (const suffix of ["", "/"]) {
+      const response = middleware(new Request(`${origin}/restaurants-pres/old${suffix}?utm_source=test&x=%2F`, { method }));
+      assert.equal(response.status, 301);
+      assert.equal(response.headers.get("location"), `${origin}/restaurants-pres/canonical?utm_source=test&x=%2F`);
+    }
+  }
+  for (const pathname of ["/restaurants-pres/canonical", "/restaurants-pres/hidden", "/restaurants-pres/OLD", "/restaurants-pres/old/extra", "/api/marketing/session", "/dashboard/campagnes", "/commercial/prospection"]) {
+    assert.equal(middleware(new Request(`${origin}${pathname}`)), undefined);
+  }
 });
 test("does not redirect to missing, noindex, refresh or noncanonical pages", async (t) => {
   const f = await fixture(t, { a: "missing", b: "hidden", c: "other", d: "refresh" });

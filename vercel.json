@@ -7,7 +7,6 @@
   "buildCommand": "pnpm run build:prod",
   "devCommand": "pnpm run dev",
   "outputDirectory": "dist",
-  "bulkRedirectsPath": ".vercel/stoppin-venue-redirects.json",
   "redirects": [
     {
       "source": "/",
