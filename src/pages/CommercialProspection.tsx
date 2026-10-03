@@ -616,6 +616,7 @@ function CommercialProspectionMap({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
   const fitSignatureRef = useRef<string | null>(null);
+  const [hasTileError, setHasTileError] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -626,13 +627,29 @@ function CommercialProspectionMap({
       scrollWheelZoom: true,
     });
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
+    const failedTiles = new Set<HTMLElement>();
+    const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      // OSM requires a Referer. Override the private host's no-referrer policy
+      // for tiles only, without disclosing a route, query or authentication data.
+      referrerPolicy: "strict-origin",
+      updateWhenIdle: true,
+    });
+    tiles.on("tileerror", (event: L.TileErrorEvent) => {
+      event.tile.style.visibility = "hidden";
+      failedTiles.add(event.tile);
+      setHasTileError(true);
+    });
+    tiles.on("tileload tileunload", (event: L.TileEvent) => {
+      failedTiles.delete(event.tile);
+      setHasTileError(failedTiles.size > 0);
+    });
+    tiles.addTo(map);
 
     mapInstanceRef.current = map;
 
     return () => {
+      tiles.off();
       map.remove();
       mapInstanceRef.current = null;
       markerLayerRef.current = null;
@@ -739,10 +756,18 @@ function CommercialProspectionMap({
   }, [followupsByObjectId, onOpenDetails, prospects, selectedObjectId]);
 
   return (
-    <div
-      ref={mapRef}
-      className="relative isolate z-0 h-[58vh] min-h-[420px] w-full overflow-hidden rounded-[28px] border border-slate-200 shadow-[0_22px_70px_rgba(15,23,42,0.16)] dark:border-white/10 md:h-[calc(100vh-12rem)]"
-    />
+    <div className="min-w-0 space-y-3">
+      {hasTileError ? (
+        <p role="status" className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+          Le fond de carte est temporairement indisponible. Les repères et la recherche de restaurants restent accessibles. Réessayez plus tard.
+        </p>
+      ) : null}
+      <div
+        ref={mapRef}
+        aria-label="Carte de prospection commerciale"
+        className="relative isolate z-0 h-[58vh] min-h-[420px] w-full overflow-hidden rounded-[28px] border border-slate-200 shadow-[0_22px_70px_rgba(15,23,42,0.16)] dark:border-white/10 md:h-[calc(100vh-12rem)]"
+      />
+    </div>
   );
 }
 
@@ -1774,4 +1799,3 @@ export default function CommercialProspection() {
     </>
   );
 }
-
