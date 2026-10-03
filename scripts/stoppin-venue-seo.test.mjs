@@ -171,6 +171,7 @@ test("a missing manifest replaces stale output with an empty redirect list", asy
   await rm(path.join(f.dist, "stoppin-venue-aliases.json"));
   assert.deepEqual(await applyVenueRedirects(f.root), []);
   assert.equal(await readFile(f.output, "utf8"), "[]\n");
+  assert.equal(await readFile(f.output.replace(/\.json$/, ".mjs"), "utf8"), "export default [];\n");
 });
 test("a malformed manifest fails the build before deleting existing HTML", async (t) => {
   const f = await fixture(t);
