@@ -1,0 +1,75 @@
+name: TOK full audit evidence (one-off)
+'on':
+  push:
+    branches: ['audit/tok-full-20261003']
+    paths: ['.github/workflows/tok-full-audit.yml']
+permissions:
+  contents: read
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout the merged security revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: 68852d10feab466430e0f70f5e5b6ebfee414a59
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Collect source inventory without production credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          git status --short --branch
+          git worktree add --detach "$RUNNER_TEMP/tok-audit-source" HEAD
+          cd "$RUNNER_TEMP/tok-audit-source"
+          test "$(git rev-parse HEAD)" = 68852d10feab466430e0f70f5e5b6ebfee414a59
+          python3 - <<'PY'
+          import collections, hashlib, json, os, pathlib, subprocess, zipfile
+          root = pathlib.Path.cwd()
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'tok-audit-evidence'
+          out.mkdir(exist_ok=True)
+          records = []
+          hashes = collections.defaultdict(list)
+          excluded = []
+          with zipfile.ZipFile(out / 'source-text.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+              for row in subprocess.check_output(['git', 'ls-files', '-s', '-z']).decode().split('\0'):
+                  if not row:
+                      continue
+                  descriptor, filename = row.split('\t', 1)
+                  mode, blob, stage = descriptor.split()
+                  path = root / filename
+                  if mode != '100644' and mode != '100755':
+                      continue
+                  data = path.read_bytes()
+                  digest = hashlib.sha256(data).hexdigest()
+                  hashes[digest].append(filename)
+                  item = {'path': filename, 'mode': mode, 'git_blob': blob, 'bytes': len(data), 'sha256': digest}
+                  records.append(item)
+                  sensitive = (path.name.startswith('.env') and path.name != '.env.example') or path.suffix in {'.pem', '.key', '.p12', '.db', '.sqlite'} or path.name.startswith('service-account')
+                  if sensitive or len(data) > 5000000 or b'\0' in data:
+                      excluded.append(filename)
+                      continue
+                  try:
+                      text = data.decode('utf-8')
+                  except UnicodeDecodeError:
+                      excluded.append(filename)
+                      continue
+                  item['lines'] = text.count('\n') + 1
+                  archive.writestr(filename, data)
+          (out / 'inventory.json').write_text(json.dumps(records, ensure_ascii=False, indent=2))
+          duplicates = [names for names in hashes.values() if len(names) > 1]
+          (out / 'exact-duplicates.json').write_text(json.dumps(duplicates, ensure_ascii=False, indent=2))
+          (out / 'excluded-source-paths.json').write_text(json.dumps(excluded, ensure_ascii=False, indent=2))
+          provenance = {'source_sha': subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip(), 'git_dir': subprocess.check_output(['git', 'rev-parse', '--git-dir']).decode().strip(), 'git_common_dir': subprocess.check_output(['git', 'rev-parse', '--git-common-dir']).decode().strip(), 'status': subprocess.check_output(['git', 'status', '--porcelain']).decode(), 'files': len(records), 'duplicate_groups': len(duplicates)}
+          (out / 'provenance.json').write_text(json.dumps(provenance, indent=2))
+          print(json.dumps(provenance))
+          print('Evidence SHA256:', hashlib.sha256((out / 'source-text.zip').read_bytes()).hexdigest())
+          PY
+      - name: Preserve bounded source and metadata for the authorized audit
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tok-full-audit-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/tok-audit-evidence/
+          retention-days: 3
+          if-no-files-found: error
