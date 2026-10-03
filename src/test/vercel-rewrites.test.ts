@@ -266,6 +266,10 @@ describe("vercel config", () => {
     expect(workflow).toContain('--env "SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY"');
     expect(workflow).toContain('--env "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY"');
     expect(workflow).toContain("tar -czf \"$RUNNER_TEMP/vercel-output.tgz\"");
+    expect(workflow).toContain("test -s .vercel/stoppin-venue-redirects.json");
+    expect(workflow).toMatch(
+      /tar -czf "\$RUNNER_TEMP\/vercel-output\.tgz" \\\s+\.vercel\/output \\\s+\.vercel\/project\.json \\\s+\.vercel\/stoppin-venue-redirects\.json/,
+    );
     expect(workflow).toContain("actions/upload-artifact@v4");
     expect(workflow).toContain("actions/download-artifact@v5");
     expect(workflow).toContain("deploy_frontend:");

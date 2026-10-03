@@ -237,7 +237,14 @@ jobs:
         run: pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --prod --token="$VERCEL_TOKEN"
 
       - name: Package prebuilt Vercel output
-        run: tar -czf "$RUNNER_TEMP/vercel-output.tgz" .vercel/output .vercel/project.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s .vercel/stoppin-venue-redirects.json || (echo "::error::Missing generated Vercel bulk redirects." && exit 1)
+          tar -czf "$RUNNER_TEMP/vercel-output.tgz" \
+            .vercel/output \
+            .vercel/project.json \
+            .vercel/stoppin-venue-redirects.json
 
       - name: Upload prebuilt Vercel output
         uses: actions/upload-artifact@v4
