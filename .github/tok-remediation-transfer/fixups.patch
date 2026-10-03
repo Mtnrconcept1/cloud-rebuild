@@ -1,0 +1,8 @@
+diff --git a/supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql b/supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql
+--- a/supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql
++++ b/supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql
+@@ -273,3 +273,3 @@
+ END;
+-$function$
++$function$;
+ 
