@@ -43,11 +43,20 @@ describe("marketing outreach assistance", () => {
   it("blocks unsafe targets and restricts backlink destinations to TheTOK", () => {
     expect(migration).toContain("marketing_validate_outreach_url");
     expect(migration).toContain("localhost");
-    expect(migration).toContain("127[.]");
+    // The SQL uses [.] to match a literal dot, not the wildcard operator.
+    const privateHostPattern = migration.match(/v_host ~ '(\^\(10\[\.\][^']+)'/);
+    expect(privateHostPattern).not.toBeNull();
+    const privateHost = new RegExp(privateHostPattern![1]);
+    for (const address of ["127.0.0.1", "127.255.1.2", "10.1.2.3", "169.254.1.2", "192.168.1.1", "172.16.0.1", "172.31.255.254"]) {
+      expect(privateHost.test(address)).toBe(true);
+    }
+    for (const address of ["8.8.8.8", "172.15.0.1", "172.32.0.1"]) {
+      expect(privateHost.test(address)).toBe(false);
+    }
     expect(migration).toContain("Private or local outreach target is not allowed");
     expect(migration).toContain("^https://(www[.])?thetok[.]ch(/|$)");
     expect(migration).toContain("OR NOT (");
-    expect(migration).toContain("rel IN ('follow', 'nofollow', 'sponsored', 'ugc')");
+    expect(migration).toMatch(/rel IN \('follow',\s*'nofollow',\s*'sponsored',\s*'ugc'\)/);
     expect(migration).toContain("Publication automatique désactivée");
   });
 

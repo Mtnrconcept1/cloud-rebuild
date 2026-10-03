@@ -11,7 +11,7 @@ TOK est une plateforme suisse pour la decouverte de restaurants, la commande, la
 - Vercel pour le frontend
 - Capacitor pour les builds mobiles
 - pnpm `10.28.1`
-- Node.js `22`
+- Node.js `22` (minimum `22.12.0`, requis par les outils de capture)
 
 ## URLs de reference
 
@@ -27,6 +27,8 @@ corepack enable
 corepack prepare pnpm@10.28.1 --activate
 pnpm install
 ```
+
+Le verrouillage de référence est `pnpm-lock.yaml`. Ne pas générer de `package-lock.json` à la racine. Le worker autonome conserve son verrouillage npm pour son image Docker.
 
 ## Commandes principales
 

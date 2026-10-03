@@ -1,0 +1,97 @@
+{
+  "version": 2,
+  "updates": [
+    {
+      "package-ecosystem": "npm",
+      "directories": [
+        "/",
+        "/workers/image-ai-worker"
+      ],
+      "schedule": {
+        "interval": "weekly",
+        "day": "monday",
+        "time": "06:00",
+        "timezone": "Europe/Zurich"
+      },
+      "open-pull-requests-limit": 5,
+      "groups": {
+        "security-vitest": {
+          "applies-to": "security-updates",
+          "patterns": [
+            "vitest",
+            "@vitest/*"
+          ]
+        },
+        "security-production": {
+          "applies-to": "security-updates",
+          "dependency-type": "production",
+          "patterns": [
+            "*"
+          ]
+        },
+        "security-development": {
+          "applies-to": "security-updates",
+          "dependency-type": "development",
+          "patterns": [
+            "*"
+          ],
+          "exclude-patterns": [
+            "vitest",
+            "@vitest/*"
+          ]
+        },
+        "maintenance-production": {
+          "applies-to": "version-updates",
+          "dependency-type": "production",
+          "patterns": [
+            "*"
+          ],
+          "update-types": [
+            "minor",
+            "patch"
+          ]
+        },
+        "maintenance-development": {
+          "applies-to": "version-updates",
+          "dependency-type": "development",
+          "patterns": [
+            "*"
+          ],
+          "update-types": [
+            "minor",
+            "patch"
+          ]
+        }
+      }
+    },
+    {
+      "package-ecosystem": "github-actions",
+      "directory": "/",
+      "schedule": {
+        "interval": "weekly",
+        "day": "monday",
+        "time": "06:30",
+        "timezone": "Europe/Zurich"
+      },
+      "open-pull-requests-limit": 2,
+      "groups": {
+        "security-actions": {
+          "applies-to": "security-updates",
+          "patterns": [
+            "*"
+          ]
+        },
+        "maintenance-actions": {
+          "applies-to": "version-updates",
+          "patterns": [
+            "*"
+          ],
+          "update-types": [
+            "minor",
+            "patch"
+          ]
+        }
+      }
+    }
+  ]
+}

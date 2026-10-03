@@ -10,6 +10,7 @@ const featureState = vi.hoisted(() => ({
 
 vi.mock("@/lib/featureFlags", () => ({
   useActiveFeatures: () => featureState.activeFeatures,
+  useFeatureFlags: () => ({ flags: [], loading: false, setFlagState: vi.fn() }),
 }));
 
 vi.mock("@/lib/auth-context", () => ({

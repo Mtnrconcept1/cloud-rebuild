@@ -44,7 +44,7 @@ describe("phase 1 launch audit plan readiness", () => {
     expect(validationWorkflow).not.toMatch(/NODE_VERSION:\s*24/);
     expect(deployWorkflow).toMatch(/NODE_VERSION:\s*22/);
     expect(deployWorkflow).toMatch(/SUPABASE_CLI_VERSION:\s*2\.102\.0/);
-    expect(pkg.engines.node).toBe(">=22.0.0");
+    expect(pkg.engines.node).toBe(">=22.12.0");
     expect(pkg.engines.pnpm).toBe(">=10.28.1");
     expect(pkg.packageManager).toBe("pnpm@10.28.1");
     expect(docs).toContain("Supabase CLI 2.102.0");
