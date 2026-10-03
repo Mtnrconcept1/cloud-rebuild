@@ -39,7 +39,9 @@ describe("commercial prospecting surface", () => {
     const chromeSource = readFileSync(resolve(process.cwd(), "src/components/commercial/CommercialWorkspaceChrome.tsx"), "utf8");
     const dataSource = readFileSync(resolve(process.cwd(), "src/data/genevaCommercialProspects.ts"), "utf8");
 
-    expect(pageSource).toContain("tile.openstreetmap.org");
+    expect(pageSource).toContain('L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png"');
+    expect(pageSource).toContain('referrerPolicy: "strict-origin"');
+    expect(pageSource).not.toContain("{s}.tile.openstreetmap.org");
     expect(pageSource).toContain("commercial_prospect_followups");
     expect(pageSource).toContain("source_objectid");
     expect(pageSource).toContain("fetchGenevaCommercialProspects");
