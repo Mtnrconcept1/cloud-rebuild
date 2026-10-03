@@ -1,0 +1,51 @@
+name: TOK finalisation source recovery
+on:
+  push:
+    branches: [fix/tok-audit-remediation-20261003]
+    paths: [.github/workflows/tok-finalisation-snapshot.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 32
+          persist-credentials: false
+      - name: Capture immutable Git objects without credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain)"
+          test "$(git branch --show-current)" = "fix/tok-audit-remediation-20261003"
+          git fetch --no-tags origin b78debfda01f1e2eb9fd90c3b26563a94b3f0048
+          git update-ref refs/remotes/origin/audited-main FETCH_HEAD
+          git config --local --get-regexp 'extraheader|credential' && exit 1 || true
+          mkdir -p "$RUNNER_TEMP/recovered"
+          git show b78debfda01f1e2eb9fd90c3b26563a94b3f0048:AGENTS.md > "$RUNNER_TEMP/recovered/AGENTS.md"
+          git log -12 --oneline b78debfda01f1e2eb9fd90c3b26563a94b3f0048 > "$RUNNER_TEMP/recovered/history.txt"
+          tar -czf "$RUNNER_TEMP/recovered/git-objects.tgz" .git
+          git archive b78debfda01f1e2eb9fd90c3b26563a94b3f0048 | gzip > "$RUNNER_TEMP/recovered/current-source.tgz"
+      - uses: actions/download-artifact@v4
+        with:
+          name: tok-remediation-recheck-37100913713
+          run-id: 37100913713
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/recovered/prior-candidate
+      - name: Verify recovered patch
+        shell: python
+        run: |
+          import os,pathlib,hashlib,json
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'recovered'
+          p=root/'prior-candidate/candidate.patch'
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='639ffd8f05a1763024cc0e2b860710e737f06efb91983d0d8b5c9e34e03d4966'
+          (root/'provenance.json').write_text(json.dumps({'main':'b78debfda01f1e2eb9fd90c3b26563a94b3f0048','candidatePatchSha256':hashlib.sha256(p.read_bytes()).hexdigest(),'sourceWorkflow':os.environ['GITHUB_SHA'],'productionModified':False},indent=2))
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: tok-finalisation-source-${{ github.run_id }}
+          path: ${{ runner.temp }}/recovered/
+          retention-days: 3
