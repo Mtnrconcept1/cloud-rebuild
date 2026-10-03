@@ -12,11 +12,6 @@ ignoredBuiltDependencies:
   - protobufjs
   - puppeteer
 
-overrides:
-  protobufjs: 7.6.5
-  ws: 8.21.0
-  brace-expansion: ">=1.1.16"
-
 allowBuilds:
   "@firebase/util": false
   "@swc/core": true

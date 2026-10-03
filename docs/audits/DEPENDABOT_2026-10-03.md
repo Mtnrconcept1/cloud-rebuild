@@ -1,111 +1,78 @@
-# Audit des dépendances et réglages Dependabot — 3 octobre 2026
+# Remédiation des dépendances TOK — 3 octobre 2026
 
-## Résultat et limites
+## Résultat vérifié
 
-Dépôt : `Mtnrconcept1/cloud-rebuild`. Révision analysée : `9e7d9c8989142539f0223e6b3e0b66ccda29cc2e`.
+Dépôt `Mtnrconcept1/cloud-rebuild`, PR #690, branche `fix/dependabot-audit-20261003`.
+Validation isolée : exécution GitHub Actions 37094866166, depuis 80271e03727623b0ed50022bac8fd57b8c9b9940 avec modifications candidates contrôlées par empreintes SHA-256.
 
-**L’analyse du fichier `pnpm-lock.yaml` a retourné 54 avis GHSA distincts concernant 18 noms de paquets : 28 élevés, 21 modérés et 5 faibles. Aucun avis critique n’a été retourné dans ce périmètre.**
+- Avant : **54 GHSA distincts** dans le graphe pnpm.
+- Après : **1 GHSA distinct**, celui de `braces@3.0.3`, toujours visible dans l’audit officiel.
+- Dépendances de production : **zéro vulnérabilité signalée** par `pnpm audit --prod`.
+- Worker autonome : **zéro vulnérabilité signalée** par `npm audit --package-lock-only`.
+- Tests applicatifs : **2610 réussites, zéro échec**.
 
-Ce nombre n’est PAS le nombre d’alertes privées affiché dans l’onglet Dependabot. Le connecteur utilisé ne fournit ni la lecture de cet onglet ni les actions d’administration permettant de vérifier ou modifier les interrupteurs de sécurité du dépôt. L’absence du fichier dependabot.yml ne prouve pas que les alertes ou mises à jour de sécurité sont désactivées.
+Ce n’est pas un export de l’onglet privé Dependabot ni une preuve d’absence de toutes les failles applicatives. Les alertes de `main` ne seront recalculées sur le nouveau graphe qu’après fusion. **Aucune fusion ni mise en production n’est effectuée par cette remédiation.**
 
-Méthode : lecture complète du verrouillage pnpm à la révision ci-dessus, extraction de la section `packages`, puis requête en lecture seule vers l’API publique npm `POST https://registry.npmjs.org/-/npm/v1/security/advisories/bulk`. Inventaire envoyé : 807 noms de paquets, 848 versions. Réponse : 60 entrées brutes, dédupliquées par GHSA en 54 avis. Certains avis sont répétés pour plusieurs branches de version ou pour Vitest et son module mocker. L’exception locale d’audit n’a pas été appliquée à cette requête.
+## Corrections
 
-Cette opération n’est pas une exécution de `pnpm audit`, un test d’intrusion ou une preuve d’exploitation. La présence d’un paquet dans le verrouillage ne démontre pas que son code vulnérable est livré au navigateur ou exécuté côté serveur.
+React Router passe à 7.18.4, Vitest à 4.1.11 et Puppeteer à 25.12.0. React 18 et Vite 6 sont conservés. Node 22.12.0 devient le minimum déclaré pour supporter Puppeteer ; la validation utilise Node 22.23.3.
 
-Les fichiers `package-lock.json`, `workers/image-ai-worker/package-lock.json` et `deno.lock` ont été repérés, mais n’ont pas été intégralement audités. La configuration des dépendances des workflows est couverte par le réglage proposé ; leurs versions n’ont pas été incluses dans les 54 avis. Les autorisations applicatives, RLS, secrets et paiements sont hors du périmètre de ce contrôle des dépendances.
+Puppeteer 25 remplace sa chaîne d’extraction : `extract-zip`, qui n’a pas de correctif publié, est absent du nouveau verrouillage. Les APIs de sélection, clic et capture PNG sont vérifiées dans un véritable navigateur avec une page de test locale, sans requête de production.
 
-## Changements de ce correctif
+Les dépendances indirectes sont corrigées par contraintes ciblées compatibles : gRPC 1.13.6, xmldom 0.8.15, humanfs 0.16.8, undici 7.30.0, js-yaml 4.3.2, nanoid 3.3.19, tar 7.5.22, browserslist 4.29.3 et autres bornes documentées dans `package.json`. Les branches majeures de brace-expansion sont contraintes séparément. Les overrides sont centralisés dans le manifeste ; aucun contournement de l’audit n’est ajouté.
 
-1. Ajout de `.github/dependabot.yml` couvrant npm à la racine et dans `workers/image-ai-worker`, ainsi que les dépendances des workflows GitHub Actions existants. Aucun nouveau workflow n’est ajouté.
-2. Groupes de sécurité distincts pour les bibliothèques de production, les outils de développement et la famille Vitest. Les mises à jour majeures nécessaires à la sécurité ne sont pas exclues et ne sont pas fusionnées automatiquement.
-3. Maintenance ordinaire hebdomadaire, le lundi à 06:00 / 06:30 Europe/Zurich ; plafond de 5 PR npm et 2 PR Actions pour les mises à jour de version. Ces plafonds et cette cadence ne sont pas présentés comme une restriction des mises à jour de sécurité.
-4. Retrait de l’exception `GHSA-qwww-vcr4-c8h2` de `pnpm-workspace.yaml`. Cela rétablit sa visibilité dans l’audit ; cela ne corrige PAS React Router. Toutes les autres valeurs du workspace, dont overrides et autorisations de compilation, sont préservées.
-5. Ajout de neuf tests natifs Node pour protéger cette politique. La configuration utilise la représentation JSON, compatible YAML, afin de pouvoir être vérifiée sans installer un parseur supplémentaire. Ces tests ne remplacent pas un audit des dépendances et doivent être lancés explicitement ; aucun nouveau job CI n’a été ajouté pour les exécuter.
+Le verrouillage pnpm est régénéré avec pnpm 10.28.1. Les trois métadonnées de dépendances correspondantes dans `deno.lock` sont synchronisées, sans modifier les URLs distantes ni leurs empreintes. Le `package-lock.json` racine inutilisé est supprimé après vérification que README, Vercel et la CI emploient pnpm. **Le verrouillage npm du worker est conservé**, car son Dockerfile utilise réellement npm ci. Supprimer un ancien verrouillage ne remplace pas les corrections du graphe actif, qui ont été effectuées et auditées séparément.
 
-**Aucune dépendance n’a été mise à jour dans ce correctif. Aucun fichier de verrouillage n’a été modifié. Aucun avis n’a été fermé dans GitHub. La configuration proposée doit être fusionnée avant de devenir active sur la branche par défaut ; les interrupteurs de sécurité GitHub doivent aussi être vérifiés séparément.**
+## Cas `braces` : atténuation locale, alerte amont conservée
 
-## Inventaire des paquets signalés
+L’avis GHSA-vfj7-8cjw-p6xm reste associé à la version publiée 3.0.3. Un patch pnpm versionné limite la profondeur de l’arbre à 128 nœuds avant les traitements récursifs. Il couvre les accolades, parenthèses, imbrications mixtes et groupes non fermés. Les délimiteurs échappés, cités et entre crochets restent acceptés.
 
-Les bornes ci-dessous viennent des plages vulnérables ou des correctifs indiqués par les avis. Elles ne constituent pas une attestation d’installation, de disponibilité npm pour chaque borne, ni de compatibilité avec TOK. Conserver les branches majeures compatibles et régénérer les verrouillages avec le gestionnaire du projet.
+Les tests comportementaux sont exécutés contre la dépendance réellement installée : six échecs attendus avant correction, puis huit réussites, auxquelles s’ajoutent les neuf contrôles de politique Dependabot. Leur wrapper fait maintenant partie de la suite Vitest standard.
 
-| Paquet | Version(s) concernée(s) dans pnpm | Problème | Orientation de correction |
-|---|---|---|---|
-| `@grpc/grpc-js` | 1.9.16 | Certificats non autorisés dans getAuthContext sous certaines configurations ; fuite de messages d’erreur. | 1.13.6 (dans la branche 1.13) |
-| `@humanfs/node` | 0.16.7 | Copie de fichiers suivant des liens symboliques hors du répertoire source. | 0.16.8 |
-| `@vitest/mocker` | 3.2.6 | Lecture arbitraire de fichiers par les mocks de redirection, sous les conditions décrites par l’avis. | 4.1.11 ; migration à tester |
-| `@xmldom/xmldom` | 0.8.13 | Injections XML, acceptation de documents mal formés et consommation excessive de CPU/mémoire. | Version hors des plages ≤ 0.8.14 ; disponibilité et compatibilité à vérifier |
-| `baseline-browser-mapping` | 2.10.18 | Arrêt du processus sur entrée invalide. | 2.11.0 |
-| `basic-ftp` | 5.3.1 | Temps CPU quadratique lors de l’analyse de listes de répertoires Unix. | La plage signalée inclut ≤ 6.2.0 ; correctif publié à vérifier |
-| `brace-expansion` | 1.1.16 et 5.0.7 | Débordement de pile, expansion non bornée et saturation CPU/mémoire. | Bornes 1.1.21 / 5.0.12 selon la branche ; publication à vérifier |
-| `braces` | 3.0.3 | Débordement de pile sur des motifs profondément imbriqués. | Aucun correctif publié dans l’avis consulté |
-| `browserslist` | 4.28.2 | Cache sans éviction ; arrêt du processus/écriture de prototype via statistiques non fiables. | Hors de la plage ≤ 4.28.6 ; publication à vérifier |
-| `extract-zip` | 2.0.1 | Écriture hors du dossier d’extraction par des archives contenant des liens symboliques. | Aucun correctif publié dans l’avis consulté |
-| `ip-address` | 10.2.0 | Erreurs de classification et de sous-réseau pouvant contourner des contrôles SSRF ; déni de service. | Hors de la plage ≤ 10.7.0 ; publication à vérifier |
-| `js-yaml` | 4.3.0 | Consommation CPU excessive lors des résolutions omap et des fusions YAML. | 4.3.2 |
-| `nanoid` | 3.3.17 | Boucle infinie de générateurs personnalisés avec une taille nulle. | 3.3.18 |
-| `postcss-selector-parser` | 6.1.2 | Récursion AST non contrôlée. La version 6.0.10 également inventoriée n’appartient pas à la plage retournée par cet avis. | 6.1.3 |
-| `react-router` | 7.18.1 | Contournement CSRF propre au mode RSC instable, pas à toute application utilisant React Router. | 7.18.2 |
-| `tar` | 7.5.19 | Débordement de pile sur des chemins longs lors d’extractions avec sélection de membres. | Hors de la plage ≤ 7.5.20 ; publication à vérifier |
-| `undici` | 7.28.0 | Problèmes conditionnels de cache HTTP, cookies, injections, réponses, WebSocket, décompression et options TLS personnalisées. | 7.29.1 pour la branche 7 |
-| `vitest` | 3.2.6 | Même avis que @vitest/mocker : ne pas compter cet avis deux fois. | 4.1.11 ; migration majeure à valider |
+Empreinte SHA-256 du patch : `9680213ea6351e0a0e9649e78c88a0366b14988fa7a091918fd126755db8bb2c`.
 
-## Impact réel et priorités
+**Ne pas annoncer zéro vulnérabilité dans l’audit complet : celui-ci conserve volontairement l’avis `braces`.** Cette atténuation protège les motifs chaîne testés ; elle n’est pas une attestation universelle sur des arbres AST arbitraires fournis directement à la bibliothèque. Remplacer le patch par un correctif amont compatible dès sa publication, après les mêmes tests.
 
-**Priorité 1 — réseau et frontières de confiance.** Tracer les dépendances parentes et les appels effectifs de `undici`, `@grpc/grpc-js` et `ip-address`. Mettre à jour les chemins applicables et tester les échanges réseau. L’avis TLS d’undici concerne notamment des options TLS personnalisées perdues dans BalancedPool ; il ne signifie pas que toute validation TLS par défaut est désactivée. Les avis de cache ou SSRF nécessitent également les usages décrits dans chaque avis.
+## Fiabilisation de la validation
 
-**Priorité 2 — outils et parseurs.** Corriger les versions compatibles de `brace-expansion`, `js-yaml`, `nanoid`, `@humanfs/node`, des parseurs XML/CSS et des autres bibliothèques signalées. L’override actuel `brace-expansion: >=1.1.16` n’impose plus une borne suffisante et traverse plusieurs branches majeures : le remplacer par des contraintes compatibles ciblées après analyse des parents, pas par une montée forcée arbitraire.
+Trois descriptions manquantes des fonctions d’images TheFork sont ajoutées au journal d’audit. Le mock de navigation admin est aligné sur le hook réel `useFeatureFlags`. Le test SQL reconnaît les points littéraux `[.]` et teste les adresses privées contre le motif présent dans la migration, sans modifier cette migration. Le contrat de runtime attend maintenant Node >=22.12.0.
 
-**Priorité 3 — cas nécessitant une décision de compatibilité.** Les avis publics consultés indiquent encore l’absence de correctif pour `braces` et `extract-zip`. Étudier le remplacement ou la mise à jour des dépendances parentes, restreindre les entrées/archives non fiables et conserver les avis ouverts. Ce sont au moins deux cas confirmés ; l’absence d’une mention « aucun correctif » dans les autres lignes ne prouve pas qu’une version corrigée est disponible.
+Les deux échecs Bash observés dans l’environnement distant provenaient de l’absence de `/dev/fd`, pas d’un défaut de déploiement ; aucun script de production n’a été changé pour les masquer.
 
-La correction Vitest indiquée est 4.1.11 alors que le projet est en 3.2.6. Vérifier la migration, le support de Vite, la configuration et les tests avant de fusionner. Les conditions d’accès au serveur de mocks doivent être examinées ; une dépendance de test n’établit pas à elle seule une exposition du site public.
+## Vérifications effectuées
 
-React Router 7.18.1 est dans la plage signalée. L’ancien commentaire du workspace décrit TOK comme une SPA déclarative sans APIs RSC. Il s’agit d’une indication de contexte, pas d’une preuve d’atteignabilité issue de cet audit. La version corrigée de la branche 7 est 7.18.2. Retirer une exception sans mettre à jour la version rend l’avis visible, mais ne ferme pas la vulnérabilité.
+Installation figée ; audit de production ; audit npm du worker ; contrôle explicite du seul avis résiduel ; 17 contrôles Node ; suite Vitest complète en mode production ; typecheck ; lint ; build:prod ; tests et syntaxe du worker ; capture PNG dans un véritable navigateur.
 
-## Ordre de finalisation
-
-1. Obtenir la liste authentifiée complète des alertes Dependabot, avec leurs manifestes, états et versions corrigées, et la rapprocher de cet inventaire. Vérifier le graphe de dépendances, les alertes Dependabot et les mises à jour de sécurité dans les paramètres du dépôt ; aucun de ces interrupteurs n’a été modifié ici.
-2. Utiliser le gestionnaire déclaré `pnpm@10.28.1`, analyser les chaînes parentes, puis effectuer les mises à jour compatibles dans une branche. Ne pas exécuter une montée globale forcée. Ne pas supprimer les verrouillages npm avant d’avoir confirmé leurs usages.
-3. Régénérer les fichiers de verrouillage pertinents et exécuter installation figée, audit complet, lint, typecheck, tests et build. Tester séparément le worker et la migration Vitest. Rechercher aussi les dépendances Deno et les versions des actions qui ne sont pas incluses dans le comptage pnpm.
-4. Fusionner seulement les lots validés, puis vérifier le déploiement concerné et le recalcul effectif des alertes sur la branche par défaut. Conserver explicitement les avis non corrigés ; ne jamais confondre leur suppression ou leur exclusion avec une correction.
-
-Commandes de validation à exécuter dans un checkout complet (non exécutées ici sauf le test de politique indiqué ci-dessous) :
+Les commandes d’audit complètes restent reproductibles :
 
 ```sh
-node --test scripts/dependabot-policy.test.mjs
 pnpm install --frozen-lockfile
-pnpm audit --audit-level=low
-pnpm lint
-pnpm typecheck
+pnpm audit --prod --json
+pnpm audit --json
+node --test scripts/dependabot-policy.test.mjs scripts/dependency-security.test.mjs
 pnpm test
-pnpm build
+pnpm typecheck
+pnpm lint
+pnpm build:prod
 pnpm --filter tok-image-ai-worker test
 ```
 
-## Validations réellement effectuées
+Le code retour non nul de l’audit complet correspond à l’avis amont `braces` conservé. Le build de validation emploie les variables publiques fictives de la CI : il valide le pipeline, pas l’exhaustivité des données SEO de production. Les avertissements de lint existants ne sont pas transformés en réussites silencieuses ; leur journal est conservé.
 
-- Source du workspace recopiée et vérifiée par son empreinte Git blob : `d42aa718d977efa719597500b84dcbe8814a4a2f`.
-- Cycle rouge/vert : avant, 9 tests en échec ; après, 9 réussites, zéro échec, zéro ignoré.
-- `node --check scripts/dependabot-policy.test.mjs` : réussi.
-- Lecture de la configuration par JSON et YAML : structures identiques et valides.
-- Comparaison structurelle du workspace : seule l’exception d’audit a été retirée. Aucun changement des packages, overrides ou permissions de compilation.
-- Déduplication de l’inventaire : 54 GHSA, 28 high, 21 moderate, 5 low ; 18 noms de paquets.
+## Périmètre et limites
 
-Non exécutés : installation complète, `pnpm audit`, régénération des verrouillages, lint/typecheck/tests applicatifs/build, essais réseau et validations de production. Le checkout complet et l’exécution de pnpm avec les dépendances du projet n’ont pas pu être obtenus dans l’environnement disponible. Les contrôles ciblés ci-dessus ne permettent pas de déclarer ces validations vertes.
+Niveau de risque 3 : mises à jour de sécurité et outillage. Aucun secret, paiement, donnée client, fonction Edge, politique RLS ou migration n’est modifié. `deno.lock` contient un module distant Supabase et des métadonnées de workspace, pas un graphe npm exhaustif des Edge Functions ; ce travail ne prétend pas auditer toutes les dépendances distantes de toutes les fonctions.
 
-## Risque, publication et retour arrière
+Les interrupteurs d’administration GitHub et la liste authentifiée des alertes restent distincts de la configuration versionnée. Aucun statut d’activation non vérifié n’est revendiqué. La configuration Dependabot ajoutée dans cette PR deviendra effective après sa fusion sur la branche par défaut ; aucun avis n’est ignoré ou fermé artificiellement.
 
-Niveau 3, car il s’agit de réglages de sécurité. Périmètre volontairement limité à une politique, un retrait d’exception, ses tests et ce rapport. Aucun secret, migration, paiement, règle RLS ou réglage de déploiement n’est modifié. Une branche et une PR dédiées sont prévues ; pas de modification directe de main ni de fusion/déploiement revendiqué dans ce rapport. Le statut courant de la PR fait foi pour sa publication.
+Le bootstrap de validation est limité à cette seule branche et ne s’exécute pas sur une pull request externe. La validation utilise un jeton lecture seule ; le job de publication séparé ne lance aucun code applicatif et ne copie que les fichiers explicitement autorisés, après contrôle de leurs empreintes. Le bootstrap temporaire doit être retiré après publication des résultats, puis la CI normale du SHA final vérifiée. Pas de merge automatique.
 
-Retour arrière : revenir sur le commit de cette PR via une PR de revert. Le graphe des versions installées reste identique. Réintroduire l’exception React Router masquerait de nouveau l’avis, sans le résoudre ; ne le faire qu’après une décision explicite documentée sur son applicabilité.
+## Retour arrière
 
-## Sources de méthode
+Revert des commits de remédiation dans une nouvelle PR. Aucune base de données à restaurer. Ne pas réintroduire d’exclusion d’audit pour faire disparaître une alerte. Une régression liée à la limite de profondeur doit être analysée avec un motif de test réel avant toute modification du garde-fou.
 
-- [Options Dependabot](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference).
-- [Configuration des mises à jour de sécurité](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-security-updates).
-- [Documentation pnpm audit](https://pnpm.io/cli/audit).
-- Avis individuels ci-dessous. Les identifiants et sévérités sont une transcription normalisée de la réponse npm, pas un export des alertes privées du dépôt.
+## Annexe — avis présents avant remédiation
 
-## Annexe — les 54 avis distincts
 
 Un même avis peut apparaître pour plusieurs paquets dans l’inventaire. Il n’est compté qu’une fois ici. H = élevé, M = modéré, L = faible.
 

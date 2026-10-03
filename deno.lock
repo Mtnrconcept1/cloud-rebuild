@@ -84,14 +84,14 @@
         "npm:next-themes@0.3",
         "npm:openai@^6.39.1",
         "npm:postcss@^8.5.10",
-        "npm:puppeteer@^24.40.0",
+        "npm:puppeteer@^25.12.0",
         "npm:qrcode@^1.5.4",
         "npm:react-day-picker@^8.10.1",
         "npm:react-dom@^18.3.1",
         "npm:react-hook-form@^7.61.1",
         "npm:react-markdown@^10.1.0",
         "npm:react-resizable-panels@^2.1.9",
-        "npm:react-router-dom@^7.18.1",
+        "npm:react-router-dom@^7.18.4",
         "npm:react@^18.3.1",
         "npm:recharts@^3.8.1",
         "npm:sonner@^1.7.4",
@@ -103,7 +103,7 @@
         "npm:typescript@^5.8.3",
         "npm:vaul@~0.9.9",
         "npm:vite@^6.4.3",
-        "npm:vitest@^3.2.6",
+        "npm:vitest@^4.1.11",
         "npm:zod@^3.25.76"
       ]
     }
