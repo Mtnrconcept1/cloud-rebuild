@@ -1,0 +1,68 @@
+name: TOK remediation bootstrap (one-off)
+on:
+  push:
+    branches: [fix/tok-audit-remediation-20261003]
+    paths: [.github/workflows/tok-remediation-bootstrap.yml]
+permissions:
+  contents: read
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Verify source and package credential-free Git objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain)"
+          git branch --show-current
+          git rev-parse HEAD
+          test -f AGENTS.md
+          mkdir -p "$RUNNER_TEMP/tok-evidence"
+          git rev-parse HEAD > "$RUNNER_TEMP/tok-evidence/source-sha.txt"
+          git ls-tree -r HEAD > "$RUNNER_TEMP/tok-evidence/tree.txt"
+          tar -czf "$RUNNER_TEMP/tok-evidence/git-objects.tar.gz" -C .git objects refs shallow HEAD
+          cd "$RUNNER_TEMP/tok-evidence"
+          npm pack typescript@5.9.3 --silent
+          mkdir -p "$RUNNER_TEMP/tok-migration/supabase/migrations"
+          cd "$RUNNER_TEMP/tok-migration"
+          npx --yes supabase@2.102.0 migration new tok_audit_runtime_hardening
+          cp supabase/migrations/*.sql "$RUNNER_TEMP/tok-evidence/"
+      - name: Read migration source and scoped schema without mutating production
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        shell: python
+        run: |
+          import json, os, pathlib, re, urllib.request, hashlib
+          token = os.environ.get('SUPABASE_ACCESS_TOKEN', '')
+          if not token: raise SystemExit('Missing Supabase management access')
+          target = pathlib.Path(os.environ['RUNNER_TEMP']) / 'tok-evidence'
+          queries = {
+            'remote-migrations.json': "select version,name,statements from supabase_migrations.schema_migrations order by version",
+            'runtime-schema.json': "select p.proname,p.oid::regprocedure::text as signature,pg_get_functiondef(p.oid) as definition,has_function_privilege('authenticated',p.oid,'execute') as authenticated_execute from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('apply_checkout_benefits','rate_limit_consume','can_view_commercial_demo_restaurant','advance_print_order_state','claim_print_fulfillment_jobs','complete_print_fulfillment_job')",
+            'runtime-policies.json': "select schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check from pg_policies where schemaname='public' and tablename in ('promo_code_uses','menu_items','rate_limit_buckets','print_orders')"
+          }
+          for name, query in queries.items():
+            req = urllib.request.Request('https://api.supabase.com/v1/projects/wwcrtyoueexyxkkikaos/database/query', data=json.dumps({'query':query}).encode(), headers={'Authorization':'Bearer '+token, 'Content-Type':'application/json'})
+            with urllib.request.urlopen(req, timeout=45) as response: rows=json.load(response)
+            if not isinstance(rows,list): raise SystemExit('Unexpected database response')
+            if name=='remote-migrations.json':
+              local={p.name.split('_',1)[0] for p in pathlib.Path('supabase/migrations').glob('*.sql')}
+              rows=[r if r['version'] not in local else {'version':r['version'],'name':r['name']} for r in rows]
+            text=json.dumps(rows,ensure_ascii=False,indent=2)
+            secret_patterns=[r'eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{15,}',r'(?:sk_live_|sk_test_|sb_secret_|sbp_|ghp_|github_pat_|sk-proj-)[A-Za-z0-9_-]{15,}',r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----']
+            if any(re.search(p,text) for p in secret_patterns): raise SystemExit('Potential credential in evidence; export refused: '+name)
+            (target/name).write_text(text,encoding='utf-8')
+            print(name+': '+str(len(rows))+' metadata records; credential pattern checks passed')
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tok-remediation-bootstrap-${{ github.run_id }}
+          path: ${{ runner.temp }}/tok-evidence/
+          retention-days: 3
