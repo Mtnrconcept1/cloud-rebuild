@@ -1,0 +1,182 @@
+name: TOK finalisation validation
+on:
+  push:
+    branches: [fix/tok-audit-remediation-20261003]
+    paths: [.github/workflows/tok-finalisation-validate.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated_fixture_only
+          POSTGRES_DB: tok_audit_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: true
+      NODE_OPTIONS: --max-old-space-size=4096
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: isolated_fixture_only
+      PGDATABASE: tok_audit_test
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+      VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 64
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: tok-remediation-recheck-37100913713
+          run-id: 37100913713
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-candidate
+      - name: Reconstruct reviewed source in dedicated worktrees
+        shell: python
+        run: |
+          import pathlib,os,json,hashlib,base64,gzip,subprocess,shutil
+          repo=pathlib.Path(os.environ['GITHUB_WORKSPACE']);temp=pathlib.Path(os.environ['RUNNER_TEMP']);out=temp/'results';out.mkdir()
+          def git(*args,cwd=repo): return subprocess.check_output(['git',*args],cwd=cwd,text=True).strip()
+          assert not git('status','--porcelain')
+          assert git('branch','--show-current')=='fix/tok-audit-remediation-20261003'
+          encoded=''.join((repo/f'.github/tok-finalisation-transfer/part-{i}.b64').read_text() for i in range(1,5))
+          raw=gzip.decompress(base64.b64decode(encoded))
+          assert hashlib.sha256(raw).hexdigest()=='13fbd096808aaa8bafb90ec114803fcacf77a4519738aa98f6188ccf41d0907e'
+          payload=json.loads(raw);base=payload['main'];assert base=='b78debfda01f1e2eb9fd90c3b26563a94b3f0048'
+          git('fetch','--no-tags','origin',base)
+          for name in payload['files']:
+            assert not pathlib.PurePosixPath(name).is_absolute() and '..' not in pathlib.PurePosixPath(name).parts
+          assert len(payload['files'])==26 and set(payload['files'])==set(payload['hashes'])
+          recovered=temp/'recovered';final=temp/'final'
+          git('worktree','add','-b','recovered/'+os.environ['GITHUB_RUN_ID'],str(recovered),'68852d10feab466430e0f70f5e5b6ebfee414a59')
+          for patch,expected in [(temp/'prior-candidate/candidate.patch',payload['candidatePatchSha256']),(repo/'.github/tok-remediation-transfer/final-fixups.patch',payload['finalFixupsSha256'])]:
+            data=patch.read_bytes();assert hashlib.sha256(data).hexdigest()==expected
+            subprocess.run(['git','apply','--3way','-'],cwd=recovered,input=data,check=True)
+          git('worktree','add','-b','final-validation/'+os.environ['GITHUB_RUN_ID'],str(final),base)
+          assert not git('status','--porcelain',cwd=final)
+          for name in payload['files']:
+            source=recovered/name
+            if source.exists():
+              (final/name).parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,final/name)
+          subprocess.run(['git','apply','-'],cwd=final,input=payload['delta'].encode(),check=True)
+          for name,expected in payload['hashes'].items():assert hashlib.sha256((final/name).read_bytes()).hexdigest()==expected,name
+          git('add','-N','.',cwd=final)
+          (out/'reviewed-input.json').write_text(json.dumps({k:v for k,v in payload.items() if k!='delta'},indent=2))
+          (out/'provenance.json').write_text(json.dumps({'base':base,'reviewedPayloadSha256':hashlib.sha256(raw).hexdigest(),'productionModified':False,'worktree':str(final)},indent=2))
+      - name: Install and regenerate canonical index
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable && corepack prepare pnpm@10.28.1 --activate
+          cd "$RUNNER_TEMP/final"
+          pnpm install --frozen-lockfile > "$RUNNER_TEMP/results/install.log" 2>&1
+          node scripts/generate-application-index.mjs > "$RUNNER_TEMP/results/index-generation.log" 2>&1
+      - name: Execute runtime, SQL and application validations
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          cd "$RUNNER_TEMP/final"
+          run_check() {
+            name="$1"; shift
+            "$@" > "$RUNNER_TEMP/results/$name.log" 2>&1
+            result=$?
+            echo "$name=$result" | tee -a "$RUNNER_TEMP/results/checks.txt"
+            return 0
+          }
+          run_check sql-fixture psql -v ON_ERROR_STOP=1 -f scripts/fixtures/tok-audit-schema.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/tests/tok-audit-runtime-hardening.sql > "$RUNNER_TEMP/results/sql-red.log" 2>&1
+          red=$?
+          if [ "$red" != 0 ] && grep -q 'client cannot delete promo history' "$RUNNER_TEMP/results/sql-red.log"; then echo 'sql-red=0' >> "$RUNNER_TEMP/results/checks.txt"; else echo 'sql-red=1' >> "$RUNNER_TEMP/results/checks.txt"; fi
+          run_check sql-migration psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql
+          run_check sql-permissions psql -v ON_ERROR_STOP=1 -f supabase/tests/tok-audit-runtime-hardening.sql
+          run_check sql-idempotent psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql
+          run_check sql-permissions-repeat psql -v ON_ERROR_STOP=1 -f supabase/tests/tok-audit-runtime-hardening.sql
+          run_check runtime node --test scripts/tok-runtime-regression.test.cjs
+          run_check deployment node --test scripts/tok-deployment-regression.test.mjs scripts/stoppin-venue-seo.test.mjs
+          run_check ci-guards node --test scripts/ci-change-plan.test.mjs scripts/ci-critical-tests.test.mjs scripts/ci-migration-version-guard.test.mjs
+          run_check duplicate-migrations node scripts/ci-migration-content-guard.mjs
+          run_check index node scripts/generate-application-index.mjs --check
+          run_check typecheck pnpm run typecheck
+          run_check lint pnpm run lint
+          run_check tests pnpm exec vitest run --mode production --maxWorkers=2 --reporter=json --outputFile="$RUNNER_TEMP/results/tests.json"
+          run_check worker-syntax pnpm --filter tok-image-ai-worker syntax
+          run_check worker-tests pnpm --filter tok-image-ai-worker test
+          run_check audit-production pnpm audit --prod --json
+          run_check audit-worker npm --prefix workers/image-ai-worker audit --package-lock-only --omit=dev --json
+          pnpm audit --json > "$RUNNER_TEMP/results/audit-all.json" 2>&1
+          run_check build pnpm run build:prod
+          git ls-files -z 'public/sitemap*.xml' | xargs -0 -r git restore --source=b78debfda01f1e2eb9fd90c3b26563a94b3f0048 --
+          run_check index-after-build node scripts/generate-application-index.mjs --check
+          run_check diff-check git diff --check
+      - name: Verify exact outcomes and export complete files
+        if: ${{ always() }}
+        shell: python
+        run: |
+          import pathlib,os,json,hashlib,subprocess,tarfile
+          temp=pathlib.Path(os.environ['RUNNER_TEMP']);out=temp/'results';work=temp/'final'
+          if not (out/'reviewed-input.json').exists():raise SystemExit('Reviewed source was not reconstructed')
+          payload=json.loads((out/'reviewed-input.json').read_text())
+          expected=set(payload['files'])|{'docs/architecture/tok-application-search-index.json','docs/architecture/TOK_APPLICATION_REFERENCE.md'}
+          subprocess.run(['git','add','-N','.'],cwd=work,check=True)
+          names=set(subprocess.check_output(['git','diff','HEAD','--name-only'],cwd=work,text=True).splitlines())
+          assert names==expected,{'extra':sorted(names-expected),'missing':sorted(expected-names)}
+          for name,value in payload['hashes'].items():assert hashlib.sha256((work/name).read_bytes()).hexdigest()==value,name
+          checks={k:int(v) for k,v in (line.split('=',1) for line in (out/'checks.txt').read_text().splitlines())}
+          required={'sql-fixture','sql-red','sql-migration','sql-permissions','sql-idempotent','sql-permissions-repeat','runtime','deployment','ci-guards','duplicate-migrations','index','typecheck','lint','tests','worker-syntax','worker-tests','audit-production','audit-worker','build','index-after-build','diff-check'}
+          report=json.loads((out/'audit-all.json').read_text())
+          advisories=list(report.get('advisories',{}).values())
+          audit_allowed=bool(advisories) and all(a.get('module_name')=='braces' and 'GHSA-vfj7-8cjw-p6xm' in a.get('url','') for a in advisories)
+          audit_clean=not advisories and report.get('metadata',{}).get('vulnerabilities',{}).get('total',sum(report.get('metadata',{}).get('vulnerabilities',{}).values()))==0
+          passed=set(checks)==required and all(v==0 for v in checks.values()) and (audit_allowed or audit_clean)
+          patch=subprocess.check_output(['git','diff','HEAD','--binary'],cwd=work);(out/'final.patch').write_bytes(patch)
+          hashes={name:hashlib.sha256((work/name).read_bytes()).hexdigest() for name in sorted(names)}
+          (out/'modified-files.json').write_text(json.dumps(sorted(names),indent=2));(out/'file-hashes.json').write_text(json.dumps(hashes,indent=2))
+          with tarfile.open(out/'complete-modified-files.tgz','w:gz') as archive:
+            for name in sorted(names):archive.add(work/name,arcname=name)
+          (out/'verification.json').write_text(json.dumps({'allPassed':passed,'checks':checks,'base':payload['main'],'files':len(names),'patchSha256':hashlib.sha256(patch).hexdigest(),'remainingUpstreamAdvisories':[a.get('url') for a in advisories],'productionModified':False,'buildEnvironment':'CI public placeholders; live SEO/provider behavior not asserted'},indent=2))
+          print(json.dumps({'allPassed':passed,'checks':checks,'files':len(names)},indent=2))
+          if not passed:raise SystemExit(1)
+      - name: Commit and publish only the validated dedicated branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/final"
+          target=fix/tok-finalisation-20261003
+          base=b78debfda01f1e2eb9fd90c3b26563a94b3f0048
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$base"
+          test "$(git ls-remote origin refs/heads/$target | cut -f1)" = "$base"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          python - <<'PY'
+          import json,os,pathlib,subprocess
+          files=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'results/modified-files.json').read_text())
+          subprocess.run(['git','add','--',*files],check=True)
+          PY
+          git diff --cached --check
+          git commit -m 'fix(security): finalise audit runtime and permission hardening'
+          git push origin "HEAD:refs/heads/$target"
+          git rev-parse HEAD > "$RUNNER_TEMP/results/published-commit.txt"
+          test -z "$(git status --porcelain)"
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: tok-finalisation-verified-${{ github.run_id }}
+          path: ${{ runner.temp }}/results/
+          retention-days: 3
