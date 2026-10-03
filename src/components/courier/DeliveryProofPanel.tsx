@@ -83,6 +83,11 @@ export default function DeliveryProofPanel({ isLoading = false, onVerify }: Deli
       }
 
       try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          setScannerError("La caméra est indisponible dans ce navigateur. Utilisez le code client ou la signature manuelle.");
+          setScannerActive(false);
+          return;
+        }
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: "environment" },
@@ -130,7 +135,10 @@ export default function DeliveryProofPanel({ isLoading = false, onVerify }: Deli
 
         animationFrameRef.current = window.requestAnimationFrame(scanFrame);
       } catch (error) {
-        setScannerError(error instanceof Error ? error.message : "Impossible d'acceder a la camera.");
+        const permissionDenied = error !== null && typeof error === "object" && "name" in error && error.name === "NotAllowedError";
+        setScannerError(permissionDenied
+          ? "Accès caméra refusé. Autorisez la caméra dans le navigateur ou utilisez le code client ou la signature manuelle."
+          : "Impossible d’accéder à la caméra. Utilisez le code client ou la signature manuelle.");
         setScannerActive(false);
       }
     };

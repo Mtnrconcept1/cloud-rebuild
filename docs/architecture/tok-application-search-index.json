@@ -2,37 +2,37 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "f4921231b5459a0df6da5062d725f4906204eab844cb20f64d50ee22abf8405a",
+ "sourceDigest": "5c44633e283129ea85132a71963613ab4a9b038fe43ab2bc8538088e48c9e75a",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
-  "databaseObjects": 2709,
-  "documents": 186,
+  "databaseObjects": 2713,
+  "documents": 187,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3327,
+  "exportedSymbols": 3331,
   "featureFlags": 99,
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 518,
-  "modules": 1424,
+  "migrations": 519,
+  "modules": 1431,
   "pages": 127,
-  "pathLiterals": 594,
+  "pathLiterals": 596,
   "publicAssets": 294,
   "publicEntries": 316,
   "publicNavigableRoutes": 2,
   "queryParameters": 100,
-  "records": 15249,
-  "repositoryFiles": 2664,
+  "records": 15303,
+  "repositoryFiles": 2677,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 24
+  "workflows": 25
  },
  "catalogs": {
   "frontendRoutes": [
@@ -8069,7 +8069,6 @@
      "SUPABASE_URL"
     ],
     "integrations": [
-     "google",
      "resend",
      "supabase"
     ],
@@ -9883,7 +9882,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1233
+     "line": 1236
     },
     {
      "route": "/actualites/:id",
@@ -9891,7 +9890,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1842
+     "line": 1845
     },
     {
      "route": "/restaurant/:id",
@@ -9899,7 +9898,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1293
+     "line": 1296
     },
     {
      "route": "/restaurants/:citySlug",
@@ -9907,7 +9906,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1627
+     "line": 1630
     },
     {
      "route": "/restaurants/:citySlug/:cuisineSlug",
@@ -9915,7 +9914,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1615
+     "line": 1618
     },
     {
      "route": "/restaurants/:citySlug/:districtSlug",
@@ -9939,7 +9938,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1290
+     "line": 1293
     },
     {
      "route": "/restaurants/:slug",
@@ -12275,27 +12274,27 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1232
+      "line": 1235
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1232
+      "line": 1235
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1238
+      "line": 1241
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1385
+      "line": 1388
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1386
+      "line": 1389
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 2178
+      "line": 2181
      },
      {
       "path": "scripts/prerender-stoppin-restaurants-bounded.mjs",
@@ -12427,31 +12426,31 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 33
+      "line": 39
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 160
+      "line": 166
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 160
+      "line": 166
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 161
+      "line": 167
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 161
+      "line": 167
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 267
+      "line": 273
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 294
+      "line": 300
      },
      {
       "path": "src/lib/adminDomains.ts",
@@ -12955,6 +12954,14 @@
     "value": "/(.*)",
     "sources": [
      {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 8
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 10
+     },
+     {
       "path": "src/test/daily-slot-machine-security.test.ts",
       "line": 48
      },
@@ -13010,7 +13017,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 69
+      "line": 72
      },
      {
       "path": "src/test/production-preflight-hardening.test.ts",
@@ -13034,6 +13041,10 @@
    {
     "value": "/:path*",
     "sources": [
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 8
+     },
      {
       "path": "src/test/marketing-subdomain-integration.test.ts",
       "line": 57
@@ -13080,7 +13091,7 @@
     "sources": [
      {
       "path": "src/test/plan-phase1-readiness.test.ts",
-      "line": 147
+      "line": 150
      }
     ]
    },
@@ -13231,7 +13242,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 189
+      "line": 195
      },
      {
       "path": "src/pages/APropos.tsx",
@@ -13272,7 +13283,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1326
+      "line": 1329
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 5
      },
      {
       "path": "src/App.tsx",
@@ -13292,7 +13307,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 58
+      "line": 64
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -13342,11 +13357,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1316
+      "line": 1319
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1870
+      "line": 1873
      },
      {
       "path": "src/App.tsx",
@@ -13374,7 +13389,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 182
+      "line": 188
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -14318,7 +14333,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 140
+      "line": 143
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -14776,7 +14791,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 195
+      "line": 201
      },
      {
       "path": "src/pages/Aide.tsx",
@@ -14818,7 +14833,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1314
+      "line": 1317
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -14850,7 +14865,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 41
+      "line": 47
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -14966,7 +14981,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 65
+      "line": 68
      }
     ]
    },
@@ -15061,7 +15076,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 131
+      "line": 134
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
@@ -15645,7 +15660,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1325
+      "line": 1328
      },
      {
       "path": "src/App.tsx",
@@ -15665,7 +15680,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 57
+      "line": 63
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -15732,7 +15747,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 186
+      "line": 192
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -15828,7 +15843,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1322
+      "line": 1325
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -15852,7 +15867,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 54
+      "line": 60
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -15926,6 +15941,14 @@
     "value": "/coming-soon",
     "sources": [
      {
+      "path": "scripts/prerender-seo.mjs",
+      "line": 1231
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 5
+     },
+     {
       "path": "src/App.tsx",
       "line": 553
      },
@@ -15936,6 +15959,14 @@
      {
       "path": "src/components/ComingSoonGate.tsx",
       "line": 43
+     },
+     {
+      "path": "src/hooks/useSeoMeta.ts",
+      "line": 32
+     },
+     {
+      "path": "src/hooks/useSeoMeta.ts",
+      "line": 36
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -15952,6 +15983,10 @@
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 75
+     },
+     {
+      "path": "src/test/tok-camera-and-route-meta.test.tsx",
+      "line": 49
      }
     ]
    },
@@ -16646,7 +16681,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 91
+      "line": 94
      }
     ]
    },
@@ -16805,7 +16840,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 191
+      "line": 197
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -16886,7 +16921,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 59
+      "line": 65
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -16959,7 +16994,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 188
+      "line": 194
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -17331,7 +17366,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1317
+      "line": 1320
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 5
      },
      {
       "path": "src/App.tsx",
@@ -17351,7 +17390,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 49
+      "line": 55
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -19075,7 +19114,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1318
+      "line": 1321
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 5
      },
      {
       "path": "src/App.tsx",
@@ -19095,7 +19138,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 50
+      "line": 56
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -19264,7 +19307,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1324
+      "line": 1327
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 5
      },
      {
       "path": "src/App.tsx",
@@ -19284,7 +19331,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 56
+      "line": 62
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -19314,7 +19361,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 72
+      "line": 75
      },
      {
       "path": "workers/image-ai-worker/index.js",
@@ -21267,6 +21314,14 @@
       "line": 169
      },
      {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 7
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 8
+     },
+     {
       "path": "src/test/seo-indexation-hardening.test.ts",
       "line": 29
      },
@@ -21410,7 +21465,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 64
+      "line": 67
      },
      {
       "path": "src/test/feature-flags.test.ts",
@@ -21545,7 +21600,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1319
+      "line": 1322
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 5
      },
      {
       "path": "src/App.tsx",
@@ -21565,7 +21624,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 51
+      "line": 57
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -21710,7 +21769,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 185
+      "line": 191
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -21848,7 +21907,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 96
+      "line": 99
      }
     ]
    },
@@ -21861,7 +21920,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1321
+      "line": 1324
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 5
      },
      {
       "path": "src/App.tsx",
@@ -21885,7 +21948,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 53
+      "line": 59
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -21922,7 +21985,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1320
+      "line": 1323
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 5
      },
      {
       "path": "src/App.tsx",
@@ -21942,7 +22009,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 52
+      "line": 58
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -22233,7 +22300,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 190
+      "line": 196
      },
      {
       "path": "src/lib/publicFeatureMatrix.ts",
@@ -22419,8 +22486,34 @@
     ]
    },
    {
+    "value": "/parametres",
+    "sources": [
+     {
+      "path": "scripts/prerender-seo.mjs",
+      "line": 1230
+     },
+     {
+      "path": "src/hooks/useSeoMeta.ts",
+      "line": 31
+     }
+    ]
+   },
+   {
+    "value": "/parametres/:path*",
+    "sources": [
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 39
+     }
+    ]
+   },
+   {
     "value": "/parametres/securite",
     "sources": [
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 5
+     },
      {
       "path": "src/App.tsx",
       "line": 356
@@ -22430,7 +22523,15 @@
       "line": 579
      },
      {
+      "path": "src/hooks/useSeoMeta.ts",
+      "line": 37
+     },
+     {
       "path": "src/test/route-wiring.test.ts",
+      "line": 49
+     },
+     {
+      "path": "src/test/tok-camera-and-route-meta.test.tsx",
       "line": 49
      }
     ]
@@ -22539,7 +22640,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 187
+      "line": 193
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -22818,7 +22919,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 72
+      "line": 75
      },
      {
       "path": "src/test/image-metadata-ai.test.ts",
@@ -22867,11 +22968,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1642
+      "line": 1645
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1871
+      "line": 1874
      },
      {
       "path": "scripts/prerender-stoppin-restaurants.mjs",
@@ -22927,7 +23028,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 37
+      "line": 43
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -23401,11 +23502,11 @@
      },
      {
       "path": "src/marketing/marketingClient.ts",
-      "line": 241
+      "line": 242
      },
      {
       "path": "src/marketing/marketingClient.ts",
-      "line": 1148
+      "line": 1152
      }
     ]
    },
@@ -24244,7 +24345,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 194
+      "line": 200
      },
      {
       "path": "src/lib/publicFeatureMatrix.ts",
@@ -24329,7 +24430,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 192
+      "line": 198
      },
      {
       "path": "src/lib/publicFeatureMatrix.ts",
@@ -24390,7 +24491,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 193
+      "line": 199
      },
      {
       "path": "src/lib/publicFeatureMatrix.ts",
@@ -24422,7 +24523,7 @@
      },
      {
       "path": "src/test/plan-phase1-readiness.test.ts",
-      "line": 208
+      "line": 211
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -24755,7 +24856,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1329
+      "line": 1332
      },
      {
       "path": "src/App.tsx",
@@ -24775,11 +24876,11 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 60
+      "line": 66
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 184
+      "line": 190
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -24874,8 +24975,28 @@
     "value": "/tok-connect/mcp-widget",
     "sources": [
      {
+      "path": "scripts/prerender-seo.mjs",
+      "line": 1229
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 5
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 39
+     },
+     {
       "path": "src/App.tsx",
       "line": 596
+     },
+     {
+      "path": "src/hooks/useSeoMeta.ts",
+      "line": 30
+     },
+     {
+      "path": "src/hooks/useSeoMeta.ts",
+      "line": 38
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -24888,6 +25009,10 @@
      {
       "path": "src/pages/TokConnect.tsx",
       "line": 179
+     },
+     {
+      "path": "src/test/tok-camera-and-route-meta.test.tsx",
+      "line": 49
      }
     ]
    },
@@ -24900,7 +25025,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1327
+      "line": 1330
      },
      {
       "path": "src/App.tsx",
@@ -24924,7 +25049,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 183
+      "line": 189
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -25006,7 +25131,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1328
+      "line": 1331
+     },
+     {
+      "path": "scripts/tok-deployment-regression.test.mjs",
+      "line": 5
      },
      {
       "path": "src/App.tsx",
@@ -25285,7 +25414,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 75
+      "line": 78
      },
      {
       "path": "src/test/tok-connect-edge-functions.test.ts",
@@ -25406,7 +25535,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 80
+      "line": 83
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -25436,11 +25565,11 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 150
+      "line": 153
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 155
+      "line": 158
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -25608,7 +25737,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1315
+      "line": 1318
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -25632,7 +25761,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 45
+      "line": 51
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -25711,7 +25840,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1323
+      "line": 1326
      },
      {
       "path": "src/App.tsx",
@@ -25731,7 +25860,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 55
+      "line": 61
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -27523,6 +27652,7 @@
      "scripts/release-readiness-core.mjs",
      "scripts/stoppin-venue-seo.test.mjs",
      "scripts/take-screenshots.mjs",
+     "scripts/tok-runtime-regression.test.cjs",
      "server/marketingBff.ts",
      "src/App.tsx",
      "src/components/ReservationDialog.tsx",
@@ -27612,7 +27742,6 @@
      "supabase/functions/enrich-thefork-images/index.ts",
      "supabase/functions/google-actions-center-sync/index.ts",
      "supabase/functions/google-actions-center/index.ts",
-     "supabase/functions/marketing-orchestrator/index.ts",
      "supabase/functions/send-push/index.ts",
      "supabase/functions/tok-connect-full-app-mcp/index.ts",
      "supabase/functions/tok-connect-mcp/index.ts",
@@ -28023,6 +28152,7 @@
      "scripts/ci-change-plan.test.mjs",
      "scripts/ci-critical-tests.mjs",
      "scripts/ci-critical-tests.test.mjs",
+     "scripts/ci-migration-content-guard.mjs",
      "scripts/ci-migration-version-guard.mjs",
      "scripts/ci-migration-version-guard.test.mjs",
      "scripts/ensure-supabase-auth-security.mjs",
@@ -28047,6 +28177,8 @@
      "scripts/supabase-db-push.mjs",
      "scripts/supabase-doctor.mjs",
      "scripts/supabase-target.mjs",
+     "scripts/tok-deployment-regression.test.mjs",
+     "scripts/tok-runtime-regression.test.cjs",
      "scripts/verify-supabase-runtime-security.mjs",
      "scripts/write-commercial-demo-secrets-env.mjs",
      "scripts/write-production-env.mjs",
@@ -28169,6 +28301,7 @@
      "src/lib/tokIntelligence.ts",
      "src/lib/usePaymentAttemptBackCancellation.ts",
      "src/lib/userFacingErrors.ts",
+     "src/marketing/marketingClient.ts",
      "src/pages/Abonnement.tsx",
      "src/pages/Actualites.tsx",
      "src/pages/AntiGaspi.tsx",
@@ -28690,6 +28823,7 @@
      "scripts/prerender-seo.mjs",
      "scripts/resolve-live-stripe-publishable-key.mjs",
      "scripts/stoppin-venue-seo.test.mjs",
+     "scripts/tok-deployment-regression.test.mjs",
      "server/marketingBff.ts",
      "src/lib/commercialDomains.ts",
      "src/lib/demoWorkspaces.ts",
@@ -31840,6 +31974,12 @@
     "objectCount": 4
    },
    {
+    "name": "20261003051849 Tok Audit Runtime Hardening",
+    "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+    "lineCount": 287,
+    "objectCount": 6
+   },
+   {
     "name": "20261003070000 Marketing Autopilot Foundation",
     "path": "supabase/migrations/20261003070000_marketing_autopilot_foundation.sql",
     "lineCount": 1756,
@@ -33818,6 +33958,10 @@
      {
       "path": "supabase/migrations/20260423232011_fix_apply_checkout_benefits_redeem_conflict.sql",
       "line": 1
+     },
+     {
+      "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+      "line": 38
      }
     ]
    },
@@ -42755,6 +42899,16 @@
    },
    {
     "type": "index",
+    "name": "idx_menu_items_restaurant_id",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+      "line": 34
+     }
+    ]
+   },
+   {
+    "type": "index",
     "name": "idx_messages_conversation",
     "sources": [
      {
@@ -43421,6 +43575,16 @@
    },
    {
     "type": "index",
+    "name": "idx_print_fulfillment_jobs_order_id",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+      "line": 35
+     }
+    ]
+   },
+   {
+    "type": "index",
     "name": "idx_print_order_events_order_created",
     "sources": [
      {
@@ -43546,6 +43710,16 @@
      {
       "path": "supabase/migrations/20260615084738_birthday_profiles_notifications_advisor_hardening.sql",
       "line": 6
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "idx_promo_code_uses_order_id",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+      "line": 36
      }
     ]
    },
@@ -51035,6 +51209,16 @@
    },
    {
     "type": "policy",
+    "name": "public.menu_items.menu_items_admin_select",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+      "line": 29
+     }
+    ]
+   },
+   {
+    "type": "policy",
     "name": "public.menu_items.menu_items_owner_all",
     "sources": [
      {
@@ -51050,6 +51234,10 @@
      {
       "path": "supabase/migrations/20260311120000_atomic_stock_and_rls_hardening.sql",
       "line": 56
+     },
+     {
+      "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+      "line": 26
      }
     ]
    },
@@ -64264,6 +64452,83 @@
    ],
    "rewrites": [
     {
+     "source": "/tok-pulse",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 1
+    },
+    {
+     "source": "/tok-connect/mcp-widget",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 2
+    },
+    {
+     "source": "/parametres/securite",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 3
+    },
+    {
+     "source": "/multi-stop",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 4
+    },
+    {
+     "source": "/multi-restaurant",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 5
+    },
+    {
+     "source": "/match-groupes",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 6
+    },
+    {
+     "source": "/garantie-qualite",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 7
+    },
+    {
+     "source": "/flex-prix-bas",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 8
+    },
+    {
+     "source": "/creneaux-garantis",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 9
+    },
+    {
+     "source": "/coming-soon",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 10
+    },
+    {
+     "source": "/abonnement",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 11
+    },
+    {
      "source": "/mcp",
      "has": [
       {
@@ -64274,7 +64539,7 @@
      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp",
      "host": "www.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 1
+     "ordinal": 12
     },
     {
      "source": "/.well-known/oauth-protected-resource",
@@ -64287,161 +64552,161 @@
      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp?tok_connect_route=protected-resource",
      "host": "www.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 2
+     "ordinal": 13
     },
     {
      "source": "/functions/v1/:path*",
      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/:path*",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 3
+     "ordinal": 14
     },
     {
      "source": "/api/photon",
      "destination": "https://photon.komoot.io/api",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 4
+     "ordinal": 15
     },
     {
      "source": "/images/fondue moitié moitié.jpg",
      "destination": "/images/fondue-moitie-moitie.jpg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 5
+     "ordinal": 16
     },
     {
      "source": "/images/fondue%20moiti%C3%A9%20moiti%C3%A9.jpg",
      "destination": "/images/fondue-moitie-moitie.jpg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 6
+     "ordinal": 17
     },
     {
      "source": "/images/meringue double.webp",
      "destination": "/images/meringue-double.webp",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 7
+     "ordinal": 18
     },
     {
      "source": "/images/meringue%20double.webp",
      "destination": "/images/meringue-double.webp",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 8
+     "ordinal": 19
     },
     {
      "source": "/images/milshake oreo.jpg",
      "destination": "/images/milkshake-oreo.jpg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 9
+     "ordinal": 20
     },
     {
      "source": "/images/milshake%20oreo.jpg",
      "destination": "/images/milkshake-oreo.jpg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 10
+     "ordinal": 21
     },
     {
      "source": "/images/milshake vanille.jpeg",
      "destination": "/images/milkshake-vanille.jpeg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 11
+     "ordinal": 22
     },
     {
      "source": "/images/milshake%20vanille.jpeg",
      "destination": "/images/milkshake-vanille.jpeg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 12
+     "ordinal": 23
     },
     {
      "source": "/images/moshi glacés.jpg",
      "destination": "/images/mochi-glaces.jpg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 13
+     "ordinal": 24
     },
     {
      "source": "/images/moshi%20glac%C3%A9s.jpg",
      "destination": "/images/mochi-glaces.jpg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 14
+     "ordinal": 25
     },
     {
      "source": "/images/rösti bernois.jpg",
      "destination": "/images/rosti-bernois.jpg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 15
+     "ordinal": 26
     },
     {
      "source": "/images/r%C3%B6sti%20bernois.jpg",
      "destination": "/images/rosti-bernois.jpg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 16
+     "ordinal": 27
     },
     {
      "source": "/images/salade du marché.jpg",
      "destination": "/images/salade-du-marche.jpg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 17
+     "ordinal": 28
     },
     {
      "source": "/images/salade%20du%20march%C3%A9.jpg",
      "destination": "/images/salade-du-marche.jpg",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 18
+     "ordinal": 29
     },
     {
      "source": "/images/taboulé.webp",
      "destination": "/images/taboule.webp",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 19
+     "ordinal": 30
     },
     {
      "source": "/images/taboul%C3%A9.webp",
      "destination": "/images/taboule.webp",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 20
+     "ordinal": 31
     },
     {
      "source": "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)",
      "destination": "/index.html",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 21
+     "ordinal": 32
     },
     {
      "source": "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)/:path*",
      "destination": "/index.html",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 22
+     "ordinal": 33
     },
     {
      "source": "/tok-connect/developer",
      "destination": "/index.html",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 23
+     "ordinal": 34
     },
     {
      "source": "/tok-connect/developer/:path*",
      "destination": "/index.html",
      "host": null,
      "path": "vercel.json",
-     "ordinal": 24
+     "ordinal": 35
     }
    ],
    "headers": [
@@ -64667,6 +64932,26 @@
      ],
      "path": "vercel.json",
      "ordinal": 23
+    },
+    {
+     "source": "/parametres/:path*",
+     "host": null,
+     "keys": [
+      "X-Robots-Tag",
+      "Cache-Control"
+     ],
+     "path": "vercel.json",
+     "ordinal": 24
+    },
+    {
+     "source": "/tok-connect/mcp-widget",
+     "host": null,
+     "keys": [
+      "X-Robots-Tag",
+      "Cache-Control"
+     ],
+     "path": "vercel.json",
+     "ordinal": 25
     }
    ],
    "middleware": {
@@ -65736,6 +66021,7 @@
      "deploy_frontend",
      "deploy_supabase",
      "deployment_gate",
+     "migration_preflight",
      "preflight",
      "record_production_baseline",
      "validation"
@@ -65799,6 +66085,13 @@
     "path": ".github/workflows/sync-incident-secrets.yml",
     "jobs": [
      "sync"
+    ]
+   },
+   {
+    "name": "TOK runtime security",
+    "path": ".github/workflows/tok-runtime-security.yml",
+    "jobs": [
+     "postgres-permissions"
     ]
    }
   ],
@@ -68527,6 +68820,42 @@
       "level": 2,
       "title": "Stratégie de retour arrière",
       "line": 145
+     }
+    ]
+   },
+   {
+    "path": "docs/audits/TOK_FINALISATION_PLAN_2026-10-03.md",
+    "title": "TOK audit remediation — finalisation plan",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK audit remediation — finalisation plan",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Constraints and verified baseline",
+      "line": 10
+     },
+     {
+      "level": 2,
+      "title": "Review focus",
+      "line": 21
+     },
+     {
+      "level": 2,
+      "title": "Planned steps and file families",
+      "line": 29
+     },
+     {
+      "level": 2,
+      "title": "Risks and rollback",
+      "line": 40
+     },
+     {
+      "level": 2,
+      "title": "Decisions made during final review",
+      "line": 44
      }
     ]
    },
@@ -77173,16 +77502,23 @@
       "kind": "function"
      },
      {
-      "name": "main",
+      "name": "readDemoMigrationDiff",
       "line": 224,
+      "kind": "function"
+     },
+     {
+      "name": "main",
+      "line": 237,
       "kind": "function"
      }
     ],
-    "environmentNames": [],
+    "environmentNames": [
+     "DEMO_MIGRATION_BASE_SHA"
+    ],
     "integrations": [
      "supabase"
     ],
-    "lineCount": 279
+    "lineCount": 299
    },
    {
     "path": "scripts/apply-stoppin-venue-redirects.mjs",
@@ -77350,6 +77686,26 @@
      "supabase"
     ],
     "lineCount": 30
+   },
+   {
+    "path": "scripts/ci-migration-content-guard.mjs",
+    "exports": [
+     {
+      "name": "findContentDuplicates",
+      "line": 5,
+      "kind": "function"
+     },
+     {
+      "name": "main",
+      "line": 16,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 27
    },
    {
     "path": "scripts/ci-migration-version-guard.mjs",
@@ -78067,7 +78423,7 @@
      "twint",
      "vercel"
     ],
-    "lineCount": 2233
+    "lineCount": 2236
    },
    {
     "path": "scripts/prerender-stoppin-restaurants-bounded.mjs",
@@ -78306,6 +78662,28 @@
      "google"
     ],
     "lineCount": 76
+   },
+   {
+    "path": "scripts/tok-deployment-regression.test.mjs",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase",
+     "vercel"
+    ],
+    "lineCount": 53
+   },
+   {
+    "path": "scripts/tok-runtime-regression.test.cjs",
+    "exports": [],
+    "environmentNames": [
+     "TYPESCRIPT_PATH"
+    ],
+    "integrations": [
+     "google",
+     "supabase"
+    ],
+    "lineCount": 130
    },
    {
     "path": "scripts/verify-supabase-runtime-security.mjs",
@@ -79962,7 +80340,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 325
+    "lineCount": 333
    },
    {
     "path": "src/components/crm/CrmAccessGuard.tsx",
@@ -83967,17 +84345,17 @@
     "exports": [
      {
       "name": "ensureSeoMetadataForRoute",
-      "line": 246,
+      "line": 252,
       "kind": "function"
      },
      {
       "name": "buildCanonicalUrl",
-      "line": 266,
+      "line": 272,
       "kind": "function"
      },
      {
       "name": "useSeoMeta",
-      "line": 271,
+      "line": 277,
       "kind": "function"
      }
     ],
@@ -83985,7 +84363,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 366
+    "lineCount": 372
    },
    {
     "path": "src/hooks/useSessionStorageState.ts",
@@ -94507,153 +94885,155 @@
     "exports": [
      {
       "name": "invokeOutreachRpc",
-      "line": 115,
+      "line": 116,
       "kind": "function"
      },
      {
       "name": "listMarketingContactsPage",
-      "line": 581,
+      "line": 585,
       "kind": "function"
      },
      {
       "name": "listMarketingDeliveriesPage",
-      "line": 595,
+      "line": 599,
       "kind": "function"
      },
      {
       "name": "loadMarketingSnapshot",
-      "line": 609,
+      "line": 613,
       "kind": "function"
      },
      {
       "name": "upsertMarketingCampaign",
-      "line": 777,
+      "line": 781,
       "kind": "function"
      },
      {
       "name": "createMarketingCampaignBundle",
-      "line": 800,
+      "line": 804,
       "kind": "function"
      },
      {
       "name": "upsertMarketingCalendarItem",
-      "line": 834,
+      "line": 838,
       "kind": "function"
      },
      {
       "name": "cancelMarketingItem",
-      "line": 842,
+      "line": 846,
       "kind": "function"
      },
      {
       "name": "completeManualMarketingItem",
-      "line": 849,
+      "line": 853,
       "kind": "function"
      },
      {
       "name": "estimateMarketingAudience",
-      "line": 861,
+      "line": 865,
       "kind": "function"
      },
      {
       "name": "approveMarketingCampaign",
-      "line": 888,
+      "line": 892,
       "kind": "function"
      },
      {
       "name": "approveMarketingItem",
-      "line": 895,
+      "line": 899,
       "kind": "function"
      },
      {
       "name": "retryMarketingDelivery",
-      "line": 902,
+      "line": 906,
       "kind": "function"
      },
      {
       "name": "completeManualMarketingDelivery",
-      "line": 908,
+      "line": 912,
       "kind": "function"
      },
      {
       "name": "upsertMarketingRestaurantContact",
-      "line": 920,
+      "line": 924,
       "kind": "function"
      },
      {
       "name": "suppressMarketingContact",
-      "line": 946,
+      "line": 950,
       "kind": "function"
      },
      {
       "name": "revealManualMarketingDeliveryTarget",
-      "line": 953,
+      "line": 957,
       "kind": "function"
      },
      {
       "name": "setMarketingGlobalPause",
-      "line": 979,
+      "line": 983,
       "kind": "function"
      },
      {
       "name": "syncMarketingProspectCatalog",
-      "line": 1041,
+      "line": 1045,
       "kind": "function"
      },
      {
       "name": "syncMarketingClientConsents",
-      "line": 1055,
+      "line": 1059,
       "kind": "function"
      },
      {
       "name": "upsertMarketingAutomation",
-      "line": 1067,
+      "line": 1071,
       "kind": "function"
      },
      {
       "name": "runMarketingOrchestrator",
-      "line": 1083,
+      "line": 1087,
       "kind": "function"
      },
      {
       "name": "loadMarketingOutreach",
-      "line": 1099,
+      "line": 1103,
       "kind": "function"
      },
      {
       "name": "upsertMarketingOutreachTarget",
-      "line": 1118,
+      "line": 1122,
       "kind": "function"
      },
      {
       "name": "upsertMarketingOutreachOpportunity",
-      "line": 1139,
+      "line": 1143,
       "kind": "function"
      },
      {
       "name": "upsertMarketingOutreachDraft",
-      "line": 1159,
+      "line": 1163,
       "kind": "function"
      },
      {
       "name": "approveMarketingOutreachDraft",
-      "line": 1175,
+      "line": 1179,
       "kind": "function"
      },
      {
       "name": "recordMarketingOutreachResult",
-      "line": 1182,
+      "line": 1186,
       "kind": "function"
      },
      {
       "name": "upsertMarketingBacklink",
-      "line": 1196,
+      "line": 1200,
       "kind": "function"
      }
     ],
     "environmentNames": [],
-    "integrations": [],
-    "lineCount": 1212
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 1216
    },
    {
     "path": "src/marketing/offsetPage.ts",
@@ -97868,7 +98248,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 168
+    "lineCount": 171
    },
    {
     "path": "src/test/audit-hardening-20260711.test.ts",
@@ -99745,7 +100125,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 281
+    "lineCount": 283
    },
    {
     "path": "src/test/marketing-autopilot-frontend.test.tsx",
@@ -100361,7 +100741,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 307
+    "lineCount": 310
    },
    {
     "path": "src/test/plan2-fk-index-readiness.test.ts",
@@ -101766,6 +102146,13 @@
     "lineCount": 557
    },
    {
+    "path": "src/test/tok-camera-and-route-meta.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 58
+   },
+   {
     "path": "src/test/tok-connect-admin-humanized.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -101915,6 +102302,13 @@
     "lineCount": 172
    },
    {
+    "path": "src/test/tok-deployment-regression.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 7
+   },
+   {
     "path": "src/test/tok-intelligence-suite.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -101949,6 +102343,13 @@
      "supabase"
     ],
     "lineCount": 47
+   },
+   {
+    "path": "src/test/tok-runtime-regression.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 7
    },
    {
     "path": "src/test/transactional-email-templates.test.ts",
@@ -102203,27 +102604,27 @@
      },
      {
       "name": "authenticateRequest",
-      "line": 186,
+      "line": 194,
       "kind": "function"
      },
      {
       "name": "requireRole",
-      "line": 313,
+      "line": 321,
       "kind": "function"
      },
      {
       "name": "requireUserRole",
-      "line": 346,
+      "line": 354,
       "kind": "function"
      },
      {
       "name": "assertProductionFlowAllowed",
-      "line": 388,
+      "line": 396,
       "kind": "function"
      },
      {
       "name": "requireRestaurantAccess",
-      "line": 436,
+      "line": 444,
       "kind": "function"
      }
     ],
@@ -102238,7 +102639,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 474
+    "lineCount": 482
    },
    {
     "path": "supabase/functions/_shared/campaign-pricing.ts",
@@ -103019,6 +103420,19 @@
      "stripe"
     ],
     "lineCount": 186
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-capabilities.ts",
+    "exports": [
+     {
+      "name": "getMarketingAdapterBlocker",
+      "line": 8,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 12
    },
    {
     "path": "supabase/functions/_shared/marketing-email-template.ts",
@@ -105743,11 +106157,10 @@
      "SUPABASE_URL"
     ],
     "integrations": [
-     "google",
      "resend",
      "supabase"
     ],
-    "lineCount": 481
+    "lineCount": 461
    },
    {
     "path": "supabase/functions/marketing-provider-webhook/index.ts",
@@ -105855,7 +106268,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 330
+    "lineCount": 356
    },
    {
     "path": "supabase/functions/print-order-action/index.ts",
@@ -107175,6 +107588,11 @@
     "extension": ".yml"
    },
    {
+    "path": ".github/workflows/tok-runtime-security.yml",
+    "category": "ci-workflow",
+    "extension": ".yml"
+   },
+   {
     "path": ".gitignore",
     "category": "repository-file",
     "extension": "(none)"
@@ -107666,6 +108084,11 @@
    },
    {
     "path": "docs/audits/MARKETING_CAMPAIGNS_AUDIT_2026-07-28.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/audits/TOK_FINALISATION_PLAN_2026-10-03.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -110105,6 +110528,11 @@
     "extension": ".mjs"
    },
    {
+    "path": "scripts/ci-migration-content-guard.mjs",
+    "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
     "path": "scripts/ci-migration-version-guard.mjs",
     "category": "automation-script",
     "extension": ".mjs"
@@ -110148,6 +110576,11 @@
     "path": "scripts/ensure-supabase-auth-smtp.mjs",
     "category": "automation-script",
     "extension": ".mjs"
+   },
+   {
+    "path": "scripts/fixtures/tok-audit-schema.sql",
+    "category": "automation-script",
+    "extension": ".sql"
    },
    {
     "path": "scripts/frontend-10k-readiness.mjs",
@@ -110265,6 +110698,11 @@
     "extension": ".mjs"
    },
    {
+    "path": "scripts/migration-content-baseline.json",
+    "category": "automation-script",
+    "extension": ".json"
+   },
+   {
     "path": "scripts/mobile-android-build.ps1",
     "category": "automation-script",
     "extension": ".ps1"
@@ -110363,6 +110801,16 @@
     "path": "scripts/take-screenshots.mjs",
     "category": "automation-script",
     "extension": ".mjs"
+   },
+   {
+    "path": "scripts/tok-deployment-regression.test.mjs",
+    "category": "test",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/tok-runtime-regression.test.cjs",
+    "category": "test",
+    "extension": ".cjs"
    },
    {
     "path": "scripts/verify-supabase-runtime-security.mjs",
@@ -116070,6 +116518,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-camera-and-route-meta.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/tok-connect-admin-humanized.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -116150,6 +116603,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-deployment-regression.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/tok-intelligence-suite.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -116166,6 +116624,11 @@
    },
    {
     "path": "src/test/tok-pulse-native-widget.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-runtime-regression.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -116351,6 +116814,11 @@
    },
    {
     "path": "supabase/functions/_shared/marketing-ai.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-capabilities.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -119725,6 +120193,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/migrations/20261003070000_marketing_autopilot_foundation.sql",
     "category": "database-migration",
     "extension": ".sql"
@@ -119736,6 +120209,11 @@
    },
    {
     "path": "supabase/tests/floor_plan_autoplacement_smoke.sql",
+    "category": "supabase-configuration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/tests/tok-audit-runtime-hardening.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
    },
@@ -120456,18 +120934,20 @@
    "id": "code-module:be8dd1c3a100",
    "type": "code-module",
    "title": "scripts/apply-commercial-demo-migrations.mjs",
-   "description": "Module de 279 lignes; exports: parseMigrationPath, parseAddedDemoMigrations, hasTopLevelTransactionControl, main.",
+   "description": "Module de 299 lignes; exports: parseMigrationPath, parseAddedDemoMigrations, hasTopLevelTransactionControl, readDemoMigrationDiff, main.",
    "path": "scripts/apply-commercial-demo-migrations.mjs",
    "line": 1,
    "surface": null,
    "tags": [
+    "DEMO_MIGRATION_BASE_SHA",
     "hasTopLevelTransactionControl",
     "main",
     "parseAddedDemoMigrations",
     "parseMigrationPath",
+    "readDemoMigrationDiff",
     "supabase"
    ],
-   "detailRef": "47bc62b52d53"
+   "detailRef": "1913181b507f"
   },
   {
    "id": "code-module:8cba044a5c27",
@@ -120620,6 +121100,21 @@
     "supabase"
    ],
    "detailRef": "06030cbf0ac0"
+  },
+  {
+   "id": "code-module:cf8cabb1523d",
+   "type": "code-module",
+   "title": "scripts/ci-migration-content-guard.mjs",
+   "description": "Module de 27 lignes; exports: findContentDuplicates, main.",
+   "path": "scripts/ci-migration-content-guard.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "findContentDuplicates",
+    "main",
+    "supabase"
+   ],
+   "detailRef": "4229d5f37164"
   },
   {
    "id": "code-module:0693777204e5",
@@ -121145,7 +121640,7 @@
    "id": "code-module:c3dee908e582",
    "type": "code-module",
    "title": "scripts/prerender-seo.mjs",
-   "description": "Module de 2233 lignes; exports: aucun export statique.",
+   "description": "Module de 2236 lignes; exports: aucun export statique.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1,
    "surface": null,
@@ -121170,7 +121665,7 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "d2a324a9b626"
+   "detailRef": "ef1cf70e879a"
   },
   {
    "id": "code-module:6c15664b5a20",
@@ -121401,6 +121896,35 @@
     "google"
    ],
    "detailRef": "9fe3b95644be"
+  },
+  {
+   "id": "code-module:4588665d3eda",
+   "type": "code-module",
+   "title": "scripts/tok-deployment-regression.test.mjs",
+   "description": "Module de 53 lignes; exports: aucun export statique.",
+   "path": "scripts/tok-deployment-regression.test.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "vercel"
+   ],
+   "detailRef": "3ff3a7f72383"
+  },
+  {
+   "id": "code-module:268148c7c8ac",
+   "type": "code-module",
+   "title": "scripts/tok-runtime-regression.test.cjs",
+   "description": "Module de 130 lignes; exports: aucun export statique.",
+   "path": "scripts/tok-runtime-regression.test.cjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TYPESCRIPT_PATH",
+    "google",
+    "supabase"
+   ],
+   "detailRef": "5f27df1a58f6"
   },
   {
    "id": "code-module:331a523ce62c",
@@ -122782,14 +123306,14 @@
    "id": "code-module:18de1efd8b47",
    "type": "code-module",
    "title": "src/components/courier/DeliveryProofPanel.tsx",
-   "description": "Module de 325 lignes; exports: default.",
+   "description": "Module de 333 lignes; exports: default.",
    "path": "src/components/courier/DeliveryProofPanel.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "a17d14eeaf07"
+   "detailRef": "d4543f4515f9"
   },
   {
    "id": "code-module:36ce811d7fc1",
@@ -125443,7 +125967,7 @@
    "id": "code-module:bd769c2df9a6",
    "type": "code-module",
    "title": "src/hooks/useSeoMeta.ts",
-   "description": "Module de 366 lignes; exports: ensureSeoMetadataForRoute, buildCanonicalUrl, useSeoMeta.",
+   "description": "Module de 372 lignes; exports: ensureSeoMetadataForRoute, buildCanonicalUrl, useSeoMeta.",
    "path": "src/hooks/useSeoMeta.ts",
    "line": 1,
    "surface": null,
@@ -125453,7 +125977,7 @@
     "google",
     "useSeoMeta"
    ],
-   "detailRef": "17e0bccf317d"
+   "detailRef": "c7a87c3065af"
   },
   {
    "id": "code-module:5883d3da6c48",
@@ -129945,7 +130469,7 @@
    "id": "code-module:c86b4d8c159a",
    "type": "code-module",
    "title": "src/marketing/marketingClient.ts",
-   "description": "Module de 1212 lignes; exports: invokeOutreachRpc, listMarketingContactsPage, listMarketingDeliveriesPage, loadMarketingSnapshot, upsertMarketingCampaign, createMarketingCampaignBundle, upsertMarketingCalendarItem, cancelMarketingItem, completeManualMarketingItem, estimateMarketingAudience, approveMarketingCampaign, approveMarketingItem, retryMarketingDelivery, completeManualMarketingDelivery, upsertMarketingRestaurantContact, suppressMarketingContact, revealManualMarketingDeliveryTarget, setMarketingGlobalPause, syncMarketingProspectCatalog, syncMarketingClientConsents, upsertMarketingAutomation, runMarketingOrchestrator, loadMarketingOutreach, upsertMarketingOutreachTarget, upsertMarketingOutreachOpportunity, upsertMarketingOutreachDraft, approveMarketingOutreachDraft, recordMarketingOutreachResult, upsertMarketingBacklink.",
+   "description": "Module de 1216 lignes; exports: invokeOutreachRpc, listMarketingContactsPage, listMarketingDeliveriesPage, loadMarketingSnapshot, upsertMarketingCampaign, createMarketingCampaignBundle, upsertMarketingCalendarItem, cancelMarketingItem, completeManualMarketingItem, estimateMarketingAudience, approveMarketingCampaign, approveMarketingItem, retryMarketingDelivery, completeManualMarketingDelivery, upsertMarketingRestaurantContact, suppressMarketingContact, revealManualMarketingDeliveryTarget, setMarketingGlobalPause, syncMarketingProspectCatalog, syncMarketingClientConsents, upsertMarketingAutomation, runMarketingOrchestrator, loadMarketingOutreach, upsertMarketingOutreachTarget, upsertMarketingOutreachOpportunity, upsertMarketingOutreachDraft, approveMarketingOutreachDraft, recordMarketingOutreachResult, upsertMarketingBacklink.",
    "path": "src/marketing/marketingClient.ts",
    "line": 1,
    "surface": null,
@@ -129968,6 +130492,7 @@
     "revealManualMarketingDeliveryTarget",
     "runMarketingOrchestrator",
     "setMarketingGlobalPause",
+    "supabase",
     "suppressMarketingContact",
     "syncMarketingClientConsents",
     "syncMarketingProspectCatalog",
@@ -129980,7 +130505,7 @@
     "upsertMarketingOutreachTarget",
     "upsertMarketingRestaurantContact"
    ],
-   "detailRef": "8ab138e23181"
+   "detailRef": "b240ef6637e0"
   },
   {
    "id": "code-module:1dffa5fd442b",
@@ -132708,7 +133233,7 @@
    "id": "code-module:99cbe1539462",
    "type": "code-module",
    "title": "src/test/application-search-index.test.ts",
-   "description": "Module de 168 lignes; exports: aucun export statique.",
+   "description": "Module de 171 lignes; exports: aucun export statique.",
    "path": "src/test/application-search-index.test.ts",
    "line": 1,
    "surface": null,
@@ -132718,7 +133243,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "5b0bb55925ae"
+   "detailRef": "3c27073e0851"
   },
   {
    "id": "code-module:f6d47cf3df51",
@@ -135438,7 +135963,7 @@
    "id": "code-module:f1aadb4d91ba",
    "type": "code-module",
    "title": "src/test/marketing-ai-agent.test.ts",
-   "description": "Module de 281 lignes; exports: aucun export statique.",
+   "description": "Module de 283 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-ai-agent.test.ts",
    "line": 1,
    "surface": null,
@@ -135447,7 +135972,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ad724ec83f19"
+   "detailRef": "5805cd82e1c2"
   },
   {
    "id": "code-module:6406b6c9d347",
@@ -136327,7 +136852,7 @@
    "id": "code-module:ec0318f8b9c7",
    "type": "code-module",
    "title": "src/test/plan-phase1-readiness.test.ts",
-   "description": "Module de 307 lignes; exports: aucun export statique.",
+   "description": "Module de 310 lignes; exports: aucun export statique.",
    "path": "src/test/plan-phase1-readiness.test.ts",
    "line": 1,
    "surface": null,
@@ -136339,7 +136864,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "95b9fc193a8b"
+   "detailRef": "5f08c10f5fb0"
   },
   {
    "id": "code-module:819852323f21",
@@ -138390,6 +138915,17 @@
    "detailRef": "a5cfbb5001e3"
   },
   {
+   "id": "code-module:413641cc618e",
+   "type": "code-module",
+   "title": "src/test/tok-camera-and-route-meta.test.tsx",
+   "description": "Module de 58 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-camera-and-route-meta.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "08dd06ebb993"
+  },
+  {
    "id": "code-module:f6990f00d43c",
    "type": "code-module",
    "title": "src/test/tok-connect-admin-humanized.test.ts",
@@ -138603,6 +139139,17 @@
    "detailRef": "c89a70091f7d"
   },
   {
+   "id": "code-module:1c4c154e4911",
+   "type": "code-module",
+   "title": "src/test/tok-deployment-regression.test.ts",
+   "description": "Module de 7 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-deployment-regression.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "376f1c18e8f0"
+  },
+  {
    "id": "code-module:7ff5e35cf316",
    "type": "code-module",
    "title": "src/test/tok-intelligence-suite.test.ts",
@@ -138653,6 +139200,17 @@
     "supabase"
    ],
    "detailRef": "4bddeb5fb0da"
+  },
+  {
+   "id": "code-module:1c6092fd81c6",
+   "type": "code-module",
+   "title": "src/test/tok-runtime-regression.test.ts",
+   "description": "Module de 7 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-runtime-regression.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "e5dc9d1c07b1"
   },
   {
    "id": "code-module:dd826816118e",
@@ -138813,7 +139371,7 @@
    "id": "code-module:85318382a668",
    "type": "code-module",
    "title": "supabase/functions/_shared/auth.ts",
-   "description": "Module de 474 lignes; exports: EdgeSupabaseClient, HttpError, errorRecovery, errorDiagnostics, RequestActor, getEnv, createAdminClient, jsonResponse, buildRequestMetadata, writeAuditLog, authenticateRequest, requireRole, requireUserRole, assertProductionFlowAllowed, requireRestaurantAccess.",
+   "description": "Module de 482 lignes; exports: EdgeSupabaseClient, HttpError, errorRecovery, errorDiagnostics, RequestActor, getEnv, createAdminClient, jsonResponse, buildRequestMetadata, writeAuditLog, authenticateRequest, requireRole, requireUserRole, assertProductionFlowAllowed, requireRestaurantAccess.",
    "path": "supabase/functions/_shared/auth.ts",
    "line": 1,
    "surface": null,
@@ -138841,7 +139399,7 @@
     "supabase",
     "writeAuditLog"
    ],
-   "detailRef": "c6c556d531ed"
+   "detailRef": "de5930bfc3af"
   },
   {
    "id": "code-module:6eb20941ca47",
@@ -139173,6 +139731,19 @@
     "toBundlePayload"
    ],
    "detailRef": "995a8aed4348"
+  },
+  {
+   "id": "code-module:5f74da719879",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/marketing-capabilities.ts",
+   "description": "Module de 12 lignes; exports: getMarketingAdapterBlocker.",
+   "path": "supabase/functions/_shared/marketing-capabilities.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "getMarketingAdapterBlocker"
+   ],
+   "detailRef": "81a4eb4f0d9a"
   },
   {
    "id": "code-module:13d84d310c47",
@@ -140877,7 +141448,7 @@
    "id": "code-module:0a9264bbf973",
    "type": "code-module",
    "title": "supabase/functions/marketing-orchestrator/index.ts",
-   "description": "Module de 481 lignes; exports: aucun export statique.",
+   "description": "Module de 461 lignes; exports: aucun export statique.",
    "path": "supabase/functions/marketing-orchestrator/index.ts",
    "line": 1,
    "surface": null,
@@ -140885,11 +141456,10 @@
     "EMAIL_FROM",
     "RESEND_API_KEY",
     "SUPABASE_URL",
-    "google",
     "resend",
     "supabase"
    ],
-   "detailRef": "ee55c95034b9"
+   "detailRef": "fa7a5646c240"
   },
   {
    "id": "code-module:1d037de76b49",
@@ -141035,7 +141605,7 @@
    "id": "code-module:c715d62e836a",
    "type": "code-module",
    "title": "supabase/functions/print-orchestrator/index.ts",
-   "description": "Module de 330 lignes; exports: aucun export statique.",
+   "description": "Module de 356 lignes; exports: aucun export statique.",
    "path": "supabase/functions/print-orchestrator/index.ts",
    "line": 1,
    "surface": null,
@@ -141043,7 +141613,7 @@
     "PRINT_SUPPORT_EMAIL",
     "stripe"
    ],
-   "detailRef": "bde8651e2a31"
+   "detailRef": "b9768c2b5c99"
   },
   {
    "id": "code-module:0f8a1d786357",
@@ -149821,6 +150391,21 @@
    "detailRef": "c8863f7aa37b"
   },
   {
+   "id": "database-object:6c8e9e173778",
+   "type": "database-object",
+   "title": "idx_menu_items_restaurant_id",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+   "line": 34,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "1f742ad39fa3"
+  },
+  {
    "id": "database-object:9e3f97125172",
    "type": "database-object",
    "title": "idx_messages_conversation",
@@ -150766,6 +151351,21 @@
    "detailRef": "77cdda021bc8"
   },
   {
+   "id": "database-object:8670f9a7411c",
+   "type": "database-object",
+   "title": "idx_print_fulfillment_jobs_order_id",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "5a9253ab0c88"
+  },
+  {
    "id": "database-object:910f566fab17",
    "type": "database-object",
    "title": "idx_print_order_events_order_created",
@@ -150959,6 +151559,21 @@
     "supabase"
    ],
    "detailRef": "5b0da00c3c7b"
+  },
+  {
+   "id": "database-object:07ef988ec90c",
+   "type": "database-object",
+   "title": "idx_promo_code_uses_order_id",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "e7a6d9b1a69c"
   },
   {
    "id": "database-object:08fa4eb39893",
@@ -159316,19 +159931,19 @@
    "detailRef": "de56ea76e2bc"
   },
   {
-   "id": "database-object:b59f66f55581",
+   "id": "database-object:36dfda7b3dfe",
    "type": "database-object",
    "title": "public.apply_checkout_benefits",
-   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260423232011_fix_apply_checkout_benefits_redeem_conflict.sql",
-   "line": 1,
+   "description": "Objet PostgreSQL de type function; 3 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+   "line": 38,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "c41ee496941e"
+   "detailRef": "b66d406315b3"
   },
   {
    "id": "database-object:a4b2e9751ccf",
@@ -169276,6 +169891,21 @@
    "detailRef": "6ca2e9b07f1a"
   },
   {
+   "id": "database-object:db11855852fe",
+   "type": "database-object",
+   "title": "public.menu_items.menu_items_admin_select",
+   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+   "line": 29,
+   "surface": null,
+   "tags": [
+    "policy",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "cab31f31fcda"
+  },
+  {
    "id": "database-object:98bec66e862b",
    "type": "database-object",
    "title": "public.menu_items.menu_items_owner_all",
@@ -169291,19 +169921,19 @@
    "detailRef": "e14a1466a39a"
   },
   {
-   "id": "database-object:c7a7f22ed4b0",
+   "id": "database-object:242a278fa0d2",
    "type": "database-object",
    "title": "public.menu_items.menu_items_public_select",
-   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260311120000_atomic_stock_and_rls_hardening.sql",
-   "line": 56,
+   "description": "Objet PostgreSQL de type policy; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+   "line": 26,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "ed272e7b4534"
+   "detailRef": "0e6753951928"
   },
   {
    "id": "database-object:7835399cc965",
@@ -194976,6 +195606,20 @@
    "detailRef": "5782a9e37f9f"
   },
   {
+   "id": "document-section:7af8aa05764c",
+   "type": "document-section",
+   "title": "Constraints and verified baseline",
+   "description": "Section de TOK audit remediation — finalisation plan.",
+   "path": "docs/audits/TOK_FINALISATION_PLAN_2026-10-03.md",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "TOK audit remediation — finalisation plan",
+    "h2"
+   ],
+   "detailRef": "cc99fc65260b"
+  },
+  {
    "id": "document-section:469304ebaca2",
    "type": "document-section",
    "title": "Contenu attendu",
@@ -196024,6 +196668,20 @@
     "h2"
    ],
    "detailRef": "19c7fba0000d"
+  },
+  {
+   "id": "document-section:d13eb1641852",
+   "type": "document-section",
+   "title": "Decisions made during final review",
+   "description": "Section de TOK audit remediation — finalisation plan.",
+   "path": "docs/audits/TOK_FINALISATION_PLAN_2026-10-03.md",
+   "line": 44,
+   "surface": null,
+   "tags": [
+    "TOK audit remediation — finalisation plan",
+    "h2"
+   ],
+   "detailRef": "f8214007a82d"
   },
   {
    "id": "document-section:6f057ce0eaca",
@@ -204230,6 +204888,20 @@
    "detailRef": "d9098335768d"
   },
   {
+   "id": "document-section:4fdf26d0cdb2",
+   "type": "document-section",
+   "title": "Planned steps and file families",
+   "description": "Section de TOK audit remediation — finalisation plan.",
+   "path": "docs/audits/TOK_FINALISATION_PLAN_2026-10-03.md",
+   "line": 29,
+   "surface": null,
+   "tags": [
+    "TOK audit remediation — finalisation plan",
+    "h2"
+   ],
+   "detailRef": "e69077464026"
+  },
+  {
    "id": "document-section:f6719ac12bad",
    "type": "document-section",
    "title": "Plant",
@@ -206624,6 +207296,20 @@
    "detailRef": "c9b5f0c4b76e"
   },
   {
+   "id": "document-section:dc4f115815a8",
+   "type": "document-section",
+   "title": "Review focus",
+   "description": "Section de TOK audit remediation — finalisation plan.",
+   "path": "docs/audits/TOK_FINALISATION_PLAN_2026-10-03.md",
+   "line": 21,
+   "surface": null,
+   "tags": [
+    "TOK audit remediation — finalisation plan",
+    "h2"
+   ],
+   "detailRef": "89c588cf6f87"
+  },
+  {
    "id": "document-section:0d665bd28cad",
    "type": "document-section",
    "title": "Review method",
@@ -206664,6 +207350,20 @@
     "h1"
    ],
    "detailRef": "60a0264e0842"
+  },
+  {
+   "id": "document-section:fa56d3ae0f55",
+   "type": "document-section",
+   "title": "Risks and rollback",
+   "description": "Section de TOK audit remediation — finalisation plan.",
+   "path": "docs/audits/TOK_FINALISATION_PLAN_2026-10-03.md",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "TOK audit remediation — finalisation plan",
+    "h2"
+   ],
+   "detailRef": "6817585e499a"
   },
   {
    "id": "document-section:27335ec3dc17",
@@ -210052,6 +210752,20 @@
     "h1"
    ],
    "detailRef": "49fc7227c364"
+  },
+  {
+   "id": "document-section:cdfd1fa99773",
+   "type": "document-section",
+   "title": "TOK audit remediation — finalisation plan",
+   "description": "Section de TOK audit remediation — finalisation plan.",
+   "path": "docs/audits/TOK_FINALISATION_PLAN_2026-10-03.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK audit remediation — finalisation plan",
+    "h1"
+   ],
+   "detailRef": "d66596eaed25"
   },
   {
    "id": "document-section:396f1ec208d2",
@@ -219103,6 +219817,24 @@
    "detailRef": "12ca225ce2e1"
   },
   {
+   "id": "document:cdfd1fa99773",
+   "type": "document",
+   "title": "TOK audit remediation — finalisation plan",
+   "description": "Document Markdown avec 6 section(s).",
+   "path": "docs/audits/TOK_FINALISATION_PLAN_2026-10-03.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Constraints and verified baseline",
+    "Decisions made during final review",
+    "Planned steps and file families",
+    "Review focus",
+    "Risks and rollback",
+    "TOK audit remediation — finalisation plan"
+   ],
+   "detailRef": "742516bcb011"
+  },
+  {
    "id": "document:396f1ec208d2",
    "type": "document",
    "title": "TOK notifications, AI and admin hardening plan",
@@ -222315,12 +223047,11 @@
     "POST",
     "RESEND_API_KEY",
     "SUPABASE_URL",
-    "google",
     "resend",
     "run_item",
     "supabase"
    ],
-   "detailRef": "f46ff44f6a61"
+   "detailRef": "8ef7b8b11a8c"
   },
   {
    "id": "edge-function:ea04d0a7dc94",
@@ -223812,6 +224543,19 @@
    "detailRef": "cefb8831a96c"
   },
   {
+   "id": "environment-variable:3184d9b07c2f",
+   "type": "environment-variable",
+   "title": "DEMO_MIGRATION_BASE_SHA",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/apply-commercial-demo-migrations.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/apply-commercial-demo-migrations.mjs"
+   ],
+   "detailRef": "1f867545dae9"
+  },
+  {
    "id": "environment-variable:765710e3c09a",
    "type": "environment-variable",
    "title": "DEMO_SUPABASE_PROJECT_REF",
@@ -225277,6 +226021,19 @@
     "supabase/functions/contact-support/index.ts"
    ],
    "detailRef": "0ca13f548ef6"
+  },
+  {
+   "id": "environment-variable:dbaaa81affdc",
+   "type": "environment-variable",
+   "title": "TYPESCRIPT_PATH",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/tok-runtime-regression.test.cjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/tok-runtime-regression.test.cjs"
+   ],
+   "detailRef": "08d78746df26"
   },
   {
    "id": "environment-variable:83cdd18d7e6c",
@@ -245685,43 +246442,46 @@
    "detailRef": "f60a8373ef18"
   },
   {
-   "id": "exported-symbol:1e7bf17de47c",
+   "id": "exported-symbol:b619e36cf5b6",
    "type": "exported-symbol",
    "title": "approveMarketingCampaign",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 888,
+   "line": 892,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "d2827a7bd075"
+   "detailRef": "c18875a299d0"
   },
   {
-   "id": "exported-symbol:28781b732c63",
+   "id": "exported-symbol:cfe35b00faf2",
    "type": "exported-symbol",
    "title": "approveMarketingItem",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 895,
+   "line": 899,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "41e9c201cf10"
+   "detailRef": "1991a4228e35"
   },
   {
-   "id": "exported-symbol:215658333f52",
+   "id": "exported-symbol:fe9b7ec52598",
    "type": "exported-symbol",
    "title": "approveMarketingOutreachDraft",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1175,
+   "line": 1179,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "72a4927fc618"
+   "detailRef": "6aa0d0b3dada"
   },
   {
    "id": "exported-symbol:dd79007a6d4a",
@@ -245948,19 +246708,19 @@
    "detailRef": "55684d43b7d3"
   },
   {
-   "id": "exported-symbol:a9c898600dbe",
+   "id": "exported-symbol:21c2eb25f63a",
    "type": "exported-symbol",
    "title": "assertProductionFlowAllowed",
    "description": "Export function de supabase/functions/_shared/auth.ts.",
    "path": "supabase/functions/_shared/auth.ts",
-   "line": 388,
+   "line": 396,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "dd8f534b9766"
+   "detailRef": "c11c65c32178"
   },
   {
    "id": "exported-symbol:e152074ac8fc",
@@ -246113,19 +246873,19 @@
    "detailRef": "0527a99dde8d"
   },
   {
-   "id": "exported-symbol:ff3018a6f69e",
+   "id": "exported-symbol:298b422f5624",
    "type": "exported-symbol",
    "title": "authenticateRequest",
    "description": "Export function de supabase/functions/_shared/auth.ts.",
    "path": "supabase/functions/_shared/auth.ts",
-   "line": 186,
+   "line": 194,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "8de44c20630f"
+   "detailRef": "534debe23699"
   },
   {
    "id": "exported-symbol:a2f790d926a4",
@@ -246387,18 +247147,18 @@
    "detailRef": "db7b2b23177a"
   },
   {
-   "id": "exported-symbol:4a58b27b04a2",
+   "id": "exported-symbol:16d4cbb00139",
    "type": "exported-symbol",
    "title": "buildCanonicalUrl",
    "description": "Export function de src/hooks/useSeoMeta.ts.",
    "path": "src/hooks/useSeoMeta.ts",
-   "line": 266,
+   "line": 272,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "171fee0f3577"
+   "detailRef": "1b86529d6c88"
   },
   {
    "id": "exported-symbol:7e5f8982e5a8",
@@ -248304,17 +249064,18 @@
    "detailRef": "2e3c584afc94"
   },
   {
-   "id": "exported-symbol:9cf9a33a104b",
+   "id": "exported-symbol:16cf9e0e867c",
    "type": "exported-symbol",
    "title": "cancelMarketingItem",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 842,
+   "line": 846,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "75543b60d28c"
+   "detailRef": "bcc34eb2540e"
   },
   {
    "id": "exported-symbol:690ce4c570b3",
@@ -248949,30 +249710,32 @@
    "detailRef": "ec67cf96fee4"
   },
   {
-   "id": "exported-symbol:13260e43944d",
+   "id": "exported-symbol:c3aac9098b05",
    "type": "exported-symbol",
    "title": "completeManualMarketingDelivery",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 908,
+   "line": 912,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "f1006c52b3df"
+   "detailRef": "1c611bde7cea"
   },
   {
-   "id": "exported-symbol:f7bc71eb986d",
+   "id": "exported-symbol:558d69c5b19c",
    "type": "exported-symbol",
    "title": "completeManualMarketingItem",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 849,
+   "line": 853,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "7b97322986fd"
+   "detailRef": "7161bfbabdc1"
   },
   {
    "id": "exported-symbol:90405ccc5e04",
@@ -249538,17 +250301,18 @@
    "detailRef": "767d1cd6598e"
   },
   {
-   "id": "exported-symbol:7c3bd3a5d4b8",
+   "id": "exported-symbol:35782327d255",
    "type": "exported-symbol",
    "title": "createMarketingCampaignBundle",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 800,
+   "line": 804,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "02cafa6306d9"
+   "detailRef": "81bcf6b11899"
   },
   {
    "id": "exported-symbol:5bf4720bbab8",
@@ -254688,18 +255452,18 @@
    "detailRef": "937b50722027"
   },
   {
-   "id": "exported-symbol:140bbb6081f5",
+   "id": "exported-symbol:45952b606b7a",
    "type": "exported-symbol",
    "title": "ensureSeoMetadataForRoute",
    "description": "Export function de src/hooks/useSeoMeta.ts.",
    "path": "src/hooks/useSeoMeta.ts",
-   "line": 246,
+   "line": 252,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "ae604e82de92"
+   "detailRef": "31b3cbb5e63a"
   },
   {
    "id": "exported-symbol:17ccb1edb7aa",
@@ -254803,17 +255567,18 @@
    "detailRef": "4ceebf4e84bb"
   },
   {
-   "id": "exported-symbol:57e1ab835ee5",
+   "id": "exported-symbol:9cb556f9b5e6",
    "type": "exported-symbol",
    "title": "estimateMarketingAudience",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 861,
+   "line": 865,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "bc918aaa2cc4"
+   "detailRef": "30856235eb79"
   },
   {
    "id": "exported-symbol:d3669e6808bd",
@@ -255389,6 +256154,20 @@
     "supabase"
    ],
    "detailRef": "5d8f593e7a7e"
+  },
+  {
+   "id": "exported-symbol:fcde109a51c1",
+   "type": "exported-symbol",
+   "title": "findContentDuplicates",
+   "description": "Export function de scripts/ci-migration-content-guard.mjs.",
+   "path": "scripts/ci-migration-content-guard.mjs",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "6642df136e9c"
   },
   {
    "id": "exported-symbol:feef732ffa40",
@@ -258193,6 +258972,19 @@
     "function"
    ],
    "detailRef": "12c8ca6bf22e"
+  },
+  {
+   "id": "exported-symbol:30338fe663d1",
+   "type": "exported-symbol",
+   "title": "getMarketingAdapterBlocker",
+   "description": "Export function de supabase/functions/_shared/marketing-capabilities.ts.",
+   "path": "supabase/functions/_shared/marketing-capabilities.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "8082273a9441"
   },
   {
    "id": "exported-symbol:693009135993",
@@ -261349,17 +262141,18 @@
    "detailRef": "923c41b8b73f"
   },
   {
-   "id": "exported-symbol:922d2b59ca23",
+   "id": "exported-symbol:33b18ed5ce39",
    "type": "exported-symbol",
    "title": "invokeOutreachRpc",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 115,
+   "line": 116,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "26be7460a802"
+   "detailRef": "faba44cb4c30"
   },
   {
    "id": "exported-symbol:1457bd32706b",
@@ -263303,30 +264096,32 @@
    "detailRef": "7a98b7677d2a"
   },
   {
-   "id": "exported-symbol:17f9fe374bb3",
+   "id": "exported-symbol:45dd003d06a8",
    "type": "exported-symbol",
    "title": "listMarketingContactsPage",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 581,
+   "line": 585,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "1ce3570919a0"
+   "detailRef": "8ebe11577e0d"
   },
   {
-   "id": "exported-symbol:988c13ca9db8",
+   "id": "exported-symbol:08b32bf91e04",
    "type": "exported-symbol",
    "title": "listMarketingDeliveriesPage",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 595,
+   "line": 599,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "3a3101cbed51"
+   "detailRef": "abe006b7782a"
   },
   {
    "id": "exported-symbol:b61a92d66ce7",
@@ -263450,30 +264245,32 @@
    "detailRef": "6b0a2a24a7b0"
   },
   {
-   "id": "exported-symbol:bce9bbaa74ee",
+   "id": "exported-symbol:7b4ee8dcccee",
    "type": "exported-symbol",
    "title": "loadMarketingOutreach",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1099,
+   "line": 1103,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "66991fedf3e2"
+   "detailRef": "e63f3891d16a"
   },
   {
-   "id": "exported-symbol:7c749b74dbcc",
+   "id": "exported-symbol:73c9abe15db6",
    "type": "exported-symbol",
    "title": "loadMarketingSnapshot",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 609,
+   "line": 613,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "855ee3c7c8ec"
+   "detailRef": "5861e4649975"
   },
   {
    "id": "exported-symbol:7e09ef406ae1",
@@ -263521,18 +264318,18 @@
    "detailRef": "a61902117dd7"
   },
   {
-   "id": "exported-symbol:434348d9d6b2",
+   "id": "exported-symbol:cdedf5e5eb8e",
    "type": "exported-symbol",
    "title": "main",
    "description": "Export function de scripts/apply-commercial-demo-migrations.mjs.",
    "path": "scripts/apply-commercial-demo-migrations.mjs",
-   "line": 224,
+   "line": 237,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "f381a9447a07"
+   "detailRef": "188239b8db25"
   },
   {
    "id": "exported-symbol:b808d3481644",
@@ -263564,6 +264361,20 @@
     "supabase"
    ],
    "detailRef": "7991a35e40cb"
+  },
+  {
+   "id": "exported-symbol:f81b109dc653",
+   "type": "exported-symbol",
+   "title": "main",
+   "description": "Export function de scripts/ci-migration-content-guard.mjs.",
+   "path": "scripts/ci-migration-content-guard.mjs",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "3f431e2657c3"
   },
   {
    "id": "exported-symbol:270520f25e52",
@@ -265799,6 +266610,20 @@
    "detailRef": "732dd05b35bf"
   },
   {
+   "id": "exported-symbol:34e77728055a",
+   "type": "exported-symbol",
+   "title": "readDemoMigrationDiff",
+   "description": "Export function de scripts/apply-commercial-demo-migrations.mjs.",
+   "path": "scripts/apply-commercial-demo-migrations.mjs",
+   "line": 224,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "d7f99a8e383e"
+  },
+  {
    "id": "exported-symbol:5cf1585d2416",
    "type": "exported-symbol",
    "title": "readMarketingCsrfToken",
@@ -266015,17 +266840,18 @@
    "detailRef": "79e62183b57d"
   },
   {
-   "id": "exported-symbol:077c7f867f12",
+   "id": "exported-symbol:94b4b0ffc7a3",
    "type": "exported-symbol",
    "title": "recordMarketingOutreachResult",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1182,
+   "line": 1186,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "56e1b20920f1"
+   "detailRef": "6883250563ba"
   },
   {
    "id": "exported-symbol:684ee2d9d6c0",
@@ -266595,19 +267421,19 @@
    "detailRef": "2b216dca681e"
   },
   {
-   "id": "exported-symbol:e7507cf8dd6f",
+   "id": "exported-symbol:557acfb5120c",
    "type": "exported-symbol",
    "title": "requireRestaurantAccess",
    "description": "Export function de supabase/functions/_shared/auth.ts.",
    "path": "supabase/functions/_shared/auth.ts",
-   "line": 436,
+   "line": 444,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "63feba50b1fd"
+   "detailRef": "fe76f0f9094a"
   },
   {
    "id": "exported-symbol:53f333800fba",
@@ -266625,34 +267451,34 @@
    "detailRef": "1c682823f147"
   },
   {
-   "id": "exported-symbol:f8c9af5a4572",
+   "id": "exported-symbol:b2dd4283c159",
    "type": "exported-symbol",
    "title": "requireRole",
    "description": "Export function de supabase/functions/_shared/auth.ts.",
    "path": "supabase/functions/_shared/auth.ts",
-   "line": 313,
+   "line": 321,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "18d6b0412280"
+   "detailRef": "570d7bb0ab91"
   },
   {
-   "id": "exported-symbol:0e458d1b76c9",
+   "id": "exported-symbol:8aa5e9c86107",
    "type": "exported-symbol",
    "title": "requireUserRole",
    "description": "Export function de supabase/functions/_shared/auth.ts.",
    "path": "supabase/functions/_shared/auth.ts",
-   "line": 346,
+   "line": 354,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "27c8c94639a4"
+   "detailRef": "8c0f49df50db"
   },
   {
    "id": "exported-symbol:ba8e9b7b2c1a",
@@ -267103,30 +267929,32 @@
    "detailRef": "02eef465c475"
   },
   {
-   "id": "exported-symbol:32fc83d221b1",
+   "id": "exported-symbol:68dccbd5f47c",
    "type": "exported-symbol",
    "title": "retryMarketingDelivery",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 902,
+   "line": 906,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "0972903fe0d6"
+   "detailRef": "f5e5f5d5739c"
   },
   {
-   "id": "exported-symbol:4a7b1af345a6",
+   "id": "exported-symbol:4036110a9ba5",
    "type": "exported-symbol",
    "title": "revealManualMarketingDeliveryTarget",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 953,
+   "line": 957,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "5b163bce718f"
+   "detailRef": "cf0f7f37f33f"
   },
   {
    "id": "exported-symbol:29dda7898d66",
@@ -267273,17 +268101,18 @@
    "detailRef": "464e316108ec"
   },
   {
-   "id": "exported-symbol:b5c7cfe228d6",
+   "id": "exported-symbol:cbf30c83b20a",
    "type": "exported-symbol",
    "title": "runMarketingOrchestrator",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1083,
+   "line": 1087,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "7bd07c671458"
+   "detailRef": "ec570a693ded"
   },
   {
    "id": "exported-symbol:9b49d84c736d",
@@ -268078,17 +268907,18 @@
    "detailRef": "41d8f0a71899"
   },
   {
-   "id": "exported-symbol:4fd1253d8219",
+   "id": "exported-symbol:aad655a6573d",
    "type": "exported-symbol",
    "title": "setMarketingGlobalPause",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 979,
+   "line": 983,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "39eeb3544e3f"
+   "detailRef": "0a306ab5db93"
   },
   {
    "id": "exported-symbol:89ab9c40eaa9",
@@ -268768,17 +269598,18 @@
    "detailRef": "d831a09371e9"
   },
   {
-   "id": "exported-symbol:0f6d7dfd4352",
+   "id": "exported-symbol:df8418a4dfc3",
    "type": "exported-symbol",
    "title": "suppressMarketingContact",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 946,
+   "line": 950,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "c15d34059952"
+   "detailRef": "25668aed9263"
   },
   {
    "id": "exported-symbol:fa84501cfc4e",
@@ -268795,30 +269626,32 @@
    "detailRef": "8434263e56d6"
   },
   {
-   "id": "exported-symbol:b01dab7c68da",
+   "id": "exported-symbol:69633a1d159f",
    "type": "exported-symbol",
    "title": "syncMarketingClientConsents",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1055,
+   "line": 1059,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "457a3cb34fa0"
+   "detailRef": "1701621a6be2"
   },
   {
-   "id": "exported-symbol:1767fa3251d0",
+   "id": "exported-symbol:49d63b45873a",
    "type": "exported-symbol",
    "title": "syncMarketingProspectCatalog",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1041,
+   "line": 1045,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "1a71a9e09800"
+   "detailRef": "39472f81d6a7"
   },
   {
    "id": "exported-symbol:d72c18f2409d",
@@ -269614,108 +270447,116 @@
    "detailRef": "cbca4b5715a2"
   },
   {
-   "id": "exported-symbol:4540d82081e7",
+   "id": "exported-symbol:978a3f1f0c56",
    "type": "exported-symbol",
    "title": "upsertMarketingAutomation",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1067,
+   "line": 1071,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "2154d82fd750"
+   "detailRef": "9e5ccc97f6ef"
   },
   {
-   "id": "exported-symbol:e320f5abee14",
+   "id": "exported-symbol:be13206afb72",
    "type": "exported-symbol",
    "title": "upsertMarketingBacklink",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1196,
+   "line": 1200,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "a5330dba7b50"
+   "detailRef": "e4dbed0ec050"
   },
   {
-   "id": "exported-symbol:c1d61d248e7d",
+   "id": "exported-symbol:0e6227de429b",
    "type": "exported-symbol",
    "title": "upsertMarketingCalendarItem",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 834,
+   "line": 838,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "0f989fd437db"
+   "detailRef": "79623cfd9db6"
   },
   {
-   "id": "exported-symbol:e582ad249b09",
+   "id": "exported-symbol:959a465b12fd",
    "type": "exported-symbol",
    "title": "upsertMarketingCampaign",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 777,
+   "line": 781,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "0a1c809c21f3"
+   "detailRef": "3e5fc4104599"
   },
   {
-   "id": "exported-symbol:fec9b509634e",
+   "id": "exported-symbol:536272d51764",
    "type": "exported-symbol",
    "title": "upsertMarketingOutreachDraft",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1159,
+   "line": 1163,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "66d791d34578"
+   "detailRef": "242d467ec346"
   },
   {
-   "id": "exported-symbol:00e7d9310aed",
+   "id": "exported-symbol:f49a5a719daa",
    "type": "exported-symbol",
    "title": "upsertMarketingOutreachOpportunity",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1139,
+   "line": 1143,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "2a06b2790fb3"
+   "detailRef": "8a6513739c91"
   },
   {
-   "id": "exported-symbol:3abbd850b637",
+   "id": "exported-symbol:57b2da2ffa67",
    "type": "exported-symbol",
    "title": "upsertMarketingOutreachTarget",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1118,
+   "line": 1122,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "b8cbf3df9786"
+   "detailRef": "b874fec971ab"
   },
   {
-   "id": "exported-symbol:62893979fb6f",
+   "id": "exported-symbol:e02e14af129d",
    "type": "exported-symbol",
    "title": "upsertMarketingRestaurantContact",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 920,
+   "line": 924,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "eb17b638dfff"
+   "detailRef": "b456d7f570b9"
   },
   {
    "id": "exported-symbol:07096223e194",
@@ -270574,18 +271415,18 @@
    "detailRef": "9ddca3b855be"
   },
   {
-   "id": "exported-symbol:d494706c98e7",
+   "id": "exported-symbol:efb3104d94af",
    "type": "exported-symbol",
    "title": "useSeoMeta",
    "description": "Export function de src/hooks/useSeoMeta.ts.",
    "path": "src/hooks/useSeoMeta.ts",
-   "line": 271,
+   "line": 277,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "d22ffcaf2431"
+   "detailRef": "8f8ce987ffd8"
   },
   {
    "id": "exported-symbol:32ce242dd9a6",
@@ -274478,6 +275319,20 @@
    "detailRef": "4641b28d0262"
   },
   {
+   "id": "file:00a189a340db",
+   "type": "file",
+   "title": ".github/workflows/tok-runtime-security.yml",
+   "description": "Fichier du dépôt classé ci-workflow.",
+   "path": ".github/workflows/tok-runtime-security.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".yml",
+    "ci-workflow"
+   ],
+   "detailRef": "360887ed8651"
+  },
+  {
    "id": "file:7f519ece547e",
    "type": "file",
    "title": ".gitignore",
@@ -275862,6 +276717,20 @@
     "documentation"
    ],
    "detailRef": "190b961b83cf"
+  },
+  {
+   "id": "file:ce92a14e05c8",
+   "type": "file",
+   "title": "docs/audits/TOK_FINALISATION_PLAN_2026-10-03.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/audits/TOK_FINALISATION_PLAN_2026-10-03.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "0afcbe8f3072"
   },
   {
    "id": "file:2a1504c2ad63",
@@ -282682,6 +283551,20 @@
    "detailRef": "8df3c49ae097"
   },
   {
+   "id": "file:1bd263b10dff",
+   "type": "file",
+   "title": "scripts/ci-migration-content-guard.mjs",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/ci-migration-content-guard.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "automation-script"
+   ],
+   "detailRef": "746e21a40e16"
+  },
+  {
    "id": "file:48fdd7240f07",
    "type": "file",
    "title": "scripts/ci-migration-version-guard.mjs",
@@ -282806,6 +283689,20 @@
     "automation-script"
    ],
    "detailRef": "52a238a0fe32"
+  },
+  {
+   "id": "file:e07e96842a7c",
+   "type": "file",
+   "title": "scripts/fixtures/tok-audit-schema.sql",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/fixtures/tok-audit-schema.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "automation-script"
+   ],
+   "detailRef": "95a18a9363f0"
   },
   {
    "id": "file:565ab67b1906",
@@ -283130,6 +284027,20 @@
    "detailRef": "fe615775fcaf"
   },
   {
+   "id": "file:65a8930f6f27",
+   "type": "file",
+   "title": "scripts/migration-content-baseline.json",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/migration-content-baseline.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".json",
+    "automation-script"
+   ],
+   "detailRef": "b7bed48fbb9a"
+  },
+  {
    "id": "file:4f3e61fc5394",
    "type": "file",
    "title": "scripts/mobile-android-build.ps1",
@@ -283408,6 +284319,34 @@
     "automation-script"
    ],
    "detailRef": "d0af1dfad330"
+  },
+  {
+   "id": "file:8764876c7289",
+   "type": "file",
+   "title": "scripts/tok-deployment-regression.test.mjs",
+   "description": "Fichier du dépôt classé test.",
+   "path": "scripts/tok-deployment-regression.test.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "test"
+   ],
+   "detailRef": "fe2492e2c706"
+  },
+  {
+   "id": "file:b6343cbf7812",
+   "type": "file",
+   "title": "scripts/tok-runtime-regression.test.cjs",
+   "description": "Fichier du dépôt classé test.",
+   "path": "scripts/tok-runtime-regression.test.cjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".cjs",
+    "test"
+   ],
+   "detailRef": "3efaad82bc0d"
   },
   {
    "id": "file:8a641f5d96be",
@@ -299384,6 +300323,20 @@
    "detailRef": "5e2e3ae83b9d"
   },
   {
+   "id": "file:e49f90cba1d4",
+   "type": "file",
+   "title": "src/test/tok-camera-and-route-meta.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-camera-and-route-meta.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "8a2001883843"
+  },
+  {
    "id": "file:a0b4f5417628",
    "type": "file",
    "title": "src/test/tok-connect-admin-humanized.test.ts",
@@ -299608,6 +300561,20 @@
    "detailRef": "f2507d999050"
   },
   {
+   "id": "file:bea43496eea3",
+   "type": "file",
+   "title": "src/test/tok-deployment-regression.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-deployment-regression.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "64fa033521d2"
+  },
+  {
    "id": "file:047c39e2d9a1",
    "type": "file",
    "title": "src/test/tok-intelligence-suite.test.ts",
@@ -299662,6 +300629,20 @@
     "test"
    ],
    "detailRef": "1738944d0ba0"
+  },
+  {
+   "id": "file:c6aaf360c681",
+   "type": "file",
+   "title": "src/test/tok-runtime-regression.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-runtime-regression.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "3360c0502d2a"
   },
   {
    "id": "file:3f0d709be6a5",
@@ -300180,6 +301161,20 @@
     "edge-function-source"
    ],
    "detailRef": "914693aaa33d"
+  },
+  {
+   "id": "file:f2bbafb8d877",
+   "type": "file",
+   "title": "supabase/functions/_shared/marketing-capabilities.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/marketing-capabilities.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "d0034b37376a"
   },
   {
    "id": "file:f6743be111b7",
@@ -309618,6 +310613,20 @@
    "detailRef": "a1e7543f528e"
   },
   {
+   "id": "file:5fc1a05987f2",
+   "type": "file",
+   "title": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "72f20fc0559d"
+  },
+  {
    "id": "file:6d862e478264",
    "type": "file",
    "title": "supabase/migrations/20261003070000_marketing_autopilot_foundation.sql",
@@ -309658,6 +310667,20 @@
     "supabase-configuration"
    ],
    "detailRef": "cccedc54859f"
+  },
+  {
+   "id": "file:8cd54af6d891",
+   "type": "file",
+   "title": "supabase/tests/tok-audit-runtime-hardening.sql",
+   "description": "Fichier du dépôt classé supabase-configuration.",
+   "path": "supabase/tests/tok-audit-runtime-hardening.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "supabase-configuration"
+   ],
+   "detailRef": "89219239ab5e"
   },
   {
    "id": "file:fab86edd42d7",
@@ -312601,6 +313624,20 @@
    "detailRef": "39e39c89d601"
   },
   {
+   "id": "http-headers:ce1147428d22",
+   "type": "http-headers",
+   "title": "/parametres/:path*",
+   "description": "En-têtes X-Robots-Tag, Cache-Control.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "Cache-Control",
+    "X-Robots-Tag"
+   ],
+   "detailRef": "27fff7ac21ba"
+  },
+  {
    "id": "http-headers:389f9f9b91a7",
    "type": "http-headers",
    "title": "/robots.txt",
@@ -312692,6 +313729,20 @@
    "detailRef": "618f7e8be31d"
   },
   {
+   "id": "http-headers:5f636395221c",
+   "type": "http-headers",
+   "title": "/tok-connect/mcp-widget",
+   "description": "En-têtes X-Robots-Tag, Cache-Control.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "Cache-Control",
+    "X-Robots-Tag"
+   ],
+   "detailRef": "ab27560481fc"
+  },
+  {
    "id": "integration:12e0cca0ac8d",
    "type": "integration",
    "title": "Cloudflare",
@@ -312771,6 +313822,7 @@
     "scripts/release-readiness-core.mjs",
     "scripts/stoppin-venue-seo.test.mjs",
     "scripts/take-screenshots.mjs",
+    "scripts/tok-runtime-regression.test.cjs",
     "server/marketingBff.ts",
     "src/App.tsx",
     "src/components/ReservationDialog.tsx",
@@ -312860,14 +313912,13 @@
     "supabase/functions/enrich-thefork-images/index.ts",
     "supabase/functions/google-actions-center-sync/index.ts",
     "supabase/functions/google-actions-center/index.ts",
-    "supabase/functions/marketing-orchestrator/index.ts",
     "supabase/functions/send-push/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts",
     "supabase/functions/verify-directory-image-truth/index.ts"
    ],
-   "detailRef": "58b27e2cfb32"
+   "detailRef": "83cf223e6132"
   },
   {
    "id": "integration:672e2c9b82f3",
@@ -313302,7 +314353,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 633 module(s).",
+   "description": "Intégration externe détectée dans 637 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -313318,6 +314369,7 @@
     "scripts/ci-change-plan.test.mjs",
     "scripts/ci-critical-tests.mjs",
     "scripts/ci-critical-tests.test.mjs",
+    "scripts/ci-migration-content-guard.mjs",
     "scripts/ci-migration-version-guard.mjs",
     "scripts/ci-migration-version-guard.test.mjs",
     "scripts/ensure-supabase-auth-security.mjs",
@@ -313342,6 +314394,8 @@
     "scripts/supabase-db-push.mjs",
     "scripts/supabase-doctor.mjs",
     "scripts/supabase-target.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
+    "scripts/tok-runtime-regression.test.cjs",
     "scripts/verify-supabase-runtime-security.mjs",
     "scripts/write-commercial-demo-secrets-env.mjs",
     "scripts/write-production-env.mjs",
@@ -313464,6 +314518,7 @@
     "src/lib/tokIntelligence.ts",
     "src/lib/usePaymentAttemptBackCancellation.ts",
     "src/lib/userFacingErrors.ts",
+    "src/marketing/marketingClient.ts",
     "src/pages/Abonnement.tsx",
     "src/pages/Actualites.tsx",
     "src/pages/AntiGaspi.tsx",
@@ -313942,7 +314997,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "fcbea17c6577"
+   "detailRef": "efeefe51628b"
   },
   {
    "id": "integration:c20910a79a78",
@@ -313985,7 +315040,7 @@
    "id": "integration:077d0104684d",
    "type": "integration",
    "title": "Vercel",
-   "description": "Intégration externe détectée dans 54 module(s).",
+   "description": "Intégration externe détectée dans 55 module(s).",
    "path": "middleware.js",
    "line": null,
    "surface": null,
@@ -314001,6 +315056,7 @@
     "scripts/prerender-seo.mjs",
     "scripts/resolve-live-stripe-publishable-key.mjs",
     "scripts/stoppin-venue-seo.test.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "server/marketingBff.ts",
     "src/lib/commercialDomains.ts",
     "src/lib/demoWorkspaces.ts",
@@ -314046,7 +315102,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "vercel"
    ],
-   "detailRef": "35b2b2b4f888"
+   "detailRef": "289250c57d5a"
   },
   {
    "id": "marketing-operation:dae86fc78e92",
@@ -321841,6 +322897,20 @@
    "detailRef": "6d85ac1fac8f"
   },
   {
+   "id": "migration:4e027d5f90ba",
+   "type": "migration",
+   "title": "20261003051849 Tok Audit Runtime Hardening",
+   "description": "Migration SQL de 287 lignes, 6 objets CREATE détectés.",
+   "path": "supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "02bb87de2123"
+  },
+  {
    "id": "migration:81899c98aafe",
    "type": "migration",
    "title": "20261003070000 Marketing Autopilot Foundation",
@@ -324595,19 +325665,20 @@
    "detailRef": "487102b75ed3"
   },
   {
-   "id": "path-literal:19f327b7fcb7",
+   "id": "path-literal:ff9299ac9883",
    "type": "path-literal",
    "title": "/(.*)",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/daily-slot-machine-security.test.ts",
-   "line": 48,
+   "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/tok-deployment-regression.test.mjs",
+   "line": 8,
    "surface": null,
    "tags": [
+    "scripts/tok-deployment-regression.test.mjs",
     "src/test/daily-slot-machine-security.test.ts",
     "src/test/seo-indexation-hardening.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "fd96cb6d2081"
+   "detailRef": "6c07a469d71b"
   },
   {
    "id": "path-literal:73293cbc95ee",
@@ -324625,18 +325696,18 @@
    "detailRef": "4fc51293a756"
   },
   {
-   "id": "path-literal:707cc948a454",
+   "id": "path-literal:c827ab40655c",
    "type": "path-literal",
    "title": "/.well-known/apple-app-site-association",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 69,
+   "line": 72,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/production-preflight-hardening.test.ts"
    ],
-   "detailRef": "5f52494c5d83"
+   "detailRef": "0ae5f026d06f"
   },
   {
    "id": "path-literal:552e0fdf1ace",
@@ -324653,17 +325724,18 @@
    "detailRef": "be1d9a5998ff"
   },
   {
-   "id": "path-literal:5f12583a8f38",
+   "id": "path-literal:06801b118cd8",
    "type": "path-literal",
    "title": "/:path*",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/marketing-subdomain-integration.test.ts",
-   "line": 57,
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/tok-deployment-regression.test.mjs",
+   "line": 8,
    "surface": null,
    "tags": [
+    "scripts/tok-deployment-regression.test.mjs",
     "src/test/marketing-subdomain-integration.test.ts"
    ],
-   "detailRef": "5e1c38356c2e"
+   "detailRef": "1f79bc5a39d0"
   },
   {
    "id": "path-literal:f1eff7ecba50",
@@ -324785,7 +325857,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "60d602873021"
+   "detailRef": "5a90d2342f11"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -324827,17 +325899,17 @@
    "detailRef": "e91b02dd4a5d"
   },
   {
-   "id": "path-literal:3e349687c161",
+   "id": "path-literal:a15bf4212b07",
    "type": "path-literal",
    "title": "/?source=pwa",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/plan-phase1-readiness.test.ts",
-   "line": 147,
+   "line": 150,
    "surface": null,
    "tags": [
     "src/test/plan-phase1-readiness.test.ts"
    ],
-   "detailRef": "26f196955bb6"
+   "detailRef": "84acc77f63d3"
   },
   {
    "id": "path-literal:1d9f0654171b",
@@ -324983,7 +326055,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "cc658369e807"
+   "detailRef": "893ba6df2596"
   },
   {
    "id": "path-literal:b93cc2bbc5bc",
@@ -325002,12 +326074,13 @@
    "id": "path-literal:6c3938307ce1",
    "type": "path-literal",
    "title": "/abonnement",
-   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1001,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
@@ -325018,7 +326091,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/meal-subscription-cart.test.tsx"
    ],
-   "detailRef": "b8f87eb3a1d4"
+   "detailRef": "d2e288ff04ce"
   },
   {
    "id": "path-literal:a5b6aab3e61b",
@@ -325117,7 +326190,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "afee0464f1db"
+   "detailRef": "1c5beb92e44d"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -325487,7 +326560,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/tok-intelligence-suite.test.ts"
    ],
-   "detailRef": "d72e076dda29"
+   "detailRef": "8dc730b31d21"
   },
   {
    "id": "path-literal:57566cae053a",
@@ -325830,7 +326903,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "905540f17fa7"
+   "detailRef": "613960d87cd8"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -325872,7 +326945,7 @@
     "src/test/feature-visibility.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "eef4e35cfa49"
+   "detailRef": "a2224b22d4c6"
   },
   {
    "id": "path-literal:b8366dc7f0ad",
@@ -325965,7 +327038,7 @@
     "src/marketing/marketingBffClient.ts",
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "eff12f8c8b81"
+   "detailRef": "031959f23b0f"
   },
   {
    "id": "path-literal:57e613573c20",
@@ -326061,7 +327134,7 @@
     "src/test/application-search-index.test.ts",
     "src/test/marketing-bff-client.test.ts"
    ],
-   "detailRef": "663b5658623e"
+   "detailRef": "81d2255546a2"
   },
   {
    "id": "path-literal:86b90b42c8b8",
@@ -326393,7 +327466,7 @@
     "src/lib/featureCatalog.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "9abcb210ce23"
+   "detailRef": "ce0f2213676a"
   },
   {
    "id": "path-literal:32d025d623e0",
@@ -326447,7 +327520,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "f88f6e844cf1"
+   "detailRef": "8c6a39f214ff"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -326544,24 +327617,28 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "0bded9d6cb91"
+   "detailRef": "4b07bc9d9580"
   },
   {
-   "id": "path-literal:0bf79812be34",
+   "id": "path-literal:53a2eea9f042",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/App.tsx",
-   "line": 553,
+   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/prerender-seo.mjs",
+   "line": 1231,
    "surface": null,
    "tags": [
+    "scripts/prerender-seo.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "src/App.tsx",
     "src/components/ComingSoonGate.tsx",
+    "src/hooks/useSeoMeta.ts",
     "src/lib/featureCatalog.ts",
     "src/test/coming-soon-gate.test.tsx",
-    "src/test/route-wiring.test.ts"
+    "src/test/route-wiring.test.ts",
+    "src/test/tok-camera-and-route-meta.test.tsx"
    ],
-   "detailRef": "5f972578fbd5"
+   "detailRef": "5b0a981ef259"
   },
   {
    "id": "path-literal:d5b1770201fa",
@@ -326827,7 +327904,7 @@
     "scripts/application-index-core.mjs",
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "50b82d5bc739"
+   "detailRef": "4e13ee1f0b91"
   },
   {
    "id": "path-literal:b3cc76ba2e43",
@@ -327054,7 +328131,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "4abce853710b"
+   "detailRef": "ee6f0422e5b3"
   },
   {
    "id": "path-literal:686daa729d7c",
@@ -327081,7 +328158,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "726a44c1dd84"
+   "detailRef": "85985ac2d445"
   },
   {
    "id": "path-literal:09145bbf5f6b",
@@ -327103,7 +328180,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "9bc65d8c1130"
+   "detailRef": "46439b8321a7"
   },
   {
    "id": "path-literal:890ebda57e00",
@@ -327247,12 +328324,13 @@
    "id": "path-literal:43753dbe7662",
    "type": "path-literal",
    "title": "/creneaux-garantis",
-   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1009,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
@@ -327262,7 +328340,7 @@
     "src/lib/featureCatalog.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "48872fefa835"
+   "detailRef": "21374ea693ac"
   },
   {
    "id": "path-literal:86886b2b5201",
@@ -328246,12 +329324,13 @@
    "id": "path-literal:485651155174",
    "type": "path-literal",
    "title": "/flex-prix-bas",
-   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1057,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
@@ -328261,7 +329340,7 @@
     "src/lib/featureCatalog.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "324c43ba8898"
+   "detailRef": "73863f35c282"
   },
   {
    "id": "path-literal:b657e0a461f5",
@@ -328432,12 +329511,13 @@
    "id": "path-literal:12200bbe294c",
    "type": "path-literal",
    "title": "/garantie-qualite",
-   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1017,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
@@ -328447,7 +329527,7 @@
     "src/lib/featureCatalog.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "c15df7dafc0f"
+   "detailRef": "328e6b78b3ff"
   },
   {
    "id": "path-literal:95e27403bc7d",
@@ -328463,18 +329543,18 @@
    "detailRef": "1b9888857341"
   },
   {
-   "id": "path-literal:7eb98cd45fb2",
+   "id": "path-literal:ee5ddf258772",
    "type": "path-literal",
    "title": "/healthz",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 72,
+   "line": 75,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "8b9022ee91f5"
+   "detailRef": "d494fa991fe2"
   },
   {
    "id": "path-literal:fded681262f2",
@@ -330386,7 +331466,7 @@
    "id": "path-literal:158aecb6620c",
    "type": "path-literal",
    "title": "/index.html",
-   "description": "Chemin référencé dans 26 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 28 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 767,
    "surface": null,
@@ -330400,10 +331480,11 @@
     "scripts/harden-seo-public-names.mjs",
     "scripts/harden-seo-restaurant-context.mjs",
     "scripts/harden-seo-web-artifact-names.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "src/test/seo-indexation-hardening.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "ff39bb3833b7"
+   "detailRef": "eb1625278e23"
   },
   {
    "id": "path-literal:be8c7ffb4a53",
@@ -330581,18 +331662,19 @@
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "5cfe87ae60a8"
+   "detailRef": "26f550c9c5e1"
   },
   {
    "id": "path-literal:90eab0f24aff",
    "type": "path-literal",
    "title": "/match-groupes",
-   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1049,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
@@ -330604,7 +331686,7 @@
     "src/test/checkout-return-url-frontend.test.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "db60bad8282b"
+   "detailRef": "e96c825d011a"
   },
   {
    "id": "path-literal:a8cb3a2be266",
@@ -330680,7 +331762,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "2ee6ab6b40f1"
+   "detailRef": "88ebdc4df06d"
   },
   {
    "id": "path-literal:0bc97f93cc32",
@@ -330723,28 +331805,29 @@
    "detailRef": "ef008574bd9a"
   },
   {
-   "id": "path-literal:424c698f8c7a",
+   "id": "path-literal:76e0abfb10ba",
    "type": "path-literal",
    "title": "/mon-espace?source=pwa-shortcut",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 96,
+   "line": 99,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "110600bd5c9b"
+   "detailRef": "7e6a13d3e781"
   },
   {
    "id": "path-literal:83e3b50a8f41",
    "type": "path-literal",
    "title": "/multi-restaurant",
-   "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1033,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
@@ -330758,18 +331841,19 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "f3a91427a84a"
+   "detailRef": "6d5e5ae2eea0"
   },
   {
    "id": "path-literal:e50600e506b9",
    "type": "path-literal",
    "title": "/multi-stop",
-   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1041,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
@@ -330780,7 +331864,7 @@
     "src/lib/featureFlags.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "5cd653ace1ef"
+   "detailRef": "708bb77f1953"
   },
   {
    "id": "path-literal:c940e29d8563",
@@ -330958,7 +332042,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "3cb44e10bb55"
+   "detailRef": "da905c517858"
   },
   {
    "id": "path-literal:f15ac1b71119",
@@ -331004,18 +332088,48 @@
    "detailRef": "de209f97e341"
   },
   {
-   "id": "path-literal:01b14860f373",
+   "id": "path-literal:94d39a193627",
    "type": "path-literal",
-   "title": "/parametres/securite",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/App.tsx",
-   "line": 356,
+   "title": "/parametres/:path*",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/tok-deployment-regression.test.mjs",
+   "line": 39,
    "surface": null,
    "tags": [
-    "src/App.tsx",
-    "src/test/route-wiring.test.ts"
+    "scripts/tok-deployment-regression.test.mjs"
    ],
-   "detailRef": "f7aef50e6b26"
+   "detailRef": "bc4a7ea68a94"
+  },
+  {
+   "id": "path-literal:0c29bfc9ee92",
+   "type": "path-literal",
+   "title": "/parametres/securite",
+   "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/tok-deployment-regression.test.mjs",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "scripts/tok-deployment-regression.test.mjs",
+    "src/App.tsx",
+    "src/hooks/useSeoMeta.ts",
+    "src/test/route-wiring.test.ts",
+    "src/test/tok-camera-and-route-meta.test.tsx"
+   ],
+   "detailRef": "df93e31f3dd3"
+  },
+  {
+   "id": "path-literal:332bb5c7a807",
+   "type": "path-literal",
+   "title": "/parametres",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/prerender-seo.mjs",
+   "line": 1230,
+   "surface": null,
+   "tags": [
+    "scripts/prerender-seo.mjs",
+    "src/hooks/useSeoMeta.ts"
+   ],
+   "detailRef": "9cc18ec6955e"
   },
   {
    "id": "path-literal:dcca78612246",
@@ -331093,7 +332207,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "a80ecb7ee50e"
+   "detailRef": "e3eb188dd66f"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -331301,19 +332415,19 @@
    "detailRef": "05a9a0a7a664"
   },
   {
-   "id": "path-literal:493761bf1501",
+   "id": "path-literal:602a016f4213",
    "type": "path-literal",
    "title": "/readyz",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 72,
+   "line": 75,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/image-metadata-ai.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "021cbb5320b4"
+   "detailRef": "dc6b7e51b29c"
   },
   {
    "id": "path-literal:f7a8242103a1",
@@ -331361,7 +332475,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "966b7866c1c2"
+   "detailRef": "0026f5d19e22"
   },
   {
    "id": "path-literal:3ae682e3c6a4",
@@ -332502,7 +333616,7 @@
     "src/components/marketing/views/MarketingOutreachView.tsx",
     "src/marketing/marketingClient.ts"
    ],
-   "detailRef": "5631ef511d21"
+   "detailRef": "274a777999d4"
   },
   {
    "id": "path-literal:c35ac0348c0a",
@@ -332539,7 +333653,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "60ac6b4325f1"
+   "detailRef": "b43f67b3754f"
   },
   {
    "id": "path-literal:843e3ec74ed3",
@@ -332564,7 +333678,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "d851bf1731da"
+   "detailRef": "25f412ba63a6"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -332589,7 +333703,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "a7168b8a6bf3"
+   "detailRef": "80dacdc9572f"
   },
   {
    "id": "path-literal:17bb46dbc416",
@@ -332956,19 +334070,23 @@
    "detailRef": "9ea2f50a8601"
   },
   {
-   "id": "path-literal:41dea0e967db",
+   "id": "path-literal:9cfcdeb2771e",
    "type": "path-literal",
    "title": "/tok-connect/mcp-widget",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/App.tsx",
-   "line": 596,
+   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/prerender-seo.mjs",
+   "line": 1229,
    "surface": null,
    "tags": [
+    "scripts/prerender-seo.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "src/App.tsx",
+    "src/hooks/useSeoMeta.ts",
     "src/lib/featureCatalog.ts",
-    "src/pages/TokConnect.tsx"
+    "src/pages/TokConnect.tsx",
+    "src/test/tok-camera-and-route-meta.test.tsx"
    ],
-   "detailRef": "134bdcaeeb3e"
+   "detailRef": "6ff0161bb5ae"
   },
   {
    "id": "path-literal:d5255dd082a4",
@@ -332987,7 +334105,7 @@
     "src/pages/TokConnect.tsx",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "934afefb36e4"
+   "detailRef": "522c49cf22f1"
   },
   {
    "id": "path-literal:10a0ebcd0a8b",
@@ -333018,7 +334136,7 @@
     "src/test/feature-visibility.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "fa42aff1c263"
+   "detailRef": "9e1fb86608b6"
   },
   {
    "id": "path-literal:d01a3ea49721",
@@ -333037,12 +334155,13 @@
    "id": "path-literal:a3e468fb4ef5",
    "type": "path-literal",
    "title": "/tok-pulse",
-   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1191,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
+    "scripts/tok-deployment-regression.test.mjs",
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
     "src/lib/commercialDemoClientRoutes.ts",
@@ -333050,7 +334169,7 @@
     "src/pages/TokPulse.tsx",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "90f491ad4217"
+   "detailRef": "d52a2744b223"
   },
   {
    "id": "path-literal:a3ccc38990ab",
@@ -333362,7 +334481,7 @@
     "src/test/tok-connect.test.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "c595a6aa5a95"
+   "detailRef": "bb7cd4977813"
   },
   {
    "id": "path-literal:9615b9840a62",
@@ -333434,19 +334553,19 @@
    "detailRef": "2e706e56bb24"
   },
   {
-   "id": "path-literal:127b72942269",
+   "id": "path-literal:43dc878d20dd",
    "type": "path-literal",
    "title": "/v3/CreateBooking/",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 80,
+   "line": 83,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "cb378e5414df"
+   "detailRef": "75c97429a768"
   },
   {
    "id": "path-literal:3f16cef6b097",
@@ -333463,19 +334582,19 @@
    "detailRef": "ef8d28954ebc"
   },
   {
-   "id": "path-literal:a868050b471d",
+   "id": "path-literal:75a054f1cc52",
    "type": "path-literal",
    "title": "/v3/HealthCheck/",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 150,
+   "line": 153,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "1e8b5ea46f20"
+   "detailRef": "bf2260add184"
   },
   {
    "id": "path-literal:66439908047a",
@@ -333652,7 +334771,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "1421fc376404"
+   "detailRef": "24c9d6c4e3e3"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -333706,7 +334825,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "6739520a6074"
+   "detailRef": "43107d38ae29"
   },
   {
    "id": "path-literal:93c6bbab763a",
@@ -339865,7 +340984,7 @@
     "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp?tok_connect_route=protected-resource",
     "www.thetok.ch"
    ],
-   "detailRef": "fe637ea563a4"
+   "detailRef": "1ab9f606f94d"
   },
   {
    "id": "rewrite:22068ca038ee",
@@ -339878,7 +340997,7 @@
    "tags": [
     "/index.html"
    ],
-   "detailRef": "1455730ba52b"
+   "detailRef": "f1156e324ff4"
   },
   {
    "id": "rewrite:79300f7cef5e",
@@ -339891,7 +341010,20 @@
    "tags": [
     "/index.html"
    ],
-   "detailRef": "fff67f8fa229"
+   "detailRef": "874c9cc344b5"
+  },
+  {
+   "id": "rewrite:b8a11e9b087d",
+   "type": "rewrite",
+   "title": "/abonnement",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "165c31be3573"
   },
   {
    "id": "rewrite:fb0da7f80995",
@@ -339904,7 +341036,46 @@
    "tags": [
     "https://photon.komoot.io/api"
    ],
-   "detailRef": "d640cdd177a6"
+   "detailRef": "9d78c277ec41"
+  },
+  {
+   "id": "rewrite:b807d9d26f43",
+   "type": "rewrite",
+   "title": "/coming-soon",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "8107355248f6"
+  },
+  {
+   "id": "rewrite:bc0542038afb",
+   "type": "rewrite",
+   "title": "/creneaux-garantis",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "ec3921124093"
+  },
+  {
+   "id": "rewrite:d34e646642bb",
+   "type": "rewrite",
+   "title": "/flex-prix-bas",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "0f5a85ada493"
   },
   {
    "id": "rewrite:4640fe06a39f",
@@ -339917,7 +341088,20 @@
    "tags": [
     "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/:path*"
    ],
-   "detailRef": "d399afbc6839"
+   "detailRef": "f6710d46a5d5"
+  },
+  {
+   "id": "rewrite:33ac1e1c6c64",
+   "type": "rewrite",
+   "title": "/garantie-qualite",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "c104c8bf0614"
   },
   {
    "id": "rewrite:cbd41bf220d7",
@@ -339930,7 +341114,7 @@
    "tags": [
     "/images/fondue-moitie-moitie.jpg"
    ],
-   "detailRef": "4c91814867e1"
+   "detailRef": "cbc174b2a0c8"
   },
   {
    "id": "rewrite:57a73c050688",
@@ -339943,7 +341127,7 @@
    "tags": [
     "/images/fondue-moitie-moitie.jpg"
    ],
-   "detailRef": "94490f6b2563"
+   "detailRef": "4d588bfe459e"
   },
   {
    "id": "rewrite:9639183e8bfc",
@@ -339956,7 +341140,7 @@
    "tags": [
     "/images/meringue-double.webp"
    ],
-   "detailRef": "659d424f2d19"
+   "detailRef": "deb9aeae36f7"
   },
   {
    "id": "rewrite:6f6748c421ec",
@@ -339969,7 +341153,7 @@
    "tags": [
     "/images/meringue-double.webp"
    ],
-   "detailRef": "3e5c662e60cb"
+   "detailRef": "1d2e19d8d954"
   },
   {
    "id": "rewrite:203fff98ae72",
@@ -339982,7 +341166,7 @@
    "tags": [
     "/images/milkshake-oreo.jpg"
    ],
-   "detailRef": "11cb777c706c"
+   "detailRef": "6428813e79d9"
   },
   {
    "id": "rewrite:c15dad3fa333",
@@ -339995,7 +341179,7 @@
    "tags": [
     "/images/milkshake-vanille.jpeg"
    ],
-   "detailRef": "9e1ca4375dfd"
+   "detailRef": "1965b2c63a65"
   },
   {
    "id": "rewrite:fa736e710a49",
@@ -340008,7 +341192,7 @@
    "tags": [
     "/images/milkshake-oreo.jpg"
    ],
-   "detailRef": "ff59f65da947"
+   "detailRef": "cf0578c1d226"
   },
   {
    "id": "rewrite:9699f11390e0",
@@ -340021,7 +341205,7 @@
    "tags": [
     "/images/milkshake-vanille.jpeg"
    ],
-   "detailRef": "23f218d41f69"
+   "detailRef": "b4c4b7dabbba"
   },
   {
    "id": "rewrite:596525a10636",
@@ -340034,7 +341218,7 @@
    "tags": [
     "/images/mochi-glaces.jpg"
    ],
-   "detailRef": "71c7fcfcf0b0"
+   "detailRef": "e2817c7bf141"
   },
   {
    "id": "rewrite:abfcd7e64ee5",
@@ -340047,7 +341231,7 @@
    "tags": [
     "/images/mochi-glaces.jpg"
    ],
-   "detailRef": "f82cb5a8b24e"
+   "detailRef": "e0db5ae6d970"
   },
   {
    "id": "rewrite:01063847faa8",
@@ -340060,7 +341244,7 @@
    "tags": [
     "/images/rosti-bernois.jpg"
    ],
-   "detailRef": "2bc93f14a59b"
+   "detailRef": "54df39b8e1b7"
   },
   {
    "id": "rewrite:14af195a7918",
@@ -340073,7 +341257,7 @@
    "tags": [
     "/images/rosti-bernois.jpg"
    ],
-   "detailRef": "04f23ccb3998"
+   "detailRef": "73fbcea19a77"
   },
   {
    "id": "rewrite:6c1044407eba",
@@ -340086,7 +341270,7 @@
    "tags": [
     "/images/salade-du-marche.jpg"
    ],
-   "detailRef": "419aa254744e"
+   "detailRef": "e1a97bd6c22b"
   },
   {
    "id": "rewrite:cfcbee491c4a",
@@ -340099,7 +341283,7 @@
    "tags": [
     "/images/salade-du-marche.jpg"
    ],
-   "detailRef": "f54a6c6d99a2"
+   "detailRef": "770bae4d6072"
   },
   {
    "id": "rewrite:500a4da92648",
@@ -340112,7 +341296,7 @@
    "tags": [
     "/images/taboule.webp"
    ],
-   "detailRef": "821281ec915f"
+   "detailRef": "d7c09790c533"
   },
   {
    "id": "rewrite:f1928e89eece",
@@ -340125,7 +341309,20 @@
    "tags": [
     "/images/taboule.webp"
    ],
-   "detailRef": "b77784b5f806"
+   "detailRef": "a7b7087d1eab"
+  },
+  {
+   "id": "rewrite:fa0735df3341",
+   "type": "rewrite",
+   "title": "/match-groupes",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "b9e55b613075"
   },
   {
    "id": "rewrite:e9d2a4caa373",
@@ -340139,7 +341336,46 @@
     "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp",
     "www.thetok.ch"
    ],
-   "detailRef": "5b4c67b5e30b"
+   "detailRef": "cf75dc9b52f9"
+  },
+  {
+   "id": "rewrite:96e5e19bdd2f",
+   "type": "rewrite",
+   "title": "/multi-restaurant",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "40f570dd4217"
+  },
+  {
+   "id": "rewrite:9e42343f5e94",
+   "type": "rewrite",
+   "title": "/multi-stop",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "dd1c95ef5a70"
+  },
+  {
+   "id": "rewrite:b8136c472da3",
+   "type": "rewrite",
+   "title": "/parametres/securite",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "90fdc2411150"
   },
   {
    "id": "rewrite:dc7693ee5684",
@@ -340152,7 +341388,7 @@
    "tags": [
     "/index.html"
    ],
-   "detailRef": "c69ffaefdc12"
+   "detailRef": "bbc5dfaa1241"
   },
   {
    "id": "rewrite:19da1f8b8a7d",
@@ -340165,7 +341401,33 @@
    "tags": [
     "/index.html"
    ],
-   "detailRef": "20ddeed6ad15"
+   "detailRef": "52ecf870c71c"
+  },
+  {
+   "id": "rewrite:5f636395221c",
+   "type": "rewrite",
+   "title": "/tok-connect/mcp-widget",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "0a1c04e578fd"
+  },
+  {
+   "id": "rewrite:d8aab9062bef",
+   "type": "rewrite",
+   "title": "/tok-pulse",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "d29be6330695"
   },
   {
    "id": "routing-authority:246f8e561905",
@@ -340772,19 +342034,19 @@
    "detailRef": "2b13968addb3"
   },
   {
-   "id": "seo-build-route:386108edef5f",
+   "id": "seo-build-route:58221c679390",
    "type": "seo-build-route",
    "title": "/:param1",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1233,
+   "line": 1236,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "c1ac32649952"
+   "detailRef": "1eb6f3dfa3e3"
   },
   {
    "id": "seo-build-route:b7226e86160f",
@@ -340832,19 +342094,19 @@
    "detailRef": "0d9b756710ee"
   },
   {
-   "id": "seo-build-route:a0913be7f529",
+   "id": "seo-build-route:9d84d7e61ea8",
    "type": "seo-build-route",
    "title": "/actualites/:id",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1842,
+   "line": 1845,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "9c9c53a5945a"
+   "detailRef": "c7e82ee80672"
   },
   {
    "id": "seo-build-route:b6dc7682e25f",
@@ -341132,34 +342394,34 @@
    "detailRef": "32314aa96c35"
   },
   {
-   "id": "seo-build-route:794fe5cc4e6d",
+   "id": "seo-build-route:9d6d1b95c0a4",
    "type": "seo-build-route",
    "title": "/restaurant/:id",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1293,
+   "line": 1296,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "82c5cee15538"
+   "detailRef": "45af1c33d002"
   },
   {
-   "id": "seo-build-route:021fd2d15b8e",
+   "id": "seo-build-route:2476e7a9641d",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug/:cuisineSlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1615,
+   "line": 1618,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "97c73b47422a"
+   "detailRef": "cdfc381e429c"
   },
   {
    "id": "seo-build-route:2fa4ea9000f0",
@@ -341192,34 +342454,34 @@
    "detailRef": "0d6a03056a58"
   },
   {
-   "id": "seo-build-route:f999ff239821",
+   "id": "seo-build-route:09ab180fe599",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug/r/:restaurantSlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1290,
+   "line": 1293,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "bd92e4613560"
+   "detailRef": "1b86569b4227"
   },
   {
-   "id": "seo-build-route:e8e7d5d384e6",
+   "id": "seo-build-route:1b1dcbb013cb",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1627,
+   "line": 1630,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "faf00c2d0db2"
+   "detailRef": "20123febbbd2"
   },
   {
    "id": "seo-build-route:e1c8faffbb03",
@@ -341799,7 +343061,7 @@
    "id": "workflow:1471d31f905b",
    "type": "workflow",
    "title": "Deploy Production",
-   "description": "Workflow GitHub Actions; jobs: attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation.",
+   "description": "Workflow GitHub Actions; jobs: attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, migration_preflight, preflight, record_production_baseline, validation.",
    "path": ".github/workflows/deploy-production.yml",
    "line": null,
    "surface": null,
@@ -341811,11 +343073,12 @@
     "deploy_frontend",
     "deploy_supabase",
     "deployment_gate",
+    "migration_preflight",
     "preflight",
     "record_production_baseline",
     "validation"
    ],
-   "detailRef": "22e3c6d1d916"
+   "detailRef": "714707e01a2b"
   },
   {
    "id": "workflow:e2cb102046b3",
@@ -341931,6 +343194,19 @@
     "sync"
    ],
    "detailRef": "87bb2b75c4d4"
+  },
+  {
+   "id": "workflow:5e60b141b888",
+   "type": "workflow",
+   "title": "TOK runtime security",
+   "description": "Workflow GitHub Actions; jobs: postgres-permissions.",
+   "path": ".github/workflows/tok-runtime-security.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "postgres-permissions"
+   ],
+   "detailRef": "c7de09e7c0d5"
   },
   {
    "id": "workflow:449ccb0fe621",

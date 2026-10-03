@@ -116,7 +116,7 @@ describe("phase 1 launch audit plan readiness", () => {
     expect(retryScript).toContain("Unexpected\\ error\\ retrieving\\ remote\\ project\\ status");
     expect(retryScript).toContain("ECONNRESET");
 
-    expect(deployWorkflow.match(/source \.\/scripts\/supabase-ci-retry\.sh/g)?.length).toBe(4);
+    expect(deployWorkflow.match(/source \.\/scripts\/supabase-ci-retry\.sh/g)?.length).toBe(5);
     expect(deployWorkflow).toContain(
       'supabase_ci_retry link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"',
     );
@@ -125,6 +125,9 @@ describe("phase 1 launch audit plan readiness", () => {
     );
     expect(deployWorkflow).toContain(
       'supabase_ci_retry db push --linked --include-all --yes --password "$SUPABASE_DB_PASSWORD"',
+    );
+    expect(deployWorkflow).toContain(
+      'supabase_ci_retry db push --linked --include-all --dry-run --password "$SUPABASE_DB_PASSWORD"',
     );
     expect(deployWorkflow).toContain(
       'supabase_ci_retry functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api',

@@ -110,7 +110,7 @@ function payloadRows(payload) {
   return [];
 }
 
-async function runManagementQuery({ token, projectRef, query, parameters = [] }) {
+async function runManagementQuery({ token, projectRef, query, parameters = [], readOnly = false }) {
   const response = await fetch(
     `${API_ORIGIN}/v1/projects/${encodeURIComponent(projectRef)}/database/query`,
     {
@@ -119,7 +119,7 @@ async function runManagementQuery({ token, projectRef, query, parameters = [] })
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query, parameters, read_only: false }),
+      body: JSON.stringify({ query, parameters, read_only: readOnly }),
     },
   );
 
@@ -221,28 +221,31 @@ async function applyMigration(context, migration, headSha) {
   return "applied";
 }
 
+export function readDemoMigrationDiff({ baseSha, headSha, checkOnly, runGit = git }) {
+  if (!COMMIT_SHA.test(headSha) || (baseSha ? !COMMIT_SHA.test(baseSha) : !checkOnly)) {
+    throw new Error("Demo migration base and head must be full Git commit SHAs.");
+  }
+  // A first deployment has no successful baseline. Inspect all tracked demo
+  // migrations read-only rather than silently skipping them or blocking forever.
+  if (!baseSha) {
+    return runGit(["ls-tree", "-r", "--name-only", headSha, "--", MIGRATION_DIRECTORY])
+      .split("\n").filter(Boolean).map(file => `A\t${file}`).join("\n");
+  }
+  return runGit(["diff", "--name-status", "--diff-filter=ACDMRTUXB", baseSha, headSha, "--", MIGRATION_DIRECTORY]);
+}
+
 export async function main() {
   const token = requireEnv("SUPABASE_ACCESS_TOKEN");
   const projectRef = requireEnv("COMMERCIAL_DEMO_PROJECT_REF");
-  const baseSha = requireEnv("DEMO_MIGRATION_BASE_SHA");
+  const checkOnly = process.argv.includes("--check");
+  const baseSha = checkOnly ? String(process.env.DEMO_MIGRATION_BASE_SHA || "").trim() : requireEnv("DEMO_MIGRATION_BASE_SHA");
   const headSha = requireEnv("DEMO_MIGRATION_HEAD_SHA");
-
-  if (!COMMIT_SHA.test(baseSha) || !COMMIT_SHA.test(headSha)) {
+  if (!COMMIT_SHA.test(headSha) || (baseSha && !COMMIT_SHA.test(baseSha))) {
     throw new Error("Demo migration base and head must be full Git commit SHAs.");
   }
-
-  ensureCommitAvailable(baseSha);
+  if (baseSha) ensureCommitAvailable(baseSha);
   ensureCommitAvailable(headSha);
-
-  const diff = git([
-    "diff",
-    "--name-status",
-    "--diff-filter=ACDMRTUXB",
-    baseSha,
-    headSha,
-    "--",
-    MIGRATION_DIRECTORY,
-  ]);
+  const diff = readDemoMigrationDiff({ baseSha, headSha, checkOnly });
   const migrations = parseAddedDemoMigrations(diff);
 
   if (migrations.length === 0) {
@@ -251,6 +254,23 @@ export async function main() {
   }
 
   const context = { token, projectRef };
+  if (process.argv.includes("--check")) {
+    const exists = await runManagementQuery({ ...context, readOnly: true,
+      query: "SELECT to_regclass('commercial_demo_internal.schema_migrations') IS NOT NULL AS present" });
+    for (const migration of migrations) {
+      const sql = readFileSync(path.join(ROOT, migration.path), "utf8");
+      if (hasTopLevelTransactionControl(sql)) throw new Error(`Demo migration manages its own transaction: ${migration.path}`);
+      if (exists[0]?.present) {
+        const rows = await runManagementQuery({ ...context, readOnly: true,
+          query: `SELECT name,checksum FROM ${INTERNAL_SCHEMA}.schema_migrations WHERE version = $1`, parameters: [migration.version] });
+        if (rows[0] && (rows[0].name !== migration.name || rows[0].checksum !== createHash("sha256").update(sql).digest("hex"))) {
+          throw new Error(`Demo migration history mismatch: ${migration.version}`);
+        }
+      }
+    }
+    console.log(`Checked ${migrations.length} dedicated demo migrations; none applied.`);
+    return;
+  }
   await initializeHistory(context);
 
   let applied = 0;

@@ -1,3 +1,4 @@
+import { getMarketingAdapterBlocker } from "../../supabase/functions/_shared/marketing-capabilities";
 import { addDays, subDays } from "date-fns";
 
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
@@ -351,7 +352,6 @@ function normalizeCursorPage<T>(
 
 function normalizeChannels(value: unknown, fallback: MarketingChannel[]) {
   const incoming = asArray(value);
-  if (!incoming.length) return fallback;
   const normalized = incoming.map((item) => {
     const row = asRecord(item);
     const id = asString(pick(row, "id", "channel"), "in_app") as MarketingChannelId;
@@ -359,8 +359,8 @@ function normalizeChannels(value: unknown, fallback: MarketingChannel[]) {
     return {
       id,
       label: asString(pick(row, "label", "name"), existing?.label || id),
-      availability: normalizeAvailability(pick(row, "availability", "status"), existing?.availability || "blocked_configuration"),
-      reason: asString(pick(row, "reason", "message"), existing?.reason || "État non confirmé"),
+      availability: getMarketingAdapterBlocker(id) ? "blocked_configuration" as const : normalizeAvailability(pick(row, "availability", "status"), existing?.availability || "blocked_configuration"),
+      reason: getMarketingAdapterBlocker(id) ? "Publication indisponible : adaptateur serveur non déployé. Une connexion fournisseur ne suffit pas." : asString(pick(row, "reason", "message"), existing?.reason || "État non confirmé"),
       costModel: asString(pick(row, "cost_model", "costModel"), existing?.costModel || "free") as MarketingChannel["costModel"],
       lastCheckedAt: asString(pick(row, "last_checked_at", "lastCheckedAt"), new Date().toISOString()),
     };
@@ -368,7 +368,11 @@ function normalizeChannels(value: unknown, fallback: MarketingChannel[]) {
   return [
     ...fallback.map((channel) => normalized.find((item) => item.id === channel.id) || channel),
     ...normalized.filter((item) => !fallback.some((channel) => channel.id === item.id)),
-  ];
+  ].map((channel) => getMarketingAdapterBlocker(channel.id) ? {
+    ...channel,
+    availability: "blocked_configuration" as const,
+    reason: "Publication indisponible : adaptateur serveur non déployé. Une connexion fournisseur ne suffit pas.",
+  } : channel);
 }
 
 function normalizeResults(value: unknown, fallback: MarketingResultPoint[]) {
@@ -417,8 +421,8 @@ function normalizeIntegration(value: unknown, fallback: MarketingIntegration[]):
     id: asString(pick(row, "id"), existing?.id || `integration-${channel}`),
     name: asString(pick(row, "name", "provider"), existing?.name || channel),
     channel,
-    status: normalizeAvailability(pick(row, "status", "availability"), existing?.status || "blocked_configuration"),
-    description: asString(pick(row, "description", "status_reason"), existing?.description || "État non confirmé"),
+    status: getMarketingAdapterBlocker(channel) ? "blocked_configuration" : normalizeAvailability(pick(row, "status", "availability"), existing?.status || "blocked_configuration"),
+    description: getMarketingAdapterBlocker(channel) ? "Publication indisponible : adaptateur serveur non déployé. Une connexion fournisseur ne suffit pas." : asString(pick(row, "description", "status_reason"), existing?.description || "État non confirmé"),
     configuredAt: asString(pick(row, "configured_at", "configuredAt"), existing?.configuredAt || "") || null,
     lastCheckedAt: asString(pick(row, "last_checked_at", "lastCheckedAt"), new Date().toISOString()),
     actionLabel: asString(pick(row, "action_label", "actionLabel"), existing?.actionLabel || "Vérifier"),
@@ -676,12 +680,12 @@ export async function loadMarketingSnapshot(options: {
   ]);
 
   let overview = fallback.overview;
-  let channels = fallback.channels;
+  let channels = normalizeChannels([], fallback.channels);
   let campaigns = fallback.campaigns;
   let calendar = fallback.calendar;
   let deliveries = fallback.deliveries;
   let results = fallback.results;
-  let integrations = fallback.integrations;
+  let integrations = fallback.integrations.map((item) => normalizeIntegration(item, fallback.integrations));
   let automations = fallback.automations;
   let prospects = fallback.prospects;
   let audiences = fallback.audiences;
@@ -731,7 +735,7 @@ export async function loadMarketingSnapshot(options: {
       (item) => normalizeIntegration(item, fallback.integrations),
     ).items;
     integrations = [
-      ...fallback.integrations.map((integration) => incomingIntegrations.find((item) => item.channel === integration.channel) || integration),
+      ...fallback.integrations.map((integration) => incomingIntegrations.find((item) => item.channel === integration.channel) || normalizeIntegration(integration, fallback.integrations)),
       ...incomingIntegrations.filter((item) => !fallback.integrations.some((integration) => integration.channel === item.channel)),
     ];
     channels = channels.map((channel) => {

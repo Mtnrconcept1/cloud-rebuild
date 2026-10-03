@@ -53,7 +53,10 @@ describe("application search index", () => {
     expect(index.catalogs.apiRoutes).toHaveLength(9);
     expect(index.catalogs.edgeFunctions).toHaveLength(114);
     expect(index.catalogs.edgeHttpRoutes).toHaveLength(20);
-    expect(index.catalogs.migrations).toHaveLength(518);
+    const migrationFiles = listRepositoryFiles(REPOSITORY_ROOT)
+      .filter((file: string) => /^supabase\/migrations\/[^/]+\.sql$/.test(file));
+    expect(index.catalogs.migrations.map((migration: { path: string }) => migration.path).sort())
+      .toEqual(migrationFiles.sort());
     expect(index.catalogs.marketingOperations).toHaveLength(36);
     expect(index.catalogs.cronJobs).toHaveLength(33);
     expect(index.catalogs.storageBuckets).toHaveLength(9);

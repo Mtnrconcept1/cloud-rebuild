@@ -1,0 +1,56 @@
+name: TOK runtime security
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/tok-audit-runtime-hardening.sql'
+      - 'scripts/fixtures/tok-audit-schema.sql'
+      - '.github/workflows/tok-runtime-security.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/tok-audit-runtime-hardening.sql'
+      - 'scripts/fixtures/tok-audit-schema.sql'
+      - '.github/workflows/tok-runtime-security.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-permissions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated_fixture_only
+          POSTGRES_DB: tok_audit_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: isolated_fixture_only
+      PGDATABASE: tok_audit_test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Verify targeted permissions on an isolated PostgreSQL fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -f scripts/fixtures/tok-audit-schema.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/tests/tok-audit-runtime-hardening.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261003051849_tok_audit_runtime_hardening.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/tests/tok-audit-runtime-hardening.sql

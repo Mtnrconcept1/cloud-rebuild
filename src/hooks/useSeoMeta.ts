@@ -27,9 +27,15 @@ const PRIVATE_ROUTE_PREFIXES = [
   "/espaces",
   "/r",
   "/tok-connect/developer",
+  "/tok-connect/mcp-widget",
+  "/parametres",
+  "/coming-soon",
 ] as const;
 
 const PUBLIC_ROUTE_FALLBACKS: Record<string, { title: string; description: string }> = {
+  "/coming-soon": { title: "Ouverture prochaine | TOK", description: "Retrouvez les informations sur le lancement de TOK." },
+  "/parametres/securite": { title: "Sécurité du compte | TOK", description: "Gérez la sécurité de votre compte TOK." },
+  "/tok-connect/mcp-widget": { title: "Aperçu du module TOK Connect | TOK", description: "Aperçu technique du module TOK Connect, hors indexation publique." },
   "/": {
     title: "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
     description: "Avec TOK, trouvez un restaurant, réservez, commandez et profitez d'offres locales en Suisse romande.",

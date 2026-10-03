@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { getMarketingAdapterBlocker } from "../../supabase/functions/_shared/marketing-capabilities";
 
 import {
   MarketingPlanError,
@@ -237,9 +238,10 @@ describe("marketing orchestrator delivery adapters", () => {
     expect(orchestrator).toContain("response.status >= 500 || response.status === 429");
   });
 
-  it("names the missing credential for each dormant channel", () => {
+  it("identifies the undeployed adapter rather than promising credentials are sufficient", () => {
+    expect(orchestrator).toContain("getMarketingAdapterBlocker(delivery.channel)");
     for (const channel of ["instagram", "facebook", "linkedin", "tiktok", "youtube"]) {
-      expect(orchestrator).toContain(`["${channel}", "${channel}_credentials_missing"]`);
+      expect(getMarketingAdapterBlocker(channel)).toBe(`${channel}_adapter_not_deployed`);
     }
   });
 

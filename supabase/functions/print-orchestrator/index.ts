@@ -120,6 +120,19 @@ async function completeJob(adminClient: any, job: any, input: {
   if (error) throw error;
 }
 
+async function advanceOrderState(adminClient: any, input: Record<string, unknown>) {
+  const { error } = await adminClient.rpc("advance_print_order_state", input);
+  if (error) throw new HttpError(503, "PRINT_ORDER_TRANSITION_NOT_PERSISTED");
+}
+
+function isRetryableJobError(error: unknown): boolean {
+  // Provider errors are not HttpError subclasses. Their explicit classification
+  // must win, otherwise permanent 4xx errors are retried as generic exceptions.
+  if (error instanceof CloudprinterError) return error.retryable;
+  if (error instanceof HttpError) return error.status === 408 || error.status === 429 || error.status >= 500;
+  return true;
+}
+
 async function processSubmitJob(adminClient: any, actor: any, job: any) {
   await assertProductionFlowAllowed(actor, "soumission Cloudprinter");
   const { data: settings, error: settingsError } = await adminClient
@@ -140,6 +153,10 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
     .maybeSingle();
   if (orderError) throw orderError;
   if (!order) throw new HttpError(404, "Commande impression introuvable");
+  if (["canceled", "cancelled", "refunded", "refund_pending"].includes(String(order.status).toLowerCase())) {
+    await completeJob(adminClient, job, { status: "canceled", result: { reason: "terminal_order_state" } });
+    return { id: job.id, status: "canceled", reason: "terminal_order_state" };
+  }
   if (order.payment_status !== "paid") throw new HttpError(409, "PRINT_ORDER_NOT_PAID");
   if (["submitted", "validated", "producing", "produced", "packed", "shipped", "delivered"].includes(order.status)) {
     await completeJob(adminClient, job, { status: "completed", result: { already_submitted: true } });
@@ -182,7 +199,7 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
   // This makes a retry safe after an ambiguous /orders/add timeout.
   const existing = await provider.getOrder(providerReference);
   if (existing) {
-    await adminClient.rpc("advance_print_order_state", {
+    await advanceOrderState(adminClient, {
       p_order_id: order.id,
       p_state: "submitted",
       p_provider_state: existing.stateCode || existing.state,
@@ -224,7 +241,7 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
     if (error instanceof CloudprinterError && error.ambiguous) {
       const reconciled = await provider.getOrder(providerReference);
       if (reconciled) {
-        await adminClient.rpc("advance_print_order_state", {
+        await advanceOrderState(adminClient, {
           p_order_id: order.id,
           p_state: "submitted",
           p_provider_state: reconciled.stateCode || reconciled.state,
@@ -242,7 +259,7 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
     throw error;
   }
 
-  await adminClient.rpc("advance_print_order_state", {
+  await advanceOrderState(adminClient, {
     p_order_id: order.id,
     p_state: "submitted",
     p_provider_state: "submitted",
@@ -269,7 +286,13 @@ Deno.serve(async (req) => {
     actor = await authenticateRequest(req, { allowServiceRole: true, allowSchedulerSecret: true });
     if (actor.authMode === "user_jwt") requireRole(actor, ["admin"]);
     const body = asRecord(await req.json().catch(() => ({})));
-    const limit = Math.max(1, Math.min(50, Math.round(Number(body.limit || 10))));
+    const rawLimit = body.limit === undefined ? 10 : body.limit;
+    const limit = typeof rawLimit === "number"
+      || (typeof rawLimit === "string" && /^[0-9]+$/.test(rawLimit))
+      ? Number(rawLimit) : Number.NaN;
+    if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+      throw new HttpError(400, "PRINT_JOB_LIMIT_INVALID");
+    }
 
     const finalizedPayments = await reconcileFinalizedPayments(adminClient, Math.min(50, limit * 5));
     const { data: jobs, error: claimError } = await adminClient.rpc("claim_print_fulfillment_jobs", {
@@ -288,14 +311,17 @@ Deno.serve(async (req) => {
           results.push({ id: job.id, status: "failed" });
         }
       } catch (error) {
-        const retryable = !(error instanceof HttpError && error.status >= 400 && error.status < 500)
-          || (error instanceof CloudprinterError && error.retryable);
+        const retryable = isRetryableJobError(error);
         const status = retryable && job.attempt_count < job.max_attempts ? "retrying" : "failed";
         await completeJob(adminClient, job, {
           status,
           errorCode: error instanceof CloudprinterError ? error.code : "print_orchestrator_error",
           error: error instanceof Error ? error.message.slice(0, 500) : "Erreur fulfillment",
-        }).catch(() => undefined);
+        }).catch(() => {
+          // Never acknowledge a job outcome that could not be persisted. The
+          // existing lease/reconciliation protocol controls a subsequent retry.
+          throw new HttpError(503, "PRINT_JOB_OUTCOME_NOT_PERSISTED");
+        });
         results.push({ id: job.id, status });
       }
     }

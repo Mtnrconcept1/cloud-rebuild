@@ -128,6 +128,9 @@ jobs:
           CI_MIGRATION_BASE_REF: origin/${{ github.event.repository.default_branch }}
         run: node scripts/ci-migration-version-guard.mjs
 
+      - name: Guard duplicate migration content
+        run: node scripts/ci-migration-content-guard.mjs
+
       - name: Detect validation and deployment impact
         id: impact
         env:

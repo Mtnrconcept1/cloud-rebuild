@@ -66,8 +66,43 @@ jobs:
       force_deploy: ${{ github.event_name == 'workflow_dispatch' || needs.baseline.outputs.base_sha == '' }}
       skip_build: true
 
+  migration_preflight:
+    needs: [validation, baseline]
+    if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+      - name: Read-only migration history gate before configuration changes
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test "$SUPABASE_PROJECT_REF" = "wwcrtyoueexyxkkikaos"
+          source ./scripts/supabase-ci-retry.sh
+          supabase_ci_retry link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+          supabase_ci_retry db push --linked --include-all --dry-run --password "$SUPABASE_DB_PASSWORD"
+      - name: Read-only dedicated demo migration provenance check
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          COMMERCIAL_DEMO_PROJECT_REF: hzldfhjfgjcadmpghhhf
+          DEMO_MIGRATION_BASE_SHA: ${{ needs.baseline.outputs.base_sha }}
+          DEMO_MIGRATION_HEAD_SHA: ${{ github.sha }}
+        run: node scripts/apply-commercial-demo-migrations.mjs --check
+
   preflight:
-    needs: validation
+    needs: [validation, migration_preflight]
     if: >-
       ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' &&
           needs.validation.outputs.has_deployable_changes == 'true' }}
@@ -256,7 +291,7 @@ jobs:
           compression-level: 0
 
   configure_project_domains:
-    needs: validation
+    needs: [validation, migration_preflight]
     if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     environment: production
@@ -833,6 +868,7 @@ jobs:
     needs:
       - baseline
       - validation
+      - migration_preflight
       - preflight
       - build_frontend
       - configure_project_domains
@@ -848,6 +884,7 @@ jobs:
           DEPLOY_ENABLED: ${{ vars.PRODUCTION_DEPLOY_ENABLED }}
           BASELINE_RESULT: ${{ needs.baseline.result }}
           VALIDATION_RESULT: ${{ needs.validation.result }}
+          MIGRATION_PREFLIGHT_RESULT: ${{ needs.migration_preflight.result }}
           PREFLIGHT_RESULT: ${{ needs.preflight.result }}
           BUILD_RESULT: ${{ needs.build_frontend.result }}
           DOMAIN_RESULT: ${{ needs.configure_project_domains.result }}
@@ -877,6 +914,7 @@ jobs:
             exit 0
           fi
 
+          require_success "migration_preflight" "$MIGRATION_PREFLIGHT_RESULT"
           require_success "configure_project_domains" "$DOMAIN_RESULT"
 
           if [[ "$HAS_DEPLOYABLE_CHANGES" == "true" ]]; then

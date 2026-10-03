@@ -1,3 +1,4 @@
+import { getMarketingAdapterBlocker } from "../_shared/marketing-capabilities.ts";
 import {
   HttpError,
   authenticateRequest,
@@ -41,27 +42,6 @@ const EMAIL_FROM = Deno.env.get("EMAIL_FROM")?.trim() || "Tok <noreply@thetok.ch
 const RESEND_TIMEOUT_MS = 20_000;
 const DELIVERY_LEASE_SECONDS = 180;
 const MAX_DELIVERIES_PER_RUN = 5;
-
-/**
- * Channels whose adapter exists but which cannot publish until an
- * administrator provisions the provider credentials and, for the social
- * networks, until the platform has approved the publishing application.
- *
- * They are listed rather than lumped into a default branch so the recorded
- * error names the missing piece instead of a generic "not deployed", and so
- * adding a real adapter is a deliberate removal from this list.
- */
-const DORMANT_CHANNELS = new Map<string, string>([
-  ["instagram", "instagram_credentials_missing"],
-  ["facebook", "facebook_credentials_missing"],
-  ["linkedin", "linkedin_credentials_missing"],
-  ["tiktok", "tiktok_credentials_missing"],
-  ["youtube", "youtube_credentials_missing"],
-  ["telegram", "telegram_credentials_missing"],
-  ["google_business", "google_business_credentials_missing"],
-  ["website", "website_credentials_missing"],
-  ["push", "push_credentials_missing"],
-]);
 
 /** The address a recipient can always reach to stop receiving campaigns. */
 function unsubscribeMailbox(from: string) {
@@ -361,7 +341,7 @@ async function processDelivery(client: AdminClient, delivery: ClaimedDelivery) {
       p_lease_token: delivery.lease_token,
       p_status: "blocked_configuration",
       p_provider_message_id: null,
-      p_error_code: DORMANT_CHANNELS.get(delivery.channel) || "adapter_not_deployed",
+      p_error_code: getMarketingAdapterBlocker(delivery.channel) || "adapter_not_deployed",
       p_error: "Provider adapter is not deployed",
       p_metadata: { channel: delivery.channel },
     });

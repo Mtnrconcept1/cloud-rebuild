@@ -1226,6 +1226,9 @@ const PRIVATE_ROUTE_PREFIXES = [
   "/espaces",
   "/r",
   "/tok-connect/developer",
+  "/tok-connect/mcp-widget",
+  "/parametres",
+  "/coming-soon",
 ];
 
 function normalizePath(routePath) {

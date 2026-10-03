@@ -1,0 +1,34 @@
+[
+  {
+    "sha256": "22702069c70aca7410367c001125b8a62b4c79abd89e4ffe9a4ede42819dd966",
+    "paths": [
+      "20260312233000_fix_dashboard_performance_consistency.sql",
+      "20260312235900_fix_dashboard_performance_consistency.sql"
+    ],
+    "reason": "Exact historical duplicate group in audited main b78debf; preserve applied history."
+  },
+  {
+    "sha256": "82920673972ace7105a53e9b3b7a74946443b15d444629393563d83edd950a3e",
+    "paths": [
+      "20260728173650_harden_social_post_boosts.sql",
+      "20260728173700_harden_social_post_boosts.sql"
+    ],
+    "reason": "Exact historical duplicate group in audited main b78debf; preserve applied history."
+  },
+  {
+    "sha256": "b75cb8b9bc16f60ba4b652535555e64b13569a049634442e08f7cbfa1e5ff1e8",
+    "paths": [
+      "20260726061543_ops_incident_native_cron.sql",
+      "20260726062000_ops_incident_native_cron.sql"
+    ],
+    "reason": "Exact historical duplicate group in audited main b78debf; preserve applied history."
+  },
+  {
+    "sha256": "f1ddb1878e11c7ac5827637d6a6c5702a4caf8ad112b87cb9b42fd48124f2568",
+    "paths": [
+      "20260531190000_security_linter_hardening_and_core_cron.sql",
+      "20260531191057_security_linter_hardening_and_core_cron.sql"
+    ],
+    "reason": "Exact historical duplicate group in audited main b78debf; preserve applied history."
+  }
+]
