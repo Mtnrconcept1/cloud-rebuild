@@ -87,3 +87,4 @@ GRANT EXECUTE ON FUNCTION public.service_claim_thefork_official_site_discovery_j
   TO service_role;
 
 COMMIT;
+;

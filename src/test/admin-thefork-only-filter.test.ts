@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const root = process.cwd();
 const adminNavigation = resolve(root, "src/components/admin/AdminMobileNavigation.tsx");
 const control = resolve(root, "src/components/admin/AdminTheForkVisibilityControl.tsx");
-const migration = resolve(root, "supabase/migrations/20260915200000_admin_thefork_only_catalog_filter.sql");
+const migration = resolve(root, "supabase/migrations/20260915183203_admin_thefork_only_catalog_filter.sql");
 
 describe("restaurant source visibility mode", () => {
   it("places the source control on the restaurant admin route", () => {

@@ -6,7 +6,7 @@ Architecture: reuse the existing audited feature flag system with safe-positive 
 
 Files:
 - `src/test/admin-thefork-only-filter.test.ts`: focused contract test.
-- `supabase/migrations/20260915200000_admin_thefork_only_catalog_filter.sql`: safe-positive feature flag seed, 440-source TheFork mapping, public RLS source gate and paginated catalogue gate.
+- `supabase/migrations/20260915183203_admin_thefork_only_catalog_filter.sql`: safe-positive feature flag seed, 440-source TheFork mapping, public RLS source gate and paginated catalogue gate.
 - `src/components/admin/AdminTheForkVisibilityControl.tsx`: audited `The fork` button and state feedback.
 - `src/components/admin/AdminMobileNavigation.tsx`: renders the control only on `/admin/restaurants`.
 

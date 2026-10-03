@@ -92,3 +92,4 @@ GRANT EXECUTE ON FUNCTION public.service_claim_thefork_image_truth_reviews(integ
   TO service_role;
 
 COMMIT;
+;

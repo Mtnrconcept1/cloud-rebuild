@@ -160,4 +160,4 @@ BEGIN
 END;
 $do$;
 
-COMMIT;
+COMMIT;;

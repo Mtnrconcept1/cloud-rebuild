@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS restaurants_public_select ON public.restaurants;
+CREATE POLICY restaurants_public_select ON public.restaurants FOR SELECT TO anon, authenticated USING (is_active IS TRUE AND is_demo IS FALSE AND lower(COALESCE(status, '')) = 'active' AND public.restaurant_address_city_is_consistent(address, city) AND (is_directory_listing IS FALSE OR directory_public_name_verified IS TRUE) AND public.restaurant_source_is_publicly_displayable(id));;
