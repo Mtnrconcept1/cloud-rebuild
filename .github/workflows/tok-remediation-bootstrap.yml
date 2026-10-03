@@ -8,11 +8,12 @@ permissions:
 jobs:
   evidence:
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 1
+          fetch-depth: 3
           persist-credentials: false
       - uses: actions/setup-node@v6
         with:
@@ -40,14 +41,15 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         shell: python
         run: |
-          import json, os, pathlib, re, urllib.request, hashlib
+          import json, os, pathlib, re, urllib.request
           token = os.environ.get('SUPABASE_ACCESS_TOKEN', '')
           if not token: raise SystemExit('Missing Supabase management access')
           target = pathlib.Path(os.environ['RUNNER_TEMP']) / 'tok-evidence'
           queries = {
             'remote-migrations.json': "select version,name,statements from supabase_migrations.schema_migrations order by version",
             'runtime-schema.json': "select p.proname,p.oid::regprocedure::text as signature,pg_get_functiondef(p.oid) as definition,has_function_privilege('authenticated',p.oid,'execute') as authenticated_execute from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('apply_checkout_benefits','rate_limit_consume','can_view_commercial_demo_restaurant','advance_print_order_state','claim_print_fulfillment_jobs','complete_print_fulfillment_job')",
-            'runtime-policies.json': "select schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check from pg_policies where schemaname='public' and tablename in ('promo_code_uses','menu_items','rate_limit_buckets','print_orders')"
+            'runtime-policies.json': "select schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check from pg_policies where schemaname='public' and tablename in ('promo_code_uses','menu_items','rate_limit_buckets','print_orders')",
+            'runtime-indexes.json': "select tablename,indexname,indexdef from pg_indexes where schemaname='public' and tablename in ('promo_code_uses','menu_items','rate_limit_buckets','print_orders','print_fulfillment_jobs')"
           }
           for name, query in queries.items():
             req = urllib.request.Request('https://api.supabase.com/v1/projects/wwcrtyoueexyxkkikaos/database/query', data=json.dumps({'query':query}).encode(), headers={'Authorization':'Bearer '+token, 'Content-Type':'application/json'})
@@ -61,7 +63,31 @@ jobs:
             if any(re.search(p,text) for p in secret_patterns): raise SystemExit('Potential credential in evidence; export refused: '+name)
             (target/name).write_text(text,encoding='utf-8')
             print(name+': '+str(len(rows))+' metadata records; credential pattern checks passed')
+      - name: Read sanitized Vercel deployment diagnosis
+        if: ${{ always() }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        shell: python
+        run: |
+          import json,os,pathlib,urllib.request,urllib.parse,re
+          token=os.environ.get('VERCEL_TOKEN','')
+          if not token: raise SystemExit('Missing Vercel read access')
+          team=os.environ['VERCEL_ORG_ID']
+          base='https://api.vercel.com'
+          paths={'deployment-errors.json':'/v3/deployments/dpl_BShcex1X2BovzSyj1yCEe1x4Gxys/events?limit=1000&direction=backward&teamId='+urllib.parse.quote(team)}
+          for name,url in paths.items():
+            req=urllib.request.Request(base+url,headers={'Authorization':'Bearer '+token})
+            with urllib.request.urlopen(req,timeout=45) as response: data=json.load(response)
+            if isinstance(data,list): data=[{'type':r.get('type'),'text':r.get('text','')} for r in data if re.search('redirect|error|fail',r.get('text',''),re.I)]
+            text=json.dumps(data,indent=2)
+            for secret in [token,os.environ.get('SUPABASE_ACCESS_TOKEN','')]:
+              if secret: text=text.replace(secret,'[REDACTED]')
+            text=re.sub(r'(?:sk_live_|sk_test_|sb_secret_|sbp_|ghp_|github_pat_|sk-proj-)[A-Za-z0-9_-]{15,}','[REDACTED]',text)
+            (pathlib.Path(os.environ['RUNNER_TEMP'])/'tok-evidence'/name).write_text(text)
+            print('Saved bounded Vercel error diagnostics')
       - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
         with:
           name: tok-remediation-bootstrap-${{ github.run_id }}
           path: ${{ runner.temp }}/tok-evidence/
