@@ -5,7 +5,7 @@ import { pathToFileURL } from "node:url";
 import { isVenueSlug } from "./lib/stoppin-venue-dedupe.mjs";
 
 const ORIGIN = "https://www.thetok.ch";
-const MAX_REDIRECTS = 1000; // Never opt into additional bulk capacity automatically.
+const MAX_REDIRECTS = 1000; // Bound the generated middleware manifest.
 const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
 export async function writeAliasReport(targetDir, aliasToCanonical) {

@@ -20,7 +20,10 @@ describe("Stoppin venue SEO", () => {
     for (const script of ["build:prod", "seo:prerender"]) {
       expect(pkg.scripts[script].endsWith("node ./scripts/apply-stoppin-venue-redirects.mjs")).toBe(true);
     }
-    expect(vercel.bulkRedirectsPath).toBe(".vercel/stoppin-venue-redirects.json");
+    expect(vercel.bulkRedirectsPath).toBeUndefined();
+    const middleware = readFileSync(path.join(root, "middleware.js"), "utf8");
+    expect(middleware).toContain('matcher: "/restaurants-pres/:path*"');
+    expect(middleware).toContain('"./.vercel/stoppin-venue-redirects.json"');
     const old = "/restaurants/carouge-ge/r/fernandes-de-almeida-restaurant-le-par";
     const exact = vercel.redirects.findIndex((rule: { source: string }) => rule.source === old);
     const generic = vercel.redirects.findIndex((rule: { source: string }) => rule.source === "/restaurants/carouge-ge/:path*");
