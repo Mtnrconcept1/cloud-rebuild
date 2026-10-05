@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `27267811b159d61354240bc11d0df4adda697ec6db2d34033a33e3dfdabe629d`
+- Empreinte SHA-256 des sources indexées : `b1840d1daed1d763fde5d6531eae58d46e9e7e929abf436198c94dd5e8028fc4`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,14 +45,14 @@
 | publicEntries | 316 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 100 |
-| records | 15269 |
-| repositoryFiles | 2668 |
+| records | 15267 |
+| repositoryFiles | 2667 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 25 |
+| workflows | 24 |
 
 ## État distant observé
 
@@ -5554,7 +5554,6 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 
 | Workflow | Jobs | Source |
 | --- | --- | --- |
-| Temporary Admin Fix Application Index | — | [.github/workflows/_temporary-admin-fix-application-index.yml](../../.github/workflows/_temporary-admin-fix-application-index.yml) |
 | Reusable validation | critical_tests, full_tests, plan, quality, related_tests, validate, windows_worker_tests, worker_tests | [.github/workflows/_validation.yml](../../.github/workflows/_validation.yml) |
 | App Store Build 3 Trigger | dispatch | [.github/workflows/app-store-build3-trigger.yml](../../.github/workflows/app-store-build3-trigger.yml) |
 | App Store Build 4 Trigger | dispatch | [.github/workflows/app-store-build4-trigger.yml](../../.github/workflows/app-store-build4-trigger.yml) |
@@ -6255,9 +6254,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (25)</summary>
+<details><summary>ci-workflow (24)</summary>
 
-- `.github/workflows/_temporary-admin-fix-application-index.yml`
 - `.github/workflows/_validation.yml`
 - `.github/workflows/app-store-build3-trigger.yml`
 - `.github/workflows/app-store-build4-trigger.yml`

@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "27267811b159d61354240bc11d0df4adda697ec6db2d34033a33e3dfdabe629d",
+ "sourceDigest": "b1840d1daed1d763fde5d6531eae58d46e9e7e929abf436198c94dd5e8028fc4",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -25,14 +25,14 @@
   "publicEntries": 316,
   "publicNavigableRoutes": 2,
   "queryParameters": 100,
-  "records": 15269,
-  "repositoryFiles": 2668,
+  "records": 15267,
+  "repositoryFiles": 2667,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 25
+  "workflows": 24
  },
  "catalogs": {
   "frontendRoutes": [
@@ -65742,11 +65742,6 @@
   },
   "workflows": [
    {
-    "name": " Temporary Admin Fix Application Index",
-    "path": ".github/workflows/_temporary-admin-fix-application-index.yml",
-    "jobs": []
-   },
-   {
     "name": "Reusable validation",
     "path": ".github/workflows/_validation.yml",
     "jobs": [
@@ -107220,11 +107215,6 @@
    {
     "path": ".github/dependabot.yml",
     "category": "repository-file",
-    "extension": ".yml"
-   },
-   {
-    "path": ".github/workflows/_temporary-admin-fix-application-index.yml",
-    "category": "ci-workflow",
     "extension": ".yml"
    },
    {
@@ -274538,20 +274528,6 @@
    "detailRef": "ce4d60cf7b25"
   },
   {
-   "id": "file:ddb1022e1602",
-   "type": "file",
-   "title": ".github/workflows/_temporary-admin-fix-application-index.yml",
-   "description": "Fichier du dépôt classé ci-workflow.",
-   "path": ".github/workflows/_temporary-admin-fix-application-index.yml",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".yml",
-    "ci-workflow"
-   ],
-   "detailRef": "77da26240888"
-  },
-  {
    "id": "file:007e12d373d0",
    "type": "file",
    "title": ".github/workflows/_validation.yml",
@@ -342074,17 +342050,6 @@
     "image-ai-worker"
    ],
    "detailRef": "3d2d48cf2e6f"
-  },
-  {
-   "id": "workflow:3b059468e96f",
-   "type": "workflow",
-   "title": " Temporary Admin Fix Application Index",
-   "description": "Workflow GitHub Actions; jobs: définition dynamique.",
-   "path": ".github/workflows/_temporary-admin-fix-application-index.yml",
-   "line": null,
-   "surface": null,
-   "tags": [],
-   "detailRef": "8d172533b784"
   },
   {
    "id": "workflow:af1a9edafbbf",
