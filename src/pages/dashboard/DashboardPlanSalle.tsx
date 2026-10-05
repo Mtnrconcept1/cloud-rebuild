@@ -1604,6 +1604,43 @@ export default function DashboardPlanSalle() {
   }, [libraryPresets.decor, libraryPresets.event, libraryPresets.seating, libraryPresets.structure, libraryPresets.tables, normalizedLibraryQuery]);
 
   const isTemplateMode = editMode === "template";
+  const persistedTemplateSignature = useMemo(() => JSON.stringify(
+    persistedTables
+      .map((table, index) => {
+        const rawCapacity = Number(table.capacity);
+        const fallbackCapacity = Number.isFinite(rawCapacity) ? rawCapacity : 2;
+        const layout = buildTemplateLayout(table.layout, index, fallbackCapacity);
+
+        return {
+          id: table.id,
+          table_number: table.table_number.trim(),
+          capacity: isReservableFloorPlanItem(layout.kind) ? Math.max(1, Math.round(fallbackCapacity || 2)) : 0,
+          is_active: table.is_active ?? true,
+          sector: table.sector?.trim() || DEFAULT_SECTOR,
+          layout: layoutToRecord(layout),
+        };
+      })
+      .sort((left, right) => left.id.localeCompare(right.id, "fr")),
+  ), [persistedTables]);
+  const draftTemplateSignature = useMemo(() => JSON.stringify(
+    draftTables
+      .map((table) => ({
+        id: table.persisted ? table.id : null,
+        table_number: table.table_number.trim(),
+        capacity: getPersistableCapacity(table),
+        is_active: table.is_active,
+        sector: table.sector.trim() || DEFAULT_SECTOR,
+        layout: layoutToRecord(table.layout),
+      }))
+      .sort((left, right) => (left.id || `new:${left.table_number}`).localeCompare(
+        right.id || `new:${right.table_number}`,
+        "fr",
+      )),
+  ), [draftTables]);
+  const templateDirty = useMemo(
+    () => draftTemplateSignature !== persistedTemplateSignature,
+    [draftTemplateSignature, persistedTemplateSignature],
+  );
 
   useEffect(() => {
     if (isTemplateMode && selectedTableId) {
@@ -2303,12 +2340,14 @@ export default function DashboardPlanSalle() {
 
       return persistAssignments(new Map(draftTables.map((table) => [table.id, table.id])));
     },
-    onSuccess: (_data, options) => {
-      queryClient.invalidateQueries({ queryKey: ["floor-plan-tables", selectedBranchId] });
-      queryClient.invalidateQueries({ queryKey: ["floor-plan-layout-overrides", selectedBranchId, referenceDate] });
-      queryClient.invalidateQueries({ queryKey: ["floor-plan-slots", selectedBranchId] });
-      queryClient.invalidateQueries({ queryKey: ["floor-plan-reservations", selectedId] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] });
+    onSuccess: async (_data, options) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-tables", selectedBranchId] }),
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-layout-overrides", selectedBranchId, referenceDate] }),
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-slots", selectedBranchId] }),
+        queryClient.invalidateQueries({ queryKey: ["floor-plan-reservations", selectedId] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] }),
+      ]);
       if (!isTemplateMode && options?.layoutSignature) {
         lastAutoSavedLayoutSignatureRef.current = options.layoutSignature;
         scheduledAutoSaveLayoutSignatureRef.current = null;
@@ -2339,6 +2378,47 @@ export default function DashboardPlanSalle() {
       });
     },
   });
+
+  const enterTemplateEditing = async () => {
+    if (!selectedBranchId || isTemplateMode || saveMutation.isPending) return;
+
+    if (serviceDirty) {
+      try {
+        await saveMutation.mutateAsync({
+          silent: false,
+          source: "manual",
+          layoutSignature: servicePersistenceSignature,
+        });
+      } catch {
+        return;
+      }
+    }
+
+    setSelectedReservationId(null);
+    setSelectedTableId(null);
+    setToolPanelTab("library");
+    setEditMode("template");
+  };
+
+  const finishTemplateEditing = async () => {
+    if (!isTemplateMode || saveMutation.isPending) return;
+
+    if (templateDirty) {
+      try {
+        await saveMutation.mutateAsync({
+          silent: false,
+          source: "manual",
+          layoutSignature: null,
+        });
+      } catch {
+        return;
+      }
+    }
+
+    setSelectedTableId(null);
+    setToolPanelTab("library");
+    setEditMode("service");
+  };
 
   const loadFloorPlanVariant = (variantId: string) => {
     if (!selectedBranchId) return;
@@ -3365,14 +3445,16 @@ export default function DashboardPlanSalle() {
     }
 
     if (isTemplateMode) {
-      return hasUnpersistedDraftTables
+      return templateDirty
         ? {
-            label: "Template à enregistrer",
-            detail: "De nouveaux éléments doivent être sauvegardés avant diffusion.",
+            label: "Template modifié",
+            detail: hasUnpersistedDraftTables
+              ? "De nouveaux éléments doivent être enregistrés avant de revenir au service."
+              : "Les réglages de la salle doivent être enregistrés avant de revenir au service.",
             tone: FLOOR_PLAN_TONE_CLASS.amber,
           }
         : {
-            label: "Template synchronise",
+            label: "Template synchronisé",
             detail: "La structure de salle est à jour.",
             tone: FLOOR_PLAN_TONE_CLASS.emerald,
           };
@@ -3421,21 +3503,22 @@ export default function DashboardPlanSalle() {
                   type="button"
                   variant="secondary"
                   className="h-11 rounded-xl"
-                  onClick={() => setEditMode("service")}
+                  onClick={() => void finishTemplateEditing()}
+                  disabled={saveMutation.isPending}
                 >
                   <Check className="mr-2 h-4 w-4" />
-                  Terminer
+                  {templateDirty ? "Enregistrer et terminer" : "Terminer"}
                 </Button>
               ) : (
                 <Button
                   type="button"
                   variant="outline"
                   className="h-11 rounded-xl"
-                  onClick={() => setEditMode("template")}
-                  disabled={!selectedBranch}
+                  onClick={() => void enterTemplateEditing()}
+                  disabled={!selectedBranch || saveMutation.isPending}
                 >
                   <Pencil className="mr-2 h-4 w-4" />
-                  Modifier la salle
+                  {serviceDirty ? "Enregistrer puis modifier" : "Modifier la salle"}
                 </Button>
               )}
 
@@ -3514,7 +3597,11 @@ export default function DashboardPlanSalle() {
                   source: "manual",
                   layoutSignature: isTemplateMode ? null : servicePersistenceSignature,
                 })}
-                disabled={!canPersist || saveMutation.isPending}
+                disabled={
+                  !canPersist
+                  || saveMutation.isPending
+                  || (isTemplateMode ? !templateDirty : !serviceDirty)
+                }
               >
                 <Save className="mr-2 h-4 w-4" />
                 {saveMutation.isPending ? "Sauvegarde…" : "Enregistrer"}
@@ -3566,7 +3653,11 @@ export default function DashboardPlanSalle() {
             */}
             <div className="flex shrink-0 flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm">
               {branches.length > 1 ? (
-                <Select value={selectedBranchId || ""} onValueChange={setSelectedBranchId}>
+                <Select
+                  value={selectedBranchId || ""}
+                  onValueChange={setSelectedBranchId}
+                  disabled={saveMutation.isPending || (isTemplateMode ? templateDirty : serviceDirty)}
+                >
                   <SelectTrigger className="h-11 w-[minmax(0,180px)] min-w-[150px] flex-1 rounded-xl border-border bg-card">
                     <SelectValue placeholder="Salle" />
                   </SelectTrigger>
@@ -3592,7 +3683,11 @@ export default function DashboardPlanSalle() {
               ) : null}
 
               {isTemplateMode ? (
-                <Select value={activeVariantId || "current"} onValueChange={loadFloorPlanVariant}>
+                <Select
+                  value={activeVariantId || "current"}
+                  onValueChange={loadFloorPlanVariant}
+                  disabled={saveMutation.isPending || templateDirty}
+                >
                   <SelectTrigger className="h-11 min-w-[180px] flex-1 rounded-xl border-border bg-card">
                     <SelectValue placeholder="Plan actif" />
                   </SelectTrigger>
@@ -3610,6 +3705,7 @@ export default function DashboardPlanSalle() {
                     value={referenceDate}
                     className="h-11 min-w-[150px] flex-1 rounded-xl border-border bg-card"
                     onChange={(event) => setReferenceDate(event.target.value)}
+                    disabled={saveMutation.isPending || serviceDirty}
                     aria-label="Date du service"
                   />
                   <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
