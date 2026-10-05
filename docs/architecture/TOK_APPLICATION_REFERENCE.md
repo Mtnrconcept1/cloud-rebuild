@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `bc7b91e06db72a12f736c5391189723946a364465b71f5d342791fcf8c7e94a1`
+- Empreinte SHA-256 des sources indexées : `27267811b159d61354240bc11d0df4adda697ec6db2d34033a33e3dfdabe629d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,31 +28,31 @@
 | apiRoutes | 9 |
 | cronJobs | 33 |
 | databaseContract | 228 |
-| databaseObjects | 2709 |
+| databaseObjects | 2718 |
 | documents | 186 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3327 |
+| exportedSymbols | 3331 |
 | featureFlags | 99 |
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
-| migrations | 518 |
-| modules | 1424 |
+| migrations | 519 |
+| modules | 1425 |
 | pages | 127 |
 | pathLiterals | 594 |
 | publicAssets | 294 |
 | publicEntries | 316 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 100 |
-| records | 15250 |
-| repositoryFiles | 2665 |
+| records | 15269 |
+| repositoryFiles | 2668 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 24 |
+| workflows | 25 |
 
 ## État distant observé
 
@@ -483,7 +483,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | customer-memory | [supabase/functions/customer-memory/index.ts:1](../../supabase/functions/customer-memory/index.ts#L1) | oui ([supabase/config.toml:122](../../supabase/config.toml#L122)) | false | ANY | clear, confirm, delete, export, infer, list, reject, upsert | openai |
 | daily-dish-ai | [supabase/functions/daily-dish-ai/index.ts:1](../../supabase/functions/daily-dish-ai/index.ts#L1) | oui ([supabase/config.toml:128](../../supabase/config.toml#L128)) | false | ANY | generate, publish, refine, regenerate, select, set_enabled, status | openai |
 | daily-slot-spin | [supabase/functions/daily-slot-spin/index.ts:1](../../supabase/functions/daily-slot-spin/index.ts#L1) | oui ([supabase/config.toml:131](../../supabase/config.toml#L131)) | false | GET, POST | — | — |
-| delete-account | [supabase/functions/delete-account/index.ts:1](../../supabase/functions/delete-account/index.ts#L1) | oui ([supabase/config.toml:125](../../supabase/config.toml#L125)) | false | ANY | — | — |
+| delete-account | [supabase/functions/delete-account/index.ts:1](../../supabase/functions/delete-account/index.ts#L1) | oui ([supabase/config.toml:125](../../supabase/config.toml#L125)) | false | POST | — | — |
 | discover-thefork-official-sites | [supabase/functions/discover-thefork-official-sites/index.ts:1](../../supabase/functions/discover-thefork-official-sites/index.ts#L1) | oui ([supabase/config.toml:149](../../supabase/config.toml#L149)) | false | GET, OPTIONS, POST | — | google, supabase |
 | dispatch-order | [supabase/functions/dispatch-order/index.ts:1](../../supabase/functions/dispatch-order/index.ts#L1) | oui ([supabase/config.toml:134](../../supabase/config.toml#L134)) | false | ANY | — | supabase |
 | dispatch-timeout | [supabase/functions/dispatch-timeout/index.ts:1](../../supabase/functions/dispatch-timeout/index.ts#L1) | oui ([supabase/config.toml:137](../../supabase/config.toml#L137)) | false | ANY | — | supabase |
@@ -1017,7 +1017,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/v1/user | 7 | [src/test/marketing-bff-security.test.ts:250](../../src/test/marketing-bff-security.test.ts#L250) |
 | /auth?confirmed=1 | 1 | [src/test/auth-signup-form.test.tsx:881](../../src/test/auth-signup-form.test.tsx#L881) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
-| /auth?redirect=/commercial | 1 | [src/test/admin-commercial-accounts.test.ts:156](../../src/test/admin-commercial-accounts.test.ts#L156) |
+| /auth?redirect=/commercial | 1 | [src/test/admin-commercial-accounts.test.ts:192](../../src/test/admin-commercial-accounts.test.ts#L192) |
 | /auth?role=restaurateur | 1 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
 | /auth?type=client | 11 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
 | /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:545](../../src/test/auth-signup-form.test.tsx#L545) |
@@ -1909,7 +1909,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (726)</summary>
+<details><summary>function (728)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -1988,7 +1988,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_create_marketing_campaign_bundle` (1 définition(s))
 - `public.admin_delete_restaurant` (1 définition(s))
 - `public.admin_delete_review` (2 définition(s))
-- `public.admin_delete_user_account` (1 définition(s))
+- `public.admin_delete_user_account` (2 définition(s))
 - `public.admin_dispatch_notification_campaign` (5 définition(s))
 - `public.admin_duplicate_notification_campaign` (1 définition(s))
 - `public.admin_estimate_marketing_audience` (1 définition(s))
@@ -2009,7 +2009,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_get_restaurant_admin_detail` (2 définition(s))
 - `public.admin_get_security_abuse_summary` (2 définition(s))
 - `public.admin_get_tok_one_metrics` (1 définition(s))
-- `public.admin_get_user_admin_detail` (1 définition(s))
+- `public.admin_get_user_admin_detail` (2 définition(s))
 - `public.admin_get_user_governance_alerts` (1 définition(s))
 - `public.admin_link_real_user_restaurant` (1 définition(s))
 - `public.admin_list_google_booking_setups` (2 définition(s))
@@ -2022,6 +2022,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_list_marketing_outreach` (1 définition(s))
 - `public.admin_list_real_restaurant_owners` (1 définition(s))
 - `public.admin_list_real_restaurants_for_assignment` (1 définition(s))
+- `public.admin_list_user_storage_objects_for_deletion` (1 définition(s))
 - `public.admin_list_users` (3 définition(s))
 - `public.admin_mark_restaurant_invoice_paid` (1 définition(s))
 - `public.admin_normalize_cuisine_slug` (2 définition(s))
@@ -2190,6 +2191,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.commercial_demo_get_checkout_order` (1 définition(s))
 - `public.commercial_demo_get_snapshot` (1 définition(s))
 - `public.commercial_demo_reset_session` (1 définition(s))
+- `public.commercial_demo_shared_restaurant_id` (1 définition(s))
 - `public.commercial_demo_transition` (1 définition(s))
 - `public.commercial_demo_transition_reservation` (1 définition(s))
 - `public.commercial_demo_user_is_restricted` (2 définition(s))
@@ -2225,7 +2227,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.crm_session_has_sensitive_access` (1 définition(s))
 - `public.decrement_stock` (1 définition(s))
 - `public.delete_user_gdpr_cascade` (3 définition(s))
-- `public.delete_user_gdpr_cascade_unguarded` (2 définition(s))
+- `public.delete_user_gdpr_cascade_unguarded` (3 définition(s))
 - `public.directory_claim_follow_signup_review` (1 définition(s))
 - `public.directory_name_looks_legal_entity` (1 définition(s))
 - `public.directory_public_name_looks_navigation_or_promo` (1 définition(s))
@@ -2423,14 +2425,14 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.prioritize_thefork_image_truth_reviews` (2 définition(s))
 - `public.process_fair_growth_module_credit` (1 définition(s))
 - `public.process_pending_ad_campaign_conversions` (3 définition(s))
-- `public.protect_commercial_demo_account_boundary` (1 définition(s))
-- `public.protect_commercial_demo_account_mapping` (1 définition(s))
+- `public.protect_commercial_demo_account_boundary` (2 définition(s))
+- `public.protect_commercial_demo_account_mapping` (2 définition(s))
 - `public.protect_demo_restaurant_identity` (1 définition(s))
 - `public.protect_directory_listing_state` (1 définition(s))
 - `public.protect_directory_public_name_quality` (2 définition(s))
 - `public.protect_match_group_capture_claim_fields` (1 définition(s))
 - `public.protect_restaurant_moderation_state` (2 définition(s))
-- `public.provision_commercial_demo_account` (1 définition(s))
+- `public.provision_commercial_demo_account` (2 définition(s))
 - `public.public_restaurant_all_sources_enabled` (3 définition(s))
 - `public.publish_restaurant_daily_dish` (2 définition(s))
 - `public.queue_directory_image_candidate` (1 définition(s))
@@ -2640,7 +2642,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (643)</summary>
+<details><summary>index (649)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -2673,6 +2675,11 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `ai_usage_logs_restaurant_created_idx` (2 définition(s))
 - `ai_usage_logs_restaurant_feature_created_idx` (2 définition(s))
 - `anti_waste_offers_archive_restaurant_idx` (1 définition(s))
+- `audit_log_entity_id_created_at_idx` (1 définition(s))
+- `audit_log_new_target_user_id_created_at_idx` (1 définition(s))
+- `audit_log_new_user_id_created_at_idx` (1 définition(s))
+- `audit_log_old_target_user_id_created_at_idx` (1 définition(s))
+- `audit_log_old_user_id_created_at_idx` (1 définition(s))
 - `campaign_studio_runs_restaurant_created_idx` (1 définition(s))
 - `campaign_studio_runs_restaurant_idempotency_uidx` (1 définition(s))
 - `campaign_studio_runs_status_created_idx` (1 définition(s))
@@ -2682,6 +2689,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `commercial_contract_acceptances_user_accepted_idx` (1 définition(s))
 - `commercial_demo_accounts_active_idx` (1 définition(s))
 - `commercial_demo_accounts_created_by_idx` (1 définition(s))
+- `commercial_demo_accounts_demo_restaurant_idx` (1 définition(s))
 - `commercial_demo_ai_conversations_session_tool_idx` (1 définition(s))
 - `commercial_demo_ai_generations_session_created_idx` (1 définition(s))
 - `commercial_demo_ai_generations_session_identity_idx` (1 définition(s))
@@ -4050,7 +4058,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (341)</summary>
+<details><summary>table (342)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -4113,6 +4121,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.commercial_demo_order_sessions` (1 définition(s))
 - `public.commercial_demo_orders` (1 définition(s))
 - `public.commercial_demo_reservations` (1 définition(s))
+- `public.commercial_demo_shared_restaurant` (1 définition(s))
 - `public.commercial_earning_events` (1 définition(s))
 - `public.commercial_prospect_catalog` (1 définition(s))
 - `public.commercial_prospect_followup_history` (2 définition(s))
@@ -4498,9 +4507,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `prevent_restaurant_image_reassignment` (1 définition(s))
 - `prevent_restaurant_invoice_line_items_locked_period` (1 définition(s))
 - `prevent_restaurant_invoices_locked_period` (1 définition(s))
-- `protect_commercial_demo_account_boundary` (1 définition(s))
-- `protect_commercial_demo_account_mapping` (1 définition(s))
-- `protect_demo_restaurant_identity` (1 définition(s))
+- `protect_commercial_demo_account_boundary` (2 définition(s))
+- `protect_commercial_demo_account_mapping` (2 définition(s))
+- `protect_demo_restaurant_identity` (2 définition(s))
 - `protect_match_group_capture_claim_insert` (1 définition(s))
 - `protect_match_group_capture_claim_mutation` (1 définition(s))
 - `protect_restaurant_moderation_state` (2 définition(s))
@@ -5462,6 +5471,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20260925015352 Schedule Directory Image Discovery | 162 | 1 | [supabase/migrations/20260925015352_schedule_directory_image_discovery.sql:1](../../supabase/migrations/20260925015352_schedule_directory_image_discovery.sql#L1) |
 | 20260925104552 Require Public Restaurant Images | 521 | 4 | [supabase/migrations/20260925104552_require_public_restaurant_images.sql:1](../../supabase/migrations/20260925104552_require_public_restaurant_images.sql#L1) |
 | 20261003070000 Marketing Autopilot Foundation | 1756 | 39 | [supabase/migrations/20261003070000_marketing_autopilot_foundation.sql:1](../../supabase/migrations/20261003070000_marketing_autopilot_foundation.sql#L1) |
+| 20261006010000 Repair Admin Commercial Supabase Regressions | 1012 | 18 | [supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql:1](../../supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -5544,6 +5554,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 
 | Workflow | Jobs | Source |
 | --- | --- | --- |
+| Temporary Admin Fix Application Index | — | [.github/workflows/_temporary-admin-fix-application-index.yml](../../.github/workflows/_temporary-admin-fix-application-index.yml) |
 | Reusable validation | critical_tests, full_tests, plan, quality, related_tests, validate, windows_worker_tests, worker_tests | [.github/workflows/_validation.yml](../../.github/workflows/_validation.yml) |
 | App Store Build 3 Trigger | dispatch | [.github/workflows/app-store-build3-trigger.yml](../../.github/workflows/app-store-build3-trigger.yml) |
 | App Store Build 4 Trigger | dispatch | [.github/workflows/app-store-build4-trigger.yml](../../.github/workflows/app-store-build4-trigger.yml) |
@@ -5683,7 +5694,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 30 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 8 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 211 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 633 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 634 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 54 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5695,7 +5706,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | --- | --- |
 | application-library | 203 |
 | automation-script | 61 |
-| edge-function-source | 174 |
+| edge-function-source | 175 |
 | frontend-component | 245 |
 | frontend-hook | 22 |
 | frontend-page | 127 |
@@ -6244,8 +6255,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (24)</summary>
+<details><summary>ci-workflow (25)</summary>
 
+- `.github/workflows/_temporary-admin-fix-application-index.yml`
 - `.github/workflows/_validation.yml`
 - `.github/workflows/app-store-build3-trigger.yml`
 - `.github/workflows/app-store-build4-trigger.yml`
@@ -6273,7 +6285,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (518)</summary>
+<details><summary>database-migration (519)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -6793,6 +6805,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20260925015352_schedule_directory_image_discovery.sql`
 - `supabase/migrations/20260925104552_require_public_restaurant_images.sql`
 - `supabase/migrations/20261003070000_marketing_autopilot_foundation.sql`
+- `supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql`
 
 </details>
 
@@ -6919,7 +6932,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (174)</summary>
+<details><summary>edge-function-source (175)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -6975,6 +6988,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/tok-connect.ts`
 - `supabase/functions/_shared/tok-one.ts`
 - `supabase/functions/_shared/transactional-emails.ts`
+- `supabase/functions/_shared/user-storage-cleanup.ts`
 - `supabase/functions/_shared/zero-attente.ts`
 - `supabase/functions/admin-demo-entities/index.ts`
 - `supabase/functions/admin-restaurant-adjustment/index.ts`

@@ -2,37 +2,37 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "bc7b91e06db72a12f736c5391189723946a364465b71f5d342791fcf8c7e94a1",
+ "sourceDigest": "27267811b159d61354240bc11d0df4adda697ec6db2d34033a33e3dfdabe629d",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
-  "databaseObjects": 2709,
+  "databaseObjects": 2718,
   "documents": 186,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3327,
+  "exportedSymbols": 3331,
   "featureFlags": 99,
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 518,
-  "modules": 1424,
+  "migrations": 519,
+  "modules": 1425,
   "pages": 127,
   "pathLiterals": 594,
   "publicAssets": 294,
   "publicEntries": 316,
   "publicNavigableRoutes": 2,
   "queryParameters": 100,
-  "records": 15250,
-  "repositoryFiles": 2665,
+  "records": 15269,
+  "repositoryFiles": 2668,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 24
+  "workflows": 25
  },
  "catalogs": {
   "frontendRoutes": [
@@ -7721,7 +7721,7 @@
     "configLine": 125,
     "verifyJwt": false,
     "methods": [
-     "ANY"
+     "POST"
     ],
     "actions": [],
     "environmentNames": [],
@@ -15544,7 +15544,7 @@
     "sources": [
      {
       "path": "src/test/admin-commercial-accounts.test.ts",
-      "line": 156
+      "line": 192
      }
     ]
    },
@@ -28585,6 +28585,7 @@
      "supabase/functions/_shared/tok-connect-discovery-widget.ts",
      "supabase/functions/_shared/tok-connect-discovery.ts",
      "supabase/functions/_shared/tok-one.ts",
+     "supabase/functions/_shared/user-storage-cleanup.ts",
      "supabase/functions/admin-demo-entities/index.ts",
      "supabase/functions/ai-accounting-agent/index.ts",
      "supabase/functions/ai-admin-monitor/index.ts",
@@ -31844,6 +31845,12 @@
     "path": "supabase/migrations/20261003070000_marketing_autopilot_foundation.sql",
     "lineCount": 1756,
     "objectCount": 39
+   },
+   {
+    "name": "20261006010000 Repair Admin Commercial Supabase Regressions",
+    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+    "lineCount": 1012,
+    "objectCount": 18
    }
   ],
   "databaseObjects": [
@@ -32676,6 +32683,10 @@
      {
       "path": "supabase/migrations/20260726013000_admin_destructive_actions.sql",
       "line": 6
+     },
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 804
      }
     ]
    },
@@ -32946,6 +32957,10 @@
      {
       "path": "supabase/migrations/20260601041744_admin_users_governance_controls.sql",
       "line": 282
+     },
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 464
      }
     ]
    },
@@ -33074,6 +33089,16 @@
      {
       "path": "supabase/migrations/20260719150000_admin_real_restaurant_ownership.sql",
       "line": 58
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.admin_list_user_storage_objects_for_deletion",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 667
      }
     ]
    },
@@ -35067,6 +35092,16 @@
    },
    {
     "type": "function",
+    "name": "public.commercial_demo_shared_restaurant_id",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 79
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.commercial_demo_transition",
     "sources": [
      {
@@ -35510,6 +35545,10 @@
      {
       "path": "supabase/migrations/20260726020000_harden_demo_gdpr_and_social_cron.sql",
       "line": 94
+     },
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 691
      }
     ]
    },
@@ -38046,6 +38085,10 @@
      {
       "path": "supabase/migrations/20260715023000_commercial_demo_transaction_host_isolation.sql",
       "line": 51
+     },
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 145
      }
     ]
    },
@@ -38056,6 +38099,10 @@
      {
       "path": "supabase/migrations/20260714120000_commercial_demo_accounts.sql",
       "line": 243
+     },
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 109
      }
     ]
    },
@@ -38124,6 +38171,10 @@
      {
       "path": "supabase/migrations/20260714120000_commercial_demo_accounts.sql",
       "line": 1176
+     },
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 205
      }
     ]
    },
@@ -41087,6 +41138,56 @@
    },
    {
     "type": "index",
+    "name": "audit_log_entity_id_created_at_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 453
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "audit_log_new_target_user_id_created_at_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 461
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "audit_log_new_user_id_created_at_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 457
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "audit_log_old_target_user_id_created_at_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 459
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "audit_log_old_user_id_created_at_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 455
+     }
+    ]
+   },
+   {
+    "type": "index",
     "name": "campaign_studio_runs_restaurant_created_idx",
     "sources": [
      {
@@ -41172,6 +41273,16 @@
      {
       "path": "supabase/migrations/20260714181500_commercial_demo_function_acl_hardening.sql",
       "line": 294
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "commercial_demo_accounts_demo_restaurant_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 18
      }
     ]
    },
@@ -56295,6 +56406,16 @@
    },
    {
     "type": "table",
+    "name": "public.commercial_demo_shared_restaurant",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "type": "table",
     "name": "public.commercial_earning_events",
     "sources": [
      {
@@ -60316,6 +60437,10 @@
      {
       "path": "supabase/migrations/20260715023000_commercial_demo_transaction_host_isolation.sql",
       "line": 81
+     },
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 196
      }
     ]
    },
@@ -60326,6 +60451,10 @@
      {
       "path": "supabase/migrations/20260714120000_commercial_demo_accounts.sql",
       "line": 267
+     },
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 191
      }
     ]
    },
@@ -60336,6 +60465,10 @@
      {
       "path": "supabase/migrations/20260714120000_commercial_demo_accounts.sql",
       "line": 237
+     },
+     {
+      "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+      "line": 75
      }
     ]
    },
@@ -65608,6 +65741,11 @@
    }
   },
   "workflows": [
+   {
+    "name": " Temporary Admin Fix Application Index",
+    "path": ".github/workflows/_temporary-admin-fix-application-index.yml",
+    "jobs": []
+   },
    {
     "name": "Reusable validation",
     "path": ".github/workflows/_validation.yml",
@@ -79370,7 +79508,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 27,
+      "line": 28,
       "kind": "function"
      }
     ],
@@ -79378,7 +79516,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 240
+    "lineCount": 252
    },
    {
     "path": "src/components/admin/AdminLogResetButton.tsx",
@@ -97536,7 +97674,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 188
+    "lineCount": 224
    },
    {
     "path": "src/test/admin-commercial-role-assignment.test.ts",
@@ -97598,7 +97736,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 64
+    "lineCount": 97
    },
    {
     "path": "src/test/admin-domain-routing.test.ts",
@@ -97783,7 +97921,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 109
+    "lineCount": 124
    },
    {
     "path": "src/test/ai-creations-server-history.test.ts",
@@ -104930,6 +105068,36 @@
     "lineCount": 700
    },
    {
+    "path": "supabase/functions/_shared/user-storage-cleanup.ts",
+    "exports": [
+     {
+      "name": "UserStorageObject",
+      "line": 3,
+      "kind": "typealias"
+     },
+     {
+      "name": "StorageCleanupFailure",
+      "line": 8,
+      "kind": "typealias"
+     },
+     {
+      "name": "listUserStorageObjects",
+      "line": 14,
+      "kind": "function"
+     },
+     {
+      "name": "removeUserStorageObjects",
+      "line": 35,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 74
+   },
+   {
     "path": "supabase/functions/_shared/zero-attente.ts",
     "exports": [
      {
@@ -105565,7 +105733,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 67
+    "lineCount": 194
    },
    {
     "path": "supabase/functions/discover-thefork-official-sites/index.ts",
@@ -107052,6 +107220,11 @@
    {
     "path": ".github/dependabot.yml",
     "category": "repository-file",
+    "extension": ".yml"
+   },
+   {
+    "path": ".github/workflows/_temporary-admin-fix-application-index.yml",
+    "category": "ci-workflow",
     "extension": ".yml"
    },
    {
@@ -116540,6 +116713,11 @@
     "extension": ".ts"
    },
    {
+    "path": "supabase/functions/_shared/user-storage-cleanup.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
     "path": "supabase/functions/_shared/zero-attente.ts",
     "category": "edge-function-source",
     "extension": ".ts"
@@ -119735,6 +119913,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/critical_rpc_smoke.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -122262,7 +122445,7 @@
    "id": "code-module:d4c59d6a02cd",
    "type": "code-module",
    "title": "src/components/admin/AdminDestructiveActions.tsx",
-   "description": "Module de 240 lignes; exports: default.",
+   "description": "Module de 252 lignes; exports: default.",
    "path": "src/components/admin/AdminDestructiveActions.tsx",
    "line": 1,
    "surface": null,
@@ -122270,7 +122453,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "194e28e80893"
+   "detailRef": "ff2630387a37"
   },
   {
    "id": "code-module:dc75a7c3ef4b",
@@ -132227,7 +132410,7 @@
    "id": "code-module:5551bc8bb18a",
    "type": "code-module",
    "title": "src/test/admin-commercial-accounts.test.ts",
-   "description": "Module de 188 lignes; exports: aucun export statique.",
+   "description": "Module de 224 lignes; exports: aucun export statique.",
    "path": "src/test/admin-commercial-accounts.test.ts",
    "line": 1,
    "surface": null,
@@ -132235,7 +132418,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "3941f986cbd4"
+   "detailRef": "be6791c8bb36"
   },
   {
    "id": "code-module:5c384623772a",
@@ -132318,14 +132501,14 @@
    "id": "code-module:46735b541e37",
    "type": "code-module",
    "title": "src/test/admin-destructive-actions.test.ts",
-   "description": "Module de 64 lignes; exports: aucun export statique.",
+   "description": "Module de 97 lignes; exports: aucun export statique.",
    "path": "src/test/admin-destructive-actions.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "54d738660b10"
+   "detailRef": "d3762c73166d"
   },
   {
    "id": "code-module:b63eb2c8bcf1",
@@ -132591,14 +132774,14 @@
    "id": "code-module:4e5e202e571e",
    "type": "code-module",
    "title": "src/test/admin-users-governance.test.ts",
-   "description": "Module de 109 lignes; exports: aucun export statique.",
+   "description": "Module de 124 lignes; exports: aucun export statique.",
    "path": "src/test/admin-users-governance.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "464ed01725be"
+   "detailRef": "074df40da02b"
   },
   {
    "id": "code-module:7c4c0855d66c",
@@ -139963,6 +140146,23 @@
    "detailRef": "24e7143e10d9"
   },
   {
+   "id": "code-module:e9a7a7cd99bb",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/user-storage-cleanup.ts",
+   "description": "Module de 74 lignes; exports: UserStorageObject, StorageCleanupFailure, listUserStorageObjects, removeUserStorageObjects.",
+   "path": "supabase/functions/_shared/user-storage-cleanup.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "StorageCleanupFailure",
+    "UserStorageObject",
+    "listUserStorageObjects",
+    "removeUserStorageObjects",
+    "supabase"
+   ],
+   "detailRef": "7faa715421b5"
+  },
+  {
    "id": "code-module:1c4d59fe853c",
    "type": "code-module",
    "title": "supabase/functions/_shared/zero-attente.ts",
@@ -140651,12 +140851,12 @@
    "id": "code-module:8c6401908e3e",
    "type": "code-module",
    "title": "supabase/functions/delete-account/index.ts",
-   "description": "Module de 67 lignes; exports: aucun export statique.",
+   "description": "Module de 194 lignes; exports: aucun export statique.",
    "path": "supabase/functions/delete-account/index.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "56ece31a4ef4"
+   "detailRef": "2affd64d59f4"
   },
   {
    "id": "code-module:6e3d32b31e47",
@@ -146586,6 +146786,81 @@
    "detailRef": "9fb53ccd39d1"
   },
   {
+   "id": "database-object:99d45dce1743",
+   "type": "database-object",
+   "title": "audit_log_entity_id_created_at_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 453,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "5183505fdf9f"
+  },
+  {
+   "id": "database-object:f0ce1977ba7e",
+   "type": "database-object",
+   "title": "audit_log_new_target_user_id_created_at_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 461,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "8f10932ecd0a"
+  },
+  {
+   "id": "database-object:0a77f660584f",
+   "type": "database-object",
+   "title": "audit_log_new_user_id_created_at_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 457,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "525b55af4040"
+  },
+  {
+   "id": "database-object:67812834a1c1",
+   "type": "database-object",
+   "title": "audit_log_old_target_user_id_created_at_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 459,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "2a2d7dbe3e14"
+  },
+  {
+   "id": "database-object:20203d785fe1",
+   "type": "database-object",
+   "title": "audit_log_old_user_id_created_at_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 455,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "4a4bfb2ba284"
+  },
+  {
    "id": "database-object:b69011518b56",
    "type": "database-object",
    "title": "audit_orders",
@@ -146899,6 +147174,21 @@
     "supabase"
    ],
    "detailRef": "cb5686abc8e0"
+  },
+  {
+   "id": "database-object:72f7f77d2298",
+   "type": "database-object",
+   "title": "commercial_demo_accounts_demo_restaurant_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 18,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "d7125032f220"
   },
   {
    "id": "database-object:58f82848d5ab",
@@ -156006,49 +156296,49 @@
    "detailRef": "29c14166870f"
   },
   {
-   "id": "database-object:48157d13f24c",
+   "id": "database-object:eb5e9a46fe4b",
    "type": "database-object",
    "title": "protect_commercial_demo_account_boundary",
-   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260715023000_commercial_demo_transaction_host_isolation.sql",
-   "line": 81,
+   "description": "Objet PostgreSQL de type trigger; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 196,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase",
     "trigger"
    ],
-   "detailRef": "2fbdbbf65e50"
+   "detailRef": "6173fb122f01"
   },
   {
-   "id": "database-object:535a6d871c06",
+   "id": "database-object:ffbf253ddde3",
    "type": "database-object",
    "title": "protect_commercial_demo_account_mapping",
-   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260714120000_commercial_demo_accounts.sql",
-   "line": 267,
+   "description": "Objet PostgreSQL de type trigger; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 191,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase",
     "trigger"
    ],
-   "detailRef": "d5cc1aa3e76c"
+   "detailRef": "b6ba2d652383"
   },
   {
-   "id": "database-object:c773cf3d689c",
+   "id": "database-object:83410911db09",
    "type": "database-object",
    "title": "protect_demo_restaurant_identity",
-   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260714120000_commercial_demo_accounts.sql",
-   "line": 237,
+   "description": "Objet PostgreSQL de type trigger; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 75,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase",
     "trigger"
    ],
-   "detailRef": "31377841584c"
+   "detailRef": "9c16ba69976a"
   },
   {
    "id": "database-object:595ac6ef9101",
@@ -157011,19 +157301,19 @@
    "detailRef": "a40363e29be0"
   },
   {
-   "id": "database-object:c4dc3e450b15",
+   "id": "database-object:48ebe05db518",
    "type": "database-object",
    "title": "public.admin_delete_user_account",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260726013000_admin_destructive_actions.sql",
-   "line": 6,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 804,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "4b7970024407"
+   "detailRef": "40888ac97549"
   },
   {
    "id": "database-object:fba6e3575289",
@@ -157326,19 +157616,19 @@
    "detailRef": "0f31759e13e6"
   },
   {
-   "id": "database-object:77f274a0ddbe",
+   "id": "database-object:002b013fd474",
    "type": "database-object",
    "title": "public.admin_get_user_admin_detail",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260601041744_admin_users_governance_controls.sql",
-   "line": 282,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 464,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "4de407a0e6a9"
+   "detailRef": "2e07d3a76fb5"
   },
   {
    "id": "database-object:333a3815b658",
@@ -157519,6 +157809,21 @@
     "supabase"
    ],
    "detailRef": "a48638d314d2"
+  },
+  {
+   "id": "database-object:4b172dbf7d13",
+   "type": "database-object",
+   "title": "public.admin_list_user_storage_objects_for_deletion",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 667,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "822b666fd8ee"
   },
   {
    "id": "database-object:f5fbb5bb6470",
@@ -162216,6 +162521,36 @@
    "detailRef": "a42ab1fa4b56"
   },
   {
+   "id": "database-object:6cb27bf82b1a",
+   "type": "database-object",
+   "title": "public.commercial_demo_shared_restaurant",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "284c37179cb2"
+  },
+  {
+   "id": "database-object:5625885bde6b",
+   "type": "database-object",
+   "title": "public.commercial_demo_shared_restaurant_id",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 79,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "10f3434d00f2"
+  },
+  {
    "id": "database-object:b5421481186e",
    "type": "database-object",
    "title": "public.commercial_demo_transition",
@@ -163776,19 +164111,19 @@
    "detailRef": "0399945e16da"
   },
   {
-   "id": "database-object:23a6302bb9a6",
+   "id": "database-object:4387d1e2801a",
    "type": "database-object",
    "title": "public.delete_user_gdpr_cascade_unguarded",
-   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260726020000_harden_demo_gdpr_and_social_cron.sql",
-   "line": 94,
+   "description": "Objet PostgreSQL de type function; 3 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 691,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "de439500faad"
+   "detailRef": "71cc5903daee"
   },
   {
    "id": "database-object:dd21a515d3a8",
@@ -171741,34 +172076,34 @@
    "detailRef": "4c74698dff91"
   },
   {
-   "id": "database-object:0c8b74100d77",
+   "id": "database-object:875a4d186102",
    "type": "database-object",
    "title": "public.protect_commercial_demo_account_boundary",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260715023000_commercial_demo_transaction_host_isolation.sql",
-   "line": 51,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 145,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "94d633228b30"
+   "detailRef": "043b7b651b24"
   },
   {
-   "id": "database-object:f378561990a7",
+   "id": "database-object:1b25190f793f",
    "type": "database-object",
    "title": "public.protect_commercial_demo_account_mapping",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260714120000_commercial_demo_accounts.sql",
-   "line": 243,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 109,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "484088d60187"
+   "detailRef": "b9f916bce07d"
   },
   {
    "id": "database-object:3700e6770f98",
@@ -171846,19 +172181,19 @@
    "detailRef": "85849b52fbc3"
   },
   {
-   "id": "database-object:1c5e63189b3e",
+   "id": "database-object:18788857c5a4",
    "type": "database-object",
    "title": "public.provision_commercial_demo_account",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260714120000_commercial_demo_accounts.sql",
-   "line": 1176,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 205,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "971579fa168e"
+   "detailRef": "1a1e530464a2"
   },
   {
    "id": "database-object:e3ddaed0b94e",
@@ -222047,14 +222382,14 @@
    "id": "edge-function:311e5f4db5aa",
    "type": "edge-function",
    "title": "delete-account",
-   "description": "Fonction Edge ANY; JWT config=false.",
+   "description": "Fonction Edge POST; JWT config=false.",
    "path": "supabase/functions/delete-account/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
-    "ANY"
+    "POST"
    ],
-   "detailRef": "79514aa3cf4a"
+   "detailRef": "1167d7c3009f"
   },
   {
    "id": "edge-function:b15264a3bd7c",
@@ -242758,6 +243093,20 @@
    "detailRef": "d8b8a47eec2a"
   },
   {
+   "id": "exported-symbol:ddb42adcc3bd",
+   "type": "exported-symbol",
+   "title": "StorageCleanupFailure",
+   "description": "Export typealias de supabase/functions/_shared/user-storage-cleanup.ts.",
+   "path": "supabase/functions/_shared/user-storage-cleanup.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "eb43af2497ee"
+  },
+  {
    "id": "exported-symbol:fc711c0b79d0",
    "type": "exported-symbol",
    "title": "StripeReturnStatus",
@@ -245184,6 +245533,20 @@
     "supabase"
    ],
    "detailRef": "d711923cf7fb"
+  },
+  {
+   "id": "exported-symbol:2c197969fb2b",
+   "type": "exported-symbol",
+   "title": "UserStorageObject",
+   "description": "Export typealias de supabase/functions/_shared/user-storage-cleanup.ts.",
+   "path": "supabase/functions/_shared/user-storage-cleanup.ts",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "fc2c2d68ad12"
   },
   {
    "id": "exported-symbol:2105eb3d5f47",
@@ -250740,18 +251103,18 @@
    "detailRef": "78da837e85aa"
   },
   {
-   "id": "exported-symbol:f490c36108f5",
+   "id": "exported-symbol:3fddda7fcb9c",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/admin/AdminDestructiveActions.tsx.",
    "path": "src/components/admin/AdminDestructiveActions.tsx",
-   "line": 27,
+   "line": 28,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "8f286ff17dd0"
+   "detailRef": "9a3e670aec9b"
   },
   {
    "id": "exported-symbol:5538e85233eb",
@@ -263400,6 +263763,20 @@
    "detailRef": "169e71072111"
   },
   {
+   "id": "exported-symbol:06d25ed6273b",
+   "type": "exported-symbol",
+   "title": "listUserStorageObjects",
+   "description": "Export function de supabase/functions/_shared/user-storage-cleanup.ts.",
+   "path": "supabase/functions/_shared/user-storage-cleanup.ts",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "e16c24f9afcc"
+  },
+  {
    "id": "exported-symbol:c2da9fbb2388",
    "type": "exported-symbol",
    "title": "loadCommercialDemoConversationMessages",
@@ -266382,6 +266759,20 @@
     "function"
    ],
    "detailRef": "fc82c5508de8"
+  },
+  {
+   "id": "exported-symbol:d7212d77f6b4",
+   "type": "exported-symbol",
+   "title": "removeUserStorageObjects",
+   "description": "Export function de supabase/functions/_shared/user-storage-cleanup.ts.",
+   "path": "supabase/functions/_shared/user-storage-cleanup.ts",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "1c184fa14d74"
   },
   {
    "id": "exported-symbol:e1accf06e236",
@@ -274145,6 +274536,20 @@
     "repository-file"
    ],
    "detailRef": "ce4d60cf7b25"
+  },
+  {
+   "id": "file:ddb1022e1602",
+   "type": "file",
+   "title": ".github/workflows/_temporary-admin-fix-application-index.yml",
+   "description": "Fichier du dépôt classé ci-workflow.",
+   "path": ".github/workflows/_temporary-admin-fix-application-index.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".yml",
+    "ci-workflow"
+   ],
+   "detailRef": "77da26240888"
   },
   {
    "id": "file:007e12d373d0",
@@ -300705,6 +301110,20 @@
    "detailRef": "8fe5c3677040"
   },
   {
+   "id": "file:95959bc42257",
+   "type": "file",
+   "title": "supabase/functions/_shared/user-storage-cleanup.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/user-storage-cleanup.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "547b2c1a6626"
+  },
+  {
    "id": "file:d114947ff19d",
    "type": "file",
    "title": "supabase/functions/_shared/zero-attente.ts",
@@ -309651,6 +310070,20 @@
    "detailRef": "080d4677d0dd"
   },
   {
+   "id": "file:7d494c885038",
+   "type": "file",
+   "title": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "fd328338ba53"
+  },
+  {
    "id": "file:42e7f6ee83cf",
    "type": "file",
    "title": "supabase/tests/critical_rpc_smoke.sql",
@@ -313321,7 +313754,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 633 module(s).",
+   "description": "Intégration externe détectée dans 634 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -313900,6 +314333,7 @@
     "supabase/functions/_shared/tok-connect-discovery-widget.ts",
     "supabase/functions/_shared/tok-connect-discovery.ts",
     "supabase/functions/_shared/tok-one.ts",
+    "supabase/functions/_shared/user-storage-cleanup.ts",
     "supabase/functions/admin-demo-entities/index.ts",
     "supabase/functions/ai-accounting-agent/index.ts",
     "supabase/functions/ai-admin-monitor/index.ts",
@@ -313961,7 +314395,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "fcbea17c6577"
+   "detailRef": "47173f8fadf0"
   },
   {
    "id": "integration:c20910a79a78",
@@ -321874,6 +322308,20 @@
    "detailRef": "83a4c18a2296"
   },
   {
+   "id": "migration:c68a111fdd39",
+   "type": "migration",
+   "title": "20261006010000 Repair Admin Commercial Supabase Regressions",
+   "description": "Migration SQL de 1012 lignes, 18 objets CREATE détectés.",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "094f0be7b23b"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -326328,17 +326776,17 @@
    "detailRef": "6d686a2eb64b"
   },
   {
-   "id": "path-literal:e9dcd4ba869d",
+   "id": "path-literal:0405e69f21f3",
    "type": "path-literal",
    "title": "/auth?redirect=/commercial",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/admin-commercial-accounts.test.ts",
-   "line": 156,
+   "line": 192,
    "surface": null,
    "tags": [
     "src/test/admin-commercial-accounts.test.ts"
    ],
-   "detailRef": "b58e0d5cef12"
+   "detailRef": "fae0f85c78fa"
   },
   {
    "id": "path-literal:0c0e82d35a65",
@@ -341626,6 +342074,17 @@
     "image-ai-worker"
    ],
    "detailRef": "3d2d48cf2e6f"
+  },
+  {
+   "id": "workflow:3b059468e96f",
+   "type": "workflow",
+   "title": " Temporary Admin Fix Application Index",
+   "description": "Workflow GitHub Actions; jobs: définition dynamique.",
+   "path": ".github/workflows/_temporary-admin-fix-application-index.yml",
+   "line": null,
+   "surface": null,
+   "tags": [],
+   "detailRef": "8d172533b784"
   },
   {
    "id": "workflow:af1a9edafbbf",
