@@ -26,10 +26,10 @@ jobs:
           corepack prepare pnpm@10.28.1 --activate
       - name: Install
         run: pnpm install --frozen-lockfile
-      - name: Regenerate canonical application index
-        run: pnpm docs:application-index
       - name: Remove temporary workflow
         run: rm .github/workflows/_temporary-admin-fix-application-index.yml
+      - name: Regenerate canonical application index
+        run: pnpm docs:application-index
       - name: Verify canonical application index
         run: pnpm docs:application-index:check
       - name: Commit generated files and self-removal
