@@ -1004,7 +1004,7 @@ BEGIN
     END IF;
   END IF;
 END;
-$;
+$$;
 
 NOTIFY pgrst, 'reload schema';
 
