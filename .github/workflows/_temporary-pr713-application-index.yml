@@ -1,0 +1,55 @@
+name: Temporary PR 713 Application Index Refresh
+
+on:
+  push:
+    branches:
+      - fix/shared-commercial-demo-restaurant
+    paths:
+      - .github/workflows/_temporary-pr713-application-index.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh_index:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/shared-commercial-demo-restaurant
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Remove temporary workflow before indexing
+        run: git rm .github/workflows/_temporary-pr713-application-index.yml
+
+      - name: Regenerate canonical application index
+        run: |
+          pnpm run docs:application-index
+          pnpm run docs:application-index:check
+
+      - name: Commit generated index and self-cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json .github/workflows/_temporary-pr713-application-index.yml
+          git diff --cached --check
+          git commit -m "docs(application-index): synchroniser la démo commerciale"
+          git push origin HEAD:fix/shared-commercial-demo-restaurant
