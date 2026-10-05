@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `70f93e9bbdd10d3687aa8386e1b3d47acee3f740a841c4a36204cd4c1e6d5873`
+- Empreinte SHA-256 des sources indexées : `bc7b91e06db72a12f736c5391189723946a364465b71f5d342791fcf8c7e94a1`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,14 +45,14 @@
 | publicEntries | 316 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 100 |
-| records | 15251 |
+| records | 15250 |
 | repositoryFiles | 2665 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 25 |
+| workflows | 24 |
 
 ## État distant observé
 
@@ -5561,7 +5561,6 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | CI | validate, validation | [.github/workflows/ci.yml](../../.github/workflows/ci.yml) |
 | Deploy Production | attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation | [.github/workflows/deploy-production.yml](../../.github/workflows/deploy-production.yml) |
 | Ensure Supabase Auth SMTP | configure | [.github/workflows/ensure-supabase-auth-smtp.yml](../../.github/workflows/ensure-supabase-auth-smtp.yml) |
-| Floor Plan Self Hosted Gate | — | [.github/workflows/floor-plan-self-hosted-gate.yml](../../.github/workflows/floor-plan-self-hosted-gate.yml) |
 | TOK Codex Incident Repair | prepare, publish, report, validate | [.github/workflows/incident-codex-repair.yml](../../.github/workflows/incident-codex-repair.yml) |
 | TOK Incident Monitor | report-workflow-failure, scan-runtime | [.github/workflows/incident-monitor.yml](../../.github/workflows/incident-monitor.yml) |
 | iOS Native Validation | native-build | [.github/workflows/ios-native-validation.yml](../../.github/workflows/ios-native-validation.yml) |
@@ -6245,7 +6244,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (25)</summary>
+<details><summary>ci-workflow (24)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/app-store-build3-trigger.yml`
@@ -6264,7 +6263,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/ci.yml`
 - `.github/workflows/deploy-production.yml`
 - `.github/workflows/ensure-supabase-auth-smtp.yml`
-- `.github/workflows/floor-plan-self-hosted-gate.yml`
 - `.github/workflows/incident-codex-repair.yml`
 - `.github/workflows/incident-monitor.yml`
 - `.github/workflows/ios-native-validation.yml`
@@ -8069,7 +8067,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (14)</summary>
+<details><summary>supabase-configuration (15)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -8083,6 +8081,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/demo-migrations/20260719183000_enforce_provisioned_demo_commercial_role.sql`
 - `supabase/demo-migrations/20260720130500_enable_dedicated_demo_runtime_rpcs.sql`
 - `supabase/demo-migrations/20260908013000_unlimit_commercial_demo_ai_presentation.sql`
+- `supabase/demo-migrations/20261005210000_enforce_shared_commercial_demo_restaurant.sql`
 - `supabase/tests/critical_rpc_smoke.sql`
 - `supabase/tests/floor_plan_autoplacement_smoke.sql`
 

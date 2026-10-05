@@ -101,9 +101,22 @@ Deno.serve(async (req) => {
       if (error) throw new HttpError(502, "Unable to create demo identity");
     }
 
+    const {
+      data: sharedRestaurantId,
+      error: sharedRestaurantError,
+    } = await demo.rpc("commercial_demo_shared_restaurant_id");
+    if (
+      sharedRestaurantError
+      || typeof sharedRestaurantId !== "string"
+      || !UUID_PATTERN.test(sharedRestaurantId)
+    ) {
+      throw new HttpError(503, "Shared demo restaurant is unavailable");
+    }
+
     const { data: restaurant, error: restaurantError } = await demo
       .from("restaurants")
       .select("id")
+      .eq("id", sharedRestaurantId)
       .eq("is_demo", true)
       .eq("is_active", true)
       .eq("status", "demo")
@@ -111,7 +124,6 @@ Deno.serve(async (req) => {
       .eq("stripe_connect_details_submitted", false)
       .eq("stripe_connect_charges_enabled", false)
       .eq("stripe_connect_payouts_enabled", false)
-      .limit(1)
       .maybeSingle();
     if (restaurantError || !restaurant?.id) {
       throw new HttpError(503, "Shared demo restaurant is unavailable");
