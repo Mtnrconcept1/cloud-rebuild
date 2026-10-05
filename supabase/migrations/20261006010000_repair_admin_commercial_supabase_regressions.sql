@@ -25,7 +25,6 @@ FROM public.commercial_demo_accounts account
 JOIN public.restaurants restaurant
   ON restaurant.id = account.demo_restaurant_id
 WHERE restaurant.is_demo IS TRUE
-  AND COALESCE(restaurant.is_active, false) IS FALSE
   AND lower(COALESCE(restaurant.status, '')) = 'demo'
   AND restaurant.stripe_account_id IS NULL
   AND COALESCE(restaurant.stripe_connect_details_submitted, false) IS FALSE
@@ -45,7 +44,6 @@ WHERE NOT EXISTS (
     WHERE shared.singleton
   )
   AND restaurant.is_demo IS TRUE
-  AND COALESCE(restaurant.is_active, false) IS FALSE
   AND lower(COALESCE(restaurant.status, '')) = 'demo'
   AND restaurant.stripe_account_id IS NULL
   AND COALESCE(restaurant.stripe_connect_details_submitted, false) IS FALSE
@@ -54,6 +52,29 @@ WHERE NOT EXISTS (
 ORDER BY restaurant.created_at ASC
 LIMIT 1
 ON CONFLICT (singleton) DO NOTHING;
+
+-- The pre-existing managed demo may still be marked active. It is only
+-- production metadata now; presentation edits happen in the dedicated demo
+-- project, so harden the canonical production row before remapping accounts.
+DROP TRIGGER IF EXISTS protect_demo_restaurant_identity
+  ON public.restaurants;
+
+UPDATE public.restaurants restaurant
+SET is_active = false,
+    is_featured = false,
+    status = 'demo',
+    stripe_account_id = NULL,
+    stripe_connect_details_submitted = false,
+    stripe_connect_charges_enabled = false,
+    stripe_connect_payouts_enabled = false,
+    updated_at = now()
+FROM public.commercial_demo_shared_restaurant shared
+WHERE shared.singleton
+  AND restaurant.id = shared.restaurant_id;
+
+CREATE TRIGGER protect_demo_restaurant_identity
+  BEFORE INSERT OR UPDATE ON public.restaurants
+  FOR EACH ROW EXECUTE FUNCTION public.protect_demo_restaurant_identity();
 
 CREATE OR REPLACE FUNCTION public.commercial_demo_shared_restaurant_id()
 RETURNS uuid
@@ -938,6 +959,52 @@ REVOKE ALL ON FUNCTION public.admin_delete_user_account(uuid, text, text)
   FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.admin_delete_user_account(uuid, text, text)
   TO authenticated, service_role;
+
+DO $
+DECLARE
+  v_account_count integer;
+  v_distinct_mapping_count integer;
+  v_shared_restaurant_id uuid;
+BEGIN
+  SELECT count(*)::integer, count(DISTINCT account.demo_restaurant_id)::integer
+  INTO v_account_count, v_distinct_mapping_count
+  FROM public.commercial_demo_accounts account;
+
+  SELECT shared.restaurant_id
+  INTO v_shared_restaurant_id
+  FROM public.commercial_demo_shared_restaurant shared
+  WHERE shared.singleton;
+
+  IF v_account_count > 0 THEN
+    IF v_shared_restaurant_id IS NULL
+       OR v_distinct_mapping_count <> 1
+       OR EXISTS (
+         SELECT 1
+         FROM public.commercial_demo_accounts account
+         WHERE account.demo_restaurant_id IS DISTINCT FROM v_shared_restaurant_id
+       ) THEN
+      RAISE EXCEPTION 'Commercial demo accounts were not consolidated onto the canonical shared restaurant'
+        USING ERRCODE = '23514';
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1
+      FROM public.restaurants restaurant
+      WHERE restaurant.id = v_shared_restaurant_id
+        AND restaurant.is_demo IS TRUE
+        AND COALESCE(restaurant.is_active, false) IS FALSE
+        AND lower(COALESCE(restaurant.status, '')) = 'demo'
+        AND restaurant.stripe_account_id IS NULL
+        AND COALESCE(restaurant.stripe_connect_details_submitted, false) IS FALSE
+        AND COALESCE(restaurant.stripe_connect_charges_enabled, false) IS FALSE
+        AND COALESCE(restaurant.stripe_connect_payouts_enabled, false) IS FALSE
+    ) THEN
+      RAISE EXCEPTION 'Canonical commercial demo restaurant is not inert after migration'
+        USING ERRCODE = '23514';
+    END IF;
+  END IF;
+END;
+$;
 
 NOTIFY pgrst, 'reload schema';
 
