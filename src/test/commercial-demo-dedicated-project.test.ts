@@ -25,6 +25,9 @@ describe("dedicated commercial demo project", () => {
   const paymentSimulationMigration = read(
     "supabase/demo-migrations/20260719150000_simulated_commercial_demo_payments.sql",
   );
+  const sharedRestaurantMigrationPath =
+    "supabase/demo-migrations/20261005210000_enforce_shared_commercial_demo_restaurant.sql";
+  const sharedRestaurantMigration = read(sharedRestaurantMigrationPath);
 
   it("routes demo frames and the explicit demo workspace to the isolated Supabase project", () => {
     expect(client).toContain('COMMERCIAL_DEMO_SUPABASE_PROJECT_REF = "hzldfhjfgjcadmpghhhf"');
@@ -52,6 +55,35 @@ describe("dedicated commercial demo project", () => {
     expect(provision).toContain("generateLink");
     expect(provision).not.toContain("action_link:");
     expect(provision).not.toContain("DEMO_SUPABASE_SECRET_KEY,");
+  });
+
+  it("pins every commercial identity to one server-authoritative shared restaurant", () => {
+    expect(sharedRestaurantMigrationPath.startsWith("supabase/demo-migrations/")).toBe(true);
+    expect(sharedRestaurantMigration).toContain(
+      "CREATE TABLE IF NOT EXISTS public.commercial_demo_shared_restaurant",
+    );
+    expect(sharedRestaurantMigration).toContain(
+      "CREATE OR REPLACE FUNCTION public.commercial_demo_shared_restaurant_id()",
+    );
+    expect(sharedRestaurantMigration).toContain(
+      "CREATE TRIGGER enforce_commercial_demo_shared_restaurant_mapping",
+    );
+    expect(sharedRestaurantMigration).toContain(
+      "NEW.demo_restaurant_id IS DISTINCT FROM v_shared_restaurant_id",
+    );
+    expect(sharedRestaurantMigration).toContain(
+      "REVOKE ALL ON TABLE public.commercial_demo_shared_restaurant",
+    );
+    expect(sharedRestaurantMigration).toContain(
+      "GRANT EXECUTE ON FUNCTION public.commercial_demo_shared_restaurant_id()",
+    );
+    expect(sharedRestaurantMigration).toContain("TO service_role");
+    expect(provision).toContain(
+      'demo.rpc("commercial_demo_shared_restaurant_id")',
+    );
+    expect(provision).toContain('.eq("id", sharedRestaurantId)');
+    expect(provision).not.toContain(`.eq("stripe_connect_payouts_enabled", false)
+      .limit(1)`);
   });
 
   it("allows the full app only on the exact isolated origin", () => {
