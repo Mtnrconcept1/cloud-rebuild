@@ -85,4 +85,31 @@ describe("floor plan page layout", () => {
     // context, not a refused one.
     expect(page).toContain("}, [editMode, referenceDate, selectedBranchId]);");
   });
+
+  it("never leaves a dirty editing mode without persisting first", () => {
+    const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
+
+    expect(page).toContain("const enterTemplateEditing = async");
+    expect(page).toContain("const finishTemplateEditing = async");
+    expect(page).toContain("await saveMutation.mutateAsync");
+    expect(page).toContain("void enterTemplateEditing()");
+    expect(page).toContain("void finishTemplateEditing()");
+    expect(page).not.toContain('onClick={() => setEditMode("service")}');
+    expect(page).not.toContain('onClick={() => setEditMode("template")}');
+    expect(page).toContain("disabled={saveMutation.isPending || (isTemplateMode ? templateDirty : serviceDirty)}");
+    expect(page).toContain("disabled={saveMutation.isPending || templateDirty}");
+    expect(page).toContain("disabled={saveMutation.isPending || serviceDirty}");
+  });
+
+  it("tracks every template change and exposes a coherent save state", () => {
+    const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
+
+    expect(page).toContain("const templateDirty = useMemo");
+    expect(page).toContain("persistedTemplateSignature");
+    expect(page).toContain("draftTemplateSignature");
+    expect(page).toContain('label: "Template modifié"');
+    expect(page).toContain('serviceDirty ? "Enregistrer puis modifier" : "Modifier la salle"');
+    expect(page).toContain('templateDirty ? "Enregistrer et terminer" : "Terminer"');
+  });
+
 });
