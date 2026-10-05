@@ -960,7 +960,7 @@ REVOKE ALL ON FUNCTION public.admin_delete_user_account(uuid, text, text)
 GRANT EXECUTE ON FUNCTION public.admin_delete_user_account(uuid, text, text)
   TO authenticated, service_role;
 
-DO $
+DO $$
 DECLARE
   v_account_count integer;
   v_distinct_mapping_count integer;
