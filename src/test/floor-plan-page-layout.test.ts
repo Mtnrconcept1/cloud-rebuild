@@ -96,6 +96,9 @@ describe("floor plan page layout", () => {
     expect(page).toContain("void finishTemplateEditing()");
     expect(page).not.toContain('onClick={() => setEditMode("service")}');
     expect(page).not.toContain('onClick={() => setEditMode("template")}');
+    expect(page).toContain("disabled={saveMutation.isPending || (isTemplateMode ? templateDirty : serviceDirty)}");
+    expect(page).toContain("disabled={saveMutation.isPending || templateDirty}");
+    expect(page).toContain("disabled={saveMutation.isPending || serviceDirty}");
   });
 
   it("tracks every template change and exposes a coherent save state", () => {
