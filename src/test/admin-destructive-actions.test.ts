@@ -64,8 +64,8 @@ describe("commercial pins and admin destructive actions", () => {
     expect(deleteAccountEdge).toContain("listUserStorageObjects");
     expect(deleteAccountEdge).toContain("admin_delete_user_account");
     expect(deleteAccountEdge).toContain("removeUserStorageObjects");
-    expect(deleteAccountEdge.indexOf("admin_delete_user_account")).toBeLessThan(
-      deleteAccountEdge.indexOf("removeUserStorageObjects"),
+    expect(deleteAccountEdge.indexOf('"admin_delete_user_account"')).toBeLessThan(
+      deleteAccountEdge.indexOf("removeUserStorageObjects("),
     );
     expect(storageCleanup).toContain("adminClient.storage.from(bucketId).remove(batch)");
     expect(storageCleanup).toContain("offset += 1000");
