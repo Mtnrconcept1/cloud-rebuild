@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getSupabase } from "@/integrations/supabase/client";
+import { invokeSupabaseFunction } from "@/lib/session";
 
 type AdminDestructiveActionsProps = {
   targetUserId?: string | null;
@@ -85,13 +86,20 @@ export default function AdminDestructiveActions({
 
     setPending(true);
     try {
+      let storageCleanupWarning: string | null = null;
+
       if (isUserDeletion) {
-        const { error } = await (supabase.rpc as any)("admin_delete_user_account", {
-          p_user_id: targetId,
-          p_confirmation_user_id: confirmation.trim(),
-          p_reason: normalizedReason,
+        const { data, error } = await invokeSupabaseFunction<{
+          storage_cleanup_warning?: string | null;
+        }>("delete-account", {
+          body: {
+            target_user_id: targetId,
+            confirmation_user_id: confirmation.trim(),
+            reason: normalizedReason,
+          },
         });
         if (error) throw error;
+        storageCleanupWarning = data?.storage_cleanup_warning || null;
       } else {
         const { error } = await (supabase.rpc as any)("admin_delete_restaurant", {
           p_restaurant_id: targetId,
@@ -106,11 +114,15 @@ export default function AdminDestructiveActions({
       resetDialog();
       await onDeleted?.();
 
-      toast.success(
-        isUserDeletion
-          ? "Compte utilisateur supprimé définitivement."
-          : "Restaurant supprimé de la plateforme et archivé pour conserver son historique légal.",
-      );
+      if (isUserDeletion && storageCleanupWarning) {
+        toast.warning(storageCleanupWarning);
+      } else {
+        toast.success(
+          isUserDeletion
+            ? "Compte utilisateur supprimé définitivement."
+            : "Restaurant supprimé de la plateforme et archivé pour conserver son historique légal.",
+        );
+      }
     } catch (error) {
       toast.error(
         error instanceof Error

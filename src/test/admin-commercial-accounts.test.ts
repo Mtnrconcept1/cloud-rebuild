@@ -13,6 +13,9 @@ describe("commercial demo account security", () => {
   const migration = read("supabase/migrations/20260714120000_commercial_demo_accounts.sql");
   const aclHardening = read("supabase/migrations/20260714181500_commercial_demo_function_acl_hardening.sql");
   const authRepair = read("supabase/migrations/20260714184500_repair_auth_email_change_null.sql");
+  const sharedProductionRepair = read(
+    "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+  );
   const sharedAuth = read("supabase/functions/_shared/auth.ts");
   const sessionHelper = read("src/lib/session.ts");
   const ownerHook = read("src/pages/dashboard/useOwnerRestaurants.ts");
@@ -80,6 +83,39 @@ describe("commercial demo account security", () => {
     expect(migration).toContain("IF NOT public.auth_is_admin()");
     expect(migration).not.toContain("p_created_by");
     expect(provisionFunction).toContain("actor.userClient.rpc(");
+  });
+
+  it("maps every production commercial identity to one canonical inert demo restaurant", () => {
+    expect(sharedProductionRepair).toContain("public.commercial_demo_shared_restaurant");
+    expect(sharedProductionRepair).toContain(
+      "DROP CONSTRAINT IF EXISTS commercial_demo_accounts_demo_restaurant_id_key",
+    );
+    expect(sharedProductionRepair).toContain(
+      "UPDATE public.commercial_demo_accounts account",
+    );
+    expect(sharedProductionRepair).toContain(
+      "SET demo_restaurant_id = shared.restaurant_id",
+    );
+    expect(sharedProductionRepair).toContain(
+      "Canonical commercial demo restaurant is unsafe",
+    );
+    expect(sharedProductionRepair).toContain(
+      "ON CONFLICT (user_id) DO UPDATE",
+    );
+
+    const mappingGuardStart = sharedProductionRepair.indexOf(
+      "CREATE OR REPLACE FUNCTION public.protect_commercial_demo_account_mapping",
+    );
+    const mappingGuardEnd = sharedProductionRepair.indexOf(
+      "CREATE OR REPLACE FUNCTION public.protect_commercial_demo_account_boundary",
+    );
+    const mappingGuard = sharedProductionRepair.slice(mappingGuardStart, mappingGuardEnd);
+
+    expect(mappingGuard).toContain("v_shared_restaurant_id");
+    expect(mappingGuard).not.toContain("owner_id = NEW.user_id");
+    expect(sharedProductionRepair).not.toContain(
+      "'Restaurant Démo TOK — ' || v_display_name",
+    );
   });
 
   it("keeps credentials in Supabase Auth and validates password resets", () => {
