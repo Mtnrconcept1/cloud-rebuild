@@ -82,6 +82,21 @@ describe("admin users governance", () => {
     expect(sql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_get_user_governance_alerts\(\)\s+TO\s+authenticated,\s*service_role/i);
   });
 
+  it("loads one user detail without scanning the complete Auth population", () => {
+    const sql = latestMigrationContaining(
+      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_get_user_admin_detail/i,
+    );
+    const detailFn = extractFunction(sql, "admin_get_user_admin_detail");
+
+    expect(detailFn).toContain("WHERE account.id = p_user_id");
+    expect(detailFn).not.toContain("public.admin_list_users()");
+    expect(sql).toContain("audit_log_entity_id_created_at_idx");
+    expect(sql).toContain("audit_log_old_user_id_created_at_idx");
+    expect(sql).toContain("audit_log_new_user_id_created_at_idx");
+    expect(sql).toContain("audit_log_old_target_user_id_created_at_idx");
+    expect(sql).toContain("audit_log_new_target_user_id_created_at_idx");
+  });
+
   it("exposes advanced user governance controls in the admin users screen", () => {
     const source = readFileSync(resolve(root, "src/pages/admin/AdminUtilisateurs.tsx"), "utf8");
 
