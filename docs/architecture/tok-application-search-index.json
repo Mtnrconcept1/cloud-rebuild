@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "6552272e9579e06f4977d969bdc0aa2c321d97e037781d8c5d5e60416c3489ed",
+ "sourceDigest": "7cbe1b2b0b6e9e10854c6c293373b62fd5edbb2286e881acd5c8ed5f292ea079",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 186,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3331,
+  "exportedSymbols": 3341,
   "featureFlags": 99,
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 519,
-  "modules": 1425,
+  "migrations": 520,
+  "modules": 1428,
   "pages": 127,
-  "pathLiterals": 594,
+  "pathLiterals": 596,
   "publicAssets": 294,
   "publicEntries": 316,
   "publicNavigableRoutes": 2,
   "queryParameters": 100,
-  "records": 15267,
-  "repositoryFiles": 2667,
+  "records": 15289,
+  "repositoryFiles": 2671,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -13032,6 +13032,15 @@
     ]
    },
    {
+    "value": "/18270815569115548?",
+    "sources": [
+     {
+      "path": "src/test/marketing-meta-publishing.test.ts",
+      "line": 161
+     }
+    ]
+   },
+   {
     "value": "/:path*",
     "sources": [
      {
@@ -21590,6 +21599,15 @@
     ]
    },
    {
+    "value": "/me/accounts?",
+    "sources": [
+     {
+      "path": "src/test/marketing-meta-publishing.test.ts",
+      "line": 93
+     }
+    ]
+   },
+   {
     "value": "/memoire-tok",
     "sources": [
      {
@@ -28414,6 +28432,7 @@
      "src/test/marketing-edge-security.test.ts",
      "src/test/marketing-email-cadence.test.ts",
      "src/test/marketing-email-template.test.ts",
+     "src/test/marketing-meta-publishing.test.ts",
      "src/test/marketing-one-click-unsubscribe.test.ts",
      "src/test/marketing-operations-frontend.test.ts",
      "src/test/marketing-orchestrator-schema.test.ts",
@@ -31851,6 +31870,12 @@
     "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
     "lineCount": 1012,
     "objectCount": 18
+   },
+   {
+    "name": "20261006033000 Configure Meta Marketing Integrations",
+    "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+    "lineCount": 47,
+    "objectCount": 0
    }
   ],
   "databaseObjects": [
@@ -78570,7 +78595,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 199
+    "lineCount": 201
    },
    {
     "path": "server/marketingBff.ts",
@@ -99179,7 +99204,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 286
+    "lineCount": 288
    },
    {
     "path": "src/test/dialog-close-animation-guard.test.ts",
@@ -99878,7 +99903,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 281
+    "lineCount": 297
    },
    {
     "path": "src/test/marketing-autopilot-frontend.test.tsx",
@@ -99989,6 +100014,15 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 28
+   },
+   {
+    "path": "src/test/marketing-meta-publishing.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 313
    },
    {
     "path": "src/test/marketing-one-click-unsubscribe.test.ts",
@@ -103438,6 +103472,75 @@
     "lineCount": 185
    },
    {
+    "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+    "exports": [
+     {
+      "name": "processMetaMarketingItem",
+      "line": 153,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [
+     "META_APP_SECRET",
+     "META_GRAPH_VERSION"
+    ],
+    "integrations": [],
+    "lineCount": 303
+   },
+   {
+    "path": "supabase/functions/_shared/meta-publishing.ts",
+    "exports": [
+     {
+      "name": "MetaChannel",
+      "line": 1,
+      "kind": "typealias"
+     },
+     {
+      "name": "MetaSocialContent",
+      "line": 3,
+      "kind": "typealias"
+     },
+     {
+      "name": "MetaPublishingConfig",
+      "line": 11,
+      "kind": "typealias"
+     },
+     {
+      "name": "MetaPublishResult",
+      "line": 19,
+      "kind": "typealias"
+     },
+     {
+      "name": "MetaPublishError",
+      "line": 38,
+      "kind": "class"
+     },
+     {
+      "name": "buildMetaCaption",
+      "line": 78,
+      "kind": "function"
+     },
+     {
+      "name": "normalizeMetaMediaUrl",
+      "line": 106,
+      "kind": "function"
+     },
+     {
+      "name": "validateMetaPublishingConfig",
+      "line": 130,
+      "kind": "function"
+     },
+     {
+      "name": "publishMetaContent",
+      "line": 310,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 418
+   },
+   {
     "path": "supabase/functions/_shared/notifications.ts",
     "exports": [
      {
@@ -105910,7 +106013,7 @@
      "resend",
      "supabase"
     ],
-    "lineCount": 481
+    "lineCount": 485
    },
    {
     "path": "supabase/functions/marketing-provider-webhook/index.ts",
@@ -115133,6 +115236,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/marketing-meta-publishing.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/marketing-one-click-unsubscribe.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -116549,6 +116657,16 @@
    },
    {
     "path": "supabase/functions/_shared/mcp-http.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/meta-publishing.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -119908,6 +120026,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/critical_rpc_smoke.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -121682,7 +121805,7 @@
    "id": "code-module:47a1b9903d01",
    "type": "code-module",
    "title": "scripts/write-supabase-secrets-env.mjs",
-   "description": "Module de 199 lignes; exports: aucun export statique.",
+   "description": "Module de 201 lignes; exports: aucun export statique.",
    "path": "scripts/write-supabase-secrets-env.mjs",
    "line": 1,
    "surface": null,
@@ -121698,7 +121821,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "c65970791945"
+   "detailRef": "ab1ee3d16d75"
   },
   {
    "id": "code-module:e80a711be244",
@@ -134593,7 +134716,7 @@
    "id": "code-module:4c072fc6cddf",
    "type": "code-module",
    "title": "src/test/deploy-production-secret-scope.test.ts",
-   "description": "Module de 286 lignes; exports: aucun export statique.",
+   "description": "Module de 288 lignes; exports: aucun export statique.",
    "path": "src/test/deploy-production-secret-scope.test.ts",
    "line": 1,
    "surface": null,
@@ -134604,7 +134727,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "58090ab187e1"
+   "detailRef": "153662798efc"
   },
   {
    "id": "code-module:0a24f0938a93",
@@ -135616,7 +135739,7 @@
    "id": "code-module:f1aadb4d91ba",
    "type": "code-module",
    "title": "src/test/marketing-ai-agent.test.ts",
-   "description": "Module de 281 lignes; exports: aucun export statique.",
+   "description": "Module de 297 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-ai-agent.test.ts",
    "line": 1,
    "surface": null,
@@ -135625,7 +135748,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ad724ec83f19"
+   "detailRef": "bae57b587c37"
   },
   {
    "id": "code-module:6406b6c9d347",
@@ -135783,6 +135906,19 @@
    "surface": null,
    "tags": [],
    "detailRef": "e26d8131954e"
+  },
+  {
+   "id": "code-module:753692db5732",
+   "type": "code-module",
+   "title": "src/test/marketing-meta-publishing.test.ts",
+   "description": "Module de 313 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-meta-publishing.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "d0d3ac2a41b7"
   },
   {
    "id": "code-module:93123280c079",
@@ -139475,6 +139611,42 @@
    "detailRef": "c1548e9951f7"
   },
   {
+   "id": "code-module:85c4e9dfe22a",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "description": "Module de 303 lignes; exports: processMetaMarketingItem.",
+   "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "META_APP_SECRET",
+    "META_GRAPH_VERSION",
+    "processMetaMarketingItem"
+   ],
+   "detailRef": "a1f7e141140f"
+  },
+  {
+   "id": "code-module:17928ca294e1",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/meta-publishing.ts",
+   "description": "Module de 418 lignes; exports: MetaChannel, MetaSocialContent, MetaPublishingConfig, MetaPublishResult, MetaPublishError, buildMetaCaption, normalizeMetaMediaUrl, validateMetaPublishingConfig, publishMetaContent.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "MetaChannel",
+    "MetaPublishError",
+    "MetaPublishResult",
+    "MetaPublishingConfig",
+    "MetaSocialContent",
+    "buildMetaCaption",
+    "normalizeMetaMediaUrl",
+    "publishMetaContent",
+    "validateMetaPublishingConfig"
+   ],
+   "detailRef": "f9b99ae5eb49"
+  },
+  {
    "id": "code-module:35fe89dedef0",
    "type": "code-module",
    "title": "supabase/functions/_shared/notifications.ts",
@@ -141072,7 +141244,7 @@
    "id": "code-module:0a9264bbf973",
    "type": "code-module",
    "title": "supabase/functions/marketing-orchestrator/index.ts",
-   "description": "Module de 481 lignes; exports: aucun export statique.",
+   "description": "Module de 485 lignes; exports: aucun export statique.",
    "path": "supabase/functions/marketing-orchestrator/index.ts",
    "line": 1,
    "surface": null,
@@ -141084,7 +141256,7 @@
     "resend",
     "supabase"
    ],
-   "detailRef": "ee55c95034b9"
+   "detailRef": "068b79834781"
   },
   {
    "id": "code-module:1d037de76b49",
@@ -224460,6 +224632,32 @@
    "detailRef": "6106059cab3c"
   },
   {
+   "id": "environment-variable:2fd879d4b739",
+   "type": "environment-variable",
+   "title": "META_APP_SECRET",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/meta-marketing-orchestrator.ts"
+   ],
+   "detailRef": "47842440807f"
+  },
+  {
+   "id": "environment-variable:0d3970279d7b",
+   "type": "environment-variable",
+   "title": "META_GRAPH_VERSION",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/meta-marketing-orchestrator.ts"
+   ],
+   "detailRef": "f17639a22284"
+  },
+  {
    "id": "environment-variable:4a68b846e33f",
    "type": "environment-variable",
    "title": "MODE",
@@ -237462,6 +237660,71 @@
    "detailRef": "d8ce96196c5b"
   },
   {
+   "id": "exported-symbol:800709c3f7df",
+   "type": "exported-symbol",
+   "title": "MetaChannel",
+   "description": "Export typealias de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "735bfd9f7f65"
+  },
+  {
+   "id": "exported-symbol:095221758a8f",
+   "type": "exported-symbol",
+   "title": "MetaPublishError",
+   "description": "Export class de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 38,
+   "surface": null,
+   "tags": [
+    "class"
+   ],
+   "detailRef": "71c08d4868d7"
+  },
+  {
+   "id": "exported-symbol:c1fa1f015aa5",
+   "type": "exported-symbol",
+   "title": "MetaPublishResult",
+   "description": "Export typealias de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "0bd42903a0d5"
+  },
+  {
+   "id": "exported-symbol:4bbee439f5e7",
+   "type": "exported-symbol",
+   "title": "MetaPublishingConfig",
+   "description": "Export typealias de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "31bf1f796cba"
+  },
+  {
+   "id": "exported-symbol:f0e20a8c289d",
+   "type": "exported-symbol",
+   "title": "MetaSocialContent",
+   "description": "Export typealias de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "483a6fd06841"
+  },
+  {
    "id": "exported-symbol:4139295ffa50",
    "type": "exported-symbol",
    "title": "MutationResult",
@@ -247417,6 +247680,19 @@
     "function"
    ],
    "detailRef": "483239a163fd"
+  },
+  {
+   "id": "exported-symbol:20fed9977a3f",
+   "type": "exported-symbol",
+   "title": "buildMetaCaption",
+   "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 78,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "3f505873e050"
   },
   {
    "id": "exported-symbol:9bc998ef3cc4",
@@ -264982,6 +265258,19 @@
    "detailRef": "a4a99b9a192b"
   },
   {
+   "id": "exported-symbol:f5f3fa504a3e",
+   "type": "exported-symbol",
+   "title": "normalizeMetaMediaUrl",
+   "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 106,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "b5890d12d299"
+  },
+  {
    "id": "exported-symbol:8ca0d4cde11c",
    "type": "exported-symbol",
    "title": "normalizeNearDuplicateName",
@@ -266006,6 +266295,19 @@
    "detailRef": "5e56dd81c2e0"
   },
   {
+   "id": "exported-symbol:bac6f726f477",
+   "type": "exported-symbol",
+   "title": "processMetaMarketingItem",
+   "description": "Export function de supabase/functions/_shared/meta-marketing-orchestrator.ts.",
+   "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "line": 153,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "dbd09a9e0648"
+  },
+  {
    "id": "exported-symbol:de212aebd778",
    "type": "exported-symbol",
    "title": "processRefund",
@@ -266048,6 +266350,19 @@
     "supabase"
    ],
    "detailRef": "4c0cd5acc1d7"
+  },
+  {
+   "id": "exported-symbol:682998f1c86c",
+   "type": "exported-symbol",
+   "title": "publishMetaContent",
+   "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 310,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "9c6cd26bae63"
   },
   {
    "id": "exported-symbol:1bd62c3187a7",
@@ -271421,6 +271736,19 @@
     "vercel"
    ],
    "detailRef": "a8e43a5678a2"
+  },
+  {
+   "id": "exported-symbol:cfc8e2b0166e",
+   "type": "exported-symbol",
+   "title": "validateMetaPublishingConfig",
+   "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 130,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "e7c4ef32a73e"
   },
   {
    "id": "exported-symbol:a716a075adc7",
@@ -296690,6 +297018,20 @@
    "detailRef": "2ef61c1d95fa"
   },
   {
+   "id": "file:e6b4912877d3",
+   "type": "file",
+   "title": "src/test/marketing-meta-publishing.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-meta-publishing.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "9688c96c55d0"
+  },
+  {
    "id": "file:a02cc5ec7659",
    "type": "file",
    "title": "src/test/marketing-one-click-unsubscribe.test.ts",
@@ -300664,6 +301006,34 @@
     "edge-function-source"
    ],
    "detailRef": "2aa412ccfeea"
+  },
+  {
+   "id": "file:daa8657d2f22",
+   "type": "file",
+   "title": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "9ad739281056"
+  },
+  {
+   "id": "file:d9ff5141bb76",
+   "type": "file",
+   "title": "supabase/functions/_shared/meta-publishing.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "9d0c0906b489"
   },
   {
    "id": "file:482a36ea9905",
@@ -310060,6 +310430,20 @@
    "detailRef": "fd328338ba53"
   },
   {
+   "id": "file:1282e6f7257b",
+   "type": "file",
+   "title": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "a5ed020f73f0"
+  },
+  {
    "id": "file:42e7f6ee83cf",
    "type": "file",
    "title": "supabase/tests/critical_rpc_smoke.sql",
@@ -313730,7 +314114,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 634 module(s).",
+   "description": "Intégration externe détectée dans 635 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -314137,6 +314521,7 @@
     "src/test/marketing-edge-security.test.ts",
     "src/test/marketing-email-cadence.test.ts",
     "src/test/marketing-email-template.test.ts",
+    "src/test/marketing-meta-publishing.test.ts",
     "src/test/marketing-one-click-unsubscribe.test.ts",
     "src/test/marketing-operations-frontend.test.ts",
     "src/test/marketing-orchestrator-schema.test.ts",
@@ -314371,7 +314756,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "47173f8fadf0"
+   "detailRef": "6645d45e339a"
   },
   {
    "id": "integration:c20910a79a78",
@@ -322298,6 +322683,20 @@
    "detailRef": "094f0be7b23b"
   },
   {
+   "id": "migration:319ce69d7180",
+   "type": "migration",
+   "title": "20261006033000 Configure Meta Marketing Integrations",
+   "description": "Migration SQL de 47 lignes, 0 objets CREATE détectés.",
+   "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "fa62a0f1440a"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -325094,6 +325493,19 @@
     "src/test/android-google-play-readiness.test.ts"
    ],
    "detailRef": "be1d9a5998ff"
+  },
+  {
+   "id": "path-literal:9a2d13527b85",
+   "type": "path-literal",
+   "title": "/18270815569115548?",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-meta-publishing.test.ts",
+   "line": 161,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-meta-publishing.test.ts"
+   ],
+   "detailRef": "432742033bb3"
   },
   {
    "id": "path-literal:5f12583a8f38",
@@ -331048,6 +331460,19 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
    "detailRef": "db60bad8282b"
+  },
+  {
+   "id": "path-literal:ead57eb41698",
+   "type": "path-literal",
+   "title": "/me/accounts?",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-meta-publishing.test.ts",
+   "line": 93,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-meta-publishing.test.ts"
+   ],
+   "detailRef": "0f25b2d0e198"
   },
   {
    "id": "path-literal:a8cb3a2be266",

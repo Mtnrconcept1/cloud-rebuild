@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `6552272e9579e06f4977d969bdc0aa2c321d97e037781d8c5d5e60416c3489ed`
+- Empreinte SHA-256 des sources indexées : `7cbe1b2b0b6e9e10854c6c293373b62fd5edbb2286e881acd5c8ed5f292ea079`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 186 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3331 |
+| exportedSymbols | 3341 |
 | featureFlags | 99 |
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
-| migrations | 519 |
-| modules | 1425 |
+| migrations | 520 |
+| modules | 1428 |
 | pages | 127 |
-| pathLiterals | 594 |
+| pathLiterals | 596 |
 | publicAssets | 294 |
 | publicEntries | 316 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 100 |
-| records | 15267 |
-| repositoryFiles | 2667 |
+| records | 15289 |
+| repositoryFiles | 2671 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -921,6 +921,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /* | 7 | [scripts/write-apple-app-site-association.mjs:29](../../scripts/write-apple-app-site-association.mjs#L29) |
 | /.well-known/apple-app-site-association | 2 | [src/test/application-search-index.test.ts:69](../../src/test/application-search-index.test.ts#L69) |
 | /.well-known/assetlinks.json | 2 | [scripts/mobile-verify.mjs:262](../../scripts/mobile-verify.mjs#L262) |
+| /18270815569115548? | 1 | [src/test/marketing-meta-publishing.test.ts:161](../../src/test/marketing-meta-publishing.test.ts#L161) |
 | /:path* | 1 | [src/test/marketing-subdomain-integration.test.ts:57](../../src/test/marketing-subdomain-integration.test.ts#L57) |
 | /:surface( | 2 | [src/test/vercel-rewrites.test.ts:132](../../src/test/vercel-rewrites.test.ts#L132) |
 | /:surface(admin\|marketing\|dashboard\|courier\|commercial\|profil\|memoire-tok\|notifications\|commandes\|commande\|reservations\|mon-espace\|compte\|espace-client\|mes-avis\|points-cadeau\|panier\|auth\|oauth\|espaces\|r) | 2 | [src/test/vercel-rewrites.test.ts:107](../../src/test/vercel-rewrites.test.ts#L107) |
@@ -1303,6 +1304,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
 | /marketing/login | 8 | [src/App.tsx:722](../../src/App.tsx#L722) |
 | /match-groupes | 12 | [scripts/prerender-seo.mjs:1049](../../scripts/prerender-seo.mjs#L1049) |
+| /me/accounts? | 1 | [src/test/marketing-meta-publishing.test.ts:93](../../src/test/marketing-meta-publishing.test.ts#L93) |
 | /memoire-tok | 7 | [scripts/prerender-seo.mjs:1213](../../scripts/prerender-seo.mjs#L1213) |
 | /menu | 3 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
 | /mes-avis | 8 | [scripts/prerender-seo.mjs:1221](../../scripts/prerender-seo.mjs#L1221) |
@@ -5472,6 +5474,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20260925104552 Require Public Restaurant Images | 521 | 4 | [supabase/migrations/20260925104552_require_public_restaurant_images.sql:1](../../supabase/migrations/20260925104552_require_public_restaurant_images.sql#L1) |
 | 20261003070000 Marketing Autopilot Foundation | 1756 | 39 | [supabase/migrations/20261003070000_marketing_autopilot_foundation.sql:1](../../supabase/migrations/20261003070000_marketing_autopilot_foundation.sql#L1) |
 | 20261006010000 Repair Admin Commercial Supabase Regressions | 1012 | 18 | [supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql:1](../../supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql#L1) |
+| 20261006033000 Configure Meta Marketing Integrations | 47 | 0 | [supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql:1](../../supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -5693,7 +5696,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 30 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 8 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 211 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 634 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 635 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 54 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5705,7 +5708,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | --- | --- |
 | application-library | 203 |
 | automation-script | 61 |
-| edge-function-source | 175 |
+| edge-function-source | 177 |
 | frontend-component | 245 |
 | frontend-hook | 22 |
 | frontend-page | 127 |
@@ -5713,7 +5716,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 542 |
+| test | 543 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6283,7 +6286,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (519)</summary>
+<details><summary>database-migration (520)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -6804,6 +6807,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20260925104552_require_public_restaurant_images.sql`
 - `supabase/migrations/20261003070000_marketing_autopilot_foundation.sql`
 - `supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql`
+- `supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql`
 
 </details>
 
@@ -6930,7 +6934,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (175)</summary>
+<details><summary>edge-function-source (177)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -6956,6 +6960,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/marketing.ts`
 - `supabase/functions/_shared/marketplace-finance.ts`
 - `supabase/functions/_shared/mcp-http.ts`
+- `supabase/functions/_shared/meta-marketing-orchestrator.ts`
+- `supabase/functions/_shared/meta-publishing.ts`
 - `supabase/functions/_shared/notifications.ts`
 - `supabase/functions/_shared/openai.ts`
 - `supabase/functions/_shared/order-checkout.ts`
@@ -8099,7 +8105,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (542)</summary>
+<details><summary>test (543)</summary>
 
 - `scripts/ci-change-plan.test.mjs`
 - `scripts/ci-critical-tests.test.mjs`
@@ -8391,6 +8397,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-email-cadence.test.ts`
 - `src/test/marketing-email-template.test.ts`
 - `src/test/marketing-image-output.test.ts`
+- `src/test/marketing-meta-publishing.test.ts`
 - `src/test/marketing-one-click-unsubscribe.test.ts`
 - `src/test/marketing-operations-frontend.test.ts`
 - `src/test/marketing-orchestrator-schema.test.ts`
