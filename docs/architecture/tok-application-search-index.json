@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "61ffb312e81dea619f0b8914d255e01be69a7063f14b0adee1a85010d51da6c1",
+ "sourceDigest": "6552272e9579e06f4977d969bdc0aa2c321d97e037781d8c5d5e60416c3489ed",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -31849,7 +31849,7 @@
    {
     "name": "20261006010000 Repair Admin Commercial Supabase Regressions",
     "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-    "lineCount": 1014,
+    "lineCount": 1012,
     "objectCount": 18
    }
   ],
@@ -32686,7 +32686,7 @@
      },
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 806
+      "line": 804
      }
     ]
    },
@@ -32960,7 +32960,7 @@
      },
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 466
+      "line": 464
      }
     ]
    },
@@ -33098,7 +33098,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 669
+      "line": 667
      }
     ]
    },
@@ -35096,7 +35096,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 81
+      "line": 79
      }
     ]
    },
@@ -35548,7 +35548,7 @@
      },
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 693
+      "line": 691
      }
     ]
    },
@@ -38088,7 +38088,7 @@
      },
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 147
+      "line": 145
      }
     ]
    },
@@ -38102,7 +38102,7 @@
      },
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 111
+      "line": 109
      }
     ]
    },
@@ -38174,7 +38174,7 @@
      },
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 207
+      "line": 205
      }
     ]
    },
@@ -41142,7 +41142,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 455
+      "line": 453
      }
     ]
    },
@@ -41152,7 +41152,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 463
+      "line": 461
      }
     ]
    },
@@ -41162,7 +41162,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 459
+      "line": 457
      }
     ]
    },
@@ -41172,7 +41172,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 461
+      "line": 459
      }
     ]
    },
@@ -41182,7 +41182,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 457
+      "line": 455
      }
     ]
    },
@@ -60440,7 +60440,7 @@
      },
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 198
+      "line": 196
      }
     ]
    },
@@ -60454,7 +60454,7 @@
      },
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 193
+      "line": 191
      }
     ]
    },
@@ -60468,7 +60468,7 @@
      },
      {
       "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-      "line": 77
+      "line": 75
      }
     ]
    },
@@ -97731,7 +97731,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 97
+    "lineCount": 103
    },
    {
     "path": "src/test/admin-domain-routing.test.ts",
@@ -132491,14 +132491,14 @@
    "id": "code-module:46735b541e37",
    "type": "code-module",
    "title": "src/test/admin-destructive-actions.test.ts",
-   "description": "Module de 97 lignes; exports: aucun export statique.",
+   "description": "Module de 103 lignes; exports: aucun export statique.",
    "path": "src/test/admin-destructive-actions.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "d3762c73166d"
+   "detailRef": "76591bb29a85"
   },
   {
    "id": "code-module:b63eb2c8bcf1",
@@ -146776,54 +146776,24 @@
    "detailRef": "9fb53ccd39d1"
   },
   {
-   "id": "database-object:2c611ec5fc5a",
+   "id": "database-object:99d45dce1743",
    "type": "database-object",
    "title": "audit_log_entity_id_created_at_idx",
    "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 455,
+   "line": 453,
    "surface": null,
    "tags": [
     "index",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "8f0500d17b8d"
+   "detailRef": "5183505fdf9f"
   },
   {
-   "id": "database-object:e3dacf3cb2f5",
+   "id": "database-object:f0ce1977ba7e",
    "type": "database-object",
    "title": "audit_log_new_target_user_id_created_at_idx",
-   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 463,
-   "surface": null,
-   "tags": [
-    "index",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "392a8d5792d7"
-  },
-  {
-   "id": "database-object:8605c69bfe06",
-   "type": "database-object",
-   "title": "audit_log_new_user_id_created_at_idx",
-   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 459,
-   "surface": null,
-   "tags": [
-    "index",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "cf82c40206f2"
-  },
-  {
-   "id": "database-object:3ceb8ed0323b",
-   "type": "database-object",
-   "title": "audit_log_old_target_user_id_created_at_idx",
    "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
    "line": 461,
@@ -146833,12 +146803,12 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "0845ff015076"
+   "detailRef": "8f10932ecd0a"
   },
   {
-   "id": "database-object:e5f330fe79c1",
+   "id": "database-object:0a77f660584f",
    "type": "database-object",
-   "title": "audit_log_old_user_id_created_at_idx",
+   "title": "audit_log_new_user_id_created_at_idx",
    "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
    "line": 457,
@@ -146848,7 +146818,37 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "3ca27e58f98a"
+   "detailRef": "525b55af4040"
+  },
+  {
+   "id": "database-object:67812834a1c1",
+   "type": "database-object",
+   "title": "audit_log_old_target_user_id_created_at_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 459,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "2a2d7dbe3e14"
+  },
+  {
+   "id": "database-object:20203d785fe1",
+   "type": "database-object",
+   "title": "audit_log_old_user_id_created_at_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
+   "line": 455,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "4a4bfb2ba284"
   },
   {
    "id": "database-object:b69011518b56",
@@ -156286,49 +156286,49 @@
    "detailRef": "29c14166870f"
   },
   {
-   "id": "database-object:12686c501cfc",
+   "id": "database-object:eb5e9a46fe4b",
    "type": "database-object",
    "title": "protect_commercial_demo_account_boundary",
    "description": "Objet PostgreSQL de type trigger; 2 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 198,
+   "line": 196,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase",
     "trigger"
    ],
-   "detailRef": "0d0b4f09189c"
+   "detailRef": "6173fb122f01"
   },
   {
-   "id": "database-object:94b1c918e6ec",
+   "id": "database-object:ffbf253ddde3",
    "type": "database-object",
    "title": "protect_commercial_demo_account_mapping",
    "description": "Objet PostgreSQL de type trigger; 2 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 193,
+   "line": 191,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase",
     "trigger"
    ],
-   "detailRef": "aaea2c20a737"
+   "detailRef": "b6ba2d652383"
   },
   {
-   "id": "database-object:d710101994f2",
+   "id": "database-object:83410911db09",
    "type": "database-object",
    "title": "protect_demo_restaurant_identity",
    "description": "Objet PostgreSQL de type trigger; 2 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 77,
+   "line": 75,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase",
     "trigger"
    ],
-   "detailRef": "74d44bde3d4e"
+   "detailRef": "9c16ba69976a"
   },
   {
    "id": "database-object:595ac6ef9101",
@@ -157291,19 +157291,19 @@
    "detailRef": "a40363e29be0"
   },
   {
-   "id": "database-object:22ef522d14c8",
+   "id": "database-object:48ebe05db518",
    "type": "database-object",
    "title": "public.admin_delete_user_account",
    "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 806,
+   "line": 804,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "08541260f38c"
+   "detailRef": "40888ac97549"
   },
   {
    "id": "database-object:fba6e3575289",
@@ -157606,19 +157606,19 @@
    "detailRef": "0f31759e13e6"
   },
   {
-   "id": "database-object:d7656e47a279",
+   "id": "database-object:002b013fd474",
    "type": "database-object",
    "title": "public.admin_get_user_admin_detail",
    "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 466,
+   "line": 464,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "ef245a5847e7"
+   "detailRef": "2e07d3a76fb5"
   },
   {
    "id": "database-object:333a3815b658",
@@ -157801,19 +157801,19 @@
    "detailRef": "a48638d314d2"
   },
   {
-   "id": "database-object:b49e8b6bb28f",
+   "id": "database-object:4b172dbf7d13",
    "type": "database-object",
    "title": "public.admin_list_user_storage_objects_for_deletion",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 669,
+   "line": 667,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "47bb62e12b78"
+   "detailRef": "822b666fd8ee"
   },
   {
    "id": "database-object:f5fbb5bb6470",
@@ -162526,19 +162526,19 @@
    "detailRef": "284c37179cb2"
   },
   {
-   "id": "database-object:edb11ec6e457",
+   "id": "database-object:5625885bde6b",
    "type": "database-object",
    "title": "public.commercial_demo_shared_restaurant_id",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 81,
+   "line": 79,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "daad74623af4"
+   "detailRef": "10f3434d00f2"
   },
   {
    "id": "database-object:b5421481186e",
@@ -164101,19 +164101,19 @@
    "detailRef": "0399945e16da"
   },
   {
-   "id": "database-object:aeafceb4cf2a",
+   "id": "database-object:4387d1e2801a",
    "type": "database-object",
    "title": "public.delete_user_gdpr_cascade_unguarded",
    "description": "Objet PostgreSQL de type function; 3 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 693,
+   "line": 691,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "377ae3ccdfb1"
+   "detailRef": "71cc5903daee"
   },
   {
    "id": "database-object:dd21a515d3a8",
@@ -172066,34 +172066,34 @@
    "detailRef": "4c74698dff91"
   },
   {
-   "id": "database-object:57dc403686db",
+   "id": "database-object:875a4d186102",
    "type": "database-object",
    "title": "public.protect_commercial_demo_account_boundary",
    "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 147,
+   "line": 145,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "610c6cc2f1bc"
+   "detailRef": "043b7b651b24"
   },
   {
-   "id": "database-object:6b6d08e77864",
+   "id": "database-object:1b25190f793f",
    "type": "database-object",
    "title": "public.protect_commercial_demo_account_mapping",
    "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 111,
+   "line": 109,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "7e6d3e640f4d"
+   "detailRef": "b9f916bce07d"
   },
   {
    "id": "database-object:3700e6770f98",
@@ -172171,19 +172171,19 @@
    "detailRef": "85849b52fbc3"
   },
   {
-   "id": "database-object:0ca6c51c4809",
+   "id": "database-object:18788857c5a4",
    "type": "database-object",
    "title": "public.provision_commercial_demo_account",
    "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
-   "line": 207,
+   "line": 205,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "92117d2443a8"
+   "detailRef": "1a1e530464a2"
   },
   {
    "id": "database-object:e3ddaed0b94e",
@@ -322287,7 +322287,7 @@
    "id": "migration:c68a111fdd39",
    "type": "migration",
    "title": "20261006010000 Repair Admin Commercial Supabase Regressions",
-   "description": "Migration SQL de 1014 lignes, 18 objets CREATE détectés.",
+   "description": "Migration SQL de 1012 lignes, 18 objets CREATE détectés.",
    "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
    "line": 1,
    "surface": null,
@@ -322295,7 +322295,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "0e0a2f8632ac"
+   "detailRef": "094f0be7b23b"
   },
   {
    "id": "package-script:5bd6dc98483a",

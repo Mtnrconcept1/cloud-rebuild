@@ -58,8 +58,6 @@ ON CONFLICT (singleton) DO NOTHING;
 -- project, so harden the canonical production row before remapping accounts.
 DROP TRIGGER IF EXISTS protect_demo_restaurant_identity
   ON public.restaurants;
-DROP TRIGGER IF EXISTS enforce_commercial_demo_restaurant_active
-  ON public.restaurants;
 
 UPDATE public.restaurants restaurant
 SET is_active = false,
