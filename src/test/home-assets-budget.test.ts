@@ -11,6 +11,7 @@ const optimizedHomeAssets = [
   "public/Miamz2.webp",
   "public/Miamz3.webp",
   "public/images/tokone.webp",
+  "public/images/home/tok-geneve-desktop-reference.jpg",
 ];
 
 const obsoleteHomePngAssets = [
