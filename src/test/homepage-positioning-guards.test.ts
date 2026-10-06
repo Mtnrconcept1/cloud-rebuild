@@ -36,7 +36,14 @@ describe("homepage positioning guards", () => {
     expect(hero).not.toContain("min-h-[148px]");
     expect(hero).toContain("Réservez et commandez");
     expect(hero).toContain("Je veux manger");
-    expect(hero).toContain("Je suis restaurateur");
+    expect(hero).toContain("Restaurateur");
+    expect(hero).toContain('data-testid="desktop-hero-reference"');
+    expect(hero).toContain('/images/home/tok-geneve-desktop-reference.jpg');
+    expect(hero).toContain('aspectRatio: "1672 / 941"');
+    expect(hero).toContain('data-testid="desktop-hero-search"');
+    expect(hero).toContain("Cuisine, nom de restaurant, quartier...");
+    expect(hero).toContain("left-[3.83%] top-[60.89%]");
+    expect(hero).toContain("left-[8.79%] top-[71.63%]");
     expect(features).toContain("PRIMARY_PILLARS");
     expect(features).toContain("Zéro attente");
     expect(features).toContain("Offres anti-gaspi & Tables du Chef");
@@ -141,6 +148,7 @@ describe("homepage positioning guards", () => {
       "public/desig app/cadeau.png",
       "public/images/section-headers/shopping-bags-3d.png",
       "public/images/section-headers/gift-3d.png",
+      "public/images/home/tok-geneve-desktop-reference.jpg",
       "public/desig app/flamme.png",
       "public/desig app/chefsection2.png",
     ];
@@ -154,6 +162,9 @@ describe("homepage positioning guards", () => {
     const navbar = read("src/components/Navbar.tsx");
     const hero = read("src/components/home/HeroSection.tsx");
     const footer = read("src/components/home/FooterSection.tsx");
+
+    expect(navbar).toContain("isDesktopHomeReference");
+    expect(navbar).toContain('isDesktopHomeReference ? "md:hidden" : ""');
 
     expect(navbar).toContain('to="/restaurateurs/geneve"');
     expect(navbar).toContain("Restaurateurs");

@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `6552272e9579e06f4977d969bdc0aa2c321d97e037781d8c5d5e60416c3489ed`
+- Empreinte SHA-256 des sources indexées : `22237406c11b4171cab3bdaa7908fdfb7b075adac10a4ddf6c3aa709559ec687`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,13 +40,13 @@
 | migrations | 519 |
 | modules | 1425 |
 | pages | 127 |
-| pathLiterals | 594 |
-| publicAssets | 294 |
-| publicEntries | 316 |
+| pathLiterals | 595 |
+| publicAssets | 295 |
+| publicEntries | 317 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 100 |
-| records | 15267 |
-| repositoryFiles | 2667 |
+| records | 15270 |
+| repositoryFiles | 2668 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -741,6 +741,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/guacamole.jpg | media | [public/images/guacamole.jpg](../../public/images/guacamole.jpg) |
 | /images/gulam jamun.jpg | media | [public/images/gulam jamun.jpg](../../public/images/gulam%20jamun.jpg) |
 | /images/gyoza porc.webp | media | [public/images/gyoza porc.webp](../../public/images/gyoza%20porc.webp) |
+| /images/home/tok-geneve-desktop-reference.jpg | media | [public/images/home/tok-geneve-desktop-reference.jpg](../../public/images/home/tok-geneve-desktop-reference.jpg) |
 | /images/houmous.webp | media | [public/images/houmous.webp](../../public/images/houmous.webp) |
 | /images/indian-curry-bowls.jpeg | media | [public/images/indian-curry-bowls.jpeg](../../public/images/indian-curry-bowls.jpeg) |
 | /images/indian-feast.jpeg | media | [public/images/indian-feast.jpeg](../../public/images/indian-feast.jpeg) |
@@ -1005,7 +1006,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/marketing/session | 4 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
 | /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:524](../../src/test/tok-ai-tools.test.ts#L524) |
-| /auth | 50 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
+| /auth | 49 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
 | /auth/callback | 16 | [src/App.tsx:557](../../src/App.tsx#L557) |
 | /auth/callback? | 1 | [src/lib/deep-links.ts:33](../../src/lib/deep-links.ts#L33) |
 | /auth/callback?code=pkce-code | 1 | [src/test/native-oauth.test.ts:114](../../src/test/native-oauth.test.ts#L114) |
@@ -1209,6 +1210,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
+| /images/home/tok-geneve-desktop-reference.jpg | 2 | [src/components/home/HeroSection.tsx:199](../../src/components/home/HeroSection.tsx#L199) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
 | /images/kebab-box-spread.jpeg | 23 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
@@ -1430,7 +1432,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants/vesenaz/r/sushi-zen-sa | 2 | [src/test/seo-directory-quality-hardening.test.ts:32](../../src/test/seo-directory-quality-hardening.test.ts#L32) |
 | /restaurateurs/:city | 2 | [src/App.tsx:677](../../src/App.tsx#L677) |
 | /restaurateurs/alternative-commission-couvert | 15 | [scripts/prerender-seo.mjs:674](../../scripts/prerender-seo.mjs#L674) |
-| /restaurateurs/geneve | 19 | [scripts/prerender-seo.mjs:609](../../scripts/prerender-seo.mjs#L609) |
+| /restaurateurs/geneve | 18 | [scripts/prerender-seo.mjs:609](../../scripts/prerender-seo.mjs#L609) |
 | /restaurateurs/google-business | 16 | [scripts/prerender-seo.mjs:673](../../scripts/prerender-seo.mjs#L673) |
 | /robots.txt | 5 | [supabase/functions/discover-thefork-official-sites/index.ts:348](../../supabase/functions/discover-thefork-official-sites/index.ts#L348) |
 | /rpc/ | 1 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
@@ -7606,7 +7608,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (316)</summary>
+<details><summary>public-asset (317)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -7754,6 +7756,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/guacamole.jpg`
 - `public/images/gulam jamun.jpg`
 - `public/images/gyoza porc.webp`
+- `public/images/home/tok-geneve-desktop-reference.jpg`
 - `public/images/houmous.webp`
 - `public/images/indian-curry-bowls.jpeg`
 - `public/images/indian-feast.jpeg`
