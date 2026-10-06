@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `61ffb312e81dea619f0b8914d255e01be69a7063f14b0adee1a85010d51da6c1`
+- Empreinte SHA-256 des sources indexées : `6552272e9579e06f4977d969bdc0aa2c321d97e037781d8c5d5e60416c3489ed`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -5471,7 +5471,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20260925015352 Schedule Directory Image Discovery | 162 | 1 | [supabase/migrations/20260925015352_schedule_directory_image_discovery.sql:1](../../supabase/migrations/20260925015352_schedule_directory_image_discovery.sql#L1) |
 | 20260925104552 Require Public Restaurant Images | 521 | 4 | [supabase/migrations/20260925104552_require_public_restaurant_images.sql:1](../../supabase/migrations/20260925104552_require_public_restaurant_images.sql#L1) |
 | 20261003070000 Marketing Autopilot Foundation | 1756 | 39 | [supabase/migrations/20261003070000_marketing_autopilot_foundation.sql:1](../../supabase/migrations/20261003070000_marketing_autopilot_foundation.sql#L1) |
-| 20261006010000 Repair Admin Commercial Supabase Regressions | 1014 | 18 | [supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql:1](../../supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql#L1) |
+| 20261006010000 Repair Admin Commercial Supabase Regressions | 1012 | 18 | [supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql:1](../../supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
