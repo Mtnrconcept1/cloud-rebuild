@@ -17,11 +17,13 @@ import {
   requiredString,
   safeMarketingError,
 } from "../_shared/marketing.ts";
+import { processMetaMarketingItem } from "../_shared/meta-marketing-orchestrator.ts";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 type ClaimedItem = {
   id: string;
   channel: string;
+  content: Record<string, unknown>;
   attempt_count: number;
   max_attempts: number;
   lease_token: string;
@@ -52,8 +54,6 @@ const MAX_DELIVERIES_PER_RUN = 5;
  * adding a real adapter is a deliberate removal from this list.
  */
 const DORMANT_CHANNELS = new Map<string, string>([
-  ["instagram", "instagram_credentials_missing"],
-  ["facebook", "facebook_credentials_missing"],
   ["linkedin", "linkedin_credentials_missing"],
   ["tiktok", "tiktok_credentials_missing"],
   ["youtube", "youtube_credentials_missing"],
@@ -300,6 +300,10 @@ async function materializeAll(client: AdminClient, itemId: string) {
 
 async function processItem(client: AdminClient, item: ClaimedItem) {
   try {
+    if (item.channel === "facebook" || item.channel === "instagram") {
+      return await processMetaMarketingItem(client, item);
+    }
+
     // Email joins the channels that fan an approved item out into per-contact
     // deliveries, now that a real adapter can process them.
     if (item.channel === "in_app" || ["email", "manual_call", "manual_email"].includes(item.channel)) {
