@@ -58,6 +58,12 @@ describe("commercial pins and admin destructive actions", () => {
     expect(migration).toContain("REVOKE ALL ON FUNCTION");
   });
 
+  it("keeps the admin repair migration SQL block delimiters valid", () => {
+    expect(repairMigration).toContain("DO $");
+    expect(repairMigration).not.toMatch(/DO \\$(?!\\$)/);
+    expect(repairMigration).not.toMatch(/\\n\\$;\\n/);
+  });
+
   it("deletes Storage objects through the Storage API only after guarded database deletion", () => {
     expect(repairMigration).toContain("admin_list_user_storage_objects_for_deletion");
     expect(repairMigration).not.toMatch(/DELETE\s+FROM\s+storage\.objects/i);
