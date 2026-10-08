@@ -23,6 +23,10 @@ const agent = readFileSync(
   resolve(process.cwd(), "supabase/functions/ai-marketing-agent/index.ts"),
   "utf8",
 );
+const metaOrchestrator = readFileSync(
+  resolve(process.cwd(), "supabase/functions/_shared/meta-marketing-orchestrator.ts"),
+  "utf8",
+);
 const bff = readFileSync(resolve(process.cwd(), "server/marketingBff.ts"), "utf8");
 
 function validPlan(): MarketingPlan {
@@ -238,9 +242,21 @@ describe("marketing orchestrator delivery adapters", () => {
   });
 
   it("names the missing credential for each dormant channel", () => {
-    for (const channel of ["instagram", "facebook", "linkedin", "tiktok", "youtube"]) {
+    for (const channel of ["linkedin", "tiktok", "youtube"]) {
       expect(orchestrator).toContain(`["${channel}", "${channel}_credentials_missing"]`);
     }
+  });
+
+  it("routes Facebook and Instagram through the fail-closed Meta item adapter", () => {
+    expect(orchestrator).toContain('item.channel === "facebook" || item.channel === "instagram"');
+    expect(orchestrator).toContain("processMetaMarketingItem");
+    expect(orchestrator).not.toContain('["instagram", "instagram_credentials_missing"]');
+    expect(orchestrator).not.toContain('["facebook", "facebook_credentials_missing"]');
+    expect(metaOrchestrator).toContain("META_SYSTEM_USER_TOKEN");
+    expect(metaOrchestrator).toContain("meta_publish_started_at");
+    expect(metaOrchestrator).toContain("previousSummary = await markExternalPublishStarted");
+    expect(metaOrchestrator).toContain("reconciliation_required");
+    expect(metaOrchestrator).toContain('.eq("lease_token", item.lease_token)');
   });
 
   it("fans approved email items out into per-contact deliveries", () => {
