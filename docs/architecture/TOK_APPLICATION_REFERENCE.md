@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `5466b6f8b56fb7a137ad91e55154bdadcf83bcac2fe1a58f797bf6066e0545e8`
+- Empreinte SHA-256 des sources indexées : `850a78c01adab960c379b74e591a94f11afb2ddfed5b4ebc84a30a5958b47ab7`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 186 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3331 |
+| exportedSymbols | 3334 |
 | featureFlags | 99 |
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 519 |
-| modules | 1425 |
+| modules | 1430 |
 | pages | 127 |
 | pathLiterals | 595 |
 | publicAssets | 295 |
 | publicEntries | 317 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 100 |
-| records | 15270 |
-| repositoryFiles | 2668 |
+| records | 15283 |
+| repositoryFiles | 2673 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -5695,7 +5695,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 30 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 8 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 211 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 635 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 638 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 54 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5707,7 +5707,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | --- | --- |
 | application-library | 203 |
 | automation-script | 61 |
-| edge-function-source | 175 |
+| edge-function-source | 176 |
 | frontend-component | 245 |
 | frontend-hook | 22 |
 | frontend-page | 127 |
@@ -5715,7 +5715,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 542 |
+| test | 546 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6932,7 +6932,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (175)</summary>
+<details><summary>edge-function-source (176)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -6974,6 +6974,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/print/quantity.ts`
 - `supabase/functions/_shared/print/request.ts`
 - `supabase/functions/_shared/print/security.ts`
+- `supabase/functions/_shared/print/source-format.ts`
 - `supabase/functions/_shared/print/types.ts`
 - `supabase/functions/_shared/rate-limit.ts`
 - `supabase/functions/_shared/refund-allocations.ts`
@@ -8102,7 +8103,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (542)</summary>
+<details><summary>test (546)</summary>
 
 - `scripts/ci-change-plan.test.mjs`
 - `scripts/ci-critical-tests.test.mjs`
@@ -8401,6 +8402,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-outreach-schema.test.ts`
 - `src/test/marketing-print-contract.test.ts`
 - `src/test/marketing-print-domain.test.ts`
+- `src/test/marketing-print-entry.test.tsx`
 - `src/test/marketing-print-rendering.test.ts`
 - `src/test/marketing-prospect-coordinates.test.ts`
 - `src/test/marketing-rbarman-admin-access.test.ts`
@@ -8456,6 +8458,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/plan2-security-definer-rpc-grants.test.ts`
 - `src/test/post-deploy-seo-regressions.test.ts`
 - `src/test/print-and-chart-sinks.test.ts`
+- `src/test/print-composer-source-format.test.tsx`
+- `src/test/print-export-source-format.test.ts`
+- `src/test/print-source-format.test.ts`
 - `src/test/production-alert-remediation.test.ts`
 - `src/test/production-deployment-credential-wiring.test.ts`
 - `src/test/production-deployment-provenance.test.ts`

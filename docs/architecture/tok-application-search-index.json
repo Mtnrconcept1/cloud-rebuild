@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "5466b6f8b56fb7a137ad91e55154bdadcf83bcac2fe1a58f797bf6066e0545e8",
+ "sourceDigest": "850a78c01adab960c379b74e591a94f11afb2ddfed5b4ebc84a30a5958b47ab7",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 186,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3331,
+  "exportedSymbols": 3334,
   "featureFlags": 99,
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 519,
-  "modules": 1425,
+  "modules": 1430,
   "pages": 127,
   "pathLiterals": 595,
   "publicAssets": 295,
   "publicEntries": 317,
   "publicNavigableRoutes": 2,
   "queryParameters": 100,
-  "records": 15270,
-  "repositoryFiles": 2668,
+  "records": 15283,
+  "repositoryFiles": 2673,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -28460,6 +28460,9 @@
      "src/test/plan-phase1-readiness.test.ts",
      "src/test/plan2-fk-index-readiness.test.ts",
      "src/test/plan2-security-definer-rpc-grants.test.ts",
+     "src/test/print-composer-source-format.test.tsx",
+     "src/test/print-export-source-format.test.ts",
+     "src/test/print-source-format.test.ts",
      "src/test/production-alert-remediation.test.ts",
      "src/test/production-deployment-credential-wiring.test.ts",
      "src/test/production-preflight-hardening.test.ts",
@@ -100072,6 +100075,13 @@
     "lineCount": 115
    },
    {
+    "path": "src/test/marketing-print-entry.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 25
+   },
+   {
     "path": "src/test/marketing-print-rendering.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -100540,6 +100550,33 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 116
+   },
+   {
+    "path": "src/test/print-composer-source-format.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 59
+   },
+   {
+    "path": "src/test/print-export-source-format.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 53
+   },
+   {
+    "path": "src/test/print-source-format.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 39
    },
    {
     "path": "src/test/production-alert-remediation.test.ts",
@@ -104055,6 +104092,29 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 75
+   },
+   {
+    "path": "supabase/functions/_shared/print/source-format.ts",
+    "exports": [
+     {
+      "name": "GeneratedOutputFormat",
+      "line": 2,
+      "kind": "typealias"
+     },
+     {
+      "name": "readGeneratedOutputFormat",
+      "line": 10,
+      "kind": "function"
+     },
+     {
+      "name": "matchesGeneratedPrintFormat",
+      "line": 23,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 32
    },
    {
     "path": "supabase/functions/_shared/print/types.ts",
@@ -115186,6 +115246,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/marketing-print-entry.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/marketing-print-rendering.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -115457,6 +115522,21 @@
    },
    {
     "path": "src/test/print-and-chart-sinks.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/print-composer-source-format.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/print-export-source-format.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/print-source-format.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -116647,6 +116727,11 @@
    },
    {
     "path": "supabase/functions/_shared/print/security.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/print/source-format.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -135899,6 +135984,17 @@
    "detailRef": "d03b9b303e03"
   },
   {
+   "id": "code-module:af6285b66ef3",
+   "type": "code-module",
+   "title": "src/test/marketing-print-entry.test.tsx",
+   "description": "Module de 25 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-print-entry.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "ddd29b819e3c"
+  },
+  {
    "id": "code-module:113c9db85990",
    "type": "code-module",
    "title": "src/test/marketing-print-rendering.test.ts",
@@ -136585,6 +136681,45 @@
    "surface": null,
    "tags": [],
    "detailRef": "c5bc41ace555"
+  },
+  {
+   "id": "code-module:de47645d4590",
+   "type": "code-module",
+   "title": "src/test/print-composer-source-format.test.tsx",
+   "description": "Module de 59 lignes; exports: aucun export statique.",
+   "path": "src/test/print-composer-source-format.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "91432fc03a7b"
+  },
+  {
+   "id": "code-module:1f3b943583bf",
+   "type": "code-module",
+   "title": "src/test/print-export-source-format.test.ts",
+   "description": "Module de 53 lignes; exports: aucun export statique.",
+   "path": "src/test/print-export-source-format.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "1e7972af5413"
+  },
+  {
+   "id": "code-module:b885b3d4ff95",
+   "type": "code-module",
+   "title": "src/test/print-source-format.test.ts",
+   "description": "Module de 39 lignes; exports: aucun export statique.",
+   "path": "src/test/print-source-format.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "d85e85cf50d6"
   },
   {
    "id": "code-module:5b86da9be077",
@@ -139794,6 +139929,21 @@
     "verifyCloudprinterWebhookApiKey"
    ],
    "detailRef": "354040506b07"
+  },
+  {
+   "id": "code-module:419e7e40935b",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/print/source-format.ts",
+   "description": "Module de 32 lignes; exports: GeneratedOutputFormat, readGeneratedOutputFormat, matchesGeneratedPrintFormat.",
+   "path": "supabase/functions/_shared/print/source-format.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "GeneratedOutputFormat",
+    "matchesGeneratedPrintFormat",
+    "readGeneratedOutputFormat"
+   ],
+   "detailRef": "316d2c3fcb70"
   },
   {
    "id": "code-module:097cf3689e92",
@@ -233828,6 +233978,19 @@
    "detailRef": "9108c8ce8306"
   },
   {
+   "id": "exported-symbol:cdd9047a1e0b",
+   "type": "exported-symbol",
+   "title": "GeneratedOutputFormat",
+   "description": "Export typealias de supabase/functions/_shared/print/source-format.ts.",
+   "path": "supabase/functions/_shared/print/source-format.ts",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "28136baf999a"
+  },
+  {
    "id": "exported-symbol:015daa3ac358",
    "type": "exported-symbol",
    "title": "GenevaCommercialProspect",
@@ -264477,6 +264640,19 @@
    "detailRef": "36aca88cf0a3"
   },
   {
+   "id": "exported-symbol:c6dcd5065dcc",
+   "type": "exported-symbol",
+   "title": "matchesGeneratedPrintFormat",
+   "description": "Export function de supabase/functions/_shared/print/source-format.ts.",
+   "path": "supabase/functions/_shared/print/source-format.ts",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "5b8c54c8cb32"
+  },
+  {
    "id": "exported-symbol:7bf9e0af1009",
    "type": "exported-symbol",
    "title": "matchesRestaurantPaymentStatusFilter",
@@ -266189,6 +266365,19 @@
     "supabase"
    ],
    "detailRef": "732dd05b35bf"
+  },
+  {
+   "id": "exported-symbol:4ddcc03c64ff",
+   "type": "exported-symbol",
+   "title": "readGeneratedOutputFormat",
+   "description": "Export function de supabase/functions/_shared/print/source-format.ts.",
+   "path": "supabase/functions/_shared/print/source-format.ts",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "3f5551a67aba"
   },
   {
    "id": "exported-symbol:5cf1585d2416",
@@ -296822,6 +297011,20 @@
    "detailRef": "51954a92be68"
   },
   {
+   "id": "file:bd898a2c6adb",
+   "type": "file",
+   "title": "src/test/marketing-print-entry.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-print-entry.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "a5fd7446dcc3"
+  },
+  {
    "id": "file:631e0a965fe0",
    "type": "file",
    "title": "src/test/marketing-print-rendering.test.ts",
@@ -297590,6 +297793,48 @@
     "test"
    ],
    "detailRef": "fee195b64b4f"
+  },
+  {
+   "id": "file:be027fa60068",
+   "type": "file",
+   "title": "src/test/print-composer-source-format.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/print-composer-source-format.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "7d1438c2ace6"
+  },
+  {
+   "id": "file:288f9bced877",
+   "type": "file",
+   "title": "src/test/print-export-source-format.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/print-export-source-format.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "95fb5b8c56a0"
+  },
+  {
+   "id": "file:cafc06935376",
+   "type": "file",
+   "title": "src/test/print-source-format.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/print-source-format.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "eecce82b6a7c"
   },
   {
    "id": "file:dcaca68c7c4f",
@@ -300922,6 +301167,20 @@
     "edge-function-source"
    ],
    "detailRef": "8dd9ad9dd1c2"
+  },
+  {
+   "id": "file:d636e5887055",
+   "type": "file",
+   "title": "supabase/functions/_shared/print/source-format.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/print/source-format.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "72b38af7bc3e"
   },
   {
    "id": "file:996ba56873bd",
@@ -313764,7 +314023,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 635 module(s).",
+   "description": "Intégration externe détectée dans 638 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -314207,6 +314466,9 @@
     "src/test/plan-phase1-readiness.test.ts",
     "src/test/plan2-fk-index-readiness.test.ts",
     "src/test/plan2-security-definer-rpc-grants.test.ts",
+    "src/test/print-composer-source-format.test.tsx",
+    "src/test/print-export-source-format.test.ts",
+    "src/test/print-source-format.test.ts",
     "src/test/production-alert-remediation.test.ts",
     "src/test/production-deployment-credential-wiring.test.ts",
     "src/test/production-preflight-hardening.test.ts",
@@ -314406,7 +314668,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "ed9edfc44204"
+   "detailRef": "5116701bf874"
   },
   {
    "id": "integration:c20910a79a78",
