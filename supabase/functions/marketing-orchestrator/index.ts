@@ -17,11 +17,13 @@ import {
   requiredString,
   safeMarketingError,
 } from "../_shared/marketing.ts";
+import { processMetaMarketingItem } from "../_shared/meta-marketing-orchestrator.ts";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 type ClaimedItem = {
   id: string;
   channel: string;
+  content: Record<string, unknown>;
   attempt_count: number;
   max_attempts: number;
   lease_token: string;
@@ -41,6 +43,8 @@ const EMAIL_FROM = Deno.env.get("EMAIL_FROM")?.trim() || "Tok <noreply@thetok.ch
 const RESEND_TIMEOUT_MS = 20_000;
 const DELIVERY_LEASE_SECONDS = 180;
 const MAX_DELIVERIES_PER_RUN = 5;
+// Reserve only the item we can start now; Meta may need multiple network calls.
+const MAX_ITEMS_PER_RUN = 1;
 
 /**
  * Channels whose adapter exists but which cannot publish until an
@@ -52,8 +56,6 @@ const MAX_DELIVERIES_PER_RUN = 5;
  * adding a real adapter is a deliberate removal from this list.
  */
 const DORMANT_CHANNELS = new Map<string, string>([
-  ["instagram", "instagram_credentials_missing"],
-  ["facebook", "facebook_credentials_missing"],
   ["linkedin", "linkedin_credentials_missing"],
   ["tiktok", "tiktok_credentials_missing"],
   ["youtube", "youtube_credentials_missing"],
@@ -299,6 +301,11 @@ async function materializeAll(client: AdminClient, itemId: string) {
 }
 
 async function processItem(client: AdminClient, item: ClaimedItem) {
+  // Meta owns its recovery state. A completion failure must reach the caller;
+  // the generic fallback below would overwrite its durable publish marker.
+  if (item.channel === "facebook" || item.channel === "instagram") {
+    return await processMetaMarketingItem(client, item);
+  }
   try {
     // Email joins the channels that fan an approved item out into per-contact
     // deliveries, now that a real adapter can process them.
@@ -421,7 +428,7 @@ Deno.serve(async (req) => {
         p_lease_seconds: DELIVERY_LEASE_SECONDS,
       })
       : await invokeRpc<ClaimedItem[]>(client, "claim_due_marketing_items", {
-        p_limit: limit,
+        p_limit: Math.min(MAX_ITEMS_PER_RUN, limit),
         p_worker_id: `edge:${log.rid}`,
         p_lease_seconds: DELIVERY_LEASE_SECONDS,
       });
