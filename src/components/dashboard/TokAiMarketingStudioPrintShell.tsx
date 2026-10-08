@@ -1,3 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
+import { getPrintGenerationCatalog } from "@/lib/print/client";
+import { matchesGeneratedPrintFormat, readGeneratedOutputFormat } from "../../../supabase/functions/_shared/print/source-format";
+import type { TokImageGenerationResult } from "@/lib/ai/tokAiClient";
 import { useRef, useState } from "react";
 
 import TokAiMarketingStudioCore from "./TokAiMarketingStudio";
@@ -22,6 +26,17 @@ type Props = {
 export default function TokAiMarketingStudioPrintShell({ restaurantId }: Props) {
   const commercialDemoFrame = useCommercialDemoFrame();
   const canPrint = Boolean(restaurantId && !commercialDemoFrame);
+  const [selectedCreation, setSelectedCreation] = useState<TokImageGenerationResult | null>(null);
+  const catalogQuery = useQuery({
+    queryKey: ["marketing-output-generation-catalog", restaurantId],
+    queryFn: () => getPrintGenerationCatalog(String(restaurantId)),
+    enabled: canPrint,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+  const printableCreation = readGeneratedOutputFormat(selectedCreation?.marketing_output_target)?.destination === "print"
+    && Boolean(catalogQuery.data?.products.some((product) => product.variants
+      .some((variant) => matchesGeneratedPrintFormat(selectedCreation?.marketing_output_target, variant))));
   const [printComposerOpen, setPrintComposerOpen] = useState(false);
   const studioRootRef = useRef<HTMLDivElement>(null);
 
@@ -30,18 +45,20 @@ export default function TokAiMarketingStudioPrintShell({ restaurantId }: Props) 
       <MarketingOutputControls restaurantId={restaurantId} printEnabled={canPrint} />
 
       <div ref={studioRootRef}>
-        <TokAiMarketingStudioCore restaurantId={restaurantId} />
+        <TokAiMarketingStudioCore restaurantId={restaurantId} onSelectedCreationChange={setSelectedCreation} />
       </div>
       <MarketingStudioPrintCatalogBridge
         rootRef={studioRootRef}
         printEnabled={canPrint}
-        onOpenPrintComposer={canPrint ? () => setPrintComposerOpen(true) : undefined}
+        printableCreation={printableCreation}
+        onOpenPrintComposer={canPrint && printableCreation ? () => setPrintComposerOpen(true) : undefined}
       />
 
       {canPrint && restaurantId ? (
         <>
           <PrintComposerDialog
             restaurantId={restaurantId}
+            initialSourceGenerationId={selectedCreation?.assetId}
             open={printComposerOpen}
             onOpenChange={setPrintComposerOpen}
             showTrigger={false}

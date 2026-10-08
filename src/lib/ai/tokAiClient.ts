@@ -1,3 +1,4 @@
+import type { GeneratedOutputFormat } from "../../../supabase/functions/_shared/print/source-format";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { TokImageModel, TokImageOutputResolution } from "@/lib/ai/imagePricing";
 import { SUPABASE_URL } from "@/lib/env";
@@ -93,6 +94,7 @@ export type TokImageGenerationRequest = {
   generateImage?: boolean;
   imageOnly?: boolean;
   marketingAssetMode?: boolean;
+  marketingOutputFormat?: GeneratedOutputFormat | null;
   styleMode?: string | null;
   demoReferencePalette?: {
     primaryColor: string;
@@ -104,6 +106,7 @@ export type TokImageGenerationRequest = {
 };
 
 export type TokImageGenerationResult = {
+  marketing_output_target?: GeneratedOutputFormat | null;
   title: string;
   enhanced_prompt: string;
   edit_instructions: string;

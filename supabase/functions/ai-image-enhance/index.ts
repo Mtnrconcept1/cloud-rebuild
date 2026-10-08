@@ -1,3 +1,4 @@
+import { readGeneratedOutputFormat, matchesGeneratedPrintFormat } from "../_shared/print/source-format.ts";
 import {
   HttpError,
   authenticateRequest,
@@ -1483,6 +1484,22 @@ Deno.serve(async (req) => {
     restaurantId = maybeUuid(body.restaurantId);
     const assetType = normalizeAssetType(body.assetType);
     const marketingAssetMode = assetType === "campaign_visual" && body.marketingAssetMode === true;
+    const marketingOutputFormat = marketingAssetMode
+      ? readGeneratedOutputFormat(body.marketingOutputFormat) : null;
+    if (marketingAssetMode && body.marketingOutputFormat != null && !marketingOutputFormat) {
+      throw new HttpError(400, "Format de sortie invalide");
+    }
+    if (marketingOutputFormat?.destination === "print") {
+      const { data: variant, error } = await actor.adminClient.from("print_provider_products")
+        .select("id, width_mm, height_mm, bleed_mm")
+        .eq("id", marketingOutputFormat.providerProductId).eq("active", true)
+        .not("print_product_id", "is", null).maybeSingle();
+      if (error) throw error;
+      if (!variant || !matchesGeneratedPrintFormat(marketingOutputFormat, {
+        providerProductId: variant.id, widthMm: Number(variant.width_mm),
+        heightMm: Number(variant.height_mm), bleedMm: Number(variant.bleed_mm),
+      })) throw new HttpError(409, "Format d’impression indisponible ou modifié");
+    }
     const rawPrompt = sanitizeText(body.prompt || body.objective || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT);
     const prompt = marketingAssetMode
       ? rawPrompt
@@ -1697,6 +1714,7 @@ Deno.serve(async (req) => {
       title: result.title,
       status: "stored",
       metadata: {
+        marketing_output_target: marketingOutputFormat,
         image_quality: usedImageOptions.quality,
         image_model_credit_multiplier: imageModelCreditMultiplier,
         output_resolution: outputConfig.outputResolution,
@@ -1880,6 +1898,7 @@ Deno.serve(async (req) => {
     return jsonResponse({
       ...result,
       assetId,
+      marketing_output_target: marketingOutputFormat,
       generated_image_url: generated?.generated_image_url || null,
       gallery_image_url: generated?.gallery_image_url || null,
       storage_bucket: generated?.storage_bucket || null,

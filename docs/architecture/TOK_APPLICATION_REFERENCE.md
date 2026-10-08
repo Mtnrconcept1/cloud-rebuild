@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `22237406c11b4171cab3bdaa7908fdfb7b075adac10a4ddf6c3aa709559ec687`
+- Empreinte SHA-256 des sources indexées : `5466b6f8b56fb7a137ad91e55154bdadcf83bcac2fe1a58f797bf6066e0545e8`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1298,7 +1298,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /logout?scope=local | 1 | [server/marketingBff.ts:736](../../server/marketingBff.ts#L736) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:31](../../src/hooks/useTokLogo.ts#L31) |
 | /marketing | 18 | [scripts/application-index-core.mjs:163](../../scripts/application-index-core.mjs#L163) |
-| /marketing-assets/ | 1 | [supabase/functions/ai-image-enhance/index.ts:97](../../supabase/functions/ai-image-enhance/index.ts#L97) |
+| /marketing-assets/ | 1 | [supabase/functions/ai-image-enhance/index.ts:98](../../supabase/functions/ai-image-enhance/index.ts#L98) |
 | /marketing-public | 1 | [src/test/marketing-domain-isolation.test.ts:25](../../src/test/marketing-domain-isolation.test.ts#L25) |
 | /marketing/ | 1 | [src/App.tsx:314](../../src/App.tsx#L314) |
 | /marketing/* | 2 | [src/App.tsx:731](../../src/App.tsx#L731) |
@@ -1466,7 +1466,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-one | 23 | [scripts/prerender-seo.mjs:547](../../scripts/prerender-seo.mjs#L547) |
 | /tok-one?status=success | 1 | [src/test/security-url-helpers.test.ts:62](../../src/test/security-url-helpers.test.ts#L62) |
 | /tok-pulse | 9 | [scripts/prerender-seo.mjs:1191](../../scripts/prerender-seo.mjs#L1191) |
-| /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:79](../../supabase/functions/ai-image-enhance/index.ts#L79) |
+| /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:80](../../supabase/functions/ai-image-enhance/index.ts#L80) |
 | /tok-slot-machine/index.html?v=20260719 | 1 | [src/components/DailyMiamzSlotMachine.tsx:15](../../src/components/DailyMiamzSlotMachine.tsx#L15) |
 | /token?grant_type=password | 1 | [server/marketingBff.ts:728](../../server/marketingBff.ts#L728) |
 | /user | 1 | [server/marketingBff.ts:717](../../server/marketingBff.ts#L717) |
@@ -5695,7 +5695,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 30 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 8 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 211 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 634 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 635 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 54 | [middleware.js:1](../../middleware.js#L1) |
 

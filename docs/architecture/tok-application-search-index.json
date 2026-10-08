@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "22237406c11b4171cab3bdaa7908fdfb7b075adac10a4ddf6c3aa709559ec687",
+ "sourceDigest": "5466b6f8b56fb7a137ad91e55154bdadcf83bcac2fe1a58f797bf6066e0545e8",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12420,7 +12420,7 @@
      },
      {
       "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
-      "line": 820
+      "line": 821
      },
      {
       "path": "src/components/navigation/BackNavigationButton.tsx",
@@ -18325,7 +18325,7 @@
      },
      {
       "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
-      "line": 2236
+      "line": 2238
      },
      {
       "path": "src/components/dashboard/TokAiPhotoStudioV2.tsx",
@@ -21469,7 +21469,7 @@
     "sources": [
      {
       "path": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 97
+      "line": 98
      }
     ]
    },
@@ -25053,7 +25053,7 @@
     "sources": [
      {
       "path": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 79
+      "line": 80
      }
     ]
    },
@@ -28100,6 +28100,7 @@
      "src/components/dashboard/DailyDishAiPanel.tsx",
      "src/components/dashboard/DirectReservationChannelsCard.tsx",
      "src/components/dashboard/TokAiMarketingStudio.tsx",
+     "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
      "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
      "src/components/dashboard/performance/PerformanceBusinessTab.tsx",
      "src/components/floor-plan/FloorPlanAIPanel.tsx",
@@ -80333,7 +80334,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 1169,
+      "line": 1170,
       "kind": "function"
      }
     ],
@@ -80342,20 +80343,22 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 2394
+    "lineCount": 2396
    },
    {
     "path": "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
     "exports": [
      {
       "name": "default",
-      "line": 22,
+      "line": 26,
       "kind": "function"
      }
     ],
     "environmentNames": [],
-    "integrations": [],
-    "lineCount": 57
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 74
    },
    {
     "path": "src/components/dashboard/TokAiPhotoStudio.tsx",
@@ -80403,20 +80406,20 @@
     "exports": [
      {
       "name": "default",
-      "line": 92,
+      "line": 93,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 240
+    "lineCount": 242
    },
    {
     "path": "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
     "exports": [
      {
       "name": "default",
-      "line": 221,
+      "line": 228,
       "kind": "function"
      }
     ],
@@ -80425,7 +80428,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 595
+    "lineCount": 613
    },
    {
     "path": "src/components/dashboard/marketing-print/PrintOrderDetails.tsx",
@@ -84974,97 +84977,97 @@
     "exports": [
      {
       "name": "AI_CREATION_COMPLETED_EVENT",
-      "line": 14,
-      "kind": "variable"
-     },
-     {
-      "name": "AI_CREATION_FAILED_EVENT",
       "line": 15,
       "kind": "variable"
      },
      {
+      "name": "AI_CREATION_FAILED_EVENT",
+      "line": 16,
+      "kind": "variable"
+     },
+     {
       "name": "AiCreationTool",
-      "line": 30,
+      "line": 31,
       "kind": "typealias"
      },
      {
       "name": "AiCreationStatus",
-      "line": 37,
+      "line": 38,
       "kind": "typealias"
      },
      {
       "name": "AiCreationRecord",
-      "line": 39,
+      "line": 40,
       "kind": "typealias"
      },
      {
       "name": "loadPersistedAiCreationRecords",
-      "line": 345,
+      "line": 348,
       "kind": "function"
      },
      {
       "name": "mergeAiCreationRecordSources",
-      "line": 367,
+      "line": 370,
       "kind": "function"
      },
      {
       "name": "recoverInterruptedAiCreations",
-      "line": 392,
+      "line": 395,
       "kind": "function"
      },
      {
       "name": "getAiCreationRecords",
-      "line": 525,
+      "line": 528,
       "kind": "function"
      },
      {
       "name": "subscribeAiCreationRecords",
-      "line": 531,
+      "line": 534,
       "kind": "function"
      },
      {
       "name": "setActiveAiCreationContext",
-      "line": 542,
+      "line": 545,
       "kind": "function"
      },
      {
       "name": "getActiveAiCreationContext",
-      "line": 546,
+      "line": 549,
       "kind": "function"
      },
      {
       "name": "requestAiCreationNotificationPermission",
-      "line": 550,
+      "line": 553,
       "kind": "function"
      },
      {
       "name": "startTokImageCreationJob",
-      "line": 561,
+      "line": 564,
       "kind": "function"
      },
      {
       "name": "useAiCreationRecovery",
-      "line": 649,
+      "line": 652,
       "kind": "function"
      },
      {
       "name": "markAiCreationAddedToGallery",
-      "line": 666,
+      "line": 669,
       "kind": "function"
      },
      {
       "name": "deleteAiCreationRecord",
-      "line": 670,
+      "line": 673,
       "kind": "function"
      },
      {
       "name": "getAiCreationImageUrl",
-      "line": 680,
+      "line": 683,
       "kind": "function"
      },
      {
       "name": "hasActiveAiCreationJob",
-      "line": 684,
+      "line": 687,
       "kind": "function"
      }
     ],
@@ -85073,7 +85076,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 687
+    "lineCount": 690
    },
    {
     "path": "src/lib/ai/dailyDishAi.ts",
@@ -85335,187 +85338,187 @@
     "exports": [
      {
       "name": "TokAiMessage",
-      "line": 15,
+      "line": 16,
       "kind": "typealias"
      },
      {
       "name": "ClientSupportRequest",
-      "line": 20,
+      "line": 21,
       "kind": "typealias"
      },
      {
       "name": "ClientSupportConversation",
-      "line": 29,
+      "line": 30,
       "kind": "typealias"
      },
      {
       "name": "ClientSupportConversationMessage",
-      "line": 43,
+      "line": 44,
       "kind": "typealias"
      },
      {
       "name": "RestaurantAdvisorConversation",
-      "line": 52,
+      "line": 53,
       "kind": "typealias"
      },
      {
       "name": "RestaurantAgentAction",
-      "line": 56,
+      "line": 57,
       "kind": "typealias"
      },
      {
       "name": "RestaurantAgentRequest",
-      "line": 65,
+      "line": 66,
       "kind": "typealias"
      },
      {
       "name": "RestaurantAdvisorStreamRequest",
-      "line": 72,
+      "line": 73,
       "kind": "typealias"
      },
      {
       "name": "TokImageFormat",
-      "line": 78,
+      "line": 79,
       "kind": "typealias"
      },
      {
       "name": "TokImageGenerationRequest",
-      "line": 80,
+      "line": 81,
       "kind": "typealias"
      },
      {
       "name": "TokImageGenerationResult",
-      "line": 106,
+      "line": 108,
       "kind": "typealias"
      },
      {
       "name": "AccountingAgentRequest",
-      "line": 136,
+      "line": 139,
       "kind": "typealias"
      },
      {
       "name": "AccountingAgentResult",
-      "line": 143,
+      "line": 146,
       "kind": "typealias"
      },
      {
       "name": "AccountingInsightRow",
-      "line": 156,
+      "line": 159,
       "kind": "typealias"
      },
      {
       "name": "AdminMonitorRequest",
-      "line": 172,
+      "line": 175,
       "kind": "typealias"
      },
      {
       "name": "AdminDashboardChatRequest",
-      "line": 177,
+      "line": 180,
       "kind": "typealias"
      },
      {
       "name": "AdminDashboardChatResult",
-      "line": 183,
+      "line": 186,
       "kind": "typealias"
      },
      {
       "name": "RestaurantAiSubscription",
-      "line": 193,
+      "line": 196,
       "kind": "typealias"
      },
      {
       "name": "askClientSupport",
-      "line": 214,
+      "line": 217,
       "kind": "function"
      },
      {
       "name": "getClientSupportConversations",
-      "line": 230,
+      "line": 233,
       "kind": "function"
      },
      {
       "name": "getClientSupportConversationMessages",
-      "line": 254,
+      "line": 257,
       "kind": "function"
      },
      {
       "name": "getRestaurantAdvisorConversations",
-      "line": 265,
+      "line": 268,
       "kind": "function"
      },
      {
       "name": "createRestaurantAdvisorConversation",
-      "line": 316,
+      "line": 319,
       "kind": "function"
      },
      {
       "name": "appendRestaurantAdvisorConversationMessages",
-      "line": 352,
+      "line": 355,
       "kind": "function"
      },
      {
       "name": "archiveRestaurantAdvisorConversation",
-      "line": 381,
+      "line": 384,
       "kind": "function"
      },
      {
       "name": "runRestaurantAgent",
-      "line": 389,
+      "line": 392,
       "kind": "function"
      },
      {
       "name": "streamRestaurantAdvisor",
-      "line": 406,
+      "line": 409,
       "kind": "function"
      },
      {
       "name": "generateTokDishImage",
-      "line": 472,
+      "line": 475,
       "kind": "function"
      },
      {
       "name": "runAccountingAgent",
-      "line": 487,
+      "line": 490,
       "kind": "function"
      },
      {
       "name": "runAdminMonitor",
-      "line": 491,
+      "line": 494,
       "kind": "function"
      },
      {
       "name": "askAdminDashboardChat",
-      "line": 514,
+      "line": 517,
       "kind": "function"
      },
      {
       "name": "getAdminDashboardChatConversations",
-      "line": 521,
+      "line": 524,
       "kind": "function"
      },
      {
       "name": "getAdminDashboardChatMessages",
-      "line": 530,
+      "line": 533,
       "kind": "function"
      },
      {
       "name": "estimateAiCost",
-      "line": 548,
+      "line": 551,
       "kind": "function"
      },
      {
       "name": "getAiUsageForRestaurant",
-      "line": 556,
+      "line": 559,
       "kind": "function"
      },
      {
       "name": "getAiSubscriptionForRestaurant",
-      "line": 573,
+      "line": 576,
       "kind": "function"
      },
      {
       "name": "getAccountingInsightsForRestaurant",
-      "line": 596,
+      "line": 599,
       "kind": "function"
      }
     ],
@@ -85524,7 +85527,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 621
+    "lineCount": 624
    },
    {
     "path": "src/lib/ai/tokAiClientMarketingOutputShell.ts",
@@ -90067,7 +90070,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 108
+    "lineCount": 112
    },
    {
     "path": "src/lib/marketingDomains.ts",
@@ -105247,7 +105250,7 @@
     "integrations": [
      "openai"
     ],
-    "lineCount": 1932
+    "lineCount": 1951
    },
    {
     "path": "supabase/functions/ai-marketing-agent/index.ts",
@@ -106017,7 +106020,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 232
+    "lineCount": 242
    },
    {
     "path": "supabase/functions/print-orchestrator/index.ts",
@@ -123162,7 +123165,7 @@
    "id": "code-module:53871c488863",
    "type": "code-module",
    "title": "src/components/dashboard/TokAiMarketingStudio.tsx",
-   "description": "Module de 2394 lignes; exports: default.",
+   "description": "Module de 2396 lignes; exports: default.",
    "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
    "line": 1,
    "surface": null,
@@ -123171,20 +123174,21 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "2df12cea25ca"
+   "detailRef": "61e886f4d96c"
   },
   {
    "id": "code-module:debf63304b0a",
    "type": "code-module",
    "title": "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
-   "description": "Module de 57 lignes; exports: default.",
+   "description": "Module de 74 lignes; exports: default.",
    "path": "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
    "line": 1,
    "surface": null,
    "tags": [
-    "default"
+    "default",
+    "supabase"
    ],
-   "detailRef": "c733392c8079"
+   "detailRef": "e52409511e69"
   },
   {
    "id": "code-module:4f6a9d1b0aea",
@@ -123230,20 +123234,20 @@
    "id": "code-module:9601448e35f1",
    "type": "code-module",
    "title": "src/components/dashboard/marketing-print/MarketingStudioPrintCatalogBridge.tsx",
-   "description": "Module de 240 lignes; exports: default.",
+   "description": "Module de 242 lignes; exports: default.",
    "path": "src/components/dashboard/marketing-print/MarketingStudioPrintCatalogBridge.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "184bbb7e6a72"
+   "detailRef": "fe6da6fe3a12"
   },
   {
    "id": "code-module:deb783cb0fb3",
    "type": "code-module",
    "title": "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
-   "description": "Module de 595 lignes; exports: default.",
+   "description": "Module de 613 lignes; exports: default.",
    "path": "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
    "line": 1,
    "surface": null,
@@ -123252,7 +123256,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "767c7ba64277"
+   "detailRef": "13da6a135d19"
   },
   {
    "id": "code-module:11242b236a44",
@@ -126006,7 +126010,7 @@
    "id": "code-module:2e00dc571d1a",
    "type": "code-module",
    "title": "src/lib/ai/aiCreationJobs.ts",
-   "description": "Module de 687 lignes; exports: AI_CREATION_COMPLETED_EVENT, AI_CREATION_FAILED_EVENT, AiCreationTool, AiCreationStatus, AiCreationRecord, loadPersistedAiCreationRecords, mergeAiCreationRecordSources, recoverInterruptedAiCreations, getAiCreationRecords, subscribeAiCreationRecords, setActiveAiCreationContext, getActiveAiCreationContext, requestAiCreationNotificationPermission, startTokImageCreationJob, useAiCreationRecovery, markAiCreationAddedToGallery, deleteAiCreationRecord, getAiCreationImageUrl, hasActiveAiCreationJob.",
+   "description": "Module de 690 lignes; exports: AI_CREATION_COMPLETED_EVENT, AI_CREATION_FAILED_EVENT, AiCreationTool, AiCreationStatus, AiCreationRecord, loadPersistedAiCreationRecords, mergeAiCreationRecordSources, recoverInterruptedAiCreations, getAiCreationRecords, subscribeAiCreationRecords, setActiveAiCreationContext, getActiveAiCreationContext, requestAiCreationNotificationPermission, startTokImageCreationJob, useAiCreationRecovery, markAiCreationAddedToGallery, deleteAiCreationRecord, getAiCreationImageUrl, hasActiveAiCreationJob.",
    "path": "src/lib/ai/aiCreationJobs.ts",
    "line": 1,
    "surface": null,
@@ -126033,7 +126037,7 @@
     "supabase",
     "useAiCreationRecovery"
    ],
-   "detailRef": "28a0ed15c0ce"
+   "detailRef": "fd885a25772d"
   },
   {
    "id": "code-module:db8c6aa635c0",
@@ -126155,7 +126159,7 @@
    "id": "code-module:0e949a052e11",
    "type": "code-module",
    "title": "src/lib/ai/tokAiClient.ts",
-   "description": "Module de 621 lignes; exports: TokAiMessage, ClientSupportRequest, ClientSupportConversation, ClientSupportConversationMessage, RestaurantAdvisorConversation, RestaurantAgentAction, RestaurantAgentRequest, RestaurantAdvisorStreamRequest, TokImageFormat, TokImageGenerationRequest, TokImageGenerationResult, AccountingAgentRequest, AccountingAgentResult, AccountingInsightRow, AdminMonitorRequest, AdminDashboardChatRequest, AdminDashboardChatResult, RestaurantAiSubscription, askClientSupport, getClientSupportConversations, getClientSupportConversationMessages, getRestaurantAdvisorConversations, createRestaurantAdvisorConversation, appendRestaurantAdvisorConversationMessages, archiveRestaurantAdvisorConversation, runRestaurantAgent, streamRestaurantAdvisor, generateTokDishImage, runAccountingAgent, runAdminMonitor, askAdminDashboardChat, getAdminDashboardChatConversations, getAdminDashboardChatMessages, estimateAiCost, getAiUsageForRestaurant, getAiSubscriptionForRestaurant, getAccountingInsightsForRestaurant.",
+   "description": "Module de 624 lignes; exports: TokAiMessage, ClientSupportRequest, ClientSupportConversation, ClientSupportConversationMessage, RestaurantAdvisorConversation, RestaurantAgentAction, RestaurantAgentRequest, RestaurantAdvisorStreamRequest, TokImageFormat, TokImageGenerationRequest, TokImageGenerationResult, AccountingAgentRequest, AccountingAgentResult, AccountingInsightRow, AdminMonitorRequest, AdminDashboardChatRequest, AdminDashboardChatResult, RestaurantAiSubscription, askClientSupport, getClientSupportConversations, getClientSupportConversationMessages, getRestaurantAdvisorConversations, createRestaurantAdvisorConversation, appendRestaurantAdvisorConversationMessages, archiveRestaurantAdvisorConversation, runRestaurantAgent, streamRestaurantAdvisor, generateTokDishImage, runAccountingAgent, runAdminMonitor, askAdminDashboardChat, getAdminDashboardChatConversations, getAdminDashboardChatMessages, estimateAiCost, getAiUsageForRestaurant, getAiSubscriptionForRestaurant, getAccountingInsightsForRestaurant.",
    "path": "src/lib/ai/tokAiClient.ts",
    "line": 1,
    "surface": null,
@@ -126200,7 +126204,7 @@
     "streamRestaurantAdvisor",
     "supabase"
    ],
-   "detailRef": "8a93c0ccd3e3"
+   "detailRef": "9dddaabc54fe"
   },
   {
    "id": "code-module:dfceccfdbbfa",
@@ -128126,7 +128130,7 @@
    "id": "code-module:5260f4244eae",
    "type": "code-module",
    "title": "src/lib/marketing/outputSession.ts",
-   "description": "Module de 108 lignes; exports: MarketingOutputSessionSnapshot, setMarketingOutputSession, getMarketingOutputSessionSnapshot, subscribeMarketingOutputSession, setActiveMarketingOutputTarget, getActiveMarketingOutputTarget, applyMarketingOutputTargetToImageRequest.",
+   "description": "Module de 112 lignes; exports: MarketingOutputSessionSnapshot, setMarketingOutputSession, getMarketingOutputSessionSnapshot, subscribeMarketingOutputSession, setActiveMarketingOutputTarget, getActiveMarketingOutputTarget, applyMarketingOutputTargetToImageRequest.",
    "path": "src/lib/marketing/outputSession.ts",
    "line": 1,
    "surface": null,
@@ -128139,7 +128143,7 @@
     "setMarketingOutputSession",
     "subscribeMarketingOutputSession"
    ],
-   "detailRef": "5ab728ab6133"
+   "detailRef": "a62d1a0da270"
   },
   {
    "id": "code-module:d64902b11837",
@@ -140336,7 +140340,7 @@
    "id": "code-module:95b5e7da0880",
    "type": "code-module",
    "title": "supabase/functions/ai-image-enhance/index.ts",
-   "description": "Module de 1932 lignes; exports: aucun export statique.",
+   "description": "Module de 1951 lignes; exports: aucun export statique.",
    "path": "supabase/functions/ai-image-enhance/index.ts",
    "line": 1,
    "surface": null,
@@ -140346,7 +140350,7 @@
     "TOK_MARKETING_REFERENCE_BUCKET",
     "openai"
    ],
-   "detailRef": "e204ce55eb4b"
+   "detailRef": "d266c71b81ae"
   },
   {
    "id": "code-module:2d59c9951508",
@@ -141234,12 +141238,12 @@
    "id": "code-module:0a6a33db8df1",
    "type": "code-module",
    "title": "supabase/functions/print-export/index.ts",
-   "description": "Module de 232 lignes; exports: aucun export statique.",
+   "description": "Module de 242 lignes; exports: aucun export statique.",
    "path": "supabase/functions/print-export/index.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "ce5ced23ca36"
+   "detailRef": "2375567a095c"
   },
   {
    "id": "code-module:c715d62e836a",
@@ -226062,24 +226066,9 @@
    "detailRef": "0c88317ed0ab"
   },
   {
-   "id": "exported-symbol:caec7e2513a9",
+   "id": "exported-symbol:807a5d0a1925",
    "type": "exported-symbol",
    "title": "AI_CREATION_COMPLETED_EVENT",
-   "description": "Export variable de src/lib/ai/aiCreationJobs.ts.",
-   "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 14,
-   "surface": null,
-   "tags": [
-    "openai",
-    "supabase",
-    "variable"
-   ],
-   "detailRef": "c1d680c39169"
-  },
-  {
-   "id": "exported-symbol:c209e980c3d1",
-   "type": "exported-symbol",
-   "title": "AI_CREATION_FAILED_EVENT",
    "description": "Export variable de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
    "line": 15,
@@ -226089,7 +226078,22 @@
     "supabase",
     "variable"
    ],
-   "detailRef": "ad05e976ddf6"
+   "detailRef": "8674d0247192"
+  },
+  {
+   "id": "exported-symbol:123f92dcc717",
+   "type": "exported-symbol",
+   "title": "AI_CREATION_FAILED_EVENT",
+   "description": "Export variable de src/lib/ai/aiCreationJobs.ts.",
+   "path": "src/lib/ai/aiCreationJobs.ts",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase",
+    "variable"
+   ],
+   "detailRef": "15ac31f4c799"
   },
   {
    "id": "exported-symbol:0d2574fcf615",
@@ -226214,34 +226218,34 @@
    "detailRef": "e34a6bf0369a"
   },
   {
-   "id": "exported-symbol:79cd62fcf856",
+   "id": "exported-symbol:4f68d4fd7d43",
    "type": "exported-symbol",
    "title": "AccountingAgentRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 136,
+   "line": 139,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "06105bcda369"
+   "detailRef": "6eacfafcdb5b"
   },
   {
-   "id": "exported-symbol:95ad3dda09a6",
+   "id": "exported-symbol:1c279d7fdf5a",
    "type": "exported-symbol",
    "title": "AccountingAgentResult",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 143,
+   "line": 146,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "b30ac1e56c5c"
+   "detailRef": "c777975e7b1b"
   },
   {
    "id": "exported-symbol:d2087feb1116",
@@ -226348,19 +226352,19 @@
    "detailRef": "362b17b977ef"
   },
   {
-   "id": "exported-symbol:47a66f1a434a",
+   "id": "exported-symbol:31ec7db0d119",
    "type": "exported-symbol",
    "title": "AccountingInsightRow",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 156,
+   "line": 159,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "f41aa4b52e75"
+   "detailRef": "e14c1896e293"
   },
   {
    "id": "exported-symbol:7234d29845d0",
@@ -226678,34 +226682,34 @@
    "detailRef": "c459a3f81156"
   },
   {
-   "id": "exported-symbol:dce35b82c4b8",
+   "id": "exported-symbol:9bdddeacc603",
    "type": "exported-symbol",
    "title": "AdminDashboardChatRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 177,
+   "line": 180,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "1a68bda267c3"
+   "detailRef": "f75fea6fe97b"
   },
   {
-   "id": "exported-symbol:0a4f75e6764e",
+   "id": "exported-symbol:35d1b879cb13",
    "type": "exported-symbol",
    "title": "AdminDashboardChatResult",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 183,
+   "line": 186,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "8d6b9578f93e"
+   "detailRef": "c62dac982e9f"
   },
   {
    "id": "exported-symbol:3930f3274c8b",
@@ -226781,19 +226785,19 @@
    "detailRef": "5569a826ded7"
   },
   {
-   "id": "exported-symbol:062bb0e3b86e",
+   "id": "exported-symbol:74c0cdcb6f4f",
    "type": "exported-symbol",
    "title": "AdminMonitorRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 172,
+   "line": 175,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "c04d3c9c65df"
+   "detailRef": "a90cab8677d0"
   },
   {
    "id": "exported-symbol:089222c77b84",
@@ -227014,49 +227018,49 @@
    "detailRef": "e73a649d4bf9"
   },
   {
-   "id": "exported-symbol:2e4ff7cef879",
+   "id": "exported-symbol:f79cb67117e1",
    "type": "exported-symbol",
    "title": "AiCreationRecord",
    "description": "Export typealias de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 39,
+   "line": 40,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "fdddb841bfac"
+   "detailRef": "1b1838e8417a"
   },
   {
-   "id": "exported-symbol:3ae6457badb0",
+   "id": "exported-symbol:4a75259bff50",
    "type": "exported-symbol",
    "title": "AiCreationStatus",
    "description": "Export typealias de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 37,
+   "line": 38,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "03bf0b270249"
+   "detailRef": "1d3fd9ea0488"
   },
   {
-   "id": "exported-symbol:798498629d77",
+   "id": "exported-symbol:3d1789423b79",
    "type": "exported-symbol",
    "title": "AiCreationTool",
    "description": "Export typealias de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 30,
+   "line": 31,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "7fe770f5c495"
+   "detailRef": "cef4ff3d934d"
   },
   {
    "id": "exported-symbol:b48470ae4439",
@@ -229215,49 +229219,49 @@
    "detailRef": "48814f5cd356"
   },
   {
-   "id": "exported-symbol:923567e026b5",
+   "id": "exported-symbol:ebe5f8565525",
    "type": "exported-symbol",
    "title": "ClientSupportConversation",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 29,
+   "line": 30,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "4f0b7bca5117"
+   "detailRef": "91d2b8a15991"
   },
   {
-   "id": "exported-symbol:c9935ea76dbd",
+   "id": "exported-symbol:896387447282",
    "type": "exported-symbol",
    "title": "ClientSupportConversationMessage",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 43,
+   "line": 44,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "c53d40cf9f20"
+   "detailRef": "3199ea68d203"
   },
   {
-   "id": "exported-symbol:d615d9d7df57",
+   "id": "exported-symbol:553ffc671279",
    "type": "exported-symbol",
    "title": "ClientSupportRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 20,
+   "line": 21,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "ac6db0b07d8e"
+   "detailRef": "b506d2fed2f5"
   },
   {
    "id": "exported-symbol:40531e708c48",
@@ -240266,79 +240270,79 @@
    "detailRef": "ff676645bbef"
   },
   {
-   "id": "exported-symbol:0c5592461d15",
+   "id": "exported-symbol:a97c4aced636",
    "type": "exported-symbol",
    "title": "RestaurantAdvisorConversation",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 52,
+   "line": 53,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "d212d9891494"
+   "detailRef": "04da74a726e4"
   },
   {
-   "id": "exported-symbol:6109f76ef4af",
+   "id": "exported-symbol:d30275610966",
    "type": "exported-symbol",
    "title": "RestaurantAdvisorStreamRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 72,
+   "line": 73,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "a674164accdf"
+   "detailRef": "31960ec6a74a"
   },
   {
-   "id": "exported-symbol:291683769d1c",
+   "id": "exported-symbol:9cf4184ded74",
    "type": "exported-symbol",
    "title": "RestaurantAgentAction",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 56,
+   "line": 57,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "40053f10374a"
+   "detailRef": "6e6f29e86898"
   },
   {
-   "id": "exported-symbol:60a92070da4b",
+   "id": "exported-symbol:9c9c9726ad58",
    "type": "exported-symbol",
    "title": "RestaurantAgentRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 65,
+   "line": 66,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "5ca808b89108"
+   "detailRef": "11c372be9954"
   },
   {
-   "id": "exported-symbol:bd856ed73abc",
+   "id": "exported-symbol:c1b4ee225374",
    "type": "exported-symbol",
    "title": "RestaurantAiSubscription",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 193,
+   "line": 196,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "9f2b9b2f3f7e"
+   "detailRef": "ee5657f9432f"
   },
   {
    "id": "exported-symbol:053174663e64",
@@ -244629,19 +244633,19 @@
    "detailRef": "a15eda20885a"
   },
   {
-   "id": "exported-symbol:c174c6b43c67",
+   "id": "exported-symbol:87f201937d01",
    "type": "exported-symbol",
    "title": "TokAiMessage",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 15,
+   "line": 16,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "7e25c0f3a2e2"
+   "detailRef": "8c915e2fd510"
   },
   {
    "id": "exported-symbol:0ed323dd1ab6",
@@ -245121,49 +245125,49 @@
    "detailRef": "0de28a53d9ff"
   },
   {
-   "id": "exported-symbol:53ad2c2aa3ec",
+   "id": "exported-symbol:fe6b1e04655b",
    "type": "exported-symbol",
    "title": "TokImageFormat",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 78,
+   "line": 79,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "af99038bde5b"
+   "detailRef": "b14da37e3b46"
   },
   {
-   "id": "exported-symbol:5292ef1ed888",
+   "id": "exported-symbol:3390a36ff8e0",
    "type": "exported-symbol",
    "title": "TokImageGenerationRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 80,
+   "line": 81,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "9b13b0747674"
+   "detailRef": "88f030f0650a"
   },
   {
-   "id": "exported-symbol:533789db8047",
+   "id": "exported-symbol:9a6946230df6",
    "type": "exported-symbol",
    "title": "TokImageGenerationResult",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 106,
+   "line": 108,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "278689b24f46"
+   "detailRef": "0eb1c4bef700"
   },
   {
    "id": "exported-symbol:3cff2dcf536f",
@@ -245905,19 +245909,19 @@
    "detailRef": "cde858124b5b"
   },
   {
-   "id": "exported-symbol:a095b1519c14",
+   "id": "exported-symbol:643fcebe4990",
    "type": "exported-symbol",
    "title": "appendRestaurantAdvisorConversationMessages",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 352,
+   "line": 355,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "429adab714b8"
+   "detailRef": "1f74f2523c3a"
   },
   {
    "id": "exported-symbol:e045066752fb",
@@ -246126,19 +246130,19 @@
    "detailRef": "c100bdfb55ef"
   },
   {
-   "id": "exported-symbol:644b04b9b30e",
+   "id": "exported-symbol:1b7732859031",
    "type": "exported-symbol",
    "title": "archiveRestaurantAdvisorConversation",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 381,
+   "line": 384,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "f49f7a6e012d"
+   "detailRef": "06b858975ee6"
   },
   {
    "id": "exported-symbol:3341b6066a4a",
@@ -246167,34 +246171,34 @@
    "detailRef": "c95285863bf5"
   },
   {
-   "id": "exported-symbol:7f5c0aef02b7",
+   "id": "exported-symbol:2664f43f3389",
    "type": "exported-symbol",
    "title": "askAdminDashboardChat",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 514,
+   "line": 517,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "d02d1fc5822e"
+   "detailRef": "7150c99ad291"
   },
   {
-   "id": "exported-symbol:a6d2e6659fd7",
+   "id": "exported-symbol:97de016ad38f",
    "type": "exported-symbol",
    "title": "askClientSupport",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 214,
+   "line": 217,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "d520e08b759b"
+   "detailRef": "3349c4cb51d4"
   },
   {
    "id": "exported-symbol:4aa2bb8bf0c8",
@@ -250049,19 +250053,19 @@
    "detailRef": "a2e6a560bc7a"
   },
   {
-   "id": "exported-symbol:3ef5919167fd",
+   "id": "exported-symbol:8a065a9f4c5a",
    "type": "exported-symbol",
    "title": "createRestaurantAdvisorConversation",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 316,
+   "line": 319,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "d08a1942e856"
+   "detailRef": "853ba242eb09"
   },
   {
    "id": "exported-symbol:30eb06a9e1a3",
@@ -251745,32 +251749,33 @@
    "detailRef": "8abdbea440e2"
   },
   {
-   "id": "exported-symbol:a37f01fb21a8",
+   "id": "exported-symbol:ea5da96281a0",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/dashboard/TokAiMarketingStudio.tsx.",
    "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
-   "line": 1169,
+   "line": 1170,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "f2f9e03c3434"
+   "detailRef": "9fa04b949613"
   },
   {
-   "id": "exported-symbol:672847ea0ba7",
+   "id": "exported-symbol:62a69908dce4",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/dashboard/TokAiMarketingStudioPrintShell.tsx.",
    "path": "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
-   "line": 22,
+   "line": 26,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "6990dd515909"
+   "detailRef": "f09b827b6fbc"
   },
   {
    "id": "exported-symbol:6f5a295d286c",
@@ -251813,32 +251818,32 @@
    "detailRef": "0cba46251727"
   },
   {
-   "id": "exported-symbol:e358326a9e6c",
+   "id": "exported-symbol:abb2108388d8",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/dashboard/marketing-print/MarketingStudioPrintCatalogBridge.tsx.",
    "path": "src/components/dashboard/marketing-print/MarketingStudioPrintCatalogBridge.tsx",
-   "line": 92,
+   "line": 93,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "1aaf97b67a15"
+   "detailRef": "a4f2d7044586"
   },
   {
-   "id": "exported-symbol:c79192f97e7a",
+   "id": "exported-symbol:96ee297a7768",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/dashboard/marketing-print/PrintComposerDialog.tsx.",
    "path": "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
-   "line": 221,
+   "line": 228,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "ad299e03597d"
+   "detailRef": "9986910bd2f3"
   },
   {
    "id": "exported-symbol:30a02995f704",
@@ -254511,19 +254516,19 @@
    "detailRef": "5ded9e8de895"
   },
   {
-   "id": "exported-symbol:982130abd215",
+   "id": "exported-symbol:42291a292347",
    "type": "exported-symbol",
    "title": "deleteAiCreationRecord",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 670,
+   "line": 673,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "65ca8f4d450c"
+   "detailRef": "19091647f541"
   },
   {
    "id": "exported-symbol:0b0b5c7cd162",
@@ -255147,19 +255152,19 @@
    "detailRef": "91fe1f0e9f0b"
   },
   {
-   "id": "exported-symbol:448605a18a1a",
+   "id": "exported-symbol:cf0f2df0a379",
    "type": "exported-symbol",
    "title": "estimateAiCost",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 548,
+   "line": 551,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "2312fd7909dd"
+   "detailRef": "6fb35ef165d4"
   },
   {
    "id": "exported-symbol:0108271e3684",
@@ -256612,19 +256617,19 @@
    "detailRef": "700c0610c993"
   },
   {
-   "id": "exported-symbol:b7b667e3481e",
+   "id": "exported-symbol:71d868fabe0a",
    "type": "exported-symbol",
    "title": "generateTokDishImage",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 472,
+   "line": 475,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "b986ac9bc021"
+   "detailRef": "c6a11f87c872"
   },
   {
    "id": "exported-symbol:e70e336a8ab3",
@@ -256640,34 +256645,34 @@
    "detailRef": "e7c673fe9861"
   },
   {
-   "id": "exported-symbol:a0f54c4cddd1",
+   "id": "exported-symbol:4f643dd615ec",
    "type": "exported-symbol",
    "title": "getAccountingInsightsForRestaurant",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 596,
+   "line": 599,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "ecb022c3574a"
+   "detailRef": "c1bd8d450c0d"
   },
   {
-   "id": "exported-symbol:872d4a31227b",
+   "id": "exported-symbol:bf5dfc293626",
    "type": "exported-symbol",
    "title": "getActiveAiCreationContext",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 546,
+   "line": 549,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "fd583ef1ca77"
+   "detailRef": "2d667cf9a559"
   },
   {
    "id": "exported-symbol:65a3a47c57bd",
@@ -256750,34 +256755,34 @@
    "detailRef": "cc29dbed1b64"
   },
   {
-   "id": "exported-symbol:1a6711bf240b",
+   "id": "exported-symbol:c7b462c85a2d",
    "type": "exported-symbol",
    "title": "getAdminDashboardChatConversations",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 521,
+   "line": 524,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "cf3dfb2acf4d"
+   "detailRef": "b2d1fe6ac9c8"
   },
   {
-   "id": "exported-symbol:2b8063fc5c64",
+   "id": "exported-symbol:218b05f94e86",
    "type": "exported-symbol",
    "title": "getAdminDashboardChatMessages",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 530,
+   "line": 533,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "d623a51fe1d3"
+   "detailRef": "8e8725b494fa"
   },
   {
    "id": "exported-symbol:9e3b30c13c0b",
@@ -256820,34 +256825,34 @@
    "detailRef": "3805007abacd"
   },
   {
-   "id": "exported-symbol:f5a4213e8ef0",
+   "id": "exported-symbol:9dc792d66459",
    "type": "exported-symbol",
    "title": "getAiCreationImageUrl",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 680,
+   "line": 683,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "082a6f251d18"
+   "detailRef": "4380d14bf06e"
   },
   {
-   "id": "exported-symbol:a097af8e72b4",
+   "id": "exported-symbol:b1e0413b73cf",
    "type": "exported-symbol",
    "title": "getAiCreationRecords",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 525,
+   "line": 528,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "a65417667e40"
+   "detailRef": "28e799bd19b2"
   },
   {
    "id": "exported-symbol:f982791087dc",
@@ -256863,34 +256868,34 @@
    "detailRef": "edc7e8585514"
   },
   {
-   "id": "exported-symbol:7357d0bfc7c5",
+   "id": "exported-symbol:7a3b736feb39",
    "type": "exported-symbol",
    "title": "getAiSubscriptionForRestaurant",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 573,
+   "line": 576,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "c85405245008"
+   "detailRef": "ea886712e0f1"
   },
   {
-   "id": "exported-symbol:fdb04e03c4f0",
+   "id": "exported-symbol:1c553e413e51",
    "type": "exported-symbol",
    "title": "getAiUsageForRestaurant",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 556,
+   "line": 559,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "975436c6c009"
+   "detailRef": "4fd8dc8f3787"
   },
   {
    "id": "exported-symbol:bf0ca2b8612f",
@@ -257202,34 +257207,34 @@
    "detailRef": "ea5e8327a43b"
   },
   {
-   "id": "exported-symbol:211154141771",
+   "id": "exported-symbol:631044eec946",
    "type": "exported-symbol",
    "title": "getClientSupportConversationMessages",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 254,
+   "line": 257,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "25b5d16cfc18"
+   "detailRef": "ec4911d58fc5"
   },
   {
-   "id": "exported-symbol:93e0ef2c7e78",
+   "id": "exported-symbol:ff595e169609",
    "type": "exported-symbol",
    "title": "getClientSupportConversations",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 230,
+   "line": 233,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "7fca6fca02dd"
+   "detailRef": "02521f432fd4"
   },
   {
    "id": "exported-symbol:735cccad2338",
@@ -259931,19 +259936,19 @@
    "detailRef": "27b345356652"
   },
   {
-   "id": "exported-symbol:fc87c304358e",
+   "id": "exported-symbol:ea95a7e88a9f",
    "type": "exported-symbol",
    "title": "getRestaurantAdvisorConversations",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 265,
+   "line": 268,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "e47f4e196959"
+   "detailRef": "2d76aff623c2"
   },
   {
    "id": "exported-symbol:17f7b5c9323a",
@@ -261281,19 +261286,19 @@
    "detailRef": "778215fa9bc8"
   },
   {
-   "id": "exported-symbol:e9a7d0ab419b",
+   "id": "exported-symbol:91ac83fa2ca9",
    "type": "exported-symbol",
    "title": "hasActiveAiCreationJob",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 684,
+   "line": 687,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "f4ac4eb2590c"
+   "detailRef": "cb1db8bfc33a"
   },
   {
    "id": "exported-symbol:285c9e26cbce",
@@ -263863,19 +263868,19 @@
    "detailRef": "855ee3c7c8ec"
   },
   {
-   "id": "exported-symbol:7e09ef406ae1",
+   "id": "exported-symbol:36e763c89f56",
    "type": "exported-symbol",
    "title": "loadPersistedAiCreationRecords",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 345,
+   "line": 348,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "84b810de508c"
+   "detailRef": "d2310ef4f74d"
   },
   {
    "id": "exported-symbol:0109dc7d6916",
@@ -264066,19 +264071,19 @@
    "detailRef": "6c5639b5acc1"
   },
   {
-   "id": "exported-symbol:c600f4143239",
+   "id": "exported-symbol:3ddda03ec05d",
    "type": "exported-symbol",
    "title": "markAiCreationAddedToGallery",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 666,
+   "line": 669,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "2b3ba882c09b"
+   "detailRef": "53e59c5b87d3"
   },
   {
    "id": "exported-symbol:d90c9577c72a",
@@ -264538,19 +264543,19 @@
    "detailRef": "91cd20c0734d"
   },
   {
-   "id": "exported-symbol:d10df5d75966",
+   "id": "exported-symbol:8b8707262316",
    "type": "exported-symbol",
    "title": "mergeAiCreationRecordSources",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 367,
+   "line": 370,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "f7c66141dc4d"
+   "detailRef": "7647e9ba6fb5"
   },
   {
    "id": "exported-symbol:948b758980d2",
@@ -266515,19 +266520,19 @@
    "detailRef": "522550e3447d"
   },
   {
-   "id": "exported-symbol:c1ebc8604864",
+   "id": "exported-symbol:75d92bd1dcc5",
    "type": "exported-symbol",
    "title": "recoverInterruptedAiCreations",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 392,
+   "line": 395,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "2d9e4e0e444c"
+   "detailRef": "7cd0f6b472e1"
   },
   {
    "id": "exported-symbol:43ed93699bb9",
@@ -266885,19 +266890,19 @@
    "detailRef": "5bd863fb574e"
   },
   {
-   "id": "exported-symbol:fc0734d8f8ad",
+   "id": "exported-symbol:78fdaf7d88f0",
    "type": "exported-symbol",
    "title": "requestAiCreationNotificationPermission",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 550,
+   "line": 553,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "38da114a657f"
+   "detailRef": "753c20abaeb2"
   },
   {
    "id": "exported-symbol:4541171c2fbb",
@@ -267629,34 +267634,34 @@
    "detailRef": "fb49af0984fc"
   },
   {
-   "id": "exported-symbol:d72039a5977e",
+   "id": "exported-symbol:d009d1a06be9",
    "type": "exported-symbol",
    "title": "runAccountingAgent",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 487,
+   "line": 490,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "e8dae560824f"
+   "detailRef": "dfe97d3ad96e"
   },
   {
-   "id": "exported-symbol:b4ab20d318ef",
+   "id": "exported-symbol:e5e2137d6108",
    "type": "exported-symbol",
    "title": "runAdminMonitor",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 491,
+   "line": 494,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "deb90cdb387d"
+   "detailRef": "817381ac614c"
   },
   {
    "id": "exported-symbol:d5e8aee4523b",
@@ -267714,19 +267719,19 @@
    "detailRef": "483ed01fdeb2"
   },
   {
-   "id": "exported-symbol:b9b9ece7b592",
+   "id": "exported-symbol:70e5de93a1a5",
    "type": "exported-symbol",
    "title": "runRestaurantAgent",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 389,
+   "line": 392,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "971eb4b6d0bf"
+   "detailRef": "adebfe27bd4e"
   },
   {
    "id": "exported-symbol:7cf680a9cef1",
@@ -268422,19 +268427,19 @@
    "detailRef": "ab6ee7dad1da"
   },
   {
-   "id": "exported-symbol:dd1ca38a9e75",
+   "id": "exported-symbol:802c51b69033",
    "type": "exported-symbol",
    "title": "setActiveAiCreationContext",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 542,
+   "line": 545,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "e8d71c7cef70"
+   "detailRef": "85388d676ffa"
   },
   {
    "id": "exported-symbol:a423789d12da",
@@ -268932,34 +268937,34 @@
    "detailRef": "27c39d7c2bc8"
   },
   {
-   "id": "exported-symbol:a1669bbd62cd",
+   "id": "exported-symbol:0505841a73fa",
    "type": "exported-symbol",
    "title": "startTokImageCreationJob",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 561,
+   "line": 564,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "671f1a640dc5"
+   "detailRef": "a1f3cdc7b10e"
   },
   {
-   "id": "exported-symbol:3c2500da14f4",
+   "id": "exported-symbol:f376365cff87",
    "type": "exported-symbol",
    "title": "streamRestaurantAdvisor",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 406,
+   "line": 409,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "70736ba775b3"
+   "detailRef": "e1a5ce22e576"
   },
   {
    "id": "exported-symbol:4f75bf238925",
@@ -269020,19 +269025,19 @@
    "detailRef": "a7f3f5a375f1"
   },
   {
-   "id": "exported-symbol:e1f10308fb64",
+   "id": "exported-symbol:1865218f2396",
    "type": "exported-symbol",
    "title": "subscribeAiCreationRecords",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 531,
+   "line": 534,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "65c1d18152fb"
+   "detailRef": "d337514b7bb5"
   },
   {
    "id": "exported-symbol:3679798387b0",
@@ -270269,19 +270274,19 @@
    "detailRef": "242f80c2d574"
   },
   {
-   "id": "exported-symbol:8268a1e9f4b1",
+   "id": "exported-symbol:27da3497ab36",
    "type": "exported-symbol",
    "title": "useAiCreationRecovery",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 649,
+   "line": 652,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "f3fe93b8b063"
+   "detailRef": "b550ab6d55cc"
   },
   {
    "id": "exported-symbol:877ec33eafb3",
@@ -313759,7 +313764,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 634 module(s).",
+   "description": "Intégration externe détectée dans 635 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -313842,6 +313847,7 @@
     "src/components/dashboard/DailyDishAiPanel.tsx",
     "src/components/dashboard/DirectReservationChannelsCard.tsx",
     "src/components/dashboard/TokAiMarketingStudio.tsx",
+    "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
     "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
     "src/components/dashboard/performance/PerformanceBusinessTab.tsx",
     "src/components/floor-plan/FloorPlanAIPanel.tsx",
@@ -314400,7 +314406,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "47173f8fadf0"
+   "detailRef": "ed9edfc44204"
   },
   {
    "id": "integration:c20910a79a78",
@@ -325257,7 +325263,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "60d602873021"
+   "detailRef": "faaa552640c7"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -328147,7 +328153,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "8a2edb02f6e0"
+   "detailRef": "3b12dafba230"
   },
   {
    "id": "path-literal:916ad1246b1e",
@@ -330962,17 +330968,17 @@
    "detailRef": "ca8a8364bb59"
   },
   {
-   "id": "path-literal:782813e6b3fe",
+   "id": "path-literal:6121e710e42b",
    "type": "path-literal",
    "title": "/marketing-assets/",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/ai-image-enhance/index.ts",
-   "line": 97,
+   "line": 98,
    "surface": null,
    "tags": [
     "supabase/functions/ai-image-enhance/index.ts"
    ],
-   "detailRef": "0626c65471f0"
+   "detailRef": "bf70b9c7437a"
   },
   {
    "id": "path-literal:c3510da4d36e",
@@ -333539,17 +333545,17 @@
    "detailRef": "90f491ad4217"
   },
   {
-   "id": "path-literal:a3ccc38990ab",
+   "id": "path-literal:badf6d805a36",
    "type": "path-literal",
    "title": "/tok-reference-food-webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/ai-image-enhance/index.ts",
-   "line": 79,
+   "line": 80,
    "surface": null,
    "tags": [
     "supabase/functions/ai-image-enhance/index.ts"
    ],
-   "detailRef": "97516ea87663"
+   "detailRef": "a44ac7c9d328"
   },
   {
    "id": "path-literal:970b4c8398c6",
