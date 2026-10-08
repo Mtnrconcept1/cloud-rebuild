@@ -140,6 +140,8 @@ describe("production deployment secret scope", () => {
       "GITHUB_INCIDENT_TOKEN",
       "MARKETING_UNSUBSCRIBE_LEGACY_SECRET",
       "MARKETING_UNSUBSCRIBE_SECRET",
+      "META_APP_SECRET",
+      "META_SYSTEM_USER_TOKEN",
       "OPENAI_API_KEY",
       "OPENAI_IMAGE_TIMEOUT_MS",
       "OPENAI_MODEL",

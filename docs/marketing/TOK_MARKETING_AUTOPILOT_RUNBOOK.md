@@ -1,5 +1,13 @@
 # TOK Marketing Autopilot — runbook d'exploitation
 
+## État constaté le 8 octobre 2026
+
+La publication sociale utilise désormais la voie Meta directe (Facebook et Instagram), sans
+Metricool. Le code est repris et durci dans la branche `audit/tok-marketing-20261008` ; il n'est pas
+encore fusionné. Les huit modèles restent en simulation/brouillon. Consulter
+[l'audit actualisé](TOK_MARKETING_AUDIT_2026-10-08.md) pour les preuves de production, les conditions
+de livraison et les intégrations encore non configurées.
+
 ## Objet
 
 Ce document décrit le socle de contrôle de TOK Marketing Autopilot. Il couvre le registre des
@@ -116,7 +124,7 @@ active pas.
 
 Les éléments suivants restent obligatoires et doivent être enregistrés dans l'issue de suivi :
 
-- choix Metricool ou API directe ;
+- voie Meta directe pour Facebook/Instagram, sans Metricool ;
 - source de vérité TOK/HubSpot par champ ;
 - comptes sociaux, propriétés Search Console et comptes publicitaires autorisés ;
 - pays, langues, audience et propriétaires ;

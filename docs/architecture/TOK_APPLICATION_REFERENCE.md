@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `850a78c01adab960c379b74e591a94f11afb2ddfed5b4ebc84a30a5958b47ab7`
+- Empreinte SHA-256 des sources indexées : `5a364156b30e8cd9e486859fa736948aa180031d091eb9031e7c099c734d4265`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,24 +29,24 @@
 | cronJobs | 33 |
 | databaseContract | 228 |
 | databaseObjects | 2718 |
-| documents | 186 |
+| documents | 187 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3334 |
+| exportedSymbols | 3345 |
 | featureFlags | 99 |
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
-| migrations | 519 |
-| modules | 1430 |
+| migrations | 520 |
+| modules | 1434 |
 | pages | 127 |
-| pathLiterals | 595 |
+| pathLiterals | 597 |
 | publicAssets | 295 |
 | publicEntries | 317 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 100 |
-| records | 15283 |
-| repositoryFiles | 2673 |
+| records | 15318 |
+| repositoryFiles | 2679 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -922,6 +922,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /* | 7 | [scripts/write-apple-app-site-association.mjs:29](../../scripts/write-apple-app-site-association.mjs#L29) |
 | /.well-known/apple-app-site-association | 2 | [src/test/application-search-index.test.ts:69](../../src/test/application-search-index.test.ts#L69) |
 | /.well-known/assetlinks.json | 2 | [scripts/mobile-verify.mjs:262](../../scripts/mobile-verify.mjs#L262) |
+| /18270815569115548? | 1 | [src/test/marketing-meta-publishing.test.ts:162](../../src/test/marketing-meta-publishing.test.ts#L162) |
 | /:path* | 1 | [src/test/marketing-subdomain-integration.test.ts:57](../../src/test/marketing-subdomain-integration.test.ts#L57) |
 | /:surface( | 2 | [src/test/vercel-rewrites.test.ts:132](../../src/test/vercel-rewrites.test.ts#L132) |
 | /:surface(admin\|marketing\|dashboard\|courier\|commercial\|profil\|memoire-tok\|notifications\|commandes\|commande\|reservations\|mon-espace\|compte\|espace-client\|mes-avis\|points-cadeau\|panier\|auth\|oauth\|espaces\|r) | 2 | [src/test/vercel-rewrites.test.ts:107](../../src/test/vercel-rewrites.test.ts#L107) |
@@ -1305,6 +1306,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
 | /marketing/login | 8 | [src/App.tsx:722](../../src/App.tsx#L722) |
 | /match-groupes | 12 | [scripts/prerender-seo.mjs:1049](../../scripts/prerender-seo.mjs#L1049) |
+| /me/accounts? | 1 | [src/test/marketing-meta-publishing.test.ts:94](../../src/test/marketing-meta-publishing.test.ts#L94) |
 | /memoire-tok | 7 | [scripts/prerender-seo.mjs:1213](../../scripts/prerender-seo.mjs#L1213) |
 | /menu | 3 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
 | /mes-avis | 8 | [scripts/prerender-seo.mjs:1221](../../scripts/prerender-seo.mjs#L1221) |
@@ -5474,6 +5476,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20260925104552 Require Public Restaurant Images | 521 | 4 | [supabase/migrations/20260925104552_require_public_restaurant_images.sql:1](../../supabase/migrations/20260925104552_require_public_restaurant_images.sql#L1) |
 | 20261003070000 Marketing Autopilot Foundation | 1756 | 39 | [supabase/migrations/20261003070000_marketing_autopilot_foundation.sql:1](../../supabase/migrations/20261003070000_marketing_autopilot_foundation.sql#L1) |
 | 20261006010000 Repair Admin Commercial Supabase Regressions | 1012 | 18 | [supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql:1](../../supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql#L1) |
+| 20261006033000 Configure Meta Marketing Integrations | 47 | 0 | [supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql:1](../../supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -5695,7 +5698,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 30 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 8 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 211 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 638 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 640 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 54 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5707,7 +5710,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | --- | --- |
 | application-library | 203 |
 | automation-script | 61 |
-| edge-function-source | 176 |
+| edge-function-source | 178 |
 | frontend-component | 245 |
 | frontend-hook | 22 |
 | frontend-page | 127 |
@@ -5715,7 +5718,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 546 |
+| test | 548 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -5825,7 +5828,8 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Licence sur les images, menus, marques et contenus des restaurants | 8 | [docs/legal/09-licence-contenus-restaurants.md:1](../../docs/legal/09-licence-contenus-restaurants.md#L1) |
 | Répartition des responsabilités — prix, disponibilité, allergènes et qualité | 3 | [docs/legal/10-responsabilites-produits.md:1](../../docs/legal/10-responsabilites-produits.md#L1) |
 | Pack contractuel TOK | 3 | [docs/legal/README.md:1](../../docs/legal/README.md#L1) |
-| TOK Marketing Autopilot — runbook d'exploitation | 12 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
+| Audit du marketing automatique TOK — 8 octobre 2026 | 7 | [docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md:1](../../docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md#L1) |
+| TOK Marketing Autopilot — runbook d'exploitation | 13 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
 | Revue Mobile Fullstack - 2026-03-29 | 25 | [docs/mobile-fullstack-review-2026-03-29.md:1](../../docs/mobile-fullstack-review-2026-03-29.md#L1) |
 | TOK Intelligence Suite — Campaign Studio, Customer Memory, Support & Resolution, Guardian | 11 | [docs/operations/TOK_INTELLIGENCE_SUITE.md:1](../../docs/operations/TOK_INTELLIGENCE_SUITE.md#L1) |
 | TOK — intelligence d’incident unifiée | 11 | [docs/operations/incident-intelligence-unification.md:1](../../docs/operations/incident-intelligence-unification.md#L1) |
@@ -6285,7 +6289,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (519)</summary>
+<details><summary>database-migration (520)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -6806,10 +6810,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20260925104552_require_public_restaurant_images.sql`
 - `supabase/migrations/20261003070000_marketing_autopilot_foundation.sql`
 - `supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql`
+- `supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql`
 
 </details>
 
-<details><summary>documentation (118)</summary>
+<details><summary>documentation (119)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md`
@@ -6852,6 +6857,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing-email-examples/02-pizzeria-carouge.txt`
 - `docs/marketing-email-examples/03-rive-droite-soiree.html`
 - `docs/marketing-email-examples/03-rive-droite-soiree.txt`
+- `docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md`
 - `docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md`
 - `docs/mobile-fullstack-review-2026-03-29.md`
 - `docs/operations/TOK_INTELLIGENCE_SUITE.md`
@@ -6932,7 +6938,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (176)</summary>
+<details><summary>edge-function-source (178)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -6958,6 +6964,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/marketing.ts`
 - `supabase/functions/_shared/marketplace-finance.ts`
 - `supabase/functions/_shared/mcp-http.ts`
+- `supabase/functions/_shared/meta-marketing-orchestrator.ts`
+- `supabase/functions/_shared/meta-publishing.ts`
 - `supabase/functions/_shared/notifications.ts`
 - `supabase/functions/_shared/openai.ts`
 - `supabase/functions/_shared/order-checkout.ts`
@@ -8103,7 +8111,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (546)</summary>
+<details><summary>test (548)</summary>
 
 - `scripts/ci-change-plan.test.mjs`
 - `scripts/ci-critical-tests.test.mjs`
@@ -8395,6 +8403,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-email-cadence.test.ts`
 - `src/test/marketing-email-template.test.ts`
 - `src/test/marketing-image-output.test.ts`
+- `src/test/marketing-meta-publishing.test.ts`
+- `src/test/marketing-meta-recovery.test.ts`
 - `src/test/marketing-one-click-unsubscribe.test.ts`
 - `src/test/marketing-operations-frontend.test.ts`
 - `src/test/marketing-orchestrator-schema.test.ts`

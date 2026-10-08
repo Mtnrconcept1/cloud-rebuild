@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "850a78c01adab960c379b74e591a94f11afb2ddfed5b4ebc84a30a5958b47ab7",
+ "sourceDigest": "5a364156b30e8cd9e486859fa736948aa180031d091eb9031e7c099c734d4265",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2718,
-  "documents": 186,
+  "documents": 187,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3334,
+  "exportedSymbols": 3345,
   "featureFlags": 99,
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 519,
-  "modules": 1430,
+  "migrations": 520,
+  "modules": 1434,
   "pages": 127,
-  "pathLiterals": 595,
+  "pathLiterals": 597,
   "publicAssets": 295,
   "publicEntries": 317,
   "publicNavigableRoutes": 2,
   "queryParameters": 100,
-  "records": 15283,
-  "repositoryFiles": 2673,
+  "records": 15318,
+  "repositoryFiles": 2679,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -13037,6 +13037,15 @@
     ]
    },
    {
+    "value": "/18270815569115548?",
+    "sources": [
+     {
+      "path": "src/test/marketing-meta-publishing.test.ts",
+      "line": 162
+     }
+    ]
+   },
+   {
     "value": "/:path*",
     "sources": [
      {
@@ -21604,6 +21613,15 @@
     ]
    },
    {
+    "value": "/me/accounts?",
+    "sources": [
+     {
+      "path": "src/test/marketing-meta-publishing.test.ts",
+      "line": 94
+     }
+    ]
+   },
+   {
     "value": "/memoire-tok",
     "sources": [
      {
@@ -28425,6 +28443,8 @@
      "src/test/marketing-edge-security.test.ts",
      "src/test/marketing-email-cadence.test.ts",
      "src/test/marketing-email-template.test.ts",
+     "src/test/marketing-meta-publishing.test.ts",
+     "src/test/marketing-meta-recovery.test.ts",
      "src/test/marketing-one-click-unsubscribe.test.ts",
      "src/test/marketing-operations-frontend.test.ts",
      "src/test/marketing-orchestrator-schema.test.ts",
@@ -31865,6 +31885,12 @@
     "path": "supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql",
     "lineCount": 1012,
     "objectCount": 18
+   },
+   {
+    "name": "20261006033000 Configure Meta Marketing Integrations",
+    "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+    "lineCount": 47,
+    "objectCount": 0
    }
   ],
   "databaseObjects": [
@@ -70186,6 +70212,47 @@
     ]
    },
    {
+    "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+    "title": "Audit du marketing automatique TOK — 8 octobre 2026",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Audit du marketing automatique TOK — 8 octobre 2026",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Verdict",
+      "line": 3
+     },
+     {
+      "level": 2,
+      "title": "Preuves d'environnement obtenues",
+      "line": 15
+     },
+     {
+      "level": 2,
+      "title": "État fonctionnel",
+      "line": 41
+     },
+     {
+      "level": 2,
+      "title": "Plan et correctifs de ce lot",
+      "line": 59
+     },
+     {
+      "level": 2,
+      "title": "Retour arrière et livraison",
+      "line": 82
+     },
+     {
+      "level": 2,
+      "title": "Validations",
+      "line": 99
+     }
+    ]
+   },
+   {
     "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
     "title": "TOK Marketing Autopilot — runbook d'exploitation",
     "headings": [
@@ -70196,58 +70263,63 @@
      },
      {
       "level": 2,
-      "title": "Objet",
+      "title": "État constaté le 8 octobre 2026",
       "line": 3
      },
      {
       "level": 2,
+      "title": "Objet",
+      "line": 11
+     },
+     {
+      "level": 2,
       "title": "États et garanties",
-      "line": 14
+      "line": 22
      },
      {
       "level": 3,
       "title": "Fournisseurs",
-      "line": 16
+      "line": 24
      },
      {
       "level": 3,
       "title": "Automatisations",
-      "line": 30
+      "line": 38
      },
      {
       "level": 3,
       "title": "Analytics",
-      "line": 48
+      "line": 56
      },
      {
       "level": 2,
       "title": "Opérations BFF autorisées",
-      "line": 55
+      "line": 63
      },
      {
       "level": 2,
       "title": "Secrets",
-      "line": 72
+      "line": 80
      },
      {
       "level": 2,
       "title": "Déploiement",
-      "line": 89
+      "line": 97
      },
      {
       "level": 2,
       "title": "Rollback",
-      "line": 104
+      "line": 112
      },
      {
       "level": 2,
       "title": "Conditions avant un canari fournisseur",
-      "line": 115
+      "line": 123
      },
      {
       "level": 2,
       "title": "Validation locale",
-      "line": 132
+      "line": 140
      }
     ]
    },
@@ -78584,7 +78656,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 199
+    "lineCount": 201
    },
    {
     "path": "server/marketingBff.ts",
@@ -99195,7 +99267,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 286
+    "lineCount": 288
    },
    {
     "path": "src/test/dialog-close-animation-guard.test.ts",
@@ -99894,7 +99966,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 281
+    "lineCount": 297
    },
    {
     "path": "src/test/marketing-autopilot-frontend.test.tsx",
@@ -100005,6 +100077,24 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 28
+   },
+   {
+    "path": "src/test/marketing-meta-publishing.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 338
+   },
+   {
+    "path": "src/test/marketing-meta-recovery.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 140
    },
    {
     "path": "src/test/marketing-one-click-unsubscribe.test.ts",
@@ -103488,6 +103578,80 @@
     "lineCount": 185
    },
    {
+    "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+    "exports": [
+     {
+      "name": "processMetaMarketingItem",
+      "line": 186,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [
+     "META_APP_SECRET",
+     "META_GRAPH_VERSION"
+    ],
+    "integrations": [],
+    "lineCount": 340
+   },
+   {
+    "path": "supabase/functions/_shared/meta-publishing.ts",
+    "exports": [
+     {
+      "name": "MetaChannel",
+      "line": 1,
+      "kind": "typealias"
+     },
+     {
+      "name": "MetaSocialContent",
+      "line": 3,
+      "kind": "typealias"
+     },
+     {
+      "name": "MetaPublishingConfig",
+      "line": 11,
+      "kind": "typealias"
+     },
+     {
+      "name": "MetaPublishResult",
+      "line": 19,
+      "kind": "typealias"
+     },
+     {
+      "name": "META_REQUEST_TIMEOUT_MS",
+      "line": 28,
+      "kind": "variable"
+     },
+     {
+      "name": "MetaPublishError",
+      "line": 40,
+      "kind": "class"
+     },
+     {
+      "name": "buildMetaCaption",
+      "line": 80,
+      "kind": "function"
+     },
+     {
+      "name": "normalizeMetaMediaUrl",
+      "line": 108,
+      "kind": "function"
+     },
+     {
+      "name": "validateMetaPublishingConfig",
+      "line": 132,
+      "kind": "function"
+     },
+     {
+      "name": "publishMetaContent",
+      "line": 317,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 425
+   },
+   {
     "path": "supabase/functions/_shared/notifications.ts",
     "exports": [
      {
@@ -105983,7 +106147,7 @@
      "resend",
      "supabase"
     ],
-    "lineCount": 481
+    "lineCount": 488
    },
    {
     "path": "supabase/functions/marketing-provider-webhook/index.ts",
@@ -108054,6 +108218,11 @@
     "path": "docs/marketing-email-examples/03-rive-droite-soiree.txt",
     "category": "documentation",
     "extension": ".txt"
+   },
+   {
+    "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+    "category": "documentation",
+    "extension": ".md"
    },
    {
     "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
@@ -115211,6 +115380,16 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/marketing-meta-publishing.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/marketing-meta-recovery.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/marketing-one-click-unsubscribe.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -116647,6 +116826,16 @@
    },
    {
     "path": "supabase/functions/_shared/mcp-http.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/meta-publishing.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -120011,6 +120200,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/critical_rpc_smoke.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -121785,7 +121979,7 @@
    "id": "code-module:47a1b9903d01",
    "type": "code-module",
    "title": "scripts/write-supabase-secrets-env.mjs",
-   "description": "Module de 199 lignes; exports: aucun export statique.",
+   "description": "Module de 201 lignes; exports: aucun export statique.",
    "path": "scripts/write-supabase-secrets-env.mjs",
    "line": 1,
    "surface": null,
@@ -121801,7 +121995,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "c65970791945"
+   "detailRef": "ab1ee3d16d75"
   },
   {
    "id": "code-module:e80a711be244",
@@ -134697,7 +134891,7 @@
    "id": "code-module:4c072fc6cddf",
    "type": "code-module",
    "title": "src/test/deploy-production-secret-scope.test.ts",
-   "description": "Module de 286 lignes; exports: aucun export statique.",
+   "description": "Module de 288 lignes; exports: aucun export statique.",
    "path": "src/test/deploy-production-secret-scope.test.ts",
    "line": 1,
    "surface": null,
@@ -134708,7 +134902,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "58090ab187e1"
+   "detailRef": "153662798efc"
   },
   {
    "id": "code-module:0a24f0938a93",
@@ -135720,7 +135914,7 @@
    "id": "code-module:f1aadb4d91ba",
    "type": "code-module",
    "title": "src/test/marketing-ai-agent.test.ts",
-   "description": "Module de 281 lignes; exports: aucun export statique.",
+   "description": "Module de 297 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-ai-agent.test.ts",
    "line": 1,
    "surface": null,
@@ -135729,7 +135923,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ad724ec83f19"
+   "detailRef": "bae57b587c37"
   },
   {
    "id": "code-module:6406b6c9d347",
@@ -135887,6 +136081,32 @@
    "surface": null,
    "tags": [],
    "detailRef": "e26d8131954e"
+  },
+  {
+   "id": "code-module:753692db5732",
+   "type": "code-module",
+   "title": "src/test/marketing-meta-publishing.test.ts",
+   "description": "Module de 338 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-meta-publishing.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "c3ef0f2a25a6"
+  },
+  {
+   "id": "code-module:6fe326c3286a",
+   "type": "code-module",
+   "title": "src/test/marketing-meta-recovery.test.ts",
+   "description": "Module de 140 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-meta-recovery.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "149bb5569c6a"
   },
   {
    "id": "code-module:93123280c079",
@@ -139629,6 +139849,43 @@
    "detailRef": "c1548e9951f7"
   },
   {
+   "id": "code-module:85c4e9dfe22a",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "description": "Module de 340 lignes; exports: processMetaMarketingItem.",
+   "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "META_APP_SECRET",
+    "META_GRAPH_VERSION",
+    "processMetaMarketingItem"
+   ],
+   "detailRef": "20631a418402"
+  },
+  {
+   "id": "code-module:17928ca294e1",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/meta-publishing.ts",
+   "description": "Module de 425 lignes; exports: MetaChannel, MetaSocialContent, MetaPublishingConfig, MetaPublishResult, META_REQUEST_TIMEOUT_MS, MetaPublishError, buildMetaCaption, normalizeMetaMediaUrl, validateMetaPublishingConfig, publishMetaContent.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "META_REQUEST_TIMEOUT_MS",
+    "MetaChannel",
+    "MetaPublishError",
+    "MetaPublishResult",
+    "MetaPublishingConfig",
+    "MetaSocialContent",
+    "buildMetaCaption",
+    "normalizeMetaMediaUrl",
+    "publishMetaContent",
+    "validateMetaPublishingConfig"
+   ],
+   "detailRef": "30126ec71235"
+  },
+  {
    "id": "code-module:35fe89dedef0",
    "type": "code-module",
    "title": "supabase/functions/_shared/notifications.ts",
@@ -141241,7 +141498,7 @@
    "id": "code-module:0a9264bbf973",
    "type": "code-module",
    "title": "supabase/functions/marketing-orchestrator/index.ts",
-   "description": "Module de 481 lignes; exports: aucun export statique.",
+   "description": "Module de 488 lignes; exports: aucun export statique.",
    "path": "supabase/functions/marketing-orchestrator/index.ts",
    "line": 1,
    "surface": null,
@@ -141253,7 +141510,7 @@
     "resend",
     "supabase"
    ],
-   "detailRef": "ee55c95034b9"
+   "detailRef": "d0be96f3aa68"
   },
   {
    "id": "code-module:1d037de76b49",
@@ -192381,18 +192638,18 @@
    "detailRef": "e95d698ef393"
   },
   {
-   "id": "document-section:cfd6abc0f9c7",
+   "id": "document-section:88adb3d7f8fc",
    "type": "document-section",
    "title": "Analytics",
    "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
-   "line": 48,
+   "line": 56,
    "surface": null,
    "tags": [
     "TOK Marketing Autopilot — runbook d'exploitation",
     "h3"
    ],
-   "detailRef": "588e71c47403"
+   "detailRef": "4fe97d34a7c4"
   },
   {
    "id": "document-section:789dff91ab5b",
@@ -192927,6 +193184,20 @@
    "detailRef": "6dfc7c37b85e"
   },
   {
+   "id": "document-section:b1d715849de9",
+   "type": "document-section",
+   "title": "Audit du marketing automatique TOK — 8 octobre 2026",
+   "description": "Section de Audit du marketing automatique TOK — 8 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Audit du marketing automatique TOK — 8 octobre 2026",
+    "h1"
+   ],
+   "detailRef": "ae495e7d842f"
+  },
+  {
    "id": "document-section:86d1fc211879",
    "type": "document-section",
    "title": "Audit d’intégrité des paiements — 15 juillet 2026",
@@ -193011,18 +193282,18 @@
    "detailRef": "d7a88a3899ab"
   },
   {
-   "id": "document-section:dc036cd6285e",
+   "id": "document-section:babb67c7815f",
    "type": "document-section",
    "title": "Automatisations",
    "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
-   "line": 30,
+   "line": 38,
    "surface": null,
    "tags": [
     "TOK Marketing Autopilot — runbook d'exploitation",
     "h3"
    ],
-   "detailRef": "ce90da6ebf4d"
+   "detailRef": "536b1a9a193e"
   },
   {
    "id": "document-section:af319f36cf69",
@@ -195111,18 +195382,18 @@
    "detailRef": "c1ce283570a2"
   },
   {
-   "id": "document-section:9b3f44815206",
+   "id": "document-section:dd7e06cc8cbe",
    "type": "document-section",
    "title": "Conditions avant un canari fournisseur",
    "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
-   "line": 115,
+   "line": 123,
    "surface": null,
    "tags": [
     "TOK Marketing Autopilot — runbook d'exploitation",
     "h2"
    ],
-   "detailRef": "5c3b8a612848"
+   "detailRef": "bd192b27e562"
   },
   {
    "id": "document-section:ea6f808b9835",
@@ -197141,18 +197412,18 @@
    "detailRef": "e751c1c02a5b"
   },
   {
-   "id": "document-section:0dbcd1fefcf7",
+   "id": "document-section:1c8d05e6848e",
    "type": "document-section",
    "title": "Déploiement",
    "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
-   "line": 89,
+   "line": 97,
    "surface": null,
    "tags": [
     "TOK Marketing Autopilot — runbook d'exploitation",
     "h2"
    ],
-   "detailRef": "f2329bb8a9cc"
+   "detailRef": "6f048d49730a"
   },
   {
    "id": "document-section:638091992feb",
@@ -198681,18 +198952,18 @@
    "detailRef": "558ae2343517"
   },
   {
-   "id": "document-section:8ba3ca659962",
+   "id": "document-section:9d0302f68187",
    "type": "document-section",
    "title": "Fournisseurs",
    "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
-   "line": 16,
+   "line": 24,
    "surface": null,
    "tags": [
     "TOK Marketing Autopilot — runbook d'exploitation",
     "h3"
    ],
-   "detailRef": "fabd966567fc"
+   "detailRef": "0da05cfcdbc9"
   },
   {
    "id": "document-section:46c022fe45fd",
@@ -202699,18 +202970,18 @@
    "detailRef": "7198310f2bce"
   },
   {
-   "id": "document-section:256cf8f1c305",
+   "id": "document-section:abbbe93e541f",
    "type": "document-section",
    "title": "Objet",
    "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
-   "line": 3,
+   "line": 11,
    "surface": null,
    "tags": [
     "TOK Marketing Autopilot — runbook d'exploitation",
     "h2"
    ],
-   "detailRef": "f13fb246f504"
+   "detailRef": "534b6b111641"
   },
   {
    "id": "document-section:fd180614d2a2",
@@ -202909,18 +203180,18 @@
    "detailRef": "95909035d664"
   },
   {
-   "id": "document-section:18359ab54560",
+   "id": "document-section:826092ff2c1d",
    "type": "document-section",
    "title": "Opérations BFF autorisées",
    "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
-   "line": 55,
+   "line": 63,
    "surface": null,
    "tags": [
     "TOK Marketing Autopilot — runbook d'exploitation",
     "h2"
    ],
-   "detailRef": "66f724912f10"
+   "detailRef": "73b853002742"
   },
   {
    "id": "document-section:a4a966cdd9e8",
@@ -204715,6 +204986,20 @@
    "detailRef": "f99a6afc32f7"
   },
   {
+   "id": "document-section:1fdf8cae6c88",
+   "type": "document-section",
+   "title": "Plan et correctifs de ce lot",
+   "description": "Section de Audit du marketing automatique TOK — 8 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+   "line": 59,
+   "surface": null,
+   "tags": [
+    "Audit du marketing automatique TOK — 8 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "f82529b62489"
+  },
+  {
    "id": "document-section:515f9c9dd18e",
    "type": "document-section",
    "title": "Plan exécuté et fichiers",
@@ -205175,6 +205460,20 @@
     "h4"
    ],
    "detailRef": "14ed5ff11453"
+  },
+  {
+   "id": "document-section:3653dc2817fe",
+   "type": "document-section",
+   "title": "Preuves d'environnement obtenues",
+   "description": "Section de Audit du marketing automatique TOK — 8 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+   "line": 15,
+   "surface": null,
+   "tags": [
+    "Audit du marketing automatique TOK — 8 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "bfbd45d69476"
   },
   {
    "id": "document-section:86299d11aa0b",
@@ -206955,6 +207254,20 @@
    "detailRef": "5ff5f4c5b099"
   },
   {
+   "id": "document-section:5e072057cc65",
+   "type": "document-section",
+   "title": "Retour arrière et livraison",
+   "description": "Section de Audit du marketing automatique TOK — 8 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+   "line": 82,
+   "surface": null,
+   "tags": [
+    "Audit du marketing automatique TOK — 8 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "a11b5cac3311"
+  },
+  {
    "id": "document-section:ed8b661c6ec3",
    "type": "document-section",
    "title": "Retour arrière",
@@ -207487,18 +207800,18 @@
    "detailRef": "5b92a74e9023"
   },
   {
-   "id": "document-section:8cbad38b0b4e",
+   "id": "document-section:4a5bc27630fb",
    "type": "document-section",
    "title": "Rollback",
    "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
-   "line": 104,
+   "line": 112,
    "surface": null,
    "tags": [
     "TOK Marketing Autopilot — runbook d'exploitation",
     "h2"
    ],
-   "detailRef": "826e905a558f"
+   "detailRef": "8788306c4421"
   },
   {
    "id": "document-section:a1550e6b5906",
@@ -208621,18 +208934,18 @@
    "detailRef": "9904fb89e464"
   },
   {
-   "id": "document-section:e9e4a823b8f0",
+   "id": "document-section:0e8428f136f1",
    "type": "document-section",
    "title": "Secrets",
    "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
-   "line": 72,
+   "line": 80,
    "surface": null,
    "tags": [
     "TOK Marketing Autopilot — runbook d'exploitation",
     "h2"
    ],
-   "detailRef": "6692eb4d9da8"
+   "detailRef": "cc08d4c7fad0"
   },
   {
    "id": "document-section:02dbeca2a1d4",
@@ -214095,18 +214408,18 @@
    "detailRef": "186b0b676a31"
   },
   {
-   "id": "document-section:0d49207e619c",
+   "id": "document-section:6c2aa56e6390",
    "type": "document-section",
    "title": "Validation locale",
    "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
-   "line": 132,
+   "line": 140,
    "surface": null,
    "tags": [
     "TOK Marketing Autopilot — runbook d'exploitation",
     "h2"
    ],
-   "detailRef": "681e0f15f600"
+   "detailRef": "a907315d408e"
   },
   {
    "id": "document-section:d578615f1337",
@@ -214177,6 +214490,20 @@
     "h2"
    ],
    "detailRef": "0eaa23c2388e"
+  },
+  {
+   "id": "document-section:0e73dccff3b7",
+   "type": "document-section",
+   "title": "Validations",
+   "description": "Section de Audit du marketing automatique TOK — 8 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+   "line": 99,
+   "surface": null,
+   "tags": [
+    "Audit du marketing automatique TOK — 8 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "6d34c2fcd87e"
   },
   {
    "id": "document-section:2cdfb4c1b55a",
@@ -214303,6 +214630,20 @@
     "h2"
    ],
    "detailRef": "52464677a375"
+  },
+  {
+   "id": "document-section:d2a88ebcf8a8",
+   "type": "document-section",
+   "title": "Verdict",
+   "description": "Section de Audit du marketing automatique TOK — 8 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "Audit du marketing automatique TOK — 8 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "e80c588608f5"
   },
   {
    "id": "document-section:b9bfb29a6b9a",
@@ -215915,6 +216256,20 @@
    "detailRef": "9089d91003bd"
   },
   {
+   "id": "document-section:5eb9e536c428",
+   "type": "document-section",
+   "title": "État constaté le 8 octobre 2026",
+   "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
+   "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "TOK Marketing Autopilot — runbook d'exploitation",
+    "h2"
+   ],
+   "detailRef": "3dbd56ae2de7"
+  },
+  {
    "id": "document-section:3061036041c2",
    "type": "document-section",
    "title": "État d’exécution TOK observé le 3 octobre 2026",
@@ -215941,6 +216296,20 @@
     "h2"
    ],
    "detailRef": "73b41140c619"
+  },
+  {
+   "id": "document-section:c833f906d03a",
+   "type": "document-section",
+   "title": "État fonctionnel",
+   "description": "Section de Audit du marketing automatique TOK — 8 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+   "line": 41,
+   "surface": null,
+   "tags": [
+    "Audit du marketing automatique TOK — 8 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "9d8771811f4f"
   },
   {
    "id": "document-section:8c393417a359",
@@ -215999,18 +216368,18 @@
    "detailRef": "c0a6c855b633"
   },
   {
-   "id": "document-section:dcf91e45eebf",
+   "id": "document-section:ef3b14553485",
    "type": "document-section",
    "title": "États et garanties",
    "description": "Section de TOK Marketing Autopilot — runbook d'exploitation.",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
-   "line": 14,
+   "line": 22,
    "surface": null,
    "tags": [
     "TOK Marketing Autopilot — runbook d'exploitation",
     "h2"
    ],
-   "detailRef": "bc1979f77dff"
+   "detailRef": "fcf7875487ce"
   },
   {
    "id": "document-section:e5f6ef30a412",
@@ -216615,6 +216984,25 @@
     "Tests de production"
    ],
    "detailRef": "b71d97b598b7"
+  },
+  {
+   "id": "document:b1d715849de9",
+   "type": "document",
+   "title": "Audit du marketing automatique TOK — 8 octobre 2026",
+   "description": "Document Markdown avec 7 section(s).",
+   "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Audit du marketing automatique TOK — 8 octobre 2026",
+    "Plan et correctifs de ce lot",
+    "Preuves d'environnement obtenues",
+    "Retour arrière et livraison",
+    "Validations",
+    "Verdict",
+    "État fonctionnel"
+   ],
+   "detailRef": "c1b8b88122e4"
   },
   {
    "id": "document:86d1fc211879",
@@ -219395,7 +219783,7 @@
    "id": "document:5272f6019964",
    "type": "document",
    "title": "TOK Marketing Autopilot — runbook d'exploitation",
-   "description": "Document Markdown avec 12 section(s).",
+   "description": "Document Markdown avec 13 section(s).",
    "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
    "line": 1,
    "surface": null,
@@ -219411,9 +219799,10 @@
     "Secrets",
     "TOK Marketing Autopilot — runbook d'exploitation",
     "Validation locale",
+    "État constaté le 8 octobre 2026",
     "États et garanties"
    ],
-   "detailRef": "17ad11c48375"
+   "detailRef": "9814e0434253"
   },
   {
    "id": "document:66837333a627",
@@ -224627,6 +225016,32 @@
     "supabase/functions/_shared/marketing-unsubscribe-secrets.ts"
    ],
    "detailRef": "6106059cab3c"
+  },
+  {
+   "id": "environment-variable:2fd879d4b739",
+   "type": "environment-variable",
+   "title": "META_APP_SECRET",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/meta-marketing-orchestrator.ts"
+   ],
+   "detailRef": "47842440807f"
+  },
+  {
+   "id": "environment-variable:0d3970279d7b",
+   "type": "environment-variable",
+   "title": "META_GRAPH_VERSION",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/meta-marketing-orchestrator.ts"
+   ],
+   "detailRef": "f17639a22284"
   },
   {
    "id": "environment-variable:4a68b846e33f",
@@ -235710,6 +236125,19 @@
    "detailRef": "17bfcd8af88b"
   },
   {
+   "id": "exported-symbol:a185cc319955",
+   "type": "exported-symbol",
+   "title": "META_REQUEST_TIMEOUT_MS",
+   "description": "Export variable de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "d5cab6b95996"
+  },
+  {
    "id": "exported-symbol:2c74eb777785",
    "type": "exported-symbol",
    "title": "MIAMZ_BENEFITS_CONFIG_KEY",
@@ -237642,6 +238070,71 @@
     "re-export"
    ],
    "detailRef": "d8ce96196c5b"
+  },
+  {
+   "id": "exported-symbol:800709c3f7df",
+   "type": "exported-symbol",
+   "title": "MetaChannel",
+   "description": "Export typealias de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "735bfd9f7f65"
+  },
+  {
+   "id": "exported-symbol:9952ee47db75",
+   "type": "exported-symbol",
+   "title": "MetaPublishError",
+   "description": "Export class de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "class"
+   ],
+   "detailRef": "2156476c11e7"
+  },
+  {
+   "id": "exported-symbol:c1fa1f015aa5",
+   "type": "exported-symbol",
+   "title": "MetaPublishResult",
+   "description": "Export typealias de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "0bd42903a0d5"
+  },
+  {
+   "id": "exported-symbol:4bbee439f5e7",
+   "type": "exported-symbol",
+   "title": "MetaPublishingConfig",
+   "description": "Export typealias de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "31bf1f796cba"
+  },
+  {
+   "id": "exported-symbol:f0e20a8c289d",
+   "type": "exported-symbol",
+   "title": "MetaSocialContent",
+   "description": "Export typealias de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "483a6fd06841"
   },
   {
    "id": "exported-symbol:4139295ffa50",
@@ -247599,6 +248092,19 @@
     "function"
    ],
    "detailRef": "483239a163fd"
+  },
+  {
+   "id": "exported-symbol:0a9ff4ec5ace",
+   "type": "exported-symbol",
+   "title": "buildMetaCaption",
+   "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 80,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "e5953f790de1"
   },
   {
    "id": "exported-symbol:9bc998ef3cc4",
@@ -265178,6 +265684,19 @@
    "detailRef": "a4a99b9a192b"
   },
   {
+   "id": "exported-symbol:558ac4ccf189",
+   "type": "exported-symbol",
+   "title": "normalizeMetaMediaUrl",
+   "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 108,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "66a54341d8c8"
+  },
+  {
    "id": "exported-symbol:8ca0d4cde11c",
    "type": "exported-symbol",
    "title": "normalizeNearDuplicateName",
@@ -266202,6 +266721,19 @@
    "detailRef": "5e56dd81c2e0"
   },
   {
+   "id": "exported-symbol:382976189d7e",
+   "type": "exported-symbol",
+   "title": "processMetaMarketingItem",
+   "description": "Export function de supabase/functions/_shared/meta-marketing-orchestrator.ts.",
+   "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "line": 186,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "5b7cf690df81"
+  },
+  {
    "id": "exported-symbol:de212aebd778",
    "type": "exported-symbol",
    "title": "processRefund",
@@ -266244,6 +266776,19 @@
     "supabase"
    ],
    "detailRef": "4c0cd5acc1d7"
+  },
+  {
+   "id": "exported-symbol:ca2341f9b2d2",
+   "type": "exported-symbol",
+   "title": "publishMetaContent",
+   "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 317,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "8d78880e2cb5"
   },
   {
    "id": "exported-symbol:1bd62c3187a7",
@@ -271632,6 +272177,19 @@
    "detailRef": "a8e43a5678a2"
   },
   {
+   "id": "exported-symbol:65b3bf685440",
+   "type": "exported-symbol",
+   "title": "validateMetaPublishingConfig",
+   "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 132,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "916482437346"
+  },
+  {
    "id": "exported-symbol:a716a075adc7",
    "type": "exported-symbol",
    "title": "validateMetadata",
@@ -276877,6 +277435,20 @@
     "documentation"
    ],
    "detailRef": "e9304d33a641"
+  },
+  {
+   "id": "file:d6e2bc19e585",
+   "type": "file",
+   "title": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "ecf6ae3800f6"
   },
   {
    "id": "file:bbc94a2426bd",
@@ -296913,6 +297485,34 @@
    "detailRef": "2ef61c1d95fa"
   },
   {
+   "id": "file:e6b4912877d3",
+   "type": "file",
+   "title": "src/test/marketing-meta-publishing.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-meta-publishing.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "9688c96c55d0"
+  },
+  {
+   "id": "file:e6fe7d1fbe84",
+   "type": "file",
+   "title": "src/test/marketing-meta-recovery.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-meta-recovery.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "2ae1d1fd8c08"
+  },
+  {
    "id": "file:a02cc5ec7659",
    "type": "file",
    "title": "src/test/marketing-one-click-unsubscribe.test.ts",
@@ -300943,6 +301543,34 @@
     "edge-function-source"
    ],
    "detailRef": "2aa412ccfeea"
+  },
+  {
+   "id": "file:daa8657d2f22",
+   "type": "file",
+   "title": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "9ad739281056"
+  },
+  {
+   "id": "file:d9ff5141bb76",
+   "type": "file",
+   "title": "supabase/functions/_shared/meta-publishing.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "9d0c0906b489"
   },
   {
    "id": "file:482a36ea9905",
@@ -310353,6 +310981,20 @@
    "detailRef": "fd328338ba53"
   },
   {
+   "id": "file:1282e6f7257b",
+   "type": "file",
+   "title": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "a5ed020f73f0"
+  },
+  {
    "id": "file:42e7f6ee83cf",
    "type": "file",
    "title": "supabase/tests/critical_rpc_smoke.sql",
@@ -314023,7 +314665,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 638 module(s).",
+   "description": "Intégration externe détectée dans 640 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -314431,6 +315073,8 @@
     "src/test/marketing-edge-security.test.ts",
     "src/test/marketing-email-cadence.test.ts",
     "src/test/marketing-email-template.test.ts",
+    "src/test/marketing-meta-publishing.test.ts",
+    "src/test/marketing-meta-recovery.test.ts",
     "src/test/marketing-one-click-unsubscribe.test.ts",
     "src/test/marketing-operations-frontend.test.ts",
     "src/test/marketing-orchestrator-schema.test.ts",
@@ -314668,7 +315312,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "5116701bf874"
+   "detailRef": "ff3c6a7a7b35"
   },
   {
    "id": "integration:c20910a79a78",
@@ -322595,6 +323239,20 @@
    "detailRef": "094f0be7b23b"
   },
   {
+   "id": "migration:319ce69d7180",
+   "type": "migration",
+   "title": "20261006033000 Configure Meta Marketing Integrations",
+   "description": "Migration SQL de 47 lignes, 0 objets CREATE détectés.",
+   "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "fa62a0f1440a"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -325391,6 +326049,19 @@
     "src/test/android-google-play-readiness.test.ts"
    ],
    "detailRef": "be1d9a5998ff"
+  },
+  {
+   "id": "path-literal:d036ee31a89d",
+   "type": "path-literal",
+   "title": "/18270815569115548?",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-meta-publishing.test.ts",
+   "line": 162,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-meta-publishing.test.ts"
+   ],
+   "detailRef": "aab57983ddaf"
   },
   {
    "id": "path-literal:5f12583a8f38",
@@ -331359,6 +332030,19 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
    "detailRef": "db60bad8282b"
+  },
+  {
+   "id": "path-literal:d87268d71810",
+   "type": "path-literal",
+   "title": "/me/accounts?",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-meta-publishing.test.ts",
+   "line": 94,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-meta-publishing.test.ts"
+   ],
+   "detailRef": "88ce053c31b1"
   },
   {
    "id": "path-literal:a8cb3a2be266",
