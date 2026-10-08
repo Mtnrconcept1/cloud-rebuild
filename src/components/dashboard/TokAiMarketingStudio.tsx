@@ -131,6 +131,7 @@ type MarketingBusinessContext = {
 };
 
 type Props = {
+  onSelectedCreationChange?: (creation: TokImageGenerationResult | null) => void;
   restaurantId?: string | null;
 };
 
@@ -1166,7 +1167,7 @@ function buildCommercialDemoBusinessContext(snapshot: CommercialDemoSnapshot): M
   };
 }
 
-export default function TokAiMarketingStudio({ restaurantId }: Props) {
+export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationChange }: Props) {
   const { toast } = useToast();
   // A visual stored while the tab was away is re-attached instead of being lost.
   useAiCreationRecovery(restaurantId);
@@ -1197,6 +1198,7 @@ export default function TokAiMarketingStudio({ restaurantId }: Props) {
   const [uploadingKind, setUploadingKind] = useState<MarketingAssetKind | null>(null);
   const [deletingResourceId, setDeletingResourceId] = useState<string | null>(null);
   const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
+  useEffect(() => { onSelectedCreationChange?.(marketingImageResult); }, [marketingImageResult, onSelectedCreationChange]);
   const [demoGenerationHistory, setDemoGenerationHistory] = useState<CommercialDemoVisualHistoryItem[]>([]);
   const [demoHistoryLoading, setDemoHistoryLoading] = useState(false);
   const [activeStep, setActiveStep] = useState<MarketingWorkflowStep>(1);

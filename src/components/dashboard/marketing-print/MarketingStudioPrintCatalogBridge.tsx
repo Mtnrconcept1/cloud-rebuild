@@ -17,6 +17,7 @@ import {
 type Props = {
   rootRef: RefObject<HTMLDivElement>;
   printEnabled: boolean;
+  printableCreation?: boolean;
   onOpenPrintComposer?: () => void;
 };
 
@@ -92,6 +93,7 @@ function printTargetDescription(target: MarketingOutputTarget) {
 export default function MarketingStudioPrintCatalogBridge({
   rootRef,
   printEnabled,
+  printableCreation = false,
   onOpenPrintComposer,
 }: Props) {
   const outputSession = useSyncExternalStore(
@@ -168,7 +170,7 @@ export default function MarketingStudioPrintCatalogBridge({
     });
   };
 
-  const printActionCard = printEnabled && onOpenPrintComposer ? (
+  const printActionCard = printEnabled && printableCreation && onOpenPrintComposer ? (
     <button
       type="button"
       onClick={onOpenPrintComposer}
@@ -222,7 +224,7 @@ export default function MarketingStudioPrintCatalogBridge({
     portals.supportHost,
   ) : null;
 
-  const generationPortal = portals.generationHost && printEnabled && onOpenPrintComposer ? createPortal(
+  const generationPortal = portals.generationHost && printEnabled && printableCreation && onOpenPrintComposer ? createPortal(
     <Button type="button" variant="outline" size="lg" className="min-h-12 gap-2 rounded-2xl" onClick={onOpenPrintComposer}>
       <Printer className="h-4 w-4" />
       Imprimer une création

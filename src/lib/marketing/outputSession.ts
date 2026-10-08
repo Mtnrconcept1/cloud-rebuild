@@ -101,6 +101,10 @@ export function applyMarketingOutputTargetToImageRequest<T extends TokImageGener
 
   return {
     ...request,
+    marketingOutputFormat: target.destination === "print" && target.print
+      ? { destination: "print", providerProductId: target.print.providerProductId,
+        widthMm: target.print.widthMm, heightMm: target.print.heightMm, bleedMm: target.print.bleedMm }
+      : { destination: "digital" },
     format: target.nativeFormat,
     prompt: `${request.prompt.trim()}\n\n${outputInstruction}`,
   };

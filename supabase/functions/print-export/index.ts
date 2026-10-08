@@ -1,3 +1,4 @@
+import { matchesGeneratedPrintFormat } from "../_shared/print/source-format.ts";
 import {
   HttpError,
   assertProductionFlowAllowed,
@@ -135,6 +136,15 @@ Deno.serve(async (req) => {
       printTechnology: typeof providerProduct.print_technology === "string" ? providerProduct.print_technology : null,
     };
     if (!(spec.widthMm > 0 && spec.heightMm > 0)) throw new HttpError(409, "Spécifications fournisseur incomplètes");
+
+    const sourceGenerationId = requireUuid(documentPayload.sourceGenerationId, "sourceGenerationId");
+    const { data: source, error: sourceError } = await adminClient.from("ai_generated_assets")
+      .select("metadata").eq("id", sourceGenerationId).eq("restaurant_id", restaurantId)
+      .eq("status", "stored").maybeSingle();
+    if (sourceError) throw sourceError;
+    if (!source || !matchesGeneratedPrintFormat(asRecord(source.metadata).marketing_output_target, {
+      providerProductId, widthMm: spec.widthMm, heightMm: spec.heightMm, bleedMm: spec.bleedMm,
+    })) throw new HttpError(409, "Le support doit correspondre au format enregistré lors de la génération du visuel");
 
     const built = await buildPrintPdf({ document: documentPayload, spec });
     const documentId = crypto.randomUUID();
