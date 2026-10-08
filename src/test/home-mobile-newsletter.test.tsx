@@ -12,34 +12,8 @@ describe("HeroSection mobile newsletter", () => {
       </MemoryRouter>,
     );
 
-    const mobileHero = screen.getByTestId("mobile-hero-shell");
-    const safeMobileHeight = "min-h-[calc(100svh_-_66px_-_env(safe-area-inset-top,0px))]";
-    expect(mobileHero).toHaveClass(safeMobileHeight);
-    expect(screen.getByTestId("mobile-hero-panel")).toHaveClass(safeMobileHeight);
-    expect(mobileHero.innerHTML).toContain("fondacceuil.png");
-    expect((mobileHero.innerHTML.match(/fondacceuil\.png/g) ?? [])).toHaveLength(1);
-    expect(mobileHero.innerHTML).toContain("bg-[position:50%_0%]");
-    expect(mobileHero.innerHTML).toContain("bg-[length:100%_auto]");
-    expect(mobileHero.innerHTML).toContain("bg-no-repeat");
-    expect(mobileHero.innerHTML).toContain("mt-auto space-y-2");
-    expect(mobileHero.innerHTML).toContain("px-4 pb-1 pt-5 text-center min-[360px]:px-5 min-[390px]:pt-8");
-    expect(mobileHero.innerHTML).toContain("translate-x-[12px]");
-    expect(mobileHero.innerHTML).toContain("w-full max-w-[390px]");
-    expect(mobileHero.innerHTML).toContain("[font-family:'Playball',cursive]");
-    expect(mobileHero.innerHTML).toContain("text-[clamp(1.78rem,9.4vw,2.34rem)] font-normal");
-    expect(mobileHero.innerHTML).toContain("font-black italic");
-    expect(screen.getByText("Réservez et commandez")).toBeInTheDocument();
-    expect(screen.getByText("offres food")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: /je veux manger/i }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("button", { name: /restaurateur/i }).length).toBeGreaterThan(0);
-
     const newsletter = screen.getByTestId("mobile-newsletter");
-    expect(newsletter).toHaveClass("rounded-[24px]");
-    expect(newsletter.className).toContain("bg-[#2d1608]/78");
-    expect(newsletter.innerHTML).not.toContain("fondacceuil.png");
-
-    const signup = within(newsletter).getByRole("button", { name: "Inscrivez-vous" });
-    expect(signup.className).not.toContain("-top-");
+    expect(within(newsletter).getByRole("link", { name: "Inscrivez-vous" })).toHaveAttribute("href", "/auth");
 
     fireEvent.click(within(newsletter).getByRole("button", { name: "Conditions applicables." }));
 

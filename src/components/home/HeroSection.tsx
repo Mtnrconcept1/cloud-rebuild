@@ -1,41 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ChefHat, MapPin, Search, Utensils } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ChevronRight, Coins, Heart, Search, UsersRound, Utensils } from "lucide-react";
 
-import CityAutocomplete from "@/components/CityAutocomplete";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring" as const, stiffness: 140, damping: 16, mass: 0.9 },
-  },
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.85 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { type: "spring" as const, stiffness: 200, damping: 14, mass: 0.7 },
-  },
-};
-
+import "./HeroSection.css";
 
 const newsletterConditions = [
   "Le bonus de bienvenue est réservé aux nouveaux comptes TOK qui s'inscrivent à la newsletter depuis cette offre.",
@@ -48,224 +17,59 @@ const newsletterConditions = [
 export default function HeroSection({ contentVisible = true }: { contentVisible?: boolean }) {
   const navigate = useNavigate();
   const logoSrc = useTokLogoSrc();
-  const [city, setCity] = useState("Genève");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showNewsletter] = useState(true);
-  const [desktopSearchActive, setDesktopSearchActive] = useState(false);
   const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
 
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const params = new URLSearchParams();
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const params = new URLSearchParams({ city: "Genève" });
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
-    if (city.trim()) params.set("city", city.trim());
-    navigate(`/recherche${params.toString() ? `?${params}` : ""}`);
+    navigate(`/recherche?${params}`);
   };
 
   return (
     <>
-      <h1 className="sr-only">
-        Réservez, commandez et profitez des meilleures offres food à Genève
-      </h1>
-      <section data-testid="mobile-hero-shell" className="relative min-h-[calc(100svh_-_66px_-_env(safe-area-inset-top,0px))] overflow-hidden bg-[#edf7ff] md:hidden">
-        <div className="absolute inset-0 bg-[url('/fondacceuil.png')] bg-[length:100%_auto] bg-[position:50%_0%] bg-no-repeat" aria-hidden="true" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,250,240,0.68)_0%,rgba(255,250,240,0.12)_34%,rgba(67,32,11,0.06)_62%,rgba(22,10,4,0.54)_100%)]" aria-hidden="true" />
-        <motion.div
-          variants={stagger}
-          initial="hidden"
-          animate={contentVisible ? "visible" : "hidden"}
-          data-testid="mobile-hero-panel"
-          className="relative z-10 min-h-[calc(100svh_-_66px_-_env(safe-area-inset-top,0px))]"
-        >
-          <div className="relative z-10 flex min-h-[calc(100svh_-_66px_-_env(safe-area-inset-top,0px))] flex-col">
-            <div className="px-4 pb-1 pt-5 text-center min-[360px]:px-5 min-[390px]:pt-8">
-              <motion.div variants={scaleIn} className="mx-auto flex h-16 justify-center min-[360px]:h-[76px] min-[390px]:h-[84px]">
-                <img
-                  src={logoSrc}
-                  alt="Tok"
-                  className="h-full w-auto translate-x-[12px] object-contain drop-shadow-[0_12px_30px_rgba(62,30,10,0.20)]"
-                />
-              </motion.div>
-
-              <motion.div variants={fadeUp} className="relative isolate mx-auto mt-1 w-full max-w-[390px]">
-                <div className="pointer-events-none absolute -inset-x-6 -inset-y-5 -z-10 rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.88)_0%,rgba(255,255,255,0.50)_52%,transparent_78%)] blur-xl" aria-hidden="true" />
-                <div aria-hidden="true" className="text-[#2a1407] drop-shadow-[0_2px_1px_rgba(255,255,255,0.78)]">
-                  <span className="block [font-family:'Playball',cursive] text-[clamp(1.78rem,9.4vw,2.34rem)] font-normal leading-[0.92] tracking-normal">Réservez et commandez</span>
-                  <span className="block font-display text-[clamp(1.82rem,9.2vw,2.34rem)] font-black italic leading-[0.92] tracking-normal">les meilleures</span>
-                  <span className="block font-display text-[clamp(1.82rem,9.2vw,2.34rem)] font-black italic leading-[0.92] tracking-normal">offres food</span>
-                </div>
-                <p className="mx-auto mt-3 max-w-[300px] text-[0.98rem] font-extrabold leading-[1.16] text-[#111827] drop-shadow-[0_1px_0_rgba(255,255,255,0.80)] min-[390px]:text-[1.05rem]">
-                  <span className="block">À Genève, cumulez des</span>
-                  <span className="block">
-                    <span className="text-[#ff4017]">Miamz</span> solidaires à chaque repas
-                  </span>
-                </p>
-              </motion.div>
+      <section className="tok-home-hero" aria-labelledby="home-hero-title" data-content-visible={contentVisible}>
+        <picture className="tok-home-hero__background" aria-hidden="true">
+          <source media="(min-width: 1024px)" srcSet="/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png" width={1670} height={941} />
+          <img src="/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png" alt="" width={941} height={1672} fetchPriority="high" loading="eager" />
+        </picture>
+        <div className="tok-home-hero__content">
+          <img className="tok-home-hero__logo" src={logoSrc} alt="TOK — Miamz !" width={1691} height={1099} />
+          <h1 id="home-hero-title" className="tok-home-hero__title">
+            <span>Réservez et commandez</span>{" "}
+            <span className="tok-home-hero__accent">les meilleures offres food !</span>
+          </h1>
+          <p className="tok-home-hero__intro">
+            À Genève, cumulez des <strong>Miamz</strong> solidaires à chaque repas.
+          </p>
+          <ul className="tok-home-hero__benefits" aria-label="Les avantages TOK">
+            <li><Coins aria-hidden="true" /><span>Moins de frais<br />pour le resto</span></li>
+            <li><Heart aria-hidden="true" /><span>Plus de repas<br />financés</span></li>
+            <li><UsersRound aria-hidden="true" /><span>Une communauté<br />plus solidaire</span></li>
+          </ul>
+          <form role="search" aria-label="Rechercher un restaurant à Genève" onSubmit={handleSearch} className="tok-home-hero__form">
+            <div className="tok-home-hero__search">
+              <Search aria-hidden="true" className="tok-home-hero__search-icon" />
+              <label className="sr-only" htmlFor="home-restaurant-search">Cuisine, nom de restaurant ou quartier</label>
+              <input id="home-restaurant-search" name="q" type="search" enterKeyHint="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Cuisine, nom de restaurant, quartier..." />
+              <button type="submit" aria-label="Rechercher"><Search aria-hidden="true" /></button>
             </div>
-
-            <motion.div variants={scaleIn} className="mt-auto space-y-2 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-4 min-[360px]:px-6 min-[390px]:px-8">
-              <form onSubmit={handleSearch} className="space-y-1.5">
-              <div className="flex h-[40px] items-center gap-3 rounded-full bg-white px-5 shadow-[0_12px_22px_rgba(34,16,5,0.22)] min-[390px]:h-[42px]">
-                <MapPin className="h-4 w-4 shrink-0 text-[#ff4017]" />
-                <CityAutocomplete
-                  value={city}
-                  onCitySelect={(selectedCity) => setCity(selectedCity)}
-                  onValueChange={(value) => setCity(value)}
-                  placeholder="Votre ville..."
-                  className="min-w-0 flex-1"
-                  inputClassName="h-auto border-none bg-transparent px-0 py-0 text-[0.92rem] font-extrabold text-[#1f2937] placeholder:text-[#7c8797] shadow-none focus-visible:ring-0 min-[390px]:text-[0.98rem]"
-                  hideIcon
-                />
-              </div>
-
-              <div className="flex h-[42px] items-center gap-3 rounded-full bg-white pl-5 pr-1.5 shadow-[0_12px_22px_rgba(34,16,5,0.22)] min-[390px]:h-[44px]">
-                <Search className="h-4 w-4 shrink-0 text-[#6b7280]" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cuisine, nom de restaurant..."
-                  className="min-w-0 flex-1 bg-transparent text-[0.82rem] font-bold text-[#26344c] placeholder:text-[#6f7682] focus:outline-none min-[390px]:text-[0.9rem]"
-                />
-                <button
-                  type="submit"
-                  aria-label="Rechercher"
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#ff4017] text-white shadow-[0_10px_20px_rgba(255,64,23,0.30)] transition hover:bg-[#ff5a25] active:scale-95 min-[390px]:h-9 min-[390px]:w-9"
-                >
-                  <Search className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-0">
-                <button
-                  type="submit"
-                  className="flex h-[42px] items-center justify-center gap-2 rounded-full bg-[#ff4017] px-3 text-[0.74rem] font-extrabold text-white shadow-[0_12px_22px_rgba(255,64,23,0.32)] transition hover:bg-[#ff5a25] active:translate-y-px min-[390px]:h-[44px] min-[390px]:text-[0.8rem]"
-                >
-                  <Utensils className="h-4 w-4 shrink-0" />
-                  Je veux manger
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate("/restaurateurs/geneve")}
-                  className="flex h-[42px] items-center justify-center gap-2 rounded-full bg-white px-3 text-[0.74rem] font-extrabold text-[#1f2937] shadow-[0_10px_20px_rgba(34,16,5,0.20)] transition hover:bg-[#fff7f1] active:translate-y-px min-[390px]:h-[44px] min-[390px]:text-[0.8rem]"
-                >
-                  <ChefHat className="h-4 w-4 shrink-0 text-[#3b1c0c]" />
-                  Restaurateur
-                </button>
-              </div>
-              </form>
-
-              {showNewsletter ? (
-                <div
-                  data-testid="mobile-newsletter"
-                  className="relative rounded-[24px] bg-[#2d1608]/78 px-3 py-2 text-center shadow-[0_14px_26px_rgba(25,12,5,0.20)] backdrop-blur-[2px]"
-                >
-                  <p className="mx-auto max-w-[290px] text-[0.74rem] font-extrabold leading-[1.12] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)] min-[390px]:text-[0.78rem]">
-                    {"Abonnez-vous et recevez "}
-                    <span className="text-[#ff7a1a]">500 Miamz.</span>
-                  </p>
-                  <div className="mt-1.5 flex items-center justify-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowNewsletterConditions(true)}
-                      aria-haspopup="dialog"
-                      className="text-[0.68rem] font-semibold leading-tight text-white underline underline-offset-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)] min-[390px]:text-[0.72rem]"
-                    >
-                      Conditions applicables.
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => navigate("/auth")}
-                      className="h-[30px] rounded-full bg-[#ff6418] px-4 text-[0.7rem] font-extrabold text-white shadow-[0_10px_18px_rgba(255,100,24,0.30)] transition hover:bg-[#ff711f] min-[390px]:h-[32px] min-[390px]:text-[0.74rem]"
-                    >
-                      Inscrivez-vous
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-            </motion.div>
-          </div>
-        </motion.div>
-
+            <button type="submit" className="tok-home-hero__cta">
+              <Utensils aria-hidden="true" /><span>Je veux manger</span><ChevronRight aria-hidden="true" />
+            </button>
+          </form>
+          <p className="tok-home-hero__signature"><span>Mangez mieux,<br />Faites plus de bien !</span><Heart aria-hidden="true" /></p>
+        </div>
       </section>
-
-      <section
-        data-testid="desktop-hero-reference"
-        className="relative hidden w-full overflow-hidden bg-[#f7f5ee] md:block"
-        style={{ aspectRatio: "1672 / 941" }}
-      >
-        <motion.img
-          src="/images/home/tok-geneve-desktop-reference.jpg"
-          alt=""
-          aria-hidden="true"
-          width={1672}
-          height={941}
-          className="absolute inset-0 h-full w-full object-cover"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: contentVisible ? 1 : 0 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
-        />
-
-        <form
-          data-testid="desktop-hero-search"
-          onSubmit={handleSearch}
-          className="absolute inset-0 z-20"
-        >
-          <div className="absolute left-[3.83%] top-[60.89%] h-[8.40%] w-[36.55%]">
-            {desktopSearchActive ? (
-              <div className="flex h-full w-full items-center rounded-full bg-white pl-[4.1%] pr-[1.1%] shadow-[0_12px_28px_rgba(56,60,70,0.18)]">
-                <Search className="h-[39%] w-auto shrink-0 text-[#68748a]" strokeWidth={2.3} />
-                <input
-                  autoFocus
-                  type="search"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Escape") {
-                      setDesktopSearchActive(false);
-                      event.currentTarget.blur();
-                    }
-                  }}
-                  placeholder="Cuisine, nom de restaurant, quartier..."
-                  aria-label="Cuisine, nom de restaurant ou quartier"
-                  className="ml-[4.5%] min-w-0 flex-1 bg-transparent text-[clamp(0.92rem,1.22vw,1.32rem)] font-medium text-[#3f4758] placeholder:text-[#7f8798] focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  aria-label="Rechercher"
-                  className="grid aspect-square h-[82%] shrink-0 place-items-center rounded-full bg-[#ff3f12] text-white shadow-[0_9px_20px_rgba(255,63,18,0.25)] transition-transform hover:scale-[1.03] active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                >
-                  <Search className="h-[42%] w-[42%]" strokeWidth={2.2} />
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setDesktopSearchActive(true)}
-                aria-label="Activer la recherche de restaurants"
-                className="absolute inset-0 rounded-full bg-transparent focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-white/95"
-              >
-                <span className="sr-only">Cuisine, nom de restaurant, quartier...</span>
-              </button>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            aria-label="Je veux manger"
-            className="absolute left-[8.79%] top-[71.63%] h-[7.12%] w-[25.84%] rounded-full bg-transparent focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-white/95"
-          >
-            <span className="sr-only">Je veux manger</span>
-          </button>
-        </form>
-
-        <p className="sr-only">
-          À Genève, cumulez des Miamz solidaires à chaque repas : moins de frais pour le restaurant,
-          plus de repas financés et une communauté plus solidaire.
-        </p>
-      </section>
-
+      <aside className="tok-home-hero__secondary" aria-label="Rejoindre TOK">
+        <Link to="/restaurateurs/geneve">Restaurateur ? Découvrez TOK <ChevronRight aria-hidden="true" size={16} /></Link>
+        <div data-testid="mobile-newsletter" className="tok-home-hero__newsletter">
+          <p>Abonnez-vous et recevez <strong>500 Miamz.</strong></p>
+          <button type="button" onClick={() => setShowNewsletterConditions(true)} aria-haspopup="dialog">Conditions applicables.</button>
+          <Link to="/auth">Inscrivez-vous</Link>
+        </div>
+      </aside>
       <Dialog open={showNewsletterConditions} onOpenChange={setShowNewsletterConditions}>
         <DialogContent className="max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-lg rounded-2xl p-0">
           <DialogHeader className="border-b px-5 pb-4 pt-5 pr-12 text-left sm:px-6">

@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "262a20fbf1124b1611c1858e92d4e76e4ae8c2debfe2f9dad7fda73b3aa7ac73",
+ "sourceDigest": "dfd4293c9c6a687127de7f50e062ed4d410cc116ab974315cb8ed93a087e753e",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -21,12 +21,12 @@
   "modules": 1429,
   "pages": 127,
   "pathLiterals": 597,
-  "publicAssets": 295,
-  "publicEntries": 317,
+  "publicAssets": 298,
+  "publicEntries": 320,
   "publicNavigableRoutes": 2,
   "queryParameters": 100,
-  "records": 15305,
-  "repositoryFiles": 2674,
+  "records": 15311,
+  "repositoryFiles": 2677,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -10445,6 +10445,11 @@
     "kind": "media"
    },
    {
+    "route": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+    "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+    "kind": "media"
+   },
+   {
     "route": "/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
     "path": "public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
     "kind": "media"
@@ -10482,6 +10487,16 @@
    {
     "route": "/ChatGPT Image 8 juin 2026, 02_57_38.png",
     "path": "public/ChatGPT Image 8 juin 2026, 02_57_38.png",
+    "kind": "media"
+   },
+   {
+    "route": "/Chef TOK au bord du lac Léman.png",
+    "path": "public/Chef TOK au bord du lac Léman.png",
+    "kind": "media"
+   },
+   {
+    "route": "/Chef jovial au bord du lac Léman.png",
+    "path": "public/Chef jovial au bord du lac Léman.png",
     "kind": "media"
    },
    {
@@ -13046,6 +13061,15 @@
     ]
    },
    {
+    "value": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+    "sources": [
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 35
+     }
+    ]
+   },
+   {
     "value": "/:path*",
     "sources": [
      {
@@ -13095,6 +13119,15 @@
      {
       "path": "src/test/plan-phase1-readiness.test.ts",
       "line": 147
+     }
+    ]
+   },
+   {
+    "value": "/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png",
+    "sources": [
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 34
      }
     ]
    },
@@ -15150,7 +15183,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 179
+      "line": 70
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -15287,6 +15320,10 @@
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
       "line": 170
+     },
+     {
+      "path": "src/test/home-mobile-newsletter.test.tsx",
+      "line": 16
      },
      {
       "path": "src/test/mobile-logo-intro.test.tsx",
@@ -20050,19 +20087,6 @@
     ]
    },
    {
-    "value": "/images/home/tok-geneve-desktop-reference.jpg",
-    "sources": [
-     {
-      "path": "src/components/home/HeroSection.tsx",
-      "line": 199
-     },
-     {
-      "path": "src/test/homepage-positioning-guards.test.ts",
-      "line": 41
-     }
-    ]
-   },
-   {
     "value": "/images/indian-curry-bowls.jpeg",
     "sources": [
      {
@@ -22481,15 +22505,6 @@
     ]
    },
    {
-    "value": "/playball-font/Playball-q6o1.ttf",
-    "sources": [
-     {
-      "path": "src/test/homepage-positioning-guards.test.ts",
-      "line": 32
-     }
-    ]
-   },
-   {
     "value": "/points-cadeau",
     "sources": [
      {
@@ -24353,7 +24368,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 150
+      "line": 66
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -81214,13 +81229,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 48,
+      "line": 17,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 292
+    "lineCount": 96
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -99678,7 +99693,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 52
+    "lineCount": 26
    },
    {
     "path": "src/test/home-nearby-catalog-contract.test.ts",
@@ -99703,7 +99718,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 188
+    "lineCount": 167
    },
    {
     "path": "src/test/image-metadata-ai.test.ts",
@@ -108802,6 +108817,11 @@
     "extension": ".png"
    },
    {
+    "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
     "path": "public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
     "category": "public-asset",
     "extension": ".png"
@@ -108838,6 +108858,16 @@
    },
    {
     "path": "public/ChatGPT Image 8 juin 2026, 02_57_38.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/Chef TOK au bord du lac Léman.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/Chef jovial au bord du lac Léman.png",
     "category": "public-asset",
     "extension": ".png"
    },
@@ -123930,14 +123960,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 292 lignes; exports: default.",
+   "description": "Module de 96 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "0e6a37f2ab1d"
+   "detailRef": "b2fe323642d7"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -135421,12 +135451,12 @@
    "id": "code-module:d67b9bd34728",
    "type": "code-module",
    "title": "src/test/home-mobile-newsletter.test.tsx",
-   "description": "Module de 52 lignes; exports: aucun export statique.",
+   "description": "Module de 26 lignes; exports: aucun export statique.",
    "path": "src/test/home-mobile-newsletter.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "049296c7e454"
+   "detailRef": "cd2742f8338d"
   },
   {
    "id": "code-module:ed44549fe546",
@@ -135456,14 +135486,14 @@
    "id": "code-module:06afdea6867d",
    "type": "code-module",
    "title": "src/test/homepage-positioning-guards.test.ts",
-   "description": "Module de 188 lignes; exports: aucun export statique.",
+   "description": "Module de 167 lignes; exports: aucun export statique.",
    "path": "src/test/homepage-positioning-guards.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "09221d84681d"
+   "detailRef": "d426bf8b91fa"
   },
   {
    "id": "code-module:c469797bc2dd",
@@ -252650,17 +252680,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:c0cc501ad690",
+   "id": "exported-symbol:0c9115f6636a",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/HeroSection.tsx.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 48,
+   "line": 17,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "6d9ba569d315"
+   "detailRef": "f6ad11948f69"
   },
   {
    "id": "exported-symbol:5bf7ed2b1c38",
@@ -279049,6 +279079,20 @@
    "detailRef": "9e79cfbe1bc4"
   },
   {
+   "id": "file:f9922848b3c5",
+   "type": "file",
+   "title": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "34f9fa116322"
+  },
+  {
    "id": "file:9ff1718424aa",
    "type": "file",
    "title": "public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
@@ -279159,6 +279203,34 @@
     "public-asset"
    ],
    "detailRef": "6f6071a04ee4"
+  },
+  {
+   "id": "file:7db49078a3f9",
+   "type": "file",
+   "title": "public/Chef TOK au bord du lac Léman.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/Chef TOK au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "d2e592cf0238"
+  },
+  {
+   "id": "file:c56ef718b76c",
+   "type": "file",
+   "title": "public/Chef jovial au bord du lac Léman.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/Chef jovial au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "d47b3c05c938"
   },
   {
    "id": "file:9e55eb782323",
@@ -325796,6 +325868,19 @@
    "detailRef": "aab57983ddaf"
   },
   {
+   "id": "path-literal:254e4935f9d1",
+   "type": "path-literal",
+   "title": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/HeroSection.tsx",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "src/components/home/HeroSection.tsx"
+   ],
+   "detailRef": "24cd07de8813"
+  },
+  {
    "id": "path-literal:5f12583a8f38",
    "type": "path-literal",
    "title": "/:path*",
@@ -325981,6 +326066,19 @@
     "src/test/plan-phase1-readiness.test.ts"
    ],
    "detailRef": "26f196955bb6"
+  },
+  {
+   "id": "path-literal:6f94dcee66ea",
+   "type": "path-literal",
+   "title": "/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/HeroSection.tsx",
+   "line": 34,
+   "surface": null,
+   "tags": [
+    "src/components/home/HeroSection.tsx"
+   ],
+   "detailRef": "134ed707bffb"
   },
   {
    "id": "path-literal:1d9f0654171b",
@@ -327381,7 +327479,7 @@
    "id": "path-literal:684553841fb1",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 49 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 50 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1224,
    "surface": null,
@@ -327419,11 +327517,12 @@
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
+    "src/test/home-mobile-newsletter.test.tsx",
     "src/test/mobile-logo-intro.test.tsx",
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "2adc18ada546"
+   "detailRef": "9ee247e436fb"
   },
   {
    "id": "path-literal:526e3fa12d6c",
@@ -330425,20 +330524,6 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:bf63a7e5f2c5",
-   "type": "path-literal",
-   "title": "/images/home/tok-geneve-desktop-reference.jpg",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/HeroSection.tsx",
-   "line": 199,
-   "surface": null,
-   "tags": [
-    "src/components/home/HeroSection.tsx",
-    "src/test/homepage-positioning-guards.test.ts"
-   ],
-   "detailRef": "e36f93dcba9b"
-  },
-  {
    "id": "path-literal:d38fc61bacfe",
    "type": "path-literal",
    "title": "/images/indian-curry-bowls.jpeg",
@@ -332202,19 +332287,6 @@
    "detailRef": "5a33b21e384a"
   },
   {
-   "id": "path-literal:8ab9faa76f8f",
-   "type": "path-literal",
-   "title": "/playball-font/Playball-q6o1.ttf",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/homepage-positioning-guards.test.ts",
-   "line": 32,
-   "surface": null,
-   "tags": [
-    "src/test/homepage-positioning-guards.test.ts"
-   ],
-   "detailRef": "36d4fa6e7ba6"
-  },
-  {
    "id": "path-literal:75c7e5e5f708",
    "type": "path-literal",
    "title": "/points-cadeau",
@@ -333734,7 +333806,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "23dcc9f6b8dd"
+   "detailRef": "ee23712a2200"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -335032,6 +335104,20 @@
    "detailRef": "735992553a10"
   },
   {
+   "id": "public-asset:314aca09bcb1",
+   "type": "public-asset",
+   "title": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "60cdf59ff559"
+  },
+  {
    "id": "public-asset:51359523e422",
    "type": "public-asset",
    "title": "/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
@@ -335142,6 +335228,34 @@
     "public"
    ],
    "detailRef": "e55f72209f7a"
+  },
+  {
+   "id": "public-asset:bac2468d72d5",
+   "type": "public-asset",
+   "title": "/Chef TOK au bord du lac Léman.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/Chef TOK au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "199ef737cff9"
+  },
+  {
+   "id": "public-asset:58354ee71abb",
+   "type": "public-asset",
+   "title": "/Chef jovial au bord du lac Léman.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/Chef jovial au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "618c9673736b"
   },
   {
    "id": "public-asset:7a2a3e03a285",

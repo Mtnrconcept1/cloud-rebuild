@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `262a20fbf1124b1611c1858e92d4e76e4ae8c2debfe2f9dad7fda73b3aa7ac73`
+- Empreinte SHA-256 des sources indexées : `dfd4293c9c6a687127de7f50e062ed4d410cc116ab974315cb8ed93a087e753e`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -41,12 +41,12 @@
 | modules | 1429 |
 | pages | 127 |
 | pathLiterals | 597 |
-| publicAssets | 295 |
-| publicEntries | 317 |
+| publicAssets | 298 |
+| publicEntries | 320 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 100 |
-| records | 15305 |
-| repositoryFiles | 2674 |
+| records | 15311 |
+| repositoryFiles | 2677 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -599,6 +599,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /.well-known/assetlinks.json | platform | [public/.well-known/assetlinks.json](../../public/.well-known/assetlinks.json) |
 | /4c81caf5-ee6d-400c-8605-c61d010a05de.png | media | [public/4c81caf5-ee6d-400c-8605-c61d010a05de.png](../../public/4c81caf5-ee6d-400c-8605-c61d010a05de.png) |
 | /5a64288a-9712-4aae-8293-b0570ecd8668.png | media | [public/5a64288a-9712-4aae-8293-b0570ecd8668.png](../../public/5a64288a-9712-4aae-8293-b0570ecd8668.png) |
+| /64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png | media | [public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png](../../public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png) |
 | /B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png | media | [public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png](../../public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png) |
 | /ChatGPT Image 16 juin 2026, 12_50_15.png | media | [public/ChatGPT Image 16 juin 2026, 12_50_15.png](../../public/ChatGPT%20Image%2016%20juin%202026%2C%2012_50_15.png) |
 | /ChatGPT Image 16 juin 2026, 13_36_20.png | media | [public/ChatGPT Image 16 juin 2026, 13_36_20.png](../../public/ChatGPT%20Image%2016%20juin%202026%2C%2013_36_20.png) |
@@ -607,6 +608,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /ChatGPT Image 30 mai 2026, 05_49_11.png | media | [public/ChatGPT Image 30 mai 2026, 05_49_11.png](../../public/ChatGPT%20Image%2030%20mai%202026%2C%2005_49_11.png) |
 | /ChatGPT Image 8 juin 2026, 02_46_54.png | media | [public/ChatGPT Image 8 juin 2026, 02_46_54.png](../../public/ChatGPT%20Image%208%20juin%202026%2C%2002_46_54.png) |
 | /ChatGPT Image 8 juin 2026, 02_57_38.png | media | [public/ChatGPT Image 8 juin 2026, 02_57_38.png](../../public/ChatGPT%20Image%208%20juin%202026%2C%2002_57_38.png) |
+| /Chef TOK au bord du lac Léman.png | media | [public/Chef TOK au bord du lac Léman.png](../../public/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png) |
+| /Chef jovial au bord du lac Léman.png | media | [public/Chef jovial au bord du lac Léman.png](../../public/Chef%20jovial%20au%20bord%20du%20lac%20L%C3%A9man.png) |
 | /Image Codex 3 sept. 2026, 02_31_12.png | media | [public/Image Codex 3 sept. 2026, 02_31_12.png](../../public/Image%20Codex%203%20sept.%202026%2C%2002_31_12.png) |
 | /Image Codex 3 sept. 2026, 11_06_16.png | media | [public/Image Codex 3 sept. 2026, 11_06_16.png](../../public/Image%20Codex%203%20sept.%202026%2C%2011_06_16.png) |
 | /Image Codex 3 sept. 2026, 11_12_46.png | media | [public/Image Codex 3 sept. 2026, 11_12_46.png](../../public/Image%20Codex%203%20sept.%202026%2C%2011_12_46.png) |
@@ -923,11 +926,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /.well-known/apple-app-site-association | 2 | [src/test/application-search-index.test.ts:69](../../src/test/application-search-index.test.ts#L69) |
 | /.well-known/assetlinks.json | 2 | [scripts/mobile-verify.mjs:262](../../scripts/mobile-verify.mjs#L262) |
 | /18270815569115548? | 1 | [src/test/marketing-meta-publishing.test.ts:162](../../src/test/marketing-meta-publishing.test.ts#L162) |
+| /64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png | 1 | [src/components/home/HeroSection.tsx:35](../../src/components/home/HeroSection.tsx#L35) |
 | /:path* | 1 | [src/test/marketing-subdomain-integration.test.ts:57](../../src/test/marketing-subdomain-integration.test.ts#L57) |
 | /:surface( | 2 | [src/test/vercel-rewrites.test.ts:132](../../src/test/vercel-rewrites.test.ts#L132) |
 | /:surface(admin\|marketing\|dashboard\|courier\|commercial\|profil\|memoire-tok\|notifications\|commandes\|commande\|reservations\|mon-espace\|compte\|espace-client\|mes-avis\|points-cadeau\|panier\|auth\|oauth\|espaces\|r) | 2 | [src/test/vercel-rewrites.test.ts:107](../../src/test/vercel-rewrites.test.ts#L107) |
 | /?q=restaurant | 1 | [src/test/marketing-autopilot-frontend.test.tsx:255](../../src/test/marketing-autopilot-frontend.test.tsx#L255) |
 | /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:147](../../src/test/plan-phase1-readiness.test.ts#L147) |
+| /Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png | 1 | [src/components/home/HeroSection.tsx:34](../../src/components/home/HeroSection.tsx#L34) |
 | /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 3 | [src/components/FeatureWizard.tsx:18](../../src/components/FeatureWizard.tsx#L18) |
 | /Miamz2.webp | 4 | [src/components/home/SolidaritySection.tsx:43](../../src/components/home/SolidaritySection.tsx#L43) |
 | /Miamz3.webp | 3 | [src/components/home/SolidaritySection.tsx:41](../../src/components/home/SolidaritySection.tsx#L41) |
@@ -1007,7 +1012,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/marketing/session | 4 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
 | /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:524](../../src/test/tok-ai-tools.test.ts#L524) |
-| /auth | 49 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
+| /auth | 50 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
 | /auth/callback | 16 | [src/App.tsx:557](../../src/App.tsx#L557) |
 | /auth/callback? | 1 | [src/lib/deep-links.ts:33](../../src/lib/deep-links.ts#L33) |
 | /auth/callback?code=pkce-code | 1 | [src/test/native-oauth.test.ts:114](../../src/test/native-oauth.test.ts#L114) |
@@ -1211,7 +1216,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-geneve-desktop-reference.jpg | 2 | [src/components/home/HeroSection.tsx:199](../../src/components/home/HeroSection.tsx#L199) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
 | /images/kebab-box-spread.jpeg | 23 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
@@ -1330,7 +1334,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /panier | 38 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
 | /parametres/securite | 3 | [src/App.tsx:356](../../src/App.tsx#L356) |
 | /placeholder.svg | 2 | [public/seo-trust-runtime.js:10](../../public/seo-trust-runtime.js#L10) |
-| /playball-font/Playball-q6o1.ttf | 1 | [src/test/homepage-positioning-guards.test.ts:32](../../src/test/homepage-positioning-guards.test.ts#L32) |
 | /points-cadeau | 12 | [scripts/prerender-seo.mjs:1222](../../scripts/prerender-seo.mjs#L1222) |
 | /politique-confidentialite | 17 | [scripts/prerender-seo.mjs:1199](../../scripts/prerender-seo.mjs#L1199) |
 | /prices/lookup | 1 | [supabase/functions/_shared/print/cloudprinter.ts:283](../../supabase/functions/_shared/print/cloudprinter.ts#L283) |
@@ -7616,12 +7619,13 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (317)</summary>
+<details><summary>public-asset (320)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
 - `public/4c81caf5-ee6d-400c-8605-c61d010a05de.png`
 - `public/5a64288a-9712-4aae-8293-b0570ecd8668.png`
+- `public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png`
 - `public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png`
 - `public/ChatGPT Image 16 juin 2026, 12_50_15.png`
 - `public/ChatGPT Image 16 juin 2026, 13_36_20.png`
@@ -7630,6 +7634,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/ChatGPT Image 30 mai 2026, 05_49_11.png`
 - `public/ChatGPT Image 8 juin 2026, 02_46_54.png`
 - `public/ChatGPT Image 8 juin 2026, 02_57_38.png`
+- `public/Chef TOK au bord du lac Léman.png`
+- `public/Chef jovial au bord du lac Léman.png`
 - `public/Image Codex 3 sept. 2026, 02_31_12.png`
 - `public/Image Codex 3 sept. 2026, 11_06_16.png`
 - `public/Image Codex 3 sept. 2026, 11_12_46.png`
