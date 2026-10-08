@@ -81,6 +81,13 @@ externe avec une transaction PostgreSQL.
 
 ## Retour arrière et livraison
 
+Les intégrations Git ont tenté automatiquement des builds de branche. Vercel a annulé celui du
+commit `b551878` ; son diagnostic renvoie à la règle de commits vérifiés, et GitHub confirme que
+le commit créé par l'API Git est non signé. La protection n'a pas été désactivée. Cloudflare
+échoue avant compilation faute de `VITE_SUPABASE_URL` et `VITE_SUPABASE_PUBLISHABLE_KEY` dans
+son environnement de build de branche. Ces échecs ne constituent pas un déploiement de ce lot.
+La correction de l'index canonique est livrée séparément après le premier retour CI.
+
 Avant livraison : relire le diff et les checks CI de cette PR. Ce lot inclut la synchronisation des
 noms de secrets Meta dans le pipeline existant, sans ajouter ni modifier aucune valeur de secret.
 Les déclarations connected en base ne suffisent pas à certifier les droits Meta aujourd'hui.
