@@ -242,14 +242,14 @@ importers:
         version: 3.25.76
     devDependencies:
       '@capacitor/android':
-        specifier: ^8.2.0
-        version: 8.3.0(@capacitor/core@8.3.0)
+        specifier: ^8.4.3
+        version: 8.4.3(@capacitor/core@8.3.0)
       '@capacitor/cli':
         specifier: ^8.2.0
         version: 8.3.0
       '@capacitor/ios':
-        specifier: ^8.2.0
-        version: 8.3.0(@capacitor/core@8.3.0)
+        specifier: ^8.5.3
+        version: 8.5.3(@capacitor/core@8.3.0)
       '@eslint/js':
         specifier: ^9.32.0
         version: 9.39.4
@@ -368,22 +368,22 @@ packages:
     resolution: {integrity: sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/runtime@7.29.2':
-    resolution: {integrity: sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==}
+  '@babel/runtime@7.29.10':
+    resolution: {integrity: sha512-NpugTzbKgGrNe45Ui32cN8vCFFMxVtP/9rtfwv0nP5FRDAjvYBxJcLVpYA9mr1jxP6cnIT7x9LUzuDTbWYYNRA==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/runtime@7.29.7':
-    resolution: {integrity: sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==}
+  '@babel/runtime@7.29.2':
+    resolution: {integrity: sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==}
     engines: {node: '>=6.9.0'}
 
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
 
-  '@capacitor/android@8.3.0':
-    resolution: {integrity: sha512-EQy6ByUuKayQBJmMm/e0byJiHavqsQHrvW23BuT2GNVQvenAvipqwaePiJHzrv2PZr7A0T0+se4kgDCeROj0mQ==}
+  '@capacitor/android@8.4.3':
+    resolution: {integrity: sha512-VICd1+E2u5uPvCb5hseoZr84u7/wi334BqayKyXvSLeqURn/iw7nCFEWK29RQNW2rxiW5l1vTVHQ2K6tAJkpTQ==}
     peerDependencies:
-      '@capacitor/core': ^8.3.0
+      '@capacitor/core': ^8.4.0
 
   '@capacitor/app@8.1.0':
     resolution: {integrity: sha512-MlmttTOWHDedr/G4SrhNRxsXMqY+R75S4MM4eIgzsgCzOYhb/MpCkA5Q3nuOCfL1oHm26xjUzqZ5aupbOwdfYg==}
@@ -413,10 +413,10 @@ packages:
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
-  '@capacitor/ios@8.3.0':
-    resolution: {integrity: sha512-5Rtwv8SITKlYTt8lAZG+khnVIdzPtqbocH3eP+JkEmX1vpSMwx4TOKtT8OBz8gpQ+pUJDRp7DBYOv3U6l/obCw==}
+  '@capacitor/ios@8.5.3':
+    resolution: {integrity: sha512-HnnV92Jl8+3x0JUloXUMjFcUsQI8wHFVsKwkLn72DfRZXYGZW11tQbmNOWOnRTljaU18FdI1b9ipT09SzzPDNw==}
     peerDependencies:
-      '@capacitor/core': ^8.3.0
+      '@capacitor/core': ^8.5.0
 
   '@capacitor/keyboard@8.0.3':
     resolution: {integrity: sha512-27Bv5/2w1Ss2njguBgTS98O0Bb8DRJhAARyzXYib0JlT/n6BrJw/EZ0CokM4C8GFUjFDjJnEKF1Ie01buTMEXQ==}
@@ -1747,66 +1747,79 @@ packages:
     resolution: {integrity: sha512-n1GJHPOvpIfhi3TmrCeh6S6URt9BFCt0KQE3qvexyGCTAKpR4Lg+eWvNZEqu7epxwus/8ElT3hacYEucm49SZg==}
     cpu: [arm]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm-musleabihf@4.62.2':
     resolution: {integrity: sha512-JqgflS8wEB+UXV/vS1RpRbifGBeN4D5lz8D8oOFbFZw4vedvdOgCFAjfBmIMdW3yL10XpQQ0Ambepw6MXrhOnA==}
     cpu: [arm]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-arm64-gnu@4.62.2':
     resolution: {integrity: sha512-wnFJkogWvN4jm/hQRF2UBaeUmk20j5+DmHvoyWii2b8HJDyvz1MF2OU/6ynXt2KR63rbZLWkFpoytpdc/yBuSA==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.62.2':
     resolution: {integrity: sha512-HVu2bp0zhvJ8xHEV9+UUs7S90VadmBSY3LcIMvozbPo4AuMGDWlz3ymHLHZPX4hR67TKTt8Qp5PJ5RBg/i+RMQ==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-loong64-gnu@4.62.2':
     resolution: {integrity: sha512-mQqqAV8QaoSgr9I2fKDLY2BAVvmKjWoGiu/cSYQonsLvtqwEn1E4QYfnCOcp5zoEqNhsDYin1s6jx/VJmrxlZg==}
     cpu: [loong64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-loong64-musl@4.62.2':
     resolution: {integrity: sha512-IxKLoxCQ2IWi6bT2akyDUBGsOImDKB+sPp4EsTmwFQ/fMwpCKm8uLSSgP/Kx/QYUgKis6SEZ5/Nlhup0DIA0PQ==}
     cpu: [loong64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-ppc64-gnu@4.62.2':
     resolution: {integrity: sha512-Mk5ha2RQSgyFfmYYLkBpPnUk8D8FriBxesO1u9O75X0mHgXL1UQcH5Itl2lurWL2tj0RxV9b9tJgipac0hRY9A==}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-ppc64-musl@4.62.2':
     resolution: {integrity: sha512-CjvEnqJL/0/TQ3TXX3OPIJ/kmBellrWd4heXUmHeJlTnmwjKpSJzoehLaL6Xk0ZnMHBu9dZuFADNOrtjF4v+2w==}
     cpu: [ppc64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-riscv64-gnu@4.62.2':
     resolution: {integrity: sha512-1SiZbzwdkaDURsew/tSOrooKiYy7EQGT6m8ufavAi9NEyQb/6VuIxFXAL1fqa4iZe3g4NbNk4P7J32z2tw5Mgg==}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-musl@4.62.2':
     resolution: {integrity: sha512-nQts12zJ3NQRoE6uYljOH89v7szzLDvG2JD/vsX+vGXU8w/At1GowTZ5/7qeFQ8m7L55rpR8Okugnuo5bgjy2Q==}
     cpu: [riscv64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-s390x-gnu@4.62.2':
     resolution: {integrity: sha512-E9/ll019jhPIJgpzfZoIkBGhcz+kKNgVWYRY0zr9srBdPPFVpvOKW8VaJKUbeK+eZXyQF9ltME+Kk6affeaPgg==}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-gnu@4.62.2':
     resolution: {integrity: sha512-5BqxR/pshjey51iliyzTD5Xi3EN0aLmQ2lZ3lvefVV9c82BvrLo2/6OT55iifpWBufs6kdwWbuOKS841DrmK9A==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-musl@4.62.2':
     resolution: {integrity: sha512-uNN83XxQrRAh/w0/pmAfibcwyb6YWt4gP+dpnQKPVJshAloQ785ii8CT8ZCIxkGg9opVsvAlGhFitSm6D1Jjpg==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-openbsd-x64@4.62.2':
     resolution: {integrity: sha512-srjEIxSH3LRnJN6THczDHWQplqEMFiAJrTab0msUryh9kwNpkICf3Ea6q6MN/2cZwRFUNx5w+h6Hpi4QuHS6Zg==}
@@ -1892,21 +1905,25 @@ packages:
     resolution: {integrity: sha512-VCEJiXK4JhDRXPR32UcIijKdsVT0zg81EoIt6ydmNDJ9vfPI+eFRIzJpeEST1XobTMAVzbJEBw/b/zq5BywR5w==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@supabase/cli-linux-arm64@2.102.0':
     resolution: {integrity: sha512-vOEdz4mWoqSpygXliGysYsDobtTlZLMhC2KpDsoYio9vQuQPRgaK2kW4fIGPKfagR4Odv3PycgjoNfdsg7TYUQ==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@supabase/cli-linux-x64-musl@2.102.0':
     resolution: {integrity: sha512-KFzdivlbk8rnMHebxFa//AlQE3uxCWF6ZNIWkYUjE+1EBVXJr/j2Mr1SxkJJyt9h/8jztBUUPJgzuRzIJW0GyA==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@supabase/cli-linux-x64@2.102.0':
     resolution: {integrity: sha512-Jcekp6NOWlLuj8vs/ToR11bbqGWhlijs0rmMRyQvDRocWFgeDWX5IBWZwCXZX2xxr7pICJaSdRZx6V8uW2XVEQ==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@supabase/cli-windows-arm64@2.102.0':
     resolution: {integrity: sha512-yY3qbHhMtQFI2TBXbU611UI7b0TaShxGwbunMUwmTUyaCLDTSsxOjxwbpCyfvgY7eDEeYI0WnkbBKHKxknKVDQ==}
@@ -1964,36 +1981,42 @@ packages:
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@swc/core-linux-arm64-musl@1.15.24':
     resolution: {integrity: sha512-ZpF/pRe1guk6sKzQI9D1jAORtjTdNlyeXn9GDz8ophof/w2WhojRblvSDJaGe7rJjcPN8AaOkhwdRUh7q8oYIg==}
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@swc/core-linux-ppc64-gnu@1.15.24':
     resolution: {integrity: sha512-QZEsZfisHTSJlmyChgDFNmKPb3W6Lhbfo/O76HhIngfEdnQNmukS38/VSe1feho+xkV5A5hETyCbx3sALBZKAQ==}
     engines: {node: '>=10'}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@swc/core-linux-s390x-gnu@1.15.24':
     resolution: {integrity: sha512-DLdJKVsJgglqQrJBuoUYNmzm3leI7kUZhLbZGHv42onfKsGf6JDS3+bzCUQfte/XOqDjh/tmmn1DR/CF/tCJFw==}
     engines: {node: '>=10'}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@swc/core-linux-x64-gnu@1.15.24':
     resolution: {integrity: sha512-IpLYfposPA/XLxYOKpRfeccl1p5dDa3+okZDHHTchBkXEaVCnq5MADPmIWwIYj1tudt7hORsEHccG5no6IUQRw==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@swc/core-linux-x64-musl@1.15.24':
     resolution: {integrity: sha512-JHy3fMSc0t/EPWgo74+OK5TGr51aElnzqfUPaiRf2qJ/BfX5CUCfMiWVBuhI7qmVMBnk1jTRnL/xZnOSHDPLYg==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@swc/core-win32-arm64-msvc@1.15.24':
     resolution: {integrity: sha512-Txj+qUH1z2bUd1P3JvwByfjKFti3cptlAxhWgmunBUUxy/IW3CXLZ6l6Gk4liANadKkU71nIU1X30Z5vpMT3BA==}
@@ -2747,6 +2770,7 @@ packages:
   eslint@9.39.4:
     resolution: {integrity: sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -4243,10 +4267,10 @@ snapshots:
 
   '@aparajita/capacitor-secure-storage@8.0.0':
     dependencies:
-      '@capacitor/android': 8.3.0(@capacitor/core@8.3.0)
+      '@capacitor/android': 8.4.3(@capacitor/core@8.3.0)
       '@capacitor/app': 8.1.0(@capacitor/core@8.3.0)
       '@capacitor/core': 8.3.0
-      '@capacitor/ios': 8.3.0(@capacitor/core@8.3.0)
+      '@capacitor/ios': 8.5.3(@capacitor/core@8.3.0)
       '@capacitor/keyboard': 8.0.3(@capacitor/core@8.3.0)
 
   '@asamuzakjp/css-color@5.1.11':
@@ -4277,15 +4301,15 @@ snapshots:
 
   '@babel/helper-validator-identifier@7.29.7': {}
 
-  '@babel/runtime@7.29.2': {}
+  '@babel/runtime@7.29.10': {}
 
-  '@babel/runtime@7.29.7': {}
+  '@babel/runtime@7.29.2': {}
 
   '@bramus/specificity@2.4.2':
     dependencies:
       css-tree: 3.2.1
 
-  '@capacitor/android@8.3.0(@capacitor/core@8.3.0)':
+  '@capacitor/android@8.4.3(@capacitor/core@8.3.0)':
     dependencies:
       '@capacitor/core': 8.3.0
 
@@ -4332,7 +4356,7 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.3.0
 
-  '@capacitor/ios@8.3.0(@capacitor/core@8.3.0)':
+  '@capacitor/ios@8.5.3(@capacitor/core@8.3.0)':
     dependencies:
       '@capacitor/core': 8.3.0
 
@@ -5962,7 +5986,7 @@ snapshots:
   '@testing-library/dom@10.4.1':
     dependencies:
       '@babel/code-frame': 7.29.7
-      '@babel/runtime': 7.29.7
+      '@babel/runtime': 7.29.10
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
       dom-accessibility-api: 0.5.16
