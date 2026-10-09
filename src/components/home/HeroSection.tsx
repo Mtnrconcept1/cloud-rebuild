@@ -31,7 +31,9 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
     <>
       <section className="tok-home-hero" aria-labelledby="home-hero-title" data-content-visible={contentVisible}>
         <picture className="tok-home-hero__background" aria-hidden="true">
+          <source media="(min-width: 1024px)" type="image/webp" srcSet="/images/home/tok-geneve-desktop.webp" width={1670} height={941} />
           <source media="(min-width: 1024px)" srcSet="/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png" width={1670} height={941} />
+          <source type="image/webp" srcSet="/images/home/tok-geneve-mobile.webp" width={941} height={1672} />
           <img src="/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png" alt="" width={941} height={1672} fetchPriority="high" loading="eager" />
         </picture>
         <div className="tok-home-hero__content">
