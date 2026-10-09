@@ -10,6 +10,9 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { CloudprinterError, getPrintProvider } from "../_shared/print/cloudprinter.ts";
 
+import { geometryMatchesLogicalProduct, isSinglePagePrintProduct } from "../_shared/print/catalog.ts";
+import type { PrintProviderProductDetails } from "../_shared/print/types.ts";
+
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
@@ -23,23 +26,6 @@ function toNumber(value: unknown, fallback = 0) {
 function positiveGeometry(value: unknown) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-}
-
-function geometryMatchesLogicalProduct(product: any, variant: any) {
-  const width = positiveGeometry(variant.width_mm);
-  const height = positiveGeometry(variant.height_mm);
-  if (!width || !height) return false;
-
-  const expectedWidth = positiveGeometry(product?.default_width_mm);
-  const expectedHeight = positiveGeometry(product?.default_height_mm);
-  if (!expectedWidth || !expectedHeight) return true;
-
-  const toleranceMm = 1.5;
-  const direct = Math.abs(width - expectedWidth) <= toleranceMm
-    && Math.abs(height - expectedHeight) <= toleranceMm;
-  const rotated = Math.abs(width - expectedHeight) <= toleranceMm
-    && Math.abs(height - expectedWidth) <= toleranceMm;
-  return direct || rotated;
 }
 
 function printablePageCount(variant: any) {
@@ -80,6 +66,35 @@ function buildVariantPayload(variant: any, logicalProduct: any) {
 
 /** PostgREST puts `in` filters and upserts in one request, so both are chunked. */
 const CATALOG_BATCH_SIZE = 100;
+
+function detailColumns(details: PrintProviderProductDetails) {
+  return {
+    provider_name: details.name, provider_note: details.description,
+    width_mm: details.widthMm, height_mm: details.heightMm, bleed_mm: details.bleedMm,
+    safe_margin_mm: details.safeMarginMm, printable_sides: details.printableSides,
+    orientation: details.orientation, print_technology: details.printTechnology,
+    minimum_quantity: details.minimumQuantity, quantity_step: details.quantityStep,
+    options: details.options, specifications: details.specifications, raw_snapshot: details.raw,
+    synced_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+  };
+}
+
+function databaseDiagnostics(error: unknown) {
+  const code = asRecord(error).code;
+  // Never expose SQL details, hints or row values from a PostgREST error.
+  return typeof code === "string" && /^(?:[0-9A-Z]{5}|PGRST\d{3})$/.test(code)
+    ? { code } : null;
+}
+
+function pagination(body: Record<string, unknown>) {
+  const offset = body.offset ?? 0;
+  const limit = body.limit ?? 100;
+  if (!Number.isSafeInteger(offset) || Number(offset) < 0 || Number(offset) > 100000
+    || !Number.isSafeInteger(limit) || Number(limit) < 1 || Number(limit) > 100) {
+    throw new HttpError(400, "Pagination invalide (limit: 1 à 100)");
+  }
+  return { offset: Number(offset), limit: Number(limit) };
+}
 
 function chunk<T>(rows: T[], size: number): T[][] {
   const batches: T[][] = [];
@@ -127,7 +142,7 @@ Deno.serve(async (req) => {
       const restaurantId = String(body.restaurantId || "").trim();
       if (!restaurantId) throw new HttpError(400, "restaurantId requis");
       await requireRestaurantAccess(actor, restaurantId);
-      const includeInactiveMapped = action === "generation_catalog";
+      const generationCatalog = action === "generation_catalog";
 
       const { data: products, error: productError } = await adminClient
         .from("print_products")
@@ -143,7 +158,7 @@ Deno.serve(async (req) => {
           .select("id, print_product_id, provider_reference, active, width_mm, height_mm, bleed_mm, safe_margin_mm, printable_sides, orientation, print_technology, minimum_quantity, quantity_step, options, specifications")
           .in("print_product_id", productIds)
         : null;
-      if (variantQuery && !includeInactiveMapped) variantQuery = variantQuery.eq("active", true);
+      if (variantQuery) variantQuery = variantQuery.eq("active", true);
       const { data: variants, error: variantError } = variantQuery
         ? await variantQuery.order("provider_reference", { ascending: true })
         : { data: [], error: null };
@@ -154,7 +169,8 @@ Deno.serve(async (req) => {
         const logicalProduct = (products || []).find((product: any) => product.id === variant.print_product_id);
         // A provider mapping is never exposed until /products/info geometry has
         // been hydrated and matches its provider-agnostic TheTok product.
-        if (!logicalProduct || !geometryMatchesLogicalProduct(logicalProduct, variant)) continue;
+        if (!logicalProduct || variant.active !== true || !geometryMatchesLogicalProduct(logicalProduct, variant)
+          || !isSinglePagePrintProduct(variant, logicalProduct)) continue;
         const rows = validByProduct.get(variant.print_product_id) || [];
         rows.push(variant);
         validByProduct.set(variant.print_product_id, rows);
@@ -163,7 +179,7 @@ Deno.serve(async (req) => {
       const byProduct = new Map<string, any[]>();
       for (const product of products || []) {
         const validRows = validByProduct.get(product.id) || [];
-        const selectedRows = includeInactiveMapped
+        const selectedRows = generationCatalog
           ? [selectGenerationVariant(validRows)].filter(Boolean)
           : validRows;
         byProduct.set(
@@ -188,13 +204,15 @@ Deno.serve(async (req) => {
     requireRole(actor, ["admin"]);
 
     if (action === "admin_mappings") {
+      const { offset, limit } = pagination(body);
       const [{ data: mappings, error: mappingError }, { data: products, error: productError }] = await Promise.all([
         adminClient
           .from("print_provider_products")
           .select("id, provider_reference, provider_name, print_product_id, active, width_mm, height_mm, synced_at")
           .eq("provider", "cloudprinter")
           .order("provider_name", { ascending: true })
-          .limit(500),
+          .order("provider_reference", { ascending: true })
+          .range(offset, offset + limit),
         adminClient
           .from("print_products")
           .select("id, display_name, slug")
@@ -203,13 +221,53 @@ Deno.serve(async (req) => {
       ]);
       if (mappingError) throw mappingError;
       if (productError) throw productError;
-      return jsonResponse({ mappings: mappings || [], logicalProducts: products || [] }, 200, cors);
+      return jsonResponse({ mappings: (mappings || []).slice(0, limit), logicalProducts: products || [],
+        nextOffset: (mappings || []).length > limit ? offset + limit : null,
+      }, 200, cors);
     }
 
     const provider = getPrintProvider();
 
+    if (action === "discover") {
+      const { offset, limit } = pagination(body);
+      const products = [...new Map((await provider.getProducts()).map((product) => [product.reference, product])).values()];
+      products.sort((left, right) => left.reference.localeCompare(right.reference));
+      return jsonResponse({ products: products.slice(offset, offset + limit).map((product) => ({
+        reference: product.reference, name: product.name,
+      })), total: products.length, nextOffset: offset + limit < products.length ? offset + limit : null }, 200, cors);
+    }
+
+    if (action === "map") {
+      const reference = typeof body.reference === "string" ? body.reference.trim() : "";
+      const productId = typeof body.productId === "string" ? body.productId.trim() : "";
+      if (!/^[A-Za-z0-9_.-]{1,200}$/.test(reference)
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(productId)
+        || typeof body.active !== "boolean") throw new HttpError(400, "Mapping invalide");
+      const { data: product, error: productError } = await adminClient.from("print_products")
+        .select("id, active, category, slug, default_width_mm, default_height_mm")
+        .eq("id", productId).maybeSingle();
+      if (productError) throw productError;
+      if (!product) throw new HttpError(404, "Produit logique introuvable");
+      const details = await provider.getProduct(reference);
+      const columns = detailColumns(details);
+      if (!geometryMatchesLogicalProduct(product, columns)) throw new HttpError(409, "PRINT_MAPPING_GEOMETRY_MISMATCH");
+      if (body.active && (!product.active || !isSinglePagePrintProduct(columns, product))) {
+        throw new HttpError(409, "PRINT_MAPPING_SINGLE_PAGE_REQUIRED");
+      }
+      const { data, error } = await adminClient.from("print_provider_products").upsert({
+        provider: "cloudprinter", provider_reference: reference, print_product_id: productId,
+        active: body.active, ...columns,
+      }, { onConflict: "provider,provider_reference" }).select("id").single();
+      if (error) throw error;
+      await writeAuditLog({ adminClient, actor, request: req, functionName: "print-catalog",
+        action: "map_cloudprinter", status: "success", targetEntityType: "print_provider_products",
+        metadata: { reference, productId, active: body.active },
+      });
+      return jsonResponse({ ok: true, id: data.id, reference, productId, active: body.active }, 200, cors);
+    }
+
     if (action === "sync") {
-      const remoteProducts = await provider.getProducts();
+      const remoteProducts = [...new Map((await provider.getProducts()).map((product) => [product.reference, product])).values()];
       const references = remoteProducts.map((product) => product.reference);
 
       // Cloudprinter returns hundreds of references: a single `in` filter would
@@ -320,7 +378,9 @@ Deno.serve(async (req) => {
     throw new HttpError(400, "Action catalogue impression invalide");
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
-    const message = error instanceof Error ? error.message.replace(/[\r\n]+/g, " ").slice(0, 500) : "Erreur catalogue impression";
+    const databaseError = databaseDiagnostics(error);
+    const message = databaseError ? `CATALOG_DATABASE_${databaseError.code}`
+      : error instanceof HttpError ? error.message : "Erreur catalogue impression";
     const diagnostics = providerDiagnostics(error);
     await writeAuditLog({
       adminClient,
@@ -331,11 +391,12 @@ Deno.serve(async (req) => {
       status: "failure",
       targetEntityType: "print_provider_products",
       errorMessage: message,
-      ...(diagnostics ? { metadata: { provider_error: diagnostics } } : {}),
+      metadata: { ...(diagnostics ? { provider_error: diagnostics } : {}), ...(databaseError ? { database_error: databaseError } : {}) },
     });
     return jsonResponse({
       error: status >= 500 && !diagnostics ? "Erreur interne catalogue impression" : message,
       ...(diagnostics ? { providerError: diagnostics } : {}),
+      ...(databaseError && (actor?.isAdmin || actor?.isServiceRole) ? { databaseError } : {}),
     }, status, cors);
   }
 });

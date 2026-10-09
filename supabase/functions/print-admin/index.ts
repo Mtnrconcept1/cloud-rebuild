@@ -9,6 +9,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { CloudprinterError, getPrintProvider } from "../_shared/print/cloudprinter.ts";
+import { geometryMatchesLogicalProduct, isSinglePagePrintProduct } from "../_shared/print/catalog.ts";
 
 const REORDER_CAUSES = new Set([
   "reorder_shipping_item_not_received",
@@ -277,6 +278,7 @@ Deno.serve(async (req) => {
     if (action === "map_product") {
       const providerProductId = requireString(body.providerProductId, "providerProductId", 80);
       const printProductId = requireString(body.printProductId, "printProductId", 80);
+      if (body.active !== undefined && typeof body.active !== "boolean") throw new HttpError(400, "active invalide");
       const { data: providerRow, error: providerRowError } = await adminClient
         .from("print_provider_products")
         .select("id, provider_reference")
@@ -286,7 +288,7 @@ Deno.serve(async (req) => {
       if (!providerRow) throw new HttpError(404, "Produit fournisseur introuvable");
       const { data: logicalProduct, error: logicalError } = await adminClient
         .from("print_products")
-        .select("id")
+        .select("id, category, slug, default_width_mm, default_height_mm")
         .eq("id", printProductId)
         .eq("active", true)
         .maybeSingle();
@@ -294,6 +296,12 @@ Deno.serve(async (req) => {
       if (!logicalProduct) throw new HttpError(404, "Produit TheTok introuvable");
 
       const details = await getPrintProvider().getProduct(providerRow.provider_reference);
+      const variant = { width_mm: details.widthMm, height_mm: details.heightMm,
+        printable_sides: details.printableSides, specifications: details.specifications };
+      if (!geometryMatchesLogicalProduct(logicalProduct, variant)) throw new HttpError(409, "PRINT_MAPPING_GEOMETRY_MISMATCH");
+      if (body.active !== false && !isSinglePagePrintProduct(variant, logicalProduct)) {
+        throw new HttpError(409, "PRINT_MAPPING_SINGLE_PAGE_REQUIRED");
+      }
       const { data, error } = await adminClient
         .from("print_provider_products")
         .update({

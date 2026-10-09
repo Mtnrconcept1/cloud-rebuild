@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,8 @@ type ProviderMapping = {
   synced_at: string | null;
 };
 
+const MAPPING_PAGE_SIZE = 50;
+
 type LogicalProduct = { id: string; display_name: string; slug: string };
 
 async function callAdmin<T>(body: Record<string, unknown>) {
@@ -73,23 +75,29 @@ export default function AdminPrintOrders() {
   const [orders, setOrders] = useState<AdminPrintOrder[]>([]);
   const [settings, setSettings] = useState<PrintSettings | null>(null);
   const [mappings, setMappings] = useState<ProviderMapping[]>([]);
+  const [mappingOffset, setMappingOffset] = useState(0);
+  const mappingOffsetRef = useRef(0);
+  const [nextMappingOffset, setNextMappingOffset] = useState<number | null>(null);
   const [logicalProducts, setLogicalProducts] = useState<LogicalProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [working, setWorking] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [reorderCause, setReorderCause] = useState("reorder_print_quality");
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (offset = mappingOffsetRef.current) => {
     setLoading(true);
     try {
       const [orderResult, settingsResult, mappingResult] = await Promise.all([
         callAdmin<{ orders: AdminPrintOrder[] }>({ action: "list", page: 1, pageSize: 50, ...(statusFilter !== "all" ? { status: statusFilter } : {}) }),
         callAdmin<{ settings: PrintSettings }>({ action: "settings" }),
-        callCatalog<{ mappings: ProviderMapping[]; logicalProducts: LogicalProduct[] }>({ action: "admin_mappings" }),
+        callCatalog<{ mappings: ProviderMapping[]; logicalProducts: LogicalProduct[]; nextOffset: number | null }>({ action: "admin_mappings", offset, limit: MAPPING_PAGE_SIZE }),
       ]);
       setOrders(orderResult.orders || []);
       setSettings(settingsResult.settings);
       setMappings(mappingResult.mappings || []);
+      setMappingOffset(offset);
+      mappingOffsetRef.current = offset;
+      setNextMappingOffset(mappingResult.nextOffset ?? null);
       setLogicalProducts(mappingResult.logicalProducts || []);
     } catch (error) {
       toast({ title: "Administration Print indisponible", description: error instanceof Error ? error.message : "Erreur de chargement.", variant: "destructive" });
@@ -98,7 +106,7 @@ export default function AdminPrintOrders() {
     }
   }, [statusFilter, toast]);
 
-  useEffect(() => { void load(); }, [statusFilter]);
+  useEffect(() => { void load(); }, [load]);
 
   async function updateSettings(patch: Record<string, unknown>) {
     setWorking("settings");
@@ -126,10 +134,10 @@ export default function AdminPrintOrders() {
     }
   }
 
-  async function mapProduct(providerProductId: string, printProductId: string) {
-    setWorking(`map:${providerProductId}`);
+  async function mapProduct(mapping: ProviderMapping, productId: string) {
+    setWorking(`map:${mapping.id}`);
     try {
-      await callAdmin({ action: "map_product", providerProductId, printProductId, active: true });
+      await callCatalog({ action: "map", reference: mapping.provider_reference, productId, active: true });
       toast({ title: "Produit Print activé" });
       await load();
     } catch (error) {
@@ -181,17 +189,22 @@ export default function AdminPrintOrders() {
               <Button variant="outline" disabled={working !== null} onClick={() => void syncCatalog()}>{working === "sync" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}Synchroniser Cloudprinter</Button>
             </div>
             <div className="max-h-80 space-y-2 overflow-y-auto">
-              {mappings.slice(0, 100).map((mapping) => (
+              {mappings.map((mapping) => (
                 <div key={mapping.id} className="grid items-center gap-2 rounded-xl border p-3 md:grid-cols-[1fr_220px_auto]">
                   <div className="min-w-0"><p className="truncate text-sm font-medium">{mapping.provider_name || mapping.provider_reference}</p><p className="truncate text-xs text-muted-foreground">{mapping.provider_reference}{mapping.width_mm && mapping.height_mm ? ` · ${mapping.width_mm} × ${mapping.height_mm} mm` : ""}</p></div>
-                  <Select value={mapping.print_product_id || "unmapped"} onValueChange={(value) => { if (value !== "unmapped") void mapProduct(mapping.id, value); }}>
-                    <SelectTrigger><SelectValue placeholder="Mapper à TheTok" /></SelectTrigger>
+                  <Select disabled={loading || working !== null} value={mapping.print_product_id || "unmapped"} onValueChange={(value) => { if (value !== "unmapped") void mapProduct(mapping, value); }}>
+                    <SelectTrigger aria-label={`Mapper ${mapping.provider_reference} à TheTok`}><SelectValue placeholder="Mapper à TheTok" /></SelectTrigger>
                     <SelectContent><SelectItem value="unmapped">Non mappé</SelectItem>{logicalProducts.map((product) => <SelectItem key={product.id} value={product.id}>{product.display_name}</SelectItem>)}</SelectContent>
                   </Select>
                   <span className={`text-xs font-semibold ${mapping.active ? "text-emerald-600" : "text-muted-foreground"}`}>{mapping.active ? "Actif" : "Inactif"}</span>
                 </div>
               ))}
             </div>
+            <nav className="mt-3 flex flex-wrap items-center justify-between gap-3" aria-label="Pagination du catalogue fournisseur">
+              <Button variant="outline" disabled={loading || working !== null || mappingOffset === 0} onClick={() => void load(Math.max(0, mappingOffset - MAPPING_PAGE_SIZE))}>Page précédente</Button>
+              <span className="text-sm" aria-live="polite">Page {Math.floor(mappingOffset / MAPPING_PAGE_SIZE) + 1}</span>
+              <Button variant="outline" disabled={loading || working !== null || nextMappingOffset === null} onClick={() => { if (nextMappingOffset !== null) void load(nextMappingOffset); }}>Page suivante</Button>
+            </nav>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3">

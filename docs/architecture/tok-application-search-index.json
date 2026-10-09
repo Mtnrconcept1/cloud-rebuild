@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "262a20fbf1124b1611c1858e92d4e76e4ae8c2debfe2f9dad7fda73b3aa7ac73",
+ "sourceDigest": "7db50fb81cb56dd15827b9df7e85106705e269a1f31a80319e4769c456cd547b",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
-  "databaseObjects": 2718,
-  "documents": 187,
+  "databaseObjects": 2720,
+  "documents": 188,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3342,
+  "exportedSymbols": 3348,
   "featureFlags": 99,
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 520,
-  "modules": 1429,
+  "migrations": 521,
+  "modules": 1438,
   "pages": 127,
   "pathLiterals": 597,
-  "publicAssets": 295,
-  "publicEntries": 317,
+  "publicAssets": 298,
+  "publicEntries": 320,
   "publicNavigableRoutes": 2,
   "queryParameters": 100,
-  "records": 15305,
-  "repositoryFiles": 2674,
+  "records": 15349,
+  "repositoryFiles": 2689,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -4028,7 +4028,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 71,
+      "line": 73,
       "kind": "function"
      }
     ],
@@ -8244,9 +8244,11 @@
     ],
     "actions": [
      "admin_mappings",
+     "discover",
      "generation_catalog",
      "hydrate",
      "list",
+     "map",
      "sync"
     ],
     "environmentNames": [],
@@ -10445,6 +10447,11 @@
     "kind": "media"
    },
    {
+    "route": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+    "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+    "kind": "media"
+   },
+   {
     "route": "/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
     "path": "public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
     "kind": "media"
@@ -10482,6 +10489,16 @@
    {
     "route": "/ChatGPT Image 8 juin 2026, 02_57_38.png",
     "path": "public/ChatGPT Image 8 juin 2026, 02_57_38.png",
+    "kind": "media"
+   },
+   {
+    "route": "/Chef TOK au bord du lac Léman.png",
+    "path": "public/Chef TOK au bord du lac Léman.png",
+    "kind": "media"
+   },
+   {
+    "route": "/Chef jovial au bord du lac Léman.png",
+    "path": "public/Chef jovial au bord du lac Léman.png",
     "kind": "media"
    },
    {
@@ -12420,7 +12437,7 @@
      },
      {
       "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
-      "line": 820
+      "line": 821
      },
      {
       "path": "src/components/navigation/BackNavigationButton.tsx",
@@ -18334,7 +18351,7 @@
      },
      {
       "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
-      "line": 2236
+      "line": 2238
      },
      {
       "path": "src/components/dashboard/TokAiPhotoStudioV2.tsx",
@@ -21478,7 +21495,7 @@
     "sources": [
      {
       "path": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 97
+      "line": 99
      }
     ]
    },
@@ -25071,7 +25088,7 @@
     "sources": [
      {
       "path": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 79
+      "line": 81
      }
     ]
    },
@@ -28118,6 +28135,7 @@
      "src/components/dashboard/DailyDishAiPanel.tsx",
      "src/components/dashboard/DirectReservationChannelsCard.tsx",
      "src/components/dashboard/TokAiMarketingStudio.tsx",
+     "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
      "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
      "src/components/dashboard/performance/PerformanceBusinessTab.tsx",
      "src/components/floor-plan/FloorPlanAIPanel.tsx",
@@ -28479,6 +28497,12 @@
      "src/test/plan-phase1-readiness.test.ts",
      "src/test/plan2-fk-index-readiness.test.ts",
      "src/test/plan2-security-definer-rpc-grants.test.ts",
+     "src/test/print-catalog-actions.test.ts",
+     "src/test/print-catalog-admin-pagination.test.tsx",
+     "src/test/print-composer-source-format.test.tsx",
+     "src/test/print-export-source-format.test.ts",
+     "src/test/print-pdf-dimensions.test.ts",
+     "src/test/print-source-format.test.ts",
      "src/test/production-alert-remediation.test.ts",
      "src/test/production-deployment-credential-wiring.test.ts",
      "src/test/production-preflight-hardening.test.ts",
@@ -31887,6 +31911,12 @@
     "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
     "lineCount": 47,
     "objectCount": 0
+   },
+   {
+    "name": "20261009003407 Protect Generated Print Format",
+    "path": "supabase/migrations/20261009003407_protect_generated_print_format.sql",
+    "lineCount": 42,
+    "objectCount": 2
    }
   ],
   "databaseObjects": [
@@ -38173,6 +38203,16 @@
      {
       "path": "supabase/migrations/20260901182818_harden_directory_restaurant_display_names.sql",
       "line": 87
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.protect_generated_print_format",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261009003407_protect_generated_print_format.sql",
+      "line": 6
      }
     ]
    },
@@ -60510,6 +60550,16 @@
    },
    {
     "type": "trigger",
+    "name": "protect_generated_print_format",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261009003407_protect_generated_print_format.sql",
+      "line": 34
+     }
+    ]
+   },
+   {
+    "type": "trigger",
     "name": "protect_match_group_capture_claim_insert",
     "sources": [
      {
@@ -70447,6 +70497,37 @@
       "level": 4,
       "title": "P2 - Les preferences et abonnements notifications sont encore dupliques cote client",
       "line": 219
+     }
+    ]
+   },
+   {
+    "path": "docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md",
+    "title": "Cloudprinter : formats de génération et d’impression",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Cloudprinter : formats de génération et d’impression",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Parcours pris en charge",
+      "line": 7
+     },
+     {
+      "level": 2,
+      "title": "Mappings actifs vérifiés via `/products/info`",
+      "line": 16
+     },
+     {
+      "level": 2,
+      "title": "Exploitation",
+      "line": 33
+     },
+     {
+      "level": 2,
+      "title": "Vérification et retour arrière",
+      "line": 46
      }
     ]
    },
@@ -80405,7 +80486,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 1169,
+      "line": 1170,
       "kind": "function"
      }
     ],
@@ -80414,20 +80495,22 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 2394
+    "lineCount": 2396
    },
    {
     "path": "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
     "exports": [
      {
       "name": "default",
-      "line": 22,
+      "line": 26,
       "kind": "function"
      }
     ],
     "environmentNames": [],
-    "integrations": [],
-    "lineCount": 57
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 74
    },
    {
     "path": "src/components/dashboard/TokAiPhotoStudio.tsx",
@@ -80475,20 +80558,20 @@
     "exports": [
      {
       "name": "default",
-      "line": 92,
+      "line": 93,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 240
+    "lineCount": 242
    },
    {
     "path": "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
     "exports": [
      {
       "name": "default",
-      "line": 221,
+      "line": 231,
       "kind": "function"
      }
     ],
@@ -80497,7 +80580,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 595
+    "lineCount": 617
    },
    {
     "path": "src/components/dashboard/marketing-print/PrintOrderDetails.tsx",
@@ -85046,97 +85129,97 @@
     "exports": [
      {
       "name": "AI_CREATION_COMPLETED_EVENT",
-      "line": 14,
-      "kind": "variable"
-     },
-     {
-      "name": "AI_CREATION_FAILED_EVENT",
       "line": 15,
       "kind": "variable"
      },
      {
+      "name": "AI_CREATION_FAILED_EVENT",
+      "line": 16,
+      "kind": "variable"
+     },
+     {
       "name": "AiCreationTool",
-      "line": 30,
+      "line": 31,
       "kind": "typealias"
      },
      {
       "name": "AiCreationStatus",
-      "line": 37,
+      "line": 38,
       "kind": "typealias"
      },
      {
       "name": "AiCreationRecord",
-      "line": 39,
+      "line": 40,
       "kind": "typealias"
      },
      {
       "name": "loadPersistedAiCreationRecords",
-      "line": 345,
+      "line": 348,
       "kind": "function"
      },
      {
       "name": "mergeAiCreationRecordSources",
-      "line": 367,
+      "line": 370,
       "kind": "function"
      },
      {
       "name": "recoverInterruptedAiCreations",
-      "line": 392,
+      "line": 395,
       "kind": "function"
      },
      {
       "name": "getAiCreationRecords",
-      "line": 525,
+      "line": 528,
       "kind": "function"
      },
      {
       "name": "subscribeAiCreationRecords",
-      "line": 531,
+      "line": 534,
       "kind": "function"
      },
      {
       "name": "setActiveAiCreationContext",
-      "line": 542,
+      "line": 545,
       "kind": "function"
      },
      {
       "name": "getActiveAiCreationContext",
-      "line": 546,
+      "line": 549,
       "kind": "function"
      },
      {
       "name": "requestAiCreationNotificationPermission",
-      "line": 550,
+      "line": 553,
       "kind": "function"
      },
      {
       "name": "startTokImageCreationJob",
-      "line": 561,
+      "line": 564,
       "kind": "function"
      },
      {
       "name": "useAiCreationRecovery",
-      "line": 649,
+      "line": 652,
       "kind": "function"
      },
      {
       "name": "markAiCreationAddedToGallery",
-      "line": 666,
+      "line": 669,
       "kind": "function"
      },
      {
       "name": "deleteAiCreationRecord",
-      "line": 670,
+      "line": 673,
       "kind": "function"
      },
      {
       "name": "getAiCreationImageUrl",
-      "line": 680,
+      "line": 683,
       "kind": "function"
      },
      {
       "name": "hasActiveAiCreationJob",
-      "line": 684,
+      "line": 687,
       "kind": "function"
      }
     ],
@@ -85145,7 +85228,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 687
+    "lineCount": 690
    },
    {
     "path": "src/lib/ai/dailyDishAi.ts",
@@ -85407,187 +85490,187 @@
     "exports": [
      {
       "name": "TokAiMessage",
-      "line": 15,
+      "line": 16,
       "kind": "typealias"
      },
      {
       "name": "ClientSupportRequest",
-      "line": 20,
+      "line": 21,
       "kind": "typealias"
      },
      {
       "name": "ClientSupportConversation",
-      "line": 29,
+      "line": 30,
       "kind": "typealias"
      },
      {
       "name": "ClientSupportConversationMessage",
-      "line": 43,
+      "line": 44,
       "kind": "typealias"
      },
      {
       "name": "RestaurantAdvisorConversation",
-      "line": 52,
+      "line": 53,
       "kind": "typealias"
      },
      {
       "name": "RestaurantAgentAction",
-      "line": 56,
+      "line": 57,
       "kind": "typealias"
      },
      {
       "name": "RestaurantAgentRequest",
-      "line": 65,
+      "line": 66,
       "kind": "typealias"
      },
      {
       "name": "RestaurantAdvisorStreamRequest",
-      "line": 72,
+      "line": 73,
       "kind": "typealias"
      },
      {
       "name": "TokImageFormat",
-      "line": 78,
+      "line": 79,
       "kind": "typealias"
      },
      {
       "name": "TokImageGenerationRequest",
-      "line": 80,
+      "line": 81,
       "kind": "typealias"
      },
      {
       "name": "TokImageGenerationResult",
-      "line": 106,
+      "line": 108,
       "kind": "typealias"
      },
      {
       "name": "AccountingAgentRequest",
-      "line": 136,
+      "line": 139,
       "kind": "typealias"
      },
      {
       "name": "AccountingAgentResult",
-      "line": 143,
+      "line": 146,
       "kind": "typealias"
      },
      {
       "name": "AccountingInsightRow",
-      "line": 156,
+      "line": 159,
       "kind": "typealias"
      },
      {
       "name": "AdminMonitorRequest",
-      "line": 172,
+      "line": 175,
       "kind": "typealias"
      },
      {
       "name": "AdminDashboardChatRequest",
-      "line": 177,
+      "line": 180,
       "kind": "typealias"
      },
      {
       "name": "AdminDashboardChatResult",
-      "line": 183,
+      "line": 186,
       "kind": "typealias"
      },
      {
       "name": "RestaurantAiSubscription",
-      "line": 193,
+      "line": 196,
       "kind": "typealias"
      },
      {
       "name": "askClientSupport",
-      "line": 214,
+      "line": 217,
       "kind": "function"
      },
      {
       "name": "getClientSupportConversations",
-      "line": 230,
+      "line": 233,
       "kind": "function"
      },
      {
       "name": "getClientSupportConversationMessages",
-      "line": 254,
+      "line": 257,
       "kind": "function"
      },
      {
       "name": "getRestaurantAdvisorConversations",
-      "line": 265,
+      "line": 268,
       "kind": "function"
      },
      {
       "name": "createRestaurantAdvisorConversation",
-      "line": 316,
+      "line": 319,
       "kind": "function"
      },
      {
       "name": "appendRestaurantAdvisorConversationMessages",
-      "line": 352,
+      "line": 355,
       "kind": "function"
      },
      {
       "name": "archiveRestaurantAdvisorConversation",
-      "line": 381,
+      "line": 384,
       "kind": "function"
      },
      {
       "name": "runRestaurantAgent",
-      "line": 389,
+      "line": 392,
       "kind": "function"
      },
      {
       "name": "streamRestaurantAdvisor",
-      "line": 406,
+      "line": 409,
       "kind": "function"
      },
      {
       "name": "generateTokDishImage",
-      "line": 472,
+      "line": 475,
       "kind": "function"
      },
      {
       "name": "runAccountingAgent",
-      "line": 487,
+      "line": 490,
       "kind": "function"
      },
      {
       "name": "runAdminMonitor",
-      "line": 491,
+      "line": 494,
       "kind": "function"
      },
      {
       "name": "askAdminDashboardChat",
-      "line": 514,
+      "line": 517,
       "kind": "function"
      },
      {
       "name": "getAdminDashboardChatConversations",
-      "line": 521,
+      "line": 524,
       "kind": "function"
      },
      {
       "name": "getAdminDashboardChatMessages",
-      "line": 530,
+      "line": 533,
       "kind": "function"
      },
      {
       "name": "estimateAiCost",
-      "line": 548,
+      "line": 551,
       "kind": "function"
      },
      {
       "name": "getAiUsageForRestaurant",
-      "line": 556,
+      "line": 559,
       "kind": "function"
      },
      {
       "name": "getAiSubscriptionForRestaurant",
-      "line": 573,
+      "line": 576,
       "kind": "function"
      },
      {
       "name": "getAccountingInsightsForRestaurant",
-      "line": 596,
+      "line": 599,
       "kind": "function"
      }
     ],
@@ -85596,7 +85679,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 621
+    "lineCount": 624
    },
    {
     "path": "src/lib/ai/tokAiClientMarketingOutputShell.ts",
@@ -90139,7 +90222,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 108
+    "lineCount": 112
    },
    {
     "path": "src/lib/marketingDomains.ts",
@@ -96399,7 +96482,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 71,
+      "line": 73,
       "kind": "function"
      }
     ],
@@ -96407,7 +96490,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 220
+    "lineCount": 233
    },
    {
     "path": "src/pages/admin/AdminRestaurants.tsx",
@@ -98399,7 +98482,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 53
+    "lineCount": 55
    },
    {
     "path": "src/test/cloudprinter-print-quote-regression.test.ts",
@@ -100159,6 +100242,13 @@
     "lineCount": 115
    },
    {
+    "path": "src/test/marketing-print-entry.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 25
+   },
+   {
     "path": "src/test/marketing-print-rendering.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -100627,6 +100717,60 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 116
+   },
+   {
+    "path": "src/test/print-catalog-actions.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 166
+   },
+   {
+    "path": "src/test/print-catalog-admin-pagination.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 59
+   },
+   {
+    "path": "src/test/print-composer-source-format.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 81
+   },
+   {
+    "path": "src/test/print-export-source-format.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 53
+   },
+   {
+    "path": "src/test/print-pdf-dimensions.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 100
+   },
+   {
+    "path": "src/test/print-source-format.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 44
    },
    {
     "path": "src/test/production-alert-remediation.test.ts",
@@ -103989,6 +104133,24 @@
     "lineCount": 247
    },
    {
+    "path": "supabase/functions/_shared/print/catalog.ts",
+    "exports": [
+     {
+      "name": "isSinglePagePrintProduct",
+      "line": 5,
+      "kind": "function"
+     },
+     {
+      "name": "geometryMatchesLogicalProduct",
+      "line": 18,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 24
+   },
+   {
     "path": "supabase/functions/_shared/print/cloudprinter.ts",
     "exports": [
      {
@@ -104044,7 +104206,7 @@
      },
      {
       "name": "buildPrintPdf",
-      "line": 237,
+      "line": 244,
       "kind": "function"
      }
     ],
@@ -104052,7 +104214,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 320
+    "lineCount": 331
    },
    {
     "path": "supabase/functions/_shared/print/pricing.ts",
@@ -104216,6 +104378,34 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 75
+   },
+   {
+    "path": "supabase/functions/_shared/print/source-format.ts",
+    "exports": [
+     {
+      "name": "GeneratedOutputFormat",
+      "line": 2,
+      "kind": "typealias"
+     },
+     {
+      "name": "readGeneratedOutputFormat",
+      "line": 10,
+      "kind": "function"
+     },
+     {
+      "name": "matchesGeneratedPrintFormat",
+      "line": 23,
+      "kind": "function"
+     },
+     {
+      "name": "generatedPrintOrientation",
+      "line": 34,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 40
    },
    {
     "path": "supabase/functions/_shared/print/types.ts",
@@ -105411,7 +105601,7 @@
     "integrations": [
      "openai"
     ],
-    "lineCount": 1932
+    "lineCount": 1955
    },
    {
     "path": "supabase/functions/ai-marketing-agent/index.ts",
@@ -106153,14 +106343,14 @@
      "PRINT_SUPPORT_EMAIL"
     ],
     "integrations": [],
-    "lineCount": 419
+    "lineCount": 427
    },
    {
     "path": "supabase/functions/print-catalog/index.ts",
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 342
+    "lineCount": 403
    },
    {
     "path": "supabase/functions/print-checkout/index.ts",
@@ -106181,7 +106371,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 232
+    "lineCount": 248
    },
    {
     "path": "supabase/functions/print-orchestrator/index.ts",
@@ -108172,6 +108362,11 @@
     "extension": ".md"
    },
    {
+    "path": "docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
     "path": "docs/operations/TOK_INTELLIGENCE_SUITE.md",
     "category": "documentation",
     "extension": ".md"
@@ -108802,6 +108997,11 @@
     "extension": ".png"
    },
    {
+    "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
     "path": "public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
     "category": "public-asset",
     "extension": ".png"
@@ -108838,6 +109038,16 @@
    },
    {
     "path": "public/ChatGPT Image 8 juin 2026, 02_57_38.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/Chef TOK au bord du lac Léman.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/Chef jovial au bord du lac Léman.png",
     "category": "public-asset",
     "extension": ".png"
    },
@@ -115362,6 +115572,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/marketing-print-entry.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/marketing-print-rendering.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -115633,6 +115848,36 @@
    },
    {
     "path": "src/test/print-and-chart-sinks.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/print-catalog-actions.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/print-catalog-admin-pagination.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/print-composer-source-format.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/print-export-source-format.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/print-pdf-dimensions.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/print-source-format.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -116792,6 +117037,11 @@
     "extension": ".ts"
    },
    {
+    "path": "supabase/functions/_shared/print/catalog.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
     "path": "supabase/functions/_shared/print/cloudprinter.ts",
     "category": "edge-function-source",
     "extension": ".ts"
@@ -116833,6 +117083,11 @@
    },
    {
     "path": "supabase/functions/_shared/print/security.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/print/source-format.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -120117,12 +120372,22 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261009003407_protect_generated_print_format.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/critical_rpc_smoke.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
    },
    {
     "path": "supabase/tests/floor_plan_autoplacement_smoke.sql",
+    "category": "supabase-configuration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/tests/generated_print_format_smoke.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
    },
@@ -123356,7 +123621,7 @@
    "id": "code-module:53871c488863",
    "type": "code-module",
    "title": "src/components/dashboard/TokAiMarketingStudio.tsx",
-   "description": "Module de 2394 lignes; exports: default.",
+   "description": "Module de 2396 lignes; exports: default.",
    "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
    "line": 1,
    "surface": null,
@@ -123365,20 +123630,21 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "2df12cea25ca"
+   "detailRef": "61e886f4d96c"
   },
   {
    "id": "code-module:debf63304b0a",
    "type": "code-module",
    "title": "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
-   "description": "Module de 57 lignes; exports: default.",
+   "description": "Module de 74 lignes; exports: default.",
    "path": "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
    "line": 1,
    "surface": null,
    "tags": [
-    "default"
+    "default",
+    "supabase"
    ],
-   "detailRef": "c733392c8079"
+   "detailRef": "e52409511e69"
   },
   {
    "id": "code-module:4f6a9d1b0aea",
@@ -123424,20 +123690,20 @@
    "id": "code-module:9601448e35f1",
    "type": "code-module",
    "title": "src/components/dashboard/marketing-print/MarketingStudioPrintCatalogBridge.tsx",
-   "description": "Module de 240 lignes; exports: default.",
+   "description": "Module de 242 lignes; exports: default.",
    "path": "src/components/dashboard/marketing-print/MarketingStudioPrintCatalogBridge.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "184bbb7e6a72"
+   "detailRef": "fe6da6fe3a12"
   },
   {
    "id": "code-module:deb783cb0fb3",
    "type": "code-module",
    "title": "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
-   "description": "Module de 595 lignes; exports: default.",
+   "description": "Module de 617 lignes; exports: default.",
    "path": "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
    "line": 1,
    "surface": null,
@@ -123446,7 +123712,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "767c7ba64277"
+   "detailRef": "4f9eec101784"
   },
   {
    "id": "code-module:11242b236a44",
@@ -126200,7 +126466,7 @@
    "id": "code-module:2e00dc571d1a",
    "type": "code-module",
    "title": "src/lib/ai/aiCreationJobs.ts",
-   "description": "Module de 687 lignes; exports: AI_CREATION_COMPLETED_EVENT, AI_CREATION_FAILED_EVENT, AiCreationTool, AiCreationStatus, AiCreationRecord, loadPersistedAiCreationRecords, mergeAiCreationRecordSources, recoverInterruptedAiCreations, getAiCreationRecords, subscribeAiCreationRecords, setActiveAiCreationContext, getActiveAiCreationContext, requestAiCreationNotificationPermission, startTokImageCreationJob, useAiCreationRecovery, markAiCreationAddedToGallery, deleteAiCreationRecord, getAiCreationImageUrl, hasActiveAiCreationJob.",
+   "description": "Module de 690 lignes; exports: AI_CREATION_COMPLETED_EVENT, AI_CREATION_FAILED_EVENT, AiCreationTool, AiCreationStatus, AiCreationRecord, loadPersistedAiCreationRecords, mergeAiCreationRecordSources, recoverInterruptedAiCreations, getAiCreationRecords, subscribeAiCreationRecords, setActiveAiCreationContext, getActiveAiCreationContext, requestAiCreationNotificationPermission, startTokImageCreationJob, useAiCreationRecovery, markAiCreationAddedToGallery, deleteAiCreationRecord, getAiCreationImageUrl, hasActiveAiCreationJob.",
    "path": "src/lib/ai/aiCreationJobs.ts",
    "line": 1,
    "surface": null,
@@ -126227,7 +126493,7 @@
     "supabase",
     "useAiCreationRecovery"
    ],
-   "detailRef": "28a0ed15c0ce"
+   "detailRef": "fd885a25772d"
   },
   {
    "id": "code-module:db8c6aa635c0",
@@ -126349,7 +126615,7 @@
    "id": "code-module:0e949a052e11",
    "type": "code-module",
    "title": "src/lib/ai/tokAiClient.ts",
-   "description": "Module de 621 lignes; exports: TokAiMessage, ClientSupportRequest, ClientSupportConversation, ClientSupportConversationMessage, RestaurantAdvisorConversation, RestaurantAgentAction, RestaurantAgentRequest, RestaurantAdvisorStreamRequest, TokImageFormat, TokImageGenerationRequest, TokImageGenerationResult, AccountingAgentRequest, AccountingAgentResult, AccountingInsightRow, AdminMonitorRequest, AdminDashboardChatRequest, AdminDashboardChatResult, RestaurantAiSubscription, askClientSupport, getClientSupportConversations, getClientSupportConversationMessages, getRestaurantAdvisorConversations, createRestaurantAdvisorConversation, appendRestaurantAdvisorConversationMessages, archiveRestaurantAdvisorConversation, runRestaurantAgent, streamRestaurantAdvisor, generateTokDishImage, runAccountingAgent, runAdminMonitor, askAdminDashboardChat, getAdminDashboardChatConversations, getAdminDashboardChatMessages, estimateAiCost, getAiUsageForRestaurant, getAiSubscriptionForRestaurant, getAccountingInsightsForRestaurant.",
+   "description": "Module de 624 lignes; exports: TokAiMessage, ClientSupportRequest, ClientSupportConversation, ClientSupportConversationMessage, RestaurantAdvisorConversation, RestaurantAgentAction, RestaurantAgentRequest, RestaurantAdvisorStreamRequest, TokImageFormat, TokImageGenerationRequest, TokImageGenerationResult, AccountingAgentRequest, AccountingAgentResult, AccountingInsightRow, AdminMonitorRequest, AdminDashboardChatRequest, AdminDashboardChatResult, RestaurantAiSubscription, askClientSupport, getClientSupportConversations, getClientSupportConversationMessages, getRestaurantAdvisorConversations, createRestaurantAdvisorConversation, appendRestaurantAdvisorConversationMessages, archiveRestaurantAdvisorConversation, runRestaurantAgent, streamRestaurantAdvisor, generateTokDishImage, runAccountingAgent, runAdminMonitor, askAdminDashboardChat, getAdminDashboardChatConversations, getAdminDashboardChatMessages, estimateAiCost, getAiUsageForRestaurant, getAiSubscriptionForRestaurant, getAccountingInsightsForRestaurant.",
    "path": "src/lib/ai/tokAiClient.ts",
    "line": 1,
    "surface": null,
@@ -126394,7 +126660,7 @@
     "streamRestaurantAdvisor",
     "supabase"
    ],
-   "detailRef": "8a93c0ccd3e3"
+   "detailRef": "9dddaabc54fe"
   },
   {
    "id": "code-module:dfceccfdbbfa",
@@ -128320,7 +128586,7 @@
    "id": "code-module:5260f4244eae",
    "type": "code-module",
    "title": "src/lib/marketing/outputSession.ts",
-   "description": "Module de 108 lignes; exports: MarketingOutputSessionSnapshot, setMarketingOutputSession, getMarketingOutputSessionSnapshot, subscribeMarketingOutputSession, setActiveMarketingOutputTarget, getActiveMarketingOutputTarget, applyMarketingOutputTargetToImageRequest.",
+   "description": "Module de 112 lignes; exports: MarketingOutputSessionSnapshot, setMarketingOutputSession, getMarketingOutputSessionSnapshot, subscribeMarketingOutputSession, setActiveMarketingOutputTarget, getActiveMarketingOutputTarget, applyMarketingOutputTargetToImageRequest.",
    "path": "src/lib/marketing/outputSession.ts",
    "line": 1,
    "surface": null,
@@ -128333,7 +128599,7 @@
     "setMarketingOutputSession",
     "subscribeMarketingOutputSession"
    ],
-   "detailRef": "5ab728ab6133"
+   "detailRef": "a62d1a0da270"
   },
   {
    "id": "code-module:d64902b11837",
@@ -131581,7 +131847,7 @@
    "id": "code-module:fe16a07caa1b",
    "type": "code-module",
    "title": "src/pages/admin/AdminPrintOrders.tsx",
-   "description": "Module de 220 lignes; exports: default.",
+   "description": "Module de 233 lignes; exports: default.",
    "path": "src/pages/admin/AdminPrintOrders.tsx",
    "line": 1,
    "surface": null,
@@ -131589,7 +131855,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "897709fcdb24"
+   "detailRef": "28ed511e453e"
   },
   {
    "id": "code-module:6c54b87227a7",
@@ -133556,14 +133822,14 @@
    "id": "code-module:dea9e41cda7d",
    "type": "code-module",
    "title": "src/test/cloudprinter-generation-catalog.test.ts",
-   "description": "Module de 53 lignes; exports: aucun export statique.",
+   "description": "Module de 55 lignes; exports: aucun export statique.",
    "path": "src/test/cloudprinter-generation-catalog.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "51a6ce07c5b4"
+   "detailRef": "83dd7bf609c7"
   },
   {
    "id": "code-module:289545527183",
@@ -136115,6 +136381,17 @@
    "detailRef": "d03b9b303e03"
   },
   {
+   "id": "code-module:af6285b66ef3",
+   "type": "code-module",
+   "title": "src/test/marketing-print-entry.test.tsx",
+   "description": "Module de 25 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-print-entry.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "ddd29b819e3c"
+  },
+  {
    "id": "code-module:113c9db85990",
    "type": "code-module",
    "title": "src/test/marketing-print-rendering.test.ts",
@@ -136801,6 +137078,84 @@
    "surface": null,
    "tags": [],
    "detailRef": "c5bc41ace555"
+  },
+  {
+   "id": "code-module:52ad2776b3e8",
+   "type": "code-module",
+   "title": "src/test/print-catalog-actions.test.ts",
+   "description": "Module de 166 lignes; exports: aucun export statique.",
+   "path": "src/test/print-catalog-actions.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "6fbaad5c8083"
+  },
+  {
+   "id": "code-module:4c07b6e168cb",
+   "type": "code-module",
+   "title": "src/test/print-catalog-admin-pagination.test.tsx",
+   "description": "Module de 59 lignes; exports: aucun export statique.",
+   "path": "src/test/print-catalog-admin-pagination.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "3fd124ef8d10"
+  },
+  {
+   "id": "code-module:de47645d4590",
+   "type": "code-module",
+   "title": "src/test/print-composer-source-format.test.tsx",
+   "description": "Module de 81 lignes; exports: aucun export statique.",
+   "path": "src/test/print-composer-source-format.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "87af958ab785"
+  },
+  {
+   "id": "code-module:1f3b943583bf",
+   "type": "code-module",
+   "title": "src/test/print-export-source-format.test.ts",
+   "description": "Module de 53 lignes; exports: aucun export statique.",
+   "path": "src/test/print-export-source-format.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "1e7972af5413"
+  },
+  {
+   "id": "code-module:c70e4b268ea2",
+   "type": "code-module",
+   "title": "src/test/print-pdf-dimensions.test.ts",
+   "description": "Module de 100 lignes; exports: aucun export statique.",
+   "path": "src/test/print-pdf-dimensions.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "c974e8c39565"
+  },
+  {
+   "id": "code-module:b885b3d4ff95",
+   "type": "code-module",
+   "title": "src/test/print-source-format.test.ts",
+   "description": "Module de 44 lignes; exports: aucun export statique.",
+   "path": "src/test/print-source-format.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "9989c4fbf43f"
   },
   {
    "id": "code-module:5b86da9be077",
@@ -139907,6 +140262,20 @@
    "detailRef": "4171dae2f0df"
   },
   {
+   "id": "code-module:36011f962680",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/print/catalog.ts",
+   "description": "Module de 24 lignes; exports: isSinglePagePrintProduct, geometryMatchesLogicalProduct.",
+   "path": "supabase/functions/_shared/print/catalog.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "geometryMatchesLogicalProduct",
+    "isSinglePagePrintProduct"
+   ],
+   "detailRef": "c4bdc4c0615e"
+  },
+  {
    "id": "code-module:643100274a0c",
    "type": "code-module",
    "title": "supabase/functions/_shared/print/cloudprinter.ts",
@@ -139942,7 +140311,7 @@
    "id": "code-module:13ccd5a22488",
    "type": "code-module",
    "title": "supabase/functions/_shared/print/pdf.ts",
-   "description": "Module de 320 lignes; exports: ServerPrintProductSpec, buildPrintPdf.",
+   "description": "Module de 331 lignes; exports: ServerPrintProductSpec, buildPrintPdf.",
    "path": "supabase/functions/_shared/print/pdf.ts",
    "line": 1,
    "surface": null,
@@ -139951,7 +140320,7 @@
     "buildPrintPdf",
     "supabase"
    ],
-   "detailRef": "cff1b3919291"
+   "detailRef": "2aacaeea9cad"
   },
   {
    "id": "code-module:3ffb208bf4b8",
@@ -140047,6 +140416,22 @@
     "verifyCloudprinterWebhookApiKey"
    ],
    "detailRef": "354040506b07"
+  },
+  {
+   "id": "code-module:419e7e40935b",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/print/source-format.ts",
+   "description": "Module de 40 lignes; exports: GeneratedOutputFormat, readGeneratedOutputFormat, matchesGeneratedPrintFormat, generatedPrintOrientation.",
+   "path": "supabase/functions/_shared/print/source-format.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "GeneratedOutputFormat",
+    "generatedPrintOrientation",
+    "matchesGeneratedPrintFormat",
+    "readGeneratedOutputFormat"
+   ],
+   "detailRef": "188cf3dab851"
   },
   {
    "id": "code-module:097cf3689e92",
@@ -140593,7 +140978,7 @@
    "id": "code-module:95b5e7da0880",
    "type": "code-module",
    "title": "supabase/functions/ai-image-enhance/index.ts",
-   "description": "Module de 1932 lignes; exports: aucun export statique.",
+   "description": "Module de 1955 lignes; exports: aucun export statique.",
    "path": "supabase/functions/ai-image-enhance/index.ts",
    "line": 1,
    "surface": null,
@@ -140603,7 +140988,7 @@
     "TOK_MARKETING_REFERENCE_BUCKET",
     "openai"
    ],
-   "detailRef": "e204ce55eb4b"
+   "detailRef": "aa14a2c80136"
   },
   {
    "id": "code-module:2d59c9951508",
@@ -141450,25 +141835,25 @@
    "id": "code-module:897e9a24ce1c",
    "type": "code-module",
    "title": "supabase/functions/print-admin/index.ts",
-   "description": "Module de 419 lignes; exports: aucun export statique.",
+   "description": "Module de 427 lignes; exports: aucun export statique.",
    "path": "supabase/functions/print-admin/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "PRINT_SUPPORT_EMAIL"
    ],
-   "detailRef": "bc61d78298b1"
+   "detailRef": "d36f0c10d601"
   },
   {
    "id": "code-module:850f3a6e2639",
    "type": "code-module",
    "title": "supabase/functions/print-catalog/index.ts",
-   "description": "Module de 342 lignes; exports: aucun export statique.",
+   "description": "Module de 403 lignes; exports: aucun export statique.",
    "path": "supabase/functions/print-catalog/index.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "06d415f68011"
+   "detailRef": "7ffd0c1a6914"
   },
   {
    "id": "code-module:6140fa18ff69",
@@ -141491,12 +141876,12 @@
    "id": "code-module:0a6a33db8df1",
    "type": "code-module",
    "title": "supabase/functions/print-export/index.ts",
-   "description": "Module de 232 lignes; exports: aucun export statique.",
+   "description": "Module de 248 lignes; exports: aucun export statique.",
    "path": "supabase/functions/print-export/index.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "ce5ced23ca36"
+   "detailRef": "2e4ee6ae0d6a"
   },
   {
    "id": "code-module:c715d62e836a",
@@ -156601,6 +156986,21 @@
     "trigger"
    ],
    "detailRef": "9c16ba69976a"
+  },
+  {
+   "id": "database-object:40250683d5bf",
+   "type": "database-object",
+   "title": "protect_generated_print_format",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261009003407_protect_generated_print_format.sql",
+   "line": 34,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "d15425c7828a"
   },
   {
    "id": "database-object:595ac6ef9101",
@@ -172411,6 +172811,21 @@
     "supabase"
    ],
    "detailRef": "45195a6dd027"
+  },
+  {
+   "id": "database-object:a397f4818e4a",
+   "type": "database-object",
+   "title": "public.protect_generated_print_format",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261009003407_protect_generated_print_format.sql",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "c63f2e4f1c0f"
   },
   {
    "id": "database-object:5ee347ff239e",
@@ -194500,6 +194915,20 @@
    "detailRef": "ce4f662a19b3"
   },
   {
+   "id": "document-section:5bf52202f09b",
+   "type": "document-section",
+   "title": "Cloudprinter : formats de génération et d’impression",
+   "description": "Section de Cloudprinter : formats de génération et d’impression.",
+   "path": "docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Cloudprinter : formats de génération et d’impression",
+    "h1"
+   ],
+   "detailRef": "9b3db9cfae06"
+  },
+  {
    "id": "document-section:e62f3c883b7b",
    "type": "document-section",
    "title": "Code Example Standards",
@@ -198000,6 +198429,20 @@
    "detailRef": "c910ecfb672d"
   },
   {
+   "id": "document-section:f8109059469f",
+   "type": "document-section",
+   "title": "Exploitation",
+   "description": "Section de Cloudprinter : formats de génération et d’impression.",
+   "path": "docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "Cloudprinter : formats de génération et d’impression",
+    "h2"
+   ],
+   "detailRef": "66e1c9e2247a"
+  },
+  {
    "id": "document-section:1e1e0d9ee8b4",
    "type": "document-section",
    "title": "Exploitation",
@@ -201164,6 +201607,20 @@
    "detailRef": "4dc0ec5e326b"
   },
   {
+   "id": "document-section:09fb57591c09",
+   "type": "document-section",
+   "title": "Mappings actifs vérifiés via `/products/info`",
+   "description": "Section de Cloudprinter : formats de génération et d’impression.",
+   "path": "docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "Cloudprinter : formats de génération et d’impression",
+    "h2"
+   ],
+   "detailRef": "be77824ad50a"
+  },
+  {
    "id": "document-section:eb8131b14681",
    "type": "document-section",
    "title": "Marketing Studio Output Geometry Design",
@@ -204004,6 +204461,20 @@
     "h2"
    ],
    "detailRef": "f348c9b5ae33"
+  },
+  {
+   "id": "document-section:981daf4bf1de",
+   "type": "document-section",
+   "title": "Parcours pris en charge",
+   "description": "Section de Cloudprinter : formats de génération et d’impression.",
+   "path": "docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md",
+   "line": 7,
+   "surface": null,
+   "tags": [
+    "Cloudprinter : formats de génération et d’impression",
+    "h2"
+   ],
+   "detailRef": "14dca6c30dac"
   },
   {
    "id": "document-section:e32caf94d4be",
@@ -214730,6 +215201,20 @@
    "detailRef": "6b241544358b"
   },
   {
+   "id": "document-section:40bc224606ed",
+   "type": "document-section",
+   "title": "Vérification et retour arrière",
+   "description": "Section de Cloudprinter : formats de génération et d’impression.",
+   "path": "docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md",
+   "line": 46,
+   "surface": null,
+   "tags": [
+    "Cloudprinter : formats de génération et d’impression",
+    "h2"
+   ],
+   "detailRef": "e91950387969"
+  },
+  {
    "id": "document-section:930a7d785200",
    "type": "document-section",
    "title": "Vérification manuelle",
@@ -217084,6 +217569,23 @@
     "Choose the Right Index Type for Your Data"
    ],
    "detailRef": "d19d1fd9b8ce"
+  },
+  {
+   "id": "document:5bf52202f09b",
+   "type": "document",
+   "title": "Cloudprinter : formats de génération et d’impression",
+   "description": "Document Markdown avec 5 section(s).",
+   "path": "docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Cloudprinter : formats de génération et d’impression",
+    "Exploitation",
+    "Mappings actifs vérifiés via `/products/info`",
+    "Parcours pris en charge",
+    "Vérification et retour arrière"
+   ],
+   "detailRef": "ebcdba31cc30"
   },
   {
    "id": "document:48e6b77967bb",
@@ -220814,6 +221316,20 @@
    "detailRef": "4e2a28a435e7"
   },
   {
+   "id": "edge-action:dc21976cf10a",
+   "type": "edge-action",
+   "title": "discover",
+   "description": "Action statiquement détectée dans la fonction Edge print-catalog.",
+   "path": "supabase/functions/print-catalog/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/print-catalog",
+    "print-catalog"
+   ],
+   "detailRef": "7e4491e07278"
+  },
+  {
    "id": "edge-action:3e061abe0ce8",
    "type": "edge-action",
    "title": "ensure_profile",
@@ -221232,6 +221748,20 @@
     "commercial-demo-ai"
    ],
    "detailRef": "df3c1ba687e7"
+  },
+  {
+   "id": "edge-action:6cacd5f7e53e",
+   "type": "edge-action",
+   "title": "map",
+   "description": "Action statiquement détectée dans la fonction Edge print-catalog.",
+   "path": "supabase/functions/print-catalog/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/print-catalog",
+    "print-catalog"
+   ],
+   "detailRef": "5ea0e9b8f817"
   },
   {
    "id": "edge-action:b09a69005dae",
@@ -223192,12 +223722,14 @@
    "tags": [
     "POST",
     "admin_mappings",
+    "discover",
     "generation_catalog",
     "hydrate",
     "list",
+    "map",
     "sync"
    ],
-   "detailRef": "93df49b27218"
+   "detailRef": "e4adf5942321"
   },
   {
    "id": "edge-function:4202905f7b82",
@@ -226477,24 +227009,9 @@
    "detailRef": "0c88317ed0ab"
   },
   {
-   "id": "exported-symbol:caec7e2513a9",
+   "id": "exported-symbol:807a5d0a1925",
    "type": "exported-symbol",
    "title": "AI_CREATION_COMPLETED_EVENT",
-   "description": "Export variable de src/lib/ai/aiCreationJobs.ts.",
-   "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 14,
-   "surface": null,
-   "tags": [
-    "openai",
-    "supabase",
-    "variable"
-   ],
-   "detailRef": "c1d680c39169"
-  },
-  {
-   "id": "exported-symbol:c209e980c3d1",
-   "type": "exported-symbol",
-   "title": "AI_CREATION_FAILED_EVENT",
    "description": "Export variable de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
    "line": 15,
@@ -226504,7 +227021,22 @@
     "supabase",
     "variable"
    ],
-   "detailRef": "ad05e976ddf6"
+   "detailRef": "8674d0247192"
+  },
+  {
+   "id": "exported-symbol:123f92dcc717",
+   "type": "exported-symbol",
+   "title": "AI_CREATION_FAILED_EVENT",
+   "description": "Export variable de src/lib/ai/aiCreationJobs.ts.",
+   "path": "src/lib/ai/aiCreationJobs.ts",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase",
+    "variable"
+   ],
+   "detailRef": "15ac31f4c799"
   },
   {
    "id": "exported-symbol:0d2574fcf615",
@@ -226629,34 +227161,34 @@
    "detailRef": "e34a6bf0369a"
   },
   {
-   "id": "exported-symbol:79cd62fcf856",
+   "id": "exported-symbol:4f68d4fd7d43",
    "type": "exported-symbol",
    "title": "AccountingAgentRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 136,
+   "line": 139,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "06105bcda369"
+   "detailRef": "6eacfafcdb5b"
   },
   {
-   "id": "exported-symbol:95ad3dda09a6",
+   "id": "exported-symbol:1c279d7fdf5a",
    "type": "exported-symbol",
    "title": "AccountingAgentResult",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 143,
+   "line": 146,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "b30ac1e56c5c"
+   "detailRef": "c777975e7b1b"
   },
   {
    "id": "exported-symbol:d2087feb1116",
@@ -226763,19 +227295,19 @@
    "detailRef": "362b17b977ef"
   },
   {
-   "id": "exported-symbol:47a66f1a434a",
+   "id": "exported-symbol:31ec7db0d119",
    "type": "exported-symbol",
    "title": "AccountingInsightRow",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 156,
+   "line": 159,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "f41aa4b52e75"
+   "detailRef": "e14c1896e293"
   },
   {
    "id": "exported-symbol:7234d29845d0",
@@ -227093,34 +227625,34 @@
    "detailRef": "c459a3f81156"
   },
   {
-   "id": "exported-symbol:dce35b82c4b8",
+   "id": "exported-symbol:9bdddeacc603",
    "type": "exported-symbol",
    "title": "AdminDashboardChatRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 177,
+   "line": 180,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "1a68bda267c3"
+   "detailRef": "f75fea6fe97b"
   },
   {
-   "id": "exported-symbol:0a4f75e6764e",
+   "id": "exported-symbol:35d1b879cb13",
    "type": "exported-symbol",
    "title": "AdminDashboardChatResult",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 183,
+   "line": 186,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "8d6b9578f93e"
+   "detailRef": "c62dac982e9f"
   },
   {
    "id": "exported-symbol:3930f3274c8b",
@@ -227196,19 +227728,19 @@
    "detailRef": "5569a826ded7"
   },
   {
-   "id": "exported-symbol:062bb0e3b86e",
+   "id": "exported-symbol:74c0cdcb6f4f",
    "type": "exported-symbol",
    "title": "AdminMonitorRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 172,
+   "line": 175,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "c04d3c9c65df"
+   "detailRef": "a90cab8677d0"
   },
   {
    "id": "exported-symbol:089222c77b84",
@@ -227429,49 +227961,49 @@
    "detailRef": "e73a649d4bf9"
   },
   {
-   "id": "exported-symbol:2e4ff7cef879",
+   "id": "exported-symbol:f79cb67117e1",
    "type": "exported-symbol",
    "title": "AiCreationRecord",
    "description": "Export typealias de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 39,
+   "line": 40,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "fdddb841bfac"
+   "detailRef": "1b1838e8417a"
   },
   {
-   "id": "exported-symbol:3ae6457badb0",
+   "id": "exported-symbol:4a75259bff50",
    "type": "exported-symbol",
    "title": "AiCreationStatus",
    "description": "Export typealias de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 37,
+   "line": 38,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "03bf0b270249"
+   "detailRef": "1d3fd9ea0488"
   },
   {
-   "id": "exported-symbol:798498629d77",
+   "id": "exported-symbol:3d1789423b79",
    "type": "exported-symbol",
    "title": "AiCreationTool",
    "description": "Export typealias de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 30,
+   "line": 31,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "7fe770f5c495"
+   "detailRef": "cef4ff3d934d"
   },
   {
    "id": "exported-symbol:b48470ae4439",
@@ -229630,49 +230162,49 @@
    "detailRef": "48814f5cd356"
   },
   {
-   "id": "exported-symbol:923567e026b5",
+   "id": "exported-symbol:ebe5f8565525",
    "type": "exported-symbol",
    "title": "ClientSupportConversation",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 29,
+   "line": 30,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "4f0b7bca5117"
+   "detailRef": "91d2b8a15991"
   },
   {
-   "id": "exported-symbol:c9935ea76dbd",
+   "id": "exported-symbol:896387447282",
    "type": "exported-symbol",
    "title": "ClientSupportConversationMessage",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 43,
+   "line": 44,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "c53d40cf9f20"
+   "detailRef": "3199ea68d203"
   },
   {
-   "id": "exported-symbol:d615d9d7df57",
+   "id": "exported-symbol:553ffc671279",
    "type": "exported-symbol",
    "title": "ClientSupportRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 20,
+   "line": 21,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "ac6db0b07d8e"
+   "detailRef": "b506d2fed2f5"
   },
   {
    "id": "exported-symbol:40531e708c48",
@@ -234237,6 +234769,19 @@
     "typealias"
    ],
    "detailRef": "9108c8ce8306"
+  },
+  {
+   "id": "exported-symbol:cdd9047a1e0b",
+   "type": "exported-symbol",
+   "title": "GeneratedOutputFormat",
+   "description": "Export typealias de supabase/functions/_shared/print/source-format.ts.",
+   "path": "supabase/functions/_shared/print/source-format.ts",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "28136baf999a"
   },
   {
    "id": "exported-symbol:015daa3ac358",
@@ -240759,79 +241304,79 @@
    "detailRef": "ff676645bbef"
   },
   {
-   "id": "exported-symbol:0c5592461d15",
+   "id": "exported-symbol:a97c4aced636",
    "type": "exported-symbol",
    "title": "RestaurantAdvisorConversation",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 52,
+   "line": 53,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "d212d9891494"
+   "detailRef": "04da74a726e4"
   },
   {
-   "id": "exported-symbol:6109f76ef4af",
+   "id": "exported-symbol:d30275610966",
    "type": "exported-symbol",
    "title": "RestaurantAdvisorStreamRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 72,
+   "line": 73,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "a674164accdf"
+   "detailRef": "31960ec6a74a"
   },
   {
-   "id": "exported-symbol:291683769d1c",
+   "id": "exported-symbol:9cf4184ded74",
    "type": "exported-symbol",
    "title": "RestaurantAgentAction",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 56,
+   "line": 57,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "40053f10374a"
+   "detailRef": "6e6f29e86898"
   },
   {
-   "id": "exported-symbol:60a92070da4b",
+   "id": "exported-symbol:9c9c9726ad58",
    "type": "exported-symbol",
    "title": "RestaurantAgentRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 65,
+   "line": 66,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "5ca808b89108"
+   "detailRef": "11c372be9954"
   },
   {
-   "id": "exported-symbol:bd856ed73abc",
+   "id": "exported-symbol:c1b4ee225374",
    "type": "exported-symbol",
    "title": "RestaurantAiSubscription",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 193,
+   "line": 196,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "9f2b9b2f3f7e"
+   "detailRef": "ee5657f9432f"
   },
   {
    "id": "exported-symbol:053174663e64",
@@ -245122,19 +245667,19 @@
    "detailRef": "a15eda20885a"
   },
   {
-   "id": "exported-symbol:c174c6b43c67",
+   "id": "exported-symbol:87f201937d01",
    "type": "exported-symbol",
    "title": "TokAiMessage",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 15,
+   "line": 16,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "7e25c0f3a2e2"
+   "detailRef": "8c915e2fd510"
   },
   {
    "id": "exported-symbol:0ed323dd1ab6",
@@ -245614,49 +246159,49 @@
    "detailRef": "0de28a53d9ff"
   },
   {
-   "id": "exported-symbol:53ad2c2aa3ec",
+   "id": "exported-symbol:fe6b1e04655b",
    "type": "exported-symbol",
    "title": "TokImageFormat",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 78,
+   "line": 79,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "af99038bde5b"
+   "detailRef": "b14da37e3b46"
   },
   {
-   "id": "exported-symbol:5292ef1ed888",
+   "id": "exported-symbol:3390a36ff8e0",
    "type": "exported-symbol",
    "title": "TokImageGenerationRequest",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 80,
+   "line": 81,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "9b13b0747674"
+   "detailRef": "88f030f0650a"
   },
   {
-   "id": "exported-symbol:533789db8047",
+   "id": "exported-symbol:9a6946230df6",
    "type": "exported-symbol",
    "title": "TokImageGenerationResult",
    "description": "Export typealias de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 106,
+   "line": 108,
    "surface": null,
    "tags": [
     "openai",
     "supabase",
     "typealias"
    ],
-   "detailRef": "278689b24f46"
+   "detailRef": "0eb1c4bef700"
   },
   {
    "id": "exported-symbol:3cff2dcf536f",
@@ -246398,19 +246943,19 @@
    "detailRef": "cde858124b5b"
   },
   {
-   "id": "exported-symbol:a095b1519c14",
+   "id": "exported-symbol:643fcebe4990",
    "type": "exported-symbol",
    "title": "appendRestaurantAdvisorConversationMessages",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 352,
+   "line": 355,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "429adab714b8"
+   "detailRef": "1f74f2523c3a"
   },
   {
    "id": "exported-symbol:e045066752fb",
@@ -246619,19 +247164,19 @@
    "detailRef": "c100bdfb55ef"
   },
   {
-   "id": "exported-symbol:644b04b9b30e",
+   "id": "exported-symbol:1b7732859031",
    "type": "exported-symbol",
    "title": "archiveRestaurantAdvisorConversation",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 381,
+   "line": 384,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "f49f7a6e012d"
+   "detailRef": "06b858975ee6"
   },
   {
    "id": "exported-symbol:3341b6066a4a",
@@ -246660,34 +247205,34 @@
    "detailRef": "c95285863bf5"
   },
   {
-   "id": "exported-symbol:7f5c0aef02b7",
+   "id": "exported-symbol:2664f43f3389",
    "type": "exported-symbol",
    "title": "askAdminDashboardChat",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 514,
+   "line": 517,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "d02d1fc5822e"
+   "detailRef": "7150c99ad291"
   },
   {
-   "id": "exported-symbol:a6d2e6659fd7",
+   "id": "exported-symbol:97de016ad38f",
    "type": "exported-symbol",
    "title": "askClientSupport",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 214,
+   "line": 217,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "d520e08b759b"
+   "detailRef": "3349c4cb51d4"
   },
   {
    "id": "exported-symbol:4aa2bb8bf0c8",
@@ -248156,18 +248701,18 @@
    "detailRef": "33db73c047c3"
   },
   {
-   "id": "exported-symbol:01e239f5ad79",
+   "id": "exported-symbol:67460405bb2b",
    "type": "exported-symbol",
    "title": "buildPrintPdf",
    "description": "Export function de supabase/functions/_shared/print/pdf.ts.",
    "path": "supabase/functions/_shared/print/pdf.ts",
-   "line": 237,
+   "line": 244,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "6d2ec772f10f"
+   "detailRef": "41ae874f33f3"
   },
   {
    "id": "exported-symbol:26e696690e66",
@@ -250555,19 +251100,19 @@
    "detailRef": "a2e6a560bc7a"
   },
   {
-   "id": "exported-symbol:3ef5919167fd",
+   "id": "exported-symbol:8a065a9f4c5a",
    "type": "exported-symbol",
    "title": "createRestaurantAdvisorConversation",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 316,
+   "line": 319,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "d08a1942e856"
+   "detailRef": "853ba242eb09"
   },
   {
    "id": "exported-symbol:30eb06a9e1a3",
@@ -252251,32 +252796,33 @@
    "detailRef": "8abdbea440e2"
   },
   {
-   "id": "exported-symbol:a37f01fb21a8",
+   "id": "exported-symbol:ea5da96281a0",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/dashboard/TokAiMarketingStudio.tsx.",
    "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
-   "line": 1169,
+   "line": 1170,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "f2f9e03c3434"
+   "detailRef": "9fa04b949613"
   },
   {
-   "id": "exported-symbol:672847ea0ba7",
+   "id": "exported-symbol:62a69908dce4",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/dashboard/TokAiMarketingStudioPrintShell.tsx.",
    "path": "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
-   "line": 22,
+   "line": 26,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "6990dd515909"
+   "detailRef": "f09b827b6fbc"
   },
   {
    "id": "exported-symbol:6f5a295d286c",
@@ -252319,32 +252865,32 @@
    "detailRef": "0cba46251727"
   },
   {
-   "id": "exported-symbol:e358326a9e6c",
+   "id": "exported-symbol:abb2108388d8",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/dashboard/marketing-print/MarketingStudioPrintCatalogBridge.tsx.",
    "path": "src/components/dashboard/marketing-print/MarketingStudioPrintCatalogBridge.tsx",
-   "line": 92,
+   "line": 93,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "1aaf97b67a15"
+   "detailRef": "a4f2d7044586"
   },
   {
-   "id": "exported-symbol:c79192f97e7a",
+   "id": "exported-symbol:d4ea2b889dbd",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/dashboard/marketing-print/PrintComposerDialog.tsx.",
    "path": "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
-   "line": 221,
+   "line": 231,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "ad299e03597d"
+   "detailRef": "b3f06a76b77b"
   },
   {
    "id": "exported-symbol:30a02995f704",
@@ -254323,18 +254869,18 @@
    "detailRef": "c6a430952c38"
   },
   {
-   "id": "exported-symbol:1af31b2c5f25",
+   "id": "exported-symbol:725c27e5e218",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/admin/AdminPrintOrders.tsx.",
    "path": "src/pages/admin/AdminPrintOrders.tsx",
-   "line": 71,
+   "line": 73,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "64f4f6f0b361"
+   "detailRef": "38aa46840c39"
   },
   {
    "id": "exported-symbol:e197f3b3255f",
@@ -255017,19 +255563,19 @@
    "detailRef": "5ded9e8de895"
   },
   {
-   "id": "exported-symbol:982130abd215",
+   "id": "exported-symbol:42291a292347",
    "type": "exported-symbol",
    "title": "deleteAiCreationRecord",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 670,
+   "line": 673,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "65ca8f4d450c"
+   "detailRef": "19091647f541"
   },
   {
    "id": "exported-symbol:0b0b5c7cd162",
@@ -255653,19 +256199,19 @@
    "detailRef": "91fe1f0e9f0b"
   },
   {
-   "id": "exported-symbol:448605a18a1a",
+   "id": "exported-symbol:cf0f2df0a379",
    "type": "exported-symbol",
    "title": "estimateAiCost",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 548,
+   "line": 551,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "2312fd7909dd"
+   "detailRef": "6fb35ef165d4"
   },
   {
    "id": "exported-symbol:0108271e3684",
@@ -257118,19 +257664,19 @@
    "detailRef": "700c0610c993"
   },
   {
-   "id": "exported-symbol:b7b667e3481e",
+   "id": "exported-symbol:71d868fabe0a",
    "type": "exported-symbol",
    "title": "generateTokDishImage",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 472,
+   "line": 475,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "b986ac9bc021"
+   "detailRef": "c6a11f87c872"
   },
   {
    "id": "exported-symbol:e70e336a8ab3",
@@ -257146,34 +257692,60 @@
    "detailRef": "e7c673fe9861"
   },
   {
-   "id": "exported-symbol:a0f54c4cddd1",
+   "id": "exported-symbol:d7060b405d40",
+   "type": "exported-symbol",
+   "title": "generatedPrintOrientation",
+   "description": "Export function de supabase/functions/_shared/print/source-format.ts.",
+   "path": "supabase/functions/_shared/print/source-format.ts",
+   "line": 34,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "277cde872908"
+  },
+  {
+   "id": "exported-symbol:ac4948516cec",
+   "type": "exported-symbol",
+   "title": "geometryMatchesLogicalProduct",
+   "description": "Export function de supabase/functions/_shared/print/catalog.ts.",
+   "path": "supabase/functions/_shared/print/catalog.ts",
+   "line": 18,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "0e8f1619cd0a"
+  },
+  {
+   "id": "exported-symbol:4f643dd615ec",
    "type": "exported-symbol",
    "title": "getAccountingInsightsForRestaurant",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 596,
+   "line": 599,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "ecb022c3574a"
+   "detailRef": "c1bd8d450c0d"
   },
   {
-   "id": "exported-symbol:872d4a31227b",
+   "id": "exported-symbol:bf5dfc293626",
    "type": "exported-symbol",
    "title": "getActiveAiCreationContext",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 546,
+   "line": 549,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "fd583ef1ca77"
+   "detailRef": "2d667cf9a559"
   },
   {
    "id": "exported-symbol:65a3a47c57bd",
@@ -257256,34 +257828,34 @@
    "detailRef": "cc29dbed1b64"
   },
   {
-   "id": "exported-symbol:1a6711bf240b",
+   "id": "exported-symbol:c7b462c85a2d",
    "type": "exported-symbol",
    "title": "getAdminDashboardChatConversations",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 521,
+   "line": 524,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "cf3dfb2acf4d"
+   "detailRef": "b2d1fe6ac9c8"
   },
   {
-   "id": "exported-symbol:2b8063fc5c64",
+   "id": "exported-symbol:218b05f94e86",
    "type": "exported-symbol",
    "title": "getAdminDashboardChatMessages",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 530,
+   "line": 533,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "d623a51fe1d3"
+   "detailRef": "8e8725b494fa"
   },
   {
    "id": "exported-symbol:9e3b30c13c0b",
@@ -257326,34 +257898,34 @@
    "detailRef": "3805007abacd"
   },
   {
-   "id": "exported-symbol:f5a4213e8ef0",
+   "id": "exported-symbol:9dc792d66459",
    "type": "exported-symbol",
    "title": "getAiCreationImageUrl",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 680,
+   "line": 683,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "082a6f251d18"
+   "detailRef": "4380d14bf06e"
   },
   {
-   "id": "exported-symbol:a097af8e72b4",
+   "id": "exported-symbol:b1e0413b73cf",
    "type": "exported-symbol",
    "title": "getAiCreationRecords",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 525,
+   "line": 528,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "a65417667e40"
+   "detailRef": "28e799bd19b2"
   },
   {
    "id": "exported-symbol:f982791087dc",
@@ -257369,34 +257941,34 @@
    "detailRef": "edc7e8585514"
   },
   {
-   "id": "exported-symbol:7357d0bfc7c5",
+   "id": "exported-symbol:7a3b736feb39",
    "type": "exported-symbol",
    "title": "getAiSubscriptionForRestaurant",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 573,
+   "line": 576,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "c85405245008"
+   "detailRef": "ea886712e0f1"
   },
   {
-   "id": "exported-symbol:fdb04e03c4f0",
+   "id": "exported-symbol:1c553e413e51",
    "type": "exported-symbol",
    "title": "getAiUsageForRestaurant",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 556,
+   "line": 559,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "975436c6c009"
+   "detailRef": "4fd8dc8f3787"
   },
   {
    "id": "exported-symbol:bf0ca2b8612f",
@@ -257708,34 +258280,34 @@
    "detailRef": "ea5e8327a43b"
   },
   {
-   "id": "exported-symbol:211154141771",
+   "id": "exported-symbol:631044eec946",
    "type": "exported-symbol",
    "title": "getClientSupportConversationMessages",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 254,
+   "line": 257,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "25b5d16cfc18"
+   "detailRef": "ec4911d58fc5"
   },
   {
-   "id": "exported-symbol:93e0ef2c7e78",
+   "id": "exported-symbol:ff595e169609",
    "type": "exported-symbol",
    "title": "getClientSupportConversations",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 230,
+   "line": 233,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "7fca6fca02dd"
+   "detailRef": "02521f432fd4"
   },
   {
    "id": "exported-symbol:735cccad2338",
@@ -260437,19 +261009,19 @@
    "detailRef": "27b345356652"
   },
   {
-   "id": "exported-symbol:fc87c304358e",
+   "id": "exported-symbol:ea95a7e88a9f",
    "type": "exported-symbol",
    "title": "getRestaurantAdvisorConversations",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 265,
+   "line": 268,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "e47f4e196959"
+   "detailRef": "2d76aff623c2"
   },
   {
    "id": "exported-symbol:17f7b5c9323a",
@@ -261787,19 +262359,19 @@
    "detailRef": "778215fa9bc8"
   },
   {
-   "id": "exported-symbol:e9a7d0ab419b",
+   "id": "exported-symbol:91ac83fa2ca9",
    "type": "exported-symbol",
    "title": "hasActiveAiCreationJob",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 684,
+   "line": 687,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "f4ac4eb2590c"
+   "detailRef": "cb1db8bfc33a"
   },
   {
    "id": "exported-symbol:285c9e26cbce",
@@ -263818,6 +264390,19 @@
    "detailRef": "9d7c5b5a4f19"
   },
   {
+   "id": "exported-symbol:d2951cddbb3d",
+   "type": "exported-symbol",
+   "title": "isSinglePagePrintProduct",
+   "description": "Export function de supabase/functions/_shared/print/catalog.ts.",
+   "path": "supabase/functions/_shared/print/catalog.ts",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "5bfaa5a9c6a3"
+  },
+  {
    "id": "exported-symbol:19d447c875b8",
    "type": "exported-symbol",
    "title": "isSocialReactionType",
@@ -264369,19 +264954,19 @@
    "detailRef": "855ee3c7c8ec"
   },
   {
-   "id": "exported-symbol:7e09ef406ae1",
+   "id": "exported-symbol:36e763c89f56",
    "type": "exported-symbol",
    "title": "loadPersistedAiCreationRecords",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 345,
+   "line": 348,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "84b810de508c"
+   "detailRef": "d2310ef4f74d"
   },
   {
    "id": "exported-symbol:0109dc7d6916",
@@ -264572,19 +265157,19 @@
    "detailRef": "6c5639b5acc1"
   },
   {
-   "id": "exported-symbol:c600f4143239",
+   "id": "exported-symbol:3ddda03ec05d",
    "type": "exported-symbol",
    "title": "markAiCreationAddedToGallery",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 666,
+   "line": 669,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "2b3ba882c09b"
+   "detailRef": "53e59c5b87d3"
   },
   {
    "id": "exported-symbol:d90c9577c72a",
@@ -264978,6 +265563,19 @@
    "detailRef": "36aca88cf0a3"
   },
   {
+   "id": "exported-symbol:c6dcd5065dcc",
+   "type": "exported-symbol",
+   "title": "matchesGeneratedPrintFormat",
+   "description": "Export function de supabase/functions/_shared/print/source-format.ts.",
+   "path": "supabase/functions/_shared/print/source-format.ts",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "5b8c54c8cb32"
+  },
+  {
    "id": "exported-symbol:7bf9e0af1009",
    "type": "exported-symbol",
    "title": "matchesRestaurantPaymentStatusFilter",
@@ -265044,19 +265642,19 @@
    "detailRef": "91cd20c0734d"
   },
   {
-   "id": "exported-symbol:d10df5d75966",
+   "id": "exported-symbol:8b8707262316",
    "type": "exported-symbol",
    "title": "mergeAiCreationRecordSources",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 367,
+   "line": 370,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "f7c66141dc4d"
+   "detailRef": "7647e9ba6fb5"
   },
   {
    "id": "exported-symbol:948b758980d2",
@@ -266731,6 +267329,19 @@
    "detailRef": "732dd05b35bf"
   },
   {
+   "id": "exported-symbol:4ddcc03c64ff",
+   "type": "exported-symbol",
+   "title": "readGeneratedOutputFormat",
+   "description": "Export function de supabase/functions/_shared/print/source-format.ts.",
+   "path": "supabase/functions/_shared/print/source-format.ts",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "3f5551a67aba"
+  },
+  {
    "id": "exported-symbol:5cf1585d2416",
    "type": "exported-symbol",
    "title": "readMarketingCsrfToken",
@@ -267060,19 +267671,19 @@
    "detailRef": "522550e3447d"
   },
   {
-   "id": "exported-symbol:c1ebc8604864",
+   "id": "exported-symbol:75d92bd1dcc5",
    "type": "exported-symbol",
    "title": "recoverInterruptedAiCreations",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 392,
+   "line": 395,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "2d9e4e0e444c"
+   "detailRef": "7cd0f6b472e1"
   },
   {
    "id": "exported-symbol:43ed93699bb9",
@@ -267430,19 +268041,19 @@
    "detailRef": "5bd863fb574e"
   },
   {
-   "id": "exported-symbol:fc0734d8f8ad",
+   "id": "exported-symbol:78fdaf7d88f0",
    "type": "exported-symbol",
    "title": "requestAiCreationNotificationPermission",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 550,
+   "line": 553,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "38da114a657f"
+   "detailRef": "753c20abaeb2"
   },
   {
    "id": "exported-symbol:4541171c2fbb",
@@ -268174,34 +268785,34 @@
    "detailRef": "fb49af0984fc"
   },
   {
-   "id": "exported-symbol:d72039a5977e",
+   "id": "exported-symbol:d009d1a06be9",
    "type": "exported-symbol",
    "title": "runAccountingAgent",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 487,
+   "line": 490,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "e8dae560824f"
+   "detailRef": "dfe97d3ad96e"
   },
   {
-   "id": "exported-symbol:b4ab20d318ef",
+   "id": "exported-symbol:e5e2137d6108",
    "type": "exported-symbol",
    "title": "runAdminMonitor",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 491,
+   "line": 494,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "deb90cdb387d"
+   "detailRef": "817381ac614c"
   },
   {
    "id": "exported-symbol:d5e8aee4523b",
@@ -268259,19 +268870,19 @@
    "detailRef": "483ed01fdeb2"
   },
   {
-   "id": "exported-symbol:b9b9ece7b592",
+   "id": "exported-symbol:70e5de93a1a5",
    "type": "exported-symbol",
    "title": "runRestaurantAgent",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 389,
+   "line": 392,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "971eb4b6d0bf"
+   "detailRef": "adebfe27bd4e"
   },
   {
    "id": "exported-symbol:7cf680a9cef1",
@@ -268967,19 +269578,19 @@
    "detailRef": "ab6ee7dad1da"
   },
   {
-   "id": "exported-symbol:dd1ca38a9e75",
+   "id": "exported-symbol:802c51b69033",
    "type": "exported-symbol",
    "title": "setActiveAiCreationContext",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 542,
+   "line": 545,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "e8d71c7cef70"
+   "detailRef": "85388d676ffa"
   },
   {
    "id": "exported-symbol:a423789d12da",
@@ -269477,34 +270088,34 @@
    "detailRef": "27c39d7c2bc8"
   },
   {
-   "id": "exported-symbol:a1669bbd62cd",
+   "id": "exported-symbol:0505841a73fa",
    "type": "exported-symbol",
    "title": "startTokImageCreationJob",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 561,
+   "line": 564,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "671f1a640dc5"
+   "detailRef": "a1f3cdc7b10e"
   },
   {
-   "id": "exported-symbol:3c2500da14f4",
+   "id": "exported-symbol:f376365cff87",
    "type": "exported-symbol",
    "title": "streamRestaurantAdvisor",
    "description": "Export function de src/lib/ai/tokAiClient.ts.",
    "path": "src/lib/ai/tokAiClient.ts",
-   "line": 406,
+   "line": 409,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "70736ba775b3"
+   "detailRef": "e1a5ce22e576"
   },
   {
    "id": "exported-symbol:4f75bf238925",
@@ -269565,19 +270176,19 @@
    "detailRef": "a7f3f5a375f1"
   },
   {
-   "id": "exported-symbol:e1f10308fb64",
+   "id": "exported-symbol:1865218f2396",
    "type": "exported-symbol",
    "title": "subscribeAiCreationRecords",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 531,
+   "line": 534,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "65c1d18152fb"
+   "detailRef": "d337514b7bb5"
   },
   {
    "id": "exported-symbol:3679798387b0",
@@ -270814,19 +271425,19 @@
    "detailRef": "242f80c2d574"
   },
   {
-   "id": "exported-symbol:8268a1e9f4b1",
+   "id": "exported-symbol:27da3497ab36",
    "type": "exported-symbol",
    "title": "useAiCreationRecovery",
    "description": "Export function de src/lib/ai/aiCreationJobs.ts.",
    "path": "src/lib/ai/aiCreationJobs.ts",
-   "line": 649,
+   "line": 652,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "f3fe93b8b063"
+   "detailRef": "b550ab6d55cc"
   },
   {
    "id": "exported-symbol:877ec33eafb3",
@@ -277285,6 +277896,20 @@
    "detailRef": "32cdd1fefa1e"
   },
   {
+   "id": "file:a388407a9c11",
+   "type": "file",
+   "title": "docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "162eb23f7919"
+  },
+  {
    "id": "file:8bc5005bce6b",
    "type": "file",
    "title": "docs/operations/TOK_INTELLIGENCE_SUITE.md",
@@ -279049,6 +279674,20 @@
    "detailRef": "9e79cfbe1bc4"
   },
   {
+   "id": "file:f9922848b3c5",
+   "type": "file",
+   "title": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "34f9fa116322"
+  },
+  {
    "id": "file:9ff1718424aa",
    "type": "file",
    "title": "public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
@@ -279159,6 +279798,34 @@
     "public-asset"
    ],
    "detailRef": "6f6071a04ee4"
+  },
+  {
+   "id": "file:7db49078a3f9",
+   "type": "file",
+   "title": "public/Chef TOK au bord du lac Léman.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/Chef TOK au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "d2e592cf0238"
+  },
+  {
+   "id": "file:c56ef718b76c",
+   "type": "file",
+   "title": "public/Chef jovial au bord du lac Léman.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/Chef jovial au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "d47b3c05c938"
   },
   {
    "id": "file:9e55eb782323",
@@ -297417,6 +298084,20 @@
    "detailRef": "51954a92be68"
   },
   {
+   "id": "file:bd898a2c6adb",
+   "type": "file",
+   "title": "src/test/marketing-print-entry.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-print-entry.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "a5fd7446dcc3"
+  },
+  {
    "id": "file:631e0a965fe0",
    "type": "file",
    "title": "src/test/marketing-print-rendering.test.ts",
@@ -298185,6 +298866,90 @@
     "test"
    ],
    "detailRef": "fee195b64b4f"
+  },
+  {
+   "id": "file:aa9e3a7c8552",
+   "type": "file",
+   "title": "src/test/print-catalog-actions.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/print-catalog-actions.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "1ecbbf6105c5"
+  },
+  {
+   "id": "file:7ea41ad0150b",
+   "type": "file",
+   "title": "src/test/print-catalog-admin-pagination.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/print-catalog-admin-pagination.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "90ea16ee15ea"
+  },
+  {
+   "id": "file:be027fa60068",
+   "type": "file",
+   "title": "src/test/print-composer-source-format.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/print-composer-source-format.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "7d1438c2ace6"
+  },
+  {
+   "id": "file:288f9bced877",
+   "type": "file",
+   "title": "src/test/print-export-source-format.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/print-export-source-format.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "95fb5b8c56a0"
+  },
+  {
+   "id": "file:e3cd8c7b6d02",
+   "type": "file",
+   "title": "src/test/print-pdf-dimensions.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/print-pdf-dimensions.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "baae0f40183d"
+  },
+  {
+   "id": "file:cafc06935376",
+   "type": "file",
+   "title": "src/test/print-source-format.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/print-source-format.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "eecce82b6a7c"
   },
   {
    "id": "file:dcaca68c7c4f",
@@ -301421,6 +302186,20 @@
    "detailRef": "89c543f56457"
   },
   {
+   "id": "file:5efdce57acf6",
+   "type": "file",
+   "title": "supabase/functions/_shared/print/catalog.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/print/catalog.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "7eb697706479"
+  },
+  {
    "id": "file:a9f79f8b9c4f",
    "type": "file",
    "title": "supabase/functions/_shared/print/cloudprinter.ts",
@@ -301545,6 +302324,20 @@
     "edge-function-source"
    ],
    "detailRef": "8dd9ad9dd1c2"
+  },
+  {
+   "id": "file:d636e5887055",
+   "type": "file",
+   "title": "supabase/functions/_shared/print/source-format.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/print/source-format.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "72b38af7bc3e"
   },
   {
    "id": "file:996ba56873bd",
@@ -310731,6 +311524,20 @@
    "detailRef": "a5ed020f73f0"
   },
   {
+   "id": "file:5d026dfb7d77",
+   "type": "file",
+   "title": "supabase/migrations/20261009003407_protect_generated_print_format.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261009003407_protect_generated_print_format.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "b5c2ee5054fe"
+  },
+  {
    "id": "file:42e7f6ee83cf",
    "type": "file",
    "title": "supabase/tests/critical_rpc_smoke.sql",
@@ -310757,6 +311564,20 @@
     "supabase-configuration"
    ],
    "detailRef": "cccedc54859f"
+  },
+  {
+   "id": "file:44b9a9515680",
+   "type": "file",
+   "title": "supabase/tests/generated_print_format_smoke.sql",
+   "description": "Fichier du dépôt classé supabase-configuration.",
+   "path": "supabase/tests/generated_print_format_smoke.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "supabase-configuration"
+   ],
+   "detailRef": "00e2001d29dc"
   },
   {
    "id": "file:fab86edd42d7",
@@ -314401,7 +315222,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 636 module(s).",
+   "description": "Intégration externe détectée dans 643 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -314484,6 +315305,7 @@
     "src/components/dashboard/DailyDishAiPanel.tsx",
     "src/components/dashboard/DirectReservationChannelsCard.tsx",
     "src/components/dashboard/TokAiMarketingStudio.tsx",
+    "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
     "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
     "src/components/dashboard/performance/PerformanceBusinessTab.tsx",
     "src/components/floor-plan/FloorPlanAIPanel.tsx",
@@ -314845,6 +315667,12 @@
     "src/test/plan-phase1-readiness.test.ts",
     "src/test/plan2-fk-index-readiness.test.ts",
     "src/test/plan2-security-definer-rpc-grants.test.ts",
+    "src/test/print-catalog-actions.test.ts",
+    "src/test/print-catalog-admin-pagination.test.tsx",
+    "src/test/print-composer-source-format.test.tsx",
+    "src/test/print-export-source-format.test.ts",
+    "src/test/print-pdf-dimensions.test.ts",
+    "src/test/print-source-format.test.ts",
     "src/test/production-alert-remediation.test.ts",
     "src/test/production-deployment-credential-wiring.test.ts",
     "src/test/production-preflight-hardening.test.ts",
@@ -315044,7 +315872,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "dc8e54111933"
+   "detailRef": "ca1568729012"
   },
   {
    "id": "integration:c20910a79a78",
@@ -322985,6 +323813,20 @@
    "detailRef": "fa62a0f1440a"
   },
   {
+   "id": "migration:599e1b35f9e8",
+   "type": "migration",
+   "title": "20261009003407 Protect Generated Print Format",
+   "description": "Migration SQL de 42 lignes, 2 objets CREATE détectés.",
+   "path": "supabase/migrations/20261009003407_protect_generated_print_format.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "9a5b6ab19512"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -324321,7 +325163,7 @@
    "tags": [
     "supabase"
    ],
-   "detailRef": "0fa17b11fd50"
+   "detailRef": "f07080207b09"
   },
   {
    "id": "page:c2e2aaf20137",
@@ -325928,7 +326770,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "60d602873021"
+   "detailRef": "faaa552640c7"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -328818,7 +329660,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "8a2edb02f6e0"
+   "detailRef": "3b12dafba230"
   },
   {
    "id": "path-literal:916ad1246b1e",
@@ -331633,17 +332475,17 @@
    "detailRef": "ca8a8364bb59"
   },
   {
-   "id": "path-literal:782813e6b3fe",
+   "id": "path-literal:57c3dca4007c",
    "type": "path-literal",
    "title": "/marketing-assets/",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/ai-image-enhance/index.ts",
-   "line": 97,
+   "line": 99,
    "surface": null,
    "tags": [
     "supabase/functions/ai-image-enhance/index.ts"
    ],
-   "detailRef": "0626c65471f0"
+   "detailRef": "21435aaf61e1"
   },
   {
    "id": "path-literal:c3510da4d36e",
@@ -334223,17 +335065,17 @@
    "detailRef": "90f491ad4217"
   },
   {
-   "id": "path-literal:a3ccc38990ab",
+   "id": "path-literal:5480e7250f74",
    "type": "path-literal",
    "title": "/tok-reference-food-webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/ai-image-enhance/index.ts",
-   "line": 79,
+   "line": 81,
    "surface": null,
    "tags": [
     "supabase/functions/ai-image-enhance/index.ts"
    ],
-   "detailRef": "97516ea87663"
+   "detailRef": "214b39b8dc3b"
   },
   {
    "id": "path-literal:970b4c8398c6",
@@ -335032,6 +335874,20 @@
    "detailRef": "735992553a10"
   },
   {
+   "id": "public-asset:314aca09bcb1",
+   "type": "public-asset",
+   "title": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "60cdf59ff559"
+  },
+  {
    "id": "public-asset:51359523e422",
    "type": "public-asset",
    "title": "/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
@@ -335142,6 +335998,34 @@
     "public"
    ],
    "detailRef": "e55f72209f7a"
+  },
+  {
+   "id": "public-asset:bac2468d72d5",
+   "type": "public-asset",
+   "title": "/Chef TOK au bord du lac Léman.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/Chef TOK au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "199ef737cff9"
+  },
+  {
+   "id": "public-asset:58354ee71abb",
+   "type": "public-asset",
+   "title": "/Chef jovial au bord du lac Léman.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/Chef jovial au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "618c9673736b"
   },
   {
    "id": "public-asset:7a2a3e03a285",

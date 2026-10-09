@@ -158,6 +158,13 @@ function buildServerPreflight(document: ServerPrintDocument, spec: ServerPrintPr
   }
   const mediaWidthMm = spec.widthMm + 2 * spec.bleedMm;
   const mediaHeightMm = spec.heightMm + 2 * spec.bleedMm;
+  // The browser prepares a raster including bleed. Allow pixel rounding, but
+  // never silently crop a differently shaped uploaded image into the PDF.
+  const sourceRatio = document.background.widthPx / document.background.heightPx;
+  const targetRatio = mediaWidthMm / mediaHeightMm;
+  if (Math.abs(sourceRatio / targetRatio - 1) > 0.005) {
+    blocking.push({ code: "background_format_mismatch", message: "Le format du visuel ne correspond pas au format d’impression." });
+  }
   const dpiX = document.background.widthPx / (mediaWidthMm / 25.4);
   const dpiY = document.background.heightPx / (mediaHeightMm / 25.4);
   if (Math.min(dpiX, dpiY) < 150) {
@@ -239,7 +246,16 @@ export async function buildPrintPdf(input: {
   spec: ServerPrintProductSpec;
 }) {
   const document = validateDocument(input.document);
-  const preflight = buildServerPreflight(document, input.spec);
+  const pdf = await PDFDocument.create();
+  const backgroundSource = await fetchTrustedImage(document.background);
+  const background = backgroundSource.contentType === "image/png"
+    ? await pdf.embedPng(backgroundSource.bytes)
+    : await pdf.embedJpg(backgroundSource.bytes);
+  // Uploaded bytes are authoritative; client-supplied pixel dimensions can lie.
+  const preflight = buildServerPreflight({
+    ...document,
+    background: { ...document.background, widthPx: background.width, heightPx: background.height },
+  }, input.spec);
   if (!preflight.ready) throw new HttpError(422, "PRINT_PREFLIGHT_FAILED", { preflight });
 
   const trimWidth = input.spec.widthMm * MM_TO_PT;
@@ -248,7 +264,6 @@ export async function buildPrintPdf(input: {
   const mediaWidth = trimWidth + 2 * bleed;
   const mediaHeight = trimHeight + 2 * bleed;
 
-  const pdf = await PDFDocument.create();
   const page = pdf.addPage([mediaWidth, mediaHeight]);
   page.setMediaBox(0, 0, mediaWidth, mediaHeight); // MediaBox
   page.setBleedBox(0, 0, mediaWidth, mediaHeight); // BleedBox
@@ -257,10 +272,6 @@ export async function buildPrintPdf(input: {
   const safe = input.spec.safeMarginMm * MM_TO_PT;
   page.setArtBox(bleed + safe, bleed + safe, Math.max(1, trimWidth - 2 * safe), Math.max(1, trimHeight - 2 * safe));
 
-  const backgroundSource = await fetchTrustedImage(document.background);
-  const background = backgroundSource.contentType === "image/png"
-    ? await pdf.embedPng(backgroundSource.bytes)
-    : await pdf.embedJpg(backgroundSource.bytes);
   drawImageCover(page, background, mediaWidth, mediaHeight);
 
   const regularFont = await pdf.embedFont(StandardFonts.Helvetica);

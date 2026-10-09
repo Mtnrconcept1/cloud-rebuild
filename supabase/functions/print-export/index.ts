@@ -1,3 +1,4 @@
+import { matchesGeneratedPrintFormat } from "../_shared/print/source-format.ts";
 import {
   HttpError,
   assertProductionFlowAllowed,
@@ -10,6 +11,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { buildPrintPdf } from "../_shared/print/pdf.ts";
+import { isSinglePagePrintProduct } from "../_shared/print/catalog.ts";
 
 const BUCKET = "print-production-files";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -119,13 +121,17 @@ Deno.serve(async (req) => {
 
     const { data: providerProduct, error: providerError } = await adminClient
       .from("print_provider_products")
-      .select("id, print_product_id, provider, provider_reference, width_mm, height_mm, bleed_mm, safe_margin_mm, print_technology, printable_sides, orientation, minimum_quantity, quantity_step, options, specifications")
+      .select("id, print_product_id, provider, provider_reference, width_mm, height_mm, bleed_mm, safe_margin_mm, print_technology, printable_sides, orientation, minimum_quantity, quantity_step, options, specifications, print_products!inner(category, active)")
       .eq("id", providerProductId)
       .eq("active", true)
+      .eq("print_products.active", true)
       .not("print_product_id", "is", null)
       .maybeSingle();
     if (providerError) throw providerError;
     if (!providerProduct) throw new HttpError(404, "Variante d’impression indisponible");
+    if (!isSinglePagePrintProduct(providerProduct, providerProduct.print_products as any)) {
+      throw new HttpError(409, "Ce support nécessite plusieurs pages ou faces et ne peut pas recevoir un visuel unique");
+    }
 
     const spec = {
       widthMm: numberOr(providerProduct.width_mm, 0),
@@ -135,6 +141,15 @@ Deno.serve(async (req) => {
       printTechnology: typeof providerProduct.print_technology === "string" ? providerProduct.print_technology : null,
     };
     if (!(spec.widthMm > 0 && spec.heightMm > 0)) throw new HttpError(409, "Spécifications fournisseur incomplètes");
+
+    const sourceGenerationId = requireUuid(documentPayload.sourceGenerationId, "sourceGenerationId");
+    const { data: source, error: sourceError } = await adminClient.from("ai_generated_assets")
+      .select("metadata").eq("id", sourceGenerationId).eq("restaurant_id", restaurantId)
+      .eq("status", "stored").maybeSingle();
+    if (sourceError) throw sourceError;
+    if (!source || !matchesGeneratedPrintFormat(asRecord(source.metadata).marketing_output_target, {
+      providerProductId, widthMm: spec.widthMm, heightMm: spec.heightMm, bleedMm: spec.bleedMm,
+    })) throw new HttpError(409, "Le support doit correspondre au format enregistré lors de la génération du visuel");
 
     const built = await buildPrintPdf({ document: documentPayload, spec });
     const documentId = crypto.randomUUID();
