@@ -2,14 +2,14 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "f5328f9dad5e2446aea41641e3909d3b87cb55338af3a8c271cb795cbf08a16d",
+ "sourceDigest": "fa456024bcc7df34838a618c06ea4872cd0e81d4aae97ca6dbea72585c9aecac",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2720,
-  "documents": 190,
+  "documents": 191,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3359,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 521,
-  "modules": 1455,
+  "modules": 1457,
   "pages": 127,
-  "pathLiterals": 604,
+  "pathLiterals": 611,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15431,
-  "repositoryFiles": 2713,
+  "records": 15465,
+  "repositoryFiles": 2716,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -13129,6 +13129,15 @@
     ]
    },
    {
+    "value": "/?$",
+    "sources": [
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
     "value": "/?q=restaurant",
     "sources": [
      {
@@ -13207,6 +13216,15 @@
      {
       "path": "src/test/solidarity-section.test.tsx",
       "line": 11
+     }
+    ]
+   },
+   {
+    "value": "/[^/]+",
+    "sources": [
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 9
      }
     ]
    },
@@ -13384,6 +13402,10 @@
      {
       "path": "src/test/meal-subscription-cart.test.tsx",
       "line": 152
+     },
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      }
     ]
    },
@@ -15169,6 +15191,15 @@
     ]
    },
    {
+    "value": "/api/missing",
+    "sources": [
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 14
+     }
+    ]
+   },
+   {
     "value": "/api/photon",
     "sources": [
      {
@@ -15183,6 +15214,15 @@
      {
       "path": "src/test/tok-ai-tools.test.ts",
       "line": 524
+     }
+    ]
+   },
+   {
+    "value": "/assets/missing.js",
+    "sources": [
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 14
      }
     ]
    },
@@ -16051,6 +16091,10 @@
      {
       "path": "src/test/coming-soon-gate.test.tsx",
       "line": 91
+     },
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -17467,6 +17511,10 @@
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 40
+     },
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      }
     ]
    },
@@ -17732,6 +17780,26 @@
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
       "line": 89
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 21
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 36
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 43
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 51
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 56
      },
      {
       "path": "src/test/mobile-logo-intro.test.tsx",
@@ -18612,6 +18680,18 @@
       "line": 20
      },
      {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 18
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 21
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 49
+     },
+     {
       "path": "supabase/functions/print-sandbox-complete/index.ts",
       "line": 36
      },
@@ -18761,6 +18841,30 @@
      {
       "path": "src/lib/featureCatalog.ts",
       "line": 535
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 18
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 21
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 21
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 35
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 42
+     },
+     {
+      "path": "src/test/dashboard-selection-navigation.test.tsx",
+      "line": 62
      },
      {
       "path": "src/test/restaurant-dashboard-overview-navigation.test.ts",
@@ -19211,6 +19315,10 @@
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 41
+     },
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      }
     ]
    },
@@ -19434,6 +19542,10 @@
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 47
+     },
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      }
     ]
    },
@@ -21422,6 +21534,10 @@
       "line": 169
      },
      {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 4
+     },
+     {
       "path": "src/test/seo-indexation-hardening.test.ts",
       "line": 29
      },
@@ -21741,6 +21857,10 @@
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 42
+     },
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      }
     ]
    },
@@ -22068,6 +22188,10 @@
       "line": 44
      },
      {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
+     },
+     {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
       "line": 205
      },
@@ -22123,6 +22247,10 @@
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 43
+     },
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      }
     ]
    },
@@ -22592,6 +22720,10 @@
      {
       "path": "src/App.tsx",
       "line": 579
+     },
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -23517,6 +23649,15 @@
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
       "line": 201
+     }
+    ]
+   },
+   {
+    "value": "/restaurant/cc47c8c6-752f-406c-8c2f-ed04ebd0ca20",
+    "sources": [
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      }
     ]
    },
@@ -24447,6 +24588,10 @@
       "line": 69
      },
      {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 14
+     },
+     {
       "path": "src/test/route-wiring.test.ts",
       "line": 64
      },
@@ -24528,6 +24673,10 @@
       "line": 29
      },
      {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 14
+     },
+     {
       "path": "src/test/route-wiring.test.ts",
       "line": 61
      },
@@ -24601,8 +24750,21 @@
       "line": 70
      },
      {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 14
+     },
+     {
       "path": "src/test/route-wiring.test.ts",
       "line": 63
+     }
+    ]
+   },
+   {
+    "value": "/restaurateurs/lausanne",
+    "sources": [
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      }
     ]
    },
@@ -24940,6 +25102,15 @@
     ]
    },
    {
+    "value": "/this-route-does-not-exist",
+    "sources": [
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 14
+     }
+    ]
+   },
+   {
     "value": "/tok-connect",
     "sources": [
      {
@@ -25081,6 +25252,10 @@
      {
       "path": "src/pages/TokConnect.tsx",
       "line": 179
+     },
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      }
     ]
    },
@@ -25228,6 +25403,10 @@
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 50
+     },
+     {
+      "path": "src/test/route-serving-regression.test.ts",
+      "line": 11
      }
     ]
    },
@@ -27834,6 +28013,7 @@
      "src/test/release-readiness.test.ts",
      "src/test/responsive-seo-regressions.test.ts",
      "src/test/restaurateur-commercial-pages.test.ts",
+     "src/test/route-serving-regression.test.ts",
      "src/test/route-wiring.test.ts",
      "src/test/seo-directory-quality-hardening.test.ts",
      "src/test/seo-growth.test.ts",
@@ -28980,6 +29160,7 @@
      "src/test/public-asset-references.test.ts",
      "src/test/repository-json-encoding.test.ts",
      "src/test/responsive-seo-regressions.test.ts",
+     "src/test/route-serving-regression.test.ts",
      "src/test/seo-growth.test.ts",
      "src/test/seo-indexation-hardening.test.ts",
      "src/test/seo-performance-remediation.test.ts",
@@ -64870,6 +65051,97 @@
      "host": null,
      "path": "vercel.json",
      "ordinal": 24
+    },
+    {
+     "source": "/coming-soon",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 25
+    },
+    {
+     "source": "/parametres/securite",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 26
+    },
+    {
+     "source": "/creneaux-garantis",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 27
+    },
+    {
+     "source": "/flex-prix-bas",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 28
+    },
+    {
+     "source": "/match-groupes",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 29
+    },
+    {
+     "source": "/multi-restaurant",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 30
+    },
+    {
+     "source": "/multi-stop",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 31
+    },
+    {
+     "source": "/garantie-qualite",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 32
+    },
+    {
+     "source": "/abonnement",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 33
+    },
+    {
+     "source": "/tok-pulse",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 34
+    },
+    {
+     "source": "/tok-connect/mcp-widget",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 35
+    },
+    {
+     "source": "/restaurant/:id",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 36
+    },
+    {
+     "source": "/restaurateurs/((?!geneve/?$|google-business/?$|alternative-commission-couvert/?$)[^/]+)",
+     "destination": "/index.html",
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 37
     }
    ],
    "headers": [
@@ -68955,6 +69227,52 @@
       "level": 2,
       "title": "Stratégie de retour arrière",
       "line": 145
+     }
+    ]
+   },
+   {
+    "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+    "title": "TOK route and navigation audit — 2026-10-09",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK route and navigation audit — 2026-10-09",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Scope and release status",
+      "line": 3
+     },
+     {
+      "level": 2,
+      "title": "Findings and changes",
+      "line": 10
+     },
+     {
+      "level": 2,
+      "title": "Verification",
+      "line": 23
+     },
+     {
+      "level": 2,
+      "title": "Authenticated coverage and limitations",
+      "line": 35
+     },
+     {
+      "level": 2,
+      "title": "Rollback and next release gate",
+      "line": 41
+     },
+     {
+      "level": 2,
+      "title": "Final verification and concurrent repository update",
+      "line": 46
+     },
+     {
+      "level": 2,
+      "title": "Confirmed production HTTP 404 paths before this patch",
+      "line": 51
      }
     ]
    },
@@ -97406,7 +97724,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 162
+    "lineCount": 156
    },
    {
     "path": "src/pages/dashboard/DashboardCrm.tsx",
@@ -99527,6 +99845,13 @@
      "supabase"
     ],
     "lineCount": 53
+   },
+   {
+    "path": "src/test/dashboard-selection-navigation.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 65
    },
    {
     "path": "src/test/dashboard-service-layout.test.ts",
@@ -101809,6 +102134,16 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 82
+   },
+   {
+    "path": "src/test/route-serving-regression.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "google",
+     "vercel"
+    ],
+    "lineCount": 16
    },
    {
     "path": "src/test/route-wiring.test.ts",
@@ -108683,6 +109018,11 @@
     "extension": ".md"
    },
    {
+    "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
     "path": "docs/audits/codebase-audit-2026-06-19.md",
     "category": "documentation",
     "extension": ".md"
@@ -115518,6 +115858,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/dashboard-selection-navigation.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/dashboard-service-layout.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -116824,6 +117169,11 @@
    },
    {
     "path": "src/test/role-route-wiring.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/route-serving-regression.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -132860,14 +133210,14 @@
    "id": "code-module:0ec35d8eb042",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardContext.tsx",
-   "description": "Module de 162 lignes; exports: DashboardProvider.",
+   "description": "Module de 156 lignes; exports: DashboardProvider.",
    "path": "src/pages/dashboard/DashboardContext.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "DashboardProvider"
    ],
-   "detailRef": "1148117d3e72"
+   "detailRef": "04f4ad63777a"
   },
   {
    "id": "code-module:588ff94f008b",
@@ -135528,6 +135878,17 @@
     "supabase"
    ],
    "detailRef": "d042e7051b6d"
+  },
+  {
+   "id": "code-module:1b528f87d5e1",
+   "type": "code-module",
+   "title": "src/test/dashboard-selection-navigation.test.tsx",
+   "description": "Module de 65 lignes; exports: aucun export statique.",
+   "path": "src/test/dashboard-selection-navigation.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "531ce9698863"
   },
   {
    "id": "code-module:723c3f236275",
@@ -138850,6 +139211,20 @@
    "surface": null,
    "tags": [],
    "detailRef": "0e9466af0e63"
+  },
+  {
+   "id": "code-module:c2d3c2442aad",
+   "type": "code-module",
+   "title": "src/test/route-serving-regression.test.ts",
+   "description": "Module de 16 lignes; exports: aucun export statique.",
+   "path": "src/test/route-serving-regression.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "google",
+    "vercel"
+   ],
+   "detailRef": "3b16e4ee60f8"
   },
   {
    "id": "code-module:c0bdde6aa1b0",
@@ -194363,6 +194738,20 @@
    "detailRef": "c9e2d6376911"
   },
   {
+   "id": "document-section:ee2319f7d72d",
+   "type": "document-section",
+   "title": "Authenticated coverage and limitations",
+   "description": "Section de TOK route and navigation audit — 2026-10-09.",
+   "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "TOK route and navigation audit — 2026-10-09",
+    "h2"
+   ],
+   "detailRef": "3c28271f6b92"
+  },
+  {
    "id": "document-section:25bfe043ea92",
    "type": "document-section",
    "title": "Authentification ChatGPT et partenaires B2B",
@@ -196587,6 +196976,20 @@
     "h3"
    ],
    "detailRef": "cedeecf20dd3"
+  },
+  {
+   "id": "document-section:21ea84b02aba",
+   "type": "document-section",
+   "title": "Confirmed production HTTP 404 paths before this patch",
+   "description": "Section de TOK route and navigation audit — 2026-10-09.",
+   "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "TOK route and navigation audit — 2026-10-09",
+    "h2"
+   ],
+   "detailRef": "411de44769b8"
   },
   {
    "id": "document-section:b710945aa93c",
@@ -199877,6 +200280,34 @@
     "h2"
    ],
    "detailRef": "6cbd6fdf03cf"
+  },
+  {
+   "id": "document-section:af5ec95c2d6c",
+   "type": "document-section",
+   "title": "Final verification and concurrent repository update",
+   "description": "Section de TOK route and navigation audit — 2026-10-09.",
+   "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+   "line": 46,
+   "surface": null,
+   "tags": [
+    "TOK route and navigation audit — 2026-10-09",
+    "h2"
+   ],
+   "detailRef": "04da1230a042"
+  },
+  {
+   "id": "document-section:ef4c03e3e5f2",
+   "type": "document-section",
+   "title": "Findings and changes",
+   "description": "Section de TOK route and navigation audit — 2026-10-09.",
+   "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "TOK route and navigation audit — 2026-10-09",
+    "h2"
+   ],
+   "detailRef": "5b4867c24d3c"
   },
   {
    "id": "document-section:2a0b1eb86a26",
@@ -209063,6 +209494,20 @@
    "detailRef": "5b92a74e9023"
   },
   {
+   "id": "document-section:e40f684ce57a",
+   "type": "document-section",
+   "title": "Rollback and next release gate",
+   "description": "Section de TOK route and navigation audit — 2026-10-09.",
+   "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+   "line": 41,
+   "surface": null,
+   "tags": [
+    "TOK route and navigation audit — 2026-10-09",
+    "h2"
+   ],
+   "detailRef": "5f89afcf8328"
+  },
+  {
    "id": "document-section:4a5bc27630fb",
    "type": "document-section",
    "title": "Rollback",
@@ -210069,6 +210514,20 @@
     "h2"
    ],
    "detailRef": "6bb87e3f7e06"
+  },
+  {
+   "id": "document-section:8839ced2a2ca",
+   "type": "document-section",
+   "title": "Scope and release status",
+   "description": "Section de TOK route and navigation audit — 2026-10-09.",
+   "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "TOK route and navigation audit — 2026-10-09",
+    "h2"
+   ],
+   "detailRef": "ffce7e30cad8"
   },
   {
    "id": "document-section:e6e5de644bae",
@@ -212155,6 +212614,20 @@
     "h1"
    ],
    "detailRef": "e232553b367f"
+  },
+  {
+   "id": "document-section:1343f367e3f2",
+   "type": "document-section",
+   "title": "TOK route and navigation audit — 2026-10-09",
+   "description": "Section de TOK route and navigation audit — 2026-10-09.",
+   "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK route and navigation audit — 2026-10-09",
+    "h1"
+   ],
+   "detailRef": "131af3fa9b87"
   },
   {
    "id": "document-section:7c37e82deec6",
@@ -216019,6 +216492,20 @@
     "h2"
    ],
    "detailRef": "c9995567d48e"
+  },
+  {
+   "id": "document-section:8ec9455abe00",
+   "type": "document-section",
+   "title": "Verification",
+   "description": "Section de TOK route and navigation audit — 2026-10-09.",
+   "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "TOK route and navigation audit — 2026-10-09",
+    "h2"
+   ],
+   "detailRef": "f8fd7a2a5722"
   },
   {
    "id": "document-section:8a3f1c659c19",
@@ -221381,6 +221868,26 @@
     "Verified findings"
    ],
    "detailRef": "09ed0f75917f"
+  },
+  {
+   "id": "document:1343f367e3f2",
+   "type": "document",
+   "title": "TOK route and navigation audit — 2026-10-09",
+   "description": "Document Markdown avec 8 section(s).",
+   "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Authenticated coverage and limitations",
+    "Confirmed production HTTP 404 paths before this patch",
+    "Final verification and concurrent repository update",
+    "Findings and changes",
+    "Rollback and next release gate",
+    "Scope and release status",
+    "TOK route and navigation audit — 2026-10-09",
+    "Verification"
+   ],
+   "detailRef": "bfcca93fd745"
   },
   {
    "id": "document:0103d4fa34bc",
@@ -278664,6 +279171,20 @@
    "detailRef": "190b961b83cf"
   },
   {
+   "id": "file:2fcc5bcc5a15",
+   "type": "file",
+   "title": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/audits/TOK_ROUTE_NAVIGATION_AUDIT_2026-10-09.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "23cd814f6472"
+  },
+  {
    "id": "file:2a1504c2ad63",
    "type": "file",
    "title": "docs/audits/codebase-audit-2026-06-19.md",
@@ -297802,6 +298323,20 @@
    "detailRef": "7e536ba27db4"
   },
   {
+   "id": "file:cb492cd7cf2e",
+   "type": "file",
+   "title": "src/test/dashboard-selection-navigation.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/dashboard-selection-navigation.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "49b696259d77"
+  },
+  {
    "id": "file:661c18f59790",
    "type": "file",
    "title": "src/test/dashboard-service-layout.test.ts",
@@ -301468,6 +302003,20 @@
     "test"
    ],
    "detailRef": "bcfe068f00a3"
+  },
+  {
+   "id": "file:3bed88df18bc",
+   "type": "file",
+   "title": "src/test/route-serving-regression.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/route-serving-regression.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "fe9afcc19fc0"
   },
   {
    "id": "file:75cb4b9b6ce1",
@@ -316237,7 +316786,7 @@
    "id": "integration:5c0229914ab6",
    "type": "integration",
    "title": "Google",
-   "description": "Intégration externe détectée dans 109 module(s).",
+   "description": "Intégration externe détectée dans 110 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -316326,6 +316875,7 @@
     "src/test/release-readiness.test.ts",
     "src/test/responsive-seo-regressions.test.ts",
     "src/test/restaurateur-commercial-pages.test.ts",
+    "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/seo-directory-quality-hardening.test.ts",
     "src/test/seo-growth.test.ts",
@@ -316353,7 +316903,7 @@
     "supabase/functions/verify-directory-commercial-names/index.ts",
     "supabase/functions/verify-directory-image-truth/index.ts"
    ],
-   "detailRef": "58b27e2cfb32"
+   "detailRef": "734dcf75a850"
   },
   {
    "id": "integration:672e2c9b82f3",
@@ -317492,7 +318042,7 @@
    "id": "integration:077d0104684d",
    "type": "integration",
    "title": "Vercel",
-   "description": "Intégration externe détectée dans 55 module(s).",
+   "description": "Intégration externe détectée dans 56 module(s).",
    "path": "middleware.js",
    "line": null,
    "surface": null,
@@ -317535,6 +318085,7 @@
     "src/test/public-asset-references.test.ts",
     "src/test/repository-json-encoding.test.ts",
     "src/test/responsive-seo-regressions.test.ts",
+    "src/test/route-serving-regression.test.ts",
     "src/test/seo-growth.test.ts",
     "src/test/seo-indexation-hardening.test.ts",
     "src/test/seo-performance-remediation.test.ts",
@@ -317554,7 +318105,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "vercel"
    ],
-   "detailRef": "970f9c77b79a"
+   "detailRef": "a2beddf4fd52"
   },
   {
    "id": "marketing-operation:dae86fc78e92",
@@ -328390,6 +328941,19 @@
    "detailRef": "88604be601c6"
   },
   {
+   "id": "path-literal:8c462d5d4454",
+   "type": "path-literal",
+   "title": "/?$",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/route-serving-regression.test.ts",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "src/test/route-serving-regression.test.ts"
+   ],
+   "detailRef": "664b2b06a3c4"
+  },
+  {
    "id": "path-literal:3794f9b42ea5",
    "type": "path-literal",
    "title": "/?q=restaurant",
@@ -328472,6 +329036,19 @@
     "src/test/solidarity-section.test.tsx"
    ],
    "detailRef": "236780c28ec4"
+  },
+  {
+   "id": "path-literal:b056dd7e39b5",
+   "type": "path-literal",
+   "title": "/[^/]+",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/route-serving-regression.test.ts",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "src/test/route-serving-regression.test.ts"
+   ],
+   "detailRef": "16fd139be327"
   },
   {
    "id": "path-literal:b791be0d6b56",
@@ -328591,7 +329168,7 @@
    "id": "path-literal:6c3938307ce1",
    "type": "path-literal",
    "title": "/abonnement",
-   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1001,
    "surface": null,
@@ -328605,9 +329182,10 @@
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
-    "src/test/meal-subscription-cart.test.tsx"
+    "src/test/meal-subscription-cart.test.tsx",
+    "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "b8f87eb3a1d4"
+   "detailRef": "3f78d148297b"
   },
   {
    "id": "path-literal:a5b6aab3e61b",
@@ -329658,6 +330236,19 @@
    "detailRef": "663b5658623e"
   },
   {
+   "id": "path-literal:4457ca298944",
+   "type": "path-literal",
+   "title": "/api/missing",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/route-serving-regression.test.ts",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "src/test/route-serving-regression.test.ts"
+   ],
+   "detailRef": "fef2a308ea18"
+  },
+  {
    "id": "path-literal:86b90b42c8b8",
    "type": "path-literal",
    "title": "/api/photon",
@@ -329695,6 +330286,19 @@
     "vite.config.ts"
    ],
    "detailRef": "b2cc6324e78d"
+  },
+  {
+   "id": "path-literal:3ce85e8d2be0",
+   "type": "path-literal",
+   "title": "/assets/missing.js",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/route-serving-regression.test.ts",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "src/test/route-serving-regression.test.ts"
+   ],
+   "detailRef": "18ad6ee0bfef"
   },
   {
    "id": "path-literal:7d6f2d2552db",
@@ -330145,7 +330749,7 @@
    "id": "path-literal:0bf79812be34",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 553,
    "surface": null,
@@ -330154,9 +330758,10 @@
     "src/components/ComingSoonGate.tsx",
     "src/lib/featureCatalog.ts",
     "src/test/coming-soon-gate.test.tsx",
+    "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "5f972578fbd5"
+   "detailRef": "91dbb6cf86b2"
   },
   {
    "id": "path-literal:d5b1770201fa",
@@ -330842,7 +331447,7 @@
    "id": "path-literal:43753dbe7662",
    "type": "path-literal",
    "title": "/creneaux-garantis",
-   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1009,
    "surface": null,
@@ -330855,9 +331460,10 @@
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
-    "src/test/commercial-demo-visible-navigation-isolation.test.ts"
+    "src/test/commercial-demo-visible-navigation-isolation.test.ts",
+    "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "48872fefa835"
+   "detailRef": "7dcbe74d212b"
   },
   {
    "id": "path-literal:86886b2b5201",
@@ -331359,7 +331965,7 @@
    "id": "path-literal:afdf1c88ddb9",
    "type": "path-literal",
    "title": "/dashboard/photos",
-   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 625,
    "surface": null,
@@ -331368,11 +331974,12 @@
     "src/components/DashboardLayout.tsx",
     "src/lib/featureCatalog.ts",
     "src/pages/dashboard/useDashboardRestaurant.ts",
+    "src/test/dashboard-selection-navigation.test.tsx",
     "supabase/functions/print-sandbox-complete/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "db9ce40ba3b9"
+   "detailRef": "25f9adb7bf41"
   },
   {
    "id": "path-literal:f44156886df7",
@@ -331466,7 +332073,7 @@
    "id": "path-literal:12f4efb437c7",
    "type": "path-literal",
    "title": "/dashboard/reservations",
-   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 610,
    "surface": null,
@@ -331477,12 +332084,13 @@
     "src/components/dashboard/RestaurantDashboardHomeView.tsx",
     "src/components/dashboard/performance/PerformanceTodayTab.tsx",
     "src/lib/featureCatalog.ts",
+    "src/test/dashboard-selection-navigation.test.tsx",
     "src/test/restaurant-dashboard-overview-navigation.test.ts",
     "supabase/functions/_shared/chefs-table.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "1ac7473bd010"
+   "detailRef": "03efd4206da0"
   },
   {
    "id": "path-literal:c0eff3341b29",
@@ -331602,7 +332210,7 @@
    "id": "path-literal:388f33a815f3",
    "type": "path-literal",
    "title": "/dashboard",
-   "description": "Chemin référencé dans 70 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 75 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 164,
    "surface": null,
@@ -331634,13 +332242,14 @@
     "src/test/auth-post-login-routing.test.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/commercial-domain-isolation.test.ts",
+    "src/test/dashboard-selection-navigation.test.tsx",
     "src/test/mobile-logo-intro.test.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/role-access.test.ts",
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "b4be9bed61dd"
+   "detailRef": "02db84631cd8"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -331841,7 +332450,7 @@
    "id": "path-literal:485651155174",
    "type": "path-literal",
    "title": "/flex-prix-bas",
-   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1057,
    "surface": null,
@@ -331854,9 +332463,10 @@
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
-    "src/test/commercial-demo-visible-navigation-isolation.test.ts"
+    "src/test/commercial-demo-visible-navigation-isolation.test.ts",
+    "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "324c43ba8898"
+   "detailRef": "a0064a443e15"
   },
   {
    "id": "path-literal:b657e0a461f5",
@@ -332054,7 +332664,7 @@
    "id": "path-literal:12200bbe294c",
    "type": "path-literal",
    "title": "/garantie-qualite",
-   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1017,
    "surface": null,
@@ -332067,9 +332677,10 @@
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
-    "src/test/commercial-demo-visible-navigation-isolation.test.ts"
+    "src/test/commercial-demo-visible-navigation-isolation.test.ts",
+    "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "c15df7dafc0f"
+   "detailRef": "3a16423d03c1"
   },
   {
    "id": "path-literal:95e27403bc7d",
@@ -334034,7 +334645,7 @@
    "id": "path-literal:158aecb6620c",
    "type": "path-literal",
    "title": "/index.html",
-   "description": "Chemin référencé dans 26 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 27 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 767,
    "surface": null,
@@ -334048,10 +334659,11 @@
     "scripts/harden-seo-public-names.mjs",
     "scripts/harden-seo-restaurant-context.mjs",
     "scripts/harden-seo-web-artifact-names.mjs",
+    "src/test/route-serving-regression.test.ts",
     "src/test/seo-indexation-hardening.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "ff39bb3833b7"
+   "detailRef": "cb3b88ceebba"
   },
   {
    "id": "path-literal:be8c7ffb4a53",
@@ -334235,7 +334847,7 @@
    "id": "path-literal:90eab0f24aff",
    "type": "path-literal",
    "title": "/match-groupes",
-   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1049,
    "surface": null,
@@ -334250,9 +334862,10 @@
     "src/lib/featureCatalog.ts",
     "src/pages/MatchGroupes.tsx",
     "src/test/checkout-return-url-frontend.test.ts",
-    "src/test/commercial-demo-visible-navigation-isolation.test.ts"
+    "src/test/commercial-demo-visible-navigation-isolation.test.ts",
+    "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "db60bad8282b"
+   "detailRef": "21aa5be2cfa4"
   },
   {
    "id": "path-literal:d87268d71810",
@@ -334400,7 +335013,7 @@
    "id": "path-literal:83e3b50a8f41",
    "type": "path-literal",
    "title": "/multi-restaurant",
-   "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1033,
    "surface": null,
@@ -334416,16 +335029,17 @@
     "src/lib/featureCatalog.ts",
     "src/lib/featureFlags.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
+    "src/test/route-serving-regression.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "f3a91427a84a"
+   "detailRef": "97c06dcefe28"
   },
   {
    "id": "path-literal:e50600e506b9",
    "type": "path-literal",
    "title": "/multi-stop",
-   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1041,
    "surface": null,
@@ -334439,9 +335053,10 @@
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
     "src/lib/featureFlags.ts",
-    "src/test/commercial-demo-visible-navigation-isolation.test.ts"
+    "src/test/commercial-demo-visible-navigation-isolation.test.ts",
+    "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "5cd653ace1ef"
+   "detailRef": "9035cf8bb369"
   },
   {
    "id": "path-literal:c940e29d8563",
@@ -334668,15 +335283,16 @@
    "id": "path-literal:01b14860f373",
    "type": "path-literal",
    "title": "/parametres/securite",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 356,
    "surface": null,
    "tags": [
     "src/App.tsx",
+    "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "f7aef50e6b26"
+   "detailRef": "e1b25ed861a0"
   },
   {
    "id": "path-literal:dcca78612246",
@@ -335208,6 +335824,19 @@
     "src/lib/commercialDemoClientRoutes.ts"
    ],
    "detailRef": "5e7ced150091"
+  },
+  {
+   "id": "path-literal:76b730b33375",
+   "type": "path-literal",
+   "title": "/restaurant/cc47c8c6-752f-406c-8c2f-ed04ebd0ca20",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/route-serving-regression.test.ts",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "src/test/route-serving-regression.test.ts"
+   ],
+   "detailRef": "88bdc28c766c"
   },
   {
    "id": "path-literal:87381e6d6bc4",
@@ -336184,7 +336813,7 @@
    "id": "path-literal:a69569933d1c",
    "type": "path-literal",
    "title": "/restaurateurs/alternative-commission-couvert",
-   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 16 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 674,
    "surface": null,
@@ -336198,16 +336827,17 @@
     "src/pages/RestaurateursGeneve.tsx",
     "src/pages/RestaurateursGoogleBusiness.tsx",
     "src/test/b2b-seo-cluster.test.ts",
+    "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "60ac6b4325f1"
+   "detailRef": "618e6a374e38"
   },
   {
    "id": "path-literal:843e3ec74ed3",
    "type": "path-literal",
    "title": "/restaurateurs/geneve",
-   "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 609,
    "surface": null,
@@ -336224,16 +336854,17 @@
     "src/pages/RestaurateursGoogleBusiness.tsx",
     "src/test/b2b-seo-cluster.test.ts",
     "src/test/home-hero-search.test.tsx",
+    "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "486fdadd3007"
+   "detailRef": "d5c3a1acf27b"
   },
   {
    "id": "path-literal:0cc14f352dc6",
    "type": "path-literal",
    "title": "/restaurateurs/google-business",
-   "description": "Chemin référencé dans 16 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 673,
    "surface": null,
@@ -336250,9 +336881,23 @@
     "src/test/b2b-seo-cluster.test.ts",
     "src/test/plan-phase1-readiness.test.ts",
     "src/test/public-feature-legal-matrix.test.ts",
+    "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "a7168b8a6bf3"
+   "detailRef": "9be0cc73755d"
+  },
+  {
+   "id": "path-literal:e0d8149df64e",
+   "type": "path-literal",
+   "title": "/restaurateurs/lausanne",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/route-serving-regression.test.ts",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "src/test/route-serving-regression.test.ts"
+   ],
+   "detailRef": "0f59cb448f5a"
   },
   {
    "id": "path-literal:17bb46dbc416",
@@ -336588,6 +337233,19 @@
    "detailRef": "c0d2e0e7d10c"
   },
   {
+   "id": "path-literal:bdde43404a6f",
+   "type": "path-literal",
+   "title": "/this-route-does-not-exist",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/route-serving-regression.test.ts",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "src/test/route-serving-regression.test.ts"
+   ],
+   "detailRef": "8a4e132b72ba"
+  },
+  {
    "id": "path-literal:41a50375f5a1",
    "type": "path-literal",
    "title": "/tok-connect-api",
@@ -336638,16 +337296,17 @@
    "id": "path-literal:41dea0e967db",
    "type": "path-literal",
    "title": "/tok-connect/mcp-widget",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 596,
    "surface": null,
    "tags": [
     "src/App.tsx",
     "src/lib/featureCatalog.ts",
-    "src/pages/TokConnect.tsx"
+    "src/pages/TokConnect.tsx",
+    "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "134bdcaeeb3e"
+   "detailRef": "8ced1f830437"
   },
   {
    "id": "path-literal:d5255dd082a4",
@@ -336716,7 +337375,7 @@
    "id": "path-literal:a3e468fb4ef5",
    "type": "path-literal",
    "title": "/tok-pulse",
-   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1191,
    "surface": null,
@@ -336727,9 +337386,10 @@
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
     "src/pages/TokPulse.tsx",
-    "src/test/commercial-demo-visible-navigation-isolation.test.ts"
+    "src/test/commercial-demo-visible-navigation-isolation.test.ts",
+    "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "90f491ad4217"
+   "detailRef": "67bd82e0e5e8"
   },
   {
    "id": "path-literal:5480e7250f74",
@@ -343713,6 +344373,19 @@
    "detailRef": "fff67f8fa229"
   },
   {
+   "id": "rewrite:b8a11e9b087d",
+   "type": "rewrite",
+   "title": "/abonnement",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "95bf60bf4e60"
+  },
+  {
    "id": "rewrite:fb0da7f80995",
    "type": "rewrite",
    "title": "/api/photon",
@@ -343726,6 +344399,45 @@
    "detailRef": "d640cdd177a6"
   },
   {
+   "id": "rewrite:b807d9d26f43",
+   "type": "rewrite",
+   "title": "/coming-soon",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "ae5093f89629"
+  },
+  {
+   "id": "rewrite:bc0542038afb",
+   "type": "rewrite",
+   "title": "/creneaux-garantis",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "6abe2bd2daf0"
+  },
+  {
+   "id": "rewrite:d34e646642bb",
+   "type": "rewrite",
+   "title": "/flex-prix-bas",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "99a87fd805b4"
+  },
+  {
    "id": "rewrite:4640fe06a39f",
    "type": "rewrite",
    "title": "/functions/v1/:path*",
@@ -343737,6 +344449,19 @@
     "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/:path*"
    ],
    "detailRef": "d399afbc6839"
+  },
+  {
+   "id": "rewrite:33ac1e1c6c64",
+   "type": "rewrite",
+   "title": "/garantie-qualite",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "0babda813703"
   },
   {
    "id": "rewrite:cbd41bf220d7",
@@ -343947,6 +344672,19 @@
    "detailRef": "b77784b5f806"
   },
   {
+   "id": "rewrite:fa0735df3341",
+   "type": "rewrite",
+   "title": "/match-groupes",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "7abf5a10a2d3"
+  },
+  {
    "id": "rewrite:e9d2a4caa373",
    "type": "rewrite",
    "title": "/mcp",
@@ -343959,6 +344697,71 @@
     "www.thetok.ch"
    ],
    "detailRef": "5b4c67b5e30b"
+  },
+  {
+   "id": "rewrite:96e5e19bdd2f",
+   "type": "rewrite",
+   "title": "/multi-restaurant",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "782eac95707a"
+  },
+  {
+   "id": "rewrite:9e42343f5e94",
+   "type": "rewrite",
+   "title": "/multi-stop",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "3eb817536e47"
+  },
+  {
+   "id": "rewrite:b8136c472da3",
+   "type": "rewrite",
+   "title": "/parametres/securite",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "348b6068ba9a"
+  },
+  {
+   "id": "rewrite:cfa5d8752a84",
+   "type": "rewrite",
+   "title": "/restaurant/:id",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "bf1ba88503fd"
+  },
+  {
+   "id": "rewrite:e4ca7f5b2fef",
+   "type": "rewrite",
+   "title": "/restaurateurs/((?!geneve/?$|google-business/?$|alternative-commission-couvert/?$)[^/]+)",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "2155143d78bc"
   },
   {
    "id": "rewrite:dc7693ee5684",
@@ -343985,6 +344788,32 @@
     "/index.html"
    ],
    "detailRef": "20ddeed6ad15"
+  },
+  {
+   "id": "rewrite:5f636395221c",
+   "type": "rewrite",
+   "title": "/tok-connect/mcp-widget",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "fac427204c0d"
+  },
+  {
+   "id": "rewrite:d8aab9062bef",
+   "type": "rewrite",
+   "title": "/tok-pulse",
+   "description": "Réécriture vers /index.html.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/index.html"
+   ],
+   "detailRef": "4f28a0e6b79d"
   },
   {
    "id": "routing-authority:246f8e561905",
