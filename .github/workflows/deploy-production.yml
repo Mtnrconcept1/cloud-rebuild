@@ -650,7 +650,7 @@ jobs:
             --prefer-secret=true
 
       - name: Download prebuilt Vercel output
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: vercel-output-${{ github.sha }}
           path: ${{ runner.temp }}/vercel-artifact
