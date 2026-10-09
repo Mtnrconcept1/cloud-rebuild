@@ -1,0 +1,96 @@
+@font-face {
+  font-family: "TOK Anton";
+  src: url("/fonts/anton/Anton-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* One semantic hero, with art direction rather than duplicated mobile content. */
+.tok-home-hero {
+  position: relative;
+  isolation: isolate;
+  container-type: inline-size;
+  min-height: 177.68vw;
+  background: #b5dcf3;
+  color: #080808;
+}
+.tok-home-hero__background { position: absolute; inset: 0; z-index: -2; }
+.tok-home-hero__background img { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
+.tok-home-hero__content {
+  position: relative;
+  width: 90%;
+  margin-inline: auto;
+  padding-top: 8vw;
+  padding-bottom: 89vw;
+  text-align: center;
+}
+.tok-home-hero__logo { display: block; width: 36%; height: auto; margin: 0 auto 1.2vw; transform: translateX(-8%); }
+.tok-home-hero__title {
+  margin: 0;
+  font-family: "TOK Anton", Impact, "Arial Narrow", sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.4rem, 6.4vw, 4.1rem);
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 #fff, 0 0 16px #ffffffa6;
+}
+.tok-home-hero__title > span { display: block; }
+.tok-home-hero__accent { color: #f32b06; }
+.tok-home-hero__intro { margin: 1.6vw 0 0; font-size: clamp(0.875rem, 2.85vw, 1.8rem); font-weight: 650; line-height: 1.3; text-shadow: 0 1px 3px white, 0 0 12px white; }
+.tok-home-hero__intro strong { color: #bc2306; }
+.tok-home-hero__benefits { display: grid; grid-template-columns: 1fr 0.93fr 1.2fr; margin: 2.6vw 0; padding: 0; list-style: none; }
+.tok-home-hero__benefits li { display: flex; align-items: center; justify-content: center; gap: 1.3vw; padding-inline: 1vw; font-size: clamp(0.625rem, 1.95vw, 1.25rem); line-height: 1.25; font-weight: 500; text-align: left; text-shadow: 0 1px 3px white, 0 0 10px white; }
+.tok-home-hero__benefits li + li { border-left: 1px solid #62788b80; }
+.tok-home-hero__benefits svg { flex-shrink: 0; width: 6vw; height: 6vw; color: #f32b06; stroke-width: 1.7; filter: drop-shadow(0 1px 2px white); }
+.tok-home-hero__form { display: flex; flex-direction: column; align-items: center; gap: 1.6vw; }
+.tok-home-hero__search { display: flex; align-items: center; gap: 2vw; width: 100%; padding: 0.65vw; padding-left: 3vw; border-radius: 999px; background: #fff; box-shadow: 0 5px 20px #31527026; }
+.tok-home-hero__search-icon { flex-shrink: 0; width: 4vw; height: 4vw; color: #656184; }
+.tok-home-hero__search input { width: 100%; min-width: 0; min-height: 44px; border: 0; background: transparent; color: #292641; font-size: clamp(1rem, 2.5vw, 1.625rem); outline-offset: 3px; }
+.tok-home-hero__search input::placeholder { color: #656184; opacity: 1; }
+.tok-home-hero__search button, .tok-home-hero__cta { display: flex; align-items: center; justify-content: center; border: 0; background: linear-gradient(110deg, #ff4a00, #f52b06); color: white; cursor: pointer; border-radius: 999px; box-shadow: 0 3px 8px #ad361c26; }
+.tok-home-hero__search button { flex-shrink: 0; width: 11vw; height: 7.5vw; min-width: 44px; min-height: 44px; }
+.tok-home-hero__search button svg { width: 4vw; height: 4vw; min-width: 22px; min-height: 22px; }
+.tok-home-hero__cta { gap: 2.5vw; min-height: 48px; padding: 1.7vw 7vw; font-size: clamp(1rem, 3.2vw, 2rem); font-weight: 650; line-height: 1.2; }
+.tok-home-hero__cta svg { width: 4vw; height: 4vw; min-width: 22px; min-height: 22px; }
+.tok-home-hero__search button:hover, .tok-home-hero__cta:hover { background: #d82c09; }
+.tok-home-hero :is(button, input):focus-visible, .tok-home-hero__secondary :is(a, button):focus-visible { outline: 3px solid #163a73; outline-offset: 4px; }
+.tok-home-hero__signature { display: flex; align-items: center; gap: 1.4vw; width: fit-content; margin: 3.5vw 0 0; font-family: "Playball", cursive; font-size: clamp(1.25rem, 3.6vw, 2.3rem); line-height: 1.08; text-align: left; transform: rotate(-6deg); text-shadow: 0 1px 3px white, 0 0 12px white; }
+.tok-home-hero__signature svg { width: 5.5vw; height: 5.5vw; stroke-width: 1.7; }
+.tok-home-hero__secondary { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem max(1rem, env(safe-area-inset-left), env(safe-area-inset-right)); color: #332015; background: #fff8ef; font-size: 0.875rem; }
+.tok-home-hero__secondary > a { display: flex; gap: 0.3rem; align-items: center; min-height: 44px; font-weight: 700; }
+.tok-home-hero__newsletter { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 1rem; }
+.tok-home-hero__newsletter button { min-height: 44px; text-decoration: underline; text-underline-offset: 3px; }
+.tok-home-hero__newsletter a { display: grid; place-items: center; min-height: 44px; padding: 0.5rem 1rem; border-radius: 999px; color: white; background: #bc310b; font-weight: 700; }
+
+@media (min-width: 1024px) {
+  .tok-home-hero { min-height: 56.35vw; }
+  .tok-home-hero__content { width: 47%; margin-left: 5%; margin-right: 0; padding-top: 2vw; padding-bottom: 8vw; }
+  .tok-home-hero__logo { width: 37%; margin-bottom: 0.6vw; }
+  .tok-home-hero__title { font-size: clamp(2rem, 3.3vw, 6rem); }
+  .tok-home-hero__intro { margin-top: 0.9vw; font-size: clamp(1rem, 1.5vw, 2rem); }
+  .tok-home-hero__benefits { margin: 1.5vw 0; }
+  .tok-home-hero__benefits li { gap: 0.7vw; padding-inline: 0.6vw; font-size: clamp(0.8rem, 1.05vw, 1.5rem); }
+  .tok-home-hero__benefits svg { width: 3.5vw; height: 3.5vw; }
+  .tok-home-hero__form { gap: 1vw; }
+  .tok-home-hero__search { gap: 1.3vw; padding: 0.35vw; padding-left: 1.7vw; width: 92%; }
+  .tok-home-hero__search-icon { width: 2.2vw; height: 2.2vw; }
+  .tok-home-hero__search input { font-size: clamp(1rem, 1.35vw, 1.8rem); }
+  .tok-home-hero__search button { width: 5.5vw; height: 3.7vw; }
+  .tok-home-hero__search button svg { width: 2vw; height: 2vw; }
+  .tok-home-hero__cta { gap: 1.4vw; padding: 0.85vw 4.2vw; font-size: clamp(1.1rem, 1.8vw, 2.5rem); }
+  .tok-home-hero__cta svg { width: 2.4vw; height: 2.4vw; }
+  .tok-home-hero__signature { margin: 1.7vw 0 0 8%; font-size: clamp(1.3rem, 2vw, 2.8rem); }
+  .tok-home-hero__signature svg { width: 3vw; height: 3vw; }
+}
+
+/* Keep the labels legible over the detailed lake front, without an opaque card. */
+.tok-home-hero__benefits { background: radial-gradient(ellipse, #ffffffcf 25%, #ffffff80 60%, transparent 75%); }
+.tok-home-hero__benefits span { text-wrap: wrap; overflow-wrap: normal; }
+.tok-home-hero__intro { font-weight: 550; }
+.tok-home-hero__cta { font-weight: 500; }
+@media (max-width: 359px) {
+  .tok-home-hero__benefits li { flex-direction: column; text-align: center; gap: 0.35rem; }
+  .tok-home-hero__benefits svg { width: 26px; height: 26px; }
+}
