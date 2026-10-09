@@ -1,3 +1,4 @@
+import { readGeneratedOutputFormat, matchesGeneratedPrintFormat, type GeneratedOutputFormat } from "../../../../supabase/functions/_shared/print/source-format";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -27,6 +28,7 @@ const supabase = getSupabase();
 const PRINT_RENDER_BUCKET = "restaurant-images";
 
 type PrintableAsset = {
+  outputFormat: GeneratedOutputFormat | null;
   id: string;
   name: string;
   url: string;
@@ -39,6 +41,7 @@ type PrintableAsset = {
 };
 
 type GeneratedAssetPrintRow = {
+  metadata?: { marketing_output_target?: unknown };
   id: string;
   asset_url: string | null;
   title: string | null;
@@ -74,6 +77,7 @@ type PrintComposerDialogProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   showTrigger?: boolean;
+  initialSourceGenerationId?: string;
 };
 
 const EMPTY_ADDRESS: ShippingAddress = {
@@ -115,6 +119,7 @@ async function resolvePrintableStorageUrl(storageBucket: string, storagePath: st
 }
 
 async function materializePrintableAsset(input: {
+  outputFormat?: unknown;
   id: string;
   sourceGenerationId: string | null;
   name: string;
@@ -131,6 +136,7 @@ async function materializePrintableAsset(input: {
     const size = await imageDimensions(url);
     return {
       id: input.id,
+      outputFormat: readGeneratedOutputFormat(input.outputFormat),
       sourceGenerationId: input.sourceGenerationId,
       name: input.name,
       url,
@@ -147,7 +153,7 @@ async function materializePrintableAsset(input: {
 
 function mergePrintableAssets(restaurantMediaAssets: PrintableAsset[], generatedAssets: PrintableAsset[]) {
   const seen = new Set<string>();
-  return [...restaurantMediaAssets, ...generatedAssets]
+  return [...generatedAssets, ...restaurantMediaAssets]
     .filter((asset) => {
       const key = asset.dedupeKey || asset.url.split("?")[0];
       if (seen.has(key)) return false;
@@ -158,7 +164,13 @@ function mergePrintableAssets(restaurantMediaAssets: PrintableAsset[], generated
     .slice(0, 30);
 }
 
-async function loadPrintableAssets(restaurantId: string): Promise<PrintableAsset[]> {
+async function loadPrintableAssets(restaurantId: string, sourceGenerationId?: string): Promise<PrintableAsset[]> {
+  let generatedQuery = (supabase.from as any)("ai_generated_assets")
+    .select("id, asset_url, title, asset_type, storage_bucket, storage_path, created_at, metadata, gallery_storage_bucket:metadata->>gallery_storage_bucket, gallery_storage_path:metadata->>gallery_storage_path")
+    .eq("restaurant_id", restaurantId)
+    .eq("status", "stored");
+  // Filter before pagination so a selected older creation remains printable.
+  if (sourceGenerationId) generatedQuery = generatedQuery.eq("id", sourceGenerationId);
   const [restaurantMediaResult, generatedResult] = await Promise.all([
     supabase
       .from("restaurant_media")
@@ -167,10 +179,7 @@ async function loadPrintableAssets(restaurantId: string): Promise<PrintableAsset
       .in("media_type", ["photo_ai_tok", "marketing_brand_visual", "photo"])
       .order("created_at", { ascending: false })
       .limit(30),
-    (supabase.from as any)("ai_generated_assets")
-      .select("id, asset_url, title, asset_type, storage_bucket, storage_path, created_at, gallery_storage_bucket:metadata->>gallery_storage_bucket, gallery_storage_path:metadata->>gallery_storage_path")
-      .eq("restaurant_id", restaurantId)
-      .eq("status", "stored")
+    generatedQuery
       .order("created_at", { ascending: false })
       .limit(30),
   ]);
@@ -201,6 +210,7 @@ async function loadPrintableAssets(restaurantId: string): Promise<PrintableAsset
     const storagePath = galleryPath || (typeof row.storage_path === "string" ? row.storage_path : "");
     return materializePrintableAsset({
       id: `ai:${row.id}`,
+      outputFormat: row.metadata?.marketing_output_target,
       sourceGenerationId: row.id,
       name: row.title || (row.asset_type === "campaign_visual" ? "Création Marketing Studio" : "Création IA TOK"),
       mediaUrl: typeof row.asset_url === "string" ? row.asset_url : "",
@@ -211,7 +221,7 @@ async function loadPrintableAssets(restaurantId: string): Promise<PrintableAsset
     });
   }))).filter((asset): asset is PrintableAsset => Boolean(asset));
 
-  return mergePrintableAssets(restaurantMediaAssets, generatedAssets);
+  return sourceGenerationId ? generatedAssets : mergePrintableAssets(restaurantMediaAssets, generatedAssets);
 }
 
 function formatMoney(cents: number, currency = "CHF") {
@@ -223,6 +233,7 @@ export default function PrintComposerDialog({
   open: controlledOpen,
   onOpenChange,
   showTrigger = true,
+  initialSourceGenerationId,
 }: PrintComposerDialogProps) {
   const { toast } = useToast();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -250,7 +261,8 @@ export default function PrintComposerDialog({
   const [working, setWorking] = useState<"export" | "approve" | "quote" | "checkout" | null>(null);
 
   const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || assets[0] || null;
-  const variants = catalog.flatMap((product) => product.variants);
+  const variants = catalog.flatMap((product) => product.variants)
+    .filter((variant) => matchesGeneratedPrintFormat(selectedAsset?.outputFormat, variant));
   const selectedVariant = variants.find((variant) => variant.providerProductId === selectedVariantId) || variants[0] || null;
   const selectedProduct = selectedVariant
     ? catalog.find((product) => product.variants.some((variant) => variant.providerProductId === selectedVariant.providerProductId)) || null
@@ -260,18 +272,27 @@ export default function PrintComposerDialog({
     if (!open) return;
     let cancelled = false;
     setLoading(true);
+    setAssets([]);
+    setExportId(null);
+    setApproved(false);
+    setQuote(null);
+    setPreparedDocument(null);
     Promise.all([
-      loadPrintableAssets(restaurantId),
+      loadPrintableAssets(restaurantId, initialSourceGenerationId),
       getPrintCatalog(restaurantId),
       supabase.from("restaurants").select("name, address, city, phone").eq("id", restaurantId).maybeSingle(),
     ]).then(([nextAssets, nextCatalog, restaurantResult]) => {
       if (cancelled) return;
-      setAssets(nextAssets);
+      const printableAssets = nextAssets.filter((asset) => (nextCatalog.products || [])
+        .some((product) => product.variants.some((variant) => matchesGeneratedPrintFormat(asset.outputFormat, variant))))
+        .filter((asset) => !initialSourceGenerationId || asset.sourceGenerationId === initialSourceGenerationId);
+      setAssets(printableAssets);
       setCatalog(nextCatalog.products || []);
-      if (nextAssets[0]) setSelectedAssetId(nextAssets[0].id);
-      const firstVariant = (nextCatalog.products || []).flatMap((product) => product.variants)[0];
+      setSelectedAssetId(printableAssets[0]?.id || "");
+      const firstVariant = (nextCatalog.products || []).flatMap((product) => product.variants)
+        .find((variant) => matchesGeneratedPrintFormat(printableAssets[0]?.outputFormat, variant));
+      setSelectedVariantId(firstVariant?.providerProductId || "");
       if (firstVariant) {
-        setSelectedVariantId(firstVariant.providerProductId);
         setQuantity(normalizePrintOrderQuantity(250, firstVariant.minimumQuantity, firstVariant.quantityStep));
       }
       const restaurant = restaurantResult.data;
@@ -290,7 +311,7 @@ export default function PrintComposerDialog({
       if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
-  }, [open, restaurantId, toast]);
+  }, [open, restaurantId, initialSourceGenerationId, toast]);
 
   useEffect(() => {
     if (!selectedVariant) return;
@@ -331,7 +352,8 @@ export default function PrintComposerDialog({
       sourceGenerationId: selectedAsset.sourceGenerationId || selectedAsset.id,
       texts,
       qr: qrUrl.trim() ? { value: qrUrl.trim(), x: 0.70, y: 0.70, size: 0.18 } : null,
-      orientation: selectedVariant.widthMm > selectedVariant.heightMm ? "landscape" : "portrait",
+      orientation: selectedVariant.widthMm === selectedVariant.heightMm
+        ? "square" : selectedVariant.widthMm > selectedVariant.heightMm ? "landscape" : "portrait",
     });
   }, [selectedAsset, selectedVariant, title, subtitle, price, cta, qrUrl]);
 
@@ -492,7 +514,7 @@ export default function PrintComposerDialog({
         {loading ? (
           <div className="flex min-h-56 items-center justify-center gap-2 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /> Chargement du catalogue et de vos créations…</div>
         ) : assets.length === 0 ? (
-          <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">Générez d’abord une création dans Marketing Studio ou ajoutez un visuel PNG/JPG à votre galerie.</div>
+          <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">Aucune création avec un format d’impression compatible. Générez un visuel avec un support Cloudprinter actif ; les visuels numériques et les anciennes créations sans format enregistré ne sont pas imprimables.</div>
         ) : variants.length === 0 ? (
           <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">Le catalogue d’impression est prêt côté TheTok, mais aucun produit Cloudprinter actif avec une géométrie fiable n’est disponible. L’administrateur doit corriger ou hydrater le mapping fournisseur.</div>
         ) : (
@@ -507,10 +529,10 @@ export default function PrintComposerDialog({
               </div>
               <div className="grid gap-3">
                 <Label>Support</Label>
-                <Select value={selectedVariant?.providerProductId || ""} onValueChange={setSelectedVariantId}>
-                  <SelectTrigger><SelectValue placeholder="Choisir un support" /></SelectTrigger>
-                  <SelectContent>{catalog.flatMap((product) => product.variants.map((variant) => <SelectItem key={variant.providerProductId} value={variant.providerProductId}>{product.displayName} · {variant.widthMm} × {variant.heightMm} mm</SelectItem>))}</SelectContent>
-                </Select>
+                <p className="rounded-md border px-3 py-2 text-sm">
+                  {selectedProduct?.displayName} · {selectedVariant?.widthMm} × {selectedVariant?.heightMm} mm
+                </p>
+                <p className="text-xs text-muted-foreground">Format et orientation verrouillés sur la création générée.</p>
               </div>
 
               {renderingPlan && selectedVariant ? (

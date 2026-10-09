@@ -1,3 +1,4 @@
+import { readGeneratedOutputFormat } from "../../../supabase/functions/_shared/print/source-format";
 import * as React from "react";
 
 import {
@@ -73,6 +74,7 @@ type AiCreationListener = (records: AiCreationRecord[]) => void;
 type StoredAssetMetadata = {
   generation_seed?: unknown;
   marketing_asset_mode?: unknown;
+  marketing_output_target?: unknown;
   original_prompt?: unknown;
   format?: unknown;
   output_resolution?: unknown;
@@ -327,6 +329,7 @@ function buildPersistedAiCreationRecord(asset: StoredAssetRow): AiCreationRecord
       safety_notes: [],
       marketing_angles: [],
       assetId: asset.id,
+      marketing_output_target: readGeneratedOutputFormat(metadata.marketing_output_target),
       generated_image_url: asset.asset_url,
       gallery_image_url: asset.asset_url,
       storage_bucket: asset.storage_bucket ?? null,

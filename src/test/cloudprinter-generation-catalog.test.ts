@@ -6,13 +6,15 @@ const root = process.cwd();
 const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 describe("Cloudprinter generation catalog", () => {
-  it("keeps non-orderable mapped geometry available to Marketing Studio", () => {
+  it("exposes only active single-page mapped geometry to Marketing Studio", () => {
     const edge = read("supabase/functions/print-catalog/index.ts");
     const client = read("src/lib/print/client.ts");
     const controls = read("src/components/dashboard/marketing-print/MarketingOutputControls.tsx");
 
     expect(edge).toContain('action === "generation_catalog"');
-    expect(edge).toContain('const includeInactiveMapped = action === "generation_catalog"');
+    expect(edge).toContain('const generationCatalog = action === "generation_catalog"');
+    expect(edge).toContain('variantQuery.eq("active", true)');
+    expect(edge).toContain("isSinglePagePrintProduct(variant, logicalProduct)");
     expect(edge).toContain("print_product_id");
     expect(edge).toContain("geometryMatchesLogicalProduct");
     expect(edge).toContain("selectGenerationVariant");

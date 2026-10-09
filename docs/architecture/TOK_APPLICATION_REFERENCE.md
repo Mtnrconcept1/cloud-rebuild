@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `4ecd7a096d2a52bcf6012c7adbc3f8bc7a71259b0f633cb30e7d5ca5f094e421`
+- Empreinte SHA-256 des sources indexées : `19915f0dd337adf0f68984026274c5ed755227d4c7556c74d1b86deb77668e35`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 9 |
 | cronJobs | 33 |
 | databaseContract | 228 |
-| databaseObjects | 2718 |
-| documents | 187 |
+| databaseObjects | 2720 |
+| documents | 188 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3342 |
+| exportedSymbols | 3348 |
 | featureFlags | 99 |
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
-| migrations | 520 |
-| modules | 1430 |
+| migrations | 521 |
+| modules | 1439 |
 | pages | 127 |
 | pathLiterals | 600 |
 | publicAssets | 301 |
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 100 |
-| records | 15325 |
-| repositoryFiles | 2683 |
+| records | 15363 |
+| repositoryFiles | 2695 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -508,7 +508,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | ops-incident-native-scan | [supabase/functions/ops-incident-native-scan/index.ts:1](../../supabase/functions/ops-incident-native-scan/index.ts#L1) | oui ([supabase/config.toml:185](../../supabase/config.toml#L185)) | false | POST | — | supabase |
 | payment-attempt-status | [supabase/functions/payment-attempt-status/index.ts:1](../../supabase/functions/payment-attempt-status/index.ts#L1) | oui ([supabase/config.toml:188](../../supabase/config.toml#L188)) | false | ANY | — | stripe |
 | print-admin | [supabase/functions/print-admin/index.ts:1](../../supabase/functions/print-admin/index.ts#L1) | oui ([supabase/config.toml:287](../../supabase/config.toml#L287)) | false | POST | cancel, list, map_product, reconcile, reorder, settings, update_settings | — |
-| print-catalog | [supabase/functions/print-catalog/index.ts:1](../../supabase/functions/print-catalog/index.ts#L1) | oui ([supabase/config.toml:290](../../supabase/config.toml#L290)) | false | POST | admin_mappings, generation_catalog, hydrate, list, sync | — |
+| print-catalog | [supabase/functions/print-catalog/index.ts:1](../../supabase/functions/print-catalog/index.ts#L1) | oui ([supabase/config.toml:290](../../supabase/config.toml#L290)) | false | POST | admin_mappings, discover, generation_catalog, hydrate, list, map, sync | — |
 | print-checkout | [supabase/functions/print-checkout/index.ts:1](../../supabase/functions/print-checkout/index.ts#L1) | oui ([supabase/config.toml:293](../../supabase/config.toml#L293)) | false | POST | — | stripe, supabase |
 | print-export | [supabase/functions/print-export/index.ts:1](../../supabase/functions/print-export/index.ts#L1) | oui ([supabase/config.toml:299](../../supabase/config.toml#L299)) | false | POST | approve | — |
 | print-orchestrator | [supabase/functions/print-orchestrator/index.ts:1](../../supabase/functions/print-orchestrator/index.ts#L1) | oui ([supabase/config.toml:302](../../supabase/config.toml#L302)) | false | POST | — | stripe |
@@ -1309,7 +1309,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /logout?scope=local | 1 | [server/marketingBff.ts:736](../../server/marketingBff.ts#L736) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:31](../../src/hooks/useTokLogo.ts#L31) |
 | /marketing | 18 | [scripts/application-index-core.mjs:163](../../scripts/application-index-core.mjs#L163) |
-| /marketing-assets/ | 1 | [supabase/functions/ai-image-enhance/index.ts:97](../../supabase/functions/ai-image-enhance/index.ts#L97) |
+| /marketing-assets/ | 1 | [supabase/functions/ai-image-enhance/index.ts:99](../../supabase/functions/ai-image-enhance/index.ts#L99) |
 | /marketing-public | 1 | [src/test/marketing-domain-isolation.test.ts:25](../../src/test/marketing-domain-isolation.test.ts#L25) |
 | /marketing/ | 1 | [src/App.tsx:314](../../src/App.tsx#L314) |
 | /marketing/* | 2 | [src/App.tsx:731](../../src/App.tsx#L731) |
@@ -1478,7 +1478,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-one | 23 | [scripts/prerender-seo.mjs:547](../../scripts/prerender-seo.mjs#L547) |
 | /tok-one?status=success | 1 | [src/test/security-url-helpers.test.ts:62](../../src/test/security-url-helpers.test.ts#L62) |
 | /tok-pulse | 9 | [scripts/prerender-seo.mjs:1191](../../scripts/prerender-seo.mjs#L1191) |
-| /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:79](../../supabase/functions/ai-image-enhance/index.ts#L79) |
+| /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:81](../../supabase/functions/ai-image-enhance/index.ts#L81) |
 | /tok-slot-machine/index.html?v=20260719 | 1 | [src/components/DailyMiamzSlotMachine.tsx:15](../../src/components/DailyMiamzSlotMachine.tsx#L15) |
 | /token?grant_type=password | 1 | [server/marketingBff.ts:728](../../server/marketingBff.ts#L728) |
 | /user | 1 | [server/marketingBff.ts:717](../../server/marketingBff.ts#L717) |
@@ -1923,7 +1923,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (728)</summary>
+<details><summary>function (729)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2444,6 +2444,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.protect_demo_restaurant_identity` (1 définition(s))
 - `public.protect_directory_listing_state` (1 définition(s))
 - `public.protect_directory_public_name_quality` (2 définition(s))
+- `public.protect_generated_print_format` (1 définition(s))
 - `public.protect_match_group_capture_claim_fields` (1 définition(s))
 - `public.protect_restaurant_moderation_state` (2 définition(s))
 - `public.provision_commercial_demo_account` (2 définition(s))
@@ -4419,7 +4420,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (236)</summary>
+<details><summary>trigger (237)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -4524,6 +4525,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `protect_commercial_demo_account_boundary` (2 définition(s))
 - `protect_commercial_demo_account_mapping` (2 définition(s))
 - `protect_demo_restaurant_identity` (2 définition(s))
+- `protect_generated_print_format` (1 définition(s))
 - `protect_match_group_capture_claim_insert` (1 définition(s))
 - `protect_match_group_capture_claim_mutation` (1 définition(s))
 - `protect_restaurant_moderation_state` (2 définition(s))
@@ -5487,6 +5489,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261003070000 Marketing Autopilot Foundation | 1756 | 39 | [supabase/migrations/20261003070000_marketing_autopilot_foundation.sql:1](../../supabase/migrations/20261003070000_marketing_autopilot_foundation.sql#L1) |
 | 20261006010000 Repair Admin Commercial Supabase Regressions | 1012 | 18 | [supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql:1](../../supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql#L1) |
 | 20261006033000 Configure Meta Marketing Integrations | 47 | 0 | [supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql:1](../../supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql#L1) |
+| 20261009003407 Protect Generated Print Format | 42 | 2 | [supabase/migrations/20261009003407_protect_generated_print_format.sql:1](../../supabase/migrations/20261009003407_protect_generated_print_format.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -5708,7 +5711,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 30 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 8 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 211 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 636 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 643 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 54 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5720,7 +5723,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | --- | --- |
 | application-library | 203 |
 | automation-script | 61 |
-| edge-function-source | 177 |
+| edge-function-source | 179 |
 | frontend-component | 245 |
 | frontend-hook | 22 |
 | frontend-page | 127 |
@@ -5728,7 +5731,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 545 |
+| test | 552 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -5841,6 +5844,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Audit du marketing automatique TOK — 8 octobre 2026 | 7 | [docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md:1](../../docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md#L1) |
 | TOK Marketing Autopilot — runbook d'exploitation | 13 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
 | Revue Mobile Fullstack - 2026-03-29 | 25 | [docs/mobile-fullstack-review-2026-03-29.md:1](../../docs/mobile-fullstack-review-2026-03-29.md#L1) |
+| Cloudprinter : formats de génération et d’impression | 5 | [docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md:1](../../docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md#L1) |
 | TOK Intelligence Suite — Campaign Studio, Customer Memory, Support & Resolution, Guardian | 11 | [docs/operations/TOK_INTELLIGENCE_SUITE.md:1](../../docs/operations/TOK_INTELLIGENCE_SUITE.md#L1) |
 | TOK — intelligence d’incident unifiée | 11 | [docs/operations/incident-intelligence-unification.md:1](../../docs/operations/incident-intelligence-unification.md#L1) |
 | Préparation des PR — IA, catalogue fournisseur et incidents | 8 | [docs/operations/pr-readiness-2026-07-28.md:1](../../docs/operations/pr-readiness-2026-07-28.md#L1) |
@@ -6299,7 +6303,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (520)</summary>
+<details><summary>database-migration (521)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -6821,10 +6825,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261003070000_marketing_autopilot_foundation.sql`
 - `supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql`
 - `supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql`
+- `supabase/migrations/20261009003407_protect_generated_print_format.sql`
 
 </details>
 
-<details><summary>documentation (119)</summary>
+<details><summary>documentation (120)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md`
@@ -6870,6 +6875,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md`
 - `docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md`
 - `docs/mobile-fullstack-review-2026-03-29.md`
+- `docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md`
 - `docs/operations/TOK_INTELLIGENCE_SUITE.md`
 - `docs/operations/incident-intelligence-unification.md`
 - `docs/operations/pr-readiness-2026-07-28.md`
@@ -6948,7 +6954,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (177)</summary>
+<details><summary>edge-function-source (179)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -6983,6 +6989,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/pack-entitlements.ts`
 - `supabase/functions/_shared/payment-attempts.ts`
 - `supabase/functions/_shared/payment-transactions.ts`
+- `supabase/functions/_shared/print/catalog.ts`
 - `supabase/functions/_shared/print/cloudprinter.ts`
 - `supabase/functions/_shared/print/options.ts`
 - `supabase/functions/_shared/print/pdf.ts`
@@ -6992,6 +6999,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/print/quantity.ts`
 - `supabase/functions/_shared/print/request.ts`
 - `supabase/functions/_shared/print/security.ts`
+- `supabase/functions/_shared/print/source-format.ts`
 - `supabase/functions/_shared/print/types.ts`
 - `supabase/functions/_shared/rate-limit.ts`
 - `supabase/functions/_shared/refund-allocations.ts`
@@ -8108,7 +8116,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (15)</summary>
+<details><summary>supabase-configuration (16)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -8125,10 +8133,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/demo-migrations/20261005210000_enforce_shared_commercial_demo_restaurant.sql`
 - `supabase/tests/critical_rpc_smoke.sql`
 - `supabase/tests/floor_plan_autoplacement_smoke.sql`
+- `supabase/tests/generated_print_format_smoke.sql`
 
 </details>
 
-<details><summary>test (545)</summary>
+<details><summary>test (552)</summary>
 
 - `scripts/ci-change-plan.test.mjs`
 - `scripts/ci-critical-tests.test.mjs`
@@ -8430,6 +8439,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-outreach-schema.test.ts`
 - `src/test/marketing-print-contract.test.ts`
 - `src/test/marketing-print-domain.test.ts`
+- `src/test/marketing-print-entry.test.tsx`
 - `src/test/marketing-print-rendering.test.ts`
 - `src/test/marketing-prospect-coordinates.test.ts`
 - `src/test/marketing-rbarman-admin-access.test.ts`
@@ -8485,6 +8495,12 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/plan2-security-definer-rpc-grants.test.ts`
 - `src/test/post-deploy-seo-regressions.test.ts`
 - `src/test/print-and-chart-sinks.test.ts`
+- `src/test/print-catalog-actions.test.ts`
+- `src/test/print-catalog-admin-pagination.test.tsx`
+- `src/test/print-composer-source-format.test.tsx`
+- `src/test/print-export-source-format.test.ts`
+- `src/test/print-pdf-dimensions.test.ts`
+- `src/test/print-source-format.test.ts`
 - `src/test/production-alert-remediation.test.ts`
 - `src/test/production-deployment-credential-wiring.test.ts`
 - `src/test/production-deployment-provenance.test.ts`
