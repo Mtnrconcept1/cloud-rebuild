@@ -36,11 +36,18 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           <source type="image/webp" srcSet="/images/home/tok-geneve-mobile.webp" width={941} height={1672} />
           <img src="/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png" alt="" width={941} height={1672} fetchPriority="high" loading="eager" />
         </picture>
+        <nav className="tok-home-hero__desktop-nav" aria-label="Navigation principale">
+          <Link to="/recherche?city=Gen%C3%A8ve">Les restaurants</Link>
+          <Link to="/aide">Comment ça marche</Link>
+          <Link className="tok-home-hero__login" to="/auth">Connexion</Link>
+        </nav>
         <div className="tok-home-hero__content">
           <img className="tok-home-hero__logo" src={logoSrc} alt="TOK — Miamz !" width={1691} height={1099} />
+          <p className="tok-home-hero__location">À Genève</p>
           <h1 id="home-hero-title" className="tok-home-hero__title">
-            <span>Réservez et commandez</span>{" "}
-            <span className="tok-home-hero__accent">les meilleures offres food !</span>
+            <span className="tok-home-hero__title-mobile tok-home-hero__title-primary">Réservez et commandez</span>{" "}
+            <span className="tok-home-hero__title-mobile tok-home-hero__accent">les meilleures offres food !</span>
+            <span className="tok-home-hero__title-desktop">Les meilleures<br />offres food,<br /><span>près de chez vous.</span></span>
           </h1>
           <p className="tok-home-hero__intro">
             À Genève, cumulez des <strong>Miamz</strong> solidaires à chaque repas.

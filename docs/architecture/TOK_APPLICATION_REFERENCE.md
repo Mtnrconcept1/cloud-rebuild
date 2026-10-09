@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `c826afa739daafe8c6ff605e20ad1a1e1205cdb3486f51652e697f39304a2efc`
+- Empreinte SHA-256 des sources indexées : `4ecd7a096d2a52bcf6012c7adbc3f8bc7a71259b0f633cb30e7d5ca5f094e421`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 520 |
 | modules | 1430 |
 | pages | 127 |
-| pathLiterals | 599 |
+| pathLiterals | 600 |
 | publicAssets | 301 |
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 100 |
-| records | 15324 |
+| records | 15325 |
 | repositoryFiles | 2683 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -996,7 +996,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/utilisateurs?tab=commercials | 3 | [src/components/admin/AdminMobileNavigation.tsx:65](../../src/components/admin/AdminMobileNavigation.tsx#L65) |
 | /admin/utilisateurs?tab=couriers | 3 | [src/components/admin/AdminMobileNavigation.tsx:67](../../src/components/admin/AdminMobileNavigation.tsx#L67) |
 | /advisor | 1 | [src/lib/commercialDemoAi.ts:293](../../src/lib/commercialDemoAi.ts#L293) |
-| /aide | 9 | [scripts/prerender-seo.mjs:1081](../../scripts/prerender-seo.mjs#L1081) |
+| /aide | 10 | [scripts/prerender-seo.mjs:1081](../../scripts/prerender-seo.mjs#L1081) |
 | /aligro-catalog-sync | 1 | [src/test/supplier-catalog-sync.test.ts:82](../../src/test/supplier-catalog-sync.test.ts#L82) |
 | /anti-gaspi | 20 | [scripts/prerender-seo.mjs:340](../../scripts/prerender-seo.mjs#L340) |
 | /api | 1 | [vite.config.ts:97](../../vite.config.ts#L97) |
@@ -1016,7 +1016,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/marketing/session | 4 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
 | /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:524](../../src/test/tok-ai-tools.test.ts#L524) |
-| /auth | 50 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
+| /auth | 51 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
 | /auth/callback | 16 | [src/App.tsx:557](../../src/App.tsx#L557) |
 | /auth/callback? | 1 | [src/lib/deep-links.ts:33](../../src/lib/deep-links.ts#L33) |
 | /auth/callback?code=pkce-code | 1 | [src/test/native-oauth.test.ts:114](../../src/test/native-oauth.test.ts#L114) |
@@ -1358,6 +1358,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/:slug/reserver | 2 | [src/App.tsx:565](../../src/App.tsx#L565) |
 | /readyz | 3 | [src/test/application-search-index.test.ts:72](../../src/test/application-search-index.test.ts#L72) |
 | /recherche | 58 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
+| /recherche?city=Gen%C3%A8ve | 1 | [src/components/home/HeroSection.tsx:40](../../src/components/home/HeroSection.tsx#L40) |
 | /recherche?mode=reservation | 2 | [src/pages/TokPulse.tsx:30](../../src/pages/TokPulse.tsx#L30) |
 | /recherche?q=pizza&ville=geneve | 1 | [scripts/launch-10k-load-check.mjs:19](../../scripts/launch-10k-load-check.mjs#L19) |
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
