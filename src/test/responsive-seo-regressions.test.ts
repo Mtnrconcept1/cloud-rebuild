@@ -48,8 +48,8 @@ describe("responsive and SEO regression guards", () => {
     const sectionHeaders = read("src/home-section-headers.css");
 
     expect(hero.match(/<h1/g)).toHaveLength(1);
-    expect(hero).toContain("text-[clamp(1.78rem,9.4vw,2.34rem)]");
-    expect(hero).toContain("mt-auto space-y-2");
+    expect(hero).toContain('aria-labelledby="home-hero-title"');
+    expect(hero).toContain('className="tok-home-hero__content"');
     expect(hero).not.toContain("absolute inset-x-0 bottom-2 space-y-2");
     expect(navbar).toContain("sticky top-0");
     expect(navbar).not.toContain('<div className="h-16 md:hidden" aria-hidden="true" />');

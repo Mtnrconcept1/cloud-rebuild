@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "262a20fbf1124b1611c1858e92d4e76e4ae8c2debfe2f9dad7fda73b3aa7ac73",
+ "sourceDigest": "c826afa739daafe8c6ff605e20ad1a1e1205cdb3486f51652e697f39304a2efc",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 520,
-  "modules": 1429,
+  "modules": 1430,
   "pages": 127,
-  "pathLiterals": 597,
-  "publicAssets": 295,
-  "publicEntries": 317,
+  "pathLiterals": 599,
+  "publicAssets": 301,
+  "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 100,
-  "records": 15305,
-  "repositoryFiles": 2674,
+  "records": 15324,
+  "repositoryFiles": 2683,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -10445,6 +10445,11 @@
     "kind": "media"
    },
    {
+    "route": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+    "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+    "kind": "media"
+   },
+   {
     "route": "/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
     "path": "public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
     "kind": "media"
@@ -10482,6 +10487,16 @@
    {
     "route": "/ChatGPT Image 8 juin 2026, 02_57_38.png",
     "path": "public/ChatGPT Image 8 juin 2026, 02_57_38.png",
+    "kind": "media"
+   },
+   {
+    "route": "/Chef TOK au bord du lac Léman.png",
+    "path": "public/Chef TOK au bord du lac Léman.png",
+    "kind": "media"
+   },
+   {
+    "route": "/Chef jovial au bord du lac Léman.png",
+    "path": "public/Chef jovial au bord du lac Léman.png",
     "kind": "media"
    },
    {
@@ -10733,6 +10748,16 @@
     "route": "/fondbanniere2.png",
     "path": "public/fondbanniere2.png",
     "kind": "media"
+   },
+   {
+    "route": "/fonts/anton/Anton-Regular.ttf",
+    "path": "public/fonts/anton/Anton-Regular.ttf",
+    "kind": "media"
+   },
+   {
+    "route": "/fonts/anton/OFL.txt",
+    "path": "public/fonts/anton/OFL.txt",
+    "kind": "data"
    },
    {
     "route": "/help.png",
@@ -11157,6 +11182,16 @@
    {
     "route": "/images/home/tok-geneve-desktop-reference.jpg",
     "path": "public/images/home/tok-geneve-desktop-reference.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/images/home/tok-geneve-desktop.webp",
+    "path": "public/images/home/tok-geneve-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/home/tok-geneve-mobile.webp",
+    "path": "public/images/home/tok-geneve-mobile.webp",
     "kind": "media"
    },
    {
@@ -13046,6 +13081,15 @@
     ]
    },
    {
+    "value": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+    "sources": [
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 37
+     }
+    ]
+   },
+   {
     "value": "/:path*",
     "sources": [
      {
@@ -13095,6 +13139,15 @@
      {
       "path": "src/test/plan-phase1-readiness.test.ts",
       "line": 147
+     }
+    ]
+   },
+   {
+    "value": "/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png",
+    "sources": [
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 35
      }
     ]
    },
@@ -15150,7 +15203,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 179
+      "line": 72
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -15287,6 +15340,10 @@
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
       "line": 170
+     },
+     {
+      "path": "src/test/home-mobile-newsletter.test.tsx",
+      "line": 16
      },
      {
       "path": "src/test/mobile-logo-intro.test.tsx",
@@ -20050,15 +20107,20 @@
     ]
    },
    {
-    "value": "/images/home/tok-geneve-desktop-reference.jpg",
+    "value": "/images/home/tok-geneve-desktop.webp",
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 199
-     },
+      "line": 34
+     }
+    ]
+   },
+   {
+    "value": "/images/home/tok-geneve-mobile.webp",
+    "sources": [
      {
-      "path": "src/test/homepage-positioning-guards.test.ts",
-      "line": 41
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 36
      }
     ]
    },
@@ -22481,15 +22543,6 @@
     ]
    },
    {
-    "value": "/playball-font/Playball-q6o1.ttf",
-    "sources": [
-     {
-      "path": "src/test/homepage-positioning-guards.test.ts",
-      "line": 32
-     }
-    ]
-   },
-   {
     "value": "/points-cadeau",
     "sources": [
      {
@@ -23068,6 +23121,14 @@
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
       "line": 256
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 27
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 35
      },
      {
       "path": "src/test/mobile-logo-intro.test.tsx",
@@ -24353,7 +24414,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 150
+      "line": 68
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -24382,6 +24443,10 @@
      {
       "path": "src/test/b2b-seo-cluster.test.ts",
       "line": 70
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 20
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -25926,6 +25991,14 @@
       "line": 241
      },
      {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 29
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 37
+     },
+     {
       "path": "supabase/functions/tok-connect-api/index.ts",
       "line": 220
      },
@@ -26904,6 +26977,14 @@
      {
       "path": "src/pages/Recherche.tsx",
       "line": 237
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 28
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 36
      }
     ],
     "routes": [
@@ -81214,13 +81295,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 48,
+      "line": 17,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 292
+    "lineCount": 98
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -99664,7 +99745,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 38
+    "lineCount": 40
    },
    {
     "path": "src/test/home-cuisine-accessibility.test.tsx",
@@ -99674,11 +99755,18 @@
     "lineCount": 22
    },
    {
+    "path": "src/test/home-hero-search.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 40
+   },
+   {
     "path": "src/test/home-mobile-newsletter.test.tsx",
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 52
+    "lineCount": 26
    },
    {
     "path": "src/test/home-nearby-catalog-contract.test.ts",
@@ -99703,7 +99791,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 188
+    "lineCount": 167
    },
    {
     "path": "src/test/image-metadata-ai.test.ts",
@@ -108802,6 +108890,11 @@
     "extension": ".png"
    },
    {
+    "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
     "path": "public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
     "category": "public-asset",
     "extension": ".png"
@@ -108838,6 +108931,16 @@
    },
    {
     "path": "public/ChatGPT Image 8 juin 2026, 02_57_38.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/Chef TOK au bord du lac Léman.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/Chef jovial au bord du lac Léman.png",
     "category": "public-asset",
     "extension": ".png"
    },
@@ -109090,6 +109193,16 @@
     "path": "public/fondbanniere2.png",
     "category": "public-asset",
     "extension": ".png"
+   },
+   {
+    "path": "public/fonts/anton/Anton-Regular.ttf",
+    "category": "public-asset",
+    "extension": ".ttf"
+   },
+   {
+    "path": "public/fonts/anton/OFL.txt",
+    "category": "public-asset",
+    "extension": ".txt"
    },
    {
     "path": "public/help.png",
@@ -109515,6 +109628,16 @@
     "path": "public/images/home/tok-geneve-desktop-reference.jpg",
     "category": "public-asset",
     "extension": ".jpg"
+   },
+   {
+    "path": "public/images/home/tok-geneve-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/home/tok-geneve-mobile.webp",
+    "category": "public-asset",
+    "extension": ".webp"
    },
    {
     "path": "public/images/houmous.webp",
@@ -111460,6 +111583,11 @@
     "path": "src/components/home/FooterSection.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
+   },
+   {
+    "path": "src/components/home/HeroSection.css",
+    "category": "frontend-component",
+    "extension": ".css"
    },
    {
     "path": "src/components/home/HeroSection.tsx",
@@ -115088,6 +115216,11 @@
    },
    {
     "path": "src/test/home-cuisine-accessibility.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/home-hero-search.test.tsx",
     "category": "test",
     "extension": ".tsx"
    },
@@ -123930,14 +124063,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 292 lignes; exports: default.",
+   "description": "Module de 98 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "0e6a37f2ab1d"
+   "detailRef": "7b51b0ac5564"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -135399,12 +135532,12 @@
    "id": "code-module:d87bb5d55d0d",
    "type": "code-module",
    "title": "src/test/home-assets-budget.test.ts",
-   "description": "Module de 38 lignes; exports: aucun export statique.",
+   "description": "Module de 40 lignes; exports: aucun export statique.",
    "path": "src/test/home-assets-budget.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "d92e1fae4285"
+   "detailRef": "bef0e9a50ff9"
   },
   {
    "id": "code-module:b8f0d2b164b6",
@@ -135418,15 +135551,26 @@
    "detailRef": "2618d446f6b3"
   },
   {
+   "id": "code-module:a714f68588b7",
+   "type": "code-module",
+   "title": "src/test/home-hero-search.test.tsx",
+   "description": "Module de 40 lignes; exports: aucun export statique.",
+   "path": "src/test/home-hero-search.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "022a50c18b4a"
+  },
+  {
    "id": "code-module:d67b9bd34728",
    "type": "code-module",
    "title": "src/test/home-mobile-newsletter.test.tsx",
-   "description": "Module de 52 lignes; exports: aucun export statique.",
+   "description": "Module de 26 lignes; exports: aucun export statique.",
    "path": "src/test/home-mobile-newsletter.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "049296c7e454"
+   "detailRef": "cd2742f8338d"
   },
   {
    "id": "code-module:ed44549fe546",
@@ -135456,14 +135600,14 @@
    "id": "code-module:06afdea6867d",
    "type": "code-module",
    "title": "src/test/homepage-positioning-guards.test.ts",
-   "description": "Module de 188 lignes; exports: aucun export statique.",
+   "description": "Module de 167 lignes; exports: aucun export statique.",
    "path": "src/test/homepage-positioning-guards.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "09221d84681d"
+   "detailRef": "d426bf8b91fa"
   },
   {
    "id": "code-module:c469797bc2dd",
@@ -252650,17 +252794,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:c0cc501ad690",
+   "id": "exported-symbol:0c9115f6636a",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/HeroSection.tsx.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 48,
+   "line": 17,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "6d9ba569d315"
+   "detailRef": "f6ad11948f69"
   },
   {
    "id": "exported-symbol:5bf7ed2b1c38",
@@ -279049,6 +279193,20 @@
    "detailRef": "9e79cfbe1bc4"
   },
   {
+   "id": "file:f9922848b3c5",
+   "type": "file",
+   "title": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "34f9fa116322"
+  },
+  {
    "id": "file:9ff1718424aa",
    "type": "file",
    "title": "public/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
@@ -279159,6 +279317,34 @@
     "public-asset"
    ],
    "detailRef": "6f6071a04ee4"
+  },
+  {
+   "id": "file:7db49078a3f9",
+   "type": "file",
+   "title": "public/Chef TOK au bord du lac Léman.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/Chef TOK au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "d2e592cf0238"
+  },
+  {
+   "id": "file:c56ef718b76c",
+   "type": "file",
+   "title": "public/Chef jovial au bord du lac Léman.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/Chef jovial au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "d47b3c05c938"
   },
   {
    "id": "file:9e55eb782323",
@@ -279859,6 +280045,34 @@
     "public-asset"
    ],
    "detailRef": "e768f32fbf33"
+  },
+  {
+   "id": "file:e20e48634730",
+   "type": "file",
+   "title": "public/fonts/anton/Anton-Regular.ttf",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/fonts/anton/Anton-Regular.ttf",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ttf",
+    "public-asset"
+   ],
+   "detailRef": "9b199bcc21f9"
+  },
+  {
+   "id": "file:29aa05d4cd37",
+   "type": "file",
+   "title": "public/fonts/anton/OFL.txt",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/fonts/anton/OFL.txt",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".txt",
+    "public-asset"
+   ],
+   "detailRef": "cb7070086b61"
   },
   {
    "id": "file:c9c43e8bca3c",
@@ -281049,6 +281263,34 @@
     "public-asset"
    ],
    "detailRef": "fbfd6c6738de"
+  },
+  {
+   "id": "file:530d9dd60ead",
+   "type": "file",
+   "title": "public/images/home/tok-geneve-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/home/tok-geneve-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "d4638769cfcb"
+  },
+  {
+   "id": "file:c9d524bd1ff6",
+   "type": "file",
+   "title": "public/images/home/tok-geneve-mobile.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/home/tok-geneve-mobile.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "3bb03757e909"
   },
   {
    "id": "file:d537ae413d7c",
@@ -286495,6 +286737,20 @@
     "frontend-component"
    ],
    "detailRef": "d56ad4f75bdf"
+  },
+  {
+   "id": "file:99e11ed67316",
+   "type": "file",
+   "title": "src/components/home/HeroSection.css",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/home/HeroSection.css",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".css",
+    "frontend-component"
+   ],
+   "detailRef": "91beb03cebe3"
   },
   {
    "id": "file:2599163884bb",
@@ -296659,6 +296915,20 @@
     "test"
    ],
    "detailRef": "03eccbb4eb58"
+  },
+  {
+   "id": "file:a618b53ab9a4",
+   "type": "file",
+   "title": "src/test/home-hero-search.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/home-hero-search.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "0712d9e1cb56"
   },
   {
    "id": "file:21eb216af5fb",
@@ -325796,6 +326066,19 @@
    "detailRef": "aab57983ddaf"
   },
   {
+   "id": "path-literal:8e65e162d205",
+   "type": "path-literal",
+   "title": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/HeroSection.tsx",
+   "line": 37,
+   "surface": null,
+   "tags": [
+    "src/components/home/HeroSection.tsx"
+   ],
+   "detailRef": "5706bebd1cc0"
+  },
+  {
    "id": "path-literal:5f12583a8f38",
    "type": "path-literal",
    "title": "/:path*",
@@ -325981,6 +326264,19 @@
     "src/test/plan-phase1-readiness.test.ts"
    ],
    "detailRef": "26f196955bb6"
+  },
+  {
+   "id": "path-literal:4b1aa045065f",
+   "type": "path-literal",
+   "title": "/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/HeroSection.tsx",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "src/components/home/HeroSection.tsx"
+   ],
+   "detailRef": "9c2fda49f320"
   },
   {
    "id": "path-literal:1d9f0654171b",
@@ -327381,7 +327677,7 @@
    "id": "path-literal:684553841fb1",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 49 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 50 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1224,
    "surface": null,
@@ -327419,11 +327715,12 @@
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
+    "src/test/home-mobile-newsletter.test.tsx",
     "src/test/mobile-logo-intro.test.tsx",
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "2adc18ada546"
+   "detailRef": "38750db3e61e"
   },
   {
    "id": "path-literal:526e3fa12d6c",
@@ -330425,18 +330722,30 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:bf63a7e5f2c5",
+   "id": "path-literal:a745c33d30bc",
    "type": "path-literal",
-   "title": "/images/home/tok-geneve-desktop-reference.jpg",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "title": "/images/home/tok-geneve-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 199,
+   "line": 34,
    "surface": null,
    "tags": [
-    "src/components/home/HeroSection.tsx",
-    "src/test/homepage-positioning-guards.test.ts"
+    "src/components/home/HeroSection.tsx"
    ],
-   "detailRef": "e36f93dcba9b"
+   "detailRef": "23f9e5c20eec"
+  },
+  {
+   "id": "path-literal:8b5831bbb6ff",
+   "type": "path-literal",
+   "title": "/images/home/tok-geneve-mobile.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/HeroSection.tsx",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "src/components/home/HeroSection.tsx"
+   ],
+   "detailRef": "ad4a4965bab3"
   },
   {
    "id": "path-literal:d38fc61bacfe",
@@ -332202,19 +332511,6 @@
    "detailRef": "5a33b21e384a"
   },
   {
-   "id": "path-literal:8ab9faa76f8f",
-   "type": "path-literal",
-   "title": "/playball-font/Playball-q6o1.ttf",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/homepage-positioning-guards.test.ts",
-   "line": 32,
-   "surface": null,
-   "tags": [
-    "src/test/homepage-positioning-guards.test.ts"
-   ],
-   "detailRef": "36d4fa6e7ba6"
-  },
-  {
    "id": "path-literal:75c7e5e5f708",
    "type": "path-literal",
    "title": "/points-cadeau",
@@ -332489,7 +332785,7 @@
    "id": "path-literal:f7a8242103a1",
    "type": "path-literal",
    "title": "/recherche",
-   "description": "Chemin référencé dans 56 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 58 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/seo-trust-runtime.js",
    "line": 138,
    "surface": null,
@@ -332525,13 +332821,14 @@
     "src/test/admin-domain-routing.test.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/commercial-domain-isolation.test.ts",
+    "src/test/home-hero-search.test.tsx",
     "src/test/mobile-logo-intro.test.tsx",
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "341de3837e8e"
+   "detailRef": "04011be96996"
   },
   {
    "id": "path-literal:3ae682e3c6a4",
@@ -333715,7 +334012,7 @@
    "id": "path-literal:843e3ec74ed3",
    "type": "path-literal",
    "title": "/restaurateurs/geneve",
-   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 609,
    "surface": null,
@@ -333731,10 +334028,11 @@
     "src/pages/RestaurateursGeneve.tsx",
     "src/pages/RestaurateursGoogleBusiness.tsx",
     "src/test/b2b-seo-cluster.test.ts",
+    "src/test/home-hero-search.test.tsx",
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "23dcc9f6b8dd"
+   "detailRef": "bf9cbb3ce5db"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -335032,6 +335330,20 @@
    "detailRef": "735992553a10"
   },
   {
+   "id": "public-asset:314aca09bcb1",
+   "type": "public-asset",
+   "title": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "60cdf59ff559"
+  },
+  {
    "id": "public-asset:51359523e422",
    "type": "public-asset",
    "title": "/B3A185C6-2CC3-471E-AC4D-3A4B7461084E.png",
@@ -335142,6 +335454,34 @@
     "public"
    ],
    "detailRef": "e55f72209f7a"
+  },
+  {
+   "id": "public-asset:bac2468d72d5",
+   "type": "public-asset",
+   "title": "/Chef TOK au bord du lac Léman.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/Chef TOK au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "199ef737cff9"
+  },
+  {
+   "id": "public-asset:58354ee71abb",
+   "type": "public-asset",
+   "title": "/Chef jovial au bord du lac Léman.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/Chef jovial au bord du lac Léman.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "618c9673736b"
   },
   {
    "id": "public-asset:7a2a3e03a285",
@@ -335800,6 +336140,20 @@
     "public"
    ],
    "detailRef": "4dc261fdd84b"
+  },
+  {
+   "id": "public-asset:17557f8a8157",
+   "type": "public-asset",
+   "title": "/fonts/anton/Anton-Regular.ttf",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/fonts/anton/Anton-Regular.ttf",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "069a2d7bc634"
   },
   {
    "id": "public-asset:a1a374231d05",
@@ -336976,6 +337330,34 @@
     "public"
    ],
    "detailRef": "30764d149358"
+  },
+  {
+   "id": "public-asset:7ec901d1f76a",
+   "type": "public-asset",
+   "title": "/images/home/tok-geneve-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/home/tok-geneve-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "876d88947dda"
+  },
+  {
+   "id": "public-asset:88b1a56e1c81",
+   "type": "public-asset",
+   "title": "/images/home/tok-geneve-mobile.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/home/tok-geneve-mobile.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "d530e8fba2c4"
   },
   {
    "id": "public-asset:4a17ada513e7",
@@ -339329,15 +339711,16 @@
    "id": "query-parameter:3411db1bc171",
    "type": "query-parameter",
    "title": "city",
-   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 5 emplacement(s).",
    "path": "src/pages/Recherche.tsx",
    "line": 241,
    "surface": null,
    "tags": [
     "src/pages/Recherche.tsx",
+    "src/test/home-hero-search.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "ac4fe00648e8"
+   "detailRef": "0790c761b347"
   },
   {
    "id": "query-parameter:97c42c624f4b",
@@ -340128,15 +340511,16 @@
    "id": "query-parameter:b96a4bcc802b",
    "type": "query-parameter",
    "title": "q",
-   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 4 emplacement(s).",
    "path": "src/marketing/useMarketingUrlState.ts",
    "line": 85,
    "surface": null,
    "tags": [
     "src/marketing/useMarketingUrlState.ts",
-    "src/pages/Recherche.tsx"
+    "src/pages/Recherche.tsx",
+    "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "d96af04867a2"
+   "detailRef": "ef28997d24a0"
   },
   {
    "id": "query-parameter:1969b37dad55",
@@ -342567,6 +342951,20 @@
     "public"
    ],
    "detailRef": "11f6b8ef10ba"
+  },
+  {
+   "id": "static-data:7139259dce72",
+   "type": "static-data",
+   "title": "/fonts/anton/OFL.txt",
+   "description": "Ressource data servie depuis le dossier public.",
+   "path": "public/fonts/anton/OFL.txt",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "data",
+    "public"
+   ],
+   "detailRef": "3bcd9cebb084"
   },
   {
    "id": "static-data:b5090da65ed4",
