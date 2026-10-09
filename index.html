@@ -3,6 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <style>
+    #tok-boot-status { display: none; }
+    html[data-tok-booting] #tok-prerendered-content { display: none; }
+    html[data-tok-booting] #tok-boot-status {
+      display: grid; place-content: center; gap: 12px; min-height: 100vh;
+      position: fixed; inset: 0; z-index: 9999;
+      min-height: 100dvh; text-align: center; background: #fffaf5; color: #9a3412;
+      font: 16px system-ui, sans-serif;
+    }
+    #tok-boot-status strong { font-size: 36px; letter-spacing: .08em; }
+    html[data-tok-booting] body { margin: 0; }
+  </style>
+  <!-- Blocking and same-origin: runs before the SEO body, without weakening CSP. -->
+  <script src="/app-bootstrap.js"></script>
   <title>TOK - Restaurants à Genève : adresses, réservation et commande</title>
 
   <meta
@@ -53,6 +67,9 @@
   <script src="/seo-trust-runtime.js" defer></script>
 </head>
 <body>
+  <div id="tok-boot-status" role="status" aria-live="polite">
+    <strong>TOK</strong><span>Chargement de votre page…</span>
+  </div>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
