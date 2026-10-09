@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "dceefdcaf39d5a1ece71ed7a6cc6926baedd70d2b349989a4a1340296012f1a1",
+ "sourceDigest": "19915f0dd337adf0f68984026274c5ed755227d4c7556c74d1b86deb77668e35",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -20,12 +20,12 @@
   "migrations": 521,
   "modules": 1439,
   "pages": 127,
-  "pathLiterals": 599,
+  "pathLiterals": 600,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 100,
-  "records": 15362,
+  "records": 15363,
   "repositoryFiles": 2695,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -14844,6 +14844,10 @@
       "line": 62
      },
      {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 41
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 195
      },
@@ -15205,7 +15209,11 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 72
+      "line": 42
+     },
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 79
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -23155,6 +23163,15 @@
     ]
    },
    {
+    "value": "/recherche?city=Gen%C3%A8ve",
+    "sources": [
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 40
+     }
+    ]
+   },
+   {
     "value": "/recherche?mode=reservation",
     "sources": [
      {
@@ -24416,7 +24433,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 68
+      "line": 75
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -81369,7 +81386,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 98
+    "lineCount": 105
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -99859,7 +99876,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 167
+    "lineCount": 174
    },
    {
     "path": "src/test/image-metadata-ai.test.ts",
@@ -124299,14 +124316,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 98 lignes; exports: default.",
+   "description": "Module de 105 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "7b51b0ac5564"
+   "detailRef": "25422782a1f7"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -135836,14 +135853,14 @@
    "id": "code-module:06afdea6867d",
    "type": "code-module",
    "title": "src/test/homepage-positioning-guards.test.ts",
-   "description": "Module de 167 lignes; exports: aucun export statique.",
+   "description": "Module de 174 lignes; exports: aucun export statique.",
    "path": "src/test/homepage-positioning-guards.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "d426bf8b91fa"
+   "detailRef": "7eaa6c8d5c4f"
   },
   {
    "id": "code-module:c469797bc2dd",
@@ -328025,7 +328042,7 @@
    "id": "path-literal:5f9b13c3589b",
    "type": "path-literal",
    "title": "/aide",
-   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1081,
    "surface": null,
@@ -328034,12 +328051,13 @@
     "src/App.tsx",
     "src/components/Navbar.tsx",
     "src/components/home/FooterSection.tsx",
+    "src/components/home/HeroSection.tsx",
     "src/hooks/useSeoMeta.ts",
     "src/pages/Aide.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "ea864561261e"
+   "detailRef": "f2d61b90d188"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -328447,7 +328465,7 @@
    "id": "path-literal:684553841fb1",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 50 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 51 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1224,
    "surface": null,
@@ -328490,7 +328508,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "38750db3e61e"
+   "detailRef": "1b7a8d9854d8"
   },
   {
    "id": "path-literal:526e3fa12d6c",
@@ -333601,6 +333619,19 @@
    "detailRef": "04011be96996"
   },
   {
+   "id": "path-literal:59aaaef9d8d9",
+   "type": "path-literal",
+   "title": "/recherche?city=Gen%C3%A8ve",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/HeroSection.tsx",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "src/components/home/HeroSection.tsx"
+   ],
+   "detailRef": "435daafe9917"
+  },
+  {
    "id": "path-literal:3ae682e3c6a4",
    "type": "path-literal",
    "title": "/recherche?mode=reservation",
@@ -334802,7 +334833,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "bf9cbb3ce5db"
+   "detailRef": "85190abb550e"
   },
   {
    "id": "path-literal:0cc14f352dc6",
