@@ -4,6 +4,7 @@ import { ChevronRight, Coins, Heart, Search, UsersRound, Utensils } from "lucide
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
+import { useAuth } from "@/lib/auth-context";
 import "./HeroSection.css";
 
 const newsletterConditions = [
@@ -17,6 +18,7 @@ const newsletterConditions = [
 export default function HeroSection({ contentVisible = true }: { contentVisible?: boolean }) {
   const navigate = useNavigate();
   const logoSrc = useTokLogoSrc();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
 
@@ -29,18 +31,25 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
   return (
     <>
-      <section className="tok-home-hero" aria-labelledby="home-hero-title" data-content-visible={contentVisible}>
+      <section
+        className="tok-home-hero"
+        aria-labelledby="home-hero-title"
+        data-content-visible={contentVisible}
+        data-authenticated={Boolean(user)}
+      >
         <picture className="tok-home-hero__background" aria-hidden="true">
           <source media="(min-width: 1024px)" type="image/webp" srcSet="/images/home/tok-geneve-desktop.webp" width={1670} height={941} />
           <source media="(min-width: 1024px)" srcSet="/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png" width={1670} height={941} />
           <source type="image/webp" srcSet="/images/home/tok-geneve-mobile.webp" width={941} height={1672} />
           <img src="/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png" alt="" width={941} height={1672} fetchPriority="high" loading="eager" />
         </picture>
-        <nav className="tok-home-hero__desktop-nav" aria-label="Navigation principale">
-          <Link to="/recherche?city=Gen%C3%A8ve">Les restaurants</Link>
-          <Link to="/aide">Comment ça marche</Link>
-          <Link className="tok-home-hero__login" to="/auth">Connexion</Link>
-        </nav>
+        {!user ? (
+          <nav className="tok-home-hero__desktop-nav" aria-label="Navigation principale">
+            <Link to="/recherche?city=Gen%C3%A8ve">Les restaurants</Link>
+            <Link to="/aide">Comment ça marche</Link>
+            <Link className="tok-home-hero__login" to="/auth">Connexion</Link>
+          </nav>
+        ) : null}
         <div className="tok-home-hero__content">
           <img className="tok-home-hero__logo" src={logoSrc} alt="TOK — Miamz !" width={1691} height={1099} />
           <p className="tok-home-hero__location">À Genève</p>
