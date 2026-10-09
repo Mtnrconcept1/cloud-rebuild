@@ -646,7 +646,8 @@ jobs:
           chmod 600 "$keys_file"
           node ./scripts/write-production-supabase-keys-env.mjs \
             --keys-file="$keys_file" \
-            --out="$GITHUB_ENV"
+            --out="$GITHUB_ENV" \
+            --prefer-secret=true
 
       - name: Download prebuilt Vercel output
         uses: actions/download-artifact@v5

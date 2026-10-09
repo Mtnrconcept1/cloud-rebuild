@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "19915f0dd337adf0f68984026274c5ed755227d4c7556c74d1b86deb77668e35",
+ "sourceDigest": "80fde52255b9d57a8b14293c499fc0692620be0068a22cf6684ee84ae88d4f9e",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2720,
-  "documents": 188,
+  "documents": 190,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3348,
+  "exportedSymbols": 3359,
   "featureFlags": 99,
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 521,
-  "modules": 1439,
+  "modules": 1455,
   "pages": 127,
-  "pathLiterals": 600,
+  "pathLiterals": 604,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
-  "queryParameters": 100,
-  "records": 15363,
-  "repositoryFiles": 2695,
+  "queryParameters": 102,
+  "records": 15431,
+  "repositoryFiles": 2713,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -7071,6 +7071,7 @@
      "POST"
     ],
     "actions": [
+     "discover_sources",
      "generate",
      "list_runs",
      "unknown"
@@ -8061,6 +8062,7 @@
      "POST"
     ],
     "actions": [
+     "check_meta",
      "run_item"
     ],
     "environmentNames": [
@@ -15027,6 +15029,14 @@
      {
       "path": "src/marketing/marketingBffClient.ts",
       "line": 13
+     },
+     {
+      "path": "src/test/marketing-source-discovery.test.tsx",
+      "line": 5
+     },
+     {
+      "path": "src/test/marketing-source-discovery.test.tsx",
+      "line": 27
      }
     ]
    },
@@ -15076,6 +15086,14 @@
      {
       "path": "src/marketing/marketingBffClient.ts",
       "line": 9
+     },
+     {
+      "path": "src/test/marketing-bff-client.test.ts",
+      "line": 108
+     },
+     {
+      "path": "src/test/marketing-session-recovery.test.tsx",
+      "line": 57
      }
     ]
    },
@@ -15085,6 +15103,14 @@
      {
       "path": "src/marketing/marketingBffClient.ts",
       "line": 12
+     },
+     {
+      "path": "src/test/marketing-meta-connection.test.tsx",
+      "line": 6
+     },
+     {
+      "path": "src/test/marketing-meta-connection.test.tsx",
+      "line": 19
      }
     ]
    },
@@ -19244,6 +19270,14 @@
      {
       "path": "src/lib/iosCommerceFetch.ts",
       "line": 144
+     },
+     {
+      "path": "src/test/marketing-agent-bff.test.ts",
+      "line": 74
+     },
+     {
+      "path": "src/test/marketing-agent-bff.test.ts",
+      "line": 82
      }
     ]
    },
@@ -19253,6 +19287,23 @@
      {
       "path": "src/test/vercel-rewrites.test.ts",
       "line": 128
+     }
+    ]
+   },
+   {
+    "value": "/functions/v1/ai-marketing-agent",
+    "sources": [
+     {
+      "path": "src/test/marketing-agent-bff.test.ts",
+      "line": 30
+     },
+     {
+      "path": "src/test/marketing-agent-bff.test.ts",
+      "line": 55
+     },
+     {
+      "path": "src/test/marketing-agent-bff.test.ts",
+      "line": 99
      }
     ]
    },
@@ -19289,6 +19340,15 @@
      {
       "path": "src/test/dispatch-client-fallback.test.ts",
       "line": 18
+     }
+    ]
+   },
+   {
+    "value": "/functions/v1/marketing-orchestrator",
+    "sources": [
+     {
+      "path": "src/test/marketing-meta-bff.test.ts",
+      "line": 6
      }
     ]
    },
@@ -21607,11 +21667,11 @@
      },
      {
       "path": "src/marketing/MarketingSessionProvider.tsx",
-      "line": 308
+      "line": 328
      },
      {
       "path": "src/marketing/MarketingSessionProvider.tsx",
-      "line": 316
+      "line": 336
      },
      {
       "path": "src/marketing/marketingBffClient.ts",
@@ -23501,15 +23561,15 @@
     "sources": [
      {
       "path": "src/components/marketing/views/MarketingOutreachView.tsx",
-      "line": 101
+      "line": 102
      },
      {
       "path": "src/components/marketing/views/MarketingOutreachView.tsx",
-      "line": 243
+      "line": 244
      },
      {
       "path": "src/components/marketing/views/MarketingOutreachView.tsx",
-      "line": 485
+      "line": 500
      },
      {
       "path": "src/marketing/marketingClient.ts",
@@ -24605,6 +24665,10 @@
     "value": "/rpc/service_consume_marketing_auth_attempt",
     "sources": [
      {
+      "path": "src/test/marketing-agent-bff.test.ts",
+      "line": 29
+     },
+     {
       "path": "src/test/marketing-bff-security.test.ts",
       "line": 236
      },
@@ -24635,6 +24699,10 @@
      {
       "path": "src/test/marketing-bff-security.test.ts",
       "line": 706
+     },
+     {
+      "path": "src/test/marketing-meta-bff.test.ts",
+      "line": 29
      }
     ]
    },
@@ -24661,6 +24729,19 @@
      {
       "path": "src/test/marketing-bff-security.test.ts",
       "line": 653
+     }
+    ]
+   },
+   {
+    "value": "/rpc/service_get_marketing_web_session",
+    "sources": [
+     {
+      "path": "src/test/marketing-agent-bff.test.ts",
+      "line": 24
+     },
+     {
+      "path": "src/test/marketing-meta-bff.test.ts",
+      "line": 24
      }
     ]
    },
@@ -25183,6 +25264,19 @@
      {
       "path": "server/marketingBff.ts",
       "line": 717
+     }
+    ]
+   },
+   {
+    "value": "/user_roles?",
+    "sources": [
+     {
+      "path": "src/test/marketing-agent-bff.test.ts",
+      "line": 28
+     },
+     {
+      "path": "src/test/marketing-meta-bff.test.ts",
+      "line": 28
      }
     ]
    },
@@ -25919,6 +26013,16 @@
     "routes": []
    },
    {
+    "name": "appsecret_proof",
+    "sources": [
+     {
+      "path": "supabase/functions/_shared/meta-marketing-health.ts",
+      "line": 25
+     }
+    ],
+    "routes": []
+   },
+   {
     "name": "authorization_id",
     "sources": [
      {
@@ -26351,6 +26455,16 @@
      "/auth/callback",
      "/auth/demo"
     ]
+   },
+   {
+    "name": "fields",
+    "sources": [
+     {
+      "path": "supabase/functions/_shared/meta-marketing-health.ts",
+      "line": 24
+     }
+    ],
+    "routes": []
    },
    {
     "name": "fields[appScreenshotSets]",
@@ -27808,6 +27922,8 @@
      "src/test/incident-secret-sync-readiness.test.ts",
      "src/test/legal-miamz-readiness.test.ts",
      "src/test/marketing-b2b-outreach.test.ts",
+     "src/test/marketing-backlink-provider.test.ts",
+     "src/test/marketing-openai-tool-choice.test.ts",
      "src/test/notifications-ai-admin-hardening.test.ts",
      "src/test/production-preflight-hardening.test.ts",
      "src/test/restaurant-billing-account.test.ts",
@@ -27830,6 +27946,7 @@
      "supabase/functions/_shared/feature-flags.ts",
      "supabase/functions/_shared/incident-intelligence.ts",
      "supabase/functions/_shared/marketing-ai.ts",
+     "supabase/functions/_shared/marketing-backlink-discovery.ts",
      "supabase/functions/_shared/openai.ts",
      "supabase/functions/_shared/rate-limit.ts",
      "supabase/functions/_shared/restaurant-credits.ts",
@@ -28535,17 +28652,23 @@
      "src/test/legal-consent-v2.test.ts",
      "src/test/legal-public-surface-hardening.test.ts",
      "src/test/loyalty-status-dialog-layout.test.tsx",
+     "src/test/marketing-agent-bff.test.ts",
      "src/test/marketing-ai-agent.test.ts",
      "src/test/marketing-autopilot-sql.test.ts",
      "src/test/marketing-b2b-outreach.test.ts",
+     "src/test/marketing-backlink-discovery.test.ts",
+     "src/test/marketing-backlink-provider.test.ts",
      "src/test/marketing-bff-security.test.ts",
      "src/test/marketing-consent-dispatch.test.ts",
      "src/test/marketing-edge-security.test.ts",
      "src/test/marketing-email-cadence.test.ts",
      "src/test/marketing-email-template.test.ts",
+     "src/test/marketing-meta-bff.test.ts",
+     "src/test/marketing-meta-health.test.ts",
      "src/test/marketing-meta-publishing.test.ts",
      "src/test/marketing-meta-recovery.test.ts",
      "src/test/marketing-one-click-unsubscribe.test.ts",
+     "src/test/marketing-openai-tool-choice.test.ts",
      "src/test/marketing-operations-frontend.test.ts",
      "src/test/marketing-orchestrator-schema.test.ts",
      "src/test/marketing-outreach-schema.test.ts",
@@ -28554,6 +28677,7 @@
      "src/test/marketing-prospect-coordinates.test.ts",
      "src/test/marketing-rbarman-admin-access.test.ts",
      "src/test/marketing-runtime-hardening.test.ts",
+     "src/test/marketing-service-auth.test.ts",
      "src/test/marketing-sql-governance.test.ts",
      "src/test/marketing-subdomain-integration.test.ts",
      "src/test/marketplace-finance-routing.test.ts",
@@ -28712,6 +28836,7 @@
      "supabase/functions/_shared/incident-intelligence.ts",
      "supabase/functions/_shared/intelligence.ts",
      "supabase/functions/_shared/logging.ts",
+     "supabase/functions/_shared/marketing-service-auth.ts",
      "supabase/functions/_shared/marketplace-finance.ts",
      "supabase/functions/_shared/notifications.ts",
      "supabase/functions/_shared/print/cloudprinter.ts",
@@ -28828,6 +28953,7 @@
      "scripts/prerender-seo.mjs",
      "scripts/resolve-live-stripe-publishable-key.mjs",
      "scripts/stoppin-venue-seo.test.mjs",
+     "scripts/write-production-supabase-keys-env.mjs",
      "server/marketingBff.ts",
      "src/lib/commercialDomains.ts",
      "src/lib/demoWorkspaces.ts",
@@ -31990,8 +32116,8 @@
     "objectCount": 18
    },
    {
-    "name": "20261006033000 Configure Meta Marketing Integrations",
-    "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+    "name": "20261006022139 Configure Meta Marketing Integrations",
+    "path": "supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql",
     "lineCount": 47,
     "objectCount": 0
    },
@@ -70341,6 +70467,42 @@
     ]
    },
    {
+    "path": "docs/marketing-backlink-opportunities.md",
+    "title": "Pistes de backlinks TOK sans compte existant",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Pistes de backlinks TOK sans compte existant",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "ZIP.ch — demande d'inscription gratuite",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "GoLunch — partenariat éditorial en Suisse romande",
+      "line": 14
+     },
+     {
+      "level": 2,
+      "title": "GHI — proposition de sujet local",
+      "line": 23
+     },
+     {
+      "level": 2,
+      "title": "Piste exclue après vérification",
+      "line": 32
+     },
+     {
+      "level": 2,
+      "title": "Traitement dans l'outil",
+      "line": 36
+     }
+    ]
+   },
+   {
     "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
     "title": "Audit du marketing automatique TOK — 8 octobre 2026",
     "headings": [
@@ -70449,6 +70611,37 @@
       "level": 2,
       "title": "Validation locale",
       "line": 140
+     }
+    ]
+   },
+   {
+    "path": "docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md",
+    "title": "Marketing : session, recherche de sources et diagnostic Meta",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Marketing : session, recherche de sources et diagnostic Meta",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Corrections",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Réconciliation de l'historique Meta",
+      "line": 14
+     },
+     {
+      "level": 2,
+      "title": "Preuves et limites externes",
+      "line": 20
+     },
+     {
+      "level": 2,
+      "title": "Retour arrière",
+      "line": 29
      }
     ]
    },
@@ -78782,12 +78975,12 @@
      },
      {
       "name": "formatGitHubEnvironment",
-      "line": 63,
+      "line": 67,
       "kind": "function"
      },
      {
       "name": "writeProductionSupabaseKeysEnv",
-      "line": 69,
+      "line": 73,
       "kind": "function"
      }
     ],
@@ -78795,9 +78988,10 @@
      "GITHUB_ENV"
     ],
     "integrations": [
-     "supabase"
+     "supabase",
+     "vercel"
     ],
-    "lineCount": 104
+    "lineCount": 109
    },
    {
     "path": "scripts/write-supabase-secrets-env.mjs",
@@ -78908,47 +79102,47 @@
      },
      {
       "name": "marketingLoginHandler",
-      "line": 1811,
+      "line": 1842,
       "kind": "function"
      },
      {
       "name": "marketingMfaEnrollHandler",
-      "line": 1818,
+      "line": 1849,
       "kind": "function"
      },
      {
       "name": "marketingMfaVerifyHandler",
-      "line": 1825,
+      "line": 1856,
       "kind": "function"
      },
      {
       "name": "marketingLogoutHandler",
-      "line": 1832,
+      "line": 1863,
       "kind": "function"
      },
      {
       "name": "marketingSessionHandler",
-      "line": 1843,
+      "line": 1874,
       "kind": "function"
      },
      {
       "name": "marketingRpcHandler",
-      "line": 1859,
+      "line": 1890,
       "kind": "function"
      },
      {
       "name": "marketingOrchestratorHandler",
-      "line": 1866,
+      "line": 1897,
       "kind": "function"
      },
      {
       "name": "marketingAgentHandler",
-      "line": 1873,
+      "line": 1904,
       "kind": "function"
      },
      {
       "name": "marketingLaunchHandler",
-      "line": 1880,
+      "line": 1911,
       "kind": "function"
      }
     ],
@@ -78966,7 +79160,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 1886
+    "lineCount": 1917
    },
    {
     "path": "src/App.tsx",
@@ -81647,6 +81841,19 @@
     "lineCount": 54
    },
    {
+    "path": "src/components/marketing/MarketingMetaConnection.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 15,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 65
+   },
+   {
     "path": "src/components/marketing/MarketingProtectedRoute.tsx",
     "exports": [
      {
@@ -81708,6 +81915,24 @@
      "google"
     ],
     "lineCount": 227
+   },
+   {
+    "path": "src/components/marketing/MarketingSourceDiscovery.tsx",
+    "exports": [
+     {
+      "name": "DiscoveredMarketingSource",
+      "line": 9,
+      "kind": "typealias"
+     },
+     {
+      "name": "default",
+      "line": 17,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 76
    },
    {
     "path": "src/components/marketing/MarketingWorkspaceChrome.tsx",
@@ -81835,26 +82060,26 @@
     "exports": [
      {
       "name": "default",
-      "line": 29,
+      "line": 30,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 171
+    "lineCount": 173
    },
    {
     "path": "src/components/marketing/views/MarketingOutreachView.tsx",
     "exports": [
      {
       "name": "default",
-      "line": 152,
+      "line": 153,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 565
+    "lineCount": 580
    },
    {
     "path": "src/components/marketing/views/MarketingOverviewView.tsx",
@@ -94650,7 +94875,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 345
+    "lineCount": 365
    },
    {
     "path": "src/marketing/autopilotClient.ts",
@@ -94865,23 +95090,23 @@
      },
      {
       "name": "isMarketingTotpCode",
-      "line": 61,
+      "line": 69,
       "kind": "function"
      },
      {
       "name": "readMarketingCsrfToken",
-      "line": 65,
+      "line": 73,
       "kind": "function"
      },
      {
       "name": "marketingBffRequest",
-      "line": 141,
+      "line": 149,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 212
+    "lineCount": 225
    },
    {
     "path": "src/marketing/marketingClient.ts",
@@ -97740,7 +97965,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 223
+    "lineCount": 229
    },
    {
     "path": "src/pages/marketing/MarketingWorkspace.tsx",
@@ -100125,6 +100350,17 @@
     "lineCount": 118
    },
    {
+    "path": "src/test/marketing-agent-bff.test.ts",
+    "exports": [],
+    "environmentNames": [
+     "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 104
+   },
+   {
     "path": "src/test/marketing-ai-agent.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -100163,11 +100399,30 @@
     "lineCount": 134
    },
    {
+    "path": "src/test/marketing-backlink-discovery.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 35
+   },
+   {
+    "path": "src/test/marketing-backlink-provider.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 37
+   },
+   {
     "path": "src/test/marketing-bff-client.test.ts",
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 98
+    "lineCount": 114
    },
    {
     "path": "src/test/marketing-bff-security.test.ts",
@@ -100218,7 +100473,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 50
+    "lineCount": 52
    },
    {
     "path": "src/test/marketing-email-cadence.test.ts",
@@ -100244,6 +100499,33 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 28
+   },
+   {
+    "path": "src/test/marketing-meta-bff.test.ts",
+    "exports": [],
+    "environmentNames": [
+     "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 101
+   },
+   {
+    "path": "src/test/marketing-meta-connection.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 39
+   },
+   {
+    "path": "src/test/marketing-meta-health.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 110
    },
    {
     "path": "src/test/marketing-meta-publishing.test.ts",
@@ -100272,6 +100554,16 @@
      "supabase"
     ],
     "lineCount": 120
+   },
+   {
+    "path": "src/test/marketing-openai-tool-choice.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 28
    },
    {
     "path": "src/test/marketing-operations-frontend.test.ts",
@@ -100375,6 +100667,29 @@
      "supabase"
     ],
     "lineCount": 104
+   },
+   {
+    "path": "src/test/marketing-service-auth.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 76
+   },
+   {
+    "path": "src/test/marketing-session-recovery.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 60
+   },
+   {
+    "path": "src/test/marketing-source-discovery.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 68
    },
    {
     "path": "src/test/marketing-sql-governance.test.ts",
@@ -100881,7 +101196,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 42
+    "lineCount": 46
    },
    {
     "path": "src/test/production-deployment-provenance.test.ts",
@@ -100912,7 +101227,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 104
+    "lineCount": 115
    },
    {
     "path": "src/test/profile-hours-slot-source.test.ts",
@@ -103123,7 +103438,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 2754,
+      "line": 2778,
       "kind": "function"
      }
     ],
@@ -103134,7 +103449,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 2759
+    "lineCount": 2783
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -103488,6 +103803,49 @@
     "lineCount": 186
    },
    {
+    "path": "supabase/functions/_shared/marketing-backlink-discovery.ts",
+    "exports": [
+     {
+      "name": "discoverBacklinkSources",
+      "line": 5,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "openai"
+    ],
+    "lineCount": 46
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-backlink-sources.ts",
+    "exports": [
+     {
+      "name": "SOURCE_KINDS",
+      "line": 1,
+      "kind": "variable"
+     },
+     {
+      "name": "BacklinkSource",
+      "line": 2,
+      "kind": "typealias"
+     },
+     {
+      "name": "publicSourceUrl",
+      "line": 20,
+      "kind": "function"
+     },
+     {
+      "name": "verifiedBacklinkSources",
+      "line": 37,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 89
+   },
+   {
     "path": "supabase/functions/_shared/marketing-email-template.ts",
     "exports": [
      {
@@ -103509,6 +103867,23 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 182
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-service-auth.ts",
+    "exports": [
+     {
+      "name": "authenticateMarketingRequest",
+      "line": 37,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [
+     "SUPABASE_SECRET_KEYS"
+    ],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 64
    },
    {
     "path": "supabase/functions/_shared/marketing-unsubscribe-secrets.ts",
@@ -103772,6 +104147,27 @@
     "lineCount": 185
    },
    {
+    "path": "supabase/functions/_shared/meta-marketing-health.ts",
+    "exports": [
+     {
+      "name": "MetaConnectionHealth",
+      "line": 6,
+      "kind": "typealias"
+     },
+     {
+      "name": "checkMetaMarketingConnections",
+      "line": 62,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [
+     "META_APP_SECRET",
+     "META_SYSTEM_USER_TOKEN"
+    ],
+    "integrations": [],
+    "lineCount": 113
+   },
+   {
     "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
     "exports": [
      {
@@ -103930,37 +104326,37 @@
      },
      {
       "name": "TokAiModelTask",
-      "line": 66,
+      "line": 67,
       "kind": "typealias"
      },
      {
       "name": "selectTokAiModel",
-      "line": 81,
+      "line": 82,
       "kind": "function"
      },
      {
       "name": "createOpenAIResponse",
-      "line": 165,
+      "line": 166,
       "kind": "function"
      },
      {
       "name": "extractOutputText",
-      "line": 237,
+      "line": 239,
       "kind": "function"
      },
      {
       "name": "extractUsage",
-      "line": 271,
+      "line": 273,
       "kind": "function"
      },
      {
       "name": "describeResponseEnvelope",
-      "line": 311,
+      "line": 313,
       "kind": "function"
      },
      {
       "name": "parseStructuredOutput",
-      "line": 344,
+      "line": 346,
       "kind": "function"
      }
     ],
@@ -103980,7 +104376,7 @@
     "integrations": [
      "openai"
     ],
-    "lineCount": 452
+    "lineCount": 454
    },
    {
     "path": "supabase/functions/_shared/order-checkout.ts",
@@ -105700,7 +106096,7 @@
     "integrations": [
      "openai"
     ],
-    "lineCount": 286
+    "lineCount": 297
    },
    {
     "path": "supabase/functions/ai-restaurant-agent/index.ts",
@@ -106364,7 +106760,7 @@
      "resend",
      "supabase"
     ],
-    "lineCount": 488
+    "lineCount": 499
    },
    {
     "path": "supabase/functions/marketing-provider-webhook/index.ts",
@@ -108407,6 +108803,11 @@
     "extension": ".md"
    },
    {
+    "path": "docs/marketing-backlink-opportunities.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
     "path": "docs/marketing-email-examples/01-lancement-geneve.html",
     "category": "documentation",
     "extension": ".html"
@@ -108443,6 +108844,11 @@
    },
    {
     "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -111862,12 +112268,22 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/components/marketing/MarketingMetaConnection.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/components/marketing/MarketingProtectedRoute.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
    },
    {
     "path": "src/components/marketing/MarketingShared.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/components/marketing/MarketingSourceDiscovery.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
    },
@@ -115582,6 +115998,11 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/test/marketing-agent-bff.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/marketing-ai-agent.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -115598,6 +116019,16 @@
    },
    {
     "path": "src/test/marketing-b2b-outreach.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/marketing-backlink-discovery.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/marketing-backlink-provider.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -115647,6 +116078,21 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/marketing-meta-bff.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/marketing-meta-connection.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/marketing-meta-health.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/marketing-meta-publishing.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -115658,6 +116104,11 @@
    },
    {
     "path": "src/test/marketing-one-click-unsubscribe.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/marketing-openai-tool-choice.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -115715,6 +116166,21 @@
     "path": "src/test/marketing-runtime-hardening.test.ts",
     "category": "test",
     "extension": ".ts"
+   },
+   {
+    "path": "src/test/marketing-service-auth.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/marketing-session-recovery.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/marketing-source-discovery.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/marketing-sql-governance.test.ts",
@@ -117082,7 +117548,22 @@
     "extension": ".ts"
    },
    {
+    "path": "supabase/functions/_shared/marketing-backlink-discovery.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-backlink-sources.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
     "path": "supabase/functions/_shared/marketing-email-template.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-service-auth.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -117108,6 +117589,11 @@
    },
    {
     "path": "supabase/functions/_shared/mcp-http.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/meta-marketing-health.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -120487,7 +120973,7 @@
     "extension": ".sql"
    },
    {
-    "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+    "path": "supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -122259,7 +122745,7 @@
    "id": "code-module:e1429e190fa8",
    "type": "code-module",
    "title": "scripts/write-production-supabase-keys-env.mjs",
-   "description": "Module de 104 lignes; exports: selectSupabaseDeploymentKeys, formatGitHubEnvironment, writeProductionSupabaseKeysEnv.",
+   "description": "Module de 109 lignes; exports: selectSupabaseDeploymentKeys, formatGitHubEnvironment, writeProductionSupabaseKeysEnv.",
    "path": "scripts/write-production-supabase-keys-env.mjs",
    "line": 1,
    "surface": null,
@@ -122268,9 +122754,10 @@
     "formatGitHubEnvironment",
     "selectSupabaseDeploymentKeys",
     "supabase",
+    "vercel",
     "writeProductionSupabaseKeysEnv"
    ],
-   "detailRef": "328f7e4b352a"
+   "detailRef": "fe35742a67f9"
   },
   {
    "id": "code-module:47a1b9903d01",
@@ -122298,7 +122785,7 @@
    "id": "code-module:e80a711be244",
    "type": "code-module",
    "title": "server/marketingBff.ts",
-   "description": "Module de 1886 lignes; exports: MARKETING_HOST, MARKETING_ORIGIN, MARKETING_CSRF_HEADER, MARKETING_SESSION_COOKIE, MARKETING_CSRF_COOKIE, MARKETING_PENDING_COOKIE, MARKETING_OPERATION_NAMES, MarketingOperation, MARKETING_OUTREACH_OPERATION_NAMES, MarketingOutreachOperation, MARKETING_AUTOPILOT_OPERATION_NAMES, MarketingAutopilotOperation, MarketingApiRequest, MarketingApiResponse, validateMarketingRequestContext, sha256Hex, parseCookies, marketingLoginHandler, marketingMfaEnrollHandler, marketingMfaVerifyHandler, marketingLogoutHandler, marketingSessionHandler, marketingRpcHandler, marketingOrchestratorHandler, marketingAgentHandler, marketingLaunchHandler.",
+   "description": "Module de 1917 lignes; exports: MARKETING_HOST, MARKETING_ORIGIN, MARKETING_CSRF_HEADER, MARKETING_SESSION_COOKIE, MARKETING_CSRF_COOKIE, MARKETING_PENDING_COOKIE, MARKETING_OPERATION_NAMES, MarketingOperation, MARKETING_OUTREACH_OPERATION_NAMES, MarketingOutreachOperation, MARKETING_AUTOPILOT_OPERATION_NAMES, MarketingAutopilotOperation, MarketingApiRequest, MarketingApiResponse, validateMarketingRequestContext, sha256Hex, parseCookies, marketingLoginHandler, marketingMfaEnrollHandler, marketingMfaVerifyHandler, marketingLogoutHandler, marketingSessionHandler, marketingRpcHandler, marketingOrchestratorHandler, marketingAgentHandler, marketingLaunchHandler.",
    "path": "server/marketingBff.ts",
    "line": 1,
    "surface": null,
@@ -122340,7 +122827,7 @@
     "validateMarketingRequestContext",
     "vercel"
    ],
-   "detailRef": "21e235898b82"
+   "detailRef": "d7ed7f9263ae"
   },
   {
    "id": "code-module:fe5a8fc33137",
@@ -124525,6 +125012,19 @@
    "detailRef": "b750e82116c8"
   },
   {
+   "id": "code-module:2648bae6e0ef",
+   "type": "code-module",
+   "title": "src/components/marketing/MarketingMetaConnection.tsx",
+   "description": "Module de 65 lignes; exports: default.",
+   "path": "src/components/marketing/MarketingMetaConnection.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default"
+   ],
+   "detailRef": "d438547956f3"
+  },
+  {
    "id": "code-module:8c1691468667",
    "type": "code-module",
    "title": "src/components/marketing/MarketingProtectedRoute.tsx",
@@ -124557,6 +125057,20 @@
     "google"
    ],
    "detailRef": "2958cfb7de65"
+  },
+  {
+   "id": "code-module:904287499a6d",
+   "type": "code-module",
+   "title": "src/components/marketing/MarketingSourceDiscovery.tsx",
+   "description": "Module de 76 lignes; exports: DiscoveredMarketingSource, default.",
+   "path": "src/components/marketing/MarketingSourceDiscovery.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "DiscoveredMarketingSource",
+    "default"
+   ],
+   "detailRef": "a32aa981ca8b"
   },
   {
    "id": "code-module:24c0bd34a424",
@@ -124682,27 +125196,27 @@
    "id": "code-module:98255f0ac534",
    "type": "code-module",
    "title": "src/components/marketing/views/MarketingIntegrationsView.tsx",
-   "description": "Module de 171 lignes; exports: default.",
+   "description": "Module de 173 lignes; exports: default.",
    "path": "src/components/marketing/views/MarketingIntegrationsView.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "5aece4e6f7f4"
+   "detailRef": "98f09d10b06d"
   },
   {
    "id": "code-module:b8dfe7cd3e51",
    "type": "code-module",
    "title": "src/components/marketing/views/MarketingOutreachView.tsx",
-   "description": "Module de 565 lignes; exports: default.",
+   "description": "Module de 580 lignes; exports: default.",
    "path": "src/components/marketing/views/MarketingOutreachView.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "5afe638135e6"
+   "detailRef": "442681cd679d"
   },
   {
    "id": "code-module:f8f0d4e717b8",
@@ -130613,7 +131127,7 @@
    "id": "code-module:453d970374f8",
    "type": "code-module",
    "title": "src/marketing/MarketingSessionProvider.tsx",
-   "description": "Module de 345 lignes; exports: SessionSnapshot, normalizeMarketingSessionPayload, default.",
+   "description": "Module de 365 lignes; exports: SessionSnapshot, normalizeMarketingSessionPayload, default.",
    "path": "src/marketing/MarketingSessionProvider.tsx",
    "line": 1,
    "surface": null,
@@ -130622,7 +131136,7 @@
     "default",
     "normalizeMarketingSessionPayload"
    ],
-   "detailRef": "2cff6cabefa8"
+   "detailRef": "20ac515d55bc"
   },
   {
    "id": "code-module:25ec9bbc5f5d",
@@ -130698,7 +131212,7 @@
    "id": "code-module:040d299ff1d2",
    "type": "code-module",
    "title": "src/marketing/marketingBffClient.ts",
-   "description": "Module de 212 lignes; exports: MARKETING_CSRF_COOKIE_NAME, MARKETING_CSRF_HEADER_NAME, MARKETING_SESSION_EXPIRED_EVENT, MARKETING_BFF_ENDPOINTS, MarketingBffError, isMarketingTotpCode, readMarketingCsrfToken, marketingBffRequest.",
+   "description": "Module de 225 lignes; exports: MARKETING_CSRF_COOKIE_NAME, MARKETING_CSRF_HEADER_NAME, MARKETING_SESSION_EXPIRED_EVENT, MARKETING_BFF_ENDPOINTS, MarketingBffError, isMarketingTotpCode, readMarketingCsrfToken, marketingBffRequest.",
    "path": "src/marketing/marketingBffClient.ts",
    "line": 1,
    "surface": null,
@@ -130712,7 +131226,7 @@
     "marketingBffRequest",
     "readMarketingCsrfToken"
    ],
-   "detailRef": "6671ffa96b74"
+   "detailRef": "423624e8cd97"
   },
   {
    "id": "code-module:c86b4d8c159a",
@@ -132747,7 +133261,7 @@
    "id": "code-module:d2aca719cb1b",
    "type": "code-module",
    "title": "src/pages/marketing/MarketingLogin.tsx",
-   "description": "Module de 223 lignes; exports: default.",
+   "description": "Module de 229 lignes; exports: default.",
    "path": "src/pages/marketing/MarketingLogin.tsx",
    "line": 1,
    "surface": null,
@@ -132755,7 +133269,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "6de2f58124f4"
+   "detailRef": "6d8df3e26520"
   },
   {
    "id": "code-module:2370e0e830de",
@@ -136219,6 +136733,20 @@
    "detailRef": "4df46757ec50"
   },
   {
+   "id": "code-module:790464136dcb",
+   "type": "code-module",
+   "title": "src/test/marketing-agent-bff.test.ts",
+   "description": "Module de 104 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-agent-bff.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "supabase"
+   ],
+   "detailRef": "1e0a66f4ac3f"
+  },
+  {
    "id": "code-module:f1aadb4d91ba",
    "type": "code-module",
    "title": "src/test/marketing-ai-agent.test.ts",
@@ -136273,15 +136801,42 @@
    "detailRef": "9df496410833"
   },
   {
+   "id": "code-module:d3e0ffb08b11",
+   "type": "code-module",
+   "title": "src/test/marketing-backlink-discovery.test.ts",
+   "description": "Module de 35 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-backlink-discovery.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "a15340376258"
+  },
+  {
+   "id": "code-module:688cb0369c02",
+   "type": "code-module",
+   "title": "src/test/marketing-backlink-provider.test.ts",
+   "description": "Module de 37 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-backlink-provider.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "99aed598462a"
+  },
+  {
    "id": "code-module:d825e1a312e3",
    "type": "code-module",
    "title": "src/test/marketing-bff-client.test.ts",
-   "description": "Module de 98 lignes; exports: aucun export statique.",
+   "description": "Module de 114 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-bff-client.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "cf3de4ea9ed5"
+   "detailRef": "f67a2784c7d0"
   },
   {
    "id": "code-module:229d7954484a",
@@ -136344,14 +136899,14 @@
    "id": "code-module:ae398ef52633",
    "type": "code-module",
    "title": "src/test/marketing-edge-security.test.ts",
-   "description": "Module de 50 lignes; exports: aucun export statique.",
+   "description": "Module de 52 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-edge-security.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "cd41d03f62c6"
+   "detailRef": "9790d0b95e64"
   },
   {
    "id": "code-module:b228e889028a",
@@ -136389,6 +136944,44 @@
    "surface": null,
    "tags": [],
    "detailRef": "e26d8131954e"
+  },
+  {
+   "id": "code-module:f535d44e8ca1",
+   "type": "code-module",
+   "title": "src/test/marketing-meta-bff.test.ts",
+   "description": "Module de 101 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-meta-bff.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "supabase"
+   ],
+   "detailRef": "229ced033c5f"
+  },
+  {
+   "id": "code-module:e9b0c665702e",
+   "type": "code-module",
+   "title": "src/test/marketing-meta-connection.test.tsx",
+   "description": "Module de 39 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-meta-connection.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "0b970bce1767"
+  },
+  {
+   "id": "code-module:ce4b1879ab1c",
+   "type": "code-module",
+   "title": "src/test/marketing-meta-health.test.ts",
+   "description": "Module de 110 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-meta-health.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "01e36081a82e"
   },
   {
    "id": "code-module:753692db5732",
@@ -136429,6 +137022,20 @@
     "supabase"
    ],
    "detailRef": "a08722ddc38f"
+  },
+  {
+   "id": "code-module:85c53b44055a",
+   "type": "code-module",
+   "title": "src/test/marketing-openai-tool-choice.test.ts",
+   "description": "Module de 28 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-openai-tool-choice.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "91c14c963689"
   },
   {
    "id": "code-module:9e61740e1900",
@@ -136574,6 +137181,41 @@
     "supabase"
    ],
    "detailRef": "cf3f0c027e7e"
+  },
+  {
+   "id": "code-module:4223f26bf632",
+   "type": "code-module",
+   "title": "src/test/marketing-service-auth.test.ts",
+   "description": "Module de 76 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-service-auth.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "2502d0f4354c"
+  },
+  {
+   "id": "code-module:35d405c0e261",
+   "type": "code-module",
+   "title": "src/test/marketing-session-recovery.test.tsx",
+   "description": "Module de 60 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-session-recovery.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "9219b1ebbcc5"
+  },
+  {
+   "id": "code-module:5daf6990c8be",
+   "type": "code-module",
+   "title": "src/test/marketing-source-discovery.test.tsx",
+   "description": "Module de 68 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-source-discovery.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "a09507fbadfc"
   },
   {
    "id": "code-module:0c6db6ff9be0",
@@ -137307,7 +137949,7 @@
    "id": "code-module:a141952a5b47",
    "type": "code-module",
    "title": "src/test/production-deployment-credential-wiring.test.ts",
-   "description": "Module de 42 lignes; exports: aucun export statique.",
+   "description": "Module de 46 lignes; exports: aucun export statique.",
    "path": "src/test/production-deployment-credential-wiring.test.ts",
    "line": 1,
    "surface": null,
@@ -137315,7 +137957,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "6cc9b50e5995"
+   "detailRef": "c93682f05c9a"
   },
   {
    "id": "code-module:a2930093cb10",
@@ -137351,14 +137993,14 @@
    "id": "code-module:384581ed4d81",
    "type": "code-module",
    "title": "src/test/production-supabase-deployment-keys.test.ts",
-   "description": "Module de 104 lignes; exports: aucun export statique.",
+   "description": "Module de 115 lignes; exports: aucun export statique.",
    "path": "src/test/production-supabase-deployment-keys.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "7f5037ff495b"
+   "detailRef": "f04dd589d215"
   },
   {
    "id": "code-module:c0203a10a834",
@@ -139902,7 +140544,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 2759 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 2783 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -139915,7 +140557,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "461031064cea"
+   "detailRef": "8a171aca8964"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -140074,6 +140716,36 @@
    "detailRef": "995a8aed4348"
   },
   {
+   "id": "code-module:8f9a90f373f3",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/marketing-backlink-discovery.ts",
+   "description": "Module de 46 lignes; exports: discoverBacklinkSources.",
+   "path": "supabase/functions/_shared/marketing-backlink-discovery.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "discoverBacklinkSources",
+    "openai"
+   ],
+   "detailRef": "365785cd282b"
+  },
+  {
+   "id": "code-module:a46c563c74ba",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/marketing-backlink-sources.ts",
+   "description": "Module de 89 lignes; exports: SOURCE_KINDS, BacklinkSource, publicSourceUrl, verifiedBacklinkSources.",
+   "path": "supabase/functions/_shared/marketing-backlink-sources.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "BacklinkSource",
+    "SOURCE_KINDS",
+    "publicSourceUrl",
+    "verifiedBacklinkSources"
+   ],
+   "detailRef": "3c62a874512a"
+  },
+  {
    "id": "code-module:13d84d310c47",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-email-template.ts",
@@ -140087,6 +140759,21 @@
     "renderMarketingEmail"
    ],
    "detailRef": "c5bea05b52cc"
+  },
+  {
+   "id": "code-module:e887a3d462c8",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/marketing-service-auth.ts",
+   "description": "Module de 64 lignes; exports: authenticateMarketingRequest.",
+   "path": "supabase/functions/_shared/marketing-service-auth.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "SUPABASE_SECRET_KEYS",
+    "authenticateMarketingRequest",
+    "supabase"
+   ],
+   "detailRef": "12f3f167f750"
   },
   {
    "id": "code-module:8e5e7ac50125",
@@ -140196,6 +140883,22 @@
    "detailRef": "c1548e9951f7"
   },
   {
+   "id": "code-module:16bb7c1039e6",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/meta-marketing-health.ts",
+   "description": "Module de 113 lignes; exports: MetaConnectionHealth, checkMetaMarketingConnections.",
+   "path": "supabase/functions/_shared/meta-marketing-health.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "META_APP_SECRET",
+    "META_SYSTEM_USER_TOKEN",
+    "MetaConnectionHealth",
+    "checkMetaMarketingConnections"
+   ],
+   "detailRef": "1511185e3784"
+  },
+  {
    "id": "code-module:85c4e9dfe22a",
    "type": "code-module",
    "title": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
@@ -140253,7 +140956,7 @@
    "id": "code-module:0ed38e023986",
    "type": "code-module",
    "title": "supabase/functions/_shared/openai.ts",
-   "description": "Module de 452 lignes; exports: TOK_OPENAI_COST_CHF_PER_CREDIT, TOK_OPENAI_USD_TO_CHF_RATE, estimateOpenAITextCostChf, getOpenAITextCreditUnits, getTokAiCreditUnitsFromCostChf, OPENAI_API_KEY, OPENAI_MODEL, OpenAIMessage, OpenAIJsonSchema, OpenAIResponseUsage, TokAiModelTask, selectTokAiModel, createOpenAIResponse, extractOutputText, extractUsage, describeResponseEnvelope, parseStructuredOutput.",
+   "description": "Module de 454 lignes; exports: TOK_OPENAI_COST_CHF_PER_CREDIT, TOK_OPENAI_USD_TO_CHF_RATE, estimateOpenAITextCostChf, getOpenAITextCreditUnits, getTokAiCreditUnitsFromCostChf, OPENAI_API_KEY, OPENAI_MODEL, OpenAIMessage, OpenAIJsonSchema, OpenAIResponseUsage, TokAiModelTask, selectTokAiModel, createOpenAIResponse, extractOutputText, extractUsage, describeResponseEnvelope, parseStructuredOutput.",
    "path": "supabase/functions/_shared/openai.ts",
    "line": 1,
    "surface": null,
@@ -140286,7 +140989,7 @@
     "parseStructuredOutput",
     "selectTokAiModel"
    ],
-   "detailRef": "59077a905e66"
+   "detailRef": "9111039b4190"
   },
   {
    "id": "code-module:cfa7b5f25b20",
@@ -141125,14 +141828,14 @@
    "id": "code-module:2d59c9951508",
    "type": "code-module",
    "title": "supabase/functions/ai-marketing-agent/index.ts",
-   "description": "Module de 286 lignes; exports: aucun export statique.",
+   "description": "Module de 297 lignes; exports: aucun export statique.",
    "path": "supabase/functions/ai-marketing-agent/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "openai"
    ],
-   "detailRef": "3fa9bdecb3e9"
+   "detailRef": "eb20ed039b0e"
   },
   {
    "id": "code-module:10cec8069bd9",
@@ -141860,7 +142563,7 @@
    "id": "code-module:0a9264bbf973",
    "type": "code-module",
    "title": "supabase/functions/marketing-orchestrator/index.ts",
-   "description": "Module de 488 lignes; exports: aucun export statique.",
+   "description": "Module de 499 lignes; exports: aucun export statique.",
    "path": "supabase/functions/marketing-orchestrator/index.ts",
    "line": 1,
    "surface": null,
@@ -141872,7 +142575,7 @@
     "resend",
     "supabase"
    ],
-   "detailRef": "d0be96f3aa68"
+   "detailRef": "8e58e8e8b6ae"
   },
   {
    "id": "code-module:1d037de76b49",
@@ -196628,6 +197331,20 @@
    "detailRef": "838272da440f"
   },
   {
+   "id": "document-section:0d6f09ffb557",
+   "type": "document-section",
+   "title": "Corrections",
+   "description": "Section de Marketing : session, recherche de sources et diagnostic Meta.",
+   "path": "docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "Marketing : session, recherche de sources et diagnostic Meta",
+    "h2"
+   ],
+   "detailRef": "d48be0e390cd"
+  },
+  {
    "id": "document-section:89b028e78aee",
    "type": "document-section",
    "title": "Correspondances appliquées au châssis",
@@ -199498,6 +200215,20 @@
    "detailRef": "6cd10167f828"
   },
   {
+   "id": "document-section:e8ca90d24d72",
+   "type": "document-section",
+   "title": "GHI — proposition de sujet local",
+   "description": "Section de Pistes de backlinks TOK sans compte existant.",
+   "path": "docs/marketing-backlink-opportunities.md",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "Pistes de backlinks TOK sans compte existant",
+    "h2"
+   ],
+   "detailRef": "45be6f42b6fe"
+  },
+  {
    "id": "document-section:326619dae145",
    "type": "document-section",
    "title": "Garanties de sécurité et d'isolation",
@@ -199776,6 +200507,20 @@
     "h2"
    ],
    "detailRef": "8f1073702f92"
+  },
+  {
+   "id": "document-section:7da5691aa5e5",
+   "type": "document-section",
+   "title": "GoLunch — partenariat éditorial en Suisse romande",
+   "description": "Section de Pistes de backlinks TOK sans compte existant.",
+   "path": "docs/marketing-backlink-opportunities.md",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "Pistes de backlinks TOK sans compte existant",
+    "h2"
+   ],
+   "detailRef": "7d974c04757b"
   },
   {
    "id": "document-section:2d38a5a8cf3b",
@@ -201750,6 +202495,20 @@
     "h2"
    ],
    "detailRef": "be77824ad50a"
+  },
+  {
+   "id": "document-section:1416ce38ce88",
+   "type": "document-section",
+   "title": "Marketing : session, recherche de sources et diagnostic Meta",
+   "description": "Section de Marketing : session, recherche de sources et diagnostic Meta.",
+   "path": "docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Marketing : session, recherche de sources et diagnostic Meta",
+    "h1"
+   ],
+   "detailRef": "f1594035c629"
   },
   {
    "id": "document-section:eb8131b14681",
@@ -205294,6 +206053,34 @@
    "detailRef": "fd0b54c5ef4d"
   },
   {
+   "id": "document-section:d11c93ba1f63",
+   "type": "document-section",
+   "title": "Piste exclue après vérification",
+   "description": "Section de Pistes de backlinks TOK sans compte existant.",
+   "path": "docs/marketing-backlink-opportunities.md",
+   "line": 32,
+   "surface": null,
+   "tags": [
+    "Pistes de backlinks TOK sans compte existant",
+    "h2"
+   ],
+   "detailRef": "5c4d4db120a1"
+  },
+  {
+   "id": "document-section:015781ef96c2",
+   "type": "document-section",
+   "title": "Pistes de backlinks TOK sans compte existant",
+   "description": "Section de Pistes de backlinks TOK sans compte existant.",
+   "path": "docs/marketing-backlink-opportunities.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Pistes de backlinks TOK sans compte existant",
+    "h1"
+   ],
+   "detailRef": "a38da5e42836"
+  },
+  {
    "id": "document-section:3b9f4c500636",
    "type": "document-section",
    "title": "Placeholder scan",
@@ -205936,6 +206723,20 @@
     "h2"
    ],
    "detailRef": "32279a80978b"
+  },
+  {
+   "id": "document-section:1cba200f4c03",
+   "type": "document-section",
+   "title": "Preuves et limites externes",
+   "description": "Section de Marketing : session, recherche de sources et diagnostic Meta.",
+   "path": "docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md",
+   "line": 20,
+   "surface": null,
+   "tags": [
+    "Marketing : session, recherche de sources et diagnostic Meta",
+    "h2"
+   ],
+   "detailRef": "3b7b5f08c3b2"
   },
   {
    "id": "document-section:17f80d61cb45",
@@ -207730,6 +208531,20 @@
    "detailRef": "9f040cc33ca2"
   },
   {
+   "id": "document-section:e344f10e69fe",
+   "type": "document-section",
+   "title": "Retour arrière",
+   "description": "Section de Marketing : session, recherche de sources et diagnostic Meta.",
+   "path": "docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md",
+   "line": 29,
+   "surface": null,
+   "tags": [
+    "Marketing : session, recherche de sources et diagnostic Meta",
+    "h2"
+   ],
+   "detailRef": "79fe5f268e98"
+  },
+  {
    "id": "document-section:6b4d84b570ab",
    "type": "document-section",
    "title": "Retour arrière",
@@ -208806,6 +209621,20 @@
     "h2"
    ],
    "detailRef": "e60bde0a079a"
+  },
+  {
+   "id": "document-section:6033ececf013",
+   "type": "document-section",
+   "title": "Réconciliation de l'historique Meta",
+   "description": "Section de Marketing : session, recherche de sources et diagnostic Meta.",
+   "path": "docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "Marketing : session, recherche de sources et diagnostic Meta",
+    "h2"
+   ],
+   "detailRef": "db5c3dc4af61"
   },
   {
    "id": "document-section:6c7c3bedbb08",
@@ -213988,6 +214817,20 @@
    "detailRef": "6501b2ddd691"
   },
   {
+   "id": "document-section:afa72cd8e4de",
+   "type": "document-section",
+   "title": "Traitement dans l'outil",
+   "description": "Section de Pistes de backlinks TOK sans compte existant.",
+   "path": "docs/marketing-backlink-opportunities.md",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "Pistes de backlinks TOK sans compte existant",
+    "h2"
+   ],
+   "detailRef": "950c55911496"
+  },
+  {
    "id": "document-section:b814c1723093",
    "type": "document-section",
    "title": "Transparence",
@@ -215848,6 +216691,20 @@
     "h1"
    ],
    "detailRef": "c3af656c06ff"
+  },
+  {
+   "id": "document-section:9c9fa6534031",
+   "type": "document-section",
+   "title": "ZIP.ch — demande d'inscription gratuite",
+   "description": "Section de Pistes de backlinks TOK sans compte existant.",
+   "path": "docs/marketing-backlink-opportunities.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "Pistes de backlinks TOK sans compte existant",
+    "h2"
+   ],
+   "detailRef": "a69920110326"
   },
   {
    "id": "document-section:14b0ef483aef",
@@ -218605,6 +219462,23 @@
    "detailRef": "a7fe1904a70e"
   },
   {
+   "id": "document:1416ce38ce88",
+   "type": "document",
+   "title": "Marketing : session, recherche de sources et diagnostic Meta",
+   "description": "Document Markdown avec 5 section(s).",
+   "path": "docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Corrections",
+    "Marketing : session, recherche de sources et diagnostic Meta",
+    "Preuves et limites externes",
+    "Retour arrière",
+    "Réconciliation de l'historique Meta"
+   ],
+   "detailRef": "e71fcaa9779d"
+  },
+  {
    "id": "document:eb8131b14681",
    "type": "document",
    "title": "Marketing Studio Output Geometry Design",
@@ -218869,6 +219743,24 @@
     "Table of contents"
    ],
    "detailRef": "17fd1ddf9ee4"
+  },
+  {
+   "id": "document:015781ef96c2",
+   "type": "document",
+   "title": "Pistes de backlinks TOK sans compte existant",
+   "description": "Document Markdown avec 6 section(s).",
+   "path": "docs/marketing-backlink-opportunities.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "GHI — proposition de sujet local",
+    "GoLunch — partenariat éditorial en Suisse romande",
+    "Piste exclue après vérification",
+    "Pistes de backlinks TOK sans compte existant",
+    "Traitement dans l'outil",
+    "ZIP.ch — demande d'inscription gratuite"
+   ],
+   "detailRef": "958273e0ec55"
   },
   {
    "id": "document:1264342d4679",
@@ -221279,6 +222171,20 @@
    "detailRef": "3b62edab85ce"
   },
   {
+   "id": "edge-action:1ff6cd4afb91",
+   "type": "edge-action",
+   "title": "check_meta",
+   "description": "Action statiquement détectée dans la fonction Edge marketing-orchestrator.",
+   "path": "supabase/functions/marketing-orchestrator/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/marketing-orchestrator",
+    "marketing-orchestrator"
+   ],
+   "detailRef": "7cfb3d2fa511"
+  },
+  {
    "id": "edge-action:877da3346f2c",
    "type": "edge-action",
    "title": "clear",
@@ -221459,6 +222365,20 @@
     "print-catalog"
    ],
    "detailRef": "7e4491e07278"
+  },
+  {
+   "id": "edge-action:3abf8481bf0f",
+   "type": "edge-action",
+   "title": "discover_sources",
+   "description": "Action statiquement détectée dans la fonction Edge ai-marketing-agent.",
+   "path": "supabase/functions/ai-marketing-agent/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/ai-marketing-agent",
+    "ai-marketing-agent"
+   ],
+   "detailRef": "09cd8bb697ea"
   },
   {
    "id": "edge-action:3e061abe0ce8",
@@ -222931,12 +223851,13 @@
    "surface": null,
    "tags": [
     "POST",
+    "discover_sources",
     "generate",
     "list_runs",
     "openai",
     "unknown"
    ],
-   "detailRef": "78d888a44017"
+   "detailRef": "79b1aa125e09"
   },
   {
    "id": "edge-function:29c1f809b3b6",
@@ -223710,12 +224631,13 @@
     "POST",
     "RESEND_API_KEY",
     "SUPABASE_URL",
+    "check_meta",
     "google",
     "resend",
     "run_item",
     "supabase"
    ],
-   "detailRef": "f46ff44f6a61"
+   "detailRef": "840f80d8aa36"
   },
   {
    "id": "edge-function:ea04d0a7dc94",
@@ -225527,17 +226449,18 @@
    "detailRef": "6106059cab3c"
   },
   {
-   "id": "environment-variable:2fd879d4b739",
+   "id": "environment-variable:8c29cbaf29dc",
    "type": "environment-variable",
    "title": "META_APP_SECRET",
-   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
-   "path": "supabase/functions/_shared/meta-marketing-orchestrator.ts",
+   "description": "Nom de variable d’environnement référencé dans 2 module(s); aucune valeur n’est indexée.",
+   "path": "supabase/functions/_shared/meta-marketing-health.ts",
    "line": null,
    "surface": null,
    "tags": [
+    "supabase/functions/_shared/meta-marketing-health.ts",
     "supabase/functions/_shared/meta-marketing-orchestrator.ts"
    ],
-   "detailRef": "47842440807f"
+   "detailRef": "659397a69b16"
   },
   {
    "id": "environment-variable:0d3970279d7b",
@@ -225551,6 +226474,19 @@
     "supabase/functions/_shared/meta-marketing-orchestrator.ts"
    ],
    "detailRef": "f17639a22284"
+  },
+  {
+   "id": "environment-variable:d71667f5206d",
+   "type": "environment-variable",
+   "title": "META_SYSTEM_USER_TOKEN",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "supabase/functions/_shared/meta-marketing-health.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/meta-marketing-health.ts"
+   ],
+   "detailRef": "a766a5ff83ff"
   },
   {
    "id": "environment-variable:4a68b846e33f",
@@ -226385,10 +227321,23 @@
    "detailRef": "c5316a6ddc0c"
   },
   {
+   "id": "environment-variable:b8e67f9ee894",
+   "type": "environment-variable",
+   "title": "SUPABASE_SECRET_KEYS",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "supabase/functions/_shared/marketing-service-auth.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/marketing-service-auth.ts"
+   ],
+   "detailRef": "8fdc36620b86"
+  },
+  {
    "id": "environment-variable:17512face89e",
    "type": "environment-variable",
    "title": "SUPABASE_SERVICE_ROLE_KEY",
-   "description": "Nom de variable d’environnement référencé dans 15 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 17 module(s); aucune valeur n’est indexée.",
    "path": "scripts/import-marketing-prospect-coordinates.mjs",
    "line": null,
    "surface": null,
@@ -226396,7 +227345,9 @@
     "scripts/import-marketing-prospect-coordinates.mjs",
     "scripts/restaurant-image-truth-worker.mjs",
     "server/marketingBff.ts",
+    "src/test/marketing-agent-bff.test.ts",
     "src/test/marketing-bff-security.test.ts",
+    "src/test/marketing-meta-bff.test.ts",
     "supabase/functions/_shared/delivery-dispatch.ts",
     "supabase/functions/ai-support-resolution/index.ts",
     "supabase/functions/dispatch-order/index.ts",
@@ -226409,7 +227360,7 @@
     "supabase/functions/track-analytics/index.ts",
     "supabase/functions/track-sponsored-event/index.ts"
    ],
-   "detailRef": "cc6c800ce754"
+   "detailRef": "371d4bf214d2"
   },
   {
    "id": "environment-variable:a761a6cbaaec",
@@ -228649,6 +229600,19 @@
     "function"
    ],
    "detailRef": "878fe5d2c1e1"
+  },
+  {
+   "id": "exported-symbol:a513d462ed52",
+   "type": "exported-symbol",
+   "title": "BacklinkSource",
+   "description": "Export typealias de supabase/functions/_shared/marketing-backlink-sources.ts.",
+   "path": "supabase/functions/_shared/marketing-backlink-sources.ts",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "9ea3d5f87106"
   },
   {
    "id": "exported-symbol:9b4384509956",
@@ -232689,6 +233653,19 @@
     "re-export"
    ],
    "detailRef": "b609b64d156b"
+  },
+  {
+   "id": "exported-symbol:a6c0bce4b1ed",
+   "type": "exported-symbol",
+   "title": "DiscoveredMarketingSource",
+   "description": "Export typealias de src/components/marketing/MarketingSourceDiscovery.tsx.",
+   "path": "src/components/marketing/MarketingSourceDiscovery.tsx",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "bbed36647fe1"
   },
   {
    "id": "exported-symbol:16e60cbe7877",
@@ -238594,6 +239571,19 @@
    "detailRef": "735bfd9f7f65"
   },
   {
+   "id": "exported-symbol:d0b3791cbc8a",
+   "type": "exported-symbol",
+   "title": "MetaConnectionHealth",
+   "description": "Export typealias de supabase/functions/_shared/meta-marketing-health.ts.",
+   "path": "supabase/functions/_shared/meta-marketing-health.ts",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "5ea51343ab3a"
+  },
+  {
    "id": "exported-symbol:9952ee47db75",
    "type": "exported-symbol",
    "title": "MetaPublishError",
@@ -242562,6 +243552,19 @@
    "detailRef": "dfc46db03338"
   },
   {
+   "id": "exported-symbol:e7fe7d1a7afe",
+   "type": "exported-symbol",
+   "title": "SOURCE_KINDS",
+   "description": "Export variable de supabase/functions/_shared/marketing-backlink-sources.ts.",
+   "path": "supabase/functions/_shared/marketing-backlink-sources.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "9b4c39198561"
+  },
+  {
    "id": "exported-symbol:f3f9ed637d87",
    "type": "exported-symbol",
    "title": "SPONSORED_ATTRIBUTION_KEY",
@@ -245813,18 +246816,18 @@
    "detailRef": "8c915e2fd510"
   },
   {
-   "id": "exported-symbol:0ed323dd1ab6",
+   "id": "exported-symbol:ec29a6e7303f",
    "type": "exported-symbol",
    "title": "TokAiModelTask",
    "description": "Export typealias de supabase/functions/_shared/openai.ts.",
    "path": "supabase/functions/_shared/openai.ts",
-   "line": 66,
+   "line": 67,
    "surface": null,
    "tags": [
     "openai",
     "typealias"
    ],
-   "detailRef": "0b210bfc0164"
+   "detailRef": "78a16497bfc2"
   },
   {
    "id": "exported-symbol:eb7f2aa75ab7",
@@ -247653,6 +248656,20 @@
     "variable"
    ],
    "detailRef": "0527a99dde8d"
+  },
+  {
+   "id": "exported-symbol:62d0037b2f86",
+   "type": "exported-symbol",
+   "title": "authenticateMarketingRequest",
+   "description": "Export function de supabase/functions/_shared/marketing-service-auth.ts.",
+   "path": "supabase/functions/_shared/marketing-service-auth.ts",
+   "line": 37,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "8dec132cbc0f"
   },
   {
    "id": "exported-symbol:ff3018a6f69e",
@@ -249989,6 +251006,19 @@
    "detailRef": "4aa40adc5714"
   },
   {
+   "id": "exported-symbol:e241a46d1f8f",
+   "type": "exported-symbol",
+   "title": "checkMetaMarketingConnections",
+   "description": "Export function de supabase/functions/_shared/meta-marketing-health.ts.",
+   "path": "supabase/functions/_shared/meta-marketing-health.ts",
+   "line": 62,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "bbebcfd38297"
+  },
+  {
    "id": "exported-symbol:d9808e771323",
    "type": "exported-symbol",
    "title": "checkOllamaModels",
@@ -251119,18 +252149,18 @@
    "detailRef": "efee8109a0b2"
   },
   {
-   "id": "exported-symbol:83fb099ad5e7",
+   "id": "exported-symbol:af0cc09c2d06",
    "type": "exported-symbol",
    "title": "createOpenAIResponse",
    "description": "Export function de supabase/functions/_shared/openai.ts.",
    "path": "supabase/functions/_shared/openai.ts",
-   "line": 165,
+   "line": 166,
    "surface": null,
    "tags": [
     "function",
     "openai"
    ],
-   "detailRef": "184e6653f439"
+   "detailRef": "e5d8f47ebe6e"
   },
   {
    "id": "exported-symbol:2975141f1272",
@@ -253432,6 +254462,19 @@
    "detailRef": "f09b827b6fbc"
   },
   {
+   "id": "exported-symbol:debc19dd9533",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/marketing/MarketingMetaConnection.tsx.",
+   "path": "src/components/marketing/MarketingMetaConnection.tsx",
+   "line": 15,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "9203aa6bab7e"
+  },
+  {
    "id": "exported-symbol:15fa6d66a3db",
    "type": "exported-symbol",
    "title": "default",
@@ -253443,6 +254486,19 @@
     "function"
    ],
    "detailRef": "804e9b9a12ae"
+  },
+  {
+   "id": "exported-symbol:f9fcd89e30ba",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/marketing/MarketingSourceDiscovery.tsx.",
+   "path": "src/components/marketing/MarketingSourceDiscovery.tsx",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "f6ad11948f69"
   },
   {
    "id": "exported-symbol:210a22e00ac6",
@@ -253565,30 +254621,30 @@
    "detailRef": "73328efdea37"
   },
   {
-   "id": "exported-symbol:ee993e1fa8b2",
+   "id": "exported-symbol:c074503e006f",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/marketing/views/MarketingIntegrationsView.tsx.",
    "path": "src/components/marketing/views/MarketingIntegrationsView.tsx",
-   "line": 29,
+   "line": 30,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "e75116c828bc"
+   "detailRef": "470a9601be0b"
   },
   {
-   "id": "exported-symbol:c48d119c3afe",
+   "id": "exported-symbol:b7e2ef855160",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/marketing/views/MarketingOutreachView.tsx.",
    "path": "src/components/marketing/views/MarketingOutreachView.tsx",
-   "line": 152,
+   "line": 153,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "f6513d217347"
+   "detailRef": "59d2d5a52deb"
   },
   {
    "id": "exported-symbol:49498f8b28e7",
@@ -255854,18 +256910,18 @@
    "detailRef": "9d007f0dd6c8"
   },
   {
-   "id": "exported-symbol:13f148c5956b",
+   "id": "exported-symbol:39854a72335a",
    "type": "exported-symbol",
    "title": "describeResponseEnvelope",
    "description": "Export function de supabase/functions/_shared/openai.ts.",
    "path": "supabase/functions/_shared/openai.ts",
-   "line": 311,
+   "line": 313,
    "surface": null,
    "tags": [
     "function",
     "openai"
    ],
-   "detailRef": "059bb74a6c17"
+   "detailRef": "2815f7f6aca5"
   },
   {
    "id": "exported-symbol:d2b753c02c4d",
@@ -255976,6 +257032,20 @@
     "supabase"
    ],
    "detailRef": "8533147ad37f"
+  },
+  {
+   "id": "exported-symbol:a99d7e59cd2c",
+   "type": "exported-symbol",
+   "title": "discoverBacklinkSources",
+   "description": "Export function de supabase/functions/_shared/marketing-backlink-discovery.ts.",
+   "path": "supabase/functions/_shared/marketing-backlink-discovery.ts",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "function",
+    "openai"
+   ],
+   "detailRef": "3180152f4e3a"
   },
   {
    "id": "exported-symbol:4adc31c1f975",
@@ -256546,18 +257616,18 @@
    "detailRef": "fc1e33c4c842"
   },
   {
-   "id": "exported-symbol:2b02ecb8200e",
+   "id": "exported-symbol:8d2f617748b0",
    "type": "exported-symbol",
    "title": "extractOutputText",
    "description": "Export function de supabase/functions/_shared/openai.ts.",
    "path": "supabase/functions/_shared/openai.ts",
-   "line": 237,
+   "line": 239,
    "surface": null,
    "tags": [
     "function",
     "openai"
    ],
-   "detailRef": "97397d5f2fa7"
+   "detailRef": "4c16dda4ea04"
   },
   {
    "id": "exported-symbol:5f9611bdcd9d",
@@ -256573,18 +257643,18 @@
    "detailRef": "c933e5639125"
   },
   {
-   "id": "exported-symbol:20ec3401d6dd",
+   "id": "exported-symbol:82df0b7f486c",
    "type": "exported-symbol",
    "title": "extractUsage",
    "description": "Export function de supabase/functions/_shared/openai.ts.",
    "path": "supabase/functions/_shared/openai.ts",
-   "line": 271,
+   "line": 273,
    "surface": null,
    "tags": [
     "function",
     "openai"
    ],
-   "detailRef": "34af9fb20481"
+   "detailRef": "07fdc6e8e5b3"
   },
   {
    "id": "exported-symbol:64dad5d710ae",
@@ -257324,18 +258394,19 @@
    "detailRef": "bf8f74100429"
   },
   {
-   "id": "exported-symbol:49d65e894a42",
+   "id": "exported-symbol:9438414c5ceb",
    "type": "exported-symbol",
    "title": "formatGitHubEnvironment",
    "description": "Export function de scripts/write-production-supabase-keys-env.mjs.",
    "path": "scripts/write-production-supabase-keys-env.mjs",
-   "line": 63,
+   "line": 67,
    "surface": null,
    "tags": [
     "function",
-    "supabase"
+    "supabase",
+    "vercel"
    ],
-   "detailRef": "114935951ed3"
+   "detailRef": "2b613145a54c"
   },
   {
    "id": "exported-symbol:f6802d2245d2",
@@ -263954,17 +265025,17 @@
    "detailRef": "7419c933098b"
   },
   {
-   "id": "exported-symbol:633631e4923f",
+   "id": "exported-symbol:a814a4a538d9",
    "type": "exported-symbol",
    "title": "isMarketingTotpCode",
    "description": "Export function de src/marketing/marketingBffClient.ts.",
    "path": "src/marketing/marketingBffClient.ts",
-   "line": 61,
+   "line": 69,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "25b365339858"
+   "detailRef": "20cafe2ef8b8"
   },
   {
    "id": "exported-symbol:2f10494c1b62",
@@ -265113,12 +266184,12 @@
    "detailRef": "030eab57dc46"
   },
   {
-   "id": "exported-symbol:46cd75449b96",
+   "id": "exported-symbol:2c41936cf848",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 2754,
+   "line": 2778,
    "surface": null,
    "tags": [
     "firebase",
@@ -265127,7 +266198,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "a61902117dd7"
+   "detailRef": "9d7a93b9974c"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -265374,12 +266445,12 @@
    "detailRef": "4ac9175f2cec"
   },
   {
-   "id": "exported-symbol:dfa72d5f86cc",
+   "id": "exported-symbol:e2b975fbd3e7",
    "type": "exported-symbol",
    "title": "marketingAgentHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1873,
+   "line": 1904,
    "surface": null,
    "tags": [
     "function",
@@ -265387,28 +266458,28 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "543b965ef113"
+   "detailRef": "8ded85cd0afe"
   },
   {
-   "id": "exported-symbol:90faae3002d3",
+   "id": "exported-symbol:baf7a25ea60c",
    "type": "exported-symbol",
    "title": "marketingBffRequest",
    "description": "Export function de src/marketing/marketingBffClient.ts.",
    "path": "src/marketing/marketingBffClient.ts",
-   "line": 141,
+   "line": 149,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "6c42956e213b"
+   "detailRef": "6cbfa8244f05"
   },
   {
-   "id": "exported-symbol:8e5abc3073c3",
+   "id": "exported-symbol:f046601cece0",
    "type": "exported-symbol",
    "title": "marketingLaunchHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1880,
+   "line": 1911,
    "surface": null,
    "tags": [
     "function",
@@ -265416,15 +266487,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "fcd9aff56e06"
+   "detailRef": "c9e4da8d5be4"
   },
   {
-   "id": "exported-symbol:1a3c01331d6d",
+   "id": "exported-symbol:a0332ba6fdcb",
    "type": "exported-symbol",
    "title": "marketingLoginHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1811,
+   "line": 1842,
    "surface": null,
    "tags": [
     "function",
@@ -265432,15 +266503,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "6b92e3415509"
+   "detailRef": "91beaac87341"
   },
   {
-   "id": "exported-symbol:ffd1fdfae32d",
+   "id": "exported-symbol:41fd5a9e7337",
    "type": "exported-symbol",
    "title": "marketingLogoutHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1832,
+   "line": 1863,
    "surface": null,
    "tags": [
     "function",
@@ -265448,15 +266519,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "7afe386f2377"
+   "detailRef": "902e6eb3077e"
   },
   {
-   "id": "exported-symbol:8fae46e85f5a",
+   "id": "exported-symbol:1f9784d631ed",
    "type": "exported-symbol",
    "title": "marketingMfaEnrollHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1818,
+   "line": 1849,
    "surface": null,
    "tags": [
     "function",
@@ -265464,15 +266535,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "9316ad7677f5"
+   "detailRef": "8595e94c9ad2"
   },
   {
-   "id": "exported-symbol:b62cd571f063",
+   "id": "exported-symbol:f002a0b62ed7",
    "type": "exported-symbol",
    "title": "marketingMfaVerifyHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1825,
+   "line": 1856,
    "surface": null,
    "tags": [
     "function",
@@ -265480,7 +266551,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "0a91c91cebf8"
+   "detailRef": "c4ecf252f0d9"
   },
   {
    "id": "exported-symbol:19ab8e50dae1",
@@ -265496,12 +266567,12 @@
    "detailRef": "6e8251e72194"
   },
   {
-   "id": "exported-symbol:3996818c9af7",
+   "id": "exported-symbol:caed22af0547",
    "type": "exported-symbol",
    "title": "marketingOrchestratorHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1866,
+   "line": 1897,
    "surface": null,
    "tags": [
     "function",
@@ -265509,7 +266580,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "bab1f5871a70"
+   "detailRef": "349e99a87fd8"
   },
   {
    "id": "exported-symbol:c4d899e3cdd3",
@@ -265538,12 +266609,12 @@
    "detailRef": "40523290a88c"
   },
   {
-   "id": "exported-symbol:c4a951a66102",
+   "id": "exported-symbol:cdffef59426b",
    "type": "exported-symbol",
    "title": "marketingRpcHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1859,
+   "line": 1890,
    "surface": null,
    "tags": [
     "function",
@@ -265551,15 +266622,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "3b9ee3afad6d"
+   "detailRef": "00e2bdae4e9f"
   },
   {
-   "id": "exported-symbol:32ebe3febd0e",
+   "id": "exported-symbol:f3bcb4698920",
    "type": "exported-symbol",
    "title": "marketingSessionHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1843,
+   "line": 1874,
    "surface": null,
    "tags": [
     "function",
@@ -265567,7 +266638,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "77b2e8ece21e"
+   "detailRef": "3385ea9469ce"
   },
   {
    "id": "exported-symbol:7c4d43963f98",
@@ -267037,18 +268108,18 @@
    "detailRef": "80edc679dfba"
   },
   {
-   "id": "exported-symbol:1fa573476677",
+   "id": "exported-symbol:e3523255fb08",
    "type": "exported-symbol",
    "title": "parseStructuredOutput",
    "description": "Export function de supabase/functions/_shared/openai.ts.",
    "path": "supabase/functions/_shared/openai.ts",
-   "line": 344,
+   "line": 346,
    "surface": null,
    "tags": [
     "function",
     "openai"
    ],
-   "detailRef": "f38aa840b04e"
+   "detailRef": "99e3be5a1914"
   },
   {
    "id": "exported-symbol:a604ef74821a",
@@ -267311,6 +268382,19 @@
    "detailRef": "5eee9bda13ca"
   },
   {
+   "id": "exported-symbol:f4d3057811f6",
+   "type": "exported-symbol",
+   "title": "publicSourceUrl",
+   "description": "Export function de supabase/functions/_shared/marketing-backlink-sources.ts.",
+   "path": "supabase/functions/_shared/marketing-backlink-sources.ts",
+   "line": 20,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "b3eda2e1039c"
+  },
+  {
    "id": "exported-symbol:f2ef7dc8ea32",
    "type": "exported-symbol",
    "title": "publishDailyDishProposal",
@@ -267473,17 +268557,17 @@
    "detailRef": "3f5551a67aba"
   },
   {
-   "id": "exported-symbol:5cf1585d2416",
+   "id": "exported-symbol:2bf1da8a5c72",
    "type": "exported-symbol",
    "title": "readMarketingCsrfToken",
    "description": "Export function de src/marketing/marketingBffClient.ts.",
    "path": "src/marketing/marketingBffClient.ts",
-   "line": 65,
+   "line": 73,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "19596d5fb2c4"
+   "detailRef": "b328c19cd3b5"
   },
   {
    "id": "exported-symbol:bad8c530b9b9",
@@ -269620,7 +270704,8 @@
    "surface": null,
    "tags": [
     "function",
-    "supabase"
+    "supabase",
+    "vercel"
    ],
    "detailRef": "469d8c8ab577"
   },
@@ -269645,18 +270730,18 @@
    "detailRef": "a484f1994653"
   },
   {
-   "id": "exported-symbol:e21469361744",
+   "id": "exported-symbol:5c8914a7c444",
    "type": "exported-symbol",
    "title": "selectTokAiModel",
    "description": "Export function de supabase/functions/_shared/openai.ts.",
    "path": "supabase/functions/_shared/openai.ts",
-   "line": 81,
+   "line": 82,
    "surface": null,
    "tags": [
     "function",
     "openai"
    ],
-   "detailRef": "c32a4844e7dd"
+   "detailRef": "76868c2bfc7b"
   },
   {
    "id": "exported-symbol:828d88f73264",
@@ -272845,6 +273930,19 @@
    "detailRef": "2c3d191cec1c"
   },
   {
+   "id": "exported-symbol:6a02c0cf2908",
+   "type": "exported-symbol",
+   "title": "verifiedBacklinkSources",
+   "description": "Export function de supabase/functions/_shared/marketing-backlink-sources.ts.",
+   "path": "supabase/functions/_shared/marketing-backlink-sources.ts",
+   "line": 37,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "0d9c9166741e"
+  },
+  {
    "id": "exported-symbol:6e8281d190a4",
    "type": "exported-symbol",
    "title": "verifyAppleSignedNotification",
@@ -273151,18 +274249,19 @@
    "detailRef": "e4b6a62e0909"
   },
   {
-   "id": "exported-symbol:0fdc789ac5fa",
+   "id": "exported-symbol:e437b26595cb",
    "type": "exported-symbol",
    "title": "writeProductionSupabaseKeysEnv",
    "description": "Export function de scripts/write-production-supabase-keys-env.mjs.",
    "path": "scripts/write-production-supabase-keys-env.mjs",
-   "line": 69,
+   "line": 73,
    "surface": null,
    "tags": [
     "function",
-    "supabase"
+    "supabase",
+    "vercel"
    ],
-   "detailRef": "d011e04170f2"
+   "detailRef": "8269a04251c6"
   },
   {
    "id": "exported-symbol:5507a4ece186",
@@ -277901,6 +279000,20 @@
    "detailRef": "ad7171e0e899"
   },
   {
+   "id": "file:1605004fa746",
+   "type": "file",
+   "title": "docs/marketing-backlink-opportunities.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/marketing-backlink-opportunities.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "15aead17cf8c"
+  },
+  {
    "id": "file:40e2d449da71",
    "type": "file",
    "title": "docs/marketing-email-examples/01-lancement-geneve.html",
@@ -278011,6 +279124,20 @@
     "documentation"
    ],
    "detailRef": "f85ec1022346"
+  },
+  {
+   "id": "file:e041841e1a7e",
+   "type": "file",
+   "title": "docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "e44edb361fa7"
   },
   {
    "id": "file:80142cee285c",
@@ -287575,6 +288702,20 @@
    "detailRef": "ef49bbfc0a45"
   },
   {
+   "id": "file:8b7ae85e345e",
+   "type": "file",
+   "title": "src/components/marketing/MarketingMetaConnection.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/marketing/MarketingMetaConnection.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "cb1d8d9efa7d"
+  },
+  {
    "id": "file:4bef8c207d4a",
    "type": "file",
    "title": "src/components/marketing/MarketingProtectedRoute.tsx",
@@ -287601,6 +288742,20 @@
     "frontend-component"
    ],
    "detailRef": "af30e0fc292c"
+  },
+  {
+   "id": "file:a70b0fd91a45",
+   "type": "file",
+   "title": "src/components/marketing/MarketingSourceDiscovery.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/marketing/MarketingSourceDiscovery.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "20479d6fb9ff"
   },
   {
    "id": "file:55e2fc458c59",
@@ -297991,6 +299146,20 @@
    "detailRef": "f8107b154b43"
   },
   {
+   "id": "file:b05bd067a4f3",
+   "type": "file",
+   "title": "src/test/marketing-agent-bff.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-agent-bff.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "58c38384c867"
+  },
+  {
    "id": "file:5c8e3fc00e92",
    "type": "file",
    "title": "src/test/marketing-ai-agent.test.ts",
@@ -298045,6 +299214,34 @@
     "test"
    ],
    "detailRef": "56b45962d147"
+  },
+  {
+   "id": "file:021687fd9a2e",
+   "type": "file",
+   "title": "src/test/marketing-backlink-discovery.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-backlink-discovery.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "d56e1259ffc0"
+  },
+  {
+   "id": "file:e6f6751ef8bc",
+   "type": "file",
+   "title": "src/test/marketing-backlink-provider.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-backlink-provider.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "b06a93e05270"
   },
   {
    "id": "file:0c53a3320b92",
@@ -298173,6 +299370,48 @@
    "detailRef": "2ef61c1d95fa"
   },
   {
+   "id": "file:0e08d46e91fb",
+   "type": "file",
+   "title": "src/test/marketing-meta-bff.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-meta-bff.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "aca1976ca38f"
+  },
+  {
+   "id": "file:05fef93fbead",
+   "type": "file",
+   "title": "src/test/marketing-meta-connection.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-meta-connection.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "80827b8d69eb"
+  },
+  {
+   "id": "file:1a212384035c",
+   "type": "file",
+   "title": "src/test/marketing-meta-health.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-meta-health.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "77c1ac6b624e"
+  },
+  {
    "id": "file:e6b4912877d3",
    "type": "file",
    "title": "src/test/marketing-meta-publishing.test.ts",
@@ -298213,6 +299452,20 @@
     "test"
    ],
    "detailRef": "422074e6039d"
+  },
+  {
+   "id": "file:6d9d22639e27",
+   "type": "file",
+   "title": "src/test/marketing-openai-tool-choice.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-openai-tool-choice.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "0a85f0676403"
   },
   {
    "id": "file:271140948ecb",
@@ -298367,6 +299620,48 @@
     "test"
    ],
    "detailRef": "fab0a1f3f005"
+  },
+  {
+   "id": "file:a510a97b4ffc",
+   "type": "file",
+   "title": "src/test/marketing-service-auth.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-service-auth.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "f23334d92349"
+  },
+  {
+   "id": "file:3644b01b79dc",
+   "type": "file",
+   "title": "src/test/marketing-session-recovery.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-session-recovery.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "1e5cd7dd2f44"
+  },
+  {
+   "id": "file:f15aea4c6e30",
+   "type": "file",
+   "title": "src/test/marketing-source-discovery.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-source-discovery.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "6f8133351d4d"
   },
   {
    "id": "file:65e87e78fb43",
@@ -302191,6 +303486,34 @@
    "detailRef": "914693aaa33d"
   },
   {
+   "id": "file:dead2c2c3dbe",
+   "type": "file",
+   "title": "supabase/functions/_shared/marketing-backlink-discovery.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/marketing-backlink-discovery.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "29440962274a"
+  },
+  {
+   "id": "file:c42ca0dafaa6",
+   "type": "file",
+   "title": "supabase/functions/_shared/marketing-backlink-sources.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/marketing-backlink-sources.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "a76b4e64f9c1"
+  },
+  {
    "id": "file:f6743be111b7",
    "type": "file",
    "title": "supabase/functions/_shared/marketing-email-template.ts",
@@ -302203,6 +303526,20 @@
     "edge-function-source"
    ],
    "detailRef": "26b96167f871"
+  },
+  {
+   "id": "file:c96f988f116a",
+   "type": "file",
+   "title": "supabase/functions/_shared/marketing-service-auth.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/marketing-service-auth.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "3b4d14c8b6a4"
   },
   {
    "id": "file:31151f3582c7",
@@ -302273,6 +303610,20 @@
     "edge-function-source"
    ],
    "detailRef": "2aa412ccfeea"
+  },
+  {
+   "id": "file:0b775b470e2a",
+   "type": "file",
+   "title": "supabase/functions/_shared/meta-marketing-health.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/meta-marketing-health.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "246bf07fd3a9"
   },
   {
    "id": "file:daa8657d2f22",
@@ -311725,18 +313076,18 @@
    "detailRef": "fd328338ba53"
   },
   {
-   "id": "file:1282e6f7257b",
+   "id": "file:43cd64806c7d",
    "type": "file",
-   "title": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+   "title": "supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql",
    "description": "Fichier du dépôt classé database-migration.",
-   "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+   "path": "supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql",
    "line": null,
    "surface": null,
    "tags": [
     ".sql",
     "database-migration"
    ],
-   "detailRef": "a5ed020f73f0"
+   "detailRef": "77780e716c2a"
   },
   {
    "id": "file:5d026dfb7d77",
@@ -315008,7 +316359,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 111 module(s).",
+   "description": "Intégration externe détectée dans 114 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -315071,6 +316422,8 @@
     "src/test/incident-secret-sync-readiness.test.ts",
     "src/test/legal-miamz-readiness.test.ts",
     "src/test/marketing-b2b-outreach.test.ts",
+    "src/test/marketing-backlink-provider.test.ts",
+    "src/test/marketing-openai-tool-choice.test.ts",
     "src/test/notifications-ai-admin-hardening.test.ts",
     "src/test/production-preflight-hardening.test.ts",
     "src/test/restaurant-billing-account.test.ts",
@@ -315093,6 +316446,7 @@
     "supabase/functions/_shared/feature-flags.ts",
     "supabase/functions/_shared/incident-intelligence.ts",
     "supabase/functions/_shared/marketing-ai.ts",
+    "supabase/functions/_shared/marketing-backlink-discovery.ts",
     "supabase/functions/_shared/openai.ts",
     "supabase/functions/_shared/rate-limit.ts",
     "supabase/functions/_shared/restaurant-credits.ts",
@@ -315126,7 +316480,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "a4241d873f9d"
+   "detailRef": "7eebee2a9783"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -315437,7 +316791,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 643 module(s).",
+   "description": "Intégration externe détectée dans 651 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -315837,17 +317191,23 @@
     "src/test/legal-consent-v2.test.ts",
     "src/test/legal-public-surface-hardening.test.ts",
     "src/test/loyalty-status-dialog-layout.test.tsx",
+    "src/test/marketing-agent-bff.test.ts",
     "src/test/marketing-ai-agent.test.ts",
     "src/test/marketing-autopilot-sql.test.ts",
     "src/test/marketing-b2b-outreach.test.ts",
+    "src/test/marketing-backlink-discovery.test.ts",
+    "src/test/marketing-backlink-provider.test.ts",
     "src/test/marketing-bff-security.test.ts",
     "src/test/marketing-consent-dispatch.test.ts",
     "src/test/marketing-edge-security.test.ts",
     "src/test/marketing-email-cadence.test.ts",
     "src/test/marketing-email-template.test.ts",
+    "src/test/marketing-meta-bff.test.ts",
+    "src/test/marketing-meta-health.test.ts",
     "src/test/marketing-meta-publishing.test.ts",
     "src/test/marketing-meta-recovery.test.ts",
     "src/test/marketing-one-click-unsubscribe.test.ts",
+    "src/test/marketing-openai-tool-choice.test.ts",
     "src/test/marketing-operations-frontend.test.ts",
     "src/test/marketing-orchestrator-schema.test.ts",
     "src/test/marketing-outreach-schema.test.ts",
@@ -315856,6 +317216,7 @@
     "src/test/marketing-prospect-coordinates.test.ts",
     "src/test/marketing-rbarman-admin-access.test.ts",
     "src/test/marketing-runtime-hardening.test.ts",
+    "src/test/marketing-service-auth.test.ts",
     "src/test/marketing-sql-governance.test.ts",
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/marketplace-finance-routing.test.ts",
@@ -316015,6 +317376,7 @@
     "supabase/functions/_shared/incident-intelligence.ts",
     "supabase/functions/_shared/intelligence.ts",
     "supabase/functions/_shared/logging.ts",
+    "supabase/functions/_shared/marketing-service-auth.ts",
     "supabase/functions/_shared/marketplace-finance.ts",
     "supabase/functions/_shared/notifications.ts",
     "supabase/functions/_shared/print/cloudprinter.ts",
@@ -316087,7 +317449,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "ca1568729012"
+   "detailRef": "f073fd40f280"
   },
   {
    "id": "integration:c20910a79a78",
@@ -316130,7 +317492,7 @@
    "id": "integration:077d0104684d",
    "type": "integration",
    "title": "Vercel",
-   "description": "Intégration externe détectée dans 54 module(s).",
+   "description": "Intégration externe détectée dans 55 module(s).",
    "path": "middleware.js",
    "line": null,
    "surface": null,
@@ -316146,6 +317508,7 @@
     "scripts/prerender-seo.mjs",
     "scripts/resolve-live-stripe-publishable-key.mjs",
     "scripts/stoppin-venue-seo.test.mjs",
+    "scripts/write-production-supabase-keys-env.mjs",
     "server/marketingBff.ts",
     "src/lib/commercialDomains.ts",
     "src/lib/demoWorkspaces.ts",
@@ -316191,7 +317554,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "vercel"
    ],
-   "detailRef": "35b2b2b4f888"
+   "detailRef": "970f9c77b79a"
   },
   {
    "id": "marketing-operation:dae86fc78e92",
@@ -324014,18 +325377,18 @@
    "detailRef": "094f0be7b23b"
   },
   {
-   "id": "migration:319ce69d7180",
+   "id": "migration:cf7a0996673e",
    "type": "migration",
-   "title": "20261006033000 Configure Meta Marketing Integrations",
+   "title": "20261006022139 Configure Meta Marketing Integrations",
    "description": "Migration SQL de 47 lignes, 0 objets CREATE détectés.",
-   "path": "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql",
+   "path": "supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql",
    "line": 1,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase"
    ],
-   "detailRef": "fa62a0f1440a"
+   "detailRef": "4ee37fef69d0"
   },
   {
    "id": "migration:599e1b35f9e8",
@@ -328171,14 +329534,15 @@
    "id": "path-literal:134f25384925",
    "type": "path-literal",
    "title": "/api/marketing/agent",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/marketing/marketingBffClient.ts",
    "line": 13,
    "surface": null,
    "tags": [
-    "src/marketing/marketingBffClient.ts"
+    "src/marketing/marketingBffClient.ts",
+    "src/test/marketing-source-discovery.test.tsx"
    ],
-   "detailRef": "d61f25789d18"
+   "detailRef": "41b06192e28c"
   },
   {
    "id": "path-literal:107cc0a99bd5",
@@ -328237,27 +329601,30 @@
    "id": "path-literal:656b984b0c67",
    "type": "path-literal",
    "title": "/api/marketing/mfa/verify",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/marketing/marketingBffClient.ts",
    "line": 9,
    "surface": null,
    "tags": [
-    "src/marketing/marketingBffClient.ts"
+    "src/marketing/marketingBffClient.ts",
+    "src/test/marketing-bff-client.test.ts",
+    "src/test/marketing-session-recovery.test.tsx"
    ],
-   "detailRef": "6c8ab756b27b"
+   "detailRef": "dc2566d9f074"
   },
   {
    "id": "path-literal:58a720700b49",
    "type": "path-literal",
    "title": "/api/marketing/orchestrator",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/marketing/marketingBffClient.ts",
    "line": 12,
    "surface": null,
    "tags": [
-    "src/marketing/marketingBffClient.ts"
+    "src/marketing/marketingBffClient.ts",
+    "src/test/marketing-meta-connection.test.tsx"
    ],
-   "detailRef": "94091ef8ce9f"
+   "detailRef": "221e99082bd6"
   },
   {
    "id": "path-literal:5139a0b62543",
@@ -330540,16 +331907,30 @@
    "id": "path-literal:86a5c723657e",
    "type": "path-literal",
    "title": "/functions/v1/",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/lib/commercialDemoEffects.ts",
    "line": 27,
    "surface": null,
    "tags": [
     "src/lib/commercialDemoEffects.ts",
     "src/lib/commercialDemoHostSecurity.ts",
-    "src/lib/iosCommerceFetch.ts"
+    "src/lib/iosCommerceFetch.ts",
+    "src/test/marketing-agent-bff.test.ts"
    ],
-   "detailRef": "ac05f9cf5f33"
+   "detailRef": "fecd491d45cb"
+  },
+  {
+   "id": "path-literal:4d3338389c80",
+   "type": "path-literal",
+   "title": "/functions/v1/ai-marketing-agent",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-agent-bff.test.ts",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-agent-bff.test.ts"
+   ],
+   "detailRef": "1598fd6c0a56"
   },
   {
    "id": "path-literal:e23ffb63f273",
@@ -330602,6 +331983,19 @@
     "src/test/dispatch-client-fallback.test.ts"
    ],
    "detailRef": "472a3bff32b5"
+  },
+  {
+   "id": "path-literal:f30449d43575",
+   "type": "path-literal",
+   "title": "/functions/v1/marketing-orchestrator",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-meta-bff.test.ts",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-meta-bff.test.ts"
+   ],
+   "detailRef": "7a8dfeb3bae4"
   },
   {
    "id": "path-literal:86307d07f589",
@@ -332812,7 +334206,7 @@
     "src/test/marketing-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "4ba2b33d90cc"
+   "detailRef": "b42f1f8948c7"
   },
   {
    "id": "path-literal:3126448ac678",
@@ -334759,18 +336153,18 @@
    "detailRef": "e58a4d69c856"
   },
   {
-   "id": "path-literal:52620853eb79",
+   "id": "path-literal:725130042616",
    "type": "path-literal",
    "title": "/restaurants",
    "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/marketing/views/MarketingOutreachView.tsx",
-   "line": 101,
+   "line": 102,
    "surface": null,
    "tags": [
     "src/components/marketing/views/MarketingOutreachView.tsx",
     "src/marketing/marketingClient.ts"
    ],
-   "detailRef": "5631ef511d21"
+   "detailRef": "f63fc32e363d"
   },
   {
    "id": "path-literal:c35ac0348c0a",
@@ -334904,17 +336298,19 @@
    "detailRef": "17a63534f53a"
   },
   {
-   "id": "path-literal:68a3ad3ef80e",
+   "id": "path-literal:6614674d4a1f",
    "type": "path-literal",
    "title": "/rpc/service_consume_marketing_auth_attempt",
-   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/marketing-bff-security.test.ts",
-   "line": 236,
+   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-agent-bff.test.ts",
+   "line": 29,
    "surface": null,
    "tags": [
-    "src/test/marketing-bff-security.test.ts"
+    "src/test/marketing-agent-bff.test.ts",
+    "src/test/marketing-bff-security.test.ts",
+    "src/test/marketing-meta-bff.test.ts"
    ],
-   "detailRef": "daf67389f8c5"
+   "detailRef": "1b5dfb787fd4"
   },
   {
    "id": "path-literal:2d61ba9b9d13",
@@ -334941,6 +336337,20 @@
     "src/test/marketing-bff-security.test.ts"
    ],
    "detailRef": "e742be5ea725"
+  },
+  {
+   "id": "path-literal:e242f11f138d",
+   "type": "path-literal",
+   "title": "/rpc/service_get_marketing_web_session",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-agent-bff.test.ts",
+   "line": 24,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-agent-bff.test.ts",
+    "src/test/marketing-meta-bff.test.ts"
+   ],
+   "detailRef": "b50b3059ef99"
   },
   {
    "id": "path-literal:a4527ac57216",
@@ -335372,6 +336782,20 @@
     "server/marketingBff.ts"
    ],
    "detailRef": "c5beaf3a5b70"
+  },
+  {
+   "id": "path-literal:17910fbccc60",
+   "type": "path-literal",
+   "title": "/user_roles?",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-agent-bff.test.ts",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-agent-bff.test.ts",
+    "src/test/marketing-meta-bff.test.ts"
+   ],
+   "detailRef": "35be975c47d1"
   },
   {
    "id": "path-literal:e029d6ca54c2",
@@ -340441,6 +341865,19 @@
    "detailRef": "f8d55ff659cc"
   },
   {
+   "id": "query-parameter:c14f9943171f",
+   "type": "query-parameter",
+   "title": "appsecret_proof",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "supabase/functions/_shared/meta-marketing-health.ts",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/meta-marketing-health.ts"
+   ],
+   "detailRef": "76fa9da73536"
+  },
+  {
    "id": "query-parameter:785ab52dbeb8",
    "type": "query-parameter",
    "title": "authorization_id",
@@ -340764,6 +342201,19 @@
     "src/pages/Auth.tsx"
    ],
    "detailRef": "313010094335"
+  },
+  {
+   "id": "query-parameter:4b8ca1ad9f1a",
+   "type": "query-parameter",
+   "title": "fields",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "supabase/functions/_shared/meta-marketing-health.ts",
+   "line": 24,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/meta-marketing-health.ts"
+   ],
+   "detailRef": "956be6348a2a"
   },
   {
    "id": "query-parameter:f700c63547ca",

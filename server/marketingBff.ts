@@ -1497,10 +1497,11 @@ async function runMarketingOrchestrator(
   const config = readConfig();
   const body = parseJsonBody(req, 16 * 1024);
   const action = stringField(body, "action", 32);
-  if (action !== "run_due" && action !== "run_item") {
+  if (action !== "run_due" && action !== "run_item" && action !== "check_meta") {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
-  const allowedKeys = action === "run_item" ? ["action", "itemId", "limit"] : ["action", "limit"];
+  const allowedKeys = action === "check_meta" ? ["action"]
+    : action === "run_item" ? ["action", "itemId", "limit"] : ["action", "limit"];
   if (Object.keys(body).some((key) => !allowedKeys.includes(key))) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
@@ -1514,7 +1515,8 @@ async function runMarketingOrchestrator(
   }
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
-  const payload: JsonObject = { action, limit: rawLimit };
+  if (action === "check_meta") await consumeRateLimit(config, req, "meta-health", session.userId, false);
+  const payload: JsonObject = action === "check_meta" ? { action } : { action, limit: rawLimit };
   if (itemId) payload.itemId = itemId;
   const response = await boundedFetch(
     `${config.supabaseUrl}/functions/v1/marketing-orchestrator`,
@@ -1522,7 +1524,8 @@ async function runMarketingOrchestrator(
       method: "POST",
       headers: {
         apikey: config.serviceRoleKey,
-        Authorization: `Bearer ${config.serviceRoleKey}`,
+        ...(!config.serviceRoleKey.startsWith("sb_secret_")
+          ? { Authorization: `Bearer ${config.serviceRoleKey}` } : {}),
         Accept: "application/json",
         "Content-Type": "application/json",
         // The Edge function accepts this identity only on an already
@@ -1533,9 +1536,12 @@ async function runMarketingOrchestrator(
       },
       body: JSON.stringify(payload),
     },
-    ORCHESTRATOR_TIMEOUT_MS,
+    action === "check_meta" ? 35_000 : ORCHESTRATOR_TIMEOUT_MS,
   );
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new PublicBffError(503, "service_unavailable", "Connexion au service marketing indisponible.");
+    }
     if (response.status === 409) {
       throw new PublicBffError(409, "operation_unavailable", "Opération indisponible.");
     }
@@ -1641,7 +1647,9 @@ async function callMarketingAgent(
       method: "POST",
       headers: {
         apikey: config.serviceRoleKey,
-        Authorization: `Bearer ${config.serviceRoleKey}`,
+        // Opaque Supabase secret keys belong in apikey, not in a JWT header.
+        ...(!config.serviceRoleKey.startsWith("sb_secret_")
+          ? { Authorization: `Bearer ${config.serviceRoleKey}` } : {}),
         Accept: "application/json",
         "Content-Type": "application/json",
         "x-marketing-actor-user-id": actorUserId,
@@ -1653,6 +1661,9 @@ async function callMarketingAgent(
   if (!response.ok) {
     if (response.status === 429) {
       throw new PublicBffError(429, "ai_rate_limited", "Trop de demandes, réessayez dans un instant.");
+    }
+    if (response.status === 401 || response.status === 403) {
+      throw new PublicBffError(503, "ai_auth_unavailable", "Connexion au service IA indisponible.");
     }
     if (response.status >= 400 && response.status < 500) {
       throw new PublicBffError(400, "operation_rejected", "Opération refusée.");
@@ -1682,12 +1693,32 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
   const config = readConfig();
   const body = parseJsonBody(req, 16 * 1024);
   const action = stringField(body, "action", 32);
-  if (action !== "generate" && action !== "list_runs") {
+  if (action !== "generate" && action !== "list_runs" && action !== "discover_sources") {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
 
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
+
+  if (action === "discover_sources") {
+    if (Object.keys(body).some((key) => !["action", "query", "limit", "withoutAccountOnly"].includes(key))) {
+      throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+    }
+    const query = stringField(body, "query", 1000).trim();
+    const limit = body.limit ?? 5;
+    if (body.withoutAccountOnly !== undefined && typeof body.withoutAccountOnly !== "boolean") {
+      throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+    }
+    if (query.length < 10 || typeof limit !== "number" || !Number.isInteger(limit) || limit < 1 || limit > 10) {
+      throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+    }
+    // Reuse the persistent, atomic quota with a separate user-wide bucket.
+    await consumeRateLimit(config, req, "source-discovery", session.userId, false);
+    sendJson(res, 200, await callMarketingAgent(config, session.userId, {
+      action, query, limit, ...(body.withoutAccountOnly === undefined ? {} : { withoutAccountOnly: body.withoutAccountOnly }),
+    }));
+    return;
+  }
 
   if (action === "list_runs") {
     if (Object.keys(body).some((key) => key !== "action")) {

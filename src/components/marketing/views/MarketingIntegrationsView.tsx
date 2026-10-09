@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import MarketingMetaConnection from "@/components/marketing/MarketingMetaConnection";
 import { Cable, CheckCircle2, KeyRound, PauseCircle, RefreshCw, Search, ServerCog, ShieldCheck, Wrench } from "lucide-react";
 
 import {
@@ -81,6 +82,7 @@ export default function MarketingIntegrationsView({
 
   return (
     <div className="space-y-6">
+      <MarketingMetaConnection />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-700 dark:text-orange-300">Fournisseurs, puis canaux</p>

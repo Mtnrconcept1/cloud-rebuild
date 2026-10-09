@@ -12,7 +12,7 @@ import {
 } from "../../supabase/functions/_shared/meta-publishing";
 
 const metaIntegrationMigration = readFileSync(
-  resolve(process.cwd(), "supabase/migrations/20261006033000_configure_meta_marketing_integrations.sql"),
+  resolve(process.cwd(), "supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql"),
   "utf8",
 );
 

@@ -7,9 +7,11 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { authenticateMarketingRequest } from "../_shared/marketing-service-auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { asRecord, safeMarketingError } from "../_shared/marketing.ts";
 import { OPENAI_API_KEY } from "../_shared/openai.ts";
+import { discoverBacklinkSources } from "../_shared/marketing-backlink-discovery.ts";
 import {
   MARKETING_CHANNELS,
   generateCampaignVisual,
@@ -23,7 +25,7 @@ const MAX_VISUALS = 6;
 const MIN_ITEMS = 1;
 const MAX_ITEMS = 12;
 
-type Action = "generate" | "list_runs";
+type Action = "generate" | "list_runs" | "discover_sources";
 
 /**
  * Mirrors the orchestrator: a service-role request may carry the human actor so
@@ -62,7 +64,7 @@ async function attachDelegatedAdminIdentity(
 
 function parseAction(value: unknown): Action {
   const action = typeof value === "string" ? value.trim() : "";
-  if (action === "generate" || action === "list_runs") return action;
+  if (action === "generate" || action === "list_runs" || action === "discover_sources") return action;
   throw new HttpError(400, "invalid_action");
 }
 
@@ -127,7 +129,7 @@ Deno.serve(async (req) => {
 
   try {
     if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
-    actor = await authenticateRequest(req, { allowSchedulerSecret: false, allowServiceRole: true });
+    actor = await authenticateMarketingRequest(req);
     // Same boundary as the orchestrator: a browser token is never enough. The
     // marketing BFF validates the isolated session, MFA and CSRF first, then
     // calls this function with the service credential.
@@ -148,6 +150,15 @@ Deno.serve(async (req) => {
     }
 
     if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
+
+    if (action === "discover_sources") {
+      const result = await discoverBacklinkSources(payload.query, payload.limit, payload.withoutAccountOnly);
+      await writeAuditLog({
+        adminClient: client, actor, request: req, functionName: "ai-marketing-agent",
+        action, status: "success", metadata: { source_count: result.sources.length },
+      });
+      return jsonResponse({ ok: true, ...result }, 200, corsHeaders);
+    }
 
     const objective = requiredText(payload.objective, "objective", 2000);
     const audienceHint = typeof payload.audienceHint === "string"

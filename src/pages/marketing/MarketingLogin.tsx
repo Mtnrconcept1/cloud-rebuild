@@ -209,6 +209,12 @@ export default function MarketingLogin() {
               {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> : mfaStep ? <ShieldCheck className="mr-2 h-4 w-4" aria-hidden="true" /> : <LockKeyhole className="mr-2 h-4 w-4" aria-hidden="true" />}
               {mfaStep ? "Vérifier le code" : "Continuer en sécurité"}
             </Button>
+            {mfaStep ? (
+              <Button type="button" variant="ghost" className="w-full" disabled={submitting}
+                onClick={() => { setCode(""); void refreshSession(); }}>
+                Recommencer la connexion
+              </Button>
+            ) : null}
           </form>
         )}
 

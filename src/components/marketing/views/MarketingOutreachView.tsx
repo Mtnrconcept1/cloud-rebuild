@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import MarketingSourceDiscovery from "@/components/marketing/MarketingSourceDiscovery";
 import {
   BookOpen,
   CheckCircle2,
@@ -377,7 +378,7 @@ export default function MarketingOutreachView({
           </ol>
           <div className="rounded-xl border border-sky-300 bg-sky-50 p-3 text-sm text-sky-950 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-100">
             <p className="font-semibold">Ce que TOK automatise</p>
-            <p className="mt-1 leading-relaxed">Contrôle des champs et des transitions, protection contre les doublons, rafraîchissement des indicateurs et journal d’audit. La recherche du site, la lecture de ses règles, la rédaction finale, la publication externe et la preuve restent humaines.</p>
+            <p className="mt-1 leading-relaxed">Recherche de sources sur le web, contrôle des champs et des transitions, protection contre les doublons, rafraîchissement des indicateurs et journal d’audit. La vérification des règles du site, la rédaction finale, la publication externe et la preuve restent humaines.</p>
           </div>
         </CardContent>
       </Card>
@@ -424,6 +425,20 @@ export default function MarketingOutreachView({
           </Card>
         ))}
       </section>
+
+      <MarketingSourceDiscovery enabled={canMutateBackend && !pending} onSelect={(source, searchedAt) => {
+        setTargetForm({
+          ...DEFAULT_TARGET,
+          name: source.title,
+          domain: source.domain,
+          url: source.url,
+          kind: source.kind,
+          status: "candidate",
+          notes: `Source recherchée le ${searchedAt}. ${source.rationale}\nCompte : ${source.accountRequirement || "unknown"}. Mode : ${source.publicationMode || "unknown"}.\nSoumission : ${source.submissionUrl || "à vérifier"}\nConditions : ${source.evidenceUrl || "à vérifier"}\n${source.accountEvidence || ""}\nURL source : ${source.url}\nConditions et règles de contribution à vérifier.`.slice(0, 2000),
+        });
+        setTargetFormOpen(true);
+        requestAnimationFrame(() => document.getElementById("outreach-target-name")?.focus());
+      }} />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
