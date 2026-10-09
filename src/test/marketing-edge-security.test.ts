@@ -11,11 +11,13 @@ const webhook = readFileSync(
   "utf8",
 );
 const config = readFileSync(resolve(process.cwd(), "supabase/config.toml"), "utf8");
+const serviceAuth = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/marketing-service-auth.ts"), "utf8");
 
 describe("marketing Edge Function security", () => {
   it("uses custom admin/scheduler authentication and audit logging", () => {
     expect(orchestrator).toContain("allowSchedulerSecret: true");
-    expect(orchestrator).toContain("allowServiceRole: true");
+    expect(orchestrator).toContain("authenticateMarketingRequest(req, { allowSchedulerSecret: true })");
+    expect(serviceAuth).toContain("allowServiceRole: true");
     expect(orchestrator).toContain('requireRole(actor, ["admin"])');
     expect(orchestrator).toContain("writeAuditLog");
   });

@@ -266,20 +266,40 @@ export default function MarketingSessionProvider({ children }: { children: React
     sessionGeneration.current = generation;
     setSubmitting(true);
     setError(null);
+    let mfaVerified = false;
     try {
       await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.mfaVerify, {
         method: "POST",
         body: { code: normalizedCode },
         redirectOnUnauthorized: false,
       });
+      mfaVerified = true;
       const snapshot = await requestSession();
       if (sessionGeneration.current !== generation) return false;
-      if (snapshot.status !== "authenticated") throw new MarketingBffError(MFA_ERROR, 401);
+      if (snapshot.status !== "authenticated") {
+        throw new MarketingBffError(MFA_ERROR, 401, "authentication_required");
+      }
       applySnapshot(snapshot);
       return true;
-    } catch {
+    } catch (verificationError) {
       if (sessionGeneration.current !== generation) return false;
-      setError(MFA_ERROR);
+      if (verificationError instanceof MarketingBffError
+        && verificationError.code === "authentication_required") {
+        applySnapshot({ status: "unauthenticated", enrollment: null, expiresAt: null });
+        setError("La connexion a expiré. Saisissez à nouveau vos identifiants.");
+      } else if (mfaVerified) {
+        setEnrollment(null);
+        setExpiresAt(null);
+        setStatus("error");
+        setError(SESSION_ERROR);
+      } else if (verificationError instanceof MarketingBffError && verificationError.status === 429) {
+        setError("Trop de tentatives. Réessayez dans quelques minutes.");
+      } else if (verificationError instanceof MarketingBffError
+        && (verificationError.status >= 500 || verificationError.status === 408)) {
+        setError("Service de vérification indisponible. Réessayez plus tard.");
+      } else {
+        setError(MFA_ERROR);
+      }
       return false;
     } finally {
       if (sessionGeneration.current === generation) setSubmitting(false);

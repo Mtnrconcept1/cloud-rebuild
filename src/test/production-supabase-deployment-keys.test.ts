@@ -6,6 +6,17 @@ import {
 } from "../../scripts/write-production-supabase-keys-env.mjs";
 
 describe("production Supabase deployment keys", () => {
+  it("uses the current secret for marketing without changing other consumers", () => {
+    const keys = [
+      { name: "anon", type: "legacy", api_key: "legacy.anon.key" },
+      { name: "service_role", type: "legacy", api_key: "legacy.service.key" },
+      { name: "default", type: "secret", api_key: "sb_secret_current" },
+      { name: "revoked", type: "secret", api_key: "sb_secret_old", disabled: true },
+    ];
+    expect(selectSupabaseDeploymentKeys(keys, { preferSecret: true }).SUPABASE_SERVICE_ROLE_KEY).toBe("sb_secret_current");
+    expect(selectSupabaseDeploymentKeys(keys).SUPABASE_SERVICE_ROLE_KEY).toBe("legacy.service.key");
+    expect(selectSupabaseDeploymentKeys(keys.filter(k => k.type !== "secret"), { preferSecret: true }).SUPABASE_SERVICE_ROLE_KEY).toBe("legacy.service.key");
+  });
   it("prefers the modern publishable key while preserving the legacy server key", () => {
     const selected = selectSupabaseDeploymentKeys([
       {

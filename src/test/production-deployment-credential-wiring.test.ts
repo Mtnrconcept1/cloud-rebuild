@@ -28,6 +28,10 @@ describe("production deployment credential wiring", () => {
   });
 
   it("injects the resolved server values only into the Vercel runtime", () => {
+    expect(workflow.match(/--prefer-secret=true/g)).toHaveLength(1);
+    const preference = workflow.indexOf("--prefer-secret=true");
+    expect(preference).toBeGreaterThan(workflow.indexOf("  deploy_frontend:"));
+    expect(preference).toBeLessThan(workflow.indexOf("      - name: Download prebuilt Vercel output"));
     expect(workflow).toContain(
       '--env "SUPABASE_URL=$PRODUCTION_SUPABASE_URL"',
     );

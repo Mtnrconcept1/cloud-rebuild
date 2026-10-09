@@ -7,6 +7,8 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { authenticateMarketingRequest } from "../_shared/marketing-service-auth.ts";
+import { checkMetaMarketingConnections } from "../_shared/meta-marketing-health.ts";
 import { readMarketingUnsubscribeSecrets } from "../_shared/marketing-unsubscribe-secrets.ts";
 import { buildUnsubscribeToken } from "../_shared/marketing-unsubscribe-token.ts";
 import { makeLogger } from "../_shared/logging.ts";
@@ -407,7 +409,7 @@ Deno.serve(async (req) => {
 
   try {
     if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
-    actor = await authenticateRequest(req, { allowSchedulerSecret: true, allowServiceRole: true });
+    actor = await authenticateMarketingRequest(req, { allowSchedulerSecret: true });
     // Browser/admin bearer tokens are deliberately insufficient here. Interactive
     // requests must first cross the marketing BFF, which validates the isolated
     // opaque session, MFA and CSRF before invoking this function as service_role.
@@ -417,6 +419,15 @@ Deno.serve(async (req) => {
     actor = await attachDelegatedAdminIdentity(actor, req);
     requireRole(actor, ["admin"]);
     const payload = asRecord(await req.json().catch(() => ({})));
+    if (payload.action === "check_meta") {
+      if (actor.authMode !== "service_role" || !actor.userId) throw new HttpError(403, "Delegated administrator required");
+      if (Object.keys(payload).some((key) => key !== "action")) throw new HttpError(400, "Invalid health request");
+      const result = await checkMetaMarketingConnections(actor.adminClient);
+      await writeAuditLog({ adminClient: actor.adminClient, actor, request: req,
+        functionName: "marketing-orchestrator", action: "check_meta", status: "success",
+        targetEntityType: "marketing_integrations" });
+      return jsonResponse(result, 200, corsHeaders);
+    }
     const action = parseMarketingAction(payload.action);
     const limit = clampInteger(payload.limit, 25, 1, 100);
     const client = actor.adminClient;

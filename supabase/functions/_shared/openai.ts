@@ -51,6 +51,7 @@ type OpenAIRequestOptions = {
   temperature?: number;
   jsonSchema?: OpenAIJsonSchema;
   tools?: Array<Record<string, unknown>>;
+  toolChoice?: "required";
   include?: string[];
   reasoning?: Record<string, unknown>;
   timeoutMs?: number;
@@ -184,6 +185,7 @@ export async function createOpenAIResponse(options: OpenAIRequestOptions) {
 
   if (options.tools?.length) {
     payload.tools = options.tools;
+    if (options.toolChoice) payload.tool_choice = options.toolChoice;
   }
 
   if (options.include?.length) {

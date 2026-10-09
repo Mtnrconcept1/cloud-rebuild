@@ -94,4 +94,20 @@ describe("marketing BFF client", () => {
       redirectOnUnauthorized: false,
     })).rejects.toMatchObject({ status: 502 });
   });
+
+  it.each([
+    ["authentication_required", "authentication_required"],
+    ["mfa_failed", "mfa_failed"],
+    ["ai_auth_unavailable", "ai_auth_unavailable"],
+    ["discovery_unavailable", "discovery_unavailable"],
+    ["secret-upstream-detail", undefined],
+  ])("exposes only an allowlisted error code: %s", async (code, expectedCode) => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({
+      error: { code, message: "Sensitive upstream detail" },
+    }), { status: 401, headers: { "Content-Type": "application/json" } })));
+    await expect(marketingBffRequest("/api/marketing/mfa/verify", {
+      body: { code: "123456" }, redirectOnUnauthorized: false,
+    })).rejects.toMatchObject({ status: 401, code: expectedCode, message: "Votre session marketing a expiré." });
+    expect(replace).not.toHaveBeenCalled();
+  });
 });

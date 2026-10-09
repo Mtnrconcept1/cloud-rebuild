@@ -31,7 +31,7 @@ function validateKeyValue(name, value) {
   }
 }
 
-export function selectSupabaseDeploymentKeys(payload) {
+export function selectSupabaseDeploymentKeys(payload, { preferSecret = false } = {}) {
   const keys = Array.isArray(payload)
     ? payload
     : Array.isArray(payload?.keys)
@@ -47,7 +47,11 @@ export function selectSupabaseDeploymentKeys(payload) {
   const selected = {
     SUPABASE_PUBLISHABLE_KEY: publishable?.api_key ?? legacyAnon?.api_key,
     SUPABASE_ANON_KEY: legacyAnon?.api_key ?? publishable?.api_key,
-    SUPABASE_SERVICE_ROLE_KEY: legacyServiceRole?.api_key ?? secret?.api_key,
+    // Only the marketing Vercel runtime opts in; other deployment consumers
+    // retain their existing credential selection.
+    SUPABASE_SERVICE_ROLE_KEY: preferSecret
+      ? secret?.api_key ?? legacyServiceRole?.api_key
+      : legacyServiceRole?.api_key ?? secret?.api_key,
   };
 
   for (const [name, value] of Object.entries(selected)) {
@@ -66,7 +70,7 @@ export function formatGitHubEnvironment(keys) {
     .join("\n") + "\n";
 }
 
-export function writeProductionSupabaseKeysEnv({ keysFile, outputFile }) {
+export function writeProductionSupabaseKeysEnv({ keysFile, outputFile, preferSecret = false }) {
   if (!keysFile) {
     throw new Error("Missing --keys-file argument.");
   }
@@ -75,7 +79,7 @@ export function writeProductionSupabaseKeysEnv({ keysFile, outputFile }) {
   }
 
   const payload = JSON.parse(readFileSync(resolve(keysFile), "utf8"));
-  const keys = selectSupabaseDeploymentKeys(payload);
+  const keys = selectSupabaseDeploymentKeys(payload, { preferSecret });
 
   for (const value of new Set(Object.values(keys))) {
     process.stdout.write(`::add-mask::${value}\n`);
@@ -94,6 +98,7 @@ function main() {
   writeProductionSupabaseKeysEnv({
     keysFile: args["keys-file"],
     outputFile: args.out || process.env.GITHUB_ENV,
+    preferSecret: args["prefer-secret"] === "true",
   });
 }
 

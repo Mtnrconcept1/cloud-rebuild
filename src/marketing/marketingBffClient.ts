@@ -36,13 +36,21 @@ type MarketingBffRequestOptions = {
 
 export class MarketingBffError extends Error {
   readonly status: number;
+  readonly code: string | undefined;
 
-  constructor(message: string, status = 0) {
+  constructor(message: string, status = 0, code?: string) {
     super(message);
     this.name = "MarketingBffError";
     this.status = status;
+    this.code = code && PUBLIC_ERROR_CODES.has(code) ? code : undefined;
   }
 }
+
+const PUBLIC_ERROR_CODES = new Set([
+  "authentication_required", "authentication_failed", "mfa_failed",
+  "configuration_unavailable", "service_unavailable", "mfa_setup_unavailable",
+  "ai_auth_unavailable", "discovery_unavailable", "discovery_invalid_response",
+]);
 
 function publicErrorMessage(status: number) {
   if (status === 400) return "La demande n’a pas pu être traitée.";
@@ -193,8 +201,13 @@ export async function marketingBffRequest<T>(
     }
 
     if (!response.ok) {
-      await response.body?.cancel().catch(() => undefined);
-      throw new MarketingBffError(publicErrorMessage(response.status), response.status);
+      // Only expose known machine codes, never arbitrary upstream messages.
+      const payload = await readBoundedJson(response).catch(() => undefined);
+      const candidate = payload && typeof payload === "object" && "error" in payload
+        ? payload.error : undefined;
+      const code = candidate && typeof candidate === "object" && "code" in candidate
+        && typeof candidate.code === "string" ? candidate.code : undefined;
+      throw new MarketingBffError(publicErrorMessage(response.status), response.status, code);
     }
 
     return await readBoundedJson(response) as T;
