@@ -1,13 +1,22 @@
 import { fireEvent, render, screen, cleanup } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import HeroSection from "@/components/home/HeroSection";
+
+const authState = vi.hoisted(() => ({ user: null as { id: string } | null }));
+
+vi.mock("@/lib/auth-context", () => ({
+  useAuth: () => authState,
+}));
 
 function LocationProbe() {
   const location = useLocation();
   return <output data-testid="location">{location.pathname}{location.search}</output>;
 }
-afterEach(cleanup);
+afterEach(() => {
+  authState.user = null;
+  cleanup();
+});
 function setup() {
   render(<MemoryRouter><HeroSection contentVisible={false} /><LocationProbe /></MemoryRouter>);
 }
@@ -35,5 +44,17 @@ describe("homepage semantic search", () => {
     expect(result.pathname).toBe("/recherche");
     expect(result.searchParams.has("q")).toBe(false);
     expect(result.searchParams.get("city")).toBe("Genève");
+  });
+  it("leaves the guest navigation to the full account header once signed in", () => {
+    setup();
+    expect(screen.getByRole("navigation", { name: "Navigation principale" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Connexion" })).toBeVisible();
+
+    cleanup();
+    authState.user = { id: "user-1" };
+    setup();
+
+    expect(screen.queryByRole("navigation", { name: "Navigation principale" })).not.toBeInTheDocument();
+    expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-authenticated", "true");
   });
 });

@@ -125,6 +125,8 @@ export default function Navbar() {
       : getRoleHomePath(role);
   const showCartShortcut = showClientSurface && (user || itemCount > 0);
   const isDesktopHomeReference = showClientSurface && location.pathname === "/";
+  const usesHeroDesktopNavigation = isDesktopHomeReference && !user;
+  const showSignedInDesktopHomeMenu = isDesktopHomeReference && Boolean(user);
   const isMobileHomeHeader = isDesktopHomeReference;
 
   useEffect(() => {
@@ -214,7 +216,7 @@ export default function Navbar() {
       {/* ─── Main header ─── */}
       <header
         ref={headerRef}
-        className={`sticky top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out ${isDesktopHomeReference ? "md:hidden" : ""} ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
+        className={`sticky top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out ${usesHeroDesktopNavigation ? "md:hidden" : ""} ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
         style={{
           opacity: isHeaderVisible ? 1 : 0,
           transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
@@ -431,7 +433,11 @@ export default function Navbar() {
 
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent" : ""} xl:hidden`}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent" : ""} ${showSignedInDesktopHomeMenu ? "xl:inline-flex" : "xl:hidden"}`}
+                >
                   <Menu className={`${isMobileHomeHeader ? "h-8 w-8" : "h-5 w-5"}`} />
                   <span className="sr-only">Ouvrir le menu</span>
                 </Button>

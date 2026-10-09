@@ -150,7 +150,10 @@ describe("homepage positioning guards", () => {
     const footer = read("src/components/home/FooterSection.tsx");
 
     expect(navbar).toContain("isDesktopHomeReference");
-    expect(navbar).toContain('isDesktopHomeReference ? "md:hidden" : ""');
+    expect(navbar).toContain("const usesHeroDesktopNavigation = isDesktopHomeReference && !user;");
+    expect(navbar).toContain("const showSignedInDesktopHomeMenu = isDesktopHomeReference && Boolean(user);");
+    expect(navbar).toContain('usesHeroDesktopNavigation ? "md:hidden" : ""');
+    expect(navbar).toContain('showSignedInDesktopHomeMenu ? "xl:inline-flex" : "xl:hidden"');
 
     expect(navbar).toContain('to="/restaurateurs/geneve"');
     expect(navbar).toContain("Restaurateurs");
