@@ -15,7 +15,10 @@ describe("homepage positioning guards", () => {
 
     expect(hero.match(/<h1/g)).toHaveLength(1);
     expect(hero).toContain("Réservez et commandez");
-    expect(hero).toContain("les meilleures offres food !");
+    expect(hero).toContain("Les meilleures");
+    expect(hero).toContain("près de chez vous.");
+    expect(hero).toContain("tok-home-hero__title-primary");
+    expect(hero).toContain("tok-home-hero__desktop-nav");
     expect(hero).toContain("Miamz");
     expect(hero).toContain('role="search"');
     expect(hero).not.toContain("desktopSearchActive");
@@ -23,6 +26,10 @@ describe("homepage positioning guards", () => {
     expect(css).toContain('font-family: "Playball";');
     expect(hero).toContain("Je veux manger");
     expect(hero).toContain("Restaurateur");
+    const heroStyles = read("src/components/home/HeroSection.css");
+    expect(heroStyles).toContain("font-style: italic");
+    expect(heroStyles).toContain("radial-gradient(ellipse");
+    expect(heroStyles).toContain("tok-home-hero__title-desktop");
     expect(features).toContain("PRIMARY_PILLARS");
     expect(features).toContain("Zéro attente");
     expect(features).toContain("Offres anti-gaspi & Tables du Chef");
