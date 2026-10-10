@@ -2,14 +2,14 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "006fce36b5fa1bc2456b9a5a55360a98e05142444658e5c31a3017af8e12832b",
+ "sourceDigest": "ecc20e03b8997280a2f6a41a143377e5f8cdf1aa36fac7b21560200a6e96e7bc",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2722,
-  "documents": 193,
+  "documents": 194,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3360,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 522,
-  "modules": 1464,
+  "modules": 1465,
   "pages": 127,
-  "pathLiterals": 614,
+  "pathLiterals": 617,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15522,
-  "repositoryFiles": 2731,
+  "records": 15534,
+  "repositoryFiles": 2733,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -15472,6 +15472,10 @@
       "line": 117
      },
      {
+      "path": "src/test/monitoring-consent.test.ts",
+      "line": 313
+     },
+     {
       "path": "src/test/route-wiring.test.ts",
       "line": 28
      },
@@ -15707,6 +15711,15 @@
      {
       "path": "src/test/marketing-bff-security.test.ts",
       "line": 725
+     }
+    ]
+   },
+   {
+    "value": "/auth?code=secret",
+    "sources": [
+     {
+      "path": "src/test/monitoring-consent.test.ts",
+      "line": 313
      }
     ]
    },
@@ -25538,6 +25551,24 @@
     ]
    },
    {
+    "value": "/users/[email]",
+    "sources": [
+     {
+      "path": "src/test/monitoring-consent.test.ts",
+      "line": 313
+     }
+    ]
+   },
+   {
+    "value": "/users/private%40example.test#token",
+    "sources": [
+     {
+      "path": "src/test/monitoring-consent.test.ts",
+      "line": 313
+     }
+    ]
+   },
+   {
     "value": "/v1/appScreenshotSets",
     "sources": [
      {
@@ -28271,6 +28302,7 @@
      "src/test/marketing-orchestrator-schema.test.ts",
      "src/test/marketing-runtime-hardening.test.ts",
      "src/test/marketing-sql-governance.test.ts",
+     "src/test/monitoring-consent.test.ts",
      "src/test/plan-phase1-readiness.test.ts",
      "src/test/production-alert-remediation.test.ts",
      "src/test/production-preflight-hardening.test.ts",
@@ -28290,6 +28322,7 @@
      "scripts/write-production-env.mjs",
      "src/lib/cookieInventory.ts",
      "src/lib/monitoring.ts",
+     "src/test/monitoring-consent.test.ts",
      "src/test/monitoring.test.ts",
      "src/vite-env.d.ts",
      "supabase/functions/ops-incident-control/index.ts",
@@ -28949,6 +28982,7 @@
      "src/test/meal-subscription-cart.test.tsx",
      "src/test/meal-subscription.test.ts",
      "src/test/miamz-business-logic-guards.test.ts",
+     "src/test/monitoring-consent.test.ts",
      "src/test/native-oauth.test.ts",
      "src/test/newsletter-automation-sql.test.ts",
      "src/test/notification-campaign-idempotency.test.ts",
@@ -77311,6 +77345,37 @@
     ]
    },
    {
+    "path": "docs/testing/browser-monitoring-consent.md",
+    "title": "Télémétrie navigateur et consentement",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Télémétrie navigateur et consentement",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Comportement attendu",
+      "line": 7
+     },
+     {
+      "level": 2,
+      "title": "Données et compromis",
+      "line": 23
+     },
+     {
+      "level": 2,
+      "title": "Vérification",
+      "line": 43
+     },
+     {
+      "level": 3,
+      "title": "Observation réseau locale avec le SDK réel",
+      "line": 56
+     }
+    ]
+   },
+   {
     "path": "docs/testing/launch-10k-load-plan.md",
     "title": "Plan de tests lancement 10k",
     "headings": [
@@ -88538,22 +88603,22 @@
      },
      {
       "name": "readConsent",
-      "line": 35,
+      "line": 39,
       "kind": "function"
      },
      {
       "name": "saveConsent",
-      "line": 79,
+      "line": 84,
       "kind": "function"
      },
      {
       "name": "hasConsent",
-      "line": 98,
+      "line": 121,
       "kind": "function"
      },
      {
       "name": "openConsentSettings",
-      "line": 102,
+      "line": 125,
       "kind": "function"
      }
     ],
@@ -88561,7 +88626,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 107
+    "lineCount": 130
    },
    {
     "path": "src/lib/constants.ts",
@@ -91524,27 +91589,27 @@
     "exports": [
      {
       "name": "shouldDropMaskedOrExtensionEvent",
-      "line": 41,
+      "line": 43,
       "kind": "function"
      },
      {
       "name": "isConfiguredSentryDsn",
-      "line": 55,
+      "line": 57,
       "kind": "function"
      },
      {
       "name": "initMonitoring",
-      "line": 117,
+      "line": 228,
       "kind": "function"
      },
      {
       "name": "setMonitoringUser",
-      "line": 121,
+      "line": 256,
       "kind": "function"
      },
      {
       "name": "captureException",
-      "line": 136,
+      "line": 267,
       "kind": "function"
      }
     ],
@@ -91559,7 +91624,7 @@
      "sentry",
      "supabase"
     ],
-    "lineCount": 153
+    "lineCount": 286
    },
    {
     "path": "src/lib/nativeOAuth.ts",
@@ -101454,6 +101519,17 @@
     "lineCount": 51
    },
    {
+    "path": "src/test/monitoring-consent.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "resend",
+     "sentry",
+     "supabase"
+    ],
+    "lineCount": 329
+   },
+   {
     "path": "src/test/monitoring.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -109871,6 +109947,11 @@
     "extension": ".md"
    },
    {
+    "path": "docs/testing/browser-monitoring-consent.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
     "path": "docs/testing/launch-10k-load-plan.md",
     "category": "documentation",
     "extension": ".md"
@@ -116964,6 +117045,11 @@
     "path": "src/test/mobile-theme-toggle.test.tsx",
     "category": "test",
     "extension": ".tsx"
+   },
+   {
+    "path": "src/test/monitoring-consent.test.ts",
+    "category": "test",
+    "extension": ".ts"
    },
    {
     "path": "src/test/monitoring.test.ts",
@@ -128900,7 +128986,7 @@
    "id": "code-module:ccfe457a2d5a",
    "type": "code-module",
    "title": "src/lib/consent.ts",
-   "description": "Module de 107 lignes; exports: CONSENT_VERSION, CONSENT_STORAGE_KEY, CONSENT_EVENT, ConsentCategory, ConsentPreferences, ConsentReceipt, DEFAULT_CONSENT, readConsent, saveConsent, hasConsent, openConsentSettings.",
+   "description": "Module de 130 lignes; exports: CONSENT_VERSION, CONSENT_STORAGE_KEY, CONSENT_EVENT, ConsentCategory, ConsentPreferences, ConsentReceipt, DEFAULT_CONSENT, readConsent, saveConsent, hasConsent, openConsentSettings.",
    "path": "src/lib/consent.ts",
    "line": 1,
    "surface": null,
@@ -128918,7 +129004,7 @@
     "saveConsent",
     "supabase"
    ],
-   "detailRef": "a9b848147b0d"
+   "detailRef": "02429fd24be8"
   },
   {
    "id": "code-module:1910247169fe",
@@ -130176,7 +130262,7 @@
    "id": "code-module:03c72217e88c",
    "type": "code-module",
    "title": "src/lib/monitoring.ts",
-   "description": "Module de 153 lignes; exports: shouldDropMaskedOrExtensionEvent, isConfiguredSentryDsn, initMonitoring, setMonitoringUser, captureException.",
+   "description": "Module de 286 lignes; exports: shouldDropMaskedOrExtensionEvent, isConfiguredSentryDsn, initMonitoring, setMonitoringUser, captureException.",
    "path": "src/lib/monitoring.ts",
    "line": 1,
    "surface": null,
@@ -130194,7 +130280,7 @@
     "shouldDropMaskedOrExtensionEvent",
     "supabase"
    ],
-   "detailRef": "75d81e7df01f"
+   "detailRef": "093c0641441f"
   },
   {
    "id": "code-module:7aef37465d5b",
@@ -138257,6 +138343,21 @@
    "surface": null,
    "tags": [],
    "detailRef": "303e8f92d93e"
+  },
+  {
+   "id": "code-module:d6255257e064",
+   "type": "code-module",
+   "title": "src/test/monitoring-consent.test.ts",
+   "description": "Module de 329 lignes; exports: aucun export statique.",
+   "path": "src/test/monitoring-consent.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "resend",
+    "sentry",
+    "supabase"
+   ],
+   "detailRef": "396df7304be3"
   },
   {
    "id": "code-module:c5fc2b4b1f5b",
@@ -197005,6 +197106,20 @@
    "detailRef": "8d2c52a48478"
   },
   {
+   "id": "document-section:6fcc03019fb6",
+   "type": "document-section",
+   "title": "Comportement attendu",
+   "description": "Section de Télémétrie navigateur et consentement.",
+   "path": "docs/testing/browser-monitoring-consent.md",
+   "line": 7,
+   "surface": null,
+   "tags": [
+    "Télémétrie navigateur et consentement",
+    "h2"
+   ],
+   "detailRef": "01ca9454ef00"
+  },
+  {
    "id": "document-section:cd7fc614f5f5",
    "type": "document-section",
    "title": "Comportement detaille",
@@ -199159,6 +199274,20 @@
     "h2"
    ],
    "detailRef": "126ed0428305"
+  },
+  {
+   "id": "document-section:d41be9b60f06",
+   "type": "document-section",
+   "title": "Données et compromis",
+   "description": "Section de Télémétrie navigateur et consentement.",
+   "path": "docs/testing/browser-monitoring-consent.md",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "Télémétrie navigateur et consentement",
+    "h2"
+   ],
+   "detailRef": "ad28bf67cfbd"
   },
   {
    "id": "document-section:6127ba927ebf",
@@ -205221,6 +205350,20 @@
     "h2"
    ],
    "detailRef": "17da2ebc413c"
+  },
+  {
+   "id": "document-section:724ce5428e14",
+   "type": "document-section",
+   "title": "Observation réseau locale avec le SDK réel",
+   "description": "Section de Télémétrie navigateur et consentement.",
+   "path": "docs/testing/browser-monitoring-consent.md",
+   "line": 56,
+   "surface": null,
+   "tags": [
+    "Télémétrie navigateur et consentement",
+    "h3"
+   ],
+   "detailRef": "b237d0329493"
   },
   {
    "id": "document-section:0935553cf59f",
@@ -216227,6 +216370,20 @@
    "detailRef": "52ac446bd0a7"
   },
   {
+   "id": "document-section:3c93a52c7e68",
+   "type": "document-section",
+   "title": "Télémétrie navigateur et consentement",
+   "description": "Section de Télémétrie navigateur et consentement.",
+   "path": "docs/testing/browser-monitoring-consent.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Télémétrie navigateur et consentement",
+    "h1"
+   ],
+   "detailRef": "8554c5a71223"
+  },
+  {
    "id": "document-section:2a73b5033bab",
    "type": "document-section",
    "title": "UI cible",
@@ -217373,6 +217530,20 @@
     "h2"
    ],
    "detailRef": "96ac21ffd272"
+  },
+  {
+   "id": "document-section:4db841f2de1a",
+   "type": "document-section",
+   "title": "Vérification",
+   "description": "Section de Télémétrie navigateur et consentement.",
+   "path": "docs/testing/browser-monitoring-consent.md",
+   "line": 43,
+   "surface": null,
+   "tags": [
+    "Télémétrie navigateur et consentement",
+    "h2"
+   ],
+   "detailRef": "dc174d8dcd7a"
   },
   {
    "id": "document-section:cce4225f18b8",
@@ -222844,6 +223015,23 @@
     "Tâches - Module Comptabilité Administrateur"
    ],
    "detailRef": "6cdc4df17009"
+  },
+  {
+   "id": "document:3c93a52c7e68",
+   "type": "document",
+   "title": "Télémétrie navigateur et consentement",
+   "description": "Document Markdown avec 5 section(s).",
+   "path": "docs/testing/browser-monitoring-consent.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Comportement attendu",
+    "Données et compromis",
+    "Observation réseau locale avec le SDK réel",
+    "Télémétrie navigateur et consentement",
+    "Vérification"
+   ],
+   "detailRef": "e67c6a981ced"
   },
   {
    "id": "document:6b16e834f319",
@@ -252366,12 +252554,12 @@
    "detailRef": "aa3d3a3b10b2"
   },
   {
-   "id": "exported-symbol:a81353753e59",
+   "id": "exported-symbol:18651ea23ed9",
    "type": "exported-symbol",
    "title": "captureException",
    "description": "Export function de src/lib/monitoring.ts.",
    "path": "src/lib/monitoring.ts",
-   "line": 136,
+   "line": 267,
    "surface": null,
    "tags": [
     "function",
@@ -252379,7 +252567,7 @@
     "sentry",
     "supabase"
    ],
-   "detailRef": "4aa40adc5714"
+   "detailRef": "aaa12ae900cf"
   },
   {
    "id": "exported-symbol:e241a46d1f8f",
@@ -264979,18 +265167,18 @@
    "detailRef": "2c3ee531bbe5"
   },
   {
-   "id": "exported-symbol:1ef8986f1465",
+   "id": "exported-symbol:d29419d6c4e5",
    "type": "exported-symbol",
    "title": "hasConsent",
    "description": "Export function de src/lib/consent.ts.",
    "path": "src/lib/consent.ts",
-   "line": 98,
+   "line": 121,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "a7dfd3d65038"
+   "detailRef": "bebb60111001"
   },
   {
    "id": "exported-symbol:a1ecddfaa241",
@@ -265232,12 +265420,12 @@
    "detailRef": "2c4f82e99026"
   },
   {
-   "id": "exported-symbol:8b8f80c6efc1",
+   "id": "exported-symbol:fd2e712fc29e",
    "type": "exported-symbol",
    "title": "initMonitoring",
    "description": "Export function de src/lib/monitoring.ts.",
    "path": "src/lib/monitoring.ts",
-   "line": 117,
+   "line": 228,
    "surface": null,
    "tags": [
     "function",
@@ -265245,7 +265433,7 @@
     "sentry",
     "supabase"
    ],
-   "detailRef": "45c4bd3dd8ce"
+   "detailRef": "28bad2dd5e93"
   },
   {
    "id": "exported-symbol:640683ee2bab",
@@ -265892,12 +266080,12 @@
    "detailRef": "51ee8a466e21"
   },
   {
-   "id": "exported-symbol:23e887d30572",
+   "id": "exported-symbol:675f24f1fc00",
    "type": "exported-symbol",
    "title": "isConfiguredSentryDsn",
    "description": "Export function de src/lib/monitoring.ts.",
    "path": "src/lib/monitoring.ts",
-   "line": 55,
+   "line": 57,
    "surface": null,
    "tags": [
     "function",
@@ -265905,7 +266093,7 @@
     "sentry",
     "supabase"
    ],
-   "detailRef": "16bbf2f7ff47"
+   "detailRef": "47ffa7815963"
   },
   {
    "id": "exported-symbol:2c60270ab415",
@@ -269143,18 +269331,18 @@
    "detailRef": "a2b4075652ec"
   },
   {
-   "id": "exported-symbol:b59ba7a3cfed",
+   "id": "exported-symbol:fb24f4add99a",
    "type": "exported-symbol",
    "title": "openConsentSettings",
    "description": "Export function de src/lib/consent.ts.",
    "path": "src/lib/consent.ts",
-   "line": 102,
+   "line": 125,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "b218027e2599"
+   "detailRef": "8417e9a51504"
   },
   {
    "id": "exported-symbol:a454a660c529",
@@ -269907,18 +270095,18 @@
    "detailRef": "93427419ad82"
   },
   {
-   "id": "exported-symbol:bb5a2296fbc0",
+   "id": "exported-symbol:16d59a17eb93",
    "type": "exported-symbol",
    "title": "readConsent",
    "description": "Export function de src/lib/consent.ts.",
    "path": "src/lib/consent.ts",
-   "line": 35,
+   "line": 39,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "732dd05b35bf"
+   "detailRef": "dfb1ffc14f5c"
   },
   {
    "id": "exported-symbol:4ddcc03c64ff",
@@ -271758,18 +271946,18 @@
    "detailRef": "13b15c46d3aa"
   },
   {
-   "id": "exported-symbol:8ca865baef3a",
+   "id": "exported-symbol:6808ad197a27",
    "type": "exported-symbol",
    "title": "saveConsent",
    "description": "Export function de src/lib/consent.ts.",
    "path": "src/lib/consent.ts",
-   "line": 79,
+   "line": 84,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "d2460d65c02a"
+   "detailRef": "6afd1c9de63d"
   },
   {
    "id": "exported-symbol:9bc34db352db",
@@ -272254,12 +272442,12 @@
    "detailRef": "171b5e8785b8"
   },
   {
-   "id": "exported-symbol:1a7e56d4236d",
+   "id": "exported-symbol:130fdea8fa84",
    "type": "exported-symbol",
    "title": "setMonitoringUser",
    "description": "Export function de src/lib/monitoring.ts.",
    "path": "src/lib/monitoring.ts",
-   "line": 121,
+   "line": 256,
    "surface": null,
    "tags": [
     "function",
@@ -272267,7 +272455,7 @@
     "sentry",
     "supabase"
    ],
-   "detailRef": "43d5cdb1efbb"
+   "detailRef": "c1cdd93f58d4"
   },
   {
    "id": "exported-symbol:a18128796617",
@@ -272452,12 +272640,12 @@
    "detailRef": "3447e9467c4f"
   },
   {
-   "id": "exported-symbol:8518a2a41cc0",
+   "id": "exported-symbol:ce8d8a165684",
    "type": "exported-symbol",
    "title": "shouldDropMaskedOrExtensionEvent",
    "description": "Export function de src/lib/monitoring.ts.",
    "path": "src/lib/monitoring.ts",
-   "line": 41,
+   "line": 43,
    "surface": null,
    "tags": [
     "function",
@@ -272465,7 +272653,7 @@
     "sentry",
     "supabase"
    ],
-   "detailRef": "8cd2df235f17"
+   "detailRef": "1946d81626cf"
   },
   {
    "id": "exported-symbol:044ed83ad97a",
@@ -281593,6 +281781,20 @@
     "documentation"
    ],
    "detailRef": "b3cb03cb0df6"
+  },
+  {
+   "id": "file:8738d4636a0a",
+   "type": "file",
+   "title": "docs/testing/browser-monitoring-consent.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/testing/browser-monitoring-consent.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "a79a2d1a11c1"
   },
   {
    "id": "file:31eb15c4c93a",
@@ -301461,6 +301663,20 @@
    "detailRef": "d46955a2c423"
   },
   {
+   "id": "file:6f8731b548ef",
+   "type": "file",
+   "title": "src/test/monitoring-consent.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/monitoring-consent.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "4e2505a23b9c"
+  },
+  {
    "id": "file:1f31e73e54fb",
    "type": "file",
    "title": "src/test/monitoring.test.ts",
@@ -318146,7 +318362,7 @@
    "id": "integration:7bccba38bd87",
    "type": "integration",
    "title": "Resend",
-   "description": "Intégration externe détectée dans 30 module(s).",
+   "description": "Intégration externe détectée dans 31 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -318172,6 +318388,7 @@
     "src/test/marketing-orchestrator-schema.test.ts",
     "src/test/marketing-runtime-hardening.test.ts",
     "src/test/marketing-sql-governance.test.ts",
+    "src/test/monitoring-consent.test.ts",
     "src/test/plan-phase1-readiness.test.ts",
     "src/test/production-alert-remediation.test.ts",
     "src/test/production-preflight-hardening.test.ts",
@@ -318183,13 +318400,13 @@
     "supabase/functions/marketing-orchestrator/index.ts",
     "supabase/functions/send-email/index.ts"
    ],
-   "detailRef": "117222e9ba52"
+   "detailRef": "8c62be8f7cc5"
   },
   {
    "id": "integration:4ec2685ad9fc",
    "type": "integration",
    "title": "Sentry",
-   "description": "Intégration externe détectée dans 8 module(s).",
+   "description": "Intégration externe détectée dans 9 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -318199,12 +318416,13 @@
     "sentry",
     "src/lib/cookieInventory.ts",
     "src/lib/monitoring.ts",
+    "src/test/monitoring-consent.test.ts",
     "src/test/monitoring.test.ts",
     "src/vite-env.d.ts",
     "supabase/functions/ops-incident-control/index.ts",
     "vite.config.ts"
    ],
-   "detailRef": "3633c9ea4fbc"
+   "detailRef": "804df10bf141"
   },
   {
    "id": "integration:f0725427ade4",
@@ -318435,7 +318653,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 656 module(s).",
+   "description": "Intégration externe détectée dans 657 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -318873,6 +319091,7 @@
     "src/test/meal-subscription-cart.test.tsx",
     "src/test/meal-subscription.test.ts",
     "src/test/miamz-business-logic-guards.test.ts",
+    "src/test/monitoring-consent.test.ts",
     "src/test/native-oauth.test.ts",
     "src/test/newsletter-automation-sql.test.ts",
     "src/test/notification-campaign-idempotency.test.ts",
@@ -319098,7 +319317,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "dc22ff1a71ab"
+   "detailRef": "ae7f5d730cd6"
   },
   {
    "id": "integration:c20910a79a78",
@@ -331592,7 +331811,7 @@
    "id": "path-literal:684553841fb1",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 51 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 52 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1224,
    "surface": null,
@@ -331632,10 +331851,24 @@
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/home-mobile-newsletter.test.tsx",
     "src/test/mobile-logo-intro.test.tsx",
+    "src/test/monitoring-consent.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "10ed1e15d798"
+   "detailRef": "8e2e905578b2"
+  },
+  {
+   "id": "path-literal:ef07732b0e39",
+   "type": "path-literal",
+   "title": "/auth?code=secret",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/monitoring-consent.test.ts",
+   "line": 313,
+   "surface": null,
+   "tags": [
+    "src/test/monitoring-consent.test.ts"
+   ],
+   "detailRef": "8130f837ff8f"
   },
   {
    "id": "path-literal:526e3fa12d6c",
@@ -338614,6 +338847,32 @@
     "src/test/marketing-meta-bff.test.ts"
    ],
    "detailRef": "35be975c47d1"
+  },
+  {
+   "id": "path-literal:215b68ab68f1",
+   "type": "path-literal",
+   "title": "/users/[email]",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/monitoring-consent.test.ts",
+   "line": 313,
+   "surface": null,
+   "tags": [
+    "src/test/monitoring-consent.test.ts"
+   ],
+   "detailRef": "cc5b8b8e95ed"
+  },
+  {
+   "id": "path-literal:8e043a21aa76",
+   "type": "path-literal",
+   "title": "/users/private%40example.test#token",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/monitoring-consent.test.ts",
+   "line": 313,
+   "surface": null,
+   "tags": [
+    "src/test/monitoring-consent.test.ts"
+   ],
+   "detailRef": "477540d8f557"
   },
   {
    "id": "path-literal:e029d6ca54c2",
