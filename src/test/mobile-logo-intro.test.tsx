@@ -26,6 +26,18 @@ describe("optional TOK video", () => {
     expect(screen.queryByTestId("mobile-logo-intro-video")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
+  it("closes with Escape while keyboard focus remains on the opening trigger", () => {
+    render(<MobileLogoIntro />);
+    const trigger = screen.getByRole("button", { name: "Découvrir TOK" });
+    trigger.focus();
+    fireEvent.click(trigger);
+    expect(trigger).toHaveFocus();
+    expect(screen.getByTestId("mobile-logo-intro-video")).toBeInTheDocument();
+    fireEvent.keyDown(trigger, { key: "Escape" });
+    expect(screen.queryByTestId("mobile-logo-intro-video")).not.toBeInTheDocument();
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(trigger).toHaveFocus();
+  });
   it("dismisses invitation and omits it away from home", () => {
     const { unmount } = render(<MobileLogoIntro />);
     fireEvent.click(screen.getByRole("button", { name: "Masquer l’invitation vidéo TOK" }));

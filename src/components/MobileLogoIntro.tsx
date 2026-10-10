@@ -16,9 +16,9 @@ export default function MobileLogoIntro() {
   };
 
   return (
-    <aside aria-label="Découvrir TOK en vidéo" className="mx-auto flex w-full max-w-7xl flex-col items-end px-4 py-2" data-testid="mobile-logo-intro">
+    <aside aria-label="Découvrir TOK en vidéo" className="mx-auto flex w-full max-w-7xl flex-col items-end px-4" data-testid="mobile-logo-intro" onKeyDown={(event) => { if (playing && event.key === "Escape") close(); }}>
       {playing ? (
-        <div className="mb-3 w-64 overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-lg" onKeyDown={(event) => { if (event.key === "Escape") close(); }}>
+        <div className="mb-3 w-64 overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-lg">
           <div className="mb-2 flex items-center justify-between gap-3">
             <p className="text-sm font-semibold">L’univers TOK</p>
             <Button size="icon" variant="ghost" aria-label="Fermer la vidéo TOK" onClick={close}><X aria-hidden="true" /></Button>
@@ -28,7 +28,7 @@ export default function MobileLogoIntro() {
           </video>
         </div>
       ) : null}
-      <div className="flex items-center gap-1 rounded-full border border-border bg-card p-1 shadow-sm">
+      <div className="flex items-center gap-1">
         <Button ref={triggerRef} variant="ghost" className="rounded-full px-3 text-xs" aria-expanded={playing} onClick={() => setPlaying(!playing)}><Play aria-hidden="true" className="h-3.5 w-3.5" />Découvrir TOK</Button>
         <Button variant="ghost" size="icon" className="rounded-full" aria-label="Masquer l’invitation vidéo TOK" onClick={() => setDismissed(true)}><X aria-hidden="true" className="h-4 w-4" /></Button>
       </div>

@@ -459,7 +459,7 @@ export default function DashboardLayout({
             <Button
               variant="ghost"
               className={cn(
-                "pointer-events-auto h-16 max-w-[10.75rem] rounded-[1.45rem] border border-border bg-card px-2.5 pr-4 text-white shadow-sm ring-1 ring-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-muted shadow-sm dark:border-border dark:bg-card shadow-sm",
+                "pointer-events-auto h-16 max-w-[10.75rem] rounded-[1.45rem] border border-border bg-card px-2.5 pr-4 text-foreground shadow-sm ring-1 ring-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-muted shadow-sm dark:border-border dark:bg-card shadow-sm",
                 mobileMenuOpen && "border-orange-200 bg-primary text-primary-foreground hover:bg-primary"
               )}
               aria-label="Ouvrir le menu du dashboard"

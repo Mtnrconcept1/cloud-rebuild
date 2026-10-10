@@ -108,6 +108,14 @@ describe("dashboard shell navigation", () => {
     expect(dialog).toContain("fixed left-[50%] top-[50%] z-[1830]");
   });
 
+  it("keeps the mobile trigger label readable on its light card surface", () => {
+    const layout = read("src/components/DashboardLayout.tsx");
+    const triggerClass = layout.match(/pointer-events-auto h-16 max-w-\[10\.75rem\][^"\n]+/)?.[0];
+    expect(triggerClass).toContain("bg-card");
+    expect(triggerClass).toContain("text-foreground");
+    expect(triggerClass).not.toContain("text-white");
+  });
+
   it("keeps the mobile dashboard trigger out of bottom content", () => {
     const layout = read("src/components/DashboardLayout.tsx");
 
