@@ -2,14 +2,14 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b20e209935ab9874884d01f16820952c34d65cf34a7753c7f595dcfad28597aa",
+ "sourceDigest": "ee64304c65c19f2d69661c4bec6652809fe2813fa57a18a9ebf4cc8498f6f09d",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2720,
-  "documents": 191,
+  "documents": 192,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3375,
@@ -25,8 +25,8 @@
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15494,
-  "repositoryFiles": 2721,
+  "records": 15509,
+  "repositoryFiles": 2723,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -70126,6 +70126,72 @@
     ]
    },
    {
+    "path": "docs/design/tok-ux-ui-audit-20261010.md",
+    "title": "TOK — Proposition UX/UI du 10 octobre 2026",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK — Proposition UX/UI du 10 octobre 2026",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Résultat et périmètre",
+      "line": 3
+     },
+     {
+      "level": 2,
+      "title": "Ce qui freine aujourd’hui le parcours",
+      "line": 13
+     },
+     {
+      "level": 2,
+      "title": "Trois directions comparées",
+      "line": 30
+     },
+     {
+      "level": 2,
+      "title": "Direction retenue : décisions de design",
+      "line": 36
+     },
+     {
+      "level": 3,
+      "title": "Accueil",
+      "line": 38
+     },
+     {
+      "level": 3,
+      "title": "Recherche et cartes",
+      "line": 48
+     },
+     {
+      "level": 3,
+      "title": "Fiche et suite du parcours",
+      "line": 56
+     },
+     {
+      "level": 3,
+      "title": "Système visuel",
+      "line": 64
+     },
+     {
+      "level": 2,
+      "title": "Itérations et évaluation",
+      "line": 80
+     },
+     {
+      "level": 2,
+      "title": "Vérifications réalisées",
+      "line": 99
+     },
+     {
+      "level": 2,
+      "title": "Intégration proposée et limites",
+      "line": 128
+     }
+    ]
+   },
+   {
     "path": "docs/fair-growth-business-model.md",
     "title": "Modèle économique restaurateur — hypothèses",
     "headings": [
@@ -109284,6 +109350,16 @@
     "path": "docs/design/plan-de-salle-theme.md",
     "category": "documentation",
     "extension": ".md"
+   },
+   {
+    "path": "docs/design/tok-ux-ui-audit-20261010.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/design/tok-ux-ui-proposal-20261010.html",
+    "category": "documentation",
+    "extension": ".html"
    },
    {
     "path": "docs/fair-growth-business-model.md",
@@ -194002,6 +194078,20 @@
    "detailRef": "36c6a5031c1f"
   },
   {
+   "id": "document-section:8d772f51f00c",
+   "type": "document-section",
+   "title": "Accueil",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 38,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h3"
+   ],
+   "detailRef": "bbbebddd5620"
+  },
+  {
    "id": "document-section:fd7387859e8b",
    "type": "document-section",
    "title": "Accès",
@@ -196002,6 +196092,20 @@
     "h2"
    ],
    "detailRef": "9aa5c5b28ddc"
+  },
+  {
+   "id": "document-section:40faad3a7a23",
+   "type": "document-section",
+   "title": "Ce qui freine aujourd’hui le parcours",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 13,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "e0d763d4046f"
   },
   {
    "id": "document-section:df4251f4e056",
@@ -198832,6 +198936,20 @@
    "detailRef": "70c97cf514d7"
   },
   {
+   "id": "document-section:bd39e1f5069b",
+   "type": "document-section",
+   "title": "Direction retenue : décisions de design",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "6c1e9156188c"
+  },
+  {
    "id": "document-section:9dcf10dc4320",
    "type": "document-section",
    "title": "Disponibilité et changements",
@@ -200356,6 +200474,20 @@
     "h2"
    ],
    "detailRef": "0fa99ba00bb9"
+  },
+  {
+   "id": "document-section:2b0836907973",
+   "type": "document-section",
+   "title": "Fiche et suite du parcours",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 56,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h3"
+   ],
+   "detailRef": "0a8521ef7734"
   },
   {
    "id": "document-section:568cc00cf822",
@@ -202304,6 +202436,20 @@
    "detailRef": "ab72097cc74e"
   },
   {
+   "id": "document-section:98130f0bdc73",
+   "type": "document-section",
+   "title": "Intégration proposée et limites",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 128,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "2fc9f1725fab"
+  },
+  {
    "id": "document-section:fc109da58fc0",
    "type": "document-section",
    "title": "Intégration à la facturation mensuelle",
@@ -202344,6 +202490,20 @@
     "h1"
    ],
    "detailRef": "c8cccec7333a"
+  },
+  {
+   "id": "document-section:81852dd0dba7",
+   "type": "document-section",
+   "title": "Itérations et évaluation",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 80,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "f259c58e95ed"
   },
   {
    "id": "document-section:3b396e84ec9e",
@@ -208296,6 +208456,20 @@
    "detailRef": "40e075a9d0e1"
   },
   {
+   "id": "document-section:0b47cdbe0bf9",
+   "type": "document-section",
+   "title": "Recherche et cartes",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 48,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h3"
+   ],
+   "detailRef": "a0a1e74cef30"
+  },
+  {
    "id": "document-section:122960d2a50b",
    "type": "document-section",
    "title": "Recherche et ranking marketplace",
@@ -210564,6 +210738,20 @@
    "detailRef": "0821c55b2579"
   },
   {
+   "id": "document-section:77b79a7b8293",
+   "type": "document-section",
+   "title": "Résultat et périmètre",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "da74e2cce162"
+  },
+  {
    "id": "document-section:083cbf510376",
    "type": "document-section",
    "title": "Résultat vérifié",
@@ -212510,6 +212698,20 @@
    "detailRef": "c825a5955edf"
   },
   {
+   "id": "document-section:f6d026fe8919",
+   "type": "document-section",
+   "title": "Système visuel",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 64,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h3"
+   ],
+   "detailRef": "cd58de3aa095"
+  },
+  {
    "id": "document-section:e17fb8333107",
    "type": "document-section",
    "title": "Sécurité et conformité",
@@ -213026,6 +213228,20 @@
     "h1"
    ],
    "detailRef": "7d7878d6a7a3"
+  },
+  {
+   "id": "document-section:7043f98b87e4",
+   "type": "document-section",
+   "title": "TOK — Proposition UX/UI du 10 octobre 2026",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h1"
+   ],
+   "detailRef": "1ca3e8ee7b31"
   },
   {
    "id": "document-section:399b4a8955e0",
@@ -215730,6 +215946,20 @@
    "detailRef": "b42dda1b1a6a"
   },
   {
+   "id": "document-section:119b04ead178",
+   "type": "document-section",
+   "title": "Trois directions comparées",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "e6e78d7aa9a4"
+  },
+  {
    "id": "document-section:903cc318f12c",
    "type": "document-section",
    "title": "Two-factor authentication",
@@ -217072,6 +217302,20 @@
     "h2"
    ],
    "detailRef": "35cbf6d9ce61"
+  },
+  {
+   "id": "document-section:da1cf77364b8",
+   "type": "document-section",
+   "title": "Vérifications réalisées",
+   "description": "Section de TOK — Proposition UX/UI du 10 octobre 2026.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 99,
+   "surface": null,
+   "tags": [
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "f882aeba153f"
   },
   {
    "id": "document-section:baaa63cd1e61",
@@ -222255,6 +222499,30 @@
     "« Je suis déjà sur Uber Eats ou Just Eat »"
    ],
    "detailRef": "32c0320007d2"
+  },
+  {
+   "id": "document:7043f98b87e4",
+   "type": "document",
+   "title": "TOK — Proposition UX/UI du 10 octobre 2026",
+   "description": "Document Markdown avec 12 section(s).",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Accueil",
+    "Ce qui freine aujourd’hui le parcours",
+    "Direction retenue : décisions de design",
+    "Fiche et suite du parcours",
+    "Intégration proposée et limites",
+    "Itérations et évaluation",
+    "Recherche et cartes",
+    "Résultat et périmètre",
+    "Système visuel",
+    "TOK — Proposition UX/UI du 10 octobre 2026",
+    "Trois directions comparées",
+    "Vérifications réalisées"
+   ],
+   "detailRef": "9f86480894bc"
   },
   {
    "id": "document:399b4a8955e0",
@@ -279864,6 +280132,34 @@
     "documentation"
    ],
    "detailRef": "7f927edbad63"
+  },
+  {
+   "id": "file:beb20af78a0a",
+   "type": "file",
+   "title": "docs/design/tok-ux-ui-audit-20261010.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/design/tok-ux-ui-audit-20261010.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "a8afa8ec18e4"
+  },
+  {
+   "id": "file:a5e15583a810",
+   "type": "file",
+   "title": "docs/design/tok-ux-ui-proposal-20261010.html",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/design/tok-ux-ui-proposal-20261010.html",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".html",
+    "documentation"
+   ],
+   "detailRef": "05374a45308b"
   },
   {
    "id": "file:ecb872519fc6",

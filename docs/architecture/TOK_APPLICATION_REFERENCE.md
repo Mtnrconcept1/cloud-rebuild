@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b20e209935ab9874884d01f16820952c34d65cf34a7753c7f595dcfad28597aa`
+- Empreinte SHA-256 des sources indexées : `ee64304c65c19f2d69661c4bec6652809fe2813fa57a18a9ebf4cc8498f6f09d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,7 +29,7 @@
 | cronJobs | 33 |
 | databaseContract | 228 |
 | databaseObjects | 2720 |
-| documents | 191 |
+| documents | 192 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 3375 |
@@ -45,8 +45,8 @@
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15494 |
-| repositoryFiles | 2721 |
+| records | 15509 |
+| repositoryFiles | 2723 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -5855,6 +5855,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Déploiement — carte commerciale TheFork Genève | 1 | [docs/deployments/2026-07-24-commercial-map-thefork-520.md:1](../../docs/deployments/2026-07-24-commercial-map-thefork-520.md#L1) |
 | Plan de salle — placement des réservations | 10 | [docs/design/plan-de-salle-placement.md:1](../../docs/design/plan-de-salle-placement.md#L1) |
 | Plan de salle — thème clair / sombre | 9 | [docs/design/plan-de-salle-theme.md:1](../../docs/design/plan-de-salle-theme.md#L1) |
+| TOK — Proposition UX/UI du 10 octobre 2026 | 12 | [docs/design/tok-ux-ui-audit-20261010.md:1](../../docs/design/tok-ux-ui-audit-20261010.md#L1) |
 | Modèle économique restaurateur — hypothèses | 8 | [docs/fair-growth-business-model.md:1](../../docs/fair-growth-business-model.md#L1) |
 | Intégration de `marketing.thetok.ch` | 9 | [docs/implementation/MARKETING_SUBDOMAIN_INTEGRATION.md:1](../../docs/implementation/MARKETING_SUBDOMAIN_INTEGRATION.md#L1) |
 | Audit de candidature — TOK comme fournisseur de réservation Google | 11 | [docs/integrations/google-actions-center-audit.md:1](../../docs/integrations/google-actions-center-audit.md#L1) |
@@ -6861,7 +6862,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (123)</summary>
+<details><summary>documentation (125)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md`
@@ -6883,6 +6884,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/deployments/2026-07-24-commercial-map-thefork-520.md`
 - `docs/design/plan-de-salle-placement.md`
 - `docs/design/plan-de-salle-theme.md`
+- `docs/design/tok-ux-ui-audit-20261010.md`
+- `docs/design/tok-ux-ui-proposal-20261010.html`
 - `docs/fair-growth-business-model.md`
 - `docs/implementation/MARKETING_SUBDOMAIN_INTEGRATION.md`
 - `docs/integrations/google-actions-center-audit.md`
