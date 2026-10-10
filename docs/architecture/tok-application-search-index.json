@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "298178489fd9ff97e2bed4bcbc2679526a6b7f1053203704b51cbb296b76eb72",
+ "sourceDigest": "1638917c414a13611341d5c56ebc429c783eafdb20d277ddd4976e517320e635",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -79607,7 +79607,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 164
+    "lineCount": 171
    },
    {
     "path": "scripts/test-checkout-security-runner.test.mjs",
@@ -123714,7 +123714,7 @@
    "id": "code-module:dd58f1b52214",
    "type": "code-module",
    "title": "scripts/test-checkout-security-postgres.mjs",
-   "description": "Module de 164 lignes; exports: aucun export statique.",
+   "description": "Module de 171 lignes; exports: aucun export statique.",
    "path": "scripts/test-checkout-security-postgres.mjs",
    "line": 1,
    "surface": null,
@@ -123731,7 +123731,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "1cd42ab209bf"
+   "detailRef": "7f7089d82f88"
   },
   {
    "id": "code-module:9843c9e14a0d",
