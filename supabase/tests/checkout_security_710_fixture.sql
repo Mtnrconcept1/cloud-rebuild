@@ -39,12 +39,27 @@ SELECT ('71010000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
             ELSE '71000000-0000-4000-8000-000000000001'::uuid END,
        'Security fixture ' || n,'1 Rue Test, 1201 Geneve','Geneve',n IN (5,6,7),
        CASE WHEN n IN (5,6,7) THEN 'active' ELSE 'pending' END,false,
-       CASE WHEN n=3 THEN NULL ELSE 'https://example.test/fixture.jpg' END,
+       CASE WHEN n IN (3,5,6,7) THEN NULL ELSE 'https://example.test/fixture.jpg' END,
        n IN (5,6,7),n<>5,n<>6,
        false,false,false,false,false,false,false,false,
        CASE WHEN n IN (5,6,7) THEN 'security710-fixture' ELSE NULL END,
        CASE WHEN n IN (5,6,7) THEN n::text ELSE NULL END
 FROM generate_series(1,8) n;
+
+-- Directory images are published through the real settling RPC, after the
+-- restaurant exists (the candidate trigger references that parent row).
+INSERT INTO public.restaurant_image_truth_reviews(id,restaurant_id,candidate_url,status,lease_token,lease_expires_at)
+SELECT ('71080000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
+       ('71010000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
+       'https://example.test/fixture.jpg','processing',
+       ('71080000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,now()+interval '5 minutes'
+FROM generate_series(5,7) n;
+SELECT public.settle_restaurant_image_truth_review(id,lease_token,'verified',0.99,'exterior',
+ 'Synthetic test fixture','synthetic-fixture',repeat('a',64),'image/jpeg',100,'{"synthetic":true}'::jsonb)
+FROM public.restaurant_image_truth_reviews WHERE id::text LIKE '71080000-%';
+SELECT set_config('tok.directory_image_truth_settling','off',true);
+UPDATE public.restaurants SET directory_image_verified=false
+WHERE id='71010000-0000-4000-8000-000000000006';
 
 -- Establish actual publication prerequisites without bypassing any trigger:
 -- submitted dossiers, synthetic payment-method readiness, then admin review.
