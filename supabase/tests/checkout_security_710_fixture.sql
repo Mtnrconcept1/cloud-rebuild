@@ -51,11 +51,11 @@ FROM generate_series(1,8) n;
 INSERT INTO public.restaurant_image_truth_reviews(id,restaurant_id,candidate_url,status,lease_token,lease_expires_at)
 SELECT ('71080000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
        ('71010000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
-       'https://example.test/fixture.jpg','processing',
+       'https://example.test/fixture-' || n || '.jpg','processing',
        ('71080000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,now()+interval '5 minutes'
 FROM generate_series(5,7) n;
 SELECT public.settle_restaurant_image_truth_review(id,lease_token,'verified',0.99,'exterior',
- 'Synthetic test fixture','synthetic-fixture',repeat('a',64),'image/jpeg',100,'{"synthetic":true}'::jsonb)
+ 'Synthetic test fixture','synthetic-fixture',repeat(md5(id::text),2),'image/jpeg',100,'{"synthetic":true}'::jsonb)
 FROM public.restaurant_image_truth_reviews WHERE id::text LIKE '71080000-%';
 SELECT set_config('tok.directory_image_truth_settling','off',true);
 UPDATE public.restaurants SET directory_image_verified=false
