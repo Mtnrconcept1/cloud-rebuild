@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { motion, useReducedMotion } from "framer-motion";
 import { ChevronRight, type LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,203 +24,23 @@ type SectionShowcaseHeaderProps = {
   actions?: ReactNode;
 };
 
-const themeClasses: Record<
-  SectionHeaderTheme,
-  {
-    panel: string;
-    eyebrow: string;
-    iconBubble: string;
-  }
-> = {
-  orange: {
-    panel:
-      "border-orange-200/70 bg-[radial-gradient(circle_at_78%_18%,rgba(255,186,112,0.55),transparent_16rem),linear-gradient(135deg,#fff7ed_0%,#ffedd5_48%,#dcfce7_100%)] dark:border-orange-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(249,115,22,0.26),transparent_16rem),linear-gradient(135deg,rgba(67,20,7,0.78),rgba(17,24,39,0.96))]",
-    eyebrow: "text-orange-600 dark:text-orange-200",
-    iconBubble: "bg-orange-500/12 text-orange-600 dark:bg-orange-300/15 dark:text-orange-200",
-  },
-  rose: {
-    panel:
-      "border-rose-200/70 bg-[radial-gradient(circle_at_78%_18%,rgba(251,113,133,0.36),transparent_16rem),linear-gradient(135deg,#fff1f2_0%,#fce7f3_48%,#fff7ed_100%)] dark:border-rose-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(244,114,182,0.22),transparent_16rem),linear-gradient(135deg,rgba(76,5,25,0.76),rgba(17,24,39,0.96))]",
-    eyebrow: "text-pink-600 dark:text-pink-200",
-    iconBubble: "bg-pink-500/12 text-pink-600 dark:bg-pink-300/15 dark:text-pink-200",
-  },
-  sky: {
-    panel:
-      "border-sky-200/70 bg-[radial-gradient(circle_at_78%_18%,rgba(125,211,252,0.46),transparent_16rem),linear-gradient(135deg,#f0f9ff_0%,#e0f2fe_50%,#ecfeff_100%)] dark:border-sky-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(56,189,248,0.22),transparent_16rem),linear-gradient(135deg,rgba(8,47,73,0.74),rgba(17,24,39,0.96))]",
-    eyebrow: "text-sky-600 dark:text-sky-200",
-    iconBubble: "bg-sky-500/12 text-sky-600 dark:bg-sky-300/15 dark:text-sky-200",
-  },
-  amber: {
-    panel:
-      "border-amber-200/80 bg-[radial-gradient(circle_at_78%_18%,rgba(251,191,36,0.46),transparent_16rem),linear-gradient(135deg,#fffbeb_0%,#fef3c7_48%,#fff7ed_100%)] dark:border-amber-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(245,158,11,0.24),transparent_16rem),linear-gradient(135deg,rgba(69,26,3,0.76),rgba(17,24,39,0.96))]",
-    eyebrow: "text-amber-700 dark:text-amber-200",
-    iconBubble: "bg-amber-500/12 text-amber-700 dark:bg-amber-300/15 dark:text-amber-200",
-  },
-  indigo: {
-    panel:
-      "border-indigo-200/70 bg-[radial-gradient(circle_at_78%_18%,rgba(165,180,252,0.48),transparent_16rem),linear-gradient(135deg,#eef2ff_0%,#e0e7ff_48%,#f5f3ff_100%)] dark:border-indigo-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(129,140,248,0.24),transparent_16rem),linear-gradient(135deg,rgba(30,27,75,0.78),rgba(17,24,39,0.96))]",
-    eyebrow: "text-indigo-600 dark:text-indigo-200",
-    iconBubble: "bg-indigo-500/12 text-indigo-600 dark:bg-indigo-300/15 dark:text-indigo-200",
-  },
-  emerald: {
-    panel:
-      "border-emerald-200/80 bg-[radial-gradient(circle_at_78%_18%,rgba(110,231,183,0.5),transparent_16rem),linear-gradient(135deg,#ecfdf5_0%,#d1fae5_50%,#f0fdfa_100%)] dark:border-emerald-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(52,211,153,0.22),transparent_16rem),linear-gradient(135deg,rgba(6,78,59,0.74),rgba(17,24,39,0.96))]",
-    eyebrow: "text-emerald-700 dark:text-emerald-200",
-    iconBubble: "bg-emerald-500/12 text-emerald-700 dark:bg-emerald-300/15 dark:text-emerald-200",
-  },
-  blue: {
-    panel:
-      "border-blue-200/70 bg-[radial-gradient(circle_at_78%_18%,rgba(147,197,253,0.48),transparent_16rem),linear-gradient(135deg,#eff6ff_0%,#dbeafe_48%,#eef2ff_100%)] dark:border-blue-300/20 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(96,165,250,0.22),transparent_16rem),linear-gradient(135deg,rgba(30,58,138,0.72),rgba(17,24,39,0.96))]",
-    eyebrow: "text-blue-600 dark:text-blue-200",
-    iconBubble: "bg-blue-500/12 text-blue-600 dark:bg-blue-300/15 dark:text-blue-200",
-  },
-  slate: {
-    panel:
-      "border-slate-200/80 bg-[radial-gradient(circle_at_78%_18%,rgba(148,163,184,0.34),transparent_16rem),linear-gradient(135deg,#f8fafc_0%,#f1f5f9_48%,#fff7ed_100%)] dark:border-slate-300/15 dark:bg-[radial-gradient(circle_at_78%_18%,rgba(148,163,184,0.16),transparent_16rem),linear-gradient(135deg,rgba(15,23,42,0.9),rgba(17,24,39,0.98))]",
-    eyebrow: "text-slate-600 dark:text-slate-200",
-    iconBubble: "bg-slate-500/12 text-slate-600 dark:bg-slate-300/15 dark:text-slate-200",
-  },
-};
-
-const HEART_HEADER_IMAGE = `data:image/svg+xml;utf8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <defs>
-    <radialGradient id="heartGlow" cx="33%" cy="22%" r="72%">
-      <stop offset="0%" stop-color="#ffd4e7"/>
-      <stop offset="33%" stop-color="#ff6fa4"/>
-      <stop offset="68%" stop-color="#f31573"/>
-      <stop offset="100%" stop-color="#c90e5f"/>
-    </radialGradient>
-    <linearGradient id="heartEdge" x1="18%" y1="8%" x2="88%" y2="92%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.82"/>
-      <stop offset="36%" stop-color="#ff9ac2" stop-opacity="0.55"/>
-      <stop offset="72%" stop-color="#b90057" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.28"/>
-    </linearGradient>
-    <filter id="softHeartShadow" x="-25%" y="-20%" width="150%" height="160%">
-      <feDropShadow dx="0" dy="20" stdDeviation="20" flood-color="#e11d67" flood-opacity="0.24"/>
-    </filter>
-    <filter id="pinkBlur" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="10"/>
-    </filter>
-  </defs>
-  <ellipse cx="294" cy="394" rx="154" ry="42" fill="#fb3d84" opacity="0.18" transform="rotate(-9 294 394)" filter="url(#pinkBlur)"/>
-  <path d="M256 420C165 344 92 289 92 199c0-58 42-101 96-101 34 0 61 17 76 45 15-28 43-45 80-45 54 0 96 43 96 101 0 90-77 145-184 221Z" fill="url(#heartGlow)" filter="url(#softHeartShadow)"/>
-  <path d="M256 420C165 344 92 289 92 199c0-58 42-101 96-101 34 0 61 17 76 45 15-28 43-45 80-45 54 0 96 43 96 101 0 90-77 145-184 221Z" fill="none" stroke="url(#heartEdge)" stroke-width="14" stroke-linejoin="round" opacity="0.8"/>
-  <path d="M149 173c14-37 56-54 94-34 12 6 20 14 27 26-16-12-43-24-76-11-27 10-42 31-45 56-2-13-4-25 0-37Z" fill="#ffffff" opacity="0.42"/>
-  <path d="M290 145c32-29 88-14 102 31 5 16 4 32 1 45-10-41-47-65-88-48-18 7-31 22-40 38 2-26 10-51 25-66Z" fill="#ffffff" opacity="0.28"/>
-  <path d="M160 139c30-31 83-29 113 8" fill="none" stroke="#ffffff" stroke-opacity="0.42" stroke-width="12" stroke-linecap="round"/>
-  <path d="M332 128c42 2 75 30 84 70" fill="none" stroke="#ffffff" stroke-opacity="0.28" stroke-width="10" stroke-linecap="round"/>
-  <path d="M173 355c43 28 103 40 160-3" fill="none" stroke="#9f0a52" stroke-opacity="0.18" stroke-width="16" stroke-linecap="round"/>
-  <path d="M368 348c38 4 64 17 72 28" fill="none" stroke="#ff8fbd" stroke-opacity="0.36" stroke-width="10" stroke-linecap="round"/>
-  <path d="M388 374l7 15 16 6-16 6-7 15-7-15-16-6 16-6 7-15Z" fill="#ffffff" opacity="0.92"/>
-  <circle cx="358" cy="407" r="5" fill="#ffffff" opacity="0.9"/>
-  <circle cx="337" cy="422" r="3.5" fill="#ffffff" opacity="0.85"/>
-  <circle cx="319" cy="437" r="2.8" fill="#ffffff" opacity="0.72"/>
-</svg>`)} `;
-
-const imageSrcOverrides: Record<string, string> = {
-  "/images/section-headers/heart-3d.png": HEART_HEADER_IMAGE.trim(),
-};
-
 export default function SectionShowcaseHeader({
-  title,
-  subtitle,
-  icon: Icon,
-  imageSrc,
-  iconColor,
-  theme = "orange",
-  linkText,
-  linkTo,
-  className,
-  titleClassName,
-  contentClassName,
-  illustrationClassName,
-  imageClassName,
-  actions,
+  title, subtitle, icon: Icon, linkText, linkTo, className, actions,
 }: SectionShowcaseHeaderProps) {
-  const palette = themeClasses[theme];
-  const resolvedImageSrc = imageSrcOverrides[imageSrc] || imageSrc;
-  const hasFooterActions = Boolean((linkText && linkTo) || actions);
-  const reduceMotion = useReducedMotion();
-  const illustrationMotion = reduceMotion
-    ? {}
-    : {
-        initial: { y: 12, scale: 0.97 },
-        whileInView: { y: [12, -8, 3, 0], scale: [0.97, 1.035, 0.995, 1] },
-        viewport: { once: false, amount: 0.45 },
-        transition: { duration: 0.68, ease: [0.22, 1, 0.36, 1] as const },
-      };
-
   return (
-    <div
-      data-section-showcase-header
-      className={cn(
-        "relative isolate min-h-[238px] overflow-visible rounded-[2rem] border px-5 pb-20 pt-6 shadow-[0_24px_55px_rgba(15,23,42,0.10)] sm:min-h-[258px] sm:px-7 sm:pt-7 md:min-h-[286px] md:px-8 md:pt-8",
-        palette.panel,
-        className,
-      )}
-    >
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[2rem]">
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.78),rgba(255,255,255,0.18)_58%,rgba(255,255,255,0))] dark:bg-[linear-gradient(90deg,rgba(15,23,42,0.38),rgba(15,23,42,0.08)_58%,rgba(15,23,42,0))]" />
-        <div className="absolute -bottom-24 left-1/2 h-40 w-[148%] -translate-x-1/2 rounded-[100%] bg-background shadow-[0_-16px_45px_rgba(255,255,255,0.62)] dark:bg-slate-950 dark:shadow-[0_-16px_45px_rgba(15,23,42,0.55)]" />
+    <div data-section-showcase-header className={cn("flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5", className)}>
+      <div className="min-w-0 max-w-3xl">
+        <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+          <Icon className="h-4 w-4" aria-hidden="true" />{subtitle}
+        </p>
+        <h2 className="font-display text-2xl font-medium leading-tight tracking-tight text-foreground sm:text-3xl md:text-4xl">{title}</h2>
       </div>
-
-      <motion.div
-        data-section-illustration
-        className={cn(
-          "pointer-events-none absolute bottom-0 right-5 -top-1 z-[55] w-[40%] min-w-[8rem] max-w-[14.5rem] overflow-visible rounded-br-[2rem] sm:right-8 sm:-top-2 sm:w-[41%] sm:max-w-[20rem] md:right-10 md:-top-3 md:w-[42%] md:max-w-[24rem]",
-          illustrationClassName,
-        )}
-        {...illustrationMotion}
-      >
-        <img
-          src={resolvedImageSrc}
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          decoding="async"
-          className={cn(
-            "absolute inset-y-0 right-0 h-full max-h-none w-full object-contain object-center",
-            imageClassName,
-          )}
-        />
-      </motion.div>
-
-      <div
-        className={cn(
-          "relative z-50 min-w-0 max-w-[calc(100%-6.5rem)] pr-1 min-[380px]:max-w-[calc(100%-10.75rem)] min-[380px]:pr-2 sm:max-w-[calc(100%-14.75rem)] sm:pr-4 md:max-w-[calc(100%-19.5rem)] md:pr-6",
-          contentClassName,
-        )}
-      >
-        <div className={cn("mb-4 flex min-w-0 max-w-full items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] min-[380px]:mb-5 min-[380px]:text-xs min-[380px]:tracking-[0.18em]", iconColor || palette.eyebrow)}>
-          <span className={cn("grid h-8 w-8 place-items-center rounded-full", palette.iconBubble)}>
-            <Icon className="h-4 w-4 fill-current" />
-          </span>
-          <span className="min-w-0 break-words">{subtitle}</span>
-        </div>
-        <h2 className={cn("font-display text-3xl font-bold leading-[1.02] tracking-normal text-slate-950 min-[380px]:text-4xl dark:text-white sm:text-5xl md:text-6xl", titleClassName)}>
-          {title}
-        </h2>
-      </div>
-
-      {hasFooterActions ? (
-        <div
-          data-section-action-row
-          className="absolute bottom-5 left-5 z-[60] flex min-w-0 max-w-[calc(100%-6.5rem)] items-center justify-start gap-2 min-[380px]:max-w-[calc(100%-10.75rem)] sm:left-7 sm:max-w-[calc(100%-14.75rem)] md:max-w-[calc(100%-19.5rem)]"
-        >
+      {(actions || (linkText && linkTo)) ? (
+        <div data-section-action-row className="flex max-w-full flex-wrap items-center gap-2">
           {actions}
           {linkText && linkTo ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-11 max-w-full rounded-full bg-white/55 px-4 text-sm font-bold text-slate-950 shadow-sm backdrop-blur-sm hover:bg-white/80 hover:text-primary dark:bg-slate-950/35 dark:text-white dark:hover:bg-white/10 dark:hover:text-orange-200"
-              asChild
-            >
-              <Link to={linkTo}>
-                <span className="min-w-0 truncate">{linkText}</span>
-                <ChevronRight className="ml-1 h-4 w-4 shrink-0" />
-              </Link>
+            <Button variant="ghost" className="min-h-11 rounded-full px-3 text-sm text-primary" asChild>
+              <Link to={linkTo}><span>{linkText}</span><ChevronRight className="ml-1 h-4 w-4 shrink-0" aria-hidden="true" /></Link>
             </Button>
           ) : null}
         </div>

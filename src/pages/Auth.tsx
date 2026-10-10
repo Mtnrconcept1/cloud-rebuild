@@ -1764,7 +1764,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             : error.message,
           variant: "destructive",
         });
-        if (!isPrivilegedSignup) navigate("/coming-soon?welcome=1&email=1");
         return;
       }
 
@@ -2151,7 +2150,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       });
 
       if (submittedRole === "client") {
-        navigate("/coming-soon?welcome=1");
+        navigate(launchState?.enabled === false ? TOK_WORKSPACE_CHOOSER_PATH : "/coming-soon?welcome=1");
         return;
       }
 

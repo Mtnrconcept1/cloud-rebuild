@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight, Coins, Heart, Search, UsersRound, Utensils } from "lucide-react";
+import { ChevronRight, Heart, MapPin, Search } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { useAuth } from "@/lib/auth-context";
 import "./HeroSection.css";
+
+const HERO_IMAGE_FETCH_PRIORITY_PROPS = { fetchpriority: "high" } as const;
 
 const newsletterConditions = [
   "Le bonus de bienvenue est réservé aux nouveaux comptes TOK qui s'inscrivent à la newsletter depuis cette offre.",
@@ -20,13 +22,15 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
   const logoSrc = useTokLogoSrc();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [city, setCity] = useState("");
   const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const params = new URLSearchParams({ city: "Genève" });
+    const params = new URLSearchParams();
+    if (city.trim()) params.set("city", city.trim());
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
-    navigate(`/recherche?${params}`);
+    navigate(`/recherche${params.size ? `?${params}` : ""}`);
   };
 
   return (
@@ -37,47 +41,45 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
         data-content-visible={contentVisible}
         data-authenticated={Boolean(user)}
       >
-        <picture className="tok-home-hero__background" aria-hidden="true">
-          <source media="(min-width: 1024px)" type="image/webp" srcSet="/images/home/tok-geneve-desktop.webp" width={1670} height={941} />
-          <source media="(min-width: 1024px)" srcSet="/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png" width={1670} height={941} />
-          <source type="image/webp" srcSet="/images/home/tok-geneve-mobile.webp" width={941} height={1672} />
-          <img src="/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png" alt="" width={941} height={1672} fetchPriority="high" loading="eager" />
-        </picture>
-        {!user ? (
-          <nav className="tok-home-hero__desktop-nav" aria-label="Navigation principale">
-            <Link to="/recherche?city=Gen%C3%A8ve">Les restaurants</Link>
-            <Link to="/aide">Comment ça marche</Link>
-            <Link className="tok-home-hero__login" to="/auth">Connexion</Link>
-          </nav>
-        ) : null}
         <div className="tok-home-hero__content">
-          <img className="tok-home-hero__logo" src={logoSrc} alt="TOK — Miamz !" width={1691} height={1099} />
-          <p className="tok-home-hero__location">À Genève</p>
+          <div className="tok-home-hero__brand">
+            <img className="tok-home-hero__logo" src={logoSrc} alt="TOK — Miamz !" width={1691} height={1099} />
+            <p className="tok-home-hero__eyebrow">Le goût de se retrouver</p>
+          </div>
           <h1 id="home-hero-title" className="tok-home-hero__title">
-            <span className="tok-home-hero__title-mobile tok-home-hero__title-primary">Réservez et commandez</span>{" "}
-            <span className="tok-home-hero__title-mobile tok-home-hero__accent">les meilleures offres food !</span>
-            <span className="tok-home-hero__title-desktop">Les meilleures<br />offres food,<br /><span>près de chez vous.</span></span>
+            Votre prochaine<br /><span>bonne adresse.</span>
           </h1>
           <p className="tok-home-hero__intro">
-            À Genève, cumulez des <strong>Miamz</strong> solidaires à chaque repas.
+            Une table, un repas à emporter, une nouvelle envie. Trouvez le restaurant qui vous correspond.
           </p>
-          <ul className="tok-home-hero__benefits" aria-label="Les avantages TOK">
-            <li><Coins aria-hidden="true" /><span>Moins de frais<br />pour le resto</span></li>
-            <li><Heart aria-hidden="true" /><span>Plus de repas<br />financés</span></li>
-            <li><UsersRound aria-hidden="true" /><span>Une communauté<br />plus solidaire</span></li>
-          </ul>
-          <form role="search" aria-label="Rechercher un restaurant à Genève" onSubmit={handleSearch} className="tok-home-hero__form">
-            <div className="tok-home-hero__search">
-              <Search aria-hidden="true" className="tok-home-hero__search-icon" />
-              <label className="sr-only" htmlFor="home-restaurant-search">Cuisine, nom de restaurant ou quartier</label>
-              <input id="home-restaurant-search" name="q" type="search" enterKeyHint="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Cuisine, nom de restaurant, quartier..." />
-              <button type="submit" aria-label="Rechercher"><Search aria-hidden="true" /></button>
+          <form role="search" aria-label="Rechercher un restaurant" onSubmit={handleSearch} className="tok-home-hero__form">
+            <div className="tok-home-hero__field">
+              <label htmlFor="home-restaurant-search">Restaurant ou cuisine</label>
+              <div className="tok-home-hero__input-row">
+                <Search aria-hidden="true" />
+                <input id="home-restaurant-search" name="q" type="search" enterKeyHint="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="De quoi avez-vous envie ?" />
+              </div>
+            </div>
+            <div className="tok-home-hero__field tok-home-hero__field--city">
+              <label htmlFor="home-city-search">Où ? <span>(facultatif)</span></label>
+              <div className="tok-home-hero__input-row">
+                <MapPin aria-hidden="true" />
+                <input id="home-city-search" name="city" type="text" autoComplete="address-level2" value={city} onChange={(event) => setCity(event.target.value)} placeholder="Toutes les villes" />
+              </div>
             </div>
             <button type="submit" className="tok-home-hero__cta">
-              <Utensils aria-hidden="true" /><span>Je veux manger</span><ChevronRight aria-hidden="true" />
+              <span>Rechercher</span><ChevronRight aria-hidden="true" />
             </button>
           </form>
-          <p className="tok-home-hero__signature"><span>Mangez mieux,<br />Faites plus de bien !</span><Heart aria-hidden="true" /></p>
+          <p className="tok-home-hero__reassurance">Explorez librement. Choisissez ensuite votre service.</p>
+          <p className="tok-home-hero__signature"><Heart aria-hidden="true" /><span>Mangez mieux. Faites plus de bien, avec les Miamz solidaires.</span></p>
+        </div>
+        <div className="tok-home-hero__art" aria-hidden="true">
+          <picture className="tok-home-hero__background">
+            <source type="image/webp" srcSet="/images/home/tok-geneve-desktop.webp" width={1670} height={941} />
+            <img src="/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png" alt="" width={1670} height={941} {...HERO_IMAGE_FETCH_PRIORITY_PROPS} loading="eager" />
+          </picture>
+          <div className="tok-home-hero__art-caption"><span>À la table de TOK</span><p>Les bonnes choses<br />se partagent.</p></div>
         </div>
       </section>
       <aside className="tok-home-hero__secondary" aria-label="Rejoindre TOK">

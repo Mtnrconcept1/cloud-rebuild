@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a57f3ca6f58c61b3b1efa8831866bd363fa37b096e61e719ae7ca6f6490a89f4`
+- Empreinte SHA-256 des sources indexées : `156e8ca4a9bf0e453e9bf5964c05411c23ce96e826d2a0df096966fd3a10390c`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,8 +28,8 @@
 | apiRoutes | 9 |
 | cronJobs | 33 |
 | databaseContract | 228 |
-| databaseObjects | 2732 |
-| documents | 196 |
+| databaseObjects | 2736 |
+| documents | 199 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 3389 |
@@ -37,22 +37,22 @@
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
-| migrations | 523 |
-| modules | 1479 |
+| migrations | 526 |
+| modules | 1487 |
 | pages | 127 |
-| pathLiterals | 623 |
+| pathLiterals | 620 |
 | publicAssets | 306 |
 | publicEntries | 331 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15655 |
-| repositoryFiles | 2774 |
+| records | 15716 |
+| repositoryFiles | 2794 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 25 |
+| workflows | 27 |
 
 ## État distant observé
 
@@ -946,7 +946,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 232 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 233 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 4 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:68](../../src/test/application-search-index.test.ts#L68) |
@@ -954,7 +954,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /.well-known/assetlinks.json | 3 | [scripts/mobile-verify.mjs:262](../../scripts/mobile-verify.mjs#L262) |
 | /.well-known/oauth-protected-resource | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
 | /18270815569115548? | 1 | [src/test/marketing-meta-publishing.test.ts:162](../../src/test/marketing-meta-publishing.test.ts#L162) |
-| /64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png | 1 | [src/components/home/HeroSection.tsx:44](../../src/components/home/HeroSection.tsx#L44) |
 | /:path( | 3 | [src/test/mobile-association-hosting.test.ts:8](../../src/test/mobile-association-hosting.test.ts#L8) |
 | /:path* | 1 | [src/test/marketing-subdomain-integration.test.ts:57](../../src/test/marketing-subdomain-integration.test.ts#L57) |
 | /:surface( | 2 | [src/test/vercel-rewrites.test.ts:132](../../src/test/vercel-rewrites.test.ts#L132) |
@@ -962,7 +961,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /?$ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /?q=restaurant | 1 | [src/test/marketing-autopilot-frontend.test.tsx:255](../../src/test/marketing-autopilot-frontend.test.tsx#L255) |
 | /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:147](../../src/test/plan-phase1-readiness.test.ts#L147) |
-| /Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png | 1 | [src/components/home/HeroSection.tsx:42](../../src/components/home/HeroSection.tsx#L42) |
+| /Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png | 1 | [src/components/home/HeroSection.tsx:80](../../src/components/home/HeroSection.tsx#L80) |
 | /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 3 | [src/components/FeatureWizard.tsx:18](../../src/components/FeatureWizard.tsx#L18) |
 | /Miamz2.webp | 4 | [src/components/home/SolidaritySection.tsx:43](../../src/components/home/SolidaritySection.tsx#L43) |
 | /Miamz3.webp | 3 | [src/components/home/SolidaritySection.tsx:41](../../src/components/home/SolidaritySection.tsx#L41) |
@@ -977,13 +976,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /a-propos | 12 | [scripts/prerender-seo.mjs:1065](../../scripts/prerender-seo.mjs#L1065) |
 | /abonnement | 13 | [scripts/prerender-seo.mjs:1001](../../scripts/prerender-seo.mjs#L1001) |
 | /actions/runs/$FAILED_WORKFLOW_ID/jobs | 1 | [src/test/incident-automation-readiness.test.ts:547](../../src/test/incident-automation-readiness.test.ts#L547) |
-| /actualites | 30 | [scripts/harden-seo-crawl.mjs:380](../../scripts/harden-seo-crawl.mjs#L380) |
+| /actualites | 29 | [scripts/harden-seo-crawl.mjs:380](../../scripts/harden-seo-crawl.mjs#L380) |
 | /actualites/ | 2 | [scripts/prerender-seo.mjs:48](../../scripts/prerender-seo.mjs#L48) |
 | /actualites/:postId | 2 | [src/App.tsx:608](../../src/App.tsx#L608) |
 | /actualites/post-1 | 4 | [src/test/seo-crawl-hardening.test.ts:114](../../src/test/seo-crawl-hardening.test.ts#L114) |
 | /actualites/post-thin | 2 | [src/test/seo-crawl-hardening.test.ts:119](../../src/test/seo-crawl-hardening.test.ts#L119) |
 | /actualites?post= | 1 | [src/test/actualites-search-seo.test.ts:36](../../src/test/actualites-search-seo.test.ts#L36) |
-| /admin | 65 | [scripts/application-index-core.mjs:162](../../scripts/application-index-core.mjs#L162) |
+| /admin | 64 | [scripts/application-index-core.mjs:162](../../scripts/application-index-core.mjs#L162) |
 | /admin/ | 4 | [src/App.tsx:309](../../src/App.tsx#L309) |
 | /admin/:path* | 1 | [src/test/vercel-rewrites.test.ts:90](../../src/test/vercel-rewrites.test.ts#L90) |
 | /admin/actualites | 5 | [src/App.tsx:658](../../src/App.tsx#L658) |
@@ -1023,7 +1022,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/utilisateurs?tab=commercials | 3 | [src/components/admin/AdminMobileNavigation.tsx:65](../../src/components/admin/AdminMobileNavigation.tsx#L65) |
 | /admin/utilisateurs?tab=couriers | 3 | [src/components/admin/AdminMobileNavigation.tsx:67](../../src/components/admin/AdminMobileNavigation.tsx#L67) |
 | /advisor | 1 | [src/lib/commercialDemoAi.ts:293](../../src/lib/commercialDemoAi.ts#L293) |
-| /aide | 10 | [scripts/prerender-seo.mjs:1081](../../scripts/prerender-seo.mjs#L1081) |
+| /aide | 9 | [scripts/prerender-seo.mjs:1081](../../scripts/prerender-seo.mjs#L1081) |
 | /aligro-catalog-sync | 1 | [src/test/supplier-catalog-sync.test.ts:82](../../src/test/supplier-catalog-sync.test.ts#L82) |
 | /anti-gaspi | 20 | [scripts/prerender-seo.mjs:340](../../scripts/prerender-seo.mjs#L340) |
 | /api | 1 | [vite.config.ts:97](../../vite.config.ts#L97) |
@@ -1045,7 +1044,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
 | /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:524](../../src/test/tok-ai-tools.test.ts#L524) |
 | /assets/missing.js | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
-| /auth | 54 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
+| /auth | 52 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
 | /auth/callback | 17 | [src/App.tsx:560](../../src/App.tsx#L560) |
 | /auth/callback? | 1 | [src/lib/deep-links.ts:33](../../src/lib/deep-links.ts#L33) |
 | /auth/callback?code=pkce-code | 1 | [src/test/native-oauth.test.ts:114](../../src/test/native-oauth.test.ts#L114) |
@@ -1056,13 +1055,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/v1/token?grant_type=password | 5 | [src/test/marketing-bff-security.test.ts:239](../../src/test/marketing-bff-security.test.ts#L239) |
 | /auth/v1/user | 7 | [src/test/marketing-bff-security.test.ts:250](../../src/test/marketing-bff-security.test.ts#L250) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
-| /auth?confirmed=1 | 1 | [src/test/auth-signup-form.test.tsx:883](../../src/test/auth-signup-form.test.tsx#L883) |
+| /auth?confirmed=1 | 1 | [src/test/auth-signup-form.test.tsx:907](../../src/test/auth-signup-form.test.tsx#L907) |
 | /auth?mode=recovery | 1 | [src/test/coming-soon-gate.test.tsx:17](../../src/test/coming-soon-gate.test.tsx#L17) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
 | /auth?redirect=/commercial | 1 | [src/test/admin-commercial-accounts.test.ts:192](../../src/test/admin-commercial-accounts.test.ts#L192) |
 | /auth?role=restaurateur | 1 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
-| /auth?type=client | 11 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
-| /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:547](../../src/test/auth-signup-form.test.tsx#L547) |
+| /auth?type=client | 12 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
+| /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:569](../../src/test/auth-signup-form.test.tsx#L569) |
 | /availability | 1 | [supabase/functions/tok-connect-api/index.ts:1033](../../supabase/functions/tok-connect-api/index.ts#L1033) |
 | /budget-auto | 10 | [scripts/prerender-seo.mjs:1025](../../scripts/prerender-seo.mjs#L1025) |
 | /campagnes | 1 | [src/lib/commercialDemoAi.ts:298](../../src/lib/commercialDemoAi.ts#L298) |
@@ -1074,12 +1073,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /chefs-table | 20 | [scripts/prerender-seo.mjs:993](../../scripts/prerender-seo.mjs#L993) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:22](../../src/lib/tokLogo.ts#L22) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:30](../../src/test/tok-logo-calendar.test.ts#L30) |
-| /coming-soon | 11 | [src/App.tsx:530](../../src/App.tsx#L530) |
+| /coming-soon | 13 | [src/App.tsx:530](../../src/App.tsx#L530) |
 | /coming-soon?welcome=1 | 3 | [src/pages/Auth.tsx:1496](../../src/pages/Auth.tsx#L1496) |
-| /coming-soon?welcome=1&email=1 | 1 | [src/pages/Auth.tsx:1767](../../src/pages/Auth.tsx#L1767) |
 | /commande | 2 | [scripts/prerender-seo.mjs:1216](../../scripts/prerender-seo.mjs#L1216) |
 | /commande/ | 3 | [src/components/navigation/BackNavigationButton.tsx:22](../../src/components/navigation/BackNavigationButton.tsx#L22) |
-| /commande/123 | 1 | [src/test/mobile-logo-intro.test.tsx:118](../../src/test/mobile-logo-intro.test.tsx#L118) |
 | /commande/123?tab=details | 1 | [src/test/navigation.test.ts:24](../../src/test/navigation.test.ts#L24) |
 | /commande/:id | 4 | [src/App.tsx:575](../../src/App.tsx#L575) |
 | /commande/abc-123 | 1 | [src/test/feature-flags.test.ts:57](../../src/test/feature-flags.test.ts#L57) |
@@ -1110,7 +1107,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /conditions-restaurateurs | 15 | [scripts/prerender-seo.mjs:1184](../../scripts/prerender-seo.mjs#L1184) |
 | /contact | 19 | [scripts/prerender-seo.mjs:797](../../scripts/prerender-seo.mjs#L797) |
 | /cookies | 13 | [scripts/prerender-seo.mjs:1177](../../scripts/prerender-seo.mjs#L1177) |
-| /courier | 30 | [scripts/application-index-core.mjs:165](../../scripts/application-index-core.mjs#L165) |
+| /courier | 29 | [scripts/application-index-core.mjs:165](../../scripts/application-index-core.mjs#L165) |
 | /courier/ | 3 | [src/App.tsx:311](../../src/App.tsx#L311) |
 | /courier/earnings | 6 | [src/App.tsx:421](../../src/App.tsx#L421) |
 | /courier/jobs | 17 | [public/firebase-messaging-sw.js:42](../../public/firebase-messaging-sw.js#L42) |
@@ -1118,7 +1115,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /courier/notifications | 11 | [src/App.tsx:421](../../src/App.tsx#L421) |
 | /courier/profile | 8 | [src/App.tsx:421](../../src/App.tsx#L421) |
 | /creneaux-garantis | 11 | [scripts/prerender-seo.mjs:1009](../../scripts/prerender-seo.mjs#L1009) |
-| /dashboard | 80 | [scripts/application-index-core.mjs:164](../../scripts/application-index-core.mjs#L164) |
+| /dashboard | 79 | [scripts/application-index-core.mjs:164](../../scripts/application-index-core.mjs#L164) |
 | /dashboard-spoof | 1 | [src/test/coming-soon-gate.test.tsx:16](../../src/test/coming-soon-gate.test.tsx#L16) |
 | /dashboard/ | 4 | [src/App.tsx:307](../../src/App.tsx#L307) |
 | /dashboard/abonnement | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:224](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L224) |
@@ -1172,7 +1169,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
 | /enrich-directory-images | 2 | [src/test/directory-image-discovery-worker.test.ts:44](../../src/test/directory-image-discovery-worker.test.ts#L44) |
 | /espace-client | 4 | [scripts/prerender-seo.mjs:1220](../../scripts/prerender-seo.mjs#L1220) |
-| /espaces | 22 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
+| /espaces | 24 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
 | /factors | 1 | [server/marketingBff.ts:787](../../server/marketingBff.ts#L787) |
 | /fallback.jpg | 4 | [src/test/security-url-helpers.test.ts:17](../../src/test/security-url-helpers.test.ts#L17) |
 | /favicon-192x192.png | 2 | [src/test/favicon-branding.test.ts:53](../../src/test/favicon-branding.test.ts#L53) |
@@ -1197,10 +1194,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /google-actions-center-sync | 1 | [src/test/google-actions-center-outbox.test.ts:147](../../src/test/google-actions-center-outbox.test.ts#L147) |
 | /healthz | 2 | [src/test/application-search-index.test.ts:71](../../src/test/application-search-index.test.ts#L71) |
 | /help.png | 1 | [src/components/help/ChefHelpButton.tsx:36](../../src/components/help/ChefHelpButton.tsx#L36) |
-| /higgsfield/tok-intro-desktop-poster.webp | 2 | [src/components/MobileLogoIntro.tsx:28](../../src/components/MobileLogoIntro.tsx#L28) |
-| /higgsfield/tok-intro-desktop.mp4 | 2 | [src/components/MobileLogoIntro.tsx:27](../../src/components/MobileLogoIntro.tsx#L27) |
-| /higgsfield/tok-intro-mobile-poster.webp | 2 | [src/components/MobileLogoIntro.tsx:22](../../src/components/MobileLogoIntro.tsx#L22) |
-| /higgsfield/tok-intro-mobile.mp4 | 2 | [src/components/MobileLogoIntro.tsx:21](../../src/components/MobileLogoIntro.tsx#L21) |
+| /higgsfield/tok-intro-desktop.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:55](../../src/test/mobile-logo-intro.test.tsx#L55) |
+| /higgsfield/tok-intro-mobile.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:24](../../src/test/mobile-logo-intro.test.tsx#L24) |
 | /icon-192.png | 2 | [public/firebase-messaging-sw.js:46](../../public/firebase-messaging-sw.js#L46) |
 | /icon-72.png | 2 | [public/firebase-messaging-sw.js:47](../../public/firebase-messaging-sw.js#L47) |
 | /images/ | 2 | [src/components/RestaurantCard.tsx:69](../../src/components/RestaurantCard.tsx#L69) |
@@ -1257,56 +1252,55 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-geneve-desktop.webp | 1 | [src/components/home/HeroSection.tsx:41](../../src/components/home/HeroSection.tsx#L41) |
-| /images/home/tok-geneve-mobile.webp | 1 | [src/components/home/HeroSection.tsx:43](../../src/components/home/HeroSection.tsx#L43) |
+| /images/home/tok-geneve-desktop.webp | 1 | [src/components/home/HeroSection.tsx:79](../../src/components/home/HeroSection.tsx#L79) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
-| /images/kebab-box-spread.jpeg | 23 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
+| /images/kebab-box-spread.jpeg | 22 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
 | /images/kombucha.jpeg | 1 | [src/lib/menu-item-images.ts:91](../../src/lib/menu-item-images.ts#L91) |
 | /images/lebanese-mezze.jpeg | 5 | [src/components/AntiWasteCard.tsx:33](../../src/components/AntiWasteCard.tsx#L33) |
 | /images/lobster-roll-fries.jpeg | 1 | [src/lib/menu-item-images.ts:128](../../src/lib/menu-item-images.ts#L128) |
 | /images/meringue-double.webp | 3 | [src/lib/securityUrls.ts:27](../../src/lib/securityUrls.ts#L27) |
 | /images/milkshake-oreo.jpg | 3 | [src/lib/securityUrls.ts:28](../../src/lib/securityUrls.ts#L28) |
 | /images/milkshake-vanille.jpeg | 9 | [src/lib/menu-item-images.ts:30](../../src/lib/menu-item-images.ts#L30) |
-| /images/miniatures/01_africain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:33](../../src/components/home/CuisineCategoryStrip.tsx#L33) |
-| /images/miniatures/02_americain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:35](../../src/components/home/CuisineCategoryStrip.tsx#L35) |
-| /images/miniatures/03_bistro.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:19](../../src/components/home/CuisineCategoryStrip.tsx#L19) |
-| /images/miniatures/04_boulangerie.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:48](../../src/components/home/CuisineCategoryStrip.tsx#L48) |
-| /images/miniatures/05_brunch.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:46](../../src/components/home/CuisineCategoryStrip.tsx#L46) |
-| /images/miniatures/06_burger.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:20](../../src/components/home/CuisineCategoryStrip.tsx#L20) |
-| /images/miniatures/07_cafe.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:51](../../src/components/home/CuisineCategoryStrip.tsx#L51) |
-| /images/miniatures/08_chinois.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:24](../../src/components/home/CuisineCategoryStrip.tsx#L24) |
-| /images/miniatures/09_creole.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:34](../../src/components/home/CuisineCategoryStrip.tsx#L34) |
-| /images/miniatures/10_desserts.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:50](../../src/components/home/CuisineCategoryStrip.tsx#L50) |
-| /images/miniatures/11_francais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:22](../../src/components/home/CuisineCategoryStrip.tsx#L22) |
-| /images/miniatures/12_gastronomique.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:15](../../src/components/home/CuisineCategoryStrip.tsx#L15) |
-| /images/miniatures/13_grillades.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:38](../../src/components/home/CuisineCategoryStrip.tsx#L38) |
-| /images/miniatures/14_halal.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:40](../../src/components/home/CuisineCategoryStrip.tsx#L40) |
-| /images/miniatures/15_healthy.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:43](../../src/components/home/CuisineCategoryStrip.tsx#L43) |
-| /images/miniatures/16_indien.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:26](../../src/components/home/CuisineCategoryStrip.tsx#L26) |
-| /images/miniatures/17_italien.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:16](../../src/components/home/CuisineCategoryStrip.tsx#L16) |
-| /images/miniatures/18_japonais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:21](../../src/components/home/CuisineCategoryStrip.tsx#L21) |
-| /images/miniatures/19_kebab.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:29](../../src/components/home/CuisineCategoryStrip.tsx#L29) |
-| /images/miniatures/20_libanais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:27](../../src/components/home/CuisineCategoryStrip.tsx#L27) |
-| /images/miniatures/21_marocain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:31](../../src/components/home/CuisineCategoryStrip.tsx#L31) |
-| /images/miniatures/22_mediterranee.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:32](../../src/components/home/CuisineCategoryStrip.tsx#L32) |
-| /images/miniatures/23_mexicain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:30](../../src/components/home/CuisineCategoryStrip.tsx#L30) |
-| /images/miniatures/24_pakistanais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:39](../../src/components/home/CuisineCategoryStrip.tsx#L39) |
-| /images/miniatures/25_pizza.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:17](../../src/components/home/CuisineCategoryStrip.tsx#L17) |
-| /images/miniatures/26_sushi.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:18](../../src/components/home/CuisineCategoryStrip.tsx#L18) |
-| /images/miniatures/27_ramen.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:23](../../src/components/home/CuisineCategoryStrip.tsx#L23) |
-| /images/miniatures/28_thai.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:25](../../src/components/home/CuisineCategoryStrip.tsx#L25) |
-| /images/miniatures/29_turc.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:28](../../src/components/home/CuisineCategoryStrip.tsx#L28) |
-| /images/miniatures/30_salades.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:44](../../src/components/home/CuisineCategoryStrip.tsx#L44) |
-| /images/miniatures/31_poke.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:45](../../src/components/home/CuisineCategoryStrip.tsx#L45) |
-| /images/miniatures/32_petit-dejeuner.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:47](../../src/components/home/CuisineCategoryStrip.tsx#L47) |
-| /images/miniatures/33_pates.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:37](../../src/components/home/CuisineCategoryStrip.tsx#L37) |
-| /images/miniatures/34_fondue-suisse.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:36](../../src/components/home/CuisineCategoryStrip.tsx#L36) |
-| /images/miniatures/35_patisserie.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:49](../../src/components/home/CuisineCategoryStrip.tsx#L49) |
-| /images/miniatures/36_sandwich.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:52](../../src/components/home/CuisineCategoryStrip.tsx#L52) |
-| /images/miniatures/37_street-food.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:53](../../src/components/home/CuisineCategoryStrip.tsx#L53) |
-| /images/miniatures/38_vegetarien.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:41](../../src/components/home/CuisineCategoryStrip.tsx#L41) |
-| /images/miniatures/39_vegan.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:42](../../src/components/home/CuisineCategoryStrip.tsx#L42) |
+| /images/miniatures/01_africain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:32](../../src/components/home/CuisineCategoryStrip.tsx#L32) |
+| /images/miniatures/02_americain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:34](../../src/components/home/CuisineCategoryStrip.tsx#L34) |
+| /images/miniatures/03_bistro.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:18](../../src/components/home/CuisineCategoryStrip.tsx#L18) |
+| /images/miniatures/04_boulangerie.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:47](../../src/components/home/CuisineCategoryStrip.tsx#L47) |
+| /images/miniatures/05_brunch.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:45](../../src/components/home/CuisineCategoryStrip.tsx#L45) |
+| /images/miniatures/06_burger.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:19](../../src/components/home/CuisineCategoryStrip.tsx#L19) |
+| /images/miniatures/07_cafe.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:50](../../src/components/home/CuisineCategoryStrip.tsx#L50) |
+| /images/miniatures/08_chinois.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:23](../../src/components/home/CuisineCategoryStrip.tsx#L23) |
+| /images/miniatures/09_creole.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:33](../../src/components/home/CuisineCategoryStrip.tsx#L33) |
+| /images/miniatures/10_desserts.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:49](../../src/components/home/CuisineCategoryStrip.tsx#L49) |
+| /images/miniatures/11_francais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:21](../../src/components/home/CuisineCategoryStrip.tsx#L21) |
+| /images/miniatures/12_gastronomique.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:14](../../src/components/home/CuisineCategoryStrip.tsx#L14) |
+| /images/miniatures/13_grillades.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:37](../../src/components/home/CuisineCategoryStrip.tsx#L37) |
+| /images/miniatures/14_halal.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:39](../../src/components/home/CuisineCategoryStrip.tsx#L39) |
+| /images/miniatures/15_healthy.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:42](../../src/components/home/CuisineCategoryStrip.tsx#L42) |
+| /images/miniatures/16_indien.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:25](../../src/components/home/CuisineCategoryStrip.tsx#L25) |
+| /images/miniatures/17_italien.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:15](../../src/components/home/CuisineCategoryStrip.tsx#L15) |
+| /images/miniatures/18_japonais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:20](../../src/components/home/CuisineCategoryStrip.tsx#L20) |
+| /images/miniatures/19_kebab.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:28](../../src/components/home/CuisineCategoryStrip.tsx#L28) |
+| /images/miniatures/20_libanais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:26](../../src/components/home/CuisineCategoryStrip.tsx#L26) |
+| /images/miniatures/21_marocain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:30](../../src/components/home/CuisineCategoryStrip.tsx#L30) |
+| /images/miniatures/22_mediterranee.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:31](../../src/components/home/CuisineCategoryStrip.tsx#L31) |
+| /images/miniatures/23_mexicain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:29](../../src/components/home/CuisineCategoryStrip.tsx#L29) |
+| /images/miniatures/24_pakistanais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:38](../../src/components/home/CuisineCategoryStrip.tsx#L38) |
+| /images/miniatures/25_pizza.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:16](../../src/components/home/CuisineCategoryStrip.tsx#L16) |
+| /images/miniatures/26_sushi.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:17](../../src/components/home/CuisineCategoryStrip.tsx#L17) |
+| /images/miniatures/27_ramen.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:22](../../src/components/home/CuisineCategoryStrip.tsx#L22) |
+| /images/miniatures/28_thai.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:24](../../src/components/home/CuisineCategoryStrip.tsx#L24) |
+| /images/miniatures/29_turc.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:27](../../src/components/home/CuisineCategoryStrip.tsx#L27) |
+| /images/miniatures/30_salades.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:43](../../src/components/home/CuisineCategoryStrip.tsx#L43) |
+| /images/miniatures/31_poke.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:44](../../src/components/home/CuisineCategoryStrip.tsx#L44) |
+| /images/miniatures/32_petit-dejeuner.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:46](../../src/components/home/CuisineCategoryStrip.tsx#L46) |
+| /images/miniatures/33_pates.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:36](../../src/components/home/CuisineCategoryStrip.tsx#L36) |
+| /images/miniatures/34_fondue-suisse.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:35](../../src/components/home/CuisineCategoryStrip.tsx#L35) |
+| /images/miniatures/35_patisserie.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:48](../../src/components/home/CuisineCategoryStrip.tsx#L48) |
+| /images/miniatures/36_sandwich.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:51](../../src/components/home/CuisineCategoryStrip.tsx#L51) |
+| /images/miniatures/37_street-food.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:52](../../src/components/home/CuisineCategoryStrip.tsx#L52) |
+| /images/miniatures/38_vegetarien.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:40](../../src/components/home/CuisineCategoryStrip.tsx#L40) |
+| /images/miniatures/39_vegan.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:41](../../src/components/home/CuisineCategoryStrip.tsx#L41) |
 | /images/mixed-grill-platter.jpeg | 10 | [src/components/AntiWasteCard.tsx:34](../../src/components/AntiWasteCard.tsx#L34) |
 | /images/mochi-glaces.jpg | 7 | [src/lib/menu-item-images.ts:52](../../src/lib/menu-item-images.ts#L52) |
 | /images/moshi%20glac%C3%A9s.jpg | 1 | [src/test/security-url-helpers.test.ts:23](../../src/test/security-url-helpers.test.ts#L23) |
@@ -1323,8 +1317,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/samosa.jpg | 3 | [src/lib/menu-item-images.ts:94](../../src/lib/menu-item-images.ts#L94) |
 | /images/section-headers/calendar-3d.png | 2 | [src/lib/dashboardIllustrations.ts:57](../../src/lib/dashboardIllustrations.ts#L57) |
 | /images/section-headers/fire-3d.png | 1 | [src/lib/dashboardIllustrations.ts:59](../../src/lib/dashboardIllustrations.ts#L59) |
-| /images/section-headers/gift-3d.png | 2 | [src/components/home/RestaurantSection.tsx:29](../../src/components/home/RestaurantSection.tsx#L29) |
-| /images/section-headers/heart-3d.png | 2 | [src/components/home/SectionShowcaseHeader.tsx:124](../../src/components/home/SectionShowcaseHeader.tsx#L124) |
+| /images/section-headers/gift-3d.png | 2 | [src/components/home/RestaurantSection.tsx:26](../../src/components/home/RestaurantSection.tsx#L26) |
+| /images/section-headers/heart-3d.png | 1 | [src/pages/Index.tsx:56](../../src/pages/Index.tsx#L56) |
 | /images/section-headers/pin-3d.png | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
 | /images/section-headers/plate-3d.png | 2 | [src/lib/dashboardIllustrations.ts:56](../../src/lib/dashboardIllustrations.ts#L56) |
 | /images/section-headers/shopping-bags-3d.png | 1 | [src/lib/dashboardIllustrations.ts:60](../../src/lib/dashboardIllustrations.ts#L60) |
@@ -1375,7 +1369,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /orders/info | 2 | [src/test/marketing-print-contract.test.ts:192](../../src/test/marketing-print-contract.test.ts#L192) |
 | /orders/quote | 1 | [supabase/functions/_shared/print/cloudprinter.ts:294](../../supabase/functions/_shared/print/cloudprinter.ts#L294) |
 | /packs-restaurateur | 12 | [scripts/prerender-seo.mjs:594](../../scripts/prerender-seo.mjs#L594) |
-| /panier | 38 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
+| /panier | 37 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
 | /parametres/securite | 5 | [src/App.tsx:357](../../src/App.tsx#L357) |
 | /placeholder.svg | 2 | [public/seo-trust-runtime.js:10](../../public/seo-trust-runtime.js#L10) |
 | /points-cadeau | 12 | [scripts/prerender-seo.mjs:1222](../../scripts/prerender-seo.mjs#L1222) |
@@ -1395,10 +1389,12 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/:slug | 3 | [src/App.tsx:569](../../src/App.tsx#L569) |
 | /r/:slug/reserver | 2 | [src/App.tsx:568](../../src/App.tsx#L568) |
 | /readyz | 3 | [src/test/application-search-index.test.ts:71](../../src/test/application-search-index.test.ts#L71) |
-| /recherche | 59 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
-| /recherche?city=Gen%C3%A8ve | 1 | [src/components/home/HeroSection.tsx:48](../../src/components/home/HeroSection.tsx#L48) |
+| /recherche | 62 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
+| /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:23](../../src/test/restaurant-search-preview.test.tsx#L23) |
 | /recherche?mode=reservation | 2 | [src/pages/TokPulse.tsx:30](../../src/pages/TokPulse.tsx#L30) |
+| /recherche?q=francais | 1 | [src/test/home-cuisine-accessibility.test.tsx:32](../../src/test/home-cuisine-accessibility.test.tsx#L32) |
 | /recherche?q=pizza&ville=geneve | 1 | [scripts/launch-10k-load-check.mjs:19](../../scripts/launch-10k-load-check.mjs#L19) |
+| /recherche?q=sushi&city=Genève | 2 | [src/test/restaurant-search-preview.test.tsx:30](../../src/test/restaurant-search-preview.test.tsx#L30) |
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
 | /reseaux-sociaux | 1 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
 | /reservations | 24 | [scripts/prerender-seo.mjs:1217](../../scripts/prerender-seo.mjs#L1217) |
@@ -1408,6 +1404,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /rest/v1/user_roles? | 7 | [src/test/marketing-bff-security.test.ts:249](../../src/test/marketing-bff-security.test.ts#L249) |
 | /restaurant | 4 | [supabase/functions/discover-thefork-official-sites/index.ts:459](../../supabase/functions/discover-thefork-official-sites/index.ts#L459) |
 | /restaurant/ | 2 | [scripts/prerender-seo.mjs:44](../../scripts/prerender-seo.mjs#L44) |
+| /restaurant/11111111-1111-1111-1111-111111111111 | 1 | [src/test/restaurant-detail-preview.test.tsx:9](../../src/test/restaurant-detail-preview.test.tsx#L9) |
 | /restaurant/:id | 7 | [src/App.tsx:570](../../src/App.tsx#L570) |
 | /restaurant/:id/reserver | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:201](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L201) |
 | /restaurant/cc47c8c6-752f-406c-8c2f-ed04ebd0ca20 | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
@@ -1600,7 +1597,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | delivery | /recherche | 1 | [src/pages/Recherche.tsx:244](../../src/pages/Recherche.tsx#L244) |
 | demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:85](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L85) |
 | demo_session_id | — | 4 | [src/components/commercial/CommercialDemoActorWorkspace.tsx:88](../../src/components/commercial/CommercialDemoActorWorkspace.tsx#L88) |
-| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2313](../../src/pages/Auth.tsx#L2313) |
+| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2312](../../src/pages/Auth.tsx#L2312) |
 | email | /coming-soon | 1 | [src/pages/ComingSoon.tsx:20](../../src/pages/ComingSoon.tsx#L20) |
 | fields | — | 1 | [supabase/functions/_shared/meta-marketing-health.ts:24](../../supabase/functions/_shared/meta-marketing-health.ts#L24) |
 | fields[appScreenshotSets] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:205](../../scripts/app-store-connect-upload-screenshots.mjs#L205) |
@@ -1640,7 +1637,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | post_id | /dashboard/actualites | 1 | [src/pages/dashboard/DashboardActualites.tsx:306](../../src/pages/dashboard/DashboardActualites.tsx#L306) |
 | price | /recherche | 1 | [src/pages/Recherche.tsx:243](../../src/pages/Recherche.tsx#L243) |
 | print_order_id | — | 1 | [supabase/functions/print-sandbox-complete/index.ts:38](../../supabase/functions/print-sandbox-complete/index.ts#L38) |
-| progressiveOfferId | /restaurant/:id | 3 | [src/pages/RestaurantDetail.tsx:287](../../src/pages/RestaurantDetail.tsx#L287) |
+| progressiveOfferId | /restaurant/:id | 3 | [src/pages/RestaurantDetail.tsx:288](../../src/pages/RestaurantDetail.tsx#L288) |
 | projectId | — | 1 | [src/lib/push.ts:82](../../src/lib/push.ts#L82) |
 | promo | /recherche | 1 | [src/pages/Recherche.tsx:242](../../src/pages/Recherche.tsx#L242) |
 | q | /recherche | 4 | [src/marketing/useMarketingUrlState.ts:85](../../src/marketing/useMarketingUrlState.ts#L85) |
@@ -1972,10 +1969,11 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (737)</summary>
+<details><summary>function (739)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
+- `private_campaign.actualites_billing_dedupe_key` (1 définition(s))
 - `private_campaign.record_actualites_internal_test_conversion` (1 définition(s))
 - `private_campaign.record_actualites_latest_click_conversion` (1 définition(s))
 - `private_campaign.record_actualites_touch_conversions` (1 définition(s))
@@ -2495,6 +2493,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.prioritize_thefork_image_truth_reviews` (2 définition(s))
 - `public.process_fair_growth_module_credit` (1 définition(s))
 - `public.process_pending_ad_campaign_conversions` (3 définition(s))
+- `public.protect_canonical_commercial_demo_inert_state` (1 définition(s))
 - `public.protect_commercial_demo_account_boundary` (2 définition(s))
 - `public.protect_commercial_demo_account_mapping` (2 définition(s))
 - `public.protect_demo_restaurant_identity` (1 définition(s))
@@ -3368,7 +3367,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>policy (759)</summary>
+<details><summary>policy (760)</summary>
 
 - `ad_campaigns.Admins can manage ad campaigns` (1 définition(s))
 - `ad_campaigns.Anyone can read active campaigns` (1 définition(s))
@@ -3707,8 +3706,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.menu_items.block_commercial_demo_menu_item_insert` (1 définition(s))
 - `public.menu_items.block_commercial_demo_menu_item_update` (1 définition(s))
 - `public.menu_items.commercial_demo_select_mapped_menu_items` (1 définition(s))
+- `public.menu_items.menu_items_admin_select` (1 définition(s))
 - `public.menu_items.menu_items_owner_all` (1 définition(s))
-- `public.menu_items.menu_items_public_select` (1 définition(s))
+- `public.menu_items.menu_items_public_select` (2 définition(s))
 - `public.menu_items.scope_production_menu_items_for_commercial_demo_accounts` (1 définition(s))
 - `public.messages.messages_admin` (2 définition(s))
 - `public.messages.messages_participant` (2 définition(s))
@@ -3774,8 +3774,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.profiles.Users can update their own profile` (1 définition(s))
 - `public.profiles.Users can view their own profile` (1 définition(s))
 - `public.profiles.profiles_self_all` (1 définition(s))
-- `public.promo_code_uses.promo_uses_admin` (2 définition(s))
-- `public.promo_code_uses.promo_uses_own` (2 définition(s))
+- `public.promo_code_uses.promo_uses_admin` (3 définition(s))
+- `public.promo_code_uses.promo_uses_own` (3 définition(s))
 - `public.promo_codes.promo_codes_active_select` (1 définition(s))
 - `public.promo_codes.promo_codes_admin` (2 définition(s))
 - `public.promo_codes.promo_codes_public_read` (2 définition(s))
@@ -4480,7 +4480,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (238)</summary>
+<details><summary>trigger (239)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -4582,6 +4582,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `prevent_restaurant_image_reassignment` (1 définition(s))
 - `prevent_restaurant_invoice_line_items_locked_period` (1 définition(s))
 - `prevent_restaurant_invoices_locked_period` (1 définition(s))
+- `protect_canonical_commercial_demo_inert_state` (1 définition(s))
 - `protect_commercial_demo_account_boundary` (2 définition(s))
 - `protect_commercial_demo_account_mapping` (2 définition(s))
 - `protect_demo_restaurant_identity` (2 définition(s))
@@ -5551,8 +5552,11 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261006010000 Repair Admin Commercial Supabase Regressions | 1012 | 18 | [supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql:1](../../supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql#L1) |
 | 20261006022139 Configure Meta Marketing Integrations | 47 | 0 | [supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql:1](../../supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql#L1) |
 | 20261009003407 Protect Generated Print Format | 42 | 2 | [supabase/migrations/20261009003407_protect_generated_print_format.sql:1](../../supabase/migrations/20261009003407_protect_generated_print_format.sql#L1) |
+| 20261010194510 Checkout Benefits And Public Menu Security | 86 | 4 | [supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql:1](../../supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql#L1) |
 | 20261010203000 Print Fulfillment Protocol | 260 | 4 | [supabase/migrations/20261010203000_print_fulfillment_protocol.sql:1](../../supabase/migrations/20261010203000_print_fulfillment_protocol.sql#L1) |
+| 20261010212500 Reconcile Canonical Commercial Demo Inert State | 50 | 2 | [supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql:1](../../supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql#L1) |
 | 20261010220000 Launch Animation Access Gate | 162 | 11 | [supabase/migrations/20261010220000_launch_animation_access_gate.sql:1](../../supabase/migrations/20261010220000_launch_animation_access_gate.sql#L1) |
+| 20261010224500 Actualites Billing Identity | 190 | 1 | [supabase/migrations/20261010224500_actualites_billing_identity.sql:1](../../supabase/migrations/20261010224500_actualites_billing_identity.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -5636,6 +5640,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Workflow | Jobs | Source |
 | --- | --- | --- |
 | Reusable validation | critical_tests, full_tests, plan, quality, related_tests, validate, windows_worker_tests, worker_tests | [.github/workflows/_validation.yml](../../.github/workflows/_validation.yml) |
+| Actualites billing PostgreSQL replay | replay | [.github/workflows/actualites-billing-postgres.yml](../../.github/workflows/actualites-billing-postgres.yml) |
 | App Store Build 3 Trigger | dispatch | [.github/workflows/app-store-build3-trigger.yml](../../.github/workflows/app-store-build3-trigger.yml) |
 | App Store Build 4 Trigger | dispatch | [.github/workflows/app-store-build4-trigger.yml](../../.github/workflows/app-store-build4-trigger.yml) |
 | App Store Build 5 Icon Fix Trigger | dispatch | [.github/workflows/app-store-build5-icon-fix-trigger.yml](../../.github/workflows/app-store-build5-icon-fix-trigger.yml) |
@@ -5649,6 +5654,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | App Store Upload Build 2 Trigger | dispatch | [.github/workflows/app-store-upload-build2-trigger.yml](../../.github/workflows/app-store-upload-build2-trigger.yml) |
 | App Store Xcode 26 Validation Trigger | dispatch | [.github/workflows/app-store-xcode26-validation-trigger.yml](../../.github/workflows/app-store-xcode26-validation-trigger.yml) |
 | Changed Test Files | changed-tests | [.github/workflows/changed-test-files.yml](../../.github/workflows/changed-test-files.yml) |
+| Checkout security PostgreSQL replay | replay | [.github/workflows/checkout-security-postgres.yml](../../.github/workflows/checkout-security-postgres.yml) |
 | CI | validate, validation | [.github/workflows/ci.yml](../../.github/workflows/ci.yml) |
 | Deploy Production | attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation | [.github/workflows/deploy-production.yml](../../.github/workflows/deploy-production.yml) |
 | Ensure Supabase Auth SMTP | configure | [.github/workflows/ensure-supabase-auth-smtp.yml](../../.github/workflows/ensure-supabase-auth-smtp.yml) |
@@ -5774,8 +5780,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 212 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 660 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 213 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 667 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 57 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5786,7 +5792,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 204 |
-| automation-script | 62 |
+| automation-script | 64 |
 | documentation | 6 |
 | edge-function-source | 183 |
 | frontend-component | 250 |
@@ -5796,7 +5802,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 575 |
+| test | 581 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -5968,6 +5974,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Commercial Demo Multi-Space Fidelity Implementation Plan | 7 | [docs/superpowers/plans/2026-09-08-commercial-demo-multispace-fidelity.md:1](../../docs/superpowers/plans/2026-09-08-commercial-demo-multispace-fidelity.md#L1) |
 | Marketing Studio Output Geometry Implementation Plan | 8 | [docs/superpowers/plans/2026-09-08-marketing-studio-output-geometry.md:1](../../docs/superpowers/plans/2026-09-08-marketing-studio-output-geometry.md#L1) |
 | Admin TheFork-only filter plan | 1 | [docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md:1](../../docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md#L1) |
+| Refonte TOK — application réelle en preview | 8 | [docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md:1](../../docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md#L1) |
 | Facturation des réservations (5.-/resa) & détection anti-fraude | 26 | [docs/superpowers/specs/2026-04-17-reservation-billing-design.md:1](../../docs/superpowers/specs/2026-04-17-reservation-billing-design.md#L1) |
 | Refonte compta: accueil + entrees/sorties | 52 | [docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md:1](../../docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md#L1) |
 | Lisibilite dashboard: factures, reservations et commandes | 39 | [docs/superpowers/specs/2026-04-21-dashboard-readability-design.md:1](../../docs/superpowers/specs/2026-04-21-dashboard-readability-design.md#L1) |
@@ -5985,8 +5992,10 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Abonnements Et Entitlements Design | 17 | [docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md:1](../../docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md#L1) |
 | Parcours d'inscription — durcissement (client, restaurateur, livreur) | 24 | [docs/superpowers/specs/2026-05-30-parcours-inscription-design.md:1](../../docs/superpowers/specs/2026-05-30-parcours-inscription-design.md#L1) |
 | Marketing Studio Output Geometry Design | 15 | [docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md:1](../../docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md#L1) |
+| Actualités — identité des événements facturables | 5 | [docs/testing/actualites-billing-identity.md:1](../../docs/testing/actualites-billing-identity.md#L1) |
 | Scénario Actualités sponsorisées | 5 | [docs/testing/actualites-sponsored-scenario.md:1](../../docs/testing/actualites-sponsored-scenario.md#L1) |
 | Télémétrie navigateur et consentement | 5 | [docs/testing/browser-monitoring-consent.md:1](../../docs/testing/browser-monitoring-consent.md#L1) |
+| Recette de sécurité checkout et menus — issue #710 | 8 | [docs/testing/checkout-security-710.md:1](../../docs/testing/checkout-security-710.md#L1) |
 | Plan de tests lancement 10k | 6 | [docs/testing/launch-10k-load-plan.md:1](../../docs/testing/launch-10k-load-plan.md#L1) |
 | Tests de garde Supabase / RPC | 7 | [docs/testing/supabase-rpc-guards.md:1](../../docs/testing/supabase-rpc-guards.md#L1) |
 | TOK Connect | 18 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
@@ -6275,7 +6284,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (69)</summary>
+<details><summary>automation-script (71)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -6339,6 +6348,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/supabase-doctor.mjs`
 - `scripts/supabase-target.mjs`
 - `scripts/take-screenshots.mjs`
+- `scripts/test-actualites-billing-postgres.mjs`
+- `scripts/test-checkout-security-postgres.mjs`
 - `scripts/test-print-protocol-postgres.mjs`
 - `scripts/verify-supabase-runtime-security.mjs`
 - `scripts/write-apple-app-site-association.mjs`
@@ -6349,9 +6360,10 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (25)</summary>
+<details><summary>ci-workflow (27)</summary>
 
 - `.github/workflows/_validation.yml`
+- `.github/workflows/actualites-billing-postgres.yml`
 - `.github/workflows/app-store-build3-trigger.yml`
 - `.github/workflows/app-store-build4-trigger.yml`
 - `.github/workflows/app-store-build5-icon-fix-trigger.yml`
@@ -6365,6 +6377,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/app-store-upload-build2-trigger.yml`
 - `.github/workflows/app-store-xcode26-validation-trigger.yml`
 - `.github/workflows/changed-test-files.yml`
+- `.github/workflows/checkout-security-postgres.yml`
 - `.github/workflows/ci.yml`
 - `.github/workflows/deploy-production.yml`
 - `.github/workflows/ensure-supabase-auth-smtp.yml`
@@ -6379,7 +6392,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (523)</summary>
+<details><summary>database-migration (526)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -6902,12 +6915,15 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql`
 - `supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql`
 - `supabase/migrations/20261009003407_protect_generated_print_format.sql`
+- `supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql`
 - `supabase/migrations/20261010203000_print_fulfillment_protocol.sql`
+- `supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql`
 - `supabase/migrations/20261010220000_launch_animation_access_gate.sql`
+- `supabase/migrations/20261010224500_actualites_billing_identity.sql`
 
 </details>
 
-<details><summary>documentation (148)</summary>
+<details><summary>documentation (151)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7033,6 +7049,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/superpowers/plans/2026-09-08-commercial-demo-multispace-fidelity.md`
 - `docs/superpowers/plans/2026-09-08-marketing-studio-output-geometry.md`
 - `docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md`
+- `docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md`
 - `docs/superpowers/specs/2026-04-17-reservation-billing-design.md`
 - `docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md`
 - `docs/superpowers/specs/2026-04-21-dashboard-readability-design.md`
@@ -7050,8 +7067,10 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md`
 - `docs/superpowers/specs/2026-05-30-parcours-inscription-design.md`
 - `docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md`
+- `docs/testing/actualites-billing-identity.md`
 - `docs/testing/actualites-sponsored-scenario.md`
 - `docs/testing/browser-monitoring-consent.md`
+- `docs/testing/checkout-security-710.md`
 - `docs/testing/launch-10k-load-plan.md`
 - `docs/testing/supabase-rpc-guards.md`
 - `docs/tok-connect/README.md`
@@ -8240,7 +8259,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (21)</summary>
+<details><summary>supabase-configuration (25)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -8255,6 +8274,10 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/demo-migrations/20260720130500_enable_dedicated_demo_runtime_rpcs.sql`
 - `supabase/demo-migrations/20260908013000_unlimit_commercial_demo_ai_presentation.sql`
 - `supabase/demo-migrations/20261005210000_enforce_shared_commercial_demo_restaurant.sql`
+- `supabase/tests/actualites_billing_identity_fixture.sql`
+- `supabase/tests/checkout_security_710_assertions.sql`
+- `supabase/tests/checkout_security_710_baseline_prerequisites.sql`
+- `supabase/tests/checkout_security_710_fixture.sql`
 - `supabase/tests/critical_rpc_smoke.sql`
 - `supabase/tests/floor_plan_autoplacement_smoke.sql`
 - `supabase/tests/generated_print_format_smoke.sql`
@@ -8266,7 +8289,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (575)</summary>
+<details><summary>test (581)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -8275,6 +8298,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/dependabot-policy.test.mjs`
 - `scripts/dependency-security.test.mjs`
 - `scripts/stoppin-venue-seo.test.mjs`
+- `scripts/test-actualites-billing-runner.test.mjs`
+- `scripts/test-checkout-security-runner.test.mjs`
 - `scripts/test-print-protocol-runner.test.mjs`
 - `src/test/accounting-ai-public-copy.test.ts`
 - `src/test/accounting-dashboard-clarity.test.ts`
@@ -8690,10 +8715,13 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/reservation-service-capacity.test.ts`
 - `src/test/responsive-seo-regressions.test.ts`
 - `src/test/restaurant-billing-account.test.ts`
+- `src/test/restaurant-card-preview.test.tsx`
 - `src/test/restaurant-categories.test.ts`
 - `src/test/restaurant-contracts-governance.test.ts`
 - `src/test/restaurant-dashboard-mobile-overview.test.ts`
 - `src/test/restaurant-dashboard-overview-navigation.test.ts`
+- `src/test/restaurant-detail-availability-preview.test.tsx`
+- `src/test/restaurant-detail-preview.test.tsx`
 - `src/test/restaurant-directory-pagination-images.test.ts`
 - `src/test/restaurant-entity-seo.test.ts`
 - `src/test/restaurant-image-backfill-auth.test.ts`
@@ -8712,6 +8740,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-promotions-governance.test.ts`
 - `src/test/restaurant-public-data-consistency.test.ts`
 - `src/test/restaurant-reservation-sidebar.test.ts`
+- `src/test/restaurant-search-preview.test.tsx`
 - `src/test/restaurant-slug-seo.test.ts`
 - `src/test/restaurant-social-post-reactions.test.ts`
 - `src/test/restaurant-special-offer-governance.test.ts`

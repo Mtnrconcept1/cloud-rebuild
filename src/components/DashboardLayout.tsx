@@ -73,7 +73,7 @@ type NavSection = {
 };
 
 const MARKETING_STUDIO_NAV_CLASS =
-  "rounded-[10px] bg-gradient-to-r from-[#ff5a00] via-[#ff7a1a] to-[#ffb000] font-bold text-white shadow-[0_12px_28px_rgba(255,106,26,0.28)] hover:from-[#ff6814] hover:via-[#ff8424] hover:to-[#ffba18] hover:text-white dark:text-white dark:shadow-[0_0_30px_rgba(255,122,26,0.35)]";
+  "rounded-[10px] bg-gradient-to-r from-[#ff5a00] via-[#ff7a1a] to-[#ffb000] font-bold text-white shadow-sm hover:from-[#ff6814] hover:via-[#ff8424] hover:to-[#ffba18] hover:text-white dark:text-white shadow-sm";
 
 const NAV_SECTIONS: NavSection[] = [
   {
@@ -162,7 +162,7 @@ function RestaurantSelector({ collapsed = false }: { collapsed?: boolean }) {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex w-full items-center rounded-2xl border bg-sidebar-accent/50 text-sm font-semibold transition-colors dark:border-[#5f7aad]/28 dark:bg-[#07142b]/78 dark:text-slate-100 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_22px_rgba(30,74,160,0.12)] dark:hover:bg-[#0c1b38]",
+          "flex w-full items-center rounded-2xl border bg-sidebar-accent/50 text-sm font-semibold transition-colors dark:border-border dark:bg-card/78 dark:text-slate-100 shadow-sm dark:hover:bg-[#0c1b38]",
           collapsed ? "justify-center px-2 py-2" : "px-3 py-2"
         )}
       >
@@ -176,7 +176,7 @@ function RestaurantSelector({ collapsed = false }: { collapsed?: boolean }) {
       </button>
 
       {open && (
-        <div className="absolute left-2 right-2 z-50 mt-2 rounded-2xl border bg-white shadow-lg dark:border-[#5f7aad]/28 dark:bg-[#07142b] dark:shadow-[0_24px_60px_rgba(0,0,0,0.55),0_0_28px_rgba(30,74,160,0.14)]">
+        <div className="absolute left-2 right-2 z-50 mt-2 rounded-2xl border bg-white shadow-lg dark:border-border dark:bg-card shadow-sm">
           {restaurants.map((r) => (
             <button
               key={r.id}
@@ -241,7 +241,7 @@ function NavItems({
               return (
                 <div
                   key={item.to}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2 opacity-40 cursor-not-allowed select-none"
+                  className="flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 opacity-40 cursor-not-allowed select-none"
                   title={lockTitle}
                 >
                   <item.icon className="h-4 w-4" />
@@ -259,12 +259,13 @@ function NavItems({
               <Link
                 key={item.to}
                 to={item.to}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
+                  "flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
                   isMarketingStudio
                     ? MARKETING_STUDIO_NAV_CLASS
                     : isActive
-                      ? "bg-primary/10 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] dark:shadow-[0_0_28px_rgba(255,106,26,0.22)]"
+                      ? "bg-primary/10 text-primary shadow-sm dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] shadow-sm"
                       : "hover:bg-muted dark:text-slate-200 dark:hover:bg-[#102044]/72"
                 )}
               >
@@ -384,12 +385,12 @@ export default function DashboardLayout({
   });
 
   return (
-    <div className="tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row">
+    <div className="tok-workspace-shell tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row">
       {/* SIDEBAR */}
       <aside
         ref={sidebarRef}
         className={cn(
-          "tok-dashboard-sidebar hidden overflow-y-auto overscroll-contain border-r bg-sidebar transition-all md:sticky md:top-0 md:flex md:h-[100dvh] md:shrink-0 md:self-start md:flex-col",
+          "tok-workspace-sidebar tok-dashboard-sidebar hidden overflow-y-auto overscroll-contain border-r bg-sidebar transition-all md:sticky md:top-0 md:flex md:h-[100dvh] md:shrink-0 md:self-start md:flex-col",
           collapsed ? "w-[80px]" : "w-72"
         )}
       >
@@ -399,7 +400,7 @@ export default function DashboardLayout({
               Dashboard
             </h2>
           )}
-          <Button size="icon" variant="ghost" className="rounded-xl dark:hover:bg-white/10" onClick={() => setCollapsed(!collapsed)}>
+          <Button size="icon" variant="ghost" aria-label={collapsed ? "Développer la navigation" : "Réduire la navigation"} className="rounded-xl dark:hover:bg-white/10" onClick={() => setCollapsed(!collapsed)}>
             {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
           </Button>
         </div>
@@ -446,7 +447,7 @@ export default function DashboardLayout({
       </aside>
 
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40] flex items-center gap-2">
-        <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
+        <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-sm backdrop-blur-md hover:bg-background dark:border-border dark:bg-card/95 dark:text-white shadow-sm" />
         <NotificationBell />
         {!commercialDemoFrame ? <SignOutButton iconOnly className="hidden min-[420px]:inline-flex" /> : null}
       </div>
@@ -458,7 +459,7 @@ export default function DashboardLayout({
             <Button
               variant="ghost"
               className={cn(
-                "pointer-events-auto h-16 max-w-[10.75rem] rounded-[1.45rem] border border-orange-300/55 bg-zinc-950 px-2.5 pr-4 text-white shadow-[0_16px_34px_rgba(255,106,26,0.34),0_8px_24px_rgba(15,23,42,0.32)] ring-1 ring-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-zinc-900 hover:shadow-[0_20px_42px_rgba(255,106,26,0.42),0_10px_28px_rgba(15,23,42,0.36)] dark:border-orange-300/50 dark:bg-[#181818] dark:shadow-[0_20px_48px_rgba(0,0,0,0.58),0_0_34px_rgba(255,106,26,0.34)]",
+                "pointer-events-auto h-16 max-w-[10.75rem] rounded-[1.45rem] border border-border bg-card px-2.5 pr-4 text-foreground shadow-sm ring-1 ring-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-muted shadow-sm dark:border-border dark:bg-card shadow-sm",
                 mobileMenuOpen && "border-orange-200 bg-primary text-primary-foreground hover:bg-primary"
               )}
               aria-label="Ouvrir le menu du dashboard"
@@ -466,7 +467,7 @@ export default function DashboardLayout({
             >
               <span
                 className={cn(
-                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-[1rem] bg-gradient-to-br from-[#ff5a14] to-[#ff9f1c] text-white shadow-[0_0_24px_rgba(255,106,26,0.58)] transition-colors",
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-[1rem] bg-primary text-primary-foreground shadow-sm transition-colors",
                   mobileMenuOpen && "bg-white/15 text-current shadow-none"
                 )}
               >
@@ -475,7 +476,7 @@ export default function DashboardLayout({
               <span className="flex min-w-0 flex-col items-start leading-tight">
                 <span
                   className={cn(
-                    "text-[10px] font-semibold uppercase tracking-[0.28em] text-orange-300",
+                    "text-[10px] font-semibold uppercase tracking-[0.28em] text-primary",
                     mobileMenuOpen && "text-primary-foreground/75"
                   )}
                 >
@@ -488,7 +489,7 @@ export default function DashboardLayout({
               <span className="sr-only">{activeNavItem?.label ?? "Ouvrir le menu"}</span>
             </Button>
           </SheetTrigger>
-          <SheetContent className="flex h-[100dvh] flex-col overflow-hidden p-0 dark:border-[#5f7aad]/30 dark:bg-[#010716]">
+          <SheetContent className="flex h-[100dvh] flex-col overflow-hidden p-0 dark:border-border dark:bg-card">
             <SheetHeader className="border-b px-6 pb-4 pr-14 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
               <SheetTitle>Dashboard</SheetTitle>
               <SheetDescription className="sr-only">
@@ -534,17 +535,12 @@ export default function DashboardLayout({
       {/* MAIN */}
       <main
         className={cn(
-          "relative min-w-0 flex-1 overflow-x-clip p-4 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] sm:p-5 sm:pb-[calc(env(safe-area-inset-bottom,0px)+2.5rem)] md:p-6 md:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]",
+          "tok-workspace-content relative min-w-0 flex-1 overflow-x-clip p-4 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] sm:p-5 sm:pb-[calc(env(safe-area-inset-bottom,0px)+2.5rem)] md:p-6 md:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]",
           constrainToViewport && "flex h-[100dvh] min-h-0 flex-col overflow-y-hidden",
           mainClassName,
           "pt-[calc(env(safe-area-inset-top,0px)+5rem)] sm:pt-[calc(env(safe-area-inset-top,0px)+5rem)] md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]",
         )}
       >
-        <div className="pointer-events-none absolute inset-0 hidden dark:block">
-          <div className="absolute -left-36 top-10 h-96 w-96 rounded-full bg-[#ff6a1a]/12 blur-3xl" />
-          <div className="absolute right-0 top-1/4 h-[28rem] w-[28rem] rounded-full bg-[#1e4aa0]/18 blur-3xl" />
-          <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-[#8b55ff]/10 blur-3xl" />
-        </div>
         <div
           className={cn(
             "relative z-10 w-full",

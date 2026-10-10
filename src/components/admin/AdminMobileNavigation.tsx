@@ -172,10 +172,11 @@ function AdminNavItems({
               <Link
                 key={item.to}
                 to={item.to}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
+                  "flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
                   isActive
-                    ? "bg-primary/10 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] dark:shadow-[0_0_28px_rgba(255,106,26,0.22)]"
+                    ? "bg-primary/10 text-primary shadow-sm dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] shadow-sm"
                     : "hover:bg-muted dark:text-slate-200 dark:hover:bg-[#102044]/72",
                 )}
               >
@@ -191,7 +192,7 @@ function AdminNavItems({
                 ) : null}
                 {item.supportIncidentBadge && openSupportIncidentCount > 0 ? (
                   <span
-                    className="ml-auto inline-flex min-h-5 min-w-5 animate-pulse items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold leading-none text-white shadow-[0_0_18px_rgba(220,38,38,0.55)]"
+                    className="ml-auto inline-flex min-h-5 min-w-5 animate-pulse items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold leading-none text-white shadow-sm"
                     aria-label={`${openSupportIncidentCount} sinistre chat ouvert`}
                   >
                     {openSupportIncidentCount}
@@ -304,7 +305,7 @@ export default function AdminMobileNavigation() {
   );
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pl-[calc(env(safe-area-inset-left,0px)+1rem)] pr-[calc(env(safe-area-inset-right,0px)+1rem)]">
+    <div className="tok-admin-navigation pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pl-[calc(env(safe-area-inset-left,0px)+1rem)] pr-[calc(env(safe-area-inset-right,0px)+1rem)]">
       {pathname === "/admin/restaurants" ? (
         <div className="pointer-events-auto mr-2 flex items-center">
           <AdminTheForkVisibilityControl />
@@ -315,7 +316,7 @@ export default function AdminMobileNavigation() {
           <Button
             variant="ghost"
             className={cn(
-              "pointer-events-auto h-16 rounded-[1.45rem] border border-orange-300/55 bg-zinc-950 px-2.5 pr-5 text-white shadow-[0_16px_34px_rgba(255,106,26,0.34),0_8px_24px_rgba(15,23,42,0.32)] ring-1 ring-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-zinc-900 hover:shadow-[0_20px_42px_rgba(255,106,26,0.42),0_10px_28px_rgba(15,23,42,0.36)] dark:border-orange-300/50 dark:bg-[#181818] dark:shadow-[0_20px_48px_rgba(0,0,0,0.58),0_0_34px_rgba(255,106,26,0.34)]",
+              "pointer-events-auto h-16 rounded-[1.45rem] border border-border bg-card px-2.5 pr-5 text-foreground shadow-sm ring-1 ring-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-muted shadow-sm dark:border-border dark:bg-card shadow-sm",
               mobileMenuOpen && "border-orange-200 bg-primary text-primary-foreground hover:bg-primary",
             )}
             aria-label="Ouvrir le menu admin"
@@ -323,7 +324,7 @@ export default function AdminMobileNavigation() {
           >
             <span
               className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-[1rem] bg-gradient-to-br from-[#ff5a14] to-[#ff9f1c] text-white shadow-[0_0_24px_rgba(255,106,26,0.58)] transition-colors",
+                "flex h-11 w-11 items-center justify-center rounded-[1rem] bg-primary text-primary-foreground shadow-sm transition-colors",
                 mobileMenuOpen && "bg-white/15 text-current shadow-none",
               )}
             >
@@ -332,7 +333,7 @@ export default function AdminMobileNavigation() {
             <span className="flex min-w-0 flex-col items-start leading-tight">
               <span
                 className={cn(
-                  "text-[10px] font-semibold uppercase tracking-[0.28em] text-orange-300",
+                  "text-[10px] font-semibold uppercase tracking-[0.28em] text-primary",
                   mobileMenuOpen && "text-primary-foreground/75",
                 )}
               >
@@ -344,7 +345,7 @@ export default function AdminMobileNavigation() {
             </span>
           </Button>
         </SheetTrigger>
-        <SheetContent className="flex h-[100dvh] flex-col overflow-hidden p-0 dark:border-[#5f7aad]/30 dark:bg-[#010716]">
+        <SheetContent className="flex h-[100dvh] flex-col overflow-hidden p-0 dark:border-border dark:bg-card">
           <SheetHeader className="border-b px-6 pb-4 pr-14 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
             <SheetTitle>Administration</SheetTitle>
             <SheetDescription>
