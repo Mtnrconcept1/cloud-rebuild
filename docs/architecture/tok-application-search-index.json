@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "e66df0a5f6d67fe4a45da0005af12206c0016e8dfe13b5cb44abf9fc4f4aa074",
+ "sourceDigest": "7ad7d90e904b743a2edc6e9b33e8af86b59f1ffddf7a627502ad6ed0b42a9594",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -101346,7 +101346,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 94
+    "lineCount": 103
    },
    {
     "path": "src/test/navbar-dashboard-access-design.test.ts",
@@ -138093,12 +138093,12 @@
    "id": "code-module:42fd44cd12e7",
    "type": "code-module",
    "title": "src/test/navbar-action-stability.test.ts",
-   "description": "Module de 94 lignes; exports: aucun export statique.",
+   "description": "Module de 103 lignes; exports: aucun export statique.",
    "path": "src/test/navbar-action-stability.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "ddd0be6fa9f3"
+   "detailRef": "4724a8b418ce"
   },
   {
    "id": "code-module:f8ac7ed46bed",
