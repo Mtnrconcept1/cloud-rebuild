@@ -38,6 +38,9 @@ SELECT set_config('request.jwt.claims','{"sub":"74300000-0000-4000-8000-00000000
 UPDATE public.signup_applications SET status='approved',reviewed_by='74300000-0000-4000-8000-000000000004',reviewed_at=now()
 WHERE id='74320000-0000-4000-8000-000000000001';
 UPDATE public.restaurants SET status='active',is_active=true WHERE id='74310000-0000-4000-8000-000000000001';
+UPDATE public.restaurants SET opening_hours='{"service_settings":{"lunch":{"start_time":"00:00","end_time":"15:59"},"dinner":{"start_time":"16:00","end_time":"23:59"}}}'::jsonb,
+  order_slot_capacity_per_15m=30
+WHERE id='74310000-0000-4000-8000-000000000001';
 
 INSERT INTO public.social_posts(id,restaurant_id,author_id,body,status,post_type,cta_type,visibility,published_at)
 SELECT ('74330000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,

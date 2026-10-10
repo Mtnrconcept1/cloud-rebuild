@@ -166,8 +166,8 @@ console.log('PASS six observed concurrent writers: one paid delivery and six ana
 track(7,'click',reader);
 const conversionTouch = track(7,'click',{...reader,page:'second-placement'});
 assert.ok(conversionTouch.touchToken);
-serviceSql(`INSERT INTO public.orders(id,user_id,restaurant_id,delivery_address,total_amount,delivery_fee,status,payment_status,metadata)
- VALUES ('74360000-0000-4000-8000-000000000001','${reader.user}','74310000-0000-4000-8000-000000000001','Synthetic',100,0,'pending','pending','{"payment_method":"card"}')`);
+serviceSql(`INSERT INTO public.orders(id,user_id,restaurant_id,delivery_address,total_amount,delivery_fee,status,payment_status,metadata,scheduled_at)
+ VALUES ('74360000-0000-4000-8000-000000000001','${reader.user}','74310000-0000-4000-8000-000000000001','Synthetic',100,0,'pending','pending','{"payment_method":"card"}',date_trunc('day',now())+interval '12 hours')`);
 assert.equal(serviceSql(`SELECT public.record_ad_campaign_event('74340000-0000-4000-8000-000000000007','74310000-0000-4000-8000-000000000001','conversion','synthetic-conversion','${reader.user}','fixture','actualites',
  '{"entity_id":"74360000-0000-4000-8000-000000000001","touch_token":"${conversionTouch.touchToken}","viewer_id":"${reader.user}"}','order')`),'t');
 assert.equal(sql("SELECT count(*) FROM public.ad_campaign_pending_conversions WHERE entity_id='74360000-0000-4000-8000-000000000001' AND status='pending';"),'1');
