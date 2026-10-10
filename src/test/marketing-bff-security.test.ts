@@ -798,3 +798,49 @@ describe("marketing server-only BFF", () => {
     for (const key of firstAddressKeys) expect(secondAddressKeys.has(key)).toBe(false);
   });
 });
+
+
+describe("explicitly enabled marketing preview origin", () => {
+  const host = "cloud-rebuild-recovered-test-mtnrconcepts-projects.vercel.app";
+  const previewRequest = (headers: Record<string, string> = {}) => request({ host, origin: "https://" + host, ...headers });
+  function enablePreview() {
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("TOK_MARKETING_PREVIEW_ENABLED", "true");
+    vi.stubEnv("VERCEL_URL", host);
+    vi.stubEnv("VERCEL_BRANCH_URL", "cloud-rebuild-recovered-git-fix-test-mtnrconcepts-projects.vercel.app");
+  }
+  afterEach(() => vi.unstubAllEnvs());
+  it("accepts the deployment's exact own origin without widening production", () => {
+    enablePreview();
+    expect(() => validateMarketingRequestContext(previewRequest(), false)).not.toThrow();
+    expect(() => validateMarketingRequestContext(previewRequest(), true)).not.toThrow();
+    vi.stubEnv("VERCEL_ENV", "production");
+    expect(() => validateMarketingRequestContext(previewRequest(), true)).toThrow();
+  });
+  it("requires explicit preview activation", () => {
+    enablePreview(); vi.stubEnv("TOK_MARKETING_PREVIEW_ENABLED", "false");
+    expect(() => validateMarketingRequestContext(previewRequest(), false)).toThrow();
+  });
+  it.each([
+    { origin: "https://marketing.thetok.ch" },
+    { origin: "https://another-project.vercel.app" },
+    { "sec-fetch-site": "cross-site" },
+    { "x-forwarded-host": "marketing.thetok.ch" },
+    { host: "cloud-rebuild-recovered-other-mtnrconcepts-projects.vercel.app" },
+  ])("rejects cross-origin or unrelated-host preview requests: %o", (headers) => {
+    enablePreview();
+    expect(() => validateMarketingRequestContext(previewRequest(headers), true)).toThrow();
+  });
+  it("does not accept a different project's URL injected into the configuration", () => {
+    enablePreview(); vi.stubEnv("VERCEL_URL", "other-project.vercel.app");
+    expect(() => validateMarketingRequestContext(request({host: "other-project.vercel.app"}), false)).toThrow();
+  });
+  it("returns a signed-out session, never a fabricated administrator session", async () => {
+    enablePreview(); const recorder = responseRecorder(); const upstream = vi.fn(); vi.stubGlobal("fetch", upstream);
+    await marketingSessionHandler(previewRequest(), recorder.response);
+    expect(recorder.response.statusCode).toBe(401);
+    expect(JSON.parse(recorder.body)).toEqual({ authenticated: false });
+    expect(upstream).not.toHaveBeenCalled();
+    expect((recorder.headers.get("set-cookie") as string[]).join(";")).not.toContain("Domain=");
+  });
+});

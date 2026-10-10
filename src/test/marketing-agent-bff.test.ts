@@ -101,3 +101,71 @@ describe("marketing agent service boundary", () => {
     expect(JSON.parse(String(init.body))).toMatchObject({ withoutAccountOnly: true });
   });
 });
+
+
+describe("campaign generation input consistency", () => {
+  const brief = () => ({ action: "generate", objective: "Recruter des restaurateurs genevois", channels: ["facebook", "instagram"], startsAt: new Date(Date.now() + 86400000).toISOString(), endsAt: new Date(Date.now() + 7 * 86400000).toISOString(), itemCount: 4 });
+  it("rejects a past start before contacting the generator", async () => {
+    const fetchMock = upstream(); vi.stubGlobal("fetch", fetchMock); const res = recorder();
+    await marketingAgentHandler(request({ ...brief(), startsAt: new Date(Date.now() - 86400000).toISOString() }), res.response);
+    expect(res.response.statusCode).toBe(400);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/functions/v1/"))).toBe(false);
+  });
+  it("accepts the reviewed conversion destination and campaign purpose", async () => {
+    const fetchMock = upstream({ agentStatus: 403 }); vi.stubGlobal("fetch", fetchMock); const res = recorder();
+    await marketingAgentHandler(request({ ...brief(), destinationUrl: "https://www.thetok.ch/restaurateurs/alternative-commission-couvert", purpose: "acquisition" }), res.response);
+    expect(res.response.statusCode).toBe(503);
+    expect(res.value().error.code).toBe("ai_auth_unavailable");
+    const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/functions/v1/ai-marketing-agent"));
+    const init = (call as unknown as [string, RequestInit])[1];
+    expect(JSON.parse(String(init.body))).toMatchObject({ purpose: "acquisition", destinationUrl: "https://www.thetok.ch/restaurateurs/alternative-commission-couvert" });
+  });
+  it("rejects internal-only recruitment before contacting the generator", async () => {
+    const fetchMock = upstream(); vi.stubGlobal("fetch", fetchMock); const res = recorder();
+    await marketingAgentHandler(request({ ...brief(), purpose: "acquisition", channels: ["in_app"] }), res.response);
+    expect(res.response.statusCode).toBe(400);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/functions/v1/"))).toBe(false);
+  });
+});
+
+
+describe("generated campaign persistence gate", () => {
+  it.each(["valid", "past", "audience", "count", "channel"])("validates the actual Edge bundle before a session-bound write: %s", async (scenario) => {
+    const startsAt = new Date(Date.now() + 86400000).toISOString();
+    const endsAt = new Date(Date.now() + 7 * 86400000).toISOString();
+    const targeting = { audience_kind: "restaurant", canton: "GE", contact_type: "restaurant_prospect" };
+    const campaign = { name: "TOK Genève", objective: "Recruter", channels: ["facebook", "instagram"], starts_at: startsAt, ends_at: endsAt, audience_name: "Restaurants GE", audience_definition: targeting, content: { summary: "Comparer puis demander une démonstration." } };
+    const items = campaign.channels.map((channel, index) => ({ title: `Comparaison ${index}`, channel, scheduled_at: startsAt, audience_name: "Restaurants GE", targeting: { ...targeting }, content: { subject: null, headline: `TOK ${index}`, body: `Comparez vos commissions ${index}.`, call_to_action: "Demander une démonstration", hashtags: [], visual_url: null } }));
+    if (scenario === "past") items[0].scheduled_at = new Date(Date.now() - 86400000).toISOString();
+    if (scenario === "audience") items[0].targeting.contact_type = "restaurant_lead";
+    if (scenario === "count") items.pop();
+    if (scenario === "channel") items[0].channel = "email";
+    const base = upstream();
+    const writes: Record<string, unknown>[] = [];
+    const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/functions/v1/ai-marketing-agent")) return json({ runId: "22222222-2222-4222-8222-222222222222", bundle: { campaign, items }, itemCount: 2, assetCount: 0, estimatedCostChf: 0.01 });
+      if (url.endsWith("/rpc/service_execute_marketing_admin_operation")) {
+        const args = JSON.parse(String(init?.body));
+        if (args.p_operation === "admin_estimate_marketing_audience") return json({ estimated_at: new Date().toISOString(), channels: [{ channel: "facebook", delivery_mode: "public", eligible: 200 }] });
+        writes.push(args);
+        return json({ campaign: { id: "33333333-3333-4333-8333-333333333333", name: "TOK Genève" }, items: args.p_args.p_payload.items });
+      }
+      if (url.endsWith("/rpc/service_complete_marketing_ai_run")) return json({ ok: true });
+      return base(input);
+    });
+    vi.stubGlobal("fetch", fetchMock); const res = recorder();
+    await marketingAgentHandler(request({ action: "generate", objective: "Recruter", channels: ["facebook", "instagram"], startsAt, endsAt, itemCount: 2, purpose: "acquisition", destinationUrl: "https://www.thetok.ch/contact" }), res.response);
+    expect(res.response.statusCode).toBe(scenario === "valid" ? 200 : 502);
+    expect(writes).toHaveLength(scenario === "valid" ? 1 : 0);
+    if (scenario === "valid") {
+      expect(writes[0]).toMatchObject({ p_operation: "admin_create_marketing_campaign_bundle", p_sid_hash: expect.any(String), p_csrf_hash: expect.any(String) });
+      expect(res.value().previews[0].content.call_to_action).toContain("https://www.thetok.ch/contact");
+      expect(res.value().previews[0]).not.toHaveProperty("approval_status");
+      expect(res.value().audienceEstimate.channels[0].eligibleContacts).toBeNull();
+      expect(res.value().warnings).toEqual(expect.arrayContaining([expect.stringMatching(/Instagram : visuel manquant/)]));
+    } else {
+      expect(fetchMock.mock.calls.some(([url]) => String(url).includes("service_complete_marketing_ai_run"))).toBe(true);
+    }
+  });
+});

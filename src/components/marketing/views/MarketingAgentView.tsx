@@ -1,3 +1,5 @@
+import { normalizeMarketingDestination, validateMarketingWindow, type MarketingCampaignPurpose } from "../../../../supabase/functions/_shared/marketing-campaign-validation";
+import type { MarketingStrategy } from "../../../../supabase/functions/_shared/marketing-ai-plan";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 
@@ -53,7 +55,18 @@ type AgentRun = {
   completed_at: string | null;
 };
 
+type CampaignPreview = {
+  title: string;
+  channel: MarketingChannelId;
+  scheduled_at: string;
+  content: { headline: string; body: string; call_to_action: string; cta_url?: string; hashtags?: string[]; visual_url?: string | null; visual_prompt?: string | null };
+};
+
 type GenerateResult = {
+  previews?: CampaignPreview[];
+  strategy?: MarketingStrategy | null;
+  warnings?: string[];
+  audienceEstimate?: { channels: Array<{ channel: string; deliveryMode: string; eligibleContacts: number | null }> } | null;
   campaign: { id: string; name: string } | null;
   items: Array<{ id: string; title: string; channel: MarketingChannelId; scheduled_at: string }>;
   summary: string;
@@ -84,7 +97,9 @@ export default function MarketingAgentView({
 }) {
   const [objective, setObjective] = useState("");
   const [audienceHint, setAudienceHint] = useState("");
-  const [channels, setChannels] = useState<MarketingChannelId[]>(["in_app"]);
+  const [channels, setChannels] = useState<MarketingChannelId[]>(["facebook", "instagram"]);
+  const [purpose, setPurpose] = useState<MarketingCampaignPurpose>("awareness");
+  const [destinationUrl, setDestinationUrl] = useState("https://www.thetok.ch/contact");
   const [startsAt, setStartsAt] = useState(isoDay(1));
   const [endsAt, setEndsAt] = useState(isoDay(15));
   const [itemCount, setItemCount] = useState(4);
@@ -129,6 +144,19 @@ export default function MarketingAgentView({
     );
   };
 
+  const applyGenevaBrief = () => {
+    setPurpose("acquisition");
+    setChannels(["facebook", "instagram"]);
+    setObjective("Recruter des restaurateurs genevois. Présenter la commission TOK de 5 CHF par table réellement servie, quel que soit le nombre de convives, en précisant que l'abonnement est distinct. Comparer ce modèle aux plateformes qui facturent par couvert, sans généraliser à tous les concurrents ni inventer leurs tarifs. Construire une progression : problème de coût, comparaison, objections, demande de démonstration. Ne pas promettre d'économies universelles.");
+    setAudienceHint("Restaurateurs prospects du canton de Genève (GE), audience_kind=restaurant et contact_type=restaurant_prospect pour toute la campagne.");
+    setDestinationUrl("https://www.thetok.ch/restaurateurs/alternative-commission-couvert");
+    setStartsAt(isoDay(1));
+    setEndsAt(isoDay(15));
+    setItemCount(4);
+    setResult(null);
+    setError(null);
+  };
+
   const submit = async () => {
     setError(null);
     setResult(null);
@@ -152,6 +180,17 @@ export default function MarketingAgentView({
       return;
     }
 
+    try { validateMarketingWindow(startIso, endIso); }
+    catch { setError("La date de début doit être future, avec au moins cinq minutes pour préparer la campagne."); return; }
+    let approvedDestination: string;
+    try { approvedDestination = normalizeMarketingDestination(destinationUrl); }
+    catch { setError("Choisissez une page publique TOK proposée dans la liste des destinations, sans paramètres ni identifiants."); return; }
+    if (!Number.isInteger(itemCount) || itemCount < channels.length || itemCount > 12) {
+      setError("Prévoyez au moins un élément par canal, et au maximum douze éléments."); return;
+    }
+    if (purpose === "acquisition" && channels.some((channel) => channel === "in_app" || channel === "push")) {
+      setError("Les notifications internes ne permettent pas de recruter des restaurateurs sans compte TOK. Choisissez un canal externe."); return;
+    }
     setPending(true);
     try {
       const response = await marketingBffRequest<GenerateResult>(MARKETING_BFF_ENDPOINTS.agent, {
@@ -165,8 +204,11 @@ export default function MarketingAgentView({
           startsAt: startIso,
           endsAt: endIso,
           itemCount,
+          destinationUrl: approvedDestination,
+          purpose,
         },
       });
+      if (!Array.isArray(response.items)) throw new Error("Invalid campaign response");
       setResult(response);
       void loadRuns();
     } catch (caught) {
@@ -202,6 +244,17 @@ export default function MarketingAgentView({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
+          <Button type="button" variant="outline" disabled={pending} onClick={applyGenevaBrief}>
+            Recruter des restaurateurs genevois
+          </Button>
+          <div className="space-y-2">
+            <Label htmlFor="agent-purpose">Type de campagne</Label>
+            <select id="agent-purpose" className="flex h-10 w-full rounded-md border bg-background px-3 text-sm" value={purpose} disabled={pending} onChange={(event) => setPurpose(event.target.value as MarketingCampaignPurpose)}>
+              <option value="awareness">Notoriété et information</option>
+              <option value="acquisition">Acquisition de nouveaux restaurateurs</option>
+              <option value="retention">Relance de contacts déjà joignables</option>
+            </select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="agent-objective">Objectif</Label>
             <Textarea
@@ -228,6 +281,18 @@ export default function MarketingAgentView({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="agent-destination">Page de destination</Label>
+            <Input id="agent-destination" type="url" list="agent-destinations" maxLength={200} value={destinationUrl} disabled={pending} onChange={(event) => setDestinationUrl(event.target.value)} />
+            <datalist id="agent-destinations">
+              <option value="https://www.thetok.ch/contact">Contact et démonstration</option>
+              <option value="https://www.thetok.ch/restaurateurs/alternative-commission-couvert">Comparer les commissions</option>
+              <option value="https://www.thetok.ch/restaurateurs/geneve">Solution pour les restaurateurs genevois</option>
+              <option value="https://www.thetok.ch/packs-restaurateur">Abonnements et conditions</option>
+            </datalist>
+            <p className="text-xs text-slate-500">Ce lien sera ajouté aux appels à l'action. Sur Instagram, il faut aussi prévoir un lien de profil adapté ; une légende ne crée pas un bouton cliquable.</p>
+          </div>
+
+          <div className="space-y-2">
             <Label>Canaux</Label>
             <div className="flex flex-wrap gap-2">
               {PROPOSABLE_CHANNELS.map((channel) => {
@@ -251,6 +316,9 @@ export default function MarketingAgentView({
                 );
               })}
             </div>
+            <p className="text-xs leading-relaxed text-slate-500">
+              Facebook et Instagram : publications organiques. Choisir Genève décrit l'audience souhaitée, mais ne crée ni ciblage publicitaire Meta ni budget. Les notifications internes ne touchent que les utilisateurs déjà joignables dans TOK.
+            </p>
             {unconnectedSelected.length > 0 ? (
               <p className="text-xs leading-relaxed text-amber-700">
                 {unconnectedSelected.join(", ")} n'{unconnectedSelected.length > 1 ? "ont" : "a"} pas
@@ -272,6 +340,7 @@ export default function MarketingAgentView({
               <Label htmlFor="agent-start">Début</Label>
               <Input
                 id="agent-start"
+                min={isoDay(0)}
                 type="date"
                 value={startsAt}
                 disabled={pending}
@@ -282,6 +351,7 @@ export default function MarketingAgentView({
               <Label htmlFor="agent-end">Fin</Label>
               <Input
                 id="agent-end"
+                min={startsAt}
                 type="date"
                 value={endsAt}
                 disabled={pending}
@@ -344,8 +414,30 @@ export default function MarketingAgentView({
             ) : null}
             <p className="text-xs text-slate-500">
               {result.items.length} élément(s) en brouillon · {result.assetCount} visuel(s) généré(s)
-              · coût estimé {formatChf(result.estimatedCostChf)}
+              · coût du texte uniquement : {formatChf(result.estimatedCostChf)} (hors images et diffusion)
             </p>
+            {result.strategy ? (
+              <div className="space-y-2 rounded-lg border p-4 text-sm">
+                <h3 className="font-semibold">Stratégie proposée</h3>
+                <p>{result.strategy.sequence}</p>
+                <p><strong>Conversion à mesurer : </strong>{result.strategy.conversion_goal}</p>
+                <p><strong>Mesure : </strong>{result.strategy.measurement_plan}</p>
+                {result.strategy.assumptions.map((assumption, index) => <p key={index} className="text-amber-800">À vérifier : {assumption}</p>)}
+              </div>
+            ) : null}
+            {result.warnings?.length ? (
+              <Alert className="border-amber-200 bg-amber-50 text-amber-950">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Points à vérifier avant approbation</AlertTitle>
+                <AlertDescription className="space-y-2">{result.warnings.map((warning, index) => <p key={index}>{warning}</p>)}</AlertDescription>
+              </Alert>
+            ) : null}
+            <p className="text-xs text-slate-500">Budget publicitaire non défini. Portée organique non estimée. Un brouillon généré n'est pas une preuve de diffusion ou de conversion.</p>
+            {result.audienceEstimate?.channels.map((estimate) => (
+              <p key={estimate.channel} className="text-xs text-slate-600">
+                {estimate.channel} : {estimate.deliveryMode === "public" ? "portée publique non estimée" : estimate.eligibleContacts === null ? "contacts éligibles non estimés" : estimate.eligibleContacts + " contact(s) actuellement éligible(s), à revérifier avant envoi"}
+              </p>
+            ))}
             <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
               {result.items.map((item) => (
                 <li key={item.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
@@ -357,6 +449,18 @@ export default function MarketingAgentView({
                 </li>
               ))}
             </ul>
+            {result.previews?.map((preview, index) => (
+              <article key={index} className="space-y-3 rounded-lg border border-slate-200 p-4">
+                <MarketingChannelBadge channel={preview.channel} />
+                <h3 className="font-semibold">{preview.content.headline}</h3>
+                <p className="whitespace-pre-wrap text-sm">{preview.content.body}</p>
+                <p className="whitespace-pre-wrap text-sm font-medium">{preview.content.call_to_action}</p>
+                <p className="text-xs text-slate-500">{preview.content.hashtags?.join(" ")}</p>
+                {preview.content.cta_url ? <a href={preview.content.cta_url} target="_blank" rel="noopener noreferrer" className="inline-block text-sm underline">Ouvrir la page de destination</a> : null}
+                {preview.content.visual_url ? <img src={preview.content.visual_url} alt={preview.content.headline} loading="lazy" className="max-h-80 rounded-lg object-contain" /> : <p className="text-xs text-amber-800">Aucun visuel attaché à ce brouillon.</p>}
+                {preview.content.visual_prompt ? <details className="text-xs text-slate-600"><summary>Brief du visuel</summary><p className="mt-2 whitespace-pre-wrap">{preview.content.visual_prompt}</p></details> : null}
+              </article>
+            ))}
             <div className="flex flex-wrap gap-2">
               <Button type="button" onClick={() => onNavigate("calendar")}>
                 Relire et approuver les éléments
@@ -410,7 +514,7 @@ export default function MarketingAgentView({
                   </div>
                   <p className="text-xs text-slate-500">
                     {run.item_count} élément(s) · {run.asset_count} visuel(s) ·{" "}
-                    {formatChf(run.estimated_cost_chf)}
+                    {formatChf(run.estimated_cost_chf)} (texte uniquement, hors images)
                     {run.model ? ` · ${run.model}` : ""}
                   </p>
                   {run.last_error ? (

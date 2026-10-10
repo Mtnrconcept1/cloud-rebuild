@@ -50,9 +50,15 @@ const PUBLIC_ERROR_CODES = new Set([
   "authentication_required", "authentication_failed", "mfa_failed",
   "configuration_unavailable", "service_unavailable", "mfa_setup_unavailable",
   "ai_auth_unavailable", "discovery_unavailable", "discovery_invalid_response",
+  "campaign_schedule_invalid", "campaign_destination_invalid", "campaign_channels_invalid", "campaign_plan_invalid",
 ]);
 
-function publicErrorMessage(status: number) {
+function publicErrorMessage(status: number, code?: string) {
+  // Only fixed, allowlisted feedback; never display arbitrary provider messages.
+  if (status === 400 && code === "campaign_schedule_invalid") return "La date de début doit être future, avec au moins cinq minutes pour préparer la campagne.";
+  if (status === 400 && code === "campaign_destination_invalid") return "Vérifiez la page de destination TOK et le type de campagne.";
+  if (status === 400 && code === "campaign_channels_invalid") return "Vérifiez les canaux : un contenu par canal et aucun envoi interne pour une acquisition.";
+  if (status === 502 && code === "campaign_plan_invalid") return "Le plan généré est incohérent ou périmé et n'a pas été enregistré. Vérifiez le brief et les dates avant de régénérer.";
   if (status === 400) return "La demande n’a pas pu être traitée.";
   if (status === 401) return "Votre session marketing a expiré.";
   if (status === 403) return "Cette action n’est pas autorisée.";
@@ -207,7 +213,7 @@ export async function marketingBffRequest<T>(
         ? payload.error : undefined;
       const code = candidate && typeof candidate === "object" && "code" in candidate
         && typeof candidate.code === "string" ? candidate.code : undefined;
-      throw new MarketingBffError(publicErrorMessage(response.status), response.status, code);
+      throw new MarketingBffError(publicErrorMessage(response.status, code), response.status, code);
     }
 
     return await readBoundedJson(response) as T;

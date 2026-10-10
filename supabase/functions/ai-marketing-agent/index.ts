@@ -1,3 +1,5 @@
+import { validatePlan } from "../_shared/marketing-ai-plan.ts";
+import { isMarketingTimestamp, normalizeMarketingDestination, normalizeMarketingPurpose, validateMarketingWindow } from "../_shared/marketing-campaign-validation.ts";
 import {
   HttpError,
   authenticateRequest,
@@ -77,7 +79,7 @@ function requiredText(value: unknown, field: string, max: number) {
 
 function parseIsoDate(value: unknown, field: string) {
   const text = typeof value === "string" ? value.trim() : "";
-  const parsed = Date.parse(text);
+  const parsed = isMarketingTimestamp(text) ? Date.parse(text) : Number.NaN;
   if (!Number.isFinite(parsed)) throw new HttpError(400, `${field}_invalid`);
   return new Date(parsed).toISOString();
 }
@@ -175,6 +177,14 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "item_count_invalid");
     }
 
+    try { validateMarketingWindow(startsAt, endsAt); }
+    catch { throw new HttpError(400, "campaign_schedule_invalid"); }
+    let destinationUrl: string;
+    let purpose: ReturnType<typeof normalizeMarketingPurpose>;
+    try { destinationUrl = normalizeMarketingDestination(payload.destinationUrl); purpose = normalizeMarketingPurpose(payload.purpose); }
+    catch { throw new HttpError(400, "campaign_destination_invalid"); }
+    if (rawCount < channels.length || (purpose === "acquisition" && channels.some((channel) => ["in_app", "push"].includes(channel)))) throw new HttpError(400, "campaign_channels_invalid");
+    const generationDeadline = Date.now() + 85_000;
     const connectedChannels = await readConnectedChannels(client);
 
     const { data: startedRunId, error: startError } = await client.rpc(
@@ -197,27 +207,32 @@ Deno.serve(async (req) => {
       endsAt,
       itemCount: rawCount,
       locale: "fr-CH",
+      destinationUrl,
+      purpose,
     });
 
     // Visuals are generated after the plan and never block it: a failed image
     // leaves the item without one instead of discarding a usable campaign.
     const visuals = new Map<number, string>();
     const slug = slugifyCampaignName(plan.campaign.name);
-    let visualBudget = MAX_VISUALS;
-    for (let index = 0; index < plan.items.length && visualBudget > 0; index += 1) {
-      const prompt = plan.items[index].visual_prompt;
-      if (!prompt) continue;
-      visualBudget -= 1;
-      const url = await generateCampaignVisual(client, {
-        prompt,
-        campaignSlug: slug,
-        index,
-        apiKey: OPENAI_API_KEY,
-      });
-      if (url) visuals.set(index, url);
-    }
+    const candidates = plan.items.map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.visual_prompt).slice(0, MAX_VISUALS);
+    // Two workers, one request budget: never issue an unbounded image series.
+    let nextVisual = 0;
+    const renderVisuals = async () => {
+      while (nextVisual < candidates.length && Date.now() < generationDeadline) {
+        const candidate = candidates[nextVisual++];
+        const url = await generateCampaignVisual(client, {
+          prompt: candidate.item.visual_prompt!, campaignSlug: slug, index: candidate.index,
+          apiKey: OPENAI_API_KEY, timeoutMs: Math.max(1, generationDeadline - Date.now()),
+        });
+        if (url) visuals.set(candidate.index, url);
+      }
+    };
+    await Promise.all([renderVisuals(), renderVisuals()]);
+    validatePlan(plan, channels, { now: Date.now(), startsAt, endsAt, itemCount: rawCount, destinationUrl, purpose });
 
-    const bundle = toBundlePayload(plan, visuals);
+    const bundle = toBundlePayload(plan, visuals, { destinationUrl, purpose });
 
     await writeAuditLog({
       adminClient: client,
