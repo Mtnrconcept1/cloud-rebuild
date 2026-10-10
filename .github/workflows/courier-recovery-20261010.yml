@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
-      BASE_SHA: 9a4a9fb20cd88112fcf02ada60f58ed91de87a4d
+      BASE_SHA: 99dbb1397cd144b184e1c36e58ad89e2c24d5518
       CI: 'true'
       PGHOST: 127.0.0.1
       PGPORT: '54322'
