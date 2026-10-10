@@ -39,8 +39,9 @@ describe("courier dispatch boundary", () => {
     const restaurantStatusFunction = readFileSync(resolve(root, "supabase/functions/restaurant-order-status/index.ts"), "utf8");
 
     expect(restaurantStatusFunction).toContain("upsertDispatchRetryAlert");
-    expect(restaurantStatusFunction).toContain('.from("dispatch_jobs")');
-    expect(restaurantStatusFunction).toContain('status: "no_courier"');
+    expect(restaurantStatusFunction).toContain('.rpc("ensure_courier_dispatch_job"');
+    expect(restaurantStatusFunction).toContain('.rpc("set_courier_dispatch_search_state"');
+    expect(restaurantStatusFunction).toContain('p_status: "no_courier"');
     expect(restaurantStatusFunction).toContain("marketplace_alert_states");
     expect(restaurantStatusFunction).toContain("marketplace_alert_state_history");
     expect(restaurantStatusFunction).toContain("dispatch:retry-required");

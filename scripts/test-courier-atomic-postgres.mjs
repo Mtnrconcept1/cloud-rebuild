@@ -78,3 +78,117 @@ assert.match((await timeoutBarrier).errors, /canceling statement due to user req
 assert.equal((await staleExpiry).code, 0);
 assert.equal(sql("SELECT status FROM public.dispatch_attempts WHERE id='74550000-0000-4000-8000-000000000001';"), 'expired');
 console.log('RED reproduced: id-only stale expiration can overwrite accepted');
+
+const migration = fs.readFileSync('supabase/migrations/20261010223000_courier_dispatch_atomic.sql', 'utf8');
+// The incompatible history above must abort deployment instead of being erased.
+assert.throws(() => sql(migration), /duplicate key|could not create unique index/);
+assert.equal(sql("SELECT to_regprocedure('public.respond_courier_dispatch_attempt(uuid,uuid,text)') IS NULL;"), 't');
+console.log('PASS inconsistent pre-existing history aborts migration atomically');
+// Only resolve this runner's deliberately corrupted synthetic RED rows.
+sql("UPDATE public.dispatch_attempts SET status='declined' WHERE dispatch_job_id='74540000-0000-4000-8000-000000000001'; UPDATE public.dispatch_jobs SET status='cancelled' WHERE order_id IN ('74520000-0000-4000-8000-000000000001','74520000-0000-4000-8000-000000000002');");
+const history = sql("SELECT jsonb_agg(to_jsonb(j) ORDER BY id) FROM public.dispatch_jobs j;");
+sql(migration);
+sql(migration);
+assert.equal(sql("SELECT jsonb_agg(to_jsonb(j) ORDER BY id) FROM public.dispatch_jobs j;"), history);
+console.log('PASS migration reapplication preserves historical jobs');
+const order = n => `74520000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const courier = n => `74530000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const user = n => `74500000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const service = statement => `BEGIN; SET LOCAL ROLE service_role; SET LOCAL request.jwt.claim.role='service_role'; SET LOCAL request.jwt.claims='{"role":"service_role"}'; ${statement}; COMMIT;`;
+const value = statement => JSON.parse(sql(service(`SELECT to_jsonb(${statement})`)));
+const ensure = n => value(`public.ensure_courier_dispatch_job('${order(n)}')`);
+const offers = (job, couriers) => value(`public.offer_courier_dispatch_attempts('${job}', '${JSON.stringify(couriers.map(n => ({ courier_id: courier(n), timeout_seconds: 3600, estimated_earnings: 5, distance_to_pickup_meters: 800 })))}'::jsonb)`);
+const respond = (attempt, courierNo, decision = 'accept') => `public.respond_courier_dispatch_attempt('${attempt}','${user(courierNo + 2)}','${decision}')`;
+const errors = async (statement, pattern) => { const result = await session(statement); assert.notEqual(result.code, 0); assert.match(result.errors, pattern); };
+for (const role of ['anon', 'authenticated']) {
+  for (const expression of [
+    `public.ensure_courier_dispatch_job('${order(3)}')`,
+    "public.set_courier_dispatch_search_state('74540000-0000-4000-8000-000000000001','searching',NULL)",
+    "public.offer_courier_dispatch_attempts('74540000-0000-4000-8000-000000000001','[]')",
+    "public.respond_courier_dispatch_attempt('74550000-0000-4000-8000-000000000001',NULL,'accept')",
+    "public.expire_courier_dispatch_attempt('74550000-0000-4000-8000-000000000001')",
+  ]) await errors(`SET ROLE ${role}; SELECT ${expression};`, /permission denied/);
+  for (const table of ['dispatch_jobs', 'dispatch_attempts']) {
+    await errors(`SET ROLE ${role}; UPDATE public.${table} SET status='accepted';`, /permission denied/);
+    await errors(`SET ROLE ${role}; DELETE FROM public.${table};`, /permission denied/);
+    await errors(`SET ROLE ${role}; INSERT INTO public.${table}(id) VALUES(gen_random_uuid());`, /permission denied/);
+  }
+}
+console.log('PASS real anon/authenticated roles cannot call service RPCs or bypass transitions');
+const creators = await race(`SELECT 1 FROM public.orders WHERE id='${order(3)}' FOR NO KEY UPDATE`,
+  Array.from({ length: 6 }, () => service(`SELECT public.ensure_courier_dispatch_job('${order(3)}')`)));
+assert.ok(creators.every(r => r.code === 0), creators.map(r => r.errors).join('\n'));
+assert.equal(new Set(creators.map(r => JSON.parse(r.output.trim()).id)).size, 1);
+const job3 = JSON.parse(creators[0].output.trim());
+console.log('PASS six creators receive one active job for the same order');
+const offerPayload = JSON.stringify([1, 2].map(n => ({ courier_id: courier(n), timeout_seconds: 3600, estimated_earnings: 5 })));
+const offerRace = await race(`SELECT 1 FROM public.dispatch_jobs WHERE id='${job3.id}' FOR NO KEY UPDATE`,
+  Array.from({ length: 3 }, () => service(`SELECT public.offer_courier_dispatch_attempts('${job3.id}','${offerPayload}')`)));
+assert.ok(offerRace.every(r => r.code === 0), offerRace.map(r => r.errors).join('\n'));
+assert.equal(offerRace.reduce((n, r) => n + JSON.parse(r.output.trim()).length, 0), 2);
+const attempts3 = JSON.parse(sql(`SELECT jsonb_agg(to_jsonb(a) ORDER BY courier_id) FROM public.dispatch_attempts a WHERE dispatch_job_id='${job3.id}';`));
+const acceptRace = await race(`SELECT 1 FROM public.orders WHERE id='${order(3)}' FOR NO KEY UPDATE`,
+  attempts3.map((a, i) => service(`SELECT ${respond(a.id, i + 1)}`)));
+assert.ok(acceptRace.every(r => r.code === 0), acceptRace.map(r => r.errors).join('\n'));
+const acceptResults = acceptRace.map(r => JSON.parse(r.output.trim()));
+assert.equal(acceptResults.filter(r => r.status === 'accepted').length, 1);
+assert.equal(acceptResults.filter(r => r.http_status === 409).length, 1);
+const winner = acceptResults.find(r => r.status === 'accepted');
+const winnerNo = Number(winner.dispatch_job.courier_id.slice(-1));
+const winnerAttempt = attempts3.find(a => a.courier_id === courier(winnerNo));
+assert.equal(sql(`SELECT courier_id='${courier(winnerNo)}' FROM public.orders WHERE id='${order(3)}';`), 't');
+assert.equal(sql(`SELECT count(*) FROM public.delivery_tracking WHERE order_id='${order(3)}';`), '1');
+const notificationCount = () => sql(`SELECT count(*) FROM public.notifications WHERE type='dispatch' AND data->>'dispatch_job_id'='${job3.id}';`);
+assert.equal(notificationCount(), '2');
+assert.equal(value(respond(winnerAttempt.id, winnerNo)).changed, false);
+assert.equal(notificationCount(), '2');
+assert.equal(value(`public.expire_courier_dispatch_attempt('${winnerAttempt.id}')`), false);
+assert.equal(value(`public.set_courier_dispatch_search_state('${job3.id}','no_courier','late failure')`), false);
+assert.equal(value(`public.set_courier_dispatch_search_state('${job3.id}','searching',NULL)`), false);
+assert.deepEqual(offers(job3.id, [3]), []);
+assert.equal(value(respond(winnerAttempt.id, winnerNo === 1 ? 2 : 1)).http_status, 404);
+console.log('PASS one acceptance, coherent order/tracking, durable notifications, replay and stale-writer protection');
+
+const job4 = ensure(4); const job5 = ensure(5);
+const attempt4 = offers(job4.id, [3])[0]; const attempt5 = offers(job5.id, [3])[0];
+const sameCourier = await race(`SELECT 1 FROM public.couriers WHERE id='${courier(3)}' FOR NO KEY UPDATE`,
+  [attempt4, attempt5].map(a => service(`SELECT ${respond(a.id, 3)}`)));
+assert.ok(sameCourier.every(r => r.code === 0), sameCourier.map(r => r.errors).join('\n'));
+const sameResults = sameCourier.map(r => JSON.parse(r.output.trim()));
+assert.equal(sameResults.filter(r => r.status === 'accepted').length, 1);
+assert.equal(sameResults.filter(r => r.error === 'courier_already_busy').length, 1);
+console.log('PASS one courier cannot accept two simultaneous jobs');
+
+const freeCourier = winnerNo === 1 ? 2 : 1;
+const job6 = ensure(6); const attempt6 = offers(job6.id, [freeCourier])[0];
+sql(`UPDATE public.dispatch_attempts SET offered_at=now()-interval '2 hours' WHERE id='${attempt6.id}';`);
+const beforeRate = Number(sql(`SELECT acceptance_rate FROM public.couriers WHERE id='${courier(freeCourier)}';`));
+const expirers = await race(`SELECT 1 FROM public.dispatch_jobs WHERE id='${job6.id}' FOR NO KEY UPDATE`,
+  Array.from({ length: 3 }, () => service(`SELECT public.expire_courier_dispatch_attempt('${attempt6.id}')`)));
+assert.ok(expirers.every(r => r.code === 0), expirers.map(r => r.errors).join('\n'));
+assert.equal(expirers.filter(r => r.output.trim() === 't').length, 1);
+assert.equal(Number(sql(`SELECT acceptance_rate FROM public.couriers WHERE id='${courier(freeCourier)}';`)), Math.max(0, beforeRate - 2));
+assert.equal(value(respond(attempt6.id, freeCourier)).http_status, 409);
+assert.equal(value(`public.expire_courier_dispatch_attempt('${attempt6.id}')`), false);
+console.log('PASS concurrent expiry penalizes once and expired offers cannot be accepted');
+
+const job7 = ensure(7); const attempt7 = offers(job7.id, [freeCourier])[0];
+// A failure at the last transaction effect must roll back all prior effects.
+sql(`CREATE FUNCTION public.courier_atomic_test_notification_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.type='dispatch' THEN RAISE EXCEPTION 'synthetic notification persistence failure'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER courier_atomic_test_notification_failure BEFORE INSERT ON public.notifications FOR EACH ROW EXECUTE FUNCTION public.courier_atomic_test_notification_failure();`);
+await errors(service(`SELECT ${respond(attempt7.id, freeCourier)}`), /synthetic notification persistence failure/);
+assert.equal(sql(`SELECT status FROM public.dispatch_jobs WHERE id='${job7.id}';`), 'searching');
+assert.equal(sql(`SELECT status FROM public.dispatch_attempts WHERE id='${attempt7.id}';`), 'pending');
+assert.equal(sql(`SELECT courier_id IS NULL FROM public.orders WHERE id='${order(7)}';`), 't');
+assert.equal(sql(`SELECT count(*) FROM public.delivery_tracking WHERE order_id='${order(7)}';`), '0');
+sql('DROP TRIGGER courier_atomic_test_notification_failure ON public.notifications; DROP FUNCTION public.courier_atomic_test_notification_failure();');
+const declined = value(respond(attempt7.id, freeCourier, 'decline'));
+assert.equal(declined.status, 'declined'); assert.equal(declined.redispatch, true);
+assert.equal(value(respond(attempt7.id, freeCourier, 'decline')).changed, false);
+console.log('PASS notification failure rolls back acceptance, then decline and retry are idempotent');
+const job8 = ensure(8); const attempt8 = offers(job8.id, [freeCourier])[0];
+sql(`UPDATE public.dispatch_attempts SET offered_at=now()-interval '2 hours' WHERE id='${attempt8.id}';`);
+assert.equal(value(respond(attempt8.id, freeCourier)).error, 'attempt_expired');
+assert.equal(sql(`SELECT status FROM public.dispatch_attempts WHERE id='${attempt8.id}';`), 'pending');
+console.log('PASS response deadline is checked by the database even before the timeout worker runs');
+console.log('PASS courier atomic PostgreSQL protocol');

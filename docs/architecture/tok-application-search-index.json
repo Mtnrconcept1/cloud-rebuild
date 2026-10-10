@@ -2,14 +2,14 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "2ff53abc2b8df65baba1d061771fe2dec6445c4e3327f8c4754269fa88317887",
+ "sourceDigest": "3a6e44071bf2e26ad43c98d33c9b6bc23971752a904987a3f3cddb7219605f78",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
-  "databaseObjects": 2725,
-  "documents": 196,
+  "databaseObjects": 2733,
+  "documents": 197,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3360,
@@ -17,7 +17,7 @@
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 524,
+  "migrations": 525,
   "modules": 1472,
   "pages": 127,
   "pathLiterals": 615,
@@ -25,8 +25,8 @@
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15584,
-  "repositoryFiles": 2750,
+  "records": 15600,
+  "repositoryFiles": 2752,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -14164,7 +14164,7 @@
     "sources": [
      {
       "path": "src/test/dispatch-client-fallback.test.ts",
-      "line": 47
+      "line": 48
      }
     ]
    },
@@ -14177,7 +14177,7 @@
      },
      {
       "path": "supabase/functions/dispatch-order/index.ts",
-      "line": 393
+      "line": 376
      }
     ]
    },
@@ -16418,10 +16418,6 @@
      {
       "path": "supabase/functions/courier-portal/index.ts",
       "line": 336
-     },
-     {
-      "path": "supabase/functions/courier-portal/index.ts",
-      "line": 795
      }
     ]
    },
@@ -17391,7 +17387,7 @@
      },
      {
       "path": "supabase/functions/dispatch-order/index.ts",
-      "line": 529
+      "line": 511
      }
     ]
    },
@@ -18161,12 +18157,8 @@
       "line": 353
      },
      {
-      "path": "supabase/functions/courier-portal/index.ts",
-      "line": 812
-     },
-     {
       "path": "supabase/functions/dispatch-order/index.ts",
-      "line": 415
+      "line": 398
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -32398,6 +32390,12 @@
     "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
     "lineCount": 50,
     "objectCount": 2
+   },
+   {
+    "name": "20261010223000 Courier Dispatch Atomic",
+    "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+    "lineCount": 240,
+    "objectCount": 8
    }
   ],
   "databaseObjects": [
@@ -36283,6 +36281,16 @@
    },
    {
     "type": "function",
+    "name": "public.ensure_courier_dispatch_job",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+      "line": 21
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.ensure_guest_profile",
     "sources": [
      {
@@ -36348,6 +36356,16 @@
      {
       "path": "supabase/migrations/20260728170110_normalize_complete_campaign_targets.sql",
       "line": 149
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.expire_courier_dispatch_attempt",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+      "line": 202
      }
     ]
    },
@@ -38381,6 +38399,16 @@
    },
    {
     "type": "function",
+    "name": "public.offer_courier_dispatch_attempts",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+      "line": 70
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.ops_decide_incident",
     "sources": [
      {
@@ -39469,6 +39497,16 @@
    },
    {
     "type": "function",
+    "name": "public.respond_courier_dispatch_attempt",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+      "line": 114
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.restaurant_actualites_subscription_plan",
     "sources": [
      {
@@ -40418,6 +40456,16 @@
      {
       "path": "supabase/migrations/20260803140000_marketing_one_click_unsubscribe.sql",
       "line": 18
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.set_courier_dispatch_search_state",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+      "line": 45
      }
     ]
    },
@@ -42218,6 +42266,36 @@
      {
       "path": "supabase/migrations/20260719103746_harden_daily_slot_idempotency.sql",
       "line": 8
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "dispatch_attempts_one_accepted_job",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "dispatch_jobs_one_active_courier",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "dispatch_jobs_one_active_order",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+      "line": 6
      }
     ]
    },
@@ -77490,6 +77568,32 @@
     ]
    },
    {
+    "path": "docs/testing/courier-dispatch-atomic.md",
+    "title": "Attribution coursier atomique",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Attribution coursier atomique",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Contrat proposé",
+      "line": 7
+     },
+     {
+      "level": 2,
+      "title": "Validation exigée",
+      "line": 17
+     },
+     {
+      "level": 2,
+      "title": "Livraison et reprise",
+      "line": 29
+     }
+    ]
+   },
+   {
     "path": "docs/testing/launch-10k-load-plan.md",
     "title": "Plan de tests lancement 10k",
     "headings": [
@@ -79641,7 +79745,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 81
+    "lineCount": 195
    },
    {
     "path": "scripts/test-print-protocol-postgres.mjs",
@@ -100518,7 +100622,7 @@
      "firebase",
      "supabase"
     ],
-    "lineCount": 50
+    "lineCount": 51
    },
    {
     "path": "src/test/dispatch-health.test.ts",
@@ -107296,7 +107400,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 1033
+    "lineCount": 878
    },
    {
     "path": "supabase/functions/create-checkout/index.ts",
@@ -107505,7 +107609,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 590
+    "lineCount": 572
    },
    {
     "path": "supabase/functions/dispatch-timeout/index.ts",
@@ -107517,7 +107621,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 235
+    "lineCount": 215
    },
    {
     "path": "supabase/functions/enrich-directory-cuisines-osm/index.ts",
@@ -107941,7 +108045,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 407
+    "lineCount": 391
    },
    {
     "path": "supabase/functions/scrape-restaurants/index.ts",
@@ -110164,6 +110268,11 @@
    },
    {
     "path": "docs/testing/checkout-security-710.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/testing/courier-dispatch-atomic.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -122038,6 +122147,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/checkout_security_710_assertions.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -123790,7 +123904,7 @@
    "id": "code-module:c4c43ce65f7c",
    "type": "code-module",
    "title": "scripts/test-courier-atomic-postgres.mjs",
-   "description": "Module de 81 lignes; exports: aucun export statique.",
+   "description": "Module de 195 lignes; exports: aucun export statique.",
    "path": "scripts/test-courier-atomic-postgres.mjs",
    "line": 1,
    "surface": null,
@@ -123804,7 +123918,7 @@
     "TOK_COURIER_ATOMIC_DISPOSABLE",
     "supabase"
    ],
-   "detailRef": "ca4a784e999a"
+   "detailRef": "a9e575ffab77"
   },
   {
    "id": "code-module:325f58f098fe",
@@ -136988,7 +137102,7 @@
    "id": "code-module:662a84298814",
    "type": "code-module",
    "title": "src/test/dispatch-client-fallback.test.ts",
-   "description": "Module de 50 lignes; exports: aucun export statique.",
+   "description": "Module de 51 lignes; exports: aucun export statique.",
    "path": "src/test/dispatch-client-fallback.test.ts",
    "line": 1,
    "surface": null,
@@ -136996,7 +137110,7 @@
     "firebase",
     "supabase"
    ],
-   "detailRef": "799d075cc059"
+   "detailRef": "d09c1a9b52c4"
   },
   {
    "id": "code-module:943545571d70",
@@ -143496,12 +143610,12 @@
    "id": "code-module:a6a906dce044",
    "type": "code-module",
    "title": "supabase/functions/courier-portal/index.ts",
-   "description": "Module de 1033 lignes; exports: aucun export statique.",
+   "description": "Module de 878 lignes; exports: aucun export statique.",
    "path": "supabase/functions/courier-portal/index.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "df8dafaa3878"
+   "detailRef": "cb9289d090ba"
   },
   {
    "id": "code-module:ee34f3a570c0",
@@ -143695,7 +143809,7 @@
    "id": "code-module:6a7b31b8efad",
    "type": "code-module",
    "title": "supabase/functions/dispatch-order/index.ts",
-   "description": "Module de 590 lignes; exports: aucun export statique.",
+   "description": "Module de 572 lignes; exports: aucun export statique.",
    "path": "supabase/functions/dispatch-order/index.ts",
    "line": 1,
    "surface": null,
@@ -143704,13 +143818,13 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "719700d92771"
+   "detailRef": "00609083c988"
   },
   {
    "id": "code-module:3a7cd936b86e",
    "type": "code-module",
    "title": "supabase/functions/dispatch-timeout/index.ts",
-   "description": "Module de 235 lignes; exports: aucun export statique.",
+   "description": "Module de 215 lignes; exports: aucun export statique.",
    "path": "supabase/functions/dispatch-timeout/index.ts",
    "line": 1,
    "surface": null,
@@ -143719,7 +143833,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "ec9137a3bf51"
+   "detailRef": "fb2c7b5a7be0"
   },
   {
    "id": "code-module:a6d9e189592d",
@@ -144263,12 +144377,12 @@
    "id": "code-module:4f5dbbeaa8a2",
    "type": "code-module",
    "title": "supabase/functions/restaurant-order-status/index.ts",
-   "description": "Module de 407 lignes; exports: aucun export statique.",
+   "description": "Module de 391 lignes; exports: aucun export statique.",
    "path": "supabase/functions/restaurant-order-status/index.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "201e15c1c8bb"
+   "detailRef": "fef3605d4f39"
   },
   {
    "id": "code-module:139259114ecf",
@@ -150623,6 +150737,51 @@
     "supabase"
    ],
    "detailRef": "72d5e7084280"
+  },
+  {
+   "id": "database-object:497418a67c68",
+   "type": "database-object",
+   "title": "dispatch_attempts_one_accepted_job",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+   "line": 13,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "a9df952d0b25"
+  },
+  {
+   "id": "database-object:93098b1ac907",
+   "type": "database-object",
+   "title": "dispatch_jobs_one_active_courier",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "3a373a20503c"
+  },
+  {
+   "id": "database-object:df8ab8244c58",
+   "type": "database-object",
+   "title": "dispatch_jobs_one_active_order",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "17d264970d24"
   },
   {
    "id": "database-object:141417e539b1",
@@ -168085,6 +168244,21 @@
    "detailRef": "4c914d06c9a3"
   },
   {
+   "id": "database-object:33438d774287",
+   "type": "database-object",
+   "title": "public.ensure_courier_dispatch_job",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+   "line": 21,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "ed94a9b47f78"
+  },
+  {
    "id": "database-object:ecf4b1d94c3c",
    "type": "database-object",
    "title": "public.ensure_guest_profile",
@@ -168233,6 +168407,21 @@
     "table"
    ],
    "detailRef": "2f46d0ba7d43"
+  },
+  {
+   "id": "database-object:ed5bfa6b3b7f",
+   "type": "database-object",
+   "title": "public.expire_courier_dispatch_attempt",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+   "line": 202,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "63356808b296"
   },
   {
    "id": "database-object:32b942fe5dac",
@@ -173065,6 +173254,21 @@
    "detailRef": "f6269518b90a"
   },
   {
+   "id": "database-object:acbd6dbaf039",
+   "type": "database-object",
+   "title": "public.offer_courier_dispatch_attempts",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+   "line": 70,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "54201793e173"
+  },
+  {
    "id": "database-object:c0100f95cba7",
    "type": "database-object",
    "title": "public.ops_decide_incident",
@@ -176588,6 +176792,21 @@
     "supabase"
    ],
    "detailRef": "bd86d315613d"
+  },
+  {
+   "id": "database-object:337955904b10",
+   "type": "database-object",
+   "title": "public.respond_courier_dispatch_attempt",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+   "line": 114,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "62986d245f4c"
   },
   {
    "id": "database-object:df318508e971",
@@ -180548,6 +180767,21 @@
     "supabase"
    ],
    "detailRef": "ceca26cc1777"
+  },
+  {
+   "id": "database-object:abe03aaa76bb",
+   "type": "database-object",
+   "title": "public.set_courier_dispatch_search_state",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+   "line": 45,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "c5d6c6a1307f"
   },
   {
    "id": "database-object:989e91ce18d2",
@@ -195566,6 +195800,20 @@
    "detailRef": "3184a9dcef74"
   },
   {
+   "id": "document-section:677204bcd587",
+   "type": "document-section",
+   "title": "Attribution coursier atomique",
+   "description": "Section de Attribution coursier atomique.",
+   "path": "docs/testing/courier-dispatch-atomic.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Attribution coursier atomique",
+    "h1"
+   ],
+   "detailRef": "ce25218be6df"
+  },
+  {
    "id": "document-section:53e94eb381a0",
    "type": "document-section",
    "title": "Audit Execution Plan",
@@ -198672,6 +198920,20 @@
     "h1"
    ],
    "detailRef": "2b274bb176ca"
+  },
+  {
+   "id": "document-section:1490de93b6bc",
+   "type": "document-section",
+   "title": "Contrat proposé",
+   "description": "Section de Attribution coursier atomique.",
+   "path": "docs/testing/courier-dispatch-atomic.md",
+   "line": 7,
+   "surface": null,
+   "tags": [
+    "Attribution coursier atomique",
+    "h2"
+   ],
+   "detailRef": "1699d7f482f9"
   },
   {
    "id": "document-section:ab03e94c3e9f",
@@ -203740,6 +204002,20 @@
     "h2"
    ],
    "detailRef": "11e4cbb52fd3"
+  },
+  {
+   "id": "document-section:66c3d54704b8",
+   "type": "document-section",
+   "title": "Livraison et reprise",
+   "description": "Section de Attribution coursier atomique.",
+   "path": "docs/testing/courier-dispatch-atomic.md",
+   "line": 29,
+   "surface": null,
+   "tags": [
+    "Attribution coursier atomique",
+    "h2"
+   ],
+   "detailRef": "b3cb18b68a2b"
   },
   {
    "id": "document-section:6c1e9069ee66",
@@ -217630,6 +217906,20 @@
    "detailRef": "186b0b676a31"
   },
   {
+   "id": "document-section:15d48112fd4d",
+   "type": "document-section",
+   "title": "Validation exigée",
+   "description": "Section de Attribution coursier atomique.",
+   "path": "docs/testing/courier-dispatch-atomic.md",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "Attribution coursier atomique",
+    "h2"
+   ],
+   "detailRef": "0a40513086f9"
+  },
+  {
    "id": "document-section:6c2aa56e6390",
    "type": "document-section",
    "title": "Validation locale",
@@ -219987,6 +220277,22 @@
     "Apply Principle of Least Privilege"
    ],
    "detailRef": "24db9c865a1c"
+  },
+  {
+   "id": "document:677204bcd587",
+   "type": "document",
+   "title": "Attribution coursier atomique",
+   "description": "Document Markdown avec 4 section(s).",
+   "path": "docs/testing/courier-dispatch-atomic.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Attribution coursier atomique",
+    "Contrat proposé",
+    "Livraison et reprise",
+    "Validation exigée"
+   ],
+   "detailRef": "1c99e87bdb55"
   },
   {
    "id": "document:53e94eb381a0",
@@ -282603,6 +282909,20 @@
    "detailRef": "e6566ada12d6"
   },
   {
+   "id": "file:ef0d25a1f609",
+   "type": "file",
+   "title": "docs/testing/courier-dispatch-atomic.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/testing/courier-dispatch-atomic.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "7717711668ba"
+  },
+  {
    "id": "file:31eb15c4c93a",
    "type": "file",
    "title": "docs/testing/launch-10k-load-plan.md",
@@ -315839,6 +316159,20 @@
    "detailRef": "24e024dbc072"
   },
   {
+   "id": "file:3b434a245818",
+   "type": "file",
+   "title": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "7faf052888b8"
+  },
+  {
    "id": "file:ab7118beb60b",
    "type": "file",
    "title": "supabase/tests/checkout_security_710_assertions.sql",
@@ -328313,6 +328647,20 @@
    "detailRef": "2fcf1a50ca0d"
   },
   {
+   "id": "migration:89a4dd9c8437",
+   "type": "migration",
+   "title": "20261010223000 Courier Dispatch Atomic",
+   "description": "Migration SQL de 240 lignes, 8 objets CREATE détectés.",
+   "path": "supabase/migrations/20261010223000_courier_dispatch_atomic.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "fb790c26b474"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -331838,17 +332186,17 @@
    "detailRef": "1f0534349af7"
   },
   {
-   "id": "path-literal:1e75a2497da9",
+   "id": "path-literal:75a1026c5aea",
    "type": "path-literal",
    "title": "/admin/commandes-reservations?dispatch=",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/dispatch-client-fallback.test.ts",
-   "line": 47,
+   "line": 48,
    "surface": null,
    "tags": [
     "src/test/dispatch-client-fallback.test.ts"
    ],
-   "detailRef": "b63016a5d4a8"
+   "detailRef": "e7f0a9bbede9"
   },
   {
    "id": "path-literal:f25fcff9caea",
@@ -331875,7 +332223,7 @@
     "src/lib/notificationRouting.ts",
     "supabase/functions/dispatch-order/index.ts"
    ],
-   "detailRef": "6ef88334ffe5"
+   "detailRef": "fd709b49b1e5"
   },
   {
    "id": "path-literal:b51b3bed6394",
@@ -333284,7 +333632,7 @@
    "id": "path-literal:b85d41a0b5fc",
    "type": "path-literal",
    "title": "/commandes",
-   "description": "Chemin référencé dans 35 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 34 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1215,
    "surface": null,
@@ -333311,7 +333659,7 @@
     "src/test/role-route-wiring.test.ts",
     "supabase/functions/courier-portal/index.ts"
    ],
-   "detailRef": "bb428068eb39"
+   "detailRef": "d433f407f4b3"
   },
   {
    "id": "path-literal:a52995afd52f",
@@ -333742,7 +334090,7 @@
     "src/test/navigation.test.ts",
     "supabase/functions/dispatch-order/index.ts"
    ],
-   "detailRef": "fdd0ee1632ca"
+   "detailRef": "eb0c7b744efc"
   },
   {
    "id": "path-literal:b442b5bc4279",
@@ -334001,7 +334349,7 @@
    "id": "path-literal:7f0d24d53c1d",
    "type": "path-literal",
    "title": "/dashboard/commandes",
-   "description": "Chemin référencé dans 21 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 611,
    "surface": null,
@@ -334024,7 +334372,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "d72baf1be947"
+   "detailRef": "38c81b50af34"
   },
   {
    "id": "path-literal:cc7671b2cd24",

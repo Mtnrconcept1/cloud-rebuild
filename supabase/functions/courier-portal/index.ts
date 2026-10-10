@@ -642,199 +642,44 @@ Deno.serve(async (req) => {
         throw new HttpError(400, "Tentative ou decision invalide");
       }
 
-      const { data: attempt, error: attemptError } = await adminClient
-        .from("dispatch_attempts")
-        .select("*")
-        .eq("id", attemptId)
-        .maybeSingle();
-
-      if (attemptError) throw new HttpError(500, attemptError.message);
-      if (!attempt || attempt.courier_id !== courier.id) {
-        throw new HttpError(404, "Proposition de mission introuvable");
+      const { data: result, error } = await adminClient.rpc("respond_courier_dispatch_attempt", {
+        p_attempt_id: attemptId,
+        p_actor_user_id: actor.userId,
+        p_decision: decision,
+      });
+      if (error || !result) {
+        log.error("courier response transaction failed", { code: error?.code || "missing_result" });
+        throw new HttpError(500, "La reponse a la mission n a pas pu etre enregistree");
       }
-      if (attempt.status !== "pending") {
-        throw new HttpError(409, "Cette proposition a deja ete traitee");
+      if (result.error) {
+        const messages: Record<string, string> = {
+          attempt_not_found: "Proposition de mission introuvable",
+          order_not_found: "Commande introuvable",
+          attempt_already_processed: "Cette proposition a deja ete traitee",
+          attempt_expired: "Cette proposition a expire",
+          courier_not_approved: "Le compte coursier doit etre approuve",
+          courier_already_busy: "Une mission est deja en cours pour ce coursier",
+        };
+        throw new HttpError(Number(result.http_status) || 409, messages[result.error] || "Proposition indisponible");
       }
-
-      const { data: job, error: jobError } = await adminClient
-        .from("dispatch_jobs")
-        .select("*")
-        .eq("id", attempt.dispatch_job_id)
-        .maybeSingle();
-
-      if (jobError) throw new HttpError(500, jobError.message);
-      if (!job) throw new HttpError(404, "Mission introuvable");
-
-      const { order, restaurant } = await getOrderContext(adminClient, job.order_id);
-
-      if (decision === "decline") {
-        const { error: declineError } = await adminClient
-          .from("dispatch_attempts")
-          .update({
-            status: "declined",
-            responded_at: toIsoDate(now),
-          })
-          .eq("id", attempt.id);
-
-        if (declineError) throw new HttpError(500, declineError.message);
-
-        const { data: remainingPendingAttempts } = await adminClient
-          .from("dispatch_attempts")
-          .select("id")
-          .eq("dispatch_job_id", job.id)
-          .eq("status", "pending")
-          .limit(1);
-
-        if (!remainingPendingAttempts || remainingPendingAttempts.length === 0) {
-          await triggerRedispatch(job.id, order.id);
-        }
-
-        await writeAuditLog({
-          adminClient,
-          actor,
-          request: req,
-          functionName: "courier-portal",
-          action: "respond_attempt",
-          status: "success",
-          targetEntityType: "dispatch_attempts",
-          targetEntityId: String(attempt.id),
-          metadata: { decision, dispatch_job_id: job.id, order_id: order.id },
-        });
-
-        return jsonResponse({ status: "declined" }, 200, corsHeaders);
-      }
-
-      if (courier.status !== "approved") {
-        throw new HttpError(403, "Le compte coursier doit etre approuve avant d accepter une mission");
-      }
-
-      const { data: activeJob } = await adminClient
-        .from("dispatch_jobs")
-        .select("id")
-        .eq("courier_id", courier.id)
-        .in("status", ACTIVE_JOB_STATUSES)
-        .neq("id", job.id)
-        .limit(1)
-        .maybeSingle();
-
-      if (activeJob) {
-        throw new HttpError(409, "Une mission est deja en cours pour ce coursier");
-      }
-
-      const estimatedArrival = order.estimated_delivery_at
-        || new Date(now.getTime() + ((restaurant?.avg_prep_time_min || 20) + 15) * 60 * 1000).toISOString();
-
-      const { error: acceptAttemptError } = await adminClient
-        .from("dispatch_attempts")
-        .update({
-          status: "accepted",
-          responded_at: toIsoDate(now),
-        })
-        .eq("id", attempt.id);
-
-      if (acceptAttemptError) throw new HttpError(500, acceptAttemptError.message);
-
-      await adminClient
-        .from("dispatch_attempts")
-        .update({
-          status: "cancelled",
-          responded_at: toIsoDate(now),
-        })
-        .eq("dispatch_job_id", job.id)
-        .eq("status", "pending")
-        .neq("id", attempt.id);
-
-      const { data: updatedJob, error: updateJobError } = await adminClient
-        .from("dispatch_jobs")
-        .update({
-          courier_id: courier.id,
-          status: "accepted",
-          assigned_at: job.assigned_at || toIsoDate(now),
-          accepted_at: toIsoDate(now),
-          earnings_base: job.earnings_base || attempt.estimated_earnings || 0,
-          updated_at: toIsoDate(now),
-        })
-        .eq("id", job.id)
-        .select("*")
-        .single();
-
-      if (updateJobError) throw new HttpError(500, updateJobError.message);
-
-      await adminClient
-        .from("orders")
-        .update({
-          courier_id: courier.id,
-          estimated_delivery_at: estimatedArrival,
-        })
-        .eq("id", order.id);
-
-      await adminClient
-        .from("delivery_tracking")
-        .upsert({
-          order_id: order.id,
-          status: "preparing",
-          driver_name: courierDisplayName(courier),
-          driver_phone: courier.phone,
-          current_lat: courier.current_lat,
-          current_lng: courier.current_lng,
-          estimated_arrival: estimatedArrival,
-        }, { onConflict: "order_id" });
-
-      if (order.user_id) {
-        await enqueueNotification({
-          adminClient,
-          userId: order.user_id,
-          title: "Livreur assigne",
-          body: `${courierDisplayName(courier)} prend en charge votre commande ${order.order_number || order.id}.`,
-          type: "dispatch",
-          category: "transactional",
-          data: {
-            order_id: order.id,
-            dispatch_job_id: job.id,
-            courier_id: courier.id,
-            url: "/commandes",
-          },
-        });
-      }
-
-      if (restaurant?.owner_id) {
-        await enqueueNotification({
-          adminClient,
-          userId: restaurant.owner_id,
-          title: "Livreur confirme",
-          body: `${courierDisplayName(courier)} se dirige vers ${restaurant.name || "le restaurant"}.`,
-          type: "dispatch",
-          category: "transactional",
-          data: {
-            order_id: order.id,
-            dispatch_job_id: job.id,
-            courier_id: courier.id,
-            url: "/dashboard/commandes",
-          },
-        });
-      }
-
-      if (order.user_id || restaurant?.owner_id) {
+      const job = result.dispatch_job;
+      if (result.redispatch) await triggerRedispatch(job.id, result.order_id);
+      // Notifications are already durable in the response transaction. A retry
+      // can safely wake their existing workers without enqueueing duplicates.
+      if (result.status === "accepted") {
         try {
           await triggerNotificationDispatch({ source: "courier-portal-assigned", push: true, email: true });
-        } catch (error) {
-          log.error("courier-portal assignment push trigger failed", { message: error instanceof Error ? error.message : "unknown" });
+        } catch (dispatchError) {
+          log.error("courier-portal assignment push trigger failed", { message: dispatchError instanceof Error ? dispatchError.message : "unknown" });
         }
       }
-
       await writeAuditLog({
-        adminClient,
-        actor,
-        request: req,
-        functionName: "courier-portal",
-        action: "respond_attempt",
-        status: "success",
-        targetEntityType: "dispatch_attempts",
-        targetEntityId: String(attempt.id),
-        metadata: { decision, dispatch_job_id: job.id, order_id: order.id },
+        adminClient, actor, request: req, functionName: "courier-portal",
+        action: "respond_attempt", status: "success", targetEntityType: "dispatch_attempts",
+        targetEntityId: attemptId,
+        metadata: { decision, dispatch_job_id: job.id, order_id: result.order_id, changed: result.changed },
       });
-
-      return jsonResponse({ status: "accepted", dispatch_job: updatedJob }, 200, corsHeaders);
+      return jsonResponse({ status: result.status, dispatch_job: job }, 200, corsHeaders);
     }
 
     if (action === "verify_delivery_proof") {

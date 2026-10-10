@@ -216,36 +216,19 @@ Deno.serve(async (req) => {
     let jobId = dispatch_job_id;
     let job: any = null;
 
-    if (dispatch_job_id) {
-      const { data } = await supabaseAdmin
-        .from("dispatch_jobs")
-        .select("*, orders(id, restaurant_id, delivery_address, total_amount, user_id, order_number, metadata, created_at)")
-        .eq("id", dispatch_job_id)
-        .maybeSingle();
-      job = data;
-    } else {
-      const { data: existing } = await supabaseAdmin
-        .from("dispatch_jobs")
-        .select("*, orders(id, restaurant_id, delivery_address, total_amount, user_id, order_number, metadata, created_at)")
-        .eq("order_id", order_id)
-        .not("status", "in", "(delivered,cancelled,expired)")
-        .maybeSingle();
-
-      if (existing) {
-        job = existing;
-        jobId = existing.id;
-      } else {
-        const { data: newJob, error } = await supabaseAdmin
-          .from("dispatch_jobs")
-          .insert({ order_id, status: "searching" })
-          .select("*, orders(id, restaurant_id, delivery_address, total_amount, user_id, order_number, metadata, created_at)")
-          .single();
-
-        if (error) throw error;
-        job = newJob;
-        jobId = newJob.id;
-      }
+    if (!jobId) {
+      const { data: ensuredJob, error: ensureError } = await supabaseAdmin
+        .rpc("ensure_courier_dispatch_job", { p_order_id: order_id });
+      if (ensureError) throw ensureError;
+      jobId = ensuredJob?.id;
     }
+    const { data: loadedJob, error: loadError } = await supabaseAdmin
+      .from("dispatch_jobs")
+      .select("*, orders(id, restaurant_id, delivery_address, total_amount, user_id, order_number, metadata, created_at)")
+      .eq("id", jobId)
+      .maybeSingle();
+    if (loadError) throw loadError;
+    job = loadedJob;
 
     if (!job) {
       await writeAuditLog({
@@ -279,10 +262,10 @@ Deno.serve(async (req) => {
       typeof radius_km === "number" ? radius_km : null,
     );
 
-    await supabaseAdmin
-      .from("dispatch_jobs")
-      .update({ status: "searching", updated_at: new Date().toISOString() })
-      .eq("id", jobId);
+    const { data: canSearch, error: searchError } = await supabaseAdmin
+      .rpc("set_courier_dispatch_search_state", { p_job_id: jobId, p_status: "searching" });
+    if (searchError) throw searchError;
+    if (!canSearch) return jsonResponse({ status: "state_changed", dispatch_job_id: jobId }, 200, corsHeaders);
 
     const { data: pendingAttempts } = await supabaseAdmin
       .from("dispatch_attempts")
@@ -307,10 +290,10 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!restaurant?.latitude || !restaurant?.longitude) {
-      await supabaseAdmin
-        .from("dispatch_jobs")
-        .update({ status: "no_courier", updated_at: new Date().toISOString() })
-        .eq("id", jobId);
+      const { data: markedUnavailable, error: unavailableError } = await supabaseAdmin
+        .rpc("set_courier_dispatch_search_state", { p_job_id: jobId, p_status: "no_courier" });
+      if (unavailableError) throw unavailableError;
+      if (!markedUnavailable) return jsonResponse({ status: "state_changed", dispatch_job_id: jobId }, 200, corsHeaders);
 
       await writeAuditLog({
         adminClient: actor.adminClient,
@@ -371,10 +354,10 @@ Deno.serve(async (req) => {
 
     if (availableCouriers.length === 0) {
       if (round >= 3) {
-        await supabaseAdmin
-          .from("dispatch_jobs")
-          .update({ status: "no_courier", updated_at: new Date().toISOString() })
-          .eq("id", jobId);
+        const { data: markedUnavailable, error: unavailableError } = await supabaseAdmin
+          .rpc("set_courier_dispatch_search_state", { p_job_id: jobId, p_status: "no_courier" });
+        if (unavailableError) throw unavailableError;
+        if (!markedUnavailable) return jsonResponse({ status: "state_changed", dispatch_job_id: jobId }, 200, corsHeaders);
 
         await notifyAdmins({
           adminClient: supabaseAdmin,
@@ -478,11 +461,10 @@ Deno.serve(async (req) => {
     });
 
     const { data: attempts, error: attemptError } = await supabaseAdmin
-      .from("dispatch_attempts")
-      .insert(attemptsPayload)
-      .select("id, courier_id, estimated_earnings, distance_to_pickup_meters");
+      .rpc("offer_courier_dispatch_attempts", { p_job_id: jobId, p_offers: attemptsPayload });
 
     if (attemptError) throw attemptError;
+    if (!attempts?.length) return jsonResponse({ status: "state_changed", dispatch_job_id: jobId }, 200, corsHeaders);
 
     for (const courier of selectedCouriers) {
       const attempt = (attempts || []).find((item: any) => item.courier_id === courier.courier_id);

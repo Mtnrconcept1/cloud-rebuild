@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `2ff53abc2b8df65baba1d061771fe2dec6445c4e3327f8c4754269fa88317887`
+- Empreinte SHA-256 des sources indexées : `3a6e44071bf2e26ad43c98d33c9b6bc23971752a904987a3f3cddb7219605f78`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,8 +28,8 @@
 | apiRoutes | 9 |
 | cronJobs | 33 |
 | databaseContract | 228 |
-| databaseObjects | 2725 |
-| documents | 196 |
+| databaseObjects | 2733 |
+| documents | 197 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 3360 |
@@ -37,7 +37,7 @@
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
-| migrations | 524 |
+| migrations | 525 |
 | modules | 1472 |
 | pages | 127 |
 | pathLiterals | 615 |
@@ -45,8 +45,8 @@
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15584 |
-| repositoryFiles | 2750 |
+| records | 15600 |
+| repositoryFiles | 2752 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -985,7 +985,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/avis | 13 | [src/App.tsx:650](../../src/App.tsx#L650) |
 | /admin/catalog | 4 | [src/App.tsx:651](../../src/App.tsx#L651) |
 | /admin/commandes-reservations | 10 | [src/App.tsx:663](../../src/App.tsx#L663) |
-| /admin/commandes-reservations?dispatch= | 1 | [src/test/dispatch-client-fallback.test.ts:47](../../src/test/dispatch-client-fallback.test.ts#L47) |
+| /admin/commandes-reservations?dispatch= | 1 | [src/test/dispatch-client-fallback.test.ts:48](../../src/test/dispatch-client-fallback.test.ts#L48) |
 | /admin/commandes-reservations?tab=orders | 2 | [src/lib/notificationRouting.ts:94](../../src/lib/notificationRouting.ts#L94) |
 | /admin/commandes-reservations?tab=orders&operation=order-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:27](../../src/test/notifications-sinistres-governance.test.ts#L27) |
 | /admin/commandes-reservations?tab=reservations | 1 | [src/lib/notificationRouting.ts:95](../../src/lib/notificationRouting.ts#L95) |
@@ -1074,7 +1074,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commande/confirmation | 11 | [src/App.tsx:571](../../src/App.tsx#L571) |
 | /commande/confirmation?checkout_kind=order | 1 | [src/test/payment-attempt-state.test.ts:114](../../src/test/payment-attempt-state.test.ts#L114) |
 | /commande/order-1 | 3 | [src/test/notifications-sinistres-governance.test.ts:23](../../src/test/notifications-sinistres-governance.test.ts#L23) |
-| /commandes | 35 | [scripts/prerender-seo.mjs:1215](../../scripts/prerender-seo.mjs#L1215) |
+| /commandes | 34 | [scripts/prerender-seo.mjs:1215](../../scripts/prerender-seo.mjs#L1215) |
 | /commercial | 42 | [scripts/application-index-core.mjs:166](../../scripts/application-index-core.mjs#L166) |
 | /commercial/ | 3 | [src/App.tsx:312](../../src/App.tsx#L312) |
 | /commercial/anything | 1 | [src/test/commercial-domain-isolation.test.ts:145](../../src/test/commercial-domain-isolation.test.ts#L145) |
@@ -1115,7 +1115,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/campagne-overview | 2 | [src/App.tsx:627](../../src/App.tsx#L627) |
 | /dashboard/campagnes | 17 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /dashboard/campaign-studio | 5 | [src/App.tsx:631](../../src/App.tsx#L631) |
-| /dashboard/commandes | 21 | [src/App.tsx:611](../../src/App.tsx#L611) |
+| /dashboard/commandes | 20 | [src/App.tsx:611](../../src/App.tsx#L611) |
 | /dashboard/comparaison | 3 | [src/App.tsx:614](../../src/App.tsx#L614) |
 | /dashboard/compta | 3 | [src/App.tsx:616](../../src/App.tsx#L616) |
 | /dashboard/credits | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:215](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L215) |
@@ -1955,7 +1955,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (732)</summary>
+<details><summary>function (737)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2289,11 +2289,13 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.enqueue_google_actions_center_updates` (1 définition(s))
 - `public.enqueue_image_analysis_job` (1 définition(s))
 - `public.enqueue_notification` (3 définition(s))
+- `public.ensure_courier_dispatch_job` (1 définition(s))
 - `public.ensure_guest_profile` (1 définition(s))
 - `public.ensure_restaurant_booking_channels` (1 définition(s))
 - `public.ensure_restaurant_google_booking_setup` (2 définition(s))
 - `public.ensure_social_post_boost_integrity` (2 définition(s))
 - `public.estimate_campaign_audience` (4 définition(s))
+- `public.expire_courier_dispatch_attempt` (1 définition(s))
 - `public.fail_image_analysis_job` (2 définition(s))
 - `public.fail_payment_attempt` (1 définition(s))
 - `public.fail_restaurant_subscription_activation_job` (1 définition(s))
@@ -2450,6 +2452,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.notify_social_comment` (2 définition(s))
 - `public.notify_social_repost` (1 définition(s))
 - `public.notify_tok_one_members_new_offer` (1 définition(s))
+- `public.offer_courier_dispatch_attempts` (1 définition(s))
 - `public.ops_decide_incident` (1 définition(s))
 - `public.ops_register_incident` (3 définition(s))
 - `public.ops_touch_incident_updated_at` (1 définition(s))
@@ -2536,6 +2539,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.resolve_google_booking_slug` (3 définition(s))
 - `public.resolve_miamz_benefit_state` (1 définition(s))
 - `public.resolve_swiss_vat_rate_bps` (1 définition(s))
+- `public.respond_courier_dispatch_attempt` (1 définition(s))
 - `public.restaurant_actualites_subscription_plan` (1 définition(s))
 - `public.restaurant_actualites_week_window` (1 définition(s))
 - `public.restaurant_actualites_weekly_post_count` (1 définition(s))
@@ -2617,6 +2621,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_start_marketing_ai_run` (1 définition(s))
 - `public.service_store_marketing_auth_challenge` (1 définition(s))
 - `public.service_unsubscribe_marketing_delivery` (1 définition(s))
+- `public.set_courier_dispatch_search_state` (1 définition(s))
 - `public.set_floor_plan_variants_updated_at` (1 définition(s))
 - `public.set_restaurant_slug` (1 définition(s))
 - `public.set_social_reaction` (1 définition(s))
@@ -2692,7 +2697,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (649)</summary>
+<details><summary>index (652)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -2774,6 +2779,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `customer_memory_items_user_key_uidx` (1 définition(s))
 - `customer_memory_items_user_status_idx` (1 définition(s))
 - `daily_slot_spins_user_request_uidx` (1 définition(s))
+- `dispatch_attempts_one_accepted_job` (1 définition(s))
+- `dispatch_jobs_one_active_courier` (1 définition(s))
+- `dispatch_jobs_one_active_order` (1 définition(s))
 - `feature_flag_audit_logs_flag_created_idx` (1 définition(s))
 - `flash_sales_archive_restaurant_idx` (1 définition(s))
 - `gift_points_claim_code_lower_unique` (1 définition(s))
@@ -5530,6 +5538,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261010194510 Checkout Benefits And Public Menu Security | 86 | 4 | [supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql:1](../../supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql#L1) |
 | 20261010203000 Print Fulfillment Protocol | 260 | 4 | [supabase/migrations/20261010203000_print_fulfillment_protocol.sql:1](../../supabase/migrations/20261010203000_print_fulfillment_protocol.sql#L1) |
 | 20261010212500 Reconcile Canonical Commercial Demo Inert State | 50 | 2 | [supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql:1](../../supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql#L1) |
+| 20261010223000 Courier Dispatch Atomic | 240 | 8 | [supabase/migrations/20261010223000_courier_dispatch_atomic.sql:1](../../supabase/migrations/20261010223000_courier_dispatch_atomic.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -5965,6 +5974,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Scénario Actualités sponsorisées | 5 | [docs/testing/actualites-sponsored-scenario.md:1](../../docs/testing/actualites-sponsored-scenario.md#L1) |
 | Télémétrie navigateur et consentement | 5 | [docs/testing/browser-monitoring-consent.md:1](../../docs/testing/browser-monitoring-consent.md#L1) |
 | Recette de sécurité checkout et menus — issue #710 | 8 | [docs/testing/checkout-security-710.md:1](../../docs/testing/checkout-security-710.md#L1) |
+| Attribution coursier atomique | 4 | [docs/testing/courier-dispatch-atomic.md:1](../../docs/testing/courier-dispatch-atomic.md#L1) |
 | Plan de tests lancement 10k | 6 | [docs/testing/launch-10k-load-plan.md:1](../../docs/testing/launch-10k-load-plan.md#L1) |
 | Tests de garde Supabase / RPC | 7 | [docs/testing/supabase-rpc-guards.md:1](../../docs/testing/supabase-rpc-guards.md#L1) |
 | TOK Connect | 18 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
@@ -6360,7 +6370,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (524)</summary>
+<details><summary>database-migration (525)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -6886,10 +6896,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql`
 - `supabase/migrations/20261010203000_print_fulfillment_protocol.sql`
 - `supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql`
+- `supabase/migrations/20261010223000_courier_dispatch_atomic.sql`
 
 </details>
 
-<details><summary>documentation (129)</summary>
+<details><summary>documentation (130)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7015,6 +7026,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/testing/actualites-sponsored-scenario.md`
 - `docs/testing/browser-monitoring-consent.md`
 - `docs/testing/checkout-security-710.md`
+- `docs/testing/courier-dispatch-atomic.md`
 - `docs/testing/launch-10k-load-plan.md`
 - `docs/testing/supabase-rpc-guards.md`
 - `docs/tok-connect/README.md`

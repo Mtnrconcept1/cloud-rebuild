@@ -123,7 +123,9 @@ Deno.serve(async (req) => {
     const { data: pendingAttempts, error: fetchError } = await supabaseAdmin
       .from("dispatch_attempts")
       .select("id, dispatch_job_id, courier_id, offered_at, timeout_seconds")
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .order("offered_at", { ascending: true })
+      .limit(500);
 
     if (fetchError) throw fetchError;
 
@@ -133,32 +135,10 @@ Deno.serve(async (req) => {
       const expiresAt = new Date(offeredAt.getTime() + timeoutMs);
 
       if (now > expiresAt) {
-        // Expire the attempt
-        await supabaseAdmin
-          .from("dispatch_attempts")
-          .update({
-            status: "expired",
-            responded_at: now.toISOString(),
-          })
-          .eq("id", attempt.id);
-
-        // Update courier acceptance rate
-        const { data: courier } = await supabaseAdmin
-          .from("couriers")
-          .select("id, acceptance_rate, total_deliveries")
-          .eq("id", attempt.courier_id)
-          .maybeSingle();
-
-        if (courier) {
-          // Decrease acceptance rate slightly for timeout
-          const newRate = Math.max(0, (courier.acceptance_rate || 100) - 2);
-          await supabaseAdmin
-            .from("couriers")
-            .update({ acceptance_rate: newRate, updated_at: now.toISOString() })
-            .eq("id", courier.id);
-        }
-
-        expired++;
+        const { data: didExpire, error: expireError } = await supabaseAdmin
+          .rpc("expire_courier_dispatch_attempt", { p_attempt_id: attempt.id });
+        if (expireError) throw expireError;
+        if (didExpire) expired++;
       }
     }
 

@@ -9,6 +9,7 @@ on:
       - supabase/functions/courier-portal/index.ts
       - supabase/functions/dispatch-order/index.ts
       - supabase/functions/dispatch-timeout/index.ts
+      - supabase/functions/restaurant-order-status/index.ts
       - .github/workflows/courier-atomic-postgres.yml
   workflow_dispatch:
     inputs:
@@ -115,4 +116,3 @@ jobs:
             supabase stop --no-backup
           fi
           docker network rm tok-courier-atomic-ci || true
-
