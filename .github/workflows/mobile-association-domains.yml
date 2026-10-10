@@ -1,0 +1,47 @@
+name: Mobile Association Domains
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Inspect, apply the reviewed apex exception, or restore the previous global redirect'
+        type: choice
+        options: [inspect, apply, rollback]
+        default: inspect
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-association-domains
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Verify domain operation guards
+        run: node --test scripts/reconcile-mobile-apex-domain.test.mjs
+      - name: Reconcile the production apex domain
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          EXPECTED_PRODUCTION_SHA: ${{ github.sha }}
+          MOBILE_DOMAIN_ACTION: ${{ inputs.action }}
+        run: node scripts/reconcile-mobile-apex-domain.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mobile-domain-result
+          path: mobile-domain-result.json
+          if-no-files-found: error
+          retention-days: 30

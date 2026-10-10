@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `ecc20e03b8997280a2f6a41a143377e5f8cdf1aa36fac7b21560200a6e96e7bc`
+- Empreinte SHA-256 des sources indexées : `360262a52dbd47fb5698f45ae0f441bf2959b66776032f2daf987b2521ebe38b`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,30 +29,30 @@
 | cronJobs | 33 |
 | databaseContract | 228 |
 | databaseObjects | 2722 |
-| documents | 194 |
+| documents | 195 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3360 |
+| exportedSymbols | 3361 |
 | featureFlags | 99 |
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 522 |
-| modules | 1465 |
+| modules | 1468 |
 | pages | 127 |
-| pathLiterals | 617 |
+| pathLiterals | 621 |
 | publicAssets | 301 |
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15534 |
-| repositoryFiles | 2733 |
+| records | 15553 |
+| repositoryFiles | 2738 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 25 |
+| workflows | 26 |
 
 ## État distant observé
 
@@ -942,13 +942,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | / | 235 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 4 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
-| /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:68](../../src/test/application-search-index.test.ts#L68) |
+| /.well-known/apple-app-site-association | 6 | [scripts/reconcile-mobile-apex-domain.mjs:8](../../scripts/reconcile-mobile-apex-domain.mjs#L8) |
 | /.well-known/apple-app-site-association-extra | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
 | /.well-known/assetlinks.json | 3 | [scripts/mobile-verify.mjs:262](../../scripts/mobile-verify.mjs#L262) |
 | /.well-known/oauth-protected-resource | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
 | /18270815569115548? | 1 | [src/test/marketing-meta-publishing.test.ts:162](../../src/test/marketing-meta-publishing.test.ts#L162) |
 | /64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png | 1 | [src/components/home/HeroSection.tsx:44](../../src/components/home/HeroSection.tsx#L44) |
 | /:path( | 3 | [src/test/mobile-association-hosting.test.ts:8](../../src/test/mobile-association-hosting.test.ts#L8) |
+| /:path((?!\.well-known/(?:apple-app-site-association\|assetlinks\.json)$).*) | 2 | [scripts/reconcile-mobile-apex-domain.mjs:47](../../scripts/reconcile-mobile-apex-domain.mjs#L47) |
 | /:path* | 1 | [src/test/marketing-subdomain-integration.test.ts:57](../../src/test/marketing-subdomain-integration.test.ts#L57) |
 | /:surface( | 2 | [src/test/vercel-rewrites.test.ts:132](../../src/test/vercel-rewrites.test.ts#L132) |
 | /:surface(admin\|marketing\|dashboard\|courier\|commercial\|profil\|memoire-tok\|notifications\|commandes\|commande\|reservations\|mon-espace\|compte\|espace-client\|mes-avis\|points-cadeau\|panier\|auth\|oauth\|espaces\|r) | 2 | [src/test/vercel-rewrites.test.ts:107](../../src/test/vercel-rewrites.test.ts#L107) |
@@ -1156,6 +1157,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /data/thefork-geneva-commercial-prospects.json | 1 | [src/data/theForkCommercialProspects.ts:7](../../src/data/theForkCommercialProspects.ts#L7) |
 | /database/query | 1 | [src/test/production-preflight-hardening.test.ts:204](../../src/test/production-preflight-hardening.test.ts#L204) |
 | /demo-restaurant.jpg | 1 | [src/test/commercial-demo-client-data-isolation.test.ts:19](../../src/test/commercial-demo-client-data-isolation.test.ts#L19) |
+| /domains/thetok.ch | 1 | [scripts/reconcile-mobile-apex-domain.test.mjs:23](../../scripts/reconcile-mobile-apex-domain.test.mjs#L23) |
 | /enrich-directory-cuisines | 1 | [src/test/directory-cuisine-enrichment.test.ts:40](../../src/test/directory-cuisine-enrichment.test.ts#L40) |
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
 | /enrich-directory-images | 2 | [src/test/directory-image-discovery-worker.test.ts:44](../../src/test/directory-image-discovery-worker.test.ts#L44) |
@@ -1535,6 +1537,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /v1/reviewSubmissionItems | 2 | [scripts/app-store-availability-submit-v5.mjs:203](../../scripts/app-store-availability-submit-v5.mjs#L203) |
 | /v1/reviewSubmissions | 2 | [scripts/app-store-availability-submit-v5.mjs:180](../../scripts/app-store-availability-submit-v5.mjs#L180) |
 | /v1/territories?limit=200 | 1 | [scripts/app-store-availability-submit-v5.mjs:91](../../scripts/app-store-availability-submit-v5.mjs#L91) |
+| /v13/deployments/ | 2 | [scripts/reconcile-mobile-apex-domain.test.mjs:31](../../scripts/reconcile-mobile-apex-domain.test.mjs#L31) |
 | /v2/appAvailabilities | 2 | [scripts/app-store-availability-submit-v5.mjs:120](../../scripts/app-store-availability-submit-v5.mjs#L120) |
 | /v3/BatchAvailabilityLookup/ | 2 | [src/test/google-actions-center-readiness.test.ts:47](../../src/test/google-actions-center-readiness.test.ts#L47) |
 | /v3/CreateBooking/ | 3 | [src/test/application-search-index.test.ts:79](../../src/test/application-search-index.test.ts#L79) |
@@ -1551,6 +1554,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /v3/feeds/services | 2 | [src/test/google-actions-center-readiness.test.ts:98](../../src/test/google-actions-center-readiness.test.ts#L98) |
 | /v3/feeds/services/ | 3 | [scripts/google-actions-center-export-feeds.mjs:16](../../scripts/google-actions-center-export-feeds.mjs#L16) |
 | /v3/feeds/services/?limit=25 | 1 | [src/test/google-actions-center-feed-exporter.test.ts:114](../../src/test/google-actions-center-feed-exporter.test.ts#L114) |
+| /v4/aliases/ | 1 | [scripts/reconcile-mobile-apex-domain.test.mjs:30](../../scripts/reconcile-mobile-apex-domain.test.mjs#L30) |
 | /ventes-flash | 17 | [scripts/prerender-seo.mjs:341](../../scripts/prerender-seo.mjs#L341) |
 | /webhooks/tok | 4 | [src/lib/tokConnect.ts:169](../../src/lib/tokConnect.ts#L169) |
 | /workers/image-ai-worker | 1 | [scripts/dependabot-policy.test.mjs:40](../../scripts/dependabot-policy.test.mjs#L40) |
@@ -5629,6 +5633,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | TOK Codex Incident Repair | prepare, publish, report, validate | [.github/workflows/incident-codex-repair.yml](../../.github/workflows/incident-codex-repair.yml) |
 | TOK Incident Monitor | report-workflow-failure, scan-runtime | [.github/workflows/incident-monitor.yml](../../.github/workflows/incident-monitor.yml) |
 | iOS Native Validation | native-build | [.github/workflows/ios-native-validation.yml](../../.github/workflows/ios-native-validation.yml) |
+| Mobile Association Domains | reconcile | [.github/workflows/mobile-association-domains.yml](../../.github/workflows/mobile-association-domains.yml) |
 | Prepare TOK App Icon | generate | [.github/workflows/prepare-logotok-app-icon.yml](../../.github/workflows/prepare-logotok-app-icon.yml) |
 | Print protocol PostgreSQL replay | replay | [.github/workflows/print-protocol-postgres.yml](../../.github/workflows/print-protocol-postgres.yml) |
 | Restaurant Image Truth Backfill | backfill | [.github/workflows/restaurant-image-truth-backfill.yml](../../.github/workflows/restaurant-image-truth-backfill.yml) |
@@ -5751,7 +5756,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Stripe | 212 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 657 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 57 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 59 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
@@ -5760,7 +5765,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 203 |
-| automation-script | 62 |
+| automation-script | 63 |
 | edge-function-source | 183 |
 | frontend-component | 247 |
 | frontend-hook | 22 |
@@ -5769,7 +5774,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 571 |
+| test | 573 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -5896,6 +5901,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Simulateur de paiement — démonstration commerciale TOK | 4 | [docs/runbooks/commercial-demo-payment-simulator.md:1](../../docs/runbooks/commercial-demo-payment-simulator.md#L1) |
 | Local Git Auto Sync | 4 | [docs/runbooks/local-git-auto-sync.md:1](../../docs/runbooks/local-git-auto-sync.md#L1) |
 | Hébergement des associations mobiles | 3 | [docs/runbooks/mobile-association-hosting.md:1](../../docs/runbooks/mobile-association-hosting.md#L1) |
+| Mobile association domain operation | 1 | [docs/runbooks/mobile-domain-operations.md:1](../../docs/runbooks/mobile-domain-operations.md#L1) |
 | Runbook release production securisee | 8 | [docs/runbooks/production-release-readiness.md:1](../../docs/runbooks/production-release-readiness.md#L1) |
 | Runbook Stripe et reconciliation financiere | 8 | [docs/runbooks/stripe-financial-ops.md:1](../../docs/runbooks/stripe-financial-ops.md#L1) |
 | Protection SEO et anti-scraping de TOK | 10 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
@@ -6245,7 +6251,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (69)</summary>
+<details><summary>automation-script (70)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -6297,6 +6303,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/prerender-seo.mjs`
 - `scripts/prerender-stoppin-restaurants-bounded.mjs`
 - `scripts/prerender-stoppin-restaurants.mjs`
+- `scripts/reconcile-mobile-apex-domain.mjs`
 - `scripts/release-readiness-core.mjs`
 - `scripts/release-readiness.mjs`
 - `scripts/resolve-live-stripe-publishable-key.mjs`
@@ -6319,7 +6326,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (25)</summary>
+<details><summary>ci-workflow (26)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/app-store-build3-trigger.yml`
@@ -6341,6 +6348,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/incident-codex-repair.yml`
 - `.github/workflows/incident-monitor.yml`
 - `.github/workflows/ios-native-validation.yml`
+- `.github/workflows/mobile-association-domains.yml`
 - `.github/workflows/prepare-logotok-app-icon.yml`
 - `.github/workflows/print-protocol-postgres.yml`
 - `.github/workflows/restaurant-image-truth-backfill.yml`
@@ -6876,7 +6884,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (127)</summary>
+<details><summary>documentation (128)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -6937,6 +6945,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/runbooks/commercial-demo-payment-simulator.md`
 - `docs/runbooks/local-git-auto-sync.md`
 - `docs/runbooks/mobile-association-hosting.md`
+- `docs/runbooks/mobile-domain-operations.md`
 - `docs/runbooks/production-release-readiness.md`
 - `docs/runbooks/stripe-financial-ops.md`
 - `docs/security/SEO_BOT_PROTECTION_RUNBOOK.md`
@@ -8200,13 +8209,14 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (571)</summary>
+<details><summary>test (573)</summary>
 
 - `scripts/ci-change-plan.test.mjs`
 - `scripts/ci-critical-tests.test.mjs`
 - `scripts/ci-migration-version-guard.test.mjs`
 - `scripts/dependabot-policy.test.mjs`
 - `scripts/dependency-security.test.mjs`
+- `scripts/reconcile-mobile-apex-domain.test.mjs`
 - `scripts/stoppin-venue-seo.test.mjs`
 - `scripts/test-print-protocol-runner.test.mjs`
 - `src/test/accounting-ai-public-copy.test.ts`
@@ -8538,6 +8548,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/menu-item-images.test.ts`
 - `src/test/miamz-business-logic-guards.test.ts`
 - `src/test/mobile-association-hosting.test.ts`
+- `src/test/mobile-domain-operations.test.ts`
 - `src/test/mobile-logo-intro.test.tsx`
 - `src/test/mobile-modal-scroll-guards.test.ts`
 - `src/test/mobile-theme-toggle.test.tsx`

@@ -2,37 +2,37 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "ecc20e03b8997280a2f6a41a143377e5f8cdf1aa36fac7b21560200a6e96e7bc",
+ "sourceDigest": "360262a52dbd47fb5698f45ae0f441bf2959b66776032f2daf987b2521ebe38b",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2722,
-  "documents": 194,
+  "documents": 195,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3360,
+  "exportedSymbols": 3361,
   "featureFlags": 99,
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 522,
-  "modules": 1465,
+  "modules": 1468,
   "pages": 127,
-  "pathLiterals": 617,
+  "pathLiterals": 621,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15534,
-  "repositoryFiles": 2733,
+  "records": 15553,
+  "repositoryFiles": 2738,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 25
+  "workflows": 26
  },
  "catalogs": {
   "frontendRoutes": [
@@ -13052,6 +13052,14 @@
     "value": "/.well-known/apple-app-site-association",
     "sources": [
      {
+      "path": "scripts/reconcile-mobile-apex-domain.mjs",
+      "line": 8
+     },
+     {
+      "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+      "line": 9
+     },
+     {
       "path": "src/test/application-search-index.test.ts",
       "line": 68
      },
@@ -13136,6 +13144,19 @@
      {
       "path": "src/test/mobile-association-hosting.test.ts",
       "line": 30
+     }
+    ]
+   },
+   {
+    "value": "/:path((?!\\.well-known/(?:apple-app-site-association|assetlinks\\.json)$).*)",
+    "sources": [
+     {
+      "path": "scripts/reconcile-mobile-apex-domain.mjs",
+      "line": 47
+     },
+     {
+      "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+      "line": 8
      }
     ]
    },
@@ -19171,6 +19192,15 @@
      {
       "path": "src/test/commercial-demo-client-data-isolation.test.ts",
       "line": 19
+     }
+    ]
+   },
+   {
+    "value": "/domains/thetok.ch",
+    "sources": [
+     {
+      "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+      "line": 23
      }
     ]
    },
@@ -25870,6 +25900,19 @@
     ]
    },
    {
+    "value": "/v13/deployments/",
+    "sources": [
+     {
+      "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+      "line": 31
+     },
+     {
+      "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+      "line": 106
+     }
+    ]
+   },
+   {
     "value": "/v2/appAvailabilities",
     "sources": [
      {
@@ -26086,6 +26129,15 @@
      {
       "path": "src/test/google-actions-center-feed-exporter.test.ts",
       "line": 114
+     }
+    ]
+   },
+   {
+    "value": "/v4/aliases/",
+    "sources": [
+     {
+      "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+      "line": 30
      }
     ]
    },
@@ -29249,6 +29301,8 @@
      "scripts/frontend-10k-readiness.mjs",
      "scripts/launch-10k-load-check.mjs",
      "scripts/prerender-seo.mjs",
+     "scripts/reconcile-mobile-apex-domain.mjs",
+     "scripts/reconcile-mobile-apex-domain.test.mjs",
      "scripts/resolve-live-stripe-publishable-key.mjs",
      "scripts/stoppin-venue-seo.test.mjs",
      "scripts/write-production-supabase-keys-env.mjs",
@@ -66650,6 +66704,13 @@
     ]
    },
    {
+    "name": "Mobile Association Domains",
+    "path": ".github/workflows/mobile-association-domains.yml",
+    "jobs": [
+     "reconcile"
+    ]
+   },
+   {
     "name": "Prepare TOK App Icon",
     "path": ".github/workflows/prepare-logotok-app-icon.yml",
     "jobs": [
@@ -71875,6 +71936,17 @@
       "level": 2,
       "title": "Ordre de livraison",
       "line": 11
+     }
+    ]
+   },
+   {
+    "path": "docs/runbooks/mobile-domain-operations.md",
+    "title": "Mobile association domain operation",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Mobile association domain operation",
+      "line": 1
      }
     ]
    },
@@ -79288,6 +79360,34 @@
      "supabase"
     ],
     "lineCount": 389
+   },
+   {
+    "path": "scripts/reconcile-mobile-apex-domain.mjs",
+    "exports": [
+     {
+      "name": "reconcileMobileApex",
+      "line": 10,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [
+     "EXPECTED_PRODUCTION_SHA",
+     "MOBILE_DOMAIN_ACTION",
+     "VERCEL_TOKEN"
+    ],
+    "integrations": [
+     "vercel"
+    ],
+    "lineCount": 86
+   },
+   {
+    "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "vercel"
+    ],
+    "lineCount": 119
    },
    {
     "path": "scripts/release-readiness-core.mjs",
@@ -101498,6 +101598,13 @@
     "lineCount": 41
    },
    {
+    "path": "src/test/mobile-domain-operations.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 9
+   },
+   {
     "path": "src/test/mobile-logo-intro.test.tsx",
     "exports": [],
     "environmentNames": [],
@@ -108877,6 +108984,11 @@
     "extension": ".yml"
    },
    {
+    "path": ".github/workflows/mobile-association-domains.yml",
+    "category": "ci-workflow",
+    "extension": ".yml"
+   },
+   {
     "path": ".github/workflows/prepare-logotok-app-icon.yml",
     "category": "ci-workflow",
     "extension": ".yml"
@@ -109633,6 +109745,11 @@
    },
    {
     "path": "docs/runbooks/mobile-association-hosting.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/runbooks/mobile-domain-operations.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -112109,6 +112226,16 @@
    {
     "path": "scripts/prerender-stoppin-restaurants.mjs",
     "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/reconcile-mobile-apex-domain.mjs",
+    "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+    "category": "test",
     "extension": ".mjs"
    },
    {
@@ -117028,6 +117155,11 @@
    },
    {
     "path": "src/test/mobile-association-hosting.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/mobile-domain-operations.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -123288,6 +123420,36 @@
     "supabase"
    ],
    "detailRef": "3ee170402eab"
+  },
+  {
+   "id": "code-module:f65ccd50dfa6",
+   "type": "code-module",
+   "title": "scripts/reconcile-mobile-apex-domain.mjs",
+   "description": "Module de 86 lignes; exports: reconcileMobileApex.",
+   "path": "scripts/reconcile-mobile-apex-domain.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "EXPECTED_PRODUCTION_SHA",
+    "MOBILE_DOMAIN_ACTION",
+    "VERCEL_TOKEN",
+    "reconcileMobileApex",
+    "vercel"
+   ],
+   "detailRef": "195465b51ee1"
+  },
+  {
+   "id": "code-module:f01dec3e0365",
+   "type": "code-module",
+   "title": "scripts/reconcile-mobile-apex-domain.test.mjs",
+   "description": "Module de 119 lignes; exports: aucun export statique.",
+   "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "vercel"
+   ],
+   "detailRef": "34709375292c"
   },
   {
    "id": "code-module:1e47de9face3",
@@ -138310,6 +138472,17 @@
     "vercel"
    ],
    "detailRef": "00b6001daf05"
+  },
+  {
+   "id": "code-module:21b5f746a022",
+   "type": "code-module",
+   "title": "src/test/mobile-domain-operations.test.ts",
+   "description": "Module de 9 lignes; exports: aucun export statique.",
+   "path": "src/test/mobile-domain-operations.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "a8287d0ee7be"
   },
   {
    "id": "code-module:f243132e30d1",
@@ -203994,6 +204167,20 @@
    "detailRef": "c2e5dc149d42"
   },
   {
+   "id": "document-section:b34996e4f84d",
+   "type": "document-section",
+   "title": "Mobile association domain operation",
+   "description": "Section de Mobile association domain operation.",
+   "path": "docs/runbooks/mobile-domain-operations.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Mobile association domain operation",
+    "h1"
+   ],
+   "detailRef": "c807cbdb7edc"
+  },
+  {
    "id": "document-section:4791a37ef786",
    "type": "document-section",
    "title": "Mobile release readiness",
@@ -220870,6 +221057,19 @@
    "detailRef": "9d72129af6d2"
   },
   {
+   "id": "document:b34996e4f84d",
+   "type": "document",
+   "title": "Mobile association domain operation",
+   "description": "Document Markdown avec 1 section(s).",
+   "path": "docs/runbooks/mobile-domain-operations.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Mobile association domain operation"
+   ],
+   "detailRef": "c971efa4c152"
+  },
+  {
    "id": "document:4791a37ef786",
    "type": "document",
    "title": "Mobile release readiness",
@@ -227648,6 +227848,19 @@
    "detailRef": "fda713d835ba"
   },
   {
+   "id": "environment-variable:a985368db3bf",
+   "type": "environment-variable",
+   "title": "EXPECTED_PRODUCTION_SHA",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/reconcile-mobile-apex-domain.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/reconcile-mobile-apex-domain.mjs"
+   ],
+   "detailRef": "b9c2005fa67d"
+  },
+  {
    "id": "environment-variable:53052352b3bd",
    "type": "environment-variable",
    "title": "FIRECRAWL_API_KEY",
@@ -227919,6 +228132,19 @@
     "supabase/functions/_shared/meta-marketing-health.ts"
    ],
    "detailRef": "a766a5ff83ff"
+  },
+  {
+   "id": "environment-variable:f599a3008899",
+   "type": "environment-variable",
+   "title": "MOBILE_DOMAIN_ACTION",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/reconcile-mobile-apex-domain.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/reconcile-mobile-apex-domain.mjs"
+   ],
+   "detailRef": "aaafbd2e5d0b"
   },
   {
    "id": "environment-variable:4a68b846e33f",
@@ -229226,6 +229452,19 @@
     "scripts/prerender-seo.mjs"
    ],
    "detailRef": "11a300ba7f1f"
+  },
+  {
+   "id": "environment-variable:505fa346cba4",
+   "type": "environment-variable",
+   "title": "VERCEL_TOKEN",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/reconcile-mobile-apex-domain.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/reconcile-mobile-apex-domain.mjs"
+   ],
+   "detailRef": "833b634bdfab"
   },
   {
    "id": "environment-variable:466eba30201f",
@@ -270310,6 +270549,20 @@
    "detailRef": "9232b8d517e9"
   },
   {
+   "id": "exported-symbol:092436803bd5",
+   "type": "exported-symbol",
+   "title": "reconcileMobileApex",
+   "description": "Export function de scripts/reconcile-mobile-apex-domain.mjs.",
+   "path": "scripts/reconcile-mobile-apex-domain.mjs",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "function",
+    "vercel"
+   ],
+   "detailRef": "5b5c70f20dfc"
+  },
+  {
    "id": "exported-symbol:0657350dc742",
    "type": "exported-symbol",
    "title": "reconcileSeoInventory",
@@ -278787,6 +279040,20 @@
    "detailRef": "c6793f33c301"
   },
   {
+   "id": "file:d707212cc77b",
+   "type": "file",
+   "title": ".github/workflows/mobile-association-domains.yml",
+   "description": "Fichier du dépôt classé ci-workflow.",
+   "path": ".github/workflows/mobile-association-domains.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".yml",
+    "ci-workflow"
+   ],
+   "detailRef": "b80bf5231a22"
+  },
+  {
    "id": "file:d70f5e4bcb12",
    "type": "file",
    "title": ".github/workflows/prepare-logotok-app-icon.yml",
@@ -280913,6 +281180,20 @@
     "documentation"
    ],
    "detailRef": "a0b785cea847"
+  },
+  {
+   "id": "file:c0586f96f01d",
+   "type": "file",
+   "title": "docs/runbooks/mobile-domain-operations.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/runbooks/mobile-domain-operations.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "0736dc1be0e0"
   },
   {
    "id": "file:e111ab9e8186",
@@ -287843,6 +288124,34 @@
     "automation-script"
    ],
    "detailRef": "cdc456213406"
+  },
+  {
+   "id": "file:28527c68e4d8",
+   "type": "file",
+   "title": "scripts/reconcile-mobile-apex-domain.mjs",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/reconcile-mobile-apex-domain.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "automation-script"
+   ],
+   "detailRef": "dde384169a9c"
+  },
+  {
+   "id": "file:fd435b39eda6",
+   "type": "file",
+   "title": "scripts/reconcile-mobile-apex-domain.test.mjs",
+   "description": "Fichier du dépôt classé test.",
+   "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "test"
+   ],
+   "detailRef": "ce2befff4354"
   },
   {
    "id": "file:e8aced01a188",
@@ -301619,6 +301928,20 @@
     "test"
    ],
    "detailRef": "8735859d5d15"
+  },
+  {
+   "id": "file:ff2a91dddfcc",
+   "type": "file",
+   "title": "src/test/mobile-domain-operations.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/mobile-domain-operations.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "ae9b8d0d9ecd"
   },
   {
    "id": "file:d0510985513f",
@@ -319360,7 +319683,7 @@
    "id": "integration:077d0104684d",
    "type": "integration",
    "title": "Vercel",
-   "description": "Intégration externe détectée dans 57 module(s).",
+   "description": "Intégration externe détectée dans 59 module(s).",
    "path": "middleware.js",
    "line": null,
    "surface": null,
@@ -319374,6 +319697,8 @@
     "scripts/frontend-10k-readiness.mjs",
     "scripts/launch-10k-load-check.mjs",
     "scripts/prerender-seo.mjs",
+    "scripts/reconcile-mobile-apex-domain.mjs",
+    "scripts/reconcile-mobile-apex-domain.test.mjs",
     "scripts/resolve-live-stripe-publishable-key.mjs",
     "scripts/stoppin-venue-seo.test.mjs",
     "scripts/write-production-supabase-keys-env.mjs",
@@ -319424,7 +319749,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "vercel"
    ],
-   "detailRef": "a8643e62da27"
+   "detailRef": "e793968a234d"
   },
   {
    "id": "marketing-operation:dae86fc78e92",
@@ -330072,19 +330397,21 @@
    "detailRef": "85882b5af230"
   },
   {
-   "id": "path-literal:17486f7e175b",
+   "id": "path-literal:26eaea513681",
    "type": "path-literal",
    "title": "/.well-known/apple-app-site-association",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/application-search-index.test.ts",
-   "line": 68,
+   "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/reconcile-mobile-apex-domain.mjs",
+   "line": 8,
    "surface": null,
    "tags": [
+    "scripts/reconcile-mobile-apex-domain.mjs",
+    "scripts/reconcile-mobile-apex-domain.test.mjs",
     "src/test/application-search-index.test.ts",
     "src/test/mobile-association-hosting.test.ts",
     "src/test/production-preflight-hardening.test.ts"
    ],
-   "detailRef": "cb765e5f6893"
+   "detailRef": "fcd9b97e5611"
   },
   {
    "id": "path-literal:552e0fdf1ace",
@@ -330139,6 +330466,20 @@
     "src/components/home/HeroSection.tsx"
    ],
    "detailRef": "e11341c49267"
+  },
+  {
+   "id": "path-literal:208d1a26f07c",
+   "type": "path-literal",
+   "title": "/:path((?!\\.well-known/(?:apple-app-site-association|assetlinks\\.json)$).*)",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/reconcile-mobile-apex-domain.mjs",
+   "line": 47,
+   "surface": null,
+   "tags": [
+    "scripts/reconcile-mobile-apex-domain.mjs",
+    "scripts/reconcile-mobile-apex-domain.test.mjs"
+   ],
+   "detailRef": "19a26dbe9f9b"
   },
   {
    "id": "path-literal:c08058bd6bd6",
@@ -333693,6 +334034,19 @@
     "src/test/commercial-demo-client-data-isolation.test.ts"
    ],
    "detailRef": "72467c0cf980"
+  },
+  {
+   "id": "path-literal:17e18aa319c1",
+   "type": "path-literal",
+   "title": "/domains/thetok.ch",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "scripts/reconcile-mobile-apex-domain.test.mjs"
+   ],
+   "detailRef": "30e25ed41655"
   },
   {
    "id": "path-literal:2c32550db633",
@@ -339176,6 +339530,19 @@
    "detailRef": "986179585e55"
   },
   {
+   "id": "path-literal:8a8d9d8a3d01",
+   "type": "path-literal",
+   "title": "/v13/deployments/",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "scripts/reconcile-mobile-apex-domain.test.mjs"
+   ],
+   "detailRef": "61bb4a9f295a"
+  },
+  {
    "id": "path-literal:f2ced209377b",
    "type": "path-literal",
    "title": "/v2/appAvailabilities",
@@ -339397,6 +339764,19 @@
     "src/test/google-actions-center-readiness.test.ts"
    ],
    "detailRef": "7f078d5e451e"
+  },
+  {
+   "id": "path-literal:a5d7f5489941",
+   "type": "path-literal",
+   "title": "/v4/aliases/",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/reconcile-mobile-apex-domain.test.mjs",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "scripts/reconcile-mobile-apex-domain.test.mjs"
+   ],
+   "detailRef": "b583761e4d66"
   },
   {
    "id": "path-literal:c2bbe3272368",
@@ -347923,6 +348303,19 @@
     "configure"
    ],
    "detailRef": "6406d0a940be"
+  },
+  {
+   "id": "workflow:9286766590c9",
+   "type": "workflow",
+   "title": "Mobile Association Domains",
+   "description": "Workflow GitHub Actions; jobs: reconcile.",
+   "path": ".github/workflows/mobile-association-domains.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "reconcile"
+   ],
+   "detailRef": "0e444d681a92"
   },
   {
    "id": "workflow:683fcaa4093a",
