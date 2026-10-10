@@ -30,13 +30,17 @@ SELECT set_config('request.jwt.claims','{"sub":"74500000-0000-4000-8000-00000000
 UPDATE public.signup_applications SET status='approved',reviewed_by='74500000-0000-4000-8000-000000000006',reviewed_at=now()
 WHERE id='74560000-0000-4000-8000-000000000001';
 UPDATE public.restaurants SET is_active=true,status='active' WHERE id='74510000-0000-4000-8000-000000000001';
+UPDATE public.restaurants SET opening_hours='{"service_settings":{"lunch":{"start_time":"00:00","end_time":"15:59"},"dinner":{"start_time":"16:00","end_time":"23:59"}}}'::jsonb,
+  order_slot_capacity_per_15m=30
+WHERE id='74510000-0000-4000-8000-000000000001';
 INSERT INTO public.couriers(id,user_id,first_name,last_name,status,is_online)
 SELECT ('74530000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
  ('74500000-0000-4000-8000-'||lpad((n+2)::text,12,'0'))::uuid,'Synthetic','Courier '||n,'approved',true
 FROM generate_series(1,3)n;
-INSERT INTO public.orders(id,user_id,restaurant_id,delivery_address,total_amount,status)
+INSERT INTO public.orders(id,user_id,restaurant_id,delivery_address,total_amount,status,scheduled_at)
 SELECT ('74520000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
- '74500000-0000-4000-8000-000000000002','74510000-0000-4000-8000-000000000001','Synthetic delivery',10,'preparing'
+ '74500000-0000-4000-8000-000000000002','74510000-0000-4000-8000-000000000001','Synthetic delivery',10,'preparing',
+ date_trunc('day',now())+interval '12 hours'
 FROM generate_series(1,12)n;
 INSERT INTO public.dispatch_jobs(id,order_id,status)
 VALUES ('74540000-0000-4000-8000-000000000001','74520000-0000-4000-8000-000000000001','searching');
