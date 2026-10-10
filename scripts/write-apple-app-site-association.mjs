@@ -3,18 +3,19 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-const DEFAULT_BUNDLE_ID = "com.tok.app";
+// iOS App Store identity; Android intentionally keeps com.tok.app.
+export const IOS_BUNDLE_ID = "ch.thetok.app";
 const DEFAULT_OUTPUT = path.join("public", ".well-known", "apple-app-site-association");
 const APPLE_TEAM_ID_PATTERN = /^[A-Z0-9]{10}$/;
 
 export function buildAppleAppSiteAssociation(options = {}) {
   const teamId = String(options.teamId || "").trim().toUpperCase();
-  const bundleId = String(options.bundleId || DEFAULT_BUNDLE_ID).trim();
+  const bundleId = String(options.bundleId || IOS_BUNDLE_ID).trim();
 
   if (!APPLE_TEAM_ID_PATTERN.test(teamId)) {
     throw new Error("APPLE_TEAM_ID must contain exactly 10 uppercase letters or digits.");
   }
-  if (bundleId !== DEFAULT_BUNDLE_ID) {
+  if (bundleId !== IOS_BUNDLE_ID) {
     throw new Error(`Refusing to generate an association for unexpected bundle ID: ${bundleId}`);
   }
 

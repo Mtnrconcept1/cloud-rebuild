@@ -42,7 +42,7 @@ describe("production preflight hardening", () => {
         apps: [],
         details: [
           {
-            appIDs: ["TEAM123456.com.tok.app"],
+            appIDs: ["TEAM123456.ch.thetok.app"],
             components: [{ "/": "/*", comment: "TOK Universal Links" }],
           },
         ],
@@ -57,6 +57,14 @@ describe("production preflight hardening", () => {
       teamId: "TEAM123456",
       bundleId: "com.example.app",
     })).toThrow("unexpected bundle ID");
+    expect(() => buildAppleAppSiteAssociation({
+      teamId: "TEAM123456",
+      bundleId: "com.tok.app",
+    })).toThrow("unexpected bundle ID");
+    expect(buildAppleAppSiteAssociation({
+      teamId: "73HG6QD4AJ",
+      bundleId: "ch.thetok.app",
+    }).applinks.details[0].appIDs).toEqual(["73HG6QD4AJ.ch.thetok.app"]);
   });
 
   it("keeps the Apple association output inside the repository", () => {

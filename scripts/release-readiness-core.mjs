@@ -3,6 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { parse as parseDotenv } from "dotenv";
+import { IOS_BUNDLE_ID } from "./write-apple-app-site-association.mjs";
 
 const DEFAULT_ENV_FILES = [".env.production", ".env.production.local"];
 const REQUIRED_EDGE_SECRETS = [
@@ -146,15 +147,15 @@ function inspectMobileAssociations(root, env, report) {
     const appleTeamId = clean(env.APPLE_TEAM_ID || env.IOS_APPLE_TEAM_ID);
 
     if (appIds.length === 0 || appIds.some(isPlaceholder)) {
-      report.required("apple-app-site-association must include a real Apple Team ID appID for com.tok.app.");
+      report.required(`apple-app-site-association must include a real Apple Team ID appID for ${IOS_BUNDLE_ID}.`);
     }
 
     if (!/^[A-Z0-9]{10}$/.test(appleTeamId)) {
       report.required("Missing or invalid APPLE_TEAM_ID; expected exactly 10 uppercase letters or digits.");
     } else {
-      const expectedAppId = `${appleTeamId}.com.tok.app`;
+      const expectedAppId = `${appleTeamId}.${IOS_BUNDLE_ID}`;
       if (appIds.length !== 1 || appIds[0] !== expectedAppId) {
-        report.required("apple-app-site-association must contain exactly APPLE_TEAM_ID.com.tok.app.");
+        report.required(`apple-app-site-association must contain exactly APPLE_TEAM_ID.${IOS_BUNDLE_ID}.`);
       }
     }
   }
