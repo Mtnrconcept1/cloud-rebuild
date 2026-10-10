@@ -220,7 +220,7 @@ export function SponsoredRestaurantTemplateCard({
           >
             <div className="flex flex-wrap items-center gap-2.5">
               <span
-                className={cn("inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-center text-[10px] uppercase leading-4 tracking-[0.2em] text-white shadow-[0_14px_28px_rgba(249,115,22,0.28)] [overflow-wrap:anywhere]", getTypographyClass(normalized.text.badge))}
+                className={cn("inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-center text-[10px] uppercase leading-4 tracking-[0.2em] text-primary-foreground shadow-[0_14px_28px_rgba(249,115,22,0.28)] [overflow-wrap:anywhere]", getTypographyClass(normalized.text.badge))}
                 style={getTextInlineStyle(normalized.text.badge)}
               >
                 <Zap className="h-3.5 w-3.5 fill-current" />
@@ -421,7 +421,7 @@ export function SponsoredRestaurantTemplateCard({
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="mb-3 flex min-w-0 flex-wrap items-start gap-2" data-sponsored-card-badges>
-          <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-full border border-orange-200 bg-primary px-3 py-1.5 text-center text-[9px] font-black uppercase leading-4 tracking-[0.12em] text-white shadow-sm [overflow-wrap:anywhere]">
+          <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-full border border-orange-200 bg-primary px-3 py-1.5 text-center text-[9px] font-black uppercase leading-4 tracking-[0.12em] text-primary-foreground shadow-sm [overflow-wrap:anywhere]">
             <Megaphone className="h-3 w-3 shrink-0" />
             <span className="min-w-0 break-words [overflow-wrap:anywhere]">{displayBadge}</span>
           </span>
@@ -445,7 +445,7 @@ export function SponsoredRestaurantTemplateCard({
             </div>
           </div>
           <div className="shrink-0 text-right">
-            <div className="inline-flex min-w-[2.7rem] items-center justify-center rounded-xl bg-primary px-2.5 py-1.5 text-sm font-bold text-white">
+            <div className="inline-flex min-w-[2.7rem] items-center justify-center rounded-xl bg-primary px-2.5 py-1.5 text-sm font-bold text-primary-foreground">
               {displayRating || "—"}{displayRating ? <span className="sr-only"> sur 10</span> : null}
             </div>
             <p className="mt-1 text-[10px] text-muted-foreground">{safeReviewCount > 0 ? `${safeReviewCount} avis` : "Pas encore d’avis"}</p>
