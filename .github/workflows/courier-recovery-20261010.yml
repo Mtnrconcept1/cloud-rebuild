@@ -56,6 +56,7 @@ jobs:
           fi
           python "$GITHUB_WORKSPACE/.github/courier-recovery-20261010.py" apply
           git rm .github/workflows/courier-recovery-20261010.yml .github/courier-recovery-20261010.py
+          git add src/test/courier-atomic-edge.test.ts
           node --check scripts/test-courier-atomic-postgres.mjs
           corepack enable
           corepack prepare pnpm@10.28.1 --activate
