@@ -27,9 +27,9 @@ Le workflow `Checkout security PostgreSQL replay` se déclenche pour la PR de ce
 1. Extraire ce main dans un worktree temporaire et consigner les deux SHA.
 2. Utiliser uniquement un projet local temporaire `tok-security-710-ci`, PostgreSQL 17, avec Supabase CLI 2.102.0, dans un réseau Docker dédié dont le pare-feu refuse les nouvelles connexions sortantes (les éventuels anciens cron/pg_net ne peuvent pas joindre de fournisseur). Les réponses à la connexion PostgreSQL de l'hôte restent autorisées.
 3. Exécuter `supabase db start`, puis `supabase db reset --local --no-seed` et comparer exactement les versions appliquées aux fichiers de migration du main.
-4. Créer uniquement les fixtures synthétiques `710…`, appliquer la nouvelle migration, la réappliquer et comparer définition de fonction, historique et toutes les policies de démonstration avant/après.
+4. Créer uniquement les fixtures synthétiques `710…`, provoquer une dérive bénigne du RPC et vérifier le refus intégral (fonction, policies, grants, historique inchangés), restaurer le RPC initial, appliquer la nouvelle migration, la réappliquer et comparer définition de fonction, historique et toutes les policies de démonstration avant/après.
 5. Exécuter les assertions sous les vrais rôles `anon`, `authenticated`, propriétaire, administrateur, démonstration et `service_role`.
-6. Exécuter six sessions simultanées pour une même commande et deux sessions en concurrence pour la dernière utilisation d'une promotion.
+6. Exécuter six sessions simultanées pour une même commande et deux sessions en concurrence pour la dernière utilisation d'une promotion. Une session coordinatrice verrouille la ligne ; le runner exige d'observer toutes les sessions concurrentes en attente de verrou dans `pg_stat_activity` avant de libérer la ligne.
 7. Publier les journaux comme artefact CI et arrêter uniquement la stack jetable du runner.
 
 La CLI utilise explicitement `--local`, aucune clé Supabase distante ni connexion Stripe n'est requise. Le mot de passe `postgres` du workflow appartient exclusivement à la base jetable du runner.

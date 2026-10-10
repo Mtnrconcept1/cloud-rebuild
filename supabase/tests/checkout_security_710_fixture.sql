@@ -29,14 +29,19 @@ VALUES ('public-restaurants-all-sources','Security fixture public sources',true)
 ON CONFLICT (name) DO UPDATE SET is_active=true;
 
 INSERT INTO public.restaurants(id,owner_id,name,address,city,is_active,status,is_demo,
- image_url,is_directory_listing,directory_public_name_verified,directory_image_verified)
+ image_url,is_directory_listing,directory_public_name_verified,directory_image_verified,
+ delivery_available,supports_dinein,supports_reservation,supports_scheduled,supports_pickup,
+ supports_scheduled_orders,supports_group_orders,is_featured,directory_source,directory_source_reference)
 SELECT ('71010000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
        CASE WHEN n=8 THEN '71000000-0000-4000-8000-000000000006'::uuid
             ELSE '71000000-0000-4000-8000-000000000001'::uuid END,
        'Security fixture ' || n,'1 Rue Test, 1201 Geneve','Geneve',n<>2,
        CASE WHEN n=4 THEN 'pending' ELSE 'active' END,false,
        CASE WHEN n=3 THEN NULL ELSE 'https://example.test/fixture.jpg' END,
-       n IN (5,6,7),n<>5,n<>6
+       n IN (5,6,7),n<>5,n<>6,
+       false,false,false,false,false,false,false,false,
+       CASE WHEN n IN (5,6,7) THEN 'security710-fixture' ELSE NULL END,
+       CASE WHEN n IN (5,6,7) THEN n::text ELSE NULL END
 FROM generate_series(1,8) n;
 
 INSERT INTO public.menu_items(id,restaurant_id,name,price,is_available)
