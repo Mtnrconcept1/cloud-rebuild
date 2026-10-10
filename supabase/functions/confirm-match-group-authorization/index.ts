@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type Stripe from "npm:stripe@18.5.0";
 
+import { authenticateRequest, assertClientLaunchOpen, HttpError } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
 import { isClientCheckoutRestaurantEligible } from "../_shared/order-pricing.ts";
@@ -58,6 +59,13 @@ Deno.serve(async (req) => {
   const { data: userData, error: userError } = await userClient.auth.getUser();
   const userId = userData?.user?.id;
   if (userError || !userId) return json({ error: "Unauthorized" }, 401, corsHeaders);
+
+  try {
+    const actor = await authenticateRequest(req);
+    await assertClientLaunchOpen(actor);
+  } catch (error) {
+    return json({ error: error instanceof Error ? error.message : "Accès indisponible" }, error instanceof HttpError ? error.status : 503, corsHeaders);
+  }
 
   let body: { member_order_id?: string } = {};
   try {

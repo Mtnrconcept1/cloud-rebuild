@@ -300,7 +300,7 @@ export async function authenticateRequest(
       .filter(Boolean),
   )];
 
-  return {
+  const actor: RequestActor = {
     adminClient,
     userClient,
     userId,
@@ -310,6 +310,8 @@ export async function authenticateRequest(
     accountType: normalizeRole(userData.user.app_metadata?.account_type) || null,
     authMode: "user_jwt",
   };
+  await assertLaunchRequestAllowed(actor, req);
+  return actor;
 }
 
 /**
@@ -478,4 +480,32 @@ export async function requireRestaurantAccess(
   }
 
   return restaurant;
+}
+
+/** Server-side launch check. A timer or browser flag cannot authorize requests. */
+export async function assertClientLaunchOpen(actor: RequestActor) {
+  if (actor.isServiceRole) return;
+  if (actor.isAdmin) return;
+  const { data, error } = await actor.adminClient.rpc("get_launch_gate_state");
+  if (error || !data || typeof data.enabled !== "boolean") {
+    throw new HttpError(503, "TOK_LAUNCH_STATE_UNAVAILABLE: vérification de l’ouverture indisponible.");
+  }
+  if (data.enabled) throw new HttpError(403, "TOK_LAUNCH_CLOSED: l’équipe TOK n’a pas encore ouvert l’application.");
+}
+
+export async function assertLaunchRequestAllowed(actor: RequestActor, req: Request) {
+  if (actor.isServiceRole) return;
+  if (actor.isAdmin) return;
+  const path = new URL(req.url).pathname.replace(/^\/functions\/v1\//, "/");
+  // Only the routed function name, never an appended path, query, header or body.
+  const endpoint = path.split("/").filter(Boolean)[0] || "";
+  if (["submit-signup-application", "delete-account", "contact-support"].includes(endpoint)) return;
+  if (actor.roles.includes("restaurateur") && [
+    "create-checkout", "payment-attempt-status", "cancel-payment-attempt",
+    "manage-restaurant-subscription", "ai-image-enhance", "analyze-restaurant-image",
+    "menu-image-import", "restaurant-media-governance",
+  ].includes(endpoint)) return;
+  // These roles require approval; their existing scope/ownership checks remain mandatory.
+  if (actor.roles.includes("courier") || actor.roles.includes("commercial")) return;
+  await assertClientLaunchOpen(actor);
 }

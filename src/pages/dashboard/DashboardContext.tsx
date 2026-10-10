@@ -6,10 +6,12 @@ import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFr
 import { resolveCommercialDemoRestaurantSelection } from "@/lib/commercialDemoRestaurantScope";
 import { useSignupApplication } from "@/hooks/useSignupApplication";
 import { isSignupRestaurateurOnboardingPaymentReady } from "@/lib/signup";
+import { useLaunchGate } from "@/components/launch/LaunchGateProvider";
 
 const STORAGE_KEY = "miamz-dashboard-restaurant";
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
+  const { state: launchState } = useLaunchGate();
   const commercialDemoFrame = useCommercialDemoFrame();
   const ownerRestaurants = useOwnerRestaurants({ enabled: !commercialDemoFrame });
   const { data: rawSignupApplication } = useSignupApplication("restaurateur");
@@ -90,7 +92,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     ? "Votre fiche reste privée pendant la validation humaine. Après l'enregistrement de votre carte, vous pouvez compléter les informations nécessaires à sa validation."
     : null;
 
+  // The launch keeps client ordering closed while restaurateurs prepare their
+  // own data. Existing ownership policies still determine every mutation.
   const onboardingConfigurationUnlocked = isDemoMode
+    || launchState?.enabled === true
     || isSignupRestaurateurOnboardingPaymentReady(signupApplication);
 
   const disabledFeatures = useMemo(() => {

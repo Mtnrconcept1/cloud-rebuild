@@ -22,6 +22,8 @@ Fichiers fonctionnels : migration, `courier-portal`, `dispatch-order`, `dispatch
 - Créateurs et diffuseurs simultanés, deux coursiers pour une mission et un coursier pour deux missions ; attente des verrous observée dans PostgreSQL.
 - Notifications enregistrées une fois, reprise après réponse perdue, annulation intégrale sur panne de persistance des notifications.
 - Expiration concurrente et tardive, délai serveur, refus/rejeu, absence de régression après acceptation.
+- Suppression ou réaffectation privilégiée d’une offre pendant l’attente du verrou : aucune affectation partielle ni pénalité sur le nouveau coursier.
+- Frontière Edge : acteur issu de la session, erreurs 401/403/404/409/500, refus des entrées invalides, reprise et réveil des workers sans nouvelle notification.
 - Tests applicatifs ciblés, lint, typage, build et contrôle CI du candidat exact avant fusion.
 
 La base de production contenait zéro mission et zéro offre au contrôle préalable du 10 octobre 2026 ; cette observation doit être refaite avant déploiement. Elle ne signifie pas que la livraison est désactivée.

@@ -50,7 +50,7 @@ function getOrderSequence(order: any) {
 }
 
 async function buildDispatchRouteContext(
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: ReturnType<typeof createAdminClient>,
   input: {
     order: any;
     restaurant: any;
@@ -118,7 +118,19 @@ async function buildDispatchRouteContext(
       return acc;
     }, []);
 
-  const routeSteps = orderedPickups.map((pickup, index) => ({
+  type DispatchRouteStep = {
+    id: string;
+    type: "pickup" | "dropoff";
+    label: string;
+    address: string;
+    latitude: number | null;
+    longitude: number | null;
+    restaurant_name?: string;
+    order_id?: string | null;
+    order_number?: string | null;
+    step_index: number;
+  };
+  const routeSteps: DispatchRouteStep[] = orderedPickups.map((pickup, index) => ({
     id: `pickup-${pickup.restaurant_id}`,
     type: "pickup",
     label: orderedPickups.length > 1 ? `Retrait ${index + 1}` : "Retrait",
@@ -155,7 +167,7 @@ async function buildDispatchRouteContext(
 }
 
 async function queueCourierNotification(
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: ReturnType<typeof createAdminClient>,
   input: {
     userId: string;
     title: string;

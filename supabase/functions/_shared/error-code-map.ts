@@ -932,7 +932,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/_shared/auth.ts",
-      "line": 468
+      "line": 470
     },
     {
       "file": "supabase/functions/complete-order-checkout/index.ts",
@@ -1872,31 +1872,31 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "payment_attempt_identity_mismatch": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 374
+      "line": 378
     }
   ],
   "payment_attempt_order_expired_recreate": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2042
+      "line": 2046
     }
   ],
   "payment_attempt_reacquire_failed": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2050
+      "line": 2054
     }
   ],
   "payment_attempt_request_mismatch": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 393
+      "line": 397
     }
   ],
   "payment_attempt_session_expired_retry": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2405
+      "line": 2409
     }
   ],
   "personalization_consent_required": [
@@ -3044,7 +3044,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/_shared/auth.ts",
-      "line": 402
+      "line": 404
     },
     {
       "file": "supabase/functions/_shared/commercial-demo-ai.ts",

@@ -41,6 +41,23 @@ async function race(lock, statements) {
   assert.match((await coordinator).errors, /canceling statement due to user request/);
   return Promise.all(results);
 }
+// Commit a privileged mutation after the RPC read, while its row lock waits.
+// Catch only the deliberate sleep cancellation; locks were acquired outside it.
+async function mutateWhileRpcWaits(attemptId, mutation, expression) {
+  const mutator = session(`BEGIN; SET LOCAL application_name='courier_atomic_mutator';
+    SELECT 1 FROM public.dispatch_attempts WHERE id='${attemptId}' FOR UPDATE;
+    DO $$ BEGIN PERFORM pg_sleep(30); EXCEPTION WHEN query_canceled THEN NULL; END $$;
+    ${mutation}; COMMIT;`);
+  await waitFor("SELECT count(*) FROM pg_stat_activity WHERE application_name='courier_atomic_mutator' AND wait_event='PgSleep';", 1);
+  const contender = session(`SET application_name='courier_atomic_revalidation'; ${service(`SELECT to_jsonb(${expression})`)}`);
+  await waitFor("SELECT count(*) FROM pg_stat_activity WHERE application_name='courier_atomic_revalidation' AND wait_event_type='Lock';", 1);
+  assert.equal(sql("SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE application_name='courier_atomic_mutator' AND wait_event='PgSleep';"), 't');
+  const mutationResult = await mutator;
+  assert.equal(mutationResult.code, 0, mutationResult.errors);
+  const result = await contender;
+  assert.equal(result.code, 0, result.errors);
+  return JSON.parse(result.output.trim());
+}
 assert.ok(Number(sql('SHOW server_version_num;')) >= 170000);
 sql(fs.readFileSync('supabase/tests/courier_atomic_fixture.sql', 'utf8'));
 // Faithful reproduction of the old Edge protocol: read pending, then write by id.
@@ -191,4 +208,42 @@ sql(`UPDATE public.dispatch_attempts SET offered_at=now()-interval '2 hours' WHE
 assert.equal(value(respond(attempt8.id, freeCourier)).error, 'attempt_expired');
 assert.equal(sql(`SELECT status FROM public.dispatch_attempts WHERE id='${attempt8.id}';`), 'pending');
 console.log('PASS response deadline is checked by the database even before the timeout worker runs');
+
+// Guard the second read, not just the first snapshot of the offer.
+const job9 = ensure(9); const attempt9 = offers(job9.id, [freeCourier])[0];
+const deletedResponse = await mutateWhileRpcWaits(attempt9.id,
+  `DELETE FROM public.dispatch_attempts WHERE id='${attempt9.id}'`, respond(attempt9.id, freeCourier));
+assert.equal(deletedResponse.http_status, 404);
+assert.equal(sql(`SELECT courier_id IS NULL AND status='searching' FROM public.dispatch_jobs WHERE id='${job9.id}';`), 't');
+assert.equal(sql(`SELECT courier_id IS NULL FROM public.orders WHERE id='${order(9)}';`), 't');
+assert.equal(sql(`SELECT count(*) FROM public.delivery_tracking WHERE order_id='${order(9)}';`), '0');
+console.log('PASS deleted offer while acceptance waits cannot assign the order');
+
+const job10 = ensure(10); const attempt10 = offers(job10.id, [freeCourier])[0];
+sql(`UPDATE public.dispatch_attempts SET offered_at=now()-interval '2 hours' WHERE id='${attempt10.id}';`);
+const courierRates = () => sql('SELECT jsonb_agg(jsonb_build_array(id,acceptance_rate) ORDER BY id) FROM public.couriers;');
+const ratesBeforeDeletion = courierRates();
+const deletedExpiry = await mutateWhileRpcWaits(attempt10.id,
+  `DELETE FROM public.dispatch_attempts WHERE id='${attempt10.id}'`, `public.expire_courier_dispatch_attempt('${attempt10.id}')`);
+assert.equal(deletedExpiry, false);
+assert.equal(courierRates(), ratesBeforeDeletion);
+console.log('PASS deleted offer while expiry waits is not counted or penalized');
+
+const job11 = ensure(11); const attempt11 = offers(job11.id, [freeCourier])[0];
+const reassignedResponse = await mutateWhileRpcWaits(attempt11.id,
+  `UPDATE public.dispatch_attempts SET courier_id='${courier(winnerNo)}' WHERE id='${attempt11.id}'`, respond(attempt11.id, freeCourier));
+assert.equal(reassignedResponse.http_status, 404);
+assert.equal(sql(`SELECT courier_id IS NULL AND status='searching' FROM public.dispatch_jobs WHERE id='${job11.id}';`), 't');
+assert.equal(sql(`SELECT status FROM public.dispatch_attempts WHERE id='${attempt11.id}';`), 'pending');
+console.log('PASS reassigned offer while acceptance waits rejects the former actor');
+
+const job12 = ensure(12); const attempt12 = offers(job12.id, [freeCourier])[0];
+sql(`UPDATE public.dispatch_attempts SET offered_at=now()-interval '2 hours' WHERE id='${attempt12.id}';`);
+const ratesBeforeReassignment = courierRates();
+const reassignedExpiry = await mutateWhileRpcWaits(attempt12.id,
+  `UPDATE public.dispatch_attempts SET courier_id='${courier(winnerNo)}' WHERE id='${attempt12.id}'`, `public.expire_courier_dispatch_attempt('${attempt12.id}')`);
+assert.equal(reassignedExpiry, false, 'Stale expiry must not penalize a newly assigned courier whose row was not locked');
+assert.equal(courierRates(), ratesBeforeReassignment);
+assert.equal(sql(`SELECT status FROM public.dispatch_attempts WHERE id='${attempt12.id}';`), 'pending');
+console.log('PASS reassigned offer while expiry waits leaves both couriers unpenalized');
 console.log('PASS courier atomic PostgreSQL protocol');

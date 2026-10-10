@@ -519,7 +519,7 @@ Deno.serve(async (req) => {
       const allowedVehicleTypes = new Set(["bicycle", "scooter", "car", "walk"]);
       const vehicleType = String(payload?.vehicle_type || courier.vehicle_type || "bicycle");
       const dateOfBirth = normalizeDateOfBirth(payload?.date_of_birth, now);
-      const rawShifts = Array.isArray(payload?.shifts) ? payload.shifts : [];
+      const rawShifts: unknown[] = Array.isArray(payload?.shifts) ? payload.shifts : [];
 
       if (!allowedVehicleTypes.has(vehicleType)) {
         throw new HttpError(400, "Type de vehicule invalide");

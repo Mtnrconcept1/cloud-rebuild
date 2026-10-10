@@ -138,11 +138,16 @@ BEGIN
   SELECT * INTO v_order FROM public.orders WHERE id=v_order_id FOR NO KEY UPDATE;
   IF NOT FOUND THEN RETURN jsonb_build_object('error','order_not_found','http_status',404); END IF;
   SELECT * INTO v_job FROM public.dispatch_jobs WHERE id=v_attempt.dispatch_job_id FOR NO KEY UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('error','attempt_not_found','http_status',404); END IF;
   SELECT * INTO v_courier FROM public.couriers WHERE id=v_attempt.courier_id FOR NO KEY UPDATE;
   IF NOT FOUND OR v_courier.user_id IS DISTINCT FROM p_actor_user_id THEN
     RETURN jsonb_build_object('error','attempt_not_found','http_status',404);
   END IF;
   SELECT * INTO v_attempt FROM public.dispatch_attempts WHERE id=p_attempt_id FOR UPDATE;
+  IF NOT FOUND OR v_attempt.dispatch_job_id IS DISTINCT FROM v_job.id
+    OR v_attempt.courier_id IS DISTINCT FROM v_courier.id THEN
+    RETURN jsonb_build_object('error','attempt_not_found','http_status',404);
+  END IF;
   v_now := clock_timestamp(); -- Evaluate expiry AFTER waiting for contenders.
   IF (p_decision='accept' AND v_attempt.status='accepted' AND v_job.courier_id=v_courier.id)
     OR (p_decision='decline' AND v_attempt.status='declined') THEN
@@ -204,6 +209,7 @@ RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
   v_attempt public.dispatch_attempts%ROWTYPE;
   v_job public.dispatch_jobs%ROWTYPE;
+  v_courier_id uuid;
   v_now timestamptz;
 BEGIN
   IF auth.role() IS DISTINCT FROM 'service_role' THEN
@@ -211,9 +217,14 @@ BEGIN
   END IF;
   SELECT * INTO v_attempt FROM public.dispatch_attempts WHERE id=p_attempt_id;
   IF NOT FOUND THEN RETURN false; END IF;
+  v_courier_id := v_attempt.courier_id;
   SELECT * INTO v_job FROM public.dispatch_jobs WHERE id=v_attempt.dispatch_job_id FOR NO KEY UPDATE;
-  PERFORM 1 FROM public.couriers WHERE id=v_attempt.courier_id FOR NO KEY UPDATE;
+  IF NOT FOUND THEN RETURN false; END IF;
+  PERFORM 1 FROM public.couriers WHERE id=v_courier_id FOR NO KEY UPDATE;
+  IF NOT FOUND THEN RETURN false; END IF;
   SELECT * INTO v_attempt FROM public.dispatch_attempts WHERE id=p_attempt_id FOR UPDATE;
+  IF NOT FOUND OR v_attempt.dispatch_job_id IS DISTINCT FROM v_job.id
+    OR v_attempt.courier_id IS DISTINCT FROM v_courier_id THEN RETURN false; END IF;
   v_now := clock_timestamp();
   IF v_attempt.status<>'pending' OR v_job.courier_id IS NOT NULL
     OR v_job.status NOT IN ('pending','searching','no_courier')
