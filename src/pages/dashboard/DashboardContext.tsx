@@ -41,43 +41,37 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       return null;
     }
   });
+  // Resolve the authorized selection during render, before the route access
+  // gate runs. Repairing it only in an effect briefly marks an active owner
+  // as locked and redirects deep links back to /dashboard.
   const selectedId = commercialDemoFrame
     ? resolveCommercialDemoRestaurantSelection(restaurants, frameDemoRestaurantId)
-    : storedSelectedId;
+    : restaurants.find((restaurant) => restaurant.id === storedSelectedId)?.id
+      ?? restaurants[0]?.id
+      ?? null;
 
-  // Auto-select first owned restaurant, or clear stale selection
+  // Persist the normalized selection without making storage availability a
+  // prerequisite for navigation. Embedded demo selection stays server-scoped.
   useEffect(() => {
-    if (loading) return;
-
-    // The frame snapshot is the only selector authority. Do not read, write or
-    // recover a different restaurant from the shared browser storage.
-    if (commercialDemoFrame) return;
-
-    if (restaurants.length === 0) {
-      setStoredSelectedId(null);
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch {
-        // Storage may be unavailable in some embedded contexts.
-      }
-      return;
+    if (loading || commercialDemoFrame) return;
+    if (storedSelectedId !== selectedId) setStoredSelectedId(selectedId);
+    try {
+      if (selectedId) localStorage.setItem(STORAGE_KEY, selectedId);
+      else localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Private/embedded browsers may reject storage; in-memory state is enough.
     }
-
-    if (!selectedId || !restaurants.find((r) => r.id === selectedId)) {
-      const id = restaurants[0].id;
-      setStoredSelectedId(id);
-      localStorage.setItem(STORAGE_KEY, id);
-    }
-  }, [commercialDemoFrame, loading, restaurants, selectedId]);
+  }, [commercialDemoFrame, loading, selectedId, storedSelectedId]);
 
   const setSelectedId = (id: string) => {
-    if (commercialDemoFrame) {
-      // Ignore attempts to switch the embedded dashboard to a real or unrelated
-      // restaurant, including calls from an overlooked legacy selector.
-      return;
-    }
+    if (commercialDemoFrame) return;
+    if (!restaurants.some((restaurant) => restaurant.id === id)) return;
     setStoredSelectedId(id);
-    localStorage.setItem(STORAGE_KEY, id);
+    try {
+      localStorage.setItem(STORAGE_KEY, id);
+    } catch {
+      // Keep the selected restaurant usable when persistence is unavailable.
+    }
   };
 
   const selectedRestaurant = useMemo(

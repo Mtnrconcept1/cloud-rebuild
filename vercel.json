@@ -690,6 +690,58 @@
     {
       "source": "/tok-connect/developer/:path*",
       "destination": "/index.html"
+    },
+    {
+      "source": "/coming-soon",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/parametres/securite",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/creneaux-garantis",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/flex-prix-bas",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/match-groupes",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/multi-restaurant",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/multi-stop",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/garantie-qualite",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/abonnement",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tok-pulse",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tok-connect/mcp-widget",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/restaurant/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/restaurateurs/((?!geneve/?$|google-business/?$|alternative-commission-couvert/?$)[^/]+)",
+      "destination": "/index.html"
     }
   ]
 }
