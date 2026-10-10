@@ -6,7 +6,9 @@ on:
       - supabase/migrations/20261010223000_courier_dispatch_atomic.sql
       - supabase/tests/courier_atomic*.sql
       - scripts/test-courier-atomic-postgres.mjs
-      - scripts/test-courier-atomic-postgres.mjs
+      - supabase/functions/courier-portal/index.ts
+      - supabase/functions/dispatch-order/index.ts
+      - supabase/functions/dispatch-timeout/index.ts
       - .github/workflows/courier-atomic-postgres.yml
   workflow_dispatch:
     inputs:

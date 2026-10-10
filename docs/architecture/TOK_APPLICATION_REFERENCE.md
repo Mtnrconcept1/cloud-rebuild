@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `971af7311185e146a102f4730230f5d59568d6137f3b4886527cd33dee2e5934`
+- Empreinte SHA-256 des sources indexées : `2ff53abc2b8df65baba1d061771fe2dec6445c4e3327f8c4754269fa88317887`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,21 +38,21 @@
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 524 |
-| modules | 1471 |
+| modules | 1472 |
 | pages | 127 |
 | pathLiterals | 615 |
 | publicAssets | 301 |
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15578 |
-| repositoryFiles | 2747 |
+| records | 15584 |
+| repositoryFiles | 2750 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 26 |
+| workflows | 27 |
 
 ## État distant observé
 
@@ -5628,6 +5628,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Changed Test Files | changed-tests | [.github/workflows/changed-test-files.yml](../../.github/workflows/changed-test-files.yml) |
 | Checkout security PostgreSQL replay | replay | [.github/workflows/checkout-security-postgres.yml](../../.github/workflows/checkout-security-postgres.yml) |
 | CI | validate, validation | [.github/workflows/ci.yml](../../.github/workflows/ci.yml) |
+| Courier atomic PostgreSQL replay | replay | [.github/workflows/courier-atomic-postgres.yml](../../.github/workflows/courier-atomic-postgres.yml) |
 | Deploy Production | attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation | [.github/workflows/deploy-production.yml](../../.github/workflows/deploy-production.yml) |
 | Ensure Supabase Auth SMTP | configure | [.github/workflows/ensure-supabase-auth-smtp.yml](../../.github/workflows/ensure-supabase-auth-smtp.yml) |
 | TOK Codex Incident Repair | prepare, publish, report, validate | [.github/workflows/incident-codex-repair.yml](../../.github/workflows/incident-codex-repair.yml) |
@@ -5753,7 +5754,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 213 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 663 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 664 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 57 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5764,7 +5765,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 203 |
-| automation-script | 63 |
+| automation-script | 64 |
 | edge-function-source | 183 |
 | frontend-component | 247 |
 | frontend-hook | 22 |
@@ -6251,7 +6252,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (70)</summary>
+<details><summary>automation-script (71)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -6316,6 +6317,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/supabase-target.mjs`
 - `scripts/take-screenshots.mjs`
 - `scripts/test-checkout-security-postgres.mjs`
+- `scripts/test-courier-atomic-postgres.mjs`
 - `scripts/test-print-protocol-postgres.mjs`
 - `scripts/verify-supabase-runtime-security.mjs`
 - `scripts/write-apple-app-site-association.mjs`
@@ -6326,7 +6328,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (26)</summary>
+<details><summary>ci-workflow (27)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/app-store-build3-trigger.yml`
@@ -6344,6 +6346,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/changed-test-files.yml`
 - `.github/workflows/checkout-security-postgres.yml`
 - `.github/workflows/ci.yml`
+- `.github/workflows/courier-atomic-postgres.yml`
 - `.github/workflows/deploy-production.yml`
 - `.github/workflows/ensure-supabase-auth-smtp.yml`
 - `.github/workflows/incident-codex-repair.yml`
@@ -8188,7 +8191,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (22)</summary>
+<details><summary>supabase-configuration (23)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -8206,6 +8209,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/tests/checkout_security_710_assertions.sql`
 - `supabase/tests/checkout_security_710_baseline_prerequisites.sql`
 - `supabase/tests/checkout_security_710_fixture.sql`
+- `supabase/tests/courier_atomic_fixture.sql`
 - `supabase/tests/critical_rpc_smoke.sql`
 - `supabase/tests/floor_plan_autoplacement_smoke.sql`
 - `supabase/tests/generated_print_format_smoke.sql`
