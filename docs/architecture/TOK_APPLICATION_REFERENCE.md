@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `d1789b7d9b80343ef4238ef09888fdf970f9324ae37b2ec83666ab535aecb462`
+- Empreinte SHA-256 des sources indexées : `9c8a4b51d76b17f3066d06343c8b2053c9b17e0cf0651516a2d12c1630bf8122`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,7 +45,7 @@
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15509 |
+| records | 15512 |
 | repositoryFiles | 2723 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1155,7 +1155,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /enrich-directory-images | 2 | [src/test/directory-image-discovery-worker.test.ts:44](../../src/test/directory-image-discovery-worker.test.ts#L44) |
 | /espace-client | 4 | [scripts/prerender-seo.mjs:1220](../../scripts/prerender-seo.mjs#L1220) |
 | /espaces | 17 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
-| /factors | 1 | [server/marketingBff.ts:789](../../server/marketingBff.ts#L789) |
+| /factors | 1 | [server/marketingBff.ts:800](../../server/marketingBff.ts#L800) |
 | /fallback.jpg | 4 | [src/test/security-url-helpers.test.ts:17](../../src/test/security-url-helpers.test.ts#L17) |
 | /favicon-192x192.png | 2 | [src/test/favicon-branding.test.ts:53](../../src/test/favicon-branding.test.ts#L53) |
 | /favicon-512x512.png | 1 | [src/test/favicon-branding.test.ts:59](../../src/test/favicon-branding.test.ts#L59) |
@@ -1325,7 +1325,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /inventory/partners/{partnerId}/merchants/{merchantId}/availability:replace | 1 | [supabase/functions/google-actions-center-sync/index.ts:52](../../supabase/functions/google-actions-center-sync/index.ts#L52) |
 | /logo3df.png | 1 | [src/test/marketing-email-template.test.ts:24](../../src/test/marketing-email-template.test.ts#L24) |
 | /logotok.png | 8 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
-| /logout?scope=local | 1 | [server/marketingBff.ts:738](../../server/marketingBff.ts#L738) |
+| /logout?scope=local | 1 | [server/marketingBff.ts:749](../../server/marketingBff.ts#L749) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:31](../../src/hooks/useTokLogo.ts#L31) |
 | /marketing | 18 | [scripts/application-index-core.mjs:163](../../scripts/application-index-core.mjs#L163) |
 | /marketing-assets/ | 1 | [supabase/functions/ai-image-enhance/index.ts:99](../../supabase/functions/ai-image-enhance/index.ts#L99) |
@@ -1506,8 +1506,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-pulse | 10 | [scripts/prerender-seo.mjs:1191](../../scripts/prerender-seo.mjs#L1191) |
 | /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:81](../../supabase/functions/ai-image-enhance/index.ts#L81) |
 | /tok-slot-machine/index.html?v=20260719 | 1 | [src/components/DailyMiamzSlotMachine.tsx:15](../../src/components/DailyMiamzSlotMachine.tsx#L15) |
-| /token?grant_type=password | 1 | [server/marketingBff.ts:730](../../server/marketingBff.ts#L730) |
-| /user | 1 | [server/marketingBff.ts:719](../../server/marketingBff.ts#L719) |
+| /token?grant_type=password | 1 | [server/marketingBff.ts:741](../../server/marketingBff.ts#L741) |
+| /user | 1 | [server/marketingBff.ts:730](../../server/marketingBff.ts#L730) |
 | /user_roles? | 2 | [src/test/marketing-agent-bff.test.ts:28](../../src/test/marketing-agent-bff.test.ts#L28) |
 | /v1/appScreenshotSets | 1 | [scripts/app-store-connect-upload-screenshots.mjs:216](../../scripts/app-store-connect-upload-screenshots.mjs#L216) |
 | /v1/appScreenshots | 1 | [scripts/app-store-connect-upload-screenshots.mjs:283](../../scripts/app-store-connect-upload-screenshots.mjs#L283) |

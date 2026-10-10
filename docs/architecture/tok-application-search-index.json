@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "d1789b7d9b80343ef4238ef09888fdf970f9324ae37b2ec83666ab535aecb462",
+ "sourceDigest": "9c8a4b51d76b17f3066d06343c8b2053c9b17e0cf0651516a2d12c1630bf8122",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -25,7 +25,7 @@
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15509,
+  "records": 15512,
   "repositoryFiles": 2723,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -19245,7 +19245,7 @@
     "sources": [
      {
       "path": "server/marketingBff.ts",
-      "line": 789
+      "line": 800
      }
     ]
    },
@@ -21675,7 +21675,7 @@
     "sources": [
      {
       "path": "server/marketingBff.ts",
-      "line": 738
+      "line": 749
      }
     ]
    },
@@ -25524,7 +25524,7 @@
     "sources": [
      {
       "path": "server/marketingBff.ts",
-      "line": 730
+      "line": 741
      }
     ]
    },
@@ -25533,7 +25533,7 @@
     "sources": [
      {
       "path": "server/marketingBff.ts",
-      "line": 719
+      "line": 730
      }
     ]
    },
@@ -79574,62 +79574,62 @@
      },
      {
       "name": "validateMarketingRequestContext",
-      "line": 205,
+      "line": 214,
       "kind": "function"
      },
      {
       "name": "sha256Hex",
-      "line": 245,
+      "line": 256,
       "kind": "function"
      },
      {
       "name": "parseCookies",
-      "line": 263,
+      "line": 274,
       "kind": "function"
      },
      {
       "name": "marketingLoginHandler",
-      "line": 1895,
+      "line": 1906,
       "kind": "function"
      },
      {
       "name": "marketingMfaEnrollHandler",
-      "line": 1902,
+      "line": 1913,
       "kind": "function"
      },
      {
       "name": "marketingMfaVerifyHandler",
-      "line": 1909,
+      "line": 1920,
       "kind": "function"
      },
      {
       "name": "marketingLogoutHandler",
-      "line": 1916,
-      "kind": "function"
-     },
-     {
-      "name": "marketingSessionHandler",
       "line": 1927,
       "kind": "function"
      },
      {
+      "name": "marketingSessionHandler",
+      "line": 1938,
+      "kind": "function"
+     },
+     {
       "name": "marketingRpcHandler",
-      "line": 1943,
+      "line": 1954,
       "kind": "function"
      },
      {
       "name": "marketingOrchestratorHandler",
-      "line": 1950,
+      "line": 1961,
       "kind": "function"
      },
      {
       "name": "marketingAgentHandler",
-      "line": 1957,
+      "line": 1968,
       "kind": "function"
      },
      {
       "name": "marketingLaunchHandler",
-      "line": 1964,
+      "line": 1975,
       "kind": "function"
      }
     ],
@@ -79638,6 +79638,10 @@
      "SUPABASE_PUBLISHABLE_KEY",
      "SUPABASE_SERVICE_ROLE_KEY",
      "SUPABASE_URL",
+     "TOK_MARKETING_PREVIEW_ENABLED",
+     "VERCEL_BRANCH_URL",
+     "VERCEL_ENV",
+     "VERCEL_URL",
      "VITE_SUPABASE_ANON_KEY",
      "VITE_SUPABASE_PUBLISHABLE_KEY",
      "VITE_SUPABASE_URL"
@@ -79647,7 +79651,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 1970
+    "lineCount": 1981
    },
    {
     "path": "src/App.tsx",
@@ -100946,7 +100950,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 801
+    "lineCount": 847
    },
    {
     "path": "src/test/marketing-bff-vercel-entrypoints.test.ts",
@@ -123462,7 +123466,7 @@
    "id": "code-module:e80a711be244",
    "type": "code-module",
    "title": "server/marketingBff.ts",
-   "description": "Module de 1970 lignes; exports: MARKETING_HOST, MARKETING_ORIGIN, MARKETING_CSRF_HEADER, MARKETING_SESSION_COOKIE, MARKETING_CSRF_COOKIE, MARKETING_PENDING_COOKIE, MARKETING_OPERATION_NAMES, MarketingOperation, MARKETING_OUTREACH_OPERATION_NAMES, MarketingOutreachOperation, MARKETING_AUTOPILOT_OPERATION_NAMES, MarketingAutopilotOperation, MarketingApiRequest, MarketingApiResponse, validateMarketingRequestContext, sha256Hex, parseCookies, marketingLoginHandler, marketingMfaEnrollHandler, marketingMfaVerifyHandler, marketingLogoutHandler, marketingSessionHandler, marketingRpcHandler, marketingOrchestratorHandler, marketingAgentHandler, marketingLaunchHandler.",
+   "description": "Module de 1981 lignes; exports: MARKETING_HOST, MARKETING_ORIGIN, MARKETING_CSRF_HEADER, MARKETING_SESSION_COOKIE, MARKETING_CSRF_COOKIE, MARKETING_PENDING_COOKIE, MARKETING_OPERATION_NAMES, MarketingOperation, MARKETING_OUTREACH_OPERATION_NAMES, MarketingOutreachOperation, MARKETING_AUTOPILOT_OPERATION_NAMES, MarketingAutopilotOperation, MarketingApiRequest, MarketingApiResponse, validateMarketingRequestContext, sha256Hex, parseCookies, marketingLoginHandler, marketingMfaEnrollHandler, marketingMfaVerifyHandler, marketingLogoutHandler, marketingSessionHandler, marketingRpcHandler, marketingOrchestratorHandler, marketingAgentHandler, marketingLaunchHandler.",
    "path": "server/marketingBff.ts",
    "line": 1,
    "surface": null,
@@ -123485,6 +123489,10 @@
     "SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
     "SUPABASE_URL",
+    "TOK_MARKETING_PREVIEW_ENABLED",
+    "VERCEL_BRANCH_URL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
     "VITE_SUPABASE_ANON_KEY",
     "VITE_SUPABASE_PUBLISHABLE_KEY",
     "VITE_SUPABASE_URL",
@@ -123504,7 +123512,7 @@
     "validateMarketingRequestContext",
     "vercel"
    ],
-   "detailRef": "e5efd476f49e"
+   "detailRef": "9084aa3c07f4"
   },
   {
    "id": "code-module:fe5a8fc33137",
@@ -137553,7 +137561,7 @@
    "id": "code-module:229d7954484a",
    "type": "code-module",
    "title": "src/test/marketing-bff-security.test.ts",
-   "description": "Module de 801 lignes; exports: aucun export statique.",
+   "description": "Module de 847 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-bff-security.test.ts",
    "line": 1,
    "surface": null,
@@ -137564,7 +137572,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "821d4024c464"
+   "detailRef": "5fdd4f3937d9"
   },
   {
    "id": "code-module:d46e995c5ed2",
@@ -228706,6 +228714,19 @@
    "detailRef": "19c8637733c1"
   },
   {
+   "id": "environment-variable:54ecb756f05e",
+   "type": "environment-variable",
+   "title": "TOK_MARKETING_PREVIEW_ENABLED",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "server/marketingBff.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "server/marketingBff.ts"
+   ],
+   "detailRef": "954854d2a8fc"
+  },
+  {
    "id": "environment-variable:757abe72c90d",
    "type": "environment-variable",
    "title": "TOK_MARKETING_REFERENCE_BUCKET",
@@ -228772,17 +228793,44 @@
    "detailRef": "3eceebd4f22f"
   },
   {
+   "id": "environment-variable:e79766c5857a",
+   "type": "environment-variable",
+   "title": "VERCEL_BRANCH_URL",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "server/marketingBff.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "server/marketingBff.ts"
+   ],
+   "detailRef": "8af132950f3f"
+  },
+  {
    "id": "environment-variable:6d945250ff1e",
    "type": "environment-variable",
    "title": "VERCEL_ENV",
-   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 2 module(s); aucune valeur n’est indexée.",
    "path": "scripts/prerender-seo.mjs",
    "line": null,
    "surface": null,
    "tags": [
-    "scripts/prerender-seo.mjs"
+    "scripts/prerender-seo.mjs",
+    "server/marketingBff.ts"
    ],
-   "detailRef": "11a300ba7f1f"
+   "detailRef": "69c87b42f649"
+  },
+  {
+   "id": "environment-variable:04c6f80b2163",
+   "type": "environment-variable",
+   "title": "VERCEL_URL",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "server/marketingBff.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "server/marketingBff.ts"
+   ],
+   "detailRef": "3b29109fe720"
   },
   {
    "id": "environment-variable:466eba30201f",
@@ -267700,12 +267748,12 @@
    "detailRef": "4ac9175f2cec"
   },
   {
-   "id": "exported-symbol:471a446d8b35",
+   "id": "exported-symbol:87e360adb45b",
    "type": "exported-symbol",
    "title": "marketingAgentHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1957,
+   "line": 1968,
    "surface": null,
    "tags": [
     "function",
@@ -267713,7 +267761,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "f331e51ed1a1"
+   "detailRef": "fdadec3e6b69"
   },
   {
    "id": "exported-symbol:0147af623e34",
@@ -267729,12 +267777,12 @@
    "detailRef": "e36cfcddc05f"
   },
   {
-   "id": "exported-symbol:6d51f74b27ba",
+   "id": "exported-symbol:a97fbac41225",
    "type": "exported-symbol",
    "title": "marketingLaunchHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1964,
+   "line": 1975,
    "surface": null,
    "tags": [
     "function",
@@ -267742,15 +267790,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "ca16d7626ee1"
+   "detailRef": "96613c454b45"
   },
   {
-   "id": "exported-symbol:5140a8b47a4d",
+   "id": "exported-symbol:93249d849078",
    "type": "exported-symbol",
    "title": "marketingLoginHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1895,
+   "line": 1906,
    "surface": null,
    "tags": [
     "function",
@@ -267758,15 +267806,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "6faed8638443"
+   "detailRef": "fd8ff5b268e6"
   },
   {
-   "id": "exported-symbol:12baab1d90ba",
+   "id": "exported-symbol:cd77ed4f1861",
    "type": "exported-symbol",
    "title": "marketingLogoutHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1916,
+   "line": 1927,
    "surface": null,
    "tags": [
     "function",
@@ -267774,15 +267822,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "67d01eecfc58"
+   "detailRef": "2bb858f7c1d0"
   },
   {
-   "id": "exported-symbol:765c8a52745c",
+   "id": "exported-symbol:4854d648a2b3",
    "type": "exported-symbol",
    "title": "marketingMfaEnrollHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1902,
+   "line": 1913,
    "surface": null,
    "tags": [
     "function",
@@ -267790,15 +267838,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "937e40bbfef9"
+   "detailRef": "2273f16fd5d7"
   },
   {
-   "id": "exported-symbol:148aa8a40f0c",
+   "id": "exported-symbol:db7bd2b01296",
    "type": "exported-symbol",
    "title": "marketingMfaVerifyHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1909,
+   "line": 1920,
    "surface": null,
    "tags": [
     "function",
@@ -267806,7 +267854,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "a89726211f30"
+   "detailRef": "bd19969e116f"
   },
   {
    "id": "exported-symbol:19ab8e50dae1",
@@ -267822,12 +267870,12 @@
    "detailRef": "6e8251e72194"
   },
   {
-   "id": "exported-symbol:1edde59e4529",
+   "id": "exported-symbol:343c3c070743",
    "type": "exported-symbol",
    "title": "marketingOrchestratorHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1950,
+   "line": 1961,
    "surface": null,
    "tags": [
     "function",
@@ -267835,7 +267883,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "7bb1323b1212"
+   "detailRef": "b97708b4c59c"
   },
   {
    "id": "exported-symbol:c4d899e3cdd3",
@@ -267880,12 +267928,12 @@
    "detailRef": "75b9f9890fa4"
   },
   {
-   "id": "exported-symbol:9b3f6088e7db",
+   "id": "exported-symbol:24001a8c7099",
    "type": "exported-symbol",
    "title": "marketingRpcHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1943,
+   "line": 1954,
    "surface": null,
    "tags": [
     "function",
@@ -267893,15 +267941,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "df7ab1f1364d"
+   "detailRef": "fbeefb28097b"
   },
   {
-   "id": "exported-symbol:ebc93d9969fd",
+   "id": "exported-symbol:011399f77234",
    "type": "exported-symbol",
    "title": "marketingSessionHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1927,
+   "line": 1938,
    "surface": null,
    "tags": [
     "function",
@@ -267909,7 +267957,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "38bfbd647890"
+   "detailRef": "408464f5daa1"
   },
   {
    "id": "exported-symbol:7c4d43963f98",
@@ -269296,12 +269344,12 @@
    "detailRef": "5e70eb300e24"
   },
   {
-   "id": "exported-symbol:81b3ef7bbef8",
+   "id": "exported-symbol:d6ba4db96abb",
    "type": "exported-symbol",
    "title": "parseCookies",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 263,
+   "line": 274,
    "surface": null,
    "tags": [
     "function",
@@ -269309,7 +269357,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "4c5c82277a8c"
+   "detailRef": "750703019529"
   },
   {
    "id": "exported-symbol:103d5bc2e3b9",
@@ -272274,12 +272322,12 @@
    "detailRef": "75e756532490"
   },
   {
-   "id": "exported-symbol:edd5c47bc7f4",
+   "id": "exported-symbol:f92b21df4a5b",
    "type": "exported-symbol",
    "title": "sha256Hex",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 245,
+   "line": 256,
    "surface": null,
    "tags": [
     "function",
@@ -272287,7 +272335,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "2accab2002e2"
+   "detailRef": "9e647c347d63"
   },
   {
    "id": "exported-symbol:2db40bbc93e7",
@@ -275126,12 +275174,12 @@
    "detailRef": "01b5c6f24059"
   },
   {
-   "id": "exported-symbol:e81dbd391f31",
+   "id": "exported-symbol:a6fed0f7d53b",
    "type": "exported-symbol",
    "title": "validateMarketingRequestContext",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 205,
+   "line": 214,
    "surface": null,
    "tags": [
     "function",
@@ -275139,7 +275187,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "88024497ac02"
+   "detailRef": "d2cf951351d4"
   },
   {
    "id": "exported-symbol:930704998c49",
@@ -333330,17 +333378,17 @@
    "detailRef": "7c392ddf08b5"
   },
   {
-   "id": "path-literal:50987388dc37",
+   "id": "path-literal:01404d6d4ecb",
    "type": "path-literal",
    "title": "/factors",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "server/marketingBff.ts",
-   "line": 789,
+   "line": 800,
    "surface": null,
    "tags": [
     "server/marketingBff.ts"
    ],
-   "detailRef": "4ea6c632724c"
+   "detailRef": "ac6fd807cb8f"
   },
   {
    "id": "path-literal:e9f99c30e931",
@@ -335658,17 +335706,17 @@
    "detailRef": "4a01f5acbfe6"
   },
   {
-   "id": "path-literal:4ca2e5420525",
+   "id": "path-literal:f5f625b182a7",
    "type": "path-literal",
    "title": "/logout?scope=local",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "server/marketingBff.ts",
-   "line": 738,
+   "line": 749,
    "surface": null,
    "tags": [
     "server/marketingBff.ts"
    ],
-   "detailRef": "566c725adc86"
+   "detailRef": "64be94172b95"
   },
   {
    "id": "path-literal:d45fb3d9dade",
@@ -338410,9 +338458,22 @@
    "detailRef": "fd55acc7b758"
   },
   {
-   "id": "path-literal:657ec81967e0",
+   "id": "path-literal:a82767ff4e77",
    "type": "path-literal",
    "title": "/token?grant_type=password",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "server/marketingBff.ts",
+   "line": 741,
+   "surface": null,
+   "tags": [
+    "server/marketingBff.ts"
+   ],
+   "detailRef": "b4e1c81e3cb7"
+  },
+  {
+   "id": "path-literal:5d323df61a86",
+   "type": "path-literal",
+   "title": "/user",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "server/marketingBff.ts",
    "line": 730,
@@ -338420,20 +338481,7 @@
    "tags": [
     "server/marketingBff.ts"
    ],
-   "detailRef": "c381e591813a"
-  },
-  {
-   "id": "path-literal:e2c10741f0aa",
-   "type": "path-literal",
-   "title": "/user",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "server/marketingBff.ts",
-   "line": 719,
-   "surface": null,
-   "tags": [
-    "server/marketingBff.ts"
-   ],
-   "detailRef": "f0398612638e"
+   "detailRef": "a76ebfa265ca"
   },
   {
    "id": "path-literal:17910fbccc60",

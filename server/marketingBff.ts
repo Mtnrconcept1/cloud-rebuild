@@ -202,6 +202,15 @@ function normalizeHost(value: string): string {
 }
 
 /** Reject requests which did not arrive as same-origin HTTPS traffic. */
+/** Preview activation is branch-scoped; origin trust never comes from request headers. */
+function allowedMarketingRequestHost(host: string): string | null {
+  if (host === MARKETING_HOST) return MARKETING_HOST;
+  if (process.env.VERCEL_ENV !== "preview" || process.env.TOK_MARKETING_PREVIEW_ENABLED !== "true") return null;
+  const deploymentHosts = [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL];
+  const ownedPreview = /^cloud-rebuild-recovered-[a-z0-9-]+-mtnrconcepts-projects\.vercel\.app$/;
+  return ownedPreview.test(host) && deploymentHosts.includes(host) ? host : null;
+}
+
 export function validateMarketingRequestContext(
   req: MarketingApiRequest,
   stateChanging: boolean,
@@ -214,7 +223,9 @@ export function validateMarketingRequestContext(
   const fetchMode = header(req, "sec-fetch-mode").toLowerCase();
   const fetchDest = header(req, "sec-fetch-dest").toLowerCase();
 
-  if (host !== MARKETING_HOST || (forwardedHost && forwardedHost !== MARKETING_HOST)) {
+  const allowedHost = allowedMarketingRequestHost(host);
+  const allowedOrigin = allowedHost ? `https://${allowedHost}` : null;
+  if (!allowedHost || (forwardedHost && forwardedHost !== allowedHost)) {
     throw new PublicBffError(403, "request_rejected", "Requête refusée.");
   }
   if (forwardedProto && forwardedProto !== "https") {
@@ -222,7 +233,7 @@ export function validateMarketingRequestContext(
   }
 
   if (stateChanging) {
-    if (origin !== MARKETING_ORIGIN || fetchSite !== "same-origin") {
+    if (origin !== allowedOrigin || fetchSite !== "same-origin") {
       throw new PublicBffError(403, "request_rejected", "Requête refusée.");
     }
     if (fetchMode && !["cors", "same-origin"].includes(fetchMode)) {
@@ -234,7 +245,7 @@ export function validateMarketingRequestContext(
     return;
   }
 
-  if (origin && origin !== MARKETING_ORIGIN) {
+  if (origin && origin !== allowedOrigin) {
     throw new PublicBffError(403, "request_rejected", "Requête refusée.");
   }
   if (fetchSite && !["same-origin", "none"].includes(fetchSite)) {
