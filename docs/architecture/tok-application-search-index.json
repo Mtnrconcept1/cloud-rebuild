@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "7ad7d90e904b743a2edc6e9b33e8af86b59f1ffddf7a627502ad6ed0b42a9594",
+ "sourceDigest": "f5b612a45ba337c06b925423c3e26ebb82fc2cc065522475781832b0506949f0",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -13895,7 +13895,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1422
+      "line": 1425
      }
     ]
    },
@@ -16061,7 +16061,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1303
+      "line": 1306
      }
     ]
    },
@@ -16578,7 +16578,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1405
+      "line": 1408
      }
     ]
    },
@@ -17891,7 +17891,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1354
+      "line": 1357
      }
     ]
    },
@@ -18044,7 +18044,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1371
+      "line": 1374
      }
     ]
    },
@@ -18235,7 +18235,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1388
+      "line": 1391
      }
     ]
    },
@@ -18718,11 +18718,11 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1218
+      "line": 1221
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1235
+      "line": 1238
      }
     ]
    },
@@ -19072,7 +19072,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1337
+      "line": 1340
      }
     ]
    },
@@ -22175,7 +22175,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1320
+      "line": 1323
      }
     ]
    },
@@ -22680,7 +22680,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1269
+      "line": 1272
      }
     ]
    },
@@ -23656,7 +23656,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1252
+      "line": 1255
      }
     ]
    },
@@ -26177,7 +26177,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1286
+      "line": 1289
      }
     ]
    },
@@ -27810,7 +27810,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2849
+      "line": 2852
      },
      {
       "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
@@ -102509,7 +102509,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 181
+    "lineCount": 182
    },
    {
     "path": "src/test/seo-public-name-hardening.test.ts",
@@ -103143,7 +103143,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 259
+    "lineCount": 279
    },
    {
     "path": "src/test/tok-connect-frontend.test.ts",
@@ -107819,7 +107819,7 @@
     "exports": [
      {
       "name": "tokConnectMcpHealthEnvelope",
-      "line": 2940,
+      "line": 2943,
       "kind": "variable"
      }
     ],
@@ -107833,7 +107833,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 2944
+    "lineCount": 2947
    },
    {
     "path": "supabase/functions/tok-connect-oauth/index.ts",
@@ -139779,7 +139779,7 @@
    "id": "code-module:6e793c426330",
    "type": "code-module",
    "title": "src/test/seo-performance-remediation.test.ts",
-   "description": "Module de 181 lignes; exports: aucun export statique.",
+   "description": "Module de 182 lignes; exports: aucun export statique.",
    "path": "src/test/seo-performance-remediation.test.ts",
    "line": 1,
    "surface": null,
@@ -139788,7 +139788,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "3e3d92517306"
+   "detailRef": "03e0c3628a66"
   },
   {
    "id": "code-module:d859caf45e69",
@@ -140707,7 +140707,7 @@
    "id": "code-module:43dd95d166f5",
    "type": "code-module",
    "title": "src/test/tok-connect-edge-functions.test.ts",
-   "description": "Module de 259 lignes; exports: aucun export statique.",
+   "description": "Module de 279 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-edge-functions.test.ts",
    "line": 1,
    "surface": null,
@@ -140716,7 +140716,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "1fe05c2cf9bc"
+   "detailRef": "414424f4b99f"
   },
   {
    "id": "code-module:6955f6e6a37b",
@@ -143909,7 +143909,7 @@
    "id": "code-module:d04caf9780c6",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-mcp/index.ts",
-   "description": "Module de 2944 lignes; exports: tokConnectMcpHealthEnvelope.",
+   "description": "Module de 2947 lignes; exports: tokConnectMcpHealthEnvelope.",
    "path": "supabase/functions/tok-connect-mcp/index.ts",
    "line": 1,
    "surface": null,
@@ -143922,7 +143922,7 @@
     "tokConnectMcpHealthEnvelope",
     "vercel"
    ],
-   "detailRef": "a550e3038ec5"
+   "detailRef": "f54df8439517"
   },
   {
    "id": "code-module:9149d3a94667",
@@ -272991,12 +272991,12 @@
    "detailRef": "85fe3c50d091"
   },
   {
-   "id": "exported-symbol:ee5c33b1e6b0",
+   "id": "exported-symbol:5ce2a61ab9b7",
    "type": "exported-symbol",
    "title": "tokConnectMcpHealthEnvelope",
    "description": "Export variable de supabase/functions/tok-connect-mcp/index.ts.",
    "path": "supabase/functions/tok-connect-mcp/index.ts",
-   "line": 2940,
+   "line": 2943,
    "surface": null,
    "tags": [
     "google",
@@ -273006,7 +273006,7 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "082b88ced9e4"
+   "detailRef": "9c7e77c356f3"
   },
   {
    "id": "exported-symbol:d3054aa31594",
@@ -330713,7 +330713,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "2a36f275fdaf"
+   "detailRef": "0637d2b08def"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -331490,7 +331490,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "0bded9d6cb91"
+   "detailRef": "5e8abb0dd695"
   },
   {
    "id": "path-literal:0bf79812be34",
@@ -331935,7 +331935,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "37ce299014ff"
+   "detailRef": "d619c422beec"
   },
   {
    "id": "path-literal:c6197bb92a0d",
@@ -332243,7 +332243,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "5d7852feef3a"
+   "detailRef": "4436c0b81b1d"
   },
   {
    "id": "path-literal:8dde84c52fc6",
@@ -332328,7 +332328,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "93c7972b812e"
+   "detailRef": "38f64a1c2213"
   },
   {
    "id": "path-literal:8c053e8b8f24",
@@ -332431,7 +332431,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "2d4b10c744bc"
+   "detailRef": "c92de7e42b11"
   },
   {
    "id": "path-literal:aa716cfba765",
@@ -332712,7 +332712,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "0f003ea5a500"
+   "detailRef": "92fcbba07ed6"
   },
   {
    "id": "path-literal:f44156886df7",
@@ -332938,7 +332938,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "2e4d25e40801"
+   "detailRef": "6373644b1229"
   },
   {
    "id": "path-literal:388f33a815f3",
@@ -335721,7 +335721,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "97c06dcefe28"
+   "detailRef": "e0eca0dd6500"
   },
   {
    "id": "path-literal:e50600e506b9",
@@ -335964,7 +335964,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "6a66e9bd3937"
+   "detailRef": "b5eac097b8d8"
   },
   {
    "id": "path-literal:01b14860f373",
@@ -336536,7 +336536,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "bbf0586d1fd7"
+   "detailRef": "7ab65118a627"
   },
   {
    "id": "path-literal:d92029df1169",
@@ -338787,7 +338787,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "6739520a6074"
+   "detailRef": "ba7ed913a581"
   },
   {
    "id": "path-literal:93c6bbab763a",
@@ -344537,7 +344537,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/tok-connect-remote-mcp/index.ts"
    ],
-   "detailRef": "2aa2e0a9f92e"
+   "detailRef": "d8a6afabda43"
   },
   {
    "id": "query-parameter:53f1f1bd6ea8",
