@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `9a713e90e4c2634cedbaf66cf3e11a6f104056374975f6a01a56b9b417cce807`
+- Empreinte SHA-256 des sources indexées : `b13d4d2cbb33cbafefbbb616b9d9288203e4ecedc2d40433cd785a6103b905f8`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,7 +29,7 @@
 | cronJobs | 33 |
 | databaseContract | 228 |
 | databaseObjects | 2720 |
-| documents | 192 |
+| documents | 193 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 3360 |
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 521 |
-| modules | 1459 |
+| modules | 1460 |
 | pages | 127 |
 | pathLiterals | 614 |
 | publicAssets | 301 |
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15485 |
-| repositoryFiles | 2720 |
+| records | 15490 |
+| repositoryFiles | 2722 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -5762,7 +5762,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 566 |
+| test | 567 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -5886,6 +5886,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Projet — Finalisation de TOK Marketing Autopilot | 29 | [docs/projects/TOK_MARKETING_AUTOPILOT_COMPLETION.md:1](../../docs/projects/TOK_MARKETING_AUTOPILOT_COMPLETION.md#L1) |
 | OpenAI dans la démonstration commerciale | 6 | [docs/runbooks/commercial-demo-ai.md:1](../../docs/runbooks/commercial-demo-ai.md#L1) |
 | Simulateur de paiement — démonstration commerciale TOK | 4 | [docs/runbooks/commercial-demo-payment-simulator.md:1](../../docs/runbooks/commercial-demo-payment-simulator.md#L1) |
+| Courier QR camera policy | 1 | [docs/runbooks/courier-camera-policy.md:1](../../docs/runbooks/courier-camera-policy.md#L1) |
 | Local Git Auto Sync | 4 | [docs/runbooks/local-git-auto-sync.md:1](../../docs/runbooks/local-git-auto-sync.md#L1) |
 | Hébergement des associations mobiles | 3 | [docs/runbooks/mobile-association-hosting.md:1](../../docs/runbooks/mobile-association-hosting.md#L1) |
 | Runbook release production securisee | 8 | [docs/runbooks/production-release-readiness.md:1](../../docs/runbooks/production-release-readiness.md#L1) |
@@ -6864,7 +6865,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (125)</summary>
+<details><summary>documentation (126)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md`
@@ -6922,6 +6923,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/projects/TOK_MARKETING_AUTOPILOT_COMPLETION.md`
 - `docs/runbooks/commercial-demo-ai.md`
 - `docs/runbooks/commercial-demo-payment-simulator.md`
+- `docs/runbooks/courier-camera-policy.md`
 - `docs/runbooks/local-git-auto-sync.md`
 - `docs/runbooks/mobile-association-hosting.md`
 - `docs/runbooks/production-release-readiness.md`
@@ -8183,7 +8185,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (566)</summary>
+<details><summary>test (567)</summary>
 
 - `scripts/ci-change-plan.test.mjs`
 - `scripts/ci-critical-tests.test.mjs`
@@ -8374,6 +8376,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/dashboard-time-range.test.ts`
 - `src/test/database-value-constraints.test.ts`
 - `src/test/delivery-dispatch-scheduling.test.ts`
+- `src/test/delivery-proof-panel.test.tsx`
 - `src/test/delivery-proof-signature.test.ts`
 - `src/test/delivery-proof.test.ts`
 - `src/test/delivery-route.test.ts`

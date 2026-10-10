@@ -2,14 +2,14 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "9a713e90e4c2634cedbaf66cf3e11a6f104056374975f6a01a56b9b417cce807",
+ "sourceDigest": "b13d4d2cbb33cbafefbbb616b9d9288203e4ecedc2d40433cd785a6103b905f8",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2720,
-  "documents": 192,
+  "documents": 193,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3360,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 521,
-  "modules": 1459,
+  "modules": 1460,
   "pages": 127,
   "pathLiterals": 614,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15485,
-  "repositoryFiles": 2720,
+  "records": 15490,
+  "repositoryFiles": 2722,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -13167,7 +13167,7 @@
      },
      {
       "path": "src/test/vercel-rewrites.test.ts",
-      "line": 229
+      "line": 233
      }
     ]
    },
@@ -25292,7 +25292,7 @@
      },
      {
       "path": "src/test/vercel-rewrites.test.ts",
-      "line": 233
+      "line": 237
      }
     ]
    },
@@ -25305,7 +25305,7 @@
      },
      {
       "path": "src/test/vercel-rewrites.test.ts",
-      "line": 234
+      "line": 238
      }
     ]
    },
@@ -71717,6 +71717,17 @@
     ]
    },
    {
+    "path": "docs/runbooks/courier-camera-policy.md",
+    "title": "Courier QR camera policy",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Courier QR camera policy",
+      "line": 1
+     }
+    ]
+   },
+   {
     "path": "docs/runbooks/local-git-auto-sync.md",
     "title": "Local Git Auto Sync",
     "headings": [
@@ -80998,7 +81009,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 325
+    "lineCount": 328
    },
    {
     "path": "src/components/crm/CrmAccessGuard.tsx",
@@ -100047,6 +100058,13 @@
     "lineCount": 45
    },
    {
+    "path": "src/test/delivery-proof-panel.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 161
+   },
+   {
     "path": "src/test/delivery-proof-signature.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -103265,7 +103283,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 281
+    "lineCount": 285
    },
    {
     "path": "src/test/zero-attente-finalization-governance.test.ts",
@@ -109400,6 +109418,11 @@
    },
    {
     "path": "docs/runbooks/commercial-demo-payment-simulator.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/runbooks/courier-camera-policy.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -116062,6 +116085,11 @@
     "path": "src/test/delivery-dispatch-scheduling.test.ts",
     "category": "test",
     "extension": ".ts"
+   },
+   {
+    "path": "src/test/delivery-proof-panel.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/delivery-proof-signature.test.ts",
@@ -124573,14 +124601,14 @@
    "id": "code-module:18de1efd8b47",
    "type": "code-module",
    "title": "src/components/courier/DeliveryProofPanel.tsx",
-   "description": "Module de 325 lignes; exports: default.",
+   "description": "Module de 328 lignes; exports: default.",
    "path": "src/components/courier/DeliveryProofPanel.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "a17d14eeaf07"
+   "detailRef": "1944a34af28a"
   },
   {
    "id": "code-module:36ce811d7fc1",
@@ -136145,6 +136173,17 @@
    "detailRef": "21f112a9c00e"
   },
   {
+   "id": "code-module:c5be444afda0",
+   "type": "code-module",
+   "title": "src/test/delivery-proof-panel.test.tsx",
+   "description": "Module de 161 lignes; exports: aucun export statique.",
+   "path": "src/test/delivery-proof-panel.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "bfab5519f494"
+  },
+  {
    "id": "code-module:cbff6e7893cc",
    "type": "code-module",
    "title": "src/test/delivery-proof-signature.test.ts",
@@ -140818,7 +140857,7 @@
    "id": "code-module:3581bc9ee271",
    "type": "code-module",
    "title": "src/test/vercel-rewrites.test.ts",
-   "description": "Module de 281 lignes; exports: aucun export statique.",
+   "description": "Module de 285 lignes; exports: aucun export statique.",
    "path": "src/test/vercel-rewrites.test.ts",
    "line": 1,
    "surface": null,
@@ -140829,7 +140868,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "41ae93af4942"
+   "detailRef": "0dd5c783eb50"
   },
   {
    "id": "code-module:fb4ccd67ca33",
@@ -198010,6 +198049,20 @@
    "detailRef": "ee229b871918"
   },
   {
+   "id": "document-section:70d761caf3cf",
+   "type": "document-section",
+   "title": "Courier QR camera policy",
+   "description": "Section de Courier QR camera policy.",
+   "path": "docs/runbooks/courier-camera-policy.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Courier QR camera policy",
+    "h1"
+   ],
+   "detailRef": "d58385a990d9"
+  },
+  {
    "id": "document-section:038da9ee83b2",
    "type": "document-section",
    "title": "Create Composite Indexes for Multi-Column Queries",
@@ -219658,6 +219711,19 @@
     "Contrat-cadre restaurateur TOK"
    ],
    "detailRef": "604bd1c9cbb2"
+  },
+  {
+   "id": "document:70d761caf3cf",
+   "type": "document",
+   "title": "Courier QR camera policy",
+   "description": "Document Markdown avec 1 section(s).",
+   "path": "docs/runbooks/courier-camera-policy.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Courier QR camera policy"
+   ],
+   "detailRef": "d5d914578b3a"
   },
   {
    "id": "document:038da9ee83b2",
@@ -280137,6 +280203,20 @@
    "detailRef": "3d81d291e468"
   },
   {
+   "id": "file:9a916618d8d3",
+   "type": "file",
+   "title": "docs/runbooks/courier-camera-policy.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/runbooks/courier-camera-policy.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "569b45c14daf"
+  },
+  {
    "id": "file:383798bcb26e",
    "type": "file",
    "title": "docs/runbooks/local-git-auto-sync.md",
@@ -298783,6 +298863,20 @@
     "test"
    ],
    "detailRef": "31c1fd9a06be"
+  },
+  {
+   "id": "file:a6ea418b0e13",
+   "type": "file",
+   "title": "src/test/delivery-proof-panel.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/delivery-proof-panel.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "78b6a5c25e77"
   },
   {
    "id": "file:f15a07c4c6ed",
@@ -329386,7 +329480,7 @@
    "tags": [
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "88604be601c6"
+   "detailRef": "c82f03937570"
   },
   {
    "id": "path-literal:8c462d5d4454",
@@ -337719,7 +337813,7 @@
    "tags": [
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "7d890fa5701e"
+   "detailRef": "9eb218692f7f"
   },
   {
    "id": "path-literal:5a3fb37bd8fb",
@@ -337740,7 +337834,7 @@
     "src/test/tok-connect.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "9ea2f50a8601"
+   "detailRef": "50d0befa1f11"
   },
   {
    "id": "path-literal:41dea0e967db",
