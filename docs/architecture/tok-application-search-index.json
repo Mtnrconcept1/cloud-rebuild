@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "683c56d8156298a04fc90eff18b4a0f86a430a91eef885eb6e99c2d01eb5d1d1",
+ "sourceDigest": "74995bb87d30da0d0e459ac755775724b222420706d2820fd2f83cfe73164755",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -77981,7 +77981,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 110
+    "lineCount": 162
    },
    {
     "path": "scripts/ensure-supabase-auth-security.mjs",
@@ -121959,12 +121959,12 @@
    "id": "code-module:f76fdaf9c7fc",
    "type": "code-module",
    "title": "scripts/dependency-security.test.mjs",
-   "description": "Module de 110 lignes; exports: aucun export statique.",
+   "description": "Module de 162 lignes; exports: aucun export statique.",
    "path": "scripts/dependency-security.test.mjs",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "c01400956674"
+   "detailRef": "5c01290ab460"
   },
   {
    "id": "code-module:dd9f888f5819",

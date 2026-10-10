@@ -180,6 +180,7 @@
   },
   "pnpm": {
     "overrides": {
+      "source-map-js@<1.2.2": "1.2.2",
       "protobufjs": "7.6.5",
       "ws": "8.21.0",
       "brace-expansion@^1.0.0": "1.1.21",
