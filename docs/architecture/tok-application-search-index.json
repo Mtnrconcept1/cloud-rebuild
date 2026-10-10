@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "ecc20e03b8997280a2f6a41a143377e5f8cdf1aa36fac7b21560200a6e96e7bc",
+ "sourceDigest": "81220f303e9687f59979a2868aa920fe1bb4b772198eebfd54d5d588534e43b3",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 522,
-  "modules": 1465,
+  "modules": 1466,
   "pages": 127,
-  "pathLiterals": 617,
+  "pathLiterals": 620,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15534,
-  "repositoryFiles": 2733,
+  "records": 15539,
+  "repositoryFiles": 2734,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -2935,7 +2935,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 37,
+      "line": 45,
       "kind": "default"
      }
     ],
@@ -12474,15 +12474,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 33
-     },
-     {
-      "path": "src/hooks/useSeoMeta.ts",
-      "line": 160
-     },
-     {
-      "path": "src/hooks/useSeoMeta.ts",
-      "line": 160
+      "line": 34
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -12494,11 +12486,19 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 267
+      "line": 162
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 294
+      "line": 162
+     },
+     {
+      "path": "src/hooks/useSeoMeta.ts",
+      "line": 268
+     },
+     {
+      "path": "src/hooks/useSeoMeta.ts",
+      "line": 295
      },
      {
       "path": "src/lib/adminDomains.ts",
@@ -12875,6 +12875,18 @@
      {
       "path": "src/test/tok-logo-calendar.test.ts",
       "line": 31
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 17
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 25
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 80
      },
      {
       "path": "src/test/vercel-rewrites.test.ts",
@@ -13366,7 +13378,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 189
+      "line": 190
      },
      {
       "path": "src/pages/APropos.tsx",
@@ -13427,7 +13439,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 58
+      "line": 59
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -13513,7 +13525,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 182
+      "line": 183
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -14919,7 +14931,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 195
+      "line": 196
      },
      {
       "path": "src/pages/Aide.tsx",
@@ -14993,7 +15005,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 41
+      "line": 42
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -15333,7 +15345,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 25
+      "line": 26
      },
      {
       "path": "src/lib/adminDomains.ts",
@@ -15393,11 +15405,11 @@
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 20
+      "line": 28
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 26
+      "line": 34
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -15482,6 +15494,14 @@
      {
       "path": "src/test/support-chat-auth-gate.test.tsx",
       "line": 63
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 45
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 45
      }
     ]
    },
@@ -15867,7 +15887,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 57
+      "line": 58
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -15934,7 +15954,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 186
+      "line": 187
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -16054,7 +16074,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 54
+      "line": 55
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -16144,6 +16164,10 @@
       "line": 909
      },
      {
+      "path": "src/pages/ComingSoon.tsx",
+      "line": 8
+     },
+     {
       "path": "src/test/coming-soon-gate.test.tsx",
       "line": 66
      },
@@ -16158,6 +16182,18 @@
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 75
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 30
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 35
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 60
      }
     ]
    },
@@ -17011,7 +17047,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 191
+      "line": 192
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -17092,7 +17128,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 59
+      "line": 60
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -17165,7 +17201,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 188
+      "line": 189
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -17557,7 +17593,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 49
+      "line": 50
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -19218,7 +19254,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 21
+      "line": 22
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -19247,7 +19283,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 27
+      "line": 28
      },
      {
       "path": "src/lib/authDomains.ts",
@@ -19389,7 +19425,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 50
+      "line": 51
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -19616,7 +19652,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 56
+      "line": 57
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -21697,7 +21733,7 @@
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 8
+      "line": 16
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -21923,7 +21959,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 51
+      "line": 52
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -22027,7 +22063,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 22
+      "line": 23
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -22081,7 +22117,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 185
+      "line": 186
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -22256,7 +22292,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 53
+      "line": 54
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -22317,7 +22353,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 52
+      "line": 53
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -22497,7 +22533,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 26
+      "line": 27
      }
     ]
    },
@@ -22612,7 +22648,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 190
+      "line": 191
      },
      {
       "path": "src/lib/publicFeatureMatrix.ts",
@@ -22677,7 +22713,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 24
+      "line": 25
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -22798,6 +22834,32 @@
     ]
    },
    {
+    "value": "/parametres",
+    "sources": [
+     {
+      "path": "src/hooks/useSeoMeta.ts",
+      "line": 21
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 48
+     }
+    ]
+   },
+   {
+    "value": "/parametres-inconnus",
+    "sources": [
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 72
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 73
+     }
+    ]
+   },
+   {
     "value": "/parametres/securite",
     "sources": [
      {
@@ -22815,6 +22877,31 @@
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 49
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 48
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 62
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 64
+     },
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 79
+     }
+    ]
+   },
+   {
+    "value": "/parametres/securite/",
+    "sources": [
+     {
+      "path": "src/test/utility-route-metadata.test.tsx",
+      "line": 48
      }
     ]
    },
@@ -22848,7 +22935,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 23
+      "line": 24
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -22913,7 +23000,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 187
+      "line": 188
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -23140,7 +23227,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 28
+      "line": 29
      }
     ]
    },
@@ -23301,7 +23388,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 37
+      "line": 38
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -24648,7 +24735,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 194
+      "line": 195
      },
      {
       "path": "src/lib/publicFeatureMatrix.ts",
@@ -24733,7 +24820,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 192
+      "line": 193
      },
      {
       "path": "src/lib/publicFeatureMatrix.ts",
@@ -24802,7 +24889,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 193
+      "line": 194
      },
      {
       "path": "src/lib/publicFeatureMatrix.ts",
@@ -25230,11 +25317,11 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 60
+      "line": 61
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 184
+      "line": 185
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -25272,7 +25359,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 29
+      "line": 30
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -25383,7 +25470,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 183
+      "line": 184
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -26126,7 +26213,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 45
+      "line": 46
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -26225,7 +26312,7 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 55
+      "line": 56
      },
      {
       "path": "src/lib/commercialDemoClientRoutes.ts",
@@ -85210,17 +85297,17 @@
     "exports": [
      {
       "name": "ensureSeoMetadataForRoute",
-      "line": 246,
+      "line": 247,
       "kind": "function"
      },
      {
       "name": "buildCanonicalUrl",
-      "line": 266,
+      "line": 267,
       "kind": "function"
      },
      {
       "name": "useSeoMeta",
-      "line": 271,
+      "line": 272,
       "kind": "function"
      }
     ],
@@ -85228,7 +85315,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 366
+    "lineCount": 367
    },
    {
     "path": "src/hooks/useSessionStorageState.ts",
@@ -96514,13 +96601,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 37,
+      "line": 45,
       "kind": "default"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 38
+    "lineCount": 46
    },
    {
     "path": "src/pages/Commandes.tsx",
@@ -103465,6 +103552,13 @@
      "supabase"
     ],
     "lineCount": 32
+   },
+   {
+    "path": "src/test/utility-route-metadata.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 86
    },
    {
     "path": "src/test/vercel-rewrites.test.ts",
@@ -118162,6 +118256,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/utility-route-metadata.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/vercel-rewrites.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -127575,7 +127674,7 @@
    "id": "code-module:bd769c2df9a6",
    "type": "code-module",
    "title": "src/hooks/useSeoMeta.ts",
-   "description": "Module de 366 lignes; exports: ensureSeoMetadataForRoute, buildCanonicalUrl, useSeoMeta.",
+   "description": "Module de 367 lignes; exports: ensureSeoMetadataForRoute, buildCanonicalUrl, useSeoMeta.",
    "path": "src/hooks/useSeoMeta.ts",
    "line": 1,
    "surface": null,
@@ -127585,7 +127684,7 @@
     "google",
     "useSeoMeta"
    ],
-   "detailRef": "17e0bccf317d"
+   "detailRef": "26839c474348"
   },
   {
    "id": "code-module:5883d3da6c48",
@@ -132460,14 +132559,14 @@
    "id": "code-module:77e25833758b",
    "type": "code-module",
    "title": "src/pages/ComingSoon.tsx",
-   "description": "Module de 38 lignes; exports: default.",
+   "description": "Module de 46 lignes; exports: default.",
    "path": "src/pages/ComingSoon.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "ebf72d4d9b20"
+   "detailRef": "85284d386551"
   },
   {
    "id": "code-module:7ecfb97734f1",
@@ -141180,6 +141279,17 @@
     "supabase"
    ],
    "detailRef": "f5ac274e7069"
+  },
+  {
+   "id": "code-module:83e4ecdb18a8",
+   "type": "code-module",
+   "title": "src/test/utility-route-metadata.test.tsx",
+   "description": "Module de 86 lignes; exports: aucun export statique.",
+   "path": "src/test/utility-route-metadata.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "579b1f4773ff"
   },
   {
    "id": "code-module:3581bc9ee271",
@@ -250510,18 +250620,18 @@
    "detailRef": "db7b2b23177a"
   },
   {
-   "id": "exported-symbol:4a58b27b04a2",
+   "id": "exported-symbol:13930970204e",
    "type": "exported-symbol",
    "title": "buildCanonicalUrl",
    "description": "Export function de src/hooks/useSeoMeta.ts.",
    "path": "src/hooks/useSeoMeta.ts",
-   "line": 266,
+   "line": 267,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "171fee0f3577"
+   "detailRef": "9b5911573421"
   },
   {
    "id": "exported-symbol:7e5f8982e5a8",
@@ -256754,17 +256864,17 @@
    "detailRef": "67b9c2f5a8dd"
   },
   {
-   "id": "exported-symbol:c4c6761474ae",
+   "id": "exported-symbol:c0307929326c",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export default de src/pages/ComingSoon.tsx.",
    "path": "src/pages/ComingSoon.tsx",
-   "line": 37,
+   "line": 45,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "8c9765b12457"
+   "detailRef": "f02bdfb9cadd"
   },
   {
    "id": "exported-symbol:2138778a9cf2",
@@ -258878,18 +258988,18 @@
    "detailRef": "937b50722027"
   },
   {
-   "id": "exported-symbol:140bbb6081f5",
+   "id": "exported-symbol:8597cbab9460",
    "type": "exported-symbol",
    "title": "ensureSeoMetadataForRoute",
    "description": "Export function de src/hooks/useSeoMeta.ts.",
    "path": "src/hooks/useSeoMeta.ts",
-   "line": 246,
+   "line": 247,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "ae604e82de92"
+   "detailRef": "1543561dac19"
   },
   {
    "id": "exported-symbol:17ccb1edb7aa",
@@ -274912,18 +275022,18 @@
    "detailRef": "9ddca3b855be"
   },
   {
-   "id": "exported-symbol:d494706c98e7",
+   "id": "exported-symbol:89422795021f",
    "type": "exported-symbol",
    "title": "useSeoMeta",
    "description": "Export function de src/hooks/useSeoMeta.ts.",
    "path": "src/hooks/useSeoMeta.ts",
-   "line": 271,
+   "line": 272,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "d22ffcaf2431"
+   "detailRef": "2967e1480422"
   },
   {
    "id": "exported-symbol:32ce242dd9a6",
@@ -304785,6 +304895,20 @@
    "detailRef": "3d2b712ffb28"
   },
   {
+   "id": "file:18ae59b78698",
+   "type": "file",
+   "title": "src/test/utility-route-metadata.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/utility-route-metadata.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "87bfa87467f8"
+  },
+  {
    "id": "file:5d1c97d1c118",
    "type": "file",
    "title": "src/test/vercel-rewrites.test.ts",
@@ -328843,7 +328967,7 @@
    "tags": [
     "/coming-soon"
    ],
-   "detailRef": "2878ae412d98"
+   "detailRef": "76eb60e4cf9f"
   },
   {
    "id": "page:20d7738531bc",
@@ -330170,7 +330294,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 235 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 238 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -330267,6 +330391,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/supabase-client-imports.test.ts",
     "src/test/tok-logo-calendar.test.ts",
+    "src/test/utility-route-metadata.test.tsx",
     "src/test/vercel-rewrites.test.ts",
     "supabase/functions/_shared/tok-connect.ts",
     "supabase/functions/_shared/transactional-emails.ts",
@@ -330287,7 +330412,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "161759e48d86"
+   "detailRef": "65d51f482991"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -330524,7 +330649,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "8340d53f5cad"
+   "detailRef": "bf9006effada"
   },
   {
    "id": "path-literal:b93cc2bbc5bc",
@@ -330560,7 +330685,7 @@
     "src/test/meal-subscription-cart.test.tsx",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "3f78d148297b"
+   "detailRef": "df5a1744ccfd"
   },
   {
    "id": "path-literal:a5b6aab3e61b",
@@ -330659,7 +330784,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "ff39627adc71"
+   "detailRef": "e3a890008134"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -331373,7 +331498,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "02e16dc88ead"
+   "detailRef": "a0073d400c63"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -331415,7 +331540,7 @@
     "src/test/feature-visibility.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "483a6124880a"
+   "detailRef": "786d28e086cc"
   },
   {
    "id": "path-literal:b8366dc7f0ad",
@@ -331811,7 +331936,7 @@
    "id": "path-literal:684553841fb1",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 52 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 54 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1224,
    "surface": null,
@@ -331853,9 +331978,10 @@
     "src/test/mobile-logo-intro.test.tsx",
     "src/test/monitoring-consent.test.ts",
     "src/test/route-wiring.test.ts",
-    "src/test/support-chat-auth-gate.test.tsx"
+    "src/test/support-chat-auth-gate.test.tsx",
+    "src/test/utility-route-metadata.test.tsx"
    ],
-   "detailRef": "8e2e905578b2"
+   "detailRef": "8f037e82706c"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -331981,7 +332107,7 @@
     "src/lib/featureCatalog.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "9abcb210ce23"
+   "detailRef": "e6e09711c565"
   },
   {
    "id": "path-literal:32d025d623e0",
@@ -332035,7 +332161,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "eba76712f33a"
+   "detailRef": "297c269650b9"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -332132,13 +332258,13 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "0bded9d6cb91"
+   "detailRef": "660fe4e26218"
   },
   {
    "id": "path-literal:0bf79812be34",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 553,
    "surface": null,
@@ -332146,11 +332272,13 @@
     "src/App.tsx",
     "src/components/ComingSoonGate.tsx",
     "src/lib/featureCatalog.ts",
+    "src/pages/ComingSoon.tsx",
     "src/test/coming-soon-gate.test.tsx",
     "src/test/route-serving-regression.test.ts",
-    "src/test/route-wiring.test.ts"
+    "src/test/route-wiring.test.ts",
+    "src/test/utility-route-metadata.test.tsx"
    ],
-   "detailRef": "91dbb6cf86b2"
+   "detailRef": "e07b3057921f"
   },
   {
    "id": "path-literal:d5b1770201fa",
@@ -332643,7 +332771,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "4abce853710b"
+   "detailRef": "3bb6762ee2fc"
   },
   {
    "id": "path-literal:686daa729d7c",
@@ -332670,7 +332798,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "9908661b0c69"
+   "detailRef": "40721a7fbb14"
   },
   {
    "id": "path-literal:09145bbf5f6b",
@@ -332692,7 +332820,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "b2724928e7a5"
+   "detailRef": "7154bf635852"
   },
   {
    "id": "path-literal:890ebda57e00",
@@ -332852,7 +332980,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "7dcbe74d212b"
+   "detailRef": "e84950d1ffe3"
   },
   {
    "id": "path-literal:86886b2b5201",
@@ -333748,7 +333876,7 @@
     "src/hooks/useSeoMeta.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "6400753ee6e7"
+   "detailRef": "3f1beeb7584d"
   },
   {
    "id": "path-literal:57859266b8fe",
@@ -333769,7 +333897,7 @@
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "7c392ddf08b5"
+   "detailRef": "7788fcc24d91"
   },
   {
    "id": "path-literal:812e0ecff89d",
@@ -333856,7 +333984,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "a0064a443e15"
+   "detailRef": "d473089029a0"
   },
   {
    "id": "path-literal:b657e0a461f5",
@@ -334070,7 +334198,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "3a16423d03c1"
+   "detailRef": "0b884873d3dd"
   },
   {
    "id": "path-literal:95e27403bc7d",
@@ -336097,7 +336225,7 @@
     "src/test/tok-logo-calendar.test.ts",
     "supabase/functions/_shared/transactional-emails.ts"
    ],
-   "detailRef": "4a01f5acbfe6"
+   "detailRef": "f1cc5ed1bb14"
   },
   {
    "id": "path-literal:36ae17fff331",
@@ -336255,7 +336383,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "21aa5be2cfa4"
+   "detailRef": "8602979a6e8d"
   },
   {
    "id": "path-literal:d87268d71810",
@@ -336322,7 +336450,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "41ef66fe6ea2"
+   "detailRef": "4e5891565e09"
   },
   {
    "id": "path-literal:273bd3e9c9bc",
@@ -336344,7 +336472,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "2ee6ab6b40f1"
+   "detailRef": "d4890acf101b"
   },
   {
    "id": "path-literal:0bc97f93cc32",
@@ -336423,7 +336551,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "97c06dcefe28"
+   "detailRef": "f1e056e1fe16"
   },
   {
    "id": "path-literal:e50600e506b9",
@@ -336446,7 +336574,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "9035cf8bb369"
+   "detailRef": "3415dd191e28"
   },
   {
    "id": "path-literal:c940e29d8563",
@@ -336547,7 +336675,7 @@
     "scripts/prerender-seo.mjs",
     "src/hooks/useSeoMeta.ts"
    ],
-   "detailRef": "39ac266c46ac"
+   "detailRef": "ccb3584accf6"
   },
   {
    "id": "path-literal:ca0e954d32f0",
@@ -336624,7 +336752,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "3cb44e10bb55"
+   "detailRef": "80703adbe84c"
   },
   {
    "id": "path-literal:f15ac1b71119",
@@ -336667,22 +336795,63 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "1fb65024dd2d"
+   "detailRef": "8b250882f47e"
+  },
+  {
+   "id": "path-literal:f379578ff2f6",
+   "type": "path-literal",
+   "title": "/parametres-inconnus",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/utility-route-metadata.test.tsx",
+   "line": 72,
+   "surface": null,
+   "tags": [
+    "src/test/utility-route-metadata.test.tsx"
+   ],
+   "detailRef": "50b0dd91e9b1"
+  },
+  {
+   "id": "path-literal:a0d6e5117ff1",
+   "type": "path-literal",
+   "title": "/parametres/securite/",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/utility-route-metadata.test.tsx",
+   "line": 48,
+   "surface": null,
+   "tags": [
+    "src/test/utility-route-metadata.test.tsx"
+   ],
+   "detailRef": "70b94fb5244e"
   },
   {
    "id": "path-literal:01b14860f373",
    "type": "path-literal",
    "title": "/parametres/securite",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 356,
    "surface": null,
    "tags": [
     "src/App.tsx",
     "src/test/route-serving-regression.test.ts",
-    "src/test/route-wiring.test.ts"
+    "src/test/route-wiring.test.ts",
+    "src/test/utility-route-metadata.test.tsx"
    ],
-   "detailRef": "e1b25ed861a0"
+   "detailRef": "f03fe41170c3"
+  },
+  {
+   "id": "path-literal:85c0bc4c3419",
+   "type": "path-literal",
+   "title": "/parametres",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/hooks/useSeoMeta.ts",
+   "line": 21,
+   "surface": null,
+   "tags": [
+    "src/hooks/useSeoMeta.ts",
+    "src/test/utility-route-metadata.test.tsx"
+   ],
+   "detailRef": "88e32c07a7f7"
   },
   {
    "id": "path-literal:dcca78612246",
@@ -336720,7 +336889,7 @@
     "src/test/feature-flags.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "2a006d3e5253"
+   "detailRef": "b05f63180086"
   },
   {
    "id": "path-literal:f7202580b828",
@@ -336747,7 +336916,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "fded13f34c8c"
+   "detailRef": "fae282f42943"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -336952,7 +337121,7 @@
     "scripts/prerender-seo.mjs",
     "src/hooks/useSeoMeta.ts"
    ],
-   "detailRef": "05a9a0a7a664"
+   "detailRef": "3eb3997baed6"
   },
   {
    "id": "path-literal:06753084dd76",
@@ -337016,7 +337185,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "c06defd74790"
+   "detailRef": "8f2b7cc8ef20"
   },
   {
    "id": "path-literal:9c8f3445d2b3",
@@ -338222,7 +338391,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "618e6a374e38"
+   "detailRef": "fc5b4c278bed"
   },
   {
    "id": "path-literal:843e3ec74ed3",
@@ -338249,7 +338418,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "d5c3a1acf27b"
+   "detailRef": "048c4b71b42f"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -338275,7 +338444,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "9be0cc73755d"
+   "detailRef": "6f2d4f012cee"
   },
   {
    "id": "path-literal:e0d8149df64e",
@@ -338681,7 +338850,7 @@
     "src/test/tok-connect.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "9ea2f50a8601"
+   "detailRef": "71d0cef251a0"
   },
   {
    "id": "path-literal:41dea0e967db",
@@ -338716,7 +338885,7 @@
     "src/pages/TokConnect.tsx",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "7de37d99fbbe"
+   "detailRef": "357f76e3ac5f"
   },
   {
    "id": "path-literal:10a0ebcd0a8b",
@@ -338747,7 +338916,7 @@
     "src/test/feature-visibility.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "8d0c804bcf6c"
+   "detailRef": "b3dec77682e5"
   },
   {
    "id": "path-literal:d01a3ea49721",
@@ -339422,7 +339591,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "d5727f7e9679"
+   "detailRef": "bb2a54afbef0"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -339476,7 +339645,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "6739520a6074"
+   "detailRef": "e68deda975cc"
   },
   {
    "id": "path-literal:93c6bbab763a",

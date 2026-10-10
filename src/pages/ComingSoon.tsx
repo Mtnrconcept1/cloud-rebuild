@@ -1,6 +1,14 @@
 import { Link } from "react-router-dom";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 
 const ComingSoon = () => {
+  useSeoMeta({
+    title: "Ouverture prochaine | TOK",
+    description: "L'ouverture de TOK est imminente. Connectez-vous ou créez votre compte restaurateur.",
+    path: "/coming-soon",
+    robots: "noindex,nofollow,noarchive",
+  });
+
   return (
     <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-background px-4 py-12 text-center">
       <div className="w-full max-w-md">
