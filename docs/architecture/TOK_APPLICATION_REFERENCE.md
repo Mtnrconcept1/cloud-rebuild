@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b0265e1df1c61fc6361dee7136f0ba4faa8e505f845319beee1299e2dea8cc76`
+- Empreinte SHA-256 des sources indexées : `5fa76fd1a25af739b2ab914572b4ebb0fff49d71988b14a327380110e7da1719`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,7 +29,7 @@
 | cronJobs | 33 |
 | databaseContract | 228 |
 | databaseObjects | 2720 |
-| documents | 191 |
+| documents | 192 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 3360 |
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 521 |
-| modules | 1458 |
+| modules | 1459 |
 | pages | 127 |
-| pathLiterals | 611 |
+| pathLiterals | 614 |
 | publicAssets | 301 |
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15473 |
-| repositoryFiles | 2718 |
+| records | 15485 |
+| repositoryFiles | 2720 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -281,6 +281,7 @@ GitHub Actions : contrôles, synchronisation, déploiement et opérations planif
 | /restaurants/vand-uvres/:path* | — | /restaurants/vandoeuvres/:path* | permanent |
 | /restaurants/corsier-ge | — | /restaurants/corsier | permanent |
 | /restaurants/corsier-ge/:path* | — | /restaurants/corsier/:path* | permanent |
+| /:path((?!\.well-known/(?:apple-app-site-association\|assetlinks\.json)$).*) | thetok.ch | https://www.thetok.ch/:path | permanent |
 
 ### Réécritures
 
@@ -328,6 +329,7 @@ GitHub Actions : contrôles, synchronisation, déploiement et opérations planif
 
 | Source | Hôte | En-têtes |
 | --- | --- | --- |
+| /.well-known/apple-app-site-association | — | Content-Type |
 | /(.*) | — | Content-Security-Policy, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, X-Frame-Options |
 | /assets/:path* | — | Cache-Control |
 | /auth | — | Cache-Control |
@@ -937,13 +939,16 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 234 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 235 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 4 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
-| /.well-known/apple-app-site-association | 2 | [src/test/application-search-index.test.ts:69](../../src/test/application-search-index.test.ts#L69) |
-| /.well-known/assetlinks.json | 2 | [scripts/mobile-verify.mjs:262](../../scripts/mobile-verify.mjs#L262) |
+| /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:69](../../src/test/application-search-index.test.ts#L69) |
+| /.well-known/apple-app-site-association-extra | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
+| /.well-known/assetlinks.json | 3 | [scripts/mobile-verify.mjs:262](../../scripts/mobile-verify.mjs#L262) |
+| /.well-known/oauth-protected-resource | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
 | /18270815569115548? | 1 | [src/test/marketing-meta-publishing.test.ts:162](../../src/test/marketing-meta-publishing.test.ts#L162) |
 | /64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png | 1 | [src/components/home/HeroSection.tsx:44](../../src/components/home/HeroSection.tsx#L44) |
+| /:path( | 3 | [src/test/mobile-association-hosting.test.ts:8](../../src/test/mobile-association-hosting.test.ts#L8) |
 | /:path* | 1 | [src/test/marketing-subdomain-integration.test.ts:57](../../src/test/marketing-subdomain-integration.test.ts#L57) |
 | /:surface( | 2 | [src/test/vercel-rewrites.test.ts:132](../../src/test/vercel-rewrites.test.ts#L132) |
 | /:surface(admin\|marketing\|dashboard\|courier\|commercial\|profil\|memoire-tok\|notifications\|commandes\|commande\|reservations\|mon-espace\|compte\|espace-client\|mes-avis\|points-cadeau\|panier\|auth\|oauth\|espaces\|r) | 2 | [src/test/vercel-rewrites.test.ts:107](../../src/test/vercel-rewrites.test.ts#L107) |
@@ -1138,7 +1143,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/promotions | 3 | [src/App.tsx:626](../../src/App.tsx#L626) |
 | /dashboard/recommandations | 2 | [src/App.tsx:612](../../src/App.tsx#L612) |
 | /dashboard/reseaux-sociaux | 3 | [src/App.tsx:628](../../src/App.tsx#L628) |
-| /dashboard/reservations | 20 | [src/App.tsx:610](../../src/App.tsx#L610) |
+| /dashboard/reservations | 21 | [src/App.tsx:610](../../src/App.tsx#L610) |
 | /dashboard/reservations?reservation=res-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:29](../../src/test/notifications-sinistres-governance.test.ts#L29) |
 | /dashboard/restaurant | 5 | [src/App.tsx:607](../../src/App.tsx#L607) |
 | /dashboard/service | 5 | [src/App.tsx:635](../../src/App.tsx#L635) |
@@ -1426,7 +1431,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants/carouge/r/le-jardin-de-pinchat | 1 | [src/test/seo-city-identity.test.ts:67](../../src/test/seo-city-identity.test.ts#L67) |
 | /restaurants/carouge/r/other-city | 1 | [src/test/seo-restaurant-context-hardening.test.ts:30](../../src/test/seo-restaurant-context-hardening.test.ts#L30) |
 | /restaurants/chene-bourg/r/la-caf | 1 | [src/test/seo-web-artifact-names.test.ts:55](../../src/test/seo-web-artifact-names.test.ts#L55) |
-| /restaurants/geneve | 7 | [src/test/commercial-domain-isolation.test.ts:87](../../src/test/commercial-domain-isolation.test.ts#L87) |
+| /restaurants/geneve | 8 | [src/test/commercial-domain-isolation.test.ts:87](../../src/test/commercial-domain-isolation.test.ts#L87) |
 | /restaurants/geneve/eaux-vives | 2 | [src/test/seo-crawl-hardening.test.ts:93](../../src/test/seo-crawl-hardening.test.ts#L93) |
 | /restaurants/geneve/italien | 2 | [src/test/seo-crawl-hardening.test.ts:99](../../src/test/seo-crawl-hardening.test.ts#L99) |
 | /restaurants/geneve/r/a | 6 | [src/test/seo-directory-quality-hardening.test.ts:47](../../src/test/seo-directory-quality-hardening.test.ts#L47) |
@@ -5739,7 +5744,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Stripe | 211 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 651 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 56 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 57 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
@@ -5757,7 +5762,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 565 |
+| test | 566 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -5882,6 +5887,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | OpenAI dans la démonstration commerciale | 6 | [docs/runbooks/commercial-demo-ai.md:1](../../docs/runbooks/commercial-demo-ai.md#L1) |
 | Simulateur de paiement — démonstration commerciale TOK | 4 | [docs/runbooks/commercial-demo-payment-simulator.md:1](../../docs/runbooks/commercial-demo-payment-simulator.md#L1) |
 | Local Git Auto Sync | 4 | [docs/runbooks/local-git-auto-sync.md:1](../../docs/runbooks/local-git-auto-sync.md#L1) |
+| Hébergement des associations mobiles | 3 | [docs/runbooks/mobile-association-hosting.md:1](../../docs/runbooks/mobile-association-hosting.md#L1) |
 | Runbook release production securisee | 8 | [docs/runbooks/production-release-readiness.md:1](../../docs/runbooks/production-release-readiness.md#L1) |
 | Runbook Stripe et reconciliation financiere | 8 | [docs/runbooks/stripe-financial-ops.md:1](../../docs/runbooks/stripe-financial-ops.md#L1) |
 | Protection SEO et anti-scraping de TOK | 10 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
@@ -6858,7 +6864,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (124)</summary>
+<details><summary>documentation (125)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md`
@@ -6917,6 +6923,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/runbooks/commercial-demo-ai.md`
 - `docs/runbooks/commercial-demo-payment-simulator.md`
 - `docs/runbooks/local-git-auto-sync.md`
+- `docs/runbooks/mobile-association-hosting.md`
 - `docs/runbooks/production-release-readiness.md`
 - `docs/runbooks/stripe-financial-ops.md`
 - `docs/security/SEO_BOT_PROTECTION_RUNBOOK.md`
@@ -8176,7 +8183,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (565)</summary>
+<details><summary>test (566)</summary>
 
 - `scripts/ci-change-plan.test.mjs`
 - `scripts/ci-critical-tests.test.mjs`
@@ -8510,6 +8517,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/meal-subscription.test.ts`
 - `src/test/menu-item-images.test.ts`
 - `src/test/miamz-business-logic-guards.test.ts`
+- `src/test/mobile-association-hosting.test.ts`
 - `src/test/mobile-logo-intro.test.tsx`
 - `src/test/mobile-modal-scroll-guards.test.ts`
 - `src/test/mobile-theme-toggle.test.tsx`
