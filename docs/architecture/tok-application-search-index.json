@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "5fa76fd1a25af739b2ab914572b4ebb0fff49d71988b14a327380110e7da1719",
+ "sourceDigest": "9a713e90e4c2634cedbaf66cf3e11a6f104056374975f6a01a56b9b417cce807",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -101704,7 +101704,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 320
+    "lineCount": 325
    },
    {
     "path": "src/test/production-supabase-deployment-keys.test.ts",
@@ -138543,7 +138543,7 @@
    "id": "code-module:da3166f1d173",
    "type": "code-module",
    "title": "src/test/production-preflight-hardening.test.ts",
-   "description": "Module de 320 lignes; exports: aucun export statique.",
+   "description": "Module de 325 lignes; exports: aucun export statique.",
    "path": "src/test/production-preflight-hardening.test.ts",
    "line": 1,
    "surface": null,
@@ -138554,7 +138554,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "01b339f6fd00"
+   "detailRef": "9425c6031783"
   },
   {
    "id": "code-module:384581ed4d81",
