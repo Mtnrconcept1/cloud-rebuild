@@ -43,18 +43,18 @@ INSERT INTO public.social_posts(id,restaurant_id,author_id,body,status,post_type
 SELECT ('74330000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
  '74310000-0000-4000-8000-000000000001','74300000-0000-4000-8000-000000000001',
  'Synthetic sponsored post '||n,'published','promo','order','public',now()-interval '5 minutes'
-FROM generate_series(1,6) n;
+FROM generate_series(1,7) n;
 INSERT INTO public.ad_campaigns(id,restaurant_id,type,title,body,status,payment_status,target_pages,
- pricing_strategy,cpm_rate,cpc_rate,total_budget,budget_daily,spent,daily_spent,daily_spent_date,starts_at,ends_at)
+ pricing_strategy,cpm_rate,cpc_rate,conversion_rate,total_budget,budget_daily,spent,daily_spent,daily_spent_date,starts_at,ends_at)
 SELECT ('74340000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
  '74310000-0000-4000-8000-000000000001','actualites','Synthetic paid campaign '||n,'Disposable fixture',
- 'active','paid','["actualites"]'::jsonb,CASE WHEN n%2=1 THEN 'visibility' ELSE 'traffic' END,
- 10,1,100,50,0,0,current_date,now()-interval '1 hour',now()+interval '1 day'
-FROM generate_series(1,6) n;
+ 'active','paid','["actualites"]'::jsonb,CASE WHEN n=7 THEN 'conversion' WHEN n%2=1 THEN 'visibility' ELSE 'traffic' END,
+ 10,1,1,CASE WHEN n=7 THEN 0.5 ELSE 100 END,CASE WHEN n=7 THEN 0.5 ELSE 50 END,0,0,current_date,now()-interval '1 hour',now()+interval '1 day'
+FROM generate_series(1,7) n;
 INSERT INTO public.social_post_promotions(post_id,campaign_id,restaurant_id,status,starts_at,ends_at,budget_amount,placement,boost_weight,created_by)
 SELECT ('74330000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
  ('74340000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,
  '74310000-0000-4000-8000-000000000001','active',now()-interval '1 hour',now()+interval '1 day',
  100,'actualites_feed',1,'74300000-0000-4000-8000-000000000001'
-FROM generate_series(1,6) n;
+FROM generate_series(1,7) n;
 COMMIT;
