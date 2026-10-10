@@ -32,3 +32,8 @@ test('shared Docker container names are refused before Docker runs', () => {
 test('implicit database ports are refused', () => {
   rejected({ TOK_SECURITY_710_DISPOSABLE: 'true', PGHOST: '127.0.0.1' }, /explicit local PGPORT/);
 });
+test('database connection strings cannot override the loopback target', () => {
+  for (const database of ['postgresql://db.example.test/postgres', 'host=db.example.test dbname=postgres', 'shared_database', '']) {
+    rejected({ TOK_SECURITY_710_DISPOSABLE: 'true', PGHOST: '127.0.0.1', PGPORT: '54322', PGDATABASE: database }, /PGDATABASE must be/);
+  }
+});

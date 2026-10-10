@@ -21,6 +21,7 @@ if (container) {
   assert.ok(!process.env.PGSERVICE && !process.env.PGSERVICEFILE && !process.env.PGHOSTADDR, 'Connection service/address overrides are forbidden');
   assert.ok(['127.0.0.1', 'localhost', '::1'].includes(process.env.PGHOST), 'Only explicit loopback PGHOST is accepted');
   assert.match(process.env.PGPORT || '', /^\d+$/, 'An explicit local PGPORT is required');
+  assert.equal(process.env.PGDATABASE, 'postgres', 'PGDATABASE must be the explicit disposable postgres database, never a URI or conninfo');
 }
 const executable = container ? 'docker' : (process.env.PSQL_BIN || 'psql');
 const args = [...(container ? ['exec', '-i', container, 'psql', '-U', 'postgres', '-d', 'postgres'] : []), '-X', '-q', '-A', '-t', '-v', 'ON_ERROR_STOP=1'];
