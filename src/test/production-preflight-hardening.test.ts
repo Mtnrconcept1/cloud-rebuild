@@ -314,6 +314,11 @@ describe("production preflight hardening", () => {
     const aasaHeaders = vercel.headers.find(
       (entry: { source?: string }) => entry.source === "/.well-known/apple-app-site-association",
     );
-    expect(aasaHeaders).toBeUndefined();
+    // Web deployment stays independent of mobile signing/generation gates.
+    // Serving the existing static association as JSON requires no mobile secret.
+    expect(aasaHeaders?.headers).toContainEqual({
+      key: "Content-Type",
+      value: "application/json; charset=utf-8",
+    });
   });
 });

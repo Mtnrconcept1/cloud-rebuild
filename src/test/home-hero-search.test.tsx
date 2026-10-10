@@ -25,7 +25,7 @@ describe("homepage semantic search", () => {
     setup();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByRole("heading", { level: 1 })).not.toHaveClass("sr-only");
-    expect(screen.getByRole("searchbox", { name: "Cuisine, nom de restaurant ou quartier" })).toBeVisible();
+    expect(screen.getByRole("searchbox", { name: "Restaurant ou cuisine" })).toBeVisible();
     expect(screen.getByRole("link", { name: /Restaurateur/ })).toHaveAttribute("href", "/restaurateurs/geneve");
   });
   it("submits a trimmed and safely encoded query through the search form", () => {
@@ -35,26 +35,28 @@ describe("homepage semantic search", () => {
     const result = new URL(screen.getByTestId("location").textContent!, "https://www.thetok.ch");
     expect(result.pathname).toBe("/recherche");
     expect(result.searchParams.get("q")).toBe("sushi & ramen");
-    expect(result.searchParams.get("city")).toBe("Genève");
+    expect(result.searchParams.has("city")).toBe(false);
   });
-  it.each(["Rechercher", "Je veux manger"])("opens Geneva discovery with %s and no query", (name) => {
+  it("opens discovery without imposing a city or a query", () => {
     setup();
-    fireEvent.click(screen.getByRole("button", { name, exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Rechercher", exact: true }));
+    expect(screen.getByTestId("location")).toHaveTextContent("/recherche");
     const result = new URL(screen.getByTestId("location").textContent!, "https://www.thetok.ch");
-    expect(result.pathname).toBe("/recherche");
-    expect(result.searchParams.has("q")).toBe(false);
-    expect(result.searchParams.get("city")).toBe("Genève");
+    expect(result.search).toBe("");
   });
-  it("leaves the guest navigation to the full account header once signed in", () => {
+  it("submits the city explicitly entered by the visitor", () => {
     setup();
-    expect(screen.getByRole("navigation", { name: "Navigation principale" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "Connexion" })).toBeVisible();
-
-    cleanup();
+    fireEvent.change(screen.getByRole("textbox", { name: /Où/ }), { target: { value: "  Lausanne  " } });
+    fireEvent.submit(screen.getByRole("search"));
+    const result = new URL(screen.getByTestId("location").textContent!, "https://www.thetok.ch");
+    expect(result.searchParams.get("city")).toBe("Lausanne");
+    expect(result.searchParams.has("q")).toBe(false);
+  });
+  it("keeps discovery accessible for signed-in visitors", () => {
     authState.user = { id: "user-1" };
     setup();
-
-    expect(screen.queryByRole("navigation", { name: "Navigation principale" })).not.toBeInTheDocument();
+    expect(screen.getByRole("search")).toBeVisible();
     expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-authenticated", "true");
+    expect(screen.queryByRole("navigation", { name: "Navigation principale" })).not.toBeInTheDocument();
   });
 });

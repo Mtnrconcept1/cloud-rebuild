@@ -19,7 +19,7 @@ const FUNCTIONS_DIR = join(ROOT, "supabase", "functions");
 const OUTPUT = join(FUNCTIONS_DIR, "_shared", "error-code-map.ts");
 
 // `new HttpError(502, "ai_empty_response"` — status then a literal code.
-const THROW_PATTERN = /new HttpError\(\s*\d{3}\s*,\s*["']([a-z][a-z0-9_]{2,79})["']/g;
+const THROW_PATTERN = /new HttpError\(\s*\d{3}\s*,\s*["']([a-zA-Z][a-zA-Z0-9_]{2,79})["']/g;
 
 function walk(dir) {
   const files = [];
@@ -34,26 +34,35 @@ function walk(dir) {
   return files;
 }
 
-export function buildErrorCodeMap() {
+export function buildErrorCodeMap(functionsDir = FUNCTIONS_DIR, root = ROOT) {
   const sites = new Map();
+  const additionalSites = [];
+  function addSite(code, entry) {
+    if (!sites.has(code)) sites.set(code, []);
+    const entries = sites.get(code);
+    if (entries.length < 12 && !entries.some(site => site.file === entry.file && site.line === entry.line)) {
+      entries.push(entry);
+    }
+  }
 
-  for (const file of walk(FUNCTIONS_DIR).sort()) {
-    const relativePath = relative(ROOT, file).split("\\").join("/");
+  for (const file of walk(functionsDir).sort()) {
+    const relativePath = relative(root, file).split("\\").join("/");
     const lines = readFileSync(file, "utf8").split("\n");
 
     lines.forEach((line, index) => {
       THROW_PATTERN.lastIndex = 0;
       let match;
       while ((match = THROW_PATTERN.exec(line)) !== null) {
-        const code = match[1];
-        if (!sites.has(code)) sites.set(code, []);
-        const entries = sites.get(code);
-        // Cap per code: a code raised in many places is a category, and listing
-        // every occurrence would crowd out the rest of the evidence.
-        if (entries.length < 12) entries.push({ file: relativePath, line: index + 1 });
+        const code = match[1].toLowerCase();
+        const entry = { file: relativePath, line: index + 1 };
+        // Preserve existing lowercase sites when the 12-site cap is reached.
+        // Uppercase aliases use the same normalization as lookupErrorCodeSites.
+        if (match[1] === code) addSite(code, entry);
+        else additionalSites.push({ code, entry });
       }
     });
   }
+  for (const { code, entry } of additionalSites) addSite(code, entry);
 
   return Object.fromEntries([...sites.entries()].sort(([left], [right]) => left.localeCompare(right)));
 }

@@ -1,6 +1,5 @@
 import RestaurantCard from "@/components/RestaurantCard";
 import type { LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import SectionShowcaseHeader, { type SectionHeaderTheme } from "@/components/home/SectionShowcaseHeader";
 
 interface RestaurantSectionProps {
@@ -23,8 +22,6 @@ export default function RestaurantSection({
   icon: Icon,
   iconColor,
   restaurants,
-  bgClass = "bg-background",
-  accentClassName = "bg-primary/70",
   headerTheme = "orange",
   headerImageSrc = "/images/section-headers/gift-3d.png",
   linkText = "Voir tout",
@@ -34,14 +31,9 @@ export default function RestaurantSection({
 
   return (
     <section
-      className={cn(
-        "relative isolate overflow-hidden border-y border-border/70 py-12 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-white/10 dark:bg-[radial-gradient(circle_at_88%_10%,rgba(34,211,238,0.08),transparent_22rem)] md:py-16",
-        bgClass,
-      )}
+      className="relative py-7 md:py-10"
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" aria-hidden="true" />
-      <div className={cn("pointer-events-none absolute bottom-0 left-0 top-0 w-1.5", accentClassName)} aria-hidden="true" />
-      <div className="container relative space-y-7 md:space-y-9">
+      <div className="container relative space-y-5 md:space-y-6">
         <SectionShowcaseHeader
           title={title}
           subtitle={subtitle}
@@ -53,8 +45,8 @@ export default function RestaurantSection({
           linkTo={linkTo}
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {restaurants.map((r: any, i: number) => (
-            <div key={`${r.id}-${r.campaign_id || "organic"}`} className="animate-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
+          {restaurants.map((r: any) => (
+            <div key={`${r.id}-${r.campaign_id || "organic"}`} className="min-w-0">
               <RestaurantCard
                 id={r.id}
                 name={r.name}

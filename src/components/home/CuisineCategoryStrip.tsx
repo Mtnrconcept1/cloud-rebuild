@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Utensils } from "lucide-react";
 
 import SectionShowcaseHeader from "@/components/home/SectionShowcaseHeader";
@@ -53,75 +52,10 @@ const CUISINE_CATEGORIES: CuisineCategory[] = [
   { slug: "street-food", label: "Street-food", imageSrc: "/images/miniatures/37_street-food.png" },
 ].sort((a, b) => a.label.localeCompare(b.label, "fr"));
 
-function CuisinePhoto({
-  src,
-  label,
-  isActive,
-}: {
-  src: string;
-  label: string;
-  isActive: boolean;
-}) {
+function CuisinePhoto({ src, isActive }: { src: string; isActive: boolean }) {
   return (
-    <div className="relative h-[101px] w-[101px] md:h-[117px] md:w-[117px]">
-      <div
-        className={[
-          "relative h-full w-full overflow-hidden rounded-[35px] md:rounded-[40px]",
-          "transition-all duration-300",
-          isActive
-            ? "scale-105 ring-2 ring-[#E63900]/70 shadow-[0_10px_24px_rgba(230,57,0,0.24)] dark:ring-orange-300/80 dark:shadow-[0_0_34px_rgba(249,115,22,0.34)]"
-            : "ring-1 ring-black/5 shadow-[0_6px_18px_rgba(15,23,42,0.08)] group-hover:-translate-y-1 group-hover:shadow-[0_12px_28px_rgba(15,23,42,0.14)] dark:ring-white/12 dark:shadow-[0_16px_42px_rgba(0,0,0,0.42)] dark:group-hover:shadow-[0_0_32px_rgba(249,115,22,0.20)]",
-        ].join(" ")}
-      >
-        <img
-          src={src}
-          alt=""
-          aria-hidden="true"
-          width={117}
-          height={117}
-          loading="lazy"
-          decoding="async"
-          className={[
-            "h-full w-full object-cover transition-transform duration-500 ease-out",
-            isActive ? "scale-110" : "group-hover:scale-110",
-          ].join(" ")}
-        />
-        <div
-          className={[
-            "absolute inset-0 bg-gradient-to-b transition-opacity duration-300",
-            isActive
-              ? "from-white/8 via-transparent to-[#E63900]/22 dark:to-orange-500/36"
-              : "from-white/18 via-transparent to-black/20 group-hover:to-black/28 dark:from-white/8 dark:to-black/44 dark:group-hover:to-orange-950/42",
-          ].join(" ")}
-        />
-        <div className="absolute inset-[8px] rounded-[27px] border border-white/35 md:inset-[9px] md:rounded-[32px]" />
-      </div>
-
-      <div
-        aria-hidden="true"
-        className={[
-          "pointer-events-none absolute left-1/2 top-[-18px] z-10 ml-4 -translate-x-1/2 md:top-[-22px] md:ml-5",
-          "origin-bottom-left transition-transform duration-300 ease-out",
-          "group-hover:scale-110 group-hover:-rotate-[8deg]",
-        ].join(" ")}
-      >
-        <span
-          className={[
-            "inline-flex items-center justify-center bg-no-repeat",
-            "px-3.5 pt-2 pb-5 md:px-4 md:pt-2.5 md:pb-6",
-            "text-center text-[12px] leading-none tracking-wide antialiased md:text-[14px]",
-            "whitespace-nowrap drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]",
-            isActive ? "text-[#E63900]" : "text-stone-900 dark:text-slate-950",
-          ].join(" ")}
-          style={{
-            backgroundImage: "url(/images/miniatures/bulle.png)",
-            backgroundSize: "100% 100%",
-            fontFamily: "'Playball', cursive",
-          }}
-        >
-          {label}
-        </span>
-      </div>
+    <div className={["h-16 w-16 overflow-hidden rounded-full border transition-colors md:h-20 md:w-20", isActive ? "border-primary ring-2 ring-primary/25" : "border-border group-hover:border-primary"].join(" ")}>
+      <img src={src} alt="" width={80} height={80} loading="lazy" decoding="async" className="h-full w-full object-cover" />
     </div>
   );
 }
@@ -135,7 +69,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
     const amount = 240;
     scrollRef.current.scrollBy({
       left: direction === "left" ? -amount : amount,
-      behavior: "smooth",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
     });
   };
 
@@ -144,25 +78,22 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
   };
 
   return (
-    <section className="relative overflow-hidden bg-background py-4 dark:bg-[radial-gradient(circle_at_20%_0%,rgba(249,115,22,0.10),transparent_24rem)] md:py-6">
+    <section className="relative overflow-hidden py-6 md:py-8">
       <div className="container px-4">
         <SectionShowcaseHeader
-          title="Explorer par cuisine"
+          title="À chaque envie, sa cuisine"
           subtitle="À votre goût"
           icon={Utensils}
           iconColor="text-primary"
           imageSrc="/desig app/assiette.png"
           theme="orange"
           className="mb-4"
-          titleClassName="text-3xl sm:text-4xl md:text-5xl"
-          illustrationClassName="right-4 sm:right-6 md:right-8"
-          imageClassName="-translate-x-6 sm:-translate-x-8 md:-translate-x-8"
           actions={
             <div className="hidden items-center gap-1.5 md:flex">
               <button
                 type="button"
                 onClick={() => scroll("left")}
-                className="neon-chip grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
+                className="grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
                 aria-label="Défiler à gauche"
               >
                 <ChevronLeft className="h-4.5 w-4.5" />
@@ -170,7 +101,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
               <button
                 type="button"
                 onClick={() => scroll("right")}
-                className="neon-chip grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
+                className="grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
                 aria-label="Défiler à droite"
               >
                 <ChevronRight className="h-4.5 w-4.5" />
@@ -181,33 +112,30 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
 
         <div
           ref={scrollRef}
-          className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 pt-8 scrollbar-hide md:gap-5 md:pt-10"
+          className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 pt-4 md:gap-4"
         >
-          {CUISINE_CATEGORIES.map((cat, index) => {
+          {CUISINE_CATEGORIES.map((cat) => {
             const isActive = cat.slug === activeSlug;
 
             return (
-              <motion.button
+              <button
                 key={cat.slug}
                 type="button"
                 onClick={() => handleClick(cat.slug)}
-                initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ delay: index * 0.03, type: "spring", stiffness: 260, damping: 20 }}
-                className="group flex shrink-0 snap-start flex-col items-center gap-2.5"
-                style={{ minWidth: 112 }}
+                className="group flex min-h-11 w-24 shrink-0 snap-start flex-col items-center gap-2 rounded-xl px-1 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                aria-pressed={isActive}
                 aria-label={cat.label}
               >
-                <CuisinePhoto src={cat.imageSrc} label={cat.label} isActive={isActive} />
+                <CuisinePhoto src={cat.imageSrc} isActive={isActive} />
                 <span
                   className={[
-                    "w-full max-w-[117px] text-center text-[12px] font-bold transition-colors line-clamp-1 md:text-[14px]",
-                    isActive ? "text-[#E63900] dark:text-orange-300 dark:drop-shadow-[0_0_14px_rgba(249,115,22,0.36)]" : "text-stone-600 group-hover:text-[#E63900] dark:text-slate-200 dark:group-hover:text-orange-300",
+                    "w-full text-center text-xs font-medium leading-5",
+                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary",
                   ].join(" ")}
                 >
                   {cat.label}
                 </span>
-              </motion.button>
+              </button>
             );
           })}
         </div>

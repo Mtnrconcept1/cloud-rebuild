@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -53,7 +53,6 @@ describe("application search index", () => {
     expect(index.catalogs.apiRoutes).toHaveLength(9);
     expect(index.catalogs.edgeFunctions).toHaveLength(114);
     expect(index.catalogs.edgeHttpRoutes).toHaveLength(20);
-    expect(index.catalogs.migrations).toHaveLength(521);
     expect(index.catalogs.marketingOperations).toHaveLength(36);
     expect(index.catalogs.cronJobs).toHaveLength(33);
     expect(index.catalogs.storageBuckets).toHaveLength(9);
@@ -131,6 +130,23 @@ describe("application search index", () => {
       const expected = route.route === "/api/marketing/session" ? ["DELETE", "GET"] : ["POST"];
       expect(route.methods).toEqual(expected);
     }
+  });
+
+  it("lists every SQL migration exactly once", () => {
+    const migrationFiles = readdirSync(path.join(REPOSITORY_ROOT, "supabase/migrations"), {
+      withFileTypes: true,
+    })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".sql"))
+      .map((entry) => `supabase/migrations/${entry.name}`)
+      .sort();
+    const indexedMigrations = index.catalogs.migrations
+      .map((migration: { path: string }) => migration.path)
+      .sort();
+
+    expect(migrationFiles.length).toBeGreaterThan(0);
+    expect(new Set(indexedMigrations).size).toBe(indexedMigrations.length);
+    // Compare paths, not just counts: a missing file replaced by a duplicate must fail.
+    expect(indexedMigrations).toEqual(migrationFiles);
   });
 
   it("finds routes, features, database objects and infrastructure", () => {

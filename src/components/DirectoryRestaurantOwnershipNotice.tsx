@@ -271,7 +271,7 @@ export default function DirectoryRestaurantOwnershipNotice() {
   return (
     <>
       <aside
-        className="fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-3xl rounded-2xl border border-amber-300/70 bg-background/95 p-4 shadow-2xl backdrop-blur md:inset-x-auto md:bottom-5 md:right-5 md:w-[460px]"
+        className="container my-6 rounded-2xl border bg-card p-4 text-sm"
         aria-label="Informations sur la fiche restaurant indexée"
       >
         <div className="flex items-start gap-3">
@@ -283,14 +283,14 @@ export default function DirectoryRestaurantOwnershipNotice() {
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               TOK constitue son annuaire à partir de bases publiques d’établissements, notamment de données issues du registre du commerce et de sources publiques de référence. Cette fiche n’a pas encore été revendiquée par l’établissement.
             </p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <button type="button" onClick={claimRestaurant} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">
+            <details className="mt-3"><summary className="min-h-11 cursor-pointer py-3 font-semibold text-primary">Vous représentez ce restaurant ?</summary><div className="grid gap-2 sm:grid-cols-2">
+              <button type="button" onClick={claimRestaurant} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">
                 <ShieldCheck className="h-4 w-4" /> Revendiquer mon restaurant
               </button>
-              <button type="button" onClick={() => void openRemoval()} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-destructive/40 px-3 py-2 text-sm font-semibold text-destructive hover:bg-destructive/5">
+              <button type="button" onClick={() => void openRemoval()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-destructive/40 px-3 py-2 text-sm font-semibold text-destructive hover:bg-destructive/5">
                 <Trash2 className="h-4 w-4" /> Supprimer mon restaurant
               </button>
-            </div>
+            </div></details>
           </div>
         </div>
       </aside>

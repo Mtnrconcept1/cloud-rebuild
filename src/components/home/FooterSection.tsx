@@ -21,7 +21,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
       {deliveryEnabled && (
         <section className="py-10 md:py-14">
           <div className="container">
-            <div className="rounded-2xl bg-primary/5 border border-primary/10 p-8 md:p-12 flex flex-col md:flex-row items-center gap-6 md:gap-12">
+            <div className="rounded-3xl bg-card border border-border p-8 md:p-12 flex flex-col md:flex-row items-center gap-6 md:gap-12">
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
                 <Bike className="h-8 w-8 text-primary" />
               </div>
@@ -36,7 +36,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
       )}
 
       {/* Footer */}
-      <footer className="border-t bg-card">
+      <footer className="tok-site-footer border-t bg-card">
         <div className="container py-12 md:py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
             <div className="col-span-2 md:col-span-1 space-y-4">
@@ -44,37 +44,37 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
               <p className="text-sm text-muted-foreground leading-relaxed">Le réflexe food simple, rentable et solidaire. Commandez, réservez, et savourez.</p>
             </div>
             <div className="space-y-3">
-              <h4 className="font-display font-bold text-sm">Découvrir</h4>
+              <h4 className="font-sans font-semibold text-sm">Découvrir</h4>
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
-                <Link to="/recherche" className="hover:text-foreground transition-colors">Restaurants</Link>
+                <Link to="/recherche" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Restaurants</Link>
                 {discoverLinks.map((link) => (
-                  <Link key={link.to} to={link.to} className="hover:text-foreground transition-colors">
+                  <Link key={link.to} to={link.to} className="inline-flex min-h-11 items-center hover:text-primary transition-colors">
                     {link.label}
                   </Link>
                 ))}
               </nav>
             </div>
             <div className="space-y-3">
-              <h4 className="font-display font-bold text-sm">Informations</h4>
+              <h4 className="font-sans font-semibold text-sm">Informations</h4>
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
-                <Link to="/a-propos" className="hover:text-foreground transition-colors">À propos</Link>
-                <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
-                <Link to="/aide" className="hover:text-foreground transition-colors">Centre d'aide</Link>
-                <Link to="/cgu" className="hover:text-foreground transition-colors">CGU</Link>
-                <Link to="/politique-confidentialite" className="hover:text-foreground transition-colors">Confidentialité</Link>
-                <Link to="/cookies" className="hover:text-foreground transition-colors">Cookies</Link>
+                <Link to="/a-propos" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">À propos</Link>
+                <Link to="/contact" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Contact</Link>
+                <Link to="/aide" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Centre d'aide</Link>
+                <Link to="/cgu" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">CGU</Link>
+                <Link to="/politique-confidentialite" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Confidentialité</Link>
+                <Link to="/cookies" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Cookies</Link>
               </nav>
             </div>
             <div className="space-y-3">
-              <h4 className="font-display font-bold text-sm">Restaurateur</h4>
+              <h4 className="font-sans font-semibold text-sm">Restaurateur</h4>
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
-                <Link to="/restaurateurs/geneve" className="hover:text-foreground transition-colors">Devenir partenaire</Link>
-                <Link to="/packs-restaurateur" className="hover:text-foreground transition-colors">Voir les packs</Link>
-                <Link to="/conditions-restaurateurs" className="hover:text-foreground transition-colors">Conditions restaurateurs</Link>
-                <Link to="/restaurateurs/google-business" className="hover:text-foreground transition-colors">Audit Google Business</Link>
-                <Link to="/restaurateurs/alternative-commission-couvert" className="hover:text-foreground transition-colors">Comparer les commissions</Link>
+                <Link to="/restaurateurs/geneve" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Devenir partenaire</Link>
+                <Link to="/packs-restaurateur" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Voir les packs</Link>
+                <Link to="/conditions-restaurateurs" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Conditions restaurateurs</Link>
+                <Link to="/restaurateurs/google-business" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Audit Google Business</Link>
+                <Link to="/restaurateurs/alternative-commission-couvert" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Comparer les commissions</Link>
                 {dashboardEnabled ? (
-                  <Link to="/dashboard" className="hover:text-foreground transition-colors">Espace pro</Link>
+                  <Link to="/dashboard" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Espace pro</Link>
                 ) : null}
               </nav>
               <div className="pt-2 space-y-2">
@@ -95,9 +95,9 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
           <div className="border-t pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <p>&copy; 2026 Tok. Tous droits réservés.</p>
             <div className="flex gap-4">
-              <Link to="/cgu" className="hover:text-foreground transition-colors">Conditions</Link>
-              <Link to="/politique-confidentialite" className="hover:text-foreground transition-colors">Confidentialité</Link>
-              <Link to="/cookies" className="hover:text-foreground transition-colors">Cookies</Link>
+              <Link to="/cgu" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Conditions</Link>
+              <Link to="/politique-confidentialite" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Confidentialité</Link>
+              <Link to="/cookies" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Cookies</Link>
             </div>
           </div>
         </div>
