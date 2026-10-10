@@ -13,14 +13,15 @@ SELECT '00000000-0000-0000-0000-000000000000'::uuid,
        ('71000000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
        'authenticated','authenticated','security710-' || n || '@example.test',now(),
        '{"provider":"email","providers":["email"]}'::jsonb,'{}'::jsonb,now(),now()
-FROM generate_series(1,6) n;
+FROM generate_series(1,7) n;
 INSERT INTO public.profiles(user_id,full_name,loyalty_points)
 SELECT ('71000000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,'Security 710 fixture',100
-FROM generate_series(1,6) n
+FROM generate_series(1,7) n
 ON CONFLICT (user_id) DO UPDATE SET loyalty_points=100;
 INSERT INTO public.user_roles(user_id,role) VALUES
 ('71000000-0000-4000-8000-000000000001','restaurateur'),
 ('71000000-0000-4000-8000-000000000004','admin'),
+('71000000-0000-4000-8000-000000000007','restaurateur'),
 ('71000000-0000-4000-8000-000000000006','restaurateur')
 ON CONFLICT (user_id,role) DO NOTHING;
 
@@ -34,15 +35,44 @@ INSERT INTO public.restaurants(id,owner_id,name,address,city,is_active,status,is
  supports_scheduled_orders,supports_group_orders,is_featured,directory_source,directory_source_reference)
 SELECT ('71010000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
        CASE WHEN n=8 THEN '71000000-0000-4000-8000-000000000006'::uuid
+            WHEN n=3 THEN '71000000-0000-4000-8000-000000000007'::uuid
             ELSE '71000000-0000-4000-8000-000000000001'::uuid END,
-       'Security fixture ' || n,'1 Rue Test, 1201 Geneve','Geneve',n<>2,
-       CASE WHEN n=4 THEN 'pending' ELSE 'active' END,false,
+       'Security fixture ' || n,'1 Rue Test, 1201 Geneve','Geneve',n IN (5,6,7),
+       CASE WHEN n IN (5,6,7) THEN 'active' ELSE 'pending' END,false,
        CASE WHEN n=3 THEN NULL ELSE 'https://example.test/fixture.jpg' END,
        n IN (5,6,7),n<>5,n<>6,
        false,false,false,false,false,false,false,false,
        CASE WHEN n IN (5,6,7) THEN 'security710-fixture' ELSE NULL END,
        CASE WHEN n IN (5,6,7) THEN n::text ELSE NULL END
 FROM generate_series(1,8) n;
+
+-- Establish actual publication prerequisites without bypassing any trigger:
+-- submitted dossiers, synthetic payment-method readiness, then admin review.
+INSERT INTO public.signup_applications(id,user_id,requested_role,full_name,metadata)
+SELECT ('71060000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
+       CASE n WHEN 1 THEN '71000000-0000-4000-8000-000000000001'::uuid
+              WHEN 3 THEN '71000000-0000-4000-8000-000000000007'::uuid
+              ELSE '71000000-0000-4000-8000-000000000006'::uuid END,
+       'restaurateur','Synthetic reviewed owner',
+       jsonb_build_object('restaurant_id','71010000-0000-4000-8000-' || lpad(n::text,12,'0'))
+FROM unnest(ARRAY[1,3,8]) n;
+INSERT INTO public.restaurant_ai_subscriptions(id,restaurant_id,signup_application_id,status,payment_method_ready_at,stripe_mode)
+SELECT ('71070000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
+       ('71010000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
+       ('71060000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
+       'awaiting_activation',now(),'test'
+FROM unnest(ARRAY[1,3,8]) n;
+INSERT INTO public.restaurant_subscription_payment_methods(subscription_id,restaurant_id,
+ stripe_checkout_session_id,stripe_setup_intent_id,stripe_customer_id,stripe_payment_method_id,stripe_mode,ready_at)
+SELECT id,restaurant_id,'cs_test_synthetic710_' || id,'seti_synthetic710_' || id,
+       'cus_synthetic710_' || id,'pm_synthetic710_' || id,'test',now()
+FROM public.restaurant_ai_subscriptions WHERE id::text LIKE '71070000-%';
+SELECT set_config('request.jwt.claim.sub','71000000-0000-4000-8000-000000000004',true);
+SELECT set_config('request.jwt.claims','{"sub":"71000000-0000-4000-8000-000000000004","role":"service_role"}',true);
+UPDATE public.signup_applications SET status='approved',reviewed_by='71000000-0000-4000-8000-000000000004',reviewed_at=now()
+WHERE id::text LIKE '71060000-%';
+UPDATE public.restaurants SET status='active',is_active=true
+WHERE id IN ('71010000-0000-4000-8000-000000000001','71010000-0000-4000-8000-000000000003','71010000-0000-4000-8000-000000000008');
 
 INSERT INTO public.menu_items(id,restaurant_id,name,price,is_available)
 SELECT ('71040000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
