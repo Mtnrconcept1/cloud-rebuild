@@ -63,25 +63,24 @@ WHERE id='71010000-0000-4000-8000-000000000006';
 
 -- Establish actual publication prerequisites without bypassing any trigger:
 -- submitted dossiers, synthetic payment-method readiness, then admin review.
-INSERT INTO public.signup_applications(id,user_id,requested_role,full_name,metadata)
+INSERT INTO public.signup_applications(id,user_id,requested_role,full_name,selected_subscription_plan_id,metadata)
 SELECT ('71060000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
        CASE n WHEN 1 THEN '71000000-0000-4000-8000-000000000001'::uuid
               WHEN 3 THEN '71000000-0000-4000-8000-000000000007'::uuid
               ELSE '71000000-0000-4000-8000-000000000006'::uuid END,
        'restaurateur','Synthetic reviewed owner',
+       (SELECT id FROM public.restaurant_subscription_plans WHERE slug='starter' AND is_active),
        jsonb_build_object('restaurant_id','71010000-0000-4000-8000-' || lpad(n::text,12,'0'))
 FROM unnest(ARRAY[1,3,8]) n;
-INSERT INTO public.restaurant_ai_subscriptions(id,restaurant_id,signup_application_id,status,payment_method_ready_at,stripe_mode)
-SELECT ('71070000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
-       ('71010000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
-       ('71060000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
-       'awaiting_activation',now(),'test'
-FROM unnest(ARRAY[1,3,8]) n;
+-- The signup trigger creates the real deferred subscription/invoice snapshots.
+UPDATE public.restaurant_ai_subscriptions
+SET status='awaiting_activation',payment_method_ready_at=now()
+WHERE signup_application_id::text LIKE '71060000-%';
 INSERT INTO public.restaurant_subscription_payment_methods(subscription_id,restaurant_id,
  stripe_checkout_session_id,stripe_setup_intent_id,stripe_customer_id,stripe_payment_method_id,stripe_mode,ready_at)
 SELECT id,restaurant_id,'cs_test_synthetic710_' || id,'seti_synthetic710_' || id,
        'cus_synthetic710_' || id,'pm_synthetic710_' || id,'test',now()
-FROM public.restaurant_ai_subscriptions WHERE id::text LIKE '71070000-%';
+FROM public.restaurant_ai_subscriptions WHERE signup_application_id::text LIKE '71060000-%';
 SELECT set_config('request.jwt.claim.sub','71000000-0000-4000-8000-000000000004',true);
 SELECT set_config('request.jwt.claims','{"sub":"71000000-0000-4000-8000-000000000004","role":"service_role"}',true);
 UPDATE public.signup_applications SET status='approved',reviewed_by='71000000-0000-4000-8000-000000000004',reviewed_at=now()
