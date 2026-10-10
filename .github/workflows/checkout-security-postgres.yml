@@ -1,0 +1,89 @@
+name: Checkout security PostgreSQL replay
+
+on:
+  pull_request:
+    paths:
+      - supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql
+      - supabase/tests/checkout_security_710*.sql
+      - scripts/test-checkout-security-postgres.mjs
+      - scripts/test-checkout-security-runner.test.mjs
+      - .github/workflows/checkout-security-postgres.yml
+  workflow_dispatch:
+    inputs:
+      base_sha:
+        description: Main commit before the security migration (full immutable SHA)
+        required: true
+        default: 702a9a19501af18b144dff7d1195eada04bacdb0
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '54322'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+      TOK_SECURITY_710_DISPOSABLE: 'true'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.102.0
+      - name: Prepare immutable main baseline
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || inputs.base_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          git cat-file -e "${BASE_SHA}^{commit}"
+          git worktree add --detach "$RUNNER_TEMP/tok-security-main" "$BASE_SHA"
+          # Local runner configuration only; never link to the hosted project.
+          sed -i 's/^project_id = .*/project_id = "tok-security-710-ci"/' "$RUNNER_TEMP/tok-security-main/supabase/config.toml"
+          printf '\n[db]\nmajor_version = 17\n' >> "$RUNNER_TEMP/tok-security-main/supabase/config.toml"
+          mkdir -p work/security-710-ci
+          printf '%s\n' "$BASE_SHA" > work/security-710-ci/base-sha.txt
+          git rev-parse HEAD > work/security-710-ci/candidate-sha.txt
+      - name: Replay every main migration in disposable PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/tok-security-main"
+          # Historical cron/pg_net code must never reach hosted providers.
+          docker network create --internal tok-security-710-ci
+          supabase db start --network-id tok-security-710-ci 2>&1 | tee "$GITHUB_WORKSPACE/work/security-710-ci/base-replay.log"
+          supabase db reset --local --no-seed --network-id tok-security-710-ci 2>&1 | tee -a "$GITHUB_WORKSPACE/work/security-710-ci/base-replay.log"
+          psql -X -v ON_ERROR_STOP=1 -At -c 'SELECT version FROM supabase_migrations.schema_migrations ORDER BY version' > "$GITHUB_WORKSPACE/work/security-710-ci/applied-main-versions.txt"
+          find supabase/migrations -maxdepth 1 -name '*.sql' -printf '%f\n' | cut -d_ -f1 | sort > "$GITHUB_WORKSPACE/work/security-710-ci/expected-main-versions.txt"
+          diff -u "$GITHUB_WORKSPACE/work/security-710-ci/expected-main-versions.txt" "$GITHUB_WORKSPACE/work/security-710-ci/applied-main-versions.txt"
+      - name: Test candidate transition, real roles, history and concurrency
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/test-checkout-security-runner.test.mjs
+          node scripts/test-checkout-security-postgres.mjs 2>&1 | tee work/security-710-ci/security-tests.log
+      - name: Preserve exact replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkout-security-postgres-evidence
+          path: work/security-710-ci
+      - name: Stop only the disposable runner stack
+        if: always()
+        shell: bash
+        run: |
+          if [[ -d "$RUNNER_TEMP/tok-security-main/supabase" ]]; then
+            cd "$RUNNER_TEMP/tok-security-main"
+            supabase stop --no-backup
+          fi
+          docker network rm tok-security-710-ci || true
