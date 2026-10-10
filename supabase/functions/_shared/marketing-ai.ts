@@ -10,6 +10,8 @@ import {
   MarketingPlanError,
   buildPlanSchema,
   validatePlan,
+  validateGenerationWindow,
+  MARKETING_DESTINATION_PATHS,
   type MarketingPlan,
 } from "./marketing-ai-plan.ts";
 
@@ -38,7 +40,7 @@ export type MarketingBriefContext = {
   locale: string;
 };
 
-function buildSystemPrompt(context: MarketingBriefContext) {
+export function buildSystemPrompt(context: MarketingBriefContext) {
   const blocked = context.allowedChannels.filter((c) => !context.connectedChannels.includes(c));
 
   return [
@@ -51,6 +53,17 @@ function buildSystemPrompt(context: MarketingBriefContext) {
     "- N'invente jamais de promotion, de prix, de partenariat ou de chiffre que le brief ne fournit pas.",
     "- Reste sobre : pas de superlatif creux, pas de promesse que l'entreprise ne peut pas tenir.",
     "- Chaque élément doit cibler une audience cohérente avec son canal.",
+    "- Le targeting de chaque élément doit être strictement identique à audience_definition de la campagne, valeurs nulles comprises. Ne remplace jamais restaurant_prospect par restaurant_lead.",
+    "- Utilise chaque canal sélectionné au moins une fois. in_app et push concernent des comptes inscrits, jamais une audience restaurant_prospect ou restaurant_lead sans compte.",
+    "- Une publication organique ne garantit aucune portée géographique ni aucun nombre de prospects atteints. Ne présente pas les filtres de ciblage comme un achat publicitaire.",
+    "- Construis une progression : découverte du problème, comparaison documentée, réponse aux objections, puis conversion. Ne répète pas le même texte sur un même canal.",
+    "- Renseigne strategy : conversion_goal concret, measurement_plan fondé sur visites et demandes réellement observées, comparison_basis limité aux faits fournis.",
+    "- Si le brief donne 5 CHF par table, parle de commission par table réservée selon les conditions de l’offre. Cela ne signifie ni absence d’abonnement, ni absence de tout autre frais.",
+    "- Pour une comparaison par couvert, utilise le tarif réel du contrat du restaurateur ou une formule symbolique. Aucun tarif concurrent inventé, aucune économie garantie, aucune généralisation à tous les concurrents.",
+    `- Choisis destination_url sur https://www.thetok.ch parmi : ${MARKETING_DESTINATION_PATHS.join(", ")}. La page alternative-commission-couvert convient à une comparaison. call_to_action contient uniquement le libellé, sans URL : l’application ajoute son lien tracé.`,
+    "- Pour Instagram, n’affirme pas qu’un lien en légende est cliquable. Ne prétends pas avoir configuré le lien en bio.",
+    "- Les visuels doivent porter le message principal du brief, avoir une hiérarchie lisible et une palette TOK orange/crème. N’invente pas de logo ou de partenariat.",
+
     "",
     `Canaux autorisés : ${context.allowedChannels.join(", ") || "aucun"}.`,
     blocked.length > 0
@@ -67,6 +80,7 @@ function buildSystemPrompt(context: MarketingBriefContext) {
 }
 
 export async function generateMarketingPlan(context: MarketingBriefContext) {
+  validateGenerationWindow(context.startsAt, context.endsAt);
   const model = selectTokAiModel("strategy");
 
   const response = await createOpenAIResponse({
@@ -92,7 +106,7 @@ export async function generateMarketingPlan(context: MarketingBriefContext) {
   const usage = extractUsage(response);
   let plan: MarketingPlan;
   try {
-    plan = validatePlan(parseStructuredOutput<MarketingPlan>(response), context.allowedChannels);
+    plan = validatePlan(parseStructuredOutput<MarketingPlan>(response), context.allowedChannels, { now: Date.now(), startsAt: context.startsAt, endsAt: context.endsAt, itemCount: context.itemCount, requireConversion: true });
   } catch (error) {
     // A rejected plan is a provider-quality problem, not a caller mistake; the
     // reason travels into the audit log without carrying any generated content.
@@ -142,14 +156,17 @@ export async function generateCampaignVisual(
       };
     };
   },
-  options: { prompt: string; campaignSlug: string; index: number; apiKey: string },
+  options: { prompt: string; campaignSlug: string; index: number; apiKey: string; timeoutMs?: number },
 ): Promise<string | null> {
   if (!options.apiKey || !options.prompt.trim()) return null;
 
   let payload: unknown;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), Math.min(60_000, Math.max(1, options.timeoutMs ?? 60_000)));
   try {
     const response = await fetch(IMAGE_GENERATIONS_URL, {
       method: "POST",
+      signal: controller.signal,
       headers: {
         Authorization: `Bearer ${options.apiKey}`,
         "Content-Type": "application/json",
@@ -158,6 +175,8 @@ export async function generateCampaignVisual(
         model: IMAGE_MODEL,
         prompt: options.prompt.slice(0, 4000),
         size: "1024x1024",
+        output_format: "jpeg",
+        output_compression: 90,
         n: 1,
       }),
     });
@@ -165,17 +184,21 @@ export async function generateCampaignVisual(
     payload = await response.json();
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 
   const first = (payload as { data?: Array<{ b64_json?: string }> })?.data?.[0];
-  if (!first?.b64_json) return null;
+  if (typeof first?.b64_json !== "string" || first.b64_json.length > 11_000_000) return null;
 
-  const path = `marketing-ai/${options.campaignSlug}/${Date.now()}-${options.index}.png`;
+  const path = `marketing-ai/${options.campaignSlug}/${Date.now()}-${options.index}.jpg`;
   try {
+    const bytes = bytesFromBase64(first.b64_json);
+    if (bytes.length > 8 * 1024 * 1024 || bytes[0] !== 255 || bytes[1] !== 216 || bytes[2] !== 255) return null;
     const { error } = await adminClient.storage.from(VISUAL_BUCKET).upload(
       path,
-      bytesFromBase64(first.b64_json),
-      { contentType: "image/png", upsert: false },
+      bytes,
+      { contentType: "image/jpeg", upsert: false },
     );
     if (error) return null;
     return adminClient.storage.from(VISUAL_BUCKET).getPublicUrl(path).data.publicUrl;

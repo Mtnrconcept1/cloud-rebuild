@@ -136,7 +136,7 @@ export default function MarketingCalendarView({
   const confirmApproval = async () => {
     if (!selectedItem || !approvalSchedule) return;
     const scheduledAt = approvalScheduleIso;
-    if (!scheduledAt) return;
+    if (!scheduledAt || Date.parse(scheduledAt) < Date.now() + 2 * 60_000) return;
     const result = await onApprove(selectedItem.id, scheduledAt);
     if (result) {
       setSelectedItem(null);
@@ -164,8 +164,8 @@ export default function MarketingCalendarView({
     : null;
   const approvalChecks = selectedItem ? [
     { label: "Élément en brouillon et en attente", ok: selectedItem.status === "draft" && selectedItem.approvalStatus === "pending" },
-    { label: "Campagne approuvée", ok: Boolean(selectedCampaign?.approvedAt) },
-    { label: "Audience éligible, ou canal de publication publique", ok: selectedItem.audienceSize > 0 || isPublicMarketingChannel(selectedItem.channel) },
+    { label: "Campagne approuvée ou élément indépendant", ok: !selectedItem.campaignId || Boolean(selectedCampaign?.approvedAt) },
+    // Eligibility is computed and enforced by admin_approve_marketing_item, not a draft counter.
     { label: "Contenu non vide", ok: selectedItem.content.trim().length > 0 },
     { label: "Canal disponible ou manuel", ok: Boolean(selectedChannel && ["available", "manual"].includes(selectedChannel.availability)) },
   ] : [];
@@ -295,7 +295,7 @@ export default function MarketingCalendarView({
                 <div><p className="text-xs text-muted-foreground">Canal</p><div className="mt-1"><MarketingChannelBadge channel={selectedItem.channel} /></div></div>
                 <div><p className="text-xs text-muted-foreground">Statut</p><div className="mt-1"><MarketingStatusBadge status={selectedItem.status} /></div></div>
                 <div><p className="text-xs text-muted-foreground">Audience</p><p className="mt-1 text-sm font-medium">{selectedItem.audienceName}</p></div>
-                <div><p className="text-xs text-muted-foreground">Taille éligible</p><p className="mt-1 text-sm font-medium">{selectedItem.audienceSize.toLocaleString("fr-CH")}</p></div>
+                <div><p className="text-xs text-muted-foreground">Taille éligible</p><p className="mt-1 text-sm font-medium">{isPublicMarketingChannel(selectedItem.channel) ? "Portée non estimée" : selectedItem.approvalStatus === "pending" ? "Calcul à l’approbation" : selectedItem.audienceSize.toLocaleString("fr-CH")}</p></div>
               </div>
               <div className="rounded-xl border bg-muted/20 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contenu</p>
@@ -317,6 +317,8 @@ export default function MarketingCalendarView({
                       <span>{check.label}</span>
                     </div>
                   ))}
+                  <p className="text-xs text-muted-foreground">Le serveur recalcule les destinataires éligibles et contrôle les consentements avant d’autoriser la planification. Un compteur de brouillon ne constitue pas une estimation de portée.</p>
+                  {approvalScheduleIso && Date.parse(approvalScheduleIso) < Date.now() + 2 * 60_000 ? <p className="text-xs text-rose-600">Choisissez une heure au moins deux minutes dans le futur.</p> : null}
                   <label htmlFor="calendar-approval-schedule" className="block text-sm font-semibold">Date et heure de planification
                     <Input id="calendar-approval-schedule" type="datetime-local" className="mt-2" value={approvalSchedule} onChange={(event) => setApprovalSchedule(event.target.value)} />
                     {approvalSchedule && !approvalScheduleIso ? <span className="mt-1 block text-xs font-normal text-rose-600">Cet horaire n'existe pas en Europe/Zurich lors du changement d'heure.</span> : null}
@@ -334,7 +336,7 @@ export default function MarketingCalendarView({
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setSelectedItem(null)}>Fermer</Button>
             {selectedItem && selectedItem.status === "draft" && selectedItem.approvalStatus === "pending" ? (
-              <Button type="button" disabled={!canMutateBackend || !canApproveSelected || !approvalScheduleIso || pendingAction === `approve-item-${selectedItem.id}`} onClick={confirmApproval}>
+              <Button type="button" disabled={!canMutateBackend || !canApproveSelected || !approvalScheduleIso || Date.parse(approvalScheduleIso) < Date.now() + 2 * 60_000 || pendingAction === `approve-item-${selectedItem.id}`} onClick={confirmApproval}>
                 <CheckCircle2 className="mr-2 h-4 w-4" />Approuver et planifier
               </Button>
             ) : null}

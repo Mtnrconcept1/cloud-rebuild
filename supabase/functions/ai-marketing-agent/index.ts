@@ -1,3 +1,4 @@
+import { validateGenerationWindow, validatePlan, MarketingPlanError } from "../_shared/marketing-ai-plan.ts";
 import {
   HttpError,
   authenticateRequest,
@@ -123,6 +124,7 @@ Deno.serve(async (req) => {
   if (preflight) return preflight;
 
   const log = makeLogger("ai-marketing-agent");
+  const generationDeadline = Date.now() + 110_000;
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let action: Action | "unknown" = "unknown";
   let runId: string | null = null;
@@ -175,6 +177,12 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "item_count_invalid");
     }
 
+    try { validateGenerationWindow(startsAt, endsAt); }
+    catch (error) {
+      if (error instanceof MarketingPlanError) throw new HttpError(400, error.reason);
+      throw error;
+    }
+    if (rawCount < channels.length) throw new HttpError(400, "item_count_below_channels");
     const connectedChannels = await readConnectedChannels(client);
 
     const { data: startedRunId, error: startError } = await client.rpc(
@@ -206,6 +214,8 @@ Deno.serve(async (req) => {
     let visualBudget = MAX_VISUALS;
     for (let index = 0; index < plan.items.length && visualBudget > 0; index += 1) {
       const prompt = plan.items[index].visual_prompt;
+      const remaining = generationDeadline - Date.now();
+      if (remaining < 5_000) break;
       if (!prompt) continue;
       visualBudget -= 1;
       const url = await generateCampaignVisual(client, {
@@ -213,11 +223,22 @@ Deno.serve(async (req) => {
         campaignSlug: slug,
         index,
         apiKey: OPENAI_API_KEY,
+        timeoutMs: Math.max(1, remaining - 3_000),
       });
       if (url) visuals.set(index, url);
     }
 
+    validatePlan(plan, channels, { now: Date.now(), startsAt, endsAt, itemCount: rawCount, requireConversion: true });
     const bundle = toBundlePayload(plan, visuals);
+    const missingInstagram = plan.items.filter((item, index) => item.channel === "instagram" && !visuals.has(index)).length;
+    const summary = [plan.campaign.summary,
+      `Conversion : ${plan.campaign.strategy?.conversion_goal || "À préciser"}`,
+      `Mesure : ${plan.campaign.strategy?.measurement_plan || "À préciser"}`,
+      `Comparaison : ${plan.campaign.strategy?.comparison_basis || "À vérifier"}`,
+      "Portée sociale non estimée ; une publication organique ne garantit pas le ciblage géographique. Budget publicitaire non configuré.",
+      "Coût affiché : estimation du texte uniquement, hors images et publicité.",
+      missingInstagram ? `Attention : ${missingInstagram} publication(s) Instagram sans image. Compléter le visuel avant toute approbation.` : "",
+    ].filter(Boolean).join("\n\n");
 
     await writeAuditLog({
       adminClient: client,
@@ -241,7 +262,7 @@ Deno.serve(async (req) => {
         ok: true,
         runId,
         bundle,
-        summary: plan.campaign.summary,
+        summary,
         itemCount: plan.items.length,
         assetCount: visuals.size,
         model,

@@ -84,9 +84,9 @@ export default function MarketingAgentView({
 }) {
   const [objective, setObjective] = useState("");
   const [audienceHint, setAudienceHint] = useState("");
-  const [channels, setChannels] = useState<MarketingChannelId[]>(["in_app"]);
-  const [startsAt, setStartsAt] = useState(isoDay(1));
-  const [endsAt, setEndsAt] = useState(isoDay(15));
+  const [channels, setChannels] = useState<MarketingChannelId[]>([]);
+  const [startsAt, setStartsAt] = useState(`${isoDay(1)}T09:00`);
+  const [endsAt, setEndsAt] = useState(`${isoDay(15)}T18:00`);
   const [itemCount, setItemCount] = useState(4);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -145,13 +145,21 @@ export default function MarketingAgentView({
       return;
     }
 
-    const startIso = marketingZurichLocalDateTimeToIso(`${startsAt}T09:00:00`);
-    const endIso = marketingZurichLocalDateTimeToIso(`${endsAt}T18:00:00`);
+    const startIso = marketingZurichLocalDateTimeToIso(startsAt);
+    const endIso = marketingZurichLocalDateTimeToIso(endsAt);
     if (!startIso || !endIso) {
       setError("La période contient une heure inexistante ou ambiguë en Europe/Zurich.");
       return;
     }
 
+    if (Date.parse(startIso) < Date.now() + 10 * 60_000) {
+      setError("Le début doit se situer au moins 10 minutes dans le futur (heure suisse).");
+      return;
+    }
+    if (!Number.isInteger(itemCount) || itemCount < channels.length || itemCount > 12) {
+      setError("Prévoyez au moins un élément par canal sélectionné, avec un maximum de 12.");
+      return;
+    }
     setPending(true);
     try {
       const response = await marketingBffRequest<GenerateResult>(MARKETING_BFF_ENDPOINTS.agent, {
@@ -202,6 +210,16 @@ export default function MarketingAgentView({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
+          <Button type="button" variant="outline" disabled={pending || !canMutateBackend} onClick={() => {
+            setObjective("Recruter des restaurateurs genevois. Mettre en avant la commission de 5 CHF par table réservée selon les conditions de l’offre TOK, comparée aux plateformes qui facturent par couvert. Comparer avec le tarif réel du contrat du restaurateur, sans inventer de prix concurrent ni promettre l’absence d’autres frais. Proposer une progression découverte, comparaison, objections et demande de présentation.");
+            setAudienceHint("Restaurateurs et exploitants du canton de Genève, audience restaurant, canton GE. Acquisition via Facebook et Instagram organiques ; portée non garantie.");
+            setChannels(["facebook", "instagram"]);
+            setItemCount(4);
+            setStartsAt(`${isoDay(1)}T09:00`);
+            setEndsAt(`${isoDay(15)}T18:00`);
+            setError(null);
+          }}>Recruter des restaurateurs genevois</Button>
+          <p className="text-xs text-slate-600">Choisissez explicitement les canaux. Les notifications internes concernent les comptes déjà inscrits ; les publications sociales ne garantissent pas une portée géographique.</p>
           <div className="space-y-2">
             <Label htmlFor="agent-objective">Objectif</Label>
             <Textarea
@@ -272,7 +290,7 @@ export default function MarketingAgentView({
               <Label htmlFor="agent-start">Début</Label>
               <Input
                 id="agent-start"
-                type="date"
+                type="datetime-local"
                 value={startsAt}
                 disabled={pending}
                 onChange={(event) => setStartsAt(event.target.value)}
@@ -282,7 +300,7 @@ export default function MarketingAgentView({
               <Label htmlFor="agent-end">Fin</Label>
               <Input
                 id="agent-end"
-                type="date"
+                type="datetime-local"
                 value={endsAt}
                 disabled={pending}
                 onChange={(event) => setEndsAt(event.target.value)}
@@ -340,11 +358,11 @@ export default function MarketingAgentView({
           </CardHeader>
           <CardContent className="space-y-4">
             {result.summary ? (
-              <p className="text-sm leading-relaxed text-slate-700">{result.summary}</p>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{result.summary}</p>
             ) : null}
             <p className="text-xs text-slate-500">
               {result.items.length} élément(s) en brouillon · {result.assetCount} visuel(s) généré(s)
-              · coût estimé {formatChf(result.estimatedCostChf)}
+              · texte estimé {formatChf(result.estimatedCostChf)} — hors images et publicité
             </p>
             <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
               {result.items.map((item) => (
@@ -410,7 +428,7 @@ export default function MarketingAgentView({
                   </div>
                   <p className="text-xs text-slate-500">
                     {run.item_count} élément(s) · {run.asset_count} visuel(s) ·{" "}
-                    {formatChf(run.estimated_cost_chf)}
+                    {formatChf(run.estimated_cost_chf)} (texte uniquement)
                     {run.model ? ` · ${run.model}` : ""}
                   </p>
                   {run.last_error ? (

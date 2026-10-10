@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "f5328f9dad5e2446aea41641e3909d3b87cb55338af3a8c271cb795cbf08a16d",
+ "sourceDigest": "4d8addecca2e3def862ea1d5d9d4b9d6a91ac3eee56fec82757e99a9ea015eb3",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2720,
-  "documents": 190,
+  "documents": 191,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3359,
+  "exportedSymbols": 3367,
   "featureFlags": 99,
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 521,
-  "modules": 1455,
+  "modules": 1458,
   "pages": 127,
   "pathLiterals": 604,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
-  "queryParameters": 102,
-  "records": 15431,
-  "repositoryFiles": 2713,
+  "queryParameters": 104,
+  "records": 15454,
+  "repositoryFiles": 2717,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -12886,6 +12886,10 @@
       "line": 76
      },
      {
+      "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+      "line": 411
+     },
+     {
       "path": "supabase/functions/_shared/tok-connect.ts",
       "line": 313
      },
@@ -15031,6 +15035,10 @@
       "line": 13
      },
      {
+      "path": "src/test/marketing-generation-ui.test.tsx",
+      "line": 8
+     },
+     {
       "path": "src/test/marketing-source-discovery.test.tsx",
       "line": 5
      },
@@ -17022,6 +17030,10 @@
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 54
+     },
+     {
+      "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+      "line": 403
      },
      {
       "path": "supabase/functions/discover-thefork-official-sites/index.ts",
@@ -23219,6 +23231,10 @@
      {
       "path": "src/test/tok-logo-calendar.test.ts",
       "line": 32
+     },
+     {
+      "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+      "line": 403
      }
     ]
    },
@@ -24447,12 +24463,20 @@
       "line": 69
      },
      {
+      "path": "src/test/marketing-plan-consistency.test.ts",
+      "line": 139
+     },
+     {
       "path": "src/test/route-wiring.test.ts",
       "line": 64
      },
      {
       "path": "src/test/seo-growth.test.ts",
       "line": 145
+     },
+     {
+      "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+      "line": 403
      }
     ]
    },
@@ -24534,6 +24558,10 @@
      {
       "path": "src/test/seo-growth.test.ts",
       "line": 144
+     },
+     {
+      "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+      "line": 403
      }
     ]
    },
@@ -27649,6 +27677,26 @@
     ]
    },
    {
+    "name": "utm_campaign",
+    "sources": [
+     {
+      "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+      "line": 426
+     }
+    ],
+    "routes": []
+   },
+   {
+    "name": "utm_content",
+    "sources": [
+     {
+      "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+      "line": 427
+     }
+    ],
+    "routes": []
+   },
+   {
     "name": "utm_medium",
     "sources": [
      {
@@ -27658,6 +27706,10 @@
      {
       "path": "src/pages/RestaurantDetail.tsx",
       "line": 345
+     },
+     {
+      "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+      "line": 425
      }
     ],
     "routes": [
@@ -27674,6 +27726,10 @@
      {
       "path": "src/pages/RestaurantDetail.tsx",
       "line": 337
+     },
+     {
+      "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+      "line": 424
      }
     ],
     "routes": [
@@ -27921,6 +27977,7 @@
      "src/test/incident-intelligence-unification.test.ts",
      "src/test/incident-secret-sync-readiness.test.ts",
      "src/test/legal-miamz-readiness.test.ts",
+     "src/test/marketing-ai-generation-quality.test.ts",
      "src/test/marketing-b2b-outreach.test.ts",
      "src/test/marketing-backlink-provider.test.ts",
      "src/test/marketing-openai-tool-choice.test.ts",
@@ -28654,6 +28711,7 @@
      "src/test/loyalty-status-dialog-layout.test.tsx",
      "src/test/marketing-agent-bff.test.ts",
      "src/test/marketing-ai-agent.test.ts",
+     "src/test/marketing-ai-generation-quality.test.ts",
      "src/test/marketing-autopilot-sql.test.ts",
      "src/test/marketing-b2b-outreach.test.ts",
      "src/test/marketing-backlink-discovery.test.ts",
@@ -28672,6 +28730,7 @@
      "src/test/marketing-operations-frontend.test.ts",
      "src/test/marketing-orchestrator-schema.test.ts",
      "src/test/marketing-outreach-schema.test.ts",
+     "src/test/marketing-plan-consistency.test.ts",
      "src/test/marketing-print-contract.test.ts",
      "src/test/marketing-print-domain.test.ts",
      "src/test/marketing-prospect-coordinates.test.ts",
@@ -70615,6 +70674,37 @@
     ]
    },
    {
+    "path": "docs/marketing/TOK_MARKETING_CONSISTENCY_2026-10-10.md",
+    "title": "Cohérence des campagnes TOK — 10 octobre 2026",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Cohérence des campagnes TOK — 10 octobre 2026",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Périmètre et plan avant modification",
+      "line": 3
+     },
+     {
+      "level": 2,
+      "title": "Preuves initiales",
+      "line": 17
+     },
+     {
+      "level": 2,
+      "title": "Résultat vérifié",
+      "line": 21
+     },
+     {
+      "level": 2,
+      "title": "Livraison",
+      "line": 32
+     }
+    ]
+   },
+   {
     "path": "docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md",
     "title": "Marketing : session, recherche de sources et diagnostic Meta",
     "headings": [
@@ -81971,7 +82061,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 428
+    "lineCount": 446
    },
    {
     "path": "src/components/marketing/views/MarketingAudiencesView.tsx",
@@ -82010,7 +82100,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 386
+    "lineCount": 388
    },
    {
     "path": "src/components/marketing/views/MarketingCampaignsView.tsx",
@@ -100372,6 +100462,16 @@
     "lineCount": 297
    },
    {
+    "path": "src/test/marketing-ai-generation-quality.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 37
+   },
+   {
     "path": "src/test/marketing-autopilot-frontend.test.tsx",
     "exports": [],
     "environmentNames": [],
@@ -100494,6 +100594,13 @@
     "lineCount": 70
    },
    {
+    "path": "src/test/marketing-generation-ui.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 55
+   },
+   {
     "path": "src/test/marketing-image-output.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -100601,6 +100708,15 @@
      "supabase"
     ],
     "lineCount": 92
+   },
+   {
+    "path": "src/test/marketing-plan-consistency.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 156
    },
    {
     "path": "src/test/marketing-print-contract.test.ts",
@@ -103694,43 +103810,78 @@
       "kind": "variable"
      },
      {
-      "name": "MarketingPlanError",
+      "name": "MARKETING_PLAN_LEAD_MS",
+      "line": 45,
+      "kind": "variable"
+     },
+     {
+      "name": "MARKETING_APPROVAL_LEAD_MS",
       "line": 46,
+      "kind": "variable"
+     },
+     {
+      "name": "MarketingPlanConstraints",
+      "line": 47,
+      "kind": "typealias"
+     },
+     {
+      "name": "MarketingCampaignStrategy",
+      "line": 50,
+      "kind": "typealias"
+     },
+     {
+      "name": "MarketingPlanError",
+      "line": 54,
       "kind": "class"
      },
      {
       "name": "MarketingPlanItem",
-      "line": 58,
+      "line": 66,
       "kind": "typealias"
      },
      {
       "name": "MarketingPlan",
-      "line": 74,
+      "line": 83,
       "kind": "typealias"
      },
      {
       "name": "buildPlanSchema",
-      "line": 109,
+      "line": 119,
       "kind": "function"
      },
      {
       "name": "stripEmptySelectors",
-      "line": 198,
+      "line": 219,
       "kind": "function"
      },
      {
       "name": "validatePlan",
-      "line": 221,
+      "line": 242,
       "kind": "function"
      },
      {
       "name": "slugifyCampaignName",
-      "line": 268,
+      "line": 325,
       "kind": "function"
      },
      {
       "name": "toBundlePayload",
-      "line": 286,
+      "line": 343,
+      "kind": "function"
+     },
+     {
+      "name": "MARKETING_DESTINATION_PATHS",
+      "line": 402,
+      "kind": "variable"
+     },
+     {
+      "name": "normalizeMarketingDestination",
+      "line": 406,
+      "kind": "function"
+     },
+     {
+      "name": "validateGenerationWindow",
+      "line": 432,
       "kind": "function"
      }
     ],
@@ -103739,59 +103890,64 @@
      "google",
      "stripe"
     ],
-    "lineCount": 323
+    "lineCount": 440
    },
    {
     "path": "supabase/functions/_shared/marketing-ai.ts",
     "exports": [
      {
       "name": "MARKETING_CHANNELS",
-      "line": 17,
-      "kind": "re-export"
-     },
-     {
-      "name": "slugifyCampaignName",
-      "line": 18,
-      "kind": "re-export"
-     },
-     {
-      "name": "stripEmptySelectors",
       "line": 19,
       "kind": "re-export"
      },
      {
-      "name": "toBundlePayload",
+      "name": "slugifyCampaignName",
       "line": 20,
       "kind": "re-export"
      },
      {
-      "name": "MarketingChannel",
+      "name": "stripEmptySelectors",
       "line": 21,
       "kind": "re-export"
      },
      {
-      "name": "MarketingPlan",
+      "name": "toBundlePayload",
       "line": 22,
       "kind": "re-export"
      },
      {
-      "name": "MarketingPlanItem",
+      "name": "MarketingChannel",
       "line": 23,
       "kind": "re-export"
      },
      {
+      "name": "MarketingPlan",
+      "line": 24,
+      "kind": "re-export"
+     },
+     {
+      "name": "MarketingPlanItem",
+      "line": 25,
+      "kind": "re-export"
+     },
+     {
       "name": "MarketingBriefContext",
-      "line": 30,
+      "line": 32,
       "kind": "typealias"
      },
      {
+      "name": "buildSystemPrompt",
+      "line": 43,
+      "kind": "function"
+     },
+     {
       "name": "generateMarketingPlan",
-      "line": 69,
+      "line": 82,
       "kind": "function"
      },
      {
       "name": "generateCampaignVisual",
-      "line": 132,
+      "line": 146,
       "kind": "function"
      }
     ],
@@ -103800,7 +103956,7 @@
      "openai",
      "stripe"
     ],
-    "lineCount": 186
+    "lineCount": 209
    },
    {
     "path": "supabase/functions/_shared/marketing-backlink-discovery.ts",
@@ -106096,7 +106252,7 @@
     "integrations": [
      "openai"
     ],
-    "lineCount": 297
+    "lineCount": 318
    },
    {
     "path": "supabase/functions/ai-restaurant-agent/index.ts",
@@ -108844,6 +109000,11 @@
    },
    {
     "path": "docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/marketing/TOK_MARKETING_CONSISTENCY_2026-10-10.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -116008,6 +116169,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/marketing-ai-generation-quality.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/marketing-autopilot-frontend.test.tsx",
     "category": "test",
     "extension": ".tsx"
@@ -116073,6 +116239,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/marketing-generation-ui.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/marketing-image-output.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -116129,6 +116300,11 @@
    },
    {
     "path": "src/test/marketing-outreach-schema.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/marketing-plan-consistency.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -125102,14 +125278,14 @@
    "id": "code-module:2f00b6eaa4cd",
    "type": "code-module",
    "title": "src/components/marketing/views/MarketingAgentView.tsx",
-   "description": "Module de 428 lignes; exports: default.",
+   "description": "Module de 446 lignes; exports: default.",
    "path": "src/components/marketing/views/MarketingAgentView.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "35e47b772df9"
+   "detailRef": "caaaa56f7b44"
   },
   {
    "id": "code-module:4ed087a90254",
@@ -125141,14 +125317,14 @@
    "id": "code-module:274f0d9e4ca6",
    "type": "code-module",
    "title": "src/components/marketing/views/MarketingCalendarView.tsx",
-   "description": "Module de 386 lignes; exports: default.",
+   "description": "Module de 388 lignes; exports: default.",
    "path": "src/components/marketing/views/MarketingCalendarView.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "2faf52348f2e"
+   "detailRef": "ae28f0e039eb"
   },
   {
    "id": "code-module:4c5780559cdf",
@@ -136762,6 +136938,20 @@
    "detailRef": "bae57b587c37"
   },
   {
+   "id": "code-module:cd0c857272de",
+   "type": "code-module",
+   "title": "src/test/marketing-ai-generation-quality.test.ts",
+   "description": "Module de 37 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-ai-generation-quality.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "c191c6d31942"
+  },
+  {
    "id": "code-module:6406b6c9d347",
    "type": "code-module",
    "title": "src/test/marketing-autopilot-frontend.test.tsx",
@@ -136935,6 +137125,17 @@
    "detailRef": "582408cbe5a4"
   },
   {
+   "id": "code-module:2380676cc42c",
+   "type": "code-module",
+   "title": "src/test/marketing-generation-ui.test.tsx",
+   "description": "Module de 55 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-generation-ui.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "1e4e8ccabc25"
+  },
+  {
    "id": "code-module:1331dfc3cfc5",
    "type": "code-module",
    "title": "src/test/marketing-image-output.test.ts",
@@ -137089,6 +137290,19 @@
     "supabase"
    ],
    "detailRef": "a5b640198f6e"
+  },
+  {
+   "id": "code-module:0a1008a62d6f",
+   "type": "code-module",
+   "title": "src/test/marketing-plan-consistency.test.ts",
+   "description": "Module de 156 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-plan-consistency.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "2f90cf82a324"
   },
   {
    "id": "code-module:03285920801f",
@@ -140670,32 +140884,39 @@
    "id": "code-module:adb722f71bc6",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "description": "Module de 323 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MAX_PLAN_ITEMS, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload.",
+   "description": "Module de 440 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MAX_PLAN_ITEMS, MARKETING_PLAN_LEAD_MS, MARKETING_APPROVAL_LEAD_MS, MarketingPlanConstraints, MarketingCampaignStrategy, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload, MARKETING_DESTINATION_PATHS, normalizeMarketingDestination, validateGenerationWindow.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
    "line": 1,
    "surface": null,
    "tags": [
+    "MARKETING_APPROVAL_LEAD_MS",
     "MARKETING_CHANNELS",
+    "MARKETING_DESTINATION_PATHS",
+    "MARKETING_PLAN_LEAD_MS",
     "MAX_PLAN_ITEMS",
+    "MarketingCampaignStrategy",
     "MarketingChannel",
     "MarketingPlan",
+    "MarketingPlanConstraints",
     "MarketingPlanError",
     "MarketingPlanItem",
     "buildPlanSchema",
     "google",
+    "normalizeMarketingDestination",
     "slugifyCampaignName",
     "stripEmptySelectors",
     "stripe",
     "toBundlePayload",
+    "validateGenerationWindow",
     "validatePlan"
    ],
-   "detailRef": "ebedc450b37f"
+   "detailRef": "c131b92b2b20"
   },
   {
    "id": "code-module:c71bdc6fa97b",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-ai.ts",
-   "description": "Module de 186 lignes; exports: MARKETING_CHANNELS, slugifyCampaignName, stripEmptySelectors, toBundlePayload, MarketingChannel, MarketingPlan, MarketingPlanItem, MarketingBriefContext, generateMarketingPlan, generateCampaignVisual.",
+   "description": "Module de 209 lignes; exports: MARKETING_CHANNELS, slugifyCampaignName, stripEmptySelectors, toBundlePayload, MarketingChannel, MarketingPlan, MarketingPlanItem, MarketingBriefContext, buildSystemPrompt, generateMarketingPlan, generateCampaignVisual.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
    "line": 1,
    "surface": null,
@@ -140705,6 +140926,7 @@
     "MarketingChannel",
     "MarketingPlan",
     "MarketingPlanItem",
+    "buildSystemPrompt",
     "generateCampaignVisual",
     "generateMarketingPlan",
     "openai",
@@ -140713,7 +140935,7 @@
     "stripe",
     "toBundlePayload"
    ],
-   "detailRef": "995a8aed4348"
+   "detailRef": "59197aabbcaa"
   },
   {
    "id": "code-module:8f9a90f373f3",
@@ -141828,14 +142050,14 @@
    "id": "code-module:2d59c9951508",
    "type": "code-module",
    "title": "supabase/functions/ai-marketing-agent/index.ts",
-   "description": "Module de 297 lignes; exports: aucun export statique.",
+   "description": "Module de 318 lignes; exports: aucun export statique.",
    "path": "supabase/functions/ai-marketing-agent/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "openai"
    ],
-   "detailRef": "eb20ed039b0e"
+   "detailRef": "e0f76b227ac6"
   },
   {
    "id": "code-module:10cec8069bd9",
@@ -195777,6 +195999,20 @@
    "detailRef": "5bcb50011a17"
   },
   {
+   "id": "document-section:c59f5b069079",
+   "type": "document-section",
+   "title": "Cohérence des campagnes TOK — 10 octobre 2026",
+   "description": "Section de Cohérence des campagnes TOK — 10 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_CONSISTENCY_2026-10-10.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Cohérence des campagnes TOK — 10 octobre 2026",
+    "h1"
+   ],
+   "detailRef": "6d0b10957ba7"
+  },
+  {
    "id": "document-section:9533a10a7bd3",
    "type": "document-section",
    "title": "Colonnes de retour",
@@ -202091,6 +202327,20 @@
    "detailRef": "11e4cbb52fd3"
   },
   {
+   "id": "document-section:0686e267e63c",
+   "type": "document-section",
+   "title": "Livraison",
+   "description": "Section de Cohérence des campagnes TOK — 10 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_CONSISTENCY_2026-10-10.md",
+   "line": 32,
+   "surface": null,
+   "tags": [
+    "Cohérence des campagnes TOK — 10 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "be8048cd972d"
+  },
+  {
    "id": "document-section:6c1e9069ee66",
    "type": "document-section",
    "title": "Loading Versioned Stripe.js",
@@ -206739,6 +206989,20 @@
    "detailRef": "3b7b5f08c3b2"
   },
   {
+   "id": "document-section:8f86145cd2b1",
+   "type": "document-section",
+   "title": "Preuves initiales",
+   "description": "Section de Cohérence des campagnes TOK — 10 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_CONSISTENCY_2026-10-10.md",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "Cohérence des campagnes TOK — 10 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "b02d43fc4cc9"
+  },
+  {
    "id": "document-section:17f80d61cb45",
    "type": "document-section",
    "title": "Preuves observées en production",
@@ -207269,6 +207533,20 @@
     "h2"
    ],
    "detailRef": "ec5ff57f9278"
+  },
+  {
+   "id": "document-section:5259dfc29f03",
+   "type": "document-section",
+   "title": "Périmètre et plan avant modification",
+   "description": "Section de Cohérence des campagnes TOK — 10 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_CONSISTENCY_2026-10-10.md",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "Cohérence des campagnes TOK — 10 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "179923d6bf19"
   },
   {
    "id": "document-section:3e7c97499bcf",
@@ -209775,6 +210053,20 @@
     "h2"
    ],
    "detailRef": "7a31fa821183"
+  },
+  {
+   "id": "document-section:df5eedad3201",
+   "type": "document-section",
+   "title": "Résultat vérifié",
+   "description": "Section de Cohérence des campagnes TOK — 10 octobre 2026.",
+   "path": "docs/marketing/TOK_MARKETING_CONSISTENCY_2026-10-10.md",
+   "line": 21,
+   "surface": null,
+   "tags": [
+    "Cohérence des campagnes TOK — 10 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "ff7516bbbe7a"
   },
   {
    "id": "document-section:0eac45841d32",
@@ -218574,6 +218866,23 @@
     "Vérification et retour arrière"
    ],
    "detailRef": "ebcdba31cc30"
+  },
+  {
+   "id": "document:c59f5b069079",
+   "type": "document",
+   "title": "Cohérence des campagnes TOK — 10 octobre 2026",
+   "description": "Document Markdown avec 5 section(s).",
+   "path": "docs/marketing/TOK_MARKETING_CONSISTENCY_2026-10-10.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Cohérence des campagnes TOK — 10 octobre 2026",
+    "Livraison",
+    "Preuves initiales",
+    "Périmètre et plan avant modification",
+    "Résultat vérifié"
+   ],
+   "detailRef": "95e3d28c57c0"
   },
   {
    "id": "document:48e6b77967bb",
@@ -236989,6 +237298,21 @@
    "detailRef": "3f2cc50b73f7"
   },
   {
+   "id": "exported-symbol:f95411acc9dd",
+   "type": "exported-symbol",
+   "title": "MARKETING_APPROVAL_LEAD_MS",
+   "description": "Export variable de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 46,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "variable"
+   ],
+   "detailRef": "38b2fa043cf5"
+  },
+  {
    "id": "exported-symbol:d10ea1a8e5e6",
    "type": "exported-symbol",
    "title": "MARKETING_AUTOMATION_TEMPLATES",
@@ -237072,19 +237396,19 @@
    "detailRef": "d22114f08ef1"
   },
   {
-   "id": "exported-symbol:e31417f03f1d",
+   "id": "exported-symbol:d15c7bf1a655",
    "type": "exported-symbol",
    "title": "MARKETING_CHANNELS",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 17,
+   "line": 19,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "6c37ac3d64ed"
+   "detailRef": "cf7928050a45"
   },
   {
    "id": "exported-symbol:cbe070031e73",
@@ -237171,6 +237495,21 @@
     "variable"
    ],
    "detailRef": "c355bcc81567"
+  },
+  {
+   "id": "exported-symbol:40e24b5b512b",
+   "type": "exported-symbol",
+   "title": "MARKETING_DESTINATION_PATHS",
+   "description": "Export variable de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 402,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "variable"
+   ],
+   "detailRef": "c1f7f03cc972"
   },
   {
    "id": "exported-symbol:a2bcb841dec9",
@@ -237265,6 +237604,21 @@
     "vercel"
    ],
    "detailRef": "bc85c2b3269c"
+  },
+  {
+   "id": "exported-symbol:c8570530f7ff",
+   "type": "exported-symbol",
+   "title": "MARKETING_PLAN_LEAD_MS",
+   "description": "Export variable de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 45,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "variable"
+   ],
+   "detailRef": "562101dbd79a"
   },
   {
    "id": "exported-symbol:bf97a6dd58ad",
@@ -238140,19 +238494,19 @@
    "detailRef": "6ef59f51bb4a"
   },
   {
-   "id": "exported-symbol:8a9a1c868d0f",
+   "id": "exported-symbol:90cfe64aa9be",
    "type": "exported-symbol",
    "title": "MarketingBriefContext",
    "description": "Export typealias de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 30,
+   "line": 32,
    "surface": null,
    "tags": [
     "openai",
     "stripe",
     "typealias"
    ],
-   "detailRef": "e0b95745b63e"
+   "detailRef": "6b353518fdfe"
   },
   {
    "id": "exported-symbol:27482f272cde",
@@ -238211,6 +238565,21 @@
    "detailRef": "f8a057d904a0"
   },
   {
+   "id": "exported-symbol:353b0ad0b6ab",
+   "type": "exported-symbol",
+   "title": "MarketingCampaignStrategy",
+   "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 50,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "fb4837aaffb3"
+  },
+  {
    "id": "exported-symbol:1e39b309bf12",
    "type": "exported-symbol",
    "title": "MarketingChannel",
@@ -238240,19 +238609,19 @@
    "detailRef": "0cdf5af5bba3"
   },
   {
-   "id": "exported-symbol:441d9617fd65",
+   "id": "exported-symbol:1ed656283e4e",
    "type": "exported-symbol",
    "title": "MarketingChannel",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 21,
+   "line": 23,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "ed8a0e29e8ce"
+   "detailRef": "23197946db1d"
   },
   {
    "id": "exported-symbol:63729798ddad",
@@ -238783,79 +239152,94 @@
    "detailRef": "a131869525f1"
   },
   {
-   "id": "exported-symbol:cd7afc96de2e",
+   "id": "exported-symbol:e5ccaf72a61d",
    "type": "exported-symbol",
    "title": "MarketingPlan",
    "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 74,
+   "line": 83,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "typealias"
    ],
-   "detailRef": "a605dffbe4c8"
+   "detailRef": "7de540789670"
   },
   {
-   "id": "exported-symbol:8f1bf1a7f6ef",
+   "id": "exported-symbol:d706627572b2",
    "type": "exported-symbol",
    "title": "MarketingPlan",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 22,
+   "line": 24,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "9ea164a0967c"
+   "detailRef": "b7b4d4a390b4"
   },
   {
-   "id": "exported-symbol:b054bbc603c9",
+   "id": "exported-symbol:9eff1a2a9401",
+   "type": "exported-symbol",
+   "title": "MarketingPlanConstraints",
+   "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 47,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "7c977562aae8"
+  },
+  {
+   "id": "exported-symbol:2e29094ea703",
    "type": "exported-symbol",
    "title": "MarketingPlanError",
    "description": "Export class de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 46,
+   "line": 54,
    "surface": null,
    "tags": [
     "class",
     "google",
     "stripe"
    ],
-   "detailRef": "9128a5f442ef"
+   "detailRef": "ccc675b97542"
   },
   {
-   "id": "exported-symbol:30d4751a4e4a",
+   "id": "exported-symbol:6d4299e648ff",
    "type": "exported-symbol",
    "title": "MarketingPlanItem",
    "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 58,
+   "line": 66,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "typealias"
    ],
-   "detailRef": "618a4f5207b5"
+   "detailRef": "0b313a48959d"
   },
   {
-   "id": "exported-symbol:cb5bade7a8c9",
+   "id": "exported-symbol:a2b7bf269b8a",
    "type": "exported-symbol",
    "title": "MarketingPlanItem",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 23,
+   "line": 25,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "b9387062b886"
+   "detailRef": "0a55bc9c30f7"
   },
   {
    "id": "exported-symbol:178fe0300b49",
@@ -249821,19 +250205,19 @@
    "detailRef": "195e319b6035"
   },
   {
-   "id": "exported-symbol:e74191daba07",
+   "id": "exported-symbol:17f73440e8e9",
    "type": "exported-symbol",
    "title": "buildPlanSchema",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 109,
+   "line": 119,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "ff141575823d"
+   "detailRef": "7fb8be50d1bb"
   },
   {
    "id": "exported-symbol:651ae00df605",
@@ -250248,6 +250632,21 @@
     "vercel"
    ],
    "detailRef": "10d3c020e821"
+  },
+  {
+   "id": "exported-symbol:668a210d2dc2",
+   "type": "exported-symbol",
+   "title": "buildSystemPrompt",
+   "description": "Export function de supabase/functions/_shared/marketing-ai.ts.",
+   "path": "supabase/functions/_shared/marketing-ai.ts",
+   "line": 43,
+   "surface": null,
+   "tags": [
+    "function",
+    "openai",
+    "stripe"
+   ],
+   "detailRef": "9d0e2c79e62a"
   },
   {
    "id": "exported-symbol:c0b1fe3190b9",
@@ -258695,19 +259094,19 @@
    "detailRef": "95a6c8c90699"
   },
   {
-   "id": "exported-symbol:66da038989bd",
+   "id": "exported-symbol:e5b07cacb331",
    "type": "exported-symbol",
    "title": "generateCampaignVisual",
    "description": "Export function de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 132,
+   "line": 146,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "stripe"
    ],
-   "detailRef": "6985d1b89792"
+   "detailRef": "a8292d931bd4"
   },
   {
    "id": "exported-symbol:990271c9422d",
@@ -258781,19 +259180,19 @@
    "detailRef": "f5c63b8db0dd"
   },
   {
-   "id": "exported-symbol:cf1f389ea7a1",
+   "id": "exported-symbol:20f4aa9ce3d4",
    "type": "exported-symbol",
    "title": "generateMarketingPlan",
    "description": "Export function de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 69,
+   "line": 82,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "stripe"
    ],
-   "detailRef": "1a865cddddd1"
+   "detailRef": "5d9f1b3454b6"
   },
   {
    "id": "exported-symbol:5c4910fc0ae5",
@@ -267277,6 +267676,21 @@
    "detailRef": "62a530777ac8"
   },
   {
+   "id": "exported-symbol:4ca098cfcd59",
+   "type": "exported-symbol",
+   "title": "normalizeMarketingDestination",
+   "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 406,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe"
+   ],
+   "detailRef": "d88821e86e0d"
+  },
+  {
    "id": "exported-symbol:99c3ab250387",
    "type": "exported-symbol",
    "title": "normalizeMarketingSessionPayload",
@@ -271220,34 +271634,34 @@
    "detailRef": "6a8c9c10b9f2"
   },
   {
-   "id": "exported-symbol:ab7a727b6fb6",
+   "id": "exported-symbol:6431b1fca36c",
    "type": "exported-symbol",
    "title": "slugifyCampaignName",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 268,
+   "line": 325,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "07a2ec7e6253"
+   "detailRef": "4c1c25bb15b1"
   },
   {
-   "id": "exported-symbol:881bca0be170",
+   "id": "exported-symbol:e05e3d0ea719",
    "type": "exported-symbol",
    "title": "slugifyCampaignName",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 18,
+   "line": 20,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "dfd462c919a9"
+   "detailRef": "4d9346c7926a"
   },
   {
    "id": "exported-symbol:057efeee2f10",
@@ -271334,34 +271748,34 @@
    "detailRef": "e1a5ce22e576"
   },
   {
-   "id": "exported-symbol:4f75bf238925",
+   "id": "exported-symbol:91be1e009d04",
    "type": "exported-symbol",
    "title": "stripEmptySelectors",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 198,
+   "line": 219,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "3a2853caf62a"
+   "detailRef": "aed2b8ede6d4"
   },
   {
-   "id": "exported-symbol:14546db04290",
+   "id": "exported-symbol:17576ce39a27",
    "type": "exported-symbol",
    "title": "stripEmptySelectors",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 19,
+   "line": 21,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "2fcf4ce24bed"
+   "detailRef": "bfce149f1dc2"
   },
   {
    "id": "exported-symbol:a5ab8f8cf745",
@@ -271666,34 +272080,34 @@
    "detailRef": "193ca02afa50"
   },
   {
-   "id": "exported-symbol:ac86cdb7251e",
+   "id": "exported-symbol:207182b0e38f",
    "type": "exported-symbol",
    "title": "toBundlePayload",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 286,
+   "line": 343,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "3867431e398d"
+   "detailRef": "65d73d83bb2e"
   },
   {
-   "id": "exported-symbol:33ce03be26e4",
+   "id": "exported-symbol:40e027802954",
    "type": "exported-symbol",
    "title": "toBundlePayload",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 20,
+   "line": 22,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "a0917ac58cb2"
+   "detailRef": "3a3831f001a0"
   },
   {
    "id": "exported-symbol:9b03f630711d",
@@ -273794,6 +274208,21 @@
    "detailRef": "4e55f62593b2"
   },
   {
+   "id": "exported-symbol:35c9eff0b7ad",
+   "type": "exported-symbol",
+   "title": "validateGenerationWindow",
+   "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 432,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe"
+   ],
+   "detailRef": "73e33061a3e5"
+  },
+  {
    "id": "exported-symbol:e54b35ae9fa7",
    "type": "exported-symbol",
    "title": "validateMarketingRequestContext",
@@ -273836,19 +274265,19 @@
    "detailRef": "aac99c9319e2"
   },
   {
-   "id": "exported-symbol:322e66ea79e3",
+   "id": "exported-symbol:58983d039c15",
    "type": "exported-symbol",
    "title": "validatePlan",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 221,
+   "line": 242,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "e31507caa957"
+   "detailRef": "c99614066107"
   },
   {
    "id": "exported-symbol:c88ecd4fb1d2",
@@ -279124,6 +279553,20 @@
     "documentation"
    ],
    "detailRef": "f85ec1022346"
+  },
+  {
+   "id": "file:336c226d276a",
+   "type": "file",
+   "title": "docs/marketing/TOK_MARKETING_CONSISTENCY_2026-10-10.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/marketing/TOK_MARKETING_CONSISTENCY_2026-10-10.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "998f9d69b2ff"
   },
   {
    "id": "file:e041841e1a7e",
@@ -299174,6 +299617,20 @@
    "detailRef": "20aa6e5d8151"
   },
   {
+   "id": "file:fa9dfc63b5a6",
+   "type": "file",
+   "title": "src/test/marketing-ai-generation-quality.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-ai-generation-quality.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "62b25e2691bc"
+  },
+  {
    "id": "file:11d6fa8a4658",
    "type": "file",
    "title": "src/test/marketing-autopilot-frontend.test.tsx",
@@ -299356,6 +299813,20 @@
    "detailRef": "d80ef9cf34be"
   },
   {
+   "id": "file:028bf68f8291",
+   "type": "file",
+   "title": "src/test/marketing-generation-ui.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-generation-ui.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "fa719aa69ef7"
+  },
+  {
    "id": "file:5d53d40bc95a",
    "type": "file",
    "title": "src/test/marketing-image-output.test.ts",
@@ -299522,6 +299993,20 @@
     "test"
    ],
    "detailRef": "29c71e17e9b2"
+  },
+  {
+   "id": "file:ea00d19e513d",
+   "type": "file",
+   "title": "src/test/marketing-plan-consistency.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-plan-consistency.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "da8a58dafe34"
   },
   {
    "id": "file:0a93f34968c3",
@@ -316359,7 +316844,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 114 module(s).",
+   "description": "Intégration externe détectée dans 115 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -316421,6 +316906,7 @@
     "src/test/incident-intelligence-unification.test.ts",
     "src/test/incident-secret-sync-readiness.test.ts",
     "src/test/legal-miamz-readiness.test.ts",
+    "src/test/marketing-ai-generation-quality.test.ts",
     "src/test/marketing-b2b-outreach.test.ts",
     "src/test/marketing-backlink-provider.test.ts",
     "src/test/marketing-openai-tool-choice.test.ts",
@@ -316480,7 +316966,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "7eebee2a9783"
+   "detailRef": "988e33d7707e"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -316791,7 +317277,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 651 module(s).",
+   "description": "Intégration externe détectée dans 653 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -317193,6 +317679,7 @@
     "src/test/loyalty-status-dialog-layout.test.tsx",
     "src/test/marketing-agent-bff.test.ts",
     "src/test/marketing-ai-agent.test.ts",
+    "src/test/marketing-ai-generation-quality.test.ts",
     "src/test/marketing-autopilot-sql.test.ts",
     "src/test/marketing-b2b-outreach.test.ts",
     "src/test/marketing-backlink-discovery.test.ts",
@@ -317211,6 +317698,7 @@
     "src/test/marketing-operations-frontend.test.ts",
     "src/test/marketing-orchestrator-schema.test.ts",
     "src/test/marketing-outreach-schema.test.ts",
+    "src/test/marketing-plan-consistency.test.ts",
     "src/test/marketing-print-contract.test.ts",
     "src/test/marketing-print-domain.test.ts",
     "src/test/marketing-prospect-coordinates.test.ts",
@@ -317449,7 +317937,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f073fd40f280"
+   "detailRef": "771d861ed518"
   },
   {
    "id": "integration:c20910a79a78",
@@ -328245,7 +328733,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 235 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 236 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -328342,6 +328830,7 @@
     "src/test/supabase-client-imports.test.ts",
     "src/test/tok-logo-calendar.test.ts",
     "src/test/vercel-rewrites.test.ts",
+    "supabase/functions/_shared/marketing-ai-plan.ts",
     "supabase/functions/_shared/tok-connect.ts",
     "supabase/functions/_shared/transactional-emails.ts",
     "supabase/functions/aligro-catalog-sync/index.ts",
@@ -328361,7 +328850,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "faaa552640c7"
+   "detailRef": "2e9ebab049b5"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -329534,15 +330023,16 @@
    "id": "path-literal:134f25384925",
    "type": "path-literal",
    "title": "/api/marketing/agent",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/marketing/marketingBffClient.ts",
    "line": 13,
    "surface": null,
    "tags": [
     "src/marketing/marketingBffClient.ts",
+    "src/test/marketing-generation-ui.test.tsx",
     "src/test/marketing-source-discovery.test.tsx"
    ],
-   "detailRef": "41b06192e28c"
+   "detailRef": "fc72c22234ee"
   },
   {
    "id": "path-literal:107cc0a99bd5",
@@ -330655,7 +331145,7 @@
    "id": "path-literal:686daa729d7c",
    "type": "path-literal",
    "title": "/contact",
-   "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 797,
    "surface": null,
@@ -330673,10 +331163,11 @@
     "src/pages/Cookies.tsx",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-wiring.test.ts",
+    "supabase/functions/_shared/marketing-ai-plan.ts",
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "9908661b0c69"
+   "detailRef": "a6e39792b151"
   },
   {
    "id": "path-literal:09145bbf5f6b",
@@ -334967,7 +335458,7 @@
    "id": "path-literal:f7a8242103a1",
    "type": "path-literal",
    "title": "/recherche",
-   "description": "Chemin référencé dans 58 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 59 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/seo-trust-runtime.js",
    "line": 138,
    "surface": null,
@@ -335008,9 +335499,10 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts",
-    "src/test/tok-logo-calendar.test.ts"
+    "src/test/tok-logo-calendar.test.ts",
+    "supabase/functions/_shared/marketing-ai-plan.ts"
    ],
-   "detailRef": "c06defd74790"
+   "detailRef": "30510d666e68"
   },
   {
    "id": "path-literal:9c8f3445d2b3",
@@ -336184,7 +336676,7 @@
    "id": "path-literal:a69569933d1c",
    "type": "path-literal",
    "title": "/restaurateurs/alternative-commission-couvert",
-   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 674,
    "surface": null,
@@ -336198,16 +336690,18 @@
     "src/pages/RestaurateursGeneve.tsx",
     "src/pages/RestaurateursGoogleBusiness.tsx",
     "src/test/b2b-seo-cluster.test.ts",
+    "src/test/marketing-plan-consistency.test.ts",
     "src/test/route-wiring.test.ts",
-    "src/test/seo-growth.test.ts"
+    "src/test/seo-growth.test.ts",
+    "supabase/functions/_shared/marketing-ai-plan.ts"
    ],
-   "detailRef": "60ac6b4325f1"
+   "detailRef": "1424d4d14f6e"
   },
   {
    "id": "path-literal:843e3ec74ed3",
    "type": "path-literal",
    "title": "/restaurateurs/geneve",
-   "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 609,
    "surface": null,
@@ -336225,9 +336719,10 @@
     "src/test/b2b-seo-cluster.test.ts",
     "src/test/home-hero-search.test.tsx",
     "src/test/route-wiring.test.ts",
-    "src/test/seo-growth.test.ts"
+    "src/test/seo-growth.test.ts",
+    "supabase/functions/_shared/marketing-ai-plan.ts"
    ],
-   "detailRef": "486fdadd3007"
+   "detailRef": "d282f3dfa6b4"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -343179,32 +343674,60 @@
    "detailRef": "fa32bdaf1bb0"
   },
   {
+   "id": "query-parameter:9ebb94503fd5",
+   "type": "query-parameter",
+   "title": "utm_campaign",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 426,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/marketing-ai-plan.ts"
+   ],
+   "detailRef": "54e18f891b4d"
+  },
+  {
+   "id": "query-parameter:170c2557ecef",
+   "type": "query-parameter",
+   "title": "utm_content",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 427,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/marketing-ai-plan.ts"
+   ],
+   "detailRef": "e01e8f82e476"
+  },
+  {
    "id": "query-parameter:a15852b1a0d6",
    "type": "query-parameter",
    "title": "utm_medium",
-   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
    "path": "src/components/ReservationDialog.tsx",
    "line": 598,
    "surface": null,
    "tags": [
     "src/components/ReservationDialog.tsx",
-    "src/pages/RestaurantDetail.tsx"
+    "src/pages/RestaurantDetail.tsx",
+    "supabase/functions/_shared/marketing-ai-plan.ts"
    ],
-   "detailRef": "e11fe4091f96"
+   "detailRef": "1d591e960d79"
   },
   {
    "id": "query-parameter:be04f5a7eda6",
    "type": "query-parameter",
    "title": "utm_source",
-   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
    "path": "src/components/ReservationDialog.tsx",
    "line": 594,
    "surface": null,
    "tags": [
     "src/components/ReservationDialog.tsx",
-    "src/pages/RestaurantDetail.tsx"
+    "src/pages/RestaurantDetail.tsx",
+    "supabase/functions/_shared/marketing-ai-plan.ts"
    ],
-   "detailRef": "a1c8cc82bf8b"
+   "detailRef": "895e8217b982"
   },
   {
    "id": "query-parameter:e98354609202",
