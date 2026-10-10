@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import AccountPasswordForm from "@/components/auth/AccountPasswordForm";
 import PushNotificationSettings from "@/components/notifications/PushNotificationSettings";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 
 export default function AccountSecurity() {
 
@@ -20,7 +20,7 @@ export default function AccountSecurity() {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <ShieldCheck className="h-6 w-6" />
             </div>
-            <CardTitle asChild><h1>Sécurité du compte</h1></CardTitle>
+            <h1 className="text-2xl font-semibold leading-none tracking-tight">Sécurité du compte</h1>
             <CardDescription>
               Modifiez le mot de passe utilisé pour accéder à tous vos espaces TOK.
             </CardDescription>

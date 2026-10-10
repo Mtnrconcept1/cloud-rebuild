@@ -86,8 +86,8 @@ function Navigation({
   return (
     <nav className="space-y-4" aria-label="Sections marketing">
       {NAV_GROUPS.map((group) => (
-        <section key={group.label} aria-labelledby={`marketing-group-${group.label.replaceAll(" ", "-").toLowerCase()}`}>
-          <h2 id={`marketing-group-${group.label.replaceAll(" ", "-").toLowerCase()}`} className="mb-1 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{group.label}</h2>
+        <section key={group.label} aria-labelledby={`marketing-group-${group.label.replace(/ /g, "-").toLowerCase()}`}>
+          <h2 id={`marketing-group-${group.label.replace(/ /g, "-").toLowerCase()}`} className="mb-1 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{group.label}</h2>
           <div className="space-y-1">
       {NAV_ITEMS.filter((item) => group.views.includes(item.id)).map((item) => {
         const Icon = item.icon;
