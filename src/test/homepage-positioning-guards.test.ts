@@ -14,29 +14,18 @@ describe("homepage positioning guards", () => {
     const index = read("src/pages/Index.tsx");
 
     expect(hero.match(/<h1/g)).toHaveLength(1);
-    expect(hero).toContain("Réservez et commandez");
-    expect(hero).toContain("Les meilleures");
-    expect(hero).toContain("près de chez vous.");
-    expect(hero).toContain("tok-home-hero__title-primary");
-    expect(hero).toContain("tok-home-hero__desktop-nav");
     expect(hero).toContain("Miamz");
     expect(hero).toContain('role="search"');
-    expect(hero).not.toContain("desktopSearchActive");
-    expect(hero).not.toContain("tok-geneve-desktop-reference.jpg");
-    expect(css).toContain('font-family: "Playball";');
-    expect(hero).toContain("Je veux manger");
     expect(hero).toContain("Restaurateur");
-    const heroStyles = read("src/components/home/HeroSection.css");
-    expect(heroStyles).toContain("font-style: italic");
-    expect(heroStyles).toContain("radial-gradient(ellipse");
-    expect(heroStyles).toContain("tok-home-hero__title-desktop");
+    expect(hero).not.toContain('new URLSearchParams({ city: "Genève" })');
+    expect(css).toContain("prefers-reduced-motion");
     expect(features).toContain("PRIMARY_PILLARS");
     expect(features).toContain("Zéro attente");
     expect(features).toContain("Offres anti-gaspi & Tables du Chef");
     expect(features).toContain("Miamz solidaires");
     expect(index).toContain("Pour ce soir");
     expect(index).toContain("Sélection variée du soir");
-    expect(index).toContain("Près de chez vous");
+    expect(index).toContain("Des adresses à découvrir");
     expect(index).toContain("À ne pas manquer");
   });
 
@@ -50,67 +39,16 @@ describe("homepage positioning guards", () => {
     expect(packs).not.toContain('checkout_kind: "launch-pack"');
   });
 
-  it("keeps homepage content rails visually separated", () => {
+  it("preserves discovery, promotions and community content in the editorial homepage", () => {
     const index = read("src/pages/Index.tsx");
     const restaurantSection = read("src/components/home/RestaurantSection.tsx");
-    const cuisineStrip = read("src/components/home/CuisineCategoryStrip.tsx");
-    const showcaseHeader = read("src/components/home/SectionShowcaseHeader.tsx");
-    const solidarity = read("src/components/home/SolidaritySection.tsx");
-    const features = read("src/components/home/FeaturesSection.tsx");
-
-    expect(restaurantSection).toContain("border-y border-border/70");
-    expect(restaurantSection).toContain("accentClassName");
-    expect(restaurantSection).toContain("SectionShowcaseHeader");
-    expect(restaurantSection).toContain("headerTheme");
-    expect(restaurantSection).toContain("headerImageSrc");
-    expect(showcaseHeader).toContain("SectionHeaderTheme");
-    expect(showcaseHeader).toContain("contentClassName");
-    expect(showcaseHeader).toContain("illustrationClassName");
-    expect(showcaseHeader).toContain("radial-gradient");
-    expect(showcaseHeader).toContain("linear-gradient");
-    expect(showcaseHeader).toContain("rounded-[100%]");
-    expect(showcaseHeader).toContain("data-section-illustration");
-    expect(showcaseHeader).toContain("motion.div");
-    expect(showcaseHeader).toContain("useReducedMotion");
-    expect(showcaseHeader).toContain("whileInView");
-    expect(showcaseHeader).toContain("bottom-0 right-5 -top-1 z-[55] w-[40%] min-w-[8rem] max-w-[14.5rem] overflow-visible");
-    expect(showcaseHeader).toContain("data-section-action-row");
-    expect(showcaseHeader).toContain("max-w-[calc(100%-6.5rem)]");
-    expect(showcaseHeader).toContain("z-[60]");
-    expect(showcaseHeader).toContain("h-full max-h-none w-full object-contain object-center");
-    expect(showcaseHeader).not.toContain("-right-10 -top-6 bottom-0 z-40 w-56 overflow-visible");
-    expect(showcaseHeader).not.toContain("bottom-0 right-0 h-48 w-48 translate-x-3");
-    expect(restaurantSection).toContain("section-headers/gift-3d.png");
-    expect(cuisineStrip).toContain("SectionShowcaseHeader");
-    expect(cuisineStrip).toContain("/desig app/assiette.png");
-    expect(index).toContain("bg-rose-50/70");
-    expect(index).toContain('headerTheme="rose"');
-    expect(index).toContain("SECTION_HEADER_IMAGES.personal");
-    expect(index).toContain("bg-sky-50/75");
-    expect(index).toContain('headerTheme="sky"');
-    expect(index).toContain("SECTION_HEADER_IMAGES.local");
-    expect(index).toContain("bg-indigo-50/70");
-    expect(index).toContain("SECTION_HEADER_IMAGES.reservation");
-    expect(index).toContain('reservation: "/desig app/calendrier.png"');
-    expect(index).toContain('lunch: "/desig app/burger.png"');
-    expect(index).toContain("bg-orange-50/70");
-    expect(index).toContain('promo: "/desig app/chefsection.png"');
-    expect(index).toContain('title={"Promotions\\u00a0et activations\\u00a0du moment"}');
-    expect(index).toContain("className=\"-mx-4 min-h-[222px] pb-16 pt-5");
-    expect(index).toContain("contentClassName=\"z-30 max-w-[12rem] pr-0");
-    expect(index).toContain("illustrationClassName=\"z-[60] right-4 -top-6 w-44");
-    expect(index).toContain("imageClassName=\"right-0 h-44 w-44 translate-x-0");
-    expect(index).toContain("bg-emerald-50/75");
-    expect(index).toContain('headerTheme="emerald"');
-    expect(index).toContain("SECTION_HEADER_IMAGES.offers");
-    expect(index).toContain('offers: "/desig app/cadeau.png"');
-    expect(index).toContain("SECTION_HEADER_IMAGES.trending");
-    expect(index).toContain('trending: "/desig app/flamme.png"');
-    expect(index).toContain("SECTION_HEADER_IMAGES.nearby");
-    expect(index).toContain('nearby: "/desig app/chefsection2.png"');
-    expect(solidarity).toContain("border-y border-pink-500/10");
-    expect(features).toContain("border-y border-border/70");
-    expect(features).toContain("border-primary/15 bg-primary/10");
+    expect(restaurantSection).toContain("sponsoredCampaignId={r.campaign_id || undefined}");
+    expect(restaurantSection).toContain("supportsReservation=");
+    expect(index).toContain("<CuisineCategoryStrip");
+    expect(index).toContain("<PromoCarousel");
+    expect(index).toContain("<NearbyRestaurantsMap");
+    expect(index).toContain("<SolidaritySection");
+    expect(index).toContain("<FeaturesSection activeFeatures={activeFeatures}");
   });
 
   it("keeps public discovery rails visible for signed-in users", () => {
@@ -148,12 +86,6 @@ describe("homepage positioning guards", () => {
     const navbar = read("src/components/Navbar.tsx");
     const hero = read("src/components/home/HeroSection.tsx");
     const footer = read("src/components/home/FooterSection.tsx");
-
-    expect(navbar).toContain("isDesktopHomeReference");
-    expect(navbar).toContain("const usesHeroDesktopNavigation = isDesktopHomeReference && !user;");
-    expect(navbar).toContain("const showSignedInDesktopHomeMenu = isDesktopHomeReference && Boolean(user);");
-    expect(navbar).toContain('usesHeroDesktopNavigation ? "md:hidden" : ""');
-    expect(navbar).toContain('showSignedInDesktopHomeMenu ? "xl:inline-flex" : "xl:hidden"');
 
     expect(navbar).toContain('to="/restaurateurs/geneve"');
     expect(navbar).toContain("Restaurateurs");
