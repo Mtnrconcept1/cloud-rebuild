@@ -1,3 +1,4 @@
+import DataLoadState from "@/components/client/DataLoadState";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -359,6 +360,12 @@ export default function Abonnement() {
     navigate("/panier");
   };
 
+  const readLoading = !isCommercialDemoClient && (subscriptionsQuery.isLoading || mealSettingsQuery.isLoading);
+  const readError = !isCommercialDemoClient && (subscriptionsQuery.isError || mealSettingsQuery.isError);
+  if (readLoading || readError) {
+    return <main className="container max-w-3xl space-y-5 py-8"><h1 className="font-display text-3xl font-semibold">Vos repas planifiés</h1><DataLoadState loading={readLoading} title={readLoading ? "Chargement de vos informations…" : "Vos informations n’ont pas pu être chargées"} onRetry={() => Promise.allSettled([subscriptionsQuery.refetch(), mealSettingsQuery.refetch()])} /></main>;
+  }
+
   return (
     <main className="min-h-screen bg-background">
       <div className="container max-w-2xl space-y-8 py-8">
@@ -398,6 +405,7 @@ export default function Abonnement() {
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
+            aria-label="Semaine précédente"
             size="icon"
             onClick={() => {
               const nextOffset = Math.max(0, weekOffset - 1);
@@ -414,6 +422,7 @@ export default function Abonnement() {
           </div>
           <Button
             variant="ghost"
+            aria-label="Semaine suivante"
             size="icon"
             onClick={() => {
               const nextOffset = weekOffset + 1;
@@ -449,6 +458,9 @@ export default function Abonnement() {
             return (
             <div key={day}>
               <button
+                type="button"
+                aria-expanded={editingDay === day}
+                aria-label={`Planifier les repas du ${day}`}
                 onClick={() => {
                   setEditingDay(editingDay === day ? null : day);
                   setSelectedRestaurantId(null);

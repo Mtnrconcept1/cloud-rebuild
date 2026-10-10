@@ -3658,7 +3658,7 @@ export default function DashboardPlanSalle() {
                   onValueChange={setSelectedBranchId}
                   disabled={saveMutation.isPending || (isTemplateMode ? templateDirty : serviceDirty)}
                 >
-                  <SelectTrigger className="h-11 w-[minmax(0,180px)] min-w-[150px] flex-1 rounded-xl border-border bg-card">
+                  <SelectTrigger className="h-11 w-full min-w-0 flex-1 rounded-xl border-border bg-card sm:max-w-[180px]">
                     <SelectValue placeholder="Salle" />
                   </SelectTrigger>
                   <SelectContent>

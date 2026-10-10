@@ -1,3 +1,4 @@
+import DataLoadState from "@/components/client/DataLoadState";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -283,6 +284,12 @@ export default function GiftPoints() {
         </div>
       </main>
     );
+  }
+
+  const readLoading = !isCommercialDemoClient && (profileQuery.isLoading || giftStatsQuery.isLoading || sentGiftsQuery.isLoading || receivedGiftsQuery.isLoading);
+  const readError = !isCommercialDemoClient && (profileQuery.isError || giftStatsQuery.isError || sentGiftsQuery.isError || receivedGiftsQuery.isError);
+  if (readLoading || readError) {
+    return <main className="container max-w-3xl space-y-5 py-8"><h1 className="font-display text-3xl font-semibold">Points cadeau</h1><DataLoadState loading={readLoading} title={readLoading ? "Chargement de vos informations…" : "Vos informations n’ont pas pu être chargées"} onRetry={() => Promise.allSettled([profileQuery.refetch(), giftStatsQuery.refetch(), sentGiftsQuery.refetch(), receivedGiftsQuery.refetch()])} /></main>;
   }
 
   return (

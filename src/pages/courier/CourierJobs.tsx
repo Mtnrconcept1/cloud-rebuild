@@ -1,3 +1,4 @@
+import DataLoadState from "@/components/client/DataLoadState";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
@@ -46,7 +47,8 @@ function mapsLink(address: string) {
 function LiveCourierJobs() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
-  const { data: profile, isLoading: profileLoading } = useCourierProfile();
+  const profileQuery = useCourierProfile();
+  const { data: profile, isLoading: profileLoading } = profileQuery;
   const [clockTick, setClockTick] = useState(Date.now());
   const [missionDialogOpen, setMissionDialogOpen] = useState(false);
   const [selectedMission, setSelectedMission] = useState<CourierMissionPreview | null>(null);
@@ -60,25 +62,28 @@ function LiveCourierJobs() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const { data: offers = [], isLoading: offersLoading } = useQuery({
+  const offersQuery = useQuery({
     queryKey: ["courier-offers", profile?.id],
     enabled: !!profile?.id,
     queryFn: () => fetchCourierOffers(profile!.id),
     refetchInterval: 10000,
   });
+  const { data: offers = [], isLoading: offersLoading } = offersQuery;
 
-  const { data: activeJobs = [], isLoading: jobsLoading } = useQuery({
+  const jobsQuery = useQuery({
     queryKey: ["courier-active-jobs", profile?.id],
     enabled: !!profile?.id,
     queryFn: () => fetchCourierActiveJobs(profile!.id),
     refetchInterval: 10000,
   });
+  const { data: activeJobs = [], isLoading: jobsLoading } = jobsQuery;
 
-  const { data: recentJobs = [] } = useQuery({
+  const recentJobsQuery = useQuery({
     queryKey: ["courier-recent-jobs", profile?.id],
     enabled: !!profile?.id,
     queryFn: () => fetchCourierRecentJobs(profile!.id),
   });
+  const { data: recentJobs = [] } = recentJobsQuery;
 
   const activeJob = activeJobs[0] || null;
 
@@ -170,6 +175,10 @@ function LiveCourierJobs() {
         </div>
       </CourierDashboardLayout>
     );
+  }
+
+  if (profileQuery.isError || offersQuery.isError || jobsQuery.isError || recentJobsQuery.isError) {
+    return <CourierDashboardLayout><DataLoadState title="Les missions n’ont pas pu être chargées" onRetry={() => Promise.allSettled([profileQuery.refetch(), offersQuery.refetch(), jobsQuery.refetch(), recentJobsQuery.refetch()])} /></CourierDashboardLayout>;
   }
 
   return (

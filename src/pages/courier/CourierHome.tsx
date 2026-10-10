@@ -1,3 +1,4 @@
+import DataLoadState from "@/components/client/DataLoadState";
 import { useMemo, useState, type ReactNode } from "react";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -394,28 +395,32 @@ function LiveCourierHome() {
   const queryClient = useQueryClient();
   const [isToggling, setIsToggling] = useState(false);
 
-  const { data: profile, isLoading: profileLoading } = useCourierProfile();
+  const profileQuery = useCourierProfile();
+  const { data: profile, isLoading: profileLoading } = profileQuery;
   const { data: pushStatus, enable: enablePushAlerts } = useCourierPushStatus();
 
-  const { data: offers = [] } = useQuery({
+  const offersQuery = useQuery({
     queryKey: ["courier-offers-home", profile?.id],
     enabled: !!profile?.id,
     queryFn: () => fetchCourierOffers(profile!.id),
     refetchInterval: 15000,
   });
+  const { data: offers = [] } = offersQuery;
 
-  const { data: activeJobs = [] } = useQuery({
+  const jobsQuery = useQuery({
     queryKey: ["courier-active-jobs-home", profile?.id],
     enabled: !!profile?.id,
     queryFn: () => fetchCourierActiveJobs(profile!.id),
     refetchInterval: 10000,
   });
+  const { data: activeJobs = [] } = jobsQuery;
 
-  const { data: earnings = [] } = useQuery({
+  const earningsQuery = useQuery({
     queryKey: ["courier-earnings-home", profile?.id],
     enabled: !!profile?.id,
     queryFn: () => fetchCourierEarnings(profile!.id),
   });
+  const { data: earnings = [] } = earningsQuery;
 
   const activeJob = activeJobs[0] || null;
   const earningRows = earnings as CourierEarningRow[];
@@ -516,6 +521,10 @@ function LiveCourierHome() {
         </div>
       </CourierDashboardLayout>
     );
+  }
+
+  if (profileQuery.isError || offersQuery.isError || jobsQuery.isError || earningsQuery.isError) {
+    return <CourierDashboardLayout><DataLoadState title="Votre activité coursier est indisponible" onRetry={() => Promise.allSettled([profileQuery.refetch(), offersQuery.refetch(), jobsQuery.refetch(), earningsQuery.refetch()])} /></CourierDashboardLayout>;
   }
 
   const viewModel: CourierHomeViewModel = {

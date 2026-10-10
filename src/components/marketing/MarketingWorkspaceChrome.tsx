@@ -67,6 +67,13 @@ const NAV_ITEMS: Array<{
   { id: "faq", label: "Mode d'emploi", shortLabel: "Aide", description: "Fonctionnement, règles et paramétrage", icon: BookOpen },
 ];
 
+const NAV_GROUPS: Array<{ label: string; views: MarketingView[] }> = [
+  { label: "Pilotage", views: ["overview", "calendar", "results", "activity"] },
+  { label: "Créer et diffuser", views: ["agent", "campaigns", "automations"] },
+  { label: "Contacts et canaux", views: ["audiences", "outreach", "integrations"] },
+  { label: "Contrôle", views: ["governance", "faq"] },
+];
+
 function Navigation({
   activeView,
   onViewChange,
@@ -77,8 +84,12 @@ function Navigation({
   compact?: boolean;
 }) {
   return (
-    <nav className="space-y-1" aria-label="Sections marketing">
-      {NAV_ITEMS.map((item) => {
+    <nav className="space-y-4" aria-label="Sections marketing">
+      {NAV_GROUPS.map((group) => (
+        <section key={group.label} aria-labelledby={`marketing-group-${group.label.replaceAll(" ", "-").toLowerCase()}`}>
+          <h2 id={`marketing-group-${group.label.replaceAll(" ", "-").toLowerCase()}`} className="mb-1 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{group.label}</h2>
+          <div className="space-y-1">
+      {NAV_ITEMS.filter((item) => group.views.includes(item.id)).map((item) => {
         const Icon = item.icon;
         const selected = activeView === item.id;
         return (
@@ -90,24 +101,27 @@ function Navigation({
             className={cn(
               "group flex w-full min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400",
               selected
-                ? "bg-orange-500 text-white shadow-lg shadow-orange-950/20"
-                : "text-slate-300 hover:bg-white/[0.08] hover:text-white",
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-foreground hover:bg-muted",
             )}
           >
             <span className={cn(
               "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-              selected ? "bg-white/20" : "bg-white/5 text-slate-400 group-hover:text-white",
+              selected ? "bg-primary-foreground/15" : "bg-muted text-muted-foreground group-hover:text-foreground",
             )}>
               <Icon className="h-4 w-4" aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-semibold">{compact ? item.shortLabel : item.label}</span>
-              {!compact ? <span className={cn("mt-0.5 block truncate text-[11px]", selected ? "text-orange-50/90" : "text-slate-400")}>{item.description}</span> : null}
+              {!compact ? <span className={cn("mt-0.5 block truncate text-[11px]", selected ? "text-primary-foreground/85" : "text-muted-foreground")}>{item.description}</span> : null}
             </span>
             {selected ? <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
           </button>
         );
       })}
+          </div>
+        </section>
+      ))}
     </nav>
   );
 }
@@ -161,29 +175,29 @@ export default function MarketingWorkspaceChrome({
   };
 
   return (
-    <div className="min-h-[100dvh] bg-slate-50 text-slate-950 dark:bg-[#06101e] dark:text-slate-50">
+    <div className="min-h-[100dvh] bg-background text-foreground">
       <a href="#marketing-main" className="sr-only z-[2000] rounded-md bg-orange-500 px-4 py-2 text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
         Aller au contenu marketing
       </a>
 
-      <aside className="fixed inset-y-0 left-0 z-[1200] hidden w-[18rem] flex-col border-r border-white/[0.08] bg-[#07111f] px-4 py-5 text-white lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-[1200] hidden w-[18rem] flex-col border-r border-border bg-card px-4 py-5 text-card-foreground lg:flex">
         <div className="flex items-center gap-3 px-2">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 shadow-lg shadow-orange-950/40">
             <Megaphone className="h-5 w-5" aria-hidden="true" />
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-bold tracking-tight">Marketing Operations</p>
-            <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-orange-300">TheTOK · Admin</p>
+            <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">TOK · Administration</p>
           </div>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-white/[0.08] bg-white/[0.035] p-3">
+        <div className="mt-5 rounded-2xl border border-border bg-muted/40 p-3">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-medium text-slate-400">État global</span>
+            <span className="text-xs font-medium text-muted-foreground">État global</span>
             <span className={cn("h-2.5 w-2.5 rounded-full", snapshot.overview.globalPaused ? "bg-amber-400" : snapshot.overview.schedulerReady ? "bg-emerald-400" : "bg-rose-400")} />
           </div>
           <p className="mt-2 text-sm font-semibold">{runtimeLabel}</p>
-          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-400">{snapshot.overview.globalPaused && snapshot.overview.globalPauseReason ? snapshot.overview.globalPauseReason : "Mode gratuit · approbation obligatoire"}</p>
+          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{snapshot.overview.globalPaused && snapshot.overview.globalPauseReason ? snapshot.overview.globalPauseReason : "Mode gratuit · approbation obligatoire"}</p>
         </div>
 
         <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
@@ -192,7 +206,7 @@ export default function MarketingWorkspaceChrome({
 
         <a
           href={getAdminNavigationHref("/admin")}
-          className="mt-4 flex items-center justify-between rounded-xl border border-white/10 px-3 py-2.5 text-sm font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
+          className="mt-4 flex items-center justify-between rounded-xl border border-border px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           Retour à l'administration
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
@@ -208,10 +222,10 @@ export default function MarketingWorkspaceChrome({
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="border-r-white/10 bg-[#07111f] text-white">
+              <SheetContent side="left" className="border-r-border bg-card text-card-foreground">
                 <SheetHeader className="pr-8 text-left">
-                  <SheetTitle className="text-white">Marketing Operations</SheetTitle>
-                  <SheetDescription className="text-slate-400">Espace administrateur isolé</SheetDescription>
+                  <SheetTitle>Marketing TOK</SheetTitle>
+                  <SheetDescription>Espace administrateur isolé</SheetDescription>
                 </SheetHeader>
                 <div className="mt-6">
                   <Navigation activeView={activeView} onViewChange={selectView} compact />

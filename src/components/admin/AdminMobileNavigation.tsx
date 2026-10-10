@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 
 import AdminTheForkVisibilityControl from "@/components/admin/AdminTheForkVisibilityControl";
+import { Input } from "@/components/ui/input";
+import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
@@ -163,7 +165,7 @@ function AdminNavItems({
     <>
       {sections.map((section) => (
         <div key={section.title}>
-          <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground dark:text-slate-400">
+          <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
             {section.title}
           </p>
           {section.items.map((item) => {
@@ -176,8 +178,8 @@ function AdminNavItems({
                 className={cn(
                   "flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
                   isActive
-                    ? "bg-primary/10 text-primary shadow-sm dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] shadow-sm"
-                    : "hover:bg-muted dark:text-slate-200 dark:hover:bg-[#102044]/72",
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground hover:bg-muted",
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -210,6 +212,8 @@ function AdminNavItems({
 
 export default function AdminMobileNavigation() {
   const { pathname, search } = useLocation();
+  const logoSrc = useTokLogoSrc();
+  const [navigationSearch, setNavigationSearch] = useState("");
   const activeFeatures = useActiveFeatures();
   const { role } = useAuth();
   const { unreadNotifications } = useNotificationCenter(50);
@@ -304,8 +308,29 @@ export default function AdminMobileNavigation() {
     [pathname, search, sections],
   );
 
+  const matchingSections = sections.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => !navigationSearch.trim()
+      || `${section.title} ${item.label}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+        .includes(navigationSearch.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase())),
+  })).filter((section) => section.items.length > 0);
+
   return (
-    <div className="tok-admin-navigation pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pl-[calc(env(safe-area-inset-left,0px)+1rem)] pr-[calc(env(safe-area-inset-right,0px)+1rem)]">
+    <>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-border bg-card px-3 py-4 lg:flex" aria-label="Espace administration">
+        <Link to="/admin" className="flex min-h-14 items-center gap-3 px-3">
+          <img src={logoSrc} alt="TOK" className="h-11 w-11 object-contain" />
+          <span><span className="block text-sm font-semibold">Administration</span><span className="block text-xs text-muted-foreground">{activeNavItem?.label ?? "Vue d’ensemble"}</span></span>
+        </Link>
+        <label htmlFor="admin-navigation-search" className="mb-2 mt-5 px-3 text-xs font-semibold text-muted-foreground">Trouver un outil</label>
+        <Input id="admin-navigation-search" value={navigationSearch} onChange={(event) => setNavigationSearch(event.target.value)} placeholder="Restaurants, audit, comptabilité…" className="mb-3" />
+        <nav aria-label="Outils administrateur" className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <AdminNavItems activeTo={activeNavItem?.to} sections={matchingSections} unreadNotifications={unreadNotifications} role={role} pendingSignupApplicationsCount={pendingSignupApplicationsCount} openSupportIncidentCount={openSupportIncidentCount} />
+          {matchingSections.length === 0 ? <p className="px-3 py-5 text-sm text-muted-foreground" role="status">Aucun outil ne correspond à cette recherche.</p> : null}
+        </nav>
+        <Link to="/" className="mt-3 inline-flex min-h-11 items-center rounded-xl border-t px-3 text-sm font-medium hover:text-primary">Retour à l’accueil</Link>
+      </aside>
+    <div className="tok-admin-navigation pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end lg:hidden pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pl-[calc(env(safe-area-inset-left,0px)+1rem)] pr-[calc(env(safe-area-inset-right,0px)+1rem)]">
       {pathname === "/admin/restaurants" ? (
         <div className="pointer-events-auto mr-2 flex items-center">
           <AdminTheForkVisibilityControl />
@@ -379,5 +404,6 @@ export default function AdminMobileNavigation() {
         </SheetContent>
       </Sheet>
     </div>
+    </>
   );
 }

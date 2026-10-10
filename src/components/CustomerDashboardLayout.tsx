@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 import {
   BadgePercent,
   Bell,
@@ -11,6 +12,7 @@ import {
   LayoutDashboard,
   LifeBuoy,
   MapPinned,
+  Search,
   Newspaper,
   PiggyBank,
   ShieldCheck,
@@ -36,6 +38,7 @@ import { useAuth } from "@/lib/auth-context";
 import { isCommercialDemoClientPathAllowed } from "@/lib/commercialDemoClientRoutes";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 type CustomerNavItem = {
   to: string;
@@ -141,6 +144,8 @@ export default function CustomerDashboardLayout({ children }: { children: React.
     ? new Set(commercialDemoFrame.snapshot.active_features)
     : globalActiveFeatures;
   const { unreadNotifications } = useNotificationCenter(50);
+  const [navigationSearch, setNavigationSearch] = useState("");
+  const navigationQuery = navigationSearch.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const visibleSections = NAV_SECTIONS
     .map((section) => ({
       ...section,
@@ -155,6 +160,11 @@ export default function CustomerDashboardLayout({ children }: { children: React.
         }
         return !item.demoOnly && hasActiveFeature;
       }),
+    }))
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => !navigationQuery || `${section.label} ${item.label}`
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(navigationQuery)),
     }))
     .filter((section) => section.items.length > 0);
   const visibleItems = visibleSections.flatMap((section) => section.items);
@@ -188,15 +198,26 @@ export default function CustomerDashboardLayout({ children }: { children: React.
     <div className="tok-workspace-shell min-h-screen overflow-x-hidden bg-background pt-16">
       <div className="container px-3 py-4 sm:px-4 sm:py-6 md:flex md:gap-7 md:py-8">
         <nav aria-label="Navigation de l’espace client" className="mb-4 md:hidden">
+          <label htmlFor="customer-mobile-tool-search" className="sr-only">Trouver une fonctionnalité</label>
+          <div className="relative mb-3">
+            <Search aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input id="customer-mobile-tool-search" value={navigationSearch} onChange={(event) => setNavigationSearch(event.target.value)} placeholder="Trouver une fonctionnalité…" className="h-11 bg-card pl-9" />
+          </div>
           <div className="flex snap-x gap-2 overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {visibleItems.map((item) => renderItem(item, true))}
           </div>
+          {visibleItems.length === 0 ? <p role="status" className="px-2 py-3 text-sm text-muted-foreground">Aucune fonctionnalité ne correspond.</p> : null}
         </nav>
 
         <aside className="hidden w-64 shrink-0 md:block">
           <div className="tok-workspace-sidebar sticky top-24 rounded-2xl border bg-card p-4 shadow-sm">
             <h2 className="px-3 py-2 font-display text-lg font-semibold">Mon espace</h2>
             {!commercialDemoFrame ? <RoleSpaceMenuSection className="mb-3" /> : null}
+            <label htmlFor="customer-tool-search" className="sr-only">Trouver une fonctionnalité</label>
+            <div className="relative mb-3">
+              <Search aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input id="customer-tool-search" value={navigationSearch} onChange={(event) => setNavigationSearch(event.target.value)} placeholder="Trouver un service…" className="h-11 pl-9" />
+            </div>
             <nav aria-label="Navigation de l’espace client" className="space-y-4">
               {visibleSections.map((section) => (
                 <div key={section.label} className="space-y-1">
@@ -204,6 +225,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
                   {section.items.map((item) => renderItem(item))}
                 </div>
               ))}
+              {visibleItems.length === 0 ? <p role="status" className="px-3 py-4 text-sm text-muted-foreground">Aucune fonctionnalité ne correspond.</p> : null}
             </nav>
             {!commercialDemoFrame ? (
               <div className="mt-4 border-t pt-4">

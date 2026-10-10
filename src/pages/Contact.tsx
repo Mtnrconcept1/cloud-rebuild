@@ -17,12 +17,15 @@ export default function Contact() {
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { toast } = useToast();
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ error: boolean; text: string } | null>(null);
   const [sending, setSending] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
+    setFeedback(null);
     if (isCommercialDemoClient) {
+      setFeedback({ error: false, text: "Message simulé. Aucun ticket de production n’a été créé." });
       form.reset();
       setCaptchaToken(null);
       toast({
@@ -32,6 +35,7 @@ export default function Contact() {
       return;
     }
     if (isCaptchaEnabled() && !captchaToken) {
+      setFeedback({ error: true, text: "Validez le contrôle anti-abus avant d’envoyer votre message." });
       toast({ title: "Validation requise", description: "Validez le contrôle anti-abus avant d'envoyer.", variant: "destructive" });
       return;
     }
@@ -54,8 +58,10 @@ export default function Contact() {
       });
       form.reset();
       setCaptchaToken(null);
+      setFeedback({ error: false, text: "Votre message a été envoyé. Notre équipe vous répondra par email." });
       toast({ title: "Message envoyé", description: "Notre équipe vous répondra rapidement." });
     } catch (error) {
+      setFeedback({ error: true, text: error instanceof Error ? error.message : "Impossible d’envoyer le message. Votre saisie est conservée." });
       toast({
         title: "Erreur",
         description: error instanceof Error ? error.message : "Impossible d'envoyer le message.",
@@ -67,13 +73,13 @@ export default function Contact() {
   };
 
   return (
-    <div className="container space-y-12 py-12 md:py-20">
-      <div className="space-y-4 text-center">
+    <div className="container max-w-6xl space-y-6 py-6 md:py-10">
+      <div className="space-y-3">
         <h1 className="font-display text-4xl font-bold md:text-5xl">Contactez-nous</h1>
-        <p className="mx-auto max-w-2xl text-lg text-muted-foreground">Une question ? Notre équipe est là pour vous.</p>
+        <p className="max-w-2xl text-lg text-muted-foreground">Une question ? Notre équipe est là pour vous.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <Card className="border-primary/10 shadow-lg">
           <CardHeader>
             <CardTitle>Envoyez-nous un message</CardTitle>
@@ -82,24 +88,25 @@ export default function Contact() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Nom</label>
-                  <Input name="name" placeholder="Votre nom" required />
+                  <label htmlFor="contact-name" className="text-sm font-medium">Nom</label>
+                  <Input id="contact-name" name="name" placeholder="Votre nom" required />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Email</label>
-                  <Input name="email" type="email" placeholder="votre@email.com" required />
+                  <label htmlFor="contact-email" className="text-sm font-medium">Email</label>
+                  <Input id="contact-email" name="email" type="email" placeholder="votre@email.com" required />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Sujet</label>
-                <Input name="subject" placeholder="De quoi souhaitez-vous parler ?" required />
+                <label htmlFor="contact-subject" className="text-sm font-medium">Sujet</label>
+                <Input id="contact-subject" name="subject" placeholder="De quoi souhaitez-vous parler ?" required />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Message</label>
-                <Textarea name="message" placeholder="Votre message..." className="min-h-[150px]" required />
+                <label htmlFor="contact-message" className="text-sm font-medium">Message</label>
+                <Textarea id="contact-message" name="message" placeholder="Votre message..." className="min-h-[150px]" required />
               </div>
+              {feedback ? <p role={feedback.error ? "alert" : "status"} className={`rounded-xl border p-3 text-sm ${feedback.error ? "border-destructive/30 text-destructive" : "border-primary/30 text-foreground"}`}>{feedback.text}</p> : null}
               {!isCommercialDemoClient ? <TurnstileCaptcha action="public_contact" onTokenChange={setCaptchaToken} /> : null}
-              <Button type="submit" className="w-full gap-2" disabled={sending}>
+              <Button type="submit" className="min-h-11 w-full gap-2" disabled={sending}>
                 <Send className="h-4 w-4" /> {sending ? "Envoi..." : "Envoyer"}
               </Button>
             </form>

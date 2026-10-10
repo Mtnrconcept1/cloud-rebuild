@@ -592,7 +592,7 @@ function GoldenTokFeatureWizard({
                       }`}
                     >
                       <span
-                        className={`flex h-9 w-9 items-center justify-center rounded-full border text-xs font-bold transition sm:h-10 sm:w-10 ${
+                        className={`flex h-11 w-11 items-center justify-center rounded-full border text-xs font-bold transition sm:h-11 sm:w-11 ${
                           isCurrent
                             ? "border-[#edcf84] bg-gradient-to-br from-[#f4d98f] to-[#bd8427] text-[#1c1408] shadow-[0_8px_20px_-8px_rgba(183,120,18,0.85)]"
                             : isPast
@@ -696,9 +696,9 @@ export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, 
                   onClick={() => isPast && onStepChange && onStepChange(s.id)}
                   disabled={!isPast && !isCurrent}
                   className={`flex h-[44px] min-w-[44px] flex-1 items-center justify-center rounded-full text-xs font-bold transition-colors ${isCurrent
-                    ? `bg-${colorClass} text-white`
+                    ? "bg-primary text-primary-foreground"
                     : isPast
-                      ? `bg-${colorClass}/20 text-${colorClass}`
+                      ? "bg-primary/10 text-primary"
                       : "bg-secondary text-muted-foreground"
                     } ${isPast ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}
                 >
@@ -708,7 +708,7 @@ export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, 
             })}
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
-            <div className={`h-full rounded-full bg-${colorClass} transition-all`} style={{ width: `${progress}%` }} />
+            <div className={`h-full rounded-full bg-${colorClass} motion-reduce:transition-none transition-all`} style={{ width: `${progress}%` }} />
           </div>
         </div>
         <div className="hidden items-center gap-1 overflow-x-auto pb-2 sm:flex sm:pb-0">
@@ -717,8 +717,8 @@ export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, 
             const isPast = i < currentIdx;
             return (
               <div key={s.id} className="flex items-center gap-1 flex-1 min-w-fit">
-                <button onClick={() => isPast && onStepChange && onStepChange(s.id)} disabled={!isPast && !isCurrent} className={`flex min-h-[44px] items-center gap-2 rounded-full px-1 transition-colors ${isPast ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}>
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isCurrent ? `bg-${colorClass} text-white` : isPast ? `bg-${colorClass}/20 text-${colorClass}` : "bg-secondary text-muted-foreground"}`}>{isPast ? <CheckCircle2 className="h-4 w-4" /> : i + 1}</div>
+                <button type="button" aria-current={isCurrent ? "step" : undefined} onClick={() => isPast && onStepChange && onStepChange(s.id)} disabled={!isPast && !isCurrent} className={`flex min-h-[44px] items-center gap-2 rounded-full px-1 transition-colors ${isPast ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isCurrent ? "bg-primary text-primary-foreground" : isPast ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"}`}>{isPast ? <CheckCircle2 className="h-4 w-4" /> : i + 1}</div>
                   <span className={`text-[11px] whitespace-nowrap ${isCurrent ? "font-semibold text-foreground" : "text-muted-foreground"} ${!isCurrent && !isPast ? "hidden sm:inline" : ""}`}>{s.label}</span>
                 </button>
                 {i < steps.length - 1 && <div className="flex-1 min-w-[1rem] h-0.5 bg-secondary rounded mx-1" />}
@@ -736,14 +736,14 @@ export function WizardBackButton({ onClick, label = "Retour" }: { onClick: () =>
   return <Button variant="ghost" size="sm" onClick={onClick} className="gap-1 mb-4"><ChevronLeft className="h-4 w-4" /> {label}</Button>;
 }
 
-export function WizardNextButton({ onClick, label = "Continuer", colorClass = "primary" }: { onClick: () => void; label?: string; colorClass?: string }) {
-  return <Button onClick={onClick} className={`w-full bg-${colorClass} hover:opacity-90 transition-opacity gap-2`}>{label} <ChevronRight className="h-4 w-4" /></Button>;
+export function WizardNextButton({ onClick, label = "Continuer", colorClass: _colorClass = "primary" }: { onClick: () => void; label?: string; colorClass?: string }) {
+  return <Button onClick={onClick} className="min-h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2">{label} <ChevronRight className="h-4 w-4" /></Button>;
 }
 
 export function WizardCartSummary({ count, subtotal, colorClass = "primary", feeLabel, feeAmount, total, onValidate, validateLabel = "Valider" }: { count: number; subtotal: number; colorClass?: string; feeLabel?: string; feeAmount?: number; total: number; onValidate: () => void; validateLabel?: string }) {
   if (count === 0) return null;
   return (
-    <div className={`sticky bottom-4 rounded-xl border-2 border-${colorClass}/20 bg-${colorClass}/5 p-4 shadow-lg space-y-2 mt-8 animate-in slide-in-from-bottom-4`}>
+    <div className={`sticky bottom-[max(1rem,env(safe-area-inset-bottom))] rounded-xl border-2 border-${colorClass}/20 bg-${colorClass}/5 p-4 shadow-lg space-y-2 mt-8 motion-safe:animate-in motion-safe:slide-in-from-bottom-4`}>
       <div className="flex justify-between text-sm"><span>{count} article{count > 1 ? "s" : ""}</span><span className="font-bold">{subtotal.toFixed(2)} CHF</span></div>
       {(feeLabel && feeAmount !== undefined && feeAmount > 0) && <div className={`flex justify-between text-xs text-${colorClass}`}><span>{feeLabel}</span><span>+{feeAmount.toFixed(2)} CHF</span></div>}
       <div className="flex justify-between font-bold border-t pt-2 mt-2"><span>Total</span><span>{total.toFixed(2)} CHF</span></div>

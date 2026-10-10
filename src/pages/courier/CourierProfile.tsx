@@ -1,3 +1,4 @@
+import DataLoadState from "@/components/client/DataLoadState";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LogOut, Plus, Save, ShieldCheck, Trash2, UserRound } from "lucide-react";
@@ -91,7 +92,8 @@ function toShiftPayload(groups: Record<number, ShiftSlotFormRow[]>): CourierShif
 function LiveCourierProfile() {
   const queryClient = useQueryClient();
   const { signOut, user } = useAuth();
-  const { data: profile, isLoading: profileLoading } = useCourierProfile();
+  const profileQuery = useCourierProfile();
+  const { data: profile, isLoading: profileLoading } = profileQuery;
   const { data: rawSignupApplication } = useSignupApplication("courier");
   const signupApplication = Array.isArray(rawSignupApplication)
     ? rawSignupApplication[0] || null
@@ -107,11 +109,12 @@ function LiveCourierProfile() {
   });
   const [shiftGroups, setShiftGroups] = useState<Record<number, ShiftSlotFormRow[]>>(createDefaultShiftGroups());
 
-  const { data: shiftsData, isLoading: shiftsLoading } = useQuery({
+  const shiftsQuery = useQuery({
     queryKey: ["courier-shifts", profile?.id],
     enabled: !!profile?.id,
     queryFn: () => fetchCourierShifts(profile!.id),
   });
+  const { data: shiftsData, isLoading: shiftsLoading } = shiftsQuery;
   const shifts = shiftsData ?? EMPTY_SHIFTS;
 
   useEffect(() => {
@@ -188,6 +191,10 @@ function LiveCourierProfile() {
         </div>
       </CourierDashboardLayout>
     );
+  }
+
+  if (profileQuery.isError || shiftsQuery.isError) {
+    return <CourierDashboardLayout><DataLoadState title="Votre profil n’a pas pu être chargé" onRetry={() => Promise.allSettled([profileQuery.refetch(), shiftsQuery.refetch()])} /></CourierDashboardLayout>;
   }
 
   return (

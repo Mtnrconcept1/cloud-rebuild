@@ -282,7 +282,7 @@ export default function StudioInspector({
                     className="h-10 w-[110px] rounded-xl"
                   />
                   <span className="text-xs text-muted-foreground">deg</span>
-                  <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-xl" onClick={onRotateIncrement}>
+                  <Button type="button" variant="outline" size="icon" aria-label="Tourner la table de 15 degrés" className="h-11 w-11 rounded-xl" onClick={onRotateIncrement}>
                     <RotateCw className="h-4 w-4" />
                   </Button>
                 </div>

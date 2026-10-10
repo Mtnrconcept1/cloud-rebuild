@@ -3,7 +3,6 @@ import { Copy, ExternalLink, Link2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabase } from "@/integrations/supabase/client";
 
 const supabase = getSupabase();
@@ -56,18 +55,19 @@ export default function DirectReservationChannelsCard({ restaurantId }: { restau
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
+    <details className="group rounded-2xl border bg-card">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 marker:hidden sm:px-5">
+        <span className="flex min-w-0 items-center gap-3 font-semibold">
           <Link2 className="h-5 w-5 text-primary" />
-          Canaux de réservation gratuits
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Ces liens signés attribuent la réservation à votre canal : site, QR code et Instagram restent à CHF 0.
-          Ne modifiez pas le jeton ; le serveur le vérifie à chaque réservation.
+          Partager mon lien de réservation
+        </span>
+        <span className="shrink-0 text-sm text-muted-foreground group-open:hidden">Afficher</span>
+        <span className="hidden shrink-0 text-sm text-muted-foreground group-open:inline">Masquer</span>
+      </summary>
+      <div className="border-t px-4 py-4 sm:px-5">
+        <p className="mb-4 text-sm leading-6 text-muted-foreground">
+          Choisissez le lien adapté à votre site, votre QR code ou Instagram. Les réservations reçues par ces liens restent à CHF 0.
         </p>
-      </CardHeader>
-      <CardContent>
         {channelsQuery.isLoading ? (
           <p className="flex items-center text-sm text-muted-foreground">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Préparation des liens…
@@ -97,7 +97,7 @@ export default function DirectReservationChannelsCard({ restaurantId }: { restau
             })}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </details>
   );
 }
