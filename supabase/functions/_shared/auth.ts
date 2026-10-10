@@ -162,7 +162,7 @@ export async function writeAuditLog(input: AuditLogInput) {
   const authMode = input.actor?.authMode || null;
 
   try {
-    await input.adminClient.from("edge_function_audit_logs").insert({
+    const { error } = await input.adminClient.from("edge_function_audit_logs").insert({
       function_name: input.functionName,
       action: input.action || "invoke",
       actor_user_id: actorUserId,
@@ -178,8 +178,16 @@ export async function writeAuditLog(input: AuditLogInput) {
         ...(input.metadata || {}),
       },
     });
+    if (error) throw error;
   } catch (error) {
-    console.error("[audit] write failure:", error);
+    // A returned SDK error does not throw. Emit an independent, countable signal
+    // without logging the failed payload, user identity, URL or error message.
+    const rawCode = error && typeof error === "object" && "code" in error && typeof error.code === "string" ? error.code : "";
+    console.error("[audit] audit_write_failed", {
+      event: "audit_write_failed",
+      function_name: /^[a-z0-9_-]{1,100}$/i.test(input.functionName) ? input.functionName : "unknown",
+      code: /^(?:[A-Z0-9]{5}|PGRST[0-9]{3})$/.test(rawCode) ? rawCode : "unknown",
+    });
   }
 }
 
