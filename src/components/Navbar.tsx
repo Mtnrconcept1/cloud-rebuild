@@ -319,7 +319,7 @@ export default function Navbar() {
 
             <ThemeToggleButton
               onMouseDown={preserveNavbarActionScrollPosition}
-              className={`${isMobileHomeHeader ? "text-slate-950 hover:bg-transparent hover:text-slate-950 dark:text-slate-950" : ""} hidden min-[380px]:inline-flex`}
+              className={`${isMobileHomeHeader ? "text-foreground hover:bg-transparent hover:text-foreground" : ""} hidden min-[380px]:inline-flex`}
             />
 
             {showCartShortcut ? (
@@ -336,7 +336,7 @@ export default function Navbar() {
               </Button>
             ) : null}
 
-            <NotificationBell className={isMobileHomeHeader ? "text-slate-950 hover:bg-transparent" : undefined} />
+            <NotificationBell className={isMobileHomeHeader ? "text-foreground hover:bg-transparent hover:text-foreground" : undefined} />
 
             {showClientSurface ? (
               <Link
@@ -359,7 +359,7 @@ export default function Navbar() {
                     onMouseDown={preserveNavbarActionScrollPosition}
                     className={
                       isMobileHomeHeader
-                        ? "order-3 h-[48px] w-[48px] rounded-full bg-primary p-0 text-[0.88rem] font-bold text-white shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90 min-[380px]:w-auto min-[380px]:px-5"
+                        ? "order-3 h-[48px] w-[48px] rounded-full bg-primary p-0 text-[0.88rem] font-bold text-primary-foreground shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90 min-[380px]:w-auto min-[380px]:px-5"
                         : "rounded-full"
                     }
                   >

@@ -19,6 +19,15 @@ describe("navbar action stability", () => {
     expect(source).not.toContain("Ouvrir mes espaces");
   });
 
+  it("keeps home header actions readable in both themes", () => {
+    expect(source).not.toContain("text-slate-950");
+    const themeStart = source.indexOf("<ThemeToggleButton");
+    const actions = source.slice(themeStart, source.indexOf("<DropdownMenuContent", themeStart));
+    expect(actions).toContain("text-foreground hover:bg-transparent hover:text-foreground");
+    expect(actions).toContain("font-bold text-primary-foreground");
+    expect(actions).not.toContain("font-bold text-white");
+  });
+
   it("keeps desktop dropdown actions non-modal so scroll locking does not move the sticky header", () => {
     expect(source).toContain("NotificationBell");
     expect(notificationBell).toContain("<DropdownMenu modal={false}>");
