@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "cdafa0b81392fa922b2536bf0229591cd9865469567fd114c8093c9e1ef77275",
+ "sourceDigest": "298178489fd9ff97e2bed4bcbc2679526a6b7f1053203704b51cbb296b76eb72",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -25,7 +25,7 @@
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15577,
+  "records": 15578,
   "repositoryFiles": 2747,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -77451,28 +77451,33 @@
      },
      {
       "level": 2,
-      "title": "État des preuves au 10 octobre 2026",
-      "line": 15
+      "title": "Réconciliation de production en lecture seule",
+      "line": 19
      },
      {
       "level": 2,
-      "title": "Exécution en CI, sans accès fournisseur",
+      "title": "État des preuves au 10 octobre 2026",
       "line": 25
      },
      {
       "level": 2,
+      "title": "Exécution en CI, sans accès fournisseur",
+      "line": 35
+     },
+     {
+      "level": 2,
       "title": "Commandes locales",
-      "line": 39
+      "line": 49
      },
      {
       "level": 2,
       "title": "Critères de réussite",
-      "line": 63
+      "line": 73
      },
      {
       "level": 2,
       "title": "Avant une application distante",
-      "line": 74
+      "line": 84
      }
     ]
    },
@@ -195921,18 +195926,18 @@
    "detailRef": "87ec2243535b"
   },
   {
-   "id": "document-section:734e7e273978",
+   "id": "document-section:bcfe01fe898e",
    "type": "document-section",
    "title": "Avant une application distante",
    "description": "Section de Recette de sécurité checkout et menus — issue #710.",
    "path": "docs/testing/checkout-security-710.md",
-   "line": 74,
+   "line": 84,
    "surface": null,
    "tags": [
     "Recette de sécurité checkout et menus — issue #710",
     "h2"
    ],
-   "detailRef": "8ceeaf5ee5bd"
+   "detailRef": "056a4c0ea63c"
   },
   {
    "id": "document-section:abf7a7b555de",
@@ -197279,18 +197284,18 @@
    "detailRef": "666550aa1850"
   },
   {
-   "id": "document-section:50ea04e04779",
+   "id": "document-section:0a93028917ca",
    "type": "document-section",
    "title": "Commandes locales",
    "description": "Section de Recette de sécurité checkout et menus — issue #710.",
    "path": "docs/testing/checkout-security-710.md",
-   "line": 39,
+   "line": 49,
    "surface": null,
    "tags": [
     "Recette de sécurité checkout et menus — issue #710",
     "h2"
    ],
-   "detailRef": "a615afe55847"
+   "detailRef": "48a76deab350"
   },
   {
    "id": "document-section:94ff66c13caf",
@@ -198931,18 +198936,18 @@
    "detailRef": "40b4139a88e5"
   },
   {
-   "id": "document-section:696cb8cde89e",
+   "id": "document-section:ed52414b7528",
    "type": "document-section",
    "title": "Critères de réussite",
    "description": "Section de Recette de sécurité checkout et menus — issue #710.",
    "path": "docs/testing/checkout-security-710.md",
-   "line": 63,
+   "line": 73,
    "surface": null,
    "tags": [
     "Recette de sécurité checkout et menus — issue #710",
     "h2"
    ],
-   "detailRef": "45d42f91c343"
+   "detailRef": "447004a7ee86"
   },
   {
    "id": "document-section:8a4970954dba",
@@ -200835,18 +200840,18 @@
    "detailRef": "188c50f249f5"
   },
   {
-   "id": "document-section:400e682aaf74",
+   "id": "document-section:d931d683e56c",
    "type": "document-section",
    "title": "Exécution en CI, sans accès fournisseur",
    "description": "Section de Recette de sécurité checkout et menus — issue #710.",
    "path": "docs/testing/checkout-security-710.md",
-   "line": 25,
+   "line": 35,
    "surface": null,
    "tags": [
     "Recette de sécurité checkout et menus — issue #710",
     "h2"
    ],
-   "detailRef": "aad70a0e6393"
+   "detailRef": "1a6e440cdd6d"
   },
   {
    "id": "document-section:e707c892b35f",
@@ -211349,6 +211354,20 @@
    "detailRef": "db5c3dc4af61"
   },
   {
+   "id": "document-section:352b73303b47",
+   "type": "document-section",
+   "title": "Réconciliation de production en lecture seule",
+   "description": "Section de Recette de sécurité checkout et menus — issue #710.",
+   "path": "docs/testing/checkout-security-710.md",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "Recette de sécurité checkout et menus — issue #710",
+    "h2"
+   ],
+   "detailRef": "9e7438fe7c96"
+  },
+  {
    "id": "document-section:6c7c3bedbb08",
    "type": "document-section",
    "title": "Réduction du contexte Support & Resolution",
@@ -219469,18 +219488,18 @@
    "detailRef": "3dbd56ae2de7"
   },
   {
-   "id": "document-section:7545d2704c82",
+   "id": "document-section:8b9daf204902",
    "type": "document-section",
    "title": "État des preuves au 10 octobre 2026",
    "description": "Section de Recette de sécurité checkout et menus — issue #710.",
    "path": "docs/testing/checkout-security-710.md",
-   "line": 15,
+   "line": 25,
    "surface": null,
    "tags": [
     "Recette de sécurité checkout et menus — issue #710",
     "h2"
    ],
-   "detailRef": "09e8f13f4514"
+   "detailRef": "36a93d036f25"
   },
   {
    "id": "document-section:3061036041c2",
@@ -221918,7 +221937,7 @@
    "id": "document:9f0b359c1499",
    "type": "document",
    "title": "Recette de sécurité checkout et menus — issue #710",
-   "description": "Document Markdown avec 7 section(s).",
+   "description": "Document Markdown avec 8 section(s).",
    "path": "docs/testing/checkout-security-710.md",
    "line": 1,
    "surface": null,
@@ -221929,9 +221948,10 @@
     "Exécution en CI, sans accès fournisseur",
     "Périmètre",
     "Recette de sécurité checkout et menus — issue #710",
+    "Réconciliation de production en lecture seule",
     "État des preuves au 10 octobre 2026"
    ],
-   "detailRef": "9eb6a56a73d1"
+   "detailRef": "e28760f74686"
   },
   {
    "id": "document:a3cc4b0f49a7",
