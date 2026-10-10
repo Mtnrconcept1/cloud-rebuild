@@ -1,0 +1,118 @@
+name: Courier atomic PostgreSQL replay
+
+on:
+  pull_request:
+    paths:
+      - supabase/migrations/20261010223000_courier_dispatch_atomic.sql
+      - supabase/tests/courier_atomic*.sql
+      - scripts/test-courier-atomic-postgres.mjs
+      - supabase/functions/courier-portal/index.ts
+      - supabase/functions/dispatch-order/index.ts
+      - supabase/functions/dispatch-timeout/index.ts
+      - supabase/functions/restaurant-order-status/index.ts
+      - .github/workflows/courier-atomic-postgres.yml
+  workflow_dispatch:
+    inputs:
+      base_sha:
+        description: Main commit before the courier atomic migration (full immutable SHA)
+        required: true
+        default: f893d29c41c6f0ebf542693d72baa2255332d9dc
+
+permissions:
+  contents: read
+
+concurrency:
+  group: courier-atomic-postgres-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '54322'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+      TOK_COURIER_ATOMIC_DISPOSABLE: 'true'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.102.0
+      - name: Prepare immutable main baseline
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || inputs.base_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          git cat-file -e "${BASE_SHA}^{commit}"
+          git worktree add --detach "$RUNNER_TEMP/tok-courier-main" "$BASE_SHA"
+          # Local runner configuration only; never link to the hosted project.
+          sed -i 's/^project_id = .*/project_id = "tok-courier-atomic-ci"/' "$RUNNER_TEMP/tok-courier-main/supabase/config.toml"
+          printf '\n[db]\nmajor_version = 17\n[db.seed]\nenabled = false\n' >> "$RUNNER_TEMP/tok-courier-main/supabase/config.toml"
+          mkdir -p work/courier-atomic-ci
+          printf '%s\n' "$BASE_SHA" > work/courier-atomic-ci/base-sha.txt
+          git rev-parse HEAD > work/courier-atomic-ci/candidate-sha.txt
+      - name: Replay every main migration in disposable PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/tok-courier-main"
+          # Start replays migrations. Stage the suffix temporarily so its real
+          # historical data precondition can be supplied as synthetic fixtures.
+          mkdir "$RUNNER_TEMP/tok-courier-later-migrations"
+          for migration in supabase/migrations/*.sql; do
+            filename=$(basename "$migration")
+            if [[ "${filename%%_*}" > "20260909025200" ]]; then
+              mv "$migration" "$RUNNER_TEMP/tok-courier-later-migrations/"
+            fi
+          done
+          # Historical cron/pg_net code must never reach hosted providers.
+          docker network create --subnet 172.30.75.0/24 tok-courier-atomic-ci
+          NETWORK_ID=$(docker network inspect tok-courier-atomic-ci --format '{{.Id}}')
+          # Preserve host-published PostgreSQL access, deny NEW outbound flows.
+          sudo iptables -I DOCKER-USER 1 -i "br-${NETWORK_ID:0:12}" ! -d 172.30.75.0/24 -m conntrack --ctstate NEW -j REJECT
+          supabase db start --network-id tok-courier-atomic-ci 2>&1 | tee "$GITHUB_WORKSPACE/work/courier-atomic-ci/base-replay.log"
+          # Prove that a real outbound TCP attempt hits our rejection rule.
+          if docker exec supabase_db_tok-courier-atomic-ci timeout 3 bash -c 'exec 3<>/dev/tcp/1.1.1.1/443'; then
+            echo 'Database egress unexpectedly succeeded' >&2
+            exit 1
+          fi
+          sudo iptables -nvx -L DOCKER-USER | tee "$GITHUB_WORKSPACE/work/courier-atomic-ci/egress-firewall.txt"
+          sudo iptables -nvx -L DOCKER-USER | awk -v bridge="br-${NETWORK_ID:0:12}" '$3 == "REJECT" && $6 == bridge && $1 > 0 { blocked=1 } END { exit !blocked }'
+          psql -X -v ON_ERROR_STOP=1 -f "$GITHUB_WORKSPACE/supabase/tests/print_fulfillment_protocol_baseline_prerequisites.sql"
+          mv "$RUNNER_TEMP/tok-courier-later-migrations/"*.sql supabase/migrations/
+          git diff --exit-code -- supabase/migrations
+          supabase migration up --local --network-id tok-courier-atomic-ci 2>&1 | tee -a "$GITHUB_WORKSPACE/work/courier-atomic-ci/base-replay.log"
+          psql -X -v ON_ERROR_STOP=1 -At -c 'SELECT version FROM supabase_migrations.schema_migrations ORDER BY version' > "$GITHUB_WORKSPACE/work/courier-atomic-ci/applied-main-versions.txt"
+          find supabase/migrations -maxdepth 1 -name '*.sql' -printf '%f\n' | cut -d_ -f1 | sort > "$GITHUB_WORKSPACE/work/courier-atomic-ci/expected-main-versions.txt"
+          diff -u "$GITHUB_WORKSPACE/work/courier-atomic-ci/expected-main-versions.txt" "$GITHUB_WORKSPACE/work/courier-atomic-ci/applied-main-versions.txt"
+      - name: Test candidate transition, real roles, history and concurrency
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/test-courier-atomic-postgres.mjs 2>&1 | tee work/courier-atomic-ci/protocol-tests.log
+      - name: Preserve exact replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: courier-atomic-postgres-evidence
+          path: work/courier-atomic-ci
+      - name: Stop only the disposable runner stack
+        if: always()
+        shell: bash
+        run: |
+          if [[ -d "$RUNNER_TEMP/tok-courier-main/supabase" ]]; then
+            cd "$RUNNER_TEMP/tok-courier-main"
+            supabase stop --no-backup
+          fi
+          docker network rm tok-courier-atomic-ci || true

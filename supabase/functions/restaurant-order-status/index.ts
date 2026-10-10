@@ -101,35 +101,19 @@ async function upsertDispatchRetryAlert(input: {
   orderNumber: string | null;
   dispatch: Extract<DispatchResult, { state: "failed" }>;
 }) {
-  const { data: existingJob } = await input.adminClient
-    .from("dispatch_jobs")
-    .select("id")
-    .eq("order_id", input.orderId)
-    .not("status", "in", "(delivered,cancelled)")
-    .maybeSingle();
-
-  let dispatchJobId = existingJob?.id || null;
-  if (dispatchJobId) {
-    await input.adminClient
-      .from("dispatch_jobs")
-      .update({
-        status: "no_courier",
-        cancel_reason: `Dispatch retry required: ${input.dispatch.error}`.slice(0, 240),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", dispatchJobId);
-  } else {
-    const { data: newJob } = await input.adminClient
-      .from("dispatch_jobs")
-      .insert({
-        order_id: input.orderId,
-        status: "no_courier",
-        cancel_reason: `Dispatch retry required: ${input.dispatch.error}`.slice(0, 240),
-      })
-      .select("id")
-      .maybeSingle();
-    dispatchJobId = newJob?.id || null;
-  }
+  const { data: job, error: ensureError } = await input.adminClient
+    .rpc("ensure_courier_dispatch_job", { p_order_id: input.orderId });
+  if (ensureError) throw ensureError;
+  const dispatchJobId = job?.id;
+  if (!dispatchJobId) throw new Error("dispatch_job_missing");
+  const { data: markedUnavailable, error: updateError } = await input.adminClient
+    .rpc("set_courier_dispatch_search_state", {
+      p_job_id: dispatchJobId, p_status: "no_courier",
+      p_reason: `Dispatch retry required: ${input.dispatch.error}`.slice(0, 240),
+    });
+  if (updateError) throw updateError;
+  // A late failure must not reopen an accepted mission or its support alert.
+  if (!markedUnavailable) return;
 
   const alertKey = `dispatch:retry-required:${input.orderId}`;
   const note = [
