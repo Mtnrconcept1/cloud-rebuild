@@ -1,3 +1,5 @@
+import { validateGeneratedCampaignBundle } from "../supabase/functions/_shared/marketing-ai-plan.js";
+import { isMarketingTimestamp, normalizeMarketingDestination, normalizeMarketingPurpose, validateMarketingWindow } from "../supabase/functions/_shared/marketing-campaign-validation.js";
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 
 /**
@@ -1629,7 +1631,7 @@ function agentChannels(body: JsonObject): string[] {
 
 function agentTimestamp(body: JsonObject, key: string): string {
   const value = body[key];
-  const parsed = typeof value === "string" ? Date.parse(value) : Number.NaN;
+  const parsed = isMarketingTimestamp(value) ? Date.parse(value) : Number.NaN;
   if (!Number.isFinite(parsed)) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
@@ -1728,7 +1730,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     return;
   }
 
-  const allowedKeys = ["action", "objective", "audienceHint", "channels", "startsAt", "endsAt", "itemCount"];
+  const allowedKeys = ["action", "objective", "audienceHint", "channels", "startsAt", "endsAt", "itemCount", "destinationUrl", "purpose"];
   if (Object.keys(body).some((key) => !allowedKeys.includes(key))) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
@@ -1746,6 +1748,16 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
 
+  try { validateMarketingWindow(startsAt, endsAt); }
+  catch { throw new PublicBffError(400, "campaign_schedule_invalid", "La date de début doit être future."); }
+  let destinationUrl: string;
+  let purpose: ReturnType<typeof normalizeMarketingPurpose>;
+  try { destinationUrl = normalizeMarketingDestination(body.destinationUrl); purpose = normalizeMarketingPurpose(body.purpose); }
+  catch { throw new PublicBffError(400, "campaign_destination_invalid", "Vérifiez le type de campagne et la page de destination TOK."); }
+  if (itemCount < channels.length || (purpose === "acquisition" && channels.some((channel) => ["in_app", "push"].includes(channel)))) {
+    throw new PublicBffError(400, "campaign_channels_invalid", "Prévoyez un contenu par canal et des canaux adaptés à l'acquisition.");
+  }
+  await consumeRateLimit(config, req, "campaign-generation", session.userId, false);
   const generated = await callMarketingAgent(config, session.userId, {
     action: "generate",
     objective,
@@ -1754,15 +1766,51 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     startsAt,
     endsAt,
     itemCount,
+    destinationUrl,
+    purpose,
   });
 
   const runId = typeof generated.runId === "string" ? generated.runId : null;
-  const bundle = generated.bundle;
-  if (!isPlainObject(bundle)) {
-    throw new PublicBffError(502, "ai_invalid_plan", "Le plan produit est inexploitable.");
-  }
-
+  let bundle = generated.bundle;
   try {
+    try {
+      bundle = validateGeneratedCampaignBundle(bundle, channels, {
+        startsAt, endsAt, itemCount, now: Date.now(), destinationUrl, purpose, mediaOrigin: config.supabaseUrl,
+      });
+    } catch {
+      throw new PublicBffError(502, "campaign_plan_invalid", "Le plan généré est incohérent et n'a pas été enregistré.");
+    }
+    const checkedBundle = bundle as JsonObject;
+    const checkedCampaign = checkedBundle.campaign as JsonObject;
+    const checkedItems = checkedBundle.items as JsonObject[];
+    const metadata = checkedCampaign.metadata as JsonObject;
+    let audienceEstimate: JsonObject | null = null;
+    try {
+      const estimate = normalizeRpcObject(await serviceRpc(config, "service_execute_marketing_admin_operation", {
+        p_sid_hash: session.sessionHash, p_csrf_hash: session.csrfHash,
+        p_operation: "admin_estimate_marketing_audience",
+        p_args: { p_filter: checkedCampaign.audience_definition, p_channels: channels },
+      }));
+      if (Array.isArray(estimate.channels)) {
+        const estimates = estimate.channels.filter(isPlainObject).map((entry) => ({
+          channel: entry.channel, deliveryMode: entry.delivery_mode,
+          eligibleContacts: entry.delivery_mode === "individual" && Number.isSafeInteger(entry.eligible) && Number(entry.eligible) >= 0 ? Number(entry.eligible) : null,
+        }));
+        audienceEstimate = { estimatedAt: estimate.estimated_at, channels: estimates };
+        for (const item of checkedItems) {
+          const known = estimates.find((entry) => entry.channel === item.channel);
+          if (known?.eligibleContacts !== null && known?.eligibleContacts !== undefined) item.audience_size = known.eligibleContacts;
+        }
+        metadata.audience_estimate = audienceEstimate;
+      }
+    } catch {
+      // A count failure is explicit, never substituted with a fabricated zero.
+      metadata.audience_estimate = null;
+    }
+    // Estimation is a separate RPC and can consume the remaining approval lead time.
+    try {
+      validateGeneratedCampaignBundle(checkedBundle, channels, { startsAt, endsAt, itemCount, now: Date.now(), destinationUrl, purpose, mediaOrigin: config.supabaseUrl });
+    } catch { throw new PublicBffError(502, "campaign_plan_invalid", "Le plan est devenu périmé avant son enregistrement."); }
     const persisted = normalizeRpcObject(
       await serviceRpc(config, "service_execute_marketing_admin_operation", {
         p_sid_hash: session.sessionHash,
@@ -1795,8 +1843,13 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
       runId,
       campaign: persisted.campaign ?? null,
       items: persisted.items ?? [],
-      summary: generated.summary ?? "",
-      assetCount: Number(generated.assetCount) || 0,
+      summary: (checkedCampaign.content as JsonObject).summary ?? "",
+      previews: checkedItems,
+      strategy: (checkedCampaign.content as JsonObject).strategy ?? null,
+      warnings: metadata.review_warnings ?? [],
+      audienceEstimate,
+      costScope: "text_only",
+      assetCount: checkedItems.filter((item) => isPlainObject(item.content) && item.content.visual_url).length,
       estimatedCostChf: Number(generated.estimatedCostChf) || 0,
     });
   } catch (error) {

@@ -111,3 +111,17 @@ describe("marketing BFF client", () => {
     expect(replace).not.toHaveBeenCalled();
   });
 });
+
+
+describe("safe campaign validation feedback", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it.each([
+    ["campaign_schedule_invalid", /date de début.*future/],
+    ["campaign_destination_invalid", /destination TOK/],
+    ["campaign_channels_invalid", /canaux/],
+    ["campaign_plan_invalid", /incohérent.*pas été enregistré/],
+  ])("translates the known code without exposing upstream text: %s", async (code, message) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: { code, message: "private-provider-detail" } }), { status: code === "campaign_plan_invalid" ? 502 : 400, headers: { "Content-Type": "application/json" } })));
+    await expect(marketingBffRequest("/api/marketing/agent", { method: "GET", requireCsrf: false })).rejects.toMatchObject({ code, message: expect.stringMatching(message) });
+  });
+});

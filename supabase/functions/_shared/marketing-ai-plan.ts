@@ -1,3 +1,6 @@
+import { validateMarketingPlan, normalizeMarketingDestination, buildMarketingCallToAction, type MarketingPlanContext } from "./marketing-campaign-validation.ts";
+export { MarketingPlanError } from "./marketing-campaign-validation.ts";
+
 /**
  * Plan contract for the marketing AI agent.
  *
@@ -43,19 +46,8 @@ const CONTACT_TYPES = [
 
 export const MAX_PLAN_ITEMS = 32;
 
-export class MarketingPlanError extends Error {
-  readonly reason: string;
-  readonly details: Record<string, unknown>;
-
-  constructor(reason: string, details: Record<string, unknown> = {}) {
-    super(`Marketing plan rejected: ${reason}`);
-    this.name = "MarketingPlanError";
-    this.reason = reason;
-    this.details = details;
-  }
-}
-
 export type MarketingPlanItem = {
+  stage?: "awareness" | "comparison" | "objection" | "conversion";
   title: string;
   channel: MarketingChannel;
   scheduled_at: string;
@@ -71,11 +63,19 @@ export type MarketingPlanItem = {
   visual_prompt: string | null;
 };
 
+export type MarketingStrategy = {
+  sequence: string;
+  conversion_goal: string;
+  measurement_plan: string;
+  assumptions: string[];
+};
+
 export type MarketingPlan = {
   campaign: {
     name: string;
     objective: string;
     summary: string;
+    strategy?: MarketingStrategy;
     channels: MarketingChannel[];
     starts_at: string;
     ends_at: string;
@@ -125,6 +125,7 @@ export function buildPlanSchema(allowedChannels: readonly string[]) {
             "name",
             "objective",
             "summary",
+            "strategy",
             "channels",
             "starts_at",
             "ends_at",
@@ -135,6 +136,16 @@ export function buildPlanSchema(allowedChannels: readonly string[]) {
             name: { type: "string", description: "Short campaign name, max 160 characters." },
             objective: { type: "string" },
             summary: { type: "string", description: "Two or three sentences explaining the plan." },
+            strategy: {
+              type: "object", additionalProperties: false,
+              required: ["sequence", "conversion_goal", "measurement_plan", "assumptions"],
+              properties: {
+                sequence: { type: "string", description: "Explain the progression, with distinct angles rather than repeated copy." },
+                conversion_goal: { type: "string", description: "The action to measure on the approved landing page; never a guaranteed result." },
+                measurement_plan: { type: "string", description: "KPIs and how to verify them; disclose missing tracking and do not invent estimates." },
+                assumptions: { type: "array", items: { type: "string" }, description: "Unverified prices, audience reach, budget or distribution prerequisites needing human review." },
+              },
+            },
             channels: {
               type: "array",
               items: { type: "string", enum: channelEnum },
@@ -154,6 +165,7 @@ export function buildPlanSchema(allowedChannels: readonly string[]) {
             additionalProperties: false,
             required: [
               "title",
+              "stage",
               "channel",
               "scheduled_at",
               "audience_name",
@@ -163,6 +175,7 @@ export function buildPlanSchema(allowedChannels: readonly string[]) {
             ],
             properties: {
               title: { type: "string" },
+              stage: { type: "string", enum: ["awareness", "comparison", "objection", "conversion"] },
               channel: { type: "string", enum: channelEnum },
               scheduled_at: { type: "string", description: "ISO 8601 timestamp." },
               audience_name: { type: "string" },
@@ -206,63 +219,9 @@ export function stripEmptySelectors(filter: Record<string, unknown>): Record<str
   return cleaned;
 }
 
-function isIsoTimestamp(value: unknown): value is string {
-  if (typeof value !== "string" || !value.trim()) return false;
-  return Number.isFinite(Date.parse(value));
-}
-
-/**
- * A model answer that satisfies the JSON schema can still be unusable: an empty
- * item list, a channel the caller never allowed, an audience filter with no
- * effective selector. Rejecting it here keeps the failure legible instead of
- * surfacing as a Postgres exception several layers down, and stops a plan that
- * would target a wider audience than the operator asked for.
- */
-export function validatePlan(plan: MarketingPlan, allowedChannels: readonly string[]): MarketingPlan {
-  const allowed = new Set(allowedChannels);
-  if (!plan || typeof plan !== "object") {
-    throw new MarketingPlanError("not_an_object");
-  }
-  const campaign = plan.campaign;
-  if (!campaign || !campaign.name?.trim()) {
-    throw new MarketingPlanError("missing_campaign_name");
-  }
-  if (!Array.isArray(plan.items) || plan.items.length === 0) {
-    throw new MarketingPlanError("no_items");
-  }
-  if (plan.items.length > MAX_PLAN_ITEMS) {
-    throw new MarketingPlanError("too_many_items", { count: plan.items.length });
-  }
-  if (!isIsoTimestamp(campaign.starts_at) || !isIsoTimestamp(campaign.ends_at)) {
-    throw new MarketingPlanError("invalid_campaign_window");
-  }
-  if (Object.keys(stripEmptySelectors(campaign.audience_definition || {})).length === 0) {
-    throw new MarketingPlanError("empty_campaign_audience");
-  }
-
-  plan.items.forEach((item, index) => {
-    if (!item?.title?.trim()) {
-      throw new MarketingPlanError("missing_item_title", { index });
-    }
-    if (!allowed.has(item.channel)) {
-      throw new MarketingPlanError("channel_not_allowed", { index, channel: item.channel });
-    }
-    if (!isIsoTimestamp(item.scheduled_at)) {
-      throw new MarketingPlanError("invalid_item_schedule", { index });
-    }
-    if (Object.keys(stripEmptySelectors(item.targeting || {})).length === 0) {
-      throw new MarketingPlanError("empty_item_targeting", { index });
-    }
-    if (!item.content?.body?.trim()) {
-      throw new MarketingPlanError("empty_item_body", { index });
-    }
-  });
-
-  const declared = new Set(campaign.channels || []);
-  for (const item of plan.items) declared.add(item.channel);
-  campaign.channels = [...declared] as MarketingChannel[];
-
-  return plan;
+/** Validate untrusted model output before it can become a draft. */
+export function validatePlan(plan: MarketingPlan, allowedChannels: readonly string[], context?: MarketingPlanContext): MarketingPlan {
+  return validateMarketingPlan(plan, allowedChannels, context);
 }
 
 export function slugifyCampaignName(name: string) {
@@ -286,7 +245,10 @@ export function slugifyCampaignName(name: string) {
 export function toBundlePayload(
   plan: MarketingPlan,
   visuals: Map<number, string>,
+  context?: Pick<MarketingPlanContext, "destinationUrl" | "purpose">,
 ): Record<string, unknown> {
+  const destination = normalizeMarketingDestination(context?.destinationUrl);
+  const warnings = marketingPlanWarnings(plan, visuals);
   return {
     campaign: {
       name: plan.campaign.name.slice(0, 160),
@@ -297,13 +259,17 @@ export function toBundlePayload(
       audience_name: plan.campaign.audience_name.slice(0, 160),
       audience_definition: stripEmptySelectors(plan.campaign.audience_definition),
       timezone: "Europe/Zurich",
-      content: { summary: plan.campaign.summary },
-      metadata: { generated_by: "ai-marketing-agent" },
+      content: { summary: plan.campaign.summary, ...(plan.campaign.strategy ? { strategy: plan.campaign.strategy } : {}) },
+      metadata: {
+        generated_by: "ai-marketing-agent", destination_url: destination,
+        purpose: context?.purpose || "awareness", ad_budget_chf: null,
+        audience_size_estimate: null, cost_scope: "text_only", review_warnings: warnings,
+      },
     },
     items: plan.items.map((item, index) => ({
       title: item.title.slice(0, 200),
       channel: item.channel,
-      item_type: "broadcast",
+      item_type: ["facebook", "instagram"].includes(item.channel) ? "publication" : "broadcast",
       scheduled_at: item.scheduled_at,
       timezone: "Europe/Zurich",
       audience_name: item.audience_name.slice(0, 160),
@@ -312,11 +278,60 @@ export function toBundlePayload(
         subject: item.channel === "email" ? item.content.subject : null,
         headline: item.content.headline,
         body: item.content.body,
-        call_to_action: item.content.call_to_action,
+        // The destination is reviewed by the operator, never invented by the model.
+        // Keep the complete link inside the existing email adapter's 200-char limit.
+        call_to_action: buildMarketingCallToAction(item.content.call_to_action, destination),
+        cta_url: destination,
+        stage: item.stage || null,
+        visual_prompt: item.visual_prompt || null,
         hashtags: item.content.hashtags.slice(0, 12),
         visual_url: visuals.get(index) || null,
         generated_by: "ai-marketing-agent",
       },
     })),
   };
+}
+
+/** Unknown reach/cost is not zero; public posting does not apply CRM targeting. */
+export function marketingPlanWarnings(plan: MarketingPlan, visuals: Map<number, string>): string[] {
+  const warnings = [
+    "Le filtre décrit la cible souhaitée. Les décomptes de contacts éligibles sont affichés séparément ; ils ne mesurent pas la portée publique.",
+    "Coût IA : texte uniquement ; images et diffusion non incluses. Budget publicitaire non défini.",
+    "Comparaisons tarifaires : vérifier les sources et conditions, y compris les abonnements, avant diffusion.",
+  ];
+  if (plan.items.some((item) => ["facebook", "instagram"].includes(item.channel))) {
+    warnings.push("Publication organique : le filtre Genève ne crée pas de ciblage publicitaire Meta. Aucune publicité payante n'est créée.");
+  }
+  if (plan.items.some((item) => ["in_app", "push"].includes(item.channel))) {
+    warnings.push("Notifications internes : seuls les utilisateurs déjà joignables dans TOK peuvent être contactés, après contrôle d'éligibilité.");
+  }
+  plan.items.forEach((item, index) => {
+    if (item.channel === "instagram" && !visuals.has(index)) warnings.push("Instagram : visuel manquant, à ajouter avant approbation (" + item.title.slice(0, 100) + ").");
+    else if (item.visual_prompt && !visuals.has(index)) warnings.push("Visuel non généré : " + item.title.slice(0, 100) + ". Le brief visuel est conservé dans le brouillon.");
+  });
+  return warnings;
+}
+
+/** Recheck the Edge response with a fresh clock before the BFF persists anything. */
+export function validateGeneratedCampaignBundle(value: unknown, allowedChannels: readonly string[], context: MarketingPlanContext & { mediaOrigin?: string }) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid campaign bundle");
+  const raw = value as Record<string, unknown>;
+  const campaign = raw.campaign as MarketingPlan["campaign"] & { content?: { summary?: string; strategy?: MarketingStrategy } };
+  if (!campaign || !Array.isArray(raw.items)) throw new Error("Invalid campaign bundle");
+  const proposed = {
+    campaign: { ...campaign, summary: campaign.content?.summary || campaign.summary, strategy: campaign.content?.strategy || campaign.strategy },
+    items: raw.items.map((item) => ({ ...item, stage: item.content?.stage || item.stage, visual_prompt: item.content?.visual_prompt || null })),
+  } as MarketingPlan;
+  const plan = validatePlan(proposed, allowedChannels, context);
+  const visuals = new Map<number, string>();
+  raw.items.forEach((item, index) => {
+    const visual = item.content?.visual_url;
+    if (!visual) return;
+    const url = new URL(visual);
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash
+      || (context.mediaOrigin ? url.origin !== context.mediaOrigin : !url.hostname.endsWith(".supabase.co"))
+      || !url.pathname.startsWith("/storage/v1/object/public/social-post-media/marketing-ai/")) throw new Error("Invalid campaign visual");
+    visuals.set(index, url.toString());
+  });
+  return toBundlePayload(plan, visuals, context);
 }
