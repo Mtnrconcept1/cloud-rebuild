@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 345 error codes mapped from supabase/functions/**.
+// 393 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -391,6 +391,18 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 865
     }
   ],
+  "cloudprinter_disabled": [
+    {
+      "file": "supabase/functions/_shared/print/cloudprinter.ts",
+      "line": 71
+    }
+  ],
+  "cloudprinter_not_configured": [
+    {
+      "file": "supabase/functions/_shared/print/cloudprinter.ts",
+      "line": 70
+    }
+  ],
   "codex_dispatch_not_configured": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
@@ -743,6 +755,30 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 543
     }
   ],
+  "demo_checkout_requires_test_endpoint": [
+    {
+      "file": "supabase/functions/_shared/stripe-client.ts",
+      "line": 142
+    }
+  ],
+  "demo_stripe_not_configured": [
+    {
+      "file": "supabase/functions/_shared/stripe-client.ts",
+      "line": 223
+    }
+  ],
+  "developer_transfer_claim_invalid": [
+    {
+      "file": "supabase/functions/settle-developer-statement/index.ts",
+      "line": 40
+    }
+  ],
+  "developer_transfer_currency_invalid": [
+    {
+      "file": "supabase/functions/settle-developer-statement/index.ts",
+      "line": 171
+    }
+  ],
   "discovery_filter_invalid": [
     {
       "file": "supabase/functions/_shared/marketing-backlink-discovery.ts",
@@ -893,6 +929,34 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/google-actions-center-sync/index.ts",
       "line": 296
+    },
+    {
+      "file": "supabase/functions/_shared/auth.ts",
+      "line": 468
+    },
+    {
+      "file": "supabase/functions/complete-order-checkout/index.ts",
+      "line": 72
+    },
+    {
+      "file": "supabase/functions/complete-restaurant-credit-pack-checkout/index.ts",
+      "line": 93
+    },
+    {
+      "file": "supabase/functions/complete-restaurant-credit-pack-checkout/index.ts",
+      "line": 95
+    },
+    {
+      "file": "supabase/functions/create-chefs-table-reservation/index.ts",
+      "line": 53
+    },
+    {
+      "file": "supabase/functions/create-zero-attente-reservation/index.ts",
+      "line": 62
+    },
+    {
+      "file": "supabase/functions/notification-dispatch/index.ts",
+      "line": 43
     }
   ],
   "forbidden_conversation": [
@@ -1403,6 +1467,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 235
     }
   ],
+  "invalid_test_stripe_key": [
+    {
+      "file": "supabase/functions/_shared/stripe-client.ts",
+      "line": 228
+    }
+  ],
   "is_enabled_invalid": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
@@ -1449,6 +1519,60 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
       "line": 444
+    }
+  ],
+  "match_group_authorization_session_missing": [
+    {
+      "file": "supabase/functions/authorize-match-group-order/index.ts",
+      "line": 59
+    }
+  ],
+  "match_group_checkout_identity_mismatch": [
+    {
+      "file": "supabase/functions/authorize-match-group-order/index.ts",
+      "line": 74
+    },
+    {
+      "file": "supabase/functions/authorize-match-group-order/index.ts",
+      "line": 241
+    },
+    {
+      "file": "supabase/functions/authorize-match-group-order/index.ts",
+      "line": 328
+    }
+  ],
+  "match_group_connect_routing_not_ready": [
+    {
+      "file": "supabase/functions/authorize-match-group-order/index.ts",
+      "line": 217
+    }
+  ],
+  "match_group_payment_already_captured": [
+    {
+      "file": "supabase/functions/authorize-match-group-order/index.ts",
+      "line": 270
+    }
+  ],
+  "match_group_restaurant_unavailable": [
+    {
+      "file": "supabase/functions/authorize-match-group-order/index.ts",
+      "line": 136
+    },
+    {
+      "file": "supabase/functions/authorize-match-group-order/index.ts",
+      "line": 289
+    },
+    {
+      "file": "supabase/functions/authorize-match-group-order/index.ts",
+      "line": 333
+    },
+    {
+      "file": "supabase/functions/authorize-match-group-order/index.ts",
+      "line": 349
+    },
+    {
+      "file": "supabase/functions/authorize-match-group-order/index.ts",
+      "line": 394
     }
   ],
   "mcp_method_not_found": [
@@ -1735,6 +1859,46 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 268
     }
   ],
+  "payment_attempt_cancel_refresh_required": [
+    {
+      "file": "supabase/functions/cancel-payment-attempt/index.ts",
+      "line": 163
+    },
+    {
+      "file": "supabase/functions/cancel-payment-attempt/index.ts",
+      "line": 192
+    }
+  ],
+  "payment_attempt_identity_mismatch": [
+    {
+      "file": "supabase/functions/create-checkout/index.ts",
+      "line": 374
+    }
+  ],
+  "payment_attempt_order_expired_recreate": [
+    {
+      "file": "supabase/functions/create-checkout/index.ts",
+      "line": 2042
+    }
+  ],
+  "payment_attempt_reacquire_failed": [
+    {
+      "file": "supabase/functions/create-checkout/index.ts",
+      "line": 2050
+    }
+  ],
+  "payment_attempt_request_mismatch": [
+    {
+      "file": "supabase/functions/create-checkout/index.ts",
+      "line": 393
+    }
+  ],
+  "payment_attempt_session_expired_retry": [
+    {
+      "file": "supabase/functions/create-checkout/index.ts",
+      "line": 2405
+    }
+  ],
   "personalization_consent_required": [
     {
       "file": "supabase/functions/_shared/intelligence.ts",
@@ -1757,6 +1921,192 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
       "line": 484
+    }
+  ],
+  "print_asset_format_unsupported": [
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 102
+    }
+  ],
+  "print_asset_https_required": [
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 75
+    }
+  ],
+  "print_asset_must_be_persisted": [
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 85
+    }
+  ],
+  "print_asset_too_large": [
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 95
+    },
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 98
+    }
+  ],
+  "print_asset_unavailable": [
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 93
+    }
+  ],
+  "print_asset_url_invalid": [
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 73
+    }
+  ],
+  "print_background_required": [
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 138
+    }
+  ],
+  "print_job_limit_invalid": [
+    {
+      "file": "supabase/functions/print-orchestrator/index.ts",
+      "line": 276
+    }
+  ],
+  "print_job_outcome_not_persisted": [
+    {
+      "file": "supabase/functions/print-orchestrator/index.ts",
+      "line": 308
+    }
+  ],
+  "print_mapping_geometry_mismatch": [
+    {
+      "file": "supabase/functions/print-admin/index.ts",
+      "line": 301
+    },
+    {
+      "file": "supabase/functions/print-catalog/index.ts",
+      "line": 253
+    }
+  ],
+  "print_mapping_single_page_required": [
+    {
+      "file": "supabase/functions/print-admin/index.ts",
+      "line": 303
+    },
+    {
+      "file": "supabase/functions/print-catalog/index.ts",
+      "line": 255
+    }
+  ],
+  "print_order_not_paid": [
+    {
+      "file": "supabase/functions/print-orchestrator/index.ts",
+      "line": 167
+    }
+  ],
+  "print_order_transition_not_persisted": [
+    {
+      "file": "supabase/functions/print-orchestrator/index.ts",
+      "line": 130
+    }
+  ],
+  "print_preflight_failed": [
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 259
+    }
+  ],
+  "print_provider_price_invalid": [
+    {
+      "file": "supabase/functions/_shared/print/pricing.ts",
+      "line": 5
+    }
+  ],
+  "print_qr_invalid": [
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 143
+    }
+  ],
+  "print_quote_currency_unsupported": [
+    {
+      "file": "supabase/functions/_shared/print/pricing.ts",
+      "line": 27
+    },
+    {
+      "file": "supabase/functions/print-orchestrator/index.ts",
+      "line": 79
+    },
+    {
+      "file": "supabase/functions/print-quote/index.ts",
+      "line": 108
+    },
+    {
+      "file": "supabase/functions/print-quote/index.ts",
+      "line": 116
+    }
+  ],
+  "print_sandbox_mode_required": [
+    {
+      "file": "supabase/functions/print-sandbox-complete/index.ts",
+      "line": 65
+    }
+  ],
+  "print_sandbox_order_mismatch": [
+    {
+      "file": "supabase/functions/print-sandbox-complete/index.ts",
+      "line": 133
+    }
+  ],
+  "print_sandbox_order_not_found": [
+    {
+      "file": "supabase/functions/print-sandbox-complete/index.ts",
+      "line": 124
+    }
+  ],
+  "print_sandbox_payment_attempt_mismatch": [
+    {
+      "file": "supabase/functions/print-sandbox-complete/index.ts",
+      "line": 115
+    }
+  ],
+  "print_sandbox_payment_attempt_not_found": [
+    {
+      "file": "supabase/functions/print-sandbox-complete/index.ts",
+      "line": 104
+    }
+  ],
+  "print_sandbox_session_invalid": [
+    {
+      "file": "supabase/functions/print-sandbox-complete/index.ts",
+      "line": 91
+    }
+  ],
+  "print_sandbox_test_session_required": [
+    {
+      "file": "supabase/functions/print-sandbox-complete/index.ts",
+      "line": 70
+    }
+  ],
+  "print_submission_lease_or_state_lost": [
+    {
+      "file": "supabase/functions/print-orchestrator/index.ts",
+      "line": 237
+    }
+  ],
+  "print_submission_paused": [
+    {
+      "file": "supabase/functions/print-orchestrator/index.ts",
+      "line": 242
+    }
+  ],
+  "print_submission_reconciliation_required": [
+    {
+      "file": "supabase/functions/print-orchestrator/index.ts",
+      "line": 243
     }
   ],
   "prompt_required": [
@@ -2215,6 +2565,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 412
     }
   ],
+  "stripe_webhook_secret_mode_conflict": [
+    {
+      "file": "supabase/functions/_shared/stripe-client.ts",
+      "line": 79
+    }
+  ],
   "subscription_check_unavailable": [
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
@@ -2223,6 +2579,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
       "line": 477
+    }
+  ],
+  "supabase_url_invalid": [
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 82
     }
   ],
   "supabase_url_not_configured": [
@@ -2253,6 +2615,20 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
       "line": 271
+    }
+  ],
+  "system_actor_required": [
+    {
+      "file": "supabase/functions/capture-due-match-groups/index.ts",
+      "line": 34
+    },
+    {
+      "file": "supabase/functions/close-due-match-groups/index.ts",
+      "line": 23
+    },
+    {
+      "file": "supabase/functions/reconcile-match-group-authorizations/index.ts",
+      "line": 30
     }
   ],
   "technical_evidence_insufficient": [
@@ -2657,6 +3033,42 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
       "line": 1543
+    },
+    {
+      "file": "supabase/functions/_shared/auth.ts",
+      "line": 243
+    },
+    {
+      "file": "supabase/functions/_shared/auth.ts",
+      "line": 283
+    },
+    {
+      "file": "supabase/functions/_shared/auth.ts",
+      "line": 402
+    },
+    {
+      "file": "supabase/functions/_shared/commercial-demo-ai.ts",
+      "line": 97
+    },
+    {
+      "file": "supabase/functions/ai-campaign-studio/index.ts",
+      "line": 392
+    },
+    {
+      "file": "supabase/functions/ai-client-chat/index.ts",
+      "line": 260
+    },
+    {
+      "file": "supabase/functions/ai-client-support/index.ts",
+      "line": 324
+    },
+    {
+      "file": "supabase/functions/ai-image-enhance/index.ts",
+      "line": 1480
+    },
+    {
+      "file": "supabase/functions/ai-restaurant-agent/index.ts",
+      "line": 192
     }
   ],
   "unexpected_reasoning_effort": [

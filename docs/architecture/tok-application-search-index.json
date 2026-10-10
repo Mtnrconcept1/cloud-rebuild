@@ -2,14 +2,14 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "9a713e90e4c2634cedbaf66cf3e11a6f104056374975f6a01a56b9b417cce807",
+ "sourceDigest": "5751e01241540b53cb35e04405ac79c0b6ccc9c346b07a0ec75841eaed26d97e",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
-  "databaseObjects": 2720,
-  "documents": 192,
+  "databaseObjects": 2722,
+  "documents": 193,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3360,
@@ -17,22 +17,22 @@
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 521,
-  "modules": 1459,
+  "migrations": 522,
+  "modules": 1464,
   "pages": 127,
   "pathLiterals": 614,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15485,
-  "repositoryFiles": 2720,
+  "records": 15522,
+  "repositoryFiles": 2731,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 24
+  "workflows": 25
  },
  "catalogs": {
   "frontendRoutes": [
@@ -8309,7 +8309,10 @@
     "methods": [
      "POST"
     ],
-    "actions": [],
+    "actions": [
+     "paused",
+     "stop"
+    ],
     "environmentNames": [
      "PRINT_SUPPORT_EMAIL"
     ],
@@ -12179,7 +12182,7 @@
      },
      {
       "path": "scripts/generate-error-code-map.mjs",
-      "line": 41
+      "line": 49
      },
      {
       "path": "scripts/harden-seo-crawl.mjs",
@@ -28451,6 +28454,7 @@
      "supabase/functions/_shared/chefs-table.ts",
      "supabase/functions/_shared/commercial-demo-host.ts",
      "supabase/functions/_shared/cors.ts",
+     "supabase/functions/_shared/error-code-map.ts",
      "supabase/functions/_shared/incident-intelligence.ts",
      "supabase/functions/_shared/logging.ts",
      "supabase/functions/_shared/marketing-ai-plan.ts",
@@ -28547,6 +28551,8 @@
      "scripts/supabase-db-push.mjs",
      "scripts/supabase-doctor.mjs",
      "scripts/supabase-target.mjs",
+     "scripts/test-print-protocol-postgres.mjs",
+     "scripts/test-print-protocol-runner.test.mjs",
      "scripts/verify-supabase-runtime-security.mjs",
      "scripts/write-commercial-demo-secrets-env.mjs",
      "scripts/write-production-env.mjs",
@@ -28875,8 +28881,10 @@
      "src/test/directory-restaurant-ownership-governance.test.ts",
      "src/test/dispatch-client-fallback.test.ts",
      "src/test/dispatch-service-role-auth.test.ts",
+     "src/test/edge-audit-write.test.ts",
      "src/test/edge-function-undeclared-identifiers.test.ts",
      "src/test/edge-rate-limits-10k.test.ts",
+     "src/test/error-code-map-case.test.ts",
      "src/test/fair-growth-annual-billing.test.ts",
      "src/test/feature-flags-realtime.test.tsx",
      "src/test/feature-flags.test.ts",
@@ -28963,6 +28971,7 @@
      "src/test/print-catalog-admin-pagination.test.tsx",
      "src/test/print-composer-source-format.test.tsx",
      "src/test/print-export-source-format.test.ts",
+     "src/test/print-orchestrator-runtime.test.ts",
      "src/test/print-pdf-dimensions.test.ts",
      "src/test/print-source-format.test.ts",
      "src/test/production-alert-remediation.test.ts",
@@ -32383,6 +32392,12 @@
     "path": "supabase/migrations/20261009003407_protect_generated_print_format.sql",
     "lineCount": 42,
     "objectCount": 2
+   },
+   {
+    "name": "20261010203000 Print Fulfillment Protocol",
+    "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+    "lineCount": 260,
+    "objectCount": 4
    }
   ],
   "databaseObjects": [
@@ -35277,6 +35292,10 @@
      {
       "path": "supabase/migrations/20260907023000_marketing_print_foundation.sql",
       "line": 695
+     },
+     {
+      "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+      "line": 21
      }
     ]
    },
@@ -35771,6 +35790,10 @@
      {
       "path": "supabase/migrations/20260907023000_marketing_print_foundation.sql",
       "line": 747
+     },
+     {
+      "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+      "line": 90
      }
     ]
    },
@@ -36413,6 +36436,16 @@
      {
       "path": "supabase/migrations/20260310100000_courier_infrastructure.sql",
       "line": 377
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.finish_print_fulfillment_submission",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+      "line": 215
      }
     ]
    },
@@ -38409,6 +38442,16 @@
      {
       "path": "supabase/migrations/20260728173500_actualites_boost_atomic_media.sql",
       "line": 4
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.prepare_print_fulfillment_submission",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+      "line": 174
      }
     ]
    },
@@ -66580,6 +66623,13 @@
     ]
    },
    {
+    "name": "Print protocol PostgreSQL replay",
+    "path": ".github/workflows/print-protocol-postgres.yml",
+    "jobs": [
+     "replay"
+    ]
+   },
+   {
     "name": "Restaurant Image Truth Backfill",
     "path": ".github/workflows/restaurant-image-truth-backfill.yml",
     "jobs": [
@@ -68749,6 +68799,37 @@
       "level": 2,
       "title": "Incident et arrêt",
       "line": 171
+     }
+    ]
+   },
+   {
+    "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+    "title": "Print fulfillment protocol — controlled rollout and recovery",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Print fulfillment protocol — controlled rollout and recovery",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Guarantees and limits",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Deployment order",
+      "line": 15
+     },
+     {
+      "level": 2,
+      "title": "Resolve an ambiguous or exhausted job",
+      "line": 22
+     },
+     {
+      "level": 2,
+      "title": "Evidence",
+      "line": 30
      }
     ]
    },
@@ -78534,7 +78615,7 @@
      },
      {
       "name": "renderModule",
-      "line": 61,
+      "line": 70,
       "kind": "function"
      }
     ],
@@ -78542,7 +78623,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 90
+    "lineCount": 99
    },
    {
     "path": "scripts/google-actions-center-export-feeds.mjs",
@@ -79336,6 +79417,34 @@
      "google"
     ],
     "lineCount": 76
+   },
+   {
+    "path": "scripts/test-print-protocol-postgres.mjs",
+    "exports": [],
+    "environmentNames": [
+     "PGDATABASE",
+     "PGHOST",
+     "PGHOSTADDR",
+     "PGPORT",
+     "PGSERVICE",
+     "PGSERVICEFILE",
+     "PSQL_BIN",
+     "TOK_PRINT_PROTOCOL_CONTAINER",
+     "TOK_PRINT_PROTOCOL_DISPOSABLE"
+    ],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 66
+   },
+   {
+    "path": "scripts/test-print-protocol-runner.test.mjs",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 40
    },
    {
     "path": "scripts/verify-supabase-runtime-security.mjs",
@@ -100203,6 +100312,15 @@
     "lineCount": 17
    },
    {
+    "path": "src/test/edge-audit-write.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 72
+   },
+   {
     "path": "src/test/edge-function-undeclared-identifiers.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -100227,6 +100345,15 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 28
+   },
+   {
+    "path": "src/test/error-code-map-case.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 36
    },
    {
     "path": "src/test/example.test.ts",
@@ -101644,6 +101771,15 @@
      "supabase"
     ],
     "lineCount": 53
+   },
+   {
+    "path": "src/test/print-orchestrator-runtime.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 309
    },
    {
     "path": "src/test/print-pdf-dimensions.test.ts",
@@ -103481,27 +103617,27 @@
      },
      {
       "name": "authenticateRequest",
-      "line": 186,
+      "line": 194,
       "kind": "function"
      },
      {
       "name": "requireRole",
-      "line": 313,
+      "line": 321,
       "kind": "function"
      },
      {
       "name": "requireUserRole",
-      "line": 346,
+      "line": 354,
       "kind": "function"
      },
      {
       "name": "assertProductionFlowAllowed",
-      "line": 388,
+      "line": 396,
       "kind": "function"
      },
      {
       "name": "requireRestaurantAccess",
-      "line": 436,
+      "line": 444,
       "kind": "function"
      }
     ],
@@ -103516,7 +103652,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 474
+    "lineCount": 482
    },
    {
     "path": "supabase/functions/_shared/campaign-pricing.ts",
@@ -103934,7 +104070,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 2778,
+      "line": 3190,
       "kind": "function"
      }
     ],
@@ -103943,9 +104079,10 @@
      "firebase",
      "google",
      "openai",
+     "stripe",
      "supabase"
     ],
-    "lineCount": 2783
+    "lineCount": 3195
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -107364,7 +107501,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 330
+    "lineCount": 341
    },
    {
     "path": "supabase/functions/print-order-action/index.ts",
@@ -108669,6 +108806,11 @@
     "extension": ".yml"
    },
    {
+    "path": ".github/workflows/print-protocol-postgres.yml",
+    "category": "ci-workflow",
+    "extension": ".yml"
+   },
+   {
     "path": ".github/workflows/restaurant-image-truth-backfill.yml",
     "category": "ci-workflow",
     "extension": ".yml"
@@ -109115,6 +109257,11 @@
    },
    {
     "path": "docs/MARKETING_OPERATIONS_CENTER.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -111946,6 +112093,16 @@
    {
     "path": "scripts/take-screenshots.mjs",
     "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/test-print-protocol-postgres.mjs",
+    "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/test-print-protocol-runner.test.mjs",
+    "category": "test",
     "extension": ".mjs"
    },
    {
@@ -116154,6 +116311,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/edge-audit-write.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/edge-function-undeclared-identifiers.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -116165,6 +116327,11 @@
    },
    {
     "path": "src/test/error-boundary-chunk-recovery.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/error-code-map-case.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -116980,6 +117147,11 @@
    },
    {
     "path": "src/test/print-export-source-format.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/print-orchestrator-runtime.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -121514,6 +121686,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/critical_rpc_smoke.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -121525,6 +121702,21 @@
    },
    {
     "path": "supabase/tests/generated_print_format_smoke.sql",
+    "category": "supabase-configuration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/tests/print_fulfillment_protocol_assertions.sql",
+    "category": "supabase-configuration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/tests/print_fulfillment_protocol_baseline_prerequisites.sql",
+    "category": "supabase-configuration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/tests/print_fulfillment_protocol_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
    },
@@ -122554,7 +122746,7 @@
    "id": "code-module:db28e7a1f943",
    "type": "code-module",
    "title": "scripts/generate-error-code-map.mjs",
-   "description": "Module de 90 lignes; exports: buildErrorCodeMap, renderModule.",
+   "description": "Module de 99 lignes; exports: buildErrorCodeMap, renderModule.",
    "path": "scripts/generate-error-code-map.mjs",
    "line": 1,
    "surface": null,
@@ -122563,7 +122755,7 @@
     "renderModule",
     "supabase"
    ],
-   "detailRef": "12991013f1b7"
+   "detailRef": "bf6c76e876e7"
   },
   {
    "id": "code-module:eb8a86d3aadb",
@@ -123190,6 +123382,41 @@
     "google"
    ],
    "detailRef": "9fe3b95644be"
+  },
+  {
+   "id": "code-module:325f58f098fe",
+   "type": "code-module",
+   "title": "scripts/test-print-protocol-postgres.mjs",
+   "description": "Module de 66 lignes; exports: aucun export statique.",
+   "path": "scripts/test-print-protocol-postgres.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "PGDATABASE",
+    "PGHOST",
+    "PGHOSTADDR",
+    "PGPORT",
+    "PGSERVICE",
+    "PGSERVICEFILE",
+    "PSQL_BIN",
+    "TOK_PRINT_PROTOCOL_CONTAINER",
+    "TOK_PRINT_PROTOCOL_DISPOSABLE",
+    "supabase"
+   ],
+   "detailRef": "095a901a51c4"
+  },
+  {
+   "id": "code-module:6265f43930c6",
+   "type": "code-module",
+   "title": "scripts/test-print-protocol-runner.test.mjs",
+   "description": "Module de 40 lignes; exports: aucun export statique.",
+   "path": "scripts/test-print-protocol-runner.test.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "8cc56cae3521"
   },
   {
    "id": "code-module:331a523ce62c",
@@ -136373,6 +136600,19 @@
    "detailRef": "e0aa4f1ba1fa"
   },
   {
+   "id": "code-module:71c2baadf25d",
+   "type": "code-module",
+   "title": "src/test/edge-audit-write.test.ts",
+   "description": "Module de 72 lignes; exports: aucun export statique.",
+   "path": "src/test/edge-audit-write.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "7f0b6864e718"
+  },
+  {
    "id": "code-module:26b1c33572c3",
    "type": "code-module",
    "title": "src/test/edge-function-undeclared-identifiers.test.ts",
@@ -136409,6 +136649,19 @@
    "surface": null,
    "tags": [],
    "detailRef": "89e65d25cba1"
+  },
+  {
+   "id": "code-module:c02f758537b0",
+   "type": "code-module",
+   "title": "src/test/error-code-map-case.test.ts",
+   "description": "Module de 36 lignes; exports: aucun export statique.",
+   "path": "src/test/error-code-map-case.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "8cefd9b8e9f2"
   },
   {
    "id": "code-module:b4c60568f087",
@@ -138470,6 +138723,19 @@
     "supabase"
    ],
    "detailRef": "1e7972af5413"
+  },
+  {
+   "id": "code-module:6e80bb22127f",
+   "type": "code-module",
+   "title": "src/test/print-orchestrator-runtime.test.ts",
+   "description": "Module de 309 lignes; exports: aucun export statique.",
+   "path": "src/test/print-orchestrator-runtime.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "509c12c060ca"
   },
   {
    "id": "code-module:c70e4b268ea2",
@@ -140935,7 +141201,7 @@
    "id": "code-module:85318382a668",
    "type": "code-module",
    "title": "supabase/functions/_shared/auth.ts",
-   "description": "Module de 474 lignes; exports: EdgeSupabaseClient, HttpError, errorRecovery, errorDiagnostics, RequestActor, getEnv, createAdminClient, jsonResponse, buildRequestMetadata, writeAuditLog, authenticateRequest, requireRole, requireUserRole, assertProductionFlowAllowed, requireRestaurantAccess.",
+   "description": "Module de 482 lignes; exports: EdgeSupabaseClient, HttpError, errorRecovery, errorDiagnostics, RequestActor, getEnv, createAdminClient, jsonResponse, buildRequestMetadata, writeAuditLog, authenticateRequest, requireRole, requireUserRole, assertProductionFlowAllowed, requireRestaurantAccess.",
    "path": "supabase/functions/_shared/auth.ts",
    "line": 1,
    "surface": null,
@@ -140963,7 +141229,7 @@
     "supabase",
     "writeAuditLog"
    ],
-   "detailRef": "c6c556d531ed"
+   "detailRef": "de5930bfc3af"
   },
   {
    "id": "code-module:6eb20941ca47",
@@ -141125,7 +141391,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 2783 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3195 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -141136,9 +141402,10 @@
     "google",
     "lookupErrorCodeSites",
     "openai",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "8a171aca8964"
+   "detailRef": "2fff4a75e614"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -143302,7 +143569,7 @@
    "id": "code-module:c715d62e836a",
    "type": "code-module",
    "title": "supabase/functions/print-orchestrator/index.ts",
-   "description": "Module de 330 lignes; exports: aucun export statique.",
+   "description": "Module de 341 lignes; exports: aucun export statique.",
    "path": "supabase/functions/print-orchestrator/index.ts",
    "line": 1,
    "surface": null,
@@ -143310,7 +143577,7 @@
     "PRINT_SUPPORT_EMAIL",
     "stripe"
    ],
-   "detailRef": "bde8651e2a31"
+   "detailRef": "751824bcb3d9"
   },
   {
    "id": "code-module:0f8a1d786357",
@@ -163383,19 +163650,19 @@
    "detailRef": "33b958b49ab6"
   },
   {
-   "id": "database-object:7476953f6835",
+   "id": "database-object:2ebd5c476646",
    "type": "database-object",
    "title": "public.claim_print_fulfillment_jobs",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260907023000_marketing_print_foundation.sql",
-   "line": 695,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+   "line": 21,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "4ee2edc1fd0d"
+   "detailRef": "83429fdb5329"
   },
   {
    "id": "database-object:231f20fedcf4",
@@ -165063,19 +165330,19 @@
    "detailRef": "34aaa3ca7203"
   },
   {
-   "id": "database-object:61520a708d21",
+   "id": "database-object:6aa4b1ceb7c2",
    "type": "database-object",
    "title": "public.complete_print_fulfillment_job",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260907023000_marketing_print_foundation.sql",
-   "line": 747,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+   "line": 90,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "d3287cc7cbb0"
+   "detailRef": "35974447145d"
   },
   {
    "id": "database-object:d4743d3290c3",
@@ -167896,6 +168163,21 @@
     "supabase"
    ],
    "detailRef": "6805cd169594"
+  },
+  {
+   "id": "database-object:c1c4f3ea3e85",
+   "type": "database-object",
+   "title": "public.finish_print_fulfillment_submission",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+   "line": 215,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "734e04c4e0a3"
   },
   {
    "id": "database-object:cab30822cddf",
@@ -173236,6 +173518,21 @@
     "supabase"
    ],
    "detailRef": "885c9b5d22ca"
+  },
+  {
+   "id": "database-object:14bb8fc50605",
+   "type": "database-object",
+   "title": "public.prepare_print_fulfillment_submission",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+   "line": 174,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "2df8a025c72a"
   },
   {
    "id": "database-object:ec0b3cc1a4bb",
@@ -198570,6 +198867,20 @@
    "detailRef": "03d2652bcfe9"
   },
   {
+   "id": "document-section:bb823f325e29",
+   "type": "document-section",
+   "title": "Deployment order",
+   "description": "Section de Print fulfillment protocol — controlled rollout and recovery.",
+   "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+   "line": 15,
+   "surface": null,
+   "tags": [
+    "Print fulfillment protocol — controlled rollout and recovery",
+    "h2"
+   ],
+   "detailRef": "80fad2a0ae22"
+  },
+  {
    "id": "document-section:93de0f4f3f4e",
    "type": "document-section",
    "title": "Deprecated APIs and migration paths",
@@ -199674,6 +199985,20 @@
     "h2"
    ],
    "detailRef": "753ba5c5c3a3"
+  },
+  {
+   "id": "document-section:d7bbebf0b4f7",
+   "type": "document-section",
+   "title": "Evidence",
+   "description": "Section de Print fulfillment protocol — controlled rollout and recovery.",
+   "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "Print fulfillment protocol — controlled rollout and recovery",
+    "h2"
+   ],
+   "detailRef": "1465bf5bf5b4"
   },
   {
    "id": "document-section:1adc4b5a4c59",
@@ -201298,6 +201623,20 @@
     "h2"
    ],
    "detailRef": "85b01611dea7"
+  },
+  {
+   "id": "document-section:3aaef91b8522",
+   "type": "document-section",
+   "title": "Guarantees and limits",
+   "description": "Section de Print fulfillment protocol — controlled rollout and recovery.",
+   "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "Print fulfillment protocol — controlled rollout and recovery",
+    "h2"
+   ],
+   "detailRef": "f2934cd45724"
   },
   {
    "id": "document-section:68cd11a64a73",
@@ -207544,6 +207883,20 @@
    "detailRef": "b22e97cc0b9b"
   },
   {
+   "id": "document-section:f350bad72d87",
+   "type": "document-section",
+   "title": "Print fulfillment protocol — controlled rollout and recovery",
+   "description": "Section de Print fulfillment protocol — controlled rollout and recovery.",
+   "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Print fulfillment protocol — controlled rollout and recovery",
+    "h1"
+   ],
+   "detailRef": "82d0efdb4b55"
+  },
+  {
    "id": "document-section:88ef85bdba1b",
    "type": "document-section",
    "title": "Priorités UX",
@@ -208984,6 +209337,20 @@
     "h3"
    ],
    "detailRef": "ae7054a825e6"
+  },
+  {
+   "id": "document-section:cd5caae324e9",
+   "type": "document-section",
+   "title": "Resolve an ambiguous or exhausted job",
+   "description": "Section de Print fulfillment protocol — controlled rollout and recovery.",
+   "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+   "line": 22,
+   "surface": null,
+   "tags": [
+    "Print fulfillment protocol — controlled rollout and recovery",
+    "h2"
+   ],
+   "detailRef": "0b362c6c115f"
   },
   {
    "id": "document-section:5b31d3752b91",
@@ -220682,6 +221049,23 @@
    "detailRef": "0bbc7d9ef627"
   },
   {
+   "id": "document:f350bad72d87",
+   "type": "document",
+   "title": "Print fulfillment protocol — controlled rollout and recovery",
+   "description": "Document Markdown avec 5 section(s).",
+   "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Deployment order",
+    "Evidence",
+    "Guarantees and limits",
+    "Print fulfillment protocol — controlled rollout and recovery",
+    "Resolve an ambiguous or exhausted job"
+   ],
+   "detailRef": "19773ecc1a85"
+  },
+  {
    "id": "document:78743fe2b020",
    "type": "document",
    "title": "Projet — Finalisation de TOK Marketing Autopilot",
@@ -223743,6 +224127,20 @@
    "detailRef": "6cb8b9c33d02"
   },
   {
+   "id": "edge-action:457ee2c6848d",
+   "type": "edge-action",
+   "title": "paused",
+   "description": "Action statiquement détectée dans la fonction Edge print-orchestrator.",
+   "path": "supabase/functions/print-orchestrator/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/print-orchestrator",
+    "print-orchestrator"
+   ],
+   "detailRef": "2e2729320b06"
+  },
+  {
    "id": "edge-action:41d00d0e2472",
    "type": "edge-action",
    "title": "publish",
@@ -224189,6 +224587,20 @@
     "daily-dish-ai"
    ],
    "detailRef": "a30f25a73085"
+  },
+  {
+   "id": "edge-action:eaf2505260d3",
+   "type": "edge-action",
+   "title": "stop",
+   "description": "Action statiquement détectée dans la fonction Edge print-orchestrator.",
+   "path": "supabase/functions/print-orchestrator/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/print-orchestrator",
+    "print-orchestrator"
+   ],
+   "detailRef": "62c87f6f7197"
   },
   {
    "id": "edge-action:97d53c31e9c4",
@@ -225657,9 +226069,11 @@
    "tags": [
     "POST",
     "PRINT_SUPPORT_EMAIL",
+    "paused",
+    "stop",
     "stripe"
    ],
-   "detailRef": "d877bc1b1042"
+   "detailRef": "e77ee2f9f300"
   },
   {
    "id": "edge-function:00482f3f0a8a",
@@ -227575,6 +227989,84 @@
    "detailRef": "e85922a00def"
   },
   {
+   "id": "environment-variable:6ebf95d72ad7",
+   "type": "environment-variable",
+   "title": "PGDATABASE",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-print-protocol-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-print-protocol-postgres.mjs"
+   ],
+   "detailRef": "f9ef176f6bdd"
+  },
+  {
+   "id": "environment-variable:30be99cca5b5",
+   "type": "environment-variable",
+   "title": "PGHOST",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-print-protocol-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-print-protocol-postgres.mjs"
+   ],
+   "detailRef": "c60d629b0ea0"
+  },
+  {
+   "id": "environment-variable:c7c40e51902a",
+   "type": "environment-variable",
+   "title": "PGHOSTADDR",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-print-protocol-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-print-protocol-postgres.mjs"
+   ],
+   "detailRef": "7b83b4e22843"
+  },
+  {
+   "id": "environment-variable:b8e468e4c2c1",
+   "type": "environment-variable",
+   "title": "PGPORT",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-print-protocol-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-print-protocol-postgres.mjs"
+   ],
+   "detailRef": "b9f1da0b6cf2"
+  },
+  {
+   "id": "environment-variable:988da696809e",
+   "type": "environment-variable",
+   "title": "PGSERVICE",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-print-protocol-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-print-protocol-postgres.mjs"
+   ],
+   "detailRef": "7ba9a0bc0e06"
+  },
+  {
+   "id": "environment-variable:43dacf73fe3e",
+   "type": "environment-variable",
+   "title": "PGSERVICEFILE",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-print-protocol-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-print-protocol-postgres.mjs"
+   ],
+   "detailRef": "52a584dc09e4"
+  },
+  {
    "id": "environment-variable:4845b14157f8",
    "type": "environment-variable",
    "title": "PRINT_SUPPORT_EMAIL",
@@ -227614,6 +228106,19 @@
     "scripts/write-production-env.mjs"
    ],
    "detailRef": "6c6a34d2a8b8"
+  },
+  {
+   "id": "environment-variable:6651039a1bf6",
+   "type": "environment-variable",
+   "title": "PSQL_BIN",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-print-protocol-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-print-protocol-postgres.mjs"
+   ],
+   "detailRef": "de1345acc786"
   },
   {
    "id": "environment-variable:515b6d80092e",
@@ -228442,6 +228947,32 @@
     "supabase/functions/ai-image-enhance/index.ts"
    ],
    "detailRef": "47b9961b538e"
+  },
+  {
+   "id": "environment-variable:c952d9344a82",
+   "type": "environment-variable",
+   "title": "TOK_PRINT_PROTOCOL_CONTAINER",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-print-protocol-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-print-protocol-postgres.mjs"
+   ],
+   "detailRef": "95175cbe6df2"
+  },
+  {
+   "id": "environment-variable:3a654b614e54",
+   "type": "environment-variable",
+   "title": "TOK_PRINT_PROTOCOL_DISPOSABLE",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-print-protocol-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-print-protocol-postgres.mjs"
+   ],
+   "detailRef": "978c2685fef1"
   },
   {
    "id": "environment-variable:d717184560e1",
@@ -234873,6 +235404,7 @@
     "firebase",
     "google",
     "openai",
+    "stripe",
     "supabase",
     "variable"
    ],
@@ -234933,6 +235465,7 @@
     "firebase",
     "google",
     "openai",
+    "stripe",
     "supabase",
     "typealias"
    ],
@@ -249336,19 +249869,19 @@
    "detailRef": "55684d43b7d3"
   },
   {
-   "id": "exported-symbol:a9c898600dbe",
+   "id": "exported-symbol:21c2eb25f63a",
    "type": "exported-symbol",
    "title": "assertProductionFlowAllowed",
    "description": "Export function de supabase/functions/_shared/auth.ts.",
    "path": "supabase/functions/_shared/auth.ts",
-   "line": 388,
+   "line": 396,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "dd8f534b9766"
+   "detailRef": "c11c65c32178"
   },
   {
    "id": "exported-symbol:e152074ac8fc",
@@ -249515,19 +250048,19 @@
    "detailRef": "8dec132cbc0f"
   },
   {
-   "id": "exported-symbol:ff3018a6f69e",
+   "id": "exported-symbol:298b422f5624",
    "type": "exported-symbol",
    "title": "authenticateRequest",
    "description": "Export function de supabase/functions/_shared/auth.ts.",
    "path": "supabase/functions/_shared/auth.ts",
-   "line": 186,
+   "line": 194,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "8de44c20630f"
+   "detailRef": "534debe23699"
   },
   {
    "id": "exported-symbol:a2f790d926a4",
@@ -267027,21 +267560,22 @@
    "detailRef": "030eab57dc46"
   },
   {
-   "id": "exported-symbol:2c41936cf848",
+   "id": "exported-symbol:0abb78605e12",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 2778,
+   "line": 3190,
    "surface": null,
    "tags": [
     "firebase",
     "function",
     "google",
     "openai",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "9d7a93b9974c"
+   "detailRef": "310a9e335341"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -270072,18 +270606,18 @@
    "detailRef": "4444fef49336"
   },
   {
-   "id": "exported-symbol:d251bd6a9b19",
+   "id": "exported-symbol:b9d832f5d510",
    "type": "exported-symbol",
    "title": "renderModule",
    "description": "Export function de scripts/generate-error-code-map.mjs.",
    "path": "scripts/generate-error-code-map.mjs",
-   "line": 61,
+   "line": 70,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "aaccb5d12089"
+   "detailRef": "fdb7562e4228"
   },
   {
    "id": "exported-symbol:4238175752f7",
@@ -270210,19 +270744,19 @@
    "detailRef": "2b216dca681e"
   },
   {
-   "id": "exported-symbol:e7507cf8dd6f",
+   "id": "exported-symbol:557acfb5120c",
    "type": "exported-symbol",
    "title": "requireRestaurantAccess",
    "description": "Export function de supabase/functions/_shared/auth.ts.",
    "path": "supabase/functions/_shared/auth.ts",
-   "line": 436,
+   "line": 444,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "63feba50b1fd"
+   "detailRef": "fe76f0f9094a"
   },
   {
    "id": "exported-symbol:53f333800fba",
@@ -270240,34 +270774,34 @@
    "detailRef": "1c682823f147"
   },
   {
-   "id": "exported-symbol:f8c9af5a4572",
+   "id": "exported-symbol:b2dd4283c159",
    "type": "exported-symbol",
    "title": "requireRole",
    "description": "Export function de supabase/functions/_shared/auth.ts.",
    "path": "supabase/functions/_shared/auth.ts",
-   "line": 313,
+   "line": 321,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "18d6b0412280"
+   "detailRef": "570d7bb0ab91"
   },
   {
-   "id": "exported-symbol:0e458d1b76c9",
+   "id": "exported-symbol:8aa5e9c86107",
    "type": "exported-symbol",
    "title": "requireUserRole",
    "description": "Export function de supabase/functions/_shared/auth.ts.",
    "path": "supabase/functions/_shared/auth.ts",
-   "line": 346,
+   "line": 354,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "27c8c94639a4"
+   "detailRef": "8c0f49df50db"
   },
   {
    "id": "exported-symbol:ba8e9b7b2c1a",
@@ -278079,6 +278613,20 @@
    "detailRef": "82f56019ff11"
   },
   {
+   "id": "file:3cd2948fcdd6",
+   "type": "file",
+   "title": ".github/workflows/print-protocol-postgres.yml",
+   "description": "Fichier du dépôt classé ci-workflow.",
+   "path": ".github/workflows/print-protocol-postgres.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".yml",
+    "ci-workflow"
+   ],
+   "detailRef": "c3233e862a46"
+  },
+  {
    "id": "file:1407885bccd3",
    "type": "file",
    "title": ".github/workflows/restaurant-image-truth-backfill.yml",
@@ -279337,6 +279885,20 @@
     "documentation"
    ],
    "detailRef": "7d11d9db1454"
+  },
+  {
+   "id": "file:2e528f1c09bb",
+   "type": "file",
+   "title": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "a60b1fc7159a"
   },
   {
    "id": "file:7abfcbd8dd5e",
@@ -287261,6 +287823,34 @@
     "automation-script"
    ],
    "detailRef": "d0af1dfad330"
+  },
+  {
+   "id": "file:48010d534d2f",
+   "type": "file",
+   "title": "scripts/test-print-protocol-postgres.mjs",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/test-print-protocol-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "automation-script"
+   ],
+   "detailRef": "361736f85282"
+  },
+  {
+   "id": "file:89b5b24a6ab7",
+   "type": "file",
+   "title": "scripts/test-print-protocol-runner.test.mjs",
+   "description": "Fichier du dépôt classé test.",
+   "path": "scripts/test-print-protocol-runner.test.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "test"
+   ],
+   "detailRef": "d36a2fd2beb1"
   },
   {
    "id": "file:8a641f5d96be",
@@ -299037,6 +299627,20 @@
    "detailRef": "9e78442d55b4"
   },
   {
+   "id": "file:9535b78d166a",
+   "type": "file",
+   "title": "src/test/edge-audit-write.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/edge-audit-write.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "8efccde2b518"
+  },
+  {
    "id": "file:d84c533952e4",
    "type": "file",
    "title": "src/test/edge-function-undeclared-identifiers.test.ts",
@@ -299077,6 +299681,20 @@
     "test"
    ],
    "detailRef": "2612181bfe57"
+  },
+  {
+   "id": "file:973c3c8367ae",
+   "type": "file",
+   "title": "src/test/error-code-map-case.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/error-code-map-case.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "ae4535d363ce"
   },
   {
    "id": "file:3d35853a5c6e",
@@ -301359,6 +301977,20 @@
     "test"
    ],
    "detailRef": "95fb5b8c56a0"
+  },
+  {
+   "id": "file:387b7d501ae3",
+   "type": "file",
+   "title": "src/test/print-orchestrator-runtime.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/print-orchestrator-runtime.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "4033a1230654"
   },
   {
    "id": "file:e3cd8c7b6d02",
@@ -314045,6 +314677,20 @@
    "detailRef": "b5c2ee5054fe"
   },
   {
+   "id": "file:9139660a4e3a",
+   "type": "file",
+   "title": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "931d969ede08"
+  },
+  {
    "id": "file:42e7f6ee83cf",
    "type": "file",
    "title": "supabase/tests/critical_rpc_smoke.sql",
@@ -314085,6 +314731,48 @@
     "supabase-configuration"
    ],
    "detailRef": "00e2001d29dc"
+  },
+  {
+   "id": "file:7257da34c578",
+   "type": "file",
+   "title": "supabase/tests/print_fulfillment_protocol_assertions.sql",
+   "description": "Fichier du dépôt classé supabase-configuration.",
+   "path": "supabase/tests/print_fulfillment_protocol_assertions.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "supabase-configuration"
+   ],
+   "detailRef": "b054fbb45c56"
+  },
+  {
+   "id": "file:929f728f94b3",
+   "type": "file",
+   "title": "supabase/tests/print_fulfillment_protocol_baseline_prerequisites.sql",
+   "description": "Fichier du dépôt classé supabase-configuration.",
+   "path": "supabase/tests/print_fulfillment_protocol_baseline_prerequisites.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "supabase-configuration"
+   ],
+   "detailRef": "4bb08141296e"
+  },
+  {
+   "id": "file:08bcd3488121",
+   "type": "file",
+   "title": "supabase/tests/print_fulfillment_protocol_fixture.sql",
+   "description": "Fichier du dépôt classé supabase-configuration.",
+   "path": "supabase/tests/print_fulfillment_protocol_fixture.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "supabase-configuration"
+   ],
+   "detailRef": "e055110d3ad0"
   },
   {
    "id": "file:fab86edd42d7",
@@ -317522,7 +318210,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 211 module(s).",
+   "description": "Intégration externe détectée dans 212 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -317683,6 +318371,7 @@
     "supabase/functions/_shared/chefs-table.ts",
     "supabase/functions/_shared/commercial-demo-host.ts",
     "supabase/functions/_shared/cors.ts",
+    "supabase/functions/_shared/error-code-map.ts",
     "supabase/functions/_shared/incident-intelligence.ts",
     "supabase/functions/_shared/logging.ts",
     "supabase/functions/_shared/marketing-ai-plan.ts",
@@ -317740,13 +318429,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "4cfefe721fcf"
+   "detailRef": "3d333cb7884a"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 651 module(s).",
+   "description": "Intégration externe détectée dans 656 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -317786,6 +318475,8 @@
     "scripts/supabase-db-push.mjs",
     "scripts/supabase-doctor.mjs",
     "scripts/supabase-target.mjs",
+    "scripts/test-print-protocol-postgres.mjs",
+    "scripts/test-print-protocol-runner.test.mjs",
     "scripts/verify-supabase-runtime-security.mjs",
     "scripts/write-commercial-demo-secrets-env.mjs",
     "scripts/write-production-env.mjs",
@@ -318114,8 +318805,10 @@
     "src/test/directory-restaurant-ownership-governance.test.ts",
     "src/test/dispatch-client-fallback.test.ts",
     "src/test/dispatch-service-role-auth.test.ts",
+    "src/test/edge-audit-write.test.ts",
     "src/test/edge-function-undeclared-identifiers.test.ts",
     "src/test/edge-rate-limits-10k.test.ts",
+    "src/test/error-code-map-case.test.ts",
     "src/test/fair-growth-annual-billing.test.ts",
     "src/test/feature-flags-realtime.test.tsx",
     "src/test/feature-flags.test.ts",
@@ -318202,6 +318895,7 @@
     "src/test/print-catalog-admin-pagination.test.tsx",
     "src/test/print-composer-source-format.test.tsx",
     "src/test/print-export-source-format.test.ts",
+    "src/test/print-orchestrator-runtime.test.ts",
     "src/test/print-pdf-dimensions.test.ts",
     "src/test/print-source-format.test.ts",
     "src/test/production-alert-remediation.test.ts",
@@ -318404,7 +319098,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f073fd40f280"
+   "detailRef": "dc22ff1a71ab"
   },
   {
    "id": "integration:c20910a79a78",
@@ -326362,6 +327056,20 @@
    "detailRef": "9a5b6ab19512"
   },
   {
+   "id": "migration:4108db5832ba",
+   "type": "migration",
+   "title": "20261010203000 Print Fulfillment Protocol",
+   "description": "Migration SQL de 260 lignes, 4 objets CREATE détectés.",
+   "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "32ca1d9538b9"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -329360,7 +330068,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "a6fc60e5e2ff"
+   "detailRef": "161759e48d86"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -346969,6 +347677,19 @@
     "generate"
    ],
    "detailRef": "d135cecce677"
+  },
+  {
+   "id": "workflow:9d848b757872",
+   "type": "workflow",
+   "title": "Print protocol PostgreSQL replay",
+   "description": "Workflow GitHub Actions; jobs: replay.",
+   "path": ".github/workflows/print-protocol-postgres.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "replay"
+   ],
+   "detailRef": "b5379e3f917a"
   },
   {
    "id": "workflow:4999395458d0",
