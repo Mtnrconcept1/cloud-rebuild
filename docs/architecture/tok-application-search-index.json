@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "ee64304c65c19f2d69661c4bec6652809fe2813fa57a18a9ebf4cc8498f6f09d",
+ "sourceDigest": "d1789b7d9b80343ef4238ef09888fdf970f9324ae37b2ec83666ab535aecb462",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -28933,6 +28933,7 @@
      "src/test/marketing-backlink-discovery.test.ts",
      "src/test/marketing-backlink-provider.test.ts",
      "src/test/marketing-bff-security.test.ts",
+     "src/test/marketing-bff-vercel-entrypoints.test.ts",
      "src/test/marketing-campaign-consistency.test.ts",
      "src/test/marketing-campaign-generation.test.ts",
      "src/test/marketing-consent-dispatch.test.ts",
@@ -100952,9 +100953,10 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [
+     "supabase",
      "vercel"
     ],
-    "lineCount": 26
+    "lineCount": 66
    },
    {
     "path": "src/test/marketing-campaign-consistency.test.ts",
@@ -137568,14 +137570,15 @@
    "id": "code-module:d46e995c5ed2",
    "type": "code-module",
    "title": "src/test/marketing-bff-vercel-entrypoints.test.ts",
-   "description": "Module de 26 lignes; exports: aucun export statique.",
+   "description": "Module de 66 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-bff-vercel-entrypoints.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
+    "supabase",
     "vercel"
    ],
-   "detailRef": "fb585a2b385e"
+   "detailRef": "a22730be94cb"
   },
   {
    "id": "code-module:b418be7dc244",
@@ -318278,7 +318281,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 655 module(s).",
+   "description": "Intégration externe détectée dans 656 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -318686,6 +318689,7 @@
     "src/test/marketing-backlink-discovery.test.ts",
     "src/test/marketing-backlink-provider.test.ts",
     "src/test/marketing-bff-security.test.ts",
+    "src/test/marketing-bff-vercel-entrypoints.test.ts",
     "src/test/marketing-campaign-consistency.test.ts",
     "src/test/marketing-campaign-generation.test.ts",
     "src/test/marketing-consent-dispatch.test.ts",
@@ -318940,7 +318944,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f080228e2b76"
+   "detailRef": "7001ae1c3682"
   },
   {
    "id": "integration:c20910a79a78",

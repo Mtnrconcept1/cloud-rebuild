@@ -10,7 +10,8 @@
       ]
     },
     "skipLibCheck": true,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "rewriteRelativeImportExtensions": true
   },
   "files": [],
   "references": [
