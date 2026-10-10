@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `6ddedb220af224930f526a4fa52b141359fbeaf8a23e88a7ca5701f743427921`
+- Empreinte SHA-256 des sources indexées : `dd296c51fdb13213bb03aa8d0fcfc12ac824817077b65fb31fdddba019b4f715`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,8 +28,8 @@
 | apiRoutes | 9 |
 | cronJobs | 33 |
 | databaseContract | 228 |
-| databaseObjects | 2722 |
-| documents | 196 |
+| databaseObjects | 2726 |
+| documents | 198 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 3375 |
@@ -37,22 +37,22 @@
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
-| migrations | 522 |
-| modules | 1473 |
+| migrations | 525 |
+| modules | 1477 |
 | pages | 127 |
 | pathLiterals | 618 |
 | publicAssets | 301 |
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15589 |
-| repositoryFiles | 2743 |
+| records | 15635 |
+| repositoryFiles | 2758 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 25 |
+| workflows | 27 |
 
 ## État distant observé
 
@@ -1958,10 +1958,11 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (731)</summary>
+<details><summary>function (733)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
+- `private_campaign.actualites_billing_dedupe_key` (1 définition(s))
 - `private_campaign.record_actualites_internal_test_conversion` (1 définition(s))
 - `private_campaign.record_actualites_latest_click_conversion` (1 définition(s))
 - `private_campaign.record_actualites_touch_conversions` (1 définition(s))
@@ -2476,6 +2477,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.prioritize_thefork_image_truth_reviews` (2 définition(s))
 - `public.process_fair_growth_module_credit` (1 définition(s))
 - `public.process_pending_ad_campaign_conversions` (3 définition(s))
+- `public.protect_canonical_commercial_demo_inert_state` (1 définition(s))
 - `public.protect_commercial_demo_account_boundary` (2 définition(s))
 - `public.protect_commercial_demo_account_mapping` (2 définition(s))
 - `public.protect_demo_restaurant_identity` (1 définition(s))
@@ -3348,7 +3350,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>policy (757)</summary>
+<details><summary>policy (758)</summary>
 
 - `ad_campaigns.Admins can manage ad campaigns` (1 définition(s))
 - `ad_campaigns.Anyone can read active campaigns` (1 définition(s))
@@ -3686,8 +3688,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.menu_items.block_commercial_demo_menu_item_insert` (1 définition(s))
 - `public.menu_items.block_commercial_demo_menu_item_update` (1 définition(s))
 - `public.menu_items.commercial_demo_select_mapped_menu_items` (1 définition(s))
+- `public.menu_items.menu_items_admin_select` (1 définition(s))
 - `public.menu_items.menu_items_owner_all` (1 définition(s))
-- `public.menu_items.menu_items_public_select` (1 définition(s))
+- `public.menu_items.menu_items_public_select` (2 définition(s))
 - `public.menu_items.scope_production_menu_items_for_commercial_demo_accounts` (1 définition(s))
 - `public.messages.messages_admin` (2 définition(s))
 - `public.messages.messages_participant` (2 définition(s))
@@ -3753,8 +3756,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.profiles.Users can update their own profile` (1 définition(s))
 - `public.profiles.Users can view their own profile` (1 définition(s))
 - `public.profiles.profiles_self_all` (1 définition(s))
-- `public.promo_code_uses.promo_uses_admin` (2 définition(s))
-- `public.promo_code_uses.promo_uses_own` (2 définition(s))
+- `public.promo_code_uses.promo_uses_admin` (3 définition(s))
+- `public.promo_code_uses.promo_uses_own` (3 définition(s))
 - `public.promo_codes.promo_codes_active_select` (1 définition(s))
 - `public.promo_codes.promo_codes_admin` (2 définition(s))
 - `public.promo_codes.promo_codes_public_read` (2 définition(s))
@@ -4457,7 +4460,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (237)</summary>
+<details><summary>trigger (238)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -4559,6 +4562,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `prevent_restaurant_image_reassignment` (1 définition(s))
 - `prevent_restaurant_invoice_line_items_locked_period` (1 définition(s))
 - `prevent_restaurant_invoices_locked_period` (1 définition(s))
+- `protect_canonical_commercial_demo_inert_state` (1 définition(s))
 - `protect_commercial_demo_account_boundary` (2 définition(s))
 - `protect_commercial_demo_account_mapping` (2 définition(s))
 - `protect_demo_restaurant_identity` (2 définition(s))
@@ -5527,7 +5531,10 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261006010000 Repair Admin Commercial Supabase Regressions | 1012 | 18 | [supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql:1](../../supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql#L1) |
 | 20261006022139 Configure Meta Marketing Integrations | 47 | 0 | [supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql:1](../../supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql#L1) |
 | 20261009003407 Protect Generated Print Format | 42 | 2 | [supabase/migrations/20261009003407_protect_generated_print_format.sql:1](../../supabase/migrations/20261009003407_protect_generated_print_format.sql#L1) |
+| 20261010194510 Checkout Benefits And Public Menu Security | 86 | 4 | [supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql:1](../../supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql#L1) |
 | 20261010203000 Print Fulfillment Protocol | 260 | 4 | [supabase/migrations/20261010203000_print_fulfillment_protocol.sql:1](../../supabase/migrations/20261010203000_print_fulfillment_protocol.sql#L1) |
+| 20261010212500 Reconcile Canonical Commercial Demo Inert State | 50 | 2 | [supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql:1](../../supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql#L1) |
+| 20261010224500 Actualites Billing Identity | 190 | 1 | [supabase/migrations/20261010224500_actualites_billing_identity.sql:1](../../supabase/migrations/20261010224500_actualites_billing_identity.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -5611,6 +5618,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Workflow | Jobs | Source |
 | --- | --- | --- |
 | Reusable validation | critical_tests, full_tests, plan, quality, related_tests, validate, windows_worker_tests, worker_tests | [.github/workflows/_validation.yml](../../.github/workflows/_validation.yml) |
+| Actualites billing PostgreSQL replay | replay | [.github/workflows/actualites-billing-postgres.yml](../../.github/workflows/actualites-billing-postgres.yml) |
 | App Store Build 3 Trigger | dispatch | [.github/workflows/app-store-build3-trigger.yml](../../.github/workflows/app-store-build3-trigger.yml) |
 | App Store Build 4 Trigger | dispatch | [.github/workflows/app-store-build4-trigger.yml](../../.github/workflows/app-store-build4-trigger.yml) |
 | App Store Build 5 Icon Fix Trigger | dispatch | [.github/workflows/app-store-build5-icon-fix-trigger.yml](../../.github/workflows/app-store-build5-icon-fix-trigger.yml) |
@@ -5624,6 +5632,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | App Store Upload Build 2 Trigger | dispatch | [.github/workflows/app-store-upload-build2-trigger.yml](../../.github/workflows/app-store-upload-build2-trigger.yml) |
 | App Store Xcode 26 Validation Trigger | dispatch | [.github/workflows/app-store-xcode26-validation-trigger.yml](../../.github/workflows/app-store-xcode26-validation-trigger.yml) |
 | Changed Test Files | changed-tests | [.github/workflows/changed-test-files.yml](../../.github/workflows/changed-test-files.yml) |
+| Checkout security PostgreSQL replay | replay | [.github/workflows/checkout-security-postgres.yml](../../.github/workflows/checkout-security-postgres.yml) |
 | CI | validate, validation | [.github/workflows/ci.yml](../../.github/workflows/ci.yml) |
 | Deploy Production | attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation | [.github/workflows/deploy-production.yml](../../.github/workflows/deploy-production.yml) |
 | Ensure Supabase Auth SMTP | configure | [.github/workflows/ensure-supabase-auth-smtp.yml](../../.github/workflows/ensure-supabase-auth-smtp.yml) |
@@ -5749,8 +5758,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 212 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 666 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 213 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 669 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 57 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5761,7 +5770,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 203 |
-| automation-script | 62 |
+| automation-script | 64 |
 | edge-function-source | 184 |
 | frontend-component | 247 |
 | frontend-hook | 22 |
@@ -5770,7 +5779,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 578 |
+| test | 580 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -5959,8 +5968,10 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Abonnements Et Entitlements Design | 17 | [docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md:1](../../docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md#L1) |
 | Parcours d'inscription — durcissement (client, restaurateur, livreur) | 24 | [docs/superpowers/specs/2026-05-30-parcours-inscription-design.md:1](../../docs/superpowers/specs/2026-05-30-parcours-inscription-design.md#L1) |
 | Marketing Studio Output Geometry Design | 15 | [docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md:1](../../docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md#L1) |
+| Actualités — identité des événements facturables | 5 | [docs/testing/actualites-billing-identity.md:1](../../docs/testing/actualites-billing-identity.md#L1) |
 | Scénario Actualités sponsorisées | 5 | [docs/testing/actualites-sponsored-scenario.md:1](../../docs/testing/actualites-sponsored-scenario.md#L1) |
 | Télémétrie navigateur et consentement | 5 | [docs/testing/browser-monitoring-consent.md:1](../../docs/testing/browser-monitoring-consent.md#L1) |
+| Recette de sécurité checkout et menus — issue #710 | 8 | [docs/testing/checkout-security-710.md:1](../../docs/testing/checkout-security-710.md#L1) |
 | Plan de tests lancement 10k | 6 | [docs/testing/launch-10k-load-plan.md:1](../../docs/testing/launch-10k-load-plan.md#L1) |
 | Tests de garde Supabase / RPC | 7 | [docs/testing/supabase-rpc-guards.md:1](../../docs/testing/supabase-rpc-guards.md#L1) |
 | TOK Connect | 18 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
@@ -6248,7 +6259,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (69)</summary>
+<details><summary>automation-script (71)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -6312,6 +6323,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/supabase-doctor.mjs`
 - `scripts/supabase-target.mjs`
 - `scripts/take-screenshots.mjs`
+- `scripts/test-actualites-billing-postgres.mjs`
+- `scripts/test-checkout-security-postgres.mjs`
 - `scripts/test-print-protocol-postgres.mjs`
 - `scripts/verify-supabase-runtime-security.mjs`
 - `scripts/write-apple-app-site-association.mjs`
@@ -6322,9 +6335,10 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (25)</summary>
+<details><summary>ci-workflow (27)</summary>
 
 - `.github/workflows/_validation.yml`
+- `.github/workflows/actualites-billing-postgres.yml`
 - `.github/workflows/app-store-build3-trigger.yml`
 - `.github/workflows/app-store-build4-trigger.yml`
 - `.github/workflows/app-store-build5-icon-fix-trigger.yml`
@@ -6338,6 +6352,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/app-store-upload-build2-trigger.yml`
 - `.github/workflows/app-store-xcode26-validation-trigger.yml`
 - `.github/workflows/changed-test-files.yml`
+- `.github/workflows/checkout-security-postgres.yml`
 - `.github/workflows/ci.yml`
 - `.github/workflows/deploy-production.yml`
 - `.github/workflows/ensure-supabase-auth-smtp.yml`
@@ -6352,7 +6367,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (522)</summary>
+<details><summary>database-migration (525)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -6875,11 +6890,14 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql`
 - `supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql`
 - `supabase/migrations/20261009003407_protect_generated_print_format.sql`
+- `supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql`
 - `supabase/migrations/20261010203000_print_fulfillment_protocol.sql`
+- `supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql`
+- `supabase/migrations/20261010224500_actualites_billing_identity.sql`
 
 </details>
 
-<details><summary>documentation (129)</summary>
+<details><summary>documentation (131)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7003,8 +7021,10 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md`
 - `docs/superpowers/specs/2026-05-30-parcours-inscription-design.md`
 - `docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md`
+- `docs/testing/actualites-billing-identity.md`
 - `docs/testing/actualites-sponsored-scenario.md`
 - `docs/testing/browser-monitoring-consent.md`
+- `docs/testing/checkout-security-710.md`
 - `docs/testing/launch-10k-load-plan.md`
 - `docs/testing/supabase-rpc-guards.md`
 - `docs/tok-connect/README.md`
@@ -8182,7 +8202,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (19)</summary>
+<details><summary>supabase-configuration (23)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -8197,6 +8217,10 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/demo-migrations/20260720130500_enable_dedicated_demo_runtime_rpcs.sql`
 - `supabase/demo-migrations/20260908013000_unlimit_commercial_demo_ai_presentation.sql`
 - `supabase/demo-migrations/20261005210000_enforce_shared_commercial_demo_restaurant.sql`
+- `supabase/tests/actualites_billing_identity_fixture.sql`
+- `supabase/tests/checkout_security_710_assertions.sql`
+- `supabase/tests/checkout_security_710_baseline_prerequisites.sql`
+- `supabase/tests/checkout_security_710_fixture.sql`
 - `supabase/tests/critical_rpc_smoke.sql`
 - `supabase/tests/floor_plan_autoplacement_smoke.sql`
 - `supabase/tests/generated_print_format_smoke.sql`
@@ -8206,7 +8230,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (578)</summary>
+<details><summary>test (580)</summary>
 
 - `scripts/ci-change-plan.test.mjs`
 - `scripts/ci-critical-tests.test.mjs`
@@ -8214,6 +8238,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/dependabot-policy.test.mjs`
 - `scripts/dependency-security.test.mjs`
 - `scripts/stoppin-venue-seo.test.mjs`
+- `scripts/test-actualites-billing-runner.test.mjs`
+- `scripts/test-checkout-security-runner.test.mjs`
 - `scripts/test-print-protocol-runner.test.mjs`
 - `src/test/accounting-ai-public-copy.test.ts`
 - `src/test/accounting-dashboard-clarity.test.ts`

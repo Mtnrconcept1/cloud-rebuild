@@ -2,14 +2,14 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "6ddedb220af224930f526a4fa52b141359fbeaf8a23e88a7ca5701f743427921",
+ "sourceDigest": "dd296c51fdb13213bb03aa8d0fcfc12ac824817077b65fb31fdddba019b4f715",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
-  "databaseObjects": 2722,
-  "documents": 196,
+  "databaseObjects": 2726,
+  "documents": 198,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3375,
@@ -17,22 +17,22 @@
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 522,
-  "modules": 1473,
+  "migrations": 525,
+  "modules": 1477,
   "pages": 127,
   "pathLiterals": 618,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15589,
-  "repositoryFiles": 2743,
+  "records": 15635,
+  "repositoryFiles": 2758,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 25
+  "workflows": 27
  },
  "catalogs": {
   "frontendRoutes": [
@@ -28366,6 +28366,7 @@
      "scripts/release-readiness.mjs",
      "scripts/resolve-live-stripe-publishable-key.mjs",
      "scripts/scale-readiness-check.mjs",
+     "scripts/test-checkout-security-postgres.mjs",
      "scripts/write-commercial-demo-secrets-env.mjs",
      "scripts/write-production-env.mjs",
      "scripts/write-supabase-secrets-env.mjs",
@@ -28607,6 +28608,9 @@
      "scripts/supabase-db-push.mjs",
      "scripts/supabase-doctor.mjs",
      "scripts/supabase-target.mjs",
+     "scripts/test-actualites-billing-postgres.mjs",
+     "scripts/test-checkout-security-postgres.mjs",
+     "scripts/test-checkout-security-runner.test.mjs",
      "scripts/test-print-protocol-postgres.mjs",
      "scripts/test-print-protocol-runner.test.mjs",
      "scripts/verify-supabase-runtime-security.mjs",
@@ -32460,10 +32464,28 @@
     "objectCount": 2
    },
    {
+    "name": "20261010194510 Checkout Benefits And Public Menu Security",
+    "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
+    "lineCount": 86,
+    "objectCount": 4
+   },
+   {
     "name": "20261010203000 Print Fulfillment Protocol",
     "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
     "lineCount": 260,
     "objectCount": 4
+   },
+   {
+    "name": "20261010212500 Reconcile Canonical Commercial Demo Inert State",
+    "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+    "lineCount": 50,
+    "objectCount": 2
+   },
+   {
+    "name": "20261010224500 Actualites Billing Identity",
+    "path": "supabase/migrations/20261010224500_actualites_billing_identity.sql",
+    "lineCount": 190,
+    "objectCount": 1
    }
   ],
   "databaseObjects": [
@@ -32484,6 +32506,16 @@
      {
       "path": "supabase/migrations/20260904143000_ops_incident_github_run_binding.sql",
       "line": 12
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private_campaign.actualites_billing_dedupe_key",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010224500_actualites_billing_identity.sql",
+      "line": 5
      }
     ]
    },
@@ -38716,6 +38748,16 @@
      {
       "path": "supabase/migrations/20260729090000_campaign_tracking_and_reservation_fee_integrity.sql",
       "line": 1855
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.protect_canonical_commercial_demo_inert_state",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+      "line": 24
      }
     ]
    },
@@ -51797,6 +51839,16 @@
    },
    {
     "type": "policy",
+    "name": "public.menu_items.menu_items_admin_select",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
+      "line": 74
+     }
+    ]
+   },
+   {
+    "type": "policy",
     "name": "public.menu_items.menu_items_owner_all",
     "sources": [
      {
@@ -51811,6 +51863,10 @@
     "sources": [
      {
       "path": "supabase/migrations/20260311120000_atomic_stock_and_rls_hardening.sql",
+      "line": 56
+     },
+     {
+      "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
       "line": 56
      }
     ]
@@ -52508,6 +52564,10 @@
      {
       "path": "supabase/migrations/20260310100000_courier_infrastructure.sql",
       "line": 621
+     },
+     {
+      "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
+      "line": 46
      }
     ]
    },
@@ -52522,6 +52582,10 @@
      {
       "path": "supabase/migrations/20260310100000_courier_infrastructure.sql",
       "line": 618
+     },
+     {
+      "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
+      "line": 43
      }
     ]
    },
@@ -61083,6 +61147,16 @@
    },
    {
     "type": "trigger",
+    "name": "protect_canonical_commercial_demo_inert_state",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+      "line": 44
+     }
+    ]
+   },
+   {
+    "type": "trigger",
     "name": "protect_commercial_demo_account_boundary",
     "sources": [
      {
@@ -66531,6 +66605,13 @@
     ]
    },
    {
+    "name": "Actualites billing PostgreSQL replay",
+    "path": ".github/workflows/actualites-billing-postgres.yml",
+    "jobs": [
+     "replay"
+    ]
+   },
+   {
     "name": "App Store Build 3 Trigger",
     "path": ".github/workflows/app-store-build3-trigger.yml",
     "jobs": [
@@ -66623,6 +66704,13 @@
     "path": ".github/workflows/changed-test-files.yml",
     "jobs": [
      "changed-tests"
+    ]
+   },
+   {
+    "name": "Checkout security PostgreSQL replay",
+    "path": ".github/workflows/checkout-security-postgres.yml",
+    "jobs": [
+     "replay"
     ]
    },
    {
@@ -77438,6 +77526,37 @@
     ]
    },
    {
+    "path": "docs/testing/actualites-billing-identity.md",
+    "title": "Actualités — identité des événements facturables",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Actualités — identité des événements facturables",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Défaut reproduit",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Changement proposé",
+      "line": 9
+     },
+     {
+      "level": 2,
+      "title": "Vérifications exigées",
+      "line": 19
+     },
+     {
+      "level": 2,
+      "title": "Déploiement et reprise",
+      "line": 30
+     }
+    ]
+   },
+   {
     "path": "docs/testing/actualites-sponsored-scenario.md",
     "title": "Scénario Actualités sponsorisées",
     "headings": [
@@ -77496,6 +77615,52 @@
       "level": 3,
       "title": "Observation réseau locale avec le SDK réel",
       "line": 56
+     }
+    ]
+   },
+   {
+    "path": "docs/testing/checkout-security-710.md",
+    "title": "Recette de sécurité checkout et menus — issue #710",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Recette de sécurité checkout et menus — issue #710",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Périmètre",
+      "line": 3
+     },
+     {
+      "level": 2,
+      "title": "Réconciliation de production en lecture seule",
+      "line": 19
+     },
+     {
+      "level": 2,
+      "title": "État des preuves au 10 octobre 2026",
+      "line": 25
+     },
+     {
+      "level": 2,
+      "title": "Exécution en CI, sans accès fournisseur",
+      "line": 35
+     },
+     {
+      "level": 2,
+      "title": "Commandes locales",
+      "line": 53
+     },
+     {
+      "level": 2,
+      "title": "Critères de réussite",
+      "line": 77
+     },
+     {
+      "level": 2,
+      "title": "Avant une application distante",
+      "line": 88
      }
     ]
    },
@@ -79606,6 +79771,59 @@
      "google"
     ],
     "lineCount": 76
+   },
+   {
+    "path": "scripts/test-actualites-billing-postgres.mjs",
+    "exports": [],
+    "environmentNames": [
+     "PGDATABASE",
+     "PGHOST",
+     "PGHOSTADDR",
+     "PGPORT",
+     "PGSERVICE",
+     "PGSERVICEFILE",
+     "TOK_ACTUALITES_BILLING_DISPOSABLE"
+    ],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 178
+   },
+   {
+    "path": "scripts/test-actualites-billing-runner.test.mjs",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 30
+   },
+   {
+    "path": "scripts/test-checkout-security-postgres.mjs",
+    "exports": [],
+    "environmentNames": [
+     "PGDATABASE",
+     "PGHOST",
+     "PGHOSTADDR",
+     "PGPORT",
+     "PGSERVICE",
+     "PGSERVICEFILE",
+     "PSQL_BIN",
+     "TOK_SECURITY_710_CONTAINER",
+     "TOK_SECURITY_710_DISPOSABLE"
+    ],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 171
+   },
+   {
+    "path": "scripts/test-checkout-security-runner.test.mjs",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 40
    },
    {
     "path": "scripts/test-print-protocol-postgres.mjs",
@@ -109061,6 +109279,11 @@
     "extension": ".yml"
    },
    {
+    "path": ".github/workflows/actualites-billing-postgres.yml",
+    "category": "ci-workflow",
+    "extension": ".yml"
+   },
+   {
     "path": ".github/workflows/app-store-build3-trigger.yml",
     "category": "ci-workflow",
     "extension": ".yml"
@@ -109122,6 +109345,11 @@
    },
    {
     "path": ".github/workflows/changed-test-files.yml",
+    "category": "ci-workflow",
+    "extension": ".yml"
+   },
+   {
+    "path": ".github/workflows/checkout-security-postgres.yml",
     "category": "ci-workflow",
     "extension": ".yml"
    },
@@ -110231,12 +110459,22 @@
     "extension": ".md"
    },
    {
+    "path": "docs/testing/actualites-billing-identity.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
     "path": "docs/testing/actualites-sponsored-scenario.md",
     "category": "documentation",
     "extension": ".md"
    },
    {
     "path": "docs/testing/browser-monitoring-consent.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/testing/checkout-security-710.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -112463,6 +112701,26 @@
    {
     "path": "scripts/take-screenshots.mjs",
     "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/test-actualites-billing-postgres.mjs",
+    "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/test-actualites-billing-runner.test.mjs",
+    "category": "test",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/test-checkout-security-postgres.mjs",
+    "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/test-checkout-security-runner.test.mjs",
+    "category": "test",
     "extension": ".mjs"
    },
    {
@@ -122101,8 +122359,43 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
     "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261010224500_actualites_billing_identity.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/tests/actualites_billing_identity_fixture.sql",
+    "category": "supabase-configuration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/tests/checkout_security_710_assertions.sql",
+    "category": "supabase-configuration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/tests/checkout_security_710_baseline_prerequisites.sql",
+    "category": "supabase-configuration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/tests/checkout_security_710_fixture.sql",
+    "category": "supabase-configuration",
     "extension": ".sql"
    },
    {
@@ -123797,6 +124090,73 @@
     "google"
    ],
    "detailRef": "9fe3b95644be"
+  },
+  {
+   "id": "code-module:d1e651eafa62",
+   "type": "code-module",
+   "title": "scripts/test-actualites-billing-postgres.mjs",
+   "description": "Module de 178 lignes; exports: aucun export statique.",
+   "path": "scripts/test-actualites-billing-postgres.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "PGDATABASE",
+    "PGHOST",
+    "PGHOSTADDR",
+    "PGPORT",
+    "PGSERVICE",
+    "PGSERVICEFILE",
+    "TOK_ACTUALITES_BILLING_DISPOSABLE",
+    "supabase"
+   ],
+   "detailRef": "af31f14cccbf"
+  },
+  {
+   "id": "code-module:6721a8e5811d",
+   "type": "code-module",
+   "title": "scripts/test-actualites-billing-runner.test.mjs",
+   "description": "Module de 30 lignes; exports: aucun export statique.",
+   "path": "scripts/test-actualites-billing-runner.test.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "2f9551faf6ba"
+  },
+  {
+   "id": "code-module:dd58f1b52214",
+   "type": "code-module",
+   "title": "scripts/test-checkout-security-postgres.mjs",
+   "description": "Module de 171 lignes; exports: aucun export statique.",
+   "path": "scripts/test-checkout-security-postgres.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "PGDATABASE",
+    "PGHOST",
+    "PGHOSTADDR",
+    "PGPORT",
+    "PGSERVICE",
+    "PGSERVICEFILE",
+    "PSQL_BIN",
+    "TOK_SECURITY_710_CONTAINER",
+    "TOK_SECURITY_710_DISPOSABLE",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "7f7089d82f88"
+  },
+  {
+   "id": "code-module:9843c9e14a0d",
+   "type": "code-module",
+   "title": "scripts/test-checkout-security-runner.test.mjs",
+   "description": "Module de 40 lignes; exports: aucun export statique.",
+   "path": "scripts/test-checkout-security-runner.test.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "1fa5ede5ce5d"
   },
   {
    "id": "code-module:325f58f098fe",
@@ -158460,6 +158820,21 @@
    "detailRef": "df6411ca91ab"
   },
   {
+   "id": "database-object:763ae46a4d9a",
+   "type": "database-object",
+   "title": "private_campaign.actualites_billing_dedupe_key",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010224500_actualites_billing_identity.sql",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "c8fdcb945bea"
+  },
+  {
    "id": "database-object:c91c6884996b",
    "type": "database-object",
    "title": "private_campaign.record_actualites_internal_test_conversion",
@@ -159178,6 +159553,21 @@
     "supabase"
    ],
    "detailRef": "29c14166870f"
+  },
+  {
+   "id": "database-object:c20ad739806a",
+   "type": "database-object",
+   "title": "protect_canonical_commercial_demo_inert_state",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+   "line": 44,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "024e8f142fb3"
   },
   {
    "id": "database-object:eb5e9a46fe4b",
@@ -172530,6 +172920,21 @@
    "detailRef": "6ca2e9b07f1a"
   },
   {
+   "id": "database-object:2983897c43f5",
+   "type": "database-object",
+   "title": "public.menu_items.menu_items_admin_select",
+   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
+   "line": 74,
+   "surface": null,
+   "tags": [
+    "policy",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "4607ed4fa838"
+  },
+  {
    "id": "database-object:98bec66e862b",
    "type": "database-object",
    "title": "public.menu_items.menu_items_owner_all",
@@ -172545,11 +172950,11 @@
    "detailRef": "e14a1466a39a"
   },
   {
-   "id": "database-object:c7a7f22ed4b0",
+   "id": "database-object:7489698a348f",
    "type": "database-object",
    "title": "public.menu_items.menu_items_public_select",
-   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260311120000_atomic_stock_and_rls_hardening.sql",
+   "description": "Objet PostgreSQL de type policy; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
    "line": 56,
    "surface": null,
    "tags": [
@@ -172557,7 +172962,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "ed272e7b4534"
+   "detailRef": "3468a23b2eb2"
   },
   {
    "id": "database-object:7835399cc965",
@@ -174735,34 +175140,34 @@
    "detailRef": "92e6f21e2699"
   },
   {
-   "id": "database-object:aa2857163e9e",
+   "id": "database-object:79233cea78ae",
    "type": "database-object",
    "title": "public.promo_code_uses.promo_uses_admin",
-   "description": "Objet PostgreSQL de type policy; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260310100000_courier_infrastructure.sql",
-   "line": 621,
+   "description": "Objet PostgreSQL de type policy; 3 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
+   "line": 46,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "01f487bcbf62"
+   "detailRef": "788409f77634"
   },
   {
-   "id": "database-object:b74c89112d0a",
+   "id": "database-object:a9be02212cb6",
    "type": "database-object",
    "title": "public.promo_code_uses.promo_uses_own",
-   "description": "Objet PostgreSQL de type policy; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260310100000_courier_infrastructure.sql",
-   "line": 618,
+   "description": "Objet PostgreSQL de type policy; 3 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
+   "line": 43,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "4e2687a50862"
+   "detailRef": "83ca6c2c51eb"
   },
   {
    "id": "database-object:5999b3953e92",
@@ -175003,6 +175408,21 @@
     "table"
    ],
    "detailRef": "4c74698dff91"
+  },
+  {
+   "id": "database-object:cc67944436dc",
+   "type": "database-object",
+   "title": "public.protect_canonical_commercial_demo_inert_state",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+   "line": 24,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "2e7e204ccd82"
   },
   {
    "id": "database-object:875a4d186102",
@@ -194928,6 +195348,20 @@
    "detailRef": "1ae3f580df3c"
   },
   {
+   "id": "document-section:7d811978cd55",
+   "type": "document-section",
+   "title": "Actualités — identité des événements facturables",
+   "description": "Section de Actualités — identité des événements facturables.",
+   "path": "docs/testing/actualites-billing-identity.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Actualités — identité des événements facturables",
+    "h1"
+   ],
+   "detailRef": "a2e7e0938554"
+  },
+  {
    "id": "document-section:e423040613fc",
    "type": "document-section",
    "title": "Actualités",
@@ -196006,6 +196440,20 @@
    "detailRef": "87ec2243535b"
   },
   {
+   "id": "document-section:cdb387e1f615",
+   "type": "document-section",
+   "title": "Avant une application distante",
+   "description": "Section de Recette de sécurité checkout et menus — issue #710.",
+   "path": "docs/testing/checkout-security-710.md",
+   "line": 88,
+   "surface": null,
+   "tags": [
+    "Recette de sécurité checkout et menus — issue #710",
+    "h2"
+   ],
+   "detailRef": "6830a9bde919"
+  },
+  {
    "id": "document-section:abf7a7b555de",
    "type": "document-section",
    "title": "Avec sélection",
@@ -196916,6 +197364,20 @@
    "detailRef": "a668ba3fedb8"
   },
   {
+   "id": "document-section:bd3d1df5d466",
+   "type": "document-section",
+   "title": "Changement proposé",
+   "description": "Section de Actualités — identité des événements facturables.",
+   "path": "docs/testing/actualites-billing-identity.md",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "Actualités — identité des événements facturables",
+    "h2"
+   ],
+   "detailRef": "041c2b4cf079"
+  },
+  {
    "id": "document-section:db867874c0eb",
    "type": "document-section",
    "title": "Changements attendus",
@@ -197348,6 +197810,20 @@
     "h2"
    ],
    "detailRef": "666550aa1850"
+  },
+  {
+   "id": "document-section:de8a3882b617",
+   "type": "document-section",
+   "title": "Commandes locales",
+   "description": "Section de Recette de sécurité checkout et menus — issue #710.",
+   "path": "docs/testing/checkout-security-710.md",
+   "line": 53,
+   "surface": null,
+   "tags": [
+    "Recette de sécurité checkout et menus — issue #710",
+    "h2"
+   ],
+   "detailRef": "5a833e68ef51"
   },
   {
    "id": "document-section:94ff66c13caf",
@@ -199002,6 +199478,20 @@
    "detailRef": "40b4139a88e5"
   },
   {
+   "id": "document-section:cd7ae87c7210",
+   "type": "document-section",
+   "title": "Critères de réussite",
+   "description": "Section de Recette de sécurité checkout et menus — issue #710.",
+   "path": "docs/testing/checkout-security-710.md",
+   "line": 77,
+   "surface": null,
+   "tags": [
+    "Recette de sécurité checkout et menus — issue #710",
+    "h2"
+   ],
+   "detailRef": "676ee5c1a767"
+  },
+  {
    "id": "document-section:8a4970954dba",
    "type": "document-section",
    "title": "Critères de sortie 10/10",
@@ -199926,6 +200416,20 @@
    "detailRef": "be77cf01d863"
   },
   {
+   "id": "document-section:359d5cb01cea",
+   "type": "document-section",
+   "title": "Défaut reproduit",
+   "description": "Section de Actualités — identité des événements facturables.",
+   "path": "docs/testing/actualites-billing-identity.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "Actualités — identité des événements facturables",
+    "h2"
+   ],
+   "detailRef": "f840bcab1be1"
+  },
+  {
    "id": "document-section:42457bd7e479",
    "type": "document-section",
    "title": "Défauts confirmés",
@@ -200050,6 +200554,20 @@
     "h2"
    ],
    "detailRef": "ce80c98fd8fc"
+  },
+  {
+   "id": "document-section:e5492d79ae12",
+   "type": "document-section",
+   "title": "Déploiement et reprise",
+   "description": "Section de Actualités — identité des événements facturables.",
+   "path": "docs/testing/actualites-billing-identity.md",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "Actualités — identité des événements facturables",
+    "h2"
+   ],
+   "detailRef": "158db2ee5ee8"
   },
   {
    "id": "document-section:97696f11cd35",
@@ -200890,6 +201408,20 @@
     "h2"
    ],
    "detailRef": "188c50f249f5"
+  },
+  {
+   "id": "document-section:d931d683e56c",
+   "type": "document-section",
+   "title": "Exécution en CI, sans accès fournisseur",
+   "description": "Section de Recette de sécurité checkout et menus — issue #710.",
+   "path": "docs/testing/checkout-security-710.md",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "Recette de sécurité checkout et menus — issue #710",
+    "h2"
+   ],
+   "detailRef": "1a6e440cdd6d"
   },
   {
    "id": "document-section:e707c892b35f",
@@ -209054,6 +209586,20 @@
    "detailRef": "11e5eb37f8a5"
   },
   {
+   "id": "document-section:fce5b36d2501",
+   "type": "document-section",
+   "title": "Périmètre",
+   "description": "Section de Recette de sécurité checkout et menus — issue #710.",
+   "path": "docs/testing/checkout-security-710.md",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "Recette de sécurité checkout et menus — issue #710",
+    "h2"
+   ],
+   "detailRef": "11e5eb37f8a5"
+  },
+  {
    "id": "document-section:56a71672a186",
    "type": "document-section",
    "title": "Qualites recherchees",
@@ -209248,6 +209794,20 @@
     "h3"
    ],
    "detailRef": "40e075a9d0e1"
+  },
+  {
+   "id": "document-section:9f0b359c1499",
+   "type": "document-section",
+   "title": "Recette de sécurité checkout et menus — issue #710",
+   "description": "Section de Recette de sécurité checkout et menus — issue #710.",
+   "path": "docs/testing/checkout-security-710.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Recette de sécurité checkout et menus — issue #710",
+    "h1"
+   ],
+   "detailRef": "4ea61a9ec573"
   },
   {
    "id": "document-section:0b47cdbe0bf9",
@@ -211446,6 +212006,20 @@
     "h2"
    ],
    "detailRef": "db5c3dc4af61"
+  },
+  {
+   "id": "document-section:352b73303b47",
+   "type": "document-section",
+   "title": "Réconciliation de production en lecture seule",
+   "description": "Section de Recette de sécurité checkout et menus — issue #710.",
+   "path": "docs/testing/checkout-security-710.md",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "Recette de sécurité checkout et menus — issue #710",
+    "h2"
+   ],
+   "detailRef": "9e7438fe7c96"
   },
   {
    "id": "document-section:6c7c3bedbb08",
@@ -218238,6 +218812,20 @@
    "detailRef": "35cbf6d9ce61"
   },
   {
+   "id": "document-section:1f9bcd214477",
+   "type": "document-section",
+   "title": "Vérifications exigées",
+   "description": "Section de Actualités — identité des événements facturables.",
+   "path": "docs/testing/actualites-billing-identity.md",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "Actualités — identité des événements facturables",
+    "h2"
+   ],
+   "detailRef": "b34b32417526"
+  },
+  {
    "id": "document-section:da1cf77364b8",
    "type": "document-section",
    "title": "Vérifications réalisées",
@@ -219582,6 +220170,20 @@
    "detailRef": "3dbd56ae2de7"
   },
   {
+   "id": "document-section:8b9daf204902",
+   "type": "document-section",
+   "title": "État des preuves au 10 octobre 2026",
+   "description": "Section de Recette de sécurité checkout et menus — issue #710.",
+   "path": "docs/testing/checkout-security-710.md",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "Recette de sécurité checkout et menus — issue #710",
+    "h2"
+   ],
+   "detailRef": "36a93d036f25"
+  },
+  {
    "id": "document-section:3061036041c2",
    "type": "document-section",
    "title": "État d’exécution TOK observé le 3 octobre 2026",
@@ -219855,6 +220457,23 @@
     "`social_user_preferences`"
    ],
    "detailRef": "aa14c2e55544"
+  },
+  {
+   "id": "document:7d811978cd55",
+   "type": "document",
+   "title": "Actualités — identité des événements facturables",
+   "description": "Document Markdown avec 5 section(s).",
+   "path": "docs/testing/actualites-billing-identity.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Actualités — identité des événements facturables",
+    "Changement proposé",
+    "Défaut reproduit",
+    "Déploiement et reprise",
+    "Vérifications exigées"
+   ],
+   "detailRef": "7b8494070f7d"
   },
   {
    "id": "document:71a072d26c50",
@@ -222032,6 +222651,26 @@
     "React + Capacitor Review"
    ],
    "detailRef": "556c08fab42b"
+  },
+  {
+   "id": "document:9f0b359c1499",
+   "type": "document",
+   "title": "Recette de sécurité checkout et menus — issue #710",
+   "description": "Document Markdown avec 8 section(s).",
+   "path": "docs/testing/checkout-security-710.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Avant une application distante",
+    "Commandes locales",
+    "Critères de réussite",
+    "Exécution en CI, sans accès fournisseur",
+    "Périmètre",
+    "Recette de sécurité checkout et menus — issue #710",
+    "Réconciliation de production en lecture seule",
+    "État des preuves au 10 octobre 2026"
+   ],
+   "detailRef": "010bd235e7f6"
   },
   {
    "id": "document:a3cc4b0f49a7",
@@ -228895,82 +229534,94 @@
    "detailRef": "e85922a00def"
   },
   {
-   "id": "environment-variable:6ebf95d72ad7",
+   "id": "environment-variable:670d8f7b3247",
    "type": "environment-variable",
    "title": "PGDATABASE",
-   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
-   "path": "scripts/test-print-protocol-postgres.mjs",
+   "description": "Nom de variable d’environnement référencé dans 3 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
    "tags": [
+    "scripts/test-actualites-billing-postgres.mjs",
+    "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs"
    ],
-   "detailRef": "f9ef176f6bdd"
+   "detailRef": "5e38b573b6e7"
   },
   {
-   "id": "environment-variable:30be99cca5b5",
+   "id": "environment-variable:c6ea23345aa4",
    "type": "environment-variable",
    "title": "PGHOST",
-   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
-   "path": "scripts/test-print-protocol-postgres.mjs",
+   "description": "Nom de variable d’environnement référencé dans 3 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
    "tags": [
+    "scripts/test-actualites-billing-postgres.mjs",
+    "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs"
    ],
-   "detailRef": "c60d629b0ea0"
+   "detailRef": "60ae45fdfcfa"
   },
   {
-   "id": "environment-variable:c7c40e51902a",
+   "id": "environment-variable:5af9045fcde7",
    "type": "environment-variable",
    "title": "PGHOSTADDR",
-   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
-   "path": "scripts/test-print-protocol-postgres.mjs",
+   "description": "Nom de variable d’environnement référencé dans 3 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
    "tags": [
+    "scripts/test-actualites-billing-postgres.mjs",
+    "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs"
    ],
-   "detailRef": "7b83b4e22843"
+   "detailRef": "ad0736bce481"
   },
   {
-   "id": "environment-variable:b8e468e4c2c1",
+   "id": "environment-variable:267c30222831",
    "type": "environment-variable",
    "title": "PGPORT",
-   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
-   "path": "scripts/test-print-protocol-postgres.mjs",
+   "description": "Nom de variable d’environnement référencé dans 3 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
    "tags": [
+    "scripts/test-actualites-billing-postgres.mjs",
+    "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs"
    ],
-   "detailRef": "b9f1da0b6cf2"
+   "detailRef": "f99c3474051e"
   },
   {
-   "id": "environment-variable:988da696809e",
+   "id": "environment-variable:7328174092f4",
    "type": "environment-variable",
    "title": "PGSERVICE",
-   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
-   "path": "scripts/test-print-protocol-postgres.mjs",
+   "description": "Nom de variable d’environnement référencé dans 3 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
    "tags": [
+    "scripts/test-actualites-billing-postgres.mjs",
+    "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs"
    ],
-   "detailRef": "7ba9a0bc0e06"
+   "detailRef": "954802d4707d"
   },
   {
-   "id": "environment-variable:43dacf73fe3e",
+   "id": "environment-variable:898d6ee58a05",
    "type": "environment-variable",
    "title": "PGSERVICEFILE",
-   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
-   "path": "scripts/test-print-protocol-postgres.mjs",
+   "description": "Nom de variable d’environnement référencé dans 3 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
    "tags": [
+    "scripts/test-actualites-billing-postgres.mjs",
+    "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs"
    ],
-   "detailRef": "52a584dc09e4"
+   "detailRef": "aaf779e252e2"
   },
   {
    "id": "environment-variable:4845b14157f8",
@@ -229014,17 +229665,18 @@
    "detailRef": "6c6a34d2a8b8"
   },
   {
-   "id": "environment-variable:6651039a1bf6",
+   "id": "environment-variable:378e90cb4be1",
    "type": "environment-variable",
    "title": "PSQL_BIN",
-   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
-   "path": "scripts/test-print-protocol-postgres.mjs",
+   "description": "Nom de variable d’environnement référencé dans 2 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-checkout-security-postgres.mjs",
    "line": null,
    "surface": null,
    "tags": [
+    "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs"
    ],
-   "detailRef": "de1345acc786"
+   "detailRef": "465720623828"
   },
   {
    "id": "environment-variable:515b6d80092e",
@@ -229679,6 +230331,19 @@
    "detailRef": "7497859418db"
   },
   {
+   "id": "environment-variable:d0b25e69a83f",
+   "type": "environment-variable",
+   "title": "TOK_ACTUALITES_BILLING_DISPOSABLE",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-actualites-billing-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-actualites-billing-postgres.mjs"
+   ],
+   "detailRef": "b432a8ccd842"
+  },
+  {
    "id": "environment-variable:d53fa80460c0",
    "type": "environment-variable",
    "title": "TOK_ADMIN_AI_OWNER_EMAIL",
@@ -229892,6 +230557,32 @@
     "scripts/test-print-protocol-postgres.mjs"
    ],
    "detailRef": "978c2685fef1"
+  },
+  {
+   "id": "environment-variable:eb2722dfd0c5",
+   "type": "environment-variable",
+   "title": "TOK_SECURITY_710_CONTAINER",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-checkout-security-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-checkout-security-postgres.mjs"
+   ],
+   "detailRef": "516eba818ef9"
+  },
+  {
+   "id": "environment-variable:bc30c760c3b9",
+   "type": "environment-variable",
+   "title": "TOK_SECURITY_710_DISPOSABLE",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-checkout-security-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-checkout-security-postgres.mjs"
+   ],
+   "detailRef": "0d1c03b7dd5b"
   },
   {
    "id": "environment-variable:d717184560e1",
@@ -279507,6 +280198,20 @@
    "detailRef": "8863aa3ff185"
   },
   {
+   "id": "file:c4b6e13c6a9d",
+   "type": "file",
+   "title": ".github/workflows/actualites-billing-postgres.yml",
+   "description": "Fichier du dépôt classé ci-workflow.",
+   "path": ".github/workflows/actualites-billing-postgres.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".yml",
+    "ci-workflow"
+   ],
+   "detailRef": "24084cb34d21"
+  },
+  {
    "id": "file:2ecda218a0d5",
    "type": "file",
    "title": ".github/workflows/app-store-build3-trigger.yml",
@@ -279687,6 +280392,20 @@
     "ci-workflow"
    ],
    "detailRef": "f8f3520f98ca"
+  },
+  {
+   "id": "file:592fe764cfa9",
+   "type": "file",
+   "title": ".github/workflows/checkout-security-postgres.yml",
+   "description": "Fichier du dépôt classé ci-workflow.",
+   "path": ".github/workflows/checkout-security-postgres.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".yml",
+    "ci-workflow"
+   ],
+   "detailRef": "cb9824c3da2c"
   },
   {
    "id": "file:8009c6f99651",
@@ -282783,6 +283502,20 @@
    "detailRef": "8660b1e64a05"
   },
   {
+   "id": "file:b12026b7d4da",
+   "type": "file",
+   "title": "docs/testing/actualites-billing-identity.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/testing/actualites-billing-identity.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "e5a376550ba3"
+  },
+  {
    "id": "file:199e3ee6048d",
    "type": "file",
    "title": "docs/testing/actualites-sponsored-scenario.md",
@@ -282809,6 +283542,20 @@
     "documentation"
    ],
    "detailRef": "a79a2d1a11c1"
+  },
+  {
+   "id": "file:563de648c7fa",
+   "type": "file",
+   "title": "docs/testing/checkout-security-710.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/testing/checkout-security-710.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "e6566ada12d6"
   },
   {
    "id": "file:31eb15c4c93a",
@@ -289039,6 +289786,62 @@
     "automation-script"
    ],
    "detailRef": "d0af1dfad330"
+  },
+  {
+   "id": "file:410066079baf",
+   "type": "file",
+   "title": "scripts/test-actualites-billing-postgres.mjs",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/test-actualites-billing-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "automation-script"
+   ],
+   "detailRef": "bdd50d7335cc"
+  },
+  {
+   "id": "file:333653c0b803",
+   "type": "file",
+   "title": "scripts/test-actualites-billing-runner.test.mjs",
+   "description": "Fichier du dépôt classé test.",
+   "path": "scripts/test-actualites-billing-runner.test.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "test"
+   ],
+   "detailRef": "b23357b0688d"
+  },
+  {
+   "id": "file:fc0622d470e5",
+   "type": "file",
+   "title": "scripts/test-checkout-security-postgres.mjs",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/test-checkout-security-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "automation-script"
+   ],
+   "detailRef": "5f11309b2b86"
+  },
+  {
+   "id": "file:f2d0ca27057f",
+   "type": "file",
+   "title": "scripts/test-checkout-security-runner.test.mjs",
+   "description": "Fichier du dépôt classé test.",
+   "path": "scripts/test-checkout-security-runner.test.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "test"
+   ],
+   "detailRef": "f127bb01ee8f"
   },
   {
    "id": "file:48010d534d2f",
@@ -316019,6 +316822,20 @@
    "detailRef": "b5c2ee5054fe"
   },
   {
+   "id": "file:bf1f79d885c3",
+   "type": "file",
+   "title": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "f65a1dc0da50"
+  },
+  {
    "id": "file:9139660a4e3a",
    "type": "file",
    "title": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
@@ -316031,6 +316848,90 @@
     "database-migration"
    ],
    "detailRef": "931d969ede08"
+  },
+  {
+   "id": "file:c4c7af3fbf52",
+   "type": "file",
+   "title": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "24e024dbc072"
+  },
+  {
+   "id": "file:3ee161bfb69b",
+   "type": "file",
+   "title": "supabase/migrations/20261010224500_actualites_billing_identity.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261010224500_actualites_billing_identity.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "bbb86cb6ee35"
+  },
+  {
+   "id": "file:e79b29a1c0b4",
+   "type": "file",
+   "title": "supabase/tests/actualites_billing_identity_fixture.sql",
+   "description": "Fichier du dépôt classé supabase-configuration.",
+   "path": "supabase/tests/actualites_billing_identity_fixture.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "supabase-configuration"
+   ],
+   "detailRef": "b388514b828c"
+  },
+  {
+   "id": "file:ab7118beb60b",
+   "type": "file",
+   "title": "supabase/tests/checkout_security_710_assertions.sql",
+   "description": "Fichier du dépôt classé supabase-configuration.",
+   "path": "supabase/tests/checkout_security_710_assertions.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "supabase-configuration"
+   ],
+   "detailRef": "605b192e7315"
+  },
+  {
+   "id": "file:83483839daa8",
+   "type": "file",
+   "title": "supabase/tests/checkout_security_710_baseline_prerequisites.sql",
+   "description": "Fichier du dépôt classé supabase-configuration.",
+   "path": "supabase/tests/checkout_security_710_baseline_prerequisites.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "supabase-configuration"
+   ],
+   "detailRef": "e1dfc1c1c99d"
+  },
+  {
+   "id": "file:e3c92a4f5cc1",
+   "type": "file",
+   "title": "supabase/tests/checkout_security_710_fixture.sql",
+   "description": "Fichier du dépôt classé supabase-configuration.",
+   "path": "supabase/tests/checkout_security_710_fixture.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "supabase-configuration"
+   ],
+   "detailRef": "c49b5233d193"
   },
   {
    "id": "file:42e7f6ee83cf",
@@ -319556,7 +320457,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 212 module(s).",
+   "description": "Intégration externe détectée dans 213 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -319572,6 +320473,7 @@
     "scripts/release-readiness.mjs",
     "scripts/resolve-live-stripe-publishable-key.mjs",
     "scripts/scale-readiness-check.mjs",
+    "scripts/test-checkout-security-postgres.mjs",
     "scripts/write-commercial-demo-secrets-env.mjs",
     "scripts/write-production-env.mjs",
     "scripts/write-supabase-secrets-env.mjs",
@@ -319775,13 +320677,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "3d333cb7884a"
+   "detailRef": "b995d836ff17"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 666 module(s).",
+   "description": "Intégration externe détectée dans 669 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -319821,6 +320723,9 @@
     "scripts/supabase-db-push.mjs",
     "scripts/supabase-doctor.mjs",
     "scripts/supabase-target.mjs",
+    "scripts/test-actualites-billing-postgres.mjs",
+    "scripts/test-checkout-security-postgres.mjs",
+    "scripts/test-checkout-security-runner.test.mjs",
     "scripts/test-print-protocol-postgres.mjs",
     "scripts/test-print-protocol-runner.test.mjs",
     "scripts/verify-supabase-runtime-security.mjs",
@@ -320454,7 +321359,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "b22dedad1765"
+   "detailRef": "c9f9b2f55021"
   },
   {
    "id": "integration:c20910a79a78",
@@ -328412,6 +329317,20 @@
    "detailRef": "9a5b6ab19512"
   },
   {
+   "id": "migration:2cd8dd966128",
+   "type": "migration",
+   "title": "20261010194510 Checkout Benefits And Public Menu Security",
+   "description": "Migration SQL de 86 lignes, 4 objets CREATE détectés.",
+   "path": "supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "c97157afec8c"
+  },
+  {
    "id": "migration:4108db5832ba",
    "type": "migration",
    "title": "20261010203000 Print Fulfillment Protocol",
@@ -328424,6 +329343,34 @@
     "supabase"
    ],
    "detailRef": "32ca1d9538b9"
+  },
+  {
+   "id": "migration:fffb86eb76a1",
+   "type": "migration",
+   "title": "20261010212500 Reconcile Canonical Commercial Demo Inert State",
+   "description": "Migration SQL de 50 lignes, 2 objets CREATE détectés.",
+   "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "2fcf1a50ca0d"
+  },
+  {
+   "id": "migration:ece6182e5a1c",
+   "type": "migration",
+   "title": "20261010224500 Actualites Billing Identity",
+   "description": "Migration SQL de 190 lignes, 1 objets CREATE détectés.",
+   "path": "supabase/migrations/20261010224500_actualites_billing_identity.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "46f925d38b15"
   },
   {
    "id": "package-script:5bd6dc98483a",
@@ -348850,6 +349797,19 @@
    "detailRef": "3d2d48cf2e6f"
   },
   {
+   "id": "workflow:5181ebb2d66a",
+   "type": "workflow",
+   "title": "Actualites billing PostgreSQL replay",
+   "description": "Workflow GitHub Actions; jobs: replay.",
+   "path": ".github/workflows/actualites-billing-postgres.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "replay"
+   ],
+   "detailRef": "27af832e9dd6"
+  },
+  {
    "id": "workflow:af1a9edafbbf",
    "type": "workflow",
    "title": "App Store Build 3 Trigger",
@@ -349035,6 +349995,19 @@
     "changed-tests"
    ],
    "detailRef": "2431d1cbf3a7"
+  },
+  {
+   "id": "workflow:6365aa594e76",
+   "type": "workflow",
+   "title": "Checkout security PostgreSQL replay",
+   "description": "Workflow GitHub Actions; jobs: replay.",
+   "path": ".github/workflows/checkout-security-postgres.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "replay"
+   ],
+   "detailRef": "0bc3b682691b"
   },
   {
    "id": "workflow:1471d31f905b",
