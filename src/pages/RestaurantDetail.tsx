@@ -253,6 +253,7 @@ type RestaurantDetailProps = {
 
 export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }: RestaurantDetailProps = {}) {
   const { id } = useParams<{ id: string }>();
+  const logoSrc = useTokLogoSrc();
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
@@ -287,7 +288,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     reservationQueryIntent ? searchParams.get("progressiveOfferId") : undefined,
   );
   const [reservationWidgetSelection, setReservationWidgetSelection] = useState<{ date: Date; time: string; partySize: number } | null>(null);
-  const [activeTab, setActiveTab] = useState("menu");
+  const [activeTab, setActiveTab] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [reservationSidebarTop, setReservationSidebarTop] = useState(RESERVATION_SIDEBAR_PREFERRED_STICKY_TOP);
   const impressionTracked = useRef(false);
@@ -348,13 +349,14 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     }
   }, [commercialDemoFrame, reservationEnabled, restaurantId, searchParams]);
 
-  const { data: restaurant, isFetched: isRestaurantFetched } = useQuery({
+  const { data: restaurant, isFetched: isRestaurantFetched, isError: restaurantLoadError, refetch: retryRestaurant } = useQuery({
     queryKey: ["restaurant", restaurantId, demoSessionKey],
     queryFn: async () => {
       if (isCommercialDemoClient) {
         return getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot)[0] as any;
       }
-      const { data } = await supabase.from("restaurants").select("*").eq("id", restaurantId!).single();
+      const { data, error } = await supabase.from("restaurants").select("*").eq("id", restaurantId!).maybeSingle();
+      if (error) throw error;
       return data;
     },
     enabled: !!restaurantId,
@@ -405,13 +407,14 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     }
   }, [commercialDemoFrame, restaurantId, restaurant]);
 
-  const { data: menuItems } = useQuery({
+  const { data: menuItems, isPending: menuLoading, isError: menuLoadError, refetch: retryMenu } = useQuery({
     queryKey: ["menu-items", restaurantId, demoSessionKey],
     queryFn: async () => {
       if (isCommercialDemoClient) {
         return getCommercialDemoClientMenuItems(commercialDemoFrame.snapshot, restaurantId) as any[];
       }
-      const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", restaurantId!).eq("is_available", true).order("category").limit(RESTAURANT_MENU_ITEMS_LIMIT);
+      const { data, error } = await supabase.from("menu_items").select("*").eq("restaurant_id", restaurantId!).eq("is_available", true).order("category").limit(RESTAURANT_MENU_ITEMS_LIMIT);
+      if (error) throw error;
       return data || [];
     },
     enabled: !!restaurantId,
@@ -663,7 +666,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     [cartItemsForCurrentRestaurant],
   );
   const coverPhoto = mediaPhotos?.find((p) => p.is_cover) || mediaPhotos?.[0];
-  const heroImage = coverPhoto?.media_url || restaurant?.image_url || "/images/kebab-box-spread.jpeg";
+  const heroImage = coverPhoto?.media_url || restaurant?.image_url || logoSrc;
   const optimizedHeroImage = getOptimizedImageUrl(heroImage, "hero");
   const optimizedHeroSrcSet = getOptimizedImageSrcSet(heroImage, "hero");
   const reviewCount = Math.max(Number(restaurant?.review_count) || 0, reviews?.length || 0);
@@ -674,7 +677,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     || (!isCommercialDemoClient && restaurant
       ? buildRestaurantSeoPath(restaurant)
       : `/restaurant/${restaurantId || ""}`);
-  const restaurantNotFound = isRestaurantFetched && !restaurant;
+  const restaurantNotFound = isRestaurantFetched && !restaurant && !restaurantLoadError;
   const restaurantSeoModel = useMemo(
     () => buildRestaurantSeoModel({
       restaurant,
@@ -795,6 +798,10 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     return <ReservationDeeplinkLoading />;
   }
 
+  if (restaurantLoadError && !restaurant) {
+    return <main className="container flex min-h-[60vh] flex-col items-center justify-center gap-4 py-16 text-center"><h1 className="font-display text-3xl">La fiche n’a pas pu être chargée</h1><p className="text-muted-foreground">Vérifiez votre connexion puis réessayez.</p><Button onClick={() => void retryRestaurant()}>Réessayer</Button><Link to="/recherche" className="text-primary underline">Rechercher un restaurant</Link></main>;
+  }
+
   if (!restaurant) {
     if (!isRestaurantFetched) {
       return <div className="flex min-h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" /></div>;
@@ -898,7 +905,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="relative h-72 md:h-96">
+      <div className="relative h-64 bg-secondary md:h-80">
         <Button variant="ghost" size="icon" aria-label="Retour à l'accueil" className="absolute left-4 top-4 z-20 rounded-full border-white/10 bg-black/30 text-white backdrop-blur-md hover:bg-black/50" onClick={() => navigate('/')}><ArrowLeft className="h-5 w-5" /></Button>
         <Button variant="ghost" size="icon" aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"} className="absolute right-4 top-4 z-20 rounded-full border-white/10 bg-black/30 text-white backdrop-blur-md hover:bg-black/50" onClick={toggleFavorite}><Heart className={isFavorite ? "h-5 w-5 fill-red-500 text-red-500" : "h-5 w-5"} /></Button>
         {galleryPhotos.length > 0 ? (
@@ -913,7 +920,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
               srcSet={optimizedHeroSrcSet}
               sizes={optimizedHeroSrcSet ? getOptimizedImageSizes("hero") : undefined}
               alt={restaurant.name}
-              className="w-full h-full object-cover"
+              className={coverPhoto || restaurant.image_url ? "w-full h-full object-cover" : "h-full w-full object-contain p-16 opacity-70"}
               {...HERO_IMAGE_FETCH_PRIORITY_PROPS}
               decoding="async"
             />
@@ -924,7 +931,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
             srcSet={optimizedHeroSrcSet}
             sizes={optimizedHeroSrcSet ? getOptimizedImageSizes("hero") : undefined}
             alt={restaurant.name}
-            className="w-full h-full object-cover"
+            className={coverPhoto || restaurant.image_url ? "w-full h-full object-cover" : "h-full w-full object-contain p-16 opacity-70"}
             {...HERO_IMAGE_FETCH_PRIORITY_PROPS}
             decoding="async"
           />
@@ -934,7 +941,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
             <Camera className="h-4 w-4" /> {galleryPhotos.length} photos
           </Button>
         )}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
           <div className="container">
             <div className="flex items-center gap-2 mb-2">
@@ -942,7 +949,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
               {showDelivery && <Badge className="bg-blue-500/80 backdrop-blur-sm text-white border-0"><Bike className="h-3 w-3 mr-1" /> Livraison</Badge>}
             </div>
             <h1 className="font-display text-3xl md:text-5xl font-bold text-white">{restaurant.name}</h1>
-            <div className="flex items-center gap-4 mt-3">
+            <div className="flex flex-wrap items-center gap-3 mt-3">
               {hasPublicRating ? (
                 <>
                   <div className="flex items-center gap-1.5 bg-primary rounded-lg px-3 py-1.5"><Star className="h-4 w-4 fill-primary-foreground text-primary-foreground" /><span className="font-bold text-primary-foreground text-sm">{avgRating}/10</span></div>
@@ -958,7 +965,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
       </div>
       <div className="container py-6 pb-24 md:py-8 lg:pb-8">
         <nav aria-label="Fil d'Ariane" className="mb-5 overflow-x-auto text-sm text-muted-foreground">
-          <ol className="flex min-w-max items-center gap-1.5">
+          <ol className="flex flex-wrap items-center gap-1.5">
             <li><Link to="/" className="transition-colors hover:text-primary">Accueil</Link></li>
             <li aria-hidden="true"><ChevronRight className="h-3.5 w-3.5" /></li>
             <li>
@@ -978,13 +985,11 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
               <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" />{restaurant.address}, {restaurant.city}</span>
               {showPublicPhone && <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary" />{restaurant.phone}</span>}
             </div>
-            <section
-              aria-labelledby="restaurant-data-freshness"
-              className="rounded-xl border bg-card/70 p-4"
-            >
+            <details className="rounded-xl border bg-card/70 px-4">
+              <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">Informations de cette fiche</summary>
               <div className="flex items-start gap-3">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                <div className="min-w-0 space-y-2">
+                <div className="min-w-0 space-y-2 pb-4">
                   <h2 id="restaurant-data-freshness" className="font-semibold">
                     Provenance et fraîcheur des informations
                   </h2>
@@ -1003,16 +1008,16 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                   </p>
                 </div>
               </div>
-            </section>
-            <div className="rounded-2xl border bg-card/70 p-4 md:p-5">
+            </details>
+            {(reservationAvailable || canOrderItems) && <div className="rounded-2xl border bg-card/70 p-4 md:p-5">
               <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Choisissez votre parcours</p>
-                  <h2 className="mt-1 font-display text-xl font-bold">Commencez en quelques secondes</h2>
+                  <h2 className="mt-1 font-display text-xl font-bold">Services disponibles</h2>
                   <p className="text-sm text-muted-foreground">
-                    {user
-                      ? "Sélectionnez un mode puis ajoutez vos plats ou finaliséz une réservation."
-                      : "Vous pouvez constituer votre panier maintenant. La connexion sera demandée juste avant le paiement ou pour confirmer une réservation."}
+                    {canOrderItems
+                      ? user ? "Sélectionnez un mode puis ajoutez vos plats." : "Constituez votre panier. Connectez-vous pour finaliser la commande."
+                      : "Choisissez votre créneau. La connexion sera demandée pour confirmer la réservation."}
                   </p>
                 </div>
                 {!user ? (
@@ -1056,8 +1061,8 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
               {!user && (reservationAvailable || canOrderItems) ? (
                 <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold">Panier invite actif</p>
-                    <p className="text-xs text-muted-foreground">Ajoutez vos plats maintenant. La connexion sera demandée uniquement pour finaliser la commande ou confirmer une réservation.</p>
+                    <p className="text-sm font-semibold">{canOrderItems ? "Panier invité actif" : "Réservation en ligne"}</p>
+                    <p className="text-xs text-muted-foreground">{canOrderItems ? "Ajoutez vos plats maintenant. Connectez-vous pour finaliser la commande." : "Connectez-vous pour confirmer votre réservation."}</p>
                   </div>
                   <Button className="gap-2 self-start rounded-full" onClick={() => navigate(authRedirectTarget)}>
                     <LogIn className="h-4 w-4" />
@@ -1065,7 +1070,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                   </Button>
                 </div>
               ) : null}
-            </div>
+            </div>}
             {!reservationAvailable && !showDelivery && !takeawayAvailable ? (
               <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
                 Les parcours réservation, livraison et emporter sont actuellement indisponibles pour ce restaurant.
@@ -1107,13 +1112,13 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                 </div>
               </section>
             ) : null}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto gap-0">
-                <TabsTrigger value="apropos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 font-semibold text-sm gap-1.5"><Info className="h-4 w-4" />À propos</TabsTrigger>
-                <TabsTrigger value="menu" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 font-semibold text-sm gap-1.5"><UtensilsCrossed className="h-4 w-4" />Menu</TabsTrigger>
-                <TabsTrigger value="avis" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 font-semibold text-sm gap-1.5"><MessageSquare className="h-4 w-4" />Avis ({reviewCount})</TabsTrigger>
+            <Tabs value={activeTab || (restaurant.is_directory_listing ? "apropos" : "menu")} onValueChange={setActiveTab} className="space-y-6">
+              <TabsList className="flex h-auto w-full flex-wrap justify-start gap-0 rounded-none border-b bg-transparent p-0">
+                <TabsTrigger value="apropos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent min-h-11 px-3 py-3 font-semibold text-sm gap-1.5"><Info className="h-4 w-4" />À propos</TabsTrigger>
+                <TabsTrigger value="menu" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent min-h-11 px-3 py-3 font-semibold text-sm gap-1.5"><UtensilsCrossed className="h-4 w-4" />Menu</TabsTrigger>
+                <TabsTrigger value="avis" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent min-h-11 px-3 py-3 font-semibold text-sm gap-1.5"><MessageSquare className="h-4 w-4" />Avis ({reviewCount})</TabsTrigger>
                 {galleryPhotos.length > 0 && (
-                  <TabsTrigger value="photos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 font-semibold text-sm gap-1.5"><Camera className="h-4 w-4" />Photos ({galleryPhotos.length})</TabsTrigger>
+                  <TabsTrigger value="photos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent min-h-11 px-3 py-3 font-semibold text-sm gap-1.5"><Camera className="h-4 w-4" />Photos ({galleryPhotos.length})</TabsTrigger>
                 )}
               </TabsList>
               <TabsContent value="apropos" className="space-y-6 mt-0">
@@ -1253,6 +1258,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                 )}
               </TabsContent>
               <TabsContent value="menu" className="space-y-6 mt-0">
+                {menuLoading ? <p role="status" className="py-6 text-muted-foreground">Chargement du menu…</p> : menuLoadError ? <div role="alert" className="rounded-xl border p-5"><p className="mb-3">Le menu n’a pas pu être chargé.</p><Button variant="outline" onClick={() => void retryMenu()}>Réessayer</Button></div> : menuItems?.length === 0 ? <div className="rounded-xl border border-dashed p-6"><h2 className="font-display text-xl">Menu non renseigné</h2><p className="mt-2 text-sm text-muted-foreground">Aucun plat n’est publié sur cette fiche pour le moment.</p><Button variant="outline" className="mt-4" onClick={() => setActiveTab("apropos")}>Voir les informations pratiques</Button></div> : null}
                 <RestaurantDailyDishCard
                   restaurantId={restaurantId!}
                   fallbackImageUrl={mediaPhotos?.[0]?.media_url || restaurant?.image_url || null}
@@ -1566,7 +1572,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                 />
               ) : (
                 <div className="rounded-2xl border border-dashed bg-card p-4 text-sm text-muted-foreground">
-                  Les réservations sont actuellement indisponibles pour ce restaurant.
+                  {canOrderItems ? "Les réservations sont actuellement indisponibles pour ce restaurant." : <Link to="/recherche" className="inline-flex min-h-11 items-center font-semibold text-primary underline underline-offset-4">Explorer d’autres restaurants</Link>}
                 </div>
               )}
               {cartItemsForCurrentRestaurant.length > 0 && (
