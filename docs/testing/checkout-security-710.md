@@ -20,13 +20,15 @@ Un conteneur isolé sans réseau, limité à 768 Mio et 1 CPU, a été créé po
 
 **Le replay PostgreSQL et les assertions métier ne sont pas encore validés.** Les tests locaux du garde de cible ne remplacent pas cette preuve. Le workflow dédié fournit l'alternative sur runner jetable ; un échec d'une migration historique doit être analysé et consigné, jamais ignoré pour obtenir un résultat vert.
 
+Le run CI `38078321068` a ensuite validé le replay de tout le main et l'égalité exacte des versions. Un replay sur base vide avait révélé la précondition de données de `20260909133500` : 440 contacts TheFork attendus. Le scénario injecte donc 440 contacts **synthétiques**, sans email, téléphone ou site, à la frontière du 9 septembre. Aucune migration ni assertion historique n'est altérée. Cette preuve concerne le schéma main avec prérequis synthétiques, pas une base sans données initiales ni le projet hébergé. Le même run a vérifié une tentative TCP sortante réellement rejetée par le pare-feu. Les assertions métier se sont arrêtées sur les préconditions de modération des fixtures ; leur validation est suivie séparément.
+
 ## Exécution en CI, sans accès fournisseur
 
 Le workflow `Checkout security PostgreSQL replay` se déclenche pour la PR de ce lot. Il peut aussi être lancé manuellement avec le SHA complet du main **avant** cette migration.
 
 1. Extraire ce main dans un worktree temporaire et consigner les deux SHA.
 2. Utiliser uniquement un projet local temporaire `tok-security-710-ci`, PostgreSQL 17, avec Supabase CLI 2.102.0, dans un réseau Docker dédié dont le pare-feu refuse les nouvelles connexions sortantes (les éventuels anciens cron/pg_net ne peuvent pas joindre de fournisseur). Les réponses à la connexion PostgreSQL de l'hôte restent autorisées.
-3. Exécuter `supabase db start`, puis `supabase db reset --local --no-seed` et comparer exactement les versions appliquées aux fichiers de migration du main.
+3. Exécuter `supabase db start` avec les migrations jusqu'au 9 septembre, injecter `checkout_security_710_baseline_prerequisites.sql`, remettre le suffixe historique intact et appliquer `supabase migration up --local`. Le seed ordinaire est désactivé. Comparer exactement les versions appliquées aux fichiers de migration du main et vérifier que les fichiers historiques n'ont pas changé.
 4. Créer uniquement les fixtures synthétiques `710…`, provoquer une dérive bénigne du RPC et vérifier le refus intégral (fonction, policies, grants, historique inchangés), restaurer le RPC initial, appliquer la nouvelle migration, la réappliquer et comparer définition de fonction, historique et toutes les policies de démonstration avant/après.
 5. Exécuter les assertions sous les vrais rôles `anon`, `authenticated`, propriétaire, administrateur, démonstration et `service_role`.
 6. Exécuter six sessions simultanées pour une même commande et deux sessions en concurrence pour la dernière utilisation d'une promotion. Une session coordinatrice verrouille la ligne ; le runner exige d'observer toutes les sessions concurrentes en attente de verrou dans `pg_stat_activity` avant de libérer la ligne.
