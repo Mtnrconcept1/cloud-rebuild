@@ -57,6 +57,9 @@ jobs:
           python "$GITHUB_WORKSPACE/.github/courier-recovery-20261010.py" apply
           git rm .github/workflows/courier-recovery-20261010.yml .github/courier-recovery-20261010.py
           node --check scripts/test-courier-atomic-postgres.mjs
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+          pnpm install --frozen-lockfile > "$RUNNER_TEMP/courier-recovery-evidence/install.log" 2>&1
           node scripts/generate-application-index.mjs
           git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
           test -z "$(git diff --name-only --diff-filter=U)"
