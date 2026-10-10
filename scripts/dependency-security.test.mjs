@@ -19,7 +19,61 @@ const braces = fromChokidar('braces');
 const fromJsdom = createRequire(require.resolve('jsdom'));
 const fromCssTree = createRequire(fromJsdom.resolve('css-tree'));
 const fromPostcss = createRequire(require.resolve('postcss'));
+const fromTypography = createRequire(require.resolve('@tailwindcss/typography'));
+const fromNested = createRequire(fromTailwind.resolve('postcss-nested'));
 const nested = (open, close, depth) => open.repeat(depth) + 'x' + close.repeat(depth);
+
+test('all CSS consumers resolve the fixed selector parser', () => {
+  for (const dependencyRequire of [fromTailwind, fromTypography, fromNested]) {
+    assert.equal(dependencyRequire('postcss-selector-parser/package.json').version, '7.1.6');
+  }
+});
+
+test('nested CSS selectors retain their expansion semantics', async () => {
+  const result = await require('postcss')([fromTailwind('postcss-nested')]).process(
+    '.menu { &:hover, &.active { color: red } > .item { display: block } }', { from: undefined },
+  );
+  const rules = [];
+  result.root.walkRules((rule) => rules.push([rule.selector, rule.nodes[0].prop, rule.nodes[0].value]));
+  assert.deepEqual(rules, [
+    ['.menu:hover, .menu.active', 'color', 'red'],
+    ['.menu > .item', 'display', 'block'],
+  ]);
+});
+
+test('Tailwind variants and typography still produce the intended CSS rules', async () => {
+  const result = await require('postcss')([require('tailwindcss')({
+    content: [{ raw: '<article class="prose hover:bg-red-500 group-hover:underline [&>svg]:h-4"></article>' }],
+    corePlugins: { preflight: false },
+    plugins: [require('@tailwindcss/typography')],
+  })]).process('@tailwind components; @tailwind utilities;', { from: undefined });
+  const rules = [];
+  result.root.walkRules((rule) => rules.push(rule));
+  assert.ok(rules.some((rule) => rule.selector === '.hover\\:bg-red-500:hover'
+    && rule.nodes.some((node) => node.prop === 'background-color')));
+  assert.ok(rules.some((rule) => rule.selector === '.group:hover .group-hover\\:underline'
+    && rule.nodes.some((node) => node.prop === 'text-decoration-line' && node.value === 'underline')));
+  assert.ok(rules.some((rule) => rule.selector.endsWith('>svg')
+    && rule.nodes.some((node) => node.prop === 'height' && node.value === '1rem')));
+  assert.ok(rules.some((rule) => rule.selector.includes('.prose :where(p)')
+    && rule.nodes.some((node) => node.prop === 'margin-top')));
+});
+
+test('flat hostile selectors parse within a bounded process and preserve all nodes', () => {
+  // GHSA-rj75-hqrm-r3gf is flat, so a nesting guard alone does not cover it.
+  execFileSync(process.execPath, ['--max-old-space-size=256', '-e', `
+    const assert = require('node:assert/strict');
+    const parser = require(process.argv[1]);
+    const input = '.a#b'.repeat(100000);
+    const root = parser().astSync(input);
+    assert.equal(root.nodes.length, 1);
+    assert.equal(root.first.nodes.length, 200000);
+    assert.equal(root.toString(), input);
+    assert.throws(() => parser().astSync(':is('.repeat(1000) + '.x' + ')'.repeat(1000)), /nesting|depth/i);
+  `, fromTailwind.resolve('postcss-selector-parser')], {
+    encoding: 'utf8', timeout: 10_000, maxBuffer: 64 * 1024, windowsHide: true,
+  });
+});
 
 test('jsdom CSS Tree and PostCSS resolve the corrected source-map-js package', () => {
   for (const dependencyRequire of [fromCssTree, fromPostcss]) {
