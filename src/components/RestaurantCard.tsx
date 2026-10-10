@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Bike, Heart, MapPin, Percent, Sparkles } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -129,10 +129,10 @@ function formatDiscountPercent(discount: number): string {
 
 function getRatingColor(rating: number): string {
   if (rating >= 9) return "bg-emerald-600 text-white";
-  if (rating >= 8) return "bg-emerald-500 text-white";
-  if (rating >= 7) return "bg-lime-500 text-white";
-  if (rating >= 6) return "bg-amber-400 text-white";
-  return "bg-orange-400 text-white";
+  if (rating >= 8) return "bg-emerald-700 text-white";
+  if (rating >= 7) return "bg-lime-700 text-white";
+  if (rating >= 6) return "bg-amber-100 text-amber-900";
+  return "bg-orange-100 text-orange-900";
 }
 
 function stopNestedCardAction(event: React.SyntheticEvent) {
@@ -167,6 +167,7 @@ export default function RestaurantCard({
   const distanceLabel = formatDistance(distanceKm);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [favoritePending, setFavoritePending] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const commercialDemoFrame = useCommercialDemoFrame();
@@ -216,13 +217,19 @@ export default function RestaurantCard({
       return;
     }
 
-    if (isFavorite) {
-      await supabase.from("favorites").delete().eq("restaurant_id", id).eq("user_id", user.id);
-    } else {
-      await supabase.from("favorites").insert({ restaurant_id: id, user_id: user.id });
+    if (favoritePending) return;
+    setFavoritePending(true);
+    try {
+      const { error } = isFavorite
+        ? await supabase.from("favorites").delete().eq("restaurant_id", id).eq("user_id", user.id)
+        : await supabase.from("favorites").insert({ restaurant_id: id, user_id: user.id });
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["favorite", id] });
+    } catch {
+      toast({ title: "Le favori n’a pas pu être mis à jour", description: "Réessayez dans un instant.", variant: "destructive" });
+    } finally {
+      setFavoritePending(false);
     }
-
-    queryClient.invalidateQueries({ queryKey: ["favorite", id] });
   };
 
   const { data: bestDiscount = 0 } = useQuery({
@@ -376,12 +383,14 @@ export default function RestaurantCard({
       <div onClick={handleCardClick} className="group block h-full cursor-pointer">
         <div
           ref={sponsoredImpressionRef}
-          className="h-full transition-transform duration-300 hover:-translate-y-1"
+          className="h-full transition-transform duration-300 motion-safe:hover:-translate-y-1"
         >
           <SponsoredRestaurantTemplateCard
             creative={sponsoredCampaignCreative}
             imageUrl={optimizedImage}
             restaurantName={name}
+            restaurantHref={restaurantPath}
+            onRestaurantClick={handleRestaurantLinkClick}
             cuisine={cuisine}
             city={city}
             address={address}
@@ -393,6 +402,7 @@ export default function RestaurantCard({
             discountLabel={discountBadgeLabel || undefined}
             slots={visibleSlots.map((slot) => slot.time)}
             isFavorite={Boolean(isFavorite)}
+            favoritePending={favoritePending}
             onFavoriteClick={toggleFavorite}
             onSlotClick={handleSlotClick}
           />
@@ -406,7 +416,7 @@ export default function RestaurantCard({
       <div
         ref={isSponsored ? sponsoredImpressionRef : undefined}
         className={cn(
-          "premium-card neon-card flex h-full flex-col overflow-hidden rounded-[26px] border transition-all duration-300 hover:-translate-y-1",
+          "premium-card flex h-full flex-col overflow-hidden rounded-[26px] border transition-all duration-300 motion-safe:hover:-translate-y-1",
           isSponsored
             ? "neon-card-sponsored border-amber-200/80 bg-[linear-gradient(180deg,rgba(255,248,238,0.98),rgba(255,255,255,0.98))] shadow-[0_18px_46px_rgba(249,115,22,0.16)] hover:shadow-[0_24px_54px_rgba(249,115,22,0.22)]"
             : "border-border/70 bg-card/95 shadow-[0_14px_38px_rgba(15,23,42,0.08)] hover:shadow-[0_20px_48px_rgba(15,23,42,0.14)]",
@@ -427,7 +437,7 @@ export default function RestaurantCard({
             srcSet={optimizedSrcSet}
             sizes={optimizedSrcSet ? getOptimizedImageSizes("card") : undefined}
             alt={name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 motion-safe:group-hover:scale-105"
             loading="lazy"
             decoding="async"
           />
@@ -448,7 +458,12 @@ export default function RestaurantCard({
           </div>
 
           <button
-            className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white dark:border dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_0_22px_rgba(255,255,255,0.08)] dark:hover:bg-slate-900"
+            type="button"
+            data-card-action="favorite"
+            aria-label={`${isFavorite ? "Retirer" : "Ajouter"} ${name} ${isFavorite ? "des" : "aux"} favoris`}
+            aria-pressed={Boolean(isFavorite)}
+            disabled={favoritePending}
+            className="absolute right-3 top-3 grid h-11 w-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 place-items-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white dark:border dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_0_22px_rgba(255,255,255,0.08)] dark:hover:bg-slate-900"
             onClick={toggleFavorite}
           >
             <Heart className={isFavorite ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-muted-foreground dark:text-white/80"} />
@@ -469,7 +484,7 @@ export default function RestaurantCard({
         <div className="flex flex-1 flex-col p-4 sm:p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1 space-y-1">
-              <h3 className="font-display text-base font-bold leading-tight text-foreground transition-colors group-hover:text-primary dark:text-white dark:drop-shadow-[0_0_18px_rgba(255,255,255,0.12)]">
+              <h3 className="font-display text-xl font-semibold leading-snug text-foreground transition-colors group-hover:text-primary dark:text-white ">
                 <Link
                   to={restaurantPath}
                   data-card-action="restaurant-link"
@@ -479,7 +494,7 @@ export default function RestaurantCard({
                   {name}
                 </Link>
               </h3>
-              <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90 dark:text-slate-200/90">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground/90 dark:text-slate-200/90">
                 {cuisine ? <span className="max-w-full truncate">{cuisine}</span> : null}
                 {cuisine ? <span className="text-border">/</span> : null}
                 <PriceRangeIcons range={priceRange} />
@@ -489,9 +504,9 @@ export default function RestaurantCard({
             {displayRating ? (
               <div className="shrink-0 text-right">
                 <div className={`inline-flex min-w-[2.7rem] items-center justify-center rounded-xl px-2.5 py-1.5 text-sm font-bold ${getRatingColor(ratingNum)}`}>
-                  {displayRating}
+                  {displayRating}<span className="sr-only"> sur 10</span>
                 </div>
-                <p className="mt-1 text-[10px] text-muted-foreground dark:text-slate-300/90">({reviewCount})</p>
+                <p className="mt-1 text-[10px] text-muted-foreground dark:text-slate-300/90">{reviewCount} avis</p>
               </div>
             ) : null}
           </div>
@@ -543,10 +558,10 @@ export default function RestaurantCard({
                 data-card-action="restaurant-view"
                 onClick={handleRestaurantLinkClick}
                 className={cn(
-                  "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-white transition-all",
+                  "inline-flex h-11 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-white transition-all",
                   isSponsored
                     ? "bg-gradient-to-r from-primary via-orange-500 to-orange-600 shadow-[0_14px_30px_rgba(249,115,22,0.26)] hover:brightness-105"
-                    : "bg-[#21314b] shadow-[0_10px_24px_rgba(33,49,75,0.22)] hover:bg-[#2a3d5d] dark:bg-gradient-to-r dark:from-slate-100 dark:to-white dark:text-slate-950 dark:shadow-[0_0_32px_rgba(255,255,255,0.16)] dark:hover:brightness-110",
+                    : "bg-primary text-primary-foreground hover:bg-primary/90",
                 )}
               >
                 {isSponsored ? "Découvrir l'offre" : "Voir le restaurant"}
