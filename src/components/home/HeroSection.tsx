@@ -7,6 +7,8 @@ import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { useAuth } from "@/lib/auth-context";
 import "./HeroSection.css";
 
+const HERO_IMAGE_FETCH_PRIORITY_PROPS = { fetchpriority: "high" } as const;
+
 const newsletterConditions = [
   "Le bonus de bienvenue est réservé aux nouveaux comptes TOK qui s'inscrivent à la newsletter depuis cette offre.",
   "Les 500 Miamz sont crédités une seule fois par personne après validation du compte et de l'inscription à la newsletter.",
@@ -55,7 +57,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               <label htmlFor="home-restaurant-search">Restaurant ou cuisine</label>
               <div className="tok-home-hero__input-row">
                 <Search aria-hidden="true" />
-                <input id="home-restaurant-search" name="q" type="search" enterKeyHint="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="De quoi avez-vous envie ?" aria-label="Cuisine, nom de restaurant ou quartier" />
+                <input id="home-restaurant-search" name="q" type="search" enterKeyHint="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="De quoi avez-vous envie ?" />
               </div>
             </div>
             <div className="tok-home-hero__field tok-home-hero__field--city">
@@ -75,7 +77,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
         <div className="tok-home-hero__art" aria-hidden="true">
           <picture className="tok-home-hero__background">
             <source type="image/webp" srcSet="/images/home/tok-geneve-desktop.webp" width={1670} height={941} />
-            <img src="/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png" alt="" width={1670} height={941} fetchPriority="high" loading="eager" />
+            <img src="/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png" alt="" width={1670} height={941} {...HERO_IMAGE_FETCH_PRIORITY_PROPS} loading="eager" />
           </picture>
           <div className="tok-home-hero__art-caption"><span>À la table de TOK</span><p>Les bonnes choses<br />se partagent.</p></div>
         </div>

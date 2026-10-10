@@ -25,7 +25,7 @@ describe("homepage semantic search", () => {
     setup();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByRole("heading", { level: 1 })).not.toHaveClass("sr-only");
-    expect(screen.getByRole("searchbox", { name: "Cuisine, nom de restaurant ou quartier" })).toBeVisible();
+    expect(screen.getByRole("searchbox", { name: "Restaurant ou cuisine" })).toBeVisible();
     expect(screen.getByRole("link", { name: /Restaurateur/ })).toHaveAttribute("href", "/restaurateurs/geneve");
   });
   it("submits a trimmed and safely encoded query through the search form", () => {
