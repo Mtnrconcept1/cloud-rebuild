@@ -77,6 +77,7 @@ SELECT set_config('request.jwt.claim.sub','71000000-0000-4000-8000-000000000004'
 SELECT set_config('request.jwt.claims','{"sub":"71000000-0000-4000-8000-000000000004","role":"authenticated","aal":"aal2"}',true);
 SET LOCAL ROLE authenticated;
 SELECT pg_temp.check_710((SELECT count(*) FROM public.menu_items WHERE id::text LIKE '71040000-%')=10,'admin sees production menus including unavailable');
+SELECT pg_temp.denied_710($q$UPDATE public.restaurants SET is_active=true WHERE is_demo AND status='demo'$q$,'COMMERCIAL_DEMO_CANONICAL_MUST_REMAIN_INERT');
 SELECT pg_temp.denied_710($q$DELETE FROM public.promo_code_uses WHERE id='71050000-0000-4000-8000-000000000001'$q$);
 
 RESET ROLE;

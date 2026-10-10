@@ -98,6 +98,13 @@ assert.equal(sql("SELECT count(*) FROM pg_trigger WHERE tgrelid='public.restaura
 assert.throws(() => sql(provisionDemo), /Canonical commercial demo restaurant is unsafe/);
 assert.equal(sql('SELECT count(*) FROM public.commercial_demo_shared_restaurant;'), '0', 'Failed provisioning must roll back its singleton');
 console.log('PASS RED: historical activation trigger prevents inert demo provisioning; transaction rolled back');
+// Simulate an unexpected deployed singleton without changing any trigger.
+sql("INSERT INTO public.commercial_demo_shared_restaurant(singleton,restaurant_id) VALUES (true,'71010000-0000-4000-8000-000000000001');");
+assert.throws(() => sql(fs.readFileSync(demoMigration, 'utf8')), /reconcile before migration/);
+assert.equal(sql("SELECT count(*) FROM pg_trigger WHERE tgrelid='public.restaurants'::regclass AND tgname='enforce_commercial_demo_restaurant_active';"), '1', 'Unsafe canonical state must roll back trigger removal');
+assert.equal(sql("SELECT restaurant_id FROM public.commercial_demo_shared_restaurant;"), '71010000-0000-4000-8000-000000000001');
+sql("DELETE FROM public.commercial_demo_shared_restaurant WHERE restaurant_id='71010000-0000-4000-8000-000000000001';");
+console.log('PASS unsafe canonical drift rejected without changing trigger or singleton');
 sql(fs.readFileSync(demoMigration, 'utf8'));
 sql(provisionDemo);
 sql(fs.readFileSync(demoMigration, 'utf8'));
