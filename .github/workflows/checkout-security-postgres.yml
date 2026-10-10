@@ -65,7 +65,10 @@ jobs:
           set -euo pipefail
           cd "$RUNNER_TEMP/tok-security-main"
           # Historical cron/pg_net code must never reach hosted providers.
-          docker network create --internal tok-security-710-ci
+          docker network create --subnet 172.30.71.0/24 tok-security-710-ci
+          NETWORK_ID=$(docker network inspect tok-security-710-ci --format '{{.Id}}')
+          # Preserve host-published PostgreSQL access, deny NEW outbound flows.
+          sudo iptables -I DOCKER-USER 1 -i "br-${NETWORK_ID:0:12}" ! -d 172.30.71.0/24 -m conntrack --ctstate NEW -j REJECT
           supabase db start --network-id tok-security-710-ci 2>&1 | tee "$GITHUB_WORKSPACE/work/security-710-ci/base-replay.log"
           supabase db reset --local --no-seed --network-id tok-security-710-ci 2>&1 | tee -a "$GITHUB_WORKSPACE/work/security-710-ci/base-replay.log"
           psql -X -v ON_ERROR_STOP=1 -At -c 'SELECT version FROM supabase_migrations.schema_migrations ORDER BY version' > "$GITHUB_WORKSPACE/work/security-710-ci/applied-main-versions.txt"

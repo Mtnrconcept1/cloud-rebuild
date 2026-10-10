@@ -25,7 +25,7 @@ Un conteneur isolé sans réseau, limité à 768 Mio et 1 CPU, a été créé po
 Le workflow `Checkout security PostgreSQL replay` se déclenche pour la PR de ce lot. Il peut aussi être lancé manuellement avec le SHA complet du main **avant** cette migration.
 
 1. Extraire ce main dans un worktree temporaire et consigner les deux SHA.
-2. Utiliser uniquement un projet local temporaire `tok-security-710-ci`, PostgreSQL 17, avec Supabase CLI 2.102.0, dans un réseau Docker interne sans sortie Internet (les éventuels anciens cron/pg_net ne peuvent pas joindre de fournisseur).
+2. Utiliser uniquement un projet local temporaire `tok-security-710-ci`, PostgreSQL 17, avec Supabase CLI 2.102.0, dans un réseau Docker dédié dont le pare-feu refuse les nouvelles connexions sortantes (les éventuels anciens cron/pg_net ne peuvent pas joindre de fournisseur). Les réponses à la connexion PostgreSQL de l'hôte restent autorisées.
 3. Exécuter `supabase db start`, puis `supabase db reset --local --no-seed` et comparer exactement les versions appliquées aux fichiers de migration du main.
 4. Créer uniquement les fixtures synthétiques `710…`, appliquer la nouvelle migration, la réappliquer et comparer définition de fonction, historique et toutes les policies de démonstration avant/après.
 5. Exécuter les assertions sous les vrais rôles `anon`, `authenticated`, propriétaire, administrateur, démonstration et `service_role`.
