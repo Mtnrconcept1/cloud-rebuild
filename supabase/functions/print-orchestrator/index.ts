@@ -108,7 +108,7 @@ async function completeJob(adminClient: any, job: any, input: {
   error?: string | null;
   result?: Record<string, unknown>;
 }) {
-  const { error } = await adminClient.rpc("complete_print_fulfillment_job", {
+  const { data, error } = await adminClient.rpc("complete_print_fulfillment_job", {
     p_job_id: job.id,
     p_lease_token: job.lease_token,
     p_status: input.status,
@@ -118,11 +118,18 @@ async function completeJob(adminClient: any, job: any, input: {
     p_next_attempt_at: input.status === "retrying" ? backoffIso(job.attempt_count) : null,
   });
   if (error) throw error;
+  return data;
 }
 
-async function advanceOrderState(adminClient: any, input: Record<string, unknown>) {
-  const { error } = await adminClient.rpc("advance_print_order_state", input);
-  if (error) throw new HttpError(503, "PRINT_ORDER_TRANSITION_NOT_PERSISTED");
+async function finishSubmission(adminClient: any, job: any, providerState: string, tracking: string | null, metadata: Record<string, unknown>) {
+  const { data, error } = await adminClient.rpc("finish_print_fulfillment_submission", {
+    p_job_id: job.id, p_lease_token: job.lease_token, p_provider_state: providerState,
+    p_tracking_code: tracking, p_metadata: metadata,
+  });
+  if (error || !["completed", "canceled"].includes(data?.status)) {
+    throw new HttpError(503, "PRINT_ORDER_TRANSITION_NOT_PERSISTED");
+  }
+  return { id: job.id, status: data.status, ...metadata };
 }
 
 function isRetryableJobError(error: unknown): boolean {
@@ -142,8 +149,8 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
     .single();
   if (settingsError) throw settingsError;
   if (!settings.enabled || !settings.new_orders_enabled) {
-    await completeJob(adminClient, job, { status: "retrying", errorCode: "print_kill_switch", error: "Nouvelles soumissions suspendues" });
-    return { id: job.id, status: "retrying", reason: "kill_switch" };
+    const outcome = await completeJob(adminClient, job, { status: "retrying", errorCode: "print_kill_switch", error: "Nouvelles soumissions suspendues" });
+    return { id: job.id, status: outcome.status, reason: "kill_switch" };
   }
 
   const { data: order, error: orderError } = await adminClient
@@ -153,14 +160,14 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
     .maybeSingle();
   if (orderError) throw orderError;
   if (!order) throw new HttpError(404, "Commande impression introuvable");
-  if (["canceled", "cancelled", "refunded", "refund_pending"].includes(String(order.status).toLowerCase())) {
+  if (["cancellation_requested", "canceled", "cancelled", "refunded", "refund_pending"].includes(String(order.status).toLowerCase())) {
     await completeJob(adminClient, job, { status: "canceled", result: { reason: "terminal_order_state" } });
     return { id: job.id, status: "canceled", reason: "terminal_order_state" };
   }
   if (order.payment_status !== "paid") throw new HttpError(409, "PRINT_ORDER_NOT_PAID");
-  if (["submitted", "validated", "producing", "produced", "packed", "shipped", "delivered"].includes(order.status)) {
-    await completeJob(adminClient, job, { status: "completed", result: { already_submitted: true } });
-    return { id: job.id, status: "completed", alreadySubmitted: true };
+  if (["submitted", "validated", "producing", "produced", "packed", "shipped", "delivered", "production_error", "delivery_failed"].includes(order.status)) {
+    const outcome = await completeJob(adminClient, job, { status: "completed", result: { already_submitted: true } });
+    return { id: job.id, status: outcome.status, alreadySubmitted: true };
   }
 
   let providerReference = String(order.provider_reference || "").trim();
@@ -195,23 +202,12 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
   if (exportRow.status !== "approved") throw new HttpError(409, "BAT impression non approuvé");
 
   const provider = getPrintProvider();
-  // Always reconcile by the immutable TheTok reference before createOrder.
-  // This makes a retry safe after an ambiguous /orders/add timeout.
+  // A lookup precedes every create. The durable DB gate below prevents another
+  // automatic create after an ambiguous response even when this lookup is empty.
   const existing = await provider.getOrder(providerReference);
   if (existing) {
-    await advanceOrderState(adminClient, {
-      p_order_id: order.id,
-      p_state: "submitted",
-      p_provider_state: existing.stateCode || existing.state,
-      p_tracking_code: existing.items.find((entry) => entry.tracking)?.tracking || null,
-      p_tracking_url: null,
-      p_carrier: null,
-      p_provider_event_id: null,
-      p_message: "Commande fournisseur réconciliée",
-      p_metadata: { reconciled: true },
-    });
-    await completeJob(adminClient, job, { status: "completed", result: { reconciled: true } });
-    return { id: job.id, status: "completed", reconciled: true };
+    return finishSubmission(adminClient, job, existing.stateCode || existing.state,
+      existing.items.find((entry) => entry.tracking)?.tracking || null, { reconciled: true });
   }
 
   const quoteHash = await currentQuoteHash({ adminClient, provider, quote, item });
@@ -235,43 +231,30 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
     }],
   });
 
+  const { data: gate, error: gateError } = await adminClient.rpc("prepare_print_fulfillment_submission", {
+    p_job_id: job.id, p_lease_token: job.lease_token,
+  });
+  if (gateError) throw new HttpError(503, "PRINT_SUBMISSION_LEASE_OR_STATE_LOST");
+  if (gate?.action === "stop" && ["completed", "canceled", "failed"].includes(gate.status)) {
+    const outcome = await completeJob(adminClient, job, { status: gate.status, result: { reason: "order_state_changed" } });
+    return { id: job.id, status: outcome.status, reason: "order_state_changed" };
+  }
+  if (gate?.action !== "create") {
+    throw new HttpError(503, gate?.action === "paused" ? "PRINT_SUBMISSION_PAUSED" : "PRINT_SUBMISSION_RECONCILIATION_REQUIRED");
+  }
   try {
     await createOrder();
   } catch (error) {
     if (error instanceof CloudprinterError && error.ambiguous) {
       const reconciled = await provider.getOrder(providerReference);
       if (reconciled) {
-        await advanceOrderState(adminClient, {
-          p_order_id: order.id,
-          p_state: "submitted",
-          p_provider_state: reconciled.stateCode || reconciled.state,
-          p_tracking_code: reconciled.items.find((entry) => entry.tracking)?.tracking || null,
-          p_tracking_url: null,
-          p_carrier: null,
-          p_provider_event_id: null,
-          p_message: "Commande retrouvée après réponse fournisseur ambiguë",
-          p_metadata: { reconciled_after_ambiguous_create: true },
-        });
-        await completeJob(adminClient, job, { status: "completed", result: { reconciled_after_timeout: true } });
-        return { id: job.id, status: "completed", reconciledAfterTimeout: true };
+        return finishSubmission(adminClient, job, reconciled.stateCode || reconciled.state,
+          reconciled.items.find((entry) => entry.tracking)?.tracking || null, { reconciledAfterTimeout: true, reconciled_after_ambiguous_create: true });
       }
     }
     throw error;
   }
-
-  await advanceOrderState(adminClient, {
-    p_order_id: order.id,
-    p_state: "submitted",
-    p_provider_state: "submitted",
-    p_tracking_code: null,
-    p_tracking_url: null,
-    p_carrier: null,
-    p_provider_event_id: null,
-    p_message: "Commande transmise au réseau d’impression",
-    p_metadata: { provider_reference: providerReference },
-  });
-  await completeJob(adminClient, job, { status: "completed", result: { provider_reference: providerReference } });
-  return { id: job.id, status: "completed", providerReference };
+  return finishSubmission(adminClient, job, "submitted", null, { providerReference });
 }
 
 Deno.serve(async (req) => {
@@ -295,15 +278,18 @@ Deno.serve(async (req) => {
     }
 
     const finalizedPayments = await reconcileFinalizedPayments(adminClient, Math.min(50, limit * 5));
-    const { data: jobs, error: claimError } = await adminClient.rpc("claim_print_fulfillment_jobs", {
-      p_limit: limit,
-      p_worker_id: `print-orchestrator:${crypto.randomUUID()}`,
-      p_lease_seconds: 180,
-    });
-    if (claimError) throw claimError;
-
     const results: unknown[] = [];
-    for (const job of Array.isArray(jobs) ? jobs : []) {
+    const workerId = `print-orchestrator:${crypto.randomUUID()}`;
+    // Reserve only work that starts immediately: later jobs cannot lose their
+    // lease while this invocation is waiting on another provider request.
+    const deadline = Date.now() + 120_000;
+    for (let index = 0; index < limit && Date.now() < deadline; index += 1) {
+      const { data: jobs, error: claimError } = await adminClient.rpc("claim_print_fulfillment_jobs", {
+        p_limit: 1, p_worker_id: workerId, p_lease_seconds: 180,
+      });
+      if (claimError) throw claimError;
+      const job = Array.isArray(jobs) ? jobs[0] : null;
+      if (!job) break;
       try {
         if (job.job_type === "submit_order") results.push(await processSubmitJob(adminClient, actor, job));
         else {
@@ -313,7 +299,7 @@ Deno.serve(async (req) => {
       } catch (error) {
         const retryable = isRetryableJobError(error);
         const status = retryable && job.attempt_count < job.max_attempts ? "retrying" : "failed";
-        await completeJob(adminClient, job, {
+        const outcome = await completeJob(adminClient, job, {
           status,
           errorCode: error instanceof CloudprinterError ? error.code : "print_orchestrator_error",
           error: error instanceof Error ? error.message.slice(0, 500) : "Erreur fulfillment",
@@ -322,7 +308,7 @@ Deno.serve(async (req) => {
           // existing lease/reconciliation protocol controls a subsequent retry.
           throw new HttpError(503, "PRINT_JOB_OUTCOME_NOT_PERSISTED");
         });
-        results.push({ id: job.id, status });
+        results.push({ id: job.id, status: outcome.status });
       }
     }
 
@@ -334,7 +320,7 @@ Deno.serve(async (req) => {
       action: "run",
       status: "success",
       targetEntityType: "print_fulfillment_jobs",
-      metadata: { finalized_payments: finalizedPayments, claimed_jobs: Array.isArray(jobs) ? jobs.length : 0 },
+      metadata: { finalized_payments: finalizedPayments, claimed_jobs: results.length },
     });
     return jsonResponse({ ok: true, finalizedPayments, results }, 200, cors);
   } catch (error) {

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
   order: {} as any, job: {} as any, admin: true, authError: null as Error | null,
-  remoteOrders: new Map<string, any>(),
+  remoteOrders: new Map<string, any>(), claimed: false,
   rpc: vi.fn(), from: vi.fn(), getOrder: vi.fn(), createOrder: vi.fn(),
   signedUrl: vi.fn(), audit: vi.fn(), productionAllowed: vi.fn(),
 }));
@@ -38,9 +38,12 @@ let CloudprinterError: typeof import("../../supabase/functions/_shared/print/req
 const orderId = "11111111-1111-4111-8111-111111111111";
 const reference = `TOKP_${orderId.replace(/-/g, "").toUpperCase()}`;
 const remoteOrder = () => ({ state: "submitted", stateCode: "submitted", items: [] });
-const request = (body: unknown = {}) => handler(new Request("https://example.test/print-orchestrator", {
-  method: "POST", body: JSON.stringify(body),
-}));
+const request = (body: unknown = {}) => {
+  state.claimed = false;
+  return handler(new Request("https://example.test/print-orchestrator", {
+    method: "POST", body: JSON.stringify(body),
+  }));
+};
 const completions = () => state.rpc.mock.calls.filter(([name]) => name === "complete_print_fulfillment_job").map(([, args]) => args);
 
 beforeEach(async () => {
@@ -60,9 +63,26 @@ beforeEach(async () => {
     return { reference: order.reference };
   });
   state.rpc.mockImplementation(async (name: string, args: any) => {
-    if (name === "claim_print_fulfillment_jobs") return { data: [state.job], error: null };
-    if (name === "advance_print_order_state") state.order.status = args.p_state;
-    return { data: null, error: null };
+    if (name === "claim_print_fulfillment_jobs") {
+      if (state.claimed) return { data: [], error: null };
+      state.claimed = true;
+      return { data: [state.job], error: null };
+    }
+    if (name === "prepare_print_fulfillment_submission") {
+      if (state.order.submission_started_at) return { data: { action: "reconcile_only" }, error: null };
+      state.order.submission_started_at = new Date().toISOString();
+      return { data: { action: "create" }, error: null };
+    }
+    if (name === "finish_print_fulfillment_submission") {
+      const previous = state.order.status;
+      state.order.status = "submitted";
+      const outcome = await state.rpc("complete_print_fulfillment_job", {
+        p_job_id: args.p_job_id, p_lease_token: args.p_lease_token, p_status: "completed",
+      });
+      if (outcome.error) state.order.status = previous; // SQL transaction rollback
+      return outcome;
+    }
+    return { data: { status: args.p_status }, error: null };
   });
   state.from.mockImplementation((table: string) => {
     const query: any = {};
@@ -83,7 +103,7 @@ beforeEach(async () => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("print orchestrator runtime integrity", () => {
-  it.each(["canceled", "cancelled", "refunded", "refund_pending"])("never submits a paid order already %s", async (status) => {
+  it.each(["cancellation_requested", "canceled", "cancelled", "refunded", "refund_pending"])("never submits a paid order already %s", async (status) => {
     state.order.status = status;
     const response = await request();
     expect(response.status).toBe(200);
@@ -102,7 +122,7 @@ describe("print orchestrator runtime integrity", () => {
 
   it.each([undefined, 1, 50, "2"])("accepts a bounded integer limit %s", async (limit) => {
     expect((await request({ limit })).status).toBe(200);
-    expect(state.rpc).toHaveBeenCalledWith("claim_print_fulfillment_jobs", expect.objectContaining({ p_limit: limit === undefined ? 10 : Number(limit) }));
+    expect(state.rpc).toHaveBeenCalledWith("claim_print_fulfillment_jobs", expect.objectContaining({ p_limit: 1 }));
   });
 
   it("keeps a non-admin out of the fulfillment queue", async () => {
@@ -119,7 +139,7 @@ describe("print orchestrator runtime integrity", () => {
       throw new CloudprinterError({ code: "provider_timeout", message: "Timeout", retryable: true, ambiguous: true });
     });
     const originalRpc = state.rpc.getMockImplementation()!;
-    state.rpc.mockImplementation(async (name, args) => name === "advance_print_order_state"
+    state.rpc.mockImplementation(async (name, args) => name === "finish_print_fulfillment_submission"
       ? { error: { code: "08006", message: "Database temporarily unavailable" } }
       : originalRpc(name, args));
     const response = await request();
@@ -169,7 +189,7 @@ describe("print orchestrator runtime integrity", () => {
     state.rpc.mockImplementation(async (name, args) => name === "complete_print_fulfillment_job"
       ? { error: { code: "08006" } } : originalRpc(name, args));
     expect((await request()).status).toBe(503);
-    expect(state.order.status).toBe("submitted");
+    expect(state.order.status).toBe("paid"); // transition and completion roll back together
     expect(state.createOrder).toHaveBeenCalledOnce();
     state.rpc.mockImplementation(originalRpc);
     state.job.lease_token = "recovered-lease";
@@ -214,4 +234,68 @@ describe("print orchestrator runtime integrity", () => {
     expect((await request()).status).toBe(200);
     expect(completions()[0]).toMatchObject({ p_status: "failed", p_next_attempt_at: null });
   });
+  it("can retry a pre-send validation failure without a submission marker", async () => {
+    state.signedUrl.mockResolvedValueOnce({ data: null, error: { code: "storage_unavailable" } });
+    expect((await request()).status).toBe(200);
+    expect(state.order.submission_started_at).toBeUndefined();
+    expect(state.createOrder).not.toHaveBeenCalled();
+    state.job.attempt_count = 2;
+    expect((await request()).status).toBe(200);
+    expect(state.createOrder).toHaveBeenCalledOnce();
+  });
+
+  it("does not send again when an ambiguous create is still invisible to lookup", async () => {
+    state.createOrder.mockRejectedValue(new CloudprinterError({ code: "timeout", message: "Timeout", retryable: true, ambiguous: true }));
+    expect((await request()).status).toBe(200);
+    state.job.attempt_count = 2;
+    expect((await request()).status).toBe(200);
+    expect(state.createOrder).toHaveBeenCalledOnce();
+    expect(completions().at(-1)).toMatchObject({ p_status: "retrying", p_error: "PRINT_SUBMISSION_RECONCILIATION_REQUIRED" });
+  });
+
+  it.each(["canceled", "completed", "failed"])("honors a concurrent order change to %s at the send gate", async (status) => {
+    const original = state.rpc.getMockImplementation()!;
+    state.rpc.mockImplementation((name, args) => name === "prepare_print_fulfillment_submission"
+      ? { data: { action: "stop", status }, error: null } : original(name, args));
+    const response = await request();
+    expect((await response.json()).results[0].status).toBe(status);
+    expect(state.createOrder).not.toHaveBeenCalled();
+  });
+
+  it("never sends with an expired or replaced lease", async () => {
+    const original = state.rpc.getMockImplementation()!;
+    state.rpc.mockImplementation((name, args) => name === "prepare_print_fulfillment_submission"
+      ? { data: null, error: { code: "40001" } } : original(name, args));
+    expect((await request()).status).toBe(200);
+    expect(state.createOrder).not.toHaveBeenCalled();
+  });
+
+  it("reports the persisted canceled outcome when cancellation beats acceptance", async () => {
+    const original = state.rpc.getMockImplementation()!;
+    state.rpc.mockImplementation((name, args) => name === "finish_print_fulfillment_submission"
+      ? { data: { status: "canceled", transition_advanced: false }, error: null } : original(name, args));
+    expect((await (await request()).json()).results[0].status).toBe("canceled");
+    expect(state.createOrder).toHaveBeenCalledOnce();
+  });
+
+  it("does not reserve the next job until the current one finishes", async () => {
+    const original = state.rpc.getMockImplementation()!;
+    const events: string[] = [];
+    let claims = 0;
+    state.rpc.mockImplementation(async (name, args) => {
+      if (name === "claim_print_fulfillment_jobs") {
+        events.push("claim");
+        claims += 1;
+        return { data: claims <= 2 ? [{ ...state.job, id: `job-${claims}` }] : [], error: null };
+      }
+      if (name === "complete_print_fulfillment_job") events.push("complete");
+      return original(name, args);
+    });
+    const response = await request({ limit: 2 });
+    expect((await response.json()).results).toHaveLength(2);
+    expect(events).toEqual(["claim", "complete", "claim", "complete"]);
+    expect(state.rpc.mock.calls.filter(([name]) => name === "claim_print_fulfillment_jobs")
+      .every(([, args]) => args.p_limit === 1)).toBe(true);
+  });
+
 });
