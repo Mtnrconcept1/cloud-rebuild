@@ -18,6 +18,7 @@ const PRIVATE_ROUTE_PREFIXES = [
   "/reservations",
   "/mon-espace",
   "/compte",
+  "/parametres",
   "/espace-client",
   "/mes-avis",
   "/points-cadeau",
