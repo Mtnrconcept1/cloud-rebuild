@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `9702837b16af6c7f14d48105c2035a750774fa7ea4360b02c0d47e3be7ecebb8`
+- Empreinte SHA-256 des sources indexées : `b20e209935ab9874884d01f16820952c34d65cf34a7753c7f595dcfad28597aa`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,7 +45,7 @@
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15493 |
+| records | 15494 |
 | repositoryFiles | 2721 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -5927,7 +5927,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Commercial Demo Multi-Space Fidelity Implementation Plan | 7 | [docs/superpowers/plans/2026-09-08-commercial-demo-multispace-fidelity.md:1](../../docs/superpowers/plans/2026-09-08-commercial-demo-multispace-fidelity.md#L1) |
 | Marketing Studio Output Geometry Implementation Plan | 8 | [docs/superpowers/plans/2026-09-08-marketing-studio-output-geometry.md:1](../../docs/superpowers/plans/2026-09-08-marketing-studio-output-geometry.md#L1) |
 | Admin TheFork-only filter plan | 1 | [docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md:1](../../docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md#L1) |
-| Marketing campaign consistency implementation plan | 7 | [docs/superpowers/plans/2026-10-10-marketing-campaign-consistency.md:1](../../docs/superpowers/plans/2026-10-10-marketing-campaign-consistency.md#L1) |
+| Marketing campaign consistency implementation plan | 8 | [docs/superpowers/plans/2026-10-10-marketing-campaign-consistency.md:1](../../docs/superpowers/plans/2026-10-10-marketing-campaign-consistency.md#L1) |
 | Facturation des réservations (5.-/resa) & détection anti-fraude | 26 | [docs/superpowers/specs/2026-04-17-reservation-billing-design.md:1](../../docs/superpowers/specs/2026-04-17-reservation-billing-design.md#L1) |
 | Refonte compta: accueil + entrees/sorties | 52 | [docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md:1](../../docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md#L1) |
 | Lisibilite dashboard: factures, reservations et commandes | 39 | [docs/superpowers/specs/2026-04-21-dashboard-readability-design.md:1](../../docs/superpowers/specs/2026-04-21-dashboard-readability-design.md#L1) |

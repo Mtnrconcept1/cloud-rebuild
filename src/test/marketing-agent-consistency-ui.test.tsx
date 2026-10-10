@@ -43,3 +43,14 @@ describe("marketing campaign review UX", () => {
     expect(screen.getByRole("link", { name: /Ouvrir la page de destination/ }).getAttribute("href")).toBe("https://www.thetok.ch/contact");
   });
 });
+
+
+it("distinguishes unknown individual eligibility from public reach", async () => {
+  request.mockImplementation(async (_path, options) => options.body.action === "list_runs" ? { runs: [] } : {
+    campaign: { id: "campaign", name: "Contacts TOK" }, items: [{ id: "item", title: "Relance", channel: "in_app", scheduled_at: "2026-10-12T09:00:00Z" }], summary: "Relance à relire", assetCount: 0, estimatedCostChf: 0.01,
+    audienceEstimate: { channels: [{ channel: "in_app", deliveryMode: "individual", eligibleContacts: null }] },
+  });
+  mount(); fireEvent.change(screen.getByLabelText("Objectif"), { target: { value: "Informer les contacts TOK" } });
+  fireEvent.click(screen.getByRole("button", { name: "Générer la campagne" }));
+  await waitFor(() => expect(screen.getByText(/contacts éligibles non estimés/)).toBeTruthy());
+});

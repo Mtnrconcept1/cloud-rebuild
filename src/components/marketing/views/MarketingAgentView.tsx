@@ -435,7 +435,7 @@ export default function MarketingAgentView({
             <p className="text-xs text-slate-500">Budget publicitaire non défini. Portée organique non estimée. Un brouillon généré n'est pas une preuve de diffusion ou de conversion.</p>
             {result.audienceEstimate?.channels.map((estimate) => (
               <p key={estimate.channel} className="text-xs text-slate-600">
-                {estimate.channel} : {estimate.eligibleContacts === null ? "portée publique non estimée" : estimate.eligibleContacts + " contact(s) actuellement éligible(s), à revérifier avant envoi"}
+                {estimate.channel} : {estimate.deliveryMode === "public" ? "portée publique non estimée" : estimate.eligibleContacts === null ? "contacts éligibles non estimés" : estimate.eligibleContacts + " contact(s) actuellement éligible(s), à revérifier avant envoi"}
               </p>
             ))}
             <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">

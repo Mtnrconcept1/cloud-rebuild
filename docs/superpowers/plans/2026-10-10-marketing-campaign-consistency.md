@@ -64,3 +64,6 @@ Validation evidence:
 No real AI provider generation, campaign publication, paid advertising, production deployment, schema migration, credential rotation or RLS modification was performed. Provider calls in regression tests are mocked. The earlier live draft must be reviewed/regenerated explicitly after delivery; this code does not alter historical drafts behind an administrator's back.
 
 Review ruling: generated `error-code-map.ts` and the two canonical application-reference files are necessary derived changes; omitting them fails the repository's deterministic checks. Rollback remains a revert of this dedicated code commit, not a mutation of historical campaign records.
+
+## Complément de finalisation
+La seconde reprise isolée confirme que le serveur est identique à la PR #736. Elle ajoute seulement la distinction entre portée publique inconnue et contacts individuels non estimés, ainsi que trois tests sur cette distinction, le maintien de l’étape éditoriale et une légende Instagram compacte. Le code a été vérifié dans le worktree isolé ; les commits de #736 sont conservés sans réécriture. Aucun merge vers main ni effet externe de campagne.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  MarketingPlanError, validatePlan, toBundlePayload, type MarketingPlan,
+  MarketingPlanError, validatePlan, toBundlePayload, validateGeneratedCampaignBundle, type MarketingPlan,
 } from "../../supabase/functions/_shared/marketing-ai-plan";
 
 const NOW = Date.parse("2026-10-10T16:51:28Z");
@@ -130,5 +130,20 @@ describe("final social caption and reviewed destination", () => {
     const bundle = toBundlePayload(value, new Map(), context) as { items: Array<{ content: { call_to_action: string } }> };
     expect(bundle.items[0].content.call_to_action).not.toContain("invented.example");
     expect(bundle.items[0].content.call_to_action).toContain(context.destinationUrl);
+  });
+});
+
+
+describe("campaign round-trip contract", () => {
+  it("preserves the editorial stage while revalidating the Edge bundle", () => {
+    const value = plan(); value.items[0].stage = "comparison";
+    const bundle = toBundlePayload(value, new Map(), context);
+    const checked = validateGeneratedCampaignBundle(bundle, ["facebook"], context) as { items: Array<{ content: { stage: string; call_to_action: string } }> };
+    expect(checked.items[0].content.stage).toBe("comparison");
+    expect(checked.items[0].content.call_to_action.split(context.destinationUrl)).toHaveLength(2);
+  });
+  it("accepts a compact Instagram caption and preserves its reviewed action", () => {
+    const value = plan(); value.campaign.channels = ["instagram"]; value.items[0].channel = "instagram";
+    expect(validatePlan(value, ["instagram"], context).items).toHaveLength(1);
   });
 });
