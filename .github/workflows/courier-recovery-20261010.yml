@@ -55,12 +55,14 @@ jobs:
             diff -u "$RUNNER_TEMP/courier-expected-conflicts.txt" "$RUNNER_TEMP/courier-conflicts.txt"
           fi
           python "$GITHUB_WORKSPACE/.github/courier-recovery-20261010.py" apply
-          git rm .github/workflows/courier-recovery-20261010.yml .github/courier-recovery-20261010.py
+          git rm .github/workflows/courier-recovery-20261010.yml .github/courier-recovery-20261010.py .github/courier-recovery-edge-types.py
           git add src/test/courier-atomic-edge.test.ts
           node --check scripts/test-courier-atomic-postgres.mjs
           corepack enable
           corepack prepare pnpm@10.28.1 --activate
           pnpm install --frozen-lockfile > "$RUNNER_TEMP/courier-recovery-evidence/install.log" 2>&1
+          python "$GITHUB_WORKSPACE/.github/courier-recovery-edge-types.py"
+          deno check --frozen supabase/functions/courier-portal/index.ts supabase/functions/dispatch-order/index.ts supabase/functions/dispatch-timeout/index.ts supabase/functions/restaurant-order-status/index.ts > "$RUNNER_TEMP/courier-recovery-evidence/deno-early.log" 2>&1 || { cat "$RUNNER_TEMP/courier-recovery-evidence/deno-early.log"; exit 1; }
           node scripts/generate-application-index.mjs
           git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
           test -z "$(git diff --name-only --diff-filter=U)"
@@ -145,8 +147,10 @@ jobs:
           deno --version
           deno check --frozen supabase/functions/courier-portal/index.ts supabase/functions/dispatch-order/index.ts supabase/functions/dispatch-timeout/index.ts supabase/functions/restaurant-order-status/index.ts > "$EVIDENCE/deno.log" 2>&1
           git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json docs/testing/courier-dispatch-atomic.md scripts/test-courier-atomic-postgres.mjs src/test/courier-atomic-edge.test.ts supabase/migrations/20261010223000_courier_dispatch_atomic.sql
+          git add supabase/functions/courier-portal/index.ts supabase/functions/dispatch-order/index.ts
           git diff --check
           git diff --cached --check
+          pnpm run docs:application-index:check
           echo 'APPLICATION_VALIDATED: full tests, lint, typecheck, Vite build, Deno, canonical index'
       - name: Publish only the verified Git tree objects, never a branch or deployment
         shell: bash
@@ -156,6 +160,8 @@ jobs:
           set -euo pipefail
           cd "$SOURCE_WORKTREE"
           python "$GITHUB_WORKSPACE/.github/courier-recovery-20261010.py" publish
+          mkdir -p "$RUNNER_TEMP/courier-recovery-evidence/complete-files"
+          git diff --cached --name-only "$BASE_SHA" -z | xargs -0 -I{} cp --parents "{}" "$RUNNER_TEMP/courier-recovery-evidence/complete-files/"
       - name: Preserve evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
