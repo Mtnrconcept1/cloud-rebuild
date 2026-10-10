@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `551eb62ceaa32a0b945771bb9f098fa2175651cc4dbe2ebf901f6c6ac9f9e106`
+- Empreinte SHA-256 des sources indexées : `628eeedd3f821c7a562fdbccaf137978152c400b5c0271af3ab5101e9df0ab44`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,8 +28,8 @@
 | apiRoutes | 9 |
 | cronJobs | 33 |
 | databaseContract | 228 |
-| databaseObjects | 2722 |
-| documents | 195 |
+| databaseObjects | 2723 |
+| documents | 196 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 3360 |
@@ -37,22 +37,22 @@
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
-| migrations | 522 |
-| modules | 1469 |
+| migrations | 523 |
+| modules | 1471 |
 | pages | 127 |
 | pathLiterals | 615 |
 | publicAssets | 301 |
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15550 |
-| repositoryFiles | 2738 |
+| records | 15573 |
+| repositoryFiles | 2746 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 25 |
+| workflows | 26 |
 
 ## État distant observé
 
@@ -3345,7 +3345,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>policy (757)</summary>
+<details><summary>policy (758)</summary>
 
 - `ad_campaigns.Admins can manage ad campaigns` (1 définition(s))
 - `ad_campaigns.Anyone can read active campaigns` (1 définition(s))
@@ -3683,8 +3683,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.menu_items.block_commercial_demo_menu_item_insert` (1 définition(s))
 - `public.menu_items.block_commercial_demo_menu_item_update` (1 définition(s))
 - `public.menu_items.commercial_demo_select_mapped_menu_items` (1 définition(s))
+- `public.menu_items.menu_items_admin_select` (1 définition(s))
 - `public.menu_items.menu_items_owner_all` (1 définition(s))
-- `public.menu_items.menu_items_public_select` (1 définition(s))
+- `public.menu_items.menu_items_public_select` (2 définition(s))
 - `public.menu_items.scope_production_menu_items_for_commercial_demo_accounts` (1 définition(s))
 - `public.messages.messages_admin` (2 définition(s))
 - `public.messages.messages_participant` (2 définition(s))
@@ -3750,8 +3751,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.profiles.Users can update their own profile` (1 définition(s))
 - `public.profiles.Users can view their own profile` (1 définition(s))
 - `public.profiles.profiles_self_all` (1 définition(s))
-- `public.promo_code_uses.promo_uses_admin` (2 définition(s))
-- `public.promo_code_uses.promo_uses_own` (2 définition(s))
+- `public.promo_code_uses.promo_uses_admin` (3 définition(s))
+- `public.promo_code_uses.promo_uses_own` (3 définition(s))
 - `public.promo_codes.promo_codes_active_select` (1 définition(s))
 - `public.promo_codes.promo_codes_admin` (2 définition(s))
 - `public.promo_codes.promo_codes_public_read` (2 définition(s))
@@ -5524,6 +5525,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261006010000 Repair Admin Commercial Supabase Regressions | 1012 | 18 | [supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql:1](../../supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql#L1) |
 | 20261006022139 Configure Meta Marketing Integrations | 47 | 0 | [supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql:1](../../supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql#L1) |
 | 20261009003407 Protect Generated Print Format | 42 | 2 | [supabase/migrations/20261009003407_protect_generated_print_format.sql:1](../../supabase/migrations/20261009003407_protect_generated_print_format.sql#L1) |
+| 20261010194510 Checkout Benefits And Public Menu Security | 86 | 4 | [supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql:1](../../supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql#L1) |
 | 20261010203000 Print Fulfillment Protocol | 260 | 4 | [supabase/migrations/20261010203000_print_fulfillment_protocol.sql:1](../../supabase/migrations/20261010203000_print_fulfillment_protocol.sql#L1) |
 
 ## Automatisation, dépendances et CI
@@ -5621,6 +5623,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | App Store Upload Build 2 Trigger | dispatch | [.github/workflows/app-store-upload-build2-trigger.yml](../../.github/workflows/app-store-upload-build2-trigger.yml) |
 | App Store Xcode 26 Validation Trigger | dispatch | [.github/workflows/app-store-xcode26-validation-trigger.yml](../../.github/workflows/app-store-xcode26-validation-trigger.yml) |
 | Changed Test Files | changed-tests | [.github/workflows/changed-test-files.yml](../../.github/workflows/changed-test-files.yml) |
+| Checkout security PostgreSQL replay | replay | [.github/workflows/checkout-security-postgres.yml](../../.github/workflows/checkout-security-postgres.yml) |
 | CI | validate, validation | [.github/workflows/ci.yml](../../.github/workflows/ci.yml) |
 | Deploy Production | attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation | [.github/workflows/deploy-production.yml](../../.github/workflows/deploy-production.yml) |
 | Ensure Supabase Auth SMTP | configure | [.github/workflows/ensure-supabase-auth-smtp.yml](../../.github/workflows/ensure-supabase-auth-smtp.yml) |
@@ -5747,7 +5750,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 212 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 661 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 663 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 57 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5758,7 +5761,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 203 |
-| automation-script | 62 |
+| automation-script | 63 |
 | edge-function-source | 183 |
 | frontend-component | 247 |
 | frontend-hook | 22 |
@@ -5767,7 +5770,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 575 |
+| test | 576 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -5957,6 +5960,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Marketing Studio Output Geometry Design | 15 | [docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md:1](../../docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md#L1) |
 | Scénario Actualités sponsorisées | 5 | [docs/testing/actualites-sponsored-scenario.md:1](../../docs/testing/actualites-sponsored-scenario.md#L1) |
 | Télémétrie navigateur et consentement | 5 | [docs/testing/browser-monitoring-consent.md:1](../../docs/testing/browser-monitoring-consent.md#L1) |
+| Recette de sécurité checkout et menus — issue #710 | 7 | [docs/testing/checkout-security-710.md:1](../../docs/testing/checkout-security-710.md#L1) |
 | Plan de tests lancement 10k | 6 | [docs/testing/launch-10k-load-plan.md:1](../../docs/testing/launch-10k-load-plan.md#L1) |
 | Tests de garde Supabase / RPC | 7 | [docs/testing/supabase-rpc-guards.md:1](../../docs/testing/supabase-rpc-guards.md#L1) |
 | TOK Connect | 18 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
@@ -6244,7 +6248,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (69)</summary>
+<details><summary>automation-script (70)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -6308,6 +6312,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/supabase-doctor.mjs`
 - `scripts/supabase-target.mjs`
 - `scripts/take-screenshots.mjs`
+- `scripts/test-checkout-security-postgres.mjs`
 - `scripts/test-print-protocol-postgres.mjs`
 - `scripts/verify-supabase-runtime-security.mjs`
 - `scripts/write-apple-app-site-association.mjs`
@@ -6318,7 +6323,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (25)</summary>
+<details><summary>ci-workflow (26)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/app-store-build3-trigger.yml`
@@ -6334,6 +6339,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/app-store-upload-build2-trigger.yml`
 - `.github/workflows/app-store-xcode26-validation-trigger.yml`
 - `.github/workflows/changed-test-files.yml`
+- `.github/workflows/checkout-security-postgres.yml`
 - `.github/workflows/ci.yml`
 - `.github/workflows/deploy-production.yml`
 - `.github/workflows/ensure-supabase-auth-smtp.yml`
@@ -6348,7 +6354,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (522)</summary>
+<details><summary>database-migration (523)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -6871,11 +6877,12 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261006010000_repair_admin_commercial_supabase_regressions.sql`
 - `supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql`
 - `supabase/migrations/20261009003407_protect_generated_print_format.sql`
+- `supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql`
 - `supabase/migrations/20261010203000_print_fulfillment_protocol.sql`
 
 </details>
 
-<details><summary>documentation (128)</summary>
+<details><summary>documentation (129)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7000,6 +7007,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md`
 - `docs/testing/actualites-sponsored-scenario.md`
 - `docs/testing/browser-monitoring-consent.md`
+- `docs/testing/checkout-security-710.md`
 - `docs/testing/launch-10k-load-plan.md`
 - `docs/testing/supabase-rpc-guards.md`
 - `docs/tok-connect/README.md`
@@ -8176,7 +8184,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (19)</summary>
+<details><summary>supabase-configuration (22)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -8191,6 +8199,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/demo-migrations/20260720130500_enable_dedicated_demo_runtime_rpcs.sql`
 - `supabase/demo-migrations/20260908013000_unlimit_commercial_demo_ai_presentation.sql`
 - `supabase/demo-migrations/20261005210000_enforce_shared_commercial_demo_restaurant.sql`
+- `supabase/tests/checkout_security_710_assertions.sql`
+- `supabase/tests/checkout_security_710_baseline_prerequisites.sql`
+- `supabase/tests/checkout_security_710_fixture.sql`
 - `supabase/tests/critical_rpc_smoke.sql`
 - `supabase/tests/floor_plan_autoplacement_smoke.sql`
 - `supabase/tests/generated_print_format_smoke.sql`
@@ -8200,7 +8211,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (575)</summary>
+<details><summary>test (576)</summary>
 
 - `scripts/ci-change-plan.test.mjs`
 - `scripts/ci-critical-tests.test.mjs`
@@ -8208,6 +8219,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/dependabot-policy.test.mjs`
 - `scripts/dependency-security.test.mjs`
 - `scripts/stoppin-venue-seo.test.mjs`
+- `scripts/test-checkout-security-runner.test.mjs`
 - `scripts/test-print-protocol-runner.test.mjs`
 - `src/test/accounting-ai-public-copy.test.ts`
 - `src/test/accounting-dashboard-clarity.test.ts`
