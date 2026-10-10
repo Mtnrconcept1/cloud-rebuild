@@ -34,6 +34,10 @@ Le run CI `38078321068` a ensuite validé le replay de tout le main et l'égalit
 
 ## Exécution en CI, sans accès fournisseur
 
+Après intégration de l'impression (#738), le lot est rebasé sur `f893d29c41c6f0ebf542693d72baa2255332d9dc` : 522 migrations de base, 524 avec les deux nouvelles migrations. Les SQL et assertions du lot restent identiques à la version validée par le [replay 38080486490](https://github.com/Mtnrconcept1/cloud-rebuild/actions/runs/38080486490) et la [CI 38080486756](https://github.com/Mtnrconcept1/cloud-rebuild/actions/runs/38080486756). Un nouveau replay part de cette base comprenant l'impression ; les résultats du dernier SHA de la PR restent nécessaires.
+
+La migration impression `20261010203000` touche les objets `print_*`, distincts de checkout, promotions, menus et singleton de démonstration. La version checkout `20261010194510` lui est chronologiquement antérieure : si impression est déjà appliquée, `db push --include-all` est attendu pour installer cette version manquante, sans renommer ni réécrire l'historique. Le workflow de production utilise déjà cette option. Avant application, le dry-run doit annoncer seulement les deux versions manquantes autorisées (`20261010194510`, `20261010212500`) une fois impression déployée ; tout autre candidat nécessite réconciliation. La pause et les contrôles du fournisseur d'impression restent gérés dans son lot.
+
 Le workflow `Checkout security PostgreSQL replay` se déclenche pour la PR de ce lot. Il peut aussi être lancé manuellement avec le SHA complet du main **avant** cette migration.
 
 1. Extraire ce main dans un worktree temporaire et consigner les deux SHA.
