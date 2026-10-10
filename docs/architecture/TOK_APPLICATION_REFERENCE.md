@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f5328f9dad5e2446aea41641e3909d3b87cb55338af3a8c271cb795cbf08a16d`
+- Empreinte SHA-256 des sources indexées : `683c56d8156298a04fc90eff18b4a0f86a430a91eef885eb6e99c2d01eb5d1d1`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 190 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3359 |
+| exportedSymbols | 3360 |
 | featureFlags | 99 |
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 521 |
-| modules | 1455 |
+| modules | 1456 |
 | pages | 127 |
 | pathLiterals | 604 |
 | publicAssets | 301 |
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15431 |
-| repositoryFiles | 2713 |
+| records | 15434 |
+| repositoryFiles | 2714 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -924,9 +924,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 235 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 234 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 4 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
-| /* | 7 | [scripts/write-apple-app-site-association.mjs:29](../../scripts/write-apple-app-site-association.mjs#L29) |
+| /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 2 | [src/test/application-search-index.test.ts:69](../../src/test/application-search-index.test.ts#L69) |
 | /.well-known/assetlinks.json | 2 | [scripts/mobile-verify.mjs:262](../../scripts/mobile-verify.mjs#L262) |
 | /18270815569115548? | 1 | [src/test/marketing-meta-publishing.test.ts:162](../../src/test/marketing-meta-publishing.test.ts#L162) |
@@ -1131,7 +1131,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/ventes-flash | 6 | [src/App.tsx:623](../../src/App.tsx#L623) |
 | /data/geneva-commercial-prospects.json | 2 | [src/data/genevaCommercialProspects.ts:39](../../src/data/genevaCommercialProspects.ts#L39) |
 | /data/thefork-geneva-commercial-prospects.json | 1 | [src/data/theForkCommercialProspects.ts:7](../../src/data/theForkCommercialProspects.ts#L7) |
-| /database/query | 1 | [src/test/production-preflight-hardening.test.ts:196](../../src/test/production-preflight-hardening.test.ts#L196) |
+| /database/query | 1 | [src/test/production-preflight-hardening.test.ts:204](../../src/test/production-preflight-hardening.test.ts#L204) |
 | /demo-restaurant.jpg | 1 | [src/test/commercial-demo-client-data-isolation.test.ts:19](../../src/test/commercial-demo-client-data-isolation.test.ts#L19) |
 | /enrich-directory-cuisines | 1 | [src/test/directory-cuisine-enrichment.test.ts:40](../../src/test/directory-cuisine-enrichment.test.ts#L40) |
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
@@ -1457,7 +1457,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /rpc/service_get_marketing_web_session | 2 | [src/test/marketing-agent-bff.test.ts:24](../../src/test/marketing-agent-bff.test.ts#L24) |
 | /rpc/service_revoke_marketing_web_session | 1 | [src/test/marketing-bff-security.test.ts:610](../../src/test/marketing-bff-security.test.ts#L610) |
 | /rpc/service_store_marketing_auth_challenge | 7 | [src/test/marketing-bff-security.test.ts:263](../../src/test/marketing-bff-security.test.ts#L263) |
-| /secrets | 1 | [src/test/production-preflight-hardening.test.ts:197](../../src/test/production-preflight-hardening.test.ts#L197) |
+| /secrets | 1 | [src/test/production-preflight-hardening.test.ts:205](../../src/test/production-preflight-hardening.test.ts#L205) |
 | /setWebhook | 1 | [src/test/incident-secret-sync-readiness.test.ts:58](../../src/test/incident-secret-sync-readiness.test.ts#L58) |
 | /sitemap-index.xml | 1 | [src/test/seo-indexation-hardening.test.ts:259](../../src/test/seo-indexation-hardening.test.ts#L259) |
 | /sitemap-seo.xml | 1 | [src/test/seo-indexation-hardening.test.ts:259](../../src/test/seo-indexation-hardening.test.ts#L259) |
@@ -5608,14 +5608,14 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Paquet | Type | Version |
 | --- | --- | --- |
 | @aparajita/capacitor-secure-storage | runtime | ^8.0.0 |
-| @capacitor/android | development | ^8.2.0 |
+| @capacitor/android | development | ^8.4.3 |
 | @capacitor/app | runtime | ^8.0.1 |
 | @capacitor/browser | runtime | ^8.0.2 |
-| @capacitor/cli | development | ^8.2.0 |
-| @capacitor/core | runtime | ^8.2.0 |
+| @capacitor/cli | development | ^8.4.3 |
+| @capacitor/core | runtime | ^8.4.3 |
 | @capacitor/geolocation | runtime | ^8.1.0 |
 | @capacitor/haptics | runtime | ^8.0.1 |
-| @capacitor/ios | development | ^8.2.0 |
+| @capacitor/ios | development | ^8.4.3 |
 | @capacitor/keyboard | runtime | ^8.0.1 |
 | @capacitor/push-notifications | runtime | ^8.0.2 |
 | @capacitor/splash-screen | runtime | ^8.0.1 |
@@ -5737,7 +5737,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 562 |
+| test | 563 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -8153,7 +8153,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (562)</summary>
+<details><summary>test (563)</summary>
 
 - `scripts/ci-change-plan.test.mjs`
 - `scripts/ci-critical-tests.test.mjs`
@@ -8388,6 +8388,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/full-audit-remediation-20260711.test.ts`
 - `src/test/generate-campaign-ai-optimization.test.ts`
 - `src/test/generate-campaign-copy.test.ts`
+- `src/test/geolocation-native.test.ts`
 - `src/test/git-auto-sync-scripts.test.ts`
 - `src/test/golden-tok-shell-logo.test.ts`
 - `src/test/google-actions-center-feed-exporter.test.ts`
