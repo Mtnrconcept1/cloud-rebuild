@@ -1,0 +1,116 @@
+name: Actualites billing PostgreSQL replay
+
+on:
+  pull_request:
+    paths:
+      - supabase/migrations/*actualites_billing*.sql
+      - supabase/tests/actualites_billing_identity*.sql
+      - scripts/test-actualites-billing-postgres.mjs
+      - scripts/test-actualites-billing-runner.test.mjs
+      - .github/workflows/actualites-billing-postgres.yml
+  workflow_dispatch:
+    inputs:
+      base_sha:
+        description: Main commit before the billing identity migration (full immutable SHA)
+        required: true
+        default: f893d29c41c6f0ebf542693d72baa2255332d9dc
+
+permissions:
+  contents: read
+
+concurrency:
+  group: actualites-billing-postgres-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '54322'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+      TOK_ACTUALITES_BILLING_DISPOSABLE: 'true'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.102.0
+      - name: Prepare immutable main baseline
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || inputs.base_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          git cat-file -e "${BASE_SHA}^{commit}"
+          git worktree add --detach "$RUNNER_TEMP/tok-actualites-main" "$BASE_SHA"
+          # Local runner configuration only; never link to the hosted project.
+          sed -i 's/^project_id = .*/project_id = "tok-actualites-billing-ci"/' "$RUNNER_TEMP/tok-actualites-main/supabase/config.toml"
+          printf '\n[db]\nmajor_version = 17\n[db.seed]\nenabled = false\n' >> "$RUNNER_TEMP/tok-actualites-main/supabase/config.toml"
+          mkdir -p work/actualites-billing-ci
+          printf '%s\n' "$BASE_SHA" > work/actualites-billing-ci/base-sha.txt
+          git rev-parse HEAD > work/actualites-billing-ci/candidate-sha.txt
+      - name: Replay every main migration in disposable PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/tok-actualites-main"
+          # Start replays migrations. Stage the suffix temporarily so its real
+          # historical data precondition can be supplied as synthetic fixtures.
+          mkdir "$RUNNER_TEMP/tok-actualites-later-migrations"
+          for migration in supabase/migrations/*.sql; do
+            filename=$(basename "$migration")
+            if [[ "${filename%%_*}" > "20260909025200" ]]; then
+              mv "$migration" "$RUNNER_TEMP/tok-actualites-later-migrations/"
+            fi
+          done
+          # Historical cron/pg_net code must never reach hosted providers.
+          docker network create --subnet 172.30.74.0/24 tok-actualites-billing-ci
+          NETWORK_ID=$(docker network inspect tok-actualites-billing-ci --format '{{.Id}}')
+          # Preserve host-published PostgreSQL access, deny NEW outbound flows.
+          sudo iptables -I DOCKER-USER 1 -i "br-${NETWORK_ID:0:12}" ! -d 172.30.74.0/24 -m conntrack --ctstate NEW -j REJECT
+          supabase db start --network-id tok-actualites-billing-ci 2>&1 | tee "$GITHUB_WORKSPACE/work/actualites-billing-ci/base-replay.log"
+          # Prove that a real outbound TCP attempt hits our rejection rule.
+          if docker exec supabase_db_tok-actualites-billing-ci timeout 3 bash -c 'exec 3<>/dev/tcp/1.1.1.1/443'; then
+            echo 'Database egress unexpectedly succeeded' >&2
+            exit 1
+          fi
+          sudo iptables -nvx -L DOCKER-USER | tee "$GITHUB_WORKSPACE/work/actualites-billing-ci/egress-firewall.txt"
+          sudo iptables -nvx -L DOCKER-USER | awk -v bridge="br-${NETWORK_ID:0:12}" '$3 == "REJECT" && $6 == bridge && $1 > 0 { blocked=1 } END { exit !blocked }'
+          psql -X -v ON_ERROR_STOP=1 -f "$GITHUB_WORKSPACE/supabase/tests/print_fulfillment_protocol_baseline_prerequisites.sql"
+          mv "$RUNNER_TEMP/tok-actualites-later-migrations/"*.sql supabase/migrations/
+          git diff --exit-code -- supabase/migrations
+          supabase migration up --local --network-id tok-actualites-billing-ci 2>&1 | tee -a "$GITHUB_WORKSPACE/work/actualites-billing-ci/base-replay.log"
+          psql -X -v ON_ERROR_STOP=1 -At -c 'SELECT version FROM supabase_migrations.schema_migrations ORDER BY version' > "$GITHUB_WORKSPACE/work/actualites-billing-ci/applied-main-versions.txt"
+          find supabase/migrations -maxdepth 1 -name '*.sql' -printf '%f\n' | cut -d_ -f1 | sort > "$GITHUB_WORKSPACE/work/actualites-billing-ci/expected-main-versions.txt"
+          diff -u "$GITHUB_WORKSPACE/work/actualites-billing-ci/expected-main-versions.txt" "$GITHUB_WORKSPACE/work/actualites-billing-ci/applied-main-versions.txt"
+      - name: Test candidate transition, real roles, history and concurrency
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/test-actualites-billing-runner.test.mjs
+          node scripts/test-actualites-billing-postgres.mjs 2>&1 | tee work/actualites-billing-ci/billing-tests.log
+      - name: Preserve exact replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: actualites-billing-postgres-evidence
+          path: work/actualites-billing-ci
+      - name: Stop only the disposable runner stack
+        if: always()
+        shell: bash
+        run: |
+          if [[ -d "$RUNNER_TEMP/tok-actualites-main/supabase" ]]; then
+            cd "$RUNNER_TEMP/tok-actualites-main"
+            supabase stop --no-backup
+          fi
+          docker network rm tok-actualites-billing-ci || true
