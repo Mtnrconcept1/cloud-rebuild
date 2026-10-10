@@ -6,7 +6,7 @@ permissions:
   contents: write
 concurrency:
   group: courier-branch-recovery
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   recover:
     if: github.repository == 'Mtnrconcept1/cloud-rebuild' && github.ref == 'refs/heads/codex/tok-courier-atomic-20261010'
@@ -137,7 +137,7 @@ jobs:
           pnpm install --frozen-lockfile > "$EVIDENCE/install.log" 2>&1
           node scripts/generate-application-index.mjs
           pnpm run docs:application-index:check
-          pnpm exec vitest run --maxWorkers=2 --reporter=dot > "$EVIDENCE/full-tests.log" 2>&1
+          timeout 8m pnpm exec vitest run --maxWorkers=2 --reporter=verbose > "$EVIDENCE/full-tests.log" 2>&1 || { tail -100 "$EVIDENCE/full-tests.log"; exit 1; }
           tail -15 "$EVIDENCE/full-tests.log"
           pnpm lint > "$EVIDENCE/lint.log" 2>&1
           tail -5 "$EVIDENCE/lint.log"
@@ -168,3 +168,4 @@ jobs:
         with:
           name: courier-recovery-evidence
           path: ${{ runner.temp }}/courier-recovery-evidence
+          include-hidden-files: true
