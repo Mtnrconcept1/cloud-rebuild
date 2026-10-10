@@ -53,5 +53,27 @@ Les tests historiques `monitoring`, `legal-consent-v2`,
 vérification. Ces tests ne remplacent pas une observation réseau du déploiement
 avec un DSN configuré ; aucun fournisseur n'est contacté pour la validation locale.
 
+### Observation réseau locale avec le SDK réel
+
+Le 10 octobre 2026, le coordinateur de la livraison a vérifié le commit
+`bfc2f0e141da422be3a6aac6c6510464c9919d12` dans un navigateur avec le SDK réel
+Sentry 10.49.0. Le collecteur d'enveloppes était exclusivement local
+(`localhost:5178`) et le backend de consentement était simulé. Aucun compte ou
+collecteur Sentry distant, ni backend de production, n'a été utilisé pour ce test.
+
+| Étape observée | Résultat |
+| --- | --- |
+| Avant accord analytics | Aucun chargement SDK observé et 0 enveloppe |
+| Accord puis erreur | 1 enveloppe au total ; email, paramètres et fragments d'URL supprimés |
+| Retrait puis nouvelle erreur | Toujours 1 enveloppe : aucun nouvel envoi |
+| Nouvel accord, erreur native automatique et changement de compte | 3 enveloppes au total ; aucune identité de compte ni secret de test retrouvé |
+| Retrait lorsque `Storage.prototype.setItem` lève `QuotaExceededError` | Consentement analytics à `false` ; total inchangé à 3 enveloppes |
+
+Cette observation complète les tests avec SDK simulé : elle vérifie la collecte
+réseau et les erreurs automatiques de la version installée du SDK. Elle ne prouve
+ni un déploiement, ni le traitement ou la conservation des données chez Sentry en
+production. Le blocage concerne les nouveaux envois ; une requête déjà partie au
+moment du retrait reste impossible à rappeler.
+
 Retour arrière : révoquer le commit applicatif concerné. Aucun schéma de base,
 fournisseur, texte légal ou secret n'est modifié.
