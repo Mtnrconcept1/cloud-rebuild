@@ -1,5 +1,6 @@
 // Run against installed dependencies, not mocked copies.
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync, realpathSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -15,7 +16,58 @@ const capacitorVersions = Object.fromEntries(capacitorPackages.map((name) => [
 const fromTailwind = createRequire(require.resolve('tailwindcss'));
 const fromChokidar = createRequire(fromTailwind.resolve('chokidar'));
 const braces = fromChokidar('braces');
+const fromJsdom = createRequire(require.resolve('jsdom'));
+const fromCssTree = createRequire(fromJsdom.resolve('css-tree'));
+const fromPostcss = createRequire(require.resolve('postcss'));
 const nested = (open, close, depth) => open.repeat(depth) + 'x' + close.repeat(depth);
+
+test('jsdom CSS Tree and PostCSS resolve the corrected source-map-js package', () => {
+  for (const dependencyRequire of [fromCssTree, fromPostcss]) {
+    assert.equal(dependencyRequire('source-map-js/package.json').version, '1.2.2');
+  }
+});
+
+test('CSS Tree and PostCSS still generate consumable source maps', () => {
+  const cssTree = fromJsdom('css-tree');
+  const postcss = require('postcss');
+  const { SourceMapConsumer } = fromCssTree('source-map-js');
+  const css = 'a { color: red; }';
+  const generated = cssTree.generate(cssTree.parse(css, {
+    positions: true, filename: 'input.css',
+  }), { sourceMap: true });
+  assert.equal(generated.css, 'a{color:red}');
+  const cssTreeMap = new SourceMapConsumer(generated.map.toJSON());
+  assert.equal(cssTreeMap.originalPositionFor({ line: 1, column: 0 }).source, 'input.css');
+
+  const result = postcss().process(css, {
+    from: 'input.css', to: 'output.css', map: { inline: false, annotation: false },
+  });
+  assert.equal(result.css, css);
+  const postcssMap = new SourceMapConsumer(result.map.toJSON());
+  assert.equal(postcssMap.originalPositionFor({ line: 1, column: 0 }).source, 'input.css');
+});
+
+test('indexed source maps reject huge offsets and avoid amplification within a bounded process', () => {
+  // Keep hostile maps out of the test runner: a dependency regression must fail,
+  // not freeze CI or exhaust its heap (GHSA-68fv-2mgg-jv7q).
+  execFileSync(process.execPath, ['--max-old-space-size=128', '-e', `
+    const assert = require('node:assert/strict');
+    const { SourceMapConsumer, SourceNode } = require(process.argv[1]);
+    const basic = { version: 3, sources: ['input.css'], sourcesContent: ['a'], names: [], mappings: 'AAAA' };
+    const indexed = (line, map = basic) => ({
+      version: 3, sections: [{ offset: { line, column: 0 }, map }],
+    });
+    assert.throws(() => new SourceMapConsumer(indexed(1e9)), /must not exceed/);
+    assert.throws(() => new SourceMapConsumer(indexed(7e6, indexed(7e6))), /nested sections/);
+    const distant = new SourceMapConsumer(indexed(1e7));
+    assert.equal(SourceNode.fromStringWithSourceMap('a', distant).toString(), 'a');
+    let nestedMap = basic;
+    for (let depth = 0; depth < 30; depth++) nestedMap = indexed(0, nestedMap);
+    assert.deepEqual(new SourceMapConsumer(nestedMap).sources, ['input.css']);
+  `, fromCssTree.resolve('source-map-js')], {
+    encoding: 'utf8', timeout: 5_000, maxBuffer: 64 * 1024, windowsHide: true,
+  });
+});
 
 test('native Capacitor packages stay aligned outside the critical advisory ranges', () => {
   for (const name of capacitorPackages) {
