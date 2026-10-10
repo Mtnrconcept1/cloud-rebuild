@@ -18,6 +18,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: checkout-security-postgres-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   replay:
     runs-on: ubuntu-latest
@@ -32,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -46,6 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
           git cat-file -e "${BASE_SHA}^{commit}"
           git worktree add --detach "$RUNNER_TEMP/tok-security-main" "$BASE_SHA"
           # Local runner configuration only; never link to the hosted project.
