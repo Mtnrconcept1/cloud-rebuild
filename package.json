@@ -192,7 +192,7 @@
       "undici@^7.0.0": "7.30.0",
       "js-yaml@^4.0.0": "4.3.2",
       "nanoid@^3.0.0": "3.3.19",
-      "postcss-selector-parser@^6.1.0": "6.1.4",
+      "postcss-selector-parser@<7.1.6": "7.1.6",
       "tar@^7.0.0": "7.5.22",
       "browserslist@^4.0.0": "4.29.3",
       "baseline-browser-mapping@^2.0.0": "2.11.27"
