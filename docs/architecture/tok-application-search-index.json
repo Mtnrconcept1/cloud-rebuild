@@ -2,14 +2,14 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b0265e1df1c61fc6361dee7136f0ba4faa8e505f845319beee1299e2dea8cc76",
+ "sourceDigest": "9a713e90e4c2634cedbaf66cf3e11a6f104056374975f6a01a56b9b417cce807",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2720,
-  "documents": 191,
+  "documents": 192,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3360,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 521,
-  "modules": 1458,
+  "modules": 1459,
   "pages": 127,
-  "pathLiterals": 611,
+  "pathLiterals": 614,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15473,
-  "repositoryFiles": 2718,
+  "records": 15485,
+  "repositoryFiles": 2720,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -12758,6 +12758,10 @@
       "line": 39
      },
      {
+      "path": "src/test/mobile-association-hosting.test.ts",
+      "line": 27
+     },
+     {
       "path": "src/test/mobile-logo-intro.test.tsx",
       "line": 17
      },
@@ -13049,8 +13053,25 @@
       "line": 69
      },
      {
+      "path": "src/test/mobile-association-hosting.test.ts",
+      "line": 13
+     },
+     {
+      "path": "src/test/mobile-association-hosting.test.ts",
+      "line": 19
+     },
+     {
       "path": "src/test/production-preflight-hardening.test.ts",
       "line": 315
+     }
+    ]
+   },
+   {
+    "value": "/.well-known/apple-app-site-association-extra",
+    "sources": [
+     {
+      "path": "src/test/mobile-association-hosting.test.ts",
+      "line": 27
      }
     ]
    },
@@ -13064,6 +13085,19 @@
      {
       "path": "src/test/android-google-play-readiness.test.ts",
       "line": 81
+     },
+     {
+      "path": "src/test/mobile-association-hosting.test.ts",
+      "line": 19
+     }
+    ]
+   },
+   {
+    "value": "/.well-known/oauth-protected-resource",
+    "sources": [
+     {
+      "path": "src/test/mobile-association-hosting.test.ts",
+      "line": 27
      }
     ]
    },
@@ -13082,6 +13116,23 @@
      {
       "path": "src/components/home/HeroSection.tsx",
       "line": 44
+     }
+    ]
+   },
+   {
+    "value": "/:path(",
+    "sources": [
+     {
+      "path": "src/test/mobile-association-hosting.test.ts",
+      "line": 8
+     },
+     {
+      "path": "src/test/mobile-association-hosting.test.ts",
+      "line": 22
+     },
+     {
+      "path": "src/test/mobile-association-hosting.test.ts",
+      "line": 30
      }
     ]
    },
@@ -18883,6 +18934,10 @@
       "line": 136
      },
      {
+      "path": "src/test/mobile-association-hosting.test.ts",
+      "line": 27
+     },
+     {
       "path": "src/test/restaurant-dashboard-overview-navigation.test.ts",
       "line": 10
      },
@@ -24107,6 +24162,10 @@
       "line": 297
      },
      {
+      "path": "src/test/mobile-association-hosting.test.ts",
+      "line": 27
+     },
+     {
       "path": "src/test/seo-crawl-hardening.test.ts",
       "line": 78
      },
@@ -29169,6 +29228,7 @@
      "src/test/marketing-bff-vercel-entrypoints.test.ts",
      "src/test/marketing-domain-isolation.test.ts",
      "src/test/marketing-subdomain-integration.test.ts",
+     "src/test/mobile-association-hosting.test.ts",
      "src/test/plan-phase1-readiness.test.ts",
      "src/test/production-deployment-credential-wiring.test.ts",
      "src/test/production-deployment-provenance.test.ts",
@@ -64885,6 +64945,20 @@
      "host": null,
      "path": "vercel.json",
      "ordinal": 30
+    },
+    {
+     "source": "/:path((?!\\.well-known/(?:apple-app-site-association|assetlinks\\.json)$).*)",
+     "has": [
+      {
+       "type": "host",
+       "value": "thetok.ch"
+      }
+     ],
+     "destination": "https://www.thetok.ch/:path",
+     "permanent": true,
+     "host": "thetok.ch",
+     "path": "vercel.json",
+     "ordinal": 31
     }
    ],
    "rewrites": [
@@ -65162,6 +65236,15 @@
    ],
    "headers": [
     {
+     "source": "/.well-known/apple-app-site-association",
+     "host": null,
+     "keys": [
+      "Content-Type"
+     ],
+     "path": "vercel.json",
+     "ordinal": 1
+    },
+    {
      "source": "/(.*)",
      "host": null,
      "keys": [
@@ -65172,7 +65255,7 @@
       "X-Frame-Options"
      ],
      "path": "vercel.json",
-     "ordinal": 1
+     "ordinal": 2
     },
     {
      "source": "/assets/:path*",
@@ -65181,7 +65264,7 @@
       "Cache-Control"
      ],
      "path": "vercel.json",
-     "ordinal": 2
+     "ordinal": 3
     },
     {
      "source": "/auth",
@@ -65190,7 +65273,7 @@
       "Cache-Control"
      ],
      "path": "vercel.json",
-     "ordinal": 3
+     "ordinal": 4
     },
     {
      "source": "/robots.txt",
@@ -65199,7 +65282,7 @@
       "Cache-Control"
      ],
      "path": "vercel.json",
-     "ordinal": 4
+     "ordinal": 5
     },
     {
      "source": "/sitemap.xml",
@@ -65208,7 +65291,7 @@
       "Cache-Control"
      ],
      "path": "vercel.json",
-     "ordinal": 5
+     "ordinal": 6
     },
     {
      "source": "/sitemap-pages.xml",
@@ -65217,7 +65300,7 @@
       "Cache-Control"
      ],
      "path": "vercel.json",
-     "ordinal": 6
+     "ordinal": 7
     },
     {
      "source": "/sitemap-restaurants.xml",
@@ -65226,7 +65309,7 @@
       "Cache-Control"
      ],
      "path": "vercel.json",
-     "ordinal": 7
+     "ordinal": 8
     },
     {
      "source": "/sitemap-actualites.xml",
@@ -65235,7 +65318,7 @@
       "Cache-Control"
      ],
      "path": "vercel.json",
-     "ordinal": 8
+     "ordinal": 9
     },
     {
      "source": "/auth/:path*",
@@ -65244,7 +65327,7 @@
       "Cache-Control"
      ],
      "path": "vercel.json",
-     "ordinal": 9
+     "ordinal": 10
     },
     {
      "source": "/api/marketing/:path*",
@@ -65255,7 +65338,7 @@
       "X-Robots-Tag"
      ],
      "path": "vercel.json",
-     "ordinal": 10
+     "ordinal": 11
     },
     {
      "source": "/:path*",
@@ -65264,7 +65347,7 @@
       "X-Robots-Tag"
      ],
      "path": "vercel.json",
-     "ordinal": 11
+     "ordinal": 12
     },
     {
      "source": "/:path*",
@@ -65273,7 +65356,7 @@
       "X-Robots-Tag"
      ],
      "path": "vercel.json",
-     "ordinal": 12
+     "ordinal": 13
     },
     {
      "source": "/:path*",
@@ -65282,7 +65365,7 @@
       "X-Robots-Tag"
      ],
      "path": "vercel.json",
-     "ordinal": 13
+     "ordinal": 14
     },
     {
      "source": "/:path*",
@@ -65294,7 +65377,7 @@
       "X-Frame-Options"
      ],
      "path": "vercel.json",
-     "ordinal": 14
+     "ordinal": 15
     },
     {
      "source": "/:path*",
@@ -65307,7 +65390,7 @@
       "X-Frame-Options"
      ],
      "path": "vercel.json",
-     "ordinal": 15
+     "ordinal": 16
     },
     {
      "source": "/:path*",
@@ -65317,7 +65400,7 @@
       "Referrer-Policy"
      ],
      "path": "vercel.json",
-     "ordinal": 16
+     "ordinal": 17
     },
     {
      "source": "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)",
@@ -65327,7 +65410,7 @@
       "Cache-Control"
      ],
      "path": "vercel.json",
-     "ordinal": 17
+     "ordinal": 18
     },
     {
      "source": "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)/:path*",
@@ -65337,7 +65420,7 @@
       "Cache-Control"
      ],
      "path": "vercel.json",
-     "ordinal": 18
+     "ordinal": 19
     },
     {
      "source": "/tok-connect/developer",
@@ -65346,7 +65429,7 @@
       "X-Robots-Tag"
      ],
      "path": "vercel.json",
-     "ordinal": 19
+     "ordinal": 20
     },
     {
      "source": "/tok-connect/developer/:path*",
@@ -65355,7 +65438,7 @@
       "X-Robots-Tag"
      ],
      "path": "vercel.json",
-     "ordinal": 20
+     "ordinal": 21
     },
     {
      "source": "/:surface(functions|api)/:path*",
@@ -65364,7 +65447,7 @@
       "X-Robots-Tag"
      ],
      "path": "vercel.json",
-     "ordinal": 21
+     "ordinal": 22
     },
     {
      "source": "/mcp",
@@ -65373,7 +65456,7 @@
       "X-Robots-Tag"
      ],
      "path": "vercel.json",
-     "ordinal": 22
+     "ordinal": 23
     },
     {
      "source": "/.well-known/:path*",
@@ -65382,7 +65465,7 @@
       "X-Robots-Tag"
      ],
      "path": "vercel.json",
-     "ordinal": 23
+     "ordinal": 24
     }
    ],
    "middleware": {
@@ -71656,6 +71739,27 @@
       "level": 2,
       "title": "Comportement recommande",
       "line": 54
+     }
+    ]
+   },
+   {
+    "path": "docs/runbooks/mobile-association-hosting.md",
+    "title": "Hébergement des associations mobiles",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Hébergement des associations mobiles",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "État observé le 10 octobre 2026",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Ordre de livraison",
+      "line": 11
      }
     ]
    },
@@ -101193,6 +101297,15 @@
     "lineCount": 125
    },
    {
+    "path": "src/test/mobile-association-hosting.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "vercel"
+    ],
+    "lineCount": 41
+   },
+   {
     "path": "src/test/mobile-logo-intro.test.tsx",
     "exports": [],
     "environmentNames": [],
@@ -101591,7 +101704,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 320
+    "lineCount": 325
    },
    {
     "path": "src/test/production-supabase-deployment-keys.test.ts",
@@ -109296,6 +109409,11 @@
     "extension": ".md"
    },
    {
+    "path": "docs/runbooks/mobile-association-hosting.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
     "path": "docs/runbooks/production-release-readiness.md",
     "category": "documentation",
     "extension": ".md"
@@ -116657,6 +116775,11 @@
    },
    {
     "path": "src/test/miamz-business-logic-guards.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/mobile-association-hosting.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -137837,6 +137960,19 @@
    "detailRef": "ef9edba84e6d"
   },
   {
+   "id": "code-module:7dc165b0d789",
+   "type": "code-module",
+   "title": "src/test/mobile-association-hosting.test.ts",
+   "description": "Module de 41 lignes; exports: aucun export statique.",
+   "path": "src/test/mobile-association-hosting.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "vercel"
+   ],
+   "detailRef": "00b6001daf05"
+  },
+  {
    "id": "code-module:f243132e30d1",
    "type": "code-module",
    "title": "src/test/mobile-logo-intro.test.tsx",
@@ -138407,7 +138543,7 @@
    "id": "code-module:da3166f1d173",
    "type": "code-module",
    "title": "src/test/production-preflight-hardening.test.ts",
-   "description": "Module de 320 lignes; exports: aucun export statique.",
+   "description": "Module de 325 lignes; exports: aucun export statique.",
    "path": "src/test/production-preflight-hardening.test.ts",
    "line": 1,
    "surface": null,
@@ -138418,7 +138554,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "01b339f6fd00"
+   "detailRef": "9425c6031783"
   },
   {
    "id": "code-module:384581ed4d81",
@@ -201486,6 +201622,20 @@
    "detailRef": "c11ca708ddde"
   },
   {
+   "id": "document-section:2a70fe8591ed",
+   "type": "document-section",
+   "title": "Hébergement des associations mobiles",
+   "description": "Section de Hébergement des associations mobiles.",
+   "path": "docs/runbooks/mobile-association-hosting.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Hébergement des associations mobiles",
+    "h1"
+   ],
+   "detailRef": "f95d2a9d9221"
+  },
+  {
    "id": "document-section:f269337e47e5",
    "type": "document-section",
    "title": "IP restrictions",
@@ -204970,6 +205120,20 @@
     "h2"
    ],
    "detailRef": "e3dda1ac0cc9"
+  },
+  {
+   "id": "document-section:5355597ccdf6",
+   "type": "document-section",
+   "title": "Ordre de livraison",
+   "description": "Section de Hébergement des associations mobiles.",
+   "path": "docs/runbooks/mobile-association-hosting.md",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "Hébergement des associations mobiles",
+    "h2"
+   ],
+   "detailRef": "22e4f7fdd017"
   },
   {
    "id": "document-section:7b7b6ed5db40",
@@ -218272,6 +218436,20 @@
    "detailRef": "c5156a1821bf"
   },
   {
+   "id": "document-section:51c514548a68",
+   "type": "document-section",
+   "title": "État observé le 10 octobre 2026",
+   "description": "Section de Hébergement des associations mobiles.",
+   "path": "docs/runbooks/mobile-association-hosting.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "Hébergement des associations mobiles",
+    "h2"
+   ],
+   "detailRef": "87689bc8c1f4"
+  },
+  {
    "id": "document-section:01d2a60c4c14",
    "type": "document-section",
    "title": "État sélectionné",
@@ -219852,6 +220030,21 @@
     "État local prêt"
    ],
    "detailRef": "9039c95ec416"
+  },
+  {
+   "id": "document:2a70fe8591ed",
+   "type": "document",
+   "title": "Hébergement des associations mobiles",
+   "description": "Document Markdown avec 3 section(s).",
+   "path": "docs/runbooks/mobile-association-hosting.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Hébergement des associations mobiles",
+    "Ordre de livraison",
+    "État observé le 10 octobre 2026"
+   ],
+   "detailRef": "f63e205c0d83"
   },
   {
    "id": "document:ccee34342306",
@@ -279958,6 +280151,20 @@
    "detailRef": "575b631e916f"
   },
   {
+   "id": "file:00933420b8a7",
+   "type": "file",
+   "title": "docs/runbooks/mobile-association-hosting.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/runbooks/mobile-association-hosting.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "a0b785cea847"
+  },
+  {
    "id": "file:e111ab9e8186",
    "type": "file",
    "title": "docs/runbooks/production-release-readiness.md",
@@ -300580,6 +300787,20 @@
    "detailRef": "272cb85a006f"
   },
   {
+   "id": "file:f23a14191c97",
+   "type": "file",
+   "title": "src/test/mobile-association-hosting.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/mobile-association-hosting.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "8735859d5d15"
+  },
+  {
    "id": "file:d0510985513f",
    "type": "file",
    "title": "src/test/mobile-logo-intro.test.tsx",
@@ -316591,7 +316812,7 @@
     "X-Content-Type-Options",
     "X-Frame-Options"
    ],
-   "detailRef": "fe7df6b30b15"
+   "detailRef": "3a02988410fc"
   },
   {
    "id": "http-headers:f425d05434b6",
@@ -316604,7 +316825,20 @@
    "tags": [
     "X-Robots-Tag"
    ],
-   "detailRef": "4a22e237ee7e"
+   "detailRef": "a7773998c2dc"
+  },
+  {
+   "id": "http-headers:d472efade7aa",
+   "type": "http-headers",
+   "title": "/.well-known/apple-app-site-association",
+   "description": "En-têtes Content-Type.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "Content-Type"
+   ],
+   "detailRef": "f7129b16cbed"
   },
   {
    "id": "http-headers:af744bfb9395",
@@ -316618,7 +316852,7 @@
     "X-Robots-Tag",
     "demo-client.thetok.ch"
    ],
-   "detailRef": "02b594853597"
+   "detailRef": "02ba6565edf9"
   },
   {
    "id": "http-headers:af744bfb9395:2",
@@ -316632,7 +316866,7 @@
     "X-Robots-Tag",
     "demo-restaurateur.thetok.ch"
    ],
-   "detailRef": "83c377ab3841"
+   "detailRef": "48c23d4da5b0"
   },
   {
    "id": "http-headers:af744bfb9395:3",
@@ -316646,7 +316880,7 @@
     "X-Robots-Tag",
     "demo-livreur.thetok.ch"
    ],
-   "detailRef": "6f525870971a"
+   "detailRef": "b69c56fe6f91"
   },
   {
    "id": "http-headers:af744bfb9395:4",
@@ -316663,7 +316897,7 @@
     "X-Robots-Tag",
     "commercial.thetok.ch"
    ],
-   "detailRef": "73271b37e780"
+   "detailRef": "6eb1eee53fe7"
   },
   {
    "id": "http-headers:af744bfb9395:5",
@@ -316681,7 +316915,7 @@
     "X-Robots-Tag",
     "marketing.thetok.ch"
    ],
-   "detailRef": "04c9530acbf5"
+   "detailRef": "33833f1b1b26"
   },
   {
    "id": "http-headers:af744bfb9395:6",
@@ -316696,7 +316930,7 @@
     "X-Robots-Tag",
     "admin.thetok.ch"
    ],
-   "detailRef": "4dff46181a64"
+   "detailRef": "de7535dd4653"
   },
   {
    "id": "http-headers:22068ca038ee",
@@ -316710,7 +316944,7 @@
     "Cache-Control",
     "X-Robots-Tag"
    ],
-   "detailRef": "f31038af3e73"
+   "detailRef": "719ac368f920"
   },
   {
    "id": "http-headers:79300f7cef5e",
@@ -316724,7 +316958,7 @@
     "Cache-Control",
     "X-Robots-Tag"
    ],
-   "detailRef": "dd357c3248ff"
+   "detailRef": "7b96fb3b6751"
   },
   {
    "id": "http-headers:564735f9dcbc",
@@ -316737,7 +316971,7 @@
    "tags": [
     "X-Robots-Tag"
    ],
-   "detailRef": "3b358ae34710"
+   "detailRef": "c6b8ef72a44c"
   },
   {
    "id": "http-headers:021e7db7356f",
@@ -316752,7 +316986,7 @@
     "Pragma",
     "X-Robots-Tag"
    ],
-   "detailRef": "e17b1edef9ee"
+   "detailRef": "a77ecfad7437"
   },
   {
    "id": "http-headers:99afee72d373",
@@ -316765,7 +316999,7 @@
    "tags": [
     "Cache-Control"
    ],
-   "detailRef": "5b88c9875b2b"
+   "detailRef": "b508831fb685"
   },
   {
    "id": "http-headers:c710cddb9f55",
@@ -316778,7 +317012,7 @@
    "tags": [
     "Cache-Control"
    ],
-   "detailRef": "92fa7929e880"
+   "detailRef": "a61e83bae4de"
   },
   {
    "id": "http-headers:7059b9616433",
@@ -316791,7 +317025,7 @@
    "tags": [
     "Cache-Control"
    ],
-   "detailRef": "e25b45a8e3fe"
+   "detailRef": "7ce533a9aebc"
   },
   {
    "id": "http-headers:e9d2a4caa373",
@@ -316804,7 +317038,7 @@
    "tags": [
     "X-Robots-Tag"
    ],
-   "detailRef": "39e39c89d601"
+   "detailRef": "278000232580"
   },
   {
    "id": "http-headers:389f9f9b91a7",
@@ -316817,7 +317051,7 @@
    "tags": [
     "Cache-Control"
    ],
-   "detailRef": "8d48c495abe4"
+   "detailRef": "ae71f1a3a3c1"
   },
   {
    "id": "http-headers:6e92f81e92ce",
@@ -316830,7 +317064,7 @@
    "tags": [
     "Cache-Control"
    ],
-   "detailRef": "18746975450a"
+   "detailRef": "e3c8104bcaa8"
   },
   {
    "id": "http-headers:c3463528abc2",
@@ -316843,7 +317077,7 @@
    "tags": [
     "Cache-Control"
    ],
-   "detailRef": "56b782ebe2d4"
+   "detailRef": "644e79e5d00c"
   },
   {
    "id": "http-headers:83eacf3c2a7b",
@@ -316856,7 +317090,7 @@
    "tags": [
     "Cache-Control"
    ],
-   "detailRef": "4c7d4846a4cb"
+   "detailRef": "a3585446c9f0"
   },
   {
    "id": "http-headers:38640a792426",
@@ -316869,7 +317103,7 @@
    "tags": [
     "Cache-Control"
    ],
-   "detailRef": "ae269dc522e0"
+   "detailRef": "5e92b1f9abf2"
   },
   {
    "id": "http-headers:dc7693ee5684",
@@ -316882,7 +317116,7 @@
    "tags": [
     "X-Robots-Tag"
    ],
-   "detailRef": "4b034cc34518"
+   "detailRef": "88e9f8a62e4a"
   },
   {
    "id": "http-headers:19da1f8b8a7d",
@@ -316895,7 +317129,7 @@
    "tags": [
     "X-Robots-Tag"
    ],
-   "detailRef": "618f7e8be31d"
+   "detailRef": "b83635e24df2"
   },
   {
    "id": "integration:12e0cca0ac8d",
@@ -318213,7 +318447,7 @@
    "id": "integration:077d0104684d",
    "type": "integration",
    "title": "Vercel",
-   "description": "Intégration externe détectée dans 56 module(s).",
+   "description": "Intégration externe détectée dans 57 module(s).",
    "path": "middleware.js",
    "line": null,
    "surface": null,
@@ -318249,6 +318483,7 @@
     "src/test/marketing-bff-vercel-entrypoints.test.ts",
     "src/test/marketing-domain-isolation.test.ts",
     "src/test/marketing-subdomain-integration.test.ts",
+    "src/test/mobile-association-hosting.test.ts",
     "src/test/plan-phase1-readiness.test.ts",
     "src/test/production-deployment-credential-wiring.test.ts",
     "src/test/production-deployment-provenance.test.ts",
@@ -318276,7 +318511,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "vercel"
    ],
-   "detailRef": "a2beddf4fd52"
+   "detailRef": "a8643e62da27"
   },
   {
    "id": "marketing-operation:dae86fc78e92",
@@ -328897,32 +329132,60 @@
    "detailRef": "27353c5a4adb"
   },
   {
+   "id": "path-literal:6db89e4befcd",
+   "type": "path-literal",
+   "title": "/.well-known/apple-app-site-association-extra",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/mobile-association-hosting.test.ts",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "src/test/mobile-association-hosting.test.ts"
+   ],
+   "detailRef": "85882b5af230"
+  },
+  {
    "id": "path-literal:707cc948a454",
    "type": "path-literal",
    "title": "/.well-known/apple-app-site-association",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
    "line": 69,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
+    "src/test/mobile-association-hosting.test.ts",
     "src/test/production-preflight-hardening.test.ts"
    ],
-   "detailRef": "4b151f3808c4"
+   "detailRef": "48af83ff3353"
   },
   {
    "id": "path-literal:552e0fdf1ace",
    "type": "path-literal",
    "title": "/.well-known/assetlinks.json",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/mobile-verify.mjs",
    "line": 262,
    "surface": null,
    "tags": [
     "scripts/mobile-verify.mjs",
-    "src/test/android-google-play-readiness.test.ts"
+    "src/test/android-google-play-readiness.test.ts",
+    "src/test/mobile-association-hosting.test.ts"
    ],
-   "detailRef": "be1d9a5998ff"
+   "detailRef": "89cbb249f6a4"
+  },
+  {
+   "id": "path-literal:1eadbc11ac3c",
+   "type": "path-literal",
+   "title": "/.well-known/oauth-protected-resource",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/mobile-association-hosting.test.ts",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "src/test/mobile-association-hosting.test.ts"
+   ],
+   "detailRef": "3752df732ddb"
   },
   {
    "id": "path-literal:d036ee31a89d",
@@ -328951,6 +329214,19 @@
    "detailRef": "e11341c49267"
   },
   {
+   "id": "path-literal:c08058bd6bd6",
+   "type": "path-literal",
+   "title": "/:path(",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/mobile-association-hosting.test.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "src/test/mobile-association-hosting.test.ts"
+   ],
+   "detailRef": "03f4133624cb"
+  },
+  {
    "id": "path-literal:5f12583a8f38",
    "type": "path-literal",
    "title": "/:path*",
@@ -328967,7 +329243,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 234 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 235 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -329050,6 +329326,7 @@
     "src/test/marketing-autopilot-frontend.test.tsx",
     "src/test/marketing-domain-isolation.test.ts",
     "src/test/marketing-subdomain-integration.test.ts",
+    "src/test/mobile-association-hosting.test.ts",
     "src/test/mobile-logo-intro.test.tsx",
     "src/test/navigation.test.ts",
     "src/test/production-preflight-hardening.test.ts",
@@ -329083,7 +329360,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "47ef240a1796"
+   "detailRef": "a6fc60e5e2ff"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -332244,7 +332521,7 @@
    "id": "path-literal:12f4efb437c7",
    "type": "path-literal",
    "title": "/dashboard/reservations",
-   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 21 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 610,
    "surface": null,
@@ -332256,12 +332533,13 @@
     "src/components/dashboard/performance/PerformanceTodayTab.tsx",
     "src/lib/featureCatalog.ts",
     "src/test/dashboard-selection-navigation.test.tsx",
+    "src/test/mobile-association-hosting.test.ts",
     "src/test/restaurant-dashboard-overview-navigation.test.ts",
     "supabase/functions/_shared/chefs-table.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "bc52dbaf011b"
+   "detailRef": "84f0f855dc0c"
   },
   {
    "id": "path-literal:c0eff3341b29",
@@ -336873,16 +337151,17 @@
    "id": "path-literal:2380534d9d31",
    "type": "path-literal",
    "title": "/restaurants/geneve",
-   "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/commercial-domain-isolation.test.ts",
    "line": 87,
    "surface": null,
    "tags": [
     "src/test/commercial-domain-isolation.test.ts",
+    "src/test/mobile-association-hosting.test.ts",
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/seo-public-name-hardening.test.ts"
    ],
-   "detailRef": "962b8ba6cb54"
+   "detailRef": "c68a648dd60b"
   },
   {
    "id": "path-literal:31608bd1732b",
@@ -344063,6 +344342,21 @@
     "src/lib/optimizedImages.ts"
    ],
    "detailRef": "b9764897124f"
+  },
+  {
+   "id": "redirect:5425aedb53f2",
+   "type": "redirect",
+   "title": "/:path((?!\\.well-known/(?:apple-app-site-association|assetlinks\\.json)$).*)",
+   "description": "Redirige sur thetok.ch vers https://www.thetok.ch/:path.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "https://www.thetok.ch/:path",
+    "thetok.ch",
+    "true"
+   ],
+   "detailRef": "1e8827ce14c2"
   },
   {
    "id": "redirect:af744bfb9395",
