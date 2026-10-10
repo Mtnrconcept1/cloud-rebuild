@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "156e8ca4a9bf0e453e9bf5964c05411c23ce96e826d2a0df096966fd3a10390c",
+ "sourceDigest": "7f6bee40849562224e21efbb782312b4d6b145dfcab6956ed079930ae2fde9ad",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -99544,7 +99544,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 242
+    "lineCount": 243
    },
    {
     "path": "src/test/actualites-restaurateur.test.tsx",
@@ -135682,12 +135682,12 @@
    "id": "code-module:011f1651ac0a",
    "type": "code-module",
    "title": "src/test/actualites-responsive-guards.test.ts",
-   "description": "Module de 242 lignes; exports: aucun export statique.",
+   "description": "Module de 243 lignes; exports: aucun export statique.",
    "path": "src/test/actualites-responsive-guards.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "448cb7fc1e71"
+   "detailRef": "82458e508cf6"
   },
   {
    "id": "code-module:35297e800cab",

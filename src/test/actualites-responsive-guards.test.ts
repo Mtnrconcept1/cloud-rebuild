@@ -15,7 +15,8 @@ describe("Actualites responsive guards", () => {
     const dialog = read("src/components/ui/dialog.tsx");
     const alertDialog = read("src/components/ui/alert-dialog.tsx");
 
-    expect(app).toContain("{publicNavbar}");
+    expect(app).toContain('const launchFrame = pathname === "/coming-soon";');
+    expect(app).toContain("!launchFrame ? publicNavbar : null");
     expect(app).not.toContain('max-sm:hidden">{publicNavbar}</div>');
     expect(dialog).toContain("hideCloseButton?: boolean;");
     expect(dialog).toContain("{!hideCloseButton ? (");
