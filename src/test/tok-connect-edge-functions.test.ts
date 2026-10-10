@@ -171,10 +171,30 @@ describe("TOK Connect Edge Functions", () => {
     const source = read("supabase/functions/tok-connect-mcp/index.ts");
     const appCss = read("src/index.css");
 
-    for (const token of ["24 95% 53%", "152 55% 45%", "222 30% 5%", "222 28% 11%", "156 58% 47%"]) {
-      expect(appCss).toContain(token);
-      expect(source).toContain(token);
+    const appLight = appCss.match(/:root\s*\{([^}]+)\}/)?.[1];
+    const appDark = appCss.match(/\.dark\s*\{([^}]+)\}/)?.[1];
+    const widgetThemes = Array.from(source.matchAll(/:root\s*\{([^}]+)\}/g), (match) => match[1]);
+    expect(widgetThemes).toHaveLength(2);
+    expect(appLight).toBeDefined();
+    expect(appDark).toBeDefined();
+    const tokens = [
+      ["primary", "primary", "19 88% 39%", "22 92% 65%"],
+      ["primary-foreground", "primary-foreground", "0 0% 100%", "24 16% 10%"],
+      ["accent", "accent", "152 48% 30%", "156 58% 47%"],
+      ["background", "background", "40 43% 97%", "24 14% 8%"],
+      ["card", "surface", "0 0% 100%", "24 12% 12%"],
+      ["foreground", "text", "24 16% 13%", "210 30% 98%"],
+      ["muted-foreground", "muted", "25 9% 40%", "214 20% 80%"],
+      ["border", "line", "32 22% 86%", "24 8% 28%"],
+    ];
+    for (const [appToken, widgetToken, light, dark] of tokens) {
+      expect(appLight).toContain(`--${appToken}: ${light};`);
+      expect(widgetThemes[0]).toContain(`--tok-${widgetToken}: hsl(${light});`);
+      expect(appDark).toContain(`--${appToken}: ${dark};`);
+      expect(widgetThemes[1]).toContain(`--tok-${widgetToken}: hsl(${dark});`);
     }
+    expect(widgetThemes[0]).toContain("--tok-primary-soft: hsl(19 88% 39% / 0.14);");
+    expect(widgetThemes[1]).toContain("--tok-primary-soft: hsl(22 92% 65% / 0.14);");
 
     expect(source).toContain('"DM Sans"');
     expect(source).toContain('"Playfair Display"');

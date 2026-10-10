@@ -35,7 +35,10 @@ type SponsoredRestaurantTemplateCardProps = {
   selectedTextElement?: CampaignCreativeTextElement | null;
   draggingTextElement?: CampaignCreativeTextElement | null;
   onTextPointerDown?: never;
+  restaurantHref?: string;
+  onRestaurantClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
   isFavorite?: boolean;
+  favoritePending?: boolean;
   onFavoriteClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   onSlotClick?: (event: MouseEvent<HTMLButtonElement>, slot: string) => void;
 };
@@ -146,29 +149,32 @@ export function SponsoredRestaurantTemplateCard({
   headline,
   body,
   ctaLabel = "Découvrir l'offre",
-  discountLabel = "Jusqu’à -18%",
+  discountLabel = "",
   slots = [],
   className,
   variant = "card",
   compactBanner = false,
+  restaurantHref,
+  onRestaurantClick,
   isFavorite = false,
+  favoritePending = false,
   onFavoriteClick,
   onSlotClick,
 }: SponsoredRestaurantTemplateCardProps) {
   const normalized = normalizeCampaignCreative(creative);
-  const displayRating = Number(rating || 0) > 0 ? Math.min(Number(rating || 0), 10).toFixed(1) : "5.7";
-  const safeReviewCount = Number.isFinite(Number(reviewCount)) ? Number(reviewCount) : 3;
-  const displayCity = city || "Puplinge";
-  const displayAddress = address || "Rue de Graman";
-  const displayCuisine = cuisine || "Italien";
+  const displayRating = Number(rating || 0) > 0 ? Math.min(Number(rating || 0), 10).toFixed(1) : "";
+  const safeReviewCount = Number.isFinite(Number(reviewCount)) ? Number(reviewCount) : 0;
+  const displayCity = city || "";
+  const displayAddress = address || "";
+  const displayCuisine = cuisine || "Restaurant";
   const displayBadge = getCreativeCopy(normalized, "badge", "Sponsorisé");
   const displayDiscount = getCreativeCopy(normalized, "discount", discountLabel || "");
   const displayEyebrow = getCreativeCopy(normalized, "eyebrow", `${displayCuisine} · ${displayCity}`);
   const displayRestaurantName = getCreativeCopy(normalized, "restaurant", restaurantName);
   const displayTagline = getCreativeCopy(normalized, "tagline", "Savourez l'instant");
   const displayAddressCopy = getCreativeCopy(normalized, "address", displayAddress);
-  const displayHeadline = headline?.trim() || "Vos ventes flash Quirinale";
-  const displayBody = body?.trim() || "Mettez vos ventes flash en avant pour accélérer les commandes.";
+  const displayHeadline = headline?.trim() || "Adresse mise en avant";
+  const displayBody = body?.trim() || "Découvrez ce restaurant et ses informations.";
   const displayOfferHeadline = getCreativeCopy(normalized, "headline", displayHeadline);
   const displayOfferBody = getCreativeCopy(normalized, "body", displayBody);
   const displayCta = getCreativeCopy(normalized, "cta", ctaLabel);
@@ -214,7 +220,7 @@ export function SponsoredRestaurantTemplateCard({
           >
             <div className="flex flex-wrap items-center gap-2.5">
               <span
-                className={cn("inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-center text-[10px] uppercase leading-4 tracking-[0.2em] text-white shadow-[0_14px_28px_rgba(249,115,22,0.28)] [overflow-wrap:anywhere]", getTypographyClass(normalized.text.badge))}
+                className={cn("inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-center text-[10px] uppercase leading-4 tracking-[0.2em] text-primary-foreground shadow-[0_14px_28px_rgba(249,115,22,0.28)] [overflow-wrap:anywhere]", getTypographyClass(normalized.text.badge))}
                 style={getTextInlineStyle(normalized.text.badge)}
               >
                 <Zap className="h-3.5 w-3.5 fill-current" />
@@ -402,8 +408,11 @@ export function SponsoredRestaurantTemplateCard({
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/[.38] via-slate-950/5 to-transparent" />
         <button
           type="button"
-          aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white"
+          data-card-action="favorite"
+          aria-label={`${isFavorite ? "Retirer" : "Ajouter"} ${restaurantName} ${isFavorite ? "des" : "aux"} favoris`}
+          aria-pressed={isFavorite}
+          disabled={favoritePending}
+          className="absolute right-3 top-3 grid h-11 w-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 place-items-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white"
           onClick={onFavoriteClick}
         >
           <Heart className={cn("h-4 w-4 text-red-500", isFavorite && "fill-current")} />
@@ -412,7 +421,7 @@ export function SponsoredRestaurantTemplateCard({
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="mb-3 flex min-w-0 flex-wrap items-start gap-2" data-sponsored-card-badges>
-          <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-full border border-orange-200 bg-primary px-3 py-1.5 text-center text-[9px] font-black uppercase leading-4 tracking-[0.12em] text-white shadow-sm [overflow-wrap:anywhere]">
+          <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-full border border-orange-200 bg-primary px-3 py-1.5 text-center text-[9px] font-black uppercase leading-4 tracking-[0.12em] text-primary-foreground shadow-sm [overflow-wrap:anywhere]">
             <Megaphone className="h-3 w-3 shrink-0" />
             <span className="min-w-0 break-words [overflow-wrap:anywhere]">{displayBadge}</span>
           </span>
@@ -436,10 +445,10 @@ export function SponsoredRestaurantTemplateCard({
             </div>
           </div>
           <div className="shrink-0 text-right">
-            <div className="inline-flex min-w-[2.7rem] items-center justify-center rounded-xl bg-orange-500 px-2.5 py-1.5 text-sm font-bold text-white">
-              {displayRating}
+            <div className="inline-flex min-w-[2.7rem] items-center justify-center rounded-xl bg-primary px-2.5 py-1.5 text-sm font-bold text-primary-foreground">
+              {displayRating || "—"}{displayRating ? <span className="sr-only"> sur 10</span> : null}
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground">({safeReviewCount})</p>
+            <p className="mt-1 text-[10px] text-muted-foreground">{safeReviewCount > 0 ? `${safeReviewCount} avis` : "Pas encore d’avis"}</p>
           </div>
         </div>
 
@@ -464,10 +473,10 @@ export function SponsoredRestaurantTemplateCard({
 
         <div className="mt-auto pt-4">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex min-h-11 min-w-0 flex-1 flex-wrap items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary via-orange-500 to-orange-600 px-4 py-2.5 text-center text-sm font-bold leading-5 text-white shadow-[0_14px_30px_rgba(249,115,22,0.26)] [overflow-wrap:anywhere]">
+            <a href={restaurantHref} onClick={onRestaurantClick} data-card-action="restaurant-view" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 inline-flex min-h-11 min-w-0 flex-1 flex-wrap items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary via-orange-500 to-orange-600 px-4 py-2.5 text-center text-sm font-bold leading-5 text-white shadow-[0_14px_30px_rgba(249,115,22,0.26)] [overflow-wrap:anywhere]">
               {displayCta}
               <ArrowRight className="h-4 w-4" />
-            </div>
+            </a>
             {slots.slice(0, 2).map((slot) => (
               <button
                 key={slot}

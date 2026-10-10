@@ -125,7 +125,6 @@ export default function Navbar() {
       : getRoleHomePath(role);
   const showCartShortcut = showClientSurface && (user || itemCount > 0);
   const isDesktopHomeReference = showClientSurface && location.pathname === "/";
-  const usesHeroDesktopNavigation = isDesktopHomeReference && !user;
   const showSignedInDesktopHomeMenu = isDesktopHomeReference && Boolean(user);
   const isMobileHomeHeader = isDesktopHomeReference;
 
@@ -216,13 +215,13 @@ export default function Navbar() {
       {/* ─── Main header ─── */}
       <header
         ref={headerRef}
-        className={`sticky top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out ${usesHeroDesktopNavigation ? "md:hidden" : ""} ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
+        className={`tok-site-header sticky top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "border-border bg-background/95 backdrop-blur dark:border-border dark:bg-background/95" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
         style={{
           opacity: isHeaderVisible ? 1 : 0,
           transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
         }}
       >
-        <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8 ${isMobileHomeHeader ? "h-[66px] bg-white dark:bg-white" : "h-16"}`}>
+        <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8 ${isMobileHomeHeader ? "h-[66px] bg-background dark:bg-background" : "h-16"}`}>
           <Link to={homeTarget} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
             <img src={logoSrc} alt="Tok" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16`} />
           </Link>
@@ -231,14 +230,14 @@ export default function Navbar() {
             <NavigationMenu className="hidden xl:flex">
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <Link to="/recherche" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  <Link to="/recherche" className="flex items-center gap-1 min-h-11 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                     <Search className="h-4 w-4" />
                     Explorer
                 </Link>
               </NavigationMenuItem>
               {actualitesEnabled ? (
                 <NavigationMenuItem>
-                  <Link to="/actualites" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  <Link to="/actualites" className="flex items-center gap-1 min-h-11 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                     <Newspaper className="h-4 w-4" />
                     Actualités
                   </Link>
@@ -246,7 +245,7 @@ export default function Navbar() {
               ) : null}
               {antiWasteEnabled ? (
                 <NavigationMenuItem>
-                  <Link to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
+                  <Link to="/anti-gaspi" className="flex items-center gap-1 min-h-11 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
                     <Leaf className="h-4 w-4" />
                     Anti-gaspi
                     </Link>
@@ -254,7 +253,7 @@ export default function Navbar() {
                 ) : null}
                 {flashSalesEnabled ? (
                   <NavigationMenuItem>
-                    <Link to="/ventes-flash" className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-amber-600 transition-colors hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300">
+                    <Link to="/ventes-flash" className="flex items-center gap-1 min-h-11 px-3 py-2 text-sm font-semibold text-amber-600 transition-colors hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300">
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                   </Link>
@@ -262,7 +261,7 @@ export default function Navbar() {
               ) : null}
               {tokOneEnabled ? (
                 <NavigationMenuItem>
-                    <Link to="/tok-one" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-violet-600 transition-colors hover:text-violet-500">
+                    <Link to="/tok-one" className="flex items-center gap-1 min-h-11 px-3 py-2 text-sm font-medium text-primary transition-colors hover:text-foreground">
                       <Crown className="h-4 w-4" />
                       Tok One
                     </Link>
@@ -319,9 +318,8 @@ export default function Navbar() {
             ) : null}
 
             <ThemeToggleButton
-              aria-label="Mode sombre"
               onMouseDown={preserveNavbarActionScrollPosition}
-              className={`${isMobileHomeHeader ? "text-slate-950 hover:bg-transparent hover:text-slate-950 dark:text-slate-950" : ""} hidden min-[380px]:inline-flex`}
+              className={`${isMobileHomeHeader ? "text-foreground hover:bg-transparent hover:text-foreground" : ""} hidden min-[380px]:inline-flex`}
             />
 
             {showCartShortcut ? (
@@ -338,7 +336,7 @@ export default function Navbar() {
               </Button>
             ) : null}
 
-            <NotificationBell className={isMobileHomeHeader ? "text-slate-950 hover:bg-transparent" : undefined} />
+            <NotificationBell className={isMobileHomeHeader ? "text-foreground hover:bg-transparent hover:text-foreground" : undefined} />
 
             {showClientSurface ? (
               <Link
@@ -361,7 +359,7 @@ export default function Navbar() {
                     onMouseDown={preserveNavbarActionScrollPosition}
                     className={
                       isMobileHomeHeader
-                        ? "order-3 h-[48px] w-[48px] rounded-full bg-primary p-0 text-[0.88rem] font-bold text-white shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90 min-[380px]:w-auto min-[380px]:px-5"
+                        ? "order-3 h-[48px] w-[48px] rounded-full bg-primary p-0 text-[0.88rem] font-bold text-primary-foreground shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90 min-[380px]:w-auto min-[380px]:px-5"
                         : "rounded-full"
                     }
                   >
@@ -419,10 +417,10 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild size="sm" className={`${isMobileHomeHeader ? "order-3 h-[48px] rounded-full px-5 text-[0.88rem] shadow-[0_10px_22px_rgba(255,107,28,0.24)]" : "min-h-[44px] px-3 min-[380px]:px-5"} rounded-full bg-primary font-bold text-white shadow-md hover:bg-primary/90`}>
+              <Button asChild size="sm" className={`${isMobileHomeHeader ? "order-3 h-[48px] rounded-full px-5 text-[0.88rem] shadow-[0_10px_22px_rgba(255,107,28,0.24)]" : "min-h-[44px] px-3 min-[380px]:px-5"} rounded-full bg-primary font-bold text-primary-foreground shadow-md hover:bg-primary/90`}>
                 <Link to="/auth" className="flex items-center gap-2">
                   <User className={`${isMobileHomeHeader ? "h-5 w-5" : "h-4 w-4"}`} />
-                  <span className={isMobileHomeHeader ? "inline" : "hidden min-[380px]:inline"}>CONNEXION</span>
+                  <span className={isMobileHomeHeader ? "inline" : "hidden min-[380px]:inline"}>Connexion</span>
                 </Link>
               </Button>
             )}
@@ -436,7 +434,7 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent" : ""} ${showSignedInDesktopHomeMenu ? "xl:inline-flex" : "xl:hidden"}`}
+                  className={`${isMobileHomeHeader ? "order-2 text-foreground hover:bg-transparent" : ""} ${showSignedInDesktopHomeMenu ? "xl:inline-flex" : "xl:hidden"}`}
                 >
                   <Menu className={`${isMobileHomeHeader ? "h-8 w-8" : "h-5 w-5"}`} />
                   <span className="sr-only">Ouvrir le menu</span>
@@ -483,7 +481,7 @@ export default function Navbar() {
                     </Link>
                   ) : null}
                   {showClientSurface && tokOneEnabled ? (
-                    <Link to="/tok-one" className="flex items-center gap-1 text-sm font-medium text-violet-600" onClick={() => setMenuOpen(false)}>
+                    <Link to="/tok-one" className="flex items-center gap-1 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>
                       <Crown className="h-4 w-4" />
                       Tok One
                     </Link>

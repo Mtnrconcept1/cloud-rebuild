@@ -185,7 +185,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-muted/30 pt-16">
+    <div className="tok-workspace-shell min-h-screen overflow-x-hidden bg-background pt-16">
       <div className="container px-3 py-4 sm:px-4 sm:py-6 md:flex md:gap-7 md:py-8">
         <nav aria-label="Navigation de l’espace client" className="mb-4 md:hidden">
           <div className="flex snap-x gap-2 overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -194,7 +194,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
         </nav>
 
         <aside className="hidden w-64 shrink-0 md:block">
-          <div className="sticky top-24 rounded-2xl border bg-card p-4 shadow-sm">
+          <div className="tok-workspace-sidebar sticky top-24 rounded-2xl border bg-card p-4 shadow-sm">
             <h2 className="px-3 py-2 font-display text-lg font-semibold">Mon espace</h2>
             {!commercialDemoFrame ? <RoleSpaceMenuSection className="mb-3" /> : null}
             <nav aria-label="Navigation de l’espace client" className="space-y-4">
@@ -213,7 +213,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
           </div>
         </aside>
 
-        <main className="min-h-[500px] min-w-0 flex-1 overflow-x-hidden rounded-2xl border bg-card p-4 shadow-sm sm:p-6 md:p-8">
+        <main className="tok-workspace-content min-h-[500px] min-w-0 flex-1 overflow-x-hidden rounded-2xl border bg-card p-4 shadow-sm sm:p-6 md:p-8">
           {!isHome ? <BackNavigationButton fallback="/mon-espace" className="mb-4" /> : null}
           {children}
           {!commercialDemoFrame ? (

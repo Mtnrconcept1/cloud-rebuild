@@ -802,8 +802,8 @@ export default function Index() {
 
         <motion.div variants={sectionBounce}>
           <RestaurantSection
-            title={userCoordinates ? "À moins de 5 km de vous" : userContext?.city ? `Dans ${userContext.city}` : "Près de chez vous"}
-            subtitle={userCoordinates ? "Votre position actuelle" : "Local"}
+            title={userCoordinates ? "À moins de 5 km de vous" : userContext?.city ? `Dans ${userContext.city}` : "Des adresses à découvrir"}
+            subtitle={userCoordinates ? "Votre position actuelle" : userContext?.city ? "Dans votre ville" : "Votre prochaine découverte"}
             icon={MapPinned}
             iconColor="text-sky-500"
             restaurants={localCards}
@@ -811,7 +811,7 @@ export default function Index() {
             accentClassName="bg-sky-500/80"
             headerTheme="sky"
             headerImageSrc={SECTION_HEADER_IMAGES.local}
-            linkText={userCoordinates ? "Explorer autour de vous" : "Explorer votre ville"}
+            linkText={userCoordinates ? "Explorer autour de vous" : userContext?.city ? "Explorer votre ville" : "Explorer les restaurants"}
             linkTo={buildSearchLink({ city: userCoordinates ? null : userContext?.city || null })}
           />
         </motion.div>
@@ -833,9 +833,8 @@ export default function Index() {
         </motion.div>
 
         <motion.div variants={sectionBounce}>
-          <section className="relative isolate z-10 overflow-visible border-y border-border/70 bg-orange-50/70 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-white/10 dark:bg-orange-950/10 md:py-12">
+          <section className="relative border-y border-border bg-secondary/30 py-7 md:py-10">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" aria-hidden="true" />
-            <div className="pointer-events-none absolute bottom-0 left-0 top-0 w-1.5 bg-primary/80" aria-hidden="true" />
             <div className="container relative space-y-6">
               <SectionShowcaseHeader
                 title={"Promotions\u00a0et activations\u00a0du moment"}
@@ -844,13 +843,6 @@ export default function Index() {
                 iconColor="text-primary"
                 imageSrc={SECTION_HEADER_IMAGES.promo}
                 theme="orange"
-                className="-mx-4 min-h-[222px] pb-16 pt-5 sm:mx-0 sm:min-h-[258px] sm:pb-20 sm:pt-7 md:min-h-[286px] md:pb-20 md:pt-8"
-                linkText="Voir les actualités"
-                linkTo="/actualites"
-                contentClassName="z-30 max-w-[12rem] pr-0 sm:max-w-xs sm:pr-20 md:z-30 md:max-w-lg md:pr-48"
-                illustrationClassName="z-[60] right-4 -top-6 w-44 sm:right-6 sm:-top-8 sm:w-72 md:right-8 md:-top-10 md:w-[26rem]"
-                imageClassName="right-0 h-44 w-44 translate-x-0 sm:h-72 sm:w-72 md:h-[26rem] md:w-[26rem]"
-                titleClassName="text-[1.9rem] leading-[1.05] sm:text-4xl md:text-5xl"
               />
               <div className="space-y-4">
                 {isCommercialDemoClient ? (
@@ -921,13 +913,12 @@ export default function Index() {
         ) : null}
 
         <motion.div variants={sectionBounce}>
-          <section ref={mapSectionRef} className="relative isolate overflow-hidden border-y border-border/70 bg-blue-50/60 py-12 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-white/10 dark:bg-blue-950/10 md:py-16">
+          <section ref={mapSectionRef} className="relative border-y border-border bg-secondary/20 py-7 md:py-10">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" aria-hidden="true" />
-            <div className="pointer-events-none absolute bottom-0 left-0 top-0 w-1.5 bg-blue-500/80" aria-hidden="true" />
             <div className="container relative space-y-6">
               <SectionShowcaseHeader
-                title={userCoordinates ? "Restaurants dans un rayon de 5 km" : "Restaurants à proximité"}
-                subtitle={userCoordinates ? "Selon votre position actuelle" : "Autour de vous"}
+                title={userCoordinates ? "Restaurants dans un rayon de 5 km" : "La carte des restaurants"}
+                subtitle={userCoordinates ? "Selon votre position actuelle" : "Explorez par lieu"}
                 icon={MapPinned}
                 iconColor="text-blue-500"
                 imageSrc={SECTION_HEADER_IMAGES.nearby}

@@ -108,6 +108,14 @@ describe("dashboard shell navigation", () => {
     expect(dialog).toContain("fixed left-[50%] top-[50%] z-[1830]");
   });
 
+  it("keeps the mobile trigger label readable on its light card surface", () => {
+    const layout = read("src/components/DashboardLayout.tsx");
+    const triggerClass = layout.match(/pointer-events-auto h-16 max-w-\[10\.75rem\][^"\n]+/)?.[0];
+    expect(triggerClass).toContain("bg-card");
+    expect(triggerClass).toContain("text-foreground");
+    expect(triggerClass).not.toContain("text-white");
+  });
+
   it("keeps the mobile dashboard trigger out of bottom content", () => {
     const layout = read("src/components/DashboardLayout.tsx");
 
@@ -115,7 +123,7 @@ describe("dashboard shell navigation", () => {
     expect(layout).toContain('data-testid="restaurant-mobile-menu-trigger"');
     expect(layout).toContain("h-16 max-w-[10.75rem] rounded-[1.45rem]");
     expect(layout).toContain("flex h-11 w-11 shrink-0 items-center justify-center rounded-[1rem]");
-    expect(layout).toContain("text-[10px] font-semibold uppercase tracking-[0.28em] text-orange-300");
+    expect(layout).toContain("text-[10px] font-semibold uppercase tracking-[0.28em] text-primary");
     expect(layout).toContain("Resto");
     expect(layout).toContain('className="max-w-[6.25rem] truncate text-sm font-semibold"');
     expect(layout).toContain('<span className="sr-only">{activeNavItem?.label ?? "Ouvrir le menu"}</span>');

@@ -8,7 +8,6 @@ import CityAutocomplete from "@/components/CityAutocomplete";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import CampaignBanner from "@/components/CampaignBanner";
 import RestaurantCard from "@/components/RestaurantCard";
 import { trackSearch, getActiveSponsoredRestaurants } from "@/lib/analytics";
@@ -41,14 +40,14 @@ const SORT_OPTIONS: { value: SortValue; label: string }[] = [
   { value: "note", label: "Note" },
   { value: "promotion", label: "Promotion" },
   { value: "prix", label: "Prix" },
-  { value: "popularite", label: "Popularite" },
+  { value: "popularite", label: "Popularité" },
   { value: "nouveaux", label: "Nouveaux restaurants" },
-  { value: "mieux_notes_mois", label: "Mieux notes du mois" },
+  { value: "mieux_notes_mois", label: "Mieux notés du mois" },
   { value: "plus_reserves_mois", label: "Plus réservés du mois" },
 ];
 
 const ORDER_OPTIONS: { value: SortDirection; label: string }[] = [
-  { value: "desc", label: "Decroissant" },
+  { value: "desc", label: "Décroissant" },
   { value: "asc", label: "Croissant" },
 ];
 
@@ -236,6 +235,7 @@ export default function Recherche() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeQuery = searchParams.get("q") || "";
   const [query, setQuery] = useState(activeQuery);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const cuisine = searchParams.get("cuisine") || "";
   const city = searchParams.get("city") || "";
@@ -263,6 +263,10 @@ export default function Recherche() {
   const {
     data: organicSearchPages,
     isLoading,
+    isError,
+    isFetchNextPageError,
+    refetch,
+    isFetching,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -399,7 +403,7 @@ export default function Recherche() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    updateFilter("q", query);
+    updateFilter("q", query.trim());
   };
 
   const matchesSponsoredFilters = (restaurant: any) => {
@@ -486,7 +490,7 @@ export default function Recherche() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.isIntersecting && !isFetchingNextPage) {
+        if (entry?.isIntersecting && !isFetchingNextPage && !isFetchNextPageError) {
           void fetchNextPage();
         }
       },
@@ -495,7 +499,7 @@ export default function Recherche() {
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isCommercialDemoClient, isFetchingNextPage]);
+  }, [fetchNextPage, hasNextPage, isCommercialDemoClient, isFetchingNextPage, isFetchNextPageError]);
 
   useEffect(() => {
     if (!isCommercialDemoClient && mergedCards.length > 0 && (activeQuery || cuisine || city)) {
@@ -504,37 +508,42 @@ export default function Recherche() {
   }, [activeQuery, city, cuisine, isCommercialDemoClient, mergedCards.length]);
 
   return (
-    <main className="min-h-screen bg-background dark:bg-[radial-gradient(circle_at_18%_0%,rgba(249,115,22,0.14),transparent_28rem),radial-gradient(circle_at_86%_12%,rgba(34,211,238,0.10),transparent_24rem)]">
-      <div className="container space-y-6 py-8">
-        <div className="neon-panel rounded-[32px] border bg-card/70 p-5 shadow-sm md:p-6">
-          <div className="flex flex-col gap-5">
+    <main className="min-h-screen bg-background">
+      <div className="container max-w-7xl space-y-5 py-4 md:py-5">
+        <div className="rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-5">
+          <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Explorer</p>
-                <h1 className="font-display text-3xl font-bold dark:text-white">Trouvez le bon restaurant, plus vite</h1>
-                <p className="max-w-2xl text-sm text-muted-foreground dark:text-slate-300">
-                  Recherchez par nom, cuisine ou ville, puis affinez uniquement si nécessaire.
-                </p>
+                <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">À chaque envie, une adresse.</h1>
+
               </div>
-              <div className="rounded-2xl bg-primary/5 px-4 py-3 text-right dark:border dark:border-primary/25 dark:bg-primary/10 dark:shadow-[0_0_26px_rgba(249,115,22,0.16)]">
-                <p className="text-2xl font-bold text-primary dark:text-orange-300">{organicSearchTotal.toLocaleString("fr-CH")}</p>
-                <p className="text-xs text-muted-foreground dark:text-slate-300">restaurant(s) disponible(s)</p>
-              </div>
+
             </div>
 
-            <form onSubmit={handleSearch} className="flex flex-col gap-3 md:flex-row">
-              <div className="relative flex-1">
+            <form role="search" aria-label="Rechercher un restaurant" onSubmit={handleSearch} className="flex gap-2">
+              <div className="relative min-w-0 flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
+                  type="search"
+                  aria-label="Nom, cuisine, plat ou adresse"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Nom, cuisine, plat ou adresse..."
                   className="h-12 rounded-full pl-10 dark:border-white/20 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-400"
                 />
               </div>
-              <Button type="submit" className="h-12 rounded-full px-6 dark:shadow-[0_0_30px_rgba(249,115,22,0.32)]">Rechercher</Button>
+              <Button type="submit" aria-label="Rechercher" className="h-12 w-12 shrink-0 rounded-full p-0 sm:w-auto sm:px-6"><Search className="h-5 w-5 sm:hidden" aria-hidden="true" /><span className="hidden sm:inline">Rechercher</span></Button>
             </form>
 
+
+            <div className="flex items-center justify-between gap-3 border-t pt-3">
+              <Button type="button" variant="outline" aria-expanded={filtersOpen} aria-controls="search-filters" onClick={() => setFiltersOpen(!filtersOpen)} className="min-h-11 gap-2 rounded-full">
+                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" /> Affiner la recherche
+                {activeFilterLabels.length > 0 ? <span className="rounded-full bg-primary/10 px-2 text-primary">{activeFilterLabels.length}</span> : null}
+              </Button>
+              <p className="hidden text-xs text-muted-foreground sm:block">Cuisine, ville, budget</p>
+            </div>
+            <div id="search-filters" hidden={!filtersOpen} className="space-y-4 rounded-2xl bg-muted/40 p-3 sm:p-4">
             {quickCuisineOptions.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {quickCuisineOptions.map((option: any) => {
@@ -544,8 +553,9 @@ export default function Recherche() {
                     <button
                       key={option.id || option.slug || option.name}
                       type="button"
+                      aria-pressed={active}
                       onClick={() => updateFilter("cuisine", active ? "" : value)}
-                      className={`min-h-[44px] rounded-full border px-4 py-2 text-sm transition-colors ${active ? "border-primary bg-primary text-primary-foreground dark:shadow-[0_0_24px_rgba(249,115,22,0.28)]" : "neon-chip border-border bg-background hover:bg-muted/40"}`}
+                      className={`min-h-[44px] rounded-full border px-4 py-2 text-sm transition-colors ${active ? "border-primary bg-primary text-primary-foreground " : "border-border bg-background hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"}`}
                     >
                       {option.name}
                     </button>
@@ -554,21 +564,23 @@ export default function Recherche() {
               </div>
             ) : null}
 
-            <div className="grid gap-3 xl:grid-cols-[1fr_auto]">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="neon-chip mr-1 flex items-center gap-2 rounded-lg border border-secondary bg-secondary/50 px-3 py-1.5 text-xs font-bold uppercase tracking-tight text-muted-foreground dark:text-slate-200">
+            <div className="grid gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="mr-1 flex items-center gap-2 rounded-lg border border-secondary bg-secondary/50 px-3 py-1.5 text-xs font-bold uppercase tracking-tight text-muted-foreground dark:text-slate-200">
                   <SlidersHorizontal className="h-3 w-3" /> Filtres
                 </div>
+                <label htmlFor="search-city" className="sr-only">Ville</label>
                 <CityAutocomplete
+                  id="search-city"
                   value={city}
                   onValueChange={(value) => updateFilter("city", value)}
                   onCitySelect={(selectedCity) => updateFilter("city", selectedCity)}
                   placeholder="Ville..."
-                  className="w-40"
+                  className="w-full sm:w-44"
                   inputClassName="h-[44px] text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-400"
                 />
                 <Select value={cuisine} onValueChange={(v) => updateFilter("cuisine", v)}>
-                  <SelectTrigger className="h-[44px] w-40 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
+                  <SelectTrigger aria-label="Type de cuisine" className="h-[44px] w-full sm:w-44 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
                   <SelectContent>
                     {sortedCuisineOptions.map((entry: any) => (
                       <SelectItem key={entry.id || entry.slug || entry.name} value={String(entry.slug || entry.name).toLowerCase()}>
@@ -578,7 +590,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={price} onValueChange={(v) => updateFilter("price", v)}>
-                  <SelectTrigger className="h-[44px] w-24 text-xs font-bold uppercase dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Budget" /></SelectTrigger>
+                  <SelectTrigger aria-label="Budget" className="h-[44px] w-full sm:w-32 text-xs font-bold uppercase dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Budget" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">CHF</SelectItem>
                     <SelectItem value="2">CHF++</SelectItem>
@@ -586,7 +598,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={minRatingSelectValue} onValueChange={(v) => updateFilter("rating", v)}>
-                  <SelectTrigger className="h-[44px] w-28 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Note minimum" /></SelectTrigger>
+                  <SelectTrigger aria-label="Note minimum" className="h-[44px] w-full sm:w-44 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Note minimum" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Toutes les notes</SelectItem>
                     <SelectItem value="9">9.0+/10</SelectItem>
@@ -597,41 +609,25 @@ export default function Recherche() {
                 {deliveryEnabled ? (
                   <Button
                     type="button"
+                    aria-pressed={delivery === "true"}
                     variant={delivery === "true" ? "default" : "outline"}
                     onClick={() => updateFilter("delivery", delivery === "true" ? "" : "true")}
                     className="h-[44px] gap-1 text-xs dark:border-white/20 dark:shadow-[0_0_18px_rgba(249,115,22,0.14)]"
                   >
-                    <Badge variant={delivery === "true" ? "secondary" : "default"} className="h-4 px-1 text-[10px]">Oui</Badge>
                     Livraison
                   </Button>
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-                <span className="whitespace-nowrap text-sm font-medium text-muted-foreground dark:text-slate-300">Trier par :</span>
-                <Select value={sortBy} onValueChange={(v) => updateFilter("sort", v)}>
-                  <SelectTrigger className="h-[44px] bg-secondary/20 text-xs font-semibold dark:border-white/20 dark:bg-slate-950/80 dark:text-white xl:w-44"><SelectValue placeholder="Pertinence" /></SelectTrigger>
-                  <SelectContent>
-                    {SORT_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={sortDirection} onValueChange={(v) => updateFilter("order", v)}>
-                  <SelectTrigger className="h-[44px] w-32 bg-secondary/20 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Ordre" /></SelectTrigger>
-                  <SelectContent>
-                    {ORDER_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
+            </div>
+
             </div>
 
             {activeFilterLabels.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-2 border-t pt-4 dark:border-white/20">
+              <div className="flex flex-wrap items-center gap-2 border-t pt-3 dark:border-white/20">
                 {activeFilterLabels.map((label) => (
-                  <span key={label} className="neon-chip rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground">
+                  <span key={label} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground">
                     {label}
                   </span>
                 ))}
@@ -646,35 +642,51 @@ export default function Recherche() {
 
         {!isCommercialDemoClient ? <CampaignBanner page="search" maxBanners={1} /> : null}
 
+        <section aria-label="Résultats de recherche" aria-busy={isLoading} className="space-y-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-display text-2xl font-semibold">{promo === "true" ? "Les bons plans" : "Les restaurants"}{city ? ` à ${city}` : ""}</h2>
+            <p role="status" className="mt-1 text-sm text-muted-foreground">{isLoading ? "Recherche en cours…" : isError && !organicSearchPages ? "Résultats indisponibles" : `${organicSearchTotal.toLocaleString("fr-CH")} adresse${organicSearchTotal > 1 ? "s" : ""} correspondant à votre recherche`}</p>
+          </div>
+          <div className="grid w-full grid-cols-2 items-center gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
+                <span className="sr-only">Trier par :</span>
+                <Select value={sortBy} onValueChange={(v) => updateFilter("sort", v)}>
+                  <SelectTrigger aria-label="Trier les restaurants" className="h-[44px] min-w-0 w-full sm:w-44 bg-secondary/20 text-xs font-semibold dark:border-white/20 dark:bg-slate-950/80 dark:text-white xl:w-44"><SelectValue placeholder="Pertinence" /></SelectTrigger>
+                  <SelectContent>
+                    {SORT_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={sortDirection} onValueChange={(v) => updateFilter("order", v)}>
+                  <SelectTrigger aria-label="Ordre de tri" className="h-[44px] min-w-0 w-full sm:w-32 bg-secondary/20 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Ordre" /></SelectTrigger>
+                  <SelectContent>
+                    {ORDER_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+        </div>
+        {isError && !isFetchNextPageError ? <div role="alert" className="rounded-2xl border border-destructive/30 bg-card p-6">
+          <h3 className="font-semibold">La recherche est momentanément indisponible</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Vos critères sont conservés. Réessayez pour retrouver les restaurants.</p>
+          <Button type="button" onClick={() => void refetch()} disabled={isFetching} className="mt-4 min-h-11">{isFetching ? "Nouvelle tentative…" : "Réessayer"}</Button>
+        </div> : null}
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-[300px] animate-pulse rounded-2xl bg-muted" />
+              <div key={i} className="h-[360px] animate-pulse rounded-3xl bg-muted motion-reduce:animate-none" />
             ))}
           </div>
         ) : mergedCards.length > 0 ? (
           <div className="space-y-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold dark:text-white">{promo === "true" ? "Bons plans disponibles" : "Sélection disponible"}</p>
-                <p className="text-xs text-muted-foreground dark:text-slate-300">
-                  {promo === "true"
-                    ? "Les promotions et activations remontees sont affichées en priorité."
-                    : "Affinez si nécessaire, sinon ouvrez directement une fiche restaurant."}
-                </p>
-              </div>
-              <p className="text-sm font-medium text-muted-foreground dark:text-slate-300">
-                <span className="text-foreground dark:text-white">{mergedCards.length}</span>
-                {" "}sur{" "}
-                <span className="text-foreground dark:text-white">{organicSearchTotal.toLocaleString("fr-CH")}</span>
-                {" "}restaurant(s) chargé(s)
-              </p>
-            </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {mergedCards.map((restaurant: any) => (
                 <RestaurantCard key={`${restaurant.id}-${restaurant.campaign_id || "organic"}`} {...toCardProps(restaurant)} />
               ))}
             </div>
+            {isFetchNextPageError ? <p role="alert" className="text-sm text-destructive">Les adresses suivantes n’ont pas pu être chargées. Vous pouvez réessayer ci-dessous.</p> : null}
             {hasNextPage && !isCommercialDemoClient ? (
               <div
                 ref={loadMoreRef}
@@ -684,7 +696,7 @@ export default function Recherche() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="min-w-64 rounded-full"
+                  className="min-h-11 w-full rounded-full sm:w-auto sm:min-w-64"
                   onClick={() => void fetchNextPage()}
                   disabled={isFetchingNextPage}
                 >
@@ -699,15 +711,16 @@ export default function Recherche() {
               </p>
             ) : null}
           </div>
-        ) : (
-          <div className="neon-panel rounded-[28px] border border-dashed py-20 text-center text-muted-foreground dark:text-slate-300">
+        ) : !isError ? (
+          <div className="rounded-[28px] border border-dashed py-20 text-center text-muted-foreground dark:text-slate-300">
             <p className="text-lg font-semibold text-foreground dark:text-white">Aucun restaurant ne correspond à ces critères</p>
-            <p className="mt-2 text-sm">Essayez une autre ville, une cuisine plus large ou reinitialisez les filtres.</p>
+            <p className="mt-2 text-sm">Essayez une autre ville, une cuisine plus large ou réinitialisez les filtres.</p>
             <Button type="button" variant="outline" className="mt-5 rounded-full" onClick={clearFilters}>
               Réinitialiser la recherche
             </Button>
           </div>
-        )}
+        ) : null}
+        </section>
       </div>
     </main>
   );

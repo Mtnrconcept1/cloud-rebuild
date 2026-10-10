@@ -91,7 +91,8 @@ describe("SEO and public restaurant performance remediation", () => {
     expect(html).toContain("fonts.googleapis.com/css2?family=DM+Sans");
     expect(html).toContain("family=Playfair+Display");
     expect(html).not.toContain("Bubblegum+Sans");
-    expect(cuisineStrip).toContain("'Playball', cursive");
+    expect(cuisineStrip).not.toContain("fontFamily:");
+    expect(cuisineStrip).not.toContain("fonts.googleapis.com");
     expect(cuisineStrip).not.toContain("'Bubblegum Sans', cursive");
     expect(removeBlockingGoogleFontImport(css)).toBe("body{font-family:sans-serif}");
   });

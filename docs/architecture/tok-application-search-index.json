@@ -2,14 +2,14 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "ecc20e03b8997280a2f6a41a143377e5f8cdf1aa36fac7b21560200a6e96e7bc",
+ "sourceDigest": "551eb62ceaa32a0b945771bb9f098fa2175651cc4dbe2ebf901f6c6ac9f9e106",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2722,
-  "documents": 194,
+  "documents": 195,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3360,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 522,
-  "modules": 1465,
+  "modules": 1469,
   "pages": 127,
-  "pathLiterals": 617,
+  "pathLiterals": 615,
   "publicAssets": 301,
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15534,
-  "repositoryFiles": 2733,
+  "records": 15550,
+  "repositoryFiles": 2738,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -3420,7 +3420,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 225,
+      "line": 224,
       "kind": "function"
      }
     ],
@@ -12434,15 +12434,15 @@
      },
      {
       "path": "src/components/CourierDashboardLayout.tsx",
-      "line": 132
+      "line": 133
      },
      {
       "path": "src/components/DashboardLayout.tsx",
-      "line": 362
+      "line": 363
      },
      {
       "path": "src/components/MobileLogoIntro.tsx",
-      "line": 43
+      "line": 11
      },
      {
       "path": "src/components/Navbar.tsx",
@@ -12686,11 +12686,11 @@
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 902
+      "line": 909
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 962
+      "line": 969
      },
      {
       "path": "src/pages/TokConnect.tsx",
@@ -12766,7 +12766,7 @@
      },
      {
       "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 17
+      "line": 7
      },
      {
       "path": "src/test/navigation.test.ts",
@@ -12831,6 +12831,10 @@
      {
       "path": "src/test/repository-text-encoding.test.ts",
       "line": 85
+     },
+     {
+      "path": "src/test/restaurant-card-preview.test.tsx",
+      "line": 23
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -13114,15 +13118,6 @@
     ]
    },
    {
-    "value": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
-    "sources": [
-     {
-      "path": "src/components/home/HeroSection.tsx",
-      "line": 44
-     }
-    ]
-   },
-   {
     "value": "/:path(",
     "sources": [
      {
@@ -13206,7 +13201,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 42
+      "line": 80
      }
     ]
    },
@@ -13358,7 +13353,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 586
+      "line": 584
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -13497,19 +13492,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 241
+      "line": 240
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 314
+      "line": 313
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 407
+      "line": 405
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 480
+      "line": 478
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -13550,10 +13545,6 @@
      {
       "path": "src/pages/ClientDashboardHome.tsx",
       "line": 154
-     },
-     {
-      "path": "src/pages/Index.tsx",
-      "line": 849
      },
      {
       "path": "src/test/actualites-restaurateur.test.tsx",
@@ -13886,10 +13877,6 @@
       "line": 235
      },
      {
-      "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 120
-     },
-     {
       "path": "src/test/role-access.test.ts",
       "line": 157
      },
@@ -13911,7 +13898,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1422
+      "line": 1425
      }
     ]
    },
@@ -14598,7 +14585,7 @@
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
-      "line": 308
+      "line": 309
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -14907,15 +14894,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 211
+      "line": 210
      },
      {
       "path": "src/components/home/FooterSection.tsx",
       "line": 62
-     },
-     {
-      "path": "src/components/home/HeroSection.tsx",
-      "line": 49
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -14977,11 +14960,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 249
+      "line": 248
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 469
+      "line": 467
      },
      {
       "path": "src/components/PromoCarousel.tsx",
@@ -15297,7 +15280,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 423
+      "line": 421
      },
      {
       "path": "src/components/ProtectedRoute.tsx",
@@ -15321,11 +15304,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 50
-     },
-     {
-      "path": "src/components/home/HeroSection.tsx",
-      "line": 88
+      "line": 90
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -15466,10 +15445,6 @@
      {
       "path": "src/test/home-mobile-newsletter.test.tsx",
       "line": 16
-     },
-     {
-      "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 117
      },
      {
       "path": "src/test/monitoring-consent.test.ts",
@@ -15918,7 +15893,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 592
+      "line": 590
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -16102,7 +16077,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1303
+      "line": 1306
      }
     ]
    },
@@ -16188,15 +16163,6 @@
      {
       "path": "src/lib/notificationRouting.ts",
       "line": 123
-     }
-    ]
-   },
-   {
-    "value": "/commande/123",
-    "sources": [
-     {
-      "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 118
      }
     ]
    },
@@ -16331,19 +16297,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
+      "line": 381
+     },
+     {
+      "path": "src/components/Navbar.tsx",
       "line": 383
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 385
+      "line": 556
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 558
-     },
-     {
-      "path": "src/components/Navbar.tsx",
-      "line": 561
+      "line": 559
      },
      {
       "path": "src/components/commercial/CommercialDemoActorOverview.tsx",
@@ -16628,7 +16594,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1405
+      "line": 1408
      }
     ]
    },
@@ -17084,7 +17050,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 589
+      "line": 587
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -17149,7 +17115,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 598
+      "line": 596
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -17238,11 +17204,11 @@
      },
      {
       "path": "src/components/CourierDashboardLayout.tsx",
-      "line": 132
+      "line": 133
      },
      {
       "path": "src/components/CourierDashboardLayout.tsx",
-      "line": 132
+      "line": 133
      },
      {
       "path": "src/components/commercial/CommercialDemoBrowserGrid.tsx",
@@ -17299,10 +17265,6 @@
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
       "line": 90
-     },
-     {
-      "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 121
      },
      {
       "path": "src/test/role-access.test.ts",
@@ -17385,11 +17347,11 @@
      },
      {
       "path": "src/components/CourierDashboardLayout.tsx",
-      "line": 159
+      "line": 160
      },
      {
       "path": "src/components/CourierDashboardLayout.tsx",
-      "line": 186
+      "line": 187
      },
      {
       "path": "src/components/commercial/CommercialDemoActorOverview.tsx",
@@ -17508,11 +17470,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 412
+      "line": 410
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 552
+      "line": 550
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -17718,15 +17680,15 @@
      },
      {
       "path": "src/components/DashboardLayout.tsx",
-      "line": 362
+      "line": 363
      },
      {
       "path": "src/components/DashboardLayout.tsx",
-      "line": 362
+      "line": 363
      },
      {
       "path": "src/components/DashboardLayout.tsx",
-      "line": 598
+      "line": 594
      },
      {
       "path": "src/components/DashboardRoute.tsx",
@@ -17869,10 +17831,6 @@
       "line": 125
      },
      {
-      "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 119
-     },
-     {
       "path": "src/test/public-feature-legal-matrix.test.ts",
       "line": 15
      },
@@ -17949,7 +17907,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1354
+      "line": 1357
      }
     ]
    },
@@ -18102,7 +18060,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1371
+      "line": 1374
      }
     ]
    },
@@ -18293,7 +18251,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1388
+      "line": 1391
      }
     ]
    },
@@ -18776,11 +18734,11 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1218
+      "line": 1221
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1235
+      "line": 1238
      }
     ]
    },
@@ -19130,7 +19088,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1337
+      "line": 1340
      }
     ]
    },
@@ -19668,41 +19626,11 @@
     ]
    },
    {
-    "value": "/higgsfield/tok-intro-desktop-poster.webp",
-    "sources": [
-     {
-      "path": "src/components/MobileLogoIntro.tsx",
-      "line": 28
-     },
-     {
-      "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 79
-     }
-    ]
-   },
-   {
     "value": "/higgsfield/tok-intro-desktop.mp4",
     "sources": [
      {
-      "path": "src/components/MobileLogoIntro.tsx",
-      "line": 27
-     },
-     {
       "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 80
-     }
-    ]
-   },
-   {
-    "value": "/higgsfield/tok-intro-mobile-poster.webp",
-    "sources": [
-     {
-      "path": "src/components/MobileLogoIntro.tsx",
-      "line": 22
-     },
-     {
-      "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 46
+      "line": 55
      }
     ]
    },
@@ -19710,12 +19638,8 @@
     "value": "/higgsfield/tok-intro-mobile.mp4",
     "sources": [
      {
-      "path": "src/components/MobileLogoIntro.tsx",
-      "line": 21
-     },
-     {
       "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 48
+      "line": 24
      }
     ]
    },
@@ -20380,16 +20304,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 41
-     }
-    ]
-   },
-   {
-    "value": "/images/home/tok-geneve-mobile.webp",
-    "sources": [
-     {
-      "path": "src/components/home/HeroSection.tsx",
-      "line": 43
+      "line": 79
      }
     ]
    },
@@ -20497,10 +20412,6 @@
      {
       "path": "src/pages/Profil.tsx",
       "line": 619
-     },
-     {
-      "path": "src/pages/RestaurantDetail.tsx",
-      "line": 666
      },
      {
       "path": "src/pages/ZeroAttente.tsx",
@@ -20647,7 +20558,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 33
+      "line": 32
      }
     ]
    },
@@ -20656,7 +20567,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 35
+      "line": 34
      }
     ]
    },
@@ -20665,7 +20576,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 19
+      "line": 18
      }
     ]
    },
@@ -20674,7 +20585,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 48
+      "line": 47
      }
     ]
    },
@@ -20683,7 +20594,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 46
+      "line": 45
      }
     ]
    },
@@ -20692,7 +20603,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 20
+      "line": 19
      }
     ]
    },
@@ -20701,7 +20612,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 51
+      "line": 50
      }
     ]
    },
@@ -20710,7 +20621,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 24
+      "line": 23
      }
     ]
    },
@@ -20719,7 +20630,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 34
+      "line": 33
      }
     ]
    },
@@ -20728,7 +20639,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 50
+      "line": 49
      }
     ]
    },
@@ -20737,7 +20648,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 22
+      "line": 21
      }
     ]
    },
@@ -20746,7 +20657,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 15
+      "line": 14
      }
     ]
    },
@@ -20755,7 +20666,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 38
+      "line": 37
      }
     ]
    },
@@ -20764,7 +20675,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 40
+      "line": 39
      }
     ]
    },
@@ -20773,7 +20684,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 43
+      "line": 42
      }
     ]
    },
@@ -20782,7 +20693,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 26
+      "line": 25
      }
     ]
    },
@@ -20791,7 +20702,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 16
+      "line": 15
      }
     ]
    },
@@ -20800,7 +20711,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 21
+      "line": 20
      }
     ]
    },
@@ -20809,7 +20720,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 29
+      "line": 28
      }
     ]
    },
@@ -20818,7 +20729,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 27
+      "line": 26
      }
     ]
    },
@@ -20827,7 +20738,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 31
+      "line": 30
      }
     ]
    },
@@ -20836,7 +20747,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 32
+      "line": 31
      }
     ]
    },
@@ -20845,7 +20756,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 30
+      "line": 29
      }
     ]
    },
@@ -20854,7 +20765,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 39
+      "line": 38
      }
     ]
    },
@@ -20863,7 +20774,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 17
+      "line": 16
      }
     ]
    },
@@ -20872,7 +20783,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 18
+      "line": 17
      }
     ]
    },
@@ -20881,7 +20792,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 23
+      "line": 22
      }
     ]
    },
@@ -20890,7 +20801,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 25
+      "line": 24
      }
     ]
    },
@@ -20899,7 +20810,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 28
+      "line": 27
      }
     ]
    },
@@ -20908,7 +20819,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 44
+      "line": 43
      }
     ]
    },
@@ -20917,7 +20828,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 45
+      "line": 44
      }
     ]
    },
@@ -20926,7 +20837,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 47
+      "line": 46
      }
     ]
    },
@@ -20935,7 +20846,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 37
+      "line": 36
      }
     ]
    },
@@ -20944,7 +20855,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 36
+      "line": 35
      }
     ]
    },
@@ -20953,7 +20864,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 49
+      "line": 48
      }
     ]
    },
@@ -20962,7 +20873,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 52
+      "line": 51
      }
     ]
    },
@@ -20971,7 +20882,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 53
+      "line": 52
      }
     ]
    },
@@ -20980,7 +20891,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 41
+      "line": 40
      }
     ]
    },
@@ -20989,7 +20900,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 42
+      "line": 41
      }
     ]
    },
@@ -21326,7 +21237,7 @@
     "sources": [
      {
       "path": "src/components/home/RestaurantSection.tsx",
-      "line": 29
+      "line": 26
      },
      {
       "path": "src/lib/dashboardIllustrations.ts",
@@ -21337,10 +21248,6 @@
    {
     "value": "/images/section-headers/heart-3d.png",
     "sources": [
-     {
-      "path": "src/components/home/SectionShowcaseHeader.tsx",
-      "line": 124
-     },
      {
       "path": "src/pages/Index.tsx",
       "line": 56
@@ -22154,11 +22061,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 378
+      "line": 376
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 546
+      "line": 544
      },
      {
       "path": "src/components/commercial/CommercialDemoBrowserGrid.tsx",
@@ -22284,7 +22191,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1320
+      "line": 1323
      }
     ]
    },
@@ -22367,19 +22274,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
+      "line": 397
+     },
+     {
+      "path": "src/components/Navbar.tsx",
       "line": 399
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 401
+      "line": 570
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 572
-     },
-     {
-      "path": "src/components/Navbar.tsx",
-      "line": 575
+      "line": 573
      },
      {
       "path": "src/components/commercial/CommercialDemoActorOverview.tsx",
@@ -22665,11 +22572,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 329
+      "line": 327
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 493
+      "line": 491
      },
      {
       "path": "src/components/OrderConflictDialog.tsx",
@@ -22753,11 +22660,11 @@
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 1573
+      "line": 1579
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 1581
+      "line": 1587
      },
      {
       "path": "src/pages/VentesFlash.tsx",
@@ -22776,10 +22683,6 @@
       "line": 153
      },
      {
-      "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 116
-     },
-     {
       "path": "src/test/role-route-wiring.test.ts",
       "line": 42
      },
@@ -22793,7 +22696,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1269
+      "line": 1272
      }
     ]
    },
@@ -22897,7 +22800,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 595
+      "line": 593
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -23273,11 +23176,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 234
+      "line": 233
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 463
+      "line": 461
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -23289,7 +23192,7 @@
      },
      {
       "path": "src/components/home/RestaurantSection.tsx",
-      "line": 31
+      "line": 28
      },
      {
       "path": "src/components/home/SearchAndCategories.tsx",
@@ -23381,11 +23284,19 @@
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 710
+      "line": 713
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 809
+      "line": 802
+     },
+     {
+      "path": "src/pages/RestaurantDetail.tsx",
+      "line": 816
+     },
+     {
+      "path": "src/pages/RestaurantDetail.tsx",
+      "line": 1575
      },
      {
       "path": "src/pages/SuiviCommande.tsx",
@@ -23417,11 +23328,15 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 44
+      "line": 43
      },
      {
       "path": "src/test/mobile-logo-intro.test.tsx",
-      "line": 115
+      "line": 46
+     },
+     {
+      "path": "src/test/restaurant-search-preview.test.tsx",
+      "line": 19
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -23442,11 +23357,11 @@
     ]
    },
    {
-    "value": "/recherche?city=Gen%C3%A8ve",
+    "value": "/recherche?city=Lausanne&sort=prix&order=asc",
     "sources": [
      {
-      "path": "src/components/home/HeroSection.tsx",
-      "line": 48
+      "path": "src/test/restaurant-search-preview.test.tsx",
+      "line": 23
      }
     ]
    },
@@ -23464,11 +23379,33 @@
     ]
    },
    {
+    "value": "/recherche?q=francais",
+    "sources": [
+     {
+      "path": "src/test/home-cuisine-accessibility.test.tsx",
+      "line": 32
+     }
+    ]
+   },
+   {
     "value": "/recherche?q=pizza&ville=geneve",
     "sources": [
      {
       "path": "scripts/launch-10k-load-check.mjs",
       "line": 19
+     }
+    ]
+   },
+   {
+    "value": "/recherche?q=sushi&city=Genève",
+    "sources": [
+     {
+      "path": "src/test/restaurant-search-preview.test.tsx",
+      "line": 30
+     },
+     {
+      "path": "src/test/restaurant-search-preview.test.tsx",
+      "line": 37
      }
     ]
    },
@@ -23507,19 +23444,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
+      "line": 389
+     },
+     {
+      "path": "src/components/Navbar.tsx",
       "line": 391
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 393
+      "line": 563
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 565
-     },
-     {
-      "path": "src/components/Navbar.tsx",
-      "line": 568
+      "line": 566
      },
      {
       "path": "src/components/ReservationDialog.tsx",
@@ -23698,6 +23635,15 @@
     ]
    },
    {
+    "value": "/restaurant/11111111-1111-1111-1111-111111111111",
+    "sources": [
+     {
+      "path": "src/test/restaurant-detail-preview.test.tsx",
+      "line": 9
+     }
+    ]
+   },
+   {
     "value": "/restaurant/:id",
     "sources": [
      {
@@ -23726,7 +23672,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1252
+      "line": 1255
      }
     ]
    },
@@ -24713,15 +24659,15 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 197
+      "line": 196
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 345
+      "line": 343
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 501
+      "line": 499
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -24729,7 +24675,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 84
+      "line": 86
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -25222,11 +25168,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 204
+      "line": 203
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 506
+      "line": 504
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -25371,11 +25317,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 265
+      "line": 264
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 486
+      "line": 484
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -26118,11 +26064,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 257
+      "line": 256
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 474
+      "line": 472
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -26265,7 +26211,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1286
+      "line": 1289
      }
     ]
    },
@@ -26407,7 +26353,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 46
+      "line": 52
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
@@ -27146,7 +27092,7 @@
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 315
+      "line": 316
      }
     ],
     "routes": [
@@ -27351,15 +27297,15 @@
     "sources": [
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 287
+      "line": 288
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 307
+      "line": 308
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 327
+      "line": 328
      }
     ],
     "routes": [
@@ -27397,7 +27343,7 @@
      },
      {
       "path": "src/pages/Recherche.tsx",
-      "line": 237
+      "line": 236
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
@@ -27405,7 +27351,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 45
+      "line": 53
      }
     ],
     "routes": [
@@ -27898,7 +27844,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2849
+      "line": 2852
      },
      {
       "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
@@ -27945,7 +27891,7 @@
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 345
+      "line": 346
      }
     ],
     "routes": [
@@ -27961,7 +27907,7 @@
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
-      "line": 337
+      "line": 338
      }
     ],
     "routes": [
@@ -29034,7 +28980,10 @@
      "src/test/reservation-fee-integrity.test.ts",
      "src/test/reservation-service-capacity.test.ts",
      "src/test/restaurant-billing-account.test.ts",
+     "src/test/restaurant-card-preview.test.tsx",
      "src/test/restaurant-contracts-governance.test.ts",
+     "src/test/restaurant-detail-availability-preview.test.tsx",
+     "src/test/restaurant-detail-preview.test.tsx",
      "src/test/restaurant-directory-pagination-images.test.ts",
      "src/test/restaurant-image-backfill-auth.test.ts",
      "src/test/restaurant-image-discovery-reactivation.test.ts",
@@ -29046,6 +28995,7 @@
      "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
      "src/test/restaurant-promotions-governance.test.ts",
      "src/test/restaurant-public-data-consistency.test.ts",
+     "src/test/restaurant-search-preview.test.tsx",
      "src/test/restaurant-slug-seo.test.ts",
      "src/test/restaurant-special-offer-governance.test.ts",
      "src/test/restaurant-stripe-adjustments.test.ts",
@@ -74282,6 +74232,52 @@
     ]
    },
    {
+    "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+    "title": "Refonte TOK — application réelle en preview",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Refonte TOK — application réelle en preview",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Global Constraints",
+      "line": 8
+     },
+     {
+      "level": 2,
+      "title": "Review Focus",
+      "line": 16
+     },
+     {
+      "level": 2,
+      "title": "Task 1 — Accueil et découverte TOK",
+      "line": 19
+     },
+     {
+      "level": 2,
+      "title": "Task 2 — Recherche et cartes",
+      "line": 23
+     },
+     {
+      "level": 2,
+      "title": "Task 3 — Système visuel et espaces connectés",
+      "line": 27
+     },
+     {
+      "level": 2,
+      "title": "Task 4 — Fiche restaurant et finitions parcours",
+      "line": 31
+     },
+     {
+      "level": 2,
+      "title": "Task 5 — Validation, publication et preview",
+      "line": 35
+     }
+    ]
+   },
+   {
     "path": "docs/superpowers/specs/2026-04-17-reservation-billing-design.md",
     "title": "Facturation des réservations (5.-/resa) & détection anti-fraude",
     "headings": [
@@ -79976,13 +79972,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 117,
+      "line": 118,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 321
+    "lineCount": 322
    },
    {
     "path": "src/components/CustomerDashboardLayout.tsx",
@@ -80017,7 +80013,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 297,
+      "line": 298,
       "kind": "function"
      }
     ],
@@ -80025,7 +80021,7 @@
     "integrations": [
      "openai"
     ],
-    "lineCount": 614
+    "lineCount": 610
    },
    {
     "path": "src/components/DashboardRoute.tsx",
@@ -80224,13 +80220,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 66,
+      "line": 6,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 265
+    "lineCount": 38
    },
    {
     "path": "src/components/NavLink.tsx",
@@ -80256,7 +80252,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 612
+    "lineCount": 610
    },
    {
     "path": "src/components/NearbyRestaurantsMap.tsx",
@@ -80453,7 +80449,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 597
+    "lineCount": 612
    },
    {
     "path": "src/components/ReviewForm.tsx",
@@ -80610,7 +80606,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 210,
+      "line": 211,
       "kind": "function"
      }
     ],
@@ -80619,7 +80615,7 @@
      "google",
      "supabase"
     ],
-    "lineCount": 383
+    "lineCount": 384
    },
    {
     "path": "src/components/admin/AdminOperationDetailSheet.tsx",
@@ -80725,18 +80721,18 @@
     "exports": [
      {
       "name": "SponsoredRestaurantTemplateCard",
-      "line": 136,
+      "line": 139,
       "kind": "function"
      },
      {
       "name": "default",
-      "line": 509,
+      "line": 518,
       "kind": "default"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 510
+    "lineCount": 519
    },
    {
     "path": "src/components/campaigns/SponsoredVisual.tsx",
@@ -82170,13 +82166,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 129,
+      "line": 63,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 218
+    "lineCount": 146
    },
    {
     "path": "src/components/home/FeaturesSection.tsx",
@@ -82211,26 +82207,26 @@
     "exports": [
      {
       "name": "default",
-      "line": 18,
-      "kind": "function"
-     }
-    ],
-    "environmentNames": [],
-    "integrations": [],
-    "lineCount": 114
-   },
-   {
-    "path": "src/components/home/RestaurantSection.tsx",
-    "exports": [
-     {
-      "name": "default",
       "line": 20,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 85
+    "lineCount": 116
+   },
+   {
+    "path": "src/components/home/RestaurantSection.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 19,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 77
    },
    {
     "path": "src/components/home/SearchAndCategories.tsx",
@@ -82252,18 +82248,18 @@
     "exports": [
      {
       "name": "SectionHeaderTheme",
-      "line": 9,
+      "line": 8,
       "kind": "typealias"
      },
      {
       "name": "default",
-      "line": 127,
+      "line": 27,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 232
+    "lineCount": 51
    },
    {
     "path": "src/components/home/SolidaritySection.tsx",
@@ -83077,7 +83073,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 40
+    "lineCount": 56
    },
    {
     "path": "src/components/ui/accordion.tsx",
@@ -96710,7 +96706,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 967
+    "lineCount": 958
    },
    {
     "path": "src/pages/LocalRestaurants.tsx",
@@ -96915,7 +96911,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 225,
+      "line": 224,
       "kind": "function"
      }
     ],
@@ -96923,7 +96919,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 715
+    "lineCount": 728
    },
    {
     "path": "src/pages/Reservations.tsx",
@@ -96971,7 +96967,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1629
+    "lineCount": 1635
    },
    {
     "path": "src/pages/RestaurateursGeneve.tsx",
@@ -100186,7 +100182,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 139
+    "lineCount": 147
    },
    {
     "path": "src/test/dashboard-switch-no-public-flash.test.ts",
@@ -100731,14 +100727,14 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 22
+    "lineCount": 35
    },
    {
     "path": "src/test/home-hero-search.test.tsx",
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 61
+    "lineCount": 63
    },
    {
     "path": "src/test/home-mobile-newsletter.test.tsx",
@@ -100770,7 +100766,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 177
+    "lineCount": 109
    },
    {
     "path": "src/test/image-metadata-ai.test.ts",
@@ -101502,7 +101498,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 188
+    "lineCount": 60
    },
    {
     "path": "src/test/mobile-modal-scroll-guards.test.ts",
@@ -101516,7 +101512,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 51
+    "lineCount": 77
    },
    {
     "path": "src/test/monitoring-consent.test.ts",
@@ -101553,7 +101549,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 94
+    "lineCount": 103
    },
    {
     "path": "src/test/navbar-dashboard-access-design.test.ts",
@@ -102222,6 +102218,15 @@
     "lineCount": 284
    },
    {
+    "path": "src/test/restaurant-card-preview.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 51
+   },
+   {
     "path": "src/test/restaurant-categories.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -102250,6 +102255,24 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 41
+   },
+   {
+    "path": "src/test/restaurant-detail-availability-preview.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 38
+   },
+   {
+    "path": "src/test/restaurant-detail-preview.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 25
    },
    {
     "path": "src/test/restaurant-directory-pagination-images.test.ts",
@@ -102401,6 +102424,15 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 102
+   },
+   {
+    "path": "src/test/restaurant-search-preview.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 52
    },
    {
     "path": "src/test/restaurant-slug-seo.test.ts",
@@ -102689,7 +102721,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 181
+    "lineCount": 182
    },
    {
     "path": "src/test/seo-public-name-hardening.test.ts",
@@ -103323,7 +103355,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 259
+    "lineCount": 279
    },
    {
     "path": "src/test/tok-connect-frontend.test.ts",
@@ -108000,7 +108032,7 @@
     "exports": [
      {
       "name": "tokConnectMcpHealthEnvelope",
-      "line": 2940,
+      "line": 2943,
       "kind": "variable"
      }
     ],
@@ -108014,7 +108046,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 2944
+    "lineCount": 2947
    },
    {
     "path": "supabase/functions/tok-connect-oauth/index.ts",
@@ -109853,6 +109885,11 @@
    },
    {
     "path": "docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -117442,6 +117479,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/restaurant-card-preview.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/restaurant-categories.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -117460,6 +117502,16 @@
     "path": "src/test/restaurant-dashboard-overview-navigation.test.ts",
     "category": "test",
     "extension": ".ts"
+   },
+   {
+    "path": "src/test/restaurant-detail-availability-preview.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/restaurant-detail-preview.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/restaurant-directory-pagination-images.test.ts",
@@ -117550,6 +117602,11 @@
     "path": "src/test/restaurant-reservation-sidebar.test.ts",
     "category": "test",
     "extension": ".ts"
+   },
+   {
+    "path": "src/test/restaurant-search-preview.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/restaurant-slug-seo.test.ts",
@@ -123830,14 +123887,14 @@
    "id": "code-module:a06e1f28c3d4",
    "type": "code-module",
    "title": "src/components/CourierDashboardLayout.tsx",
-   "description": "Module de 321 lignes; exports: default.",
+   "description": "Module de 322 lignes; exports: default.",
    "path": "src/components/CourierDashboardLayout.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "b72b349e6cb2"
+   "detailRef": "46e5217bb7d7"
   },
   {
    "id": "code-module:0da0d07b6deb",
@@ -123870,7 +123927,7 @@
    "id": "code-module:68dd5687bf0e",
    "type": "code-module",
    "title": "src/components/DashboardLayout.tsx",
-   "description": "Module de 614 lignes; exports: default.",
+   "description": "Module de 610 lignes; exports: default.",
    "path": "src/components/DashboardLayout.tsx",
    "line": 1,
    "surface": null,
@@ -123878,7 +123935,7 @@
     "default",
     "openai"
    ],
-   "detailRef": "79b89ec6cba0"
+   "detailRef": "ac5d8bb8a48a"
   },
   {
    "id": "code-module:39e3762d1539",
@@ -124030,14 +124087,14 @@
    "id": "code-module:02a88f111a9b",
    "type": "code-module",
    "title": "src/components/MobileLogoIntro.tsx",
-   "description": "Module de 265 lignes; exports: default.",
+   "description": "Module de 38 lignes; exports: default.",
    "path": "src/components/MobileLogoIntro.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "70b5f7ef1c64"
+   "detailRef": "b18585855a62"
   },
   {
    "id": "code-module:54aa76ba4f22",
@@ -124056,14 +124113,14 @@
    "id": "code-module:d8013874702d",
    "type": "code-module",
    "title": "src/components/Navbar.tsx",
-   "description": "Module de 612 lignes; exports: default.",
+   "description": "Module de 610 lignes; exports: default.",
    "path": "src/components/Navbar.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "3e0ced737049"
+   "detailRef": "98cea8b17e61"
   },
   {
    "id": "code-module:bcb7d2dbc4fa",
@@ -124236,7 +124293,7 @@
    "id": "code-module:0bfee5ad71f4",
    "type": "code-module",
    "title": "src/components/RestaurantCard.tsx",
-   "description": "Module de 597 lignes; exports: default.",
+   "description": "Module de 612 lignes; exports: default.",
    "path": "src/components/RestaurantCard.tsx",
    "line": 1,
    "surface": null,
@@ -124244,7 +124301,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "a004b7cb9f82"
+   "detailRef": "64f56a65ded8"
   },
   {
    "id": "code-module:c58a4786ae67",
@@ -124389,7 +124446,7 @@
    "id": "code-module:0530f93f558c",
    "type": "code-module",
    "title": "src/components/admin/AdminMobileNavigation.tsx",
-   "description": "Module de 383 lignes; exports: default.",
+   "description": "Module de 384 lignes; exports: default.",
    "path": "src/components/admin/AdminMobileNavigation.tsx",
    "line": 1,
    "surface": null,
@@ -124398,7 +124455,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "7bbc52ec9d30"
+   "detailRef": "3f2d0950bb7c"
   },
   {
    "id": "code-module:3fee7e2e6b25",
@@ -124499,7 +124556,7 @@
    "id": "code-module:e89bdacbafe9",
    "type": "code-module",
    "title": "src/components/campaigns/SponsoredRestaurantTemplateCard.tsx",
-   "description": "Module de 510 lignes; exports: SponsoredRestaurantTemplateCard, default.",
+   "description": "Module de 519 lignes; exports: SponsoredRestaurantTemplateCard, default.",
    "path": "src/components/campaigns/SponsoredRestaurantTemplateCard.tsx",
    "line": 1,
    "surface": null,
@@ -124507,7 +124564,7 @@
     "SponsoredRestaurantTemplateCard",
     "default"
    ],
-   "detailRef": "e376ee0f188f"
+   "detailRef": "ebc94b31dba1"
   },
   {
    "id": "code-module:8995f7368e8b",
@@ -125608,14 +125665,14 @@
    "id": "code-module:a586b6706f43",
    "type": "code-module",
    "title": "src/components/home/CuisineCategoryStrip.tsx",
-   "description": "Module de 218 lignes; exports: default.",
+   "description": "Module de 146 lignes; exports: default.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "1cbad52af89d"
+   "detailRef": "27a9f2dbd071"
   },
   {
    "id": "code-module:1ce158045d40",
@@ -125648,27 +125705,27 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 114 lignes; exports: default.",
+   "description": "Module de 116 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "f2ef765e1259"
+   "detailRef": "4c2ef6649776"
   },
   {
    "id": "code-module:b6c6251f4f10",
    "type": "code-module",
    "title": "src/components/home/RestaurantSection.tsx",
-   "description": "Module de 85 lignes; exports: default.",
+   "description": "Module de 77 lignes; exports: default.",
    "path": "src/components/home/RestaurantSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "11759d185625"
+   "detailRef": "9d185fa362c0"
   },
   {
    "id": "code-module:297fc4defc38",
@@ -125688,7 +125745,7 @@
    "id": "code-module:cefe66a55dad",
    "type": "code-module",
    "title": "src/components/home/SectionShowcaseHeader.tsx",
-   "description": "Module de 232 lignes; exports: SectionHeaderTheme, default.",
+   "description": "Module de 51 lignes; exports: SectionHeaderTheme, default.",
    "path": "src/components/home/SectionShowcaseHeader.tsx",
    "line": 1,
    "surface": null,
@@ -125696,7 +125753,7 @@
     "SectionHeaderTheme",
     "default"
    ],
-   "detailRef": "2a2e0b6ece8f"
+   "detailRef": "23e7937c2457"
   },
   {
    "id": "code-module:9ef57ffb1c0d",
@@ -126381,14 +126438,14 @@
    "id": "code-module:f89e42be94b0",
    "type": "code-module",
    "title": "src/components/theme/ThemeToggleButton.tsx",
-   "description": "Module de 40 lignes; exports: default.",
+   "description": "Module de 56 lignes; exports: default.",
    "path": "src/components/theme/ThemeToggleButton.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "76fae92d4743"
+   "detailRef": "f6d9febdb451"
   },
   {
    "id": "code-module:66bd7513b1f7",
@@ -132640,7 +132697,7 @@
    "id": "code-module:8d761926e269",
    "type": "code-module",
    "title": "src/pages/Index.tsx",
-   "description": "Module de 967 lignes; exports: default.",
+   "description": "Module de 958 lignes; exports: default.",
    "path": "src/pages/Index.tsx",
    "line": 1,
    "surface": null,
@@ -132648,7 +132705,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "4488b2c12f52"
+   "detailRef": "388db97fda89"
   },
   {
    "id": "code-module:d39f2c12cbfd",
@@ -132842,7 +132899,7 @@
    "id": "code-module:363c8701fee7",
    "type": "code-module",
    "title": "src/pages/Recherche.tsx",
-   "description": "Module de 715 lignes; exports: default.",
+   "description": "Module de 728 lignes; exports: default.",
    "path": "src/pages/Recherche.tsx",
    "line": 1,
    "surface": null,
@@ -132850,7 +132907,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "087f4242bb41"
+   "detailRef": "4c1561e934c9"
   },
   {
    "id": "code-module:48f0c4f52efa",
@@ -132885,7 +132942,7 @@
    "id": "code-module:e1755f70ee22",
    "type": "code-module",
    "title": "src/pages/RestaurantDetail.tsx",
-   "description": "Module de 1629 lignes; exports: default.",
+   "description": "Module de 1635 lignes; exports: default.",
    "path": "src/pages/RestaurantDetail.tsx",
    "line": 1,
    "surface": null,
@@ -132895,7 +132952,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "f87ca5efdf17"
+   "detailRef": "5be3e27dcb20"
   },
   {
    "id": "code-module:36f564316b7b",
@@ -136400,14 +136457,14 @@
    "id": "code-module:0b658fc15c1c",
    "type": "code-module",
    "title": "src/test/dashboard-shell-navigation.test.ts",
-   "description": "Module de 139 lignes; exports: aucun export statique.",
+   "description": "Module de 147 lignes; exports: aucun export statique.",
    "path": "src/test/dashboard-shell-navigation.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "b0c1e2a33a1d"
+   "detailRef": "d7975a2d7cfa"
   },
   {
    "id": "code-module:7c0432b93468",
@@ -137203,23 +137260,23 @@
    "id": "code-module:b8f0d2b164b6",
    "type": "code-module",
    "title": "src/test/home-cuisine-accessibility.test.tsx",
-   "description": "Module de 22 lignes; exports: aucun export statique.",
+   "description": "Module de 35 lignes; exports: aucun export statique.",
    "path": "src/test/home-cuisine-accessibility.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "2618d446f6b3"
+   "detailRef": "3d9968fe91b9"
   },
   {
    "id": "code-module:a714f68588b7",
    "type": "code-module",
    "title": "src/test/home-hero-search.test.tsx",
-   "description": "Module de 61 lignes; exports: aucun export statique.",
+   "description": "Module de 63 lignes; exports: aucun export statique.",
    "path": "src/test/home-hero-search.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "f2d36cec50fa"
+   "detailRef": "819eccc8e908"
   },
   {
    "id": "code-module:d67b9bd34728",
@@ -137260,14 +137317,14 @@
    "id": "code-module:06afdea6867d",
    "type": "code-module",
    "title": "src/test/homepage-positioning-guards.test.ts",
-   "description": "Module de 177 lignes; exports: aucun export statique.",
+   "description": "Module de 109 lignes; exports: aucun export statique.",
    "path": "src/test/homepage-positioning-guards.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "bbc00993d362"
+   "detailRef": "62ff3b09acf8"
   },
   {
    "id": "code-module:c469797bc2dd",
@@ -138315,12 +138372,12 @@
    "id": "code-module:f243132e30d1",
    "type": "code-module",
    "title": "src/test/mobile-logo-intro.test.tsx",
-   "description": "Module de 188 lignes; exports: aucun export statique.",
+   "description": "Module de 60 lignes; exports: aucun export statique.",
    "path": "src/test/mobile-logo-intro.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "c9a431641087"
+   "detailRef": "32973b688fb0"
   },
   {
    "id": "code-module:c515919173a2",
@@ -138337,12 +138394,12 @@
    "id": "code-module:dd6927d62f0f",
    "type": "code-module",
    "title": "src/test/mobile-theme-toggle.test.tsx",
-   "description": "Module de 51 lignes; exports: aucun export statique.",
+   "description": "Module de 77 lignes; exports: aucun export statique.",
    "path": "src/test/mobile-theme-toggle.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "303e8f92d93e"
+   "detailRef": "bea1096cd6d2"
   },
   {
    "id": "code-module:d6255257e064",
@@ -138390,12 +138447,12 @@
    "id": "code-module:42fd44cd12e7",
    "type": "code-module",
    "title": "src/test/navbar-action-stability.test.ts",
-   "description": "Module de 94 lignes; exports: aucun export statique.",
+   "description": "Module de 103 lignes; exports: aucun export statique.",
    "path": "src/test/navbar-action-stability.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "ddd0be6fa9f3"
+   "detailRef": "4724a8b418ce"
   },
   {
    "id": "code-module:f8ac7ed46bed",
@@ -139363,6 +139420,19 @@
    "detailRef": "378c95dd9500"
   },
   {
+   "id": "code-module:a98e0bf09906",
+   "type": "code-module",
+   "title": "src/test/restaurant-card-preview.test.tsx",
+   "description": "Module de 51 lignes; exports: aucun export statique.",
+   "path": "src/test/restaurant-card-preview.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "5dd6412b82a5"
+  },
+  {
    "id": "code-module:f7bfaba6be1f",
    "type": "code-module",
    "title": "src/test/restaurant-categories.test.ts",
@@ -139407,6 +139477,32 @@
    "surface": null,
    "tags": [],
    "detailRef": "63dfb42fb333"
+  },
+  {
+   "id": "code-module:b8fed4766685",
+   "type": "code-module",
+   "title": "src/test/restaurant-detail-availability-preview.test.tsx",
+   "description": "Module de 38 lignes; exports: aucun export statique.",
+   "path": "src/test/restaurant-detail-availability-preview.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "22a4ab936587"
+  },
+  {
+   "id": "code-module:48a5ff653997",
+   "type": "code-module",
+   "title": "src/test/restaurant-detail-preview.test.tsx",
+   "description": "Module de 25 lignes; exports: aucun export statique.",
+   "path": "src/test/restaurant-detail-preview.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "645ef52c1af9"
   },
   {
    "id": "code-module:35b8ec7845e0",
@@ -139630,6 +139726,19 @@
    "surface": null,
    "tags": [],
    "detailRef": "f06a8757adb6"
+  },
+  {
+   "id": "code-module:afd73bd3ae13",
+   "type": "code-module",
+   "title": "src/test/restaurant-search-preview.test.tsx",
+   "description": "Module de 52 lignes; exports: aucun export statique.",
+   "path": "src/test/restaurant-search-preview.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "5858e7d8c968"
   },
   {
    "id": "code-module:13ba3672bc55",
@@ -140037,7 +140146,7 @@
    "id": "code-module:6e793c426330",
    "type": "code-module",
    "title": "src/test/seo-performance-remediation.test.ts",
-   "description": "Module de 181 lignes; exports: aucun export statique.",
+   "description": "Module de 182 lignes; exports: aucun export statique.",
    "path": "src/test/seo-performance-remediation.test.ts",
    "line": 1,
    "surface": null,
@@ -140046,7 +140155,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "3e3d92517306"
+   "detailRef": "03e0c3628a66"
   },
   {
    "id": "code-module:d859caf45e69",
@@ -140965,7 +141074,7 @@
    "id": "code-module:43dd95d166f5",
    "type": "code-module",
    "title": "src/test/tok-connect-edge-functions.test.ts",
-   "description": "Module de 259 lignes; exports: aucun export statique.",
+   "description": "Module de 279 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-edge-functions.test.ts",
    "line": 1,
    "surface": null,
@@ -140974,7 +141083,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "1fe05c2cf9bc"
+   "detailRef": "414424f4b99f"
   },
   {
    "id": "code-module:6955f6e6a37b",
@@ -144168,7 +144277,7 @@
    "id": "code-module:d04caf9780c6",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-mcp/index.ts",
-   "description": "Module de 2944 lignes; exports: tokConnectMcpHealthEnvelope.",
+   "description": "Module de 2947 lignes; exports: tokConnectMcpHealthEnvelope.",
    "path": "supabase/functions/tok-connect-mcp/index.ts",
    "line": 1,
    "surface": null,
@@ -144181,7 +144290,7 @@
     "tokConnectMcpHealthEnvelope",
     "vercel"
    ],
-   "detailRef": "a550e3038ec5"
+   "detailRef": "f54df8439517"
   },
   {
    "id": "code-module:9149d3a94667",
@@ -201572,6 +201681,20 @@
    "detailRef": "58d9411bfa56"
   },
   {
+   "id": "document-section:b5a219558172",
+   "type": "document-section",
+   "title": "Global Constraints",
+   "description": "Section de Refonte TOK — application réelle en preview.",
+   "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "Refonte TOK — application réelle en preview",
+    "h2"
+   ],
+   "detailRef": "0cd42082706d"
+  },
+  {
    "id": "document-section:c123f872d6e3",
    "type": "document-section",
    "title": "Go-live readiness",
@@ -208978,6 +209101,20 @@
    "detailRef": "9d27908ec40c"
   },
   {
+   "id": "document-section:029d17d923ec",
+   "type": "document-section",
+   "title": "Refonte TOK — application réelle en preview",
+   "description": "Section de Refonte TOK — application réelle en preview.",
+   "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Refonte TOK — application réelle en preview",
+    "h1"
+   ],
+   "detailRef": "3c4432948541"
+  },
+  {
    "id": "document-section:b1d38c5958af",
    "type": "document-section",
    "title": "Refonte compta: accueil + entrees/sorties",
@@ -209914,6 +210051,20 @@
     "h2"
    ],
    "detailRef": "c9b5f0c4b76e"
+  },
+  {
+   "id": "document-section:50972cc0c365",
+   "type": "document-section",
+   "title": "Review Focus",
+   "description": "Section de Refonte TOK — application réelle en preview.",
+   "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "Refonte TOK — application réelle en preview",
+    "h2"
+   ],
+   "detailRef": "31479022c45a"
   },
   {
    "id": "document-section:0d665bd28cad",
@@ -213780,6 +213931,20 @@
    "detailRef": "7b3969e04c36"
   },
   {
+   "id": "document-section:0ca8a0effa5a",
+   "type": "document-section",
+   "title": "Task 1 — Accueil et découverte TOK",
+   "description": "Section de Refonte TOK — application réelle en preview.",
+   "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "Refonte TOK — application réelle en preview",
+    "h2"
+   ],
+   "detailRef": "8e015464f9fd"
+  },
+  {
    "id": "document-section:eaadbe40a00e",
    "type": "document-section",
    "title": "Task 10 : Manual verification",
@@ -214242,6 +214407,20 @@
    "detailRef": "a65e3f1ec868"
   },
   {
+   "id": "document-section:b3ec567da387",
+   "type": "document-section",
+   "title": "Task 2 — Recherche et cartes",
+   "description": "Section de Refonte TOK — application réelle en preview.",
+   "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "Refonte TOK — application réelle en preview",
+    "h2"
+   ],
+   "detailRef": "f3fa0cf41aae"
+  },
+  {
    "id": "document-section:30acea949b78",
    "type": "document-section",
    "title": "Task 2: Add Production Release Readiness Gate",
@@ -214478,6 +214657,20 @@
     "h2"
    ],
    "detailRef": "4275b9aa38ba"
+  },
+  {
+   "id": "document-section:e89140395e89",
+   "type": "document-section",
+   "title": "Task 3 — Système visuel et espaces connectés",
+   "description": "Section de Refonte TOK — application réelle en preview.",
+   "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "Refonte TOK — application réelle en preview",
+    "h2"
+   ],
+   "detailRef": "e2df98af84ea"
   },
   {
    "id": "document-section:ed87785628cb",
@@ -214718,6 +214911,20 @@
    "detailRef": "a19100d0bd54"
   },
   {
+   "id": "document-section:fc86fdab0cf0",
+   "type": "document-section",
+   "title": "Task 4 — Fiche restaurant et finitions parcours",
+   "description": "Section de Refonte TOK — application réelle en preview.",
+   "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "Refonte TOK — application réelle en preview",
+    "h2"
+   ],
+   "detailRef": "bbf65083c023"
+  },
+  {
    "id": "document-section:ef94ffa04c69",
    "type": "document-section",
    "title": "Task 4: Add Financial Drift Dashboard",
@@ -214954,6 +215161,20 @@
     "h2"
    ],
    "detailRef": "2902c0573fde"
+  },
+  {
+   "id": "document-section:675fd13cb333",
+   "type": "document-section",
+   "title": "Task 5 — Validation, publication et preview",
+   "description": "Section de Refonte TOK — application réelle en preview.",
+   "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "Refonte TOK — application réelle en preview",
+    "h2"
+   ],
+   "detailRef": "e25c75bc16cc"
   },
   {
    "id": "document-section:49b52a1a29f7",
@@ -221548,6 +221769,26 @@
     "`TableContextDrawer`"
    ],
    "detailRef": "5c111240345b"
+  },
+  {
+   "id": "document:029d17d923ec",
+   "type": "document",
+   "title": "Refonte TOK — application réelle en preview",
+   "description": "Document Markdown avec 8 section(s).",
+   "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Global Constraints",
+    "Refonte TOK — application réelle en preview",
+    "Review Focus",
+    "Task 1 — Accueil et découverte TOK",
+    "Task 2 — Recherche et cartes",
+    "Task 3 — Système visuel et espaces connectés",
+    "Task 4 — Fiche restaurant et finitions parcours",
+    "Task 5 — Validation, publication et preview"
+   ],
+   "detailRef": "bfb423a6023b"
   },
   {
    "id": "document:b1d38c5958af",
@@ -245305,17 +245546,17 @@
    "detailRef": "bdec8bc22ffc"
   },
   {
-   "id": "exported-symbol:90d02e146e1d",
+   "id": "exported-symbol:cd6fdff1fc3f",
    "type": "exported-symbol",
    "title": "SectionHeaderTheme",
    "description": "Export typealias de src/components/home/SectionShowcaseHeader.tsx.",
    "path": "src/components/home/SectionShowcaseHeader.tsx",
-   "line": 9,
+   "line": 8,
    "surface": null,
    "tags": [
     "typealias"
    ],
-   "detailRef": "c4734674d03e"
+   "detailRef": "850becae7015"
   },
   {
    "id": "exported-symbol:b4dc1462a384",
@@ -246753,17 +246994,17 @@
    "detailRef": "748a497ceba0"
   },
   {
-   "id": "exported-symbol:473b81b3ad4e",
+   "id": "exported-symbol:2e691a8f719f",
    "type": "exported-symbol",
    "title": "SponsoredRestaurantTemplateCard",
    "description": "Export function de src/components/campaigns/SponsoredRestaurantTemplateCard.tsx.",
    "path": "src/components/campaigns/SponsoredRestaurantTemplateCard.tsx",
-   "line": 136,
+   "line": 139,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "04ca1d02883e"
+   "detailRef": "0666110d27b1"
   },
   {
    "id": "exported-symbol:a25076835d26",
@@ -254392,17 +254633,17 @@
    "detailRef": "e2e7edfedb04"
   },
   {
-   "id": "exported-symbol:476672e5d0cb",
+   "id": "exported-symbol:2eb2aff4abb3",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/CourierDashboardLayout.tsx.",
    "path": "src/components/CourierDashboardLayout.tsx",
-   "line": 117,
+   "line": 118,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "84cfb8d28dd5"
+   "detailRef": "8db11b229b30"
   },
   {
    "id": "exported-symbol:dc60b51320c4",
@@ -254432,18 +254673,18 @@
    "detailRef": "d424eb5b0b77"
   },
   {
-   "id": "exported-symbol:71a43e5274bd",
+   "id": "exported-symbol:4fb7d2cac35f",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/DashboardLayout.tsx.",
    "path": "src/components/DashboardLayout.tsx",
-   "line": 297,
+   "line": 298,
    "surface": null,
    "tags": [
     "function",
     "openai"
    ],
-   "detailRef": "1cb3b85274e8"
+   "detailRef": "e28ea7d9d7f1"
   },
   {
    "id": "exported-symbol:c7e564477337",
@@ -254569,17 +254810,17 @@
    "detailRef": "e50fe5b61e02"
   },
   {
-   "id": "exported-symbol:d6b85f0a26d0",
+   "id": "exported-symbol:17a508d27754",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/MobileLogoIntro.tsx.",
    "path": "src/components/MobileLogoIntro.tsx",
-   "line": 66,
+   "line": 6,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "f66619d09e3a"
+   "detailRef": "232de49df979"
   },
   {
    "id": "exported-symbol:859ddf71500b",
@@ -254912,19 +255153,19 @@
    "detailRef": "0adfef847188"
   },
   {
-   "id": "exported-symbol:77d89a3242d8",
+   "id": "exported-symbol:e1bfcee706ed",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/admin/AdminMobileNavigation.tsx.",
    "path": "src/components/admin/AdminMobileNavigation.tsx",
-   "line": 210,
+   "line": 211,
    "surface": null,
    "tags": [
     "function",
     "google",
     "supabase"
    ],
-   "detailRef": "20cadb9ecbd6"
+   "detailRef": "0211a8987e04"
   },
   {
    "id": "exported-symbol:ff21e47cd697",
@@ -255022,17 +255263,17 @@
    "detailRef": "3db7dbaf3952"
   },
   {
-   "id": "exported-symbol:fe0011350adc",
+   "id": "exported-symbol:c1e68708d18c",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export default de src/components/campaigns/SponsoredRestaurantTemplateCard.tsx.",
    "path": "src/components/campaigns/SponsoredRestaurantTemplateCard.tsx",
-   "line": 509,
+   "line": 518,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "2b96d0d5f8da"
+   "detailRef": "c8925bc4ab86"
   },
   {
    "id": "exported-symbol:cf6139b80bb1",
@@ -255881,17 +256122,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:d3ce15203335",
+   "id": "exported-symbol:c38728c0f246",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/CuisineCategoryStrip.tsx.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 129,
+   "line": 63,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "9c402540fc24"
+   "detailRef": "af06548f621e"
   },
   {
    "id": "exported-symbol:2c6d5de51291",
@@ -255921,30 +256162,30 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:436f3ce92a09",
+   "id": "exported-symbol:5e0f36a7a5bf",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/HeroSection.tsx.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 18,
-   "surface": null,
-   "tags": [
-    "function"
-   ],
-   "detailRef": "64c0644642e8"
-  },
-  {
-   "id": "exported-symbol:5bf7ed2b1c38",
-   "type": "exported-symbol",
-   "title": "default",
-   "description": "Export function de src/components/home/RestaurantSection.tsx.",
-   "path": "src/components/home/RestaurantSection.tsx",
    "line": 20,
    "surface": null,
    "tags": [
     "function"
    ],
    "detailRef": "73328efdea37"
+  },
+  {
+   "id": "exported-symbol:7fd08247d65f",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/home/RestaurantSection.tsx.",
+   "path": "src/components/home/RestaurantSection.tsx",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "f6bed50c25fe"
   },
   {
    "id": "exported-symbol:0c5069eca75e",
@@ -255961,17 +256202,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:d43436297464",
+   "id": "exported-symbol:95039a42e772",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/SectionShowcaseHeader.tsx.",
    "path": "src/components/home/SectionShowcaseHeader.tsx",
-   "line": 127,
+   "line": 27,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "c701b519fdb8"
+   "detailRef": "8f286ff17dd0"
   },
   {
    "id": "exported-symbol:98328a933ca9",
@@ -257136,18 +257377,18 @@
    "detailRef": "f3ea908b3f0a"
   },
   {
-   "id": "exported-symbol:66c01299d275",
+   "id": "exported-symbol:73341be75ca2",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/Recherche.tsx.",
    "path": "src/pages/Recherche.tsx",
-   "line": 225,
+   "line": 224,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "4224f483aff1"
+   "detailRef": "bd1847e204bd"
   },
   {
    "id": "exported-symbol:2e57018bca12",
@@ -273472,12 +273713,12 @@
    "detailRef": "85fe3c50d091"
   },
   {
-   "id": "exported-symbol:ee5c33b1e6b0",
+   "id": "exported-symbol:5ce2a61ab9b7",
    "type": "exported-symbol",
    "title": "tokConnectMcpHealthEnvelope",
    "description": "Export variable de supabase/functions/tok-connect-mcp/index.ts.",
    "path": "supabase/functions/tok-connect-mcp/index.ts",
-   "line": 2940,
+   "line": 2943,
    "surface": null,
    "tags": [
     "google",
@@ -273487,7 +273728,7 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "082b88ced9e4"
+   "detailRef": "9c7e77c356f3"
   },
   {
    "id": "exported-symbol:d3054aa31594",
@@ -281529,6 +281770,20 @@
     "documentation"
    ],
    "detailRef": "6f691cfaf032"
+  },
+  {
+   "id": "file:6fbde4353d48",
+   "type": "file",
+   "title": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "c3d650ce8490"
   },
   {
    "id": "file:ddc5f3137223",
@@ -302769,6 +303024,20 @@
    "detailRef": "aa367c43fd1e"
   },
   {
+   "id": "file:b913d2079d6d",
+   "type": "file",
+   "title": "src/test/restaurant-card-preview.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/restaurant-card-preview.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "59e8b3f73f6a"
+  },
+  {
    "id": "file:a575ff8943f0",
    "type": "file",
    "title": "src/test/restaurant-categories.test.ts",
@@ -302823,6 +303092,34 @@
     "test"
    ],
    "detailRef": "fa4c185645ef"
+  },
+  {
+   "id": "file:8e631552d031",
+   "type": "file",
+   "title": "src/test/restaurant-detail-availability-preview.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/restaurant-detail-availability-preview.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "dcf3160584d4"
+  },
+  {
+   "id": "file:ccfc5cefd7a9",
+   "type": "file",
+   "title": "src/test/restaurant-detail-preview.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/restaurant-detail-preview.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "d0b8f9889b61"
   },
   {
    "id": "file:fba5f7371d82",
@@ -303075,6 +303372,20 @@
     "test"
    ],
    "detailRef": "13be3723f67a"
+  },
+  {
+   "id": "file:01b6583d0329",
+   "type": "file",
+   "title": "src/test/restaurant-search-preview.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/restaurant-search-preview.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "5f1072166ed5"
   },
   {
    "id": "file:d0ef5b9e3ce7",
@@ -318653,7 +318964,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 657 module(s).",
+   "description": "Intégration externe détectée dans 661 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -319143,7 +319454,10 @@
     "src/test/reservation-fee-integrity.test.ts",
     "src/test/reservation-service-capacity.test.ts",
     "src/test/restaurant-billing-account.test.ts",
+    "src/test/restaurant-card-preview.test.tsx",
     "src/test/restaurant-contracts-governance.test.ts",
+    "src/test/restaurant-detail-availability-preview.test.tsx",
+    "src/test/restaurant-detail-preview.test.tsx",
     "src/test/restaurant-directory-pagination-images.test.ts",
     "src/test/restaurant-image-backfill-auth.test.ts",
     "src/test/restaurant-image-discovery-reactivation.test.ts",
@@ -319155,6 +319469,7 @@
     "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
     "src/test/restaurant-promotions-governance.test.ts",
     "src/test/restaurant-public-data-consistency.test.ts",
+    "src/test/restaurant-search-preview.test.tsx",
     "src/test/restaurant-slug-seo.test.ts",
     "src/test/restaurant-special-offer-governance.test.ts",
     "src/test/restaurant-stripe-adjustments.test.ts",
@@ -319317,7 +319632,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "ae7f5d730cd6"
+   "detailRef": "309d7394942b"
   },
   {
    "id": "integration:c20910a79a78",
@@ -329799,7 +330114,7 @@
     "/recherche",
     "supabase"
    ],
-   "detailRef": "bfc94c99d292"
+   "detailRef": "474336c50ca0"
   },
   {
    "id": "page:5325a462bd9a",
@@ -330128,19 +330443,6 @@
    "detailRef": "aab57983ddaf"
   },
   {
-   "id": "path-literal:3a3e43941670",
-   "type": "path-literal",
-   "title": "/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/HeroSection.tsx",
-   "line": 44,
-   "surface": null,
-   "tags": [
-    "src/components/home/HeroSection.tsx"
-   ],
-   "detailRef": "e11341c49267"
-  },
-  {
    "id": "path-literal:c08058bd6bd6",
    "type": "path-literal",
    "title": "/:path(",
@@ -330170,7 +330472,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 235 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 236 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -330262,6 +330564,7 @@
     "src/test/release-readiness.test.ts",
     "src/test/repository-json-encoding.test.ts",
     "src/test/repository-text-encoding.test.ts",
+    "src/test/restaurant-card-preview.test.tsx",
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts",
@@ -330287,7 +330590,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "161759e48d86"
+   "detailRef": "071de4c07bd2"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -330355,17 +330658,17 @@
    "detailRef": "26f196955bb6"
   },
   {
-   "id": "path-literal:a1e1f0b592d5",
+   "id": "path-literal:07ac643297f6",
    "type": "path-literal",
    "title": "/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 42,
+   "line": 80,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx"
    ],
-   "detailRef": "bb562cdaace6"
+   "detailRef": "2ecb0208584e"
   },
   {
    "id": "path-literal:1d9f0654171b",
@@ -330524,7 +330827,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "8340d53f5cad"
+   "detailRef": "a96d2dbc8215"
   },
   {
    "id": "path-literal:b93cc2bbc5bc",
@@ -330634,7 +330937,7 @@
    "id": "path-literal:e9c70eae30ca",
    "type": "path-literal",
    "title": "/actualites",
-   "description": "Chemin référencé dans 30 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 29 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/harden-seo-crawl.mjs",
    "line": 380,
    "surface": null,
@@ -330651,7 +330954,6 @@
     "src/pages/ActualitePost.tsx",
     "src/pages/Actualites.tsx",
     "src/pages/ClientDashboardHome.tsx",
-    "src/pages/Index.tsx",
     "src/test/actualites-restaurateur.test.tsx",
     "src/test/actualites-search.test.tsx",
     "src/test/commercial-demo-client-final-tools-isolation.test.ts",
@@ -330659,7 +330961,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "ff39627adc71"
+   "detailRef": "bdc2a6758cff"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -331139,7 +331441,7 @@
     "src/test/auth-post-login-routing.test.ts",
     "src/test/back-navigation.test.ts"
    ],
-   "detailRef": "dea1b5c66f3f"
+   "detailRef": "a0f0ac3e955b"
   },
   {
    "id": "path-literal:81a6c2522177",
@@ -331304,7 +331606,7 @@
    "id": "path-literal:3fad8d2570d5",
    "type": "path-literal",
    "title": "/admin",
-   "description": "Chemin référencé dans 63 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 62 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 162,
    "surface": null,
@@ -331332,14 +331634,13 @@
     "src/test/admin-mobile-navigation.test.tsx",
     "src/test/back-navigation.test.ts",
     "src/test/commercial-domain-isolation.test.ts",
-    "src/test/mobile-logo-intro.test.tsx",
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/vercel-rewrites.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "957f8dce720e"
+   "detailRef": "0637d2b08def"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -331358,7 +331659,7 @@
    "id": "path-literal:5f9b13c3589b",
    "type": "path-literal",
    "title": "/aide",
-   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1081,
    "surface": null,
@@ -331367,13 +331668,12 @@
     "src/App.tsx",
     "src/components/Navbar.tsx",
     "src/components/home/FooterSection.tsx",
-    "src/components/home/HeroSection.tsx",
     "src/hooks/useSeoMeta.ts",
     "src/pages/Aide.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "02e16dc88ead"
+   "detailRef": "c4cfd66c6122"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -331415,7 +331715,7 @@
     "src/test/feature-visibility.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "483a6124880a"
+   "detailRef": "a6e20bea2ccf"
   },
   {
    "id": "path-literal:b8366dc7f0ad",
@@ -331811,7 +332111,7 @@
    "id": "path-literal:684553841fb1",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 52 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 50 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1224,
    "surface": null,
@@ -331850,12 +332150,11 @@
     "src/test/auth-signup-form.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/home-mobile-newsletter.test.tsx",
-    "src/test/mobile-logo-intro.test.tsx",
     "src/test/monitoring-consent.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "8e2e905578b2"
+   "detailRef": "45bde486307b"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -332035,7 +332334,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "eba76712f33a"
+   "detailRef": "ccc05aa76876"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -332132,7 +332431,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "0bded9d6cb91"
+   "detailRef": "5e8abb0dd695"
   },
   {
    "id": "path-literal:0bf79812be34",
@@ -332151,19 +332450,6 @@
     "src/test/route-wiring.test.ts"
    ],
    "detailRef": "91dbb6cf86b2"
-  },
-  {
-   "id": "path-literal:d5b1770201fa",
-   "type": "path-literal",
-   "title": "/commande/123",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/mobile-logo-intro.test.tsx",
-   "line": 118,
-   "surface": null,
-   "tags": [
-    "src/test/mobile-logo-intro.test.tsx"
-   ],
-   "detailRef": "5722a8a07cab"
   },
   {
    "id": "path-literal:708387adb2eb",
@@ -332316,7 +332602,7 @@
     "src/test/role-route-wiring.test.ts",
     "supabase/functions/courier-portal/index.ts"
    ],
-   "detailRef": "a062c487d691"
+   "detailRef": "bb428068eb39"
   },
   {
    "id": "path-literal:a52995afd52f",
@@ -332590,7 +332876,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "37ce299014ff"
+   "detailRef": "d619c422beec"
   },
   {
    "id": "path-literal:c6197bb92a0d",
@@ -332670,7 +332956,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "9908661b0c69"
+   "detailRef": "422ddcef9926"
   },
   {
    "id": "path-literal:09145bbf5f6b",
@@ -332692,7 +332978,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "b2724928e7a5"
+   "detailRef": "e4bd2931fdbd"
   },
   {
    "id": "path-literal:890ebda57e00",
@@ -332747,7 +333033,7 @@
     "src/test/navigation.test.ts",
     "supabase/functions/dispatch-order/index.ts"
    ],
-   "detailRef": "5d47e77542c6"
+   "detailRef": "fdd0ee1632ca"
   },
   {
    "id": "path-literal:b442b5bc4279",
@@ -332798,13 +333084,13 @@
     "src/lib/featureCatalog.ts",
     "src/pages/courier/CourierHome.tsx"
    ],
-   "detailRef": "7e8d45d6b460"
+   "detailRef": "d4bb78510ff2"
   },
   {
    "id": "path-literal:2e9a84eae292",
    "type": "path-literal",
    "title": "/courier",
-   "description": "Chemin référencé dans 30 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 29 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 165,
    "surface": null,
@@ -332826,11 +333112,10 @@
     "src/lib/roleAccess.ts",
     "src/pages/Auth.tsx",
     "src/test/commercial-domain-isolation.test.ts",
-    "src/test/mobile-logo-intro.test.tsx",
     "src/test/role-access.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "cc1524ee77bc"
+   "detailRef": "e71471fb0fb8"
   },
   {
    "id": "path-literal:43753dbe7662",
@@ -332899,7 +333184,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "5d7852feef3a"
+   "detailRef": "4436c0b81b1d"
   },
   {
    "id": "path-literal:8dde84c52fc6",
@@ -332984,7 +333269,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "93c7972b812e"
+   "detailRef": "38f64a1c2213"
   },
   {
    "id": "path-literal:8c053e8b8f24",
@@ -333087,7 +333372,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "2d4b10c744bc"
+   "detailRef": "c92de7e42b11"
   },
   {
    "id": "path-literal:aa716cfba765",
@@ -333368,7 +333653,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "0f003ea5a500"
+   "detailRef": "92fcbba07ed6"
   },
   {
    "id": "path-literal:f44156886df7",
@@ -333594,13 +333879,13 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "2e4d25e40801"
+   "detailRef": "6373644b1229"
   },
   {
    "id": "path-literal:388f33a815f3",
    "type": "path-literal",
    "title": "/dashboard",
-   "description": "Chemin référencé dans 77 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 76 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 164,
    "surface": null,
@@ -333633,13 +333918,12 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/dashboard-selection-navigation.test.tsx",
-    "src/test/mobile-logo-intro.test.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/role-access.test.ts",
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "6cdfc7db6838"
+   "detailRef": "1ba082b9a545"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -334113,60 +334397,30 @@
    "detailRef": "a2584d5116a9"
   },
   {
-   "id": "path-literal:6fcc1f0acaf9",
-   "type": "path-literal",
-   "title": "/higgsfield/tok-intro-desktop-poster.webp",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/MobileLogoIntro.tsx",
-   "line": 28,
-   "surface": null,
-   "tags": [
-    "src/components/MobileLogoIntro.tsx",
-    "src/test/mobile-logo-intro.test.tsx"
-   ],
-   "detailRef": "d2945bb3f931"
-  },
-  {
-   "id": "path-literal:2b153ed7e495",
+   "id": "path-literal:f6a2f5c89677",
    "type": "path-literal",
    "title": "/higgsfield/tok-intro-desktop.mp4",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/MobileLogoIntro.tsx",
-   "line": 27,
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/mobile-logo-intro.test.tsx",
+   "line": 55,
    "surface": null,
    "tags": [
-    "src/components/MobileLogoIntro.tsx",
     "src/test/mobile-logo-intro.test.tsx"
    ],
-   "detailRef": "a91525959bb9"
+   "detailRef": "cad0ec02368d"
   },
   {
-   "id": "path-literal:edafb5b92855",
-   "type": "path-literal",
-   "title": "/higgsfield/tok-intro-mobile-poster.webp",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/MobileLogoIntro.tsx",
-   "line": 22,
-   "surface": null,
-   "tags": [
-    "src/components/MobileLogoIntro.tsx",
-    "src/test/mobile-logo-intro.test.tsx"
-   ],
-   "detailRef": "e54df341a393"
-  },
-  {
-   "id": "path-literal:a5fc81e101b8",
+   "id": "path-literal:e6ac89b829ac",
    "type": "path-literal",
    "title": "/higgsfield/tok-intro-mobile.mp4",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/MobileLogoIntro.tsx",
-   "line": 21,
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/mobile-logo-intro.test.tsx",
+   "line": 24,
    "surface": null,
    "tags": [
-    "src/components/MobileLogoIntro.tsx",
     "src/test/mobile-logo-intro.test.tsx"
    ],
-   "detailRef": "288e275bd811"
+   "detailRef": "c4062e42fd59"
   },
   {
    "id": "path-literal:c0d43af4f8e8",
@@ -334905,30 +335159,17 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:869c2c32331a",
+   "id": "path-literal:1addb8fb03df",
    "type": "path-literal",
    "title": "/images/home/tok-geneve-desktop.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 41,
+   "line": 79,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx"
    ],
-   "detailRef": "722cba1b326c"
-  },
-  {
-   "id": "path-literal:ac767432b08d",
-   "type": "path-literal",
-   "title": "/images/home/tok-geneve-mobile.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/HeroSection.tsx",
-   "line": 43,
-   "surface": null,
-   "tags": [
-    "src/components/home/HeroSection.tsx"
-   ],
-   "detailRef": "cfa09c05a1c8"
+   "detailRef": "0893aab7a91e"
   },
   {
    "id": "path-literal:d38fc61bacfe",
@@ -334960,7 +335201,7 @@
    "id": "path-literal:6cd6c4c69c2f",
    "type": "path-literal",
    "title": "/images/kebab-box-spread.jpeg",
-   "description": "Chemin référencé dans 23 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 22 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/seo-trust-runtime.js",
    "line": 9,
    "surface": null,
@@ -334981,12 +335222,11 @@
     "src/pages/MultiRestaurant.tsx",
     "src/pages/MultiStop.tsx",
     "src/pages/Profil.tsx",
-    "src/pages/RestaurantDetail.tsx",
     "src/pages/ZeroAttente.tsx",
     "src/pages/admin/AdminRestaurants.tsx",
     "src/test/optimized-images.test.ts"
    ],
-   "detailRef": "3e68b79c7425"
+   "detailRef": "a7365fef7372"
   },
   {
    "id": "path-literal:ecd720b69356",
@@ -335077,282 +335317,9 @@
    "detailRef": "57572b86cde9"
   },
   {
-   "id": "path-literal:415157f264a7",
+   "id": "path-literal:b63fa5662efb",
    "type": "path-literal",
    "title": "/images/miniatures/01_africain.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 33,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "b0f82ca9788c"
-  },
-  {
-   "id": "path-literal:acc730748ebd",
-   "type": "path-literal",
-   "title": "/images/miniatures/02_americain.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 35,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "a54a72158d91"
-  },
-  {
-   "id": "path-literal:310bf184da8f",
-   "type": "path-literal",
-   "title": "/images/miniatures/03_bistro.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 19,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "3f6496171cbd"
-  },
-  {
-   "id": "path-literal:47dda0abc85a",
-   "type": "path-literal",
-   "title": "/images/miniatures/04_boulangerie.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 48,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "b9b9a7017a53"
-  },
-  {
-   "id": "path-literal:872f47b93666",
-   "type": "path-literal",
-   "title": "/images/miniatures/05_brunch.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 46,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "1913fc368f1f"
-  },
-  {
-   "id": "path-literal:82e15df76b79",
-   "type": "path-literal",
-   "title": "/images/miniatures/06_burger.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 20,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "7ceea5080120"
-  },
-  {
-   "id": "path-literal:1200cac61301",
-   "type": "path-literal",
-   "title": "/images/miniatures/07_cafe.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 51,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "82639fa2fa01"
-  },
-  {
-   "id": "path-literal:76a8e5d96314",
-   "type": "path-literal",
-   "title": "/images/miniatures/08_chinois.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 24,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "b5be1d4dba5d"
-  },
-  {
-   "id": "path-literal:24a1d9c34b48",
-   "type": "path-literal",
-   "title": "/images/miniatures/09_creole.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 34,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "bcfe967c1cc3"
-  },
-  {
-   "id": "path-literal:bdd2ed64944d",
-   "type": "path-literal",
-   "title": "/images/miniatures/10_desserts.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 50,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "e06ab2ad41a8"
-  },
-  {
-   "id": "path-literal:42edfa679c8d",
-   "type": "path-literal",
-   "title": "/images/miniatures/11_francais.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 22,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "69e0252a8c46"
-  },
-  {
-   "id": "path-literal:4b9bb8cec42a",
-   "type": "path-literal",
-   "title": "/images/miniatures/12_gastronomique.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 15,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "c93ab5d73fe4"
-  },
-  {
-   "id": "path-literal:5fa016447a44",
-   "type": "path-literal",
-   "title": "/images/miniatures/13_grillades.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 38,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "be2d745ffea6"
-  },
-  {
-   "id": "path-literal:1e4a59864f9d",
-   "type": "path-literal",
-   "title": "/images/miniatures/14_halal.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 40,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "d3f26c6abd6e"
-  },
-  {
-   "id": "path-literal:299d36fab00f",
-   "type": "path-literal",
-   "title": "/images/miniatures/15_healthy.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 43,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "6b92c3756c6b"
-  },
-  {
-   "id": "path-literal:87c5d96157aa",
-   "type": "path-literal",
-   "title": "/images/miniatures/16_indien.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 26,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "47174be76a2f"
-  },
-  {
-   "id": "path-literal:fbb1e972849f",
-   "type": "path-literal",
-   "title": "/images/miniatures/17_italien.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 16,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "abbd2b643c6a"
-  },
-  {
-   "id": "path-literal:bc018d0c8289",
-   "type": "path-literal",
-   "title": "/images/miniatures/18_japonais.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 21,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "672d2148df26"
-  },
-  {
-   "id": "path-literal:680d81cd3436",
-   "type": "path-literal",
-   "title": "/images/miniatures/19_kebab.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 29,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "66d86b99583c"
-  },
-  {
-   "id": "path-literal:81a2d2234e16",
-   "type": "path-literal",
-   "title": "/images/miniatures/20_libanais.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 27,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "73d2c13a213c"
-  },
-  {
-   "id": "path-literal:4d3b110f5e05",
-   "type": "path-literal",
-   "title": "/images/miniatures/21_marocain.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 31,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "dd2f6f04cff9"
-  },
-  {
-   "id": "path-literal:bdf13fdb048b",
-   "type": "path-literal",
-   "title": "/images/miniatures/22_mediterranee.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 32,
@@ -335360,51 +335327,25 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "a1f5b4285714"
+   "detailRef": "6d76fca7dca0"
   },
   {
-   "id": "path-literal:631166c2ce62",
+   "id": "path-literal:75228e00f9ae",
    "type": "path-literal",
-   "title": "/images/miniatures/23_mexicain.png",
+   "title": "/images/miniatures/02_americain.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 30,
+   "line": 34,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "b19e92f7c6d2"
+   "detailRef": "c4f875f34c03"
   },
   {
-   "id": "path-literal:9748edba3c59",
+   "id": "path-literal:8f7f9d8b9afc",
    "type": "path-literal",
-   "title": "/images/miniatures/24_pakistanais.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 39,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "0550495b8175"
-  },
-  {
-   "id": "path-literal:4e365db34524",
-   "type": "path-literal",
-   "title": "/images/miniatures/25_pizza.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 17,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "0195d8981fff"
-  },
-  {
-   "id": "path-literal:1b45e1b68ad5",
-   "type": "path-literal",
-   "title": "/images/miniatures/26_sushi.png",
+   "title": "/images/miniatures/03_bistro.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 18,
@@ -335412,77 +335353,12 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "ec3b9ac253a7"
+   "detailRef": "e6f1012b5d28"
   },
   {
-   "id": "path-literal:25bc2036a60e",
+   "id": "path-literal:9c6b7765048a",
    "type": "path-literal",
-   "title": "/images/miniatures/27_ramen.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 23,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "0fb25713e044"
-  },
-  {
-   "id": "path-literal:2b3aedb2de2d",
-   "type": "path-literal",
-   "title": "/images/miniatures/28_thai.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 25,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "e0168af3f739"
-  },
-  {
-   "id": "path-literal:e3e77097007d",
-   "type": "path-literal",
-   "title": "/images/miniatures/29_turc.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 28,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "47de69e38481"
-  },
-  {
-   "id": "path-literal:ac9194d73595",
-   "type": "path-literal",
-   "title": "/images/miniatures/30_salades.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 44,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "d49dc460ded2"
-  },
-  {
-   "id": "path-literal:5964df63432f",
-   "type": "path-literal",
-   "title": "/images/miniatures/31_poke.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 45,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "60662026f0c2"
-  },
-  {
-   "id": "path-literal:3291a6ab7f03",
-   "type": "path-literal",
-   "title": "/images/miniatures/32_petit-dejeuner.png",
+   "title": "/images/miniatures/04_boulangerie.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 47,
@@ -335490,38 +335366,77 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "638af673f6bb"
+   "detailRef": "7220853a162b"
   },
   {
-   "id": "path-literal:921d62f33e54",
+   "id": "path-literal:e9fc5e5eca90",
    "type": "path-literal",
-   "title": "/images/miniatures/33_pates.png",
+   "title": "/images/miniatures/05_brunch.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 37,
+   "line": 45,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "ad09565c062f"
+   "detailRef": "dc6f25804177"
   },
   {
-   "id": "path-literal:81bf6817c43b",
+   "id": "path-literal:acb79332b9ad",
    "type": "path-literal",
-   "title": "/images/miniatures/34_fondue-suisse.png",
+   "title": "/images/miniatures/06_burger.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 36,
+   "line": 19,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "264b411d048e"
+   "detailRef": "95a4456e675e"
   },
   {
-   "id": "path-literal:2af6fcb0c6bd",
+   "id": "path-literal:3dacc39104d8",
    "type": "path-literal",
-   "title": "/images/miniatures/35_patisserie.png",
+   "title": "/images/miniatures/07_cafe.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 50,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "dbcf0a2ef6ac"
+  },
+  {
+   "id": "path-literal:62b8a00b0786",
+   "type": "path-literal",
+   "title": "/images/miniatures/08_chinois.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "f3410533bafb"
+  },
+  {
+   "id": "path-literal:021c923b21ea",
+   "type": "path-literal",
+   "title": "/images/miniatures/09_creole.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "a7826affcf3c"
+  },
+  {
+   "id": "path-literal:e1401c0d7d62",
+   "type": "path-literal",
+   "title": "/images/miniatures/10_desserts.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 49,
@@ -335529,51 +335444,64 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "e5a0b284ea70"
+   "detailRef": "63479f753460"
   },
   {
-   "id": "path-literal:4fe8b2a1a41b",
+   "id": "path-literal:1a1fabc84a52",
    "type": "path-literal",
-   "title": "/images/miniatures/36_sandwich.png",
+   "title": "/images/miniatures/11_francais.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 52,
+   "line": 21,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "35b68f62ae78"
+   "detailRef": "37f45e123306"
   },
   {
-   "id": "path-literal:332eb40f714a",
+   "id": "path-literal:61b8f909597c",
    "type": "path-literal",
-   "title": "/images/miniatures/37_street-food.png",
+   "title": "/images/miniatures/12_gastronomique.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 53,
+   "line": 14,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "597daeb51ee1"
+   "detailRef": "980b5a1bc3c3"
   },
   {
-   "id": "path-literal:cfa753285aa6",
+   "id": "path-literal:a8ae020efa20",
    "type": "path-literal",
-   "title": "/images/miniatures/38_vegetarien.png",
+   "title": "/images/miniatures/13_grillades.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 41,
+   "line": 37,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "d070d366f4f8"
+   "detailRef": "fc6594e2346d"
   },
   {
-   "id": "path-literal:3183d014913a",
+   "id": "path-literal:ec6ee0909ba2",
    "type": "path-literal",
-   "title": "/images/miniatures/39_vegan.png",
+   "title": "/images/miniatures/14_halal.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "aa6b8314ad54"
+  },
+  {
+   "id": "path-literal:c9e2af5dd20e",
+   "type": "path-literal",
+   "title": "/images/miniatures/15_healthy.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 42,
@@ -335581,7 +335509,319 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "2d03382a8c71"
+   "detailRef": "b94c81a18bcd"
+  },
+  {
+   "id": "path-literal:1d2929ae7dc8",
+   "type": "path-literal",
+   "title": "/images/miniatures/16_indien.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "6e24a106127e"
+  },
+  {
+   "id": "path-literal:1f4c2f84ae68",
+   "type": "path-literal",
+   "title": "/images/miniatures/17_italien.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 15,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "8a4002aa0025"
+  },
+  {
+   "id": "path-literal:f8f62a545494",
+   "type": "path-literal",
+   "title": "/images/miniatures/18_japonais.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 20,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "f41641856cca"
+  },
+  {
+   "id": "path-literal:66562b7ab63f",
+   "type": "path-literal",
+   "title": "/images/miniatures/19_kebab.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "3d635032d421"
+  },
+  {
+   "id": "path-literal:354213c7d017",
+   "type": "path-literal",
+   "title": "/images/miniatures/20_libanais.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 26,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "2444c92edd84"
+  },
+  {
+   "id": "path-literal:bea427b66fca",
+   "type": "path-literal",
+   "title": "/images/miniatures/21_marocain.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "7687ef67df43"
+  },
+  {
+   "id": "path-literal:73b5e1c3a624",
+   "type": "path-literal",
+   "title": "/images/miniatures/22_mediterranee.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "51593d4c7c4e"
+  },
+  {
+   "id": "path-literal:2fd39d872079",
+   "type": "path-literal",
+   "title": "/images/miniatures/23_mexicain.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 29,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "164ca45223f6"
+  },
+  {
+   "id": "path-literal:4fc7df763ff3",
+   "type": "path-literal",
+   "title": "/images/miniatures/24_pakistanais.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 38,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "9d23aae411e7"
+  },
+  {
+   "id": "path-literal:89750fdb4f11",
+   "type": "path-literal",
+   "title": "/images/miniatures/25_pizza.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "d0afd8e83e63"
+  },
+  {
+   "id": "path-literal:77534244f0cc",
+   "type": "path-literal",
+   "title": "/images/miniatures/26_sushi.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "59db3be85354"
+  },
+  {
+   "id": "path-literal:4e1270ee94ac",
+   "type": "path-literal",
+   "title": "/images/miniatures/27_ramen.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 22,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "703b02d3c98c"
+  },
+  {
+   "id": "path-literal:be300bd903cd",
+   "type": "path-literal",
+   "title": "/images/miniatures/28_thai.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 24,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "48e2106715bb"
+  },
+  {
+   "id": "path-literal:9c8e4a2702d7",
+   "type": "path-literal",
+   "title": "/images/miniatures/29_turc.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "e162cf7f0e28"
+  },
+  {
+   "id": "path-literal:803a5fe55a10",
+   "type": "path-literal",
+   "title": "/images/miniatures/30_salades.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 43,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "028911059a03"
+  },
+  {
+   "id": "path-literal:bebbad7245a9",
+   "type": "path-literal",
+   "title": "/images/miniatures/31_poke.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 44,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "7a7db32e9481"
+  },
+  {
+   "id": "path-literal:678e45b6deb3",
+   "type": "path-literal",
+   "title": "/images/miniatures/32_petit-dejeuner.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 46,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "b2d8d8b9e6b1"
+  },
+  {
+   "id": "path-literal:472b63f41fd3",
+   "type": "path-literal",
+   "title": "/images/miniatures/33_pates.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "79ab9aba6349"
+  },
+  {
+   "id": "path-literal:b60b130fa1f1",
+   "type": "path-literal",
+   "title": "/images/miniatures/34_fondue-suisse.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "207d01ff2e40"
+  },
+  {
+   "id": "path-literal:21c4b7872e7d",
+   "type": "path-literal",
+   "title": "/images/miniatures/35_patisserie.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 48,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "da0d0313962f"
+  },
+  {
+   "id": "path-literal:222526c01887",
+   "type": "path-literal",
+   "title": "/images/miniatures/36_sandwich.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "bea5993fcdf0"
+  },
+  {
+   "id": "path-literal:3c215feb3a42",
+   "type": "path-literal",
+   "title": "/images/miniatures/37_street-food.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 52,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "4445e3a3d238"
+  },
+  {
+   "id": "path-literal:75f8abfdc56a",
+   "type": "path-literal",
+   "title": "/images/miniatures/38_vegetarien.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "3f19d037393a"
+  },
+  {
+   "id": "path-literal:a65e77d46797",
+   "type": "path-literal",
+   "title": "/images/miniatures/39_vegan.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 41,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "e6ee09fc096b"
   },
   {
    "id": "path-literal:793692db78b7",
@@ -335815,32 +336055,31 @@
    "detailRef": "66ddb2a0191e"
   },
   {
-   "id": "path-literal:357c00c7b0be",
+   "id": "path-literal:9e87408681e3",
    "type": "path-literal",
    "title": "/images/section-headers/gift-3d.png",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/RestaurantSection.tsx",
-   "line": 29,
+   "line": 26,
    "surface": null,
    "tags": [
     "src/components/home/RestaurantSection.tsx",
     "src/lib/dashboardIllustrations.ts"
    ],
-   "detailRef": "1008198e3204"
+   "detailRef": "c2860bc60474"
   },
   {
-   "id": "path-literal:ca6970505a66",
+   "id": "path-literal:55b980ec54f2",
    "type": "path-literal",
    "title": "/images/section-headers/heart-3d.png",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/SectionShowcaseHeader.tsx",
-   "line": 124,
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 56,
    "surface": null,
    "tags": [
-    "src/components/home/SectionShowcaseHeader.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "c8f929257f22"
+   "detailRef": "8ddd5d472c0a"
   },
   {
    "id": "path-literal:11c28fa35e89",
@@ -336384,7 +336623,7 @@
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "d4a164c37add"
+   "detailRef": "a0d7eca061ec"
   },
   {
    "id": "path-literal:48897d739ef3",
@@ -336423,7 +336662,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "97c06dcefe28"
+   "detailRef": "e0eca0dd6500"
   },
   {
    "id": "path-literal:e50600e506b9",
@@ -336491,7 +336730,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "5e2aeed09c83"
+   "detailRef": "76e36fcffb50"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -336630,7 +336869,7 @@
    "id": "path-literal:f15ac1b71119",
    "type": "path-literal",
    "title": "/panier",
-   "description": "Chemin référencé dans 38 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 37 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/launch-10k-load-check.mjs",
    "line": 25,
    "surface": null,
@@ -336661,13 +336900,12 @@
     "src/pages/VentesFlash.tsx",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/meal-subscription-cart.test.tsx",
-    "src/test/mobile-logo-intro.test.tsx",
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "1fb65024dd2d"
+   "detailRef": "b5eac097b8d8"
   },
   {
    "id": "path-literal:01b14860f373",
@@ -336747,7 +336985,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "fded13f34c8c"
+   "detailRef": "3234fc290001"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -336973,7 +337211,7 @@
    "id": "path-literal:f7a8242103a1",
    "type": "path-literal",
    "title": "/recherche",
-   "description": "Chemin référencé dans 58 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 61 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/seo-trust-runtime.js",
    "line": 138,
    "surface": null,
@@ -337011,25 +337249,26 @@
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/home-hero-search.test.tsx",
     "src/test/mobile-logo-intro.test.tsx",
+    "src/test/restaurant-search-preview.test.tsx",
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "c06defd74790"
+   "detailRef": "3373a45cd3a7"
   },
   {
-   "id": "path-literal:9c8f3445d2b3",
+   "id": "path-literal:49d0b4698b16",
    "type": "path-literal",
-   "title": "/recherche?city=Gen%C3%A8ve",
+   "title": "/recherche?city=Lausanne&sort=prix&order=asc",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/HeroSection.tsx",
-   "line": 48,
+   "path": "src/test/restaurant-search-preview.test.tsx",
+   "line": 23,
    "surface": null,
    "tags": [
-    "src/components/home/HeroSection.tsx"
+    "src/test/restaurant-search-preview.test.tsx"
    ],
-   "detailRef": "0260ef6c7546"
+   "detailRef": "31043cab1e92"
   },
   {
    "id": "path-literal:3ae682e3c6a4",
@@ -337045,6 +337284,19 @@
    "detailRef": "cb0c29ac2ec8"
   },
   {
+   "id": "path-literal:86d426144686",
+   "type": "path-literal",
+   "title": "/recherche?q=francais",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/home-cuisine-accessibility.test.tsx",
+   "line": 32,
+   "surface": null,
+   "tags": [
+    "src/test/home-cuisine-accessibility.test.tsx"
+   ],
+   "detailRef": "751dad662dae"
+  },
+  {
    "id": "path-literal:aa078f0211e2",
    "type": "path-literal",
    "title": "/recherche?q=pizza&ville=geneve",
@@ -337056,6 +337308,19 @@
     "scripts/launch-10k-load-check.mjs"
    ],
    "detailRef": "e7a430fe4d09"
+  },
+  {
+   "id": "path-literal:0c1028a0be82",
+   "type": "path-literal",
+   "title": "/recherche?q=sushi&city=Genève",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/restaurant-search-preview.test.tsx",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "src/test/restaurant-search-preview.test.tsx"
+   ],
+   "detailRef": "cd169a5e8f6b"
   },
   {
    "id": "path-literal:4ab30e0105de",
@@ -337112,7 +337377,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "a047e5b0f488"
+   "detailRef": "091a26a5279c"
   },
   {
    "id": "path-literal:0af02260597a",
@@ -337170,6 +337435,19 @@
    "detailRef": "07a6e73f1de9"
   },
   {
+   "id": "path-literal:8947c54de880",
+   "type": "path-literal",
+   "title": "/restaurant/11111111-1111-1111-1111-111111111111",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/restaurant-detail-preview.test.tsx",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "src/test/restaurant-detail-preview.test.tsx"
+   ],
+   "detailRef": "597984386f71"
+  },
+  {
    "id": "path-literal:86538a16126d",
    "type": "path-literal",
    "title": "/restaurant/:id/reserver",
@@ -337199,7 +337477,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "bbf0586d1fd7"
+   "detailRef": "7ab65118a627"
   },
   {
    "id": "path-literal:d92029df1169",
@@ -338249,7 +338527,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "d5c3a1acf27b"
+   "detailRef": "6a07e168910e"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -338716,7 +338994,7 @@
     "src/pages/TokConnect.tsx",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "7de37d99fbbe"
+   "detailRef": "0139afad9ccb"
   },
   {
    "id": "path-literal:10a0ebcd0a8b",
@@ -338747,7 +339025,7 @@
     "src/test/feature-visibility.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "8d0c804bcf6c"
+   "detailRef": "4ef818f050bf"
   },
   {
    "id": "path-literal:d01a3ea49721",
@@ -339422,7 +339700,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "d5727f7e9679"
+   "detailRef": "0697cb6c500e"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -339476,7 +339754,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "6739520a6074"
+   "detailRef": "ba7ed913a581"
   },
   {
    "id": "path-literal:93c6bbab763a",
@@ -344035,7 +344313,7 @@
     "src/test/home-hero-search.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "a3e7c5ca7931"
+   "detailRef": "f9f64d58e53c"
   },
   {
    "id": "query-parameter:97c42c624f4b",
@@ -344640,7 +344918,7 @@
    "tags": [
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "e732417f03c1"
+   "detailRef": "addcf5d19cad"
   },
   {
    "id": "query-parameter:3aa552989406",
@@ -344797,17 +345075,17 @@
    "detailRef": "911b3ff48ac6"
   },
   {
-   "id": "query-parameter:78176541cf2d",
+   "id": "query-parameter:256c62ae9905",
    "type": "query-parameter",
    "title": "progressiveOfferId",
    "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
    "path": "src/pages/RestaurantDetail.tsx",
-   "line": 287,
+   "line": 288,
    "surface": null,
    "tags": [
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "93feab655538"
+   "detailRef": "e8613be20d34"
   },
   {
    "id": "query-parameter:fdd4827c3ab8",
@@ -344848,7 +345126,7 @@
     "src/pages/Recherche.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "2d5b0f7eeb8a"
+   "detailRef": "c235cffbecfa"
   },
   {
    "id": "query-parameter:1969b37dad55",
@@ -345226,7 +345504,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/tok-connect-remote-mcp/index.ts"
    ],
-   "detailRef": "2aa2e0a9f92e"
+   "detailRef": "d8a6afabda43"
   },
   {
    "id": "query-parameter:53f1f1bd6ea8",
@@ -345267,7 +345545,7 @@
     "src/components/ReservationDialog.tsx",
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "e11fe4091f96"
+   "detailRef": "b2a7ca44bb11"
   },
   {
    "id": "query-parameter:be04f5a7eda6",
@@ -345281,7 +345559,7 @@
     "src/components/ReservationDialog.tsx",
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "a1c8cc82bf8b"
+   "detailRef": "97ca56523c4e"
   },
   {
    "id": "query-parameter:e98354609202",
