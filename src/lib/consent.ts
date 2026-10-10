@@ -22,6 +22,10 @@ export const DEFAULT_CONSENT: ConsentPreferences = {
   geolocation: false,
 };
 
+// A denied storage write must not undo a choice, especially a withdrawal.
+let volatileReceipt: ConsentReceipt | null = null;
+let storageListenerInstalled = false;
+
 function isPreferences(value: unknown): value is ConsentPreferences {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<ConsentPreferences>;
@@ -34,6 +38,7 @@ function isPreferences(value: unknown): value is ConsentPreferences {
 
 export function readConsent(): ConsentReceipt | null {
   if (typeof window === "undefined") return null;
+  if (volatileReceipt) return volatileReceipt;
   try {
     const raw = window.localStorage.getItem(CONSENT_STORAGE_KEY);
     if (!raw) return null;
@@ -88,7 +93,25 @@ export async function saveConsent(
   };
 
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(receipt));
+    if (!storageListenerInstalled) {
+      window.addEventListener("storage", (event) => {
+        if (event.key === CONSENT_STORAGE_KEY || event.key === null) {
+          volatileReceipt = null;
+          // Notify after clearing the fallback, regardless of listener order.
+          window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: readConsent() }));
+        }
+      });
+      storageListenerInstalled = true;
+    }
+    try {
+      window.localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(receipt));
+      volatileReceipt = null;
+    } catch {
+      volatileReceipt = receipt;
+      // Removing a stale grant can still succeed after a quota error. If the
+      // browser blocks every storage operation, the in-memory choice remains.
+      try { window.localStorage.removeItem(CONSENT_STORAGE_KEY); } catch { /* Storage unavailable. */ }
+    }
     window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: receipt }));
   }
   await persistReceipt(receipt);
