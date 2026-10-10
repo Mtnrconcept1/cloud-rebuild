@@ -271,9 +271,29 @@
       "source": "/restaurants/corsier-ge/:path*",
       "destination": "/restaurants/corsier/:path*",
       "permanent": true
+    },
+    {
+      "source": "/:path((?!\\.well-known/(?:apple-app-site-association|assetlinks\\.json)$).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "thetok.ch"
+        }
+      ],
+      "destination": "https://www.thetok.ch/:path",
+      "permanent": true
     }
   ],
   "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
