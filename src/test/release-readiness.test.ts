@@ -1,8 +1,9 @@
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { inspectReleaseReadiness } from "../../scripts/release-readiness.mjs";
+import { writeAppleAppSiteAssociation } from "../../scripts/write-apple-app-site-association.mjs";
 
 const fixtures: string[] = [];
 const marketingUnsubscribeSecret = "u".repeat(32);
@@ -249,12 +250,9 @@ describe("release readiness inspection", () => {
 
   it("accepts configured app links, mobile signing, and critical production secrets", () => {
     const root = makeFixture("ready");
-    writeJson(root, "public/.well-known/apple-app-site-association", {
-      applinks: {
-        apps: [],
-        details: [{ appIDs: ["TEAM123456.com.tok.app"], components: [{ "/": "/*" }] }],
-      },
-    });
+    writeJson(root, "public/.well-known/apple-app-site-association", JSON.parse(
+      readFileSync(path.join(process.cwd(), "public/.well-known/apple-app-site-association"), "utf8"),
+    ));
     writeJson(root, "public/.well-known/assetlinks.json", [
       {
         relation: ["delegate_permission/common.handle_all_urls"],
@@ -281,7 +279,7 @@ describe("release readiness inspection", () => {
         APP_BASE_URL: "https://app.thetok.ch",
         PUBLIC_APP_URL: "https://www.thetok.ch",
         ALLOWED_ORIGINS: "https://app.thetok.ch,https://www.thetok.ch",
-        APPLE_TEAM_ID: "TEAM123456",
+        APPLE_TEAM_ID: "73HG6QD4AJ",
         SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
         SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "GitHub issue #204 dashboard proof 2026-06-16",
       },
@@ -297,7 +295,7 @@ describe("release readiness inspection", () => {
     writeJson(root, "public/.well-known/apple-app-site-association", {
       applinks: {
         apps: [],
-        details: [{ appIDs: ["TEAM123456.com.tok.app"], components: [{ "/": "/*" }] }],
+        details: [{ appIDs: ["TEAM123456.ch.thetok.app"], components: [{ "/": "/*" }] }],
       },
     });
     writeJson(root, "public/.well-known/assetlinks.json", [
@@ -342,7 +340,7 @@ describe("release readiness inspection", () => {
     writeJson(root, "public/.well-known/apple-app-site-association", {
       applinks: {
         apps: [],
-        details: [{ appIDs: ["TEAM123456.com.tok.app"], components: [{ "/": "/*" }] }],
+        details: [{ appIDs: ["TEAM123456.ch.thetok.app"], components: [{ "/": "/*" }] }],
       },
     });
     writeJson(root, "public/.well-known/assetlinks.json", [
@@ -383,12 +381,37 @@ describe("release readiness inspection", () => {
     expect(result.errors).toEqual([]);
   });
 
-  it("rejects an Apple association that targets a different bundle", () => {
+  it("accepts a generated iOS association without changing the Android package", () => {
+    const root = makeFixture("generated-apple-bundle");
+    writeAppleAppSiteAssociation({ root, teamId: "TEAM123456" });
+    writeJson(root, "public/.well-known/assetlinks.json", [
+      {
+        relation: ["delegate_permission/common.handle_all_urls"],
+        target: {
+          namespace: "android_app",
+          package_name: "com.tok.app",
+          sha256_cert_fingerprints: ["AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99"],
+        },
+      },
+    ]);
+
+    const result = inspectReleaseReadiness({ root, env: { APPLE_TEAM_ID: "TEAM123456" }, strict: true });
+
+    expect(result.errors.filter((error: string) => /association|assetlinks/.test(error))).toEqual([]);
+  });
+
+  it.each([
+    ["another bundle", ["TEAM123456.com.example.app"]],
+    ["the Android package", ["TEAM123456.com.tok.app"]],
+    ["another Apple team", ["OTHER12345.ch.thetok.app"]],
+    ["multiple applications", ["TEAM123456.ch.thetok.app", "TEAM123456.com.example.app"]],
+    ["no applications", []],
+  ])("rejects an Apple association with %s", (_label, appIds) => {
     const root = makeFixture("wrong-apple-bundle");
     writeJson(root, "public/.well-known/apple-app-site-association", {
       applinks: {
         apps: [],
-        details: [{ appIDs: ["TEAM123456.com.example.app"], components: [{ "/": "/*" }] }],
+        details: [{ appIDs: appIds, components: [{ "/": "/*" }] }],
       },
     });
 
@@ -400,7 +423,7 @@ describe("release readiness inspection", () => {
 
     expect(result.ok).toBe(false);
     expect(result.errors).toContain(
-      "apple-app-site-association must contain exactly APPLE_TEAM_ID.com.tok.app.",
+      "apple-app-site-association must contain exactly APPLE_TEAM_ID.ch.thetok.app.",
     );
   });
 
@@ -409,7 +432,7 @@ describe("release readiness inspection", () => {
     writeJson(root, "public/.well-known/apple-app-site-association", {
       applinks: {
         apps: [],
-        details: [{ appIDs: ["TEAM123456.com.tok.app"], components: [{ "/": "/*" }] }],
+        details: [{ appIDs: ["TEAM123456.ch.thetok.app"], components: [{ "/": "/*" }] }],
       },
     });
     writeJson(root, "public/.well-known/assetlinks.json", [

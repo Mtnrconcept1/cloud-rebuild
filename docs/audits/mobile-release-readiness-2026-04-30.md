@@ -53,6 +53,8 @@ The tracked `public/.well-known/apple-app-site-association` file declares the cu
 
 After deployment, verify that every enabled Associated Domain host serves this document from `/.well-known/apple-app-site-association` over HTTPS without authentication or redirects that break Apple verification.
 
+The AASA generator (`scripts/write-apple-app-site-association.mjs`) and the full release readiness check share the iOS bundle identity `ch.thetok.app`. With `APPLE_TEAM_ID` set, the full check requires exactly that team's iOS application identifier and rejects the Android package `com.tok.app` in the Apple association. Android Digital Asset Links continue to require `com.tok.app`.
+
 ## Android Digital Asset Links template
 
 Do not publish this template as-is. Replace `<ANDROID_RELEASE_SHA256>` with the SHA-256 fingerprint of the Play release signing certificate, then serve the JSON with `application/json` content type at `/.well-known/assetlinks.json` on every Android App Link host declared in `AndroidManifest.xml`.

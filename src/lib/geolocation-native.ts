@@ -27,6 +27,16 @@ export function watchPosition(
 ): { clear: () => void } {
   if (isNative()) {
     let callbackId: CallbackID | null = null;
+    let cleared = false;
+
+    const clearNativeWatch = async (id: CallbackID) => {
+      try {
+        await Geolocation.clearWatch({ id });
+      } catch {
+        // The consumer has already stopped listening; do not call it after cleanup.
+        console.warn("Unable to stop the native geolocation watch.");
+      }
+    };
 
     Geolocation.watchPosition(
       {
@@ -35,20 +45,33 @@ export function watchPosition(
         maximumAge: options?.maximumAge ?? 5000,
       },
       (position, err) => {
+        if (cleared) return;
         if (err) {
           onError(err);
         } else if (position) {
           onSuccess(position as unknown as GeolocationPosition);
         }
       }
-    ).then((id) => {
-      callbackId = id;
-    });
+    ).then(
+      (id) => {
+        if (cleared) {
+          void clearNativeWatch(id);
+        } else {
+          callbackId = id;
+        }
+      },
+      (error) => {
+        if (!cleared) onError(error);
+      },
+    );
 
     return {
       clear: () => {
+        if (cleared) return;
+        cleared = true;
         if (callbackId !== null) {
-          Geolocation.clearWatch({ id: callbackId });
+          void clearNativeWatch(callbackId);
+          callbackId = null;
         }
       },
     };

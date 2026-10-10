@@ -1,14 +1,61 @@
 // Run against installed dependencies, not mocked copies.
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, realpathSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 const require = createRequire(import.meta.url);
 const root = new URL('../', import.meta.url);
+const capacitorPackages = ['core', 'cli', 'android', 'ios'];
+const capacitorVersions = Object.fromEntries(capacitorPackages.map((name) => [
+  name,
+  JSON.parse(readFileSync(new URL(`node_modules/@capacitor/${name}/package.json`, root), 'utf8')).version,
+]));
 const fromTailwind = createRequire(require.resolve('tailwindcss'));
 const fromChokidar = createRequire(fromTailwind.resolve('chokidar'));
 const braces = fromChokidar('braces');
 const nested = (open, close, depth) => open.repeat(depth) + 'x' + close.repeat(depth);
+
+test('native Capacitor packages stay aligned outside the critical advisory ranges', () => {
+  for (const name of capacitorPackages) {
+    const version = capacitorVersions[name];
+    assert.equal(version, capacitorVersions.core, name);
+    assert.match(version, /^8\.\d+\.\d+$/);
+    const [, minor, patch] = version.split('.').map(Number);
+    // GHSA-rvm3-566m-v7fv: 8.5.0 is vulnerable too; fixes are 8.4.3 and 8.5.1.
+    assert.ok(minor > 5 || (minor === 5 && patch >= 1) || (minor === 4 && patch >= 3), name);
+  }
+});
+
+test('iOS uses the corrected runtime and portable existing plugin paths', () => {
+  const swift = readFileSync(new URL('ios/App/CapApp-SPM/Package.swift', root), 'utf8');
+  assert.equal(swift.match(/capacitor-swift-pm\.git", exact: "([^"]+)"/)?.[1], capacitorVersions.ios);
+  for (const dependency of swift.matchAll(/\.package\(name: "[^"]+", path: "([^"]+)"\)/g)) {
+    assert.ok(!dependency[1].includes('\\'), 'Swift paths must also work on macOS');
+    assert.ok(existsSync(path.resolve(fileURLToPath(new URL('ios/App/CapApp-SPM/', root)), dependency[1])), dependency[1]);
+  }
+});
+
+test('Android uses the installed corrected runtime and existing plugin paths', () => {
+  const gradle = readFileSync(new URL('android/capacitor.settings.gradle', root), 'utf8');
+  const runtime = gradle.match(/project\(':capacitor-android'\)\.projectDir = new File\('([^']+)'\)/);
+  assert.ok(runtime);
+  const androidRoot = fileURLToPath(new URL('android/', root));
+  assert.equal(realpathSync(path.resolve(androidRoot, runtime[1])), realpathSync(new URL('node_modules/@capacitor/android/capacitor', root)));
+  for (const dependency of gradle.matchAll(/projectDir = new File\('([^']+)'\)/g)) {
+    assert.ok(existsSync(path.resolve(androidRoot, dependency[1])), dependency[1]);
+  }
+});
+
+test('Deno workspace declarations match the corrected Capacitor dependencies', () => {
+  const manifest = JSON.parse(readFileSync(new URL('package.json', root), 'utf8'));
+  const deno = JSON.parse(readFileSync(new URL('deno.lock', root), 'utf8'));
+  for (const name of capacitorPackages) {
+    const specifier = manifest.dependencies[`@capacitor/${name}`] ?? manifest.devDependencies[`@capacitor/${name}`];
+    assert.ok(deno.workspace.packageJson.dependencies.includes(`npm:@capacitor/${name}@${specifier}`), name);
+  }
+});
 
 test('normal glob expansion and bounded nesting remain compatible', () => {
   assert.deepEqual(braces.expand('src/{pages,lib}/*.{ts,tsx}'), [
