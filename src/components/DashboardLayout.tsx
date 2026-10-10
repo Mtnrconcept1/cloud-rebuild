@@ -33,8 +33,10 @@ import {
   Users,
   Package,
   Plug,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -77,12 +79,12 @@ const MARKETING_STUDIO_NAV_CLASS =
 
 const NAV_SECTIONS: NavSection[] = [
   {
-    title: "Reussite et performances",
+    title: "Activité du restaurant",
     items: [
       { to: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard, feature: "dashboard-overview" },
       { to: "/dashboard/advisor", label: "Assistant IA", icon: Bot, feature: "dashboard-advisor" },
       { to: "/dashboard/commandes", label: "Commandes", icon: ShoppingCart, feature: "dashboard-commandes" },
-      { to: "/dashboard/reservations", label: "Reservations", icon: CalendarDays, feature: "dashboard-reservations" },
+      { to: "/dashboard/reservations", label: "Réservations", icon: CalendarDays, feature: "dashboard-reservations" },
       { to: "/dashboard/performances", label: "Performances", icon: BarChart3, feature: "dashboard-performances" },
       { to: "/dashboard/comparaison", label: "Comparaison", icon: Scale, feature: "dashboard-comparaison" },
       { to: "/dashboard/avis", label: "Avis clients", icon: MessageSquareText, feature: "dashboard-avis" },
@@ -95,7 +97,7 @@ const NAV_SECTIONS: NavSection[] = [
       { to: "/dashboard/campaign-studio", label: "Campaign Studio IA", icon: Bot, feature: "dashboard-campaign-studio" },
       { to: "/dashboard/crm", label: "CRM clients", icon: Users, feature: "dashboard-crm" },
       { to: "/dashboard/promotions", label: "Promotions", icon: Megaphone, feature: "dashboard-promotions" },
-      { to: "/dashboard/reseaux-sociaux", label: "Reseaux sociaux", icon: Share2, feature: "dashboard-reseaux-sociaux" },
+      { to: "/dashboard/reseaux-sociaux", label: "Réseaux sociaux", icon: Share2, feature: "dashboard-reseaux-sociaux" },
       { to: "/dashboard/photos", label: "Studio Marketing", icon: Camera, feature: "dashboard-photos", emphasis: "marketing-studio" },
       { to: "/dashboard/actualites", label: "Actualités", icon: Newspaper, feature: "dashboard-actualites" },
     ],
@@ -317,6 +319,7 @@ export default function DashboardLayout({
 
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [navigationSearch, setNavigationSearch] = useState("");
 
   // ✅ safe localStorage
   const [collapsed, setCollapsed] = useState(() => {
@@ -360,6 +363,17 @@ export default function DashboardLayout({
         .sort((a, b) => b.to.length - a.to.length)[0],
     [pathname, sections]
   );
+  const visibleSections = useMemo(() => {
+    const query = navigationSearch.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    if (!query) return sections;
+    return sections
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) => `${section.title} ${item.label}`
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(query)),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [navigationSearch, sections]);
   const backFallback = pathname === "/dashboard" ? "/" : "/dashboard";
 
   // ✅ realtime notifications
@@ -415,14 +429,24 @@ export default function DashboardLayout({
 
         {!commercialDemoFrame ? (
           <div className="px-2 pb-2">
-            <ChefHelpButton surface="restaurant" collapsed={collapsed} />
+            <ChefHelpButton surface="restaurant" compact={collapsed} className={collapsed ? undefined : "min-h-16"} />
           </div>
         ) : null}
 
-        <nav className="flex flex-col gap-1 px-2 pb-3">
+        {!collapsed ? (
+          <div className="px-2 pb-2">
+            <label htmlFor="dashboard-tool-search" className="sr-only">Trouver un outil</label>
+            <div className="relative">
+              <Search aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input id="dashboard-tool-search" value={navigationSearch} onChange={(event) => setNavigationSearch(event.target.value)} placeholder="Trouver un outil…" className="h-11 pl-9" />
+            </div>
+          </div>
+        ) : null}
+
+        <nav className="flex flex-col gap-1 px-2 pb-3" aria-label="Outils du restaurant">
           <NavItems
             pathname={pathname}
-            sections={sections}
+            sections={visibleSections}
             collapsed={collapsed}
             disabledFeatures={disabledFeatures}
             unreadNotifications={unreadNotifications}
@@ -430,6 +454,7 @@ export default function DashboardLayout({
             dashboardAccessLocked={dashboardAccessLocked}
             onboardingConfigurationUnlocked={onboardingConfigurationUnlocked}
           />
+          {!collapsed && visibleSections.length === 0 ? <p role="status" className="px-3 py-4 text-sm text-muted-foreground">Aucun outil ne correspond.</p> : null}
         </nav>
 
         {!commercialDemoFrame ? (
@@ -498,26 +523,32 @@ export default function DashboardLayout({
             </SheetHeader>
             <div data-sheet-scroll-area className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-4">
               <RestaurantSelector />
+              <label htmlFor="dashboard-mobile-tool-search" className="mb-2 block text-xs font-semibold text-muted-foreground">Trouver un outil</label>
+              <div className="relative mb-4">
+                <Search aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input id="dashboard-mobile-tool-search" value={navigationSearch} onChange={(event) => setNavigationSearch(event.target.value)} placeholder="Commandes, menu, factures…" className="h-11 pl-9" />
+              </div>
               {!commercialDemoFrame ? (
                 <>
                   <div className="mb-4">
                     <RoleSpaceMenuSection onNavigate={() => setMobileMenuOpen(false)} />
                   </div>
                   <div className="mb-4">
-                    <ChefHelpButton surface="restaurant" onOpen={() => setMobileMenuOpen(false)} />
+                    <ChefHelpButton surface="restaurant" compact onOpen={() => setMobileMenuOpen(false)} />
                   </div>
                 </>
               ) : null}
               <nav className="flex flex-col gap-1 pb-4">
                 <NavItems
                   pathname={pathname}
-                  sections={sections}
+                  sections={visibleSections}
                   disabledFeatures={disabledFeatures}
                   unreadNotifications={unreadNotifications}
                   role={role}
                   dashboardAccessLocked={dashboardAccessLocked}
                   onboardingConfigurationUnlocked={onboardingConfigurationUnlocked}
                 />
+                {visibleSections.length === 0 ? <p role="status" className="px-3 py-4 text-sm text-muted-foreground">Aucun outil ne correspond.</p> : null}
                 {!commercialDemoFrame ? (
                   <div className="mt-3 border-t pt-3">
                     <SignOutButton

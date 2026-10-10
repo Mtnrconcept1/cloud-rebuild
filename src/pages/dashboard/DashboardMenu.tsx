@@ -820,15 +820,17 @@ export default function DashboardMenu() {
                   <p className="text-sm font-bold text-primary">{Number(item.price).toFixed(2)} CHF</p>
                 </div>
                 <Switch
+                  aria-label={`${item.is_available ?? true ? "Masquer" : "Afficher"} ${item.name} sur le menu`}
                   checked={item.is_available ?? true}
                   onCheckedChange={() => toggleAvailability(item.id, item.is_available ?? true)}
                 />
-                <Button size="icon" variant="ghost" onClick={() => openEdit(item)}>
+                <Button size="icon" variant="ghost" aria-label={`Modifier ${item.name}`} onClick={() => openEdit(item)}>
                   <Pencil className="h-4 w-4" />
                 </Button>
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label={`Supprimer ${item.name}`}
                   className="text-destructive"
                   onClick={() => handleDelete(item.id)}
                 >

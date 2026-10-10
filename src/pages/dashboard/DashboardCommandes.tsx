@@ -728,9 +728,9 @@ function LiveDashboardCommandes() {
         data-commercial-demo-source={isCommercialDemoRestaurant ? "isolated-snapshot" : undefined}
       >
         <DashboardPageHero
-          badge="Operations restaurant"
+          badge="Opérations du restaurant"
           title="Commandes"
-          description="Pilotez les commandes par jour, source et statut avec les informations client, paiement et livraison au même endroit."
+          description="Traitez d’abord les commandes qui demandent une action, puis ouvrez les détails client, paiement et livraison."
           icon={ClipboardList}
           tone="violet"
           visualLabel="Flux commandes"
@@ -762,12 +762,13 @@ function LiveDashboardCommandes() {
 
         {!effectiveRestaurantsLoading && !effectiveRestaurantsError && selectedRestaurant && !ordersError ? (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3 shadow-sm md:grid-cols-2 md:p-4 xl:grid-cols-7">
+            <section aria-label="Rechercher et filtrer les commandes" className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3 shadow-sm md:grid-cols-2 md:p-4 xl:grid-cols-3">
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Rechercher</p>
+                <label htmlFor="order-search" className="text-xs font-medium text-muted-foreground">Rechercher</label>
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
+                    id="order-search"
                     type="text"
                     placeholder="N° commande, client..."
                     value={searchTerm}
@@ -779,7 +780,7 @@ function LiveDashboardCommandes() {
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Période</p>
                 <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Période des commandes">
                     <SelectValue placeholder="Toutes" />
                   </SelectTrigger>
                   <SelectContent>
@@ -793,7 +794,7 @@ function LiveDashboardCommandes() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Date de référence</p>
-                <Input type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
+                <Input aria-label="Date de référence des commandes" type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
               </div>
               <SortControls
                 columns={DASHBOARD_ORDER_SORT_COLUMNS}
@@ -811,7 +812,12 @@ function LiveDashboardCommandes() {
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Chiffre visible</p>
                 <p className="text-xl font-bold text-primary sm:text-2xl">{filteredOrdersRevenue.toFixed(2)} CHF</p>
               </div>
-            </div>
+              <div className="flex items-end">
+                <Button type="button" variant="ghost" className="min-h-11 w-full sm:w-auto" onClick={() => {
+                  setSearchTerm(""); setTimeRange("all"); setReferenceDate(getTodayReferenceDate()); setSortKey("created_at"); setSortDirection("desc");
+                }}>Réinitialiser les filtres</Button>
+              </div>
+            </section>
 
             <div className="flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
               <div>

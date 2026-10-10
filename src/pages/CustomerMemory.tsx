@@ -1,3 +1,4 @@
+import DataLoadState from "@/components/client/DataLoadState";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -306,13 +307,17 @@ export default function CustomerMemory() {
     </Card>
   );
 
+  if (memoryQuery.isLoading || memoryQuery.isError) {
+    return <CustomerDashboardLayout><h1 className="mb-5 font-display text-3xl font-semibold">Ma mémoire TOK</h1><DataLoadState title={memoryQuery.isLoading ? "Chargement de vos préférences…" : "Vos préférences n’ont pas pu être chargées"} loading={memoryQuery.isLoading} onRetry={() => memoryQuery.refetch()} /></CustomerDashboardLayout>;
+  }
+
   return (
     <CustomerDashboardLayout>
       <div className="space-y-6">
         <div className="rounded-3xl border bg-gradient-to-br from-orange-50 via-background to-amber-50 p-6 dark:from-orange-950/20 dark:to-amber-950/10">
           <div className="flex items-center gap-2 text-sm font-semibold text-primary">
             <Brain className="h-4 w-4" />
-            TOK Customer Memory
+            Vos préférences, sous votre contrôle
           </div>
           <h1 className="mt-3 font-display text-3xl font-bold">
             Ma mémoire TOK

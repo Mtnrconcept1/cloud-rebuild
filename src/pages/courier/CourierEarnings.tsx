@@ -1,3 +1,4 @@
+import DataLoadState from "@/components/client/DataLoadState";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Bike, Calendar, Coins, Download, PiggyBank, Wallet } from "lucide-react";
@@ -30,13 +31,15 @@ function exportEarningsCsv(rows: any[]) {
 }
 
 function LiveCourierEarnings() {
-  const { data: profile, isLoading: profileLoading } = useCourierProfile();
+  const profileQuery = useCourierProfile();
+  const { data: profile, isLoading: profileLoading } = profileQuery;
 
-  const { data: earnings = [], isLoading } = useQuery({
+  const earningsQuery = useQuery({
     queryKey: ["courier-earnings", profile?.id],
     enabled: !!profile?.id,
     queryFn: () => fetchCourierEarnings(profile!.id),
   });
+  const { data: earnings = [], isLoading } = earningsQuery;
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -76,6 +79,10 @@ function LiveCourierEarnings() {
         </div>
       </CourierDashboardLayout>
     );
+  }
+
+  if (profileQuery.isError || earningsQuery.isError) {
+    return <CourierDashboardLayout><DataLoadState title="Vos gains n’ont pas pu être chargés" onRetry={() => Promise.allSettled([profileQuery.refetch(), earningsQuery.refetch()])} /></CourierDashboardLayout>;
   }
 
   return (

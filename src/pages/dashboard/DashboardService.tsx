@@ -248,6 +248,17 @@ export default function DashboardService() {
     );
   }
 
+  if (!selectedId) {
+    return (
+      <DashboardLayout>
+        <div role="status" className="mx-auto max-w-lg rounded-2xl border bg-card p-6 text-center">
+          <p className="font-semibold">Sélectionnez un restaurant</p>
+          <p className="mt-1 text-sm text-muted-foreground">Choisissez le restaurant à configurer depuis la navigation.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   if (restaurantPending || !restaurant) {
     return (
       <DashboardLayout>

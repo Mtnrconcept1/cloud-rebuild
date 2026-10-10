@@ -35,9 +35,9 @@ export default function SortControls<K extends string = string>({
   return (
     <div className={cn("grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px]", className)}>
       <div className="space-y-1">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">{columnLabel}</p>
+        <p className="text-xs font-medium text-muted-foreground">{columnLabel}</p>
         <Select value={sortKey} onValueChange={(value) => onSortKeyChange(value as K)}>
-          <SelectTrigger>
+          <SelectTrigger aria-label={columnLabel}>
             <SelectValue placeholder="Colonne" />
           </SelectTrigger>
           <SelectContent>
@@ -51,9 +51,9 @@ export default function SortControls<K extends string = string>({
       </div>
 
       <div className="space-y-1">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">{directionLabel}</p>
+        <p className="text-xs font-medium text-muted-foreground">{directionLabel}</p>
         <Select value={direction} onValueChange={(value) => onDirectionChange(value as SortDirection)}>
-          <SelectTrigger>
+          <SelectTrigger aria-label={directionLabel}>
             <span className="flex min-w-0 items-center gap-2">
               <DirectionIcon className="h-4 w-4 shrink-0" />
               <SelectValue />

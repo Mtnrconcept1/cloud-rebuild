@@ -65,14 +65,14 @@ function CourierNavContent({
   return (
     <>
       <div className="px-3 py-2">
-        <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary">Operations</p>
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Opérations</p>
         <h2 className="font-display text-lg font-semibold">Espace Livreur</h2>
       </div>
 
       {!isCommercialDemoFrame ? (
         <>
           <div className="px-1 pb-2">
-            <ChefHelpButton surface="courier" onOpen={onNavigate} />
+            <ChefHelpButton surface="courier" compact onOpen={onNavigate} />
           </div>
 
           <div className="px-1 pb-2">

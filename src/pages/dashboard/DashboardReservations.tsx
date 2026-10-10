@@ -633,16 +633,16 @@ function LiveDashboardReservations() {
       >
         <DashboardPageHero
           badge="Salle et couverts"
-          title="Reservations"
-          description="Suivez les tables a confirmer, les services midi/soir, les risques de no-show et les détails de paiement par jour."
+          title="Réservations"
+          description="Confirmez les tables à venir, puis consultez les services et les détails de paiement lorsque vous en avez besoin."
           icon={CalendarDays}
           tone="amber"
           visualLabel="Planning"
           illustration={DASHBOARD_ILLUSTRATIONS.reservations}
           stats={[
             { label: "Restaurant", value: selectedRestaurant?.name || "Aucun", icon: CalendarDays },
-            { label: "Reservations visibles", value: filteredReservations.length, icon: UserCheck },
-            { label: "Jours groupes", value: groupedReservations.length, icon: SunMedium },
+            { label: "Réservations visibles", value: filteredReservations.length, icon: UserCheck },
+            { label: "Jours groupés", value: groupedReservations.length, icon: SunMedium },
           ]}
           actions={(
           <Button variant="outline" size="sm" className="sm:hidden" onClick={() => setIsCompactMode((value) => !value)}>
@@ -675,12 +675,13 @@ function LiveDashboardReservations() {
 
         {selectedRestaurant && !reservationsError ? (
           <>
-            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3 shadow-sm sm:grid-cols-2 sm:p-4 xl:grid-cols-7">
+            <section aria-label="Rechercher et filtrer les réservations" className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3 shadow-sm sm:grid-cols-2 sm:p-4 xl:grid-cols-3">
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Rechercher</p>
+                <label htmlFor="reservation-search" className="text-xs font-medium text-muted-foreground">Rechercher</label>
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
+                    id="reservation-search"
                     type="text"
                     placeholder="N° réservation, client..."
                     value={searchTerm}
@@ -692,7 +693,7 @@ function LiveDashboardReservations() {
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Période</p>
                 <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Période des réservations">
                     <SelectValue placeholder="Toutes" />
                   </SelectTrigger>
                   <SelectContent>
@@ -706,12 +707,12 @@ function LiveDashboardReservations() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Date de référence</p>
-                <Input type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
+                <Input aria-label="Date de référence des réservations" type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Service</p>
                 <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Service des réservations">
                     <SelectValue placeholder="Tous les services" />
                   </SelectTrigger>
                   <SelectContent>
@@ -724,7 +725,7 @@ function LiveDashboardReservations() {
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Statut</p>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Statut des réservations">
                     <SelectValue placeholder="Tous les statuts" />
                   </SelectTrigger>
                   <SelectContent>
@@ -744,7 +745,12 @@ function LiveDashboardReservations() {
                 onDirectionChange={setSortDirection}
                 className="xl:col-span-2"
               />
-            </div>
+              <div className="flex items-end">
+                <Button type="button" variant="ghost" className="min-h-11 w-full sm:w-auto" onClick={() => {
+                  setSearchTerm(""); setTimeRange("all"); setReferenceDate(getTodayReferenceDate()); setServiceFilter("all"); setStatusFilter("all"); setSortKey("date"); setSortDirection("asc");
+                }}>Réinitialiser les filtres</Button>
+              </div>
+            </section>
 
             <div className="grid grid-cols-3 gap-2 md:gap-3">
               <Card className="rounded-xl">
