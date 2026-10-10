@@ -191,6 +191,10 @@ describe("vercel config", () => {
     expect(csp).toContain("https://js.stripe.com");
     expect(csp).toContain("https://hooks.stripe.com");
     expect(globalHeaders.find((header) => header.key === "X-Frame-Options")?.value).toBe("SAMEORIGIN");
+    // The same SPA document can enter the courier area from any initial route.
+    // Do not grant camera access to another origin or enable microphone capture.
+    expect(globalHeaders.find((header) => header.key === "Permissions-Policy")?.value)
+      .toBe("camera=(self), microphone=(), payment=(self), geolocation=(self)");
   });
 
   it("keeps the commercial demo out of search indexes and same-origin framed", () => {

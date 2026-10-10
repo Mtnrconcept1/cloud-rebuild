@@ -100,6 +100,7 @@ export default function DeliveryProofPanel({ isLoading = false, onVerify }: Deli
           videoRef.current.srcObject = stream;
           await videoRef.current.play().catch(() => null);
         }
+        if (cancelled) return;
 
         const detector = new detectorCtor({ formats: ["qr_code"] });
 
@@ -111,6 +112,7 @@ export default function DeliveryProofPanel({ isLoading = false, onVerify }: Deli
             lastScanRef.current = now;
             try {
               const results = await detector.detect(videoRef.current);
+              if (cancelled) return;
               const rawValue = results[0]?.rawValue || "";
               const scannedCode = normalizeDeliveryProofCode(rawValue);
               if (scannedCode.length === 6) {
@@ -125,11 +127,12 @@ export default function DeliveryProofPanel({ isLoading = false, onVerify }: Deli
             }
           }
 
-          animationFrameRef.current = window.requestAnimationFrame(scanFrame);
+          if (!cancelled) animationFrameRef.current = window.requestAnimationFrame(scanFrame);
         };
 
         animationFrameRef.current = window.requestAnimationFrame(scanFrame);
       } catch (error) {
+        if (cancelled) return;
         setScannerError(error instanceof Error ? error.message : "Impossible d'acceder a la camera.");
         setScannerActive(false);
       }
