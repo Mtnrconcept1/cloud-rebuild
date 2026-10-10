@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql
+      - supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql
       - supabase/tests/checkout_security_710*.sql
       - scripts/test-checkout-security-postgres.mjs
       - scripts/test-checkout-security-runner.test.mjs

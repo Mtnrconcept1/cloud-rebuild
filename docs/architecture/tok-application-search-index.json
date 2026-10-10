@@ -2,13 +2,13 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "4115f723ac1dbc139106bb68c28eb48620d7b4fd050d61326eb26e31735f1642",
+ "sourceDigest": "cdafa0b81392fa922b2536bf0229591cd9865469567fd114c8093c9e1ef77275",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
-  "databaseObjects": 2723,
+  "databaseObjects": 2725,
   "documents": 196,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
@@ -17,7 +17,7 @@
   "frontendRoutes": 131,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 523,
+  "migrations": 524,
   "modules": 1471,
   "pages": 127,
   "pathLiterals": 615,
@@ -25,8 +25,8 @@
   "publicEntries": 324,
   "publicNavigableRoutes": 2,
   "queryParameters": 102,
-  "records": 15573,
-  "repositoryFiles": 2746,
+  "records": 15577,
+  "repositoryFiles": 2747,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -28289,6 +28289,7 @@
      "scripts/release-readiness.mjs",
      "scripts/resolve-live-stripe-publishable-key.mjs",
      "scripts/scale-readiness-check.mjs",
+     "scripts/test-checkout-security-postgres.mjs",
      "scripts/write-commercial-demo-secrets-env.mjs",
      "scripts/write-production-env.mjs",
      "scripts/write-supabase-secrets-env.mjs",
@@ -32390,6 +32391,12 @@
     "path": "supabase/migrations/20261010203000_print_fulfillment_protocol.sql",
     "lineCount": 260,
     "objectCount": 4
+   },
+   {
+    "name": "20261010212500 Reconcile Canonical Commercial Demo Inert State",
+    "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+    "lineCount": 50,
+    "objectCount": 2
    }
   ],
   "databaseObjects": [
@@ -38642,6 +38649,16 @@
      {
       "path": "supabase/migrations/20260729090000_campaign_tracking_and_reservation_fee_integrity.sql",
       "line": 1855
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.protect_canonical_commercial_demo_inert_state",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+      "line": 24
      }
     ]
    },
@@ -61031,6 +61048,16 @@
    },
    {
     "type": "trigger",
+    "name": "protect_canonical_commercial_demo_inert_state",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+      "line": 44
+     }
+    ]
+   },
+   {
+    "type": "trigger",
     "name": "protect_commercial_demo_account_boundary",
     "sources": [
      {
@@ -79572,9 +79599,10 @@
      "TOK_SECURITY_710_DISPOSABLE"
     ],
     "integrations": [
+     "stripe",
      "supabase"
     ],
-    "lineCount": 144
+    "lineCount": 164
    },
    {
     "path": "scripts/test-checkout-security-runner.test.mjs",
@@ -121965,6 +121993,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/checkout_security_710_assertions.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -123676,7 +123709,7 @@
    "id": "code-module:dd58f1b52214",
    "type": "code-module",
    "title": "scripts/test-checkout-security-postgres.mjs",
-   "description": "Module de 144 lignes; exports: aucun export statique.",
+   "description": "Module de 164 lignes; exports: aucun export statique.",
    "path": "scripts/test-checkout-security-postgres.mjs",
    "line": 1,
    "surface": null,
@@ -123690,9 +123723,10 @@
     "PSQL_BIN",
     "TOK_SECURITY_710_CONTAINER",
     "TOK_SECURITY_710_DISPOSABLE",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "012fcf7e6a23"
+   "detailRef": "1cd42ab209bf"
   },
   {
    "id": "code-module:9843c9e14a0d",
@@ -159016,6 +159050,21 @@
    "detailRef": "29c14166870f"
   },
   {
+   "id": "database-object:c20ad739806a",
+   "type": "database-object",
+   "title": "protect_canonical_commercial_demo_inert_state",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+   "line": 44,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "024e8f142fb3"
+  },
+  {
    "id": "database-object:eb5e9a46fe4b",
    "type": "database-object",
    "title": "protect_commercial_demo_account_boundary",
@@ -174854,6 +174903,21 @@
     "table"
    ],
    "detailRef": "4c74698dff91"
+  },
+  {
+   "id": "database-object:cc67944436dc",
+   "type": "database-object",
+   "title": "public.protect_canonical_commercial_demo_inert_state",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+   "line": 24,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "2e7e204ccd82"
   },
   {
    "id": "database-object:875a4d186102",
@@ -315634,6 +315698,20 @@
    "detailRef": "931d969ede08"
   },
   {
+   "id": "file:c4c7af3fbf52",
+   "type": "file",
+   "title": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "24e024dbc072"
+  },
+  {
    "id": "file:ab7118beb60b",
    "type": "file",
    "title": "supabase/tests/checkout_security_710_assertions.sql",
@@ -319197,7 +319275,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 212 module(s).",
+   "description": "Intégration externe détectée dans 213 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -319213,6 +319291,7 @@
     "scripts/release-readiness.mjs",
     "scripts/resolve-live-stripe-publishable-key.mjs",
     "scripts/scale-readiness-check.mjs",
+    "scripts/test-checkout-security-postgres.mjs",
     "scripts/write-commercial-demo-secrets-env.mjs",
     "scripts/write-production-env.mjs",
     "scripts/write-supabase-secrets-env.mjs",
@@ -319416,7 +319495,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "3d333cb7884a"
+   "detailRef": "b995d836ff17"
   },
   {
    "id": "integration:4226c0e68c60",
@@ -328076,6 +328155,20 @@
     "supabase"
    ],
    "detailRef": "32ca1d9538b9"
+  },
+  {
+   "id": "migration:fffb86eb76a1",
+   "type": "migration",
+   "title": "20261010212500 Reconcile Canonical Commercial Demo Inert State",
+   "description": "Migration SQL de 50 lignes, 2 objets CREATE détectés.",
+   "path": "supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "2fcf1a50ca0d"
   },
   {
    "id": "package-script:5bd6dc98483a",

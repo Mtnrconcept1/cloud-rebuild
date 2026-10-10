@@ -22,6 +22,7 @@ SELECT pg_temp.check_710(
  (SELECT array_agg(right(id::text,2) ORDER BY id) FROM public.menu_items WHERE id::text LIKE '71040000-%')
  = ARRAY['01','07','08'], 'anonymous public menu requires availability and every publication condition');
 SELECT pg_temp.denied_710($q$SELECT public.rate_limit_consume('710','anon',10,60)$q$);
+SELECT pg_temp.check_710((SELECT count(*) FROM public.restaurants WHERE is_demo)=0,'canonical demo is not publicly listed');
 SELECT pg_temp.denied_710($q$SELECT public.apply_checkout_benefits('71000000-0000-4000-8000-000000000002','71020000-0000-4000-8000-000000000001')$q$);
 
 RESET ROLE;
@@ -90,6 +91,7 @@ SELECT set_config('request.jwt.claim.sub','',true);
 SELECT set_config('request.jwt.claim.role','service_role',true);
 SELECT set_config('request.jwt.claims','{"role":"service_role"}',true);
 SET LOCAL ROLE service_role;
+SELECT pg_temp.denied_710($q$UPDATE public.restaurants SET is_active=true WHERE id=public.commercial_demo_shared_restaurant_id()$q$,'COMMERCIAL_DEMO_CANONICAL_MUST_REMAIN_INERT');
 SELECT public.rate_limit_consume('710','trusted-edge',10,60);
 SELECT pg_temp.check_710((SELECT count(*) FROM public.menu_items WHERE id::text LIKE '71040000-%')=10,'trusted service retains menu access');
 SELECT pg_temp.denied_710($q$INSERT INTO public.orders(user_id,restaurant_id,delivery_address,total_amount) VALUES ('71000000-0000-4000-8000-000000000005','71010000-0000-4000-8000-000000000001','forbidden demo transaction',10)$q$,'COMMERCIAL_DEMO');

@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const container = process.env.TOK_SECURITY_710_CONTAINER || '';
 const migration = path.join(root, 'supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql');
+const demoMigration = path.join(root, 'supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql');
 if (process.env.TOK_SECURITY_710_DISPOSABLE !== 'true') {
   throw new Error('Refusing fixtures without TOK_SECURITY_710_DISPOSABLE=true. Use a fresh isolated database.');
 }
@@ -85,6 +86,25 @@ assert.equal(sql(functionQuery), afterFunction, 'Migration reapplication must be
 assert.equal(sql(demoPolicyQuery), beforeDemoPolicies);
 assert.equal(sql(historyQuery), beforeHistory);
 console.log('PASS migration transition, reapplication, history and demo-policy preservation');
+
+const provisionDemo = `BEGIN;
+ SET LOCAL ROLE authenticated;
+ SELECT set_config('request.jwt.claim.sub','71000000-0000-4000-8000-000000000004',true);
+ SELECT set_config('request.jwt.claim.role','authenticated',true);
+ SELECT set_config('request.jwt.claims','{"sub":"71000000-0000-4000-8000-000000000004","role":"authenticated","aal":"aal2"}',true);
+ SELECT public.provision_commercial_demo_account('71000000-0000-4000-8000-000000000005','Security Demo','security710-5@example.test');
+ COMMIT;`;
+assert.equal(sql("SELECT count(*) FROM pg_trigger WHERE tgrelid='public.restaurants'::regclass AND tgname='enforce_commercial_demo_restaurant_active';"), '1');
+assert.throws(() => sql(provisionDemo), /Canonical commercial demo restaurant is unsafe/);
+assert.equal(sql('SELECT count(*) FROM public.commercial_demo_shared_restaurant;'), '0', 'Failed provisioning must roll back its singleton');
+console.log('PASS RED: historical activation trigger prevents inert demo provisioning; transaction rolled back');
+sql(fs.readFileSync(demoMigration, 'utf8'));
+sql(provisionDemo);
+sql(fs.readFileSync(demoMigration, 'utf8'));
+sql(provisionDemo);
+assert.equal(sql("SELECT count(*) FROM public.commercial_demo_shared_restaurant s JOIN public.restaurants r ON r.id=s.restaurant_id WHERE r.is_demo AND NOT r.is_active AND r.status='demo' AND r.stripe_account_id IS NULL;"), '1');
+assert.equal(sql(demoPolicyQuery), beforeDemoPolicies, 'Demo reconciliation must not alter RLS');
+console.log('PASS GREEN: real admin provisioning and replay preserve one inert canonical demo');
 
 sql(fs.readFileSync(path.join(root, 'supabase/tests/checkout_security_710_assertions.sql'), 'utf8'));
 console.log('PASS real-role permissions, publication boundaries, cash/zero-balance, forged amounts and demo isolation');

@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `4115f723ac1dbc139106bb68c28eb48620d7b4fd050d61326eb26e31735f1642`
+- Empreinte SHA-256 des sources indexées : `cdafa0b81392fa922b2536bf0229591cd9865469567fd114c8093c9e1ef77275`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,7 +28,7 @@
 | apiRoutes | 9 |
 | cronJobs | 33 |
 | databaseContract | 228 |
-| databaseObjects | 2723 |
+| databaseObjects | 2725 |
 | documents | 196 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
@@ -37,7 +37,7 @@
 | frontendRoutes | 131 |
 | integrations | 11 |
 | marketingOperations | 36 |
-| migrations | 523 |
+| migrations | 524 |
 | modules | 1471 |
 | pages | 127 |
 | pathLiterals | 615 |
@@ -45,8 +45,8 @@
 | publicEntries | 324 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 102 |
-| records | 15573 |
-| repositoryFiles | 2746 |
+| records | 15577 |
+| repositoryFiles | 2747 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1955,7 +1955,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (731)</summary>
+<details><summary>function (732)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2473,6 +2473,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.prioritize_thefork_image_truth_reviews` (2 définition(s))
 - `public.process_fair_growth_module_credit` (1 définition(s))
 - `public.process_pending_ad_campaign_conversions` (3 définition(s))
+- `public.protect_canonical_commercial_demo_inert_state` (1 définition(s))
 - `public.protect_commercial_demo_account_boundary` (2 définition(s))
 - `public.protect_commercial_demo_account_mapping` (2 définition(s))
 - `public.protect_demo_restaurant_identity` (1 définition(s))
@@ -4455,7 +4456,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (237)</summary>
+<details><summary>trigger (238)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -4557,6 +4558,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `prevent_restaurant_image_reassignment` (1 définition(s))
 - `prevent_restaurant_invoice_line_items_locked_period` (1 définition(s))
 - `prevent_restaurant_invoices_locked_period` (1 définition(s))
+- `protect_canonical_commercial_demo_inert_state` (1 définition(s))
 - `protect_commercial_demo_account_boundary` (2 définition(s))
 - `protect_commercial_demo_account_mapping` (2 définition(s))
 - `protect_demo_restaurant_identity` (2 définition(s))
@@ -5527,6 +5529,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261009003407 Protect Generated Print Format | 42 | 2 | [supabase/migrations/20261009003407_protect_generated_print_format.sql:1](../../supabase/migrations/20261009003407_protect_generated_print_format.sql#L1) |
 | 20261010194510 Checkout Benefits And Public Menu Security | 86 | 4 | [supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql:1](../../supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql#L1) |
 | 20261010203000 Print Fulfillment Protocol | 260 | 4 | [supabase/migrations/20261010203000_print_fulfillment_protocol.sql:1](../../supabase/migrations/20261010203000_print_fulfillment_protocol.sql#L1) |
+| 20261010212500 Reconcile Canonical Commercial Demo Inert State | 50 | 2 | [supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql:1](../../supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -5749,7 +5752,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 212 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Stripe | 213 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 663 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 57 | [middleware.js:1](../../middleware.js#L1) |
@@ -6354,7 +6357,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (523)</summary>
+<details><summary>database-migration (524)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -6879,6 +6882,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261009003407_protect_generated_print_format.sql`
 - `supabase/migrations/20261010194510_checkout_benefits_and_public_menu_security.sql`
 - `supabase/migrations/20261010203000_print_fulfillment_protocol.sql`
+- `supabase/migrations/20261010212500_reconcile_canonical_commercial_demo_inert_state.sql`
 
 </details>
 

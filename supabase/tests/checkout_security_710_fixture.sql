@@ -123,8 +123,4 @@ INSERT INTO public.promo_code_uses(id,promo_code_id,user_id,order_id,discount_ap
 VALUES ('71050000-0000-4000-8000-000000000001','71030000-0000-4000-8000-000000000001',
         '71000000-0000-4000-8000-000000000002','71020000-0000-4000-8000-000000000009',3);
 
-SELECT set_config('request.jwt.claim.sub','71000000-0000-4000-8000-000000000004',true);
-SELECT set_config('request.jwt.claim.role','authenticated',true);
-SELECT set_config('request.jwt.claims','{"sub":"71000000-0000-4000-8000-000000000004","role":"authenticated","aal":"aal2"}',true);
-SELECT public.provision_commercial_demo_account('71000000-0000-4000-8000-000000000005','Security Demo','security710-5@example.test');
 COMMIT;
