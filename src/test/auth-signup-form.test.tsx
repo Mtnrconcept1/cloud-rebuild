@@ -3,6 +3,8 @@ import { act } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock('@/components/launch/LaunchGateProvider', () => ({ useLaunchGate: () => ({state:{enabled:false}}) }));
+
 import Auth from "@/pages/Auth";
 
 class ResizeObserverMock {

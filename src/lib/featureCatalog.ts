@@ -902,8 +902,8 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   },
   {
     name: "coming-soon",
-    label: "Page Coming Soon",
-    description: "Lorsque activé, redirige toutes les pages publiques vers la page Coming Soon. Les dashboards admin, restaurateur, coursier et l'authentification restent accessibles.",
+    label: "Animation de lancement · verrou client",
+    description: "Verrou client : seul le flag désactivé ouvre l’application, même à zéro. Lorsque activé, redirige toutes les pages publiques vers la page Coming Soon. Les dashboards admin, restaurateur, coursier et l'authentification restent accessibles.",
     defaultEnabled: false,
     group: "admin_tools",
     routeTargets: ["/coming-soon"],

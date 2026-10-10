@@ -42,6 +42,7 @@ import CommercialDemoFrameProvider, { CommercialDemoFrameAuthBoundary, useCommer
 import CommercialDemoHostSecurityBoundary from "@/components/commercial/CommercialDemoHostSecurityBoundary";
 import CommercialDemoSafeEffectsBoundary from "@/components/commercial/CommercialDemoSafeEffectsBoundary";
 import CommercialHostBoundary from "@/components/commercial/CommercialHostBoundary";
+import { LaunchGateProvider } from "@/components/launch/LaunchGateProvider";
 import ComingSoonGate from "@/components/ComingSoonGate";
 import MarketingHostBoundary from "@/components/marketing/MarketingHostBoundary";
 import MarketingProtectedRoute from "@/components/marketing/MarketingProtectedRoute";
@@ -526,20 +527,23 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const adminTokConnectEnabled = hasFeature("admin-tok-connect");
   const deliveryEnabled = hasFeature("livraison");
   const isMarketingSurface = isMarketingExecutionLocation(pathname);
+  const launchFrame = pathname === "/coming-soon";
   const showGlobalClientChrome = !commercialDemoFrame && !oauthConsentFrame && !isMarketingSurface;
-  const showPublicFooter = showGlobalClientChrome && shouldShowPublicFooter(pathname);
+  const showLaunchClientChrome = showGlobalClientChrome && !launchFrame;
+  const showPublicFooter = showLaunchClientChrome && shouldShowPublicFooter(pathname);
   const publicNavbar = showGlobalClientChrome && shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
   const isCommercialDemoHost = !commercialDemoFrame && pathname === "/commercial/demo-live";
   const supportChatAllowed = (!commercialDemoFrame || commercialDemoFrame.surface !== "commercial")
     && !isCommercialDemoHost
-    && !isMarketingSurface;
+    && !isMarketingSurface
+    && !launchFrame;
 
   return (
     <>
-      {showGlobalClientChrome ? <MobileLogoIntro /> : null}
-      {showGlobalClientChrome ? <AiCreationNotifications /> : null}
-      {publicNavbar}
-      {showGlobalClientChrome ? <FloatingRouteBackButton /> : null}
+      {showLaunchClientChrome ? <MobileLogoIntro /> : null}
+      {showLaunchClientChrome ? <AiCreationNotifications /> : null}
+      {!launchFrame ? publicNavbar : null}
+      {showLaunchClientChrome ? <FloatingRouteBackButton /> : null}
       <Suspense
         fallback={(
           <AppLoadingScreen
@@ -548,7 +552,6 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           />
         )}
       >
-        <ComingSoonGate>
         <Routes>
           <Route path="/coming-soon" element={<ComingSoon />} />
           <Route path="/" element={<ClientSurfaceRoute><Index /></ClientSurfaceRoute>} />
@@ -680,17 +683,16 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/aide" element={<Aide />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        </ComingSoonGate>
       </Suspense>
       {aiSupportChatEnabled === true && !oauthConsentFrame && supportChatAllowed ? <SupportChat /> : null}
       {showGlobalClientChrome ? (
-        <Suspense fallback={null}>
+        !launchFrame ? <Suspense fallback={null}>
           <OrderConflictDialog />
-        </Suspense>
+        </Suspense> : null
       ) : null}
       {!commercialDemoFrame && pathname === "/" ? <DailyMiamzSlotMachine /> : null}
       {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
-      {showGlobalClientChrome ? <LegalConsentBanner /> : null}
+      {showLaunchClientChrome ? <LegalConsentBanner /> : null}
     </>
   );
 }
@@ -742,7 +744,12 @@ function ApplicationBoundary({ commercialDemoFrame }: { commercialDemoFrame: Com
     return <MarketingApplication />;
   }
 
-  const shell = <AppRuntime commercialDemoFrame={commercialDemoFrame} />;
+  const runtime = <AppRuntime commercialDemoFrame={commercialDemoFrame} />;
+  const shell = commercialDemoFrame ? runtime : <LaunchGateProvider>
+    <ComingSoonGate>
+      {pathname === "/coming-soon" ? <Suspense fallback={null}><ComingSoon /></Suspense> : runtime}
+    </ComingSoonGate>
+  </LaunchGateProvider>;
   return (
     <CommercialDemoHostSecurityBoundary>
       <AuthProvider>

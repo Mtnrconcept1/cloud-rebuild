@@ -20,6 +20,7 @@ function App() {
   const {deadline} = clock;
   const [now, setNow] = useState(Date.now);
   const [pointer, setPointer] = useState({x: 0, y: 0});
+  const [portrait, setPortrait] = useState(() => window.innerWidth < 768);
   const [scale, setScale] = useState(1);
   const [fullscreenError, setFullscreenError] = useState('');
   const area = useRef<HTMLDivElement>(null);
@@ -34,7 +35,7 @@ function App() {
   useEffect(() => {
     const node = area.current;
     if (!node) return;
-    const observer = new ResizeObserver(([entry]) => setScale(entry.contentRect.width / WIDTH));
+    const observer = new ResizeObserver(([entry]) => {const mobile = entry.contentRect.width < 768; setPortrait(mobile); setScale(entry.contentRect.width / (mobile ? 900 : WIDTH));});
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
@@ -64,13 +65,13 @@ function App() {
   }
   return <main>
     <header><div className="wordmark">TOK<span>Le grand lancement.</span></div><button onClick={fullscreen}>Plein écran <span aria-hidden="true">⛶</span></button></header>
-    <div className="artwork" ref={area} onPointerMove={event => {
+    <div className="artwork" style={{aspectRatio: portrait ? "9 / 16" : "1672 / 940"}} ref={area} onPointerMove={event => {
       if (paused || reduced) return;
       const bounds = event.currentTarget.getBoundingClientRect();
       setPointer({x: (event.clientX - bounds.left) / bounds.width * 2 - 1, y: (event.clientY - bounds.top) / bounds.height * 2 - 1});
     }} onPointerLeave={() => {if (!paused) setPointer({x: 0, y: 0});}}>
-      <div className="scaled-scene" style={{width: WIDTH, height: HEIGHT, transform: `scale(${scale})`}}>
-        <Scene time={motion.current} remaining={remaining} previousRemaining={remaining < TWENTY_DAYS && remaining > 0 ? remaining + 1 : remaining}
+      <div className="scaled-scene" style={{width: portrait ? 900 : WIDTH, height: portrait ? 1600 : HEIGHT, transform: `scale(${scale})`}}>
+        <Scene portrait={portrait} time={motion.current} remaining={remaining} previousRemaining={remaining < TWENTY_DAYS && remaining > 0 ? remaining + 1 : remaining}
           tickProgress={tickProgress} assetBase="./assets" pointer={pointer} reducedMotion={reduced}/>
       </div>
     </div>

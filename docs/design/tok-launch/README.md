@@ -1,9 +1,8 @@
 # TOK — Affiche animée et décompte de lancement
 
-Studio autonome Remotion + aperçu React, livré avant toute intégration au site TOK.
-La composition reprend l’affiche fournie le 10 octobre 2026. Les sources se trouvent
-avec les maquettes dans `docs/design` ; aucune route, configuration de production,
-authentification ou dépendance de l’application principale n’est modifiée.
+Studio Remotion et aperçu React de l’animation de lancement TOK. La composition
+reprend l’affiche fournie le 10 octobre 2026 et sert aussi de base à la page de
+lancement de l’application.
 
 ## Voir et exporter
 
@@ -19,7 +18,9 @@ pnpm still
 
 - Aperçu interactif : http://127.0.0.1:4178/ (serveur local).
 - Composition `TokLaunch` : 1920 × 1080, 30 images/seconde, 21 secondes.
+- Composition `TokLaunchMobile` : 1080 × 1920, 30 images/seconde, 21 secondes.
 - Export : `out/tok-launch.mp4`, H.264, sans audio.
+- Export vertical : `out/tok-launch-mobile.mp4`, H.264, sans audio.
 - Image de contrôle : `out/tok-launch.png`.
 - `pnpm build` produit l’aperçu statique dans `dist` à servir par HTTP.
 
@@ -34,14 +35,15 @@ Dans l’aperçu, « Démonstration » peut être relancée depuis 20 jours. « 
 utilise une échéance fixée à 20 jours après la première ouverture, sauvegardée dans
 le stockage local du navigateur. Fermeture, onglet inactif et rechargement ne
 remettent pas le compteur à zéro. Il s’arrête à zéro, y compris après rechargement.
-Cette échéance est propre au navigateur, pas une date de lancement mondiale ni une
-date officielle TOK. Une future intégration utilisera une échéance commune fournie
-par le produit. Sans stockage accessible, un message indique le mode session.
+Dans l’application, le compteur provient d’une échéance unique enregistrée côté
+serveur au moment où l’admin active « Animation de lancement · verrou client ».
+Il est purement informatif : atteindre zéro ne donne aucun accès. Seule la
+désactivation explicite du flag par l’admin ouvre les parcours clients.
 
 « Figer le mouvement » et la préférence système de mouvement réduit arrêtent les
 effets décoratifs ; le compteur continue. Le pointeur déplace les plans selon leur
-profondeur. Le format paysage est conservé sur mobile, avec un compteur lisible
-sous l’affiche et des contrôles adaptés à la largeur.
+profondeur. Sur mobile, la mise en scène passe en portrait : titre et logo en haut,
+chef et accessoires au centre, compteur et ruban en bas.
 
 ## Plans et fidélité
 
@@ -75,13 +77,17 @@ pnpm build
 ```
 
 19 tests couvrent les bornes du compteur, 30/60 fps, expiration et stockage refusé.
-Validation du 10 octobre 2026 : 19/19 tests, typecheck, lint et build réussis.
+Les tests applicatifs vérifient aussi la fermeture sur erreur, le rebloquage d’une
+session déjà ouverte, l’accès restaurateur au seul dashboard de préparation, et le
+fait que zéro ne libère pas un client. La migration inclut un test SQL transactionnel
+sur une base PostgreSQL jetable.
 Chrome vérifié à 1440 × 960 et 390 × 844 : passage observé à 19:23:59:59,
 échéance identique après rechargement, pose figée sans arrêter le compteur,
 mouvement réduit respecté, aucun débordement mobile ni erreur JavaScript lors
 du parcours final. Export H.264 contrôlé : 21 secondes, 1920 × 1080, 30 fps.
-Les tests backend et le build de l’application TOK ne sont pas exécutés :
-ce dossier autonome ne change aucun composant applicatif ni service.
+L’application utilise les assets partagés dans `public/launch` et la migration
+`20261010220000_launch_animation_access_gate.sql` pour garantir le même état côté
+interface, API, Edge Functions et RLS.
 Le rendu Remotion utilise uniquement le numéro de frame. L’aperçu utilise l’horloge
 réelle pour éviter la dérive des intervalles et rattraper les onglets suspendus.
 Le projet est volontairement indépendant du workspace applicatif principal.

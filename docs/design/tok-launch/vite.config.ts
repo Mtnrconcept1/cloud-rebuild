@@ -1,2 +1,3 @@
 import {defineConfig} from 'vite';
-export default defineConfig({base: './', css: {postcss: {plugins: []}}});
+import {resolve} from 'node:path';
+export default defineConfig({base: './', resolve: {dedupe: ['react','react-dom']}, server: {fs: {allow: [resolve(__dirname, '../../..')]}}, css: {postcss: {plugins: []}}});

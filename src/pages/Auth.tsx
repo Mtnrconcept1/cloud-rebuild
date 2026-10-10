@@ -92,6 +92,7 @@ import {
   buildSanitizedAuthRedirectUrl,
   getSupabaseAuthRedirectState,
 } from "@/lib/authRedirect";
+import { useLaunchGate } from "@/components/launch/LaunchGateProvider";
 import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
 import {
   getCanonicalAuthCallbackHref,
@@ -933,6 +934,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     refreshRoles,
   } = useAuth();
 
+  const { state: launchState } = useLaunchGate();
   const initialRole = getInitialSignupRole(searchParams);
   const [isLogin, setIsLogin] = useState(
     isDemoAuthMode || isCommercialAuthHost || initialRole === "client",
@@ -1134,9 +1136,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     (selectedRole: UserRole) => {
       return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget, {
         isDemoAuthMode,
+        launchEnabled: launchState?.enabled !== false,
       });
     },
-    [isDemoAuthMode, postAuthRedirectTarget],
+    [isDemoAuthMode, postAuthRedirectTarget, launchState?.enabled],
   );
 
   const navigateToPostAuthTarget = useCallback(
@@ -1489,6 +1492,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
               ? "Votre dossier est enregistré. Enregistrez maintenant votre carte pour débloquer la configuration du restaurant."
               : "Votre compte est en attente de validation humaine.",
         });
+        if (draft.requested_role === "restaurateur" && launchState?.enabled !== false) {
+          navigate("/coming-soon?welcome=1", { replace: true });
+          return;
+        }
         if (
           draft.requested_role === "restaurateur" &&
           recoveredOnboardingChoices
@@ -1531,6 +1538,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     documents,
     incompletePrivilegedSignupRole,
     legalAccepted,
+    launchState?.enabled,
+    navigate,
     navigateToPostAuthTarget,
     refreshRoles,
     restaurateurOnboardingChoices,
@@ -1755,6 +1764,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             : error.message,
           variant: "destructive",
         });
+        if (!isPrivilegedSignup) navigate("/coming-soon?welcome=1&email=1");
         return;
       }
 
@@ -2141,11 +2151,15 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       });
 
       if (submittedRole === "client") {
-        navigate(TOK_WORKSPACE_CHOOSER_PATH);
+        navigate("/coming-soon?welcome=1");
         return;
       }
 
       if (submittedRole === "restaurateur") {
+        if (launchState?.enabled !== false) {
+          navigate("/coming-soon?welcome=1");
+          return;
+        }
         await startRestaurantCardRegistrationAfterSignup(
           activeUser.id,
           submittedOnboardingChoices,
