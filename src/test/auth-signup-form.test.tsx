@@ -3,6 +3,9 @@ import { act } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const launchGateMock = vi.hoisted(() => ({ enabled: false }));
+vi.mock('@/components/launch/LaunchGateProvider', () => ({ useLaunchGate: () => ({ state: { enabled: launchGateMock.enabled } }) }));
+
 import Auth from "@/pages/Auth";
 
 class ResizeObserverMock {
@@ -199,6 +202,8 @@ async function renderAuth(route: string) {
     <MemoryRouter initialEntries={[route]}>
       <Routes>
         <Route path="/auth" element={<Auth />} />
+        <Route path="/espaces" element={<div>Workspace available</div>} />
+        <Route path="/coming-soon" element={<div>Launch countdown</div>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -239,6 +244,7 @@ function acceptLegalTerms() {
 describe("Auth signup form", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    launchGateMock.enabled = false;
     authContextMocks.user = null;
     authContextMocks.session = null;
     authContextMocks.roles = [];
@@ -465,6 +471,24 @@ describe("Auth signup form", () => {
     });
   });
 
+  it.each([
+    { enabled: false, expected: "Workspace available" },
+    { enabled: true, expected: "Launch countdown" },
+  ])("routes a completed client signup according to launch state ($enabled)", async ({ enabled, expected }) => {
+    launchGateMock.enabled = enabled;
+    supabaseMocks.signUp.mockResolvedValue({
+      data: { session: { access_token: "signup-session" }, user: { id: "client-user-id" } },
+      error: null,
+    });
+    await renderAuth("/auth?type=client");
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
+    fireEvent.change(screen.getByLabelText("Nom complet"), { target: { value: "Client Test" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "client@example.com" } });
+    fireEvent.change(screen.getByLabelText("Mot de passe"), { target: { value: "Secret123!" } });
+    acceptLegalTerms();
+    fireEvent.click(screen.getByRole("button", { name: /cr.er mon compte/i }));
+    await waitFor(() => expect(screen.getByText(expected)).toBeInTheDocument());
+  });
   it("requires legal acceptance before creating a signup account", async () => {
     await renderAuth("/auth?type=client");
 
@@ -821,6 +845,8 @@ describe("Auth signup form", () => {
       <MemoryRouter initialEntries={["/auth?type=restaurateur"]}>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+        <Route path="/espaces" element={<div>Workspace available</div>} />
+        <Route path="/coming-soon" element={<div>Launch countdown</div>} />
         </Routes>
       </MemoryRouter>,
     );

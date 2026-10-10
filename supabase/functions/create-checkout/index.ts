@@ -4,6 +4,7 @@ import {
   HttpError,
   authenticateRequest,
   assertProductionFlowAllowed,
+  assertClientLaunchOpen,
   buildRequestMetadata,
   createAdminClient,
   errorDiagnostics,
@@ -328,6 +329,9 @@ Deno.serve(async (req) => {
     }
     if (!RECOGNIZED_CHECKOUT_KINDS.has(effectiveKind)) {
       throw new HttpError(400, "Type de checkout non pris en charge.");
+    }
+    if (!["restaurant-onboarding", "restaurant-subscription-upgrade", "restaurant-credit-pack"].includes(effectiveKind)) {
+      await assertClientLaunchOpen(actor);
     }
     const normalizedPaymentMethod = normalizePaymentMethod(payment_method);
     if (RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS.has(effectiveKind)) {

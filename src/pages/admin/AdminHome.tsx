@@ -610,19 +610,20 @@ export default function AdminHome() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Rocket className={`h-5 w-5 ${comingSoonActive ? "text-amber-600" : "text-green-600"}`} />
-              <p className="font-semibold">Page « Coming Soon »</p>
+              <p className="font-semibold">Animation de lancement · accès clients</p>
               <Badge variant={comingSoonActive ? "destructive" : "secondary"}>
                 {comingSoonActive ? "Activée" : "Désactivée"}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
               {comingSoonActive
-                ? "Le site public est masqué. Seuls les dashboards admin, restaurateur, coursier et l'authentification sont accessibles."
-                : "Le site public est visible par tous les visiteurs."}
+                ? "Les clients attendent sur l’animation. Les restaurateurs préparent leur dashboard. Seule la désactivation ouvre l’application, même après la fin des 20 jours."
+                : "L’application est ouverte. Activer ce verrou démarre un compteur partagé de 20 jours et bloque les accès clients."}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Switch
+              aria-label="Verrouiller l’accès client avec l’animation de lancement"
               checked={comingSoonActive}
               disabled={flagsLoading || comingSoonToggling || !comingSoonFlag}
               onCheckedChange={async (checked) => {

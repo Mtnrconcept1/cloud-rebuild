@@ -24,10 +24,14 @@ function isOAuthConsentTarget(target: string) {
 export function getPostAuthTargetForRole(
   selectedRole: UserRole,
   postAuthRedirectTarget: string | null,
-  context: { isDemoAuthMode?: boolean } = {},
+  context: { isDemoAuthMode?: boolean; launchEnabled?: boolean } = {},
 ) {
   if (context.isDemoAuthMode) {
     return getRoleHomePath(selectedRole);
+  }
+
+  if (context.launchEnabled && (selectedRole === "client" || selectedRole === "restaurateur")) {
+    return "/coming-soon";
   }
 
   if (postAuthRedirectTarget && isOAuthConsentTarget(postAuthRedirectTarget)) {
