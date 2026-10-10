@@ -85,9 +85,10 @@ function CourierNavContent({
         <Link
           key={item.to}
           to={item.to}
+          aria-current={pathname === item.to ? "page" : undefined}
           onClick={onNavigate}
           className={cn(
-            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+            "flex items-center gap-3 min-h-11 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
             pathname === item.to
               ? "bg-primary text-primary-foreground shadow-sm"
               : "text-foreground hover:bg-muted",
@@ -103,7 +104,7 @@ function CourierNavContent({
         <div className="mt-3 border-t pt-3">
           <button
             onClick={onSignOut}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+            className="flex w-full items-center gap-3 min-h-11 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
           >
             <LogOut className="h-4 w-4" />
             Déconnexion
@@ -204,7 +205,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
   });
 
   return (
-    <div className="min-h-screen bg-muted/30 pt-16">
+    <div className="tok-workspace-shell min-h-screen bg-background pt-16">
       <div
         className="fixed left-[calc(env(safe-area-inset-left,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+4.75rem)] z-[70] md:hidden"
         data-testid="courier-mobile-back-button"
@@ -212,13 +213,13 @@ export default function CourierDashboardLayout({ children }: { children: React.R
         <BackNavigationButton
           fallback={backFallback}
           showLabel={false}
-          className="h-11 w-11 px-0 shadow-[0_14px_34px_rgba(15,23,42,0.16)]"
+          className="h-11 w-11 px-0 shadow-sm"
         />
       </div>
 
       <div className="container flex flex-col gap-6 px-3 py-6 pb-28 sm:px-4 sm:py-8 sm:pb-28 md:flex-row md:gap-8 md:pb-8">
         <aside className="hidden w-full shrink-0 md:block md:w-72">
-          <div className="sticky top-24 flex flex-col gap-2 rounded-2xl border bg-card p-4">
+          <div className="tok-workspace-sidebar sticky top-24 flex flex-col gap-2 rounded-2xl border bg-card p-4">
             <CourierNavContent
               pathname={pathname}
               visibleNavItems={visibleNavItems}
@@ -230,14 +231,14 @@ export default function CourierDashboardLayout({ children }: { children: React.R
           </div>
         </aside>
 
-        <main className="min-h-[500px] flex-1 overflow-x-hidden rounded-2xl border bg-card p-4 sm:p-6 md:p-8">
+        <main className="tok-workspace-content min-h-[500px] flex-1 overflow-x-hidden rounded-2xl border bg-card p-4 sm:p-6 md:p-8">
           <BackNavigationButton fallback={backFallback} className="mb-4 hidden md:inline-flex" />
           {children}
         </main>
       </div>
 
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[70] flex items-center gap-2">
-        <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
+        <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-sm backdrop-blur-md hover:bg-background dark:border-border dark:bg-card/95 dark:text-white shadow-sm" />
         <NotificationBell />
         {!isCommercialDemoFrame ? <SignOutButton iconOnly /> : null}
       </div>
@@ -248,7 +249,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
             <Button
               variant="ghost"
               className={cn(
-                "pointer-events-auto h-16 rounded-[1.45rem] border border-orange-300/55 bg-zinc-950 px-2.5 pr-5 text-white shadow-[0_16px_34px_rgba(255,106,26,0.34),0_8px_24px_rgba(15,23,42,0.32)] ring-1 ring-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-zinc-900 hover:shadow-[0_20px_42px_rgba(255,106,26,0.42),0_10px_28px_rgba(15,23,42,0.36)] dark:border-orange-300/50 dark:bg-[#181818] dark:shadow-[0_20px_48px_rgba(0,0,0,0.58),0_0_34px_rgba(255,106,26,0.34)]",
+                "pointer-events-auto h-16 rounded-[1.45rem] border border-border bg-card px-2.5 pr-5 text-foreground shadow-sm ring-1 ring-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-muted shadow-sm dark:border-border dark:bg-card shadow-sm",
                 mobileMenuOpen && "border-orange-200 bg-primary text-primary-foreground hover:bg-primary",
               )}
               aria-label="Ouvrir le menu coursier"
@@ -256,7 +257,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
             >
               <span
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-[1rem] bg-gradient-to-br from-[#ff5a14] to-[#ff9f1c] text-white shadow-[0_0_24px_rgba(255,106,26,0.58)] transition-colors",
+                  "flex h-11 w-11 items-center justify-center rounded-[1rem] bg-primary text-primary-foreground shadow-sm transition-colors",
                   mobileMenuOpen && "bg-white/15 text-current shadow-none",
                 )}
               >
@@ -265,7 +266,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
               <span className="flex min-w-0 flex-col items-start leading-tight">
                 <span
                   className={cn(
-                    "text-[10px] font-semibold uppercase tracking-[0.28em] text-orange-300",
+                    "text-[10px] font-semibold uppercase tracking-[0.28em] text-primary",
                     mobileMenuOpen && "text-primary-foreground/75",
                   )}
                 >
@@ -277,7 +278,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
               </span>
             </Button>
           </SheetTrigger>
-          <SheetContent className="flex h-[100dvh] flex-col overflow-hidden p-0 dark:border-[#5f7aad]/30 dark:bg-[#010716]">
+          <SheetContent className="flex h-[100dvh] flex-col overflow-hidden p-0 dark:border-border dark:bg-card">
             <SheetHeader className="border-b px-6 pb-4 pr-14 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
               <SheetTitle>Espace Livreur</SheetTitle>
               <SheetDescription>

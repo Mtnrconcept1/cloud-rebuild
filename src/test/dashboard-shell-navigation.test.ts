@@ -115,7 +115,7 @@ describe("dashboard shell navigation", () => {
     expect(layout).toContain('data-testid="restaurant-mobile-menu-trigger"');
     expect(layout).toContain("h-16 max-w-[10.75rem] rounded-[1.45rem]");
     expect(layout).toContain("flex h-11 w-11 shrink-0 items-center justify-center rounded-[1rem]");
-    expect(layout).toContain("text-[10px] font-semibold uppercase tracking-[0.28em] text-orange-300");
+    expect(layout).toContain("text-[10px] font-semibold uppercase tracking-[0.28em] text-primary");
     expect(layout).toContain("Resto");
     expect(layout).toContain('className="max-w-[6.25rem] truncate text-sm font-semibold"');
     expect(layout).toContain('<span className="sr-only">{activeNavItem?.label ?? "Ouvrir le menu"}</span>');

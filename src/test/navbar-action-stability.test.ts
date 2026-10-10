@@ -54,16 +54,16 @@ describe("navbar action stability", () => {
     expect(source).toContain("text-amber-600 hover:text-orange-600");
   });
 
-  it("keeps the desktop actualites tab immediately after explorer", () => {
-    const desktopNavigationStart = source.indexOf('<NavigationMenu className="hidden xl:flex">');
-    const explorerIndex = source.indexOf('to="/recherche" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"', desktopNavigationStart);
-    const actualitesIndex = source.indexOf('to="/actualites" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"', desktopNavigationStart);
-    const antiWasteIndex = source.indexOf('to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80"', desktopNavigationStart);
-
-    expect(desktopNavigationStart).toBeGreaterThan(-1);
-    expect(explorerIndex).toBeGreaterThan(desktopNavigationStart);
-    expect(actualitesIndex).toBeGreaterThan(explorerIndex);
-    expect(antiWasteIndex).toBeGreaterThan(actualitesIndex);
+  it("keeps desktop public navigation available and actualites after explorer", () => {
+    const start = source.indexOf('<NavigationMenu className="hidden xl:flex">');
+    const explorer = source.indexOf('to="/recherche"', start);
+    const actualites = source.indexOf('to="/actualites"', explorer);
+    const antiWaste = source.indexOf('to="/anti-gaspi"', actualites);
+    expect(start).toBeGreaterThan(-1);
+    expect(explorer).toBeGreaterThan(start);
+    expect(actualites).toBeGreaterThan(explorer);
+    expect(antiWaste).toBeGreaterThan(actualites);
+    expect(source).not.toContain("usesHeroDesktopNavigation");
   });
 
   it("keeps the compact menu available through tablet widths before desktop navigation", () => {
