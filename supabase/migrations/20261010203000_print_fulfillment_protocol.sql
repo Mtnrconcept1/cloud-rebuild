@@ -127,7 +127,8 @@ BEGIN
     IF v_order.status IN ('cancellation_requested', 'canceled', 'refund_pending', 'refunded') THEN
       p_status := 'canceled';
       p_result := COALESCE(p_result, '{}'::jsonb) || jsonb_build_object('order_state', v_order.status,
-        'reconciliation_required', v_order.submission_started_at IS NOT NULL);
+        'reconciliation_required', v_order.submission_started_at IS NOT NULL
+          OR COALESCE(p_result->'reconciliation_required' = 'true'::jsonb, false));
     ELSIF p_status = 'completed' AND v_order.status NOT IN
       ('submitted', 'validated', 'producing', 'produced', 'packed', 'shipped', 'delivered', 'production_error', 'delivery_failed') THEN
       RAISE EXCEPTION USING ERRCODE = '40001', MESSAGE = 'print_submission_transition_rejected';

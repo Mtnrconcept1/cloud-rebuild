@@ -157,6 +157,13 @@ describe("print orchestrator runtime integrity", () => {
     expect(state.getOrder.mock.calls.every(([key]) => key === reference)).toBe(true);
   });
 
+  it("reconciles an existing provider order even when its state is unknown", async () => {
+    state.remoteOrders.set(reference, { state: null, stateCode: null, items: [] });
+    expect((await (await request()).json()).results[0].status).toBe("completed");
+    expect(state.rpc).toHaveBeenCalledWith("finish_print_fulfillment_submission", expect.objectContaining({ p_provider_state: null }));
+    expect(state.createOrder).not.toHaveBeenCalled();
+  });
+
   it("reconciles a provider-accepted timeout without repeating creation", async () => {
     state.createOrder.mockImplementation(async (order: { reference: string }) => {
       state.remoteOrders.set(order.reference, remoteOrder());

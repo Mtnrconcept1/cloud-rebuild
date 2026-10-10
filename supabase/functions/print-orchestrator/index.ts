@@ -121,7 +121,7 @@ async function completeJob(adminClient: any, job: any, input: {
   return data;
 }
 
-async function finishSubmission(adminClient: any, job: any, providerState: string, tracking: string | null, metadata: Record<string, unknown>) {
+async function finishSubmission(adminClient: any, job: any, providerState: string | null, tracking: string | null, metadata: Record<string, unknown>) {
   const { data, error } = await adminClient.rpc("finish_print_fulfillment_submission", {
     p_job_id: job.id, p_lease_token: job.lease_token, p_provider_state: providerState,
     p_tracking_code: tracking, p_metadata: metadata,
@@ -239,9 +239,8 @@ async function processSubmitJob(adminClient: any, actor: any, job: any) {
     const outcome = await completeJob(adminClient, job, { status: gate.status, result: { reason: "order_state_changed" } });
     return { id: job.id, status: outcome.status, reason: "order_state_changed" };
   }
-  if (gate?.action !== "create") {
-    throw new HttpError(503, gate?.action === "paused" ? "PRINT_SUBMISSION_PAUSED" : "PRINT_SUBMISSION_RECONCILIATION_REQUIRED");
-  }
+  if (gate?.action === "paused") throw new HttpError(503, "PRINT_SUBMISSION_PAUSED");
+  if (gate?.action !== "create") throw new HttpError(503, "PRINT_SUBMISSION_RECONCILIATION_REQUIRED");
   try {
     await createOrder();
   } catch (error) {
