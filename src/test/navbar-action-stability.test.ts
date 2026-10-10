@@ -13,7 +13,7 @@ describe("navbar action stability", () => {
     expect(source).toContain("window.requestAnimationFrame");
     expect(source).toContain("window.scrollTo(scrollX, scrollY)");
     expect(source).toContain("onMouseDown={preserveNavbarActionScrollPosition}");
-    expect(source).toContain('aria-label="Mode sombre"');
+    expect(source).not.toContain('aria-label="Mode sombre"');
     expect(notificationBell).toContain("aria-label={`Notifications");
     expect(source).toContain('aria-label="Compte"');
     expect(source).not.toContain("Ouvrir mes espaces");

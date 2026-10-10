@@ -318,7 +318,6 @@ export default function Navbar() {
             ) : null}
 
             <ThemeToggleButton
-              aria-label="Mode sombre"
               onMouseDown={preserveNavbarActionScrollPosition}
               className={`${isMobileHomeHeader ? "text-slate-950 hover:bg-transparent hover:text-slate-950 dark:text-slate-950" : ""} hidden min-[380px]:inline-flex`}
             />

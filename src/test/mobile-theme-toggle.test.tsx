@@ -66,7 +66,7 @@ describe("mobile theme toggle", () => {
     const app = read("src/App.tsx");
 
     expect(navbar).toContain("ThemeToggleButton");
-    expect(navbar).toContain('aria-label="Mode sombre"');
+    expect(navbar).not.toContain('aria-label="Mode sombre"');
     expect(navbar).not.toContain('"hidden lg:inline-flex" : ""} text-muted-foreground');
     expect(dashboard).toContain("ThemeToggleButton");
     expect(courier).toContain("ThemeToggleButton");
