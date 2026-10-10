@@ -1,0 +1,84 @@
+name: TOK marketing validated source transfer (temporary)
+
+on:
+  push:
+    branches: [fix/marketing-plan-consistency-20261010]
+    paths: [.github/workflows/tok-marketing-transfer-once.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tok-marketing-transfer-20261010
+  cancel-in-progress: false
+
+jobs:
+  transfer-validated-files:
+    if: github.repository == 'Mtnrconcept1/cloud-rebuild' && github.ref == 'refs/heads/fix/marketing-plan-consistency-20261010'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 2
+      - name: Verify branch and base
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "fix/marketing-plan-consistency-20261010"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD~1)" = "702a9a19501af18b144dff7d1195eada04bacdb0"
+          test -z "$(git status --porcelain)"
+      - name: Import only the tested source files with pinned checksums
+        shell: python
+        run: |
+          import hashlib, io, json, pathlib, subprocess, urllib.request, zipfile
+          files = [
+            'docs/architecture/TOK_APPLICATION_REFERENCE.md',
+            'docs/architecture/tok-application-search-index.json',
+            'docs/marketing/TOK_MARKETING_CONSISTENCY_2026-10-10.md',
+            'src/components/marketing/views/MarketingAgentView.tsx',
+            'src/components/marketing/views/MarketingCalendarView.tsx',
+            'src/test/marketing-ai-generation-quality.test.ts',
+            'src/test/marketing-generation-ui.test.tsx',
+            'src/test/marketing-plan-consistency.test.ts',
+            'supabase/functions/_shared/marketing-ai-plan.ts',
+            'supabase/functions/_shared/marketing-ai.ts',
+            'supabase/functions/ai-marketing-agent/index.ts',
+          ]
+          url = 'https://sb-7083to4rtz2g.vercel.run/tok-marketing-correctifs-complets.zip'
+          with urllib.request.urlopen(url, timeout=30) as response:
+              archive = response.read(2_000_001)
+          assert len(archive) == 1242351, 'Unexpected archive size'
+          assert hashlib.sha256(archive).hexdigest() == 'eb74d13556f61973f39bc91dced5885ae9479b7c86fa0229435e706ca9e6db0d', 'Archive checksum mismatch'
+          with zipfile.ZipFile(io.BytesIO(archive)) as bundle:
+              assert set(bundle.namelist()) == set(files + ['manifest.json', 'correctifs.patch'])
+              manifest_bytes = bundle.read('manifest.json')
+              assert hashlib.sha256(manifest_bytes).hexdigest() == 'b08217187ba689441a23f39a03607a513eab858e65befd405df4689eb343005a'
+              manifest = json.loads(manifest_bytes)
+              assert set(manifest) == set(files)
+              for name in files:
+                  info = bundle.getinfo(name)
+                  assert info.file_size < 12_000_000
+                  data = bundle.read(name)
+                  assert hashlib.sha256(data).hexdigest() == manifest[name]['sha256'], name
+                  blob = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+                  assert blob == manifest[name]['git_blob'], name
+                  target = pathlib.Path(name)
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  target.write_bytes(data)
+              subprocess.run(['git', 'add', '--', *files], check=True)
+          changed = subprocess.check_output(['git', 'diff', '--cached', '--name-only'], text=True).splitlines()
+          assert set(changed) == set(files), 'Unexpected staged changes'
+          subprocess.run(['git', 'diff', '--cached', '--check'], check=True)
+          print('Verified and staged exactly eleven tested files. No production data, secrets or deployment settings changed.')
+      - name: Commit only to the dedicated branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "fix/marketing-plan-consistency-20261010"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(marketing): fiabiliser les campagnes, audiences, conversions et visuels'
+          git push origin HEAD:refs/heads/fix/marketing-plan-consistency-20261010
