@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "672afb84ab837376ab2a786f380b4b6b4e659c2d8a4c7003e62ea2d563afa14f",
+ "sourceDigest": "ab3ee1cd4c215587c67682052a6c705a3c637cd47214c15bd0486276146630d6",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -32402,7 +32402,7 @@
    {
     "name": "20261010224500 Actualites Billing Identity",
     "path": "supabase/migrations/20261010224500_actualites_billing_identity.sql",
-    "lineCount": 170,
+    "lineCount": 190,
     "objectCount": 1
    }
   ],
@@ -79659,7 +79659,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 174
+    "lineCount": 178
    },
    {
     "path": "scripts/test-actualites-billing-runner.test.mjs",
@@ -123823,7 +123823,7 @@
    "id": "code-module:d1e651eafa62",
    "type": "code-module",
    "title": "scripts/test-actualites-billing-postgres.mjs",
-   "description": "Module de 174 lignes; exports: aucun export statique.",
+   "description": "Module de 178 lignes; exports: aucun export statique.",
    "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": 1,
    "surface": null,
@@ -123837,7 +123837,7 @@
     "TOK_ACTUALITES_BILLING_DISPOSABLE",
     "supabase"
    ],
-   "detailRef": "a4d599a95843"
+   "detailRef": "af31f14cccbf"
   },
   {
    "id": "code-module:6721a8e5811d",
@@ -328540,7 +328540,7 @@
    "id": "migration:ece6182e5a1c",
    "type": "migration",
    "title": "20261010224500 Actualites Billing Identity",
-   "description": "Migration SQL de 170 lignes, 1 objets CREATE détectés.",
+   "description": "Migration SQL de 190 lignes, 1 objets CREATE détectés.",
    "path": "supabase/migrations/20261010224500_actualites_billing_identity.sql",
    "line": 1,
    "surface": null,
@@ -328548,7 +328548,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "79f79e74e8c8"
+   "detailRef": "46f925d38b15"
   },
   {
    "id": "package-script:5bd6dc98483a",

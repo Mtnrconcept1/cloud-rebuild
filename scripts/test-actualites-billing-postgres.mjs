@@ -51,6 +51,7 @@ const reader = { role: 'authenticated', user: '74300000-0000-4000-8000-000000000
 const otherReader = { role: 'authenticated', user: '74300000-0000-4000-8000-000000000003' };
 const migration = fs.readFileSync(path.join(root, 'supabase/migrations/20261010224500_actualites_billing_identity.sql'), 'utf8');
 const writerDefinition = sql("SELECT pg_get_functiondef('public.record_social_feed_event(uuid,text,jsonb)'::regprocedure);");
+const budgetWriterDefinition = sql("SELECT pg_get_functiondef('public.record_ad_campaign_event(uuid,uuid,text,text,uuid,text,text,jsonb,text)'::regprocedure);");
 const allWriterState = () => sql(`SELECT json_agg(json_build_object('name',proname,'definition',pg_get_functiondef(oid),'acl',proacl) ORDER BY proname)
  FROM pg_proc WHERE oid IN ('public.record_social_feed_event(uuid,text,jsonb)'::regprocedure,'public.record_social_feed_event_v2(uuid,text,jsonb)'::regprocedure,'public.record_ad_campaign_event(uuid,uuid,text,text,uuid,text,text,jsonb,text)'::regprocedure);`);
 const beforeDrift = allWriterState();
@@ -69,7 +70,10 @@ const firstApplication = allWriterState();
 sql(migration);
 assert.equal(allWriterState(), firstApplication, 'Reapplication preserves definitions and grants');
 assert.equal(historical(), historicalBefore, 'Migration never rewrites historical paid evidence');
-assert.equal(sql("SELECT md5(prosrc) FROM pg_proc WHERE oid='public.record_ad_campaign_event(uuid,uuid,text,text,uuid,text,text,jsonb,text)'::regprocedure;"), 'c3d20403bab2d99bba08b3ea2db6662a', 'Budget/conversion writer is unchanged');
+assert.equal(sql("SELECT pg_get_functiondef('public.record_ad_campaign_event(uuid,uuid,text,text,uuid,text,text,jsonb,text)'::regprocedure);"), budgetWriterDefinition.replace(
+  '  WHERE id = p_campaign_id\n    AND restaurant_id = p_restaurant_id\n  FOR UPDATE;',
+  '  WHERE id = p_campaign_id\n    AND restaurant_id = p_restaurant_id\n  FOR NO KEY UPDATE;',
+), 'Only the campaign-row lock mode changes; budget/conversion rules stay exact');
 console.log('PASS drift rollback, idempotent application, existing ACL and immutable paid history');
 for (const [n, event, variation] of [
   [1, 'impression', { page: 'another-client-page' }],

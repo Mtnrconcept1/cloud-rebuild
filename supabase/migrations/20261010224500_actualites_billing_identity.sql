@@ -85,14 +85,34 @@ GRANT EXECUTE ON FUNCTION private_campaign.actualites_billing_dedupe_key(uuid,uu
 
 -- The two replacements below are generated from the immutable historical
 -- definitions. Exact body hashes reject drift and make reapplication a no-op.
-DO $unchanged_billing_guard$
+DO $campaign_lock$
+DECLARE
+  v_oid oid := to_regprocedure('public.record_ad_campaign_event(uuid,uuid,text,text,uuid,text,text,jsonb,text)');
+  v_hash text;
+  v_definition text;
+  v_before text := $before$  WHERE id = p_campaign_id
+    AND restaurant_id = p_restaurant_id
+  FOR UPDATE;$before$;
+  v_after text := $after$  WHERE id = p_campaign_id
+    AND restaurant_id = p_restaurant_id
+  FOR NO KEY UPDATE;$after$;
 BEGIN
-  IF (SELECT md5(prosrc) FROM pg_proc WHERE oid = to_regprocedure('public.record_ad_campaign_event(uuid,uuid,text,text,uuid,text,text,jsonb,text)'))
-       IS DISTINCT FROM 'c3d20403bab2d99bba08b3ea2db6662a' THEN
+  SELECT md5(prosrc) INTO v_hash FROM pg_proc WHERE oid=v_oid;
+  IF v_hash = '1308899dbed821cdc879e91b1766c9c8' THEN RETURN; END IF;
+  IF v_hash IS DISTINCT FROM 'c3d20403bab2d99bba08b3ea2db6662a' THEN
     RAISE EXCEPTION 'actualites_billing_drift: paid writer differs; review budgets and conversions';
   END IF;
+  -- Social-event FK checks already hold KEY SHARE on this campaign. Upgrading
+  -- several such transactions to FOR UPDATE creates a deadlock. NO KEY UPDATE
+  -- still serializes the budget writers and is compatible with these FK locks;
+  -- this writer changes counters/status, never the referenced campaign key.
+  v_definition := pg_get_functiondef(v_oid);
+  IF (length(v_definition)-length(replace(v_definition,v_before,''))) / length(v_before) <> 1 THEN
+    RAISE EXCEPTION 'actualites_billing_drift: campaign lock replacement mismatch';
+  END IF;
+  EXECUTE replace(v_definition,v_before,v_after);
 END;
-$unchanged_billing_guard$;
+$campaign_lock$;
 
 DO $replace_billing_key$
 DECLARE

@@ -14,7 +14,7 @@ Ce regroupement anonyme est conservateur : plusieurs personnes partageant une ad
 
 Les événements déjà acceptés et reconnaissables sont réutilisés sans réécrire les montants ni les preuves historiques. Un ancien hash anonyme ne permet pas de reconstruire l'adresse d'origine : après un changement de User-Agent antérieur à la migration, le rapprochement historique peut rester impossible. Aucun recalcul ni remboursement automatique n'est effectué.
 
-Le writer de budget, ses plafonds et les règles de conversion restent inchangés. La migration vérifie leurs empreintes et refuse une dérive des fonctions ciblées. Elle doit précéder la recette finale ; un simple succès de CI n'atteste pas un déploiement.
+Les plafonds et règles de conversion du writer de budget restent inchangés. Son verrou de ligne campagne passe de `FOR UPDATE` à `FOR NO KEY UPDATE` : le test concurrent `38083171401` a exposé un interblocage entre les verrous de clé étrangère des événements et leur promotion au verrou exclusif. Le nouveau mode conserve la sérialisation des compteurs tout en étant compatible avec les verrous `KEY SHARE`, conformément à la [documentation PostgreSQL](https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-ROWS). Le test compare la définition entière et n'autorise que ce changement précis. La migration vérifie les empreintes et refuse une dérive des fonctions ciblées. Elle doit précéder la recette finale ; un simple succès de CI n'atteste pas un déploiement.
 
 ## Vérifications exigées
 
