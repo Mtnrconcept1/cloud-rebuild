@@ -99,29 +99,32 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:wght@400;500;600;700&display=swap");
       :root {
         color-scheme: light dark;
-        --tok-primary: hsl(24 95% 53%);
-        --tok-primary-soft: hsl(24 95% 53% / 0.14);
+        --tok-primary: hsl(19 88% 39%);
+        --tok-primary-soft: hsl(19 88% 39% / 0.14);
         --tok-primary-foreground: hsl(0 0% 100%);
-        --tok-accent: hsl(152 55% 45%);
+        --tok-accent: hsl(152 48% 30%);
         --tok-gold: hsl(35 100% 62%);
-        --tok-background: hsl(0 0% 99%);
+        --tok-background: hsl(40 43% 97%);
         --tok-surface: hsl(0 0% 100%);
-        --tok-text: hsl(220 20% 10%);
-        --tok-muted: hsl(220 10% 46%);
-        --tok-line: hsl(220 13% 91%);
-        --tok-shadow: 0 20px 60px hsl(220 20% 10% / 0.1);
+        --tok-text: hsl(24 16% 13%);
+        --tok-muted: hsl(25 9% 40%);
+        --tok-line: hsl(32 22% 86%);
+        --tok-shadow: 0 20px 60px hsl(24 16% 13% / 0.1);
         --tok-radius: 0.75rem;
         --tok-font-sans: "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         --tok-font-display: "Playfair Display", Georgia, "Times New Roman", serif;
       }
       @media (prefers-color-scheme: dark) {
         :root {
+          --tok-primary: hsl(22 92% 65%);
+          --tok-primary-soft: hsl(22 92% 65% / 0.14);
+          --tok-primary-foreground: hsl(24 16% 10%);
           --tok-accent: hsl(156 58% 47%);
-          --tok-background: hsl(222 30% 5%);
-          --tok-surface: hsl(222 28% 11%);
+          --tok-background: hsl(24 14% 8%);
+          --tok-surface: hsl(24 12% 12%);
           --tok-text: hsl(210 30% 98%);
           --tok-muted: hsl(214 20% 80%);
-          --tok-line: hsl(218 18% 29%);
+          --tok-line: hsl(24 8% 28%);
           --tok-shadow: 0 20px 60px hsl(222 30% 2% / 0.55);
         }
       }
@@ -132,8 +135,8 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         font-family: var(--tok-font-sans);
         color: var(--tok-text);
         background:
-          radial-gradient(circle at 18% 12%, hsl(24 95% 53% / 0.16), transparent 34%),
-          radial-gradient(circle at 92% 0%, hsl(152 55% 45% / 0.12), transparent 28%),
+          radial-gradient(circle at 18% 12%, hsl(19 88% 39% / 0.16), transparent 34%),
+          radial-gradient(circle at 92% 0%, hsl(152 48% 30% / 0.12), transparent 28%),
           var(--tok-background);
       }
       h1, h2, h3, .tok-display {
