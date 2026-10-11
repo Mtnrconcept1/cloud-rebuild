@@ -54,9 +54,16 @@ const CUISINE_CATEGORIES: CuisineCategory[] = [
 
 function CuisinePhoto({ src, isActive }: { src: string; isActive: boolean }) {
   return (
-    <div className={["h-16 w-16 overflow-hidden rounded-full border transition-colors md:h-20 md:w-20", isActive ? "border-primary ring-2 ring-primary/25" : "border-border group-hover:border-primary"].join(" ")}>
-      <img src={src} alt="" width={80} height={80} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-    </div>
+    <span
+      className={[
+        "flex h-20 w-20 items-center justify-center rounded-[20px] border bg-background shadow-[0_6px_20px_rgba(15,23,42,0.06)] transition-[border-color,box-shadow] sm:h-24 sm:w-24 md:h-36 md:w-36 md:rounded-[26px]",
+        isActive ? "border-primary ring-2 ring-primary/20" : "border-border/80 group-hover:border-primary/60 group-hover:shadow-md",
+      ].join(" ")}
+    >
+      <span className="h-16 w-16 overflow-hidden rounded-full border border-border/50 sm:h-[72px] sm:w-[72px] md:h-24 md:w-24">
+        <img src={src} alt="" width={96} height={96} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+      </span>
+    </span>
   );
 }
 
@@ -112,7 +119,7 @@ export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }
 
         <div
           ref={scrollRef}
-          className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 pt-4 md:gap-4"
+          className="flex snap-x snap-mandatory gap-2 overflow-x-auto px-1 pb-3 pt-4 md:gap-4"
         >
           {CUISINE_CATEGORIES.map((cat) => {
             const isActive = cat.slug === activeSlug;
@@ -122,15 +129,15 @@ export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }
                 key={cat.slug}
                 type="button"
                 onClick={() => handleClick(cat.slug)}
-                className="group flex min-h-11 w-24 shrink-0 snap-start flex-col items-center gap-2 rounded-xl px-1 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="group flex min-h-11 w-[84px] shrink-0 snap-start flex-col items-center gap-2 rounded-xl px-0.5 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:w-28 md:w-40"
                 aria-pressed={isActive}
                 aria-label={cat.label}
               >
                 <CuisinePhoto src={cat.imageSrc} isActive={isActive} />
                 <span
                   className={[
-                    "w-full text-center text-xs font-medium leading-5",
-                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary",
+                    "w-full break-words text-center text-[13px] font-bold leading-snug tracking-tight transition-colors sm:text-base md:text-lg md:leading-6",
+                    isActive ? "text-primary" : "text-foreground group-hover:text-primary",
                   ].join(" ")}
                 >
                   {cat.label}

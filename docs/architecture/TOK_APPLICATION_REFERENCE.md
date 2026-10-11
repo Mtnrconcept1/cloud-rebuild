@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `36fc50ff7534a824664b7cacba5219e14eaa389dc8d3b632476e77fa214d54d0`
+- Empreinte SHA-256 des sources indexées : `ddbf3d1d614bdca26b54fe3e9c730eee70b134a3d8aa1c67090ee67703f011d6`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1480,7 +1480,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /recherche | 64 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
 | /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:23](../../src/test/restaurant-search-preview.test.tsx#L23) |
 | /recherche?mode=reservation | 2 | [src/pages/TokPulse.tsx:30](../../src/pages/TokPulse.tsx#L30) |
-| /recherche?q=francais | 1 | [src/test/home-cuisine-accessibility.test.tsx:32](../../src/test/home-cuisine-accessibility.test.tsx#L32) |
+| /recherche?q=francais | 1 | [src/test/home-cuisine-accessibility.test.tsx:41](../../src/test/home-cuisine-accessibility.test.tsx#L41) |
 | /recherche?q=pizza&ville=geneve | 1 | [scripts/launch-10k-load-check.mjs:19](../../scripts/launch-10k-load-check.mjs#L19) |
 | /recherche?q=sushi&city=Genève | 2 | [src/test/restaurant-search-preview.test.tsx:30](../../src/test/restaurant-search-preview.test.tsx#L30) |
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
