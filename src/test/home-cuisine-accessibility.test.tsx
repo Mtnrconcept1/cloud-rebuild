@@ -25,6 +25,15 @@ describe("CuisineCategoryStrip accessibility", () => {
     expect(screen.getByRole("button", { name: "Défiler à gauche" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Défiler à droite" })).toBeInTheDocument();
   });
+  it("displays each cuisine photo in a rounded square with a bold readable label", () => {
+    render(<MemoryRouter><CuisineCategoryStrip /></MemoryRouter>);
+
+    const african = screen.getByRole("button", { name: "Africain" });
+    expect(african.firstElementChild).toHaveClass("rounded-[20px]", "bg-background");
+    expect(african.querySelector("img")).toHaveAttribute("loading", "lazy");
+    expect(african.lastElementChild).toHaveClass("font-bold", "text-foreground");
+  });
+
   it("opens the selected cuisine with a safely encoded query and no imposed city", () => {
     render(<MemoryRouter><CuisineCategoryStrip activeSlug="francais" /><LocationProbe /></MemoryRouter>);
     expect(screen.getByRole("button", { name: "Français" })).toHaveAttribute("aria-pressed", "true");
