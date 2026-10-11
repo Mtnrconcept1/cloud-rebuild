@@ -103,10 +103,10 @@ jobs:
           for path in paths:
               before = path.read_bytes()
               original = Image.open(io.BytesIO(before)).convert('RGB')
-              assert original.width == original.height and original.width >= 192, (str(path), original.size)
               if len(before) < 12000:
                   records.append({'path': str(path), 'before': len(before), 'after': len(before), 'changed': False})
                   continue
+              assert original.width == original.height and original.width >= 192, (str(path), original.size)
               selected = None
               for size in [original.width, 216, 192]:
                   if size > original.width:
@@ -181,7 +181,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pnpm test -- --mode production 2>&1 | tee "$EVIDENCE/full-tests.log"
+          pnpm test --mode production 2>&1 | tee "$EVIDENCE/full-tests.log"
 
       - name: Lint
         working-directory: ${{ env.WORKTREE }}
@@ -204,6 +204,64 @@ jobs:
           set -euo pipefail
           pnpm build:prod 2>&1 | tee "$EVIDENCE/build.log"
 
+      - name: Browser validation at six viewport sizes
+        working-directory: ${{ env.WORKTREE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > .codex-cuisine-preview.html <<'HTML'
+          <!doctype html><html lang="fr"><head><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Test cuisine TOK</title></head><body><div id="root"></div><script type="module" src="/.codex-cuisine-preview.tsx"></script></body></html>
+          HTML
+          cat > .codex-cuisine-preview.tsx <<'TSX'
+          import React from 'react';
+          import { createRoot } from 'react-dom/client';
+          import { MemoryRouter } from 'react-router-dom';
+          import CuisineCategoryStrip from './src/components/home/CuisineCategoryStrip';
+          import './src/index.css';
+          createRoot(document.getElementById('root')!).render(<MemoryRouter><CuisineCategoryStrip homeVariant /></MemoryRouter>);
+          TSX
+          trap 'rm -f .codex-cuisine-preview.html .codex-cuisine-preview.tsx; kill "$vite_pid" 2>/dev/null || true' EXIT
+          pnpm exec vite --host 127.0.0.1 --port 4173 > "$EVIDENCE/vite-preview.log" 2>&1 &
+          vite_pid=$!
+          for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/.codex-cuisine-preview.html > /dev/null && break || sleep 1; done
+          export CHROME_PATH="$(command -v google-chrome || command -v chromium || true)"
+          node --input-type=module <<'JS'
+          import puppeteer from 'puppeteer';
+          import { writeFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          const browser = await puppeteer.launch({headless:true, args:['--no-sandbox'], ...(process.env.CHROME_PATH ? {executablePath:process.env.CHROME_PATH} : {})});
+          const results = [];
+          try {
+            for (const width of [320, 360, 390, 430, 768, 1440]) {
+              const page = await browser.newPage();
+              const errors = [];
+              page.on('pageerror', error => errors.push(error.message));
+              await page.setViewport({width,height:800,deviceScaleFactor:1});
+              await page.goto('http://127.0.0.1:4173/.codex-cuisine-preview.html',{waitUntil:'networkidle0'});
+              await page.waitForSelector('button[aria-label="Africain"] img');
+              const result = await page.evaluate(() => {
+                const button = document.querySelector('button[aria-label="Africain"]');
+                const card = button.firstElementChild;
+                const label = button.lastElementChild;
+                const rect = card.getBoundingClientRect();
+                const img = button.querySelector('img');
+                return {cardWidth:rect.width,cardHeight:rect.height,fontWeight:getComputedStyle(label).fontWeight,borderRadius:getComputedStyle(card).borderRadius,imageLoaded:img.complete && img.naturalWidth > 0,documentOverflow:document.documentElement.scrollWidth > innerWidth,cuisineCount:document.querySelectorAll('button[aria-pressed]').length};
+              });
+              assert.equal(result.cardWidth,result.cardHeight);
+              assert.equal(result.fontWeight,'700');
+              assert.equal(result.imageLoaded,true);
+              assert.equal(result.documentOverflow,false);
+              assert.equal(result.cuisineCount,39);
+              assert.deepEqual(errors,[]);
+              await page.screenshot({path:`${process.env.EVIDENCE}/cuisines-${width}.png`,fullPage:true});
+              results.push({width,...result});
+              await page.close();
+            }
+          } finally { await browser.close(); }
+          writeFileSync(`${process.env.EVIDENCE}/browser-report.json`,JSON.stringify(results,null,2));
+          console.log(JSON.stringify(results));
+          JS
+
       - name: Publish validated Git objects on isolated output branch only
         working-directory: ${{ env.WORKTREE }}
         shell: bash
@@ -213,6 +271,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "$TARGET_SHA"
           test "$(git ls-remote origin refs/heads/codex/cuisine-category-cards-bold-20261011 | cut -f1)" = "$TARGET_SHA"
           git diff --exit-code
+          test -z "$(git ls-files --others --exclude-standard)"
           git diff --cached --check
           pnpm docs:application-index:check
           git config user.name 'github-actions[bot]'
