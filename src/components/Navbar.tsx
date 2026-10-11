@@ -109,6 +109,7 @@ export default function Navbar() {
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollYRef = useRef(0);
   const headerRef = useRef<HTMLElement | null>(null);
+  const utilityBarRef = useRef<HTMLDivElement | null>(null);
 
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
@@ -163,6 +164,10 @@ export default function Navbar() {
         : 0;
 
       root.style.setProperty("--tok-public-navbar-offset", `${headerHeight}px`);
+      // Layout height remains stable when the sticky header hides on scroll.
+      const layoutHeight = (headerRef.current?.getBoundingClientRect().height ?? 0)
+        + (utilityBarRef.current?.getBoundingClientRect().height ?? 0);
+      root.style.setProperty("--tok-public-navbar-height", `${layoutHeight}px`);
     };
 
     updatePublicNavbarOffset();
@@ -174,6 +179,7 @@ export default function Navbar() {
 
     if (resizeObserver && headerRef.current) {
       resizeObserver.observe(headerRef.current);
+      if (utilityBarRef.current) resizeObserver.observe(utilityBarRef.current);
     }
 
     window.addEventListener("resize", updatePublicNavbarOffset);
@@ -182,6 +188,7 @@ export default function Navbar() {
       resizeObserver?.disconnect();
       window.removeEventListener("resize", updatePublicNavbarOffset);
       root.style.removeProperty("--tok-public-navbar-offset");
+      root.style.removeProperty("--tok-public-navbar-height");
     };
   }, [isHeaderVisible, isMobileHomeHeader]);
 
@@ -193,7 +200,7 @@ export default function Navbar() {
     <>
       {/* ─── Top utility bar ─── */}
       {showClientSurface ? (
-        <div className={`w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 ${isDesktopHomeReference ? "block lg:hidden" : "hidden lg:block"}`}>
+        <div ref={utilityBarRef} className={`w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 ${isDesktopHomeReference ? "block lg:hidden" : "hidden lg:block"}`}>
           <div className={isDesktopHomeReference
             ? "container flex h-9 items-center justify-end gap-1.5 px-2 text-[10px] text-muted-foreground min-[380px]:gap-2 min-[380px]:text-xs sm:gap-3"
             : "container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground"}>
