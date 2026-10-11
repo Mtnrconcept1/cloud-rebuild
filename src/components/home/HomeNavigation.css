@@ -1,0 +1,7 @@
+/* Navigation styling stays scoped to the public homepage. */
+.tok-home-header .tok-site-header__actions{gap:8px}
+.tok-home-header .tok-site-header__actions>a[href='/restaurateurs/geneve']{display:none}
+@media(max-width:767px){
+.tok-home-header .tok-site-header__actions{gap:4px}
+.tok-home-utility a{text-decoration:underline;text-underline-offset:3px}
+}
