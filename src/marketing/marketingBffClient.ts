@@ -48,11 +48,18 @@ export class MarketingBffError extends Error {
 
 const PUBLIC_ERROR_CODES = new Set([
   "authentication_required", "authentication_failed", "mfa_failed",
+  "marketing_visual_required", "marketing_readiness_unavailable",
   "configuration_unavailable", "service_unavailable", "mfa_setup_unavailable",
   "ai_auth_unavailable", "discovery_unavailable", "discovery_invalid_response",
 ]);
 
-function publicErrorMessage(status: number) {
+function publicErrorMessage(status: number, code?: string) {
+  if (status === 400 && code === "marketing_visual_required") {
+    return "Ajoutez un visuel HTTPS valide à chaque publication illustrée avant de l’approuver.";
+  }
+  if (status === 503 && code === "marketing_readiness_unavailable") {
+    return "La vérification des visuels est indisponible. Réessayez avant d’approuver.";
+  }
   if (status === 400) return "La demande n’a pas pu être traitée.";
   if (status === 401) return "Votre session marketing a expiré.";
   if (status === 403) return "Cette action n’est pas autorisée.";
@@ -207,7 +214,7 @@ export async function marketingBffRequest<T>(
         ? payload.error : undefined;
       const code = candidate && typeof candidate === "object" && "code" in candidate
         && typeof candidate.code === "string" ? candidate.code : undefined;
-      throw new MarketingBffError(publicErrorMessage(response.status), response.status, code);
+      throw new MarketingBffError(publicErrorMessage(response.status, code), response.status, code);
     }
 
     return await readBoundedJson(response) as T;

@@ -66,3 +66,27 @@ References: Vercel configuration passes query strings through a redirect;
 RFC 9110 section 10.2.2 preserves the original fragment when Location has none.
 https://vercel.com/kb/guide/how-do-i-perform-vercel-redirects-based-on-query-strings
 https://www.rfc-editor.org/rfc/rfc9110.html#section-10.2.2
+
+## Completion — 11 October afternoon
+
+Remaining changes are restricted to the 31 cuisine thumbnails exceeding the
+existing 12000-byte budget, src/marketing/marketingBffClient.ts and its existing
+client tests. Keep thumbnail dimensions, source illustrations and test budgets.
+Map only known media error codes to constant French client messages; never
+render arbitrary upstream error details. Regenerate application/error indexes
+if their inputs change. Validate full suite, lint, typecheck and build, then
+create the next commit through GitHub createCommitOnBranch so the configured
+verified-commit deployment policy remains enforced. No main merge.
+
+The production historical landing is repaired with one project-level Vercel
+route, limited to www.thetok.ch and ^/restaurateurs-geneve/?$, HTTP 308 to
+/restaurateurs/geneve. Previous project route list was empty. Route ID
+89251966-50eb-4f49-9cd1-a00c47688aaa, version
+250b0e5b-2fbe-4d51-9fce-8bb184ce91ce. Rollback: disable this one rule and
+promote the resulting version; preserve any subsequent unrelated rules.
+
+Compare deployed Edge source before updating only marketing-orchestrator and
+ai-marketing-agent. Missing campaign assets are not evidence of broken Meta
+credentials: the campaign was manually planned with pending_generation.
+Preparing its existing briefs must leave all not-yet-published items pending
+human approval, and must not trigger any Meta publication or secret rotation.

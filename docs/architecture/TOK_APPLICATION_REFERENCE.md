@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `2659806bcfae680d92911b73af1240c2591e3245ba0d27dc811273116c506788`
+- Empreinte SHA-256 des sources indexées : `1aaaa4cf512cc05f0b099ea4fea2f7fae5963a0e025bfa1982b09d305d3f0864`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,7 +45,7 @@
 | publicEntries | 382 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15901 |
+| records | 15902 |
 | repositoryFiles | 2864 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1090,7 +1090,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/marketing/mfa/enroll | 1 | [src/marketing/marketingBffClient.ts:8](../../src/marketing/marketingBffClient.ts#L8) |
 | /api/marketing/mfa/verify | 3 | [src/marketing/marketingBffClient.ts:9](../../src/marketing/marketingBffClient.ts#L9) |
 | /api/marketing/orchestrator | 3 | [src/marketing/marketingBffClient.ts:12](../../src/marketing/marketingBffClient.ts#L12) |
-| /api/marketing/rpc | 7 | [src/marketing/marketingBffClient.ts:11](../../src/marketing/marketingBffClient.ts#L11) |
+| /api/marketing/rpc | 9 | [src/marketing/marketingBffClient.ts:11](../../src/marketing/marketingBffClient.ts#L11) |
 | /api/marketing/session | 4 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /api/missing | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
@@ -6049,7 +6049,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Marketing Studio Output Geometry Implementation Plan | 8 | [docs/superpowers/plans/2026-09-08-marketing-studio-output-geometry.md:1](../../docs/superpowers/plans/2026-09-08-marketing-studio-output-geometry.md#L1) |
 | Admin TheFork-only filter plan | 1 | [docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md:1](../../docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md#L1) |
 | Refonte TOK — application réelle en preview | 8 | [docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md:1](../../docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md#L1) |
-| TOK marketing publication repair | 5 | [docs/superpowers/plans/2026-10-11-marketing-publication-repair.md:1](../../docs/superpowers/plans/2026-10-11-marketing-publication-repair.md#L1) |
+| TOK marketing publication repair | 6 | [docs/superpowers/plans/2026-10-11-marketing-publication-repair.md:1](../../docs/superpowers/plans/2026-10-11-marketing-publication-repair.md#L1) |
 | Facturation des réservations (5.-/resa) & détection anti-fraude | 26 | [docs/superpowers/specs/2026-04-17-reservation-billing-design.md:1](../../docs/superpowers/specs/2026-04-17-reservation-billing-design.md#L1) |
 | Refonte compta: accueil + entrees/sorties | 52 | [docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md:1](../../docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md#L1) |
 | Lisibilite dashboard: factures, reservations et commandes | 39 | [docs/superpowers/specs/2026-04-21-dashboard-readability-design.md:1](../../docs/superpowers/specs/2026-04-21-dashboard-readability-design.md#L1) |

@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "2659806bcfae680d92911b73af1240c2591e3245ba0d27dc811273116c506788",
+ "sourceDigest": "1aaaa4cf512cc05f0b099ea4fea2f7fae5963a0e025bfa1982b09d305d3f0864",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -25,7 +25,7 @@
   "publicEntries": 382,
   "publicNavigableRoutes": 2,
   "queryParameters": 104,
-  "records": 15901,
+  "records": 15902,
   "repositoryFiles": 2864,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -15481,7 +15481,7 @@
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
-      "line": 108
+      "line": 127
      },
      {
       "path": "src/test/marketing-session-recovery.test.tsx",
@@ -15527,15 +15527,23 @@
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
-      "line": 49
+      "line": 51
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
-      "line": 61
+      "line": 62
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
-      "line": 74
+      "line": 68
+     },
+     {
+      "path": "src/test/marketing-bff-client.test.ts",
+      "line": 80
+     },
+     {
+      "path": "src/test/marketing-bff-client.test.ts",
+      "line": 93
      }
     ]
    },
@@ -15556,7 +15564,7 @@
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
-      "line": 91
+      "line": 110
      }
     ]
    },
@@ -22546,7 +22554,7 @@
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
-      "line": 78
+      "line": 97
      },
      {
       "path": "src/test/marketing-domain-isolation.test.ts",
@@ -75550,6 +75558,11 @@
       "level": 2,
       "title": "Boundaries and rollout",
       "line": 40
+     },
+     {
+      "level": 2,
+      "title": "Completion — 11 October afternoon",
+      "line": 70
      }
     ]
    },
@@ -97370,23 +97383,23 @@
      },
      {
       "name": "isMarketingTotpCode",
-      "line": 69,
+      "line": 76,
       "kind": "function"
      },
      {
       "name": "readMarketingCsrfToken",
-      "line": 73,
+      "line": 80,
       "kind": "function"
      },
      {
       "name": "marketingBffRequest",
-      "line": 149,
+      "line": 156,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 225
+    "lineCount": 232
    },
    {
     "path": "src/marketing/marketingClient.ts",
@@ -102806,7 +102819,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 114
+    "lineCount": 133
    },
    {
     "path": "src/test/marketing-bff-security.test.ts",
@@ -134824,7 +134837,7 @@
    "id": "code-module:040d299ff1d2",
    "type": "code-module",
    "title": "src/marketing/marketingBffClient.ts",
-   "description": "Module de 225 lignes; exports: MARKETING_CSRF_COOKIE_NAME, MARKETING_CSRF_HEADER_NAME, MARKETING_SESSION_EXPIRED_EVENT, MARKETING_BFF_ENDPOINTS, MarketingBffError, isMarketingTotpCode, readMarketingCsrfToken, marketingBffRequest.",
+   "description": "Module de 232 lignes; exports: MARKETING_CSRF_COOKIE_NAME, MARKETING_CSRF_HEADER_NAME, MARKETING_SESSION_EXPIRED_EVENT, MARKETING_BFF_ENDPOINTS, MarketingBffError, isMarketingTotpCode, readMarketingCsrfToken, marketingBffRequest.",
    "path": "src/marketing/marketingBffClient.ts",
    "line": 1,
    "surface": null,
@@ -134838,7 +134851,7 @@
     "marketingBffRequest",
     "readMarketingCsrfToken"
    ],
-   "detailRef": "423624e8cd97"
+   "detailRef": "61355828e102"
   },
   {
    "id": "code-module:c86b4d8c159a",
@@ -140591,12 +140604,12 @@
    "id": "code-module:d825e1a312e3",
    "type": "code-module",
    "title": "src/test/marketing-bff-client.test.ts",
-   "description": "Module de 114 lignes; exports: aucun export statique.",
+   "description": "Module de 133 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-bff-client.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "f67a2784c7d0"
+   "detailRef": "5df40482b249"
   },
   {
    "id": "code-module:229d7954484a",
@@ -200468,6 +200481,20 @@
    "detailRef": "d099f8788132"
   },
   {
+   "id": "document-section:65930dff6571",
+   "type": "document-section",
+   "title": "Completion — 11 October afternoon",
+   "description": "Section de TOK marketing publication repair.",
+   "path": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
+   "line": 70,
+   "surface": null,
+   "tags": [
+    "TOK marketing publication repair",
+    "h2"
+   ],
+   "detailRef": "eb5413b099c1"
+  },
+  {
    "id": "document-section:76207e2388d3",
    "type": "document-section",
    "title": "Complexite RLS",
@@ -226709,18 +226736,19 @@
    "id": "document:63aa0b09ff60",
    "type": "document",
    "title": "TOK marketing publication repair",
-   "description": "Document Markdown avec 5 section(s).",
+   "description": "Document Markdown avec 6 section(s).",
    "path": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
    "line": 1,
    "surface": null,
    "tags": [
     "Boundaries and rollout",
     "Changes in order",
+    "Completion — 11 October afternoon",
     "Confirmed causes",
     "Scope and risk",
     "TOK marketing publication repair"
    ],
-   "detailRef": "5ea5c47960ca"
+   "detailRef": "67a0146ca91e"
   },
   {
    "id": "document:396f1ec208d2",
@@ -271101,17 +271129,17 @@
    "detailRef": "7419c933098b"
   },
   {
-   "id": "exported-symbol:a814a4a538d9",
+   "id": "exported-symbol:e3f7948345f6",
    "type": "exported-symbol",
    "title": "isMarketingTotpCode",
    "description": "Export function de src/marketing/marketingBffClient.ts.",
    "path": "src/marketing/marketingBffClient.ts",
-   "line": 69,
+   "line": 76,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "20cafe2ef8b8"
+   "detailRef": "71c3bf20811e"
   },
   {
    "id": "exported-symbol:2f10494c1b62",
@@ -272564,17 +272592,17 @@
    "detailRef": "33159560a6ac"
   },
   {
-   "id": "exported-symbol:baf7a25ea60c",
+   "id": "exported-symbol:028c677c9456",
    "type": "exported-symbol",
    "title": "marketingBffRequest",
    "description": "Export function de src/marketing/marketingBffClient.ts.",
    "path": "src/marketing/marketingBffClient.ts",
-   "line": 149,
+   "line": 156,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "6cbfa8244f05"
+   "detailRef": "3b94cf954fc4"
   },
   {
    "id": "exported-symbol:f87e45420cb2",
@@ -274673,17 +274701,17 @@
    "detailRef": "3f5551a67aba"
   },
   {
-   "id": "exported-symbol:2bf1da8a5c72",
+   "id": "exported-symbol:e9a2bc546331",
    "type": "exported-symbol",
    "title": "readMarketingCsrfToken",
    "description": "Export function de src/marketing/marketingBffClient.ts.",
    "path": "src/marketing/marketingBffClient.ts",
-   "line": 73,
+   "line": 80,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "b328c19cd3b5"
+   "detailRef": "56663de31545"
   },
   {
    "id": "exported-symbol:bad8c530b9b9",
@@ -338085,7 +338113,7 @@
     "src/test/marketing-bff-client.test.ts",
     "src/test/marketing-session-recovery.test.tsx"
    ],
-   "detailRef": "dc2566d9f074"
+   "detailRef": "fc5e05099bbd"
   },
   {
    "id": "path-literal:58a720700b49",
@@ -338105,7 +338133,7 @@
    "id": "path-literal:5139a0b62543",
    "type": "path-literal",
    "title": "/api/marketing/rpc",
-   "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/marketing/marketingBffClient.ts",
    "line": 11,
    "surface": null,
@@ -338114,7 +338142,7 @@
     "src/test/marketing-autopilot-frontend.test.tsx",
     "src/test/marketing-bff-client.test.ts"
    ],
-   "detailRef": "865c26cba82b"
+   "detailRef": "5da28fd22a3b"
   },
   {
    "id": "path-literal:fe2dadfb3854",
@@ -338130,7 +338158,7 @@
     "src/test/application-search-index.test.ts",
     "src/test/marketing-bff-client.test.ts"
    ],
-   "detailRef": "33cb25c41cea"
+   "detailRef": "0544440fcb37"
   },
   {
    "id": "path-literal:4457ca298944",
@@ -342966,7 +342994,7 @@
     "src/test/marketing-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "7ffcb2c0e1b9"
+   "detailRef": "1f8f1267cbae"
   },
   {
    "id": "path-literal:3126448ac678",
