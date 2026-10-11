@@ -19,6 +19,7 @@ export type LoyaltyTierConfigRow = {
   name?: string | null;
   benefits?: unknown;
   status?: string | null;
+  min_points?: number | null;
 };
 
 export const MIAMZ_BENEFITS_CONFIG_KEY = "miamz_benefits";
@@ -173,7 +174,12 @@ export function isLoyaltyTier(value: unknown): value is LoyaltyTierId {
   return typeof value === "string" && LOYALTY_TIER_ORDER.includes(value as LoyaltyTierId);
 }
 
-export function getTierForPoints(points: number): LoyaltyTierId {
+export function getTierForPoints(points: number, rows?: LoyaltyTierConfigRow[]): LoyaltyTierId {
+  if (rows?.length) {
+    const match = [...rows].filter(row => row.status === "active" && isLoyaltyTier(row.name) && Number(row.min_points) <= Math.max(0, points))
+      .sort((a, b) => Number(b.min_points) - Number(a.min_points))[0];
+    return isLoyaltyTier(match?.name) ? match.name : "bronze";
+  }
   const safePoints = Number.isFinite(points) ? Math.max(0, points) : 0;
   const ordered = [...LOYALTY_TIER_ORDER].reverse();
   return ordered.find((tier) => safePoints >= LOYALTY_TIERS[tier].threshold) || "bronze";
@@ -219,7 +225,7 @@ function resolveLoyaltyBenefit(benefit: LoyaltyBenefit, tierRows: LoyaltyTierCon
   const tierRow = getTierRow(tierRows, benefit.appliesFrom);
   const config = getTierBenefitConfigMap(tierRow?.benefits)[benefit.id];
 
-  if (config?.enabled === false) return null;
+  if ((tierRow?.status && tierRow.status !== "active") || config?.enabled === false) return null;
 
   return {
     ...benefit,
@@ -261,20 +267,23 @@ export function getLockedTierBenefits(tier: LoyaltyTierId, tierRows?: LoyaltyTie
   return getResolvedLoyaltyBenefits(tierRows).filter((benefit) => LOYALTY_TIER_ORDER.indexOf(benefit.appliesFrom) > tierIndex);
 }
 
-export function getLoyaltyStatus(points: number, explicitTier?: string | null) {
+export function getLoyaltyStatus(points: number, explicitTier?: string | null, rows?: LoyaltyTierConfigRow[]) {
   const safePoints = Number.isFinite(points) ? Math.max(0, Math.floor(points)) : 0;
-  const pointsTier = getTierForPoints(safePoints);
-  const currentTier = isLoyaltyTier(explicitTier) && LOYALTY_TIERS[explicitTier].threshold <= safePoints
+  const pointsTier = getTierForPoints(safePoints, rows);
+  const currentTier = !rows?.length && isLoyaltyTier(explicitTier) && LOYALTY_TIERS[explicitTier].threshold <= safePoints
     ? explicitTier
     : pointsTier;
   const tier = LOYALTY_TIERS[currentTier];
   const nextTier = LOYALTY_TIER_ORDER[LOYALTY_TIER_ORDER.indexOf(currentTier) + 1] || null;
-  const nextThreshold = tier.nextThreshold;
+  const configured = rows?.length ? [...rows].filter(row => row.status === "active" && isLoyaltyTier(row.name)).sort((a, b) => Number(a.min_points) - Number(b.min_points)) : null;
+  const nextConfigured = configured?.find(row => Number(row.min_points) > safePoints);
+  const currentThreshold = configured ? Number(configured.find(row => row.name === currentTier)?.min_points || 0) : tier.threshold;
+  const nextThreshold = configured ? (nextConfigured ? Number(nextConfigured.min_points) : null) : tier.nextThreshold;
 
   return {
     currentTier,
-    nextTier,
-    currentThreshold: tier.threshold,
+    nextTier: configured ? (isLoyaltyTier(nextConfigured?.name) ? nextConfigured.name : null) : nextTier,
+    currentThreshold,
     nextThreshold,
     progressPercent: nextThreshold ? Math.min(100, Math.round((safePoints / nextThreshold) * 100)) : 100,
     pointsToNextTier: nextThreshold ? Math.max(0, nextThreshold - safePoints) : 0,

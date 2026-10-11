@@ -8,7 +8,7 @@ const testState = vi.hoisted(() => ({
     loyalty_points: 3574,
     current_tier: "gold",
   },
-  tiers: [] as Array<{ name: string; benefits: Record<string, unknown> }>,
+  tiers: [] as Array<{ name: string; status?: string; min_points?: number; benefits: Record<string, unknown> }>,
   mutate: vi.fn(),
 }));
 
@@ -73,6 +73,8 @@ describe("LoyaltyStatus dialog layout", () => {
     testState.tiers = [
       {
         name: "gold",
+        status: "active",
+        min_points: 2500,
         benefits: {
           miamz_benefits: {
             priority_support: { enabled: false },
@@ -99,6 +101,8 @@ describe("LoyaltyStatus dialog layout", () => {
     testState.tiers = [
       {
         name: "gold",
+        status: "active",
+        min_points: 2500,
         benefits: {
           miamz_benefits: {
             birthday_bonus: { enabled: true },

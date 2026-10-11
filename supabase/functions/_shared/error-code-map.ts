@@ -1693,6 +1693,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 298
     },
     {
+      "file": "supabase/functions/manage-restaurant-establishments/index.ts",
+      "line": 10
+    },
+    {
       "file": "supabase/functions/ops-incident-control/index.ts",
       "line": 2063
     },
@@ -1878,13 +1882,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "payment_attempt_order_expired_recreate": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2046
+      "line": 2043
     }
   ],
   "payment_attempt_reacquire_failed": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2054
+      "line": 2051
     }
   ],
   "payment_attempt_request_mismatch": [
@@ -1896,7 +1900,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "payment_attempt_session_expired_retry": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2409
+      "line": 2406
     }
   ],
   "personalization_consent_required": [
@@ -2455,6 +2459,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/contact-support/index.ts",
       "line": 127
+    },
+    {
+      "file": "supabase/functions/manage-restaurant-establishments/index.ts",
+      "line": 18
     },
     {
       "file": "supabase/functions/menu-image-import/index.ts",

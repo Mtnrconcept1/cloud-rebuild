@@ -1,3 +1,4 @@
+import { stripeExtraEstablishmentQuantity } from "../_shared/restaurant-establishments.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import type Stripe from "npm:stripe@22.3.2";
 
@@ -7,6 +8,7 @@ import {
   jsonResponse,
   writeAuditLog,
 } from "../_shared/auth.ts";
+import { syncTokOneSubscriptionRecord } from "../_shared/tok-one.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
 
@@ -16,6 +18,7 @@ const MAX_LIMIT = 100;
 
 type SubscriptionRow = {
   id: string;
+  updated_at: string;
   restaurant_id: string;
   stripe_subscription_id: string;
   stripe_mode: "live" | "test";
@@ -113,9 +116,10 @@ Deno.serve(async (req) => {
     );
     const { data, error } = await actor.adminClient
       .from("restaurant_ai_subscriptions")
-      .select("id, restaurant_id, stripe_subscription_id, stripe_mode, status, current_period_start, current_period_end, cancel_at_period_end, scheduled_plan_change, metadata")
+      .select("id, updated_at, restaurant_id, stripe_subscription_id, stripe_mode, status, current_period_start, current_period_end, cancel_at_period_end, scheduled_plan_change, metadata")
       .not("stripe_subscription_id", "is", null)
-      .order("updated_at", { ascending: true })
+      .order("last_reconciled_at", { ascending: true, nullsFirst: true })
+      .order("id", { ascending: true })
       .limit(limit);
     if (error) throw new Error(`subscription_lookup_failed:${error.message}`);
 
@@ -134,6 +138,12 @@ Deno.serve(async (req) => {
         const subscription = await runtime.stripe.subscriptions.retrieve(
           row.stripe_subscription_id,
         );
+        if (subscription.livemode !== (row.stripe_mode === "live")) throw new Error("stripe_mode_mismatch");
+        const { error: seatsError } = await actor.adminClient.rpc("sync_restaurant_extra_capacity", {
+          p_subscription_id: row.id, p_stripe_subscription_id: subscription.id,
+          p_quantity: stripeExtraEstablishmentQuantity(subscription),
+        });
+        if (seatsError) throw new Error("establishment_capacity_sync_failed");
         const normalizedStatus = normalizeRestaurantSubscriptionStatus(subscription.status);
         const persistedStatus = row.status === "activation_pending"
             && ["active", "trialing"].includes(normalizedStatus)
@@ -173,6 +183,7 @@ Deno.serve(async (req) => {
           })
           .eq("id", row.id)
           .eq("stripe_subscription_id", row.stripe_subscription_id)
+          .eq("updated_at", row.updated_at)
           .select("id")
           .maybeSingle();
         if (updateError || !updated) {
@@ -186,6 +197,42 @@ Deno.serve(async (req) => {
           restaurantId: row.restaurant_id,
           code: stableFailureCode(error),
         });
+      } finally {
+        const { error: markError } = await actor.adminClient.from("restaurant_ai_subscriptions")
+          .update({ last_reconciled_at: new Date().toISOString() }).eq("id", row.id);
+        if (markError) { failed += 1; failureCodes.add("reconciliation_cursor_failed"); }
+      }
+    }
+
+    const { data: tokOneRows, error: tokOneError } = await actor.adminClient
+      .from("tok_one_subscriptions")
+      .select("id, user_id, plan_id, stripe_subscription_id, stripe_mode, updated_at")
+      .eq("billing_provider", "stripe")
+      .not("stripe_subscription_id", "is", null)
+      .order("last_reconciled_at", { ascending: true, nullsFirst: true })
+      .order("id", { ascending: true })
+      .limit(limit);
+    if (tokOneError) throw new Error("tok_one_lookup_failed");
+    let tokOneRepaired = 0;
+    for (const row of tokOneRows || []) {
+      try {
+        const runtime = getStripeRuntimeForCheckoutKindAndMode("tok-one", row.stripe_mode);
+        const subscription = await runtime.stripe.subscriptions.retrieve(row.stripe_subscription_id);
+        if (subscription.livemode !== (row.stripe_mode === "live")) throw new Error("stripe_mode_mismatch");
+        if (subscription.metadata?.user_id && subscription.metadata.user_id !== row.user_id) {
+          throw new Error("subscription_owner_mismatch");
+        }
+        await syncTokOneSubscriptionRecord({ adminClient: actor.adminClient, subscription,
+          fallbackUserId: row.user_id, fallbackPlanId: row.plan_id, stripeMode: row.stripe_mode, expectedUpdatedAt: row.updated_at });
+        tokOneRepaired += 1;
+      } catch (error) {
+        failed += 1;
+        failureCodes.add(stableFailureCode(error));
+        log.warn("Tok One reconciliation failed", { code: stableFailureCode(error) });
+      } finally {
+        const { error: markError } = await actor.adminClient.from("tok_one_subscriptions")
+          .update({ last_reconciled_at: new Date().toISOString() }).eq("id", row.id);
+        if (markError) { failed += 1; failureCodes.add("tok_one_cursor_failed"); }
       }
     }
 
@@ -203,6 +250,8 @@ Deno.serve(async (req) => {
       metadata: {
         rid: log.rid,
         checked: rows.length,
+        tok_one_checked: tokOneRows?.length || 0,
+        tok_one_repaired: tokOneRepaired,
         repaired,
         unchanged,
         failed,
@@ -214,6 +263,8 @@ Deno.serve(async (req) => {
     return jsonResponse({
       ok: failed === 0,
       checked: rows.length,
+        tok_one_checked: tokOneRows?.length || 0,
+        tok_one_repaired: tokOneRepaired,
       repaired,
       unchanged,
       failed,

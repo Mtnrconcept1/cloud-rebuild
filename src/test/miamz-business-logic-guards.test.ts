@@ -71,7 +71,7 @@ describe("Miamz business logic guards", () => {
     expect(migrationsSource).toContain("required_miamz_points");
     expect(migrationsSource).toContain("chef_table_drops_vip_miamz_check");
     expect(createCheckoutSource).toContain("required_miamz_points");
-    expect(createCheckoutSource).toContain("getLatestTokOneSubscription");
+    expect(createCheckoutSource).toContain("has_tok_one_benefit");
     expect(createCheckoutSource).toContain("hasActiveTokOneSubscription");
     expect(createCheckoutSource).toContain("reserve aux abonnes Tok One actifs");
     expect(createCheckoutSource).not.toContain('.select("loyalty_points")');

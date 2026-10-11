@@ -47,13 +47,13 @@ describe("Chef Table VIP access", () => {
 
     expect(page).toContain("is_vip");
     expect(page).toContain("required_miamz_points");
-    expect(page).toContain("useIsTokOneMember");
+    expect(page).toContain("useTokOneEntitlements");
     expect(page).toContain("ensureVipTokOneAccess");
     expect(page).toContain("Table VIP cadenassee");
     expect(page).toContain("Reserve Tok One");
     expect(page).not.toContain("ensureVipMiamzAccess");
     expect(page).not.toContain("loyalty_points");
-    expect(checkout).toContain("getLatestTokOneSubscription");
+    expect(checkout).toContain("has_tok_one_benefit");
     expect(checkout).toContain("hasActiveTokOneSubscription");
     expect(checkout).toContain("reserve aux abonnes Tok One actifs");
     expect(checkout).not.toContain('.select("loyalty_points")');
@@ -69,8 +69,8 @@ describe("Chef Table VIP access", () => {
     expect(sql).toContain("'requested_channels'");
     expect(sql).toContain("'push', true");
     expect(sql).toContain("public.queue_notification_deliveries");
-    expect(sql).toContain("public.trigger_flash_sale_subscription_alert");
-    expect(sql).toContain("public.trigger_anti_gaspi_subscription_alert");
-    expect(sql).toContain("public.trigger_chefs_table_subscription_alert");
+    expect(latestMigrationContaining(/CREATE OR REPLACE FUNCTION public\.trigger_flash_sale_subscription_alert/i)).toContain("public.notify_tok_one_members_new_offer");
+    expect(latestMigrationContaining(/CREATE OR REPLACE FUNCTION public\.trigger_anti_gaspi_subscription_alert/i)).toContain("public.notify_tok_one_members_new_offer");
+    expect(latestMigrationContaining(/CREATE OR REPLACE FUNCTION public\.trigger_chefs_table_subscription_alert/i)).toContain("public.notify_tok_one_members_new_offer");
   });
 });

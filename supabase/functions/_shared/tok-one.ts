@@ -1,7 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "npm:stripe@18.5.0";
+// Structural contract shared by Stripe SDK callers; avoids binding this
+// synchronizer to a different SDK version than the checkout/webhook runtime.
+type TokOneStripeSubscription = {
+  id: string; status: string; metadata: Record<string, string>;
+  cancel_at_period_end: boolean; trial_start: number | null; trial_end: number | null; start_date: number;
+  items?: { data?: Array<{ current_period_start?: number; current_period_end?: number }> };
+};
 
-type AdminClient = ReturnType<typeof createClient>;
+type AdminClient = ReturnType<typeof createClient<any>>;
 
 const TOK_ONE_ENTITLED_STATUSES = new Set(["active", "trialing"]);
 
@@ -30,7 +36,7 @@ function finiteUnixTimestamp(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
 }
 
-function resolveTokOneSubscriptionPeriod(subscription: Stripe.Subscription, fallbackDate: Date) {
+function resolveTokOneSubscriptionPeriod(subscription: TokOneStripeSubscription, fallbackDate: Date) {
   const subscriptionItems = subscription.items?.data || [];
   const itemPeriodStarts = subscriptionItems
     .map((item) => finiteUnixTimestamp((item as { current_period_start?: unknown }).current_period_start))
@@ -60,16 +66,7 @@ function resolveTokOneSubscriptionPeriod(subscription: Stripe.Subscription, fall
     return { currentPeriodStart, currentPeriodEnd: toUnixSeconds(fallbackDate) };
   }
 
-  const metadata = subscription.metadata || {};
-  const fallbackDays = subscription.status === "trialing"
-    ? 14
-    : metadata.billing_period === "yearly"
-    ? 366
-    : 31;
-  return {
-    currentPeriodStart,
-    currentPeriodEnd: currentPeriodStart + fallbackDays * 24 * 60 * 60,
-  };
+  throw new Error("tok_one_subscription_period_missing");
 }
 
 async function findExistingTokOneSubscription(input: {
@@ -126,11 +123,12 @@ export async function getLatestTokOneSubscription(adminClient: AdminClient, user
 
 export async function syncTokOneSubscriptionRecord(input: {
   adminClient: AdminClient;
-  subscription: Stripe.Subscription;
+  subscription: TokOneStripeSubscription;
   fallbackUserId?: string | null;
   fallbackPlanId?: string | null;
   stripeMode?: "live" | "test" | string | null;
   stripeCheckoutSessionId?: string | null;
+  expectedUpdatedAt?: string;
 }) {
   const {
     adminClient,
@@ -182,11 +180,11 @@ export async function syncTokOneSubscriptionRecord(input: {
     stripe_checkout_session_id: stripeCheckoutSessionId || existing?.stripe_checkout_session_id || null,
   };
 
+  let updateQuery = existing?.id ? adminClient.from("tok_one_subscriptions").update(payload).eq("id", existing.id) : null;
+  if (updateQuery && input.expectedUpdatedAt) updateQuery = updateQuery.eq("updated_at", input.expectedUpdatedAt);
+  if (input.expectedUpdatedAt && !existing?.id) throw new Error("subscription_changed_during_reconciliation");
   const { data, error } = existing?.id
-    ? await adminClient
-      .from("tok_one_subscriptions")
-      .update(payload)
-      .eq("id", existing.id)
+    ? await updateQuery!
       .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
       .single()
     : await adminClient

@@ -1,3 +1,4 @@
+import MemberBenefitOffers from "@/components/MemberBenefitOffers";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -722,7 +723,7 @@ export default function TokOne() {
     return () => {
       isMounted = false;
     };
-  }, [commercialDemoFrame, isCommercialDemoClient, queryClient, refetchSubscription, toast, user]);
+  }, [commercialDemoFrame, isCommercialDemoClient, isNativeIos, queryClient, refetchSubscription, toast, user]);
 
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) || plans[0];
   const activeSubscription = isTokOneSubscriptionActive(subscription);
@@ -1431,7 +1432,8 @@ export default function TokOne() {
           )}
         </div>
       </section>
-    </main>
+    <MemberBenefitOffers enabled={!isCommercialDemoClient} />
+      </main>
   );
 }
 

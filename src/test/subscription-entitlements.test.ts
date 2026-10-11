@@ -8,6 +8,7 @@ import {
 } from "@/lib/subscriptionEntitlements";
 import {
   resolveTokOneFreeDeliveryMinOrderForContext,
+  resolveTokOneDiscountPercentageForContext,
   type TokOneBenefit,
   type TokOnePlan,
 } from "@/hooks/useTokOne";
@@ -88,5 +89,17 @@ describe("subscriptionEntitlements", () => {
         journey: "delivery",
       }),
     ).toBe(0);
+  });
+});
+
+
+describe("disabled pricing benefits", () => {
+  it("does not restore disabled discounts through the takeaway fallback", () => {
+    const benefits = [{ benefit_type: "discount_percentage", value: { percentage: 20, enabled: false } }] as TokOneBenefit[];
+    expect(resolveTokOneDiscountPercentageForContext(benefits, { journey: "takeaway" })).toBe(0);
+  });
+  it("does not restore disabled delivery from the plan default", () => {
+    const benefits = [{ benefit_type: "free_delivery", value: { min_order: 0, enabled: false } }] as TokOneBenefit[];
+    expect(resolveTokOneFreeDeliveryMinOrderForContext({ free_delivery_min_order: 0 } as TokOnePlan, benefits, { journey: "delivery" })).toBe(Infinity);
   });
 });

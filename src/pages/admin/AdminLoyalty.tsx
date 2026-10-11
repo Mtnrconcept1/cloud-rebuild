@@ -1,3 +1,4 @@
+import BenefitCampaignManager from "@/components/admin/BenefitCampaignManager";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -386,7 +387,7 @@ export default function AdminLoyalty() {
       status: tierForm.status,
     };
 
-    if (payload.multiplier <= 0 || payload.multiplier > 10) {
+    if (payload.multiplier <= 0 || payload.multiplier > 5) {
       setSavingTier(false);
       toast({ title: "Erreur", description: "Multiplicateur invalide.", variant: "destructive" });
       return;
@@ -442,6 +443,8 @@ export default function AdminLoyalty() {
           { label: "Paliers", value: tiers.length, icon: Crown },
         ]}
       />
+
+      <BenefitCampaignManager />
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -548,7 +551,7 @@ export default function AdminLoyalty() {
                     <Textarea placeholder="Description" value={planForm.description} onChange={(event) => setPlanForm((prev) => ({ ...prev, description: event.target.value }))} />
                     <div className="grid grid-cols-2 gap-3">
                       <Input placeholder="Prix mensuel" type="number" step="0.01" value={planForm.price_monthly} onChange={(event) => setPlanForm((prev) => ({ ...prev, price_monthly: event.target.value }))} required />
-                      <Input placeholder="Prix annuel" type="number" step="0.01" value={planForm.price_yearly} onChange={(event) => setPlanForm((prev) => ({ ...prev, price_yearly: event.target.value }))} required />
+                      <Input aria-label="Prix annuel de référence — vente annuelle Tok One non disponible" title="Tarif de référence uniquement : la souscription Tok One est mensuelle." placeholder="Prix annuel de référence" type="number" step="0.01" value={planForm.price_yearly} onChange={(event) => setPlanForm((prev) => ({ ...prev, price_yearly: event.target.value }))} required />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <Input placeholder="Devise" value={planForm.currency} onChange={(event) => setPlanForm((prev) => ({ ...prev, currency: event.target.value.toUpperCase() }))} />

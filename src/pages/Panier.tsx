@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { allocateCheckoutDiscounts } from "../../supabase/functions/_shared/checkout-discounts";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -186,6 +187,8 @@ export default function Panier() {
   const [loading, setLoading] = useState(false);
   const [formulaDiscount, setFormulaDiscount] = useState(0);
   const [formulaName, setFormulaName] = useState<string | null>(null);
+  const [promoDelivery, setPromoDelivery] = useState(false);
+  const [promoCodeOptions, setPromoCodeOptions] = useState({ stackable: false, delivery: false });
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoName, setPromoName] = useState<string | null>(null);
   const [promoCodeDiscount, setPromoCodeDiscount] = useState(0);
@@ -264,12 +267,18 @@ export default function Panier() {
   );
 
   const roundMoney = useCallback((value: number) => Math.round((value + Number.EPSILON) * 100) / 100, []);
-  const flexFees = { express: 2.50, standard: 1.00, flex: 0 };
-  const quotedDeliveryFee = isCommercialDemoClient || isChefsTableCheckout
-    ? 0
-    : orderMode === "takeaway"
-      ? 0
-      : flexFees[flexOption];
+  const deliveryRestaurantIds = [...new Set(items.map(item => String(item.restaurantId || restaurantId || "")).filter(Boolean))].sort();
+  const needsDeliveryQuote = !isCommercialDemoClient && !isChefsTableCheckout && orderMode === "delivery";
+  const deliveryQuote = useQuery({ queryKey: ["cart-delivery-fees", deliveryRestaurantIds], enabled: needsDeliveryQuote && deliveryRestaurantIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("restaurants").select("id,delivery_fee").in("id", deliveryRestaurantIds);
+      if (error) throw error;
+      if (data.length !== deliveryRestaurantIds.length) throw new Error("Tarif de livraison indisponible");
+      return roundMoney(data.reduce((sum, row) => sum + Math.max(0, Number(row.delivery_fee) || 0), 0));
+    }, staleTime: 30_000,
+  });
+  const deliveryQuoteUnavailable = needsDeliveryQuote && (deliveryQuote.isPending || deliveryQuote.isError);
+  const quotedDeliveryFee = needsDeliveryQuote ? deliveryQuote.data || 0 : 0;
   const tokOneJourney = isChefsTableCheckout
     ? "reservation"
     : orderMode === "delivery"
@@ -296,14 +305,13 @@ export default function Panier() {
     && isTokOneMember
     && quotedDeliveryFee > 0
     && discountableSubtotal >= tokOneFreeDeliveryMinOrder;
-  const tokOneDiscount = useMemo(
+  const proposedTokOneDiscount = useMemo(
     () => (isTokOneMember && !isChefsTableCheckout
       ? roundMoney((discountableSubtotal * tokOneDiscountPercent) / 100)
       : 0),
     [discountableSubtotal, isChefsTableCheckout, isTokOneMember, roundMoney, tokOneDiscountPercent],
   );
-  const tokOneDeliverySaved = tokOneFreeDeliveryEligible ? quotedDeliveryFee : 0;
-  const deliveryFee = roundMoney(Math.max(0, quotedDeliveryFee - tokOneDeliverySaved));
+  const proposedTokOneDeliverySaved = tokOneFreeDeliveryEligible ? quotedDeliveryFee : 0;
   const missingForFreeDelivery = !isChefsTableCheckout
     && orderMode === "delivery"
     && isTokOneMember
@@ -442,25 +450,51 @@ export default function Panier() {
     }
   }, []);
 
-  const handlePromoCalculated = useCallback((discount: number, name: string | null) => {
+  const handlePromoCalculated = useCallback((discount: number, name: string | null, delivery = false) => {
+    setPromoDelivery(delivery);
     setPromoDiscount(discount);
     setPromoName(name);
   }, []);
 
-  const handlePromoCodeApplied = useCallback((discount: number, name: string | null, codeId: string | null) => {
+  const handlePromoCodeApplied = useCallback((discount: number, name: string | null, codeId: string | null, options = { stackable: false, delivery: false }) => {
+    setPromoCodeOptions(options);
     setPromoCodeDiscount(discount);
     setPromoCodeName(name);
     setPromoCodeId(codeId);
   }, []);
 
-  const effectiveFormulaDiscount = isChefsTableCheckout ? 0 : formulaDiscount;
-  const effectivePromoDiscount = isChefsTableCheckout ? 0 : Math.max(promoDiscount, promoCodeDiscount);
-  const effectivePromoName = isChefsTableCheckout
-    ? null
-    : (promoCodeDiscount >= promoDiscount && promoCodeName ? promoCodeName : promoName);
+  const { data: miamzState } = useQuery({
+    queryKey: ["checkout-miamz", user?.id], enabled: Boolean(user && !isCommercialDemoClient),
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("get_user_miamz_benefit_state");
+      if (error) throw error;
+      return data as { active_benefit_ids?: string[]; effects?: { delivery_fee_discount_percent?: number; delivery_fee_discount_cap?: number } };
+    },
+  });
+  const proposedMiamzDelivery = miamzState?.active_benefit_ids?.includes("delivery_fee_boost")
+    ? Math.min(quotedDeliveryFee * Number(miamzState.effects?.delivery_fee_discount_percent || 0) / 100,
+      Number(miamzState.effects?.delivery_fee_discount_cap ?? quotedDeliveryFee)) : 0;
+  const previewDiscounts = allocateCheckoutDiscounts({
+    subtotal: discountableSubtotal, qualityFee: total - discountableSubtotal, deliveryFee: quotedDeliveryFee,
+    formula: isChefsTableCheckout ? 0 : formulaDiscount,
+    promotion: { amount: isChefsTableCheckout ? 0 : promoDiscount, delivery: promoDelivery },
+    code: { amount: isChefsTableCheckout ? 0 : promoCodeDiscount, ...promoCodeOptions },
+    tokOne: proposedTokOneDiscount, tokOneDelivery: proposedTokOneDeliverySaved,
+    miamzDelivery: isChefsTableCheckout ? 0 : proposedMiamzDelivery,
+    points: useLoyaltyPoints ? pointsToRedeemInput / 100 : 0,
+    flex: !isChefsTableCheckout && flexOption === "flex" ? discountableSubtotal * 0.1 : 0,
+  });
+  const effectiveFormulaDiscount = previewDiscounts.formula;
+  const effectivePromoDiscount = previewDiscounts.promo;
+  const effectivePromoName = previewDiscounts.source === "promo_code" ? promoCodeName : promoName;
+  const tokOneDiscount = previewDiscounts.tokOne;
+  const tokOneDeliverySaved = previewDiscounts.tokOneDelivery;
+  const miamzDeliverySaved = previewDiscounts.miamzDelivery;
+  const deliveryFee = roundMoney(Math.max(0, quotedDeliveryFee - tokOneDeliverySaved - miamzDeliverySaved));
   const subFinalTotal = total - effectiveFormulaDiscount - effectivePromoDiscount - tokOneDiscount + deliveryFee;
-  const flexDiscount = isChefsTableCheckout ? 0 : (flexOption === "flex" ? total * 0.1 : 0);
-  const maxPointsRedeemable = Math.min(loyaltyPoints, Math.floor(Math.max(subFinalTotal - flexDiscount, 0) * 100));
+  const flexDiscount = previewDiscounts.flex;
+  const exclusiveCode = previewDiscounts.source === "promo_code" && !promoCodeOptions.stackable;
+  const maxPointsRedeemable = exclusiveCode ? 0 : Math.min(loyaltyPoints, Math.floor(Math.max(subFinalTotal - flexDiscount, 0) * 100));
 
   useEffect(() => {
     if (!useLoyaltyPoints && pointsToRedeemInput !== 0) { setPointsToRedeemInput(0); return; }
@@ -810,6 +844,7 @@ export default function Panier() {
   };
 
   const handleCheckout = () => {
+    if (deliveryQuoteUnavailable) { toast({ title: "Frais de livraison", description: "Attendez la confirmation des frais de livraison.", variant: "destructive" }); return; }
     if (loading) return;
     void processCheckout();
   };
@@ -1912,8 +1947,10 @@ export default function Panier() {
             {!isCommercialDemoClient ? (
               <>
                 <FormulaDetector items={items} restaurantId={restaurantId} onDiscountCalculated={handleDiscountCalculated} />
-                <PromotionDetector restaurantId={restaurantId} subtotal={total} onDiscountCalculated={handlePromoCalculated} />
-                <PromoCodeInput restaurantId={restaurantId} userId={user?.id} subtotal={total} onApplied={handlePromoCodeApplied} />
+                <PromotionDetector restaurantId={restaurantId} subtotal={discountableSubtotal} deliveryFee={quotedDeliveryFee} onDiscountCalculated={handlePromoCalculated} />
+                <PromoCodeInput restaurantId={restaurantId} userId={user?.id} subtotal={discountableSubtotal} deliveryFee={quotedDeliveryFee} onApplied={handlePromoCodeApplied} />
+                {promoCodeId && previewDiscounts.source !== "promo_code" && <p className="text-xs text-muted-foreground">Vos avantages automatiques sont plus avantageux que ce code et restent appliqués.</p>}
+                {exclusiveCode && <p className="text-xs text-muted-foreground">Ce code non cumulable remplace les autres remises et l’utilisation de points pour cette commande.</p>}
               </>
             ) : null}
             <Button type="button" className="w-full" size="lg" onClick={handleSummaryContinue}>
@@ -2215,6 +2252,8 @@ export default function Panier() {
           <div className="flex min-w-0 justify-between gap-3 text-sm"><span className="min-w-0 break-words">Sous-total</span><span className="shrink-0 text-right">{total.toFixed(2)} CHF</span></div>
           {effectiveFormulaDiscount > 0 && <div className="flex min-w-0 justify-between gap-3 text-sm font-medium text-accent"><span className="min-w-0 break-words">Réduction formule ({formulaName})</span><span className="shrink-0 text-right">-{effectiveFormulaDiscount.toFixed(2)} CHF</span></div>}
           {effectivePromoDiscount > 0 && <div className="flex min-w-0 justify-between gap-3 text-sm font-medium text-primary"><span className="min-w-0 break-words">Promotion ({effectivePromoName})</span><span className="shrink-0 text-right">-{effectivePromoDiscount.toFixed(2)} CHF</span></div>}
+          {miamzDeliverySaved > 0 && <div className="flex justify-between text-sm"><span>Avantage livraison MIAMZ</span><span>-{miamzDeliverySaved.toFixed(2)} CHF</span></div>}
+          {deliveryQuoteUnavailable && <p className="text-sm" role="status">{deliveryQuote.isError ? <>Frais de livraison indisponibles. <button onClick={() => deliveryQuote.refetch()}>Réessayer</button></> : "Calcul des frais de livraison…"}</p>}
           {tokOneDiscount > 0 && (
             <div className="flex min-w-0 justify-between gap-3 text-sm font-medium text-violet-600">
               <span className="flex min-w-0 items-start gap-1.5 break-words"><Crown className="mt-0.5 h-3.5 w-3.5 shrink-0" />Réduction Tok One ({tokOneDiscountPercent.toFixed(0)}%)</span>
@@ -2294,7 +2333,7 @@ export default function Panier() {
             : "w-full"}
           size="lg"
           onClick={handleCheckout}
-          disabled={loading || !hasJourneyAvailable || allowedPaymentMethods.length === 0}
+          disabled={loading || deliveryQuoteUnavailable || !hasJourneyAvailable || allowedPaymentMethods.length === 0}
         >
           {loading ? (
             <div className="flex items-center gap-2">

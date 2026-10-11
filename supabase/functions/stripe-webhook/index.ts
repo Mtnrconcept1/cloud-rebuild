@@ -1,3 +1,4 @@
+import { stripeExtraEstablishmentQuantity } from "../_shared/restaurant-establishments.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "npm:stripe@18.5.0";
 import { getEnv, writeAuditLog } from "../_shared/auth.ts";
@@ -1200,6 +1201,13 @@ async function syncRestaurantSubscriptionRecord(input: {
     return { updated: false, row: null };
   }
 
+  if (row) {
+    const { error: capacityError } = await adminClient.rpc("sync_restaurant_extra_capacity", {
+      p_subscription_id: row.id, p_stripe_subscription_id: subscription.id,
+      p_quantity: stripeExtraEstablishmentQuantity(subscription),
+    });
+    if (capacityError) throw new Error("establishment_capacity_sync_failed");
+  }
   return { updated: true, row };
 }
 

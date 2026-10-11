@@ -1,3 +1,4 @@
+import { assertIndependentRestaurantContract } from "../_shared/restaurant-establishments.ts";
 import Stripe from "npm:stripe@18.5.0";
 
 import {
@@ -341,6 +342,15 @@ Deno.serve(async (req) => {
 
     if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
     await requireRestaurantAccess(actor, restaurantId);
+    await assertIndependentRestaurantContract(actor.adminClient, restaurantId);
+
+    if (action === "change_plan") {
+      const { data: links, error: linksError } = await actor.adminClient.from("restaurant_subscription_establishments")
+        .select("restaurant_id, restaurant_ai_subscriptions!inner(restaurant_id)")
+        .eq("restaurant_ai_subscriptions.restaurant_id", restaurantId).limit(1);
+      if (linksError) throw new HttpError(503, "Vérification des établissements indisponible");
+      if (links?.length) throw new HttpError(409, "Contactez le support pour changer le forfait d’un contrat comportant plusieurs établissements.");
+    }
 
     const subscription = await getLatestRestaurantSubscription(actor.adminClient, restaurantId);
     if (!subscription) {

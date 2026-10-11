@@ -1,3 +1,4 @@
+import EliteEstablishments from "@/components/dashboard/EliteEstablishments";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
@@ -71,6 +72,7 @@ import {
   normalizePaymentAttemptId,
   rememberPaymentAttemptId,
 } from "@/lib/paymentAttempt";
+import { useActiveFeatures } from "@/lib/featureFlags";
 import { usePaymentAttemptBackCancellation } from "@/lib/usePaymentAttemptBackCancellation";
 import {
   formatTokCredits,
@@ -530,6 +532,7 @@ function PlanCard({
   const usage = getPlanIncludedUsage(plan);
   const planSlug = normalizeRestaurantSubscriptionPlanSlug(plan.slug);
   const fairGrowthPlan = getFairGrowthPlan(plan.slug);
+  const annualEnabled = useActiveFeatures().has("billing-fair-growth-annual");
   const annualPriceChf = fairGrowthPlan.monthlyPriceChf * FAIR_GROWTH_ANNUAL_MONTHS_CHARGED;
 
   return (
@@ -551,9 +554,9 @@ function PlanCard({
           {formatChf(fairGrowthPlan.monthlyPriceChf)}
           <span className="text-sm font-medium text-muted-foreground"> / mois</span>
         </p>
-        <p className="text-xs text-muted-foreground">
+        {annualEnabled && <p className="text-xs text-muted-foreground">
           Annuel {formatChf(annualPriceChf)} — 12 mois, payez-en 11
-        </p>
+        </p>}
         <p className="text-sm font-medium text-primary">{formatTokCredits(tokCredits)} inclus pour les outils IA</p>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-4">
@@ -1322,6 +1325,7 @@ function LiveDashboardAccountBilling() {
                       <AlertDescription>{scheduledChangeSummary.description}</AlertDescription>
                     </Alert>
                   ) : null}
+                  {currentSubscriptionIsActive && currentPlan?.slug === "elite" && selectedId && <EliteEstablishments restaurantId={selectedId} />}
                   {currentSubscriptionIsActive && currentPlan ? (
                     <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row sm:items-center sm:justify-end">
                       {hasScheduledChange ? (
