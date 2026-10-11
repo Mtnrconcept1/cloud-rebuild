@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { fireEvent, render, screen, cleanup } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -21,9 +23,18 @@ function setup(activeFeatures?: ReadonlySet<string>) {
   render(<MemoryRouter><HeroSection contentVisible={false} activeFeatures={activeFeatures} /><LocationProbe /></MemoryRouter>);
 }
 describe("homepage semantic search", () => {
+  it("keeps the original mobile photo unstretched and uses a feathered blur into the page background", () => {
+    const css = readFileSync(resolve(process.cwd(), "src/components/home/HeroSection.css"), "utf8");
+    expect(css).toContain(".tok-home-hero__background img{object-fit:cover");
+    expect(css).toContain(".tok-home-hero__art::before{");
+    expect(css).toContain("backdrop-filter:blur(8px)");
+    expect(css).toContain(".tok-home-hero__art::after{");
+    expect(css).toContain("var(--tok-home-paper) 100%");
+  });
+
   it("uses a portrait hero asset on mobile and the supplied Léman illustration on desktop", () => {
     setup();
-    expect(document.querySelector('.tok-home-hero__background source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/images/home/tok-geneve-mobile-original.webp");
+    expect(document.querySelector('.tok-home-hero__background source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/images/home/tok-geneve-mobile-sans-parasol.webp");
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/home/tok-leman-signature.webp");
   });
   it("only exposes feature-flagged quick links when the corresponding feature is enabled", () => {

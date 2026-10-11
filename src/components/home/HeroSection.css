@@ -63,14 +63,24 @@ body:has(.tok-home-hero) [data-testid="mobile-logo-intro"]{display:none}
 .tok-home-hero__art{position:relative;isolation:isolate;order:-1;width:100%;height:clamp(315px,42svh,425px);border-radius:20px 20px 0 0}
 /* The supplied portrait image keeps its original 941:1672 proportions. Crop only through CSS, never stretch. */
 .tok-home-hero__background img{object-fit:cover;object-position:50% 50%}
-/* Soften only the lower edge of the photo, preserving the chef and plated dish above. */
-.tok-home-hero__art::after{
-content:"";position:absolute;z-index:1;inset:auto 0 0;height:clamp(66px,19vw,86px);pointer-events:none;
-background:linear-gradient(to bottom,transparent 0%,color-mix(in srgb,var(--tok-home-paper) 13%,transparent) 32%,color-mix(in srgb,var(--tok-home-paper) 72%,transparent) 78%,var(--tok-home-paper) 100%);
--webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);
--webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 63%);mask-image:linear-gradient(to bottom,transparent 0%,black 63%);
+/* Feather the lower photo edge: a gradually blurred layer below a separate paper-color fade.
+   Keep the chef and plate sharp above the transition and avoid a hard white seam. */
+.tok-home-hero__art::before{
+content:"";position:absolute;z-index:1;inset:auto 0 0;height:clamp(74px,24vw,106px);pointer-events:none;
+-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+-webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.18) 35%,black 100%);
+mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.18) 35%,black 100%);
 }
-.tok-home-hero__content{position:relative;width:100%;margin-top:-26px;padding:22px 14px 10px;text-align:center;background:linear-gradient(to bottom,color-mix(in srgb,var(--tok-home-paper) 26%,transparent),var(--tok-home-paper) 42px)}
+.tok-home-hero__art::after{
+content:"";position:absolute;z-index:2;inset:auto 0 0;height:clamp(88px,27vw,118px);pointer-events:none;
+background:linear-gradient(to bottom,
+transparent 0%,
+color-mix(in srgb,var(--tok-home-paper) 8%,transparent) 24%,
+color-mix(in srgb,var(--tok-home-paper) 32%,transparent) 50%,
+color-mix(in srgb,var(--tok-home-paper) 75%,transparent) 79%,
+var(--tok-home-paper) 100%);
+}
+.tok-home-hero__content{position:relative;width:100%;margin-top:-26px;padding:22px 14px 10px;text-align:center;background:linear-gradient(to bottom,color-mix(in srgb,var(--tok-home-paper) 18%,transparent),var(--tok-home-paper) 46px)}
 .tok-home-hero__brand{display:none}
 .tok-home-hero__title{font-size:clamp(34px,9.6vw,47px);line-height:1.01;letter-spacing:-.054em}
 .tok-home-hero__title span{white-space:normal}

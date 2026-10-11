@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `50f7a49867274f377823505d01b0f63145fcc281300448f48e95544e0bac3a73`
+- Empreinte SHA-256 des sources indexées : `586247d6540d52d337c42e2c3ef75877099495ab3addab39809d91bbf4d5f182`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -763,7 +763,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gyoza porc.webp | media | [public/images/gyoza porc.webp](../../public/images/gyoza%20porc.webp) |
 | /images/home/tok-geneve-desktop-reference.jpg | media | [public/images/home/tok-geneve-desktop-reference.jpg](../../public/images/home/tok-geneve-desktop-reference.jpg) |
 | /images/home/tok-geneve-desktop.webp | media | [public/images/home/tok-geneve-desktop.webp](../../public/images/home/tok-geneve-desktop.webp) |
-| /images/home/tok-geneve-mobile-original.webp | media | [public/images/home/tok-geneve-mobile-original.webp](../../public/images/home/tok-geneve-mobile-original.webp) |
+| /images/home/tok-geneve-mobile-sans-parasol.webp | media | [public/images/home/tok-geneve-mobile-sans-parasol.webp](../../public/images/home/tok-geneve-mobile-sans-parasol.webp) |
 | /images/home/tok-geneve-mobile.webp | media | [public/images/home/tok-geneve-mobile.webp](../../public/images/home/tok-geneve-mobile.webp) |
 | /images/home/tok-leman-signature.webp | media | [public/images/home/tok-leman-signature.webp](../../public/images/home/tok-leman-signature.webp) |
 | /images/houmous.webp | media | [public/images/houmous.webp](../../public/images/houmous.webp) |
@@ -1253,7 +1253,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-geneve-mobile-original.webp | 2 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
+| /images/home/tok-geneve-mobile-sans-parasol.webp | 2 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
 | /images/home/tok-leman-signature.webp | 2 | [src/components/home/HeroSection.tsx:82](../../src/components/home/HeroSection.tsx#L82) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
@@ -7928,7 +7928,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/gyoza porc.webp`
 - `public/images/home/tok-geneve-desktop-reference.jpg`
 - `public/images/home/tok-geneve-desktop.webp`
-- `public/images/home/tok-geneve-mobile-original.webp`
+- `public/images/home/tok-geneve-mobile-sans-parasol.webp`
 - `public/images/home/tok-geneve-mobile.webp`
 - `public/images/home/tok-leman-signature.webp`
 - `public/images/houmous.webp`

@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "50f7a49867274f377823505d01b0f63145fcc281300448f48e95544e0bac3a73",
+ "sourceDigest": "586247d6540d52d337c42e2c3ef75877099495ab3addab39809d91bbf4d5f182",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -11197,8 +11197,8 @@
     "kind": "media"
    },
    {
-    "route": "/images/home/tok-geneve-mobile-original.webp",
-    "path": "public/images/home/tok-geneve-mobile-original.webp",
+    "route": "/images/home/tok-geneve-mobile-sans-parasol.webp",
+    "path": "public/images/home/tok-geneve-mobile-sans-parasol.webp",
     "kind": "media"
    },
    {
@@ -16150,7 +16150,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 32
+      "line": 43
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -20492,7 +20492,7 @@
     ]
    },
    {
-    "value": "/images/home/tok-geneve-mobile-original.webp",
+    "value": "/images/home/tok-geneve-mobile-sans-parasol.webp",
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
@@ -20500,7 +20500,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 26
+      "line": 37
      }
     ]
    },
@@ -20513,7 +20513,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 27
+      "line": 38
      }
     ]
    },
@@ -23582,11 +23582,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 46
+      "line": 57
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 53
+      "line": 64
      },
      {
       "path": "src/test/mobile-logo-intro.test.tsx",
@@ -24965,7 +24965,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 39
+      "line": 50
      },
      {
       "path": "src/test/route-serving-regression.test.ts",
@@ -26366,7 +26366,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 31
+      "line": 42
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -26615,11 +26615,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 48
+      "line": 59
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 62
+      "line": 73
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
@@ -27625,11 +27625,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 47
+      "line": 58
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 63
+      "line": 74
      }
     ],
     "routes": [
@@ -101638,7 +101638,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 73
+    "lineCount": 84
    },
    {
     "path": "src/test/home-mobile-newsletter.test.tsx",
@@ -112083,7 +112083,7 @@
     "extension": ".webp"
    },
    {
-    "path": "public/images/home/tok-geneve-mobile-original.webp",
+    "path": "public/images/home/tok-geneve-mobile-sans-parasol.webp",
     "category": "public-asset",
     "extension": ".webp"
    },
@@ -138724,12 +138724,12 @@
    "id": "code-module:a714f68588b7",
    "type": "code-module",
    "title": "src/test/home-hero-search.test.tsx",
-   "description": "Module de 73 lignes; exports: aucun export statique.",
+   "description": "Module de 84 lignes; exports: aucun export statique.",
    "path": "src/test/home-hero-search.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "18397347a373"
+   "detailRef": "be22dd7dec40"
   },
   {
    "id": "code-module:d67b9bd34728",
@@ -287803,18 +287803,18 @@
    "detailRef": "d4638769cfcb"
   },
   {
-   "id": "file:b316fa2f9aa9",
+   "id": "file:ccd2737ba2b4",
    "type": "file",
-   "title": "public/images/home/tok-geneve-mobile-original.webp",
+   "title": "public/images/home/tok-geneve-mobile-sans-parasol.webp",
    "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/images/home/tok-geneve-mobile-original.webp",
+   "path": "public/images/home/tok-geneve-mobile-sans-parasol.webp",
    "line": null,
    "surface": null,
    "tags": [
     ".webp",
     "public-asset"
    ],
-   "detailRef": "d64fc55c7a9b"
+   "detailRef": "3017a07fd6f5"
   },
   {
    "id": "file:c9d524bd1ff6",
@@ -335833,7 +335833,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "a103ae5233ae"
+   "detailRef": "459e9556584c"
   },
   {
    "id": "path-literal:4fb16aa3df8b",
@@ -338613,9 +338613,9 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:d4ef6c8d88b8",
+   "id": "path-literal:2c67a64255e9",
    "type": "path-literal",
-   "title": "/images/home/tok-geneve-mobile-original.webp",
+   "title": "/images/home/tok-geneve-mobile-sans-parasol.webp",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 81,
@@ -338624,7 +338624,7 @@
     "src/components/home/HeroSection.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "638c81d675a0"
+   "detailRef": "8f0f850157aa"
   },
   {
    "id": "path-literal:ea587481fbd4",
@@ -338638,7 +338638,7 @@
     "src/components/home/HeroSection.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "aa6251f266e1"
+   "detailRef": "f3f399c041ad"
   },
   {
    "id": "path-literal:d38fc61bacfe",
@@ -340743,7 +340743,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "6cd57996dde6"
+   "detailRef": "a5e083329789"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -342015,7 +342015,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "c9e0453dbfbb"
+   "detailRef": "f02853075bed"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -343190,7 +343190,7 @@
     "src/test/home-hero-search.test.tsx",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "07e3480d55b7"
+   "detailRef": "f1d7d80022fa"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -345416,18 +345416,18 @@
    "detailRef": "876d88947dda"
   },
   {
-   "id": "public-asset:927c8536884c",
+   "id": "public-asset:3ee3bdc6f0a7",
    "type": "public-asset",
-   "title": "/images/home/tok-geneve-mobile-original.webp",
+   "title": "/images/home/tok-geneve-mobile-sans-parasol.webp",
    "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/images/home/tok-geneve-mobile-original.webp",
+   "path": "public/images/home/tok-geneve-mobile-sans-parasol.webp",
    "line": null,
    "surface": null,
    "tags": [
     "media",
     "public"
    ],
-   "detailRef": "5b4ce298151c"
+   "detailRef": "749805e24afa"
   },
   {
    "id": "public-asset:88b1a56e1c81",
@@ -347901,7 +347901,7 @@
     "src/test/home-hero-search.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "5742e82a27ef"
+   "detailRef": "9ca34a2915d7"
   },
   {
    "id": "query-parameter:97c42c624f4b",
@@ -348727,7 +348727,7 @@
     "src/pages/Recherche.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "9c0118e4c04b"
+   "detailRef": "75115318c0dd"
   },
   {
    "id": "query-parameter:1969b37dad55",
