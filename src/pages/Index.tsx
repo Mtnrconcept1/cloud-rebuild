@@ -53,14 +53,14 @@ const HOME_NEARBY_RADIUS_KM = 5;
 const PROGRESSIVE_OFFERS_TABLE = "reservation_progressive_offers";
 
 const SECTION_HEADER_IMAGES = {
-  personal: "/images/section-headers/heart-3d.png",
-  local: "/images/section-headers/tok-editorial-geneva.jpg",
-  lunch: "/desig app/burger.png",
-  reservation: "/desig app/calendrier.png",
-  promo: "/desig app/chefsection.png",
-  offers: "/desig app/cadeau.png",
-  trending: "/desig app/flamme.png",
-  nearby: "/images/section-headers/tok-editorial-geneva.jpg",
+  personal: "/images/section-headers/tok-editorial-rewards-full.jpg",
+  local: "/images/section-headers/tok-editorial-geneva-full.jpg",
+  lunch: "/images/section-headers/tok-editorial-feast-full.jpg",
+  reservation: "/images/section-headers/tok-editorial-reservation-full.jpg",
+  promo: "/images/section-headers/tok-editorial-gastronomy-full.jpg",
+  offers: "/images/section-headers/tok-editorial-delivery-full.jpg",
+  trending: "/images/section-headers/tok-editorial-evening-full.jpg",
+  nearby: "/images/section-headers/tok-editorial-geneva-full.jpg",
 } as const;
 
 type SearchSort =
