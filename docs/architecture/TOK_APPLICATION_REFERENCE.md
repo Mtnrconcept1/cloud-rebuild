@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7d731f8532851ff6a28c9a66e9291af969f3577d2d2a0461b4bd5d3bf719c74c`
+- Empreinte SHA-256 des sources indexées : `557f0f6f407b8bb245612463bdc1acfb226bf2a940989d6cb90a363f4cb4f0be`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,7 +45,7 @@
 | publicEntries | 378 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15938 |
+| records | 15939 |
 | repositoryFiles | 2868 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -5994,7 +5994,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Remédiation des dépendances TOK — 3 octobre 2026 | 9 | [docs/audits/DEPENDABOT_2026-10-03.md:1](../../docs/audits/DEPENDABOT_2026-10-03.md#L1) |
 | Audit des campagnes marketing TOK — 28 juillet 2026 | 17 | [docs/audits/MARKETING_CAMPAIGNS_AUDIT_2026-07-28.md:1](../../docs/audits/MARKETING_CAMPAIGNS_AUDIT_2026-07-28.md#L1) |
 | TOK — audit des notifications et du temps réel | 6 | [docs/audits/TOK_NOTIFICATION_REALTIME_AUDIT_2026-10-11.md:1](../../docs/audits/TOK_NOTIFICATION_REALTIME_AUDIT_2026-10-11.md#L1) |
-| Correctifs abonnements, MIAMZ et promotions TOK | 6 | [docs/audits/TOK_SUBSCRIPTION_FIXES_2026-10-11.md:1](../../docs/audits/TOK_SUBSCRIPTION_FIXES_2026-10-11.md#L1) |
+| Correctifs abonnements, MIAMZ et promotions TOK | 7 | [docs/audits/TOK_SUBSCRIPTION_FIXES_2026-10-11.md:1](../../docs/audits/TOK_SUBSCRIPTION_FIXES_2026-10-11.md#L1) |
 | Audit complet codebase TOK - 2026-06-19 | 25 | [docs/audits/codebase-audit-2026-06-19.md:1](../../docs/audits/codebase-audit-2026-06-19.md#L1) |
 | Audit codebase TOK - 2026-06-26 | 16 | [docs/audits/codebase-audit-2026-06-26.md:1](../../docs/audits/codebase-audit-2026-06-26.md#L1) |
 | Mobile release readiness | 9 | [docs/audits/mobile-release-readiness-2026-04-30.md:1](../../docs/audits/mobile-release-readiness-2026-04-30.md#L1) |

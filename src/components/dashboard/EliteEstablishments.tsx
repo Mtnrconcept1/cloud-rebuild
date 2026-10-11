@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { invokeSupabaseFunction } from "@/lib/session";
@@ -6,6 +7,19 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+
+type EliteContractRow = {
+  id: string;
+  included_establishments_snapshot: number | null;
+  additional_establishment_price_cents_snapshot: number | null;
+  billing_period: string | null;
+};
+
+type EliteContract = Partial<EliteContractRow> & {
+  inherited: boolean;
+  source?: string;
+  linked?: string[];
+};
 
 export default function EliteEstablishments({ restaurantId }: { restaurantId: string }) {
   const { user } = useAuth();
@@ -20,15 +34,17 @@ export default function EliteEstablishments({ restaurantId }: { restaurantId: st
       if (error) throw error;
       return data;
     } });
-  const contract = useQuery({ queryKey: ["elite-contract", restaurantId], enabled: Boolean(user), queryFn: async () => {
+  const contract = useQuery({ queryKey: ["elite-contract", restaurantId], enabled: Boolean(user), queryFn: async (): Promise<EliteContract> => {
     const { data: membership, error: linkError } = await (getSupabase() as any).from("restaurant_subscription_establishments")
       .select("subscription_id,restaurant_ai_subscriptions(restaurant_id)").eq("restaurant_id", restaurantId).maybeSingle();
     if (linkError) throw linkError;
     if (membership) return { inherited: true, source: membership.restaurant_ai_subscriptions?.restaurant_id };
-    const { data, error } = await getSupabase().from("restaurant_ai_subscriptions")
+    // This relation is not yet present in the generated database types.
+    const { data, error } = await (getSupabase() as SupabaseClient).from("restaurant_ai_subscriptions")
       .select("id,included_establishments_snapshot,additional_establishment_price_cents_snapshot,billing_period")
       .eq("restaurant_id", restaurantId).eq("stripe_mode", "live").in("status", ["active", "trialing"])
-      .gt("current_period_end", new Date().toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      .gt("current_period_end", new Date().toISOString()).order("created_at", { ascending: false }).limit(1)
+      .returns<EliteContractRow[]>().maybeSingle();
     if (error) throw error;
     if (!data) throw new Error("Contrat actif introuvable");
     const { data: linked, error: linksError } = await (getSupabase() as any).from("restaurant_subscription_establishments")

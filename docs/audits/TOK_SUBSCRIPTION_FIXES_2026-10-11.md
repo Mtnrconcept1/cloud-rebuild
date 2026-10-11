@@ -31,7 +31,8 @@ Le rattachement Elite conserve les consommations dans le groupe. Un établisseme
 - Sept migrations exécutées intégralement dans PostgreSQL embarqué (PGlite 0.5.8), sur un schéma de test sans données de production.
 - 25 scénarios SQL : live/test, expiration, désactivation, seuils personnalisés, héritage, support, remboursement partiel puis total, replay, dons, reprise historique, partage Elite, quatrième site payant, révocation de capacité, isolation des propriétaires, accès et remise des offres.
 - Suites Vitest ciblées : abonnements, MIAMZ, fidélité, promotions, paiement, fenêtres horaires et index applicatif. 173 tests dans 35 fichiers.
-- TypeScript frontend, ESLint des fichiers modifiés, build Vite production et `supabase:doctor:prod`.
+- TypeScript frontend : sortie 0 après correction du typage Elite/flash. ESLint complet : sortie 0 (18 avertissements existants). Build Vite production : sortie 0. `supabase:doctor:prod` vérifié lors de l’implémentation.
+- Suite complète sous Node 22 : 3 032 tests réussis sur 3 033. Le dernier test échoue uniquement sur un avertissement du proxy local dans stderr ; recontrôle ciblé avec `NODE_NO_WARNINGS=1` réussi (23 tests dans quatre fichiers, incluant ce test et les registres corrigés). Le contrôle GitHub de la dernière révision fait autorité pour le résultat CI.
 - Vérification Deno ciblée des deux fonctions de gestion/réconciliation et du moteur de tarification. Les téléchargements directs esm.sh/jsr sont bloqués dans cet environnement ; contrôle réalisé avec les mêmes paquets npm locaux Supabase 2.106.2 et Stripe 22.3.2 et une déclaration vide pour le seul import de types `edge-runtime.d.ts`. Ce contrôle n’est pas une exécution hébergée Supabase.
 - Fixture SQL : schéma réduit et frontières notifications/feature flags simulées. Elle ne remplace pas une répétition des migrations sur une branche Supabase complète.
 
@@ -62,6 +63,12 @@ La PR reste en brouillon selon le gate critique de `TOK_RELEASE_GATEKEEPER.md`. 
 
 Retour arrière : désactiver les campagnes concernées, suspendre les nouvelles souscriptions/ajouts si nécessaire et redéployer la version applicative précédente. Conserver les tables, liens, lignes Stripe et journaux financiers. Ne pas supprimer les migrations ni annuler les ajustements par un effacement ; utiliser une correction compensatoire auditée après analyse. Les facturations existantes nécessitent une décision explicite avant toute annulation ou remboursement.
 
+## Finalisation après contrôles GitHub
+
+La première CI a identifié deux erreurs de typage (contrat Elite et avant-première flash), une description manquante dans le journal admin et une carte des codes d’erreur à régénérer. Ces quatre points sont corrigés. Le précédent bilan de typecheck était erroné : seuls les résultats des vérifications relancées après ces corrections font foi.
+
+Le quota Vercel a bloqué le déploiement automatique du projet `cloud-rebuild-recovered`. La recette Stripe/Supabase décrite plus haut reste nécessaire. Aucun merge ni déploiement de migrations n’a été effectué.
+
 ## Fichiers modifiés
 
 La liste ci-dessous constitue le périmètre complet du correctif, index applicatif inclus.
@@ -78,6 +85,7 @@ La liste ci-dessous constitue le périmètre complet du correctif, index applica
 - `src/components/dashboard/EliteEstablishments.tsx`
 - `src/hooks/useTokOne.ts`
 - `src/hooks/useTokOneEntitlements.ts`
+- `src/lib/admin/auditLogNarrative.ts`
 - `src/lib/businessTime.ts`
 - `src/lib/loyaltyBenefits.ts`
 - `src/lib/specialOffers.ts`
@@ -99,6 +107,7 @@ La liste ci-dessous constitue le périmètre complet du correctif, index applica
 - `supabase/config.toml`
 - `supabase/functions/_shared/business-time.ts`
 - `supabase/functions/_shared/checkout-discounts.ts`
+- `supabase/functions/_shared/error-code-map.ts`
 - `supabase/functions/_shared/marketplace-finance.ts`
 - `supabase/functions/_shared/order-pricing.ts`
 - `supabase/functions/_shared/restaurant-establishments.ts`

@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "7d731f8532851ff6a28c9a66e9291af969f3577d2d2a0461b4bd5d3bf719c74c",
+ "sourceDigest": "557f0f6f407b8bb245612463bdc1acfb226bf2a940989d6cb90a363f4cb4f0be",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -25,7 +25,7 @@
   "publicEntries": 378,
   "publicNavigableRoutes": 2,
   "queryParameters": 104,
-  "records": 15938,
+  "records": 15939,
   "repositoryFiles": 2868,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -5142,7 +5142,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 82,
+      "line": 83,
       "kind": "function"
      }
     ],
@@ -70924,17 +70924,22 @@
      {
       "level": 2,
       "title": "Conditions restantes avant fusion et production",
-      "line": 45
+      "line": 46
      },
      {
       "level": 2,
       "title": "Ordre de livraison et exploitation",
-      "line": 55
+      "line": 56
+     },
+     {
+      "level": 2,
+      "title": "Finalisation après contrôles GitHub",
+      "line": 66
      },
      {
       "level": 2,
       "title": "Fichiers modifiés",
-      "line": 65
+      "line": 72
      }
     ]
    },
@@ -83233,7 +83238,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 10,
+      "line": 24,
       "kind": "function"
      }
     ],
@@ -83242,7 +83247,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 72
+    "lineCount": 88
    },
    {
     "path": "src/components/dashboard/GoogleBusinessBookingCard.tsx",
@@ -87917,42 +87922,42 @@
      },
      {
       "name": "humanizeIdentifier",
-      "line": 464,
+      "line": 465,
       "kind": "function"
      },
      {
       "name": "describeAuditFunction",
-      "line": 476,
+      "line": 477,
       "kind": "function"
      },
      {
       "name": "describeAuditAction",
-      "line": 483,
+      "line": 484,
       "kind": "function"
      },
      {
       "name": "describeAuditEntity",
-      "line": 491,
+      "line": 492,
       "kind": "function"
      },
      {
       "name": "describeAuditActor",
-      "line": 498,
+      "line": 499,
       "kind": "function"
      },
      {
       "name": "explainAuditError",
-      "line": 506,
+      "line": 507,
       "kind": "function"
      },
      {
       "name": "describeAuditLog",
-      "line": 627,
+      "line": 628,
       "kind": "function"
      },
      {
       "name": "summarizeAuditLog",
-      "line": 631,
+      "line": 632,
       "kind": "function"
      }
     ],
@@ -87961,7 +87966,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 633
+    "lineCount": 635
    },
    {
     "path": "src/lib/adminComptaActions.ts",
@@ -100420,7 +100425,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 82,
+      "line": 83,
       "kind": "function"
      }
     ],
@@ -100428,7 +100433,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 570
+    "lineCount": 571
    },
    {
     "path": "src/pages/dashboard/dashboardFacturesShared.ts",
@@ -106357,7 +106362,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3190,
+      "line": 3198,
       "kind": "function"
      }
     ],
@@ -106369,7 +106374,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3195
+    "lineCount": 3203
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -128150,7 +128155,7 @@
    "id": "code-module:f94b901f5afa",
    "type": "code-module",
    "title": "src/components/dashboard/EliteEstablishments.tsx",
-   "description": "Module de 72 lignes; exports: default.",
+   "description": "Module de 88 lignes; exports: default.",
    "path": "src/components/dashboard/EliteEstablishments.tsx",
    "line": 1,
    "surface": null,
@@ -128159,7 +128164,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "bc370258588d"
+   "detailRef": "418f214a1cd5"
   },
   {
    "id": "code-module:4421e58603e6",
@@ -131061,7 +131066,7 @@
    "id": "code-module:49057d39b311",
    "type": "code-module",
    "title": "src/lib/admin/auditLogNarrative.ts",
-   "description": "Module de 633 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
+   "description": "Module de 635 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
    "path": "src/lib/admin/auditLogNarrative.ts",
    "line": 1,
    "surface": null,
@@ -131082,7 +131087,7 @@
     "stripe",
     "summarizeAuditLog"
    ],
-   "detailRef": "5772b153739e"
+   "detailRef": "312ca96b656d"
   },
   {
    "id": "code-module:011d1dc10823",
@@ -137246,7 +137251,7 @@
    "id": "code-module:cc09079ba249",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardVentesFlash.tsx",
-   "description": "Module de 570 lignes; exports: default.",
+   "description": "Module de 571 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardVentesFlash.tsx",
    "line": 1,
    "surface": null,
@@ -137254,7 +137259,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "6b378fb5808b"
+   "detailRef": "e7cb8670bc86"
   },
   {
    "id": "code-module:34f91aa15186",
@@ -144914,7 +144919,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3195 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3203 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -144928,7 +144933,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "2fff4a75e614"
+   "detailRef": "e2fc03436257"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -201840,18 +201845,18 @@
    "detailRef": "9e212e402633"
   },
   {
-   "id": "document-section:4e11be7ddb23",
+   "id": "document-section:f4681a6d3395",
    "type": "document-section",
    "title": "Conditions restantes avant fusion et production",
    "description": "Section de Correctifs abonnements, MIAMZ et promotions TOK.",
    "path": "docs/audits/TOK_SUBSCRIPTION_FIXES_2026-10-11.md",
-   "line": 45,
+   "line": 46,
    "surface": null,
    "tags": [
     "Correctifs abonnements, MIAMZ et promotions TOK",
     "h2"
    ],
-   "detailRef": "25a32aea2917"
+   "detailRef": "3d6907ba7b26"
   },
   {
    "id": "document-section:2f3bb5fb3255",
@@ -205284,18 +205289,18 @@
    "detailRef": "5a4b4bac0451"
   },
   {
-   "id": "document-section:cd427244ad1a",
+   "id": "document-section:115a18c55fb9",
    "type": "document-section",
    "title": "Fichiers modifiés",
    "description": "Section de Correctifs abonnements, MIAMZ et promotions TOK.",
    "path": "docs/audits/TOK_SUBSCRIPTION_FIXES_2026-10-11.md",
-   "line": 65,
+   "line": 72,
    "surface": null,
    "tags": [
     "Correctifs abonnements, MIAMZ et promotions TOK",
     "h2"
    ],
-   "detailRef": "cc2f0ff80119"
+   "detailRef": "ed283638a038"
   },
   {
    "id": "document-section:03229a164ab0",
@@ -205450,6 +205455,20 @@
     "h2"
    ],
    "detailRef": "6cbd6fdf03cf"
+  },
+  {
+   "id": "document-section:d1c5650ed322",
+   "type": "document-section",
+   "title": "Finalisation après contrôles GitHub",
+   "description": "Section de Correctifs abonnements, MIAMZ et promotions TOK.",
+   "path": "docs/audits/TOK_SUBSCRIPTION_FIXES_2026-10-11.md",
+   "line": 66,
+   "surface": null,
+   "tags": [
+    "Correctifs abonnements, MIAMZ et promotions TOK",
+    "h2"
+   ],
+   "detailRef": "d313f8b1b705"
   },
   {
    "id": "document-section:2a0b1eb86a26",
@@ -210100,18 +210119,18 @@
    "detailRef": "e3dda1ac0cc9"
   },
   {
-   "id": "document-section:0a0df3dd782e",
+   "id": "document-section:184fc8cebe6c",
    "type": "document-section",
    "title": "Ordre de livraison et exploitation",
    "description": "Section de Correctifs abonnements, MIAMZ et promotions TOK.",
    "path": "docs/audits/TOK_SUBSCRIPTION_FIXES_2026-10-11.md",
-   "line": 55,
+   "line": 56,
    "surface": null,
    "tags": [
     "Correctifs abonnements, MIAMZ et promotions TOK",
     "h2"
    ],
-   "detailRef": "e80936b901ea"
+   "detailRef": "59dbbb5c77cd"
   },
   {
    "id": "document-section:5355597ccdf6",
@@ -225036,7 +225055,7 @@
    "id": "document:6df4cee55a5b",
    "type": "document",
    "title": "Correctifs abonnements, MIAMZ et promotions TOK",
-   "description": "Document Markdown avec 6 section(s).",
+   "description": "Document Markdown avec 7 section(s).",
    "path": "docs/audits/TOK_SUBSCRIPTION_FIXES_2026-10-11.md",
    "line": 1,
    "surface": null,
@@ -225045,10 +225064,11 @@
     "Correctifs abonnements, MIAMZ et promotions TOK",
     "Correspondance avec l’audit",
     "Fichiers modifiés",
+    "Finalisation après contrôles GitHub",
     "Ordre de livraison et exploitation",
     "Validation locale"
    ],
-   "detailRef": "96b15bb32ecd"
+   "detailRef": "5c124e4d29bb"
   },
   {
    "id": "document:038da9ee83b2",
@@ -260867,19 +260887,19 @@
    "detailRef": "700e13046dca"
   },
   {
-   "id": "exported-symbol:68e10df2b4e6",
+   "id": "exported-symbol:1e01770969ab",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/dashboard/EliteEstablishments.tsx.",
    "path": "src/components/dashboard/EliteEstablishments.tsx",
-   "line": 10,
+   "line": 24,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "5ad019bc54ac"
+   "detailRef": "e50fe5b61e02"
   },
   {
    "id": "exported-symbol:efe615403574",
@@ -263642,18 +263662,18 @@
    "detailRef": "336f75116e45"
   },
   {
-   "id": "exported-symbol:1dcf915a329d",
+   "id": "exported-symbol:6946f01ea130",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardVentesFlash.tsx.",
    "path": "src/pages/dashboard/DashboardVentesFlash.tsx",
-   "line": 82,
+   "line": 83,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "f309688206d3"
+   "detailRef": "eeb2f870fc3e"
   },
   {
    "id": "exported-symbol:a25b518a1043",
@@ -263811,79 +263831,79 @@
    "detailRef": "35cf2f09a4fb"
   },
   {
-   "id": "exported-symbol:5c2e89183f9c",
+   "id": "exported-symbol:46b7333dd8a6",
    "type": "exported-symbol",
    "title": "describeAuditAction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 483,
+   "line": 484,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "811151a9837b"
+   "detailRef": "b90b791bbf96"
   },
   {
-   "id": "exported-symbol:e1d7165655fe",
+   "id": "exported-symbol:1acaec08b34c",
    "type": "exported-symbol",
    "title": "describeAuditActor",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 498,
+   "line": 499,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b105de30fb1f"
+   "detailRef": "65133d2ecc6c"
   },
   {
-   "id": "exported-symbol:06aa4d13e537",
+   "id": "exported-symbol:4881f83de976",
    "type": "exported-symbol",
    "title": "describeAuditEntity",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 491,
+   "line": 492,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "ee736afb8b00"
+   "detailRef": "5958429935e9"
   },
   {
-   "id": "exported-symbol:c60d0475ae22",
+   "id": "exported-symbol:3815337bdd04",
    "type": "exported-symbol",
    "title": "describeAuditFunction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 476,
+   "line": 477,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "1115110541b0"
+   "detailRef": "1cbf0a76d25f"
   },
   {
-   "id": "exported-symbol:df8dfcc84cb2",
+   "id": "exported-symbol:46caaafe2225",
    "type": "exported-symbol",
    "title": "describeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 627,
+   "line": 628,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "38d2a2022d0b"
+   "detailRef": "b0766893ca10"
   },
   {
    "id": "exported-symbol:10f1bf567ca4",
@@ -264520,19 +264540,19 @@
    "detailRef": "8b413b2a22c5"
   },
   {
-   "id": "exported-symbol:6d252b85a963",
+   "id": "exported-symbol:d0803f3bff75",
    "type": "exported-symbol",
    "title": "explainAuditError",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 506,
+   "line": 507,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "7cfd027c9443"
+   "detailRef": "b50a1667e564"
   },
   {
    "id": "exported-symbol:94c395b452eb",
@@ -270807,19 +270827,19 @@
    "detailRef": "a662cada9702"
   },
   {
-   "id": "exported-symbol:660f44a41128",
+   "id": "exported-symbol:3e5a7e4a9827",
    "type": "exported-symbol",
    "title": "humanizeIdentifier",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 464,
+   "line": 465,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "20315c7f6485"
+   "detailRef": "ee689cf56868"
   },
   {
    "id": "exported-symbol:22ef725203f7",
@@ -273242,12 +273262,12 @@
    "detailRef": "030eab57dc46"
   },
   {
-   "id": "exported-symbol:0abb78605e12",
+   "id": "exported-symbol:28ac6059bdc9",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3190,
+   "line": 3198,
    "surface": null,
    "tags": [
     "firebase",
@@ -273257,7 +273277,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "310a9e335341"
+   "detailRef": "d62eb1bb4623"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -278574,19 +278594,19 @@
    "detailRef": "596a9a69ebd0"
   },
   {
-   "id": "exported-symbol:7e939a106de5",
+   "id": "exported-symbol:396e55fc54b1",
    "type": "exported-symbol",
    "title": "summarizeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 631,
+   "line": 632,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "e4cf74f06876"
+   "detailRef": "6f938fcbd0dd"
   },
   {
    "id": "exported-symbol:25e70f45a5b2",
@@ -337188,7 +337208,7 @@
     "/dashboard/ventes-flash",
     "supabase"
    ],
-   "detailRef": "90030e4a1e1c"
+   "detailRef": "5dde60b073e4"
   },
   {
    "id": "page:5f7a6efac4e1",

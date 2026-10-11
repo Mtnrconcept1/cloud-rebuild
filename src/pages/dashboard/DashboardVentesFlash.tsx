@@ -43,6 +43,7 @@ type FlashSaleRecord = {
   sale_date: string | null;
   sale_start: string | null;
   sale_end: string | null;
+  early_access_minutes?: number;
 };
 
 type MenuOption = {
