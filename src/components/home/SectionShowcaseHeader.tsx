@@ -10,6 +10,7 @@ export type SectionHeaderTheme = "orange" | "rose" | "sky" | "amber" | "indigo" 
 type SectionShowcaseHeaderProps = {
   title: string;
   subtitle: string;
+  description?: string;
   icon: LucideIcon;
   imageSrc: string;
   iconColor?: string;
@@ -24,27 +25,76 @@ type SectionShowcaseHeaderProps = {
   actions?: ReactNode;
 };
 
+/**
+ * A shared, SEO-friendly TOK editorial heading.
+ * Photography is decorative; headings, descriptions and links remain real HTML.
+ */
 export default function SectionShowcaseHeader({
-  title, subtitle, icon: Icon, linkText, linkTo, className, actions,
+  title,
+  subtitle,
+  description,
+  icon: Icon,
+  imageSrc,
+  iconColor,
+  theme = "orange",
+  linkText,
+  linkTo,
+  className,
+  titleClassName,
+  contentClassName,
+  illustrationClassName,
+  imageClassName,
+  actions,
 }: SectionShowcaseHeaderProps) {
+  const photographic = imageSrc.startsWith("/images/section-headers/tok-editorial-");
+
   return (
-    <div data-section-showcase-header className={cn("flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5", className)}>
-      <div className="min-w-0 max-w-3xl">
-        <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-          <Icon className="h-4 w-4" aria-hidden="true" />{subtitle}
-        </p>
-        <h2 className="font-display text-2xl font-medium leading-tight tracking-tight text-foreground sm:text-3xl md:text-4xl">{title}</h2>
+    <div
+      data-section-showcase-header
+      data-theme={theme}
+      data-image-kind={photographic ? "photo" : "illustration"}
+      className={cn("tok-section-header", className)}
+    >
+      <div
+        className={cn("tok-section-header__visual", illustrationClassName)}
+        aria-hidden="true"
+      >
+        <img
+          src={imageSrc}
+          alt=""
+          width={600}
+          height={340}
+          loading="lazy"
+          decoding="async"
+          className={cn("tok-section-header__image", imageClassName)}
+        />
       </div>
-      {(actions || (linkText && linkTo)) ? (
-        <div data-section-action-row className="flex max-w-full flex-wrap items-center gap-2">
-          {actions}
-          {linkText && linkTo ? (
-            <Button variant="ghost" className="min-h-11 rounded-full px-3 text-sm text-primary" asChild>
-              <Link to={linkTo}><span>{linkText}</span><ChevronRight className="ml-1 h-4 w-4 shrink-0" aria-hidden="true" /></Link>
-            </Button>
-          ) : null}
+
+      <div className={cn("tok-section-header__content", contentClassName)}>
+        <div className="tok-section-header__eyebrow">
+          <span className="tok-section-header__symbol" aria-hidden="true">
+            <Icon className={cn("tok-section-header__glyph", iconColor)} aria-hidden="true" />
+          </span>
+          <span>{subtitle}</span>
         </div>
-      ) : null}
+
+        <h2 className={cn("tok-section-header__title font-display", titleClassName)}>{title}</h2>
+        {description ? <p className="tok-section-header__description">{description}</p> : null}
+
+        {(actions || (linkText && linkTo)) ? (
+          <div data-section-action-row className="tok-section-header__actions">
+            {actions}
+            {linkText && linkTo ? (
+              <Button variant="ghost" className="tok-section-header__cta" asChild>
+                <Link to={linkTo}>
+                  <span>{linkText}</span>
+                  <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                </Link>
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

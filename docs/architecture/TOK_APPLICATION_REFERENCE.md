@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `ddbf3d1d614bdca26b54fe3e9c730eee70b134a3d8aa1c67090ee67703f011d6`
+- Empreinte SHA-256 des sources indexées : `58d8af0ccd9046b49fc94dd9a29307c84295fa85480734ba0386fb3bfb26207e`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 527 |
-| modules | 1502 |
+| modules | 1503 |
 | pages | 128 |
-| pathLiterals | 637 |
-| publicAssets | 377 |
-| publicEntries | 402 |
+| pathLiterals | 639 |
+| publicAssets | 379 |
+| publicEntries | 404 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15943 |
-| repositoryFiles | 2885 |
+| records | 15951 |
+| repositoryFiles | 2888 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -904,6 +904,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/section-headers/plate-3d.png | media | [public/images/section-headers/plate-3d.png](../../public/images/section-headers/plate-3d.png) |
 | /images/section-headers/scooter-3d.png | media | [public/images/section-headers/scooter-3d.png](../../public/images/section-headers/scooter-3d.png) |
 | /images/section-headers/shopping-bags-3d.png | media | [public/images/section-headers/shopping-bags-3d.png](../../public/images/section-headers/shopping-bags-3d.png) |
+| /images/section-headers/tok-editorial-cuisine.jpg | media | [public/images/section-headers/tok-editorial-cuisine.jpg](../../public/images/section-headers/tok-editorial-cuisine.jpg) |
+| /images/section-headers/tok-editorial-geneva.jpg | media | [public/images/section-headers/tok-editorial-geneva.jpg](../../public/images/section-headers/tok-editorial-geneva.jpg) |
 | /images/shawarma poulet.jpeg | media | [public/images/shawarma poulet.jpeg](../../public/images/shawarma%20poulet.jpeg) |
 | /images/smash-burger-single.jpeg | media | [public/images/smash-burger-single.jpeg](../../public/images/smash-burger-single.jpeg) |
 | /images/smash-burgers.jpeg | media | [public/images/smash-burgers.jpeg](../../public/images/smash-burgers.jpeg) |
@@ -1400,11 +1402,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/samosa.jpg | 3 | [src/lib/menu-item-images.ts:94](../../src/lib/menu-item-images.ts#L94) |
 | /images/section-headers/calendar-3d.png | 2 | [src/lib/dashboardIllustrations.ts:57](../../src/lib/dashboardIllustrations.ts#L57) |
 | /images/section-headers/fire-3d.png | 1 | [src/lib/dashboardIllustrations.ts:59](../../src/lib/dashboardIllustrations.ts#L59) |
-| /images/section-headers/gift-3d.png | 2 | [src/components/home/RestaurantSection.tsx:28](../../src/components/home/RestaurantSection.tsx#L28) |
+| /images/section-headers/gift-3d.png | 2 | [src/components/home/RestaurantSection.tsx:29](../../src/components/home/RestaurantSection.tsx#L29) |
 | /images/section-headers/heart-3d.png | 1 | [src/pages/Index.tsx:56](../../src/pages/Index.tsx#L56) |
-| /images/section-headers/pin-3d.png | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
 | /images/section-headers/plate-3d.png | 2 | [src/lib/dashboardIllustrations.ts:56](../../src/lib/dashboardIllustrations.ts#L56) |
 | /images/section-headers/shopping-bags-3d.png | 1 | [src/lib/dashboardIllustrations.ts:60](../../src/lib/dashboardIllustrations.ts#L60) |
+| /images/section-headers/tok-editorial- | 1 | [src/components/home/SectionShowcaseHeader.tsx:49](../../src/components/home/SectionShowcaseHeader.tsx#L49) |
+| /images/section-headers/tok-editorial-cuisine.jpg | 2 | [src/components/home/CuisineCategoryStrip.tsx:95](../../src/components/home/CuisineCategoryStrip.tsx#L95) |
+| /images/section-headers/tok-editorial-geneva.jpg | 4 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
 | /images/smash-burger-single.jpeg | 3 | [src/lib/menu-item-images.ts:23](../../src/lib/menu-item-images.ts#L23) |
 | /images/smash-burgers.jpeg | 3 | [src/components/AntiWasteCard.tsx:39](../../src/components/AntiWasteCard.tsx#L39) |
 | /images/stack-shake-spread.jpeg | 1 | [src/components/AntiWasteCard.tsx:35](../../src/components/AntiWasteCard.tsx#L35) |
@@ -1477,7 +1481,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/:slug | 3 | [src/App.tsx:570](../../src/App.tsx#L570) |
 | /r/:slug/reserver | 2 | [src/App.tsx:569](../../src/App.tsx#L569) |
 | /readyz | 3 | [src/test/application-search-index.test.ts:71](../../src/test/application-search-index.test.ts#L71) |
-| /recherche | 64 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
+| /recherche | 66 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
 | /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:23](../../src/test/restaurant-search-preview.test.tsx#L23) |
 | /recherche?mode=reservation | 2 | [src/pages/TokPulse.tsx:30](../../src/pages/TokPulse.tsx#L30) |
 | /recherche?q=francais | 1 | [src/test/home-cuisine-accessibility.test.tsx:41](../../src/test/home-cuisine-accessibility.test.tsx#L41) |
@@ -5894,7 +5898,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 591 |
+| test | 592 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -7876,7 +7880,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (402)</summary>
+<details><summary>public-asset (404)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8170,6 +8174,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/section-headers/plate-3d.png`
 - `public/images/section-headers/scooter-3d.png`
 - `public/images/section-headers/shopping-bags-3d.png`
+- `public/images/section-headers/tok-editorial-cuisine.jpg`
+- `public/images/section-headers/tok-editorial-geneva.jpg`
 - `public/images/shawarma poulet.jpeg`
 - `public/images/smash-burger-single.jpeg`
 - `public/images/smash-burgers.jpeg`
@@ -8465,7 +8471,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (591)</summary>
+<details><summary>test (592)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -8725,6 +8731,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/home-hero-search.test.tsx`
 - `src/test/home-mobile-newsletter.test.tsx`
 - `src/test/home-nearby-catalog-contract.test.ts`
+- `src/test/home-section-showcase-header.test.tsx`
 - `src/test/homepage-photo-only-sections.test.ts`
 - `src/test/homepage-positioning-guards.test.ts`
 - `src/test/image-metadata-ai.test.ts`

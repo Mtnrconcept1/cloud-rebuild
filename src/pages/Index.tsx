@@ -54,13 +54,13 @@ const PROGRESSIVE_OFFERS_TABLE = "reservation_progressive_offers";
 
 const SECTION_HEADER_IMAGES = {
   personal: "/images/section-headers/heart-3d.png",
-  local: "/images/section-headers/pin-3d.png",
+  local: "/images/section-headers/tok-editorial-geneva.jpg",
   lunch: "/desig app/burger.png",
   reservation: "/desig app/calendrier.png",
   promo: "/desig app/chefsection.png",
   offers: "/desig app/cadeau.png",
   trending: "/desig app/flamme.png",
-  nearby: "/desig app/chefsection2.png",
+  nearby: "/images/section-headers/tok-editorial-geneva.jpg",
 } as const;
 
 type SearchSort =
@@ -840,6 +840,7 @@ export default function Index() {
             accentClassName="bg-sky-500/80"
             headerTheme="sky"
             headerImageSrc={SECTION_HEADER_IMAGES.local}
+            headerDescription="Découvrez les meilleures tables autour de vous."
             linkText={userCoordinates ? "Explorer autour de vous" : userContext?.city ? "Explorer votre ville" : "Explorer les restaurants"}
             linkTo={buildSearchLink({ city: userCoordinates ? null : userContext?.city || null })}
           />
