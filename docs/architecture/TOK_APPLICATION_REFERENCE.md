@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `15c14620d1972ec26df5710365af7fc6f990e50fb87d0b4e230947fd4e51967b`
+- Empreinte SHA-256 des sources indexées : `995517c81c57e32e88870a6457504d72335c81d2ee280404d46129bd81af79c3`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1532,7 +1532,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants-pres/theatre-de-beaulieu-lausanne | 1 | [src/test/stoppin-thetok-routes.test.ts:87](../../src/test/stoppin-thetok-routes.test.ts#L87) |
 | /restaurants-pres/victoria-hall-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:83](../../src/test/stoppin-thetok-routes.test.ts#L83) |
 | /restaurants/ | 4 | [scripts/harden-seo-trust-signals.mjs:188](../../scripts/harden-seo-trust-signals.mjs#L188) |
-| /restaurants/${citySlug}/r/${restaurantSlug} | 2 | [src/test/responsive-seo-regressions.test.ts:97](../../src/test/responsive-seo-regressions.test.ts#L97) |
+| /restaurants/${citySlug}/r/${restaurantSlug} | 2 | [src/test/responsive-seo-regressions.test.ts:99](../../src/test/responsive-seo-regressions.test.ts#L99) |
 | /restaurants/:city | 4 | [src/App.tsx:565](../../src/App.tsx#L565) |
 | /restaurants/:city/:category | 4 | [src/App.tsx:568](../../src/App.tsx#L568) |
 | /restaurants/:city/r/:restaurantSlug | 3 | [src/App.tsx:567](../../src/App.tsx#L567) |
