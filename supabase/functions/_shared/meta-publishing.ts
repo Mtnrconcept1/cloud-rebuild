@@ -6,6 +6,9 @@ export type MetaSocialContent = {
   call_to_action?: unknown;
   hashtags?: unknown;
   visual_url?: unknown;
+  visual_required?: unknown;
+  visual_prompt?: unknown;
+  visual_status?: unknown;
 };
 
 export type MetaPublishingConfig = {
@@ -81,8 +84,26 @@ export function buildMetaCaption(content: MetaSocialContent, channel: MetaChanne
   const headline = cleanString(content.headline);
   const body = cleanString(content.body);
   const callToAction = cleanString(content.call_to_action);
-  const hashtags = normalizeHashtags(content.hashtags).join(" ");
-  const text = [headline, body, callToAction, hashtags].filter(Boolean).join("\n\n");
+  // Legacy planners sometimes store the complete caption in body. Compare
+  // optional fields only: never remove repeated paragraphs from authored text.
+  const comparable = (value: string) => value.normalize("NFC").replace(/\s+/g, " ").trim();
+  const firstLine = body.split(/\r?\n/, 1)[0];
+  const parts = [comparable(firstLine) === comparable(headline) ? "" : headline, body].filter(Boolean);
+  const existing = parts.join("\n\n");
+  const needle = comparable(callToAction);
+  const haystack = comparable(existing);
+  const urls: string[] = existing.match(/https?:\/\/[^\s<>"']+/g) || [];
+  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const ctaPresent = /^https?:\/\/\S+$/.test(callToAction)
+    ? urls.includes(callToAction)
+    : Boolean(needle) && new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escaped}(?=$|[^\\p{L}\\p{N}_])`, "u").test(haystack);
+  if (callToAction && !ctaPresent) parts.push(callToAction);
+  const withoutUrls = parts.join("\n\n").replace(/https?:\/\/\S+/g, "");
+  const existingTags = new Set(Array.from(withoutUrls.matchAll(/#([\p{L}\p{M}\p{N}_]+)/gu),
+    (match) => match[0].normalize("NFC").toLocaleLowerCase()));
+  const hashtags = normalizeHashtags(content.hashtags)
+    .filter((tag) => !existingTags.has(tag.normalize("NFC").toLocaleLowerCase())).join(" ");
+  const text = [...parts, hashtags].filter(Boolean).join("\n\n");
   if (!text) {
     throw new MetaPublishError("meta_content_empty");
   }
@@ -127,6 +148,19 @@ export function normalizeMetaMediaUrl(value: unknown) {
     throw new MetaPublishError("meta_media_url_invalid");
   }
   return url.toString();
+}
+
+/** Reused by approval and by the worker immediately before any provider call. */
+export function validateMetaMediaContent(content: MetaSocialContent, channel: MetaChannel) {
+  const visualUrl = normalizeMetaMediaUrl(content.visual_url);
+  const status = cleanString(content.visual_status);
+  const expectsVisual = channel === "instagram" || content.visual_required === true
+    || Boolean(cleanString(content.visual_prompt))
+    || Boolean(status && !["not_requested", "not_required", "text_only"].includes(status));
+  if (!visualUrl && expectsVisual) {
+    throw new MetaPublishError(channel === "instagram" ? "instagram_media_required" : "meta_media_required");
+  }
+  return visualUrl;
 }
 
 export function validateMetaPublishingConfig(config: MetaPublishingConfig, channel: MetaChannel) {
@@ -326,7 +360,7 @@ export async function publishMetaContent(input: {
   const fetchImpl = input.fetchImpl || fetch;
   const sleepImpl = input.sleepImpl || defaultSleep;
   const caption = buildMetaCaption(input.content, input.channel);
-  const visualUrl = normalizeMetaMediaUrl(input.content.visual_url);
+  const visualUrl = validateMetaMediaContent(input.content, input.channel);
   const page = await resolvePageIdentity(config, fetchImpl);
 
   if (input.channel === "facebook") {

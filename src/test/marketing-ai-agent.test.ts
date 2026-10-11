@@ -297,3 +297,27 @@ describe("marketing AI agent boundary", () => {
     expect(bff).toContain("Campaign bundle persistence failed");
   });
 });
+
+
+describe("social visual readiness in the generated bundle", () => {
+  it.each(["facebook", "instagram"] as const)("keeps the %s image brief and marks absent media as required", (channel) => {
+    const plan = validPlan(); plan.items[0].channel = channel;
+    plan.items[0].visual_prompt = "Chef TOK présente le restaurant";
+    const result = toBundlePayload(plan, new Map()) as { items: Array<{ content: Record<string, unknown> }> };
+    expect(result.items[0].content).toMatchObject({ visual_url: null, visual_required: true,
+      visual_status: "pending_generation", visual_prompt: "Chef TOK présente le restaurant" });
+    expect(result.items[0]).not.toHaveProperty("approval_status", "approved");
+  });
+  it("marks a stored social image ready without approving or scheduling the draft", () => {
+    const plan = validPlan(); plan.items[0].channel = "instagram";
+    const result = toBundlePayload(plan, new Map([[0, "https://cdn.example.com/tok.jpg"]])) as { items: Array<{ content: Record<string, unknown> }> };
+    expect(result.items[0].content).toMatchObject({ visual_required: true, visual_status: "ready" });
+    expect(result.items[0]).not.toHaveProperty("status");
+  });
+  it("provides the campaign message required by the existing approval RPC", () => {
+    const plan = validPlan();
+    expect(toBundlePayload(plan, new Map())).toMatchObject({ campaign: { content: {
+      summary: plan.campaign.summary, message: plan.campaign.summary,
+    } } });
+  });
+});

@@ -9,6 +9,11 @@
   "outputDirectory": "dist",
   "redirects": [
     {
+      "source": "/restaurateurs-geneve",
+      "destination": "/restaurateurs/geneve",
+      "permanent": true
+    },
+    {
       "source": "/",
       "has": [
         {

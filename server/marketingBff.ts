@@ -1,3 +1,4 @@
+import { MetaPublishError, validateMetaMediaContent } from "../supabase/functions/_shared/meta-publishing.js";
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 
 /**
@@ -1442,6 +1443,46 @@ async function logout(req: MarketingApiRequest, res: MarketingApiResponse): Prom
   sendJson(res, 200, { authenticated: false }, clearAuthCookies());
 }
 
+/** Advisory approval preflight; the worker repeats the guard to cover later edits. */
+async function checkMarketingApprovalMedia(config: BffConfig, operation: string, args: JsonObject) {
+  if (!["admin_approve_marketing_campaign", "admin_approve_marketing_item"].includes(operation)) return;
+  const campaign = operation === "admin_approve_marketing_campaign";
+  const id = validateUuid(stringField(args, campaign ? "p_campaign_id" : "p_item_id", 64));
+  let after = "";
+  for (let page = 0; page < 20; page += 1) {
+    const query = new URLSearchParams({
+      select: "id,channel,visual_url:content->>visual_url,visual_required:content->visual_required,visual_prompt:content->>visual_prompt,visual_status:content->>visual_status",
+      [campaign ? "campaign_id" : "id"]: `eq.${id}`,
+      channel: "in.(facebook,instagram)",
+      status: "not.in.(published,sent,cancelled,completed)",
+      order: "id.asc", limit: "100",
+    });
+    if (after) query.set("id", `gt.${after}`);
+    const rows = await serviceRestRequest(config, `/marketing_calendar_items?${query}`);
+    if (!Array.isArray(rows) || rows.length > 100) {
+      throw new PublicBffError(503, "marketing_readiness_unavailable", "Vérification des visuels indisponible.");
+    }
+    for (const row of rows) {
+      if (!isPlainObject(row) || typeof row.id !== "string" || !UUID_PATTERN.test(row.id)
+        || !["facebook", "instagram"].includes(String(row.channel))) {
+        throw new PublicBffError(503, "marketing_readiness_unavailable", "Vérification des visuels indisponible.");
+      }
+      try {
+        validateMetaMediaContent(row, row.channel as "facebook" | "instagram");
+      } catch (error) {
+        if (!(error instanceof MetaPublishError)) throw error;
+        throw new PublicBffError(400, "marketing_visual_required",
+          "Ajoutez un visuel HTTPS valide à chaque publication illustrée avant de l’approuver.");
+      }
+    }
+    if (!campaign || rows.length < 100) return;
+    const next = String(rows[rows.length - 1].id);
+    if (next <= after) break;
+    after = next;
+  }
+  throw new PublicBffError(503, "marketing_readiness_unavailable", "La vérification complète des visuels est requise.");
+}
+
 async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiResponse): Promise<void> {
   if ((req.method ?? "GET").toUpperCase() !== "POST") {
     methodNotAllowed(res, ["POST"]);
@@ -1460,6 +1501,7 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
   }
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
+  await checkMarketingApprovalMedia(config, operation, args);
   try {
     const serviceOperation = MARKETING_OUTREACH_OPERATION_NAMES.includes(
       operation as MarketingOutreachOperation,

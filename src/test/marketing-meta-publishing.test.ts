@@ -335,3 +335,48 @@ describe("Meta integration rollout migration", () => {
     expect(metaIntegrationMigration).not.toContain("provider = 'meta'");
   });
 });
+
+
+describe("complete social captions and required visuals", () => {
+  const url = "https://www.thetok.ch/restaurateurs/geneve?utm_source=facebook#demande-demo";
+  it("does not duplicate a headline, embedded CTA URL or hashtags already in the body", () => {
+    const body = `Vos idées méritent une belle vitrine\n\nRestaurateurs genevois, découvrez TOK.\n\nDemandez une démo : ${url}\n\n#TOK #Geneve`;
+    expect(buildMetaCaption({ headline: "Vos idées méritent une belle vitrine", body,
+      call_to_action: url, hashtags: ["TOK", "#Geneve"] }, "facebook")).toBe(body);
+  });
+  it("keeps a complete CTA sentence already present and appends only missing hashtags", () => {
+    const body = "TOK à Genève\n\nDécouvrez TOK. Réservez votre démo.\n\n#TOKOne #GENEVE";
+    expect(buildMetaCaption({ headline: "TOK à Genève", body,
+      call_to_action: "Réservez votre démo.", hashtags: ["TOK", "Geneve"] }, "instagram"))
+      .toBe(`${body}\n\n#TOK`);
+  });
+  it("does not mistake a URL prefix or an embedded word for the complete CTA", () => {
+    const body = `TOKOne\n\n${url}-autre`;
+    expect(buildMetaCaption({ headline: "TOK", body, call_to_action: url }, "facebook"))
+      .toBe(`TOK\n\n${body}\n\n${url}`);
+  });
+  it("preserves intentional body repetition and its original whitespace", () => {
+    const body = "Titre\r\n\r\nEncore.\n\nEncore.";
+    expect(buildMetaCaption({ headline: "Titre", body }, "facebook")).toBe(body);
+  });
+  it("applies the Instagram length limit after removing duplicated fields", () => {
+    const body = `Titre\n\n${"a".repeat(2185)}`;
+    expect(buildMetaCaption({ headline: "Titre", body }, "instagram")).toBe(body);
+  });
+  it.each([
+    { visual_status: "pending_generation" }, { visual_prompt: "Chef TOK et restaurant" },
+    { visual_required: true }, { visual_status: "failed" },
+  ])("does not publish an illustrated Facebook item as text only: %o", async (intent) => {
+    const fetchImpl = vi.fn(); const beforeExternalPublish = vi.fn();
+    await expect(publishMetaContent({ channel: "facebook", content: { body: "Une démo TOK", ...intent },
+      config: baseConfig, fetchImpl, beforeExternalPublish })).rejects.toMatchObject({ code: "meta_media_required" });
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(beforeExternalPublish).not.toHaveBeenCalled();
+  });
+  it("rejects missing Instagram media before identity lookup or any publish marker", async () => {
+    const fetchImpl = vi.fn(); const beforeExternalPublish = vi.fn();
+    await expect(publishMetaContent({ channel: "instagram", content: { body: "TOK" },
+      config: baseConfig, fetchImpl, beforeExternalPublish })).rejects.toMatchObject({ code: "instagram_media_required" });
+    expect(fetchImpl).not.toHaveBeenCalled(); expect(beforeExternalPublish).not.toHaveBeenCalled();
+  });
+});

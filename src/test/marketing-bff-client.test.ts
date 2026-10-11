@@ -33,6 +33,25 @@ describe("marketing BFF client", () => {
     vi.unstubAllGlobals();
   });
 
+  it.each([
+    [400, "marketing_visual_required", "Ajoutez un visuel HTTPS valide à chaque publication illustrée avant de l’approuver."],
+    [503, "marketing_readiness_unavailable", "La vérification des visuels est indisponible. Réessayez avant d’approuver."],
+  ])("explains the known visual readiness failure without exposing upstream text: %s %s", async (status, code, message) => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: { code, message: "PRIVATE_UPSTREAM_DETAILS" } }), {
+      status: Number(status), headers: { "Content-Type": "application/json" },
+    })));
+    await expect(marketingBffRequest("/api/marketing/rpc", { method: "POST", body: {} }))
+      .rejects.toMatchObject({ status, code, message });
+  });
+
+  it("does not trust the visual error code when paired with an unrelated status", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: { code: "marketing_visual_required", message: "PRIVATE" } }), {
+      status: 403, headers: { "Content-Type": "application/json" },
+    })));
+    await expect(marketingBffRequest("/api/marketing/rpc", { method: "POST", body: {} }))
+      .rejects.toMatchObject({ status: 403, message: "Cette action n’est pas autorisée." });
+  });
+
   it("sends mutations same-origin with cookies, CSRF and no-store", async () => {
     const fetchMock = vi.fn(async () => new Response(JSON.stringify({ data: { ok: true } }), {
       status: 200,
