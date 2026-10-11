@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `58d8af0ccd9046b49fc94dd9a29307c84295fa85480734ba0386fb3bfb26207e`
+- Empreinte SHA-256 des sources indexées : `15c14620d1972ec26df5710365af7fc6f990e50fb87d0b4e230947fd4e51967b`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,13 +40,13 @@
 | migrations | 527 |
 | modules | 1503 |
 | pages | 128 |
-| pathLiterals | 639 |
-| publicAssets | 379 |
-| publicEntries | 404 |
+| pathLiterals | 644 |
+| publicAssets | 387 |
+| publicEntries | 412 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15951 |
-| repositoryFiles | 2888 |
+| records | 15972 |
+| repositoryFiles | 2896 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -904,8 +904,16 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/section-headers/plate-3d.png | media | [public/images/section-headers/plate-3d.png](../../public/images/section-headers/plate-3d.png) |
 | /images/section-headers/scooter-3d.png | media | [public/images/section-headers/scooter-3d.png](../../public/images/section-headers/scooter-3d.png) |
 | /images/section-headers/shopping-bags-3d.png | media | [public/images/section-headers/shopping-bags-3d.png](../../public/images/section-headers/shopping-bags-3d.png) |
+| /images/section-headers/tok-editorial-cuisine-full.jpg | media | [public/images/section-headers/tok-editorial-cuisine-full.jpg](../../public/images/section-headers/tok-editorial-cuisine-full.jpg) |
 | /images/section-headers/tok-editorial-cuisine.jpg | media | [public/images/section-headers/tok-editorial-cuisine.jpg](../../public/images/section-headers/tok-editorial-cuisine.jpg) |
+| /images/section-headers/tok-editorial-delivery-full.jpg | media | [public/images/section-headers/tok-editorial-delivery-full.jpg](../../public/images/section-headers/tok-editorial-delivery-full.jpg) |
+| /images/section-headers/tok-editorial-evening-full.jpg | media | [public/images/section-headers/tok-editorial-evening-full.jpg](../../public/images/section-headers/tok-editorial-evening-full.jpg) |
+| /images/section-headers/tok-editorial-feast-full.jpg | media | [public/images/section-headers/tok-editorial-feast-full.jpg](../../public/images/section-headers/tok-editorial-feast-full.jpg) |
+| /images/section-headers/tok-editorial-gastronomy-full.jpg | media | [public/images/section-headers/tok-editorial-gastronomy-full.jpg](../../public/images/section-headers/tok-editorial-gastronomy-full.jpg) |
+| /images/section-headers/tok-editorial-geneva-full.jpg | media | [public/images/section-headers/tok-editorial-geneva-full.jpg](../../public/images/section-headers/tok-editorial-geneva-full.jpg) |
 | /images/section-headers/tok-editorial-geneva.jpg | media | [public/images/section-headers/tok-editorial-geneva.jpg](../../public/images/section-headers/tok-editorial-geneva.jpg) |
+| /images/section-headers/tok-editorial-reservation-full.jpg | media | [public/images/section-headers/tok-editorial-reservation-full.jpg](../../public/images/section-headers/tok-editorial-reservation-full.jpg) |
+| /images/section-headers/tok-editorial-rewards-full.jpg | media | [public/images/section-headers/tok-editorial-rewards-full.jpg](../../public/images/section-headers/tok-editorial-rewards-full.jpg) |
 | /images/shawarma poulet.jpeg | media | [public/images/shawarma poulet.jpeg](../../public/images/shawarma%20poulet.jpeg) |
 | /images/smash-burger-single.jpeg | media | [public/images/smash-burger-single.jpeg](../../public/images/smash-burger-single.jpeg) |
 | /images/smash-burgers.jpeg | media | [public/images/smash-burgers.jpeg](../../public/images/smash-burgers.jpeg) |
@@ -1403,12 +1411,17 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/section-headers/calendar-3d.png | 2 | [src/lib/dashboardIllustrations.ts:57](../../src/lib/dashboardIllustrations.ts#L57) |
 | /images/section-headers/fire-3d.png | 1 | [src/lib/dashboardIllustrations.ts:59](../../src/lib/dashboardIllustrations.ts#L59) |
 | /images/section-headers/gift-3d.png | 2 | [src/components/home/RestaurantSection.tsx:29](../../src/components/home/RestaurantSection.tsx#L29) |
-| /images/section-headers/heart-3d.png | 1 | [src/pages/Index.tsx:56](../../src/pages/Index.tsx#L56) |
 | /images/section-headers/plate-3d.png | 2 | [src/lib/dashboardIllustrations.ts:56](../../src/lib/dashboardIllustrations.ts#L56) |
 | /images/section-headers/shopping-bags-3d.png | 1 | [src/lib/dashboardIllustrations.ts:60](../../src/lib/dashboardIllustrations.ts#L60) |
 | /images/section-headers/tok-editorial- | 1 | [src/components/home/SectionShowcaseHeader.tsx:49](../../src/components/home/SectionShowcaseHeader.tsx#L49) |
-| /images/section-headers/tok-editorial-cuisine.jpg | 2 | [src/components/home/CuisineCategoryStrip.tsx:95](../../src/components/home/CuisineCategoryStrip.tsx#L95) |
-| /images/section-headers/tok-editorial-geneva.jpg | 4 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
+| /images/section-headers/tok-editorial-cuisine-full.jpg | 2 | [src/components/home/CuisineCategoryStrip.tsx:95](../../src/components/home/CuisineCategoryStrip.tsx#L95) |
+| /images/section-headers/tok-editorial-delivery-full.jpg | 1 | [src/pages/Index.tsx:61](../../src/pages/Index.tsx#L61) |
+| /images/section-headers/tok-editorial-evening-full.jpg | 1 | [src/pages/Index.tsx:62](../../src/pages/Index.tsx#L62) |
+| /images/section-headers/tok-editorial-feast-full.jpg | 1 | [src/pages/Index.tsx:58](../../src/pages/Index.tsx#L58) |
+| /images/section-headers/tok-editorial-gastronomy-full.jpg | 1 | [src/pages/Index.tsx:60](../../src/pages/Index.tsx#L60) |
+| /images/section-headers/tok-editorial-geneva-full.jpg | 4 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
+| /images/section-headers/tok-editorial-reservation-full.jpg | 1 | [src/pages/Index.tsx:59](../../src/pages/Index.tsx#L59) |
+| /images/section-headers/tok-editorial-rewards-full.jpg | 1 | [src/pages/Index.tsx:56](../../src/pages/Index.tsx#L56) |
 | /images/smash-burger-single.jpeg | 3 | [src/lib/menu-item-images.ts:23](../../src/lib/menu-item-images.ts#L23) |
 | /images/smash-burgers.jpeg | 3 | [src/components/AntiWasteCard.tsx:39](../../src/components/AntiWasteCard.tsx#L39) |
 | /images/stack-shake-spread.jpeg | 1 | [src/components/AntiWasteCard.tsx:35](../../src/components/AntiWasteCard.tsx#L35) |
@@ -7880,7 +7893,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (404)</summary>
+<details><summary>public-asset (412)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8174,8 +8187,16 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/section-headers/plate-3d.png`
 - `public/images/section-headers/scooter-3d.png`
 - `public/images/section-headers/shopping-bags-3d.png`
+- `public/images/section-headers/tok-editorial-cuisine-full.jpg`
 - `public/images/section-headers/tok-editorial-cuisine.jpg`
+- `public/images/section-headers/tok-editorial-delivery-full.jpg`
+- `public/images/section-headers/tok-editorial-evening-full.jpg`
+- `public/images/section-headers/tok-editorial-feast-full.jpg`
+- `public/images/section-headers/tok-editorial-gastronomy-full.jpg`
+- `public/images/section-headers/tok-editorial-geneva-full.jpg`
 - `public/images/section-headers/tok-editorial-geneva.jpg`
+- `public/images/section-headers/tok-editorial-reservation-full.jpg`
+- `public/images/section-headers/tok-editorial-rewards-full.jpg`
 - `public/images/shawarma poulet.jpeg`
 - `public/images/smash-burger-single.jpeg`
 - `public/images/smash-burgers.jpeg`

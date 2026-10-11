@@ -26,8 +26,8 @@ type SectionShowcaseHeaderProps = {
 };
 
 /**
- * A shared, SEO-friendly TOK editorial heading.
- * Photography is decorative; headings, descriptions and links remain real HTML.
+ * The text and artwork occupy separate grid cells on every breakpoint.
+ * Original artwork is never faded, blurred, masked or covered by the copy.
  */
 export default function SectionShowcaseHeader({
   title,
@@ -55,21 +55,6 @@ export default function SectionShowcaseHeader({
       data-image-kind={photographic ? "photo" : "illustration"}
       className={cn("tok-section-header", className)}
     >
-      <div
-        className={cn("tok-section-header__visual", illustrationClassName)}
-        aria-hidden="true"
-      >
-        <img
-          src={imageSrc}
-          alt=""
-          width={600}
-          height={340}
-          loading="lazy"
-          decoding="async"
-          className={cn("tok-section-header__image", imageClassName)}
-        />
-      </div>
-
       <div className={cn("tok-section-header__content", contentClassName)}>
         <div className="tok-section-header__eyebrow">
           <span className="tok-section-header__symbol" aria-hidden="true">
@@ -94,6 +79,18 @@ export default function SectionShowcaseHeader({
             ) : null}
           </div>
         ) : null}
+      </div>
+
+      <div className={cn("tok-section-header__visual", illustrationClassName)} aria-hidden="true">
+        <img
+          src={imageSrc}
+          alt=""
+          width={photographic ? 2508 : 600}
+          height={photographic ? 627 : 340}
+          loading="lazy"
+          decoding="async"
+          className={cn("tok-section-header__image", imageClassName)}
+        />
       </div>
     </div>
   );

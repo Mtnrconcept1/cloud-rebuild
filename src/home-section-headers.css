@@ -1,92 +1,66 @@
 /*
- * TOK editorial section headers.
- * The background photograph is purely decorative; content stays accessible
- * HTML in normal flow, and all theme variants retain the TOK orange signature.
+ * Full-colour TOK editorial headers. Copy and photography never overlap:
+ * on wide screens they sit in distinct columns; on mobile the entire 4:1
+ * generated photograph is shown in its own row, with no cropping or veil.
  */
 [data-section-showcase-header] {
   --tok-header-ink: #261c18;
   --tok-header-muted: #655851;
   --tok-header-accent: hsl(var(--primary));
-  --tok-header-tint: #ffefe7;
   position: relative;
-  isolation: isolate;
-  display: flex;
-  align-items: center;
-  min-height: 180px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  align-items: stretch;
   width: 100%;
   max-width: 100%;
+  min-height: 194px;
   overflow: hidden;
-  padding: clamp(1.25rem, 2.8vw, 2.25rem);
   border: 1px solid #eacfc1;
   border-inline-start: 6px solid var(--tok-header-accent);
   border-radius: clamp(20px, 2.3vw, 28px);
-  background:
-    radial-gradient(circle at 70% 8%, rgba(255, 255, 255, .95), transparent 49%),
-    linear-gradient(110deg, #fff0e8 0%, #fffaf6 64%, var(--tok-header-tint) 100%);
+  background: #fff4eb;
   box-shadow: 0 9px 29px rgba(77, 37, 20, .06);
 }
 
-[data-section-showcase-header][data-theme="rose"] {
-  --tok-header-tint: #fff1ee;
-}
-
-[data-section-showcase-header][data-theme="sky"],
-[data-section-showcase-header][data-theme="blue"] {
-  --tok-header-tint: #ecf4f7;
-}
-
-[data-section-showcase-header][data-theme="emerald"] {
-  --tok-header-tint: #f3f7ed;
-}
-
-[data-section-showcase-header][data-theme="amber"] {
-  --tok-header-tint: #fff3df;
-}
-
-[data-section-showcase-header][data-theme="indigo"],
-[data-section-showcase-header][data-theme="slate"] {
-  --tok-header-tint: #f2f0f2;
+[data-section-showcase-header] .tok-section-header__content {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(1.25rem, 2.6vw, 2.3rem);
 }
 
 [data-section-showcase-header] .tok-section-header__visual {
-  position: absolute;
-  z-index: 0;
-  inset: 0 0 0 auto;
-  width: 47%;
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
   min-width: 0;
+  min-height: 100%;
+  overflow: hidden;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, .7) 24%, #000 56%);
-  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, .7) 24%, #000 56%);
+  background: #fff4eb;
 }
 
 [data-section-showcase-header] .tok-section-header__image {
   display: block;
   width: 100%;
   height: 100%;
+  min-width: 0;
   max-width: none;
   object-fit: contain;
   object-position: right center;
-  filter: drop-shadow(0 8px 14px rgba(82, 37, 18, .12));
 }
 
-[data-section-showcase-header][data-image-kind="photo"] .tok-section-header__visual {
-  width: 52%;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, .4) 20%, #000 58%);
-  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, .4) 20%, #000 58%);
-}
-
+/* The original panoramic file has a large empty cream area on the left.
+ * On desktop we trim only that unused region through its viewport. */
 [data-section-showcase-header][data-image-kind="photo"] .tok-section-header__image {
   object-fit: cover;
-  filter: none;
-}
-
-[data-section-showcase-header] .tok-section-header__content {
-  position: relative;
-  z-index: 1;
-  flex: 1 1 auto;
-  width: min(76%, 880px);
-  min-width: 0;
-  max-width: 100%;
+  object-position: right center;
 }
 
 [data-section-showcase-header] .tok-section-header__eyebrow {
@@ -125,7 +99,7 @@
   margin: 0;
   color: var(--tok-header-ink);
   font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(1.9rem, 1.55rem + 1.2vw, 3.125rem);
+  font-size: clamp(1.875rem, 1.5rem + 1.2vw, 3.125rem);
   font-weight: 800;
   line-height: 1.12;
   letter-spacing: -.035em;
@@ -166,7 +140,7 @@
   padding: .625rem 1.15rem;
   border: 1px solid #eac9b8;
   border-radius: 999px;
-  background: rgba(255, 252, 248, .95);
+  background: #fffcf8;
   box-shadow: 0 4px 14px rgba(96, 49, 24, .07);
   color: #b54c22;
   font-size: clamp(.8rem, .75rem + .22vw, .925rem);
@@ -188,70 +162,66 @@
   background: #fff0e6;
 }
 
-/* Extra contrast veil where the mobile title overlaps decorative photography. */
-[data-section-showcase-header][data-image-kind="photo"] .tok-section-header__visual::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(255, 244, 235, .6), rgba(255, 244, 235, .18) 50%, transparent 83%);
-}
-
-.dark [data-section-showcase-header][data-image-kind="photo"] .tok-section-header__visual::after {
-  background: linear-gradient(90deg, rgba(52, 37, 30, .65), rgba(52, 37, 30, .2) 50%, transparent 83%);
-}
-
+/* The originals are deliberately cream, so even dark mode preserves their
+ * exact warm background and uses dark readable text rather than dimming art. */
 .dark [data-section-showcase-header] {
-  --tok-header-ink: #fff8f2;
-  --tok-header-muted: #dfcbbf;
-  --tok-header-tint: #30241e;
-  border-color: rgba(233, 152, 107, .22);
+  --tok-header-ink: #261c18;
+  --tok-header-muted: #655851;
+  background: #fff4eb;
+  border-color: #eacfc1;
   border-inline-start-color: var(--tok-header-accent);
-  background:
-    radial-gradient(circle at 72% 0%, rgba(126, 77, 51, .17), transparent 52%),
-    linear-gradient(110deg, #34251e 0%, #241b17 74%, var(--tok-header-tint) 100%);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .15);
 }
 
 .dark [data-section-showcase-header] .tok-section-header__visual {
-  opacity: .8;
+  background: #fff4eb;
 }
 
-.dark [data-section-showcase-header] .tok-section-header__symbol {
-  background: linear-gradient(145deg, #bd612c, #7e3218);
+.dark [data-section-showcase-header] .tok-section-header__eyebrow {
+  color: #b9471a;
 }
 
 .dark [data-section-showcase-header] [data-section-action-row] a {
-  border-color: rgba(255, 174, 127, .28);
-  background: rgba(30, 23, 20, .93);
-  color: #ffae80;
-  box-shadow: none;
+  border-color: #eac9b8;
+  background: #fffcf8;
+  color: #b54c22;
 }
 
 .dark [data-section-showcase-header] [data-section-action-row] a:hover,
 .dark [data-section-showcase-header] [data-section-action-row] a:focus-visible {
-  background: #422920;
+  background: #fff0e6;
 }
 
 @media (max-width: 639px) {
   [data-section-showcase-header] {
-    min-height: 176px;
-    padding: 1.2rem 1.15rem;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    min-height: 0;
     border-radius: 23px;
   }
 
   [data-section-showcase-header] .tok-section-header__content {
+    grid-column: 1;
+    grid-row: 1;
     flex-basis: 100%;
     width: 100%;
     max-width: 100%;
+    padding: 1.2rem 1.15rem .75rem;
   }
 
-  [data-section-showcase-header] .tok-section-header__visual,
-  [data-section-showcase-header][data-image-kind="photo"] .tok-section-header__visual {
-    right: 0;
-    width: 59%;
-    opacity: .55;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, .3) 38%, #000 100%);
-    mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, .3) 38%, #000 100%);
+  [data-section-showcase-header] .tok-section-header__visual {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    min-height: 0;
+    aspect-ratio: 4 / 1;
+  }
+
+  [data-section-showcase-header] .tok-section-header__image,
+  [data-section-showcase-header][data-image-kind="photo"] .tok-section-header__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
   }
 
   [data-section-showcase-header] .tok-section-header__eyebrow {
@@ -267,7 +237,7 @@
   }
 
   [data-section-showcase-header] .tok-section-header__description {
-    max-width: 80%;
+    max-width: 100%;
     font-size: .82rem;
   }
 
@@ -282,16 +252,12 @@
 }
 
 @media (max-width: 375px) {
-  [data-section-showcase-header] {
-    padding: 1.05rem .85rem;
+  [data-section-showcase-header] .tok-section-header__content {
+    padding: 1.05rem .85rem .65rem;
   }
 
   [data-section-showcase-header] .tok-section-header__title {
     font-size: 1.8rem;
-  }
-
-  [data-section-showcase-header] .tok-section-header__description {
-    max-width: 95%;
   }
 }
 
