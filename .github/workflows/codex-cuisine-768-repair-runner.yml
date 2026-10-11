@@ -1,4 +1,4 @@
-name: Publish validated PR 768 cuisine repair
+name: Reconcile PR 768 with current main
 
 on:
   push:
@@ -7,33 +7,35 @@ on:
 
 permissions:
   contents: write
-  actions: read
 
 concurrency:
   group: codex-cuisine-768-repair
   cancel-in-progress: false
 
 env:
-  TARGET_SHA: 09e289d3f88a598891e7bb1f895089ac6474f6d6
-  OUTPUT_BRANCH: codex/cuisine-768-validated-output-20261011
+  TARGET_SHA: 6fe6c753bd5e014c082a8b2e3749dd5cb82a10fe
+  CURRENT_MAIN: ab5e40bc03c019b80011feecf973ca8f7a895059
+  OUTPUT_BRANCH: codex/cuisine-768-synced-output-20261011
   VITE_SUPABASE_URL: https://example.supabase.co
   VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
   VITE_SUPABASE_ANON_KEY: ci-public-placeholder
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  publish:
+  reconcile:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout immutable product PR head
+      - name: Checkout immutable cuisine PR head
         uses: actions/checkout@v6
         with:
-          ref: 09e289d3f88a598891e7bb1f895089ac6474f6d6
-          fetch-depth: 1
+          ref: 6fe6c753bd5e014c082a8b2e3749dd5cb82a10fe
+          fetch-depth: 6
           persist-credentials: false
 
-      - name: Inspect and create dedicated worktree
+      - name: Fetch and inspect actual current main, create dedicated worktree
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -41,42 +43,43 @@ jobs:
           git branch --show-current
           test "$(git rev-parse HEAD)" = "$TARGET_SHA"
           test -z "$(git status --porcelain)"
+          test "$(gh api repos/Mtnrconcept1/cloud-rebuild/git/ref/heads/main --jq .object.sha)" = "$CURRENT_MAIN"
+          auth_header="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth_header" fetch --no-tags --depth=6 origin "$CURRENT_MAIN"
+          unset auth_header
+          git log -3 --oneline "$CURRENT_MAIN"
           cat AGENTS.md
           git worktree add -b "$OUTPUT_BRANCH" "$RUNNER_TEMP/tok-cuisine-worktree" "$TARGET_SHA"
           echo "WORKTREE=$RUNNER_TEMP/tok-cuisine-worktree" >> "$GITHUB_ENV"
-          mkdir -p "$RUNNER_TEMP/publish-evidence"
-          echo "EVIDENCE=$RUNNER_TEMP/publish-evidence" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/reconcile-evidence"
+          echo "EVIDENCE=$RUNNER_TEMP/reconcile-evidence" >> "$GITHUB_ENV"
 
-      - name: Retrieve exact repair already tested in run 38153712799
-        uses: actions/download-artifact@v4
-        with:
-          name: tok-cuisine-768-repair-evidence
-          run-id: 38153712799
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/previous-evidence
-
-      - name: Restore verified patch without changing its bytes
+      - name: Merge current main, preserve its images and regenerate rather than hand-edit indexes
         working-directory: ${{ env.WORKTREE }}
         shell: bash
         run: |
           set -euo pipefail
-          patch="$RUNNER_TEMP/previous-evidence/repair.patch"
-          echo "e11c391c9becf5a000fc9e260d79c94ead82b9bc1ceaa4e9a4508ee7b4c55c79  $patch" | sha256sum --check --strict
-          git apply --check --index "$patch"
-          git apply --index "$patch"
-          git diff --cached --binary --full-index > "$EVIDENCE/restored.patch"
-          cmp "$patch" "$EVIDENCE/restored.patch"
-          git diff --cached --check
-          git diff --cached --name-only | tee "$EVIDENCE/repair-files.txt"
-          test "$(wc -l < "$EVIDENCE/repair-files.txt")" -eq 33
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          set +e
+          git merge --no-commit --no-ff "$CURRENT_MAIN" > "$EVIDENCE/merge.log" 2>&1
+          merge_status=$?
+          set -e
+          cat "$EVIDENCE/merge.log"
+          test "$merge_status" -le 1
+          test "$(git rev-parse MERGE_HEAD)" = "$CURRENT_MAIN"
+          git diff --name-only --diff-filter=U | tee "$EVIDENCE/conflicts.txt"
           while IFS= read -r path; do
             case "$path" in
               public/images/miniatures/*.webp|docs/architecture/TOK_APPLICATION_REFERENCE.md|docs/architecture/tok-application-search-index.json) ;;
-              *) echo "Unexpected repair file: $path"; exit 1 ;;
+              '') ;;
+              *) echo "Unexpected concurrent change: $path"; exit 1 ;;
             esac
-          done < "$EVIDENCE/repair-files.txt"
-          git diff --exit-code
-          git status --short --branch
+          done < "$EVIDENCE/conflicts.txt"
+          git restore --source="$CURRENT_MAIN" --staged --worktree -- public/images/miniatures docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
+          test -z "$(git diff --name-only --diff-filter=U)"
+          git diff --exit-code "$CURRENT_MAIN" -- public/images/miniatures
+          git diff --exit-code "$TARGET_SHA" -- src/components/home/CuisineCategoryStrip.tsx src/test/home-cuisine-accessibility.test.tsx
 
       - name: Enable pnpm
         run: corepack enable && corepack prepare pnpm@10.28.1 --activate
@@ -91,18 +94,36 @@ jobs:
         working-directory: ${{ env.WORKTREE }}
         run: pnpm install --frozen-lockfile
 
-      - name: Recheck targeted tests and generated index on restored bytes
+      - name: Regenerate indexes and validate final scoped diff
+        working-directory: ${{ env.WORKTREE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm docs:application-index
+          pnpm docs:application-index:check | tee "$EVIDENCE/index-check.log"
+          git add -- docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
+          git diff --check
+          git diff --cached --check
+          git diff --name-only "$CURRENT_MAIN" | tee "$EVIDENCE/final-product-files.txt"
+          test "$(wc -l < "$EVIDENCE/final-product-files.txt")" -eq 4
+          while IFS= read -r path; do
+            case "$path" in
+              src/components/home/CuisineCategoryStrip.tsx|src/test/home-cuisine-accessibility.test.tsx|docs/architecture/TOK_APPLICATION_REFERENCE.md|docs/architecture/tok-application-search-index.json) ;;
+              *) echo "Unexpected product file: $path"; exit 1 ;;
+            esac
+          done < "$EVIDENCE/final-product-files.txt"
+          git diff --binary --full-index "$CURRENT_MAIN" > "$EVIDENCE/final-product.patch"
+
+      - name: Targeted tests against reconciled current main
         working-directory: ${{ env.WORKTREE }}
         shell: bash
         run: |
           set -euo pipefail
           pnpm exec vitest run --mode production src/test/home-cuisine-accessibility.test.tsx src/test/home-core-web-vitals.test.ts src/test/seo-performance-remediation.test.ts 2>&1 | tee "$EVIDENCE/targeted-tests.log"
-          pnpm docs:application-index:check 2>&1 | tee "$EVIDENCE/index-check.log"
-          git diff --exit-code
-          git diff --cached --binary --full-index | cmp - "$RUNNER_TEMP/previous-evidence/repair.patch"
-          test -z "$(git ls-files --others --exclude-standard)"
+          pnpm exec eslint src/components/home/CuisineCategoryStrip.tsx src/test/home-cuisine-accessibility.test.tsx 2>&1 | tee "$EVIDENCE/lint-targeted.log"
+          pnpm typecheck 2>&1 | tee "$EVIDENCE/typecheck.log"
 
-      - name: Publish only isolated output branch with explicit worktree authentication
+      - name: Commit and publish reconciled worktree only after validation
         working-directory: ${{ env.WORKTREE }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -111,42 +132,32 @@ jobs:
           set -euo pipefail
           test "$(git branch --show-current)" = "$OUTPUT_BRANCH"
           test "$(git rev-parse HEAD)" = "$TARGET_SHA"
-          actual_head="$(gh api repos/Mtnrconcept1/cloud-rebuild/git/ref/heads/codex/cuisine-category-cards-bold-20261011 --jq .object.sha)"
-          test "$actual_head" = "$TARGET_SHA"
+          test "$(gh api repos/Mtnrconcept1/cloud-rebuild/git/ref/heads/main --jq .object.sha)" = "$CURRENT_MAIN"
+          test "$(gh api repos/Mtnrconcept1/cloud-rebuild/git/ref/heads/codex/cuisine-category-cards-bold-20261011 --jq .object.sha)" = "$TARGET_SHA"
           git diff --exit-code
           git diff --cached --check
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'fix(home): keep cuisine thumbnails within budget and refresh application index'
+          test -z "$(git ls-files --others --exclude-standard)"
+          pnpm docs:application-index:check
+          git commit -m 'chore(home): reconcile cuisine cards with concurrent main asset optimization'
+          git diff --name-only "$CURRENT_MAIN" HEAD | cmp - "$EVIDENCE/final-product-files.txt"
           auth_header="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth_header" push origin "HEAD:refs/heads/$OUTPUT_BRANCH"
           unset auth_header
-          printf 'VALIDATED_COMMIT=%s\nVALIDATED_TREE=%s\n' "$(git rev-parse HEAD)" "$(git rev-parse HEAD^{tree})" | tee "$EVIDENCE/git-result.txt"
-          git status --short --branch
+          printf 'VALIDATED_COMMIT=%s\nVALIDATED_TREE=%s\nBASE_SHA=%s\n' "$(git rev-parse HEAD)" "$(git rev-parse HEAD^{tree})" "$CURRENT_MAIN" | tee "$EVIDENCE/git-result.txt"
           test -z "$(git status --porcelain)"
-          cat "$EVIDENCE/git-result.txt" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Package complete changed files and verification evidence
-        working-directory: ${{ env.WORKTREE }}
-        shell: bash
-        run: |
-          set -euo pipefail
           mkdir -p "$EVIDENCE/complete-files"
-          { cat "$EVIDENCE/repair-files.txt"; printf '%s\n' src/components/home/CuisineCategoryStrip.tsx src/test/home-cuisine-accessibility.test.tsx; } | sort -u > "$EVIDENCE/all-product-files.txt"
-          test "$(wc -l < "$EVIDENCE/all-product-files.txt")" -eq 35
           while IFS= read -r path; do
             mkdir -p "$EVIDENCE/complete-files/$(dirname "$path")"
             cp "$path" "$EVIDENCE/complete-files/$path"
-          done < "$EVIDENCE/all-product-files.txt"
-          cp "$RUNNER_TEMP/previous-evidence/image-report.json" "$RUNNER_TEMP/previous-evidence/browser-report.json" "$EVIDENCE/"
-          cp "$RUNNER_TEMP/previous-evidence/full-tests.log" "$RUNNER_TEMP/previous-evidence/lint.log" "$RUNNER_TEMP/previous-evidence/typecheck.log" "$RUNNER_TEMP/previous-evidence/build.log" "$EVIDENCE/"
+          done < "$EVIDENCE/final-product-files.txt"
           (cd "$EVIDENCE/complete-files" && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$EVIDENCE/complete-files-sha256.txt"
+          cat "$EVIDENCE/git-result.txt" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload publication evidence
+      - name: Upload final reconciliation evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tok-cuisine-768-published-evidence
-          path: ${{ runner.temp }}/publish-evidence
+          name: tok-cuisine-768-final-evidence
+          path: ${{ runner.temp }}/reconcile-evidence
           retention-days: 7
           if-no-files-found: error
