@@ -299,7 +299,7 @@ export function toBundlePayload(
       audience_name: plan.campaign.audience_name.slice(0, 160),
       audience_definition: stripEmptySelectors(plan.campaign.audience_definition),
       timezone: "Europe/Zurich",
-      content: { summary: plan.campaign.summary },
+      content: { summary: plan.campaign.summary, message: plan.campaign.summary },
       metadata: { generated_by: "ai-marketing-agent" },
     },
     items: plan.items.map((item, index) => ({

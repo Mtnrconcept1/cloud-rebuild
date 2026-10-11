@@ -128,6 +128,15 @@ describe("marketing AI bundle payload", () => {
     ).toEqual({ audience_kind: "restaurant" });
   });
 
+  it("provides the campaign message required by approval without approving the draft", () => {
+    const plan = validatePlan(validPlan(), ["in_app"]);
+    const bundle = toBundlePayload(plan, new Map()) as { campaign: { content: { summary: string; message: string }; approved_at?: string } };
+    expect(bundle.campaign.content.message).toBe(plan.campaign.summary);
+    expect(bundle.campaign.content.summary).toBe(plan.campaign.summary);
+    expect(bundle.campaign.content.message.trim()).not.toBe("");
+    expect(bundle.campaign.approved_at).toBeUndefined();
+  });
+
   it("never proposes a status, leaving the database to force draft", () => {
     const bundle = toBundlePayload(validatePlan(validPlan(), ["in_app"]), new Map()) as {
       campaign: Record<string, unknown>;
