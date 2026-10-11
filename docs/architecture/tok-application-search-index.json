@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "7f6bee40849562224e21efbb782312b4d6b145dfcab6956ed079930ae2fde9ad",
+ "sourceDigest": "c84894b2de88aac6fe88ddc7edb057e9e6e765efe4d305268f1931a3ecf1789d",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -21,12 +21,12 @@
   "modules": 1487,
   "pages": 127,
   "pathLiterals": 620,
-  "publicAssets": 306,
-  "publicEntries": 331,
+  "publicAssets": 307,
+  "publicEntries": 332,
   "publicNavigableRoutes": 2,
   "queryParameters": 104,
-  "records": 15716,
-  "repositoryFiles": 2794,
+  "records": 15718,
+  "repositoryFiles": 2795,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -11202,6 +11202,11 @@
     "kind": "media"
    },
    {
+    "route": "/images/home/tok-leman-signature.webp",
+    "path": "public/images/home/tok-leman-signature.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/houmous.webp",
     "path": "public/images/houmous.webp",
     "kind": "media"
@@ -13216,15 +13221,6 @@
      {
       "path": "src/test/plan-phase1-readiness.test.ts",
       "line": 147
-     }
-    ]
-   },
-   {
-    "value": "/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png",
-    "sources": [
-     {
-      "path": "src/components/home/HeroSection.tsx",
-      "line": 80
      }
     ]
    },
@@ -15331,7 +15327,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 90
+      "line": 93
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -16096,6 +16092,10 @@
       "line": 33
      },
      {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 76
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 54
      },
@@ -16120,6 +16120,10 @@
       "line": 146
      },
      {
+      "path": "src/pages/Index.tsx",
+      "line": 631
+     },
+     {
       "path": "src/pages/Panier.tsx",
       "line": 951
      },
@@ -16134,6 +16138,10 @@
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 45
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 32
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -20475,11 +20483,28 @@
     ]
    },
    {
-    "value": "/images/home/tok-geneve-desktop.webp",
+    "value": "/images/home/tok-geneve-mobile.webp",
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 79
+      "line": 81
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 26
+     }
+    ]
+   },
+   {
+    "value": "/images/home/tok-leman-signature.webp",
+    "sources": [
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 82
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 27
      }
     ]
    },
@@ -20566,7 +20591,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 678
+      "line": 689
      },
      {
       "path": "src/pages/MatchGroupes.tsx",
@@ -23207,7 +23232,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 799
+      "line": 810
      }
     ]
    },
@@ -23403,6 +23428,14 @@
       "line": 49
      },
      {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 73
+     },
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 75
+     },
+     {
       "path": "src/components/home/RestaurantSection.tsx",
       "line": 28
      },
@@ -23540,11 +23573,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 36
+      "line": 46
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 43
+      "line": 53
      },
      {
       "path": "src/test/mobile-logo-intro.test.tsx",
@@ -24891,7 +24924,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 86
+      "line": 88
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -24923,7 +24956,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 29
+      "line": 39
      },
      {
       "path": "src/test/route-serving-regression.test.ts",
@@ -26287,6 +26320,10 @@
       "line": 472
      },
      {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 74
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 45
      },
@@ -26317,6 +26354,10 @@
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 52
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 31
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -26565,11 +26606,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 38
+      "line": 48
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 52
+      "line": 62
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
@@ -27575,11 +27616,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 37
+      "line": 47
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 53
+      "line": 63
      }
     ],
     "routes": [
@@ -82968,7 +83009,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 116
+    "lineCount": 119
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -97560,7 +97601,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 958
+    "lineCount": 969
    },
    {
     "path": "src/pages/LocalRestaurants.tsx",
@@ -101588,7 +101629,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 63
+    "lineCount": 73
    },
    {
     "path": "src/test/home-mobile-newsletter.test.tsx",
@@ -112034,6 +112075,11 @@
    },
    {
     "path": "public/images/home/tok-geneve-mobile.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/home/tok-leman-signature.webp",
     "category": "public-asset",
     "extension": ".webp"
    },
@@ -127036,14 +127082,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 116 lignes; exports: default.",
+   "description": "Module de 119 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "4c2ef6649776"
+   "detailRef": "adfe321c3323"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -134090,7 +134136,7 @@
    "id": "code-module:8d761926e269",
    "type": "code-module",
    "title": "src/pages/Index.tsx",
-   "description": "Module de 958 lignes; exports: default.",
+   "description": "Module de 969 lignes; exports: default.",
    "path": "src/pages/Index.tsx",
    "line": 1,
    "surface": null,
@@ -134098,7 +134144,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "388db97fda89"
+   "detailRef": "3576994611b0"
   },
   {
    "id": "code-module:d39f2c12cbfd",
@@ -138664,12 +138710,12 @@
    "id": "code-module:a714f68588b7",
    "type": "code-module",
    "title": "src/test/home-hero-search.test.tsx",
-   "description": "Module de 63 lignes; exports: aucun export statique.",
+   "description": "Module de 73 lignes; exports: aucun export statique.",
    "path": "src/test/home-hero-search.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "819eccc8e908"
+   "detailRef": "18397347a373"
   },
   {
    "id": "code-module:d67b9bd34728",
@@ -287757,6 +287803,20 @@
    "detailRef": "3bb03757e909"
   },
   {
+   "id": "file:2319eb73efe0",
+   "type": "file",
+   "title": "public/images/home/tok-leman-signature.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/home/tok-leman-signature.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "abd268cfaf5b"
+  },
+  {
    "id": "file:d537ae413d7c",
    "type": "file",
    "title": "public/images/houmous.webp",
@@ -333962,19 +334022,6 @@
    "detailRef": "26f196955bb6"
   },
   {
-   "id": "path-literal:07ac643297f6",
-   "type": "path-literal",
-   "title": "/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/HeroSection.tsx",
-   "line": 80,
-   "surface": null,
-   "tags": [
-    "src/components/home/HeroSection.tsx"
-   ],
-   "detailRef": "2ecb0208584e"
-  },
-  {
    "id": "path-literal:1d9f0654171b",
    "type": "path-literal",
    "title": "/Image%20Codex%203%20sept.%202026,%2002_31_12.png",
@@ -335461,7 +335508,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "cac0c62cf18c"
+   "detailRef": "5a78b8e82e38"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -335730,7 +335777,7 @@
    "id": "path-literal:43747d7bcc7e",
    "type": "path-literal",
    "title": "/chefs-table",
-   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 23 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 993,
    "surface": null,
@@ -335741,20 +335788,23 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
     "src/components/PromoCarousel.tsx",
+    "src/components/home/HeroSection.tsx",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
     "src/lib/featureVisibility.ts",
     "src/lib/tokLogo.ts",
     "src/pages/ClientDashboardHome.tsx",
+    "src/pages/Index.tsx",
     "src/pages/Panier.tsx",
     "src/pages/TokPulse.tsx",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
+    "src/test/home-hero-search.test.tsx",
     "src/test/tok-logo-calendar.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "c1ec339e66c2"
+   "detailRef": "f1eff7de8190"
   },
   {
    "id": "path-literal:4fb16aa3df8b",
@@ -338534,17 +338584,32 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:1addb8fb03df",
+   "id": "path-literal:884d4ef467b4",
    "type": "path-literal",
-   "title": "/images/home/tok-geneve-desktop.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "title": "/images/home/tok-geneve-mobile.webp",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 79,
+   "line": 81,
    "surface": null,
    "tags": [
-    "src/components/home/HeroSection.tsx"
+    "src/components/home/HeroSection.tsx",
+    "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "0893aab7a91e"
+   "detailRef": "03e34f832473"
+  },
+  {
+   "id": "path-literal:ea587481fbd4",
+   "type": "path-literal",
+   "title": "/images/home/tok-leman-signature.webp",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/HeroSection.tsx",
+   "line": 82,
+   "surface": null,
+   "tags": [
+    "src/components/home/HeroSection.tsx",
+    "src/test/home-hero-search.test.tsx"
+   ],
+   "detailRef": "aa6251f266e1"
   },
   {
    "id": "path-literal:d38fc61bacfe",
@@ -338601,7 +338666,7 @@
     "src/pages/admin/AdminRestaurants.tsx",
     "src/test/optimized-images.test.ts"
    ],
-   "detailRef": "a7365fef7372"
+   "detailRef": "27056b88cb75"
   },
   {
    "id": "path-literal:ecd720b69356",
@@ -340484,7 +340549,7 @@
     "src/pages/ClientDashboardHome.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "7bd08e1476d7"
+   "detailRef": "f44369e6a11c"
   },
   {
    "id": "path-literal:8a35ee0b46e4",
@@ -340603,7 +340668,7 @@
    "id": "path-literal:f7a8242103a1",
    "type": "path-literal",
    "title": "/recherche",
-   "description": "Chemin référencé dans 62 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 64 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/seo-trust-runtime.js",
    "line": 138,
    "surface": null,
@@ -340618,6 +340683,7 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
     "src/components/home/FooterSection.tsx",
+    "src/components/home/HeroSection.tsx",
     "src/components/home/RestaurantSection.tsx",
     "src/components/home/SearchAndCategories.tsx",
     "src/hooks/useSeoMeta.ts",
@@ -340648,7 +340714,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "9cc89333c6cf"
+   "detailRef": "4cc7af0fda3f"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -341920,7 +341986,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "9d0d5512f9a1"
+   "detailRef": "f6f783c64057"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -343073,7 +343139,7 @@
    "id": "path-literal:c2bbe3272368",
    "type": "path-literal",
    "title": "/ventes-flash",
-   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 341,
    "surface": null,
@@ -343083,6 +343149,7 @@
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
+    "src/components/home/HeroSection.tsx",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
@@ -343091,9 +343158,10 @@
     "src/pages/LocalRestaurants.tsx",
     "src/pages/TokPulse.tsx",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
+    "src/test/home-hero-search.test.tsx",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "af99cb82ec43"
+   "detailRef": "58e4744b448a"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -345331,6 +345399,20 @@
     "public"
    ],
    "detailRef": "d530e8fba2c4"
+  },
+  {
+   "id": "public-asset:1dfd68d31835",
+   "type": "public-asset",
+   "title": "/images/home/tok-leman-signature.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/home/tok-leman-signature.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "98c205a6372e"
   },
   {
    "id": "public-asset:4a17ada513e7",
@@ -347776,7 +347858,7 @@
     "src/test/home-hero-search.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "f9f64d58e53c"
+   "detailRef": "5742e82a27ef"
   },
   {
    "id": "query-parameter:97c42c624f4b",
@@ -348602,7 +348684,7 @@
     "src/pages/Recherche.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "c235cffbecfa"
+   "detailRef": "9c0118e4c04b"
   },
   {
    "id": "query-parameter:1969b37dad55",

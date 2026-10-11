@@ -38,7 +38,7 @@
 .tok-home-hero__newsletter a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:7px 18px;border:1px solid var(--tok-home-orange);color:var(--tok-home-orange);border-radius:11px;font-weight:700;white-space:nowrap}
 .tok-home-hero__newsletter a:hover{background:#fff1e8}
 .tok-or-banner-shell{max-width:1440px;padding:14px 24px 0;margin:0 auto}
-.tok-or-banner{position:relative;display:flex;min-height:124px;align-items:center;justify-content:space-between;gap:24px;overflow:hidden;padding:20px 42px;border-radius:17px;color:#fff;background:linear-gradient(90deg,#923000 0%,#c95312 42%,rgba(66,20,6,.5) 100%),url('/images/home/tok-leman-signature.png') center 68% / cover;transition:filter .2s ease}
+.tok-or-banner{position:relative;display:flex;min-height:124px;align-items:center;justify-content:space-between;gap:24px;overflow:hidden;padding:20px 42px;border-radius:17px;color:#fff;background:linear-gradient(90deg,#923000 0%,#c95312 42%,rgba(66,20,6,.5) 100%),url('/images/home/tok-leman-signature.webp') center 68% / cover;transition:filter .2s ease}
 .tok-or-banner:hover{filter:brightness(1.08)}
 .tok-or-banner__brand{display:flex;align-items:center;flex:0 0 auto;gap:12px;border-right:1px solid #ffffff66;padding-right:28px;font-family:'Playfair Display',Georgia,serif;font-size:clamp(24px,3vw,38px);font-weight:700;line-height:1}
 .tok-or-banner__body{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:14px;font-family:'Playfair Display',Georgia,serif;font-size:clamp(17px,1.6vw,23px);line-height:1.15}
