@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8c01859bde37da449a44abdabcbb77d84d48ee1c6f88026c82edbb91982a72a5`
+- Empreinte SHA-256 des sources indexées : `dbb6518ef27abb3665efdf7647abe7f11676bd7b04c6c315fcd42ecbebc53cc6`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -41,12 +41,12 @@
 | modules | 1487 |
 | pages | 127 |
 | pathLiterals | 620 |
-| publicAssets | 307 |
-| publicEntries | 332 |
+| publicAssets | 308 |
+| publicEntries | 333 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15718 |
-| repositoryFiles | 2795 |
+| records | 15720 |
+| repositoryFiles | 2796 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -763,6 +763,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gyoza porc.webp | media | [public/images/gyoza porc.webp](../../public/images/gyoza%20porc.webp) |
 | /images/home/tok-geneve-desktop-reference.jpg | media | [public/images/home/tok-geneve-desktop-reference.jpg](../../public/images/home/tok-geneve-desktop-reference.jpg) |
 | /images/home/tok-geneve-desktop.webp | media | [public/images/home/tok-geneve-desktop.webp](../../public/images/home/tok-geneve-desktop.webp) |
+| /images/home/tok-geneve-mobile-focus.webp | media | [public/images/home/tok-geneve-mobile-focus.webp](../../public/images/home/tok-geneve-mobile-focus.webp) |
 | /images/home/tok-geneve-mobile.webp | media | [public/images/home/tok-geneve-mobile.webp](../../public/images/home/tok-geneve-mobile.webp) |
 | /images/home/tok-leman-signature.webp | media | [public/images/home/tok-leman-signature.webp](../../public/images/home/tok-leman-signature.webp) |
 | /images/houmous.webp | media | [public/images/houmous.webp](../../public/images/houmous.webp) |
@@ -7772,7 +7773,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (332)</summary>
+<details><summary>public-asset (333)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -7927,6 +7928,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/gyoza porc.webp`
 - `public/images/home/tok-geneve-desktop-reference.jpg`
 - `public/images/home/tok-geneve-desktop.webp`
+- `public/images/home/tok-geneve-mobile-focus.webp`
 - `public/images/home/tok-geneve-mobile.webp`
 - `public/images/home/tok-leman-signature.webp`
 - `public/images/houmous.webp`
