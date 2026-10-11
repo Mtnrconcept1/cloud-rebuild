@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a8612e35fad847b1d3a85d4daa526b8fdaaea2fecf9b9ec84707c7f83db0000f`
+- Empreinte SHA-256 des sources indexées : `acdae078982504b86ee33abddb3d3e43233eecfa003da0a2044fb5730ced1233`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1148,7 +1148,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commercial/demo-live?surface=client | 1 | [src/test/demo-workspace-access.test.ts:127](../../src/test/demo-workspace-access.test.ts#L127) |
 | /commercial/demo-live?surface=courier | 2 | [src/test/demo-workspace-access.test.ts:60](../../src/test/demo-workspace-access.test.ts#L60) |
 | /commercial/demo-live?surface=restaurant | 2 | [src/test/demo-workspace-access.test.ts:62](../../src/test/demo-workspace-access.test.ts#L62) |
-| /commercial/notifications | 10 | [src/App.tsx:604](../../src/App.tsx#L604) |
+| /commercial/notifications | 11 | [src/App.tsx:604](../../src/App.tsx#L604) |
 | /commercial/prospection | 7 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /commercial/route-inconnue | 1 | [src/test/commercial-domain-isolation.test.ts:158](../../src/test/commercial-domain-isolation.test.ts#L158) |
 | /commercial?tab=followups | 2 | [src/test/notifications-sinistres-governance.test.ts:39](../../src/test/notifications-sinistres-governance.test.ts#L39) |

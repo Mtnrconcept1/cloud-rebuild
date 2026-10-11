@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "a8612e35fad847b1d3a85d4daa526b8fdaaea2fecf9b9ec84707c7f83db0000f",
+ "sourceDigest": "acdae078982504b86ee33abddb3d3e43233eecfa003da0a2044fb5730ced1233",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -13156,19 +13156,19 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 84
+      "line": 85
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 86
+      "line": 87
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 99
+      "line": 100
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 132
+      "line": 133
      },
      {
       "path": "src/test/seo-crawl-hardening.test.ts",
@@ -16558,7 +16558,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 75
+      "line": 76
      }
     ]
    },
@@ -17407,6 +17407,10 @@
      {
       "path": "src/test/notifications-sinistres-governance.test.ts",
       "line": 44
+     },
+     {
+      "path": "src/test/route-wiring.test.ts",
+      "line": 73
      }
     ]
    },
@@ -19361,7 +19365,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 74
+      "line": 75
      }
     ]
    },
@@ -104056,7 +104060,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 174
+    "lineCount": 175
    },
    {
     "path": "src/test/scale-readiness-guards.test.ts",
@@ -142312,14 +142316,14 @@
    "id": "code-module:c0bdde6aa1b0",
    "type": "code-module",
    "title": "src/test/route-wiring.test.ts",
-   "description": "Module de 174 lignes; exports: aucun export statique.",
+   "description": "Module de 175 lignes; exports: aucun export statique.",
    "path": "src/test/route-wiring.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "2d9db713ad5d"
+   "detailRef": "5dcb06601c43"
   },
   {
    "id": "code-module:79f716928cc6",
@@ -335811,7 +335815,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "1415f045f2e8"
+   "detailRef": "3bf0bd7f08b2"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -337686,7 +337690,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "b4bd10a0b60a"
+   "detailRef": "27d33212dd7e"
   },
   {
    "id": "path-literal:0ad0fce02bb8",
@@ -338090,7 +338094,7 @@
    "id": "path-literal:b7f5e2a41d13",
    "type": "path-literal",
    "title": "/commercial/notifications",
-   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 604,
    "surface": null,
@@ -338101,9 +338105,10 @@
     "src/lib/notificationRouting.ts",
     "src/pages/CommercialNotifications.tsx",
     "src/test/commercial-domain-isolation.test.ts",
-    "src/test/notifications-sinistres-governance.test.ts"
+    "src/test/notifications-sinistres-governance.test.ts",
+    "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "4e08eb0e8b26"
+   "detailRef": "3545bf3a6de0"
   },
   {
    "id": "path-literal:e74909072ee9",
@@ -339007,7 +339012,7 @@
     "src/App.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "a97d7c3c6ce7"
+   "detailRef": "b11e144fc4b9"
   },
   {
    "id": "path-literal:27d1478dfae9",
