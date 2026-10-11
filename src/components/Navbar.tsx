@@ -195,7 +195,7 @@ export default function Navbar() {
       {showClientSurface ? (
         <div className={`w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 ${isDesktopHomeReference ? "block lg:hidden" : "hidden lg:block"}`}>
           <div className={isDesktopHomeReference
-            ? "container flex h-9 items-center justify-end gap-1.5 px-2 text-[10px] text-muted-foreground min-[380px]:gap-2 min-[380px]:text-xs sm:gap-3"
+            ? "container flex h-9 items-center justify-end gap-1 px-2 text-[10px] text-muted-foreground min-[380px]:gap-2 min-[380px]:text-xs sm:gap-3"
             : "container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground"}>
             <Link to="/restaurateurs/geneve" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap transition-colors hover:text-foreground">
               <Store className={isDesktopHomeReference ? "hidden h-3.5 w-3.5 min-[440px]:block" : "h-3.5 w-3.5"} />
@@ -205,7 +205,7 @@ export default function Navbar() {
               <>
                 <span className="text-border">|</span>
                 <Link to="/tok-connect" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
-                  <Network className="h-3.5 w-3.5" />
+                  <Network className={isDesktopHomeReference ? "hidden h-3.5 w-3.5 min-[380px]:block" : "h-3.5 w-3.5"} />
                   TOK Connect
                 </Link>
               </>
@@ -240,7 +240,7 @@ export default function Navbar() {
       >
         <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8 ${isMobileHomeHeader ? "h-[66px] bg-background dark:bg-background" : "h-16"}`}>
           <Link to={homeTarget} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
-            <img src={logoSrc} alt="Tok" width={98} height={64} decoding="async" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16`} />
+            <img src={logoSrc} alt="Tok" width={98} height={64} decoding="async" className={`${isMobileHomeHeader ? "h-11 min-[380px]:h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16`} />
           </Link>
 
           {showClientSurface ? (
@@ -336,7 +336,7 @@ export default function Navbar() {
 
             <ThemeToggleButton
               onMouseDown={preserveNavbarActionScrollPosition}
-              className={`${isMobileHomeHeader ? "text-foreground hover:bg-transparent hover:text-foreground" : ""} hidden min-[380px]:inline-flex`}
+              className={isMobileHomeHeader ? "inline-flex shrink-0 text-foreground hover:bg-transparent hover:text-foreground" : "hidden min-[380px]:inline-flex"}
             />
 
             {showCartShortcut ? (
@@ -434,7 +434,7 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild size="sm" className={`${isMobileHomeHeader ? "order-3 h-[48px] rounded-full px-5 text-[0.88rem] shadow-[0_10px_22px_rgba(255,107,28,0.24)]" : "min-h-[44px] px-3 min-[380px]:px-5"} rounded-full bg-primary font-bold text-primary-foreground shadow-md hover:bg-primary/90`}>
+              <Button asChild size="sm" className={`${isMobileHomeHeader ? "order-3 h-[48px] rounded-full px-3 text-[0.88rem] shadow-[0_10px_22px_rgba(255,107,28,0.24)] min-[380px]:px-5" : "min-h-[44px] px-3 min-[380px]:px-5"} rounded-full bg-primary font-bold text-primary-foreground shadow-md hover:bg-primary/90`}>
                 <Link to="/auth" className="flex items-center gap-2">
                   <User className={`${isMobileHomeHeader ? "h-5 w-5" : "h-4 w-4"}`} />
                   <span className={isMobileHomeHeader ? "inline" : "hidden min-[380px]:inline"}>Connexion</span>

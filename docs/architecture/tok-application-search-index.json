@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "63f4d068001cce5f9d76a861a45a45f510f9bfcb4683814573d8a92eab7a3056",
+ "sourceDigest": "32d6559a8ebe00b1e77372db4f24cb4693d12c6a0af8f0cd8163870cacf0fd10",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -15573,7 +15573,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 92
+      "line": 118
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -16359,7 +16359,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 75
+      "line": 101
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -16407,7 +16407,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 43
+      "line": 94
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -20816,7 +20816,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 80
+      "line": 106
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
@@ -20824,7 +20824,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 37
+      "line": 88
      }
     ]
    },
@@ -20833,7 +20833,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 81
+      "line": 107
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
@@ -20841,7 +20841,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 38
+      "line": 89
      }
     ]
    },
@@ -23790,11 +23790,11 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 72
+      "line": 98
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 74
+      "line": 100
      },
      {
       "path": "src/components/home/RestaurantSection.tsx",
@@ -23934,11 +23934,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 57
+      "line": 108
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 64
+      "line": 115
      },
      {
       "path": "src/test/mobile-logo-intro.test.tsx",
@@ -25285,7 +25285,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 87
+      "line": 113
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -25317,7 +25317,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 50
+      "line": 101
      },
      {
       "path": "src/test/route-serving-regression.test.ts",
@@ -26682,7 +26682,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 73
+      "line": 99
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -26718,7 +26718,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 42
+      "line": 93
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -26967,11 +26967,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 59
+      "line": 110
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 73
+      "line": 124
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
@@ -27977,11 +27977,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 58
+      "line": 109
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 74
+      "line": 125
      }
     ],
     "routes": [
@@ -83372,7 +83372,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 118
+    "lineCount": 145
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -102013,7 +102013,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 84
+    "lineCount": 135
    },
    {
     "path": "src/test/home-mobile-newsletter.test.tsx",
@@ -127720,14 +127720,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 118 lignes; exports: default.",
+   "description": "Module de 145 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "e897e2e75868"
+   "detailRef": "4cb0ec4df59e"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -139373,12 +139373,12 @@
    "id": "code-module:a714f68588b7",
    "type": "code-module",
    "title": "src/test/home-hero-search.test.tsx",
-   "description": "Module de 84 lignes; exports: aucun export statique.",
+   "description": "Module de 135 lignes; exports: aucun export statique.",
    "path": "src/test/home-hero-search.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "be22dd7dec40"
+   "detailRef": "315c529bf8e2"
   },
   {
    "id": "code-module:d67b9bd34728",
@@ -336887,7 +336887,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "d2b153e02c86"
+   "detailRef": "cb09c00c03f5"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -337183,7 +337183,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "786f23adef46"
+   "detailRef": "70d3adb6ecc4"
   },
   {
    "id": "path-literal:4fb16aa3df8b",
@@ -340006,34 +340006,34 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:baff6f243a44",
+   "id": "path-literal:f087b10356e4",
    "type": "path-literal",
    "title": "/images/home/tok-geneve-mobile-fast.webp",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 80,
+   "line": 106,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx",
     "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "c299de98c76f"
+   "detailRef": "ffb46ef531b0"
   },
   {
-   "id": "path-literal:a4f1b5ee66c2",
+   "id": "path-literal:9c6ae9d5e4ce",
    "type": "path-literal",
    "title": "/images/home/tok-leman-signature-fast.webp",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 81,
+   "line": 107,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx",
     "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "d3617713f84a"
+   "detailRef": "fc70b6773d4b"
   },
   {
    "id": "path-literal:638981aff331",
@@ -342187,7 +342187,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "20f2ece17ae2"
+   "detailRef": "171f84a78b94"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -343459,7 +343459,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "5f21df6e53b9"
+   "detailRef": "49a9c5d3c4d1"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -344634,7 +344634,7 @@
     "src/test/home-hero-search.test.tsx",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "dcc813b9f422"
+   "detailRef": "4264ddffad3f"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -349975,7 +349975,7 @@
     "src/test/home-hero-search.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "9ca34a2915d7"
+   "detailRef": "a73769756590"
   },
   {
    "id": "query-parameter:97c42c624f4b",
@@ -350801,7 +350801,7 @@
     "src/pages/Recherche.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "75115318c0dd"
+   "detailRef": "a410db125639"
   },
   {
    "id": "query-parameter:1969b37dad55",

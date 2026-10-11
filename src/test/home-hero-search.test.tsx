@@ -18,11 +18,62 @@ function LocationProbe() {
 afterEach(() => {
   authState.user = null;
   cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 function setup(activeFeatures?: ReadonlySet<string>) {
   render(<MemoryRouter><HeroSection contentVisible={false} activeFeatures={activeFeatures} /><LocationProbe /></MemoryRouter>);
 }
 describe("homepage semantic search", () => {
+  it("fits the first screen below the actual header and keeps that budget stable while scrolling", () => {
+    let flowTop = 103;
+    let scrollY = 0;
+    vi.spyOn(window, "scrollY", "get").mockImplementation(() => scrollY);
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      return { top: this.classList.contains("tok-home-first-screen") ? flowTop - scrollY : 0 } as DOMRect;
+    });
+    setup();
+    const firstScreen = document.querySelector(".tok-home-first-screen") as HTMLElement;
+    expect(firstScreen.style.getPropertyValue("--tok-home-viewport-top")).toBe("103px");
+    expect(firstScreen).toContainElement(screen.getByTestId("mobile-newsletter"));
+
+    scrollY = 150;
+    fireEvent(window, new Event("resize"));
+    expect(firstScreen.style.getPropertyValue("--tok-home-viewport-top")).toBe("103px");
+    flowTop = 137; // e.g. a native top safe area added to the navigation
+    fireEvent(window, new Event("resize"));
+    expect(firstScreen.style.getPropertyValue("--tok-home-viewport-top")).toBe("137px");
+  });
+
+  it("recalculates when header or utility-bar height changes and cleans up its observer", () => {
+    let resizeHeader: (() => void) | undefined;
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+    vi.stubGlobal("ResizeObserver", class {
+      constructor(callback: () => void) { resizeHeader = callback; }
+      observe = observe;
+      disconnect = disconnect;
+    });
+    const utility = document.createElement("div");
+    const header = document.createElement("header");
+    header.className = "tok-site-header";
+    document.body.append(utility, header);
+    try {
+      setup();
+      expect(observe).toHaveBeenCalledWith(utility, { box: "border-box" });
+      expect(observe).toHaveBeenCalledWith(header, { box: "border-box" });
+      const firstScreen = document.querySelector(".tok-home-first-screen") as HTMLElement;
+      vi.spyOn(firstScreen, "getBoundingClientRect").mockReturnValue({ top: 120 } as DOMRect);
+      resizeHeader?.();
+      expect(firstScreen.style.getPropertyValue("--tok-home-viewport-top")).toBe("120px");
+      cleanup();
+      expect(disconnect).toHaveBeenCalledOnce();
+    } finally {
+      utility.remove();
+      header.remove();
+    }
+  });
+
   it("keeps the original mobile photo unstretched and uses a feathered blur into the page background", () => {
     const css = readFileSync(resolve(process.cwd(), "src/components/home/HeroSection.css"), "utf8");
     expect(css).toContain(".tok-home-hero__background img{object-fit:cover");
