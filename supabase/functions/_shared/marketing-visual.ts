@@ -1,6 +1,6 @@
 import { buildTokMarketingVisualPrompt, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
 
-const REFERENCE_ORIGIN = "https://thetok.ch";
+const REFERENCE_ORIGIN = "https://www.thetok.ch";
 const MAX_REFERENCE_BYTES = 2_000_000;
 const MAX_OUTPUT_BYTES = 8_000_000;
 let referenceCache: Promise<Blob[]> | undefined;

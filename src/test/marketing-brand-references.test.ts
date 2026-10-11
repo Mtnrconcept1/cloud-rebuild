@@ -9,7 +9,7 @@ function setup(mode: "ok" | "missing" | "changed" | "provider" | "invalid-output
   const upload = vi.fn().mockResolvedValue({ error: null });
   const client = { storage: { from: vi.fn().mockReturnValue({ upload, getPublicUrl: (path: string) => ({ data: { publicUrl: `https://storage.example/${path}` } }) }) } };
   const fetcher = vi.fn(async (url: string, options?: RequestInit) => {
-    if (url.startsWith("https://thetok.ch/")) {
+    if (url.startsWith("https://www.thetok.ch/")) {
       if (mode === "missing") return new Response("missing", { status: 404 });
       if (mode === "changed") return new Response("replaced artwork");
       if (mode === "oversize") return new Response("x", { headers: { "content-length": "9999999" } });
@@ -58,14 +58,14 @@ describe("TOK brand reference conditioning", () => {
     expect(provider?.[1]?.headers).toEqual({ Authorization: "Bearer test-only" });
     expect(upload).toHaveBeenCalledWith(expect.stringContaining(".jpg"), new Uint8Array(jpeg), { contentType: "image/jpeg", upsert: false });
     await generateCampaignVisual(client, options);
-    expect(fetcher.mock.calls.filter(([url]) => url.startsWith("https://thetok.ch/"))).toHaveLength(4);
+    expect(fetcher.mock.calls.filter(([url]) => url.startsWith("https://www.thetok.ch/"))).toHaveLength(4);
   });
   it.each(["missing", "changed", "oversize"] as const)("fails closed when a reference is %s, and retries loading next time", async (mode) => {
     const { client, upload, fetcher } = setup(mode);
     const { generateCampaignVisual } = await import("../../supabase/functions/_shared/marketing-visual");
     expect(await generateCampaignVisual(client, options)).toBeNull();
     expect(upload).not.toHaveBeenCalled();
-    expect(fetcher.mock.calls.every(([url]) => url.startsWith("https://thetok.ch/"))).toBe(true);
+    expect(fetcher.mock.calls.every(([url]) => url.startsWith("https://www.thetok.ch/"))).toBe(true);
     setup();
     expect(await generateCampaignVisual(client, options)).not.toBeNull();
   });
