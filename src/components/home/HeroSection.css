@@ -120,3 +120,21 @@ var(--tok-home-paper) 100%);
 .tok-home-hero__content{padding-bottom:8px}
 }
 @media(prefers-reduced-motion:reduce){.tok-home-hero__cta,.tok-or-banner{transition:none}}
+
+@media(max-width:767px){
+/* Allocate the visible viewport to the hero and the complete newsletter.
+   Only the artwork flexes; text and controls keep their natural, readable size.
+   The content may grow on extreme zoom/short landscape screens, never clip. */
+.tok-home-first-screen{
+display:flex;flex-direction:column;
+height:calc(100vh - var(--tok-public-navbar-height,104px));
+height:calc(100dvh - var(--tok-public-navbar-height,104px));
+min-height:min-content;
+padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.tok-home-first-screen .tok-home-hero{flex:1 0 auto;min-height:0}
+.tok-home-first-screen .tok-home-hero__art{flex:1 0 80px;height:auto;min-height:80px}
+.tok-home-first-screen .tok-home-hero__background{position:absolute;inset:0}
+.tok-home-first-screen .tok-home-hero__content{flex:0 0 auto}
+.tok-home-first-screen .tok-home-hero__secondary{flex:0 0 auto}
+}

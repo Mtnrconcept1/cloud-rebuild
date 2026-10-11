@@ -33,6 +33,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
 
   return (
     <>
+      <div className="tok-home-first-screen">
       <section
         className="tok-home-hero"
         aria-labelledby="home-hero-title"
@@ -92,6 +93,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
           <Link to="/auth">Inscrivez-vous</Link>
         </div>
       </aside>
+      </div>
       <Dialog open={showNewsletterConditions} onOpenChange={setShowNewsletterConditions}>
         <DialogContent className="max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-lg rounded-2xl p-0">
           <DialogHeader className="border-b px-5 pb-4 pt-5 pr-12 text-left sm:px-6">
