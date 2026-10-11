@@ -466,15 +466,16 @@ describe("Auth signup form", () => {
 
     expect(supabaseMocks.signInWithPassword).not.toHaveBeenCalled();
     expect(toastMock).toHaveBeenCalledWith({
-      title: "Compte créé",
-      description: "Vérifiez votre email pour confirmer votre compte.",
+      title: "Demande prise en compte",
+      description: "Si cette adresse peut être utilisée pour créer un compte, un email de confirmation sera envoyé. Si vous avez déjà un compte, connectez-vous.",
     });
+    await waitFor(() => expect(screen.getByText("Launch countdown")).toBeInTheDocument());
   });
 
   it.each([
-    { enabled: false, expected: "Workspace available" },
+    { enabled: false, expected: "Launch countdown" },
     { enabled: true, expected: "Launch countdown" },
-  ])("routes a completed client signup according to launch state ($enabled)", async ({ enabled, expected }) => {
+  ])("routes a completed client signup to its welcome animation ($enabled)", async ({ enabled, expected }) => {
     launchGateMock.enabled = enabled;
     supabaseMocks.signUp.mockResolvedValue({
       data: { session: { access_token: "signup-session" }, user: { id: "client-user-id" } },
@@ -489,6 +490,42 @@ describe("Auth signup form", () => {
     fireEvent.click(screen.getByRole("button", { name: /cr.er mon compte/i }));
     await waitFor(() => expect(screen.getByText(expected)).toBeInTheDocument());
   });
+  it("does not claim to create an existing account when Supabase returns an obfuscated signup", async () => {
+    supabaseMocks.signUp.mockResolvedValue({
+      data: { session: null, user: { id: "obfuscated-id" } },
+      error: null,
+    });
+    await renderAuth("/auth?type=client");
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
+    fireEvent.change(screen.getByLabelText("Nom complet"), { target: { value: "Client Test" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: " Existing@Example.COM " } });
+    fireEvent.change(screen.getByLabelText("Mot de passe"), { target: { value: "Secret123!" } });
+    acceptLegalTerms();
+    fireEvent.click(screen.getByRole("button", { name: "Créer mon compte" }));
+
+    await waitFor(() => {
+      expect(supabaseMocks.signUp).toHaveBeenCalledWith(expect.objectContaining({
+        email: "existing@example.com",
+      }));
+      expect(screen.getByText("Launch countdown")).toBeInTheDocument();
+    });
+    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({
+      title: "Demande prise en compte",
+      description: expect.stringContaining("Si vous avez déjà un compte, connectez-vous."),
+    }));
+    expect(toastMock).not.toHaveBeenCalledWith(expect.objectContaining({ title: "Compte créé" }));
+  });
+
+  it("does not claim an email was verified based only on a forged callback parameter", async () => {
+    await renderAuth("/auth?confirmed=1");
+
+    expect(screen.getByText("Lien de confirmation ouvert")).toBeInTheDocument();
+    expect(screen.queryByText("Adresse email confirmée")).not.toBeInTheDocument();
+    await waitFor(() => expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({
+      title: "Lien de validation ouvert",
+    })));
+  });
+
   it("requires legal acceptance before creating a signup account", async () => {
     await renderAuth("/auth?type=client");
 
@@ -937,6 +974,30 @@ describe("Auth signup form", () => {
         },
       });
     });
+  });
+
+  it("reports confirmation resend rate limits and network failures without claiming an email was sent", async () => {
+    supabaseMocks.resend.mockResolvedValueOnce({
+      error: { status: 429, message: "email rate limit exceeded" },
+    }).mockRejectedValueOnce(new Error("Network unavailable"));
+
+    await renderAuth("/auth?type=client");
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "client@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Renvoyer l’email de confirmation" }));
+    await waitFor(() => expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({
+      title: "Trop de demandes",
+      variant: "destructive",
+    })));
+    const resend = screen.getByRole("button", { name: "Renvoyer l’email de confirmation" });
+    await waitFor(() => expect(resend).toBeEnabled());
+    fireEvent.click(resend);
+    await waitFor(() => expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({
+      title: "Envoi impossible",
+      variant: "destructive",
+    })));
+    expect(toastMock).not.toHaveBeenCalledWith(expect.objectContaining({ title: "Email envoyé" }));
   });
 
   it("keeps the restaurateur signup email field editable", async () => {

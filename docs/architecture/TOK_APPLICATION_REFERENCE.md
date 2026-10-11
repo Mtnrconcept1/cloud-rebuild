@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b473aea6a23b17e3bce22eb37f7dbc6908ebf20e2463d1f10c387cab59898a06`
+- Empreinte SHA-256 des sources indexées : `1a2d1084485c24c55d085c5a081306a52935902d0c7be580256f9648c9f83b1a`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 526 |
 | modules | 1487 |
 | pages | 127 |
-| pathLiterals | 620 |
+| pathLiterals | 621 |
 | publicAssets | 308 |
 | publicEntries | 333 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15720 |
+| records | 15721 |
 | repositoryFiles | 2796 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1045,7 +1045,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
 | /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:524](../../src/test/tok-ai-tools.test.ts#L524) |
 | /assets/missing.js | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
-| /auth | 52 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
+| /auth | 53 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
 | /auth/callback | 17 | [src/App.tsx:560](../../src/App.tsx#L560) |
 | /auth/callback? | 1 | [src/lib/deep-links.ts:33](../../src/lib/deep-links.ts#L33) |
 | /auth/callback?code=pkce-code | 1 | [src/test/native-oauth.test.ts:114](../../src/test/native-oauth.test.ts#L114) |
@@ -1056,13 +1056,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/v1/token?grant_type=password | 5 | [src/test/marketing-bff-security.test.ts:239](../../src/test/marketing-bff-security.test.ts#L239) |
 | /auth/v1/user | 7 | [src/test/marketing-bff-security.test.ts:250](../../src/test/marketing-bff-security.test.ts#L250) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
-| /auth?confirmed=1 | 1 | [src/test/auth-signup-form.test.tsx:907](../../src/test/auth-signup-form.test.tsx#L907) |
+| /auth?confirmed=1 | 2 | [src/test/auth-signup-form.test.tsx:520](../../src/test/auth-signup-form.test.tsx#L520) |
 | /auth?mode=recovery | 1 | [src/test/coming-soon-gate.test.tsx:17](../../src/test/coming-soon-gate.test.tsx#L17) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
 | /auth?redirect=/commercial | 1 | [src/test/admin-commercial-accounts.test.ts:192](../../src/test/admin-commercial-accounts.test.ts#L192) |
 | /auth?role=restaurateur | 1 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
-| /auth?type=client | 12 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
-| /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:569](../../src/test/auth-signup-form.test.tsx#L569) |
+| /auth?type=client | 14 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
+| /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:606](../../src/test/auth-signup-form.test.tsx#L606) |
 | /availability | 1 | [supabase/functions/tok-connect-api/index.ts:1033](../../supabase/functions/tok-connect-api/index.ts#L1033) |
 | /budget-auto | 10 | [scripts/prerender-seo.mjs:1025](../../scripts/prerender-seo.mjs#L1025) |
 | /campagnes | 1 | [src/lib/commercialDemoAi.ts:298](../../src/lib/commercialDemoAi.ts#L298) |
@@ -1076,6 +1076,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:30](../../src/test/tok-logo-calendar.test.ts#L30) |
 | /coming-soon | 15 | [src/App.tsx:530](../../src/App.tsx#L530) |
 | /coming-soon?welcome=1 | 3 | [src/pages/Auth.tsx:1496](../../src/pages/Auth.tsx#L1496) |
+| /coming-soon?welcome=1&email=1 | 2 | [src/pages/Auth.tsx:2047](../../src/pages/Auth.tsx#L2047) |
 | /commande | 2 | [scripts/prerender-seo.mjs:1216](../../scripts/prerender-seo.mjs#L1216) |
 | /commande/ | 3 | [src/components/navigation/BackNavigationButton.tsx:22](../../src/components/navigation/BackNavigationButton.tsx#L22) |
 | /commande/123?tab=details | 1 | [src/test/navigation.test.ts:24](../../src/test/navigation.test.ts#L24) |
@@ -1599,8 +1600,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | delivery | /recherche | 1 | [src/pages/Recherche.tsx:244](../../src/pages/Recherche.tsx#L244) |
 | demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:85](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L85) |
 | demo_session_id | — | 4 | [src/components/commercial/CommercialDemoActorWorkspace.tsx:88](../../src/components/commercial/CommercialDemoActorWorkspace.tsx#L88) |
-| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2312](../../src/pages/Auth.tsx#L2312) |
-| email | /coming-soon | 1 | [src/pages/ComingSoon.tsx:20](../../src/pages/ComingSoon.tsx#L20) |
+| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2332](../../src/pages/Auth.tsx#L2332) |
+| email | /coming-soon | 1 | [src/pages/ComingSoon.tsx:10](../../src/pages/ComingSoon.tsx#L10) |
 | fields | — | 1 | [supabase/functions/_shared/meta-marketing-health.ts:24](../../supabase/functions/_shared/meta-marketing-health.ts#L24) |
 | fields[appScreenshotSets] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:205](../../scripts/app-store-connect-upload-screenshots.mjs#L205) |
 | fields[appScreenshots] | — | 2 | [scripts/app-store-connect-upload-screenshots.mjs:237](../../scripts/app-store-connect-upload-screenshots.mjs#L237) |

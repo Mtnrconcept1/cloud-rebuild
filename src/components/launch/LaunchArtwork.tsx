@@ -46,17 +46,22 @@ const props: {name: SpriteName; x: number; y: number; width: number; depth: numb
   {name: 'pepper', x: 864, y: 510, width: 99, depth: 12, rotate: 12},
   {name: 'chili', x: 623, y: 607, width: 88, depth: 14, rotate: 22},
 ];
-export type LaunchArtworkProps = {time: number; remaining: number; previousRemaining?: number; tickProgress?: number;
-  assetBase?: string; portrait?: boolean; pointer?: {x: number; y: number}; reducedMotion?: boolean};
+export type LaunchArtworkProps = {time: number; remaining: number | null; previousRemaining?: number | null; tickProgress?: number;
+  assetBase?: string; portrait?: boolean; pointer?: {x: number; y: number}; reducedMotion?: boolean; confirmationPending?: boolean};
 export function LaunchArtwork({time, remaining, previousRemaining = remaining, tickProgress = 1, assetBase = '/launch', portrait = false,
-  pointer = {x: 0, y: 0}, reducedMotion = false}: LaunchArtworkProps) {
+  pointer = {x: 0, y: 0}, reducedMotion = false, confirmationPending = false}: LaunchArtworkProps) {
   const Image = useContext(ImageContext);
   const common = {time, pointer, reducedMotion};
-  const numbers = splitSeconds(remaining);
-  const previous = splitSeconds(previousRemaining);
+  const hasCountdown = remaining !== null;
+  const numbers = splitSeconds(remaining ?? 0);
+  const previous = splitSeconds(previousRemaining ?? 0);
   const labels = ['JOURS', 'HEURES', 'MINUTES', 'SECONDES'];
   const flip = reducedMotion ? 1 : Math.min(1, tickProgress / .32);
-  return <div className={`tok-scene${portrait ? " tok-portrait" : ""}`} role="img" aria-label={`TOK. Merci pour votre inscription. Lancement dans ${numbers[0]} jours, ${numbers[1]} heures, ${numbers[2]} minutes et ${numbers[3]} secondes.`}>
+  const countdownDescription = hasCountdown
+    ? `Lancement dans ${numbers[0]} jours, ${numbers[1]} heures, ${numbers[2]} minutes et ${numbers[3]} secondes.`
+    : 'La date de lancement sera annoncée prochainement.';
+  const introDescription = confirmationPending ? 'Demande de confirmation prise en compte.' : 'Bienvenue chez TOK.';
+  return <div className={`tok-scene${portrait ? " tok-portrait" : ""}`} role="img" aria-label={`TOK. ${introDescription} ${countdownDescription}`}>
     <Layer {...common} x={-35} y={-22} depth={-5}>
       <Image src={`${assetBase}/background.png`} alt="" style={{width: portrait ? 1800 : 1742, height: portrait ? 1700 : 984, objectFit: 'cover'}}/>
     </Layer>
@@ -70,7 +75,7 @@ export function LaunchArtwork({time, remaining, previousRemaining = remaining, t
     </Layer>
     <Layer {...common} x={portrait ? -10 : -1} y={portrait ? 1050 : 563} depth={5} rotate={-3}>
       <Sprite name="sign" width={293} assetBase={assetBase}/>
-      <div className="sign-copy">GRAND<br/>LANCEMENT<strong>480H</strong></div>
+      <div className="sign-copy">GRAND<br/>LANCEMENT<strong>{hasCountdown ? `${numbers[0]}J` : 'À VENIR'}</strong></div>
     </Layer>
     <Layer {...common} x={portrait ? 657 : 681} y={portrait ? 955 : 558} depth={5} phase={2}>
       <div className="speech">J’AI DÉJÀ MIS<br/>LA TOQUE.<br/>MAINTENANT,<br/>J’ATTENDS JUSTE<br/>QUE LE FOUR<br/>SONNE.</div>
@@ -86,20 +91,19 @@ export function LaunchArtwork({time, remaining, previousRemaining = remaining, t
     </Layer>
     <div className="message">
       <div className="title" style={{transform: `translateY(${reducedMotion ? 0 : Math.max(0, 1 - time * 2.4) ** 3 * 20}px)`}}>MERCI POUR</div>
-      <div className="title title-orange">VOTRE INSCRIPTION !</div>
-      <p>Vous êtes officiellement dans la file d’attente<br/>la plus savoureuse de Suisse.<br/>
-        Le grand lancement de TOK approche.</p>
+      <div className="title title-orange">{confirmationPending ? 'VOTRE INTÉRÊT !' : 'VOTRE INSCRIPTION !'}</div>
+      <p>{confirmationPending ? <>Découvrez bientôt l’univers TOK.<br/>Si un email de confirmation est nécessaire,<br/>vérifiez votre boîte de réception.</> : <>Vous êtes officiellement dans la file d’attente<br/>la plus savoureuse de Suisse.<br/>Le grand lancement de TOK approche.</>}</p>
     </div>
     <div className="countdown" aria-hidden="true">
       {numbers.map((number, index) => <div className="counter" key={labels[index]}>
         <div className="digits-window">
-          {previous[index] !== number && flip < 1 && <span className="digits digits-old" style={{transform: `translateY(${-flip * 110}%)`, opacity: 1 - flip}}>{String(previous[index]).padStart(2, '0')}</span>}
-          <span className="digits" style={{transform: `translateY(${previous[index] !== number ? (1 - flip) * 110 : 0}%)`}}>{String(number).padStart(2, '0')}</span>
+          {hasCountdown && previous[index] !== number && flip < 1 && <span className="digits digits-old" style={{transform: `translateY(${-flip * 110}%)`, opacity: 1 - flip}}>{String(previous[index]).padStart(2, '0')}</span>}
+          <span className="digits" style={{transform: `translateY(${hasCountdown && previous[index] !== number ? (1 - flip) * 110 : 0}%)`}}>{hasCountdown ? String(number).padStart(2, '0') : '--'}</span>
         </div>
         <span className="unit">{labels[index]}</span>
       </div>)}
     </div>
-    <div className="ribbon"><span>♡</span>{remaining <= 0 ? 'LE FOUR CHAUFFE ENCORE…' : 'GARDEZ L’APPÉTIT, ÇA ARRIVE.'}<span>♡</span></div>
+    <div className="ribbon"><span>♡</span>{!hasCountdown ? 'DATE DE LANCEMENT À VENIR' : remaining <= 0 ? 'LE FOUR CHAUFFE ENCORE…' : 'GARDEZ L’APPÉTIT, ÇA ARRIVE.'}<span>♡</span></div>
     {!reducedMotion && <div className="dust" aria-hidden="true">{Array.from({length: 18}, (_, i) => {
       const t = (time * (14 + i % 4 * 7) + i * 89) % 970;
       return <i key={i} style={{left: t, top: 75 + (i * 137) % 770, opacity: .12 + i % 3 * .08,
