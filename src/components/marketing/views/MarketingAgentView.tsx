@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 
 import {
-  MarketingChannelBadge,
   MarketingEmptyState,
   formatMarketingDate,
 } from "@/components/marketing/MarketingShared";
+import { MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
+import { marketingPostPreview } from "@/marketing/postPreview";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,7 +56,7 @@ type AgentRun = {
 
 type GenerateResult = {
   campaign: { id: string; name: string } | null;
-  items: Array<{ id: string; title: string; channel: MarketingChannelId; scheduled_at: string }>;
+  items: Array<{ id: string; title: string; channel: MarketingChannelId; scheduled_at: string; content?: unknown }>;
   summary: string;
   assetCount: number;
   estimatedCostChf: number;
@@ -346,14 +347,12 @@ export default function MarketingAgentView({
               {result.items.length} élément(s) en brouillon · {result.assetCount} visuel(s) généré(s)
               · coût estimé {formatChf(result.estimatedCostChf)}
             </p>
-            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+            <ul className="grid items-start gap-5 lg:grid-cols-2">
               {result.items.map((item) => (
-                <li key={item.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
-                  <MarketingChannelBadge channel={item.channel} />
-                  <span className="min-w-0 flex-1 truncate font-medium">{item.title}</span>
-                  <span className="text-xs text-slate-500">
-                    {formatMarketingDate(item.scheduled_at)}
-                  </span>
+                <li key={item.id} className="min-w-0 rounded-2xl border p-4">
+                  <p className="mb-3 break-words font-semibold">{item.title}</p>
+                  <MarketingPostPreview title={item.title} channel={item.channel} scheduledAt={item.scheduled_at}
+                    preview={marketingPostPreview(item.content, item.channel)} />
                 </li>
               ))}
             </ul>

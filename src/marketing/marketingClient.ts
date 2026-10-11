@@ -1,6 +1,7 @@
 import { addDays, subDays } from "date-fns";
 
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
+import { marketingPostPreview } from "@/marketing/postPreview";
 import {
   MARKETING_BFF_ENDPOINTS,
   marketingBffRequest,
@@ -149,7 +150,7 @@ function normalizeCampaign(value: unknown, fallback?: MarketingCampaign): Market
   };
 }
 
-function normalizeCalendarItem(value: unknown, fallback?: MarketingCalendarItem): MarketingCalendarItem {
+export function normalizeCalendarItem(value: unknown, fallback?: MarketingCalendarItem): MarketingCalendarItem {
   const row = asRecord(value);
   const manualOutcomeValue = asString(pick(row, "manual_outcome", "manualOutcome"));
   return {
@@ -165,6 +166,9 @@ function normalizeCalendarItem(value: unknown, fallback?: MarketingCalendarItem)
     audienceSize: asNumber(pick(row, "audience_size", "audienceSize"), fallback?.audienceSize || 0),
     approvalStatus: asString(pick(row, "approval_status", "approvalStatus"), fallback?.approvalStatus || "pending") as MarketingCalendarItem["approvalStatus"],
     content: contentMessage(pick(row, "content", "message")) || fallback?.content || "",
+    postPreview: row.content !== undefined || row.message !== undefined
+      ? marketingPostPreview(pick(row, "content", "message"), asString(row.channel, fallback?.channel || "in_app") as MarketingChannelId)
+      : fallback?.postPreview,
     manualOutcome: ["published", "failed"].includes(manualOutcomeValue)
       ? manualOutcomeValue as MarketingCalendarItem["manualOutcome"]
       : fallback?.manualOutcome || null,
