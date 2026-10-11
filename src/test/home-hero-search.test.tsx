@@ -34,8 +34,8 @@ describe("homepage semantic search", () => {
 
   it("uses a portrait hero asset on mobile and the supplied Léman illustration on desktop", () => {
     setup();
-    expect(document.querySelector('.tok-home-hero__background source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/images/home/tok-geneve-mobile-sans-parasol.webp");
-    expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/home/tok-leman-signature.webp");
+    expect(document.querySelector('.tok-home-hero__background source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/images/home/tok-geneve-mobile-fast.webp");
+    expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/home/tok-leman-signature-fast.webp");
   });
   it("only exposes feature-flagged quick links when the corresponding feature is enabled", () => {
     setup(new Set(["ventes-flash", "chefs-table"]));

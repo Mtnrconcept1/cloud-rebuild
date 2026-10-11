@@ -8,6 +8,7 @@ interface RestaurantSectionProps {
   icon: LucideIcon;
   iconColor: string;
   restaurants: any[];
+  loading?: boolean;
   bgClass?: string;
   accentClassName?: string;
   headerTheme?: SectionHeaderTheme;
@@ -22,16 +23,18 @@ export default function RestaurantSection({
   icon: Icon,
   iconColor,
   restaurants,
+  loading = false,
   headerTheme = "orange",
   headerImageSrc = "/images/section-headers/gift-3d.png",
   linkText = "Voir tout",
   linkTo = "/recherche",
 }: RestaurantSectionProps) {
-  if (restaurants.length === 0) return null;
+  if (restaurants.length === 0 && !loading) return null;
 
   return (
     <section
       className="relative py-7 md:py-10"
+      aria-busy={loading && restaurants.length === 0}
     >
       <div className="container relative space-y-5 md:space-y-6">
         <SectionShowcaseHeader
@@ -44,6 +47,20 @@ export default function RestaurantSection({
           linkText={linkText}
           linkTo={linkTo}
         />
+        {restaurants.length === 0 ? (
+          <div data-testid="home-restaurant-skeleton" aria-hidden="true" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[0, 1, 2].map((item) => (
+              <div key={item} className="h-[410px] overflow-hidden rounded-[26px] border border-border bg-card">
+                <div className="aspect-[16/10] bg-muted/60" />
+                <div className="space-y-4 p-5">
+                  <div className="h-5 w-3/4 rounded-md bg-muted/70" />
+                  <div className="h-4 w-1/2 rounded-md bg-muted/70" />
+                  <div className="h-12 w-full rounded-lg bg-muted/50" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {restaurants.map((r: any) => (
             <div key={`${r.id}-${r.campaign_id || "organic"}`} className="min-w-0">
@@ -70,6 +87,7 @@ export default function RestaurantSection({
             </div>
           ))}
         </div>
+        )}
       </div>
     </section>
   );
