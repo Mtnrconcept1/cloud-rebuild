@@ -23,7 +23,7 @@ function setup(activeFeatures?: ReadonlySet<string>) {
 describe("homepage semantic search", () => {
   it("uses a portrait hero asset on mobile and the supplied Léman illustration on desktop", () => {
     setup();
-    expect(document.querySelector('.tok-home-hero__background source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/images/home/tok-geneve-mobile-focus.webp");
+    expect(document.querySelector('.tok-home-hero__background source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/images/home/tok-geneve-mobile-original.webp");
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/home/tok-leman-signature.webp");
   });
   it("only exposes feature-flagged quick links when the corresponding feature is enabled", () => {

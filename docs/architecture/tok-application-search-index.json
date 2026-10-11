@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "dbb6518ef27abb3665efdf7647abe7f11676bd7b04c6c315fcd42ecbebc53cc6",
+ "sourceDigest": "1fef344eb39883360a515d026900922e0ae2460302becc932ef18103ed0f4992",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -11197,8 +11197,8 @@
     "kind": "media"
    },
    {
-    "route": "/images/home/tok-geneve-mobile-focus.webp",
-    "path": "public/images/home/tok-geneve-mobile-focus.webp",
+    "route": "/images/home/tok-geneve-mobile-original.webp",
+    "path": "public/images/home/tok-geneve-mobile-original.webp",
     "kind": "media"
    },
    {
@@ -20488,7 +20488,7 @@
     ]
    },
    {
-    "value": "/images/home/tok-geneve-mobile-focus.webp",
+    "value": "/images/home/tok-geneve-mobile-original.webp",
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
@@ -112079,7 +112079,7 @@
     "extension": ".webp"
    },
    {
-    "path": "public/images/home/tok-geneve-mobile-focus.webp",
+    "path": "public/images/home/tok-geneve-mobile-original.webp",
     "category": "public-asset",
     "extension": ".webp"
    },
@@ -287799,18 +287799,18 @@
    "detailRef": "d4638769cfcb"
   },
   {
-   "id": "file:84123895ca94",
+   "id": "file:b316fa2f9aa9",
    "type": "file",
-   "title": "public/images/home/tok-geneve-mobile-focus.webp",
+   "title": "public/images/home/tok-geneve-mobile-original.webp",
    "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/images/home/tok-geneve-mobile-focus.webp",
+   "path": "public/images/home/tok-geneve-mobile-original.webp",
    "line": null,
    "surface": null,
    "tags": [
     ".webp",
     "public-asset"
    ],
-   "detailRef": "741c35d48deb"
+   "detailRef": "d64fc55c7a9b"
   },
   {
    "id": "file:c9d524bd1ff6",
@@ -338608,9 +338608,9 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:3379360e5206",
+   "id": "path-literal:d4ef6c8d88b8",
    "type": "path-literal",
-   "title": "/images/home/tok-geneve-mobile-focus.webp",
+   "title": "/images/home/tok-geneve-mobile-original.webp",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 81,
@@ -338619,7 +338619,7 @@
     "src/components/home/HeroSection.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "c9a09e5effa6"
+   "detailRef": "638c81d675a0"
   },
   {
    "id": "path-literal:ea587481fbd4",
@@ -345411,18 +345411,18 @@
    "detailRef": "876d88947dda"
   },
   {
-   "id": "public-asset:85bb0ecbcf76",
+   "id": "public-asset:927c8536884c",
    "type": "public-asset",
-   "title": "/images/home/tok-geneve-mobile-focus.webp",
+   "title": "/images/home/tok-geneve-mobile-original.webp",
    "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/images/home/tok-geneve-mobile-focus.webp",
+   "path": "public/images/home/tok-geneve-mobile-original.webp",
    "line": null,
    "surface": null,
    "tags": [
     "media",
     "public"
    ],
-   "detailRef": "531bedf37e01"
+   "detailRef": "5b4ce298151c"
   },
   {
    "id": "public-asset:88b1a56e1c81",
