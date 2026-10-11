@@ -1,0 +1,647 @@
+{
+  "campaign_id": "1c3fce33-524c-462f-b1c5-5fbf9cb6115e",
+  "source_run_id": 38150553585,
+  "review": "Generated images visually inspected for complete framing, readable primary headline, TOK mascot and CTA. Final campaign approval remains pending; no automatic social publication.",
+  "items": [
+    {
+      "day": 1,
+      "file": "j01.jpg",
+      "headline": "Vos idées méritent une belle vitrine",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK présente un écran de création de publication, restaurant genevois chaleureux. Texte principal : « Vos idées méritent une belle vitrine ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "b1ab2baf69a7e116ce47d4ea64fc749ecc30c6f9b55506813cff285abea89f27",
+      "bytes": 337094,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6758,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 707
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8268
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j01.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 2,
+      "file": "j02.jpg",
+      "headline": "Donnez envie dès la première photo",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK présente une seule belle photographie de plat sur smartphone ; pas de faux avant/après. Texte principal : « Donnez envie dès la première photo ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "c51c8cb559ac3d4c7d2afbf7bce0ad743f129c0c796a63714edb002273ba36ad",
+      "bytes": 313084,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6759,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 708
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8269
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j02.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 3,
+      "file": "j03.jpg",
+      "headline": "Un regard neuf sur votre restaurant",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK analyse un tableau de bord, trois pistes visuelles sans chiffres inventés. Texte principal : « Un regard neuf sur votre restaurant ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "d846a3a17e0a48d7a0c4e5930a962822ae8196f166a315080ee702f5d4f8d824",
+      "bytes": 354289,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6756,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 705
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8266
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j03.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 4,
+      "file": "j04.jpg",
+      "headline": "Moins de ressaisie, plus de visibilité",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK avec factures et tableau de bord clair, sans chiffres financiers fictifs. Texte principal : « Moins de ressaisie, plus de visibilité ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "b7ca28c14962961143b613d120eda14f7017c3ccc4c3264477cf23f9f2a9b2ad",
+      "bytes": 344229,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6759,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 708
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8269
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j04.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 5,
+      "file": "j05.jpg",
+      "headline": "Une table. 5 CHF.",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK près d’une table de quatre ; grand 5 CHF / TABLE, petite mention hors pack mensuel. Texte principal : « Une table. 5 CHF. ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "8fb8c4f4c103aa01040b917f3b5671a351f90cbf3e8ad6b21e6eb88bd8ba9e5f",
+      "bytes": 302313,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6763,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 712
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8273
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j05.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 6,
+      "file": "j06.jpg",
+      "headline": "Le service commence avant l’arrivée",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK réceptionne une précommande sur smartphone ; pas de promesse de zéro minute. Texte principal : « Le service commence avant l’arrivée ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "6db8767cf19115991df315bc01ad8acab3405c0ee41dc7469f80f0a9735114ae",
+      "bytes": 329134,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6757,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 706
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8267
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j06.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 7,
+      "file": "j07.jpg",
+      "headline": "Votre restaurant a des choses à raconter",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK montre un fil d’actualités de restaurant sur smartphone. Texte principal : « Votre restaurant a des choses à raconter ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "ff2125df6bcccbf69b40f72e542d48363c8702898427e1657125e6ca5b3a963c",
+      "bytes": 334812,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6754,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 703
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8264
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j07.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 8,
+      "file": "j08.jpg",
+      "headline": "Le nombre de convives ne multiplie pas vos frais TOK",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK accueille une grande tablée, 5 CHF par table, hors pack mensuel ; aucun prix concurrent. Texte principal : « Le nombre de convives ne multiplie pas vos frais TOK ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "b22c5151b10a9f77cee65453d645d67635b5c7d151a3c1e7f8bd09d54ac5adf3",
+      "bytes": 365140,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6768,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 717
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8278
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j08.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 9,
+      "file": "j09.jpg",
+      "headline": "Votre menu du jour mérite d’être vu",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK tient un menu du jour stylisé, écran studio en arrière-plan. Texte principal : « Votre menu du jour mérite d’être vu ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "2f319b3aaf35c13b80c269a423b5438bb31cae860ef60aa1788993168b3c4b0a",
+      "bytes": 317220,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6757,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 706
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8267
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j09.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 10,
+      "file": "j10.jpg",
+      "headline": "Vos plats, sous leur meilleur jour",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK prend une photo d’un plat réel avec smartphone dans une cuisine. Texte principal : « Vos plats, sous leur meilleur jour ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "df8cc01dde85232f53264313c84472e61efdc4766502b6b5d7b57fabf0911435",
+      "bytes": 315365,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6755,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 704
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8265
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j10.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 11,
+      "file": "j11.jpg",
+      "headline": "Une amélioration à la fois",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK devant trois cartes de plan d’action, aucune statistique fictive. Texte principal : « Une amélioration à la fois ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "bf7381d17e3144d0c39d72a5b98278ae8688054192b62c99387825b4c86d8866",
+      "bytes": 311439,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6755,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 704
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8265
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j11.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 12,
+      "file": "j12.jpg",
+      "headline": "Donnez une raison de revenir",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK avec smartphone Miamz et étoile, sans solde ni récompense inventés. Texte principal : « Donnez une raison de revenir ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "704a0ceb507594ffbd2a49a3f2c2d4b80a511b4d65200c4784fb11df5ac2a513",
+      "bytes": 333445,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6759,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 708
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8269
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j12.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 13,
+      "file": "j13.jpg",
+      "headline": "Une offre du moment à faire découvrir",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK pointe une carte offre du moment, éclair jaune, aucun pourcentage de réduction. Texte principal : « Une offre du moment à faire découvrir ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "3c14f689256824bfa43a5d2bb3fa5c0cb6f87322edc750e283ea07defaadfc66",
+      "bytes": 347647,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6758,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 707
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8268
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j13.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 14,
+      "file": "j14.jpg",
+      "headline": "Valorisez ce qui peut encore régaler",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK présente une préparation disponible, touches vertes discrètes dans palette TOK. Texte principal : « Valorisez ce qui peut encore régaler ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "5eb616aa839bdca95de111ac6cb7893533b06e5ca8a3651fb6418c79d31fbb88",
+      "bytes": 327880,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6758,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 707
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8268
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j14.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 15,
+      "file": "j15.jpg",
+      "headline": "Retrouvez le fil de votre activité",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK devant tableau de bord avec cartes réservations, commandes et contenus. Texte principal : « Retrouvez le fil de votre activité ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "73648bf17a17cd737550ad476b0335a1c4404b368e815ed87c1b7333b1bd7e54",
+      "bytes": 314423,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6754,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 703
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8264
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j15.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 16,
+      "file": "j16.jpg",
+      "headline": "Anticipez le déjeuner genevois",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK accueille des clients pour le déjeuner, smartphone précommande et horloge sans délai garanti. Texte principal : « Anticipez le déjeuner genevois ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "5e08bf0c2eb65111f4c4cc2c96ffc21a8f7f4790a89ca655e7ee668574907569",
+      "bytes": 331576,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6760,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 709
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8270
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j16.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 17,
+      "file": "j17.jpg",
+      "headline": "Comparez vos coûts, table par table",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK avec calculatrice et table de quatre, formule pack + 5 CHF/table, aucun montant concurrent. Texte principal : « Comparez vos coûts, table par table ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "bce749311cfad349727f553e110588b1aca03ea1223a29e6c55f41a78b580ee6",
+      "bytes": 345294,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6763,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 712
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8273
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j17.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 18,
+      "file": "j18.jpg",
+      "headline": "De l’assiette à la publication",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK montre photographie et publication côte à côte, présentation cohérente orange crème. Texte principal : « De l’assiette à la publication ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "7a892b8419d5b1b8cb83d9eac46ef477ac78356ddbb5a84d5e1881277ea2f999",
+      "bytes": 319832,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6757,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 706
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8267
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j18.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 19,
+      "file": "j19.jpg",
+      "headline": "Et si vos outils travaillaient ensemble ?",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK au centre de six icônes : création, photo, IA, documents, actualités, réservation. Texte principal : « Et si vos outils travaillaient ensemble ? ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "dd86686c4d417d8499d29dd36eb35743f3e5e0a4c41d60330831e08a35bfd10f",
+      "bytes": 372522,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6765,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 714
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8275
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j19.jpg",
+      "approval_status": "pending"
+    },
+    {
+      "day": 20,
+      "file": "j20.jpg",
+      "headline": "Genève, faisons découvrir votre restaurant",
+      "prompt": "Créer une affiche publicitaire TOK portrait 4:5 à partir des quatre références tok-v1-20261011 (chef, logo, palette, typographie). Chef TOK accueillant devant terrasse genevoise et Jet d’eau, titre Découvrez TOK. Texte principal : « Genève, faisons découvrir votre restaurant ». CTA « THETOK.CH ». Chef identique aux références : 3D souriant, moustache noire recourbée, lunettes noires, toque blanche, veste blanche à boutons noirs, foulard rouge. Logo TOK fidèle. Orange, noir, crème, jaune. Aucun faux témoignage, chiffre de performance ou prix concurrent.",
+      "sha256": "45f0725e6046cddd47c884fd11a173fab000cab596c33a9f0019e52d45475d4b",
+      "bytes": 324490,
+      "model": "gpt-image-2",
+      "brand_profile": "tok-v1-20261011",
+      "reference_ids": [
+        "geneva",
+        "loyalty",
+        "flash",
+        "pricing"
+      ],
+      "usage": {
+        "input_tokens": 6757,
+        "input_tokens_details": {
+          "image_tokens": 6051,
+          "text_tokens": 706
+        },
+        "output_tokens": 1510,
+        "output_tokens_details": {
+          "image_tokens": 1510,
+          "text_tokens": 0
+        },
+        "total_tokens": 8267
+      },
+      "published": false,
+      "public_path": "/marketing/campaigns/geneve-20261012/j20.jpg",
+      "approval_status": "pending"
+    }
+  ]
+}
