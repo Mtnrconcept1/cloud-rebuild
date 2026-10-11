@@ -1,0 +1,234 @@
+name: Isolated PR 768 cuisine repair
+
+on:
+  push:
+    branches: [codex/cuisine-768-repair-runner-20261011]
+    paths: [.github/workflows/codex-cuisine-768-repair-runner.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: codex-cuisine-768-repair
+  cancel-in-progress: false
+
+env:
+  TARGET_SHA: 09e289d3f88a598891e7bb1f895089ac6474f6d6
+  OUTPUT_BRANCH: codex/cuisine-768-validated-output-20261011
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout immutable PR head, not the runner branch
+        uses: actions/checkout@v6
+        with:
+          ref: 09e289d3f88a598891e7bb1f895089ac6474f6d6
+          fetch-depth: 1
+
+      - name: Inspect repository and create isolated worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git status --short --branch
+          git branch --show-current
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          test -z "$(git status --porcelain)"
+          git fetch --no-tags --depth=1 origin main
+          git log -3 --oneline
+          cat AGENTS.md
+          cat docs/skills/TOK_GLOBAL_RULES.md docs/skills/TOK_MEDIA_AI_SKILL.md docs/skills/TOK_RELEASE_GATEKEEPER.md
+          git worktree add -b "$OUTPUT_BRANCH" "$RUNNER_TEMP/tok-cuisine-worktree" "$TARGET_SHA"
+          echo "WORKTREE=$RUNNER_TEMP/tok-cuisine-worktree" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/cuisine-evidence"
+          echo "EVIDENCE=$RUNNER_TEMP/cuisine-evidence" >> "$GITHUB_ENV"
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install locked dependencies
+        working-directory: ${{ env.WORKTREE }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Reproduce both existing failures without changing tests
+        working-directory: ${{ env.WORKTREE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          pnpm exec vitest run --mode production src/test/home-core-web-vitals.test.ts > "$EVIDENCE/baseline-vitals.log" 2>&1
+          vitals_status=$?
+          pnpm docs:application-index:check > "$EVIDENCE/baseline-index.log" 2>&1
+          index_status=$?
+          set -e
+          cat "$EVIDENCE/baseline-vitals.log" "$EVIDENCE/baseline-index.log"
+          test "$vitals_status" -ne 0
+          test "$index_status" -ne 0
+          grep -q '12000' "$EVIDENCE/baseline-vitals.log"
+          grep -q 'stale:' "$EVIDENCE/baseline-index.log"
+          test -z "$(git status --porcelain)"
+
+      - name: Install isolated image encoder
+        run: |
+          python3 -m venv "$RUNNER_TEMP/cuisine-imaging"
+          "$RUNNER_TEMP/cuisine-imaging/bin/pip" install Pillow==11.3.0
+
+      - name: Optimize only over-budget referenced thumbnails
+        working-directory: ${{ env.WORKTREE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/cuisine-imaging/bin/python" - <<'PY'
+          import io, json, math, os, re, shutil
+          from pathlib import Path
+          from PIL import Image, ImageChops, ImageStat, ImageDraw
+          source = Path('src/components/home/CuisineCategoryStrip.tsx').read_text(encoding='utf-8')
+          paths = [Path('public' + value) for value in re.findall(r'imageSrc: "(/images/miniatures/[^\"]+\.webp)"', source)]
+          assert len(paths) == len(set(paths)) == 39
+          evidence = Path(os.environ['EVIDENCE'])
+          (evidence / 'before').mkdir()
+          (evidence / 'after').mkdir()
+          records = []
+          for path in paths:
+              before = path.read_bytes()
+              original = Image.open(io.BytesIO(before)).convert('RGB')
+              assert original.width == original.height and original.width >= 192, (str(path), original.size)
+              if len(before) < 12000:
+                  records.append({'path': str(path), 'before': len(before), 'after': len(before), 'changed': False})
+                  continue
+              selected = None
+              for size in [original.width, 216, 192]:
+                  if size > original.width:
+                      continue
+                  image = original if size == original.width else original.resize((size, size), Image.Resampling.LANCZOS)
+                  for quality in range(82, 59, -2):
+                      output = io.BytesIO()
+                      image.save(output, format='WEBP', quality=quality, method=6)
+                      data = output.getvalue()
+                      if len(data) < 11800:
+                          selected = (data, quality, size)
+                          break
+                  if selected:
+                      break
+              assert selected is not None, f'Cannot retain adequate thumbnail quality: {path}'
+              data, quality, size = selected
+              optimized = Image.open(io.BytesIO(data)).convert('RGB')
+              a = original.resize((96, 96), Image.Resampling.LANCZOS)
+              b = optimized.resize((96, 96), Image.Resampling.LANCZOS)
+              mse = sum(value ** 2 for value in ImageStat.Stat(ImageChops.difference(a, b)).rms) / 3
+              psnr = 10 * math.log10(255 ** 2 / mse) if mse else 99
+              assert psnr >= 32, (str(path), psnr)
+              shutil.copy2(path, evidence / 'before' / path.name)
+              path.write_bytes(data)
+              shutil.copy2(path, evidence / 'after' / path.name)
+              pair = Image.new('RGB', (220, 130), 'white')
+              pair.paste(a, (8, 8)); pair.paste(b, (116, 8))
+              ImageDraw.Draw(pair).text((8, 110), path.stem, fill='black')
+              pair.save(evidence / (path.stem + '-comparison.png'))
+              records.append({'path': str(path), 'before': len(before), 'after': len(data), 'changed': True, 'quality': quality, 'dimensions': [size, size], 'psnr_at_96px': round(psnr, 2)})
+          changed = [row for row in records if row['changed']]
+          assert changed
+          for path in paths:
+              assert path.stat().st_size < 12000
+              with Image.open(path) as img:
+                  img.verify()
+          report = {'images_checked': len(paths), 'changed_count': len(changed), 'before_total': sum(row['before'] for row in records), 'after_total': sum(row['after'] for row in records), 'max_bytes': max(row['after'] for row in records), 'images': records}
+          (evidence / 'image-report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+          (evidence / 'changed-images.txt').write_text('\n'.join(row['path'] for row in changed) + '\n', encoding='utf-8')
+          print(json.dumps(report, indent=2))
+          PY
+
+      - name: Regenerate canonical documentation with the repository generator
+        working-directory: ${{ env.WORKTREE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm docs:application-index | tee "$EVIDENCE/generate-index.log"
+          pnpm docs:application-index:check | tee "$EVIDENCE/verify-index.log"
+          git diff --check
+          git diff --name-only > "$EVIDENCE/repair-files.txt"
+          while IFS= read -r path; do
+            case "$path" in
+              public/images/miniatures/*.webp|docs/architecture/TOK_APPLICATION_REFERENCE.md|docs/architecture/tok-application-search-index.json) ;;
+              *) echo "Unexpected repair file: $path"; exit 1 ;;
+            esac
+          done < "$EVIDENCE/repair-files.txt"
+          test -z "$(git ls-files --others --exclude-standard)"
+          git add -- public/images/miniatures docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
+          git diff --cached --stat
+          git diff --cached --binary --full-index > "$EVIDENCE/repair.patch"
+
+      - name: Targeted tests after repair
+        working-directory: ${{ env.WORKTREE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec vitest run --mode production src/test/home-cuisine-accessibility.test.tsx src/test/home-core-web-vitals.test.ts src/test/seo-performance-remediation.test.ts 2>&1 | tee "$EVIDENCE/targeted-tests.log"
+
+      - name: Full test suite
+        working-directory: ${{ env.WORKTREE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm test -- --mode production 2>&1 | tee "$EVIDENCE/full-tests.log"
+
+      - name: Lint
+        working-directory: ${{ env.WORKTREE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm lint 2>&1 | tee "$EVIDENCE/lint.log"
+
+      - name: Typecheck
+        working-directory: ${{ env.WORKTREE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm typecheck 2>&1 | tee "$EVIDENCE/typecheck.log"
+
+      - name: Production build with CI public placeholders only
+        working-directory: ${{ env.WORKTREE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm build:prod 2>&1 | tee "$EVIDENCE/build.log"
+
+      - name: Publish validated Git objects on isolated output branch only
+        working-directory: ${{ env.WORKTREE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "$OUTPUT_BRANCH"
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          test "$(git ls-remote origin refs/heads/codex/cuisine-category-cards-bold-20261011 | cut -f1)" = "$TARGET_SHA"
+          git diff --exit-code
+          git diff --cached --check
+          pnpm docs:application-index:check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(home): keep cuisine thumbnails within budget and refresh application index'
+          git push origin "HEAD:refs/heads/$OUTPUT_BRANCH"
+          printf 'VALIDATED_COMMIT=%s\nVALIDATED_TREE=%s\n' "$(git rev-parse HEAD)" "$(git rev-parse HEAD^{tree})" | tee "$EVIDENCE/git-result.txt"
+          git status --short --branch
+          git diff --name-only "$TARGET_SHA" HEAD | tee "$EVIDENCE/final-repair-files.txt"
+          cat "$EVIDENCE/git-result.txt" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload evidence even when a validation fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tok-cuisine-768-repair-evidence
+          path: ${{ runner.temp }}/cuisine-evidence
+          retention-days: 7
+          if-no-files-found: error
