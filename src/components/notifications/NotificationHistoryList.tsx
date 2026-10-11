@@ -17,6 +17,7 @@ type NotificationHistoryListProps = {
   description?: string;
   emptyLabel?: string;
   fallbackTarget?: string;
+  routeRole?: "commercial";
   limit?: number;
   className?: string;
 };
@@ -40,6 +41,7 @@ export default function NotificationHistoryList({
   description = "Historique de vos alertes et mises à jour.",
   emptyLabel = "Aucune notification pour le moment.",
   fallbackTarget,
+  routeRole,
   limit = 100,
   className,
 }: NotificationHistoryListProps) {
@@ -55,11 +57,12 @@ export default function NotificationHistoryList({
     markNotificationRead,
     markAllRead,
   } = useNotificationCenter(limit, { realtime: true });
-  const notificationCenterTarget = fallbackTarget || getNotificationCenterPathForRole(role);
+  const navigationRole = routeRole ?? role;
+  const notificationCenterTarget = fallbackTarget || getNotificationCenterPathForRole(navigationRole);
   const visibleNotifications = notifications.slice(0, visibleLimit);
 
   const openNotification = (notification: TokNotification) => {
-    const target = getNotificationTarget(notification, role, notificationCenterTarget);
+    const target = getNotificationTarget(notification, navigationRole, notificationCenterTarget);
     void markNotificationRead(notification.id);
     navigate(target);
   };

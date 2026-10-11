@@ -140,7 +140,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   const activeFeatures = commercialDemoFrame
     ? new Set(commercialDemoFrame.snapshot.active_features)
     : globalActiveFeatures;
-  const { unreadNotifications } = useNotificationCenter(50);
+  const { unreadNotifications } = useNotificationCenter(50, { realtime: true });
   const visibleSections = NAV_SECTIONS
     .map((section) => ({
       ...section,

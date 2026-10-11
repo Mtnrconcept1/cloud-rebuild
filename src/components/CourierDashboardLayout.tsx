@@ -123,7 +123,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
   const { signOut, role } = useAuth();
   const activeFeatures = useActiveFeatures({ enabled: !isCommercialDemoFrame });
   const queryClient = useQueryClient();
-  const { unreadNotifications } = useNotificationCenter(50);
+  const { unreadNotifications } = useNotificationCenter(50, { realtime: true });
   const [missionDialogOpen, setMissionDialogOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [missionPreview, setMissionPreview] = useState<CourierMissionPreview | null>(null);
