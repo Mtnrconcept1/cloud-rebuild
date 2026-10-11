@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `63f4d068001cce5f9d76a861a45a45f510f9bfcb4683814573d8a92eab7a3056`
+- Empreinte SHA-256 des sources indexées : `3ba87485571f37503d1c43eb1b348ddb13a3fc25eb922b8d242c131cdd50648d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1301,8 +1301,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-geneve-mobile-fast.webp | 3 | [src/components/home/HeroSection.tsx:80](../../src/components/home/HeroSection.tsx#L80) |
-| /images/home/tok-leman-signature-fast.webp | 3 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
+| /images/home/tok-geneve-mobile-fast.webp | 3 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
+| /images/home/tok-leman-signature-fast.webp | 3 | [src/components/home/HeroSection.tsx:82](../../src/components/home/HeroSection.tsx#L82) |
 | /images/home/tok-logo-ui.webp | 1 | [src/lib/tokLogo.ts:2](../../src/lib/tokLogo.ts#L2) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
