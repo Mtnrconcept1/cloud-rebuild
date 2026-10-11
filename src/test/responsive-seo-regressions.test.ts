@@ -60,7 +60,9 @@ describe("responsive and SEO regression guards", () => {
     expect(sectionHeaders).toContain("overflow-wrap: anywhere");
     expect(sectionHeaders).toContain("text-wrap: balance");
     expect(sectionHeaders).toContain("@media (max-width: 639px)");
-    expect(sectionHeaders).toContain("flex-basis: 100%");
+    expect(sectionHeaders).toContain("flex-basis: 65%");
+    expect(sectionHeaders).toContain("position: absolute;");
+    expect(sectionHeaders).not.toContain("grid-template-rows: auto auto");
     // Keep the mobile hero/newsletter responsive on narrow and short screens.
     expect(heroCss).toContain("@media(max-width:380px)");
     expect(heroCss).toContain("@media(max-width:767px) and (max-height:760px)");

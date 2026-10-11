@@ -7,16 +7,20 @@ import { describe, expect, it } from "vitest";
 import SectionShowcaseHeader from "@/components/home/SectionShowcaseHeader";
 
 describe("TOK homepage editorial headers", () => {
-  it("renders unchanged generated artwork beside the real text, not as a dimmed background", () => {
+  it("renders unchanged generated artwork behind the left-hand text, not in a separate row", () => {
     const css = readFileSync("src/home-section-headers.css", "utf8");
     expect(css).not.toContain("mask-image");
     expect(css).not.toContain("opacity:");
     expect(css).not.toContain("backdrop-filter");
-    expect(css).toContain("grid-template-rows: auto auto");
+    expect(css).not.toContain("grid-template-rows: auto auto");
+    expect(css).toContain("position: absolute;");
     expect(css).toContain("object-fit: contain");
+    expect(css).toContain("z-index: 1;");
+    expect(css).toContain("flex-basis: 65%");
+    expect(css).toContain("aspect-ratio: 4 / 1");
   });
 
-  it("keeps the photo decorative and the location heading accessible", () => {
+  it("keeps the photograph decorative and the location heading accessible", () => {
     const { container } = render(
       <MemoryRouter>
         <SectionShowcaseHeader
