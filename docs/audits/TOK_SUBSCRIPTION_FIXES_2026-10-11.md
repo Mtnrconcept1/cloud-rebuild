@@ -43,6 +43,14 @@ npm install --prefix /tmp/tok-sql-check --no-audit --no-fund @electric-sql/pglit
 node scripts/tests/subscription-benefits.mjs /tmp/tok-sql-check/node_modules/@electric-sql/pglite/dist/index.js
 ```
 
+## Simulation Stripe demandée
+
+La vraie fonction Edge `manage-restaurant-establishments` est exécutée avec les frontières Stripe, authentification et RPC simulées, sans réseau ni clé de paiement. Les 20 tests de `src/test/elite-stripe-simulation.test.ts` passent : paiement accepté/refusé, authentification requise, interruption réseau, facturation annuelle, site inclus, consentement, contrats inéligibles, doublon, reprise après paiement réussi, clé d’idempotence stable, échec de synchronisation/finalisation SQL, mise à jour d’un add-on existant et accès refusé. Les assertions contrôlent l’ordre paiement puis attribution des droits, les paramètres de facturation et l’absence de second achat lors des reprises.
+
+Cette simulation valide le comportement du handler face aux réponses prévues. Elle ne valide pas les véritables échanges Stripe, les signatures ou l’ordre des webhooks, la configuration du compte ni l’authentification/RLS réelle ; les 25 scénarios SQL distincts couvrent une partie de cette dernière frontière. Aucun résultat simulé ne doit être présenté comme un paiement Stripe réel ou un test bout en bout hébergé.
+
+Commande exécutée : `node node_modules/vitest/vitest.mjs run src/test/elite-stripe-simulation.test.ts` (20/20), puis ESLint ciblé (sortie 0). Aucun code applicatif ni migration modifié lors de cet ajout de tests ; typecheck et build déjà verts pour le code applicatif inchangé.
+
 ## Conditions restantes avant fusion et production
 
 La PR reste en brouillon selon le gate critique de `TOK_RELEASE_GATEKEEPER.md`. Le connecteur disponible donne accès au compte Stripe live ; aucune transaction réelle n’a été utilisée comme test.
@@ -100,6 +108,7 @@ La liste ci-dessous constitue le périmètre complet du correctif, index applica
 - `src/pages/dashboard/DashboardVentesFlash.tsx`
 - `src/test/application-search-index.test.ts`
 - `src/test/chef-table-vip-miamz-access.test.ts`
+- `src/test/elite-stripe-simulation.test.ts`
 - `src/test/loyalty-status-dialog-layout.test.tsx`
 - `src/test/miamz-business-logic-guards.test.ts`
 - `src/test/subscription-discount-allocation.test.ts`
