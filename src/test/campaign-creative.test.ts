@@ -171,9 +171,11 @@ describe("campaign creative studio", () => {
     const templateCard = readSource("src/components/campaigns/SponsoredRestaurantTemplateCard.tsx");
 
     expect(templateCard).toContain("[overflow-wrap:anywhere] [text-wrap:balance]");
-    expect(templateCard).toContain("text-2xl [@container_sponsored-banner_(min-width:40rem)]:text-3xl [@container_sponsored-banner_(min-width:48rem)]:text-[1.75rem] [@container_sponsored-banner_(min-width:64rem)]:text-[2.1rem] [@container_sponsored-banner_(min-width:80rem)]:text-[2.4rem] [@container_sponsored-banner_(min-width:96rem)]:text-[2.7rem]");
+    expect(templateCard).toContain("text-[clamp(1.65rem,4.9cqw,3.2rem)]");
+    expect(templateCard).toContain("fontFamily: \"Georgia, 'Times New Roman', serif\"");
     expect(templateCard).not.toContain("[@container_sponsored-banner_(min-width:96rem)]:text-[4.8rem]");
     expect(templateCard).not.toContain("mt-1 line-clamp-2 overflow-visible pb-2 leading-[1.04]");
+    expect(templateCard).toContain("data-sponsored-banner-cta");
   });
 
   it("lets every sponsored placement grow with max-length customized copy", () => {
@@ -221,6 +223,7 @@ describe("campaign creative studio", () => {
             maxCopy.sealTop,
             maxCopy.sealMain,
             maxCopy.sealBottom,
+            maxCopy.cta,
           ]
         : [
             maxCopy.badge,
