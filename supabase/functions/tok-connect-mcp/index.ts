@@ -99,8 +99,8 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:wght@400;500;600;700&display=swap");
       :root {
         color-scheme: light dark;
-        --tok-primary: hsl(19 88% 39%);
-        --tok-primary-soft: hsl(19 88% 39% / 0.14);
+        --tok-primary: hsl(19 68% 51%);
+        --tok-primary-soft: hsl(19 68% 51% / 0.14);
         --tok-primary-foreground: hsl(0 0% 100%);
         --tok-accent: hsl(152 48% 30%);
         --tok-gold: hsl(35 100% 62%);
@@ -116,9 +116,9 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --tok-primary: hsl(22 92% 65%);
-          --tok-primary-soft: hsl(22 92% 65% / 0.14);
-          --tok-primary-foreground: hsl(24 16% 10%);
+          --tok-primary: hsl(19 68% 51%);
+          --tok-primary-soft: hsl(19 68% 51% / 0.14);
+          --tok-primary-foreground: hsl(0 0% 100%);
           --tok-accent: hsl(156 58% 47%);
           --tok-background: hsl(24 14% 8%);
           --tok-surface: hsl(24 12% 12%);
@@ -135,7 +135,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         font-family: var(--tok-font-sans);
         color: var(--tok-text);
         background:
-          radial-gradient(circle at 18% 12%, hsl(19 88% 39% / 0.16), transparent 34%),
+          radial-gradient(circle at 18% 12%, hsl(19 68% 51% / 0.16), transparent 34%),
           radial-gradient(circle at 92% 0%, hsl(152 48% 30% / 0.12), transparent 28%),
           var(--tok-background);
       }

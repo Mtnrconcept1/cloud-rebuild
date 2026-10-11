@@ -13,6 +13,7 @@ interface RestaurantSectionProps {
   accentClassName?: string;
   headerTheme?: SectionHeaderTheme;
   headerImageSrc?: string;
+  headerDescription?: string;
   linkText?: string;
   linkTo?: string;
 }
@@ -26,6 +27,7 @@ export default function RestaurantSection({
   loading = false,
   headerTheme = "orange",
   headerImageSrc = "/images/section-headers/gift-3d.png",
+  headerDescription,
   linkText = "Voir tout",
   linkTo = "/recherche",
 }: RestaurantSectionProps) {
@@ -43,6 +45,7 @@ export default function RestaurantSection({
           icon={Icon}
           iconColor={iconColor}
           imageSrc={headerImageSrc}
+          description={headerDescription}
           theme={headerTheme}
           linkText={linkText}
           linkTo={linkTo}
