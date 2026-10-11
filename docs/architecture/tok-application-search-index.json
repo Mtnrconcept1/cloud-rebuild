@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "7f6bee40849562224e21efbb782312b4d6b145dfcab6956ed079930ae2fde9ad",
+ "sourceDigest": "c3ded15906c8101be0ab1b6f699ff7dccc87fc4749a3d79953fcd85f90a10408",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -21,12 +21,12 @@
   "modules": 1487,
   "pages": 127,
   "pathLiterals": 620,
-  "publicAssets": 306,
-  "publicEntries": 331,
+  "publicAssets": 308,
+  "publicEntries": 333,
   "publicNavigableRoutes": 2,
   "queryParameters": 104,
-  "records": 15716,
-  "repositoryFiles": 2794,
+  "records": 15720,
+  "repositoryFiles": 2796,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -11197,8 +11197,18 @@
     "kind": "media"
    },
    {
+    "route": "/images/home/tok-geneve-mobile-sans-parasol.webp",
+    "path": "public/images/home/tok-geneve-mobile-sans-parasol.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/home/tok-geneve-mobile.webp",
     "path": "public/images/home/tok-geneve-mobile.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/home/tok-leman-signature.webp",
+    "path": "public/images/home/tok-leman-signature.webp",
     "kind": "media"
    },
    {
@@ -12477,11 +12487,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 122
+      "line": 124
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 127
+      "line": 129
      },
      {
       "path": "src/components/commercial/CommercialWorkspaceChrome.tsx",
@@ -12494,6 +12504,10 @@
      {
       "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
       "line": 821
+     },
+     {
+      "path": "src/components/legal/LegalConsentBanner.tsx",
+      "line": 66
      },
      {
       "path": "src/components/navigation/BackNavigationButton.tsx",
@@ -12734,6 +12748,18 @@
      {
       "path": "src/test/coming-soon-gate.test.tsx",
       "line": 16
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 20
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 28
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 35
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -13220,15 +13246,6 @@
     ]
    },
    {
-    "value": "/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png",
-    "sources": [
-     {
-      "path": "src/components/home/HeroSection.tsx",
-      "line": 80
-     }
-    ]
-   },
-   {
     "value": "/Image%20Codex%203%20sept.%202026,%2002_31_12.png",
     "sources": [
      {
@@ -13376,7 +13393,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 584
+      "line": 601
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -13437,7 +13454,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 95
+      "line": 97
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -13515,19 +13532,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 240
+      "line": 257
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 313
+      "line": 330
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 405
+      "line": 422
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 478
+      "line": 495
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -13885,7 +13902,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 22
+      "line": 45
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -14925,7 +14942,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 210
+      "line": 214
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -14991,11 +15008,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 248
+      "line": 265
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 467
+      "line": 484
      },
      {
       "path": "src/components/PromoCarousel.tsx",
@@ -15307,7 +15324,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 421
+      "line": 438
      },
      {
       "path": "src/components/ProtectedRoute.tsx",
@@ -15331,7 +15348,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 90
+      "line": 93
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -15890,7 +15907,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 94
+      "line": 96
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -15949,7 +15966,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 590
+      "line": 607
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -15961,7 +15978,7 @@
      },
      {
       "path": "src/components/legal/LegalConsentBanner.tsx",
-      "line": 95
+      "line": 96
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -16089,11 +16106,15 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 91
+      "line": 93
      },
      {
       "path": "src/components/PromoCarousel.tsx",
       "line": 33
+     },
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 76
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -16120,6 +16141,10 @@
       "line": 146
      },
      {
+      "path": "src/pages/Index.tsx",
+      "line": 631
+     },
+     {
       "path": "src/pages/Panier.tsx",
       "line": 951
      },
@@ -16134,6 +16159,10 @@
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 45
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 43
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -16184,7 +16213,7 @@
      },
      {
       "path": "src/components/ComingSoonGate.tsx",
-      "line": 11
+      "line": 21
      },
      {
       "path": "src/lib/authPostLogin.ts",
@@ -16209,6 +16238,14 @@
      {
       "path": "src/test/coming-soon-gate.test.tsx",
       "line": 10
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 29
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 36
      },
      {
       "path": "src/test/launch-state.test.ts",
@@ -16411,19 +16448,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 381
+      "line": 398
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 383
+      "line": 400
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 556
+      "line": 573
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 559
+      "line": 576
      },
      {
       "path": "src/components/commercial/CommercialDemoActorOverview.tsx",
@@ -16572,7 +16609,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 124
+      "line": 126
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -17168,7 +17205,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 587
+      "line": 604
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -17233,7 +17270,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 596
+      "line": 613
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -17245,7 +17282,7 @@
      },
      {
       "path": "src/components/legal/LegalConsentBanner.tsx",
-      "line": 97
+      "line": 98
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -17592,11 +17629,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 410
+      "line": 427
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 550
+      "line": 567
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -17633,7 +17670,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 86
+      "line": 88
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -17922,7 +17959,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 21
+      "line": 44
      },
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
@@ -18634,7 +18671,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 19
+      "line": 42
      },
      {
       "path": "src/test/restaurant-onboarding-payments.test.ts",
@@ -19514,7 +19551,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 87
+      "line": 89
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -19741,7 +19778,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 93
+      "line": 95
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -20475,11 +20512,28 @@
     ]
    },
    {
-    "value": "/images/home/tok-geneve-desktop.webp",
+    "value": "/images/home/tok-geneve-mobile-sans-parasol.webp",
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 79
+      "line": 81
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 37
+     }
+    ]
+   },
+   {
+    "value": "/images/home/tok-leman-signature.webp",
+    "sources": [
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 82
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 38
      }
     ]
    },
@@ -20566,7 +20620,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 678
+      "line": 689
      },
      {
       "path": "src/pages/MatchGroupes.tsx",
@@ -22002,7 +22056,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 88
+      "line": 90
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -22241,11 +22295,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 376
+      "line": 393
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 544
+      "line": 561
      },
      {
       "path": "src/components/commercial/CommercialDemoBrowserGrid.tsx",
@@ -22281,15 +22335,15 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 18
+      "line": 25
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 20
+      "line": 43
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 23
+      "line": 46
      },
      {
       "path": "src/test/commercial-demo-frame.test.ts",
@@ -22347,7 +22401,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 90
+      "line": 92
      },
      {
       "path": "src/components/OrderConflictDialog.tsx",
@@ -22412,7 +22466,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 89
+      "line": 91
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -22470,19 +22524,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 397
+      "line": 414
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 399
+      "line": 416
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 570
+      "line": 587
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 573
+      "line": 590
      },
      {
       "path": "src/components/commercial/CommercialDemoActorOverview.tsx",
@@ -22768,11 +22822,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 327
+      "line": 344
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 491
+      "line": 508
      },
      {
       "path": "src/components/OrderConflictDialog.tsx",
@@ -23000,7 +23054,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 593
+      "line": 610
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -23012,7 +23066,7 @@
      },
      {
       "path": "src/components/legal/LegalConsentBanner.tsx",
-      "line": 96
+      "line": 97
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -23207,7 +23261,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 799
+      "line": 810
      }
     ]
    },
@@ -23388,11 +23442,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 233
+      "line": 250
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 461
+      "line": 478
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -23401,6 +23455,14 @@
      {
       "path": "src/components/home/FooterSection.tsx",
       "line": 49
+     },
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 73
+     },
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 75
      },
      {
       "path": "src/components/home/RestaurantSection.tsx",
@@ -23540,11 +23602,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 36
+      "line": 57
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 43
+      "line": 64
      },
      {
       "path": "src/test/mobile-logo-intro.test.tsx",
@@ -23660,19 +23722,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 389
+      "line": 406
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 391
+      "line": 408
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 563
+      "line": 580
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 566
+      "line": 583
      },
      {
       "path": "src/components/ReservationDialog.tsx",
@@ -24875,15 +24937,15 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 196
+      "line": 200
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 343
+      "line": 360
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 499
+      "line": 516
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -24891,7 +24953,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 86
+      "line": 88
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -24923,7 +24985,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 29
+      "line": 50
      },
      {
       "path": "src/test/route-serving-regression.test.ts",
@@ -25384,11 +25446,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 203
+      "line": 207
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 504
+      "line": 521
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -25533,11 +25595,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 264
+      "line": 281
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 484
+      "line": 501
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -26280,11 +26342,15 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 256
+      "line": 273
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 472
+      "line": 489
+     },
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 74
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -26317,6 +26383,10 @@
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 52
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 42
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -26379,7 +26449,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 92
+      "line": 94
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -26565,11 +26635,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 38
+      "line": 59
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 52
+      "line": 73
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
@@ -27575,11 +27645,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 37
+      "line": 58
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 53
+      "line": 74
      }
     ],
     "routes": [
@@ -80707,7 +80777,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 13
+    "lineCount": 23
    },
    {
     "path": "src/components/CountdownTimer.tsx",
@@ -81001,13 +81071,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 98,
+      "line": 100,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 610
+    "lineCount": 627
    },
    {
     "path": "src/components/NearbyRestaurantsMap.tsx",
@@ -82968,7 +83038,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 116
+    "lineCount": 119
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -83266,7 +83336,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 137
+    "lineCount": 138
    },
    {
     "path": "src/components/list/SortControls.tsx",
@@ -97560,7 +97630,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 958
+    "lineCount": 969
    },
    {
     "path": "src/pages/LocalRestaurants.tsx",
@@ -100312,7 +100382,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 25
+    "lineCount": 48
    },
    {
     "path": "src/test/commercial-contract-generation.test.ts",
@@ -101588,7 +101658,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 63
+    "lineCount": 84
    },
    {
     "path": "src/test/home-mobile-newsletter.test.tsx",
@@ -101827,7 +101897,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 25
+    "lineCount": 34
    },
    {
     "path": "src/test/legal-consent-v2.test.ts",
@@ -112033,7 +112103,17 @@
     "extension": ".webp"
    },
    {
+    "path": "public/images/home/tok-geneve-mobile-sans-parasol.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/home/tok-geneve-mobile.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/home/tok-leman-signature.webp",
     "category": "public-asset",
     "extension": ".webp"
    },
@@ -125192,14 +125272,14 @@
    "id": "code-module:74e9001c7c67",
    "type": "code-module",
    "title": "src/components/ComingSoonGate.tsx",
-   "description": "Module de 13 lignes; exports: default.",
+   "description": "Module de 23 lignes; exports: default.",
    "path": "src/components/ComingSoonGate.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "c1cd787cae2f"
+   "detailRef": "2d5d2f4cfcec"
   },
   {
    "id": "code-module:3f41c36a4647",
@@ -125444,14 +125524,14 @@
    "id": "code-module:d8013874702d",
    "type": "code-module",
    "title": "src/components/Navbar.tsx",
-   "description": "Module de 610 lignes; exports: default.",
+   "description": "Module de 627 lignes; exports: default.",
    "path": "src/components/Navbar.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "98cea8b17e61"
+   "detailRef": "6a3ba3ff79a2"
   },
   {
    "id": "code-module:bcb7d2dbc4fa",
@@ -127036,14 +127116,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 116 lignes; exports: default.",
+   "description": "Module de 119 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "4c2ef6649776"
+   "detailRef": "adfe321c3323"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -127254,14 +127334,14 @@
    "id": "code-module:f55c4845a589",
    "type": "code-module",
    "title": "src/components/legal/LegalConsentBanner.tsx",
-   "description": "Module de 137 lignes; exports: default.",
+   "description": "Module de 138 lignes; exports: default.",
    "path": "src/components/legal/LegalConsentBanner.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "e947440ab2ca"
+   "detailRef": "a803de2e65d2"
   },
   {
    "id": "code-module:773d41d81e68",
@@ -134090,7 +134170,7 @@
    "id": "code-module:8d761926e269",
    "type": "code-module",
    "title": "src/pages/Index.tsx",
-   "description": "Module de 958 lignes; exports: default.",
+   "description": "Module de 969 lignes; exports: default.",
    "path": "src/pages/Index.tsx",
    "line": 1,
    "surface": null,
@@ -134098,7 +134178,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "388db97fda89"
+   "detailRef": "3576994611b0"
   },
   {
    "id": "code-module:d39f2c12cbfd",
@@ -136804,12 +136884,12 @@
    "id": "code-module:d0beb0c6b87d",
    "type": "code-module",
    "title": "src/test/coming-soon-gate.test.tsx",
-   "description": "Module de 25 lignes; exports: aucun export statique.",
+   "description": "Module de 48 lignes; exports: aucun export statique.",
    "path": "src/test/coming-soon-gate.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "f504a99242db"
+   "detailRef": "21e9a9ede8b8"
   },
   {
    "id": "code-module:e839dfa53017",
@@ -138664,12 +138744,12 @@
    "id": "code-module:a714f68588b7",
    "type": "code-module",
    "title": "src/test/home-hero-search.test.tsx",
-   "description": "Module de 63 lignes; exports: aucun export statique.",
+   "description": "Module de 84 lignes; exports: aucun export statique.",
    "path": "src/test/home-hero-search.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "819eccc8e908"
+   "detailRef": "be22dd7dec40"
   },
   {
    "id": "code-module:d67b9bd34728",
@@ -139009,12 +139089,12 @@
    "id": "code-module:df56f67c1465",
    "type": "code-module",
    "title": "src/test/legal-consent-banner-layout.test.ts",
-   "description": "Module de 25 lignes; exports: aucun export statique.",
+   "description": "Module de 34 lignes; exports: aucun export statique.",
    "path": "src/test/legal-consent-banner-layout.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "8e20f3f359ec"
+   "detailRef": "927f59b2fbe9"
   },
   {
    "id": "code-module:84ca87734536",
@@ -257175,17 +257255,17 @@
    "detailRef": "232de49df979"
   },
   {
-   "id": "exported-symbol:859ddf71500b",
+   "id": "exported-symbol:34796d3bf420",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/Navbar.tsx.",
    "path": "src/components/Navbar.tsx",
-   "line": 98,
+   "line": 100,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "d424eb5b0b77"
+   "detailRef": "3daf30571d61"
   },
   {
    "id": "exported-symbol:0e348bfaaf44",
@@ -287743,6 +287823,20 @@
    "detailRef": "d4638769cfcb"
   },
   {
+   "id": "file:ccd2737ba2b4",
+   "type": "file",
+   "title": "public/images/home/tok-geneve-mobile-sans-parasol.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/home/tok-geneve-mobile-sans-parasol.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "3017a07fd6f5"
+  },
+  {
    "id": "file:c9d524bd1ff6",
    "type": "file",
    "title": "public/images/home/tok-geneve-mobile.webp",
@@ -287755,6 +287849,20 @@
     "public-asset"
    ],
    "detailRef": "3bb03757e909"
+  },
+  {
+   "id": "file:2319eb73efe0",
+   "type": "file",
+   "title": "public/images/home/tok-leman-signature.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/home/tok-leman-signature.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "abd268cfaf5b"
   },
   {
    "id": "file:d537ae413d7c",
@@ -333776,7 +333884,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 233 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 237 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -333820,6 +333928,7 @@
     "src/components/commercial/CommercialWorkspaceChrome.tsx",
     "src/components/dashboard/AiStyleReferencePicker.tsx",
     "src/components/dashboard/TokAiMarketingStudio.tsx",
+    "src/components/legal/LegalConsentBanner.tsx",
     "src/components/navigation/BackNavigationButton.tsx",
     "src/hooks/useSeoMeta.ts",
     "src/lib/adminDomains.ts",
@@ -333894,7 +334003,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "f4fc62c62f98"
+   "detailRef": "df63b1797b19"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -333960,19 +334069,6 @@
     "src/test/plan-phase1-readiness.test.ts"
    ],
    "detailRef": "26f196955bb6"
-  },
-  {
-   "id": "path-literal:07ac643297f6",
-   "type": "path-literal",
-   "title": "/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/HeroSection.tsx",
-   "line": 80,
-   "surface": null,
-   "tags": [
-    "src/components/home/HeroSection.tsx"
-   ],
-   "detailRef": "2ecb0208584e"
   },
   {
    "id": "path-literal:1d9f0654171b",
@@ -334131,7 +334227,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "dba188dcc6d5"
+   "detailRef": "7cdbc6e67f42"
   },
   {
    "id": "path-literal:b93cc2bbc5bc",
@@ -334167,7 +334263,7 @@
     "src/test/meal-subscription-cart.test.tsx",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "53600f96f1bb"
+   "detailRef": "3be7efeb6ad3"
   },
   {
    "id": "path-literal:a5b6aab3e61b",
@@ -334265,7 +334361,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "bf4866705fe3"
+   "detailRef": "f358d4fa033d"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -334945,7 +335041,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "b313376faec2"
+   "detailRef": "6580056786b1"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -334978,7 +335074,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "7cde9562a187"
+   "detailRef": "5c855b23a090"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -335020,7 +335116,7 @@
     "src/test/feature-visibility.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "e22e24090cb4"
+   "detailRef": "b2965eb1ca9a"
   },
   {
    "id": "path-literal:b8366dc7f0ad",
@@ -335461,7 +335557,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "cac0c62cf18c"
+   "detailRef": "84427fe2ec45"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -335600,7 +335696,7 @@
     "src/lib/featureCatalog.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "2ebbfe3eabd8"
+   "detailRef": "acd9e439b7aa"
   },
   {
    "id": "path-literal:32d025d623e0",
@@ -335657,7 +335753,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "3ef4ee54c5ae"
+   "detailRef": "f8b91b3c5960"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -335730,7 +335826,7 @@
    "id": "path-literal:43747d7bcc7e",
    "type": "path-literal",
    "title": "/chefs-table",
-   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 23 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 993,
    "surface": null,
@@ -335741,26 +335837,29 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
     "src/components/PromoCarousel.tsx",
+    "src/components/home/HeroSection.tsx",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
     "src/lib/featureVisibility.ts",
     "src/lib/tokLogo.ts",
     "src/pages/ClientDashboardHome.tsx",
+    "src/pages/Index.tsx",
     "src/pages/Panier.tsx",
     "src/pages/TokPulse.tsx",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
+    "src/test/home-hero-search.test.tsx",
     "src/test/tok-logo-calendar.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "c1ec339e66c2"
+   "detailRef": "459e9556584c"
   },
   {
    "id": "path-literal:4fb16aa3df8b",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 530,
    "surface": null,
@@ -335776,7 +335875,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "2ebed9aeaaaa"
+   "detailRef": "873b6fbbefbb"
   },
   {
    "id": "path-literal:a6290b9b06b5",
@@ -335955,7 +336054,7 @@
     "src/test/role-route-wiring.test.ts",
     "supabase/functions/courier-portal/index.ts"
    ],
-   "detailRef": "45e56975f3a6"
+   "detailRef": "b134209416fd"
   },
   {
    "id": "path-literal:e01c2c8fbbea",
@@ -336229,7 +336328,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "9a6f92e8b3f9"
+   "detailRef": "51c600599272"
   },
   {
    "id": "path-literal:c6197bb92a0d",
@@ -336310,7 +336409,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "c9cb17b0e9e1"
+   "detailRef": "263236caaaa8"
   },
   {
    "id": "path-literal:09145bbf5f6b",
@@ -336333,7 +336432,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "7beb1f185c42"
+   "detailRef": "3287903630a7"
   },
   {
    "id": "path-literal:e9d36ceff823",
@@ -336439,7 +336538,7 @@
     "src/lib/featureCatalog.ts",
     "src/pages/courier/CourierHome.tsx"
    ],
-   "detailRef": "25ed66d7e737"
+   "detailRef": "1b77249e1a00"
   },
   {
    "id": "path-literal:2e9a84eae292",
@@ -336492,7 +336591,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "5d109a6482aa"
+   "detailRef": "6dacb5393817"
   },
   {
    "id": "path-literal:4e887d7f6aeb",
@@ -336894,7 +336993,7 @@
     "src/test/restaurant-onboarding-payments.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "35575ddf2081"
+   "detailRef": "cb7bfc961e3a"
   },
   {
    "id": "path-literal:ff5553eea6a9",
@@ -337294,7 +337393,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "063fd191d9d1"
+   "detailRef": "ecfd08e7794e"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -337515,7 +337614,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "afb328e8779c"
+   "detailRef": "3b150d5f69b6"
   },
   {
    "id": "path-literal:b657e0a461f5",
@@ -337729,7 +337828,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "0938fbb85a73"
+   "detailRef": "e5c94063eb74"
   },
   {
    "id": "path-literal:95e27403bc7d",
@@ -338534,17 +338633,32 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:1addb8fb03df",
+   "id": "path-literal:2c67a64255e9",
    "type": "path-literal",
-   "title": "/images/home/tok-geneve-desktop.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "title": "/images/home/tok-geneve-mobile-sans-parasol.webp",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 79,
+   "line": 81,
    "surface": null,
    "tags": [
-    "src/components/home/HeroSection.tsx"
+    "src/components/home/HeroSection.tsx",
+    "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "0893aab7a91e"
+   "detailRef": "8f0f850157aa"
+  },
+  {
+   "id": "path-literal:ea587481fbd4",
+   "type": "path-literal",
+   "title": "/images/home/tok-leman-signature.webp",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/HeroSection.tsx",
+   "line": 82,
+   "surface": null,
+   "tags": [
+    "src/components/home/HeroSection.tsx",
+    "src/test/home-hero-search.test.tsx"
+   ],
+   "detailRef": "f3f399c041ad"
   },
   {
    "id": "path-literal:d38fc61bacfe",
@@ -338601,7 +338715,7 @@
     "src/pages/admin/AdminRestaurants.tsx",
     "src/test/optimized-images.test.ts"
    ],
-   "detailRef": "a7365fef7372"
+   "detailRef": "27056b88cb75"
   },
   {
    "id": "path-literal:ecd720b69356",
@@ -339881,7 +339995,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "c37937d1ffcc"
+   "detailRef": "3be7e466d1bb"
   },
   {
    "id": "path-literal:d87268d71810",
@@ -340011,7 +340125,7 @@
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "cdb1774e4f2a"
+   "detailRef": "1870198525ab"
   },
   {
    "id": "path-literal:48897d739ef3",
@@ -340050,7 +340164,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "f724daea90ea"
+   "detailRef": "5ee9e53306bb"
   },
   {
    "id": "path-literal:e50600e506b9",
@@ -340073,7 +340187,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "2754724819d5"
+   "detailRef": "4eae04766b84"
   },
   {
    "id": "path-literal:c940e29d8563",
@@ -340118,7 +340232,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "506ce273e4c5"
+   "detailRef": "192e62380f42"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -340293,7 +340407,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "b5b8f29d4035"
+   "detailRef": "e7a2962d38fc"
   },
   {
    "id": "path-literal:59eea23cb871",
@@ -340377,7 +340491,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "a785cb3adc82"
+   "detailRef": "0a4e92930016"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -340484,7 +340598,7 @@
     "src/pages/ClientDashboardHome.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "7bd08e1476d7"
+   "detailRef": "f44369e6a11c"
   },
   {
    "id": "path-literal:8a35ee0b46e4",
@@ -340603,7 +340717,7 @@
    "id": "path-literal:f7a8242103a1",
    "type": "path-literal",
    "title": "/recherche",
-   "description": "Chemin référencé dans 62 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 64 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/seo-trust-runtime.js",
    "line": 138,
    "surface": null,
@@ -340618,6 +340732,7 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
     "src/components/home/FooterSection.tsx",
+    "src/components/home/HeroSection.tsx",
     "src/components/home/RestaurantSection.tsx",
     "src/components/home/SearchAndCategories.tsx",
     "src/hooks/useSeoMeta.ts",
@@ -340648,7 +340763,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "9cc89333c6cf"
+   "detailRef": "a5e083329789"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -340770,7 +340885,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "a9215634498e"
+   "detailRef": "72528f96345e"
   },
   {
    "id": "path-literal:0af02260597a",
@@ -341920,7 +342035,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "9d0d5512f9a1"
+   "detailRef": "f02853075bed"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -342387,7 +342502,7 @@
     "src/pages/TokConnect.tsx",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "b6fb47850d62"
+   "detailRef": "a26caac56e28"
   },
   {
    "id": "path-literal:10a0ebcd0a8b",
@@ -342418,7 +342533,7 @@
     "src/test/feature-visibility.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "65dfc02c2ac3"
+   "detailRef": "61ce40c12378"
   },
   {
    "id": "path-literal:d01a3ea49721",
@@ -343073,7 +343188,7 @@
    "id": "path-literal:c2bbe3272368",
    "type": "path-literal",
    "title": "/ventes-flash",
-   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 341,
    "surface": null,
@@ -343083,6 +343198,7 @@
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
+    "src/components/home/HeroSection.tsx",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
@@ -343091,9 +343207,10 @@
     "src/pages/LocalRestaurants.tsx",
     "src/pages/TokPulse.tsx",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
+    "src/test/home-hero-search.test.tsx",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "af99cb82ec43"
+   "detailRef": "f1d7d80022fa"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -343147,7 +343264,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "02aa26ddffc9"
+   "detailRef": "50b6c1f2a833"
   },
   {
    "id": "path-literal:93c6bbab763a",
@@ -345319,6 +345436,20 @@
    "detailRef": "876d88947dda"
   },
   {
+   "id": "public-asset:3ee3bdc6f0a7",
+   "type": "public-asset",
+   "title": "/images/home/tok-geneve-mobile-sans-parasol.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/home/tok-geneve-mobile-sans-parasol.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "749805e24afa"
+  },
+  {
    "id": "public-asset:88b1a56e1c81",
    "type": "public-asset",
    "title": "/images/home/tok-geneve-mobile.webp",
@@ -345331,6 +345462,20 @@
     "public"
    ],
    "detailRef": "d530e8fba2c4"
+  },
+  {
+   "id": "public-asset:1dfd68d31835",
+   "type": "public-asset",
+   "title": "/images/home/tok-leman-signature.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/home/tok-leman-signature.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "98c205a6372e"
   },
   {
    "id": "public-asset:4a17ada513e7",
@@ -347776,7 +347921,7 @@
     "src/test/home-hero-search.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "f9f64d58e53c"
+   "detailRef": "9ca34a2915d7"
   },
   {
    "id": "query-parameter:97c42c624f4b",
@@ -348602,7 +348747,7 @@
     "src/pages/Recherche.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "c235cffbecfa"
+   "detailRef": "75115318c0dd"
   },
   {
    "id": "query-parameter:1969b37dad55",

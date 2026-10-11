@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7f6bee40849562224e21efbb782312b4d6b145dfcab6956ed079930ae2fde9ad`
+- Empreinte SHA-256 des sources indexées : `c3ded15906c8101be0ab1b6f699ff7dccc87fc4749a3d79953fcd85f90a10408`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -41,12 +41,12 @@
 | modules | 1487 |
 | pages | 127 |
 | pathLiterals | 620 |
-| publicAssets | 306 |
-| publicEntries | 331 |
+| publicAssets | 308 |
+| publicEntries | 333 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15716 |
-| repositoryFiles | 2794 |
+| records | 15720 |
+| repositoryFiles | 2796 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -763,7 +763,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gyoza porc.webp | media | [public/images/gyoza porc.webp](../../public/images/gyoza%20porc.webp) |
 | /images/home/tok-geneve-desktop-reference.jpg | media | [public/images/home/tok-geneve-desktop-reference.jpg](../../public/images/home/tok-geneve-desktop-reference.jpg) |
 | /images/home/tok-geneve-desktop.webp | media | [public/images/home/tok-geneve-desktop.webp](../../public/images/home/tok-geneve-desktop.webp) |
+| /images/home/tok-geneve-mobile-sans-parasol.webp | media | [public/images/home/tok-geneve-mobile-sans-parasol.webp](../../public/images/home/tok-geneve-mobile-sans-parasol.webp) |
 | /images/home/tok-geneve-mobile.webp | media | [public/images/home/tok-geneve-mobile.webp](../../public/images/home/tok-geneve-mobile.webp) |
+| /images/home/tok-leman-signature.webp | media | [public/images/home/tok-leman-signature.webp](../../public/images/home/tok-leman-signature.webp) |
 | /images/houmous.webp | media | [public/images/houmous.webp](../../public/images/houmous.webp) |
 | /images/indian-curry-bowls.jpeg | media | [public/images/indian-curry-bowls.jpeg](../../public/images/indian-curry-bowls.jpeg) |
 | /images/indian-feast.jpeg | media | [public/images/indian-feast.jpeg](../../public/images/indian-feast.jpeg) |
@@ -946,7 +948,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 233 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 237 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 4 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:68](../../src/test/application-search-index.test.ts#L68) |
@@ -961,7 +963,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /?$ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /?q=restaurant | 1 | [src/test/marketing-autopilot-frontend.test.tsx:255](../../src/test/marketing-autopilot-frontend.test.tsx#L255) |
 | /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:147](../../src/test/plan-phase1-readiness.test.ts#L147) |
-| /Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png | 1 | [src/components/home/HeroSection.tsx:80](../../src/components/home/HeroSection.tsx#L80) |
 | /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 3 | [src/components/FeatureWizard.tsx:18](../../src/components/FeatureWizard.tsx#L18) |
 | /Miamz2.webp | 4 | [src/components/home/SolidaritySection.tsx:43](../../src/components/home/SolidaritySection.tsx#L43) |
 | /Miamz3.webp | 3 | [src/components/home/SolidaritySection.tsx:41](../../src/components/home/SolidaritySection.tsx#L41) |
@@ -1070,10 +1071,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /chef.png | 1 | [src/test/marketing-email-template.test.ts:25](../../src/test/marketing-email-template.test.ts#L25) |
 | /chef2.png | 1 | [supabase/functions/_shared/transactional-emails.ts:243](../../supabase/functions/_shared/transactional-emails.ts#L243) |
 | /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:671](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L671) |
-| /chefs-table | 20 | [scripts/prerender-seo.mjs:993](../../scripts/prerender-seo.mjs#L993) |
+| /chefs-table | 23 | [scripts/prerender-seo.mjs:993](../../scripts/prerender-seo.mjs#L993) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:22](../../src/lib/tokLogo.ts#L22) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:30](../../src/test/tok-logo-calendar.test.ts#L30) |
-| /coming-soon | 13 | [src/App.tsx:530](../../src/App.tsx#L530) |
+| /coming-soon | 15 | [src/App.tsx:530](../../src/App.tsx#L530) |
 | /coming-soon?welcome=1 | 3 | [src/pages/Auth.tsx:1496](../../src/pages/Auth.tsx#L1496) |
 | /commande | 2 | [scripts/prerender-seo.mjs:1216](../../scripts/prerender-seo.mjs#L1216) |
 | /commande/ | 3 | [src/components/navigation/BackNavigationButton.tsx:22](../../src/components/navigation/BackNavigationButton.tsx#L22) |
@@ -1252,7 +1253,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-geneve-desktop.webp | 1 | [src/components/home/HeroSection.tsx:79](../../src/components/home/HeroSection.tsx#L79) |
+| /images/home/tok-geneve-mobile-sans-parasol.webp | 2 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
+| /images/home/tok-leman-signature.webp | 2 | [src/components/home/HeroSection.tsx:82](../../src/components/home/HeroSection.tsx#L82) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
 | /images/kebab-box-spread.jpeg | 22 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
@@ -1389,7 +1391,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/:slug | 3 | [src/App.tsx:569](../../src/App.tsx#L569) |
 | /r/:slug/reserver | 2 | [src/App.tsx:568](../../src/App.tsx#L568) |
 | /readyz | 3 | [src/test/application-search-index.test.ts:71](../../src/test/application-search-index.test.ts#L71) |
-| /recherche | 62 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
+| /recherche | 64 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
 | /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:23](../../src/test/restaurant-search-preview.test.tsx#L23) |
 | /recherche?mode=reservation | 2 | [src/pages/TokPulse.tsx:30](../../src/pages/TokPulse.tsx#L30) |
 | /recherche?q=francais | 1 | [src/test/home-cuisine-accessibility.test.tsx:32](../../src/test/home-cuisine-accessibility.test.tsx#L32) |
@@ -1561,7 +1563,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /v3/feeds/services | 2 | [src/test/google-actions-center-readiness.test.ts:98](../../src/test/google-actions-center-readiness.test.ts#L98) |
 | /v3/feeds/services/ | 3 | [scripts/google-actions-center-export-feeds.mjs:16](../../scripts/google-actions-center-export-feeds.mjs#L16) |
 | /v3/feeds/services/?limit=25 | 1 | [src/test/google-actions-center-feed-exporter.test.ts:114](../../src/test/google-actions-center-feed-exporter.test.ts#L114) |
-| /ventes-flash | 17 | [scripts/prerender-seo.mjs:341](../../scripts/prerender-seo.mjs#L341) |
+| /ventes-flash | 19 | [scripts/prerender-seo.mjs:341](../../scripts/prerender-seo.mjs#L341) |
 | /webhooks/tok | 4 | [src/lib/tokConnect.ts:169](../../src/lib/tokConnect.ts#L169) |
 | /workers/image-ai-worker | 1 | [scripts/dependabot-policy.test.mjs:40](../../scripts/dependabot-policy.test.mjs#L40) |
 | /zero-attente | 18 | [scripts/prerender-seo.mjs:675](../../scripts/prerender-seo.mjs#L675) |
@@ -7771,7 +7773,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (331)</summary>
+<details><summary>public-asset (333)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -7926,7 +7928,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/gyoza porc.webp`
 - `public/images/home/tok-geneve-desktop-reference.jpg`
 - `public/images/home/tok-geneve-desktop.webp`
+- `public/images/home/tok-geneve-mobile-sans-parasol.webp`
 - `public/images/home/tok-geneve-mobile.webp`
+- `public/images/home/tok-leman-signature.webp`
 - `public/images/houmous.webp`
 - `public/images/indian-curry-bowls.jpeg`
 - `public/images/indian-feast.jpeg`

@@ -60,7 +60,7 @@ function CuisinePhoto({ src, isActive }: { src: string; isActive: boolean }) {
   );
 }
 
-export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: string }) {
+export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }: { activeSlug?: string; homeVariant?: boolean }) {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -78,10 +78,10 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
   };
 
   return (
-    <section className="relative overflow-hidden py-6 md:py-8">
+    <section className={homeVariant ? "tok-home-cuisine-strip relative overflow-hidden py-6 md:py-8" : "relative overflow-hidden py-6 md:py-8"}>
       <div className="container px-4">
         <SectionShowcaseHeader
-          title="À chaque envie, sa cuisine"
+          title={homeVariant ? "Explorez par cuisine" : "À chaque envie, sa cuisine"}
           subtitle="À votre goût"
           icon={Utensils}
           iconColor="text-primary"

@@ -1,51 +1,124 @@
-/* The TOK chef remains part of the welcome, with discovery immediately actionable. */
-.tok-home-hero{display:grid;grid-template-columns:1.16fr 1fr;align-items:center;gap:3rem;max-width:1280px;margin:auto;padding:2.5rem 2rem 2rem;color:hsl(var(--foreground))}
-.tok-home-hero__brand{display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem}
-.tok-home-hero__logo{width:72px;height:48px;object-fit:contain}
-.tok-home-hero__eyebrow{color:hsl(var(--primary));text-transform:uppercase;letter-spacing:.16em;font-size:.7rem;font-weight:700}
-.tok-home-hero__title{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:clamp(2.5rem,4.7vw,4.5rem);line-height:1.06;letter-spacing:-.045em}
-.tok-home-hero__title span{color:hsl(var(--primary));font-style:italic}
-.tok-home-hero__intro{max-width:32rem;margin:1.3rem 0 1.6rem;font-size:1.05rem;line-height:1.65;color:hsl(var(--muted-foreground))}
-.tok-home-hero__form{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:.5rem;padding:.65rem;background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:1.15rem;box-shadow:0 8px 30px #402b1908}
-.tok-home-hero__field{min-width:0;padding:.35rem .5rem}
-.tok-home-hero__field label{display:block;font-size:.75rem;font-weight:700;margin-bottom:.35rem}
-.tok-home-hero__field label span{font-weight:400;color:hsl(var(--muted-foreground))}
-.tok-home-hero__field--city{border-left:1px solid hsl(var(--border))}
-.tok-home-hero__input-row{display:flex;align-items:center;gap:.5rem}
-.tok-home-hero__input-row svg{width:17px;height:17px;flex-shrink:0;color:hsl(var(--muted-foreground))}
-.tok-home-hero__input-row input{width:100%;min-width:0;min-height:38px;border:0;background:transparent;font-size:16px;color:inherit;border-radius:4px}
-.tok-home-hero__input-row input::placeholder{color:hsl(var(--muted-foreground));opacity:1}
-.tok-home-hero__cta{grid-column:1/-1;display:flex;justify-content:center;align-items:center;gap:.8rem;min-height:48px;border-radius:.7rem;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-weight:700;transition:filter .2s}
-.tok-home-hero__cta:hover{filter:brightness(.92)}
-.tok-home-hero__cta svg{width:18px;height:18px}
-.tok-home-hero :is(input,button,a):focus-visible,.tok-home-hero__secondary :is(button,a):focus-visible{outline:3px solid hsl(var(--ring));outline-offset:4px}
-.tok-home-hero__reassurance{margin:.8rem 0;font-size:.75rem;color:hsl(var(--muted-foreground))}
-.tok-home-hero__signature{display:flex;align-items:center;gap:.55rem;margin-top:1.5rem;font-size:.8rem;line-height:1.5;color:hsl(var(--muted-foreground))}
-.tok-home-hero__signature svg{width:18px;height:18px;flex-shrink:0;color:hsl(var(--primary))}
-.tok-home-hero__art{position:relative;min-width:0;height:460px;overflow:hidden;border-radius:8rem 1.5rem 1.5rem 1.5rem;background:#fae8db}
-.tok-home-hero__background,.tok-home-hero__background img{display:block;width:100%;height:100%;object-fit:cover;object-position:67% center}
-.tok-home-hero__art-caption{position:absolute;bottom:0;left:0;right:0;padding:4rem 1.8rem 1.8rem;color:white;background:linear-gradient(transparent,rgba(36,27,20,.8))}
-.tok-home-hero__art-caption span{font-size:.65rem;text-transform:uppercase;letter-spacing:.18em}
-.tok-home-hero__art-caption p{margin-top:.5rem;font-family:'Playfair Display',Georgia,serif;font-size:1.8rem;line-height:1.15}
-.tok-home-hero__secondary{display:flex;align-items:center;justify-content:space-between;gap:1.25rem;flex-wrap:wrap;max-width:1216px;margin:0 auto;padding:1rem 0 1.5rem;border-bottom:1px solid hsl(var(--border));font-size:.8rem;color:hsl(var(--muted-foreground))}
-.tok-home-hero__secondary>a{display:inline-flex;gap:.4rem;align-items:center;min-height:44px;font-weight:600}
-.tok-home-hero__newsletter{display:flex;align-items:center;flex-wrap:wrap;gap:.65rem}
-.tok-home-hero__newsletter button,.tok-home-hero__newsletter a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:3px}
-.tok-home-hero__newsletter a{font-weight:700;color:hsl(var(--primary))}
-@media(max-width:1279px){.tok-home-hero__secondary{margin:0 2rem}}
-@media(max-width:900px){.tok-home-hero{gap:1.5rem;padding:1.8rem 1.5rem}.tok-home-hero__art{height:420px}.tok-home-hero__form{grid-template-columns:1fr}.tok-home-hero__field--city{border-left:0;border-top:1px solid hsl(var(--border))}.tok-home-hero__secondary{margin:0 1.5rem}}
-@media(max-width:650px){.tok-home-hero{grid-template-columns:1fr;padding:1.5rem 1.25rem;gap:1.25rem}.tok-home-hero__brand{margin-bottom:1rem}.tok-home-hero__title{font-size:2.65rem}.tok-home-hero__intro{font-size:1rem;margin:1rem 0 1.2rem}.tok-home-hero__form{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}.tok-home-hero__field--city{border-top:0;border-left:1px solid hsl(var(--border))}.tok-home-hero__art{height:200px;border-radius:3rem 1rem 1rem 1rem}.tok-home-hero__background img{object-position:65% 44%}.tok-home-hero__art-caption{padding:2rem 1rem 1rem}.tok-home-hero__art-caption p{font-size:1.3rem}.tok-home-hero__signature{margin-top:1rem}.tok-home-hero__secondary{margin:0 1.25rem;padding-bottom:1rem;gap:.25rem}}
-@media(max-width:370px){.tok-home-hero{padding:1.25rem 1rem}.tok-home-hero__form{grid-template-columns:1fr}.tok-home-hero__field--city{border-left:0;border-top:1px solid hsl(var(--border))}.tok-home-hero__secondary{margin:0 1rem}}
-@media(prefers-reduced-motion:reduce){.tok-home-hero *{transition:none!important}}
-
-@media(min-width:901px){
-  .tok-home-hero{padding-top:1.6rem;padding-bottom:1.4rem;gap:2rem}
-  .tok-home-hero__brand{margin-bottom:.8rem}
-  .tok-home-hero__title{font-size:clamp(2.8rem,4.5vw,4rem)}
-  .tok-home-hero__intro{margin:.9rem 0 1.2rem;font-size:1rem}
-  .tok-home-hero__form{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) auto;gap:.25rem;padding:.5rem}
-  .tok-home-hero__cta{grid-column:auto;padding:0 .8rem;gap:.3rem;font-size:.85rem;align-self:stretch}
-  .tok-home-hero__signature{margin-top:1rem}
-  .tok-home-hero__art{height:390px}
-  .tok-home-hero__secondary{padding-top:.6rem;padding-bottom:.8rem}
+/* TOK public homepage — desktop editorial hero and mobile immersive hero. */
+.tok-home-hero{--tok-home-orange:#c94208;--tok-home-ink:#26221e;--tok-home-paper:#fbf8f3;--tok-home-muted:#696564;display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);align-items:center;gap:clamp(16px,2.5vw,40px);max-width:1440px;margin:0 auto;padding:22px 24px 24px;color:var(--tok-home-ink)}
+.tok-home-hero__content{min-width:0;z-index:2}
+.tok-home-hero__brand{margin:0 0 12px}
+.tok-home-hero__eyebrow{color:var(--tok-home-orange);text-transform:uppercase;letter-spacing:.28em;font-size:11px;font-weight:700}
+.tok-home-hero__title{margin:0;font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:clamp(45px,4.7vw,77px);line-height:1.02;letter-spacing:-.058em}
+.tok-home-hero__title span{color:var(--tok-home-orange);font-style:italic;font-weight:400;white-space:nowrap}
+.tok-home-hero__intro{max-width:570px;margin:16px 0 26px;font-size:clamp(15px,1.15vw,20px);line-height:1.45;color:var(--tok-home-muted)}
+.tok-home-hero__form{position:relative;z-index:3;display:grid;grid-template-columns:minmax(0,1.28fr) minmax(0,.86fr) 148px;gap:0;align-items:stretch;width:min(755px,calc(100vw - 48px));min-height:80px;padding:7px;background:#fff;border:1px solid #eae1d9;border-radius:16px;box-shadow:0 10px 36px rgb(65 39 20 / 10%)}
+.tok-home-hero__field{min-width:0;display:flex;justify-content:center;flex-direction:column;padding:4px 13px}
+.tok-home-hero__field label{display:block;margin-bottom:5px;font-size:12px;font-weight:700;color:#272421}
+.tok-home-hero__field label span{font-weight:400;color:#88817d}
+.tok-home-hero__field--city{border-left:1px solid #e7e2dc}
+.tok-home-hero__input-row{display:flex;align-items:center;gap:10px}
+.tok-home-hero__input-row svg{width:18px;height:18px;flex-shrink:0;color:#54504d}
+.tok-home-hero__input-row input{display:block;width:100%;min-width:0;min-height:31px;padding:0;border:0;outline:none;background:transparent;color:#272421;font-size:16px}
+.tok-home-hero__input-row input::placeholder{color:#77747a;opacity:1}
+.tok-home-hero__cta{display:flex;justify-content:center;align-items:center;gap:12px;padding:12px 18px;background:var(--tok-home-orange);color:#fff;border-radius:11px;font-size:14px;font-weight:700;transition:background .2s ease,transform .2s ease}
+.tok-home-hero__cta:hover{background:#a93805;transform:translateY(-1px)}
+.tok-home-hero__cta svg{width:18px;height:18px;flex-shrink:0}
+.tok-home-hero__filters{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 0}
+.tok-home-hero__filters a{display:inline-flex;min-height:36px;align-items:center;gap:8px;padding:5px 13px;border:1px solid #e7e0d8;border-radius:40px;color:#514c48;font-size:12px;background:transparent;transition:border-color .2s ease,background .2s ease}
+.tok-home-hero__filters a:hover{background:#fff4e9;border-color:#d98351}
+.tok-home-hero__filters svg{width:17px;height:17px;color:var(--tok-home-orange)}
+.tok-home-hero :is(input,button,a):focus-visible,.tok-home-hero__secondary :is(button,a):focus-visible,.tok-or-banner:focus-visible{outline:3px solid hsl(var(--ring));outline-offset:3px}
+.tok-home-hero__art{min-width:0;overflow:hidden;height:clamp(340px,30vw,455px);border-radius:25px;background:#f6dfc9}
+.tok-home-hero__background,.tok-home-hero__background img{display:block;width:100%;height:100%}
+.tok-home-hero__background img{object-fit:cover;object-position:center center}
+.tok-home-hero__secondary{--tok-home-orange:#c94208;display:flex;max-width:none;width:100%;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:15px max(24px,calc((100vw - 1392px)/2));border-top:1px solid #eee5db;border-bottom:1px solid #eee5db;color:#77716b;font-size:13px}
+.tok-home-hero__signature{display:flex;align-items:center;gap:12px;max-width:410px;line-height:1.5}
+.tok-home-hero__signature svg{flex-shrink:0;width:21px;height:21px;color:var(--tok-home-orange)}
+.tok-home-hero__pro-link{font-weight:600;min-height:40px;display:inline-flex;align-items:center;gap:4px}
+.tok-home-hero__newsletter{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.tok-home-hero__newsletter p{line-height:1.45}
+.tok-home-hero__newsletter strong{color:#34302c}
+.tok-home-hero__mail-icon{width:22px;height:22px;flex-shrink:0;color:var(--tok-home-orange)}
+.tok-home-hero__newsletter button{min-height:40px;text-decoration:underline;text-underline-offset:3px}
+.tok-home-hero__newsletter a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:7px 18px;border:1px solid var(--tok-home-orange);color:var(--tok-home-orange);border-radius:11px;font-weight:700;white-space:nowrap}
+.tok-home-hero__newsletter a:hover{background:#fff1e8}
+.tok-or-banner-shell{max-width:1440px;padding:14px 24px 0;margin:0 auto}
+.tok-or-banner{position:relative;display:flex;min-height:124px;align-items:center;justify-content:space-between;gap:24px;overflow:hidden;padding:20px 42px;border-radius:17px;color:#fff;background:linear-gradient(90deg,#923000 0%,#c95312 42%,rgba(66,20,6,.5) 100%),url('/images/home/tok-leman-signature.webp') center 68% / cover;transition:filter .2s ease}
+.tok-or-banner:hover{filter:brightness(1.08)}
+.tok-or-banner__brand{display:flex;align-items:center;flex:0 0 auto;gap:12px;border-right:1px solid #ffffff66;padding-right:28px;font-family:'Playfair Display',Georgia,serif;font-size:clamp(24px,3vw,38px);font-weight:700;line-height:1}
+.tok-or-banner__body{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:14px;font-family:'Playfair Display',Georgia,serif;font-size:clamp(17px,1.6vw,23px);line-height:1.15}
+.tok-or-banner__cta{display:inline-flex;align-items:center;gap:8px;padding:8px 17px;border-radius:40px;background:#fff8f0;color:#a9410c;font:700 13px system-ui,sans-serif}
+.tok-home-cuisine-strip{padding-top:20px!important}
+.tok-home-cuisine-strip [data-section-showcase-header]{border-bottom:0;padding-bottom:0}
+.tok-home-cuisine-strip [data-section-showcase-header] h2{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:clamp(26px,2.4vw,37px)}
+.dark .tok-home-hero{--tok-home-ink:#fcf4eb;--tok-home-muted:#c3b8ae;--tok-home-orange:#ff9866}
+.dark .tok-home-hero__form{border-color:#39312b;background:#251e1a}
+.dark .tok-home-hero__field label,.dark .tok-home-hero__input-row input{color:#f8ecdf}
+.dark .tok-home-hero__input-row input::placeholder{color:#b4aaa4}
+.dark .tok-home-hero__filters a{color:#f3e9df;border-color:#584337}
+.dark .tok-home-hero__secondary{--tok-home-orange:#ff9866}
+.dark .tok-home-hero__newsletter strong{color:#f8ede1}
+.dark .tok-home-hero__newsletter a:hover{background:#4c2c22}
+@media(max-width:1199px) and (min-width:768px){.tok-home-hero{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.tok-home-hero__title{font-size:clamp(39px,4.5vw,59px)}.tok-home-hero__form{width:min(635px,calc(100vw - 48px));grid-template-columns:minmax(0,1fr) minmax(0,.8fr) 130px}.tok-home-hero__art{height:380px}.tok-home-hero__secondary{gap:12px}.tok-home-hero__pro-link{display:none}}
+@media(max-width:767px){
+/* Keep the functional utility bar, but reclaim the optional intro strip on the homepage only. */
+body:has(.tok-home-hero) [data-testid="mobile-logo-intro"]{display:none}
+.tok-home-hero{display:flex;flex-direction:column;gap:0;max-width:none;margin:0;padding:0;background:var(--tok-home-paper)}
+/* The art is pre-composed so the chef, the Jet d'Eau and the plate fit within this shorter viewport. */
+.tok-home-hero__art{position:relative;isolation:isolate;order:-1;width:100%;height:clamp(315px,42svh,425px);border-radius:20px 20px 0 0}
+/* The supplied portrait image keeps its original 941:1672 proportions. Crop only through CSS, never stretch. */
+.tok-home-hero__background img{object-fit:cover;object-position:50% 50%}
+/* Feather the lower photo edge: a gradually blurred layer below a separate paper-color fade.
+   Keep the chef and plate sharp above the transition and avoid a hard white seam. */
+.tok-home-hero__art::before{
+content:"";position:absolute;z-index:1;inset:auto 0 0;height:clamp(74px,24vw,106px);pointer-events:none;
+-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+-webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.18) 35%,black 100%);
+mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.18) 35%,black 100%);
 }
+.tok-home-hero__art::after{
+content:"";position:absolute;z-index:2;inset:auto 0 0;height:clamp(88px,27vw,118px);pointer-events:none;
+background:linear-gradient(to bottom,
+transparent 0%,
+color-mix(in srgb,var(--tok-home-paper) 8%,transparent) 24%,
+color-mix(in srgb,var(--tok-home-paper) 32%,transparent) 50%,
+color-mix(in srgb,var(--tok-home-paper) 75%,transparent) 79%,
+var(--tok-home-paper) 100%);
+}
+.tok-home-hero__content{position:relative;width:100%;margin-top:-26px;padding:22px 14px 10px;text-align:center;background:linear-gradient(to bottom,color-mix(in srgb,var(--tok-home-paper) 18%,transparent),var(--tok-home-paper) 46px)}
+.tok-home-hero__brand{display:none}
+.tok-home-hero__title{font-size:clamp(34px,9.6vw,47px);line-height:1.01;letter-spacing:-.054em}
+.tok-home-hero__title span{white-space:normal}
+.tok-home-hero__intro{max-width:510px;margin:8px auto 11px;font-size:clamp(13px,3.3vw,17px);line-height:1.36}
+.tok-home-hero__form{display:flex;flex-direction:column;gap:7px;width:min(530px,100%);min-height:0;margin:0 auto;padding:0;border:0;background:transparent;box-shadow:none}
+.tok-home-hero__field,.tok-home-hero__field--city{display:block;order:2;min-height:46px;padding:5px 12px;border:1px solid #e9dfd4;border-radius:12px;background:#fff;box-shadow:0 5px 16px #412d1a0b}
+.tok-home-hero__field--city{order:1}
+.tok-home-hero__field label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.tok-home-hero__input-row{height:34px;gap:11px}
+.tok-home-hero__input-row svg{height:20px;width:20px}
+.tok-home-hero__input-row input{font-size:16px;min-height:32px}
+.tok-home-hero__cta{order:3;min-height:48px;margin-top:0;font-size:15px;border-radius:12px}
+.tok-home-hero__filters{display:none}
+.tok-home-hero__secondary{gap:0;padding:8px 12px;border-color:#e9dfd4}
+.tok-home-hero__signature,.tok-home-hero__pro-link{display:none}
+.tok-home-hero__newsletter{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:3px 8px;width:100%;font-size:12px;line-height:1.3}
+.tok-home-hero__newsletter p{grid-column:2;align-self:center;line-height:1.3}
+.tok-home-hero__newsletter button{grid-column:2;justify-self:start;min-height:18px;font-size:11px}
+.tok-home-hero__newsletter a{grid-column:3;grid-row:1/3;min-height:40px;padding:7px 10px;align-self:center;background:#bd4107;color:white;border:0;font-size:12px}
+.tok-home-hero__mail-icon{grid-column:1;grid-row:1/3;align-self:center;width:20px;height:20px}
+.tok-or-banner-shell{padding:15px 16px 0}
+.tok-or-banner{min-height:108px;padding:15px 19px;gap:8px}
+.tok-or-banner__brand{font-size:23px;padding-right:12px}
+.tok-or-banner__body{font-size:15px}
+.tok-or-banner__cta{font-size:11px}
+.dark .tok-home-hero{--tok-home-paper:#171411}
+.dark .tok-home-hero__content{background:linear-gradient(to bottom,rgba(23,20,17,.24),#171411 42px)}
+}
+@media(max-width:380px){
+.tok-home-hero__title{font-size:clamp(32px,9.2vw,36px)}
+.tok-home-hero__intro{font-size:12px}
+.tok-home-hero__newsletter{grid-template-columns:19px minmax(0,1fr) auto;gap:2px 5px;font-size:11px}
+.tok-home-hero__newsletter a{font-size:11px;padding:6px 8px}
+.tok-or-banner__brand{font-size:19px}
+}
+@media(max-width:767px) and (max-height:760px){
+.tok-home-hero__art{height:clamp(260px,40svh,318px)}
+.tok-home-hero__intro{margin:6px auto 8px}
+.tok-home-hero__content{padding-bottom:8px}
+}
+@media(prefers-reduced-motion:reduce){.tok-home-hero__cta,.tok-or-banner{transition:none}}

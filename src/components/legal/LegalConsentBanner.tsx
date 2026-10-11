@@ -62,7 +62,8 @@ export default function LegalConsentBanner() {
         type="button"
         onClick={() => { setDetails(true); setOpen(true); }}
         className={cn(
-          "fixed z-[1300] inline-flex max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-full border border-border/80 bg-background/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur-xl hover:border-primary/60 hover:text-primary",
+          "fixed z-[1300] max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-full border border-border/80 bg-background/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur-xl hover:border-primary/60 hover:text-primary",
+          pathname === "/" ? "hidden lg:inline-flex" : "inline-flex",
           "left-[calc(env(safe-area-inset-left,0px)+0.75rem)] md:bottom-4 md:left-4",
           isRestaurantMobileOverview
             ? "bottom-[calc(env(safe-area-inset-bottom,0px)+5.25rem)]"

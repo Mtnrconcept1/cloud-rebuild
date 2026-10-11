@@ -625,8 +625,19 @@ export default function Index() {
 
   return (
     <main className="min-h-screen pb-20">
-      <HeroSection contentVisible={isVisible} />
-      <CuisineCategoryStrip />
+      <HeroSection contentVisible={isVisible} activeFeatures={activeFeatures} />
+      {activeFeatures.has("chefs-table") ? (
+        <section className="tok-or-banner-shell" aria-label="La TOK d’Or">
+          <Link to="/chefs-table" className="tok-or-banner">
+            <span className="tok-or-banner__brand">LA TOK D’OR</span>
+            <span className="tok-or-banner__body">
+              <span>Des restaurants d’exception à prix doux.</span>
+              <span className="tok-or-banner__cta">Découvrir les offres <ChevronRight aria-hidden="true" size={16} /></span>
+            </span>
+          </Link>
+        </section>
+      ) : null}
+      <CuisineCategoryStrip homeVariant />
       {!isCommercialDemoClient ? (
         <section className="container py-4">
           <CampaignBanner page="home" maxBanners={1} />
