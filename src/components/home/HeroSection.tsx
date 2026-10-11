@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronRight, Heart, Mail, MapPin, Navigation, Percent, Search, ShoppingBag, Users } from "lucide-react";
 
@@ -22,6 +22,31 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
   const [searchQuery, setSearchQuery] = useState("");
   const [city, setCity] = useState("");
   const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
+  const firstScreenRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const firstScreen = firstScreenRef.current;
+    if (!firstScreen) return;
+
+    // Measure the flow position, including the utility bar and native safe area.
+    // A scrolling header can translate away without changing this position.
+    const updateTop = () => {
+      const top = Math.max(0, firstScreen.getBoundingClientRect().top + window.scrollY);
+      firstScreen.style.setProperty("--tok-home-viewport-top", `${top}px`);
+    };
+    updateTop();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateTop) : null;
+    const header = document.querySelector(".tok-site-header");
+    if (header) {
+      observer?.observe(header, { box: "border-box" });
+      if (header.previousElementSibling) observer?.observe(header.previousElementSibling, { box: "border-box" });
+    }
+    window.addEventListener("resize", updateTop);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updateTop);
+    };
+  }, []);
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -33,65 +58,67 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
 
   return (
     <>
-      <section
-        className="tok-home-hero"
-        aria-labelledby="home-hero-title"
-        data-content-visible={contentVisible}
-        data-authenticated={Boolean(user)}
-      >
-        <div className="tok-home-hero__content">
-          <div className="tok-home-hero__brand">
-            <p className="tok-home-hero__eyebrow">Le goût de se retrouver</p>
+      <div ref={firstScreenRef} className="tok-home-first-screen">
+        <section
+          className="tok-home-hero"
+          aria-labelledby="home-hero-title"
+          data-content-visible={contentVisible}
+          data-authenticated={Boolean(user)}
+        >
+          <div className="tok-home-hero__content">
+            <div className="tok-home-hero__brand">
+              <p className="tok-home-hero__eyebrow">Le goût de se retrouver</p>
+            </div>
+            <h1 id="home-hero-title" className="tok-home-hero__title">
+              Votre prochaine<br /><span>bonne adresse.</span>
+            </h1>
+            <p className="tok-home-hero__intro">
+              Une table, un repas à emporter, une nouvelle envie. Trouvez le restaurant qui vous correspond.
+            </p>
+            <form role="search" aria-label="Rechercher un restaurant" onSubmit={handleSearch} className="tok-home-hero__form">
+              <div className="tok-home-hero__field">
+                <label htmlFor="home-restaurant-search">Restaurant ou cuisine</label>
+                <div className="tok-home-hero__input-row">
+                  <Search aria-hidden="true" />
+                  <input id="home-restaurant-search" name="q" type="search" enterKeyHint="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="De quoi avez-vous envie ?" />
+                </div>
+              </div>
+              <div className="tok-home-hero__field tok-home-hero__field--city">
+                <label htmlFor="home-city-search">Où ? <span>(facultatif)</span></label>
+                <div className="tok-home-hero__input-row">
+                  <MapPin aria-hidden="true" />
+                  <input id="home-city-search" name="city" type="text" autoComplete="address-level2" value={city} onChange={(event) => setCity(event.target.value)} placeholder="Genève" />
+                </div>
+              </div>
+              <button type="submit" className="tok-home-hero__cta">
+                <span>Rechercher</span><ArrowRight aria-hidden="true" />
+              </button>
+            </form>
+            <nav className="tok-home-hero__filters" aria-label="Accès rapides aux restaurants">
+              <Link to="/recherche"><Navigation aria-hidden="true" /> Autour de moi</Link>
+              {activeFeatures.has("ventes-flash") ? <Link to="/ventes-flash"><Percent aria-hidden="true" /> Offres</Link> : null}
+              <Link to="/recherche"><ShoppingBag aria-hidden="true" /> À emporter</Link>
+              {activeFeatures.has("chefs-table") ? <Link to="/chefs-table"><Users aria-hidden="true" /> Grandes tables</Link> : null}
+            </nav>
           </div>
-          <h1 id="home-hero-title" className="tok-home-hero__title">
-            Votre prochaine<br /><span>bonne adresse.</span>
-          </h1>
-          <p className="tok-home-hero__intro">
-            Une table, un repas à emporter, une nouvelle envie. Trouvez le restaurant qui vous correspond.
-          </p>
-          <form role="search" aria-label="Rechercher un restaurant" onSubmit={handleSearch} className="tok-home-hero__form">
-            <div className="tok-home-hero__field">
-              <label htmlFor="home-restaurant-search">Restaurant ou cuisine</label>
-              <div className="tok-home-hero__input-row">
-                <Search aria-hidden="true" />
-                <input id="home-restaurant-search" name="q" type="search" enterKeyHint="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="De quoi avez-vous envie ?" />
-              </div>
-            </div>
-            <div className="tok-home-hero__field tok-home-hero__field--city">
-              <label htmlFor="home-city-search">Où ? <span>(facultatif)</span></label>
-              <div className="tok-home-hero__input-row">
-                <MapPin aria-hidden="true" />
-                <input id="home-city-search" name="city" type="text" autoComplete="address-level2" value={city} onChange={(event) => setCity(event.target.value)} placeholder="Genève" />
-              </div>
-            </div>
-            <button type="submit" className="tok-home-hero__cta">
-              <span>Rechercher</span><ArrowRight aria-hidden="true" />
-            </button>
-          </form>
-          <nav className="tok-home-hero__filters" aria-label="Accès rapides aux restaurants">
-            <Link to="/recherche"><Navigation aria-hidden="true" /> Autour de moi</Link>
-            {activeFeatures.has("ventes-flash") ? <Link to="/ventes-flash"><Percent aria-hidden="true" /> Offres</Link> : null}
-            <Link to="/recherche"><ShoppingBag aria-hidden="true" /> À emporter</Link>
-            {activeFeatures.has("chefs-table") ? <Link to="/chefs-table"><Users aria-hidden="true" /> Grandes tables</Link> : null}
-          </nav>
-        </div>
-        <div className="tok-home-hero__art" aria-hidden="true">
-          <picture className="tok-home-hero__background">
-            <source media="(max-width: 767px)" type="image/webp" srcSet="/images/home/tok-geneve-mobile-fast.webp" width={900} height={1599} />
-            <img src="/images/home/tok-leman-signature-fast.webp" alt="" width={1200} height={675} {...({ fetchpriority: "high" } as const)} loading="eager" decoding="async" />
-          </picture>
-        </div>
-      </section>
-      <aside className="tok-home-hero__secondary" aria-label="Rejoindre TOK">
-        <p className="tok-home-hero__signature"><Heart aria-hidden="true" /><span>Mangez mieux. Faites plus de bien, avec les Miamz solidaires.</span></p>
-        <Link className="tok-home-hero__pro-link" to="/restaurateurs/geneve">Restaurateur ? Découvrez TOK <ChevronRight aria-hidden="true" size={16} /></Link>
-        <div data-testid="mobile-newsletter" className="tok-home-hero__newsletter">
-          <Mail aria-hidden="true" className="tok-home-hero__mail-icon" />
-          <p>Abonnez-vous à notre newsletter et recevez <strong>500 Miamz.</strong></p>
-          <button type="button" onClick={() => setShowNewsletterConditions(true)} aria-haspopup="dialog">Conditions applicables.</button>
-          <Link to="/auth">Inscrivez-vous</Link>
-        </div>
-      </aside>
+          <div className="tok-home-hero__art" aria-hidden="true">
+            <picture className="tok-home-hero__background">
+              <source media="(max-width: 767px)" type="image/webp" srcSet="/images/home/tok-geneve-mobile-fast.webp" width={900} height={1599} />
+              <img src="/images/home/tok-leman-signature-fast.webp" alt="" width={1200} height={675} {...({ fetchpriority: "high" } as const)} loading="eager" decoding="async" />
+            </picture>
+          </div>
+        </section>
+        <aside className="tok-home-hero__secondary" aria-label="Rejoindre TOK">
+          <p className="tok-home-hero__signature"><Heart aria-hidden="true" /><span>Mangez mieux. Faites plus de bien, avec les Miamz solidaires.</span></p>
+          <Link className="tok-home-hero__pro-link" to="/restaurateurs/geneve">Restaurateur ? Découvrez TOK <ChevronRight aria-hidden="true" size={16} /></Link>
+          <div data-testid="mobile-newsletter" className="tok-home-hero__newsletter">
+            <Mail aria-hidden="true" className="tok-home-hero__mail-icon" />
+            <p>Abonnez-vous à notre newsletter et recevez <strong>500 Miamz.</strong></p>
+            <button type="button" onClick={() => setShowNewsletterConditions(true)} aria-haspopup="dialog">Conditions applicables.</button>
+            <Link to="/auth">Inscrivez-vous</Link>
+          </div>
+        </aside>
+      </div>
       <Dialog open={showNewsletterConditions} onOpenChange={setShowNewsletterConditions}>
         <DialogContent className="max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-lg rounded-2xl p-0">
           <DialogHeader className="border-b px-5 pb-4 pt-5 pr-12 text-left sm:px-6">
