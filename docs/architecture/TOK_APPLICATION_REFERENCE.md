@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `2dd6c1c016c4b7591c42d6992366f982171653bddfdeab76fc02e722ce476598`
+- Empreinte SHA-256 des sources indexées : `7d0f594affc5fc5e3738a927b775d4315d594478b23adf49e807f0764f56a33b`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 200 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3391 |
+| exportedSymbols | 3397 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 527 |
-| modules | 1493 |
+| modules | 1496 |
 | pages | 128 |
 | pathLiterals | 629 |
 | publicAssets | 353 |
 | publicEntries | 378 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15845 |
-| repositoryFiles | 2849 |
+| records | 15857 |
+| repositoryFiles | 2852 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -5840,7 +5840,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 213 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 669 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 670 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 57 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5854,14 +5854,14 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 64 |
 | documentation | 6 |
 | edge-function-source | 183 |
-| frontend-component | 250 |
+| frontend-component | 251 |
 | frontend-hook | 22 |
 | frontend-page | 128 |
-| frontend-source | 23 |
+| frontend-source | 24 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 586 |
+| test | 587 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -7329,7 +7329,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (254)</summary>
+<details><summary>frontend-component (255)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -7492,6 +7492,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/list/SortControls.tsx`
 - `src/components/marketing/MarketingHostBoundary.tsx`
 - `src/components/marketing/MarketingMetaConnection.tsx`
+- `src/components/marketing/MarketingPostPreview.tsx`
 - `src/components/marketing/MarketingProtectedRoute.tsx`
 - `src/components/marketing/MarketingShared.tsx`
 - `src/components/marketing/MarketingSourceDiscovery.tsx`
@@ -7748,7 +7749,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (32)</summary>
+<details><summary>frontend-source (33)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -7769,6 +7770,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/marketing/marketingBffClient.ts`
 - `src/marketing/marketingClient.ts`
 - `src/marketing/offsetPage.ts`
+- `src/marketing/postPreview.ts`
 - `src/marketing/types.ts`
 - `src/marketing/useMarketingAutopilot.ts`
 - `src/marketing/useMarketingOperations.ts`
@@ -8399,7 +8401,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (586)</summary>
+<details><summary>test (587)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -8720,6 +8722,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-orchestrator-schema.test.ts`
 - `src/test/marketing-output-geometry.test.ts`
 - `src/test/marketing-outreach-schema.test.ts`
+- `src/test/marketing-post-preview.test.tsx`
 - `src/test/marketing-print-contract.test.ts`
 - `src/test/marketing-print-domain.test.ts`
 - `src/test/marketing-print-entry.test.tsx`

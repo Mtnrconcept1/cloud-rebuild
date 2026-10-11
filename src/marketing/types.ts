@@ -173,6 +173,7 @@ export type MarketingCalendarItem = {
   audienceSize: number;
   approvalStatus: "pending" | "approved" | "rejected";
   content: string;
+  postPreview?: import("./postPreview").MarketingPostPreviewData;
   manualOutcome: "published" | "failed" | null;
   manualNote: string | null;
   publishedAt: string | null;

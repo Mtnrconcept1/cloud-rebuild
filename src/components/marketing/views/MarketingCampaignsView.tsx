@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, Megaphone, Plus, Search, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarClock, Eye, CheckCircle2, Megaphone, Plus, Search, ShieldCheck } from "lucide-react";
 
 import {
   MarketingChannelBadge,
@@ -36,7 +36,7 @@ import {
   type MarketingSnapshot,
 } from "@/marketing/types";
 import type { MarketingUrlState } from "@/marketing/useMarketingUrlState";
-import { marketingZurichLocalDateTimeToIso } from "@/marketing/zurichTime";
+import { marketingMonthRange, marketingZurichDateKey, marketingZurichLocalDateTimeToIso } from "@/marketing/zurichTime";
 
 const PAGE_SIZE = 8;
 const CANTONS = ["CH", "GE", "VD", "VS", "FR", "NE", "JU", "BE", "ZH", "BS", "LU", "AG", "SG", "TI"];
@@ -321,6 +321,10 @@ export default function MarketingCampaignsView({
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-3">
                     <MarketingStatusBadge status={campaign.approvedAt ? "approved" : "pending"} />
+                    <Button type="button" size="sm" variant="outline" onClick={() => {
+                      const range = campaign.startsAt ? marketingMonthRange(marketingZurichDateKey(campaign.startsAt)) : null;
+                      onFiltersChange({ view: "calendar", query: campaign.name.slice(0, 80), status: "all", channel: "all", page: 1, from: range?.from || "", to: range?.to || "" });
+                    }}><Eye className="mr-2 h-4 w-4" />Voir les publications</Button>
                     {!campaign.approvedAt && campaign.status === "draft" ? <Button type="button" size="sm" variant="outline" disabled={!canMutateBackend || pendingAction === `approve-campaign-${campaign.id}`} onClick={() => setApprovalCampaign(campaign)}><ShieldCheck className="mr-2 h-4 w-4" />Approuver la campagne</Button> : null}
                   </div>
                 </CardContent>
