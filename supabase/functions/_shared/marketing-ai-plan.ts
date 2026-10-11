@@ -299,7 +299,7 @@ export function toBundlePayload(
       audience_name: plan.campaign.audience_name.slice(0, 160),
       audience_definition: stripEmptySelectors(plan.campaign.audience_definition),
       timezone: "Europe/Zurich",
-      content: { summary: plan.campaign.summary },
+      content: { summary: plan.campaign.summary, message: plan.campaign.summary },
       metadata: { generated_by: "ai-marketing-agent" },
     },
     items: plan.items.map((item, index) => ({
@@ -317,6 +317,11 @@ export function toBundlePayload(
         call_to_action: item.content.call_to_action,
         hashtags: item.content.hashtags.slice(0, 12),
         visual_url: visuals.get(index) || null,
+        visual_prompt: item.visual_prompt,
+        visual_required: item.channel === "facebook" || item.channel === "instagram" || Boolean(item.visual_prompt),
+        visual_status: visuals.get(index) ? "ready"
+          : item.channel === "facebook" || item.channel === "instagram" || item.visual_prompt
+            ? "pending_generation" : "not_requested",
         ...(visuals.has(index) ? {
           visual_brand_profile: TOK_MARKETING_BRAND_VERSION,
           visual_reference_ids: TOK_MARKETING_REFERENCES.map((reference) => reference.id),

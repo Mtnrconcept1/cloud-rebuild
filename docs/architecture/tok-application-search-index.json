@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "906e8984e9359cc7defe66209725ddf365deddfbe3a17ef6a50c287bd487ee20",
+ "sourceDigest": "2659806bcfae680d92911b73af1240c2591e3245ba0d27dc811273116c506788",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2736,
-  "documents": 201,
+  "documents": 202,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3397,
+  "exportedSymbols": 3399,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 527,
-  "modules": 1498,
+  "modules": 1502,
   "pages": 128,
-  "pathLiterals": 634,
+  "pathLiterals": 637,
   "publicAssets": 357,
   "publicEntries": 382,
   "publicNavigableRoutes": 2,
   "queryParameters": 104,
-  "records": 15880,
-  "repositoryFiles": 2859,
+  "records": 15901,
+  "repositoryFiles": 2864,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -10256,217 +10256,217 @@
    {
     "name": "admin_approve_marketing_campaign",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 48,
+    "line": 49,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_approve_marketing_item",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 49,
+    "line": 50,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_cancel_marketing_item",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 50,
+    "line": 51,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_complete_manual_marketing_delivery",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 51,
+    "line": 52,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_complete_manual_marketing_item",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 52,
+    "line": 53,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_create_marketing_campaign_bundle",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 53,
+    "line": 54,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_estimate_marketing_audience",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 54,
+    "line": 55,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_get_marketing_overview",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 55,
+    "line": 56,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_list_marketing_automations",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 56,
+    "line": 57,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_list_marketing_calendar",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 57,
+    "line": 58,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_list_marketing_campaigns",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 58,
+    "line": 59,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_list_marketing_contacts",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 59,
+    "line": 60,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_list_marketing_deliveries",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 60,
+    "line": 61,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_list_marketing_integrations",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 61,
+    "line": 62,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_reveal_manual_delivery_target",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 62,
+    "line": 63,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_retry_marketing_delivery",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 63,
+    "line": 64,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_set_marketing_global_pause",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 64,
+    "line": 65,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_suppress_marketing_contact",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 65,
+    "line": 66,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_sync_marketing_client_consents",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 66,
+    "line": 67,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_sync_marketing_prospect_catalog",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 67,
+    "line": 68,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_upsert_marketing_automation",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 68,
+    "line": 69,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_upsert_marketing_calendar_item",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 69,
+    "line": 70,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_upsert_marketing_campaign",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 70,
+    "line": 71,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_upsert_marketing_contact",
     "group": "MARKETING_OPERATION_NAMES",
-    "line": 71,
+    "line": 72,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_list_marketing_outreach",
     "group": "MARKETING_OUTREACH_OPERATION_NAMES",
-    "line": 77,
+    "line": 78,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_upsert_marketing_outreach_target",
     "group": "MARKETING_OUTREACH_OPERATION_NAMES",
-    "line": 78,
+    "line": 79,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_upsert_marketing_outreach_opportunity",
     "group": "MARKETING_OUTREACH_OPERATION_NAMES",
-    "line": 79,
+    "line": 80,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_upsert_marketing_outreach_draft",
     "group": "MARKETING_OUTREACH_OPERATION_NAMES",
-    "line": 80,
+    "line": 81,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_approve_marketing_outreach_draft",
     "group": "MARKETING_OUTREACH_OPERATION_NAMES",
-    "line": 81,
+    "line": 82,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_record_marketing_outreach_result",
     "group": "MARKETING_OUTREACH_OPERATION_NAMES",
-    "line": 82,
+    "line": 83,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_upsert_marketing_backlink",
     "group": "MARKETING_OUTREACH_OPERATION_NAMES",
-    "line": 83,
+    "line": 84,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_get_marketing_autopilot_dashboard",
     "group": "MARKETING_AUTOPILOT_OPERATION_NAMES",
-    "line": 95,
+    "line": 96,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_prepare_marketing_automation_action",
     "group": "MARKETING_AUTOPILOT_OPERATION_NAMES",
-    "line": 96,
+    "line": 97,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_simulate_marketing_automation",
     "group": "MARKETING_AUTOPILOT_OPERATION_NAMES",
-    "line": 97,
+    "line": 98,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_update_marketing_provider_control",
     "group": "MARKETING_AUTOPILOT_OPERATION_NAMES",
-    "line": 98,
+    "line": 99,
     "path": "server/marketingBff.ts"
    },
    {
     "name": "admin_upsert_marketing_asset",
     "group": "MARKETING_AUTOPILOT_OPERATION_NAMES",
-    "line": 99,
+    "line": 100,
     "path": "server/marketingBff.ts"
    }
   ],
@@ -19886,7 +19886,7 @@
     "sources": [
      {
       "path": "server/marketingBff.ts",
-      "line": 787
+      "line": 788
      }
     ]
    },
@@ -22236,6 +22236,10 @@
       "line": 169
      },
      {
+      "path": "src/test/marketing-legacy-landing.test.ts",
+      "line": 14
+     },
+     {
       "path": "src/test/route-serving-regression.test.ts",
       "line": 4
      },
@@ -22338,7 +22342,7 @@
     "sources": [
      {
       "path": "server/marketingBff.ts",
-      "line": 736
+      "line": 737
      }
     ]
    },
@@ -22551,6 +22555,31 @@
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 67
+     }
+    ]
+   },
+   {
+    "value": "/marketing_calendar_items?",
+    "sources": [
+     {
+      "path": "src/test/marketing-approval-readiness.test.ts",
+      "line": 30
+     },
+     {
+      "path": "src/test/marketing-approval-readiness.test.ts",
+      "line": 57
+     },
+     {
+      "path": "src/test/marketing-approval-readiness.test.ts",
+      "line": 58
+     },
+     {
+      "path": "src/test/marketing-approval-readiness.test.ts",
+      "line": 70
+     },
+     {
+      "path": "src/test/marketing-approval-readiness.test.ts",
+      "line": 83
      }
     ]
    },
@@ -25354,6 +25383,15 @@
     ]
    },
    {
+    "value": "/restaurateurs-geneve",
+    "sources": [
+     {
+      "path": "src/test/marketing-legacy-landing.test.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
     "value": "/restaurateurs/:city",
     "sources": [
      {
@@ -25505,6 +25543,14 @@
      {
       "path": "src/test/home-hero-search.test.tsx",
       "line": 50
+     },
+     {
+      "path": "src/test/marketing-legacy-landing.test.ts",
+      "line": 8
+     },
+     {
+      "path": "src/test/marketing-legacy-landing.test.ts",
+      "line": 14
      },
      {
       "path": "src/test/route-serving-regression.test.ts",
@@ -25703,6 +25749,15 @@
     ]
    },
    {
+    "value": "/rpc/service_execute_marketing_admin_operation",
+    "sources": [
+     {
+      "path": "src/test/marketing-approval-readiness.test.ts",
+      "line": 31
+     }
+    ]
+   },
+   {
     "value": "/rpc/service_finalize_marketing_web_session",
     "sources": [
      {
@@ -25734,6 +25789,10 @@
      {
       "path": "src/test/marketing-agent-bff.test.ts",
       "line": 24
+     },
+     {
+      "path": "src/test/marketing-approval-readiness.test.ts",
+      "line": 26
      },
      {
       "path": "src/test/marketing-meta-bff.test.ts",
@@ -26267,7 +26326,7 @@
     "sources": [
      {
       "path": "server/marketingBff.ts",
-      "line": 728
+      "line": 729
      }
     ]
    },
@@ -26276,7 +26335,7 @@
     "sources": [
      {
       "path": "server/marketingBff.ts",
-      "line": 717
+      "line": 718
      }
     ]
    },
@@ -26286,6 +26345,14 @@
      {
       "path": "src/test/marketing-agent-bff.test.ts",
       "line": 28
+     },
+     {
+      "path": "src/test/marketing-approval-readiness.test.ts",
+      "line": 29
+     },
+     {
+      "path": "src/test/marketing-approval-readiness.test.ts",
+      "line": 57
      },
      {
       "path": "src/test/marketing-meta-bff.test.ts",
@@ -29737,6 +29804,7 @@
      "src/test/loyalty-status-dialog-layout.test.tsx",
      "src/test/marketing-agent-bff.test.ts",
      "src/test/marketing-ai-agent.test.ts",
+     "src/test/marketing-approval-readiness.test.ts",
      "src/test/marketing-autopilot-sql.test.ts",
      "src/test/marketing-b2b-outreach.test.ts",
      "src/test/marketing-backlink-discovery.test.ts",
@@ -29764,6 +29832,7 @@
      "src/test/marketing-service-auth.test.ts",
      "src/test/marketing-sql-governance.test.ts",
      "src/test/marketing-subdomain-integration.test.ts",
+     "src/test/marketing-visual-allocation.test.ts",
      "src/test/marketplace-finance-routing.test.ts",
      "src/test/match-group-restaurant-payment-guards.test.ts",
      "src/test/meal-formula-service-limits.test.ts",
@@ -30063,6 +30132,7 @@
      "src/test/marketing-bff-security.test.ts",
      "src/test/marketing-bff-vercel-entrypoints.test.ts",
      "src/test/marketing-domain-isolation.test.ts",
+     "src/test/marketing-legacy-landing.test.ts",
      "src/test/marketing-subdomain-integration.test.ts",
      "src/test/mobile-association-hosting.test.ts",
      "src/test/plan-phase1-readiness.test.ts",
@@ -65649,6 +65719,14 @@
   "deployment": {
    "redirects": [
     {
+     "source": "/restaurateurs-geneve",
+     "destination": "/restaurateurs/geneve",
+     "permanent": true,
+     "host": null,
+     "path": "vercel.json",
+     "ordinal": 1
+    },
+    {
      "source": "/",
      "has": [
       {
@@ -65660,7 +65738,7 @@
      "permanent": false,
      "host": "auth.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 1
+     "ordinal": 2
     },
     {
      "source": "/:path*",
@@ -65674,7 +65752,7 @@
      "permanent": false,
      "host": "auth.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 2
+     "ordinal": 3
     },
     {
      "source": "/auth",
@@ -65685,26 +65763,26 @@
       }
      ],
      "destination": "https://www.thetok.ch/auth",
-     "permanent": false,
-     "host": "commercial.thetok.ch",
-     "path": "vercel.json",
-     "ordinal": 3
-    },
-    {
-     "source": "/auth/:path*",
-     "has": [
-      {
-       "type": "host",
-       "value": "commercial.thetok.ch"
-      }
-     ],
-     "destination": "https://www.thetok.ch/auth/:path*",
      "permanent": false,
      "host": "commercial.thetok.ch",
      "path": "vercel.json",
      "ordinal": 4
     },
     {
+     "source": "/auth/:path*",
+     "has": [
+      {
+       "type": "host",
+       "value": "commercial.thetok.ch"
+      }
+     ],
+     "destination": "https://www.thetok.ch/auth/:path*",
+     "permanent": false,
+     "host": "commercial.thetok.ch",
+     "path": "vercel.json",
+     "ordinal": 5
+    },
+    {
      "source": "/auth",
      "has": [
       {
@@ -65716,7 +65794,7 @@
      "permanent": false,
      "host": "admin.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 5
+     "ordinal": 6
     },
     {
      "source": "/auth/:path*",
@@ -65730,7 +65808,7 @@
      "permanent": false,
      "host": "admin.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 6
+     "ordinal": 7
     },
     {
      "source": "/auth",
@@ -65744,7 +65822,7 @@
      "permanent": false,
      "host": "thetok.ch",
      "path": "vercel.json",
-     "ordinal": 7
+     "ordinal": 8
     },
     {
      "source": "/espaces",
@@ -65758,7 +65836,7 @@
      "permanent": false,
      "host": "commercial.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 8
+     "ordinal": 9
     },
     {
      "source": "/espaces",
@@ -65772,7 +65850,7 @@
      "permanent": false,
      "host": "admin.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 9
+     "ordinal": 10
     },
     {
      "source": "/",
@@ -65786,7 +65864,7 @@
      "permanent": false,
      "host": "demo-client.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 10
+     "ordinal": 11
     },
     {
      "source": "/",
@@ -65800,7 +65878,7 @@
      "permanent": false,
      "host": "demo-restaurateur.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 11
+     "ordinal": 12
     },
     {
      "source": "/",
@@ -65814,7 +65892,7 @@
      "permanent": false,
      "host": "demo-livreur.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 12
+     "ordinal": 13
     },
     {
      "source": "/",
@@ -65828,7 +65906,7 @@
      "permanent": false,
      "host": "commercial.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 13
+     "ordinal": 14
     },
     {
      "source": "/",
@@ -65842,7 +65920,7 @@
      "permanent": false,
      "host": "admin.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 14
+     "ordinal": 15
     },
     {
      "source": "/",
@@ -65856,7 +65934,7 @@
      "permanent": false,
      "host": "marketing.thetok.ch",
      "path": "vercel.json",
-     "ordinal": 15
+     "ordinal": 16
     },
     {
      "source": "/admin",
@@ -65867,26 +65945,26 @@
       }
      ],
      "destination": "https://admin.thetok.ch/admin",
-     "permanent": false,
-     "host": "www.thetok.ch",
-     "path": "vercel.json",
-     "ordinal": 16
-    },
-    {
-     "source": "/admin/:path*",
-     "has": [
-      {
-       "type": "host",
-       "value": "www.thetok.ch"
-      }
-     ],
-     "destination": "https://admin.thetok.ch/admin/:path*",
      "permanent": false,
      "host": "www.thetok.ch",
      "path": "vercel.json",
      "ordinal": 17
     },
     {
+     "source": "/admin/:path*",
+     "has": [
+      {
+       "type": "host",
+       "value": "www.thetok.ch"
+      }
+     ],
+     "destination": "https://admin.thetok.ch/admin/:path*",
+     "permanent": false,
+     "host": "www.thetok.ch",
+     "path": "vercel.json",
+     "ordinal": 18
+    },
+    {
      "source": "/admin",
      "has": [
       {
@@ -65898,7 +65976,7 @@
      "permanent": false,
      "host": "thetok.ch",
      "path": "vercel.json",
-     "ordinal": 18
+     "ordinal": 19
     },
     {
      "source": "/admin/:path*",
@@ -65912,7 +65990,7 @@
      "permanent": false,
      "host": "thetok.ch",
      "path": "vercel.json",
-     "ordinal": 19
+     "ordinal": 20
     },
     {
      "source": "/restaurants/carouge-ge/r/fernandes-de-almeida-restaurant-le-par",
@@ -65920,7 +65998,7 @@
      "statusCode": 301,
      "host": null,
      "path": "vercel.json",
-     "ordinal": 20
+     "ordinal": 21
     },
     {
      "source": "/restaurants/carouge/r/fernandes-de-almeida-restaurant-le-par",
@@ -65928,7 +66006,7 @@
      "statusCode": 301,
      "host": null,
      "path": "vercel.json",
-     "ordinal": 21
+     "ordinal": 22
     },
     {
      "source": "/restaurants/carouge-ge",
@@ -65936,7 +66014,7 @@
      "statusCode": 301,
      "host": null,
      "path": "vercel.json",
-     "ordinal": 22
+     "ordinal": 23
     },
     {
      "source": "/restaurants/carouge-ge/:path*",
@@ -65944,7 +66022,7 @@
      "statusCode": 301,
      "host": null,
      "path": "vercel.json",
-     "ordinal": 23
+     "ordinal": 24
     },
     {
      "source": "/sitemap-seo.xml",
@@ -65952,7 +66030,7 @@
      "permanent": true,
      "host": null,
      "path": "vercel.json",
-     "ordinal": 24
+     "ordinal": 25
     },
     {
      "source": "/sitemap_index.xml",
@@ -65960,7 +66038,7 @@
      "permanent": true,
      "host": null,
      "path": "vercel.json",
-     "ordinal": 25
+     "ordinal": 26
     },
     {
      "source": "/sitemap-index.xml",
@@ -65968,7 +66046,7 @@
      "permanent": true,
      "host": null,
      "path": "vercel.json",
-     "ordinal": 26
+     "ordinal": 27
     },
     {
      "source": "/restaurants/vand-uvres",
@@ -65976,7 +66054,7 @@
      "permanent": true,
      "host": null,
      "path": "vercel.json",
-     "ordinal": 27
+     "ordinal": 28
     },
     {
      "source": "/restaurants/vand-uvres/:path*",
@@ -65984,7 +66062,7 @@
      "permanent": true,
      "host": null,
      "path": "vercel.json",
-     "ordinal": 28
+     "ordinal": 29
     },
     {
      "source": "/restaurants/corsier-ge",
@@ -65992,7 +66070,7 @@
      "permanent": true,
      "host": null,
      "path": "vercel.json",
-     "ordinal": 29
+     "ordinal": 30
     },
     {
      "source": "/restaurants/corsier-ge/:path*",
@@ -66000,7 +66078,7 @@
      "permanent": true,
      "host": null,
      "path": "vercel.json",
-     "ordinal": 30
+     "ordinal": 31
     },
     {
      "source": "/:path((?!\\.well-known/(?:apple-app-site-association|assetlinks\\.json)$).*)",
@@ -66014,7 +66092,7 @@
      "permanent": true,
      "host": "thetok.ch",
      "path": "vercel.json",
-     "ordinal": 31
+     "ordinal": 32
     }
    ],
    "rewrites": [
@@ -75445,6 +75523,37 @@
     ]
    },
    {
+    "path": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
+    "title": "TOK marketing publication repair",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK marketing publication repair",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Scope and risk",
+      "line": 3
+     },
+     {
+      "level": 2,
+      "title": "Confirmed causes",
+      "line": 8
+     },
+     {
+      "level": 2,
+      "title": "Changes in order",
+      "line": 17
+     },
+     {
+      "level": 2,
+      "title": "Boundaries and rollout",
+      "line": 40
+     }
+    ]
+   },
+   {
     "path": "docs/superpowers/specs/2026-04-17-reservation-billing-design.md",
     "title": "Facturation des réservations (5.-/resa) & détection anti-fraude",
     "headings": [
@@ -81071,132 +81180,132 @@
     "exports": [
      {
       "name": "MARKETING_HOST",
-      "line": 12,
-      "kind": "variable"
-     },
-     {
-      "name": "MARKETING_ORIGIN",
       "line": 13,
       "kind": "variable"
      },
      {
-      "name": "MARKETING_CSRF_HEADER",
+      "name": "MARKETING_ORIGIN",
       "line": 14,
       "kind": "variable"
      },
      {
-      "name": "MARKETING_SESSION_COOKIE",
-      "line": 16,
+      "name": "MARKETING_CSRF_HEADER",
+      "line": 15,
       "kind": "variable"
      },
      {
-      "name": "MARKETING_CSRF_COOKIE",
+      "name": "MARKETING_SESSION_COOKIE",
       "line": 17,
       "kind": "variable"
      },
      {
-      "name": "MARKETING_PENDING_COOKIE",
+      "name": "MARKETING_CSRF_COOKIE",
       "line": 18,
       "kind": "variable"
      },
      {
+      "name": "MARKETING_PENDING_COOKIE",
+      "line": 19,
+      "kind": "variable"
+     },
+     {
       "name": "MARKETING_OPERATION_NAMES",
-      "line": 47,
+      "line": 48,
       "kind": "variable"
      },
      {
       "name": "MarketingOperation",
-      "line": 74,
+      "line": 75,
       "kind": "typealias"
      },
      {
       "name": "MARKETING_OUTREACH_OPERATION_NAMES",
-      "line": 76,
+      "line": 77,
       "kind": "variable"
      },
      {
       "name": "MarketingOutreachOperation",
-      "line": 86,
+      "line": 87,
       "kind": "typealias"
      },
      {
       "name": "MARKETING_AUTOPILOT_OPERATION_NAMES",
-      "line": 94,
+      "line": 95,
       "kind": "variable"
      },
      {
       "name": "MarketingAutopilotOperation",
-      "line": 102,
+      "line": 103,
       "kind": "typealias"
      },
      {
       "name": "MarketingApiRequest",
-      "line": 114,
+      "line": 115,
       "kind": "interface"
      },
      {
       "name": "MarketingApiResponse",
-      "line": 121,
+      "line": 122,
       "kind": "interface"
      },
      {
       "name": "validateMarketingRequestContext",
-      "line": 203,
+      "line": 204,
       "kind": "function"
      },
      {
       "name": "sha256Hex",
-      "line": 243,
+      "line": 244,
       "kind": "function"
      },
      {
       "name": "parseCookies",
-      "line": 261,
+      "line": 262,
       "kind": "function"
      },
      {
       "name": "marketingLoginHandler",
-      "line": 1842,
+      "line": 1884,
       "kind": "function"
      },
      {
       "name": "marketingMfaEnrollHandler",
-      "line": 1849,
+      "line": 1891,
       "kind": "function"
      },
      {
       "name": "marketingMfaVerifyHandler",
-      "line": 1856,
+      "line": 1898,
       "kind": "function"
      },
      {
       "name": "marketingLogoutHandler",
-      "line": 1863,
+      "line": 1905,
       "kind": "function"
      },
      {
       "name": "marketingSessionHandler",
-      "line": 1874,
+      "line": 1916,
       "kind": "function"
      },
      {
       "name": "marketingRpcHandler",
-      "line": 1890,
+      "line": 1932,
       "kind": "function"
      },
      {
       "name": "marketingOrchestratorHandler",
-      "line": 1897,
+      "line": 1939,
       "kind": "function"
      },
      {
       "name": "marketingAgentHandler",
-      "line": 1904,
+      "line": 1946,
       "kind": "function"
      },
      {
       "name": "marketingLaunchHandler",
-      "line": 1911,
+      "line": 1953,
       "kind": "function"
      }
     ],
@@ -81214,7 +81323,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 1917
+    "lineCount": 1959
    },
    {
     "path": "src/App.tsx",
@@ -102635,7 +102744,16 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 300
+    "lineCount": 324
+   },
+   {
+    "path": "src/test/marketing-approval-readiness.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 92
    },
    {
     "path": "src/test/marketing-autopilot-frontend.test.tsx",
@@ -102784,6 +102902,15 @@
     "lineCount": 28
    },
    {
+    "path": "src/test/marketing-legacy-landing.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "vercel"
+    ],
+    "lineCount": 17
+   },
+   {
     "path": "src/test/marketing-meta-bff.test.ts",
     "exports": [],
     "environmentNames": [
@@ -102817,7 +102944,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 338
+    "lineCount": 383
    },
    {
     "path": "src/test/marketing-meta-recovery.test.ts",
@@ -103009,6 +103136,15 @@
      "vercel"
     ],
     "lineCount": 172
+   },
+   {
+    "path": "src/test/marketing-visual-allocation.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 28
    },
    {
     "path": "src/test/marketing-zurich-time.test.ts",
@@ -106124,7 +106260,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 329
+    "lineCount": 334
    },
    {
     "path": "supabase/functions/_shared/marketing-ai.ts",
@@ -106336,6 +106472,19 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 61
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-visual-allocation.ts",
+    "exports": [
+     {
+      "name": "allocateMarketingVisuals",
+      "line": 2,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 25
    },
    {
     "path": "supabase/functions/_shared/marketing-visual.ts",
@@ -106626,48 +106775,53 @@
      },
      {
       "name": "MetaPublishingConfig",
-      "line": 11,
+      "line": 14,
       "kind": "typealias"
      },
      {
       "name": "MetaPublishResult",
-      "line": 19,
+      "line": 22,
       "kind": "typealias"
      },
      {
       "name": "META_REQUEST_TIMEOUT_MS",
-      "line": 28,
+      "line": 31,
       "kind": "variable"
      },
      {
       "name": "MetaPublishError",
-      "line": 40,
+      "line": 43,
       "kind": "class"
      },
      {
       "name": "buildMetaCaption",
-      "line": 80,
+      "line": 83,
       "kind": "function"
      },
      {
       "name": "normalizeMetaMediaUrl",
-      "line": 108,
+      "line": 129,
+      "kind": "function"
+     },
+     {
+      "name": "validateMetaMediaContent",
+      "line": 154,
       "kind": "function"
      },
      {
       "name": "validateMetaPublishingConfig",
-      "line": 132,
+      "line": 166,
       "kind": "function"
      },
      {
       "name": "publishMetaContent",
-      "line": 317,
+      "line": 351,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 425
+    "lineCount": 459
    },
    {
     "path": "supabase/functions/_shared/notifications.ts",
@@ -108524,7 +108678,7 @@
     "integrations": [
      "openai"
     ],
-    "lineCount": 297
+    "lineCount": 288
    },
    {
     "path": "supabase/functions/ai-restaurant-agent/index.ts",
@@ -111707,6 +111861,11 @@
    },
    {
     "path": "docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -119021,6 +119180,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/marketing-approval-readiness.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/marketing-autopilot-frontend.test.tsx",
     "category": "test",
     "extension": ".tsx"
@@ -119097,6 +119261,11 @@
    },
    {
     "path": "src/test/marketing-image-output.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/marketing-legacy-landing.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -119222,6 +119391,11 @@
    },
    {
     "path": "src/test/marketing-subdomain-integration.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/marketing-visual-allocation.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -120652,6 +120826,11 @@
    },
    {
     "path": "supabase/functions/_shared/marketing-unsubscribe-token.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-visual-allocation.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -126142,7 +126321,7 @@
    "id": "code-module:e80a711be244",
    "type": "code-module",
    "title": "server/marketingBff.ts",
-   "description": "Module de 1917 lignes; exports: MARKETING_HOST, MARKETING_ORIGIN, MARKETING_CSRF_HEADER, MARKETING_SESSION_COOKIE, MARKETING_CSRF_COOKIE, MARKETING_PENDING_COOKIE, MARKETING_OPERATION_NAMES, MarketingOperation, MARKETING_OUTREACH_OPERATION_NAMES, MarketingOutreachOperation, MARKETING_AUTOPILOT_OPERATION_NAMES, MarketingAutopilotOperation, MarketingApiRequest, MarketingApiResponse, validateMarketingRequestContext, sha256Hex, parseCookies, marketingLoginHandler, marketingMfaEnrollHandler, marketingMfaVerifyHandler, marketingLogoutHandler, marketingSessionHandler, marketingRpcHandler, marketingOrchestratorHandler, marketingAgentHandler, marketingLaunchHandler.",
+   "description": "Module de 1959 lignes; exports: MARKETING_HOST, MARKETING_ORIGIN, MARKETING_CSRF_HEADER, MARKETING_SESSION_COOKIE, MARKETING_CSRF_COOKIE, MARKETING_PENDING_COOKIE, MARKETING_OPERATION_NAMES, MarketingOperation, MARKETING_OUTREACH_OPERATION_NAMES, MarketingOutreachOperation, MARKETING_AUTOPILOT_OPERATION_NAMES, MarketingAutopilotOperation, MarketingApiRequest, MarketingApiResponse, validateMarketingRequestContext, sha256Hex, parseCookies, marketingLoginHandler, marketingMfaEnrollHandler, marketingMfaVerifyHandler, marketingLogoutHandler, marketingSessionHandler, marketingRpcHandler, marketingOrchestratorHandler, marketingAgentHandler, marketingLaunchHandler.",
    "path": "server/marketingBff.ts",
    "line": 1,
    "surface": null,
@@ -126184,7 +126363,7 @@
     "validateMarketingRequestContext",
     "vercel"
    ],
-   "detailRef": "d7ed7f9263ae"
+   "detailRef": "bc8c3edd2ec6"
   },
   {
    "id": "code-module:fe5a8fc33137",
@@ -140318,7 +140497,7 @@
    "id": "code-module:f1aadb4d91ba",
    "type": "code-module",
    "title": "src/test/marketing-ai-agent.test.ts",
-   "description": "Module de 300 lignes; exports: aucun export statique.",
+   "description": "Module de 324 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-ai-agent.test.ts",
    "line": 1,
    "surface": null,
@@ -140327,7 +140506,20 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "708e516ca6a7"
+   "detailRef": "2d966bc2231e"
+  },
+  {
+   "id": "code-module:976170c43393",
+   "type": "code-module",
+   "title": "src/test/marketing-approval-readiness.test.ts",
+   "description": "Module de 92 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-approval-readiness.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "112a78020ed2"
   },
   {
    "id": "code-module:6406b6c9d347",
@@ -140539,6 +140731,19 @@
    "detailRef": "e26d8131954e"
   },
   {
+   "id": "code-module:04928946f7dc",
+   "type": "code-module",
+   "title": "src/test/marketing-legacy-landing.test.ts",
+   "description": "Module de 17 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-legacy-landing.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "vercel"
+   ],
+   "detailRef": "f5b520d4bec9"
+  },
+  {
    "id": "code-module:f535d44e8ca1",
    "type": "code-module",
    "title": "src/test/marketing-meta-bff.test.ts",
@@ -140580,14 +140785,14 @@
    "id": "code-module:753692db5732",
    "type": "code-module",
    "title": "src/test/marketing-meta-publishing.test.ts",
-   "description": "Module de 338 lignes; exports: aucun export statique.",
+   "description": "Module de 383 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-meta-publishing.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "c3ef0f2a25a6"
+   "detailRef": "f6d8e18474bf"
   },
   {
    "id": "code-module:6fe326c3286a",
@@ -140861,6 +141066,19 @@
     "vercel"
    ],
    "detailRef": "d3f3698da915"
+  },
+  {
+   "id": "code-module:c2bc3df76680",
+   "type": "code-module",
+   "title": "src/test/marketing-visual-allocation.test.ts",
+   "description": "Module de 28 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-visual-allocation.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "289dd8304849"
   },
   {
    "id": "code-module:9d4b0651ffe8",
@@ -144397,7 +144615,7 @@
    "id": "code-module:adb722f71bc6",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "description": "Module de 329 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MAX_PLAN_ITEMS, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload.",
+   "description": "Module de 334 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MAX_PLAN_ITEMS, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
    "line": 1,
    "surface": null,
@@ -144416,7 +144634,7 @@
     "toBundlePayload",
     "validatePlan"
    ],
-   "detailRef": "90fe1c9449c6"
+   "detailRef": "bbf63f191379"
   },
   {
    "id": "code-module:c71bdc6fa97b",
@@ -144549,6 +144767,19 @@
    "detailRef": "5ba7791789f1"
   },
   {
+   "id": "code-module:3bc285ebb141",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/marketing-visual-allocation.ts",
+   "description": "Module de 25 lignes; exports: allocateMarketingVisuals.",
+   "path": "supabase/functions/_shared/marketing-visual-allocation.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "allocateMarketingVisuals"
+   ],
+   "detailRef": "081d60c1a172"
+  },
+  {
    "id": "code-module:972beba2be23",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-visual.ts",
@@ -144674,7 +144905,7 @@
    "id": "code-module:17928ca294e1",
    "type": "code-module",
    "title": "supabase/functions/_shared/meta-publishing.ts",
-   "description": "Module de 425 lignes; exports: MetaChannel, MetaSocialContent, MetaPublishingConfig, MetaPublishResult, META_REQUEST_TIMEOUT_MS, MetaPublishError, buildMetaCaption, normalizeMetaMediaUrl, validateMetaPublishingConfig, publishMetaContent.",
+   "description": "Module de 459 lignes; exports: MetaChannel, MetaSocialContent, MetaPublishingConfig, MetaPublishResult, META_REQUEST_TIMEOUT_MS, MetaPublishError, buildMetaCaption, normalizeMetaMediaUrl, validateMetaMediaContent, validateMetaPublishingConfig, publishMetaContent.",
    "path": "supabase/functions/_shared/meta-publishing.ts",
    "line": 1,
    "surface": null,
@@ -144688,9 +144919,10 @@
     "buildMetaCaption",
     "normalizeMetaMediaUrl",
     "publishMetaContent",
+    "validateMetaMediaContent",
     "validateMetaPublishingConfig"
    ],
-   "detailRef": "30126ec71235"
+   "detailRef": "97dd68eaa6de"
   },
   {
    "id": "code-module:35fe89dedef0",
@@ -145585,14 +145817,14 @@
    "id": "code-module:2d59c9951508",
    "type": "code-module",
    "title": "supabase/functions/ai-marketing-agent/index.ts",
-   "description": "Module de 297 lignes; exports: aucun export statique.",
+   "description": "Module de 288 lignes; exports: aucun export statique.",
    "path": "supabase/functions/ai-marketing-agent/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "openai"
    ],
-   "detailRef": "eb20ed039b0e"
+   "detailRef": "77ede1e775d5"
   },
   {
    "id": "code-module:10cec8069bd9",
@@ -198878,6 +199110,20 @@
    "detailRef": "903d58ccb345"
   },
   {
+   "id": "document-section:8ca1e1ddc927",
+   "type": "document-section",
+   "title": "Boundaries and rollout",
+   "description": "Section de TOK marketing publication repair.",
+   "path": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "TOK marketing publication repair",
+    "h2"
+   ],
+   "detailRef": "dd77d2b39f64"
+  },
+  {
    "id": "document-section:456ef4253a94",
    "type": "document-section",
    "title": "Bouton « Détails »",
@@ -199618,6 +199864,20 @@
     "h3"
    ],
    "detailRef": "0e9717ea4d0e"
+  },
+  {
+   "id": "document-section:5cbb331b34d9",
+   "type": "document-section",
+   "title": "Changes in order",
+   "description": "Section de TOK marketing publication repair.",
+   "path": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "TOK marketing publication repair",
+    "h2"
+   ],
+   "detailRef": "98043cf31213"
   },
   {
    "id": "document-section:ee5f7429eff2",
@@ -200724,6 +200984,20 @@
     "h3"
    ],
    "detailRef": "cedeecf20dd3"
+  },
+  {
+   "id": "document-section:f27657ab6c81",
+   "type": "document-section",
+   "title": "Confirmed causes",
+   "description": "Section de TOK marketing publication repair.",
+   "path": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "TOK marketing publication repair",
+    "h2"
+   ],
+   "detailRef": "2bed741d6f34"
   },
   {
    "id": "document-section:b710945aa93c",
@@ -214712,6 +214986,20 @@
    "detailRef": "6bb87e3f7e06"
   },
   {
+   "id": "document-section:c656ca73451a",
+   "type": "document-section",
+   "title": "Scope and risk",
+   "description": "Section de TOK marketing publication repair.",
+   "path": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "TOK marketing publication repair",
+    "h2"
+   ],
+   "detailRef": "50068e7bf75e"
+  },
+  {
    "id": "document-section:e6e5de644bae",
    "type": "document-section",
    "title": "Scope check",
@@ -216810,6 +217098,20 @@
     "h1"
    ],
    "detailRef": "49fc7227c364"
+  },
+  {
+   "id": "document-section:63aa0b09ff60",
+   "type": "document-section",
+   "title": "TOK marketing publication repair",
+   "description": "Section de TOK marketing publication repair.",
+   "path": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK marketing publication repair",
+    "h1"
+   ],
+   "detailRef": "54ab5a29a14b"
   },
   {
    "id": "document-section:396f1ec208d2",
@@ -226402,6 +226704,23 @@
     "Zones qui exigent des tests"
    ],
    "detailRef": "12ca225ce2e1"
+  },
+  {
+   "id": "document:63aa0b09ff60",
+   "type": "document",
+   "title": "TOK marketing publication repair",
+   "description": "Document Markdown avec 5 section(s).",
+   "path": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Boundaries and rollout",
+    "Changes in order",
+    "Confirmed causes",
+    "Scope and risk",
+    "TOK marketing publication repair"
+   ],
+   "detailRef": "5ea5c47960ca"
   },
   {
    "id": "document:396f1ec208d2",
@@ -242440,12 +242759,12 @@
    "detailRef": "c0b65a70c6d4"
   },
   {
-   "id": "exported-symbol:33a4b1a05828",
+   "id": "exported-symbol:6a779f1589f0",
    "type": "exported-symbol",
    "title": "MARKETING_AUTOPILOT_OPERATION_NAMES",
    "description": "Export variable de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 94,
+   "line": 95,
    "surface": null,
    "tags": [
     "google",
@@ -242453,7 +242772,7 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "01353be2f728"
+   "detailRef": "22b387d3be86"
   },
   {
    "id": "exported-symbol:892a1b6e6c12",
@@ -242526,12 +242845,12 @@
    "detailRef": "377a6c4a3f20"
   },
   {
-   "id": "exported-symbol:feb27307dab6",
+   "id": "exported-symbol:432f97133a4f",
    "type": "exported-symbol",
    "title": "MARKETING_CSRF_COOKIE",
    "description": "Export variable de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 17,
+   "line": 18,
    "surface": null,
    "tags": [
     "google",
@@ -242539,7 +242858,7 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "ada8d20e166b"
+   "detailRef": "b5f05bd8fd80"
   },
   {
    "id": "exported-symbol:1d74883a5e52",
@@ -242555,12 +242874,12 @@
    "detailRef": "974728ebbca4"
   },
   {
-   "id": "exported-symbol:1f107b93465e",
+   "id": "exported-symbol:32764518df7d",
    "type": "exported-symbol",
    "title": "MARKETING_CSRF_HEADER",
    "description": "Export variable de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 14,
+   "line": 15,
    "surface": null,
    "tags": [
     "google",
@@ -242568,7 +242887,7 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "378f11ef4ea0"
+   "detailRef": "d9aac7daf265"
   },
   {
    "id": "exported-symbol:2a9afd66b718",
@@ -242598,41 +242917,9 @@
    "detailRef": "c355bcc81567"
   },
   {
-   "id": "exported-symbol:a2bcb841dec9",
+   "id": "exported-symbol:637c78af582e",
    "type": "exported-symbol",
    "title": "MARKETING_HOST",
-   "description": "Export variable de server/marketingBff.ts.",
-   "path": "server/marketingBff.ts",
-   "line": 12,
-   "surface": null,
-   "tags": [
-    "google",
-    "supabase",
-    "variable",
-    "vercel"
-   ],
-   "detailRef": "32b117244a03"
-  },
-  {
-   "id": "exported-symbol:c0e36501972c",
-   "type": "exported-symbol",
-   "title": "MARKETING_OPERATION_NAMES",
-   "description": "Export variable de server/marketingBff.ts.",
-   "path": "server/marketingBff.ts",
-   "line": 47,
-   "surface": null,
-   "tags": [
-    "google",
-    "supabase",
-    "variable",
-    "vercel"
-   ],
-   "detailRef": "e61ecd3198ce"
-  },
-  {
-   "id": "exported-symbol:b9e0ebb3e712",
-   "type": "exported-symbol",
-   "title": "MARKETING_ORIGIN",
    "description": "Export variable de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
    "line": 13,
@@ -242643,15 +242930,15 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "bf1d9120ecd9"
+   "detailRef": "3e8b9b01040f"
   },
   {
-   "id": "exported-symbol:01ddd1cd4132",
+   "id": "exported-symbol:a069608958f1",
    "type": "exported-symbol",
-   "title": "MARKETING_OUTREACH_OPERATION_NAMES",
+   "title": "MARKETING_OPERATION_NAMES",
    "description": "Export variable de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 76,
+   "line": 48,
    "surface": null,
    "tags": [
     "google",
@@ -242659,7 +242946,39 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "9fbd748175e0"
+   "detailRef": "d4cfaf771fea"
+  },
+  {
+   "id": "exported-symbol:b9d90e4ac732",
+   "type": "exported-symbol",
+   "title": "MARKETING_ORIGIN",
+   "description": "Export variable de server/marketingBff.ts.",
+   "path": "server/marketingBff.ts",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "google",
+    "supabase",
+    "variable",
+    "vercel"
+   ],
+   "detailRef": "8b805725f424"
+  },
+  {
+   "id": "exported-symbol:29716fb36279",
+   "type": "exported-symbol",
+   "title": "MARKETING_OUTREACH_OPERATION_NAMES",
+   "description": "Export variable de server/marketingBff.ts.",
+   "path": "server/marketingBff.ts",
+   "line": 77,
+   "surface": null,
+   "tags": [
+    "google",
+    "supabase",
+    "variable",
+    "vercel"
+   ],
+   "detailRef": "229c6a3005c0"
   },
   {
    "id": "exported-symbol:949b94e9321d",
@@ -242676,12 +242995,12 @@
    "detailRef": "99ad70cfa97b"
   },
   {
-   "id": "exported-symbol:5aee0fc74f08",
+   "id": "exported-symbol:c912e2401c1d",
    "type": "exported-symbol",
    "title": "MARKETING_PENDING_COOKIE",
    "description": "Export variable de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 18,
+   "line": 19,
    "surface": null,
    "tags": [
     "google",
@@ -242689,7 +243008,7 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "bc85c2b3269c"
+   "detailRef": "b46a82a316eb"
   },
   {
    "id": "exported-symbol:bf97a6dd58ad",
@@ -242706,12 +243025,12 @@
    "detailRef": "3c3a1c499338"
   },
   {
-   "id": "exported-symbol:b3870497c8d6",
+   "id": "exported-symbol:8f33f3858935",
    "type": "exported-symbol",
    "title": "MARKETING_SESSION_COOKIE",
    "description": "Export variable de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 16,
+   "line": 17,
    "surface": null,
    "tags": [
     "google",
@@ -242719,7 +243038,7 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "071a583ca77d"
+   "detailRef": "6742c730e7ee"
   },
   {
    "id": "exported-symbol:68c189a6e8fa",
@@ -243036,17 +243355,17 @@
    "detailRef": "17bfcd8af88b"
   },
   {
-   "id": "exported-symbol:a185cc319955",
+   "id": "exported-symbol:91fe1383380b",
    "type": "exported-symbol",
    "title": "META_REQUEST_TIMEOUT_MS",
    "description": "Export variable de supabase/functions/_shared/meta-publishing.ts.",
    "path": "supabase/functions/_shared/meta-publishing.ts",
-   "line": 28,
+   "line": 31,
    "surface": null,
    "tags": [
     "variable"
    ],
-   "detailRef": "d5cab6b95996"
+   "detailRef": "26c8100b318b"
   },
   {
    "id": "exported-symbol:2c74eb777785",
@@ -243142,12 +243461,12 @@
    "detailRef": "afcd5a0669c6"
   },
   {
-   "id": "exported-symbol:33f66c7e978a",
+   "id": "exported-symbol:c8b07eccfe71",
    "type": "exported-symbol",
    "title": "MarketingApiRequest",
    "description": "Export interface de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 114,
+   "line": 115,
    "surface": null,
    "tags": [
     "google",
@@ -243155,15 +243474,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "2b002ef0277d"
+   "detailRef": "5d1d64f91206"
   },
   {
-   "id": "exported-symbol:d14b9e360272",
+   "id": "exported-symbol:66145912a436",
    "type": "exported-symbol",
    "title": "MarketingApiResponse",
    "description": "Export interface de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 121,
+   "line": 122,
    "surface": null,
    "tags": [
     "google",
@@ -243171,7 +243490,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "7c1be181b594"
+   "detailRef": "1077f2e57a38"
   },
   {
    "id": "exported-symbol:a5462abd2aa8",
@@ -243427,12 +243746,12 @@
    "detailRef": "397b32d547aa"
   },
   {
-   "id": "exported-symbol:206e7f5e9a55",
+   "id": "exported-symbol:57749dc745bf",
    "type": "exported-symbol",
    "title": "MarketingAutopilotOperation",
    "description": "Export typealias de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 102,
+   "line": 103,
    "surface": null,
    "tags": [
     "google",
@@ -243440,7 +243759,7 @@
     "typealias",
     "vercel"
    ],
-   "detailRef": "6833224804bf"
+   "detailRef": "5524830aa0e3"
   },
   {
    "id": "exported-symbol:7d566e09b2d5",
@@ -243929,12 +244248,12 @@
    "detailRef": "97af40914361"
   },
   {
-   "id": "exported-symbol:96c7776535bd",
+   "id": "exported-symbol:59f04270045b",
    "type": "exported-symbol",
    "title": "MarketingOperation",
    "description": "Export typealias de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 74,
+   "line": 75,
    "surface": null,
    "tags": [
     "google",
@@ -243942,7 +244261,7 @@
     "typealias",
     "vercel"
    ],
-   "detailRef": "f001e5d171c2"
+   "detailRef": "3d3383ff8008"
   },
   {
    "id": "exported-symbol:d5a1d95f6f68",
@@ -244066,12 +244385,12 @@
    "detailRef": "4d0c6717a0f1"
   },
   {
-   "id": "exported-symbol:6a550c7a6977",
+   "id": "exported-symbol:f30b153eefc0",
    "type": "exported-symbol",
    "title": "MarketingOutreachOperation",
    "description": "Export typealias de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 86,
+   "line": 87,
    "surface": null,
    "tags": [
     "google",
@@ -244079,7 +244398,7 @@
     "typealias",
     "vercel"
    ],
-   "detailRef": "1923a89d10b1"
+   "detailRef": "d46c56def774"
   },
   {
    "id": "exported-symbol:2f772b5bcfcb",
@@ -245023,43 +245342,43 @@
    "detailRef": "5ea51343ab3a"
   },
   {
-   "id": "exported-symbol:9952ee47db75",
+   "id": "exported-symbol:5c10f03a5562",
    "type": "exported-symbol",
    "title": "MetaPublishError",
    "description": "Export class de supabase/functions/_shared/meta-publishing.ts.",
    "path": "supabase/functions/_shared/meta-publishing.ts",
-   "line": 40,
+   "line": 43,
    "surface": null,
    "tags": [
     "class"
    ],
-   "detailRef": "2156476c11e7"
+   "detailRef": "45362133ccb4"
   },
   {
-   "id": "exported-symbol:c1fa1f015aa5",
+   "id": "exported-symbol:eb8aae085eeb",
    "type": "exported-symbol",
    "title": "MetaPublishResult",
    "description": "Export typealias de supabase/functions/_shared/meta-publishing.ts.",
    "path": "supabase/functions/_shared/meta-publishing.ts",
-   "line": 19,
+   "line": 22,
    "surface": null,
    "tags": [
     "typealias"
    ],
-   "detailRef": "0bd42903a0d5"
+   "detailRef": "f0d6c678c4c2"
   },
   {
-   "id": "exported-symbol:4bbee439f5e7",
+   "id": "exported-symbol:b9c1427eb8bf",
    "type": "exported-symbol",
    "title": "MetaPublishingConfig",
    "description": "Export typealias de supabase/functions/_shared/meta-publishing.ts.",
    "path": "supabase/functions/_shared/meta-publishing.ts",
-   "line": 11,
+   "line": 14,
    "surface": null,
    "tags": [
     "typealias"
    ],
-   "detailRef": "31bf1f796cba"
+   "detailRef": "a7293003e4ec"
   },
   {
    "id": "exported-symbol:f0e20a8c289d",
@@ -253578,6 +253897,19 @@
    "detailRef": "3f45c78882f5"
   },
   {
+   "id": "exported-symbol:82a20a170bd5",
+   "type": "exported-symbol",
+   "title": "allocateMarketingVisuals",
+   "description": "Export function de supabase/functions/_shared/marketing-visual-allocation.ts.",
+   "path": "supabase/functions/_shared/marketing-visual-allocation.ts",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "20863a5521c3"
+  },
+  {
    "id": "exported-symbol:e5669d6ca48f",
    "type": "exported-symbol",
    "title": "allocateRefundCents",
@@ -255232,17 +255564,17 @@
    "detailRef": "483239a163fd"
   },
   {
-   "id": "exported-symbol:0a9ff4ec5ace",
+   "id": "exported-symbol:bf697e9c1499",
    "type": "exported-symbol",
    "title": "buildMetaCaption",
    "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
    "path": "supabase/functions/_shared/meta-publishing.ts",
-   "line": 80,
+   "line": 83,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "e5953f790de1"
+   "detailRef": "23d7b92f8074"
   },
   {
    "id": "exported-symbol:9bc998ef3cc4",
@@ -272216,12 +272548,12 @@
    "detailRef": "4ac9175f2cec"
   },
   {
-   "id": "exported-symbol:e2b975fbd3e7",
+   "id": "exported-symbol:018aee008d1f",
    "type": "exported-symbol",
    "title": "marketingAgentHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1904,
+   "line": 1946,
    "surface": null,
    "tags": [
     "function",
@@ -272229,7 +272561,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "8ded85cd0afe"
+   "detailRef": "33159560a6ac"
   },
   {
    "id": "exported-symbol:baf7a25ea60c",
@@ -272245,12 +272577,12 @@
    "detailRef": "6cbfa8244f05"
   },
   {
-   "id": "exported-symbol:f046601cece0",
+   "id": "exported-symbol:f87e45420cb2",
    "type": "exported-symbol",
    "title": "marketingLaunchHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1911,
+   "line": 1953,
    "surface": null,
    "tags": [
     "function",
@@ -272258,15 +272590,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "c9e4da8d5be4"
+   "detailRef": "5931e459de19"
   },
   {
-   "id": "exported-symbol:a0332ba6fdcb",
+   "id": "exported-symbol:d50968837c16",
    "type": "exported-symbol",
    "title": "marketingLoginHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1842,
+   "line": 1884,
    "surface": null,
    "tags": [
     "function",
@@ -272274,15 +272606,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "91beaac87341"
+   "detailRef": "dc503cb0d1f7"
   },
   {
-   "id": "exported-symbol:41fd5a9e7337",
+   "id": "exported-symbol:1779ce492796",
    "type": "exported-symbol",
    "title": "marketingLogoutHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1863,
+   "line": 1905,
    "surface": null,
    "tags": [
     "function",
@@ -272290,15 +272622,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "902e6eb3077e"
+   "detailRef": "b6e615705c94"
   },
   {
-   "id": "exported-symbol:1f9784d631ed",
+   "id": "exported-symbol:06fa331809c9",
    "type": "exported-symbol",
    "title": "marketingMfaEnrollHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1849,
+   "line": 1891,
    "surface": null,
    "tags": [
     "function",
@@ -272306,15 +272638,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "8595e94c9ad2"
+   "detailRef": "c2e9852bc54c"
   },
   {
-   "id": "exported-symbol:f002a0b62ed7",
+   "id": "exported-symbol:fb42a8433794",
    "type": "exported-symbol",
    "title": "marketingMfaVerifyHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1856,
+   "line": 1898,
    "surface": null,
    "tags": [
     "function",
@@ -272322,7 +272654,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "c4ecf252f0d9"
+   "detailRef": "582141fb05c7"
   },
   {
    "id": "exported-symbol:19ab8e50dae1",
@@ -272338,12 +272670,12 @@
    "detailRef": "6e8251e72194"
   },
   {
-   "id": "exported-symbol:caed22af0547",
+   "id": "exported-symbol:fe62af20d648",
    "type": "exported-symbol",
    "title": "marketingOrchestratorHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1897,
+   "line": 1939,
    "surface": null,
    "tags": [
     "function",
@@ -272351,7 +272683,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "349e99a87fd8"
+   "detailRef": "e64cb76a3a4c"
   },
   {
    "id": "exported-symbol:c4d899e3cdd3",
@@ -272380,12 +272712,12 @@
    "detailRef": "40523290a88c"
   },
   {
-   "id": "exported-symbol:cdffef59426b",
+   "id": "exported-symbol:a4b69040f5f6",
    "type": "exported-symbol",
    "title": "marketingRpcHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1890,
+   "line": 1932,
    "surface": null,
    "tags": [
     "function",
@@ -272393,15 +272725,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "00e2bdae4e9f"
+   "detailRef": "6000b49784e8"
   },
   {
-   "id": "exported-symbol:f3bcb4698920",
+   "id": "exported-symbol:9c284c694021",
    "type": "exported-symbol",
    "title": "marketingSessionHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1874,
+   "line": 1916,
    "surface": null,
    "tags": [
     "function",
@@ -272409,7 +272741,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "3385ea9469ce"
+   "detailRef": "93bc1bb87a0d"
   },
   {
    "id": "exported-symbol:7c4d43963f98",
@@ -273074,17 +273406,17 @@
    "detailRef": "a4a99b9a192b"
   },
   {
-   "id": "exported-symbol:558ac4ccf189",
+   "id": "exported-symbol:37e03857758e",
    "type": "exported-symbol",
    "title": "normalizeMetaMediaUrl",
    "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
    "path": "supabase/functions/_shared/meta-publishing.ts",
-   "line": 108,
+   "line": 129,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "66a54341d8c8"
+   "detailRef": "08a6ddab0be8"
   },
   {
    "id": "exported-symbol:8ca0d4cde11c",
@@ -273768,12 +274100,12 @@
    "detailRef": "5e70eb300e24"
   },
   {
-   "id": "exported-symbol:7840a94f0787",
+   "id": "exported-symbol:cdd260290964",
    "type": "exported-symbol",
    "title": "parseCookies",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 261,
+   "line": 262,
    "surface": null,
    "tags": [
     "function",
@@ -273781,7 +274113,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "352f4d4fde2d"
+   "detailRef": "600b5aa74b78"
   },
   {
    "id": "exported-symbol:944eecc1f3d6",
@@ -274194,17 +274526,17 @@
    "detailRef": "4c0cd5acc1d7"
   },
   {
-   "id": "exported-symbol:ca2341f9b2d2",
+   "id": "exported-symbol:d1bb9d413bcb",
    "type": "exported-symbol",
    "title": "publishMetaContent",
    "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
    "path": "supabase/functions/_shared/meta-publishing.ts",
-   "line": 317,
+   "line": 351,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "8d78880e2cb5"
+   "detailRef": "7d7354bf4412"
   },
   {
    "id": "exported-symbol:1bd62c3187a7",
@@ -276759,12 +277091,12 @@
    "detailRef": "75e756532490"
   },
   {
-   "id": "exported-symbol:66cf940e4779",
+   "id": "exported-symbol:584926612427",
    "type": "exported-symbol",
    "title": "sha256Hex",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 243,
+   "line": 244,
    "surface": null,
    "tags": [
     "function",
@@ -276772,7 +277104,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "eb03bc5ad4c2"
+   "detailRef": "6676545bc477"
   },
   {
    "id": "exported-symbol:2db40bbc93e7",
@@ -279605,12 +279937,12 @@
    "detailRef": "4e55f62593b2"
   },
   {
-   "id": "exported-symbol:e54b35ae9fa7",
+   "id": "exported-symbol:cc2a159c931b",
    "type": "exported-symbol",
    "title": "validateMarketingRequestContext",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 203,
+   "line": 204,
    "surface": null,
    "tags": [
     "function",
@@ -279618,20 +279950,33 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "a8e43a5678a2"
+   "detailRef": "717ddc462f64"
   },
   {
-   "id": "exported-symbol:65b3bf685440",
+   "id": "exported-symbol:f6bceefbd975",
    "type": "exported-symbol",
-   "title": "validateMetaPublishingConfig",
+   "title": "validateMetaMediaContent",
    "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
    "path": "supabase/functions/_shared/meta-publishing.ts",
-   "line": 132,
+   "line": 154,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "916482437346"
+   "detailRef": "146f8b4d0d79"
+  },
+  {
+   "id": "exported-symbol:1615a614c1fa",
+   "type": "exported-symbol",
+   "title": "validateMetaPublishingConfig",
+   "description": "Export function de supabase/functions/_shared/meta-publishing.ts.",
+   "path": "supabase/functions/_shared/meta-publishing.ts",
+   "line": 166,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "21ec8cb3c2e2"
   },
   {
    "id": "exported-symbol:a716a075adc7",
@@ -286153,6 +286498,20 @@
     "documentation"
    ],
    "detailRef": "c3d650ce8490"
+  },
+  {
+   "id": "file:a86b53fcd2a8",
+   "type": "file",
+   "title": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/superpowers/plans/2026-10-11-marketing-publication-repair.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "d4c114b15516"
   },
   {
    "id": "file:ddc5f3137223",
@@ -306623,6 +306982,20 @@
    "detailRef": "20aa6e5d8151"
   },
   {
+   "id": "file:0bc355a6f2fd",
+   "type": "file",
+   "title": "src/test/marketing-approval-readiness.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-approval-readiness.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "e6b93c5ddf7a"
+  },
+  {
    "id": "file:11d6fa8a4658",
    "type": "file",
    "title": "src/test/marketing-autopilot-frontend.test.tsx",
@@ -306845,6 +307218,20 @@
     "test"
    ],
    "detailRef": "2ef61c1d95fa"
+  },
+  {
+   "id": "file:320db5341860",
+   "type": "file",
+   "title": "src/test/marketing-legacy-landing.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-legacy-landing.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "45160ced7b26"
   },
   {
    "id": "file:0e08d46e91fb",
@@ -307195,6 +307582,20 @@
     "test"
    ],
    "detailRef": "a53fa4a60593"
+  },
+  {
+   "id": "file:f46416920194",
+   "type": "file",
+   "title": "src/test/marketing-visual-allocation.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-visual-allocation.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "e5e16a9a5999"
   },
   {
    "id": "file:3631c3d89388",
@@ -311199,6 +311600,20 @@
     "edge-function-source"
    ],
    "detailRef": "516a0a75784b"
+  },
+  {
+   "id": "file:ba8633525ba6",
+   "type": "file",
+   "title": "supabase/functions/_shared/marketing-visual-allocation.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/marketing-visual-allocation.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "828afc85b6c8"
   },
   {
    "id": "file:a15e6c24e2ef",
@@ -324685,7 +325100,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 671 module(s).",
+   "description": "Intégration externe détectée dans 673 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -325099,6 +325514,7 @@
     "src/test/loyalty-status-dialog-layout.test.tsx",
     "src/test/marketing-agent-bff.test.ts",
     "src/test/marketing-ai-agent.test.ts",
+    "src/test/marketing-approval-readiness.test.ts",
     "src/test/marketing-autopilot-sql.test.ts",
     "src/test/marketing-b2b-outreach.test.ts",
     "src/test/marketing-backlink-discovery.test.ts",
@@ -325126,6 +325542,7 @@
     "src/test/marketing-service-auth.test.ts",
     "src/test/marketing-sql-governance.test.ts",
     "src/test/marketing-subdomain-integration.test.ts",
+    "src/test/marketing-visual-allocation.test.ts",
     "src/test/marketplace-finance-routing.test.ts",
     "src/test/match-group-restaurant-payment-guards.test.ts",
     "src/test/meal-formula-service-limits.test.ts",
@@ -325363,7 +325780,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "04ee92c6ef5f"
+   "detailRef": "30dd1ceaffc3"
   },
   {
    "id": "integration:c20910a79a78",
@@ -325406,7 +325823,7 @@
    "id": "integration:077d0104684d",
    "type": "integration",
    "title": "Vercel",
-   "description": "Intégration externe détectée dans 57 module(s).",
+   "description": "Intégration externe détectée dans 58 module(s).",
    "path": "middleware.js",
    "line": null,
    "surface": null,
@@ -325441,6 +325858,7 @@
     "src/test/marketing-bff-security.test.ts",
     "src/test/marketing-bff-vercel-entrypoints.test.ts",
     "src/test/marketing-domain-isolation.test.ts",
+    "src/test/marketing-legacy-landing.test.ts",
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/mobile-association-hosting.test.ts",
     "src/test/plan-phase1-readiness.test.ts",
@@ -325470,27 +325888,12 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "vercel"
    ],
-   "detailRef": "a8643e62da27"
+   "detailRef": "911908ac8fc5"
   },
   {
-   "id": "marketing-operation:dae86fc78e92",
+   "id": "marketing-operation:59948b4790ce",
    "type": "marketing-operation",
    "title": "admin_approve_marketing_campaign",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 48,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "eb176f109544"
-  },
-  {
-   "id": "marketing-operation:0542f4cb43cb",
-   "type": "marketing-operation",
-   "title": "admin_approve_marketing_item",
    "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
    "path": "server/marketingBff.ts",
    "line": 49,
@@ -325500,27 +325903,12 @@
     "allowlist",
     "marketing"
    ],
-   "detailRef": "6e40a719b90e"
+   "detailRef": "469422e520f9"
   },
   {
-   "id": "marketing-operation:29a23178d953",
+   "id": "marketing-operation:fa05e7311ba0",
    "type": "marketing-operation",
-   "title": "admin_approve_marketing_outreach_draft",
-   "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 81,
-   "surface": null,
-   "tags": [
-    "MARKETING_OUTREACH_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "b8a5d5f4b91e"
-  },
-  {
-   "id": "marketing-operation:1591e9a4092b",
-   "type": "marketing-operation",
-   "title": "admin_cancel_marketing_item",
+   "title": "admin_approve_marketing_item",
    "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
    "path": "server/marketingBff.ts",
    "line": 50,
@@ -325530,222 +325918,12 @@
     "allowlist",
     "marketing"
    ],
-   "detailRef": "47f380e83e31"
+   "detailRef": "53ae3f202f13"
   },
   {
-   "id": "marketing-operation:b691ca38eb5d",
+   "id": "marketing-operation:64e8bd7bf7f3",
    "type": "marketing-operation",
-   "title": "admin_complete_manual_marketing_delivery",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 51,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "928146212198"
-  },
-  {
-   "id": "marketing-operation:da60e53205fe",
-   "type": "marketing-operation",
-   "title": "admin_complete_manual_marketing_item",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 52,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "2b2dc0339ac0"
-  },
-  {
-   "id": "marketing-operation:5e70c6ef3f64",
-   "type": "marketing-operation",
-   "title": "admin_create_marketing_campaign_bundle",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 53,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "590eac30951b"
-  },
-  {
-   "id": "marketing-operation:0cb309ab3236",
-   "type": "marketing-operation",
-   "title": "admin_estimate_marketing_audience",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 54,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "25db469df956"
-  },
-  {
-   "id": "marketing-operation:deef8cd2465d",
-   "type": "marketing-operation",
-   "title": "admin_get_marketing_autopilot_dashboard",
-   "description": "Opération BFF autorisée dans MARKETING_AUTOPILOT_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 95,
-   "surface": null,
-   "tags": [
-    "MARKETING_AUTOPILOT_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "3d1d5584f833"
-  },
-  {
-   "id": "marketing-operation:fcd17cdd68d0",
-   "type": "marketing-operation",
-   "title": "admin_get_marketing_overview",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 55,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "54cd050cedf2"
-  },
-  {
-   "id": "marketing-operation:7cb1eddbd3b6",
-   "type": "marketing-operation",
-   "title": "admin_list_marketing_automations",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 56,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "770661332b62"
-  },
-  {
-   "id": "marketing-operation:b1d734180c46",
-   "type": "marketing-operation",
-   "title": "admin_list_marketing_calendar",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 57,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "7447668f6cb6"
-  },
-  {
-   "id": "marketing-operation:e62c7a814bd5",
-   "type": "marketing-operation",
-   "title": "admin_list_marketing_campaigns",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 58,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "0b4a2b505500"
-  },
-  {
-   "id": "marketing-operation:c96c1c87d2c6",
-   "type": "marketing-operation",
-   "title": "admin_list_marketing_contacts",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 59,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "3efdcaac8f61"
-  },
-  {
-   "id": "marketing-operation:6aa4b7dc309f",
-   "type": "marketing-operation",
-   "title": "admin_list_marketing_deliveries",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 60,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "817a97217295"
-  },
-  {
-   "id": "marketing-operation:aa1edad97380",
-   "type": "marketing-operation",
-   "title": "admin_list_marketing_integrations",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 61,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "74329de95a05"
-  },
-  {
-   "id": "marketing-operation:06daa0778e36",
-   "type": "marketing-operation",
-   "title": "admin_list_marketing_outreach",
-   "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 77,
-   "surface": null,
-   "tags": [
-    "MARKETING_OUTREACH_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "08e79eac3a0e"
-  },
-  {
-   "id": "marketing-operation:2ca70f7f6f3f",
-   "type": "marketing-operation",
-   "title": "admin_prepare_marketing_automation_action",
-   "description": "Opération BFF autorisée dans MARKETING_AUTOPILOT_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 96,
-   "surface": null,
-   "tags": [
-    "MARKETING_AUTOPILOT_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "de1119f0ffb7"
-  },
-  {
-   "id": "marketing-operation:177d9472976c",
-   "type": "marketing-operation",
-   "title": "admin_record_marketing_outreach_result",
+   "title": "admin_approve_marketing_outreach_draft",
    "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
    "path": "server/marketingBff.ts",
    "line": 82,
@@ -325755,27 +325933,192 @@
     "allowlist",
     "marketing"
    ],
-   "detailRef": "7c01e0ccb0d8"
+   "detailRef": "b887eb84385c"
   },
   {
-   "id": "marketing-operation:a14e24034f0d",
+   "id": "marketing-operation:21d580fbcd0c",
    "type": "marketing-operation",
-   "title": "admin_retry_marketing_delivery",
+   "title": "admin_cancel_marketing_item",
    "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
    "path": "server/marketingBff.ts",
-   "line": 63,
+   "line": 51,
    "surface": null,
    "tags": [
     "MARKETING_OPERATION_NAMES",
     "allowlist",
     "marketing"
    ],
-   "detailRef": "d316b31b839f"
+   "detailRef": "00a905a62d07"
   },
   {
-   "id": "marketing-operation:7c779d5cc0f4",
+   "id": "marketing-operation:13132ac28591",
    "type": "marketing-operation",
-   "title": "admin_reveal_manual_delivery_target",
+   "title": "admin_complete_manual_marketing_delivery",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 52,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "830645f099d0"
+  },
+  {
+   "id": "marketing-operation:7936f7afd003",
+   "type": "marketing-operation",
+   "title": "admin_complete_manual_marketing_item",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 53,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "375a4204e041"
+  },
+  {
+   "id": "marketing-operation:f060d2d1be3e",
+   "type": "marketing-operation",
+   "title": "admin_create_marketing_campaign_bundle",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 54,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "690d6e5b69a3"
+  },
+  {
+   "id": "marketing-operation:120423646326",
+   "type": "marketing-operation",
+   "title": "admin_estimate_marketing_audience",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 55,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "2ec166e162bc"
+  },
+  {
+   "id": "marketing-operation:8cc426674d61",
+   "type": "marketing-operation",
+   "title": "admin_get_marketing_autopilot_dashboard",
+   "description": "Opération BFF autorisée dans MARKETING_AUTOPILOT_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 96,
+   "surface": null,
+   "tags": [
+    "MARKETING_AUTOPILOT_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "be75edc8470d"
+  },
+  {
+   "id": "marketing-operation:bbb81db18b78",
+   "type": "marketing-operation",
+   "title": "admin_get_marketing_overview",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 56,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "924015e4bd4a"
+  },
+  {
+   "id": "marketing-operation:b476032271d5",
+   "type": "marketing-operation",
+   "title": "admin_list_marketing_automations",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "91360ca67864"
+  },
+  {
+   "id": "marketing-operation:104e2a2dbb84",
+   "type": "marketing-operation",
+   "title": "admin_list_marketing_calendar",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 58,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "59eea122200a"
+  },
+  {
+   "id": "marketing-operation:d0c3dc455708",
+   "type": "marketing-operation",
+   "title": "admin_list_marketing_campaigns",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 59,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "87e472d42384"
+  },
+  {
+   "id": "marketing-operation:0d3cc9a0dba9",
+   "type": "marketing-operation",
+   "title": "admin_list_marketing_contacts",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 60,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "0a47b6f5feef"
+  },
+  {
+   "id": "marketing-operation:44705861656a",
+   "type": "marketing-operation",
+   "title": "admin_list_marketing_deliveries",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 61,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "fc1c3f99993b"
+  },
+  {
+   "id": "marketing-operation:afbce6258127",
+   "type": "marketing-operation",
+   "title": "admin_list_marketing_integrations",
    "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
    "path": "server/marketingBff.ts",
    "line": 62,
@@ -325785,222 +326128,12 @@
     "allowlist",
     "marketing"
    ],
-   "detailRef": "c8694415c1fb"
+   "detailRef": "63936ee77e48"
   },
   {
-   "id": "marketing-operation:c43d622c7dcf",
+   "id": "marketing-operation:4e2f93ffac32",
    "type": "marketing-operation",
-   "title": "admin_set_marketing_global_pause",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 64,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "3aada46764ae"
-  },
-  {
-   "id": "marketing-operation:0489bab98530",
-   "type": "marketing-operation",
-   "title": "admin_simulate_marketing_automation",
-   "description": "Opération BFF autorisée dans MARKETING_AUTOPILOT_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 97,
-   "surface": null,
-   "tags": [
-    "MARKETING_AUTOPILOT_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "9e2b9bb93c12"
-  },
-  {
-   "id": "marketing-operation:419171ea02ce",
-   "type": "marketing-operation",
-   "title": "admin_suppress_marketing_contact",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 65,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "9683debfd17d"
-  },
-  {
-   "id": "marketing-operation:2667bab3f18c",
-   "type": "marketing-operation",
-   "title": "admin_sync_marketing_client_consents",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 66,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "7f9123090869"
-  },
-  {
-   "id": "marketing-operation:d74f0378b7a2",
-   "type": "marketing-operation",
-   "title": "admin_sync_marketing_prospect_catalog",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 67,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "f8bd78ad9d24"
-  },
-  {
-   "id": "marketing-operation:77e93933208b",
-   "type": "marketing-operation",
-   "title": "admin_update_marketing_provider_control",
-   "description": "Opération BFF autorisée dans MARKETING_AUTOPILOT_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 98,
-   "surface": null,
-   "tags": [
-    "MARKETING_AUTOPILOT_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "193ed5a440d3"
-  },
-  {
-   "id": "marketing-operation:dc2e583b36df",
-   "type": "marketing-operation",
-   "title": "admin_upsert_marketing_asset",
-   "description": "Opération BFF autorisée dans MARKETING_AUTOPILOT_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 99,
-   "surface": null,
-   "tags": [
-    "MARKETING_AUTOPILOT_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "1d83e60ed285"
-  },
-  {
-   "id": "marketing-operation:bcf3dae5e8e8",
-   "type": "marketing-operation",
-   "title": "admin_upsert_marketing_automation",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 68,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "213c1c759119"
-  },
-  {
-   "id": "marketing-operation:fb631bc59d77",
-   "type": "marketing-operation",
-   "title": "admin_upsert_marketing_backlink",
-   "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 83,
-   "surface": null,
-   "tags": [
-    "MARKETING_OUTREACH_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "a1843d5f229c"
-  },
-  {
-   "id": "marketing-operation:15ee94c63f95",
-   "type": "marketing-operation",
-   "title": "admin_upsert_marketing_calendar_item",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 69,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "0d01e56d9e5d"
-  },
-  {
-   "id": "marketing-operation:24a8e7725c22",
-   "type": "marketing-operation",
-   "title": "admin_upsert_marketing_campaign",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 70,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "a925ce365319"
-  },
-  {
-   "id": "marketing-operation:dc9ba2e44ca9",
-   "type": "marketing-operation",
-   "title": "admin_upsert_marketing_contact",
-   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 71,
-   "surface": null,
-   "tags": [
-    "MARKETING_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "81d7880df7ef"
-  },
-  {
-   "id": "marketing-operation:2aa9512a0915",
-   "type": "marketing-operation",
-   "title": "admin_upsert_marketing_outreach_draft",
-   "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 80,
-   "surface": null,
-   "tags": [
-    "MARKETING_OUTREACH_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "898e645e2c73"
-  },
-  {
-   "id": "marketing-operation:96cf6bde4f24",
-   "type": "marketing-operation",
-   "title": "admin_upsert_marketing_outreach_opportunity",
-   "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
-   "path": "server/marketingBff.ts",
-   "line": 79,
-   "surface": null,
-   "tags": [
-    "MARKETING_OUTREACH_OPERATION_NAMES",
-    "allowlist",
-    "marketing"
-   ],
-   "detailRef": "f6930e8313b5"
-  },
-  {
-   "id": "marketing-operation:1bea248c965b",
-   "type": "marketing-operation",
-   "title": "admin_upsert_marketing_outreach_target",
+   "title": "admin_list_marketing_outreach",
    "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
    "path": "server/marketingBff.ts",
    "line": 78,
@@ -326010,7 +326143,292 @@
     "allowlist",
     "marketing"
    ],
-   "detailRef": "844b0730c426"
+   "detailRef": "3fe67da92f62"
+  },
+  {
+   "id": "marketing-operation:de20fce25424",
+   "type": "marketing-operation",
+   "title": "admin_prepare_marketing_automation_action",
+   "description": "Opération BFF autorisée dans MARKETING_AUTOPILOT_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 97,
+   "surface": null,
+   "tags": [
+    "MARKETING_AUTOPILOT_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "800215aa1657"
+  },
+  {
+   "id": "marketing-operation:eea29867c275",
+   "type": "marketing-operation",
+   "title": "admin_record_marketing_outreach_result",
+   "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 83,
+   "surface": null,
+   "tags": [
+    "MARKETING_OUTREACH_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "7328d70ee631"
+  },
+  {
+   "id": "marketing-operation:89b87ac10113",
+   "type": "marketing-operation",
+   "title": "admin_retry_marketing_delivery",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 64,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "992ee754c2da"
+  },
+  {
+   "id": "marketing-operation:4cc768392311",
+   "type": "marketing-operation",
+   "title": "admin_reveal_manual_delivery_target",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 63,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "8e4d48a5d7af"
+  },
+  {
+   "id": "marketing-operation:8381c73077fb",
+   "type": "marketing-operation",
+   "title": "admin_set_marketing_global_pause",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 65,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "102a5ad82190"
+  },
+  {
+   "id": "marketing-operation:5bce2f5eafac",
+   "type": "marketing-operation",
+   "title": "admin_simulate_marketing_automation",
+   "description": "Opération BFF autorisée dans MARKETING_AUTOPILOT_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 98,
+   "surface": null,
+   "tags": [
+    "MARKETING_AUTOPILOT_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "819970608b72"
+  },
+  {
+   "id": "marketing-operation:ea96e73c49c6",
+   "type": "marketing-operation",
+   "title": "admin_suppress_marketing_contact",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 66,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "b4004814810b"
+  },
+  {
+   "id": "marketing-operation:06a623d7c1b9",
+   "type": "marketing-operation",
+   "title": "admin_sync_marketing_client_consents",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 67,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "4b17e0ec7b62"
+  },
+  {
+   "id": "marketing-operation:7bd7986dbb3c",
+   "type": "marketing-operation",
+   "title": "admin_sync_marketing_prospect_catalog",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 68,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "943d7e6e81af"
+  },
+  {
+   "id": "marketing-operation:dd67eb2a1ad7",
+   "type": "marketing-operation",
+   "title": "admin_update_marketing_provider_control",
+   "description": "Opération BFF autorisée dans MARKETING_AUTOPILOT_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 99,
+   "surface": null,
+   "tags": [
+    "MARKETING_AUTOPILOT_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "dd728f7eca9e"
+  },
+  {
+   "id": "marketing-operation:6e2ad4e894c7",
+   "type": "marketing-operation",
+   "title": "admin_upsert_marketing_asset",
+   "description": "Opération BFF autorisée dans MARKETING_AUTOPILOT_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 100,
+   "surface": null,
+   "tags": [
+    "MARKETING_AUTOPILOT_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "ede9fea640d8"
+  },
+  {
+   "id": "marketing-operation:f12452ed9616",
+   "type": "marketing-operation",
+   "title": "admin_upsert_marketing_automation",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 69,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "471bc104a702"
+  },
+  {
+   "id": "marketing-operation:4864d589c0c7",
+   "type": "marketing-operation",
+   "title": "admin_upsert_marketing_backlink",
+   "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 84,
+   "surface": null,
+   "tags": [
+    "MARKETING_OUTREACH_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "97fe048edf3e"
+  },
+  {
+   "id": "marketing-operation:32d99ef5e9de",
+   "type": "marketing-operation",
+   "title": "admin_upsert_marketing_calendar_item",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 70,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "e9883ca8bb52"
+  },
+  {
+   "id": "marketing-operation:6138e39e720c",
+   "type": "marketing-operation",
+   "title": "admin_upsert_marketing_campaign",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 71,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "28cd0915ae94"
+  },
+  {
+   "id": "marketing-operation:677fd7a7d5b4",
+   "type": "marketing-operation",
+   "title": "admin_upsert_marketing_contact",
+   "description": "Opération BFF autorisée dans MARKETING_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 72,
+   "surface": null,
+   "tags": [
+    "MARKETING_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "5c71310058d5"
+  },
+  {
+   "id": "marketing-operation:1b3270ad07d0",
+   "type": "marketing-operation",
+   "title": "admin_upsert_marketing_outreach_draft",
+   "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 81,
+   "surface": null,
+   "tags": [
+    "MARKETING_OUTREACH_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "67a5351664a1"
+  },
+  {
+   "id": "marketing-operation:12477d1191a2",
+   "type": "marketing-operation",
+   "title": "admin_upsert_marketing_outreach_opportunity",
+   "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 80,
+   "surface": null,
+   "tags": [
+    "MARKETING_OUTREACH_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "0a5a93d19280"
+  },
+  {
+   "id": "marketing-operation:2b450b832d6f",
+   "type": "marketing-operation",
+   "title": "admin_upsert_marketing_outreach_target",
+   "description": "Opération BFF autorisée dans MARKETING_OUTREACH_OPERATION_NAMES.",
+   "path": "server/marketingBff.ts",
+   "line": 79,
+   "surface": null,
+   "tags": [
+    "MARKETING_OUTREACH_OPERATION_NAMES",
+    "allowlist",
+    "marketing"
+   ],
+   "detailRef": "ceac03f5a105"
   },
   {
    "id": "middleware:82712d0515ce",
@@ -339984,17 +340402,17 @@
    "detailRef": "178dafd34ab9"
   },
   {
-   "id": "path-literal:812e0ecff89d",
+   "id": "path-literal:26d622419e15",
    "type": "path-literal",
    "title": "/factors",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "server/marketingBff.ts",
-   "line": 787,
+   "line": 788,
    "surface": null,
    "tags": [
     "server/marketingBff.ts"
    ],
-   "detailRef": "a29999058705"
+   "detailRef": "5e5ab29be805"
   },
   {
    "id": "path-literal:e9f99c30e931",
@@ -342309,7 +342727,7 @@
    "id": "path-literal:158aecb6620c",
    "type": "path-literal",
    "title": "/index.html",
-   "description": "Chemin référencé dans 27 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 28 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 767,
    "surface": null,
@@ -342323,11 +342741,12 @@
     "scripts/harden-seo-public-names.mjs",
     "scripts/harden-seo-restaurant-context.mjs",
     "scripts/harden-seo-web-artifact-names.mjs",
+    "src/test/marketing-legacy-landing.test.ts",
     "src/test/route-serving-regression.test.ts",
     "src/test/seo-indexation-hardening.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "cb3b88ceebba"
+   "detailRef": "6742d5c5c064"
   },
   {
    "id": "path-literal:be8c7ffb4a53",
@@ -342386,17 +342805,17 @@
    "detailRef": "4d074d33327b"
   },
   {
-   "id": "path-literal:36ae17fff331",
+   "id": "path-literal:02ba064c470e",
    "type": "path-literal",
    "title": "/logout?scope=local",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "server/marketingBff.ts",
-   "line": 736,
+   "line": 737,
    "surface": null,
    "tags": [
     "server/marketingBff.ts"
    ],
-   "detailRef": "789f8d944bc3"
+   "detailRef": "db27bbb5f050"
   },
   {
    "id": "path-literal:c996cadea623",
@@ -342571,6 +342990,19 @@
     "src/test/vercel-rewrites.test.ts"
    ],
    "detailRef": "3b203052d9b0"
+  },
+  {
+   "id": "path-literal:c76dba69accc",
+   "type": "path-literal",
+   "title": "/marketing_calendar_items?",
+   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-approval-readiness.test.ts",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-approval-readiness.test.ts"
+   ],
+   "detailRef": "33f405412a36"
   },
   {
    "id": "path-literal:90eab0f24aff",
@@ -344572,6 +345004,19 @@
    "detailRef": "f63fc32e363d"
   },
   {
+   "id": "path-literal:38729e52638a",
+   "type": "path-literal",
+   "title": "/restaurateurs-geneve",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-legacy-landing.test.ts",
+   "line": 7,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-legacy-landing.test.ts"
+   ],
+   "detailRef": "4aff253aa511"
+  },
+  {
    "id": "path-literal:722279ede814",
    "type": "path-literal",
    "title": "/restaurateurs/:city",
@@ -344613,7 +345058,7 @@
    "id": "path-literal:843e3ec74ed3",
    "type": "path-literal",
    "title": "/restaurateurs/geneve",
-   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 22 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 609,
    "surface": null,
@@ -344630,11 +345075,12 @@
     "src/pages/RestaurateursGoogleBusiness.tsx",
     "src/test/b2b-seo-cluster.test.ts",
     "src/test/home-hero-search.test.tsx",
+    "src/test/marketing-legacy-landing.test.ts",
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "842f4fbaa74a"
+   "detailRef": "d369538bdb0c"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -344734,6 +345180,19 @@
    "detailRef": "1b5dfb787fd4"
   },
   {
+   "id": "path-literal:e87e4d300eec",
+   "type": "path-literal",
+   "title": "/rpc/service_execute_marketing_admin_operation",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-approval-readiness.test.ts",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-approval-readiness.test.ts"
+   ],
+   "detailRef": "19c592598c1e"
+  },
+  {
    "id": "path-literal:2d61ba9b9d13",
    "type": "path-literal",
    "title": "/rpc/service_finalize_marketing_web_session",
@@ -344763,15 +345222,16 @@
    "id": "path-literal:e242f11f138d",
    "type": "path-literal",
    "title": "/rpc/service_get_marketing_web_session",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/marketing-agent-bff.test.ts",
    "line": 24,
    "surface": null,
    "tags": [
     "src/test/marketing-agent-bff.test.ts",
+    "src/test/marketing-approval-readiness.test.ts",
     "src/test/marketing-meta-bff.test.ts"
    ],
-   "detailRef": "b50b3059ef99"
+   "detailRef": "80da647c4c65"
   },
   {
    "id": "path-literal:a4527ac57216",
@@ -345194,44 +345654,45 @@
    "detailRef": "fd55acc7b758"
   },
   {
-   "id": "path-literal:dc3854441844",
+   "id": "path-literal:5f2e5404a2a7",
    "type": "path-literal",
    "title": "/token?grant_type=password",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "server/marketingBff.ts",
-   "line": 728,
+   "line": 729,
    "surface": null,
    "tags": [
     "server/marketingBff.ts"
    ],
-   "detailRef": "4942cc3753c7"
+   "detailRef": "313caba606af"
   },
   {
-   "id": "path-literal:f14c3861f171",
+   "id": "path-literal:902044d6de04",
    "type": "path-literal",
    "title": "/user",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "server/marketingBff.ts",
-   "line": 717,
+   "line": 718,
    "surface": null,
    "tags": [
     "server/marketingBff.ts"
    ],
-   "detailRef": "c5beaf3a5b70"
+   "detailRef": "b56787665972"
   },
   {
    "id": "path-literal:17910fbccc60",
    "type": "path-literal",
    "title": "/user_roles?",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/marketing-agent-bff.test.ts",
    "line": 28,
    "surface": null,
    "tags": [
     "src/test/marketing-agent-bff.test.ts",
+    "src/test/marketing-approval-readiness.test.ts",
     "src/test/marketing-meta-bff.test.ts"
    ],
-   "detailRef": "35be975c47d1"
+   "detailRef": "007057d15ae3"
   },
   {
    "id": "path-literal:215b68ab68f1",
@@ -352520,7 +352981,7 @@
     "thetok.ch",
     "true"
    ],
-   "detailRef": "1e8827ce14c2"
+   "detailRef": "eab389e84a79"
   },
   {
    "id": "redirect:af744bfb9395",
@@ -352535,7 +352996,7 @@
     "false",
     "https://www.thetok.ch/:path*"
    ],
-   "detailRef": "06228e322f6f"
+   "detailRef": "d52cb14fe7b0"
   },
   {
    "id": "redirect:af23622c3e96",
@@ -352550,7 +353011,7 @@
     "false",
     "https://www.thetok.ch/auth"
    ],
-   "detailRef": "2dbc780b7c95"
+   "detailRef": "dfaab652c4d8"
   },
   {
    "id": "redirect:af23622c3e96:2",
@@ -352565,7 +353026,7 @@
     "demo-client.thetok.ch",
     "false"
    ],
-   "detailRef": "b6c5c253c9ba"
+   "detailRef": "8a713794a75b"
   },
   {
    "id": "redirect:af23622c3e96:3",
@@ -352580,7 +353041,7 @@
     "demo-restaurateur.thetok.ch",
     "false"
    ],
-   "detailRef": "c60745023c66"
+   "detailRef": "eaa0546096de"
   },
   {
    "id": "redirect:af23622c3e96:4",
@@ -352595,7 +353056,7 @@
     "demo-livreur.thetok.ch",
     "false"
    ],
-   "detailRef": "4a3c15f2725c"
+   "detailRef": "961193b1bb8c"
   },
   {
    "id": "redirect:af23622c3e96:5",
@@ -352610,7 +353071,7 @@
     "commercial.thetok.ch",
     "false"
    ],
-   "detailRef": "4a1a5d51756a"
+   "detailRef": "57e7e7a0dd8d"
   },
   {
    "id": "redirect:af23622c3e96:6",
@@ -352625,7 +353086,7 @@
     "admin.thetok.ch",
     "false"
    ],
-   "detailRef": "938bd671aee5"
+   "detailRef": "f32f0a87d678"
   },
   {
    "id": "redirect:af23622c3e96:7",
@@ -352640,7 +353101,7 @@
     "false",
     "marketing.thetok.ch"
    ],
-   "detailRef": "0f49a19ffd1f"
+   "detailRef": "b9e8d927bc1d"
   },
   {
    "id": "redirect:1a507e5f1a3b",
@@ -352655,7 +353116,7 @@
     "https://admin.thetok.ch/admin/:path*",
     "www.thetok.ch"
    ],
-   "detailRef": "52ce7b155fac"
+   "detailRef": "e6ff840d4d17"
   },
   {
    "id": "redirect:1a507e5f1a3b:2",
@@ -352670,7 +353131,7 @@
     "https://admin.thetok.ch/admin/:path*",
     "thetok.ch"
    ],
-   "detailRef": "b5be8152da80"
+   "detailRef": "91935ec2ec8e"
   },
   {
    "id": "redirect:5f3424a1ef0b",
@@ -352685,7 +353146,7 @@
     "https://admin.thetok.ch/admin",
     "www.thetok.ch"
    ],
-   "detailRef": "dd2a6d1659e8"
+   "detailRef": "463ac77c8dce"
   },
   {
    "id": "redirect:5f3424a1ef0b:2",
@@ -352700,7 +353161,7 @@
     "https://admin.thetok.ch/admin",
     "thetok.ch"
    ],
-   "detailRef": "febbcef1c7a9"
+   "detailRef": "f113ff4d5091"
   },
   {
    "id": "redirect:c710cddb9f55",
@@ -352715,7 +353176,7 @@
     "false",
     "https://www.thetok.ch/auth/:path*"
    ],
-   "detailRef": "d62b5be0e106"
+   "detailRef": "480fee6ee037"
   },
   {
    "id": "redirect:c710cddb9f55:2",
@@ -352730,7 +353191,7 @@
     "false",
     "https://www.thetok.ch/auth/:path*"
    ],
-   "detailRef": "eef8c51c81c9"
+   "detailRef": "650178e68b58"
   },
   {
    "id": "redirect:7059b9616433",
@@ -352745,7 +353206,7 @@
     "false",
     "https://www.thetok.ch/auth"
    ],
-   "detailRef": "9a70e207d466"
+   "detailRef": "c7970c2721b6"
   },
   {
    "id": "redirect:7059b9616433:2",
@@ -352760,7 +353221,7 @@
     "false",
     "https://www.thetok.ch/auth"
    ],
-   "detailRef": "c3703570304d"
+   "detailRef": "0c57fc6241a8"
   },
   {
    "id": "redirect:7059b9616433:3",
@@ -352775,7 +353236,7 @@
     "https://www.thetok.ch/auth",
     "thetok.ch"
    ],
-   "detailRef": "e94a8dbb4b19"
+   "detailRef": "85013f41b37d"
   },
   {
    "id": "redirect:4666613ad508",
@@ -352790,7 +353251,7 @@
     "false",
     "https://www.thetok.ch/espaces"
    ],
-   "detailRef": "08fa663bcb27"
+   "detailRef": "58900dd9fb1f"
   },
   {
    "id": "redirect:4666613ad508:2",
@@ -352805,7 +353266,7 @@
     "false",
     "https://www.thetok.ch/espaces"
    ],
-   "detailRef": "01c77ee2a992"
+   "detailRef": "dbba6586585c"
   },
   {
    "id": "redirect:b08cd21d2a08",
@@ -352819,7 +353280,7 @@
     "/restaurants/carouge/:path*",
     "301"
    ],
-   "detailRef": "fa54604c5e21"
+   "detailRef": "228dad538fd0"
   },
   {
    "id": "redirect:6d82fe905f36",
@@ -352833,7 +353294,7 @@
     "/restaurants/carouge/r/fernandes-de-almeida-restaurant-le-paradisio",
     "301"
    ],
-   "detailRef": "e133ecc2b06b"
+   "detailRef": "3994e73c245f"
   },
   {
    "id": "redirect:e9ce55e34283",
@@ -352847,7 +353308,7 @@
     "/restaurants/carouge",
     "301"
    ],
-   "detailRef": "88946b1e993d"
+   "detailRef": "c85a85acdb21"
   },
   {
    "id": "redirect:767e2c5520e3",
@@ -352861,7 +353322,7 @@
     "/restaurants/carouge/r/fernandes-de-almeida-restaurant-le-paradisio",
     "301"
    ],
-   "detailRef": "db60506642a5"
+   "detailRef": "e242f30624c5"
   },
   {
    "id": "redirect:f59d3f3c8986",
@@ -352875,7 +353336,7 @@
     "/restaurants/corsier/:path*",
     "true"
    ],
-   "detailRef": "bead06606600"
+   "detailRef": "1e86ba921f23"
   },
   {
    "id": "redirect:1fe9f851e64b",
@@ -352889,7 +353350,7 @@
     "/restaurants/corsier",
     "true"
    ],
-   "detailRef": "10398ffc6bba"
+   "detailRef": "4c6c91ac6424"
   },
   {
    "id": "redirect:47d23bbc647f",
@@ -352903,7 +353364,7 @@
     "/restaurants/vandoeuvres/:path*",
     "true"
    ],
-   "detailRef": "d53de91acde7"
+   "detailRef": "1ba28893ae20"
   },
   {
    "id": "redirect:d4f6e3c9dd0f",
@@ -352917,7 +353378,21 @@
     "/restaurants/vandoeuvres",
     "true"
    ],
-   "detailRef": "52b37954cf80"
+   "detailRef": "6c75e332fe1f"
+  },
+  {
+   "id": "redirect:e072b7c4c3d1",
+   "type": "redirect",
+   "title": "/restaurateurs-geneve",
+   "description": "Redirige vers /restaurateurs/geneve.",
+   "path": "vercel.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/restaurateurs/geneve",
+    "true"
+   ],
+   "detailRef": "d7f1fea7ac90"
   },
   {
    "id": "redirect:1cfb25f6dfe0",
@@ -352931,7 +353406,7 @@
     "/sitemap.xml",
     "true"
    ],
-   "detailRef": "e379a7aa4d63"
+   "detailRef": "0aa22ca78efb"
   },
   {
    "id": "redirect:c8c189cb0e06",
@@ -352945,7 +353420,7 @@
     "/sitemap.xml",
     "true"
    ],
-   "detailRef": "c5a916c8c2f5"
+   "detailRef": "3d075b659f5c"
   },
   {
    "id": "redirect:431554d8e282",
@@ -352959,7 +353434,7 @@
     "/sitemap.xml",
     "true"
    ],
-   "detailRef": "207b5a6eb74d"
+   "detailRef": "a74da562c91e"
   },
   {
    "id": "rewrite:c87501960dd8",

@@ -1,3 +1,4 @@
+import { allocateMarketingVisuals } from "../_shared/marketing-visual-allocation.ts";
 import {
   HttpError,
   authenticateRequest,
@@ -201,21 +202,11 @@ Deno.serve(async (req) => {
 
     // Visuals are generated after the plan and never block it: a failed image
     // leaves the item without one instead of discarding a usable campaign.
-    const visuals = new Map<number, string>();
     const slug = slugifyCampaignName(plan.campaign.name);
-    let visualBudget = MAX_VISUALS;
-    for (let index = 0; index < plan.items.length && visualBudget > 0; index += 1) {
-      const prompt = plan.items[index].visual_prompt;
-      if (!prompt) continue;
-      visualBudget -= 1;
-      const url = await generateCampaignVisual(client, {
-        prompt,
-        campaignSlug: slug,
-        index,
-        apiKey: OPENAI_API_KEY,
-      });
-      if (url) visuals.set(index, url);
-    }
+    const visuals = await allocateMarketingVisuals(plan.items, (prompt, index) => generateCampaignVisual(client, {
+      prompt, campaignSlug: slug, index, apiKey: OPENAI_API_KEY,
+    }), MAX_VISUALS);
+    const assetCount = new Set(visuals.values()).size;
 
     const bundle = toBundlePayload(plan, visuals);
 
@@ -230,7 +221,7 @@ Deno.serve(async (req) => {
       targetEntityId: runId,
       metadata: {
         item_count: plan.items.length,
-        asset_count: visuals.size,
+        asset_count: assetCount,
         channels,
         model,
       },
@@ -243,7 +234,7 @@ Deno.serve(async (req) => {
         bundle,
         summary: plan.campaign.summary,
         itemCount: plan.items.length,
-        assetCount: visuals.size,
+        assetCount,
         model,
         inputTokens: usage.input_tokens || 0,
         outputTokens: usage.output_tokens || 0,
