@@ -28,7 +28,7 @@ export type RealtimeNotificationChannel = {
     filter: NotificationRealtimeFilter,
     callback: (payload: NotificationRealtimePayload) => void,
   ) => RealtimeNotificationChannel;
-  subscribe: () => unknown;
+  subscribe: (callback?: (status: string) => void) => unknown;
 };
 
 export type RealtimeNotificationClient = {
@@ -44,6 +44,7 @@ type NotificationSubscriber = {
 type RealtimeNotificationEntry = {
   channel: RealtimeNotificationChannel;
   subscribers: Map<symbol, NotificationSubscriber>;
+  cleanup: () => void;
 };
 
 type RealtimeNotificationManagerOptions = {
@@ -73,6 +74,7 @@ function subscribeNotifications(
   userId: string,
   onInsert: (notification: RealtimeNotification) => void,
   onUpdate: () => void,
+  onStatus: (status: string) => void,
 ) {
   const channel = client
     .channel(topic)
@@ -85,7 +87,10 @@ function subscribeNotifications(
         filter: `user_id=eq.${userId}`,
       },
       (payload) => {
-        onInsert(payload.new as RealtimeNotification);
+        const notification = payload.new;
+        if (!notification || typeof notification !== "object" ||
+            typeof (notification as RealtimeNotification).id !== "string") return;
+        onInsert(notification as RealtimeNotification);
       },
     )
     .on(
@@ -99,7 +104,7 @@ function subscribeNotifications(
       onUpdate,
     );
 
-  channel.subscribe();
+  channel.subscribe(onStatus);
   return channel;
 }
 
@@ -124,15 +129,32 @@ export function createRealtimeNotificationManager({
           }
         };
 
+        let catchupInterval: ReturnType<typeof setInterval> | null = null;
+        const clearCatchup = () => {
+          if (catchupInterval) clearInterval(catchupInterval);
+          catchupInterval = null;
+        };
+        let disposed = false;
+        const handleStatus = (status: string) => {
+          if (disposed) return;
+          if (status === "SUBSCRIBED") {
+            clearCatchup();
+            notifySubscribers();
+          } else if (["CHANNEL_ERROR", "TIMED_OUT", "CLOSED"].includes(status)) {
+            notifySubscribers();
+            if (!catchupInterval) catchupInterval = setInterval(notifySubscribers, 60_000);
+          }
+        };
         const channel = subscribeNotifications(
           client,
           createUniqueNotificationTopic(topicPrefix, userId),
           userId,
           (notification) => notifySubscribers(notification),
           () => notifySubscribers(),
+          handleStatus,
         );
 
-        entry = { channel, subscribers };
+        entry = { channel, subscribers, cleanup: () => { disposed = true; clearCatchup(); } };
         entries.set(userId, entry);
       }
 
@@ -150,6 +172,7 @@ export function createRealtimeNotificationManager({
         currentEntry.subscribers.delete(subscriberId);
         if (currentEntry.subscribers.size === 0) {
           entries.delete(userId);
+          currentEntry.cleanup();
           void client.removeChannel(currentEntry.channel);
         }
       };

@@ -1,4 +1,4 @@
-import { Calculator, Check, MapPinned, Menu, PanelsTopLeft } from "lucide-react";
+import { Bell, Calculator, Check, MapPinned, Menu, PanelsTopLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import SignOutButton from "@/components/auth/SignOutButton";
@@ -31,6 +31,12 @@ const COMMERCIAL_NAV_ITEMS = [
     icon: Calculator,
   },
   {
+    to: "/commercial/notifications",
+    label: "Notifications",
+    description: "Historique, rappels et alertes commerciales",
+    icon: Bell,
+  },
+  {
     to: "/commercial/demo-live",
     label: "Démo multi-espace",
     description: "Client, restaurant et livraison en temps réel",
@@ -44,14 +50,14 @@ export default function CommercialWorkspaceChrome({ activeLabel }: { activeLabel
   const commercialDemoFrame = useCommercialDemoFrame();
   const isEmbeddedCommercial = commercialDemoFrame?.surface === "commercial";
   const visibleNavItems = isEmbeddedCommercial
-    ? COMMERCIAL_NAV_ITEMS.filter((item) => item.to !== "/commercial/demo-live")
+    ? COMMERCIAL_NAV_ITEMS.filter((item) => item.to !== "/commercial/demo-live" && item.to !== "/commercial/notifications")
     : COMMERCIAL_NAV_ITEMS;
 
   return (
     <>
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-sm backdrop-blur-md hover:bg-background dark:border-border dark:bg-card/95 dark:text-white" />
-        <NotificationBell />
+        <NotificationBell routeRole={isEmbeddedCommercial ? undefined : "commercial"} />
         {!isEmbeddedCommercial ? <SignOutButton iconOnly /> : null}
       </div>
 

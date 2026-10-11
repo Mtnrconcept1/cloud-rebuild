@@ -109,6 +109,7 @@ const TokConnectDeveloper = lazy(() => import("./pages/TokConnectDeveloper"));
 const TokConnectMcpWidget = lazy(() => import("./pages/tok-connect/TokConnectMcpWidget"));
 const CommercialProspection = lazy(() => import("./pages/CommercialProspection"));
 const CommercialComptabilite = lazy(() => import("./pages/CommercialComptabilite"));
+const CommercialNotifications = lazy(() => import("./pages/CommercialNotifications"));
 const CommercialDemoLive = lazy(() => import("./pages/CommercialDemoLive"));
 const DashboardHome = lazy(() => import("./pages/dashboard/DashboardHome"));
 const DashboardRestaurant = lazy(() => import("./pages/dashboard/DashboardRestaurant"));
@@ -600,6 +601,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/commercial" element={<ProtectedRoute requiredRoles={["admin", "commercial"]}><FeatureSwitch enabled={commercialProspectionEnabled} fallback="/"><CommercialProspection /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/commercial/prospection" element={<Navigate to="/commercial" replace />} />
           <Route path="/commercial/comptabilite" element={<ProtectedRoute requiredRoles={["admin", "commercial"]}><FeatureSwitch enabled={commercialProspectionEnabled} fallback="/"><CommercialComptabilite /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/commercial/notifications" element={<ProtectedRoute requiredRoles={["admin", "commercial"]}><FeatureSwitch enabled={commercialProspectionEnabled} fallback="/"><CommercialNotifications /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/commercial/demo-live" element={<ProtectedRoute requiredRoles={["admin", "commercial"]}><FeatureSwitch enabled={commercialProspectionEnabled} fallback="/"><CommercialDemoLive /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/miamz-solidaires" element={<MiamzSolidaires />} />
           <Route path="/points-cadeau" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={giftPointsEnabled}><GiftPoints /></FeatureSwitch></ProtectedRoute>} />

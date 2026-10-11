@@ -290,7 +290,7 @@ export default function AdminHome() {
   const navigate = useNavigate();
   const activeFeatures = useActiveFeatures();
   const { role } = useAuth();
-  const { unreadNotifications } = useNotificationCenter(50);
+  const { unreadNotifications } = useNotificationCenter(50, { realtime: true });
   const adminPlatformConfigEnabled = activeFeatures.has(ADMIN_PLATFORM_CONFIG_LINK.feature);
   const visibleTools = ADMIN_TOOLS.filter((tool) => !tool.feature || activeFeatures.has(tool.feature));
 

@@ -35,6 +35,13 @@ describe("notifications and chat sinistres governance", () => {
       .toBe("/admin/audit?event=1");
     expect(getNotificationCenterPathForRole("restaurateur")).toBe("/dashboard/notifications");
     expect(getNotificationCenterPathForRole("courier")).toBe("/courier/notifications");
+    expect(getNotificationCenterPathForRole("commercial")).toBe("/commercial/notifications");
+    expect(getNotificationTarget({ data: { url: "/commercial?tab=followups" } }, "commercial"))
+      .toBe("/commercial?tab=followups");
+    expect(getNotificationTarget({ data: { order_id: "order-1" } }, "commercial"))
+      .toBe("/commercial/notifications");
+    expect(getNotificationTarget({ data: { url: "/admin" } }, "commercial"))
+      .toBe("/commercial/notifications");
   });
 
   it("counts unread notifications beside the concerned menu tab", () => {
@@ -51,12 +58,13 @@ describe("notifications and chat sinistres governance", () => {
     expect(getNotificationBadgeCountForRoute(notifications, "/admin/audit", "admin")).toBe(1);
   });
 
-  it("keeps the notification bell available in the four application interfaces", () => {
+  it("keeps the notification bell available in all five application interfaces", () => {
     for (const path of [
       "src/components/Navbar.tsx",
       "src/components/DashboardLayout.tsx",
       "src/components/CourierDashboardLayout.tsx",
       "src/App.tsx",
+      "src/components/commercial/CommercialWorkspaceChrome.tsx",
     ]) {
       expect(readProjectFile(path)).toContain("NotificationBell");
     }
@@ -65,12 +73,24 @@ describe("notifications and chat sinistres governance", () => {
     expect(readProjectFile("src/components/admin/AdminMobileNavigation.tsx")).toContain("NotificationMenuBadge");
   });
 
+  it("keeps all dashboard menu badges subscribed to Realtime", () => {
+    for (const path of [
+      "src/components/CustomerDashboardLayout.tsx",
+      "src/components/DashboardLayout.tsx",
+      "src/components/CourierDashboardLayout.tsx",
+      "src/components/admin/AdminMobileNavigation.tsx",
+    ]) {
+      expect(readProjectFile(path)).toContain("useNotificationCenter(50, { realtime: true })");
+    }
+  });
+
   it("exposes a notification history page for every authenticated interface", () => {
     const app = readProjectFile("src/App.tsx");
     const customerPage = readProjectFile("src/pages/Notifications.tsx");
     const dashboardPage = readProjectFile("src/pages/dashboard/DashboardNotifications.tsx");
     const courierPage = readProjectFile("src/pages/courier/CourierNotifications.tsx");
     const adminPage = readProjectFile("src/pages/admin/AdminNotifications.tsx");
+    const commercialPage = readProjectFile("src/pages/CommercialNotifications.tsx");
     const adminOperationsCenter = readProjectFile("src/pages/admin/AdminOperationsCenter.tsx");
     const adminOrdersReservations = readProjectFile("src/pages/admin/AdminOrdersReservations.tsx");
     const historyList = readProjectFile("src/components/notifications/NotificationHistoryList.tsx");
@@ -83,12 +103,15 @@ describe("notifications and chat sinistres governance", () => {
     expect(app).toContain('path="/dashboard/notifications"');
     expect(app).toContain('path="/courier/notifications"');
     expect(app).toContain('path="/admin/notifications"');
+    expect(app).toContain('path="/commercial/notifications"');
     expect(customerPage).toContain("NotificationHistoryList");
     expect(dashboardPage).toContain("NotificationHistoryList");
     expect(courierPage).toContain("NotificationHistoryList");
     expect(adminPage).toContain("NotificationHistoryList");
+    expect(commercialPage).toContain("NotificationHistoryList");
+    expect(commercialPage).toContain('routeRole="commercial"');
     expect(historyList).toContain("useNotificationCenter(limit, { realtime: true })");
-    expect(historyList).toContain("getNotificationTarget(notification, role, notificationCenterTarget)");
+    expect(historyList).toContain("getNotificationTarget(notification, navigationRole, notificationCenterTarget)");
     expect(historyList).toContain("markNotificationRead(notification.id)");
     expect(historyList).toContain("navigate(target)");
     expect(adminOperationsCenter).toContain("useSearchParams");
@@ -99,7 +122,7 @@ describe("notifications and chat sinistres governance", () => {
     expect(courierJobs).toContain('searchParams.get("order")');
     expect(dashboardLayout).toContain("/dashboard/notifications");
     expect(courierLayout).toContain("/courier/notifications");
-    expect(bell).toContain("getNotificationCenterPathForRole(role)");
+    expect(bell).toContain("getNotificationCenterPathForRole(navigationRole)");
   });
 
   it("exposes chat sinistres in admin with summary and full conversation history", () => {

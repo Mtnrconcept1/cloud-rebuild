@@ -50,6 +50,7 @@ const COMMERCIAL_HOST_EXACT_PATHS = new Set([
   "/commercial",
   "/commercial/prospection",
   "/commercial/comptabilite",
+  "/commercial/notifications",
   "/commercial/demo-live",
 ]);
 const COMMERCIAL_DEMO_FRAME_PATH = /^\/commercial\/demo-live\/frame\/(client|restaurant|courier|commercial)\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(?:\/|$)/i;

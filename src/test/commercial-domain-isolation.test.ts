@@ -72,6 +72,7 @@ describe("commercial.thetok.ch canonical isolation", () => {
       "/commercial",
       "/commercial/prospection",
       "/commercial/comptabilite",
+      "/commercial/notifications",
       "/commercial/demo-live",
       framePath,
       `/commercial/demo-live/frame/restaurant/${sessionId}/dashboard/commandes`,

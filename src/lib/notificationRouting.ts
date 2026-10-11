@@ -1,6 +1,6 @@
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 
-export type NotificationRole = "client" | "restaurateur" | "admin" | "courier" | string | null | undefined;
+export type NotificationRole = "client" | "restaurateur" | "admin" | "courier" | "commercial" | string | null | undefined;
 
 export type RoutableNotification = {
   type?: string | null;
@@ -38,6 +38,7 @@ export function getNotificationCenterPathForRole(role: NotificationRole, fallbac
   if (role === "admin") return "/admin/notifications";
   if (role === "restaurateur") return "/dashboard/notifications";
   if (role === "courier") return "/courier/notifications";
+  if (role === "commercial") return "/commercial/notifications";
   if (role === "client") return "/notifications";
   return fallback;
 }
@@ -46,6 +47,14 @@ export function getNotificationTarget(notification: RoutableNotification, role: 
   const data = asRecord(notification.data);
   const explicitTarget = firstString(data.url, data.deepLink, data.deep_link, data.action_url, data.target_url, data.link);
   const normalizedExplicitTarget = explicitTarget ? normalizeInternalNavigationTarget(explicitTarget, fallback) : null;
+
+  // Commercial accounts must remain within their isolated, canonical workspace.
+  if (role === "commercial") {
+    const explicitPath = normalizedExplicitTarget ? pathnameOf(normalizedExplicitTarget) : "";
+    return explicitPath === "/commercial" || explicitPath.startsWith("/commercial/")
+      ? normalizedExplicitTarget!
+      : getNotificationCenterPathForRole(role, fallback);
+  }
 
   const supportIncidentId = firstString(data.support_incident_id, data.incident_id, data.ticket_id);
   const aiSupportTicketId = firstString(data.ai_support_ticket_id, data.support_ticket_id);

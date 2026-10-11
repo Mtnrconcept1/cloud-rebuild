@@ -5,6 +5,7 @@ import { createRealtimeNotificationManager } from "@/lib/realtimeNotifications";
 
 function createMockRealtimeChannel() {
   const callbacks: Record<string, (payload: { new?: unknown }) => void> = {};
+  const statuses: Array<(status: string) => void> = [];
   const channel = {
     subscribed: false,
     on: vi.fn(function (
@@ -19,13 +20,14 @@ function createMockRealtimeChannel() {
       callbacks[filter.event] = callback;
       return this;
     }),
-    subscribe: vi.fn(function (this: typeof channel) {
+    subscribe: vi.fn(function (this: typeof channel, callback?: (status: string) => void) {
+      if (callback) statuses.push(callback);
       this.subscribed = true;
       return this;
     }),
   };
 
-  return { channel, callbacks };
+  return { channel, callbacks, statuses };
 }
 
 function createQueryClientMock() {

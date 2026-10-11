@@ -24,6 +24,7 @@ type NotificationBellProps = {
   buttonClassName?: string;
   contentClassName?: string;
   align?: "start" | "center" | "end";
+  routeRole?: "commercial";
 };
 
 function formatDate(value?: string) {
@@ -44,6 +45,7 @@ export function NotificationBell({
   buttonClassName,
   contentClassName,
   align = "end",
+  routeRole,
 }: NotificationBellProps) {
   const navigate = useNavigate();
   const { user, role } = useAuth();
@@ -57,10 +59,11 @@ export function NotificationBell({
 
   if (!user) return null;
 
-  const notificationCenterTarget = getNotificationCenterPathForRole(role);
+  const navigationRole = routeRole ?? role;
+  const notificationCenterTarget = getNotificationCenterPathForRole(navigationRole);
 
   const openNotification = (notification: TokNotification) => {
-    const target = getNotificationTarget(notification, role, notificationCenterTarget);
+    const target = getNotificationTarget(notification, navigationRole, notificationCenterTarget);
     void markNotificationRead(notification.id);
     navigate(target);
   };

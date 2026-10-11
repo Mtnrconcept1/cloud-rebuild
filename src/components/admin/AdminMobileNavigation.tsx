@@ -212,7 +212,7 @@ export default function AdminMobileNavigation() {
   const { pathname, search } = useLocation();
   const activeFeatures = useActiveFeatures();
   const { role } = useAuth();
-  const { unreadNotifications } = useNotificationCenter(50);
+  const { unreadNotifications } = useNotificationCenter(50, { realtime: true });
   const [pendingSignupApplicationsCount, setPendingSignupApplicationsCount] = useState(0);
   const [openSupportIncidentCount, setOpenSupportIncidentCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

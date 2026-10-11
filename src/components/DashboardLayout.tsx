@@ -313,7 +313,7 @@ export default function DashboardLayout({
       : globalActiveFeatures,
     [commercialDemoFrame, globalActiveFeatures],
   );
-  const { unreadNotifications } = useNotificationCenter(50);
+  const { unreadNotifications } = useNotificationCenter(50, { realtime: true });
 
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
