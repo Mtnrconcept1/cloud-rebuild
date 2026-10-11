@@ -17,10 +17,20 @@ afterEach(() => {
   authState.user = null;
   cleanup();
 });
-function setup() {
-  render(<MemoryRouter><HeroSection contentVisible={false} /><LocationProbe /></MemoryRouter>);
+function setup(activeFeatures?: ReadonlySet<string>) {
+  render(<MemoryRouter><HeroSection contentVisible={false} activeFeatures={activeFeatures} /><LocationProbe /></MemoryRouter>);
 }
 describe("homepage semantic search", () => {
+  it("uses a portrait hero asset on mobile and the supplied Léman illustration on desktop", () => {
+    setup();
+    expect(document.querySelector('.tok-home-hero__background source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/images/home/tok-geneve-mobile.webp");
+    expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/home/tok-leman-signature.png");
+  });
+  it("only exposes feature-flagged quick links when the corresponding feature is enabled", () => {
+    setup(new Set(["ventes-flash", "chefs-table"]));
+    expect(screen.getByRole("link", { name: /Offres/ })).toHaveAttribute("href", "/ventes-flash");
+    expect(screen.getByRole("link", { name: /Grandes tables/ })).toHaveAttribute("href", "/chefs-table");
+  });
   it("shows one readable headline and a labeled field immediately, even before animation", () => {
     setup();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);

@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight, Heart, MapPin, Search } from "lucide-react";
+import { ArrowRight, ChevronRight, Heart, Mail, MapPin, Navigation, Percent, Search, ShoppingBag, Users } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { useAuth } from "@/lib/auth-context";
 import "./HeroSection.css";
 
-const HERO_IMAGE_FETCH_PRIORITY_PROPS = { fetchpriority: "high" } as const;
+const HERO_IMAGE_FETCH_PRIORITY_PROPS = { fetchPriority: "high" } as const;
+const EMPTY_FEATURES: ReadonlySet<string> = new Set();
 
 const newsletterConditions = [
   "Le bonus de bienvenue est réservé aux nouveaux comptes TOK qui s'inscrivent à la newsletter depuis cette offre.",
@@ -17,9 +17,8 @@ const newsletterConditions = [
   "TOK peut modifier, suspendre ou arrêter l'offre si nécessaire, notamment en cas d'usage abusif, de comptes multiples ou de tentative de contournement.",
 ];
 
-export default function HeroSection({ contentVisible = true }: { contentVisible?: boolean }) {
+export default function HeroSection({ contentVisible = true, activeFeatures = EMPTY_FEATURES }: { contentVisible?: boolean; activeFeatures?: ReadonlySet<string> }) {
   const navigate = useNavigate();
-  const logoSrc = useTokLogoSrc();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [city, setCity] = useState("");
@@ -43,7 +42,6 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
       >
         <div className="tok-home-hero__content">
           <div className="tok-home-hero__brand">
-            <img className="tok-home-hero__logo" src={logoSrc} alt="TOK — Miamz !" width={1691} height={1099} />
             <p className="tok-home-hero__eyebrow">Le goût de se retrouver</p>
           </div>
           <h1 id="home-hero-title" className="tok-home-hero__title">
@@ -64,28 +62,33 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               <label htmlFor="home-city-search">Où ? <span>(facultatif)</span></label>
               <div className="tok-home-hero__input-row">
                 <MapPin aria-hidden="true" />
-                <input id="home-city-search" name="city" type="text" autoComplete="address-level2" value={city} onChange={(event) => setCity(event.target.value)} placeholder="Toutes les villes" />
+                <input id="home-city-search" name="city" type="text" autoComplete="address-level2" value={city} onChange={(event) => setCity(event.target.value)} placeholder="Genève" />
               </div>
             </div>
             <button type="submit" className="tok-home-hero__cta">
-              <span>Rechercher</span><ChevronRight aria-hidden="true" />
+              <span>Rechercher</span><ArrowRight aria-hidden="true" />
             </button>
           </form>
-          <p className="tok-home-hero__reassurance">Explorez librement. Choisissez ensuite votre service.</p>
-          <p className="tok-home-hero__signature"><Heart aria-hidden="true" /><span>Mangez mieux. Faites plus de bien, avec les Miamz solidaires.</span></p>
+          <nav className="tok-home-hero__filters" aria-label="Accès rapides aux restaurants">
+            <Link to="/recherche"><Navigation aria-hidden="true" /> Autour de moi</Link>
+            {activeFeatures.has("ventes-flash") ? <Link to="/ventes-flash"><Percent aria-hidden="true" /> Offres</Link> : null}
+            <Link to="/recherche"><ShoppingBag aria-hidden="true" /> À emporter</Link>
+            {activeFeatures.has("chefs-table") ? <Link to="/chefs-table"><Users aria-hidden="true" /> Grandes tables</Link> : null}
+          </nav>
         </div>
         <div className="tok-home-hero__art" aria-hidden="true">
           <picture className="tok-home-hero__background">
-            <source type="image/webp" srcSet="/images/home/tok-geneve-desktop.webp" width={1670} height={941} />
-            <img src="/Chef%20TOK%20au%20bord%20du%20lac%20L%C3%A9man.png" alt="" width={1670} height={941} {...HERO_IMAGE_FETCH_PRIORITY_PROPS} loading="eager" />
+            <source media="(max-width: 767px)" type="image/webp" srcSet="/images/home/tok-geneve-mobile.webp" />
+            <img src="/images/home/tok-leman-signature.png" alt="" width={1672} height={941} {...HERO_IMAGE_FETCH_PRIORITY_PROPS} loading="eager" decoding="async" />
           </picture>
-          <div className="tok-home-hero__art-caption"><span>À la table de TOK</span><p>Les bonnes choses<br />se partagent.</p></div>
         </div>
       </section>
       <aside className="tok-home-hero__secondary" aria-label="Rejoindre TOK">
-        <Link to="/restaurateurs/geneve">Restaurateur ? Découvrez TOK <ChevronRight aria-hidden="true" size={16} /></Link>
+        <p className="tok-home-hero__signature"><Heart aria-hidden="true" /><span>Mangez mieux. Faites plus de bien, avec les Miamz solidaires.</span></p>
+        <Link className="tok-home-hero__pro-link" to="/restaurateurs/geneve">Restaurateur ? Découvrez TOK <ChevronRight aria-hidden="true" size={16} /></Link>
         <div data-testid="mobile-newsletter" className="tok-home-hero__newsletter">
-          <p>Abonnez-vous et recevez <strong>500 Miamz.</strong></p>
+          <Mail aria-hidden="true" className="tok-home-hero__mail-icon" />
+          <p>Abonnez-vous à notre newsletter et recevez <strong>500 Miamz.</strong></p>
           <button type="button" onClick={() => setShowNewsletterConditions(true)} aria-haspopup="dialog">Conditions applicables.</button>
           <Link to="/auth">Inscrivez-vous</Link>
         </div>

@@ -191,7 +191,7 @@ export default function Navbar() {
     <>
       {/* ─── Top utility bar ─── */}
       {showClientSurface ? (
-        <div className={`hidden w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 ${isDesktopHomeReference ? "" : "lg:block"}`}>
+        <div className={`w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 ${isDesktopHomeReference ? "block lg:hidden" : "hidden lg:block"}`}>
           <div className="container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground">
             <Link to="/restaurateurs/geneve" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
               <Store className="h-3.5 w-3.5" />
@@ -215,7 +215,7 @@ export default function Navbar() {
       {/* ─── Main header ─── */}
       <header
         ref={headerRef}
-        className={`tok-site-header sticky top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "border-border bg-background/95 backdrop-blur dark:border-border dark:bg-background/95" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
+        className={`tok-site-header sticky top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border bg-background/95 backdrop-blur dark:border-border dark:bg-background/95" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
         style={{
           opacity: isHeaderVisible ? 1 : 0,
           transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
