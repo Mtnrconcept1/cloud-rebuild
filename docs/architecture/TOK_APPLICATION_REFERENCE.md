@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `1aaaa4cf512cc05f0b099ea4fea2f7fae5963a0e025bfa1982b09d305d3f0864`
+- Empreinte SHA-256 des sources indexées : `36fc50ff7534a824664b7cacba5219e14eaa389dc8d3b632476e77fa214d54d0`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -41,12 +41,12 @@
 | modules | 1502 |
 | pages | 128 |
 | pathLiterals | 637 |
-| publicAssets | 357 |
-| publicEntries | 382 |
+| publicAssets | 377 |
+| publicEntries | 402 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15902 |
-| repositoryFiles | 2864 |
+| records | 15943 |
+| repositoryFiles | 2885 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -942,6 +942,26 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/brand/tok-v1/geneva.jpg | media | [public/marketing/brand/tok-v1/geneva.jpg](../../public/marketing/brand/tok-v1/geneva.jpg) |
 | /marketing/brand/tok-v1/loyalty.jpg | media | [public/marketing/brand/tok-v1/loyalty.jpg](../../public/marketing/brand/tok-v1/loyalty.jpg) |
 | /marketing/brand/tok-v1/pricing.jpg | media | [public/marketing/brand/tok-v1/pricing.jpg](../../public/marketing/brand/tok-v1/pricing.jpg) |
+| /marketing/campaigns/geneve-20261012/j01.jpg | media | [public/marketing/campaigns/geneve-20261012/j01.jpg](../../public/marketing/campaigns/geneve-20261012/j01.jpg) |
+| /marketing/campaigns/geneve-20261012/j02.jpg | media | [public/marketing/campaigns/geneve-20261012/j02.jpg](../../public/marketing/campaigns/geneve-20261012/j02.jpg) |
+| /marketing/campaigns/geneve-20261012/j03.jpg | media | [public/marketing/campaigns/geneve-20261012/j03.jpg](../../public/marketing/campaigns/geneve-20261012/j03.jpg) |
+| /marketing/campaigns/geneve-20261012/j04.jpg | media | [public/marketing/campaigns/geneve-20261012/j04.jpg](../../public/marketing/campaigns/geneve-20261012/j04.jpg) |
+| /marketing/campaigns/geneve-20261012/j05.jpg | media | [public/marketing/campaigns/geneve-20261012/j05.jpg](../../public/marketing/campaigns/geneve-20261012/j05.jpg) |
+| /marketing/campaigns/geneve-20261012/j06.jpg | media | [public/marketing/campaigns/geneve-20261012/j06.jpg](../../public/marketing/campaigns/geneve-20261012/j06.jpg) |
+| /marketing/campaigns/geneve-20261012/j07.jpg | media | [public/marketing/campaigns/geneve-20261012/j07.jpg](../../public/marketing/campaigns/geneve-20261012/j07.jpg) |
+| /marketing/campaigns/geneve-20261012/j08.jpg | media | [public/marketing/campaigns/geneve-20261012/j08.jpg](../../public/marketing/campaigns/geneve-20261012/j08.jpg) |
+| /marketing/campaigns/geneve-20261012/j09.jpg | media | [public/marketing/campaigns/geneve-20261012/j09.jpg](../../public/marketing/campaigns/geneve-20261012/j09.jpg) |
+| /marketing/campaigns/geneve-20261012/j10.jpg | media | [public/marketing/campaigns/geneve-20261012/j10.jpg](../../public/marketing/campaigns/geneve-20261012/j10.jpg) |
+| /marketing/campaigns/geneve-20261012/j11.jpg | media | [public/marketing/campaigns/geneve-20261012/j11.jpg](../../public/marketing/campaigns/geneve-20261012/j11.jpg) |
+| /marketing/campaigns/geneve-20261012/j12.jpg | media | [public/marketing/campaigns/geneve-20261012/j12.jpg](../../public/marketing/campaigns/geneve-20261012/j12.jpg) |
+| /marketing/campaigns/geneve-20261012/j13.jpg | media | [public/marketing/campaigns/geneve-20261012/j13.jpg](../../public/marketing/campaigns/geneve-20261012/j13.jpg) |
+| /marketing/campaigns/geneve-20261012/j14.jpg | media | [public/marketing/campaigns/geneve-20261012/j14.jpg](../../public/marketing/campaigns/geneve-20261012/j14.jpg) |
+| /marketing/campaigns/geneve-20261012/j15.jpg | media | [public/marketing/campaigns/geneve-20261012/j15.jpg](../../public/marketing/campaigns/geneve-20261012/j15.jpg) |
+| /marketing/campaigns/geneve-20261012/j16.jpg | media | [public/marketing/campaigns/geneve-20261012/j16.jpg](../../public/marketing/campaigns/geneve-20261012/j16.jpg) |
+| /marketing/campaigns/geneve-20261012/j17.jpg | media | [public/marketing/campaigns/geneve-20261012/j17.jpg](../../public/marketing/campaigns/geneve-20261012/j17.jpg) |
+| /marketing/campaigns/geneve-20261012/j18.jpg | media | [public/marketing/campaigns/geneve-20261012/j18.jpg](../../public/marketing/campaigns/geneve-20261012/j18.jpg) |
+| /marketing/campaigns/geneve-20261012/j19.jpg | media | [public/marketing/campaigns/geneve-20261012/j19.jpg](../../public/marketing/campaigns/geneve-20261012/j19.jpg) |
+| /marketing/campaigns/geneve-20261012/j20.jpg | media | [public/marketing/campaigns/geneve-20261012/j20.jpg](../../public/marketing/campaigns/geneve-20261012/j20.jpg) |
 | /miamz.png | media | [public/miamz.png](../../public/miamz.png) |
 | /mockup.png | media | [public/mockup.png](../../public/mockup.png) |
 | /placeholder.svg | media | [public/placeholder.svg](../../public/placeholder.svg) |
@@ -6999,7 +7019,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (154)</summary>
+<details><summary>documentation (155)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7072,6 +7092,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md`
 - `docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md`
 - `docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md`
+- `docs/marketing/campaigns/2026-10-12-geneve-visuals.json`
 - `docs/mobile-fullstack-review-2026-03-29.md`
 - `docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md`
 - `docs/operations/TOK_INTELLIGENCE_SUITE.md`
@@ -7855,7 +7876,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (382)</summary>
+<details><summary>public-asset (402)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8187,6 +8208,26 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/marketing/brand/tok-v1/geneva.jpg`
 - `public/marketing/brand/tok-v1/loyalty.jpg`
 - `public/marketing/brand/tok-v1/pricing.jpg`
+- `public/marketing/campaigns/geneve-20261012/j01.jpg`
+- `public/marketing/campaigns/geneve-20261012/j02.jpg`
+- `public/marketing/campaigns/geneve-20261012/j03.jpg`
+- `public/marketing/campaigns/geneve-20261012/j04.jpg`
+- `public/marketing/campaigns/geneve-20261012/j05.jpg`
+- `public/marketing/campaigns/geneve-20261012/j06.jpg`
+- `public/marketing/campaigns/geneve-20261012/j07.jpg`
+- `public/marketing/campaigns/geneve-20261012/j08.jpg`
+- `public/marketing/campaigns/geneve-20261012/j09.jpg`
+- `public/marketing/campaigns/geneve-20261012/j10.jpg`
+- `public/marketing/campaigns/geneve-20261012/j11.jpg`
+- `public/marketing/campaigns/geneve-20261012/j12.jpg`
+- `public/marketing/campaigns/geneve-20261012/j13.jpg`
+- `public/marketing/campaigns/geneve-20261012/j14.jpg`
+- `public/marketing/campaigns/geneve-20261012/j15.jpg`
+- `public/marketing/campaigns/geneve-20261012/j16.jpg`
+- `public/marketing/campaigns/geneve-20261012/j17.jpg`
+- `public/marketing/campaigns/geneve-20261012/j18.jpg`
+- `public/marketing/campaigns/geneve-20261012/j19.jpg`
+- `public/marketing/campaigns/geneve-20261012/j20.jpg`
 - `public/miamz.png`
 - `public/mockup.png`
 - `public/placeholder.svg`

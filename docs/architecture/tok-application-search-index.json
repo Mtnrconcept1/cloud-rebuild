@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "1aaaa4cf512cc05f0b099ea4fea2f7fae5963a0e025bfa1982b09d305d3f0864",
+ "sourceDigest": "36fc50ff7534a824664b7cacba5219e14eaa389dc8d3b632476e77fa214d54d0",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -21,12 +21,12 @@
   "modules": 1502,
   "pages": 128,
   "pathLiterals": 637,
-  "publicAssets": 357,
-  "publicEntries": 382,
+  "publicAssets": 377,
+  "publicEntries": 402,
   "publicNavigableRoutes": 2,
   "queryParameters": 104,
-  "records": 15902,
-  "repositoryFiles": 2864,
+  "records": 15943,
+  "repositoryFiles": 2885,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -12119,6 +12119,106 @@
    {
     "route": "/marketing/brand/tok-v1/pricing.jpg",
     "path": "public/marketing/brand/tok-v1/pricing.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j01.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j01.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j02.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j02.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j03.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j03.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j04.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j04.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j05.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j05.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j06.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j06.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j07.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j07.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j08.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j08.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j09.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j09.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j10.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j10.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j11.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j11.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j12.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j12.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j13.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j13.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j14.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j14.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j15.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j15.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j16.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j16.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j17.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j17.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j18.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j18.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j19.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j19.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/campaigns/geneve-20261012/j20.jpg",
+    "path": "public/marketing/campaigns/geneve-20261012/j20.jpg",
     "kind": "media"
    },
    {
@@ -111598,6 +111698,11 @@
     "extension": ".md"
    },
    {
+    "path": "docs/marketing/campaigns/2026-10-12-geneve-visuals.json",
+    "category": "documentation",
+    "extension": ".json"
+   },
+   {
     "path": "docs/mobile-fullstack-review-2026-03-29.md",
     "category": "documentation",
     "extension": ".md"
@@ -113894,6 +113999,106 @@
    },
    {
     "path": "public/marketing/brand/tok-v1/pricing.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j01.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j02.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j03.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j04.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j05.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j06.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j07.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j08.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j09.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j10.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j11.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j12.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j13.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j14.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j15.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j16.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j17.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j18.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j19.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/campaigns/geneve-20261012/j20.jpg",
     "category": "public-asset",
     "extension": ".jpg"
    },
@@ -285744,6 +285949,20 @@
    "detailRef": "e44edb361fa7"
   },
   {
+   "id": "file:fc2c27444e5a",
+   "type": "file",
+   "title": "docs/marketing/campaigns/2026-10-12-geneve-visuals.json",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/marketing/campaigns/2026-10-12-geneve-visuals.json",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".json",
+    "documentation"
+   ],
+   "detailRef": "fc23983bdc3f"
+  },
+  {
    "id": "file:80142cee285c",
    "type": "file",
    "title": "docs/mobile-fullstack-review-2026-03-29.md",
@@ -292182,6 +292401,286 @@
     "public-asset"
    ],
    "detailRef": "18d3d4fa2554"
+  },
+  {
+   "id": "file:20d90d5a9cbd",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j01.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j01.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "e763758c23d9"
+  },
+  {
+   "id": "file:3a9c7a5320e3",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j02.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j02.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "8cf834e1203b"
+  },
+  {
+   "id": "file:c3d5d7d2c87c",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j03.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j03.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "09fbd6d6a043"
+  },
+  {
+   "id": "file:92ae50ea1feb",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j04.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j04.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "93e3cc64616e"
+  },
+  {
+   "id": "file:5539b65fbc17",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j05.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j05.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "cd92adce3bce"
+  },
+  {
+   "id": "file:d7f596c8b4fe",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j06.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j06.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "ec514fead319"
+  },
+  {
+   "id": "file:e1af34b16ba0",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j07.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j07.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "388f88bf4af0"
+  },
+  {
+   "id": "file:b2ca9df2a746",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j08.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j08.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "abc21e0df05e"
+  },
+  {
+   "id": "file:197d6878848c",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j09.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j09.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "42b38dda315d"
+  },
+  {
+   "id": "file:3a918fec042e",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j10.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j10.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "12f00d9ff944"
+  },
+  {
+   "id": "file:1327520e0dc3",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j11.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j11.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "22d97905e453"
+  },
+  {
+   "id": "file:23618d53cf4f",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j12.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j12.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "30317a8f7cab"
+  },
+  {
+   "id": "file:4373d69f9872",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j13.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j13.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "6955a893e360"
+  },
+  {
+   "id": "file:bb2b30a3122e",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j14.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j14.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "4b4e7cb23343"
+  },
+  {
+   "id": "file:ee925507fd8d",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j15.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j15.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "b03de3bafb47"
+  },
+  {
+   "id": "file:e7809491fd32",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j16.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j16.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "84e07a77d5d5"
+  },
+  {
+   "id": "file:4ec0548f53b4",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j17.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j17.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "807b9be841ae"
+  },
+  {
+   "id": "file:3423cc41376b",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j18.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j18.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "302c40423046"
+  },
+  {
+   "id": "file:8be365e88b31",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j19.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j19.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "c3a7b19b61b1"
+  },
+  {
+   "id": "file:da15c765260b",
+   "type": "file",
+   "title": "public/marketing/campaigns/geneve-20261012/j20.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/campaigns/geneve-20261012/j20.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "a08e5cec5e54"
   },
   {
    "id": "file:436fa441f0d3",
@@ -350930,6 +351429,286 @@
     "public"
    ],
    "detailRef": "b71347d0f198"
+  },
+  {
+   "id": "public-asset:04602704f217",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j01.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j01.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "fd94f97cd069"
+  },
+  {
+   "id": "public-asset:2f45c6740871",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j02.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j02.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "821a1536134b"
+  },
+  {
+   "id": "public-asset:3015699deca4",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j03.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j03.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "62400ff58a87"
+  },
+  {
+   "id": "public-asset:4ac0395afb7c",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j04.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j04.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "be76f08da873"
+  },
+  {
+   "id": "public-asset:fdfffee4b06c",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j05.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j05.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "d3c4d353b6ff"
+  },
+  {
+   "id": "public-asset:4bc575c7c185",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j06.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j06.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "19b1e057e7cc"
+  },
+  {
+   "id": "public-asset:4a186f2becc0",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j07.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j07.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "231d0cd13cae"
+  },
+  {
+   "id": "public-asset:fe86b73cfcef",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j08.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j08.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "53df1810b8b6"
+  },
+  {
+   "id": "public-asset:7c1dfca6f314",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j09.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j09.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "01ada3734e61"
+  },
+  {
+   "id": "public-asset:5bf33973e938",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j10.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j10.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "4abebf73b17e"
+  },
+  {
+   "id": "public-asset:0a248ffbe4ca",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j11.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j11.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "be61d202468f"
+  },
+  {
+   "id": "public-asset:6ae536e815b5",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j12.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j12.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "0136f41c8a40"
+  },
+  {
+   "id": "public-asset:47594e8b2186",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j13.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j13.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "f1bd3fe69b9a"
+  },
+  {
+   "id": "public-asset:134ac974ef9b",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j14.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j14.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "6c02683feb20"
+  },
+  {
+   "id": "public-asset:f5b5629f25ac",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j15.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j15.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "12d64df21bfb"
+  },
+  {
+   "id": "public-asset:9cc2a1b09ce8",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j16.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j16.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "fd8a451c6c34"
+  },
+  {
+   "id": "public-asset:e52c5f47e431",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j17.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j17.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "778f7d89515f"
+  },
+  {
+   "id": "public-asset:7624b72312c3",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j18.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j18.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "c3f55117ea0f"
+  },
+  {
+   "id": "public-asset:b7f75a708560",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j19.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j19.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "ae8cdbcf1bca"
+  },
+  {
+   "id": "public-asset:ba3b94fe9820",
+   "type": "public-asset",
+   "title": "/marketing/campaigns/geneve-20261012/j20.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/campaigns/geneve-20261012/j20.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "63875b30bf56"
   },
   {
    "id": "public-asset:0c7692b25215",
