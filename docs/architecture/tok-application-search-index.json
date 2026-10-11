@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "906e8984e9359cc7defe66209725ddf365deddfbe3a17ef6a50c287bd487ee20",
+ "sourceDigest": "d817490190f3996477635a38595f1bc7c34ead09274658d1da4bae7c1a30de86",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -24180,7 +24180,7 @@
     "sources": [
      {
       "path": "src/test/home-cuisine-accessibility.test.tsx",
-      "line": 32
+      "line": 41
      }
     ]
    },
@@ -83585,13 +83585,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 63,
+      "line": 70,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 146
+    "lineCount": 153
    },
    {
     "path": "src/components/home/FeaturesSection.tsx",
@@ -102294,7 +102294,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 35
+    "lineCount": 44
    },
    {
     "path": "src/test/home-hero-search.test.tsx",
@@ -128119,14 +128119,14 @@
    "id": "code-module:a586b6706f43",
    "type": "code-module",
    "title": "src/components/home/CuisineCategoryStrip.tsx",
-   "description": "Module de 146 lignes; exports: default.",
+   "description": "Module de 153 lignes; exports: default.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "27a9f2dbd071"
+   "detailRef": "ae6d94a6485c"
   },
   {
    "id": "code-module:1ce158045d40",
@@ -139828,12 +139828,12 @@
    "id": "code-module:b8f0d2b164b6",
    "type": "code-module",
    "title": "src/test/home-cuisine-accessibility.test.tsx",
-   "description": "Module de 35 lignes; exports: aucun export statique.",
+   "description": "Module de 44 lignes; exports: aucun export statique.",
    "path": "src/test/home-cuisine-accessibility.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "3d9968fe91b9"
+   "detailRef": "f38a795c3d93"
   },
   {
    "id": "code-module:a714f68588b7",
@@ -259995,17 +259995,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:c38728c0f246",
+   "id": "exported-symbol:155f144c5b00",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/CuisineCategoryStrip.tsx.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 63,
+   "line": 70,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "af06548f621e"
+   "detailRef": "9e21199ba19e"
   },
   {
    "id": "exported-symbol:2c6d5de51291",
@@ -343391,17 +343391,17 @@
    "detailRef": "cb0c29ac2ec8"
   },
   {
-   "id": "path-literal:86d426144686",
+   "id": "path-literal:d7c280b702d4",
    "type": "path-literal",
    "title": "/recherche?q=francais",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/home-cuisine-accessibility.test.tsx",
-   "line": 32,
+   "line": 41,
    "surface": null,
    "tags": [
     "src/test/home-cuisine-accessibility.test.tsx"
    ],
-   "detailRef": "751dad662dae"
+   "detailRef": "44e8d3c4c35f"
   },
   {
    "id": "path-literal:aa078f0211e2",
