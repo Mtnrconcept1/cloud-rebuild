@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `586247d6540d52d337c42e2c3ef75877099495ab3addab39809d91bbf4d5f182`
+- Empreinte SHA-256 des sources indexées : `c3ded15906c8101be0ab1b6f699ff7dccc87fc4749a3d79953fcd85f90a10408`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -948,7 +948,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 234 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 237 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 4 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:68](../../src/test/application-search-index.test.ts#L68) |
@@ -1074,7 +1074,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /chefs-table | 23 | [scripts/prerender-seo.mjs:993](../../scripts/prerender-seo.mjs#L993) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:22](../../src/lib/tokLogo.ts#L22) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:30](../../src/test/tok-logo-calendar.test.ts#L30) |
-| /coming-soon | 13 | [src/App.tsx:530](../../src/App.tsx#L530) |
+| /coming-soon | 15 | [src/App.tsx:530](../../src/App.tsx#L530) |
 | /coming-soon?welcome=1 | 3 | [src/pages/Auth.tsx:1496](../../src/pages/Auth.tsx#L1496) |
 | /commande | 2 | [scripts/prerender-seo.mjs:1216](../../scripts/prerender-seo.mjs#L1216) |
 | /commande/ | 3 | [src/components/navigation/BackNavigationButton.tsx:22](../../src/components/navigation/BackNavigationButton.tsx#L22) |

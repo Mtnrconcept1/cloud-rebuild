@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "586247d6540d52d337c42e2c3ef75877099495ab3addab39809d91bbf4d5f182",
+ "sourceDigest": "c3ded15906c8101be0ab1b6f699ff7dccc87fc4749a3d79953fcd85f90a10408",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12750,6 +12750,18 @@
       "line": 16
      },
      {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 20
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 28
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 35
+     },
+     {
       "path": "src/test/commercial-domain-isolation.test.ts",
       "line": 15
      },
@@ -13890,7 +13902,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 22
+      "line": 45
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -16201,7 +16213,7 @@
      },
      {
       "path": "src/components/ComingSoonGate.tsx",
-      "line": 11
+      "line": 21
      },
      {
       "path": "src/lib/authPostLogin.ts",
@@ -16226,6 +16238,14 @@
      {
       "path": "src/test/coming-soon-gate.test.tsx",
       "line": 10
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 29
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 36
      },
      {
       "path": "src/test/launch-state.test.ts",
@@ -17939,7 +17959,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 21
+      "line": 44
      },
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
@@ -18651,7 +18671,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 19
+      "line": 42
      },
      {
       "path": "src/test/restaurant-onboarding-payments.test.ts",
@@ -22315,15 +22335,15 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 18
+      "line": 25
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 20
+      "line": 43
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 23
+      "line": 46
      },
      {
       "path": "src/test/commercial-demo-frame.test.ts",
@@ -80757,7 +80777,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 13
+    "lineCount": 23
    },
    {
     "path": "src/components/CountdownTimer.tsx",
@@ -100362,7 +100382,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 25
+    "lineCount": 48
    },
    {
     "path": "src/test/commercial-contract-generation.test.ts",
@@ -125252,14 +125272,14 @@
    "id": "code-module:74e9001c7c67",
    "type": "code-module",
    "title": "src/components/ComingSoonGate.tsx",
-   "description": "Module de 13 lignes; exports: default.",
+   "description": "Module de 23 lignes; exports: default.",
    "path": "src/components/ComingSoonGate.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "c1cd787cae2f"
+   "detailRef": "2d5d2f4cfcec"
   },
   {
    "id": "code-module:3f41c36a4647",
@@ -136864,12 +136884,12 @@
    "id": "code-module:d0beb0c6b87d",
    "type": "code-module",
    "title": "src/test/coming-soon-gate.test.tsx",
-   "description": "Module de 25 lignes; exports: aucun export statique.",
+   "description": "Module de 48 lignes; exports: aucun export statique.",
    "path": "src/test/coming-soon-gate.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "f504a99242db"
+   "detailRef": "21e9a9ede8b8"
   },
   {
    "id": "code-module:e839dfa53017",
@@ -333864,7 +333884,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 234 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 237 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -333983,7 +334003,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "f4b8759f466a"
+   "detailRef": "df63b1797b19"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -335021,7 +335041,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "b313376faec2"
+   "detailRef": "6580056786b1"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -335839,7 +335859,7 @@
    "id": "path-literal:4fb16aa3df8b",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 530,
    "surface": null,
@@ -335855,7 +335875,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "2ebed9aeaaaa"
+   "detailRef": "873b6fbbefbb"
   },
   {
    "id": "path-literal:a6290b9b06b5",
@@ -336973,7 +336993,7 @@
     "src/test/restaurant-onboarding-payments.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "35575ddf2081"
+   "detailRef": "cb7bfc961e3a"
   },
   {
    "id": "path-literal:ff5553eea6a9",
@@ -337373,7 +337393,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "063fd191d9d1"
+   "detailRef": "ecfd08e7794e"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -340105,7 +340125,7 @@
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "3f56d6a6649b"
+   "detailRef": "1870198525ab"
   },
   {
    "id": "path-literal:48897d739ef3",
