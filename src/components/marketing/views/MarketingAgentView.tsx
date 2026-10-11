@@ -1,3 +1,4 @@
+import { MarketingBrandReferences } from "@/components/marketing/MarketingBrandReferences";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 
@@ -193,6 +194,8 @@ export default function MarketingAgentView({
           chaque élément.
         </AlertDescription>
       </Alert>
+
+      <MarketingBrandReferences />
 
       <Card>
         <CardHeader>

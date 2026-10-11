@@ -23,9 +23,7 @@ export {
   type MarketingPlanItem,
 } from "./marketing-ai-plan.ts";
 
-const VISUAL_BUCKET = "social-post-media";
-const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
-const IMAGE_MODEL = "gpt-image-2";
+export { generateCampaignVisual } from "./marketing-visual.ts";
 
 export type MarketingBriefContext = {
   objective: string;
@@ -112,74 +110,4 @@ export async function generateMarketingPlan(context: MarketingBriefContext) {
       usage.output_tokens || 0,
     ),
   };
-}
-
-function bytesFromBase64(value: string) {
-  const binary = atob(value);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-  return bytes;
-}
-
-/**
- * Visuals are a convenience, never a precondition. A campaign whose image
- * generation fails is still a usable campaign, so callers treat a null result
- * as "no image" rather than as an error — the same lesson the oversized TOTP QR
- * code taught on the authentication path.
- */
-export async function generateCampaignVisual(
-  adminClient: {
-    storage: {
-      from: (bucket: string) => {
-        upload: (
-          path: string,
-          body: Uint8Array,
-          options: Record<string, unknown>,
-        ) => Promise<{ error: { message: string } | null }>;
-        getPublicUrl: (path: string) => { data: { publicUrl: string } };
-      };
-    };
-  },
-  options: { prompt: string; campaignSlug: string; index: number; apiKey: string },
-): Promise<string | null> {
-  if (!options.apiKey || !options.prompt.trim()) return null;
-
-  let payload: unknown;
-  try {
-    const response = await fetch(IMAGE_GENERATIONS_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${options.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: IMAGE_MODEL,
-        prompt: options.prompt.slice(0, 4000),
-        size: "1024x1024",
-        n: 1,
-      }),
-    });
-    if (!response.ok) return null;
-    payload = await response.json();
-  } catch {
-    return null;
-  }
-
-  const first = (payload as { data?: Array<{ b64_json?: string }> })?.data?.[0];
-  if (!first?.b64_json) return null;
-
-  const path = `marketing-ai/${options.campaignSlug}/${Date.now()}-${options.index}.png`;
-  try {
-    const { error } = await adminClient.storage.from(VISUAL_BUCKET).upload(
-      path,
-      bytesFromBase64(first.b64_json),
-      { contentType: "image/png", upsert: false },
-    );
-    if (error) return null;
-    return adminClient.storage.from(VISUAL_BUCKET).getPublicUrl(path).data.publicUrl;
-  } catch {
-    return null;
-  }
 }

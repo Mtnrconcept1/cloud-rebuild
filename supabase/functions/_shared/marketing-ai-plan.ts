@@ -1,3 +1,5 @@
+import { TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
+
 /**
  * Plan contract for the marketing AI agent.
  *
@@ -315,6 +317,10 @@ export function toBundlePayload(
         call_to_action: item.content.call_to_action,
         hashtags: item.content.hashtags.slice(0, 12),
         visual_url: visuals.get(index) || null,
+        ...(visuals.has(index) ? {
+          visual_brand_profile: TOK_MARKETING_BRAND_VERSION,
+          visual_reference_ids: TOK_MARKETING_REFERENCES.map((reference) => reference.id),
+        } : {}),
         generated_by: "ai-marketing-agent",
       },
     })),

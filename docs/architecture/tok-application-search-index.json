@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "2dd6c1c016c4b7591c42d6992366f982171653bddfdeab76fc02e722ce476598",
+ "sourceDigest": "629eff3acbcb8bf10ca2830446323717ec784b7515df55c794df61426c4fe4d3",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2736,
-  "documents": 200,
+  "documents": 201,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3391,
+  "exportedSymbols": 3397,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 527,
-  "modules": 1493,
+  "modules": 1498,
   "pages": 128,
-  "pathLiterals": 629,
-  "publicAssets": 353,
-  "publicEntries": 378,
+  "pathLiterals": 634,
+  "publicAssets": 357,
+  "publicEntries": 382,
   "publicNavigableRoutes": 2,
   "queryParameters": 104,
-  "records": 15845,
-  "repositoryFiles": 2849,
+  "records": 15880,
+  "repositoryFiles": 2859,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -12102,6 +12102,26 @@
     "kind": "platform"
    },
    {
+    "route": "/marketing/brand/tok-v1/flash.jpg",
+    "path": "public/marketing/brand/tok-v1/flash.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/brand/tok-v1/geneva.jpg",
+    "path": "public/marketing/brand/tok-v1/geneva.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/brand/tok-v1/loyalty.jpg",
+    "path": "public/marketing/brand/tok-v1/loyalty.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/marketing/brand/tok-v1/pricing.jpg",
+    "path": "public/marketing/brand/tok-v1/pricing.jpg",
+    "kind": "media"
+   },
+   {
     "route": "/miamz.png",
     "path": "public/miamz.png",
     "kind": "media"
@@ -20225,6 +20245,15 @@
     ]
    },
    {
+    "value": "/generations",
+    "sources": [
+     {
+      "path": "src/test/marketing-brand-references.test.ts",
+      "line": 77
+     }
+    ]
+   },
+   {
     "value": "/google-actions-center-sync",
     "sources": [
      {
@@ -22436,6 +22465,46 @@
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 68
+     }
+    ]
+   },
+   {
+    "value": "/marketing/brand/tok-v1/flash.jpg",
+    "sources": [
+     {
+      "path": "supabase/functions/_shared/marketing-brand.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "value": "/marketing/brand/tok-v1/geneva.jpg",
+    "sources": [
+     {
+      "path": "src/test/marketing-brand-gallery.test.tsx",
+      "line": 11
+     },
+     {
+      "path": "supabase/functions/_shared/marketing-brand.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "value": "/marketing/brand/tok-v1/loyalty.jpg",
+    "sources": [
+     {
+      "path": "supabase/functions/_shared/marketing-brand.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "value": "/marketing/brand/tok-v1/pricing.jpg",
+    "sources": [
+     {
+      "path": "supabase/functions/_shared/marketing-brand.ts",
+      "line": 9
      }
     ]
    },
@@ -28919,6 +28988,7 @@
      "src/test/legal-miamz-readiness.test.ts",
      "src/test/marketing-b2b-outreach.test.ts",
      "src/test/marketing-backlink-provider.test.ts",
+     "src/test/marketing-brand-references.test.ts",
      "src/test/marketing-openai-tool-choice.test.ts",
      "src/test/notifications-ai-admin-hardening.test.ts",
      "src/test/production-preflight-hardening.test.ts",
@@ -28943,6 +29013,7 @@
      "supabase/functions/_shared/incident-intelligence.ts",
      "supabase/functions/_shared/marketing-ai.ts",
      "supabase/functions/_shared/marketing-backlink-discovery.ts",
+     "supabase/functions/_shared/marketing-visual.ts",
      "supabase/functions/_shared/openai.ts",
      "supabase/functions/_shared/rate-limit.ts",
      "supabase/functions/_shared/restaurant-credits.ts",
@@ -29349,6 +29420,7 @@
      "src/components/invoices/InvoiceOperationDetailDialog.tsx",
      "src/components/invoices/TokPayableInvoiceDialog.tsx",
      "src/components/launch/LaunchGateProvider.tsx",
+     "src/components/marketing/MarketingBrandReferences.tsx",
      "src/components/marketing/views/MarketingFaqView.tsx",
      "src/components/restaurant/RestaurantDailyDishCard.tsx",
      "src/components/social/SocialComposer.tsx",
@@ -29670,6 +29742,7 @@
      "src/test/marketing-backlink-discovery.test.ts",
      "src/test/marketing-backlink-provider.test.ts",
      "src/test/marketing-bff-security.test.ts",
+     "src/test/marketing-brand-references.test.ts",
      "src/test/marketing-consent-dispatch.test.ts",
      "src/test/marketing-edge-security.test.ts",
      "src/test/marketing-email-cadence.test.ts",
@@ -72073,6 +72146,32 @@
     ]
    },
    {
+    "path": "docs/marketing/TOK_BRAND_REFERENCES.md",
+    "title": "Références visuelles des campagnes TOK",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Références visuelles des campagnes TOK",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Invariants et variations",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Contrat technique",
+      "line": 14
+     },
+     {
+      "level": 2,
+      "title": "Activation et limites",
+      "line": 26
+     }
+    ]
+   },
+   {
     "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
     "title": "Audit du marketing automatique TOK — 8 octobre 2026",
     "headings": [
@@ -83852,6 +83951,21 @@
     "lineCount": 71
    },
    {
+    "path": "src/components/marketing/MarketingBrandReferences.tsx",
+    "exports": [
+     {
+      "name": "MarketingBrandReferences",
+      "line": 5,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 39
+   },
+   {
     "path": "src/components/marketing/MarketingHostBoundary.tsx",
     "exports": [
      {
@@ -83989,13 +84103,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 76,
+      "line": 77,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 428
+    "lineCount": 431
    },
    {
     "path": "src/components/marketing/views/MarketingAudiencesView.tsx",
@@ -102521,7 +102635,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 297
+    "lineCount": 300
    },
    {
     "path": "src/test/marketing-autopilot-frontend.test.tsx",
@@ -102598,6 +102712,23 @@
      "vercel"
     ],
     "lineCount": 26
+   },
+   {
+    "path": "src/test/marketing-brand-gallery.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 17
+   },
+   {
+    "path": "src/test/marketing-brand-references.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 111
    },
    {
     "path": "src/test/marketing-consent-dispatch.test.ts",
@@ -105934,57 +106065,57 @@
     "exports": [
      {
       "name": "MARKETING_CHANNELS",
-      "line": 11,
+      "line": 13,
       "kind": "variable"
      },
      {
       "name": "MarketingChannel",
-      "line": 29,
+      "line": 31,
       "kind": "typealias"
      },
      {
       "name": "MAX_PLAN_ITEMS",
-      "line": 44,
+      "line": 46,
       "kind": "variable"
      },
      {
       "name": "MarketingPlanError",
-      "line": 46,
+      "line": 48,
       "kind": "class"
      },
      {
       "name": "MarketingPlanItem",
-      "line": 58,
+      "line": 60,
       "kind": "typealias"
      },
      {
       "name": "MarketingPlan",
-      "line": 74,
+      "line": 76,
       "kind": "typealias"
      },
      {
       "name": "buildPlanSchema",
-      "line": 109,
+      "line": 111,
       "kind": "function"
      },
      {
       "name": "stripEmptySelectors",
-      "line": 198,
+      "line": 200,
       "kind": "function"
      },
      {
       "name": "validatePlan",
-      "line": 221,
+      "line": 223,
       "kind": "function"
      },
      {
       "name": "slugifyCampaignName",
-      "line": 268,
+      "line": 270,
       "kind": "function"
      },
      {
       "name": "toBundlePayload",
-      "line": 286,
+      "line": 288,
       "kind": "function"
      }
     ],
@@ -105993,7 +106124,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 323
+    "lineCount": 329
    },
    {
     "path": "supabase/functions/_shared/marketing-ai.ts",
@@ -106034,18 +106165,18 @@
       "kind": "re-export"
      },
      {
+      "name": "generateCampaignVisual",
+      "line": 26,
+      "kind": "re-export"
+     },
+     {
       "name": "MarketingBriefContext",
-      "line": 30,
+      "line": 28,
       "kind": "typealias"
      },
      {
       "name": "generateMarketingPlan",
-      "line": 69,
-      "kind": "function"
-     },
-     {
-      "name": "generateCampaignVisual",
-      "line": 132,
+      "line": 67,
       "kind": "function"
      }
     ],
@@ -106054,7 +106185,7 @@
      "openai",
      "stripe"
     ],
-    "lineCount": 186
+    "lineCount": 114
    },
    {
     "path": "supabase/functions/_shared/marketing-backlink-discovery.ts",
@@ -106098,6 +106229,29 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 89
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-brand.ts",
+    "exports": [
+     {
+      "name": "TOK_MARKETING_BRAND_VERSION",
+      "line": 2,
+      "kind": "variable"
+     },
+     {
+      "name": "TOK_MARKETING_REFERENCES",
+      "line": 5,
+      "kind": "variable"
+     },
+     {
+      "name": "buildTokMarketingVisualPrompt",
+      "line": 12,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 28
    },
    {
     "path": "supabase/functions/_shared/marketing-email-template.ts",
@@ -106182,6 +106336,26 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 61
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-visual.ts",
+    "exports": [
+     {
+      "name": "buildTokMarketingImageForm",
+      "line": 57,
+      "kind": "function"
+     },
+     {
+      "name": "generateCampaignVisual",
+      "line": 80,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "openai"
+    ],
+    "lineCount": 113
    },
    {
     "path": "supabase/functions/_shared/marketing.ts",
@@ -111237,6 +111411,11 @@
     "extension": ".txt"
    },
    {
+    "path": "docs/marketing/TOK_BRAND_REFERENCES.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
     "path": "docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md",
     "category": "documentation",
     "extension": ".md"
@@ -113527,6 +113706,26 @@
     "extension": ".json"
    },
    {
+    "path": "public/marketing/brand/tok-v1/flash.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/brand/tok-v1/geneva.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/brand/tok-v1/loyalty.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
+    "path": "public/marketing/brand/tok-v1/pricing.jpg",
+    "category": "public-asset",
+    "extension": ".jpg"
+   },
+   {
     "path": "public/miamz.png",
     "category": "public-asset",
     "extension": ".png"
@@ -115008,6 +115207,11 @@
    },
    {
     "path": "src/components/list/SortControls.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/components/marketing/MarketingBrandReferences.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
    },
@@ -118857,6 +119061,16 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/marketing-brand-gallery.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/marketing-brand-references.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/marketing-consent-dispatch.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -120417,6 +120631,11 @@
     "extension": ".ts"
    },
    {
+    "path": "supabase/functions/_shared/marketing-brand.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
     "path": "supabase/functions/_shared/marketing-email-template.ts",
     "category": "edge-function-source",
     "extension": ".ts"
@@ -120433,6 +120652,11 @@
    },
    {
     "path": "supabase/functions/_shared/marketing-unsubscribe-token.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-visual.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -128177,6 +128401,20 @@
    "detailRef": "e3b22a9e892a"
   },
   {
+   "id": "code-module:b1c6d393c026",
+   "type": "code-module",
+   "title": "src/components/marketing/MarketingBrandReferences.tsx",
+   "description": "Module de 39 lignes; exports: MarketingBrandReferences.",
+   "path": "src/components/marketing/MarketingBrandReferences.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "MarketingBrandReferences",
+    "supabase"
+   ],
+   "detailRef": "232bba09b4e6"
+  },
+  {
    "id": "code-module:e855fba5a372",
    "type": "code-module",
    "title": "src/components/marketing/MarketingHostBoundary.tsx",
@@ -128280,14 +128518,14 @@
    "id": "code-module:2f00b6eaa4cd",
    "type": "code-module",
    "title": "src/components/marketing/views/MarketingAgentView.tsx",
-   "description": "Module de 428 lignes; exports: default.",
+   "description": "Module de 431 lignes; exports: default.",
    "path": "src/components/marketing/views/MarketingAgentView.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "35e47b772df9"
+   "detailRef": "9c1c34d1a175"
   },
   {
    "id": "code-module:4ed087a90254",
@@ -140080,7 +140318,7 @@
    "id": "code-module:f1aadb4d91ba",
    "type": "code-module",
    "title": "src/test/marketing-ai-agent.test.ts",
-   "description": "Module de 297 lignes; exports: aucun export statique.",
+   "description": "Module de 300 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-ai-agent.test.ts",
    "line": 1,
    "surface": null,
@@ -140089,7 +140327,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "bae57b587c37"
+   "detailRef": "708e516ca6a7"
   },
   {
    "id": "code-module:6406b6c9d347",
@@ -140197,6 +140435,31 @@
     "vercel"
    ],
    "detailRef": "fb585a2b385e"
+  },
+  {
+   "id": "code-module:dbf1aee9ae0f",
+   "type": "code-module",
+   "title": "src/test/marketing-brand-gallery.test.tsx",
+   "description": "Module de 17 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-brand-gallery.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "a51bb0319c1e"
+  },
+  {
+   "id": "code-module:7c7f69a170c4",
+   "type": "code-module",
+   "title": "src/test/marketing-brand-references.test.ts",
+   "description": "Module de 111 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-brand-references.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "eeeff7e63b82"
   },
   {
    "id": "code-module:674ccefbc9c0",
@@ -144134,7 +144397,7 @@
    "id": "code-module:adb722f71bc6",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "description": "Module de 323 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MAX_PLAN_ITEMS, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload.",
+   "description": "Module de 329 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MAX_PLAN_ITEMS, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
    "line": 1,
    "surface": null,
@@ -144153,13 +144416,13 @@
     "toBundlePayload",
     "validatePlan"
    ],
-   "detailRef": "ebedc450b37f"
+   "detailRef": "90fe1c9449c6"
   },
   {
    "id": "code-module:c71bdc6fa97b",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-ai.ts",
-   "description": "Module de 186 lignes; exports: MARKETING_CHANNELS, slugifyCampaignName, stripEmptySelectors, toBundlePayload, MarketingChannel, MarketingPlan, MarketingPlanItem, MarketingBriefContext, generateMarketingPlan, generateCampaignVisual.",
+   "description": "Module de 114 lignes; exports: MARKETING_CHANNELS, slugifyCampaignName, stripEmptySelectors, toBundlePayload, MarketingChannel, MarketingPlan, MarketingPlanItem, generateCampaignVisual, MarketingBriefContext, generateMarketingPlan.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
    "line": 1,
    "surface": null,
@@ -144177,7 +144440,7 @@
     "stripe",
     "toBundlePayload"
    ],
-   "detailRef": "995a8aed4348"
+   "detailRef": "b508438476aa"
   },
   {
    "id": "code-module:8f9a90f373f3",
@@ -144208,6 +144471,21 @@
     "verifiedBacklinkSources"
    ],
    "detailRef": "3c62a874512a"
+  },
+  {
+   "id": "code-module:26aa00e81fd3",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/marketing-brand.ts",
+   "description": "Module de 28 lignes; exports: TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES, buildTokMarketingVisualPrompt.",
+   "path": "supabase/functions/_shared/marketing-brand.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK_MARKETING_BRAND_VERSION",
+    "TOK_MARKETING_REFERENCES",
+    "buildTokMarketingVisualPrompt"
+   ],
+   "detailRef": "a14ed4c0be44"
   },
   {
    "id": "code-module:13d84d310c47",
@@ -144269,6 +144547,21 @@
     "verifyUnsubscribeToken"
    ],
    "detailRef": "5ba7791789f1"
+  },
+  {
+   "id": "code-module:972beba2be23",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/marketing-visual.ts",
+   "description": "Module de 113 lignes; exports: buildTokMarketingImageForm, generateCampaignVisual.",
+   "path": "supabase/functions/_shared/marketing-visual.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "buildTokMarketingImageForm",
+    "generateCampaignVisual",
+    "openai"
+   ],
+   "detailRef": "11c2779f2565"
   },
   {
    "id": "code-module:4a617f373b8d",
@@ -197171,6 +197464,20 @@
    "detailRef": "2c9b6e2a6937"
   },
   {
+   "id": "document-section:475c8a2e0a50",
+   "type": "document-section",
+   "title": "Activation et limites",
+   "description": "Section de Références visuelles des campagnes TOK.",
+   "path": "docs/marketing/TOK_BRAND_REFERENCES.md",
+   "line": 26,
+   "surface": null,
+   "tags": [
+    "Références visuelles des campagnes TOK",
+    "h2"
+   ],
+   "detailRef": "81c3b45d26b0"
+  },
+  {
    "id": "document-section:cb1ed4a556ef",
    "type": "document-section",
    "title": "Actualites sociales - parametres et promotions",
@@ -201019,6 +201326,20 @@
     "h1"
    ],
    "detailRef": "2b274bb176ca"
+  },
+  {
+   "id": "document-section:2d07732db7e9",
+   "type": "document-section",
+   "title": "Contrat technique",
+   "description": "Section de Références visuelles des campagnes TOK.",
+   "path": "docs/marketing/TOK_BRAND_REFERENCES.md",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "Références visuelles des campagnes TOK",
+    "h2"
+   ],
+   "detailRef": "52ec012d107f"
   },
   {
    "id": "document-section:ab03e94c3e9f",
@@ -205639,6 +205960,20 @@
     "h2"
    ],
    "detailRef": "7ada0532a844"
+  },
+  {
+   "id": "document-section:5b3ddedca005",
+   "type": "document-section",
+   "title": "Invariants et variations",
+   "description": "Section de Références visuelles des campagnes TOK.",
+   "path": "docs/marketing/TOK_BRAND_REFERENCES.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "Références visuelles des campagnes TOK",
+    "h2"
+   ],
+   "detailRef": "f7664d09fe54"
   },
   {
    "id": "document-section:ada37f5a1d45",
@@ -213941,6 +214276,20 @@
     "h2"
    ],
    "detailRef": "5589473dfa8f"
+  },
+  {
+   "id": "document-section:f2344e403b70",
+   "type": "document-section",
+   "title": "Références visuelles des campagnes TOK",
+   "description": "Section de Références visuelles des campagnes TOK.",
+   "path": "docs/marketing/TOK_BRAND_REFERENCES.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Références visuelles des campagnes TOK",
+    "h1"
+   ],
+   "detailRef": "86d4007da9a3"
   },
   {
    "id": "document-section:34fe171b8341",
@@ -225143,6 +225492,22 @@
     "Ventes flash"
    ],
    "detailRef": "5bddd8b09f11"
+  },
+  {
+   "id": "document:f2344e403b70",
+   "type": "document",
+   "title": "Références visuelles des campagnes TOK",
+   "description": "Document Markdown avec 4 section(s).",
+   "path": "docs/marketing/TOK_BRAND_REFERENCES.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Activation et limites",
+    "Contrat technique",
+    "Invariants et variations",
+    "Références visuelles des campagnes TOK"
+   ],
+   "detailRef": "56e4b9fea28f"
   },
   {
    "id": "document:5457a1c7472a",
@@ -242117,19 +242482,19 @@
    "detailRef": "5a7a4d67dbb3"
   },
   {
-   "id": "exported-symbol:3891ddce37e6",
+   "id": "exported-symbol:dd626c3d6e37",
    "type": "exported-symbol",
    "title": "MARKETING_CHANNELS",
    "description": "Export variable de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 11,
+   "line": 13,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "variable"
    ],
-   "detailRef": "d22114f08ef1"
+   "detailRef": "d4c593d906bd"
   },
   {
    "id": "exported-symbol:e31417f03f1d",
@@ -242537,19 +242902,19 @@
    "detailRef": "9d74d17f7dc9"
   },
   {
-   "id": "exported-symbol:77a6a37e068e",
+   "id": "exported-symbol:50e13474e954",
    "type": "exported-symbol",
    "title": "MAX_PLAN_ITEMS",
    "description": "Export variable de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 44,
+   "line": 46,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "variable"
    ],
-   "detailRef": "8883a2cbd836"
+   "detailRef": "42cd0b6cced3"
   },
   {
    "id": "exported-symbol:578161e2101d",
@@ -243200,19 +243565,33 @@
    "detailRef": "6ef59f51bb4a"
   },
   {
-   "id": "exported-symbol:8a9a1c868d0f",
+   "id": "exported-symbol:94c52e9e91a3",
+   "type": "exported-symbol",
+   "title": "MarketingBrandReferences",
+   "description": "Export function de src/components/marketing/MarketingBrandReferences.tsx.",
+   "path": "src/components/marketing/MarketingBrandReferences.tsx",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "0a6883c5c4e1"
+  },
+  {
+   "id": "exported-symbol:1ee3d02281cf",
    "type": "exported-symbol",
    "title": "MarketingBriefContext",
    "description": "Export typealias de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 30,
+   "line": 28,
    "surface": null,
    "tags": [
     "openai",
     "stripe",
     "typealias"
    ],
-   "detailRef": "e0b95745b63e"
+   "detailRef": "569908365e27"
   },
   {
    "id": "exported-symbol:27482f272cde",
@@ -243285,19 +243664,19 @@
    "detailRef": "da0039216488"
   },
   {
-   "id": "exported-symbol:212942519f65",
+   "id": "exported-symbol:610998e40238",
    "type": "exported-symbol",
    "title": "MarketingChannel",
    "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 29,
+   "line": 31,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "typealias"
    ],
-   "detailRef": "0cdf5af5bba3"
+   "detailRef": "47c1ff66b047"
   },
   {
    "id": "exported-symbol:441d9617fd65",
@@ -243843,19 +244222,19 @@
    "detailRef": "a131869525f1"
   },
   {
-   "id": "exported-symbol:cd7afc96de2e",
+   "id": "exported-symbol:138d700083e3",
    "type": "exported-symbol",
    "title": "MarketingPlan",
    "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 74,
+   "line": 76,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "typealias"
    ],
-   "detailRef": "a605dffbe4c8"
+   "detailRef": "50356772ce5f"
   },
   {
    "id": "exported-symbol:8f1bf1a7f6ef",
@@ -243873,34 +244252,34 @@
    "detailRef": "9ea164a0967c"
   },
   {
-   "id": "exported-symbol:b054bbc603c9",
+   "id": "exported-symbol:c71932f87054",
    "type": "exported-symbol",
    "title": "MarketingPlanError",
    "description": "Export class de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 46,
+   "line": 48,
    "surface": null,
    "tags": [
     "class",
     "google",
     "stripe"
    ],
-   "detailRef": "9128a5f442ef"
+   "detailRef": "a249307b9d5c"
   },
   {
-   "id": "exported-symbol:30d4751a4e4a",
+   "id": "exported-symbol:50bfe4047e72",
    "type": "exported-symbol",
    "title": "MarketingPlanItem",
    "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 58,
+   "line": 60,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "typealias"
    ],
-   "detailRef": "618a4f5207b5"
+   "detailRef": "ade82f5f7959"
   },
   {
    "id": "exported-symbol:cb5bade7a8c9",
@@ -251078,6 +251457,19 @@
    "detailRef": "9de49e8201bc"
   },
   {
+   "id": "exported-symbol:6224bf860faf",
+   "type": "exported-symbol",
+   "title": "TOK_MARKETING_BRAND_VERSION",
+   "description": "Export variable de supabase/functions/_shared/marketing-brand.ts.",
+   "path": "supabase/functions/_shared/marketing-brand.ts",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "f9e7f56c41f3"
+  },
+  {
    "id": "exported-symbol:6b544d568373",
    "type": "exported-symbol",
    "title": "TOK_MARKETING_FLYER_CREDITS",
@@ -251089,6 +251481,19 @@
     "variable"
    ],
    "detailRef": "dbc3e3d8a845"
+  },
+  {
+   "id": "exported-symbol:cecaa0836a7c",
+   "type": "exported-symbol",
+   "title": "TOK_MARKETING_REFERENCES",
+   "description": "Export variable de supabase/functions/_shared/marketing-brand.ts.",
+   "path": "supabase/functions/_shared/marketing-brand.ts",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "c5fbad96f718"
   },
   {
    "id": "exported-symbol:e8e5cac4f163",
@@ -255028,19 +255433,19 @@
    "detailRef": "195e319b6035"
   },
   {
-   "id": "exported-symbol:e74191daba07",
+   "id": "exported-symbol:84df4988e884",
    "type": "exported-symbol",
    "title": "buildPlanSchema",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 109,
+   "line": 111,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "ff141575823d"
+   "detailRef": "7169c9eacc9f"
   },
   {
    "id": "exported-symbol:651ae00df605",
@@ -255624,6 +256029,33 @@
     "vercel"
    ],
    "detailRef": "355dc1381a5f"
+  },
+  {
+   "id": "exported-symbol:9fb4ab619794",
+   "type": "exported-symbol",
+   "title": "buildTokMarketingImageForm",
+   "description": "Export function de supabase/functions/_shared/marketing-visual.ts.",
+   "path": "supabase/functions/_shared/marketing-visual.ts",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "function",
+    "openai"
+   ],
+   "detailRef": "2f5d9f7cdfbf"
+  },
+  {
+   "id": "exported-symbol:88a121493f3f",
+   "type": "exported-symbol",
+   "title": "buildTokMarketingVisualPrompt",
+   "description": "Export function de supabase/functions/_shared/marketing-brand.ts.",
+   "path": "supabase/functions/_shared/marketing-brand.ts",
+   "line": 12,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "435b1ff07af5"
   },
   {
    "id": "exported-symbol:177a7b7f4cf2",
@@ -259786,17 +260218,17 @@
    "detailRef": "26c3c627aee3"
   },
   {
-   "id": "exported-symbol:d0cab0e4ea6c",
+   "id": "exported-symbol:9cc6336d059a",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/marketing/views/MarketingAgentView.tsx.",
    "path": "src/components/marketing/views/MarketingAgentView.tsx",
-   "line": 76,
+   "line": 77,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "b1f6adf025ae"
+   "detailRef": "c6a430952c38"
   },
   {
    "id": "exported-symbol:3b712df3a287",
@@ -263980,19 +264412,33 @@
    "detailRef": "95a6c8c90699"
   },
   {
-   "id": "exported-symbol:66da038989bd",
+   "id": "exported-symbol:6d4fab5cd135",
    "type": "exported-symbol",
    "title": "generateCampaignVisual",
-   "description": "Export function de supabase/functions/_shared/marketing-ai.ts.",
+   "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 132,
+   "line": 26,
+   "surface": null,
+   "tags": [
+    "openai",
+    "re-export",
+    "stripe"
+   ],
+   "detailRef": "a7680016ef89"
+  },
+  {
+   "id": "exported-symbol:c7bd4b14c0ac",
+   "type": "exported-symbol",
+   "title": "generateCampaignVisual",
+   "description": "Export function de supabase/functions/_shared/marketing-visual.ts.",
+   "path": "supabase/functions/_shared/marketing-visual.ts",
+   "line": 80,
    "surface": null,
    "tags": [
     "function",
-    "openai",
-    "stripe"
+    "openai"
    ],
-   "detailRef": "6985d1b89792"
+   "detailRef": "25e70521b927"
   },
   {
    "id": "exported-symbol:990271c9422d",
@@ -264066,19 +264512,19 @@
    "detailRef": "f5c63b8db0dd"
   },
   {
-   "id": "exported-symbol:cf1f389ea7a1",
+   "id": "exported-symbol:3f46dbeb45dc",
    "type": "exported-symbol",
    "title": "generateMarketingPlan",
    "description": "Export function de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 69,
+   "line": 67,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "stripe"
    ],
-   "detailRef": "1a865cddddd1"
+   "detailRef": "df104df7d212"
   },
   {
    "id": "exported-symbol:5c4910fc0ae5",
@@ -276558,19 +277004,19 @@
    "detailRef": "6a8c9c10b9f2"
   },
   {
-   "id": "exported-symbol:ab7a727b6fb6",
+   "id": "exported-symbol:634ba1d01406",
    "type": "exported-symbol",
    "title": "slugifyCampaignName",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 268,
+   "line": 270,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "07a2ec7e6253"
+   "detailRef": "d2be16eaf5d4"
   },
   {
    "id": "exported-symbol:881bca0be170",
@@ -276685,19 +277131,19 @@
    "detailRef": "e1a5ce22e576"
   },
   {
-   "id": "exported-symbol:4f75bf238925",
+   "id": "exported-symbol:dd77d9fd7ebc",
    "type": "exported-symbol",
    "title": "stripEmptySelectors",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 198,
+   "line": 200,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "3a2853caf62a"
+   "detailRef": "a4214743c7ba"
   },
   {
    "id": "exported-symbol:14546db04290",
@@ -277017,19 +277463,19 @@
    "detailRef": "193ca02afa50"
   },
   {
-   "id": "exported-symbol:ac86cdb7251e",
+   "id": "exported-symbol:c256bed9ddb9",
    "type": "exported-symbol",
    "title": "toBundlePayload",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 286,
+   "line": 288,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "3867431e398d"
+   "detailRef": "24fc110d9637"
   },
   {
    "id": "exported-symbol:33ce03be26e4",
@@ -279201,19 +279647,19 @@
    "detailRef": "aac99c9319e2"
   },
   {
-   "id": "exported-symbol:322e66ea79e3",
+   "id": "exported-symbol:162e2335dc82",
    "type": "exported-symbol",
    "title": "validatePlan",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 221,
+   "line": 223,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "e31507caa957"
+   "detailRef": "b0172a85f363"
   },
   {
    "id": "exported-symbol:c88ecd4fb1d2",
@@ -284867,6 +285313,20 @@
     "documentation"
    ],
    "detailRef": "e9304d33a641"
+  },
+  {
+   "id": "file:03b520eebe14",
+   "type": "file",
+   "title": "docs/marketing/TOK_BRAND_REFERENCES.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/marketing/TOK_BRAND_REFERENCES.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "6918e5c539a3"
   },
   {
    "id": "file:d6e2bc19e585",
@@ -291281,6 +291741,62 @@
    "detailRef": "a2901a4a1df8"
   },
   {
+   "id": "file:a85a6404cd23",
+   "type": "file",
+   "title": "public/marketing/brand/tok-v1/flash.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/brand/tok-v1/flash.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "36a199c0a723"
+  },
+  {
+   "id": "file:0296a0d22da4",
+   "type": "file",
+   "title": "public/marketing/brand/tok-v1/geneva.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/brand/tok-v1/geneva.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "03512c8908d2"
+  },
+  {
+   "id": "file:be10dbcba5e2",
+   "type": "file",
+   "title": "public/marketing/brand/tok-v1/loyalty.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/brand/tok-v1/loyalty.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "7eaa153572ac"
+  },
+  {
+   "id": "file:4b38b15e7021",
+   "type": "file",
+   "title": "public/marketing/brand/tok-v1/pricing.jpg",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/marketing/brand/tok-v1/pricing.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".jpg",
+    "public-asset"
+   ],
+   "detailRef": "18d3d4fa2554"
+  },
+  {
    "id": "file:436fa441f0d3",
    "type": "file",
    "title": "public/miamz.png",
@@ -295437,6 +295953,20 @@
     "frontend-component"
    ],
    "detailRef": "03ad825f9608"
+  },
+  {
+   "id": "file:b7785f1c8df7",
+   "type": "file",
+   "title": "src/components/marketing/MarketingBrandReferences.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/marketing/MarketingBrandReferences.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "2f3b52939545"
   },
   {
    "id": "file:109bc3701dc5",
@@ -306205,6 +306735,34 @@
    "detailRef": "c7af6a8f0dc9"
   },
   {
+   "id": "file:ec359714ebfa",
+   "type": "file",
+   "title": "src/test/marketing-brand-gallery.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-brand-gallery.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "4855faad2ff1"
+  },
+  {
+   "id": "file:3a4627872a56",
+   "type": "file",
+   "title": "src/test/marketing-brand-references.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-brand-references.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "728120fa0446"
+  },
+  {
    "id": "file:f95aa31150e0",
    "type": "file",
    "title": "src/test/marketing-consent-dispatch.test.ts",
@@ -310573,6 +311131,20 @@
    "detailRef": "a76b4e64f9c1"
   },
   {
+   "id": "file:6810927efe8b",
+   "type": "file",
+   "title": "supabase/functions/_shared/marketing-brand.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/marketing-brand.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "298705e6920b"
+  },
+  {
    "id": "file:f6743be111b7",
    "type": "file",
    "title": "supabase/functions/_shared/marketing-email-template.ts",
@@ -310627,6 +311199,20 @@
     "edge-function-source"
    ],
    "detailRef": "516a0a75784b"
+  },
+  {
+   "id": "file:a15e6c24e2ef",
+   "type": "file",
+   "title": "supabase/functions/_shared/marketing-visual.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/marketing-visual.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "7b300f113e42"
   },
   {
    "id": "file:775d77206d8f",
@@ -323661,7 +324247,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 114 module(s).",
+   "description": "Intégration externe détectée dans 116 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -323725,6 +324311,7 @@
     "src/test/legal-miamz-readiness.test.ts",
     "src/test/marketing-b2b-outreach.test.ts",
     "src/test/marketing-backlink-provider.test.ts",
+    "src/test/marketing-brand-references.test.ts",
     "src/test/marketing-openai-tool-choice.test.ts",
     "src/test/notifications-ai-admin-hardening.test.ts",
     "src/test/production-preflight-hardening.test.ts",
@@ -323749,6 +324336,7 @@
     "supabase/functions/_shared/incident-intelligence.ts",
     "supabase/functions/_shared/marketing-ai.ts",
     "supabase/functions/_shared/marketing-backlink-discovery.ts",
+    "supabase/functions/_shared/marketing-visual.ts",
     "supabase/functions/_shared/openai.ts",
     "supabase/functions/_shared/rate-limit.ts",
     "supabase/functions/_shared/restaurant-credits.ts",
@@ -323782,7 +324370,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "7eebee2a9783"
+   "detailRef": "316093f3cc45"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -324097,7 +324685,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 669 module(s).",
+   "description": "Intégration externe détectée dans 671 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -324194,6 +324782,7 @@
     "src/components/invoices/InvoiceOperationDetailDialog.tsx",
     "src/components/invoices/TokPayableInvoiceDialog.tsx",
     "src/components/launch/LaunchGateProvider.tsx",
+    "src/components/marketing/MarketingBrandReferences.tsx",
     "src/components/marketing/views/MarketingFaqView.tsx",
     "src/components/restaurant/RestaurantDailyDishCard.tsx",
     "src/components/social/SocialComposer.tsx",
@@ -324515,6 +325104,7 @@
     "src/test/marketing-backlink-discovery.test.ts",
     "src/test/marketing-backlink-provider.test.ts",
     "src/test/marketing-bff-security.test.ts",
+    "src/test/marketing-brand-references.test.ts",
     "src/test/marketing-consent-dispatch.test.ts",
     "src/test/marketing-edge-security.test.ts",
     "src/test/marketing-email-cadence.test.ts",
@@ -324773,7 +325363,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f06419e3de4c"
+   "detailRef": "04ee92c6ef5f"
   },
   {
    "id": "integration:c20910a79a78",
@@ -339723,6 +340313,19 @@
    "detailRef": "c615802437be"
   },
   {
+   "id": "path-literal:3394bed816e5",
+   "type": "path-literal",
+   "title": "/generations",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-brand-references.test.ts",
+   "line": 77,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-brand-references.test.ts"
+   ],
+   "detailRef": "d9b3dca0baa3"
+  },
+  {
    "id": "path-literal:95e27403bc7d",
    "type": "path-literal",
    "title": "/google-actions-center-sync",
@@ -341860,6 +342463,59 @@
     "src/App.tsx"
    ],
    "detailRef": "109913a37594"
+  },
+  {
+   "id": "path-literal:b3ff54c68b18",
+   "type": "path-literal",
+   "title": "/marketing/brand/tok-v1/flash.jpg",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "supabase/functions/_shared/marketing-brand.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/marketing-brand.ts"
+   ],
+   "detailRef": "8907e4f42faf"
+  },
+  {
+   "id": "path-literal:73c18bc77df9",
+   "type": "path-literal",
+   "title": "/marketing/brand/tok-v1/geneva.jpg",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/marketing-brand-gallery.test.tsx",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "src/test/marketing-brand-gallery.test.tsx",
+    "supabase/functions/_shared/marketing-brand.ts"
+   ],
+   "detailRef": "85eed2e2b2ea"
+  },
+  {
+   "id": "path-literal:bb3842df7034",
+   "type": "path-literal",
+   "title": "/marketing/brand/tok-v1/loyalty.jpg",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "supabase/functions/_shared/marketing-brand.ts",
+   "line": 7,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/marketing-brand.ts"
+   ],
+   "detailRef": "8dda0f585679"
+  },
+  {
+   "id": "path-literal:28027c407918",
+   "type": "path-literal",
+   "title": "/marketing/brand/tok-v1/pricing.jpg",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "supabase/functions/_shared/marketing-brand.ts",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/marketing-brand.ts"
+   ],
+   "detailRef": "b9348ad1f9c8"
   },
   {
    "id": "path-literal:fd84be09d49a",
@@ -349729,6 +350385,62 @@
     "public"
    ],
    "detailRef": "3b7b6cda0014"
+  },
+  {
+   "id": "public-asset:bbc1b0d918fa",
+   "type": "public-asset",
+   "title": "/marketing/brand/tok-v1/flash.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/brand/tok-v1/flash.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "9d86e0834380"
+  },
+  {
+   "id": "public-asset:1276629514e6",
+   "type": "public-asset",
+   "title": "/marketing/brand/tok-v1/geneva.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/brand/tok-v1/geneva.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "80d35358d9a3"
+  },
+  {
+   "id": "public-asset:ca7edbf8ae1b",
+   "type": "public-asset",
+   "title": "/marketing/brand/tok-v1/loyalty.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/brand/tok-v1/loyalty.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "19f59352bacc"
+  },
+  {
+   "id": "public-asset:69d5b89a6b93",
+   "type": "public-asset",
+   "title": "/marketing/brand/tok-v1/pricing.jpg",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/marketing/brand/tok-v1/pricing.jpg",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "b71347d0f198"
   },
   {
    "id": "public-asset:0c7692b25215",
