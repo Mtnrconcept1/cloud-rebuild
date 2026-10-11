@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `1a2d1084485c24c55d085c5a081306a52935902d0c7be580256f9648c9f83b1a`
+- Empreinte SHA-256 des sources indexées : `2c1f6656f703b9d95d2ebcc31d9d9fdd62135fda1ca36df47a85609f7dc4fc07`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 526 |
-| modules | 1487 |
+| modules | 1489 |
 | pages | 127 |
 | pathLiterals | 621 |
 | publicAssets | 308 |
 | publicEntries | 333 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15721 |
-| repositoryFiles | 2796 |
+| records | 15725 |
+| repositoryFiles | 2798 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1045,7 +1045,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
 | /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:524](../../src/test/tok-ai-tools.test.ts#L524) |
 | /assets/missing.js | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
-| /auth | 53 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
+| /auth | 54 | [scripts/prerender-seo.mjs:1224](../../scripts/prerender-seo.mjs#L1224) |
 | /auth/callback | 17 | [src/App.tsx:560](../../src/App.tsx#L560) |
 | /auth/callback? | 1 | [src/lib/deep-links.ts:33](../../src/lib/deep-links.ts#L33) |
 | /auth/callback?code=pkce-code | 1 | [src/test/native-oauth.test.ts:114](../../src/test/native-oauth.test.ts#L114) |
@@ -1074,9 +1074,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /chefs-table | 23 | [scripts/prerender-seo.mjs:993](../../scripts/prerender-seo.mjs#L993) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:22](../../src/lib/tokLogo.ts#L22) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:30](../../src/test/tok-logo-calendar.test.ts#L30) |
-| /coming-soon | 15 | [src/App.tsx:530](../../src/App.tsx#L530) |
+| /coming-soon | 17 | [src/App.tsx:530](../../src/App.tsx#L530) |
 | /coming-soon?welcome=1 | 3 | [src/pages/Auth.tsx:1496](../../src/pages/Auth.tsx#L1496) |
-| /coming-soon?welcome=1&email=1 | 2 | [src/pages/Auth.tsx:2047](../../src/pages/Auth.tsx#L2047) |
+| /coming-soon?welcome=1&email=1 | 4 | [src/pages/Auth.tsx:2047](../../src/pages/Auth.tsx#L2047) |
 | /commande | 2 | [scripts/prerender-seo.mjs:1216](../../scripts/prerender-seo.mjs#L1216) |
 | /commande/ | 3 | [src/components/navigation/BackNavigationButton.tsx:22](../../src/components/navigation/BackNavigationButton.tsx#L22) |
 | /commande/123?tab=details | 1 | [src/test/navigation.test.ts:24](../../src/test/navigation.test.ts#L24) |
@@ -5784,7 +5784,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 213 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 667 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 668 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 57 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5805,7 +5805,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 581 |
+| test | 583 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -8294,7 +8294,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (581)</summary>
+<details><summary>test (583)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -8403,6 +8403,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/cloudprinter-product-geometry.test.ts`
 - `src/test/cloudprinter-sandbox-checkout.test.ts`
 - `src/test/coming-soon-gate.test.tsx`
+- `src/test/coming-soon-signup-page.test.tsx`
 - `src/test/commercial-contract-generation.test.ts`
 - `src/test/commercial-demo-active-tools.test.ts`
 - `src/test/commercial-demo-actualites-isolation.test.ts`
@@ -8570,6 +8571,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/ios-commerce-policy.test.ts`
 - `src/test/ios-storekit-subscription-management.test.ts`
 - `src/test/la-gazelle-dor-seed.test.ts`
+- `src/test/launch-artwork-countdown.test.tsx`
 - `src/test/launch-edge-access.test.ts`
 - `src/test/launch-load-plan.test.ts`
 - `src/test/launch-pack-ai-quotas.test.ts`

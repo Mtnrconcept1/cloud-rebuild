@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "1a2d1084485c24c55d085c5a081306a52935902d0c7be580256f9648c9f83b1a",
+ "sourceDigest": "2c1f6656f703b9d95d2ebcc31d9d9fdd62135fda1ca36df47a85609f7dc4fc07",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 526,
-  "modules": 1487,
+  "modules": 1489,
   "pages": 127,
   "pathLiterals": 621,
   "publicAssets": 308,
   "publicEntries": 333,
   "publicNavigableRoutes": 2,
   "queryParameters": 104,
-  "records": 15721,
-  "repositoryFiles": 2796,
+  "records": 15725,
+  "repositoryFiles": 2798,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -15487,6 +15487,10 @@
       "line": 17
      },
      {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 43
+     },
+     {
       "path": "src/test/commercial-domain-isolation.test.ts",
       "line": 64
      },
@@ -16264,6 +16268,14 @@
       "line": 36
      },
      {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 42
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 75
+     },
+     {
       "path": "src/test/launch-state.test.ts",
       "line": 11
      },
@@ -16304,6 +16316,14 @@
      {
       "path": "src/pages/Auth.tsx",
       "line": 2125
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 58
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 68
      }
     ]
    },
@@ -29234,6 +29254,7 @@
      "src/test/incident-secret-sync-readiness.test.ts",
      "src/test/ios-storekit-subscription-management.test.ts",
      "src/test/la-gazelle-dor-seed.test.ts",
+     "src/test/launch-artwork-countdown.test.tsx",
      "src/test/launch-edge-access.test.ts",
      "src/test/launch-pack-ai-quotas.test.ts",
      "src/test/launch-provider.test.tsx",
@@ -100414,6 +100435,13 @@
     "lineCount": 48
    },
    {
+    "path": "src/test/coming-soon-signup-page.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 81
+   },
+   {
     "path": "src/test/commercial-contract-generation.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -101868,6 +101896,15 @@
      "supabase"
     ],
     "lineCount": 75
+   },
+   {
+    "path": "src/test/launch-artwork-countdown.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 30
    },
    {
     "path": "src/test/launch-edge-access.test.ts",
@@ -117122,6 +117159,11 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/test/coming-soon-signup-page.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/commercial-contract-generation.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -117955,6 +117997,11 @@
     "path": "src/test/la-gazelle-dor-seed.test.ts",
     "category": "test",
     "extension": ".ts"
+   },
+   {
+    "path": "src/test/launch-artwork-countdown.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/launch-edge-access.test.ts",
@@ -136921,6 +136968,17 @@
    "detailRef": "21e9a9ede8b8"
   },
   {
+   "id": "code-module:cfdd9e21db97",
+   "type": "code-module",
+   "title": "src/test/coming-soon-signup-page.test.tsx",
+   "description": "Module de 81 lignes; exports: aucun export statique.",
+   "path": "src/test/coming-soon-signup-page.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "50a9e12f7272"
+  },
+  {
    "id": "code-module:e839dfa53017",
    "type": "code-module",
    "title": "src/test/commercial-contract-generation.test.ts",
@@ -139037,6 +139095,19 @@
     "supabase"
    ],
    "detailRef": "b1501e93c86e"
+  },
+  {
+   "id": "code-module:24d99e443c74",
+   "type": "code-module",
+   "title": "src/test/launch-artwork-countdown.test.tsx",
+   "description": "Module de 30 lignes; exports: aucun export statique.",
+   "path": "src/test/launch-artwork-countdown.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "645b658a317b"
   },
   {
    "id": "code-module:6d27e7299386",
@@ -301824,6 +301895,20 @@
    "detailRef": "7cc2938d796e"
   },
   {
+   "id": "file:7a191f9dd47d",
+   "type": "file",
+   "title": "src/test/coming-soon-signup-page.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/coming-soon-signup-page.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "cc44d7979c45"
+  },
+  {
    "id": "file:100277b3c618",
    "type": "file",
    "title": "src/test/commercial-contract-generation.test.ts",
@@ -304160,6 +304245,20 @@
     "test"
    ],
    "detailRef": "eaa207f9fa05"
+  },
+  {
+   "id": "file:b102646c12a9",
+   "type": "file",
+   "title": "src/test/launch-artwork-countdown.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/launch-artwork-countdown.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "60dfdfaff465"
   },
   {
    "id": "file:2805a98f3460",
@@ -322343,7 +322442,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 667 module(s).",
+   "description": "Intégration externe détectée dans 668 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -322747,6 +322846,7 @@
     "src/test/incident-secret-sync-readiness.test.ts",
     "src/test/ios-storekit-subscription-management.test.ts",
     "src/test/la-gazelle-dor-seed.test.ts",
+    "src/test/launch-artwork-countdown.test.tsx",
     "src/test/launch-edge-access.test.ts",
     "src/test/launch-pack-ai-quotas.test.ts",
     "src/test/launch-provider.test.tsx",
@@ -323017,7 +323117,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "2f80a8a70272"
+   "detailRef": "fac795e26e2c"
   },
   {
    "id": "integration:c20910a79a78",
@@ -335542,7 +335642,7 @@
    "id": "path-literal:684553841fb1",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 53 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 54 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1224,
    "surface": null,
@@ -335580,13 +335680,14 @@
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
+    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/home-mobile-newsletter.test.tsx",
     "src/test/monitoring-consent.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "6e922f80f7d8"
+   "detailRef": "3586134b3b49"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -335888,7 +335989,7 @@
    "id": "path-literal:4fb16aa3df8b",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 530,
    "surface": null,
@@ -335900,24 +336001,26 @@
     "src/lib/launchGate.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
+    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/launch-state.test.ts",
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "d4ed9d5d5a92"
+   "detailRef": "6229cb6ee3b7"
   },
   {
    "id": "path-literal:0ad0fce02bb8",
    "type": "path-literal",
    "title": "/coming-soon?welcome=1&email=1",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Auth.tsx",
    "line": 2047,
    "surface": null,
    "tags": [
-    "src/pages/Auth.tsx"
+    "src/pages/Auth.tsx",
+    "src/test/coming-soon-signup-page.test.tsx"
    ],
-   "detailRef": "49518674b97c"
+   "detailRef": "6739a56876e1"
   },
   {
    "id": "path-literal:a6290b9b06b5",
