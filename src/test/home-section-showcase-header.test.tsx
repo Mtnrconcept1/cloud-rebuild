@@ -14,10 +14,12 @@ describe("TOK homepage editorial headers", () => {
     expect(css).not.toContain("backdrop-filter");
     expect(css).not.toContain("grid-template-rows: auto auto");
     expect(css).toContain("position: absolute;");
-    expect(css).toContain("object-fit: contain");
+    expect(css).toContain("object-fit: cover");
+    expect(css).toContain("min-height: 0;");
+    expect(css).not.toMatch(/min-height:\s*clamp\(/);
+    expect(css).not.toContain("aspect-ratio: 4 / 1");
     expect(css).toContain("z-index: 1;");
     expect(css).toContain("flex-basis: 65%");
-    expect(css).toContain("aspect-ratio: 4 / 1");
   });
 
   it("keeps the photograph decorative and the location heading accessible", () => {

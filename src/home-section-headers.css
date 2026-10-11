@@ -13,7 +13,7 @@
   align-items: center;
   width: 100%;
   max-width: 100%;
-  min-height: clamp(240px, 25vw, 345px);
+  min-height: 0;
   overflow: hidden;
   border: 1px solid #eacfc1;
   border-inline-start: 6px solid var(--tok-header-accent);
@@ -23,7 +23,7 @@
 }
 
 /* The photograph occupies the WHOLE card, not a second row or a right cell.
- * Object-fit: contain always preserves the image's natural 4:1 proportions. */
+ * Cover preserves proportions while filling every edge of the compact card. */
 [data-section-showcase-header] .tok-section-header__visual {
   position: absolute;
   z-index: 0;
@@ -39,6 +39,11 @@
   width: 100%;
   height: 100%;
   max-width: none;
+  object-fit: cover;
+  object-position: 70% center;
+}
+
+[data-section-showcase-header][data-image-kind="illustration"] .tok-section-header__image {
   object-fit: contain;
   object-position: right center;
 }
@@ -52,14 +57,14 @@
   width: 54%;
   min-width: 0;
   max-width: 54%;
-  padding: clamp(1.15rem, 2.45vw, 2.2rem);
+  padding: clamp(.75rem, 1.7vw, 1.25rem);
 }
 
 [data-section-showcase-header] .tok-section-header__eyebrow {
   display: flex;
   align-items: center;
   gap: .85rem;
-  margin: 0 0 .75rem;
+  margin: 0 0 .5rem;
   color: var(--tok-header-accent);
   font-size: clamp(.7rem, .68rem + .23vw, .925rem);
   font-weight: 800;
@@ -72,8 +77,8 @@
 [data-section-showcase-header] .tok-section-header__symbol {
   display: grid;
   flex: 0 0 auto;
-  width: clamp(42px, 4vw, 54px);
-  height: clamp(42px, 4vw, 54px);
+  width: clamp(32px, 3vw, 42px);
+  height: clamp(32px, 3vw, 42px);
   place-items: center;
   border-radius: 14px;
   background: linear-gradient(145deg, #ffba77, var(--tok-header-accent));
@@ -91,7 +96,7 @@
   margin: 0;
   color: var(--tok-header-ink);
   font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(1.875rem, 1.5rem + 1.25vw, 3.125rem);
+  font-size: clamp(1.5rem, 2.7vw, 2.25rem);
   font-weight: 800;
   line-height: 1.12;
   letter-spacing: -.035em;
@@ -117,7 +122,7 @@
   gap: .65rem;
   min-width: 0;
   max-width: 100%;
-  margin-top: 1.05rem;
+  margin-top: .7rem;
 }
 
 [data-section-showcase-header] [data-section-action-row] a {
@@ -179,16 +184,9 @@
   background: #fff0e6;
 }
 
-@media (min-width: 980px) {
-  /* Close to the original 4:1 framing, with the entire right-hand scene visible. */
-  [data-section-showcase-header][data-image-kind="photo"] {
-    aspect-ratio: 4 / 1;
-  }
-}
-
 @media (max-width: 639px) {
   [data-section-showcase-header] {
-    min-height: clamp(238px, 78vw, 370px);
+    min-height: 0;
     border-radius: 23px;
   }
 
@@ -196,48 +194,48 @@
     flex-basis: 65%;
     width: 65%;
     max-width: 65%;
-    padding: 1rem .3rem 1rem 1rem;
+    padding: .625rem .4rem .625rem .8rem;
   }
 
   [data-section-showcase-header] .tok-section-header__eyebrow {
-    gap: .5rem;
-    margin-bottom: .5rem;
+    gap: .4rem;
+    margin-bottom: .3rem;
     font-size: .625rem;
     letter-spacing: .04em;
   }
 
   [data-section-showcase-header] .tok-section-header__symbol {
-    width: 38px;
-    height: 38px;
+    width: 28px;
+    height: 28px;
     border-radius: 11px;
   }
 
   [data-section-showcase-header] .tok-section-header__glyph {
-    width: 20px;
-    height: 20px;
+    width: 17px;
+    height: 17px;
   }
 
   [data-section-showcase-header] .tok-section-header__title {
-    font-size: clamp(1.4rem, 6.1vw, 1.9rem);
+    font-size: clamp(1.125rem, 5vw, 1.375rem);
     line-height: 1.08;
   }
 
   [data-section-showcase-header] .tok-section-header__description {
     max-width: 100%;
     font-size: .72rem;
-    line-height: 1.36;
+    line-height: 1.25;
   }
 
   [data-section-showcase-header] [data-section-action-row] {
     flex-basis: 100%;
     max-width: 100%;
-    margin-top: .75rem;
+    margin-top: .4rem;
     gap: .4rem;
   }
 
   [data-section-showcase-header] [data-section-action-row] a {
     gap: .4rem;
-    min-height: 40px;
+    min-height: 44px;
     padding: .5rem .65rem;
     font-size: .73rem;
   }
@@ -248,11 +246,11 @@
     flex-basis: 66%;
     width: 66%;
     max-width: 66%;
-    padding: .9rem .2rem .9rem .8rem;
+    padding: .6rem .3rem .6rem .7rem;
   }
 
   [data-section-showcase-header] .tok-section-header__title {
-    font-size: clamp(1.35rem, 6.1vw, 1.55rem);
+    font-size: clamp(1.125rem, 5vw, 1.375rem);
   }
 }
 
