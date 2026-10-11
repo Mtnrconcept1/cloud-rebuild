@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "63f4d068001cce5f9d76a861a45a45f510f9bfcb4683814573d8a92eab7a3056",
+ "sourceDigest": "3ba87485571f37503d1c43eb1b348ddb13a3fc25eb922b8d242c131cdd50648d",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12712,11 +12712,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 124
+      "line": 125
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 129
+      "line": 130
      },
      {
       "path": "src/components/commercial/CommercialWorkspaceChrome.tsx",
@@ -13618,7 +13618,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 601
+      "line": 608
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -13757,19 +13757,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 257
+      "line": 264
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 330
+      "line": 337
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 422
+      "line": 429
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 495
+      "line": 502
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -15167,7 +15167,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 214
+      "line": 221
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -15233,11 +15233,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 265
+      "line": 272
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 484
+      "line": 491
      },
      {
       "path": "src/components/PromoCarousel.tsx",
@@ -15549,7 +15549,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 438
+      "line": 445
      },
      {
       "path": "src/components/ProtectedRoute.tsx",
@@ -15573,7 +15573,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 92
+      "line": 93
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -16211,7 +16211,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 607
+      "line": 614
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -16359,7 +16359,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 75
+      "line": 76
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -16722,19 +16722,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 398
+      "line": 405
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 400
+      "line": 407
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 573
+      "line": 580
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 576
+      "line": 583
      },
      {
       "path": "src/components/commercial/CommercialDemoActorOverview.tsx",
@@ -16883,7 +16883,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 126
+      "line": 127
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -17479,7 +17479,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 604
+      "line": 611
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -17544,7 +17544,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 613
+      "line": 620
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -17903,11 +17903,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 427
+      "line": 434
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 567
+      "line": 574
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -20816,7 +20816,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 80
+      "line": 81
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
@@ -20833,7 +20833,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 81
+      "line": 82
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
@@ -22627,11 +22627,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 393
+      "line": 400
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 561
+      "line": 568
      },
      {
       "path": "src/components/commercial/CommercialDemoBrowserGrid.tsx",
@@ -22856,19 +22856,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 414
+      "line": 421
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 416
+      "line": 423
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 587
+      "line": 594
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 590
+      "line": 597
      },
      {
       "path": "src/components/commercial/CommercialDemoActorOverview.tsx",
@@ -23154,11 +23154,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 344
+      "line": 351
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 508
+      "line": 515
      },
      {
       "path": "src/components/OrderConflictDialog.tsx",
@@ -23386,7 +23386,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 610
+      "line": 617
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -23774,11 +23774,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 250
+      "line": 257
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 478
+      "line": 485
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -23790,11 +23790,11 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 72
+      "line": 73
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 74
+      "line": 75
      },
      {
       "path": "src/components/home/RestaurantSection.tsx",
@@ -24054,19 +24054,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 406
+      "line": 413
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 408
+      "line": 415
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 580
+      "line": 587
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 583
+      "line": 590
      },
      {
       "path": "src/components/ReservationDialog.tsx",
@@ -25269,15 +25269,15 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 200
+      "line": 207
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 360
+      "line": 367
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 516
+      "line": 523
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -25285,7 +25285,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 87
+      "line": 88
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -25778,11 +25778,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 207
+      "line": 214
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 521
+      "line": 528
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -25927,11 +25927,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 281
+      "line": 288
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 501
+      "line": 508
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -26674,15 +26674,15 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 273
+      "line": 280
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 489
+      "line": 496
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 73
+      "line": 74
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -81411,7 +81411,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 627
+    "lineCount": 634
    },
    {
     "path": "src/components/NearbyRestaurantsMap.tsx",
@@ -83372,7 +83372,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 118
+    "lineCount": 120
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -126128,14 +126128,14 @@
    "id": "code-module:d8013874702d",
    "type": "code-module",
    "title": "src/components/Navbar.tsx",
-   "description": "Module de 627 lignes; exports: default.",
+   "description": "Module de 634 lignes; exports: default.",
    "path": "src/components/Navbar.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "6a3ba3ff79a2"
+   "detailRef": "edf8e053612f"
   },
   {
    "id": "code-module:bcb7d2dbc4fa",
@@ -127720,14 +127720,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 118 lignes; exports: default.",
+   "description": "Module de 120 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "e897e2e75868"
+   "detailRef": "acc00ce79001"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -335332,7 +335332,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "5f2f5b3d4bc7"
+   "detailRef": "23a74336254f"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -335556,7 +335556,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "7cdbc6e67f42"
+   "detailRef": "62eae040d2ce"
   },
   {
    "id": "path-literal:b93cc2bbc5bc",
@@ -335690,7 +335690,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "f358d4fa033d"
+   "detailRef": "e3d96468bfed"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -336403,7 +336403,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "5c855b23a090"
+   "detailRef": "85c0063d159c"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -336445,7 +336445,7 @@
     "src/test/feature-visibility.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "b2965eb1ca9a"
+   "detailRef": "0510054ee2e7"
   },
   {
    "id": "path-literal:b8366dc7f0ad",
@@ -336887,7 +336887,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "d2b153e02c86"
+   "detailRef": "9557beb4dc55"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -337083,7 +337083,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "4774d9302c21"
+   "detailRef": "2fc7811f6b91"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -337183,7 +337183,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "786f23adef46"
+   "detailRef": "66635192a25a"
   },
   {
    "id": "path-literal:4fb16aa3df8b",
@@ -337399,7 +337399,7 @@
     "src/test/role-route-wiring.test.ts",
     "supabase/functions/courier-portal/index.ts"
    ],
-   "detailRef": "b134209416fd"
+   "detailRef": "13c61ea0f8b1"
   },
   {
    "id": "path-literal:e01c2c8fbbea",
@@ -337673,7 +337673,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "51c600599272"
+   "detailRef": "0087816fe76f"
   },
   {
    "id": "path-literal:c6197bb92a0d",
@@ -337754,7 +337754,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "263236caaaa8"
+   "detailRef": "bf2d92cca055"
   },
   {
    "id": "path-literal:09145bbf5f6b",
@@ -337777,7 +337777,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "3287903630a7"
+   "detailRef": "0f7ece28338d"
   },
   {
    "id": "path-literal:e9d36ceff823",
@@ -337883,7 +337883,7 @@
     "src/lib/featureCatalog.ts",
     "src/pages/courier/CourierHome.tsx"
    ],
-   "detailRef": "1b77249e1a00"
+   "detailRef": "c23d64dc165a"
   },
   {
    "id": "path-literal:2e9a84eae292",
@@ -340006,24 +340006,9 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:baff6f243a44",
+   "id": "path-literal:03eda02ddabc",
    "type": "path-literal",
    "title": "/images/home/tok-geneve-mobile-fast.webp",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/HeroSection.tsx",
-   "line": 80,
-   "surface": null,
-   "tags": [
-    "src/components/home/HeroSection.tsx",
-    "src/test/home-core-web-vitals.test.ts",
-    "src/test/home-hero-search.test.tsx"
-   ],
-   "detailRef": "c299de98c76f"
-  },
-  {
-   "id": "path-literal:a4f1b5ee66c2",
-   "type": "path-literal",
-   "title": "/images/home/tok-leman-signature-fast.webp",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 81,
@@ -340033,7 +340018,22 @@
     "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "d3617713f84a"
+   "detailRef": "500c4cc8e4aa"
+  },
+  {
+   "id": "path-literal:62b1c580652c",
+   "type": "path-literal",
+   "title": "/images/home/tok-leman-signature-fast.webp",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/HeroSection.tsx",
+   "line": 82,
+   "surface": null,
+   "tags": [
+    "src/components/home/HeroSection.tsx",
+    "src/test/home-core-web-vitals.test.ts",
+    "src/test/home-hero-search.test.tsx"
+   ],
+   "detailRef": "e72200d851f2"
   },
   {
    "id": "path-literal:638981aff331",
@@ -341549,7 +341549,7 @@
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "1870198525ab"
+   "detailRef": "07907035b46c"
   },
   {
    "id": "path-literal:48897d739ef3",
@@ -341656,7 +341656,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "192e62380f42"
+   "detailRef": "ce3fb41a5e9d"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -341831,7 +341831,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "74bb857ac512"
+   "detailRef": "5f818c4bbd3b"
   },
   {
    "id": "path-literal:59eea23cb871",
@@ -341915,7 +341915,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "23880f9f1e2a"
+   "detailRef": "6879bfc99e43"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -342187,7 +342187,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "20f2ece17ae2"
+   "detailRef": "0b4f4fbd973a"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -342309,7 +342309,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "72528f96345e"
+   "detailRef": "d750a5dc2d16"
   },
   {
    "id": "path-literal:0af02260597a",
@@ -343459,7 +343459,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "5f21df6e53b9"
+   "detailRef": "0a89433628a5"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -343926,7 +343926,7 @@
     "src/pages/TokConnect.tsx",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "a26caac56e28"
+   "detailRef": "160f9faa6cbf"
   },
   {
    "id": "path-literal:10a0ebcd0a8b",
@@ -343957,7 +343957,7 @@
     "src/test/feature-visibility.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "61ce40c12378"
+   "detailRef": "3c7d29c7f4d6"
   },
   {
    "id": "path-literal:d01a3ea49721",
@@ -344634,7 +344634,7 @@
     "src/test/home-hero-search.test.tsx",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "dcc813b9f422"
+   "detailRef": "30e9547fd784"
   },
   {
    "id": "path-literal:57ce8756e2b5",
