@@ -16,6 +16,7 @@ import {
   Repeat,
   Route,
   Search,
+  Settings2,
   Shield,
   ShieldCheck,
   ShoppingBag,
@@ -35,6 +36,7 @@ import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
+import { openConsentSettings } from "@/lib/consent";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
@@ -192,9 +194,11 @@ export default function Navbar() {
       {/* ─── Top utility bar ─── */}
       {showClientSurface ? (
         <div className={`w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 ${isDesktopHomeReference ? "block lg:hidden" : "hidden lg:block"}`}>
-          <div className="container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground">
-            <Link to="/restaurateurs/geneve" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
-              <Store className="h-3.5 w-3.5" />
+          <div className={isDesktopHomeReference
+            ? "container flex h-9 items-center justify-end gap-1.5 px-2 text-[10px] text-muted-foreground min-[380px]:gap-2 min-[380px]:text-xs sm:gap-3"
+            : "container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground"}>
+            <Link to="/restaurateurs/geneve" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap transition-colors hover:text-foreground">
+              <Store className={isDesktopHomeReference ? "hidden h-3.5 w-3.5 min-[440px]:block" : "h-3.5 w-3.5"} />
               Pour les restaurateurs
             </Link>
             {tokConnectEnabled ? (
@@ -207,7 +211,20 @@ export default function Navbar() {
               </>
             ) : null}
             <span className="text-border">|</span>
-            <Link to="/aide" className="transition-colors hover:text-foreground">Aide</Link>
+            <Link to="/aide" className="shrink-0 whitespace-nowrap transition-colors hover:text-foreground">Aide</Link>
+            {isDesktopHomeReference ? (
+              <>
+                <span className="text-border" aria-hidden="true">|</span>
+                <button
+                  type="button"
+                  onClick={openConsentSettings}
+                  className="inline-flex min-h-9 shrink-0 items-center gap-1 whitespace-nowrap transition-colors hover:text-foreground focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
+                >
+                  <Settings2 className="hidden h-3.5 w-3.5 min-[440px]:block" aria-hidden="true" />
+                  Gérer mes cookies
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
       ) : null}

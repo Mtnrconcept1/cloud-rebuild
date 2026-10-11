@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `1fef344eb39883360a515d026900922e0ae2460302becc932ef18103ed0f4992`
+- Empreinte SHA-256 des sources indexées : `50f7a49867274f377823505d01b0f63145fcc281300448f48e95544e0bac3a73`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -948,7 +948,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 233 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 234 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 4 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:68](../../src/test/application-search-index.test.ts#L68) |
