@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `2dd6c1c016c4b7591c42d6992366f982171653bddfdeab76fc02e722ce476598`
+- Empreinte SHA-256 des sources indexées : `906e8984e9359cc7defe66209725ddf365deddfbe3a17ef6a50c287bd487ee20`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,24 +29,24 @@
 | cronJobs | 33 |
 | databaseContract | 228 |
 | databaseObjects | 2736 |
-| documents | 200 |
+| documents | 201 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3391 |
+| exportedSymbols | 3397 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 527 |
-| modules | 1493 |
+| modules | 1498 |
 | pages | 128 |
-| pathLiterals | 629 |
-| publicAssets | 353 |
-| publicEntries | 378 |
+| pathLiterals | 634 |
+| publicAssets | 357 |
+| publicEntries | 382 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15845 |
-| repositoryFiles | 2849 |
+| records | 15880 |
+| repositoryFiles | 2859 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -937,6 +937,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /logotok.png | media | [public/logotok.png](../../public/logotok.png) |
 | /mangez.png | media | [public/mangez.png](../../public/mangez.png) |
 | /manifest.json | platform | [public/manifest.json](../../public/manifest.json) |
+| /marketing/brand/tok-v1/flash.jpg | media | [public/marketing/brand/tok-v1/flash.jpg](../../public/marketing/brand/tok-v1/flash.jpg) |
+| /marketing/brand/tok-v1/geneva.jpg | media | [public/marketing/brand/tok-v1/geneva.jpg](../../public/marketing/brand/tok-v1/geneva.jpg) |
+| /marketing/brand/tok-v1/loyalty.jpg | media | [public/marketing/brand/tok-v1/loyalty.jpg](../../public/marketing/brand/tok-v1/loyalty.jpg) |
+| /marketing/brand/tok-v1/pricing.jpg | media | [public/marketing/brand/tok-v1/pricing.jpg](../../public/marketing/brand/tok-v1/pricing.jpg) |
 | /miamz.png | media | [public/miamz.png](../../public/miamz.png) |
 | /mockup.png | media | [public/mockup.png](../../public/mockup.png) |
 | /placeholder.svg | media | [public/placeholder.svg](../../public/placeholder.svg) |
@@ -1243,6 +1247,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /galerie | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
 | /gallery | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
 | /garantie-qualite | 11 | [scripts/prerender-seo.mjs:1017](../../scripts/prerender-seo.mjs#L1017) |
+| /generations | 1 | [src/test/marketing-brand-references.test.ts:77](../../src/test/marketing-brand-references.test.ts#L77) |
 | /google-actions-center-sync | 1 | [src/test/google-actions-center-outbox.test.ts:147](../../src/test/google-actions-center-outbox.test.ts#L147) |
 | /healthz | 2 | [src/test/application-search-index.test.ts:71](../../src/test/application-search-index.test.ts#L71) |
 | /help.png | 1 | [src/components/help/ChefHelpButton.tsx:36](../../src/components/help/ChefHelpButton.tsx#L36) |
@@ -1402,6 +1407,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing-public | 1 | [src/test/marketing-domain-isolation.test.ts:25](../../src/test/marketing-domain-isolation.test.ts#L25) |
 | /marketing/ | 1 | [src/App.tsx:316](../../src/App.tsx#L316) |
 | /marketing/* | 2 | [src/App.tsx:735](../../src/App.tsx#L735) |
+| /marketing/brand/tok-v1/flash.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:8](../../supabase/functions/_shared/marketing-brand.ts#L8) |
+| /marketing/brand/tok-v1/geneva.jpg | 2 | [src/test/marketing-brand-gallery.test.tsx:11](../../src/test/marketing-brand-gallery.test.tsx#L11) |
+| /marketing/brand/tok-v1/loyalty.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:7](../../supabase/functions/_shared/marketing-brand.ts#L7) |
+| /marketing/brand/tok-v1/pricing.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:9](../../supabase/functions/_shared/marketing-brand.ts#L9) |
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
 | /marketing/login | 8 | [src/App.tsx:726](../../src/App.tsx#L726) |
 | /match-groupes | 13 | [scripts/prerender-seo.mjs:1049](../../scripts/prerender-seo.mjs#L1049) |
@@ -5835,12 +5844,12 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 111 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 114 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 116 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 213 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 669 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 671 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 57 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5853,15 +5862,15 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 204 |
 | automation-script | 64 |
 | documentation | 6 |
-| edge-function-source | 183 |
-| frontend-component | 250 |
+| edge-function-source | 185 |
+| frontend-component | 251 |
 | frontend-hook | 22 |
 | frontend-page | 128 |
 | frontend-source | 23 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 586 |
+| test | 588 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -5977,6 +5986,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Répartition des responsabilités — prix, disponibilité, allergènes et qualité | 3 | [docs/legal/10-responsabilites-produits.md:1](../../docs/legal/10-responsabilites-produits.md#L1) |
 | Pack contractuel TOK | 3 | [docs/legal/README.md:1](../../docs/legal/README.md#L1) |
 | Pistes de backlinks TOK sans compte existant | 6 | [docs/marketing-backlink-opportunities.md:1](../../docs/marketing-backlink-opportunities.md#L1) |
+| Références visuelles des campagnes TOK | 4 | [docs/marketing/TOK_BRAND_REFERENCES.md:1](../../docs/marketing/TOK_BRAND_REFERENCES.md#L1) |
 | Audit du marketing automatique TOK — 8 octobre 2026 | 7 | [docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md:1](../../docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md#L1) |
 | TOK Marketing Autopilot — runbook d'exploitation | 13 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
 | Marketing : session, recherche de sources et diagnostic Meta | 5 | [docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md:1](../../docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md#L1) |
@@ -6984,7 +6994,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (152)</summary>
+<details><summary>documentation (153)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7053,6 +7063,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing-email-examples/02-pizzeria-carouge.txt`
 - `docs/marketing-email-examples/03-rive-droite-soiree.html`
 - `docs/marketing-email-examples/03-rive-droite-soiree.txt`
+- `docs/marketing/TOK_BRAND_REFERENCES.md`
 - `docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md`
 - `docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md`
 - `docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md`
@@ -7141,7 +7152,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (183)</summary>
+<details><summary>edge-function-source (185)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7163,10 +7174,12 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/marketing-ai.ts`
 - `supabase/functions/_shared/marketing-backlink-discovery.ts`
 - `supabase/functions/_shared/marketing-backlink-sources.ts`
+- `supabase/functions/_shared/marketing-brand.ts`
 - `supabase/functions/_shared/marketing-email-template.ts`
 - `supabase/functions/_shared/marketing-service-auth.ts`
 - `supabase/functions/_shared/marketing-unsubscribe-secrets.ts`
 - `supabase/functions/_shared/marketing-unsubscribe-token.ts`
+- `supabase/functions/_shared/marketing-visual.ts`
 - `supabase/functions/_shared/marketing.ts`
 - `supabase/functions/_shared/marketplace-finance.ts`
 - `supabase/functions/_shared/mcp-http.ts`
@@ -7329,7 +7342,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (254)</summary>
+<details><summary>frontend-component (255)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -7490,6 +7503,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/launch/LaunchGateProvider.tsx`
 - `src/components/legal/LegalConsentBanner.tsx`
 - `src/components/list/SortControls.tsx`
+- `src/components/marketing/MarketingBrandReferences.tsx`
 - `src/components/marketing/MarketingHostBoundary.tsx`
 - `src/components/marketing/MarketingMetaConnection.tsx`
 - `src/components/marketing/MarketingProtectedRoute.tsx`
@@ -7834,7 +7848,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (378)</summary>
+<details><summary>public-asset (382)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8162,6 +8176,10 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/logotok.png`
 - `public/mangez.png`
 - `public/manifest.json`
+- `public/marketing/brand/tok-v1/flash.jpg`
+- `public/marketing/brand/tok-v1/geneva.jpg`
+- `public/marketing/brand/tok-v1/loyalty.jpg`
+- `public/marketing/brand/tok-v1/pricing.jpg`
 - `public/miamz.png`
 - `public/mockup.png`
 - `public/placeholder.svg`
@@ -8399,7 +8417,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (586)</summary>
+<details><summary>test (588)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -8703,6 +8721,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-bff-client.test.ts`
 - `src/test/marketing-bff-security.test.ts`
 - `src/test/marketing-bff-vercel-entrypoints.test.ts`
+- `src/test/marketing-brand-gallery.test.tsx`
+- `src/test/marketing-brand-references.test.ts`
 - `src/test/marketing-consent-dispatch.test.ts`
 - `src/test/marketing-domain-isolation.test.ts`
 - `src/test/marketing-edge-security.test.ts`
