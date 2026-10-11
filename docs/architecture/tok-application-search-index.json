@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "9fbb0ad9dbccb6233b69df595d63027ba13c28af2ed2eab47961b593cd82a481",
+ "sourceDigest": "2dd6c1c016c4b7591c42d6992366f982171653bddfdeab76fc02e722ce476598",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -24646,7 +24646,7 @@
     "sources": [
      {
       "path": "src/test/responsive-seo-regressions.test.ts",
-      "line": 88
+      "line": 97
      },
      {
       "path": "src/test/restaurant-slug-seo.test.ts",
@@ -24705,7 +24705,7 @@
      },
      {
       "path": "src/test/responsive-seo-regressions.test.ts",
-      "line": 86
+      "line": 95
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -103707,7 +103707,7 @@
      "google",
      "vercel"
     ],
-    "lineCount": 141
+    "lineCount": 150
    },
    {
     "path": "src/test/restaurant-billing-account.test.ts",
@@ -141798,7 +141798,7 @@
    "id": "code-module:15d812a522e0",
    "type": "code-module",
    "title": "src/test/responsive-seo-regressions.test.ts",
-   "description": "Module de 141 lignes; exports: aucun export statique.",
+   "description": "Module de 150 lignes; exports: aucun export statique.",
    "path": "src/test/responsive-seo-regressions.test.ts",
    "line": 1,
    "surface": null,
@@ -141806,7 +141806,7 @@
     "google",
     "vercel"
    ],
-   "detailRef": "ffcc3380dee0"
+   "detailRef": "213c9e621005"
   },
   {
    "id": "code-module:480077b40983",
@@ -343197,18 +343197,18 @@
    "detailRef": "b6e7e9a82104"
   },
   {
-   "id": "path-literal:e3cbe8ac65aa",
+   "id": "path-literal:7ea5201b329f",
    "type": "path-literal",
    "title": "/restaurants/${citySlug}/r/${restaurantSlug}",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/responsive-seo-regressions.test.ts",
-   "line": 88,
+   "line": 97,
    "surface": null,
    "tags": [
     "src/test/responsive-seo-regressions.test.ts",
     "src/test/restaurant-slug-seo.test.ts"
    ],
-   "detailRef": "d23023e3d719"
+   "detailRef": "dcc8803616c8"
   },
   {
    "id": "path-literal:19c3772b2c01",
@@ -343239,7 +343239,7 @@
     "src/test/responsive-seo-regressions.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "f8d480a1daf5"
+   "detailRef": "59cd53f6646d"
   },
   {
    "id": "path-literal:fa6ae3cf0a85",
