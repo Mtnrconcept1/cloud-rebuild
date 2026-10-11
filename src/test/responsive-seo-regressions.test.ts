@@ -46,6 +46,7 @@ describe("responsive and SEO regression guards", () => {
     const hero = read("src/components/home/HeroSection.tsx");
     const navbar = read("src/components/Navbar.tsx");
     const sectionHeaders = read("src/home-section-headers.css");
+    const heroCss = read("src/components/home/HeroSection.css");
 
     expect(hero.match(/<h1/g)).toHaveLength(1);
     expect(hero).toContain('aria-labelledby="home-hero-title"');
@@ -54,8 +55,16 @@ describe("responsive and SEO regression guards", () => {
     expect(navbar).toContain("sticky top-0");
     expect(navbar).not.toContain('<div className="h-16 md:hidden" aria-hidden="true" />');
     expect(navbar).toContain("Thème d’affichage");
-    expect(sectionHeaders).toContain("@media (min-width: 380px)");
-    expect(sectionHeaders).toContain("max-width: calc(100% - 6.5rem)");
+    // The redesigned section panels wrap naturally instead of using the old fixed-width cap.
+    expect(sectionHeaders).toContain("max-width: 100%");
+    expect(sectionHeaders).toContain("overflow-wrap: anywhere");
+    expect(sectionHeaders).toContain("text-wrap: balance");
+    expect(sectionHeaders).toContain("@media (max-width: 639px)");
+    expect(sectionHeaders).toContain("flex-basis: 100%");
+    // Keep the mobile hero/newsletter responsive on narrow and short screens.
+    expect(heroCss).toContain("@media(max-width:380px)");
+    expect(heroCss).toContain("@media(max-width:767px) and (max-height:760px)");
+    expect(heroCss).toContain(".tok-home-first-screen");
   });
 
   it("labels dashboard table cards on mobile", () => {
