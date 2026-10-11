@@ -44,8 +44,6 @@
 .tok-or-banner__body{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:14px;font-family:'Playfair Display',Georgia,serif;font-size:clamp(17px,1.6vw,23px);line-height:1.15}
 .tok-or-banner__cta{display:inline-flex;align-items:center;gap:8px;padding:8px 17px;border-radius:40px;background:#fff8f0;color:#a9410c;font:700 13px system-ui,sans-serif}
 .tok-home-cuisine-strip{padding-top:20px!important}
-.tok-home-cuisine-strip [data-section-showcase-header]{border-bottom:0;padding-bottom:0}
-.tok-home-cuisine-strip [data-section-showcase-header] h2{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:clamp(26px,2.4vw,37px)}
 .dark .tok-home-hero{--tok-home-ink:#fcf4eb;--tok-home-muted:#c3b8ae;--tok-home-orange:#ff9866}
 .dark .tok-home-hero__form{border-color:#39312b;background:#251e1a}
 .dark .tok-home-hero__field label,.dark .tok-home-hero__input-row input{color:#f8ecdf}

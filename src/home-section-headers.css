@@ -1,181 +1,77 @@
-/*
- * Responsive safety layer for TOK homepage section-header illustrations.
- * The component still owns the design; this layer only keeps the artwork
- * inside a reserved visual lane so it does not cross the text or get clipped.
+/* Shared homepage headings: a warm TOK panel marks each new section.
+ * Keep content in normal flow so long French labels and enlarged text wrap.
  */
-
 [data-section-showcase-header] {
-  overflow: visible !important;
+  align-items: center;
+  gap: 1rem;
+  padding: clamp(1.125rem, 3vw, 2rem);
+  border: 1px solid hsl(var(--primary) / 0.2);
+  border-inline-start: 5px solid hsl(var(--primary));
+  border-radius: 1.25rem;
+  background: linear-gradient(115deg, hsl(var(--primary) / 0.12), hsl(var(--primary) / 0.035));
 }
 
-[data-section-showcase-header] > .relative {
-  z-index: 60 !important;
-  min-width: 0 !important;
-  max-width: calc(100% - 6.5rem) !important;
-  padding-right: 0 !important;
+[data-section-showcase-header] > div:first-child {
+  flex: 1 1 20rem;
+  min-width: 0;
 }
 
-[data-section-showcase-header] [data-section-illustration] {
-  top: 0 !important;
-  right: 0.5rem !important;
-  bottom: 0 !important;
-  z-index: 45 !important;
-  width: 6.5rem !important;
-  overflow: visible !important;
+[data-section-showcase-header] p {
+  gap: 0.625rem;
+  margin-bottom: 0.75rem;
+  font-size: clamp(0.75rem, 1.1vw, 0.875rem);
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: 0.1em;
+  overflow-wrap: anywhere;
 }
 
-[data-section-showcase-header] [data-section-illustration] > img {
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 7.5rem !important;
-  height: 7.5rem !important;
-  max-width: none !important;
-  transform: translateX(0) !important;
-  object-fit: contain !important;
-  object-position: bottom right !important;
+[data-section-showcase-header] p > svg {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  background: hsl(var(--primary) / 0.12);
+}
+
+[data-section-showcase-header] h2 {
+  font-size: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 [data-section-showcase-header] [data-section-action-row] {
-  z-index: 70 !important;
-  max-width: calc(100% - 6.5rem) !important;
+  min-width: 0;
+  max-width: 100%;
+  gap: 0.5rem;
 }
 
-@media (min-width: 380px) {
-  [data-section-showcase-header] > .relative {
-    max-width: calc(100% - 8.75rem) !important;
-  }
+[data-section-showcase-header] [data-section-action-row] a {
+  height: auto;
+  min-height: 2.75rem;
+  max-width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid hsl(var(--primary) / 0.25);
+  background: hsl(var(--background) / 0.8);
+  font-weight: 700;
+  white-space: normal;
+}
 
-  [data-section-showcase-header] [data-section-illustration] {
-    width: 8.75rem !important;
-  }
+[data-section-showcase-header] [data-section-action-row] a span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 
-  [data-section-showcase-header] [data-section-illustration] > img {
-    width: 10.25rem !important;
-    height: 10.25rem !important;
-  }
+[data-section-showcase-header] [data-section-action-row] a:hover {
+  background: hsl(var(--primary) / 0.12);
+}
 
+@media (max-width: 639px) {
   [data-section-showcase-header] [data-section-action-row] {
-    max-width: calc(100% - 8.75rem) !important;
-  }
-}
-
-@media (min-width: 640px) {
-  [data-section-showcase-header] > .relative {
-    max-width: calc(100% - 13rem) !important;
-  }
-
-  [data-section-showcase-header] [data-section-illustration] {
-    right: 1rem !important;
-    width: 13rem !important;
-  }
-
-  [data-section-showcase-header] [data-section-illustration] > img {
-    width: 16rem !important;
-    height: 16rem !important;
-  }
-
-  [data-section-showcase-header] [data-section-action-row] {
-    max-width: calc(100% - 13rem) !important;
-  }
-}
-
-@media (min-width: 768px) {
-  [data-section-showcase-header] > .relative {
-    max-width: calc(100% - 18rem) !important;
-  }
-
-  [data-section-showcase-header] [data-section-illustration] {
-    right: 1.5rem !important;
-    width: 18rem !important;
-  }
-
-  [data-section-showcase-header] [data-section-illustration] > img {
-    width: 20rem !important;
-    height: 20rem !important;
-  }
-
-  [data-section-showcase-header] [data-section-action-row] {
-    max-width: calc(100% - 18rem) !important;
-  }
-}
-
-@supports selector(:has(*)) {
-  section:has([data-section-showcase-header]) {
-    overflow: visible !important;
-  }
-
-  [data-section-showcase-header]:has(a[href="/actualites"]) {
-    min-height: 260px !important;
-    padding-top: 1.5rem !important;
-  }
-
-  [data-section-showcase-header]:has(a[href="/actualites"]) > .relative {
-    max-width: calc(100% - 6.75rem) !important;
-  }
-
-  [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] {
-    right: 0.25rem !important;
-    z-index: 50 !important;
-    width: 6.75rem !important;
-  }
-
-  [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] > img {
-    width: 8rem !important;
-    height: 8rem !important;
-  }
-
-  @media (min-width: 380px) {
-    [data-section-showcase-header]:has(a[href="/actualites"]) > .relative {
-      max-width: calc(100% - 9.75rem) !important;
-    }
-
-    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] {
-      width: 9.75rem !important;
-    }
-
-    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] > img {
-      width: 11.5rem !important;
-      height: 11.5rem !important;
-    }
-  }
-
-  @media (min-width: 640px) {
-    [data-section-showcase-header]:has(a[href="/actualites"]) {
-      min-height: 306px !important;
-    }
-
-    [data-section-showcase-header]:has(a[href="/actualites"]) > .relative {
-      max-width: calc(100% - 15rem) !important;
-    }
-
-    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] {
-      right: 0.75rem !important;
-      width: 15rem !important;
-    }
-
-    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] > img {
-      width: 18rem !important;
-      height: 18rem !important;
-    }
-  }
-
-  @media (min-width: 768px) {
-    [data-section-showcase-header]:has(a[href="/actualites"]) {
-      min-height: 356px !important;
-    }
-
-    [data-section-showcase-header]:has(a[href="/actualites"]) > .relative {
-      max-width: calc(100% - 22rem) !important;
-    }
-
-    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] {
-      right: 1.25rem !important;
-      width: 22rem !important;
-    }
-
-    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] > img {
-      width: 22rem !important;
-      height: 22rem !important;
-    }
+    flex-basis: 100%;
   }
 }
