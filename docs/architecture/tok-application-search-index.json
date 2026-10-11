@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "906e8984e9359cc7defe66209725ddf365deddfbe3a17ef6a50c287bd487ee20",
+ "sourceDigest": "349a5666cb2d8e53e7fc0b7067246ead6d8d37f54c2907e1a9677a08989ac8d0",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -102635,7 +102635,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 300
+    "lineCount": 309
    },
    {
     "path": "src/test/marketing-autopilot-frontend.test.tsx",
@@ -140318,7 +140318,7 @@
    "id": "code-module:f1aadb4d91ba",
    "type": "code-module",
    "title": "src/test/marketing-ai-agent.test.ts",
-   "description": "Module de 300 lignes; exports: aucun export statique.",
+   "description": "Module de 309 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-ai-agent.test.ts",
    "line": 1,
    "surface": null,
@@ -140327,7 +140327,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "708e516ca6a7"
+   "detailRef": "102d9aa2bbae"
   },
   {
    "id": "code-module:6406b6c9d347",
