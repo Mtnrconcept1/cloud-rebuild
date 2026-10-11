@@ -190,6 +190,21 @@ const sectionBounce = {
   },
 };
 
+function ProgressiveOfferCountdown({ endsAt }: { endsAt: ProgressiveReservationOffer["countdown_ends_at"] }) {
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <p className="text-xs font-medium text-primary">
+      Fin dans {formatProgressiveCountdown(endsAt, nowMs)}
+    </p>
+  );
+}
+
 export default function Index() {
   const { user } = useAuth();
   const { itemCount } = useCart();
@@ -224,7 +239,8 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    const interval = window.setInterval(() => setNowMs(Date.now()), 1000);
+    // Only refresh the service day; the live countdown is isolated below.
+    const interval = window.setInterval(() => setNowMs(Date.now()), 60_000);
     return () => window.clearInterval(interval);
   }, []);
 
@@ -432,7 +448,7 @@ export default function Index() {
   });
 
   const candidateCity = userCoordinates ? null : userContext?.city || null;
-  const { data: homeCandidates = [] } = useQuery({
+  const { data: homeCandidates = [], isLoading: homeCandidatesLoading } = useQuery({
     queryKey: ["home-candidate-pool", candidateCity || "", demoSessionKey],
     queryFn: () => isCommercialDemoClient
       ? Promise.resolve(demoRestaurants as HomeRestaurantCandidate[])
@@ -443,7 +459,7 @@ export default function Index() {
       }),
   });
 
-  const { data: offerCandidates = [] } = useQuery({
+  const { data: offerCandidates = [], isLoading: offerCandidatesLoading } = useQuery({
     queryKey: ["home-offer-candidate-pool", candidateCity || "", demoSessionKey],
     queryFn: () => isCommercialDemoClient
       ? Promise.resolve([] as HomeRestaurantCandidate[])
@@ -453,6 +469,8 @@ export default function Index() {
         limit: HOME_OFFER_CANDIDATE_LIMIT,
       }),
   });
+
+  const isCatalogLoading = homeCandidatesLoading || offerCandidatesLoading;
 
   const { data: donatedPoints = 0 } = useQuery({
     queryKey: ["donated-points-total", demoSessionKey],
@@ -720,9 +738,7 @@ export default function Index() {
                               style={{ width: `${getProgressiveOfferProgressPercent(offer)}%` }}
                             />
                           </div>
-                          <p className="text-xs font-medium text-primary">
-                            Fin dans {formatProgressiveCountdown(offer.countdown_ends_at, nowMs)}
-                          </p>
+                          <ProgressiveOfferCountdown endsAt={offer.countdown_ends_at} />
                         </div>
                       </div>
                     </Link>
@@ -802,6 +818,7 @@ export default function Index() {
             icon={Heart}
             iconColor="text-pink-500"
             restaurants={personalCards}
+            loading={isCatalogLoading}
             bgClass="bg-rose-50/70 dark:bg-rose-950/10"
             accentClassName="bg-pink-500/80"
             headerTheme="rose"
@@ -818,6 +835,7 @@ export default function Index() {
             icon={MapPinned}
             iconColor="text-sky-500"
             restaurants={localCards}
+            loading={isCatalogLoading}
             bgClass="bg-sky-50/75 dark:bg-sky-950/10"
             accentClassName="bg-sky-500/80"
             headerTheme="sky"
@@ -834,6 +852,7 @@ export default function Index() {
             icon={primaryRail.icon}
             iconColor={primaryRail.iconColor}
             restaurants={primaryRail.restaurants}
+            loading={isCatalogLoading}
             bgClass={lunchFocus ? "bg-amber-50/70 dark:bg-amber-950/10" : "bg-indigo-50/70 dark:bg-indigo-950/10"}
             accentClassName={lunchFocus ? "bg-amber-500/80" : "bg-indigo-500/80"}
             headerTheme={lunchFocus ? "amber" : "indigo"}
@@ -866,7 +885,7 @@ export default function Index() {
           </section>
         </motion.div>
 
-        {offersCards.length > 0 ? (
+        {offersCards.length > 0 || isCatalogLoading ? (
           <motion.div variants={sectionBounce}>
             <RestaurantSection
               title="Bons plans du moment"
@@ -874,6 +893,7 @@ export default function Index() {
               icon={BadgePercent}
               iconColor="text-emerald-500"
               restaurants={offersCards}
+            loading={isCatalogLoading}
               bgClass="bg-emerald-50/75 dark:bg-emerald-950/10"
               accentClassName="bg-emerald-500/80"
               headerTheme="emerald"
@@ -884,7 +904,7 @@ export default function Index() {
           </motion.div>
         ) : null}
 
-        {showSecondaryRail ? (
+        {showSecondaryRail || isCatalogLoading ? (
           <motion.div variants={sectionBounce}>
             <RestaurantSection
               title={secondaryRail.title}
@@ -892,6 +912,7 @@ export default function Index() {
               icon={secondaryRail.icon}
               iconColor={secondaryRail.iconColor}
               restaurants={secondaryRail.restaurants}
+            loading={isCatalogLoading}
               bgClass={lunchFocus ? "bg-indigo-50/70 dark:bg-indigo-950/10" : "bg-amber-50/70 dark:bg-amber-950/10"}
               accentClassName={lunchFocus ? "bg-indigo-500/80" : "bg-amber-500/80"}
               headerTheme={lunchFocus ? "indigo" : "amber"}
@@ -902,7 +923,7 @@ export default function Index() {
           </motion.div>
         ) : null}
 
-        {showTrendingRail ? (
+        {showTrendingRail || isCatalogLoading ? (
           <motion.div variants={sectionBounce}>
             <RestaurantSection
               title={trendingIsSignalBased ? "Tendances en ce moment" : "À découvrir"}
@@ -910,6 +931,7 @@ export default function Index() {
               icon={trendingIsSignalBased ? TrendingUp : Compass}
               iconColor="text-primary"
               restaurants={trendingCards}
+            loading={isCatalogLoading}
               bgClass="bg-slate-50/90 dark:bg-slate-900/30"
               accentClassName="bg-primary/80"
               headerTheme="orange"
