@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "c84894b2de88aac6fe88ddc7edb057e9e6e765efe4d305268f1931a3ecf1789d",
+ "sourceDigest": "8c01859bde37da449a44abdabcbb77d84d48ee1c6f88026c82edbb91982a72a5",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -20483,7 +20483,7 @@
     ]
    },
    {
-    "value": "/images/home/tok-geneve-mobile.webp",
+    "value": "/images/home/tok-geneve-mobile-focus.webp",
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
@@ -338584,9 +338584,9 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:884d4ef467b4",
+   "id": "path-literal:3379360e5206",
    "type": "path-literal",
-   "title": "/images/home/tok-geneve-mobile.webp",
+   "title": "/images/home/tok-geneve-mobile-focus.webp",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 81,
@@ -338595,7 +338595,7 @@
     "src/components/home/HeroSection.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "03e34f832473"
+   "detailRef": "c9a09e5effa6"
   },
   {
    "id": "path-literal:ea587481fbd4",
