@@ -74,7 +74,16 @@ function CampaignBannerItem({
     <div
       ref={bannerRef}
       onClick={handleClick}
-      className="group cursor-pointer"
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleClick();
+        }
+      }}
+      role={restaurant?.id ? "link" : undefined}
+      tabIndex={restaurant?.id ? 0 : -1}
+      aria-label={`Découvrir le restaurant ${restaurant?.name || "mis en avant"}`}
+      className="group cursor-pointer rounded-[28px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
     >
       <SponsoredRestaurantTemplateCard
         variant="banner"

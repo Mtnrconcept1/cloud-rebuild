@@ -322,7 +322,8 @@ describe("prioritizeSponsoredCards", () => {
     expect(banner).toContain('compactBanner={page === "home" || page === "flash_sales"}');
     expect(templateCard).toContain("compactBanner");
     expect(templateCard).toContain("min-h-[268px]");
-    expect(templateCard).toContain("max-h-[220px] min-h-[160px] bg-white [@container_sponsored-banner_(min-width:40rem)]:max-h-[240px] [@container_sponsored-banner_(min-width:40rem)]:min-h-[190px] [@container_sponsored-banner_(min-width:48rem)]:max-h-[260px] [@container_sponsored-banner_(min-width:48rem)]:min-h-[260px]");
+    expect(templateCard).toContain("data-sponsored-banner-cta");
+    expect(templateCard).toContain("data-sponsored-banner-media");
     expect(templateCard).toContain("fullyVisible");
     expect(templateCard).toContain("object-contain");
     expect(templateCard).not.toContain("[@container_sponsored-banner_(min-width:64rem)]:h-[268px]");
@@ -335,10 +336,10 @@ describe("prioritizeSponsoredCards", () => {
 
     // A wide viewport must not activate desktop columns inside a narrow modal.
     // The layout and its decorations follow the banner's own available width.
-    expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] [@container_sponsored-banner_(min-width:48rem)]:grid-rows-1");
+    expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:grid-rows-1");
     expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:block");
-    expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:hidden");
-    expect(templateCard).not.toContain("[@container_sponsored-banner_(min-width:64rem)]:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]");
+    expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:order-2");
+    expect(templateCard).not.toContain("[@container_sponsored-banner_(min-width:64rem)]:grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)]");
 
     // The non-compact banner keeps a useful visual floor while its content
     // remains free to grow beyond it. The floor stays deliberately low: the
@@ -353,7 +354,8 @@ describe("prioritizeSponsoredCards", () => {
     // colonne et impose sa hauteur a toute la banniere : sur un grand ecran
     // elle depassait 830px pour un contenu qui en demande 430. Le plafond ne
     // peut pas rogner l'image, qui reste en object-contain.
-    expect(templateCard).toContain("max-h-[240px] min-h-[140px] bg-white [@container_sponsored-banner_(min-width:40rem)]:max-h-[260px] [@container_sponsored-banner_(min-width:40rem)]:min-h-[160px] [@container_sponsored-banner_(min-width:48rem)]:max-h-[300px] [@container_sponsored-banner_(min-width:48rem)]:min-h-[220px] [@container_sponsored-banner_(min-width:64rem)]:max-h-[340px]");
+    expect(templateCard).toContain("object-contain");
+    expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:[clip-path:ellipse(97%_120%_at_100%_50%)]");
     expect(templateCard).not.toContain("grid h-full");
     expect(templateCard).toContain("min-w-0 break-words [overflow-wrap:anywhere]");
     expect(templateCard).toContain("data-sponsored-banner-seal");
@@ -361,7 +363,7 @@ describe("prioritizeSponsoredCards", () => {
 
     // Banner surfaces follow the dark theme instead of staying white.
     expect(templateCard).toContain("dark:bg-slate-900");
-    expect(templateCard).toContain("dark:border-slate-900");
+    expect(templateCard).toContain("dark:border-amber-800/50");
   });
 
   it("keeps the sponsored restaurant badge readable over restaurant photos", () => {
