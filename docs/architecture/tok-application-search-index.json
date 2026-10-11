@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "c3ded15906c8101be0ab1b6f699ff7dccc87fc4749a3d79953fcd85f90a10408",
+ "sourceDigest": "b473aea6a23b17e3bce22eb37f7dbc6908ebf20e2463d1f10c387cab59898a06",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -80720,7 +80720,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 95
+    "lineCount": 104
    },
    {
     "path": "src/components/ChefTableSlotDialog.tsx",
@@ -81551,13 +81551,13 @@
      },
      {
       "name": "default",
-      "line": 518,
+      "line": 478,
       "kind": "default"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 519
+    "lineCount": 479
    },
    {
     "path": "src/components/campaigns/SponsoredVisual.tsx",
@@ -100163,7 +100163,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 334
+    "lineCount": 351
    },
    {
     "path": "src/test/campaign-credit-revenue-exclusion.test.ts",
@@ -103969,7 +103969,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 399
+    "lineCount": 401
    },
    {
     "path": "src/test/stoppin-thetok-routes.test.ts",
@@ -125219,14 +125219,14 @@
    "id": "code-module:30da10af247e",
    "type": "code-module",
    "title": "src/components/CampaignBanner.tsx",
-   "description": "Module de 95 lignes; exports: default.",
+   "description": "Module de 104 lignes; exports: default.",
    "path": "src/components/CampaignBanner.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "1d9dd7d959e1"
+   "detailRef": "090341cf65ac"
   },
   {
    "id": "code-module:b8ec55efef63",
@@ -125967,7 +125967,7 @@
    "id": "code-module:e89bdacbafe9",
    "type": "code-module",
    "title": "src/components/campaigns/SponsoredRestaurantTemplateCard.tsx",
-   "description": "Module de 519 lignes; exports: SponsoredRestaurantTemplateCard, default.",
+   "description": "Module de 479 lignes; exports: SponsoredRestaurantTemplateCard, default.",
    "path": "src/components/campaigns/SponsoredRestaurantTemplateCard.tsx",
    "line": 1,
    "surface": null,
@@ -125975,7 +125975,7 @@
     "SponsoredRestaurantTemplateCard",
     "default"
    ],
-   "detailRef": "ebc94b31dba1"
+   "detailRef": "86a144928c74"
   },
   {
    "id": "code-module:8995f7368e8b",
@@ -136565,14 +136565,14 @@
    "id": "code-module:e084f553d123",
    "type": "code-module",
    "title": "src/test/campaign-creative.test.ts",
-   "description": "Module de 334 lignes; exports: aucun export statique.",
+   "description": "Module de 351 lignes; exports: aucun export statique.",
    "path": "src/test/campaign-creative.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "d11e4d1d86fe"
+   "detailRef": "ac55104e660f"
   },
   {
    "id": "code-module:a3c184913288",
@@ -142111,12 +142111,12 @@
    "id": "code-module:4ae5cc1b1cee",
    "type": "code-module",
    "title": "src/test/sponsored-placement.test.ts",
-   "description": "Module de 399 lignes; exports: aucun export statique.",
+   "description": "Module de 401 lignes; exports: aucun export statique.",
    "path": "src/test/sponsored-placement.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "7331398cb1bc"
+   "detailRef": "c6bcf7198190"
   },
   {
    "id": "code-module:cb7bd2ba346b",
@@ -257695,17 +257695,17 @@
    "detailRef": "3db7dbaf3952"
   },
   {
-   "id": "exported-symbol:c1e68708d18c",
+   "id": "exported-symbol:1e437f14af49",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export default de src/components/campaigns/SponsoredRestaurantTemplateCard.tsx.",
    "path": "src/components/campaigns/SponsoredRestaurantTemplateCard.tsx",
-   "line": 518,
+   "line": 478,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "c8925bc4ab86"
+   "detailRef": "18dd54497fa5"
   },
   {
    "id": "exported-symbol:cf6139b80bb1",
