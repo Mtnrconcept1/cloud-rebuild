@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 
 import {
-  DEFAULT_TOK_LOGO_SRC,
   getTokLogoForDate,
   getTokLogoSrcForPath,
 } from "@/lib/tokLogo";
@@ -23,7 +22,7 @@ export function useTokLogoDocumentIcons() {
       'link[rel="icon"], link[rel="apple-touch-icon"]',
     );
     iconLinks.forEach((link) => {
-      link.href = DEFAULT_TOK_LOGO_SRC;
+      link.href = link.rel === "apple-touch-icon" ? "/favicon-180x180.png" : "/favicon-48x48.png";
       if (link.rel === "icon") link.type = "image/png";
     });
 

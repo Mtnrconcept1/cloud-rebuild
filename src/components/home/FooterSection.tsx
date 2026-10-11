@@ -40,7 +40,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
         <div className="container py-12 md:py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
             <div className="col-span-2 md:col-span-1 space-y-4">
-              <img src={logoSrc} alt="Tok" className="h-10 w-auto object-contain" />
+              <img src={logoSrc} alt="Tok" width={62} height={40} loading="lazy" decoding="async" className="h-10 w-auto object-contain" />
               <p className="text-sm text-muted-foreground leading-relaxed">Le réflexe food simple, rentable et solidaire. Commandez, réservez, et savourez.</p>
             </div>
             <div className="space-y-3">

@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useAuth } from "@/lib/auth-context";
 import "./HeroSection.css";
 
-const HERO_IMAGE_FETCH_PRIORITY_PROPS = { fetchpriority: "high" } as const;
 const EMPTY_FEATURES: ReadonlySet<string> = new Set();
 
 const newsletterConditions = [
@@ -78,8 +77,8 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         </div>
         <div className="tok-home-hero__art" aria-hidden="true">
           <picture className="tok-home-hero__background">
-            <source media="(max-width: 767px)" type="image/webp" srcSet="/images/home/tok-geneve-mobile-sans-parasol.webp" />
-            <img src="/images/home/tok-leman-signature.webp" alt="" width={1672} height={941} {...HERO_IMAGE_FETCH_PRIORITY_PROPS} loading="eager" decoding="async" />
+            <source media="(max-width: 767px)" type="image/webp" srcSet="/images/home/tok-geneve-mobile-fast.webp" width={900} height={1599} />
+            <img src="/images/home/tok-leman-signature-fast.webp" alt="" width={1200} height={675} {...({ fetchpriority: "high" } as const)} loading="eager" decoding="async" />
           </picture>
         </div>
       </section>

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   DEFAULT_TOK_LOGO_SRC,
+  OPTIMIZED_TOK_LOGO_SRC,
   GOLDEN_TOK_LOGO_SRC,
   getTokLogoForDate,
   getTokLogoSrcForPath,
@@ -28,9 +29,9 @@ describe("TOK canonical logo", () => {
     expect(GOLDEN_TOK_LOGO_SRC).toBe("/Image%20Codex%203%20sept.%202026,%2002_31_12.png");
     expect(getTokLogoSrcForPath("/chefs-table")).toBe(GOLDEN_TOK_LOGO_SRC);
     expect(getTokLogoSrcForPath("/chefs-table/selection")).toBe(GOLDEN_TOK_LOGO_SRC);
-    expect(getTokLogoSrcForPath("/")).toBe(DEFAULT_TOK_LOGO_SRC);
-    expect(getTokLogoSrcForPath("/recherche")).toBe(DEFAULT_TOK_LOGO_SRC);
-    expect(getTokLogoSrcForPath("/zero-attente")).toBe(DEFAULT_TOK_LOGO_SRC);
+    expect(getTokLogoSrcForPath("/")).toBe(OPTIMIZED_TOK_LOGO_SRC);
+    expect(getTokLogoSrcForPath("/recherche")).toBe(OPTIMIZED_TOK_LOGO_SRC);
+    expect(getTokLogoSrcForPath("/zero-attente")).toBe(OPTIMIZED_TOK_LOGO_SRC);
   });
 
   it("keeps the Europe/Zurich date key for consumers that display it", () => {

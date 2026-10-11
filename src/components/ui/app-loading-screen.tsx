@@ -45,7 +45,7 @@ export default function AppLoadingScreen({
           <span aria-hidden="true" className="absolute inset-3 animate-[spin_7s_linear_infinite_reverse] rounded-full border border-amber-300/35 motion-reduce:animate-none" />
           <span aria-hidden="true" className="absolute inset-7 animate-pulse rounded-full bg-orange-500/20 blur-lg motion-reduce:animate-none" />
           <div className="relative grid h-20 w-20 place-items-center overflow-hidden rounded-[1.7rem] border border-orange-200 bg-white shadow-[0_18px_48px_rgba(249,115,22,.28)]">
-            <img src={logoSrc} alt="" className="h-16 w-16 object-contain" draggable={false} />
+            <img src={logoSrc} alt="" width={64} height={64} decoding="async" className="h-16 w-16 object-contain" draggable={false} />
           </div>
           <Sparkles aria-hidden="true" className="absolute right-0 top-4 h-5 w-5 animate-pulse text-amber-500 motion-reduce:animate-none" />
         </div>

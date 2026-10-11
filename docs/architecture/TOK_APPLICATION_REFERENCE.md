@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `ab2ccc33add199357391d1c8cb1519cfc53dfa73989d4086d1c04b5f52627e79`
+- Empreinte SHA-256 des sources indexées : `a8612e35fad847b1d3a85d4daa526b8fdaaea2fecf9b9ec84707c7f83db0000f`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 200 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3390 |
+| exportedSymbols | 3391 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 527 |
-| modules | 1492 |
+| modules | 1493 |
 | pages | 128 |
-| pathLiterals | 623 |
-| publicAssets | 308 |
-| publicEntries | 333 |
+| pathLiterals | 629 |
+| publicAssets | 353 |
+| publicEntries | 378 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15746 |
-| repositoryFiles | 2803 |
+| records | 15845 |
+| repositoryFiles | 2849 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -764,14 +764,18 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gyoza porc.webp | media | [public/images/gyoza porc.webp](../../public/images/gyoza%20porc.webp) |
 | /images/home/tok-geneve-desktop-reference.jpg | media | [public/images/home/tok-geneve-desktop-reference.jpg](../../public/images/home/tok-geneve-desktop-reference.jpg) |
 | /images/home/tok-geneve-desktop.webp | media | [public/images/home/tok-geneve-desktop.webp](../../public/images/home/tok-geneve-desktop.webp) |
+| /images/home/tok-geneve-mobile-fast.webp | media | [public/images/home/tok-geneve-mobile-fast.webp](../../public/images/home/tok-geneve-mobile-fast.webp) |
 | /images/home/tok-geneve-mobile-sans-parasol.webp | media | [public/images/home/tok-geneve-mobile-sans-parasol.webp](../../public/images/home/tok-geneve-mobile-sans-parasol.webp) |
 | /images/home/tok-geneve-mobile.webp | media | [public/images/home/tok-geneve-mobile.webp](../../public/images/home/tok-geneve-mobile.webp) |
+| /images/home/tok-leman-signature-fast.webp | media | [public/images/home/tok-leman-signature-fast.webp](../../public/images/home/tok-leman-signature-fast.webp) |
 | /images/home/tok-leman-signature.webp | media | [public/images/home/tok-leman-signature.webp](../../public/images/home/tok-leman-signature.webp) |
+| /images/home/tok-logo-ui.webp | media | [public/images/home/tok-logo-ui.webp](../../public/images/home/tok-logo-ui.webp) |
 | /images/houmous.webp | media | [public/images/houmous.webp](../../public/images/houmous.webp) |
 | /images/indian-curry-bowls.jpeg | media | [public/images/indian-curry-bowls.jpeg](../../public/images/indian-curry-bowls.jpeg) |
 | /images/indian-feast.jpeg | media | [public/images/indian-feast.jpeg](../../public/images/indian-feast.jpeg) |
 | /images/kebab-box-spread.jpeg | media | [public/images/kebab-box-spread.jpeg](../../public/images/kebab-box-spread.jpeg) |
 | /images/kombucha.jpeg | media | [public/images/kombucha.jpeg](../../public/images/kombucha.jpeg) |
+| /images/lebanese-mezze-fast.webp | media | [public/images/lebanese-mezze-fast.webp](../../public/images/lebanese-mezze-fast.webp) |
 | /images/lebanese-mezze.jpeg | media | [public/images/lebanese-mezze.jpeg](../../public/images/lebanese-mezze.jpeg) |
 | /images/limonade menthe.jpeg | media | [public/images/limonade menthe.jpeg](../../public/images/limonade%20menthe.jpeg) |
 | /images/lobster-roll-fries.jpeg | media | [public/images/lobster-roll-fries.jpeg](../../public/images/lobster-roll-fries.jpeg) |
@@ -781,53 +785,94 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/milkshake-oreo.jpg | media | [public/images/milkshake-oreo.jpg](../../public/images/milkshake-oreo.jpg) |
 | /images/milkshake-vanille.jpeg | media | [public/images/milkshake-vanille.jpeg](../../public/images/milkshake-vanille.jpeg) |
 | /images/miniatures/01_africain.png | media | [public/images/miniatures/01_africain.png](../../public/images/miniatures/01_africain.png) |
+| /images/miniatures/01_africain.webp | media | [public/images/miniatures/01_africain.webp](../../public/images/miniatures/01_africain.webp) |
 | /images/miniatures/02_americain.png | media | [public/images/miniatures/02_americain.png](../../public/images/miniatures/02_americain.png) |
+| /images/miniatures/02_americain.webp | media | [public/images/miniatures/02_americain.webp](../../public/images/miniatures/02_americain.webp) |
 | /images/miniatures/03_bistro.png | media | [public/images/miniatures/03_bistro.png](../../public/images/miniatures/03_bistro.png) |
+| /images/miniatures/03_bistro.webp | media | [public/images/miniatures/03_bistro.webp](../../public/images/miniatures/03_bistro.webp) |
 | /images/miniatures/04_boulangerie.png | media | [public/images/miniatures/04_boulangerie.png](../../public/images/miniatures/04_boulangerie.png) |
+| /images/miniatures/04_boulangerie.webp | media | [public/images/miniatures/04_boulangerie.webp](../../public/images/miniatures/04_boulangerie.webp) |
 | /images/miniatures/05_brunch.png | media | [public/images/miniatures/05_brunch.png](../../public/images/miniatures/05_brunch.png) |
+| /images/miniatures/05_brunch.webp | media | [public/images/miniatures/05_brunch.webp](../../public/images/miniatures/05_brunch.webp) |
 | /images/miniatures/06_burger.png | media | [public/images/miniatures/06_burger.png](../../public/images/miniatures/06_burger.png) |
+| /images/miniatures/06_burger.webp | media | [public/images/miniatures/06_burger.webp](../../public/images/miniatures/06_burger.webp) |
 | /images/miniatures/07_cafe.png | media | [public/images/miniatures/07_cafe.png](../../public/images/miniatures/07_cafe.png) |
+| /images/miniatures/07_cafe.webp | media | [public/images/miniatures/07_cafe.webp](../../public/images/miniatures/07_cafe.webp) |
 | /images/miniatures/08_chinois.png | media | [public/images/miniatures/08_chinois.png](../../public/images/miniatures/08_chinois.png) |
+| /images/miniatures/08_chinois.webp | media | [public/images/miniatures/08_chinois.webp](../../public/images/miniatures/08_chinois.webp) |
 | /images/miniatures/09_creole.png | media | [public/images/miniatures/09_creole.png](../../public/images/miniatures/09_creole.png) |
+| /images/miniatures/09_creole.webp | media | [public/images/miniatures/09_creole.webp](../../public/images/miniatures/09_creole.webp) |
 | /images/miniatures/1.png | media | [public/images/miniatures/1.png](../../public/images/miniatures/1.png) |
 | /images/miniatures/10_desserts.png | media | [public/images/miniatures/10_desserts.png](../../public/images/miniatures/10_desserts.png) |
+| /images/miniatures/10_desserts.webp | media | [public/images/miniatures/10_desserts.webp](../../public/images/miniatures/10_desserts.webp) |
 | /images/miniatures/11_francais.png | media | [public/images/miniatures/11_francais.png](../../public/images/miniatures/11_francais.png) |
+| /images/miniatures/11_francais.webp | media | [public/images/miniatures/11_francais.webp](../../public/images/miniatures/11_francais.webp) |
 | /images/miniatures/12_gastronomique.png | media | [public/images/miniatures/12_gastronomique.png](../../public/images/miniatures/12_gastronomique.png) |
+| /images/miniatures/12_gastronomique.webp | media | [public/images/miniatures/12_gastronomique.webp](../../public/images/miniatures/12_gastronomique.webp) |
 | /images/miniatures/13_grillades.png | media | [public/images/miniatures/13_grillades.png](../../public/images/miniatures/13_grillades.png) |
+| /images/miniatures/13_grillades.webp | media | [public/images/miniatures/13_grillades.webp](../../public/images/miniatures/13_grillades.webp) |
 | /images/miniatures/14_halal.png | media | [public/images/miniatures/14_halal.png](../../public/images/miniatures/14_halal.png) |
+| /images/miniatures/14_halal.webp | media | [public/images/miniatures/14_halal.webp](../../public/images/miniatures/14_halal.webp) |
 | /images/miniatures/15_healthy.png | media | [public/images/miniatures/15_healthy.png](../../public/images/miniatures/15_healthy.png) |
+| /images/miniatures/15_healthy.webp | media | [public/images/miniatures/15_healthy.webp](../../public/images/miniatures/15_healthy.webp) |
 | /images/miniatures/16_indien.png | media | [public/images/miniatures/16_indien.png](../../public/images/miniatures/16_indien.png) |
+| /images/miniatures/16_indien.webp | media | [public/images/miniatures/16_indien.webp](../../public/images/miniatures/16_indien.webp) |
 | /images/miniatures/17_italien.png | media | [public/images/miniatures/17_italien.png](../../public/images/miniatures/17_italien.png) |
+| /images/miniatures/17_italien.webp | media | [public/images/miniatures/17_italien.webp](../../public/images/miniatures/17_italien.webp) |
 | /images/miniatures/18_japonais.png | media | [public/images/miniatures/18_japonais.png](../../public/images/miniatures/18_japonais.png) |
+| /images/miniatures/18_japonais.webp | media | [public/images/miniatures/18_japonais.webp](../../public/images/miniatures/18_japonais.webp) |
 | /images/miniatures/19_kebab.png | media | [public/images/miniatures/19_kebab.png](../../public/images/miniatures/19_kebab.png) |
+| /images/miniatures/19_kebab.webp | media | [public/images/miniatures/19_kebab.webp](../../public/images/miniatures/19_kebab.webp) |
 | /images/miniatures/2.png | media | [public/images/miniatures/2.png](../../public/images/miniatures/2.png) |
 | /images/miniatures/20_libanais.png | media | [public/images/miniatures/20_libanais.png](../../public/images/miniatures/20_libanais.png) |
+| /images/miniatures/20_libanais.webp | media | [public/images/miniatures/20_libanais.webp](../../public/images/miniatures/20_libanais.webp) |
 | /images/miniatures/21_marocain.png | media | [public/images/miniatures/21_marocain.png](../../public/images/miniatures/21_marocain.png) |
+| /images/miniatures/21_marocain.webp | media | [public/images/miniatures/21_marocain.webp](../../public/images/miniatures/21_marocain.webp) |
 | /images/miniatures/22_mediterranee.png | media | [public/images/miniatures/22_mediterranee.png](../../public/images/miniatures/22_mediterranee.png) |
+| /images/miniatures/22_mediterranee.webp | media | [public/images/miniatures/22_mediterranee.webp](../../public/images/miniatures/22_mediterranee.webp) |
 | /images/miniatures/23_mexicain.png | media | [public/images/miniatures/23_mexicain.png](../../public/images/miniatures/23_mexicain.png) |
+| /images/miniatures/23_mexicain.webp | media | [public/images/miniatures/23_mexicain.webp](../../public/images/miniatures/23_mexicain.webp) |
 | /images/miniatures/24_pakistanais.png | media | [public/images/miniatures/24_pakistanais.png](../../public/images/miniatures/24_pakistanais.png) |
+| /images/miniatures/24_pakistanais.webp | media | [public/images/miniatures/24_pakistanais.webp](../../public/images/miniatures/24_pakistanais.webp) |
 | /images/miniatures/25_pizza.png | media | [public/images/miniatures/25_pizza.png](../../public/images/miniatures/25_pizza.png) |
+| /images/miniatures/25_pizza.webp | media | [public/images/miniatures/25_pizza.webp](../../public/images/miniatures/25_pizza.webp) |
 | /images/miniatures/26_sushi.png | media | [public/images/miniatures/26_sushi.png](../../public/images/miniatures/26_sushi.png) |
+| /images/miniatures/26_sushi.webp | media | [public/images/miniatures/26_sushi.webp](../../public/images/miniatures/26_sushi.webp) |
 | /images/miniatures/27_ramen.png | media | [public/images/miniatures/27_ramen.png](../../public/images/miniatures/27_ramen.png) |
+| /images/miniatures/27_ramen.webp | media | [public/images/miniatures/27_ramen.webp](../../public/images/miniatures/27_ramen.webp) |
 | /images/miniatures/28_thai.png | media | [public/images/miniatures/28_thai.png](../../public/images/miniatures/28_thai.png) |
+| /images/miniatures/28_thai.webp | media | [public/images/miniatures/28_thai.webp](../../public/images/miniatures/28_thai.webp) |
 | /images/miniatures/29_turc.png | media | [public/images/miniatures/29_turc.png](../../public/images/miniatures/29_turc.png) |
+| /images/miniatures/29_turc.webp | media | [public/images/miniatures/29_turc.webp](../../public/images/miniatures/29_turc.webp) |
 | /images/miniatures/3.png | media | [public/images/miniatures/3.png](../../public/images/miniatures/3.png) |
 | /images/miniatures/30_salades.png | media | [public/images/miniatures/30_salades.png](../../public/images/miniatures/30_salades.png) |
+| /images/miniatures/30_salades.webp | media | [public/images/miniatures/30_salades.webp](../../public/images/miniatures/30_salades.webp) |
 | /images/miniatures/31_poke.png | media | [public/images/miniatures/31_poke.png](../../public/images/miniatures/31_poke.png) |
+| /images/miniatures/31_poke.webp | media | [public/images/miniatures/31_poke.webp](../../public/images/miniatures/31_poke.webp) |
 | /images/miniatures/32_petit-dejeuner.png | media | [public/images/miniatures/32_petit-dejeuner.png](../../public/images/miniatures/32_petit-dejeuner.png) |
+| /images/miniatures/32_petit-dejeuner.webp | media | [public/images/miniatures/32_petit-dejeuner.webp](../../public/images/miniatures/32_petit-dejeuner.webp) |
 | /images/miniatures/33_pates.png | media | [public/images/miniatures/33_pates.png](../../public/images/miniatures/33_pates.png) |
+| /images/miniatures/33_pates.webp | media | [public/images/miniatures/33_pates.webp](../../public/images/miniatures/33_pates.webp) |
 | /images/miniatures/34_fondue-suisse.png | media | [public/images/miniatures/34_fondue-suisse.png](../../public/images/miniatures/34_fondue-suisse.png) |
+| /images/miniatures/34_fondue-suisse.webp | media | [public/images/miniatures/34_fondue-suisse.webp](../../public/images/miniatures/34_fondue-suisse.webp) |
 | /images/miniatures/35_patisserie.png | media | [public/images/miniatures/35_patisserie.png](../../public/images/miniatures/35_patisserie.png) |
+| /images/miniatures/35_patisserie.webp | media | [public/images/miniatures/35_patisserie.webp](../../public/images/miniatures/35_patisserie.webp) |
 | /images/miniatures/36_sandwich.png | media | [public/images/miniatures/36_sandwich.png](../../public/images/miniatures/36_sandwich.png) |
+| /images/miniatures/36_sandwich.webp | media | [public/images/miniatures/36_sandwich.webp](../../public/images/miniatures/36_sandwich.webp) |
 | /images/miniatures/37_street-food.png | media | [public/images/miniatures/37_street-food.png](../../public/images/miniatures/37_street-food.png) |
+| /images/miniatures/37_street-food.webp | media | [public/images/miniatures/37_street-food.webp](../../public/images/miniatures/37_street-food.webp) |
 | /images/miniatures/38_vegetarien.png | media | [public/images/miniatures/38_vegetarien.png](../../public/images/miniatures/38_vegetarien.png) |
+| /images/miniatures/38_vegetarien.webp | media | [public/images/miniatures/38_vegetarien.webp](../../public/images/miniatures/38_vegetarien.webp) |
 | /images/miniatures/39_vegan.png | media | [public/images/miniatures/39_vegan.png](../../public/images/miniatures/39_vegan.png) |
+| /images/miniatures/39_vegan.webp | media | [public/images/miniatures/39_vegan.webp](../../public/images/miniatures/39_vegan.webp) |
 | /images/miniatures/bulle.png | media | [public/images/miniatures/bulle.png](../../public/images/miniatures/bulle.png) |
 | /images/miniatures/manifest.json | data | [public/images/miniatures/manifest.json](../../public/images/miniatures/manifest.json) |
+| /images/mixed-grill-platter-fast.webp | media | [public/images/mixed-grill-platter-fast.webp](../../public/images/mixed-grill-platter-fast.webp) |
 | /images/mixed-grill-platter.jpeg | media | [public/images/mixed-grill-platter.jpeg](../../public/images/mixed-grill-platter.jpeg) |
 | /images/mochi-glaces.jpg | media | [public/images/mochi-glaces.jpg](../../public/images/mochi-glaces.jpg) |
 | /images/naan.jpeg | media | [public/images/naan.jpeg](../../public/images/naan.jpeg) |
 | /images/nachos.webp | media | [public/images/nachos.webp](../../public/images/nachos.webp) |
+| /images/octopus-fine-dining-fast.webp | media | [public/images/octopus-fine-dining-fast.webp](../../public/images/octopus-fine-dining-fast.webp) |
 | /images/octopus-fine-dining.jpeg | media | [public/images/octopus-fine-dining.jpeg](../../public/images/octopus-fine-dining.jpeg) |
 | /images/onion rings.jpg | media | [public/images/onion rings.jpg](../../public/images/onion%20rings.jpg) |
 | /images/palak paneer.jpg | media | [public/images/palak paneer.jpg](../../public/images/palak%20paneer.jpg) |
@@ -1073,8 +1118,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /chef2.png | 1 | [supabase/functions/_shared/transactional-emails.ts:243](../../supabase/functions/_shared/transactional-emails.ts#L243) |
 | /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:671](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L671) |
 | /chefs-table | 23 | [scripts/prerender-seo.mjs:993](../../scripts/prerender-seo.mjs#L993) |
-| /chefs-table/ | 1 | [src/lib/tokLogo.ts:22](../../src/lib/tokLogo.ts#L22) |
-| /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:30](../../src/test/tok-logo-calendar.test.ts#L30) |
+| /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
+| /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:31](../../src/test/tok-logo-calendar.test.ts#L31) |
 | /coming-soon | 17 | [src/App.tsx:531](../../src/App.tsx#L531) |
 | /coming-soon?welcome=1 | 3 | [src/pages/Auth.tsx:1496](../../src/pages/Auth.tsx#L1496) |
 | /coming-soon?welcome=1&email=1 | 4 | [src/pages/Auth.tsx:2047](../../src/pages/Auth.tsx#L2047) |
@@ -1177,7 +1222,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /espaces | 24 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
 | /factors | 1 | [server/marketingBff.ts:787](../../server/marketingBff.ts#L787) |
 | /fallback.jpg | 4 | [src/test/security-url-helpers.test.ts:17](../../src/test/security-url-helpers.test.ts#L17) |
+| /favicon-180x180.png | 2 | [src/hooks/useTokLogo.ts:25](../../src/hooks/useTokLogo.ts#L25) |
 | /favicon-192x192.png | 2 | [src/test/favicon-branding.test.ts:53](../../src/test/favicon-branding.test.ts#L53) |
+| /favicon-48x48.png | 2 | [src/hooks/useTokLogo.ts:25](../../src/hooks/useTokLogo.ts#L25) |
 | /favicon-512x512.png | 1 | [src/test/favicon-branding.test.ts:59](../../src/test/favicon-branding.test.ts#L59) |
 | /firebase-messaging-sw.js | 1 | [src/lib/push.ts:80](../../src/lib/push.ts#L80) |
 | /flex-prix-bas | 11 | [scripts/prerender-seo.mjs:1057](../../scripts/prerender-seo.mjs#L1057) |
@@ -1257,60 +1304,64 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-geneve-mobile-sans-parasol.webp | 2 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
-| /images/home/tok-leman-signature.webp | 2 | [src/components/home/HeroSection.tsx:82](../../src/components/home/HeroSection.tsx#L82) |
+| /images/home/tok-geneve-mobile-fast.webp | 3 | [src/components/home/HeroSection.tsx:80](../../src/components/home/HeroSection.tsx#L80) |
+| /images/home/tok-leman-signature-fast.webp | 3 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
+| /images/home/tok-logo-ui.webp | 1 | [src/lib/tokLogo.ts:2](../../src/lib/tokLogo.ts#L2) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
 | /images/kebab-box-spread.jpeg | 22 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
 | /images/kombucha.jpeg | 1 | [src/lib/menu-item-images.ts:91](../../src/lib/menu-item-images.ts#L91) |
-| /images/lebanese-mezze.jpeg | 5 | [src/components/AntiWasteCard.tsx:33](../../src/components/AntiWasteCard.tsx#L33) |
+| /images/lebanese-mezze-fast.webp | 1 | [src/components/PromoCarousel.tsx:15](../../src/components/PromoCarousel.tsx#L15) |
+| /images/lebanese-mezze.jpeg | 4 | [src/components/AntiWasteCard.tsx:33](../../src/components/AntiWasteCard.tsx#L33) |
 | /images/lobster-roll-fries.jpeg | 1 | [src/lib/menu-item-images.ts:128](../../src/lib/menu-item-images.ts#L128) |
 | /images/meringue-double.webp | 3 | [src/lib/securityUrls.ts:27](../../src/lib/securityUrls.ts#L27) |
 | /images/milkshake-oreo.jpg | 3 | [src/lib/securityUrls.ts:28](../../src/lib/securityUrls.ts#L28) |
 | /images/milkshake-vanille.jpeg | 9 | [src/lib/menu-item-images.ts:30](../../src/lib/menu-item-images.ts#L30) |
-| /images/miniatures/01_africain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:32](../../src/components/home/CuisineCategoryStrip.tsx#L32) |
-| /images/miniatures/02_americain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:34](../../src/components/home/CuisineCategoryStrip.tsx#L34) |
-| /images/miniatures/03_bistro.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:18](../../src/components/home/CuisineCategoryStrip.tsx#L18) |
-| /images/miniatures/04_boulangerie.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:47](../../src/components/home/CuisineCategoryStrip.tsx#L47) |
-| /images/miniatures/05_brunch.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:45](../../src/components/home/CuisineCategoryStrip.tsx#L45) |
-| /images/miniatures/06_burger.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:19](../../src/components/home/CuisineCategoryStrip.tsx#L19) |
-| /images/miniatures/07_cafe.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:50](../../src/components/home/CuisineCategoryStrip.tsx#L50) |
-| /images/miniatures/08_chinois.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:23](../../src/components/home/CuisineCategoryStrip.tsx#L23) |
-| /images/miniatures/09_creole.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:33](../../src/components/home/CuisineCategoryStrip.tsx#L33) |
-| /images/miniatures/10_desserts.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:49](../../src/components/home/CuisineCategoryStrip.tsx#L49) |
-| /images/miniatures/11_francais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:21](../../src/components/home/CuisineCategoryStrip.tsx#L21) |
-| /images/miniatures/12_gastronomique.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:14](../../src/components/home/CuisineCategoryStrip.tsx#L14) |
-| /images/miniatures/13_grillades.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:37](../../src/components/home/CuisineCategoryStrip.tsx#L37) |
-| /images/miniatures/14_halal.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:39](../../src/components/home/CuisineCategoryStrip.tsx#L39) |
-| /images/miniatures/15_healthy.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:42](../../src/components/home/CuisineCategoryStrip.tsx#L42) |
-| /images/miniatures/16_indien.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:25](../../src/components/home/CuisineCategoryStrip.tsx#L25) |
-| /images/miniatures/17_italien.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:15](../../src/components/home/CuisineCategoryStrip.tsx#L15) |
-| /images/miniatures/18_japonais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:20](../../src/components/home/CuisineCategoryStrip.tsx#L20) |
-| /images/miniatures/19_kebab.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:28](../../src/components/home/CuisineCategoryStrip.tsx#L28) |
-| /images/miniatures/20_libanais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:26](../../src/components/home/CuisineCategoryStrip.tsx#L26) |
-| /images/miniatures/21_marocain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:30](../../src/components/home/CuisineCategoryStrip.tsx#L30) |
-| /images/miniatures/22_mediterranee.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:31](../../src/components/home/CuisineCategoryStrip.tsx#L31) |
-| /images/miniatures/23_mexicain.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:29](../../src/components/home/CuisineCategoryStrip.tsx#L29) |
-| /images/miniatures/24_pakistanais.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:38](../../src/components/home/CuisineCategoryStrip.tsx#L38) |
-| /images/miniatures/25_pizza.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:16](../../src/components/home/CuisineCategoryStrip.tsx#L16) |
-| /images/miniatures/26_sushi.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:17](../../src/components/home/CuisineCategoryStrip.tsx#L17) |
-| /images/miniatures/27_ramen.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:22](../../src/components/home/CuisineCategoryStrip.tsx#L22) |
-| /images/miniatures/28_thai.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:24](../../src/components/home/CuisineCategoryStrip.tsx#L24) |
-| /images/miniatures/29_turc.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:27](../../src/components/home/CuisineCategoryStrip.tsx#L27) |
-| /images/miniatures/30_salades.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:43](../../src/components/home/CuisineCategoryStrip.tsx#L43) |
-| /images/miniatures/31_poke.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:44](../../src/components/home/CuisineCategoryStrip.tsx#L44) |
-| /images/miniatures/32_petit-dejeuner.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:46](../../src/components/home/CuisineCategoryStrip.tsx#L46) |
-| /images/miniatures/33_pates.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:36](../../src/components/home/CuisineCategoryStrip.tsx#L36) |
-| /images/miniatures/34_fondue-suisse.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:35](../../src/components/home/CuisineCategoryStrip.tsx#L35) |
-| /images/miniatures/35_patisserie.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:48](../../src/components/home/CuisineCategoryStrip.tsx#L48) |
-| /images/miniatures/36_sandwich.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:51](../../src/components/home/CuisineCategoryStrip.tsx#L51) |
-| /images/miniatures/37_street-food.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:52](../../src/components/home/CuisineCategoryStrip.tsx#L52) |
-| /images/miniatures/38_vegetarien.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:40](../../src/components/home/CuisineCategoryStrip.tsx#L40) |
-| /images/miniatures/39_vegan.png | 1 | [src/components/home/CuisineCategoryStrip.tsx:41](../../src/components/home/CuisineCategoryStrip.tsx#L41) |
-| /images/mixed-grill-platter.jpeg | 10 | [src/components/AntiWasteCard.tsx:34](../../src/components/AntiWasteCard.tsx#L34) |
+| /images/miniatures/01_africain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:32](../../src/components/home/CuisineCategoryStrip.tsx#L32) |
+| /images/miniatures/02_americain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:34](../../src/components/home/CuisineCategoryStrip.tsx#L34) |
+| /images/miniatures/03_bistro.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:18](../../src/components/home/CuisineCategoryStrip.tsx#L18) |
+| /images/miniatures/04_boulangerie.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:47](../../src/components/home/CuisineCategoryStrip.tsx#L47) |
+| /images/miniatures/05_brunch.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:45](../../src/components/home/CuisineCategoryStrip.tsx#L45) |
+| /images/miniatures/06_burger.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:19](../../src/components/home/CuisineCategoryStrip.tsx#L19) |
+| /images/miniatures/07_cafe.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:50](../../src/components/home/CuisineCategoryStrip.tsx#L50) |
+| /images/miniatures/08_chinois.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:23](../../src/components/home/CuisineCategoryStrip.tsx#L23) |
+| /images/miniatures/09_creole.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:33](../../src/components/home/CuisineCategoryStrip.tsx#L33) |
+| /images/miniatures/10_desserts.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:49](../../src/components/home/CuisineCategoryStrip.tsx#L49) |
+| /images/miniatures/11_francais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:21](../../src/components/home/CuisineCategoryStrip.tsx#L21) |
+| /images/miniatures/12_gastronomique.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:14](../../src/components/home/CuisineCategoryStrip.tsx#L14) |
+| /images/miniatures/13_grillades.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:37](../../src/components/home/CuisineCategoryStrip.tsx#L37) |
+| /images/miniatures/14_halal.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:39](../../src/components/home/CuisineCategoryStrip.tsx#L39) |
+| /images/miniatures/15_healthy.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:42](../../src/components/home/CuisineCategoryStrip.tsx#L42) |
+| /images/miniatures/16_indien.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:25](../../src/components/home/CuisineCategoryStrip.tsx#L25) |
+| /images/miniatures/17_italien.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:15](../../src/components/home/CuisineCategoryStrip.tsx#L15) |
+| /images/miniatures/18_japonais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:20](../../src/components/home/CuisineCategoryStrip.tsx#L20) |
+| /images/miniatures/19_kebab.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:28](../../src/components/home/CuisineCategoryStrip.tsx#L28) |
+| /images/miniatures/20_libanais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:26](../../src/components/home/CuisineCategoryStrip.tsx#L26) |
+| /images/miniatures/21_marocain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:30](../../src/components/home/CuisineCategoryStrip.tsx#L30) |
+| /images/miniatures/22_mediterranee.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:31](../../src/components/home/CuisineCategoryStrip.tsx#L31) |
+| /images/miniatures/23_mexicain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:29](../../src/components/home/CuisineCategoryStrip.tsx#L29) |
+| /images/miniatures/24_pakistanais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:38](../../src/components/home/CuisineCategoryStrip.tsx#L38) |
+| /images/miniatures/25_pizza.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:16](../../src/components/home/CuisineCategoryStrip.tsx#L16) |
+| /images/miniatures/26_sushi.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:17](../../src/components/home/CuisineCategoryStrip.tsx#L17) |
+| /images/miniatures/27_ramen.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:22](../../src/components/home/CuisineCategoryStrip.tsx#L22) |
+| /images/miniatures/28_thai.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:24](../../src/components/home/CuisineCategoryStrip.tsx#L24) |
+| /images/miniatures/29_turc.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:27](../../src/components/home/CuisineCategoryStrip.tsx#L27) |
+| /images/miniatures/30_salades.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:43](../../src/components/home/CuisineCategoryStrip.tsx#L43) |
+| /images/miniatures/31_poke.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:44](../../src/components/home/CuisineCategoryStrip.tsx#L44) |
+| /images/miniatures/32_petit-dejeuner.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:46](../../src/components/home/CuisineCategoryStrip.tsx#L46) |
+| /images/miniatures/33_pates.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:36](../../src/components/home/CuisineCategoryStrip.tsx#L36) |
+| /images/miniatures/34_fondue-suisse.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:35](../../src/components/home/CuisineCategoryStrip.tsx#L35) |
+| /images/miniatures/35_patisserie.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:48](../../src/components/home/CuisineCategoryStrip.tsx#L48) |
+| /images/miniatures/36_sandwich.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:51](../../src/components/home/CuisineCategoryStrip.tsx#L51) |
+| /images/miniatures/37_street-food.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:52](../../src/components/home/CuisineCategoryStrip.tsx#L52) |
+| /images/miniatures/38_vegetarien.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:40](../../src/components/home/CuisineCategoryStrip.tsx#L40) |
+| /images/miniatures/39_vegan.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:41](../../src/components/home/CuisineCategoryStrip.tsx#L41) |
+| /images/mixed-grill-platter-fast.webp | 1 | [src/components/PromoCarousel.tsx:24](../../src/components/PromoCarousel.tsx#L24) |
+| /images/mixed-grill-platter.jpeg | 9 | [src/components/AntiWasteCard.tsx:34](../../src/components/AntiWasteCard.tsx#L34) |
 | /images/mochi-glaces.jpg | 7 | [src/lib/menu-item-images.ts:52](../../src/lib/menu-item-images.ts#L52) |
 | /images/moshi%20glac%C3%A9s.jpg | 1 | [src/test/security-url-helpers.test.ts:23](../../src/test/security-url-helpers.test.ts#L23) |
-| /images/octopus-fine-dining.jpeg | 8 | [src/components/AntiWasteCard.tsx:36](../../src/components/AntiWasteCard.tsx#L36) |
+| /images/octopus-fine-dining-fast.webp | 1 | [src/components/PromoCarousel.tsx:32](../../src/components/PromoCarousel.tsx#L32) |
+| /images/octopus-fine-dining.jpeg | 7 | [src/components/AntiWasteCard.tsx:36](../../src/components/AntiWasteCard.tsx#L36) |
 | /images/pannacotta.webp | 3 | [src/lib/menu-item-images.ts:20](../../src/lib/menu-item-images.ts#L20) |
 | /images/pasta-assortment.jpeg | 5 | [src/components/AntiWasteCard.tsx:38](../../src/components/AntiWasteCard.tsx#L38) |
 | /images/poke-bowls.jpeg | 8 | [src/components/AntiWasteCard.tsx:37](../../src/components/AntiWasteCard.tsx#L37) |
@@ -1323,7 +1374,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/samosa.jpg | 3 | [src/lib/menu-item-images.ts:94](../../src/lib/menu-item-images.ts#L94) |
 | /images/section-headers/calendar-3d.png | 2 | [src/lib/dashboardIllustrations.ts:57](../../src/lib/dashboardIllustrations.ts#L57) |
 | /images/section-headers/fire-3d.png | 1 | [src/lib/dashboardIllustrations.ts:59](../../src/lib/dashboardIllustrations.ts#L59) |
-| /images/section-headers/gift-3d.png | 2 | [src/components/home/RestaurantSection.tsx:26](../../src/components/home/RestaurantSection.tsx#L26) |
+| /images/section-headers/gift-3d.png | 2 | [src/components/home/RestaurantSection.tsx:28](../../src/components/home/RestaurantSection.tsx#L28) |
 | /images/section-headers/heart-3d.png | 1 | [src/pages/Index.tsx:56](../../src/pages/Index.tsx#L56) |
 | /images/section-headers/pin-3d.png | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
 | /images/section-headers/plate-3d.png | 2 | [src/lib/dashboardIllustrations.ts:56](../../src/lib/dashboardIllustrations.ts#L56) |
@@ -1345,7 +1396,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /logo3df.png | 1 | [src/test/marketing-email-template.test.ts:24](../../src/test/marketing-email-template.test.ts#L24) |
 | /logotok.png | 7 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
 | /logout?scope=local | 1 | [server/marketingBff.ts:736](../../server/marketingBff.ts#L736) |
-| /manifest.json | 1 | [src/hooks/useTokLogo.ts:31](../../src/hooks/useTokLogo.ts#L31) |
+| /manifest.json | 1 | [src/hooks/useTokLogo.ts:30](../../src/hooks/useTokLogo.ts#L30) |
 | /marketing | 18 | [scripts/application-index-core.mjs:163](../../scripts/application-index-core.mjs#L163) |
 | /marketing-assets/ | 1 | [supabase/functions/ai-image-enhance/index.ts:99](../../supabase/functions/ai-image-enhance/index.ts#L99) |
 | /marketing-public | 1 | [src/test/marketing-domain-isolation.test.ts:25](../../src/test/marketing-domain-isolation.test.ts#L25) |
@@ -5783,7 +5834,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | --- | --- | --- |
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
-| Google | 110 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Google | 111 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Openai | 114 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
@@ -5810,7 +5861,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 585 |
+| test | 586 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -7783,7 +7834,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (333)</summary>
+<details><summary>public-asset (378)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -7938,14 +7989,18 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/gyoza porc.webp`
 - `public/images/home/tok-geneve-desktop-reference.jpg`
 - `public/images/home/tok-geneve-desktop.webp`
+- `public/images/home/tok-geneve-mobile-fast.webp`
 - `public/images/home/tok-geneve-mobile-sans-parasol.webp`
 - `public/images/home/tok-geneve-mobile.webp`
+- `public/images/home/tok-leman-signature-fast.webp`
 - `public/images/home/tok-leman-signature.webp`
+- `public/images/home/tok-logo-ui.webp`
 - `public/images/houmous.webp`
 - `public/images/indian-curry-bowls.jpeg`
 - `public/images/indian-feast.jpeg`
 - `public/images/kebab-box-spread.jpeg`
 - `public/images/kombucha.jpeg`
+- `public/images/lebanese-mezze-fast.webp`
 - `public/images/lebanese-mezze.jpeg`
 - `public/images/limonade menthe.jpeg`
 - `public/images/lobster-roll-fries.jpeg`
@@ -7955,53 +8010,94 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/milkshake-oreo.jpg`
 - `public/images/milkshake-vanille.jpeg`
 - `public/images/miniatures/01_africain.png`
+- `public/images/miniatures/01_africain.webp`
 - `public/images/miniatures/02_americain.png`
+- `public/images/miniatures/02_americain.webp`
 - `public/images/miniatures/03_bistro.png`
+- `public/images/miniatures/03_bistro.webp`
 - `public/images/miniatures/04_boulangerie.png`
+- `public/images/miniatures/04_boulangerie.webp`
 - `public/images/miniatures/05_brunch.png`
+- `public/images/miniatures/05_brunch.webp`
 - `public/images/miniatures/06_burger.png`
+- `public/images/miniatures/06_burger.webp`
 - `public/images/miniatures/07_cafe.png`
+- `public/images/miniatures/07_cafe.webp`
 - `public/images/miniatures/08_chinois.png`
+- `public/images/miniatures/08_chinois.webp`
 - `public/images/miniatures/09_creole.png`
+- `public/images/miniatures/09_creole.webp`
 - `public/images/miniatures/1.png`
 - `public/images/miniatures/10_desserts.png`
+- `public/images/miniatures/10_desserts.webp`
 - `public/images/miniatures/11_francais.png`
+- `public/images/miniatures/11_francais.webp`
 - `public/images/miniatures/12_gastronomique.png`
+- `public/images/miniatures/12_gastronomique.webp`
 - `public/images/miniatures/13_grillades.png`
+- `public/images/miniatures/13_grillades.webp`
 - `public/images/miniatures/14_halal.png`
+- `public/images/miniatures/14_halal.webp`
 - `public/images/miniatures/15_healthy.png`
+- `public/images/miniatures/15_healthy.webp`
 - `public/images/miniatures/16_indien.png`
+- `public/images/miniatures/16_indien.webp`
 - `public/images/miniatures/17_italien.png`
+- `public/images/miniatures/17_italien.webp`
 - `public/images/miniatures/18_japonais.png`
+- `public/images/miniatures/18_japonais.webp`
 - `public/images/miniatures/19_kebab.png`
+- `public/images/miniatures/19_kebab.webp`
 - `public/images/miniatures/2.png`
 - `public/images/miniatures/20_libanais.png`
+- `public/images/miniatures/20_libanais.webp`
 - `public/images/miniatures/21_marocain.png`
+- `public/images/miniatures/21_marocain.webp`
 - `public/images/miniatures/22_mediterranee.png`
+- `public/images/miniatures/22_mediterranee.webp`
 - `public/images/miniatures/23_mexicain.png`
+- `public/images/miniatures/23_mexicain.webp`
 - `public/images/miniatures/24_pakistanais.png`
+- `public/images/miniatures/24_pakistanais.webp`
 - `public/images/miniatures/25_pizza.png`
+- `public/images/miniatures/25_pizza.webp`
 - `public/images/miniatures/26_sushi.png`
+- `public/images/miniatures/26_sushi.webp`
 - `public/images/miniatures/27_ramen.png`
+- `public/images/miniatures/27_ramen.webp`
 - `public/images/miniatures/28_thai.png`
+- `public/images/miniatures/28_thai.webp`
 - `public/images/miniatures/29_turc.png`
+- `public/images/miniatures/29_turc.webp`
 - `public/images/miniatures/3.png`
 - `public/images/miniatures/30_salades.png`
+- `public/images/miniatures/30_salades.webp`
 - `public/images/miniatures/31_poke.png`
+- `public/images/miniatures/31_poke.webp`
 - `public/images/miniatures/32_petit-dejeuner.png`
+- `public/images/miniatures/32_petit-dejeuner.webp`
 - `public/images/miniatures/33_pates.png`
+- `public/images/miniatures/33_pates.webp`
 - `public/images/miniatures/34_fondue-suisse.png`
+- `public/images/miniatures/34_fondue-suisse.webp`
 - `public/images/miniatures/35_patisserie.png`
+- `public/images/miniatures/35_patisserie.webp`
 - `public/images/miniatures/36_sandwich.png`
+- `public/images/miniatures/36_sandwich.webp`
 - `public/images/miniatures/37_street-food.png`
+- `public/images/miniatures/37_street-food.webp`
 - `public/images/miniatures/38_vegetarien.png`
+- `public/images/miniatures/38_vegetarien.webp`
 - `public/images/miniatures/39_vegan.png`
+- `public/images/miniatures/39_vegan.webp`
 - `public/images/miniatures/bulle.png`
 - `public/images/miniatures/manifest.json`
+- `public/images/mixed-grill-platter-fast.webp`
 - `public/images/mixed-grill-platter.jpeg`
 - `public/images/mochi-glaces.jpg`
 - `public/images/naan.jpeg`
 - `public/images/nachos.webp`
+- `public/images/octopus-fine-dining-fast.webp`
 - `public/images/octopus-fine-dining.jpeg`
 - `public/images/onion rings.jpg`
 - `public/images/palak paneer.jpg`
@@ -8303,7 +8399,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (585)</summary>
+<details><summary>test (586)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -8558,6 +8654,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/guaranteed-delivery-cart.test.ts`
 - `src/test/health-score-advisors.test.ts`
 - `src/test/home-assets-budget.test.ts`
+- `src/test/home-core-web-vitals.test.ts`
 - `src/test/home-cuisine-accessibility.test.tsx`
 - `src/test/home-hero-search.test.tsx`
 - `src/test/home-mobile-newsletter.test.tsx`
