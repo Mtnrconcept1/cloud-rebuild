@@ -153,6 +153,20 @@ describe("campaign creative studio", () => {
     expect(discountMarkup).toContain("-30%");
   });
 
+  it("keeps the banner CTA visible and editable without changing the sponsored label", () => {
+    const markup = renderToStaticMarkup(createElement(SponsoredRestaurantTemplateCard, {
+      variant: "banner",
+      restaurantName: "Restaurant Demo",
+      discountLabel: "-18%",
+      creative: { copy: { cta: "Voir le menu" } },
+    }));
+
+    expect(markup).toContain('data-sponsored-banner-cta');
+    expect(markup).toContain("Voir le menu");
+    expect(markup).toContain("Promo -18%");
+    expect(markup.match(/Sponsorisé/g)).toHaveLength(1);
+  });
+
   it("preserves custom text colors in every placement", () => {
     for (const variant of ["banner", "card", "push"] as const) {
       const markup = renderToStaticMarkup(createElement(SponsoredRestaurantTemplateCard, {

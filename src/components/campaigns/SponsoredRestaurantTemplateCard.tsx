@@ -1,4 +1,4 @@
-import { ArrowRight, BellRing, Heart, MapPin, Megaphone, Percent, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, BellRing, Heart, MapPin, Megaphone, Percent, Sparkles } from "lucide-react";
 import type { CSSProperties, MouseEvent, SyntheticEvent } from "react";
 
 import PriceRangeIcons from "@/components/PriceRangeIcons";

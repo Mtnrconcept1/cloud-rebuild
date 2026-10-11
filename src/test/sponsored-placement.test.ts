@@ -338,7 +338,7 @@ describe("prioritizeSponsoredCards", () => {
     // The layout and its decorations follow the banner's own available width.
     expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:grid-rows-1");
     expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:block");
-    expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:hidden");
+    expect(templateCard).toContain("[@container_sponsored-banner_(min-width:48rem)]:order-2");
     expect(templateCard).not.toContain("[@container_sponsored-banner_(min-width:64rem)]:grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)]");
 
     // The non-compact banner keeps a useful visual floor while its content
@@ -363,7 +363,7 @@ describe("prioritizeSponsoredCards", () => {
 
     // Banner surfaces follow the dark theme instead of staying white.
     expect(templateCard).toContain("dark:bg-slate-900");
-    expect(templateCard).toContain("dark:border-slate-900");
+    expect(templateCard).toContain("dark:border-amber-800/50");
   });
 
   it("keeps the sponsored restaurant badge readable over restaurant photos", () => {
