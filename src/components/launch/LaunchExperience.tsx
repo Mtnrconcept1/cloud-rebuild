@@ -3,7 +3,7 @@ import { LaunchArtwork } from './LaunchArtwork';
 import { useLaunchGate } from './LaunchGateProvider';
 import { launchRemaining } from '@/lib/launchGate';
 import './LaunchExperience.css';
-export default function LaunchExperience() {
+export default function LaunchExperience({ confirmationPending = false }: { confirmationPending?: boolean }) {
   const { state } = useLaunchGate();
   const area = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState({ portrait: window.innerWidth < 768, scale: 1 });
@@ -44,7 +44,7 @@ export default function LaunchExperience() {
         setPointer({ x: (event.clientX - rect.left) / rect.width * 2 - 1, y: (event.clientY - rect.top) / rect.height * 2 - 1 });
       }} onPointerLeave={() => setPointer({ x: 0, y: 0 })}>
       <div style={{ transform: `scale(${layout.scale})`, transformOrigin: '0 0' }}>
-        <LaunchArtwork portrait={layout.portrait} remaining={launchRemaining(state, clock.now)} time={clock.motion} reducedMotion={reduced} pointer={pointer} />
+        <LaunchArtwork portrait={layout.portrait} remaining={state?.endsAt == null ? null : launchRemaining(state, clock.now)} confirmationPending={confirmationPending} time={clock.motion} reducedMotion={reduced} pointer={pointer} />
       </div>
     </div>
     <button type="button" className="launch-motion-button" aria-pressed={paused} onClick={() => setPaused(value => !value)}>

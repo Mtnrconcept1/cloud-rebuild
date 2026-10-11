@@ -1026,9 +1026,9 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     if (!confirmationNoticeShownRef.current) {
       confirmationNoticeShownRef.current = true;
       toast({
-        title: "Email confirmé",
+        title: "Lien de validation ouvert",
         description:
-          "Votre dossier restaurateur est conservé. La connexion finalisera automatiquement l’inscription.",
+          "Si votre adresse vient d’être confirmée, connectez-vous pour terminer l’inscription. Votre dossier restaurateur reste disponible sur cet appareil.",
       });
     }
 
@@ -1780,38 +1780,53 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   };
 
   const handleResendConfirmationEmail = async () => {
-    const email = signupForm.email.trim();
+    const email = signupForm.email.trim().toLowerCase();
     if (!email) {
       toast({ title: "Entrez votre email", variant: "destructive" });
       return;
     }
 
     setResendLoading(true);
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email,
-      options: {
-        emailRedirectTo: buildSignupConfirmationRedirect(
-          privilegedSignupOperationRef.current?.id ||
-            confirmationOperationId ||
-            null,
-        ),
-      },
-    });
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo: buildSignupConfirmationRedirect(
+            privilegedSignupOperationRef.current?.id ||
+              confirmationOperationId ||
+              null,
+          ),
+        },
+      });
 
-    if (error) {
+      if (error) {
+        const rateLimited = error.status === 429 ||
+          /rate limit|too many requests|email rate/i.test(error.message);
+        toast({
+          title: rateLimited ? "Trop de demandes" : "Envoi impossible",
+          description: rateLimited
+            ? "Attendez quelques minutes avant de redemander un lien."
+            : "La demande n’a pas abouti. Veuillez réessayer plus tard.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Demande prise en compte",
+        description:
+          "Si cette adresse nécessite encore une confirmation, un nouvel email sera envoyé. Sinon, connectez-vous à votre compte existant.",
+      });
+    } catch {
+      toast({
+        title: "Envoi impossible",
+        description: "La connexion a échoué. Veuillez réessayer plus tard.",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Email envoyé",
-        description: "Vérifiez votre boite mail pour confirmer votre compte.",
-      });
+    } finally {
+      setResendLoading(false);
     }
-    setResendLoading(false);
   };
 
   const updateSignupField = <K extends keyof SignupFormState>(
@@ -1963,7 +1978,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
       if (!isContinuingConfirmedSignup) {
         const signUpResponse = await supabase.auth.signUp({
-          email: signupForm.email,
+          email: signupForm.email.trim().toLowerCase(),
           password: signupForm.password,
           options: {
             data: {
@@ -2023,11 +2038,14 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
       if (!activeUser?.id) {
         toast({
-          title: "Compte créé",
+          title: "Demande prise en compte",
           description:
-            "Compte créé. Vérifiez votre email pour confirmer votre compte.",
+            "Si cette adresse peut être utilisée pour créer un compte, un email de confirmation sera envoyé. Si vous avez déjà un compte, connectez-vous.",
         });
         setPrivilegedSignupSubmitting(false);
+        if (!isPrivilegedSignup) {
+          navigate("/coming-soon?welcome=1&email=1", { replace: true });
+        }
         return;
       }
 
@@ -2096,13 +2114,16 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         setPrivilegedSignupResumeChecking(false);
         setPrivilegedSignupAwaitingEmail(isPrivilegedSignup);
         toast({
-          title: "Compte créé",
+          title: isPrivilegedSignup ? "Compte créé" : "Demande prise en compte",
           description: isPrivilegedSignup
             ? recoveryDraftSaved
               ? "Confirmez votre email. TOK restaurera automatiquement le dossier sur cet appareil, même si le lien s’ouvre dans un nouvel onglet."
               : "Confirmez votre email. Gardez cet onglet ouvert, car le stockage local sécurisé est indisponible."
-            : "Vérifiez votre email pour confirmer votre compte.",
+            : "Si cette adresse peut être utilisée pour créer un compte, un email de confirmation sera envoyé. Si vous avez déjà un compte, connectez-vous.",
         });
+        if (!isPrivilegedSignup) {
+          navigate("/coming-soon?welcome=1&email=1", { replace: true });
+        }
         return;
       }
 
@@ -2150,7 +2171,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       });
 
       if (submittedRole === "client") {
-        navigate(launchState?.enabled === false ? TOK_WORKSPACE_CHOOSER_PATH : "/coming-soon?welcome=1");
+        navigate("/coming-soon?welcome=1", { replace: true });
         return;
       }
 
@@ -2299,11 +2320,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         <CardContent className="space-y-6">
           {confirmationCompleted && !user ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
-              <p className="font-medium">Adresse email confirmée</p>
+              <p className="font-medium">Lien de confirmation ouvert</p>
               <p className="pt-1 text-emerald-800">
-                Connectez-vous si la session ne s’est pas ouverte
-                automatiquement. Le dossier restaurateur sera restauré sans
-                ressaisie.
+                Si votre adresse a été confirmée, connectez-vous pour continuer.
+                Un dossier restaurateur en cours pourra être restauré sans ressaisie.
               </p>
             </div>
           ) : null}

@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b473aea6a23b17e3bce22eb37f7dbc6908ebf20e2463d1f10c387cab59898a06",
+ "sourceDigest": "2c1f6656f703b9d95d2ebcc31d9d9fdd62135fda1ca36df47a85609f7dc4fc07",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 526,
-  "modules": 1487,
+  "modules": 1489,
   "pages": 127,
-  "pathLiterals": 620,
+  "pathLiterals": 621,
   "publicAssets": 308,
   "publicEntries": 333,
   "publicNavigableRoutes": 2,
   "queryParameters": 104,
-  "records": 15720,
-  "repositoryFiles": 2796,
+  "records": 15725,
+  "repositoryFiles": 2798,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -13870,7 +13870,7 @@
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 27
+      "line": 29
      },
      {
       "path": "src/pages/WorkspaceChooser.tsx",
@@ -15412,7 +15412,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2200
+      "line": 2221
      },
      {
       "path": "src/pages/ChefsTable.tsx",
@@ -15420,15 +15420,19 @@
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 12
+      "line": 13
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 26
+      "line": 28
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 29
+      "line": 31
+     },
+     {
+      "path": "src/pages/ComingSoon.tsx",
+      "line": 32
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -15476,11 +15480,15 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 847
+      "line": 884
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
       "line": 17
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 43
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -15763,7 +15771,11 @@
     "sources": [
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 907
+      "line": 520
+     },
+     {
+      "path": "src/test/auth-signup-form.test.tsx",
+      "line": 944
      }
     ]
    },
@@ -15844,15 +15856,23 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 483
+      "line": 484
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 493
+      "line": 498
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 922
+      "line": 530
+     },
+     {
+      "path": "src/test/auth-signup-form.test.tsx",
+      "line": 959
+     },
+     {
+      "path": "src/test/auth-signup-form.test.tsx",
+      "line": 984
      }
     ]
    },
@@ -15861,19 +15881,19 @@
     "sources": [
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 569
+      "line": 606
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 701
+      "line": 738
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 845
+      "line": 882
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 943
+      "line": 1004
      }
     ]
    },
@@ -16006,7 +16026,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3074
+      "line": 3094
      },
      {
       "path": "src/pages/CGU.tsx",
@@ -16014,7 +16034,7 @@
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 31
+      "line": 34
      },
      {
       "path": "src/pages/Cookies.tsx",
@@ -16233,7 +16253,7 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 849
+      "line": 886
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -16246,6 +16266,14 @@
      {
       "path": "src/test/coming-soon-gate.test.tsx",
       "line": 36
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 42
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 75
      },
      {
       "path": "src/test/launch-state.test.ts",
@@ -16270,11 +16298,32 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2153
+      "line": 2174
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2159
+      "line": 2180
+     }
+    ]
+   },
+   {
+    "value": "/coming-soon?welcome=1&email=1",
+    "sources": [
+     {
+      "path": "src/pages/Auth.tsx",
+      "line": 2047
+     },
+     {
+      "path": "src/pages/Auth.tsx",
+      "line": 2125
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 58
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 68
      }
     ]
    },
@@ -17939,7 +17988,7 @@
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 23
+      "line": 24
      },
      {
       "path": "src/pages/dashboard/DashboardHome.tsx",
@@ -19397,11 +19446,11 @@
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 12
+      "line": 13
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 26
+      "line": 28
      },
      {
       "path": "src/test/admin-domain-routing.test.ts",
@@ -19433,7 +19482,7 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 848
+      "line": 885
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -23086,11 +23135,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3082
+      "line": 3102
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 31
+      "line": 34
      },
      {
       "path": "src/pages/Cookies.tsx",
@@ -26967,7 +27016,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2312
+      "line": 2332
      }
     ],
     "routes": [
@@ -26981,7 +27030,7 @@
     "sources": [
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 20
+      "line": 10
      }
     ],
     "routes": [
@@ -29205,6 +29254,7 @@
      "src/test/incident-secret-sync-readiness.test.ts",
      "src/test/ios-storekit-subscription-management.test.ts",
      "src/test/la-gazelle-dor-seed.test.ts",
+     "src/test/launch-artwork-countdown.test.tsx",
      "src/test/launch-edge-access.test.ts",
      "src/test/launch-pack-ai-quotas.test.ts",
      "src/test/launch-provider.test.tsx",
@@ -83290,7 +83340,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 110
+    "lineCount": 114
    },
    {
     "path": "src/components/launch/LaunchExperience.tsx",
@@ -97352,7 +97402,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3336
+    "lineCount": 3356
    },
    {
     "path": "src/pages/BudgetAuto.tsx",
@@ -97440,7 +97490,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 36
+    "lineCount": 39
    },
    {
     "path": "src/pages/Commandes.tsx",
@@ -100107,7 +100157,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 958
+    "lineCount": 1019
    },
    {
     "path": "src/test/authenticated-security-audit-hardening.test.ts",
@@ -100383,6 +100433,13 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 48
+   },
+   {
+    "path": "src/test/coming-soon-signup-page.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 81
    },
    {
     "path": "src/test/commercial-contract-generation.test.ts",
@@ -101839,6 +101896,15 @@
      "supabase"
     ],
     "lineCount": 75
+   },
+   {
+    "path": "src/test/launch-artwork-countdown.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 30
    },
    {
     "path": "src/test/launch-edge-access.test.ts",
@@ -117093,6 +117159,11 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/test/coming-soon-signup-page.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/commercial-contract-generation.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -117926,6 +117997,11 @@
     "path": "src/test/la-gazelle-dor-seed.test.ts",
     "category": "test",
     "extension": ".ts"
+   },
+   {
+    "path": "src/test/launch-artwork-countdown.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/launch-edge-access.test.ts",
@@ -127288,7 +127364,7 @@
    "id": "code-module:e70e0a042205",
    "type": "code-module",
    "title": "src/components/launch/LaunchArtwork.tsx",
-   "description": "Module de 110 lignes; exports: WIDTH, HEIGHT, ImageContext, SpriteName, LaunchArtworkProps, LaunchArtwork.",
+   "description": "Module de 114 lignes; exports: WIDTH, HEIGHT, ImageContext, SpriteName, LaunchArtworkProps, LaunchArtwork.",
    "path": "src/components/launch/LaunchArtwork.tsx",
    "line": 1,
    "surface": null,
@@ -127300,7 +127376,7 @@
     "SpriteName",
     "WIDTH"
    ],
-   "detailRef": "01506ed7412e"
+   "detailRef": "36552a26447f"
   },
   {
    "id": "code-module:ae90c2d84514",
@@ -133903,7 +133979,7 @@
    "id": "code-module:bf93db106c70",
    "type": "code-module",
    "title": "src/pages/Auth.tsx",
-   "description": "Module de 3336 lignes; exports: default.",
+   "description": "Module de 3356 lignes; exports: default.",
    "path": "src/pages/Auth.tsx",
    "line": 1,
    "surface": null,
@@ -133914,7 +133990,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "200b19896d5c"
+   "detailRef": "b6aeb3d678bf"
   },
   {
    "id": "code-module:7a28b76c58b7",
@@ -133990,14 +134066,14 @@
    "id": "code-module:77e25833758b",
    "type": "code-module",
    "title": "src/pages/ComingSoon.tsx",
-   "description": "Module de 36 lignes; exports: default.",
+   "description": "Module de 39 lignes; exports: default.",
    "path": "src/pages/ComingSoon.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "e355ec7e8f52"
+   "detailRef": "ab26a81e4893"
   },
   {
    "id": "code-module:7ecfb97734f1",
@@ -136478,7 +136554,7 @@
    "id": "code-module:4322e22c03e6",
    "type": "code-module",
    "title": "src/test/auth-signup-form.test.tsx",
-   "description": "Module de 958 lignes; exports: aucun export statique.",
+   "description": "Module de 1019 lignes; exports: aucun export statique.",
    "path": "src/test/auth-signup-form.test.tsx",
    "line": 1,
    "surface": null,
@@ -136488,7 +136564,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "dafaba214396"
+   "detailRef": "185a6ca98879"
   },
   {
    "id": "code-module:65a61c431414",
@@ -136890,6 +136966,17 @@
    "surface": null,
    "tags": [],
    "detailRef": "21e9a9ede8b8"
+  },
+  {
+   "id": "code-module:cfdd9e21db97",
+   "type": "code-module",
+   "title": "src/test/coming-soon-signup-page.test.tsx",
+   "description": "Module de 81 lignes; exports: aucun export statique.",
+   "path": "src/test/coming-soon-signup-page.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "50a9e12f7272"
   },
   {
    "id": "code-module:e839dfa53017",
@@ -139008,6 +139095,19 @@
     "supabase"
    ],
    "detailRef": "b1501e93c86e"
+  },
+  {
+   "id": "code-module:24d99e443c74",
+   "type": "code-module",
+   "title": "src/test/launch-artwork-countdown.test.tsx",
+   "description": "Module de 30 lignes; exports: aucun export statique.",
+   "path": "src/test/launch-artwork-countdown.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "645b658a317b"
   },
   {
    "id": "code-module:6d27e7299386",
@@ -301795,6 +301895,20 @@
    "detailRef": "7cc2938d796e"
   },
   {
+   "id": "file:7a191f9dd47d",
+   "type": "file",
+   "title": "src/test/coming-soon-signup-page.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/coming-soon-signup-page.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "cc44d7979c45"
+  },
+  {
    "id": "file:100277b3c618",
    "type": "file",
    "title": "src/test/commercial-contract-generation.test.ts",
@@ -304131,6 +304245,20 @@
     "test"
    ],
    "detailRef": "eaa207f9fa05"
+  },
+  {
+   "id": "file:b102646c12a9",
+   "type": "file",
+   "title": "src/test/launch-artwork-countdown.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/launch-artwork-countdown.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "60dfdfaff465"
   },
   {
    "id": "file:2805a98f3460",
@@ -322314,7 +322442,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 667 module(s).",
+   "description": "Intégration externe détectée dans 668 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -322718,6 +322846,7 @@
     "src/test/incident-secret-sync-readiness.test.ts",
     "src/test/ios-storekit-subscription-management.test.ts",
     "src/test/la-gazelle-dor-seed.test.ts",
+    "src/test/launch-artwork-countdown.test.tsx",
     "src/test/launch-edge-access.test.ts",
     "src/test/launch-pack-ai-quotas.test.ts",
     "src/test/launch-provider.test.tsx",
@@ -322988,7 +323117,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "2f80a8a70272"
+   "detailRef": "fac795e26e2c"
   },
   {
    "id": "integration:c20910a79a78",
@@ -335041,7 +335170,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "6580056786b1"
+   "detailRef": "e90e4913021d"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -335513,7 +335642,7 @@
    "id": "path-literal:684553841fb1",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 52 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 54 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1224,
    "surface": null,
@@ -335551,13 +335680,14 @@
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
+    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/home-mobile-newsletter.test.tsx",
     "src/test/monitoring-consent.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "84427fe2ec45"
+   "detailRef": "3586134b3b49"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -335573,17 +335703,17 @@
    "detailRef": "8130f837ff8f"
   },
   {
-   "id": "path-literal:cee9e700fc9c",
+   "id": "path-literal:977886af64b6",
    "type": "path-literal",
    "title": "/auth?confirmed=1",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/auth-signup-form.test.tsx",
-   "line": 907,
+   "line": 520,
    "surface": null,
    "tags": [
     "src/test/auth-signup-form.test.tsx"
    ],
-   "detailRef": "99b0c9c8bd5e"
+   "detailRef": "eda73f7478f1"
   },
   {
    "id": "path-literal:27784688802a",
@@ -335641,7 +335771,7 @@
    "id": "path-literal:27a018485e02",
    "type": "path-literal",
    "title": "/auth?type=client",
-   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/auth-redirect-security.test.ts",
    "line": 33,
    "surface": null,
@@ -335649,20 +335779,20 @@
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx"
    ],
-   "detailRef": "b92687df85fd"
+   "detailRef": "638a781415a7"
   },
   {
-   "id": "path-literal:0942284461c1",
+   "id": "path-literal:f40bdaba386c",
    "type": "path-literal",
    "title": "/auth?type=restaurateur",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/auth-signup-form.test.tsx",
-   "line": 569,
+   "line": 606,
    "surface": null,
    "tags": [
     "src/test/auth-signup-form.test.tsx"
    ],
-   "detailRef": "8f0de5bb8e41"
+   "detailRef": "f5140e32c247"
   },
   {
    "id": "path-literal:34d93808d9e7",
@@ -335753,7 +335883,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "f8b91b3c5960"
+   "detailRef": "4774d9302c21"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -335859,7 +335989,7 @@
    "id": "path-literal:4fb16aa3df8b",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 530,
    "surface": null,
@@ -335871,11 +336001,26 @@
     "src/lib/launchGate.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
+    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/launch-state.test.ts",
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "873b6fbbefbb"
+   "detailRef": "6229cb6ee3b7"
+  },
+  {
+   "id": "path-literal:0ad0fce02bb8",
+   "type": "path-literal",
+   "title": "/coming-soon?welcome=1&email=1",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Auth.tsx",
+   "line": 2047,
+   "surface": null,
+   "tags": [
+    "src/pages/Auth.tsx",
+    "src/test/coming-soon-signup-page.test.tsx"
+   ],
+   "detailRef": "6739a56876e1"
   },
   {
    "id": "path-literal:a6290b9b06b5",
@@ -335888,7 +336033,7 @@
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "9f3c12a845a2"
+   "detailRef": "0c9cbb032b74"
   },
   {
    "id": "path-literal:708387adb2eb",
@@ -337393,7 +337538,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "ecfd08e7794e"
+   "detailRef": "9e2390251197"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -337527,7 +337672,7 @@
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "b49652c4c5e6"
+   "detailRef": "2fdac7c01a97"
   },
   {
    "id": "path-literal:812e0ecff89d",
@@ -340491,7 +340636,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "0a4e92930016"
+   "detailRef": "23880f9f1e2a"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -348153,30 +348298,30 @@
    "detailRef": "b8e891e32777"
   },
   {
-   "id": "query-parameter:7163c0dfb91b",
+   "id": "query-parameter:ff7e4f23b3be",
    "type": "query-parameter",
    "title": "domain",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 2312,
+   "line": 2332,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "8b718621c9fd"
+   "detailRef": "e2b4b8cb2d57"
   },
   {
-   "id": "query-parameter:068918b9f2eb",
+   "id": "query-parameter:28a42fb11a0b",
    "type": "query-parameter",
    "title": "email",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/ComingSoon.tsx",
-   "line": 20,
+   "line": 10,
    "surface": null,
    "tags": [
     "src/pages/ComingSoon.tsx"
    ],
-   "detailRef": "c6b2c9c0915d"
+   "detailRef": "1dd95c2cbd7e"
   },
   {
    "id": "query-parameter:4b8ca1ad9f1a",
