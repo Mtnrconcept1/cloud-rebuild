@@ -354,6 +354,7 @@ function FlashForm({
   const [quantity, setQuantity] = useState(5);
   const [saleDate, setSaleDate] = useState(todayIso());
   const [saleStart, setSaleStart] = useState(nowHHmm());
+  const [earlyAccessMinutes, setEarlyAccessMinutes] = useState(0);
   const [saleEnd, setSaleEnd] = useState(nowHHmm(120));
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -444,6 +445,7 @@ function FlashForm({
         sale_date: saleDate,
         sale_start: saleStart,
         sale_end: saleEnd,
+        early_access_minutes: earlyAccessMinutes,
       });
       setLoading(false);
       onSaved();
@@ -462,6 +464,7 @@ function FlashForm({
         sale_date: saleDate,
         sale_start: saleStart,
         sale_end: saleEnd,
+        early_access_minutes: earlyAccessMinutes,
         is_active: true,
         delivery_available: true,
         takeaway_available: true,
@@ -545,6 +548,11 @@ function FlashForm({
               <Label>Fin</Label>
               <Input type="time" value={saleEnd} onChange={(e) => setSaleEnd(e.target.value)} />
             </div>
+          </div>
+          <div className="space-y-2"><Label>Avant-première Tok One (minutes)</Label>
+            <Input type="number" min={0} max={120} value={earlyAccessMinutes}
+              onChange={event => setEarlyAccessMinutes(Number(event.target.value))} />
+            <p className="text-xs text-muted-foreground">0 désactive l’avant-première. Les membres éligibles peuvent commander jusqu’à 120 minutes avant l’ouverture publique.</p>
           </div>
           <p className="text-[11px] text-muted-foreground">
             L'offre apparaîtra automatiquement aux clients au début du créneau et disparaîtra à la fin.

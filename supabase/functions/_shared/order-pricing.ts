@@ -1,8 +1,10 @@
+import { getBusinessDateKey, parseBusinessDateTime } from "./business-time.ts";
 import {
   assertPaymentMethodAllowed,
   getEffectiveFeatureFlagSet,
 } from "./feature-flags.ts";
 import { isTokOneEntitledStatus } from "./tok-one.ts";
+import { allocateCheckoutDiscounts } from "./checkout-discounts.ts";
 
 const QUALITY_GUARANTEE_FEE = 1.5;
 const UUID_REGEX =
@@ -80,13 +82,6 @@ type TokOneSubscriptionRow = {
   plan_id: string | null;
   status: string;
   current_period_end: string | null;
-};
-
-type TokOnePaymentRecoveryRow = {
-  id: string;
-  created_at: string;
-  status: string;
-  metadata: Record<string, unknown> | null;
 };
 
 type TokOnePlanRow = {
@@ -205,7 +200,7 @@ function resolveRequiredCourses(formula: MealFormulaRow) {
   return uniqueCourses(
     (formula.meal_formula_categories || [])
       .map((row) => toCourse(row.category))
-      .filter((course): course is string => !!course),
+      .filter((course): course is NonNullable<typeof course> => course !== null),
   );
 }
 
@@ -225,7 +220,7 @@ function isTimeInWindow(target: number, start: number, end: number) {
 }
 
 function toIsoDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return getBusinessDateKey(date);
 }
 
 function buildLocalDateTime(dateValue: unknown, timeValue: unknown) {
@@ -233,8 +228,7 @@ function buildLocalDateTime(dateValue: unknown, timeValue: unknown) {
   const timeText = String(timeValue || "").trim();
   if (!dateText || !timeText) return null;
 
-  const parsed = new Date(`${dateText}T${timeText}`);
-  return Number.isFinite(parsed.getTime()) ? parsed : null;
+  return parseBusinessDateTime(dateText, timeText);
 }
 
 function sumQuantitiesByMetadata(items: Array<{ quantity: number; metadata: Record<string, unknown> }>, keys: string[]) {
@@ -287,6 +281,7 @@ function validateFlashSaleAvailability(input: {
   requestedQuantity: number;
   now: Date;
   isDeliveryJourney: boolean;
+  earlyAccess: boolean;
 }) {
   if (!input.sale || !input.sale.is_active) {
     throw new Error("Vente flash invalide ou expiree.");
@@ -309,7 +304,8 @@ function validateFlashSaleAvailability(input: {
   if (!saleStart || !saleEnd || saleEnd <= saleStart) {
     throw new Error("Fenetre de vente flash invalide.");
   }
-  if (input.now < saleStart || input.now >= saleEnd) {
+  const advanceMs = input.earlyAccess ? Math.max(0, Math.min(120, Number(input.sale.early_access_minutes) || 0)) * 60_000 : 0;
+  if (input.now.getTime() < saleStart.getTime() - advanceMs || input.now >= saleEnd) {
     throw new Error("Vente flash expiree ou pas encore active.");
   }
 }
@@ -376,11 +372,11 @@ function computeFormulaDiscount(
   reservationDate?: string,
   reservationTime?: string,
 ) {
-  const itemCourses = new Set(
+  const itemCourses = new Set<string>(
     items
       .filter((item) => item.quantity > 0)
       .map((item) => toCourse(item.category))
-      .filter((course): course is string => !!course),
+      .filter((course): course is NonNullable<typeof course> => course !== null),
   );
 
   let bestMatch: { name: string; discountPercent: number; discountAmount: number; courseCount: number } | null = null;
@@ -422,7 +418,7 @@ function computePromotionDiscount(
   subtotal: number,
   deliveryFee: number,
 ) {
-  let bestPromo: { name: string; discount: number } | null = null;
+  let bestPromo: { name: string; discount: number; delivery: boolean } | null = null;
 
   for (const promo of promotions || []) {
     let discount = 0;
@@ -435,13 +431,14 @@ function computePromotionDiscount(
     }
 
     if (!bestPromo || discount > bestPromo.discount) {
-      bestPromo = { name: promo.name, discount };
+      bestPromo = { name: promo.name, discount, delivery: promo.promotion_type === "free_delivery" };
     }
   }
 
   return {
     amount: bestPromo?.discount || 0,
     name: bestPromo?.name || null,
+    delivery: bestPromo?.delivery || false,
   };
 }
 
@@ -458,6 +455,8 @@ async function computePromoCodeDiscount(input: {
       id: null,
       amount: 0,
       name: null,
+      delivery: false,
+      stackable: true,
     };
   }
 
@@ -473,6 +472,12 @@ async function computePromoCodeDiscount(input: {
   if (!promo || promo.is_active === false) {
     throw new Error("Code promo invalide.");
   }
+
+  const { data: eligible, error: eligibilityError } = await input.adminClient.rpc("promo_code_is_eligible", {
+    p_code_id: promo.id, p_user_id: input.userId,
+  });
+  if (eligibilityError) throw new Error("Vérification du code indisponible.");
+  if (eligible !== true) throw new Error("Ce code est réservé aux membres éligibles.");
 
   const now = new Date().toISOString();
   if (promo.valid_from && promo.valid_from > now) {
@@ -520,7 +525,7 @@ async function computePromoCodeDiscount(input: {
   let discount = 0;
   if (promo.type === "percentage") {
     discount = roundCurrency((input.subtotal * Number(promo.value || 0)) / 100);
-    if (promo.max_discount) {
+    if (promo.max_discount != null) {
       discount = Math.min(discount, Number(promo.max_discount));
     }
   } else if (promo.type === "fixed") {
@@ -533,6 +538,8 @@ async function computePromoCodeDiscount(input: {
     id: promo.id,
     amount: roundCurrency(discount),
     name: `Code ${promo.code}`,
+    delivery: promo.type === "free_delivery",
+    stackable: promo.is_stackable === true,
   };
 }
 
@@ -613,7 +620,7 @@ async function resolveMiamzPricing(input: {
       ? roundCurrency((input.deliveryFee * deliveryPercent) / 100)
       : 0;
     const miamzDeliveryDiscount = roundCurrency(
-      deliveryCap > 0 ? Math.min(rawDeliveryDiscount, deliveryCap) : rawDeliveryDiscount,
+      Math.min(rawDeliveryDiscount, deliveryCap),
     );
 
     return {
@@ -661,16 +668,6 @@ function matchesTokOneJourneyContext(entry: string, journey: TokOneJourney) {
   return TOK_ONE_CONTEXT_ALIASES[journey].includes(normalizedEntry);
 }
 
-function addBillingPeriod(start: Date, billingPeriod: string) {
-  const periodEnd = new Date(start);
-  if (billingPeriod === "yearly") {
-    periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-  } else {
-    periodEnd.setMonth(periodEnd.getMonth() + 1);
-  }
-  return periodEnd;
-}
-
 function isTokOneBenefitApplicable(
   benefit: TokOneBenefitRow,
   restaurantId: string,
@@ -678,6 +675,7 @@ function isTokOneBenefitApplicable(
 ) {
   const value = asRecord(benefit.value);
   if (!value) return true;
+  if (value.enabled === false) return false;
 
   const restaurantIds = [
     ...normalizeBenefitList(value.restaurant_ids),
@@ -710,6 +708,7 @@ function resolveTokOneDiscountPercent(
     .filter((benefit) => {
       const value = asRecord(benefit.value);
       if (!value) return true;
+      if (value.enabled === false) return false;
 
       const restaurantIds = [
         ...normalizeBenefitList(value.restaurant_ids),
@@ -780,6 +779,9 @@ async function resolveTokOnePricing(input: {
       .from("tok_one_subscriptions")
       .select("id, plan_id, status, current_period_end")
       .eq("user_id", input.userId)
+      .eq("stripe_mode", "live")
+      .in("status", ["active", "trialing"])
+      .gt("current_period_end", new Date().toISOString())
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -787,47 +789,12 @@ async function resolveTokOnePricing(input: {
     if (subscriptionError) throw subscriptionError;
 
       const activeSubscription = subscription as TokOneSubscriptionRow | null;
-      let resolvedPlanId = activeSubscription?.plan_id || null;
-      let hasActiveTokOne = Boolean(
+      const resolvedPlanId = activeSubscription?.plan_id || null;
+      const hasActiveTokOne = Boolean(
         activeSubscription &&
         isTokOneEntitledStatus(activeSubscription.status) &&
         (!activeSubscription.current_period_end || new Date(activeSubscription.current_period_end) > now),
       );
-
-    if (!hasActiveTokOne) {
-      const { data: transactions, error: transactionsError } = await input.adminClient
-        .from("payment_transactions")
-        .select("id, created_at, metadata, status")
-        .eq("user_id", input.userId)
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (transactionsError) throw transactionsError;
-
-      const latestTokOnePayment = ((transactions || []) as TokOnePaymentRecoveryRow[]).find((transaction) => {
-        const metadata = transaction?.metadata;
-        return (
-          metadata &&
-          typeof metadata === "object" &&
-          !Array.isArray(metadata) &&
-          metadata.checkout_kind === "tok-one" &&
-          metadata.plan_id &&
-          ["paid", "succeeded"].includes(String(transaction?.status || ""))
-        );
-      });
-
-      if (!latestTokOnePayment) return defaults;
-
-      const paymentMetadata = latestTokOnePayment.metadata as Record<string, unknown>;
-      const billingPeriod = paymentMetadata.billing_period === "yearly" ? "yearly" : "monthly";
-      const periodStart = new Date(latestTokOnePayment.created_at);
-      const periodEnd = addBillingPeriod(periodStart, billingPeriod);
-
-      if (periodEnd <= now) return defaults;
-
-      resolvedPlanId = String(paymentMetadata.plan_id || "");
-      hasActiveTokOne = Boolean(resolvedPlanId);
-    }
 
     if (!hasActiveTokOne || !resolvedPlanId) return defaults;
 
@@ -947,7 +914,7 @@ export async function buildVerifiedOrderPricing(input: {
     flashSaleIds.length
       ? input.adminClient
         .from("flash_sales")
-        .select("id, restaurant_id, title, discounted_price, quantity_available, sale_date, sale_start, sale_end, delivery_available, takeaway_available, is_active")
+        .select("id, restaurant_id, title, discounted_price, quantity_available, sale_date, sale_start, sale_end, delivery_available, takeaway_available, is_active, early_access_minutes")
         .in("id", flashSaleIds)
       : Promise.resolve({ data: [], error: null }),
     input.adminClient
@@ -970,6 +937,14 @@ export async function buildVerifiedOrderPricing(input: {
       .maybeSingle(),
   ]);
 
+  let flashEarlyAccess = false;
+  if (flashSaleIds.length) {
+    const { data, error } = await input.adminClient.rpc("has_tok_one_benefit", {
+      p_user_id: input.userId, p_benefit: "flash_early_access",
+    });
+    if (error) throw new Error("Vérification des droits Tok One indisponible.");
+    flashEarlyAccess = data === true;
+  }
   if (restaurantRes.error) throw new Error(restaurantRes.error.message);
   if (menuItemsRes.error) throw new Error(menuItemsRes.error.message);
   if (antiWasteRes.error) throw new Error(antiWasteRes.error.message);
@@ -1026,9 +1001,9 @@ export async function buildVerifiedOrderPricing(input: {
     }
   }
 
-  const menuMap = new Map((menuItemsRes.data || []).map((row: any) => [row.id, row]));
-  const antiWasteMap = new Map((antiWasteRes.data || []).map((row: any) => [row.id, row]));
-  const flashMap = new Map((flashSalesRes.data || []).map((row: any) => [row.id, row]));
+  const menuMap = new Map<string, Record<string, any>>((menuItemsRes.data || []).map((row: Record<string, any>) => [String(row.id), row] as const));
+  const antiWasteMap = new Map<string, Record<string, any>>((antiWasteRes.data || []).map((row: Record<string, any>) => [String(row.id), row] as const));
+  const flashMap = new Map<string, Record<string, any>>((flashSalesRes.data || []).map((row: Record<string, any>) => [String(row.id), row] as const));
 
   const validatedItems: ValidatedOrderItem[] = [];
   const now = new Date();
@@ -1057,6 +1032,7 @@ export async function buildVerifiedOrderPricing(input: {
     const antiWasteOfferId = String(item.metadata?.anti_waste_offer_id || item.metadata?.offer_id || "");
     if (antiWasteOfferId) {
       const offer = antiWasteMap.get(antiWasteOfferId);
+      if (!offer) throw new Error("Offre anti-gaspi invalide ou expiree.");
       validateAntiWasteOfferAvailability({
         offer,
         requestedQuantity: antiWasteQuantities.get(antiWasteOfferId) || item.quantity,
@@ -1078,7 +1054,9 @@ export async function buildVerifiedOrderPricing(input: {
     const flashSaleId = String(item.metadata?.flash_sale_id || "");
     if (flashSaleId) {
       const sale = flashMap.get(flashSaleId);
+      if (!sale) throw new Error("Vente flash invalide ou expiree.");
       validateFlashSaleAvailability({
+        earlyAccess: flashEarlyAccess,
         sale,
         requestedQuantity: flashSaleQuantities.get(flashSaleId) || item.quantity,
         now,
@@ -1157,24 +1135,6 @@ export async function buildVerifiedOrderPricing(input: {
     subtotal,
     deliveryFee,
   });
-  const selectedPromo = promoCode.amount > 0 && promoCode.amount >= promotion.amount
-    ? {
-      amount: promoCode.amount,
-      name: promoCode.name,
-      source: "promo_code" as const,
-    }
-    : promotion.amount > 0
-      ? {
-        amount: promotion.amount,
-        name: promotion.name,
-        source: "restaurant_promotion" as const,
-      }
-      : {
-        amount: 0,
-        name: null,
-        source: null,
-      };
-
   const maxPointsDiscount = roundCurrency(Math.max(0, toNumber(profileRes.data?.loyalty_points) / 100));
   const requestedPointsToRedeem = Math.max(0, Math.floor(toNumber(metadata.points_to_redeem)));
   const requestedPointsDiscount = requestedPointsToRedeem > 0
@@ -1194,44 +1154,45 @@ export async function buildVerifiedOrderPricing(input: {
   const flexDiscount = Math.min(requestedFlexDiscount, maxFlexDiscount);
 
   const originalTotal = roundCurrency(subtotal + deliveryFee + qualityFee);
-  const discountAmount = roundCurrency(
-    Math.min(
-      originalTotal,
-      formula.amount
-        + selectedPromo.amount
-        + tokOnePricing.tokOneDiscount
-        + tokOnePricing.tokOneDeliveryDiscount
-        + miamzPricing.miamzDeliveryDiscount
-        + pointsDiscount
-        + flexDiscount,
-    ),
-  );
+  const applied = allocateCheckoutDiscounts({
+    subtotal, deliveryFee, qualityFee, formula: formula.amount,
+    promotion, code: promoCode, tokOne: tokOnePricing.tokOneDiscount,
+    tokOneDelivery: tokOnePricing.tokOneDeliveryDiscount,
+    miamzDelivery: miamzPricing.miamzDeliveryDiscount,
+    points: pointsDiscount, flex: flexDiscount,
+  });
+  const selectedPromo = {
+    amount: applied.promo, source: applied.source,
+    name: applied.source === "promo_code" ? promoCode.name
+      : applied.source === "restaurant_promotion" ? promotion.name : null,
+  };
+  const discountAmount = applied.discount;
 
   return {
     validatedItems,
     subtotal,
     deliveryFee,
     qualityFee,
-    formulaDiscount: formula.amount,
-    formulaDiscountPercent: formula.percent,
-    formulaName: formula.name,
+    formulaDiscount: applied.formula,
+    formulaDiscountPercent: applied.formula > 0 ? formula.percent : 0,
+    formulaName: applied.formula > 0 ? formula.name : null,
     promoDiscount: selectedPromo.amount,
     promoName: selectedPromo.name,
     promoCodeId: selectedPromo.source === "promo_code" ? promoCode.id : null,
-    promoCodeDiscount: selectedPromo.source === "promo_code" ? promoCode.amount : 0,
+    promoCodeDiscount: selectedPromo.source === "promo_code" ? applied.promo : 0,
     promoCodeName: selectedPromo.source === "promo_code" ? promoCode.name : null,
     promotionSource: selectedPromo.source,
     tokOneMember: tokOnePricing.tokOneMember,
-    tokOneDiscount: tokOnePricing.tokOneDiscount,
+    tokOneDiscount: applied.tokOne,
     tokOneDiscountPercent: tokOnePricing.tokOneDiscountPercent,
-    tokOneDeliveryDiscount: tokOnePricing.tokOneDeliveryDiscount,
-    tokOneTotalSaved: tokOnePricing.tokOneTotalSaved,
+    tokOneDeliveryDiscount: applied.tokOneDelivery,
+    tokOneTotalSaved: roundCurrency(applied.tokOne + applied.tokOneDelivery),
     miamzBenefitsApplied: miamzPricing.miamzBenefitsApplied,
     miamzPointsMultiplier: miamzPricing.miamzPointsMultiplier,
-    miamzDeliveryDiscount: miamzPricing.miamzDeliveryDiscount,
+    miamzDeliveryDiscount: applied.miamzDelivery,
     miamzDeliveryDiscountPercent: miamzPricing.miamzDeliveryDiscountPercent,
-    pointsDiscount,
-    flexDiscount,
+    pointsDiscount: applied.points,
+    flexDiscount: applied.flex,
     originalTotal,
     discountAmount,
     total: roundCurrency(Math.max(0, originalTotal - discountAmount)),

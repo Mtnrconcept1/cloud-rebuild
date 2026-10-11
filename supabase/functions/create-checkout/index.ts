@@ -1,3 +1,4 @@
+import { assertIndependentRestaurantContract } from "../_shared/restaurant-establishments.ts";
 import Stripe from "npm:stripe@18.5.0";
 
 import {
@@ -35,7 +36,6 @@ import {
   type AcquiredPaymentAttempt,
 } from "../_shared/payment-attempts.ts";
 import {
-  getLatestTokOneSubscription,
   isTokOneEntitledStatus,
 } from "../_shared/tok-one.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
@@ -545,6 +545,7 @@ Deno.serve(async (req) => {
       restaurantOnboardingRestaurantId = restaurantId;
 
       await requireRestaurantAccess(actor, restaurantId);
+      await assertIndependentRestaurantContract(actor.adminClient, restaurantId);
 
       if (signupApplicationId) {
         const { data: application, error: applicationError } =
@@ -825,6 +826,7 @@ Deno.serve(async (req) => {
       auditTargetEntityId = restaurantId;
 
       await requireRestaurantAccess(actor, restaurantId);
+      await assertIndependentRestaurantContract(actor.adminClient, restaurantId);
 
       const { data: plan, error: planError } = await actor.adminClient
         .from("restaurant_subscription_plans")
@@ -1091,6 +1093,9 @@ Deno.serve(async (req) => {
           .from("tok_one_subscriptions")
           .select("id, status, current_period_end")
           .eq("user_id", actor.userId)
+          .eq("stripe_mode", "live")
+          .in("status", ["active", "trialing"])
+          .gt("current_period_end", new Date().toISOString())
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -1172,19 +1177,11 @@ Deno.serve(async (req) => {
 
       if (dropsError) throw new HttpError(500, dropsError.message);
 
-      const tokOneSubscription = await getLatestTokOneSubscription(
-        actor.adminClient,
-        actor.userId,
+      const { data: chefTableAccess, error: chefTableAccessError } = await actor.adminClient.rpc(
+        "has_tok_one_benefit", { p_user_id: actor.userId, p_benefit: "chef_table_priority" },
       );
-      const tokOnePeriodEnd = tokOneSubscription?.current_period_end
-        ? new Date(tokOneSubscription.current_period_end)
-        : null;
-      const hasActiveTokOneSubscription = Boolean(
-        tokOneSubscription &&
-          isTokOneEntitledStatus(tokOneSubscription.status) &&
-          tokOnePeriodEnd &&
-          tokOnePeriodEnd > new Date(),
-      );
+      if (chefTableAccessError) throw new HttpError(503, "Vérification des droits Tok One indisponible.");
+      const hasActiveTokOneSubscription = chefTableAccess === true;
       const dropMap = new Map(
         (dropRows || []).map((row: any) => [row.id, row]),
       );

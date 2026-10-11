@@ -186,11 +186,12 @@ async function resolveFairGrowthPricingSnapshot(input: {
   financeConfig: Record<string, unknown> | null;
 }): Promise<FairGrowthPricingSnapshot> {
   const { data: subscription, error: subscriptionError } = await input.adminClient
-    .from("restaurant_ai_subscriptions")
+    .from("restaurant_subscription_entitlements")
     .select(
       "restaurant_subscription_plan_id, plan, status, current_period_end, marketplace_commission_bps_snapshot, pricing_version_snapshot",
     )
     .eq("restaurant_id", input.restaurantId)
+    .eq("stripe_mode", "live")
     .maybeSingle();
 
   if (subscriptionError) {

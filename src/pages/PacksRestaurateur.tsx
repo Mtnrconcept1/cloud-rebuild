@@ -1,3 +1,4 @@
+import { useActiveFeatures } from "@/lib/featureFlags";
 import { Check, CreditCard, Loader2, Sparkles, WalletCards, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -98,6 +99,7 @@ function useRestaurantCreditPacks() {
 }
 
 function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
+  const annualEnabled = useActiveFeatures().has("billing-fair-growth-annual");
   const features = normalizeFeatures(plan.features);
   const tokCredits = getTokCreditAmount(plan);
   const usage = getPlanIncludedUsage(plan);
@@ -116,9 +118,9 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
         <div>
           <span className="text-4xl font-bold">{formatChf(fairGrowthPlan.monthlyPriceChf)}</span>
           <span className="ml-1 text-muted-foreground">/ mois</span>
-          <p className="mt-1 text-xs text-muted-foreground">
+          {annualEnabled && <p className="mt-1 text-xs text-muted-foreground">
             Annuel {formatChf(annualPriceChf)} — 12 mois, payez-en 11
-          </p>
+          </p>}
         </div>
         <div className="grid gap-2 rounded-xl border border-primary/15 bg-primary/5 p-3 text-sm">
           <span><strong>{formatChf(RESERVATION_FLAT_FEE_CHF)}</strong> par réservation honorée, quelle qu'en soit l'origine</span>
@@ -129,7 +131,7 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
             <>
               <span><strong>3 établissements inclus</strong> · CHF 149/mois par site supplémentaire</span>
               <span className="text-xs text-muted-foreground">
-                Rattachement multi-site et sites supplémentaires validés par TOK avant toute facturation additionnelle.
+                Rattachement depuis votre espace facturation. Les établissements partagent les crédits du contrat ; les ajouts payants nécessitent votre confirmation.
               </span>
             </>
           ) : null}
@@ -233,6 +235,7 @@ function CreditPackCard({ pack }: { pack: RestaurantCreditPack }) {
 }
 
 export default function PacksRestaurateur() {
+  const annualEnabled = useActiveFeatures().has("billing-fair-growth-annual");
   const plansQuery = useRestaurantSubscriptionPlans();
   const creditPacksQuery = useRestaurantCreditPacks();
   const isLoading = plansQuery.isLoading || creditPacksQuery.isLoading;
@@ -268,7 +271,7 @@ export default function PacksRestaurateur() {
           <CreditCard className="h-6 w-6 text-primary" />
           <div>
             <h2 className="text-3xl font-bold">Abonnements Fair Growth</h2>
-            <p className="text-muted-foreground">Mensuel ou annuel facturé 11 mois pour 12, avec tarifs enregistrés à la souscription.</p>
+            <p className="text-muted-foreground">{annualEnabled ? "Mensuel ou annuel facturé 11 mois pour 12, avec tarifs enregistrés à la souscription." : "Abonnement mensuel, avec tarifs enregistrés à la souscription."}</p>
           </div>
         </div>
         {plansQuery.isError ? (

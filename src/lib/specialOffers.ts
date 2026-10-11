@@ -10,6 +10,7 @@ type AntiWasteLike = {
 };
 
 type FlashSaleLike = {
+  early_access_minutes?: number | null;
   sale_date?: string | null;
   sale_start?: string | null;
   sale_end?: string | null;
@@ -55,7 +56,7 @@ export function isAntiWasteOfferPubliclyVisible(offer: AntiWasteLike, now = new 
   return true;
 }
 
-export function isFlashSalePubliclyVisible(offer: FlashSaleLike, now = new Date()): boolean {
+export function isFlashSalePubliclyVisible(offer: FlashSaleLike, now = new Date(), earlyAccess = false): boolean {
   if (offer.is_active !== true) return false;
   if (!hasRemainingSpecialOfferStock(offer.quantity_available)) return false;
   if (!offer.sale_date || !offer.sale_start || !offer.sale_end) return false;
@@ -65,5 +66,6 @@ export function isFlashSalePubliclyVisible(offer: FlashSaleLike, now = new Date(
 
   if (!start || !end) return false;
 
-  return start.getTime() <= now.getTime() && end.getTime() > now.getTime();
+  const advanceMs = earlyAccess ? Math.max(0, Math.min(120, Number(offer.early_access_minutes) || 0)) * 60_000 : 0;
+  return start.getTime() - advanceMs <= now.getTime() && end.getTime() > now.getTime();
 }

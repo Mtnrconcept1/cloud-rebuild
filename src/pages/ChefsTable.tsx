@@ -1,3 +1,4 @@
+import { useTokOneEntitlements } from "@/hooks/useTokOneEntitlements";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -25,7 +26,6 @@ import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
 import ChefTableSlotDialog from "@/components/ChefTableSlotDialog";
-import { useIsTokOneMember } from "@/hooks/useTokOne";
 import { invokeSupabaseFunction } from "@/lib/session";
 import {
   generateDailyTimeSlots,
@@ -431,7 +431,9 @@ export default function ChefsTable() {
   const [slotDialogPresetPartySize, setSlotDialogPresetPartySize] = useState<number | null>(null);
   const [demoAlertsEnabled, setDemoAlertsEnabled] = useState(false);
   const attemptedFinalizationRef = useRef<Set<string>>(new Set());
-  const { isMember: isTokOneMember, isLoading: tokOneLoading } = useIsTokOneMember({ enabled: !isCommercialDemoClient });
+  const tokOneEntitlements = useTokOneEntitlements(!isCommercialDemoClient);
+  const isTokOneMember = tokOneEntitlements.data?.chef_table_priority === true;
+  const tokOneLoading = tokOneEntitlements.isLoading;
 
   const dropsQuery = useQuery({
     queryKey: ["chefs-table-drops"],

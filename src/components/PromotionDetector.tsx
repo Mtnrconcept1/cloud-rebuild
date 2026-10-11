@@ -9,11 +9,12 @@ const supabase = getSupabase();
 interface PromotionDetectorProps {
   restaurantId: string | null;
   subtotal: number;
-  onDiscountCalculated: (discount: number, promoName: string | null) => void;
+  deliveryFee?: number;
+  onDiscountCalculated: (discount: number, promoName: string | null, delivery?: boolean) => void;
 }
 
-export default function PromotionDetector({ restaurantId, subtotal, onDiscountCalculated }: PromotionDetectorProps) {
-  const lastValues = useRef({ discount: 0, name: null as string | null });
+export default function PromotionDetector({ restaurantId, subtotal, deliveryFee = 0, onDiscountCalculated }: PromotionDetectorProps) {
+  const lastValues = useRef({ discount: 0, name: null as string | null, delivery: false });
 
   const { data: promotions } = useQuery({
     queryKey: ["active-promotions", restaurantId],
@@ -34,7 +35,7 @@ export default function PromotionDetector({ restaurantId, subtotal, onDiscountCa
   });
 
   // Find best applicable promotion
-  let bestPromo: { name: string; discount: number } | null = null;
+  let bestPromo: { name: string; discount: number; delivery: boolean } | null = null;
   if (promotions && promotions.length > 0 && subtotal > 0) {
     for (const promo of promotions) {
       let discount = 0;
@@ -43,24 +44,24 @@ export default function PromotionDetector({ restaurantId, subtotal, onDiscountCa
       } else if (promo.promotion_type === "fixed") {
         discount = Math.min(promo.promotion_value, subtotal);
       } else if (promo.promotion_type === "free_delivery") {
-        // Handled separately in cart, not as item discount
-        continue;
+        discount = deliveryFee;
       }
       if (!bestPromo || discount > bestPromo.discount) {
-        bestPromo = { name: promo.name, discount };
+        bestPromo = { name: promo.name, discount, delivery: promo.promotion_type === "free_delivery" };
       }
     }
   }
 
   const currentDiscount = bestPromo?.discount || 0;
   const currentName = bestPromo?.name || null;
+  const currentDelivery = bestPromo?.delivery || false;
 
   useEffect(() => {
-    if (currentDiscount !== lastValues.current.discount || currentName !== lastValues.current.name) {
-      lastValues.current = { discount: currentDiscount, name: currentName };
-      onDiscountCalculated(currentDiscount, currentName);
+    if (currentDiscount !== lastValues.current.discount || currentName !== lastValues.current.name || currentDelivery !== lastValues.current.delivery) {
+      lastValues.current = { discount: currentDiscount, name: currentName, delivery: currentDelivery };
+      onDiscountCalculated(currentDiscount, currentName, currentDelivery);
     }
-  }, [currentDiscount, currentName, onDiscountCalculated]);
+  }, [currentDiscount, currentName, currentDelivery, onDiscountCalculated]);
 
   if (!bestPromo) return null;
 

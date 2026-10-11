@@ -176,6 +176,7 @@ export function isTokOneBenefitApplicable(
 ) {
   const value = benefit.value;
   if (!value || typeof value !== "object" || Array.isArray(value)) return true;
+  if (value.enabled === false) return false;
 
   if (input?.restaurantId) {
     const restaurantIds = [
@@ -211,6 +212,7 @@ export function resolveTokOneDiscountPercentage(
   const discountBenefits = (benefits || [])
     .filter((benefit) => benefit.benefit_type === "discount_percentage");
   const configured = discountBenefits
+    .filter(benefit => isTokOneBenefitApplicable(benefit))
     .reduce((best, benefit) => {
       const value = parseBenefitNumber(benefit.value, ["percentage", "discount_percent", "percent", "value"]);
       return value > best ? value : best;
@@ -252,14 +254,7 @@ export function resolveTokOneFreeDeliveryMinOrder(
   plan: TokOnePlan | null | undefined,
   benefits: TokOneBenefit[] | null | undefined,
 ) {
-  const configuredValues = (benefits || [])
-    .filter((benefit) => benefit.benefit_type === "free_delivery")
-    .map((benefit) => parseOptionalBenefitNumber(benefit.value, ["min_order", "minimum_order", "free_delivery_min_order", "threshold", "value"]))
-    .filter((value): value is number => value !== null);
-
-  if (configuredValues.length > 0) return Math.max(...configuredValues);
-  const planThreshold = Number(plan?.free_delivery_min_order || 0);
-  return Number.isFinite(planThreshold) && planThreshold > 0 ? planThreshold : 0;
+  return resolveTokOneFreeDeliveryMinOrderForContext(plan, benefits, {});
 }
 
 export function resolveTokOneFreeDeliveryMinOrderForContext(
@@ -316,80 +311,18 @@ export function useTokOneSubscription(options: QueryOptions = {}) {
   return useQuery({
     queryKey: ["tok-one-subscription", user?.id],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("tok_one_subscriptions")
-        .select("*")
-        .eq("user_id", user!.id)
-        .eq("stripe_mode", "live")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) {
-        const plan = await fetchTokOnePlan(data.plan_id);
-        return attachPlan(data, plan);
-      }
-
-      const { data: transactions, error: transactionsError } = await (supabase as any)
-        .from("payment_transactions")
-        .select("id, stripe_checkout_session_id, created_at, metadata, status, stripe_mode")
-        .eq("user_id", user!.id)
-        .eq("stripe_mode", "live")
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (transactionsError) throw transactionsError;
-
-      const latestTokOnePayment = ((transactions || []) as any[]).find((transaction) => {
-        const metadata = transaction?.metadata;
-        return (
-          metadata &&
-          typeof metadata === "object" &&
-          !Array.isArray(metadata) &&
-          metadata.checkout_kind === "tok-one" &&
-          metadata.plan_id &&
-          ["paid", "succeeded"].includes(String(transaction?.status || ""))
-        );
-      });
-
-      if (!latestTokOnePayment) return null;
-
-      const paymentMetadata = latestTokOnePayment.metadata as Record<string, any>;
-      const billingPeriod = paymentMetadata.billing_period === "yearly" ? "yearly" : "monthly";
-      const periodStart = new Date(latestTokOnePayment.created_at);
-      const periodEnd = new Date(periodStart);
-
-      if (billingPeriod === "yearly") {
-        periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-      } else {
-        periodEnd.setMonth(periodEnd.getMonth() + 1);
-      }
-
-      if (periodEnd <= new Date()) return null;
-
-      const recoveredPlan = await fetchTokOnePlan(paymentMetadata.plan_id);
-
-      const recoveryPayload = {
-        user_id: user!.id,
-        plan_id: paymentMetadata.plan_id,
-        status: "active",
-        current_period_start: periodStart.toISOString(),
-        current_period_end: periodEnd.toISOString(),
-        cancel_at_period_end: false,
-        stripe_subscription_id: null,
-        stripe_mode: "live" as const,
-      };
-
-      const recoveryView = {
-        ...recoveryPayload,
-        billing_period: billingPeriod,
-        stripe_session_id: latestTokOnePayment.stripe_checkout_session_id || null,
-      };
-
-      return attachPlan({
-        ...recoveryView,
-        id: `recovered-${latestTokOnePayment.id}`,
-      }, recoveredPlan);
+      const activeQuery = await (supabase as any).from("tok_one_subscriptions").select("*")
+        .eq("user_id", user!.id).eq("stripe_mode", "live")
+        .in("status", ["active", "trialing"]).gt("current_period_end", new Date().toISOString())
+        .or(`current_period_start.is.null,current_period_start.lte.${new Date().toISOString()}`)
+        .order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (activeQuery.error) throw activeQuery.error;
+      const latestQuery = activeQuery.data ? activeQuery : await (supabase as any)
+        .from("tok_one_subscriptions").select("*").eq("user_id", user!.id).eq("stripe_mode", "live")
+        .order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (latestQuery.error) throw latestQuery.error;
+      if (!latestQuery.data) return null;
+      return attachPlan(latestQuery.data, await fetchTokOnePlan(latestQuery.data.plan_id));
     },
     enabled: !!user && (options.enabled ?? true),
   });

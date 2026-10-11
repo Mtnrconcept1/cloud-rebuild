@@ -350,3 +350,6 @@ verify_jwt = false
 # Legacy public demo credentials endpoint: permanent authenticated tombstone.
 [functions.provision-commercial-demo-logins]
 verify_jwt = true
+
+[functions.manage-restaurant-establishments]
+verify_jwt = false

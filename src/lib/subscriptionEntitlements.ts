@@ -52,14 +52,17 @@ function asNumber(value: unknown) {
 }
 
 function getBenefitNumber(benefit: SubscriptionBenefitInput | undefined, keys: string[]) {
-  if (!benefit?.value) return 0;
+  if (!benefit?.value) return null;
 
   for (const key of keys) {
-    const value = asNumber(benefit.value[key]);
-    if (value > 0) return value;
+    if (!Object.prototype.hasOwnProperty.call(benefit.value, key)) continue;
+    const raw = benefit.value[key];
+    if (raw === null || raw === "") continue;
+    const value = Number(raw);
+    if (Number.isFinite(value) && value >= 0) return value;
   }
 
-  return 0;
+  return null;
 }
 
 function isEnabled(benefit: SubscriptionBenefitInput | undefined) {
@@ -106,9 +109,9 @@ export function buildTokOneEntitlements(input: {
   };
 
   return {
-    discountPercent: enabledById.discount_percentage ? configuredDiscount || TOK_ONE_DEFAULT_DISCOUNT_PERCENT : 0,
+    discountPercent: enabledById.discount_percentage ? (configuredDiscount ?? TOK_ONE_DEFAULT_DISCOUNT_PERCENT) : 0,
     freeDeliveryMinOrder: isEnabled(freeDeliveryBenefit)
-      ? configuredFreeDelivery || planFreeDelivery || 0
+      ? (configuredFreeDelivery ?? planFreeDelivery ?? 0)
       : Number.POSITIVE_INFINITY,
     flags,
     displayBenefits: TOK_ONE_DEFAULT_BENEFITS.map((benefit) => ({

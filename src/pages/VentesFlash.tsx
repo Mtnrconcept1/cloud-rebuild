@@ -1,3 +1,4 @@
+import { useTokOneEntitlements } from "@/hooks/useTokOneEntitlements";
 import { useEffect, useMemo, useState } from "react";
 import CampaignBanner from "@/components/CampaignBanner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -90,12 +91,14 @@ export default function VentesFlash() {
 
   const notifyEnabled = !!flashSubscription;
 
+  const tokOneEntitlements = useTokOneEntitlements(!isCommercialDemoClient);
+  const [visibilityTime, setVisibilityTime] = useState(() => new Date());
+  useEffect(() => { const timer = window.setInterval(() => setVisibilityTime(new Date()), 15_000); return () => window.clearInterval(timer); }, []);
+  const earlyAccess = tokOneEntitlements.data?.flash_early_access === true;
   const flashOffers = useMemo(() => {
     if (!allOffers) return [];
-    const now = new Date();
-
-    return allOffers.filter((offer: any) => isFlashSalePubliclyVisible(offer, now));
-  }, [allOffers]);
+    return allOffers.filter((offer: any) => isFlashSalePubliclyVisible(offer, visibilityTime, earlyAccess));
+  }, [allOffers, earlyAccess, visibilityTime]);
 
   const targetDates = useMemo(() => {
     const map: Record<string, Date> = {};

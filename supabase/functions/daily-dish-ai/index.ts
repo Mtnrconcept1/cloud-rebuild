@@ -454,7 +454,7 @@ async function requireLiveAccess(actor: Actor, restaurantId: string, throwWhenLo
       .eq("id", restaurantId)
       .maybeSingle(),
     actor.adminClient
-      .from("restaurant_ai_subscriptions")
+      .from("restaurant_subscription_entitlements")
       .select("plan, status, current_period_end, restaurant_subscription_plan_id")
       .eq("restaurant_id", restaurantId)
       .in("status", ["trialing", "active"])

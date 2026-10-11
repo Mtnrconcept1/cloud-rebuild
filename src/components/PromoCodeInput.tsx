@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,17 +11,28 @@ interface PromoCodeInputProps {
   restaurantId: string | null;
   userId: string | undefined;
   subtotal: number;
-  onApplied: (discount: number, name: string | null, codeId: string | null) => void;
+  deliveryFee?: number;
+  onApplied: (discount: number, name: string | null, codeId: string | null, options?: { stackable: boolean; delivery: boolean }) => void;
 }
 
-export default function PromoCodeInput({ restaurantId, userId, subtotal, onApplied }: PromoCodeInputProps) {
+export default function PromoCodeInput({ restaurantId, userId, subtotal, deliveryFee = 0, onApplied }: PromoCodeInputProps) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [applied, setApplied] = useState<{ name: string; discount: number } | null>(null);
 
+  const requestVersion = useRef(0);
+  useEffect(() => {
+    requestVersion.current += 1;
+    setApplied(null);
+    setLoading(false);
+    setError(null);
+    onApplied(0, null, null);
+  }, [subtotal, deliveryFee, restaurantId, userId, onApplied]);
+
   const handleApply = async () => {
+    const version = ++requestVersion.current;
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) return;
     setLoading(true);
@@ -36,6 +47,7 @@ export default function PromoCodeInput({ restaurantId, userId, subtotal, onAppli
         .eq("is_active", true)
         .maybeSingle();
 
+      if (version !== requestVersion.current) return;
       if (fetchErr) throw fetchErr;
       if (!promo) { setError("Code promo invalide."); setLoading(false); return; }
 
@@ -60,12 +72,14 @@ export default function PromoCodeInput({ restaurantId, userId, subtotal, onAppli
 
       // Check per-user limit
       if (userId && promo.per_user_limit) {
-        const { count } = await supabase
+        const { count, error: countError } = await supabase
           .from("promo_code_uses")
           .select("*", { count: "exact", head: true })
           .eq("promo_code_id", promo.id)
           .eq("user_id", userId);
 
+        if (version !== requestVersion.current) return;
+        if (countError) throw countError;
         if (count != null && count >= promo.per_user_limit) {
           setError("Vous avez déjà utilise ce code.");
           setLoading(false);
@@ -75,12 +89,14 @@ export default function PromoCodeInput({ restaurantId, userId, subtotal, onAppli
 
       // Check first order only
       if (promo.is_first_order_only && userId) {
-        const { count } = await supabase
+        const { count, error: countError } = await supabase
           .from("orders")
           .select("*", { count: "exact", head: true })
           .eq("user_id", userId)
-          .neq("status", "cancelled");
+          .not("status", "in", "(cancelled,refused,payment_failed,pending_payment)");
 
+        if (version !== requestVersion.current) return;
+        if (countError) throw countError;
         if (count != null && count > 0) {
           setError("Ce code est réservé à la première commande.");
           setLoading(false);
@@ -92,23 +108,26 @@ export default function PromoCodeInput({ restaurantId, userId, subtotal, onAppli
       let discount = 0;
       if (promo.type === "percentage") {
         discount = (subtotal * Number(promo.value)) / 100;
-        if (promo.max_discount) discount = Math.min(discount, Number(promo.max_discount));
+        if (promo.max_discount != null) discount = Math.min(discount, Number(promo.max_discount));
       } else if (promo.type === "fixed") {
         discount = Math.min(Number(promo.value), subtotal);
       }
-      // free_delivery handled via metadata, not as item discount
+      if (promo.type === "free_delivery") discount = deliveryFee;
+      if (version !== requestVersion.current) return;
 
-      const name = `Code ${trimmed} (-${promo.type === "percentage" ? promo.value + "%" : Number(promo.value).toFixed(2) + " CHF"})`;
+      const name = promo.type === "free_delivery" ? `Code ${trimmed} (livraison offerte)` : `Code ${trimmed} (-${promo.type === "percentage" ? promo.value + "%" : Number(promo.value).toFixed(2) + " CHF"})`;
       setApplied({ name, discount });
-      onApplied(discount, name, promo.id);
+      onApplied(discount, name, promo.id, { stackable: promo.is_stackable === true, delivery: promo.type === "free_delivery" });
     } catch {
+      if (version !== requestVersion.current) return;
       setError("Erreur lors de la vérification du code.");
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) setLoading(false);
     }
   };
 
   const handleRemove = () => {
+    requestVersion.current += 1;
     setApplied(null);
     setCode("");
     setError(null);

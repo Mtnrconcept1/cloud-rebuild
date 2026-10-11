@@ -1,3 +1,4 @@
+import MemberBenefitOffers from "@/components/MemberBenefitOffers";
 import { ArrowUpRight, Cake, CheckCircle2, Loader2, LockKeyhole, Star, Trophy } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -57,7 +58,7 @@ export default function LoyaltyStatus({
     queryFn: async () => {
       const { data } = await supabase
         .from("loyalty_tiers")
-        .select("name, benefits")
+        .select("name, benefits, min_points, status")
         .order("min_points", { ascending: true });
       return data || [];
     },
@@ -106,7 +107,7 @@ export default function LoyaltyStatus({
   if (!user || !profile) return null;
 
   const points = profile.loyalty_points || 0;
-  const loyalty = getLoyaltyStatus(points, profile.current_tier);
+  const loyalty = getLoyaltyStatus(points, profile.current_tier, tiers);
   const config = LOYALTY_TIERS[loyalty.currentTier];
   const currentBenefits = getTierBenefits(loyalty.currentTier, tiers);
   const lockedBenefits = getLockedTierBenefits(loyalty.currentTier, tiers);
@@ -222,6 +223,7 @@ export default function LoyaltyStatus({
                 </div>
               ) : null}
             </div>
+          <MemberBenefitOffers enabled={!isCommercialDemoClient} />
           </DialogContent>
         </Dialog>
       </div>
