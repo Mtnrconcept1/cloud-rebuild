@@ -44,8 +44,6 @@
 .tok-or-banner__body{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:14px;font-family:'Playfair Display',Georgia,serif;font-size:clamp(17px,1.6vw,23px);line-height:1.15}
 .tok-or-banner__cta{display:inline-flex;align-items:center;gap:8px;padding:8px 17px;border-radius:40px;background:#fff8f0;color:#a9410c;font:700 13px system-ui,sans-serif}
 .tok-home-cuisine-strip{padding-top:20px!important}
-.tok-home-cuisine-strip [data-section-showcase-header]{border-bottom:0;padding-bottom:0}
-.tok-home-cuisine-strip [data-section-showcase-header] h2{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:clamp(26px,2.4vw,37px)}
 .dark .tok-home-hero{--tok-home-ink:#fcf4eb;--tok-home-muted:#c3b8ae;--tok-home-orange:#ff9866}
 .dark .tok-home-hero__form{border-color:#39312b;background:#251e1a}
 .dark .tok-home-hero__field label,.dark .tok-home-hero__input-row input{color:#f8ecdf}
@@ -122,3 +120,21 @@ var(--tok-home-paper) 100%);
 .tok-home-hero__content{padding-bottom:8px}
 }
 @media(prefers-reduced-motion:reduce){.tok-home-hero__cta,.tok-or-banner{transition:none}}
+
+@media(max-width:767px){
+/* Allocate the visible viewport to the hero and the complete newsletter.
+   Only the artwork flexes; text and controls keep their natural, readable size.
+   The content may grow on extreme zoom/short landscape screens, never clip. */
+.tok-home-first-screen{
+display:flex;flex-direction:column;
+height:calc(100vh - var(--tok-public-navbar-height,104px));
+height:calc(100dvh - var(--tok-public-navbar-height,104px));
+min-height:min-content;
+padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.tok-home-first-screen .tok-home-hero{flex:1 0 auto;min-height:0}
+.tok-home-first-screen .tok-home-hero__art{flex:1 0 80px;height:auto;min-height:80px}
+.tok-home-first-screen .tok-home-hero__background{position:absolute;inset:0}
+.tok-home-first-screen .tok-home-hero__content{flex:0 0 auto}
+.tok-home-first-screen .tok-home-hero__secondary{flex:0 0 auto}
+}
