@@ -254,6 +254,104 @@
   }
 }
 
+/* TheFork-inspired mobile treatment for homepage restaurant rails only.
+ * Other editorial banners keep their original artwork on every breakpoint. */
+@media (max-width: 639px) {
+  [data-section-showcase-header].tok-section-header--home-rail,
+  .dark [data-section-showcase-header].tok-section-header--home-rail {
+    display: block;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  [data-section-showcase-header].tok-section-header--home-rail .tok-section-header__visual {
+    display: none;
+  }
+
+  [data-section-showcase-header].tok-section-header--home-rail .tok-section-header__content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .25rem .75rem;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  [data-section-showcase-header].tok-section-header--home-rail .tok-section-header__eyebrow,
+  .dark [data-section-showcase-header].tok-section-header--home-rail .tok-section-header__eyebrow {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: hsl(var(--foreground) / .78);
+    font-size: .8125rem;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: .02em;
+    text-transform: none;
+  }
+
+  [data-section-showcase-header].tok-section-header--home-rail .tok-section-header__symbol {
+    display: none;
+  }
+
+  [data-section-showcase-header].tok-section-header--home-rail .tok-section-header__title {
+    grid-column: 1;
+    grid-row: 2;
+    color: hsl(var(--foreground));
+    font-family: inherit;
+    font-size: clamp(1.25rem, 5.2vw, 1.5rem);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -.025em;
+  }
+
+  [data-section-showcase-header].tok-section-header--home-rail .tok-section-header__description {
+    grid-column: 1 / -1;
+    color: hsl(var(--foreground) / .78);
+    font-size: .875rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  [data-section-showcase-header].tok-section-header--home-rail [data-section-action-row] {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+    justify-self: end;
+    flex-basis: auto;
+    flex-wrap: nowrap;
+    margin: 0;
+    gap: 0;
+  }
+
+  [data-section-showcase-header].tok-section-header--home-rail [data-section-action-row] a,
+  .dark [data-section-showcase-header].tok-section-header--home-rail [data-section-action-row] a {
+    min-height: 44px;
+    padding: .25rem 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: hsl(var(--foreground));
+    font-size: .875rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+
+  [data-section-showcase-header].tok-section-header--home-rail [data-section-action-row] a:hover,
+  [data-section-showcase-header].tok-section-header--home-rail [data-section-action-row] a:focus-visible,
+  .dark [data-section-showcase-header].tok-section-header--home-rail [data-section-action-row] a:hover,
+  .dark [data-section-showcase-header].tok-section-header--home-rail [data-section-action-row] a:focus-visible {
+    background: transparent;
+    color: hsl(var(--primary));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-section-showcase-header] [data-section-action-row] a {
     transition: none;
