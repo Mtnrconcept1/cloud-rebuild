@@ -161,6 +161,14 @@ Deno.serve(async (req) => {
     }
     if (action !== "create") throw new HttpError(400, "Action inconnue.");
 
+    // Paid experiences have their own verified Stripe checkout. Allowing a
+    // caller to select those feature names here would bypass the free-table
+    // card-guarantee policy without actually paying for the experience.
+    const requestedFeature = String(body.feature || "classique").trim().toLowerCase();
+    if (requestedFeature === "zero-attente" || requestedFeature === "chefs_table") {
+      throw new HttpError(409, "Utilisez le parcours de réservation et de paiement dédié.");
+    }
+
     const restaurantId = String(body.restaurant_id || "").trim();
     const date = String(body.date || "").trim();
     const time = String(body.time || "").trim().slice(0, 5);
