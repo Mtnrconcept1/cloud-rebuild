@@ -10,6 +10,16 @@ type CuisineCategory = {
   imageSrc: string;
 };
 
+// Visuels carrés avec intitulé intégré. Les autres catégories gardent leur ancien rendu.
+const CATEGORIES_3D = new Set([
+  "chinois", "creole", "suisse", "francais", "gastronomique", "grillades",
+  "halal", "healthy", "indien", "japonais", "kebab", "libanais",
+  "marocain", "mediterraneen", "mexicain", "pakistanais", "pates",
+  "patisserie", "petit-dejeuner", "pizza", "poke", "ramen",
+  "salades", "sandwich", "street-food", "sushi", "thai", "turc",
+  "vegan", "vegetarien",
+]);
+
 const CUISINE_CATEGORIES: CuisineCategory[] = [
   { slug: "gastronomique", label: "Gastronomique", imageSrc: "/images/miniatures/12_gastronomique.webp" },
   { slug: "italien", label: "Italien", imageSrc: "/images/miniatures/17_italien.webp" },
@@ -50,9 +60,12 @@ const CUISINE_CATEGORIES: CuisineCategory[] = [
   { slug: "cafe", label: "Café", imageSrc: "/images/miniatures/07_cafe.webp" },
   { slug: "sandwich", label: "Sandwich", imageSrc: "/images/miniatures/36_sandwich.webp" },
   { slug: "street-food", label: "Street-food", imageSrc: "/images/miniatures/37_street-food.webp" },
-].sort((a, b) => a.label.localeCompare(b.label, "fr"));
+].map((category) => CATEGORIES_3D.has(category.slug)
+  ? { ...category, imageSrc: `/miniatures-3d/${category.slug === "suisse" ? "fondue-suisse" : category.slug}.webp` }
+  : category,
+).sort((a, b) => a.label.localeCompare(b.label, "fr"));
 
-function CuisinePhoto({ src, isActive }: { src: string; isActive: boolean }) {
+function CuisinePhoto({ src, label, isActive, hasIntegratedLabel }: { src: string; label: string; isActive: boolean; hasIntegratedLabel: boolean }) {
   return (
     <span
       className={[
@@ -60,9 +73,21 @@ function CuisinePhoto({ src, isActive }: { src: string; isActive: boolean }) {
         isActive ? "border-primary ring-2 ring-primary/20" : "border-border/80 group-hover:border-primary/60 group-hover:shadow-md",
       ].join(" ")}
     >
-      <span className="h-16 w-16 overflow-hidden rounded-full border border-border/50 sm:h-[72px] sm:w-[72px] md:h-24 md:w-24">
-        <img src={src} alt="" width={96} height={96} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-      </span>
+      {hasIntegratedLabel ? (
+        <img
+          src={src}
+          alt={`Cuisine ${label} : illustration photographique de la catégorie`}
+          width={144}
+          height={144}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full rounded-[19px] object-contain sm:rounded-[23px] md:rounded-[25px]"
+        />
+      ) : (
+        <span className="h-16 w-16 overflow-hidden rounded-full border border-border/50 sm:h-[72px] sm:w-[72px] md:h-24 md:w-24">
+          <img src={src} alt={`Cuisine ${label}`} width={96} height={96} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+        </span>
+      )}
     </span>
   );
 }
@@ -134,15 +159,17 @@ export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }
                 aria-pressed={isActive}
                 aria-label={cat.label}
               >
-                <CuisinePhoto src={cat.imageSrc} isActive={isActive} />
-                <span
-                  className={[
-                    "w-full break-words text-center text-[13px] font-bold leading-snug tracking-tight transition-colors sm:text-base md:text-lg md:leading-6",
-                    isActive ? "text-primary" : "text-foreground group-hover:text-primary",
-                  ].join(" ")}
-                >
-                  {cat.label}
-                </span>
+                <CuisinePhoto src={cat.imageSrc} label={cat.label} isActive={isActive} hasIntegratedLabel={CATEGORIES_3D.has(cat.slug)} />
+                {!CATEGORIES_3D.has(cat.slug) && (
+                  <span
+                    className={[
+                      "w-full break-words text-center text-[13px] font-bold leading-snug tracking-tight transition-colors sm:text-base md:text-lg md:leading-6",
+                      isActive ? "text-primary" : "text-foreground group-hover:text-primary",
+                    ].join(" ")}
+                  >
+                    {cat.label}
+                  </span>
+                )}
               </button>
             );
           })}
