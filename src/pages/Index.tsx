@@ -20,6 +20,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { getCurrentPosition } from "@/lib/geolocation-native";
+import { cantonAtCoordinates } from "@/lib/homeCantonHero";
 import {
   isRestaurantWithinRadius,
   type Coordinates,
@@ -362,6 +363,15 @@ export default function Index() {
     });
   }, [progressiveOffers, todayServiceDate, userCoordinates]);
 
+  // Reuse the position already requested for nearby restaurants: no second GPS permission.
+  const { data: locationCanton = null } = useQuery({
+    queryKey: ["home-hero-canton", geolocationQueryKey],
+    queryFn: () => cantonAtCoordinates(userCoordinates!),
+    enabled: Boolean(userCoordinates) && !isCommercialDemoClient,
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+
   const { data: userContext } = useQuery({
     queryKey: ["home-user-context", user?.id, demoSessionKey],
     enabled: Boolean(isCommercialDemoClient || user?.id),
@@ -643,7 +653,7 @@ export default function Index() {
 
   return (
     <main className="min-h-screen pb-20">
-      <HeroSection contentVisible={isVisible} activeFeatures={activeFeatures} />
+      <HeroSection contentVisible={isVisible} activeFeatures={activeFeatures} locationCanton={locationCanton} profileCity={userContext?.city} />
       {activeFeatures.has("chefs-table") ? (
         <section className="tok-or-banner-shell" aria-label="La TOK d’Or">
           <Link to="/chefs-table" className="tok-or-banner">
