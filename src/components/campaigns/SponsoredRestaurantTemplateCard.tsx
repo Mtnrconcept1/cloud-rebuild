@@ -32,6 +32,7 @@ type SponsoredRestaurantTemplateCardProps = {
   className?: string;
   variant?: SponsoredCreativeVariant;
   compactBanner?: boolean;
+  homeRail?: boolean;
   selectedTextElement?: CampaignCreativeTextElement | null;
   draggingTextElement?: CampaignCreativeTextElement | null;
   onTextPointerDown?: never;
@@ -154,6 +155,7 @@ export function SponsoredRestaurantTemplateCard({
   className,
   variant = "card",
   compactBanner = false,
+  homeRail = false,
   restaurantHref,
   onRestaurantClick,
   isFavorite = false,
@@ -381,11 +383,11 @@ export function SponsoredRestaurantTemplateCard({
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="mb-3 flex min-w-0 flex-wrap items-start gap-2" data-sponsored-card-badges>
-          <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-full border border-orange-200 bg-primary px-3 py-1.5 text-center text-[9px] font-black uppercase leading-4 tracking-[0.12em] text-primary-foreground shadow-sm [overflow-wrap:anywhere]">
+          <span className={cn("inline-flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-full border border-orange-200 bg-primary px-3 py-1.5 text-center text-[9px] font-black uppercase leading-4 tracking-[0.12em] text-primary-foreground shadow-sm [overflow-wrap:anywhere]", homeRail && "text-[11px] tracking-normal")}>
             <Megaphone className="h-3 w-3 shrink-0" />
             <span className="min-w-0 break-words [overflow-wrap:anywhere]">{displayBadge}</span>
           </span>
-          <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-primary via-orange-500 to-emerald-600 px-3 py-1.5 text-center text-[10px] font-black uppercase leading-4 tracking-[0.06em] text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)] [overflow-wrap:anywhere]">
+          <span className={cn("inline-flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-primary via-orange-500 to-emerald-600 px-3 py-1.5 text-center text-[10px] font-black uppercase leading-4 tracking-[0.06em] text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)] [overflow-wrap:anywhere]", homeRail && "text-[11px] tracking-normal")}>
             <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/20">
               <Percent className="h-3.5 w-3.5" />
             </span>
@@ -394,10 +396,10 @@ export function SponsoredRestaurantTemplateCard({
         </div>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1 space-y-1">
-            <h3 className={cn("break-words text-base leading-tight text-foreground transition-colors [overflow-wrap:anywhere] [text-wrap:balance] group-hover:text-primary", getTypographyClass(normalized.text.restaurant))} style={getTextInlineStyle(normalized.text.restaurant)}>
+            <h3 className={cn("break-words text-base leading-tight text-foreground transition-colors [overflow-wrap:anywhere] [text-wrap:balance] group-hover:text-primary", getTypographyClass(normalized.text.restaurant), homeRail && "text-lg font-bold")} style={getTextInlineStyle(normalized.text.restaurant)}>
               {displayRestaurantName}
             </h3>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90">
+            <div className={cn("flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90", homeRail && "text-xs tracking-[0.06em] text-slate-700")}>
               <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere]">{displayCuisine}</span>
               <span className="text-border">/</span>
               <PriceRangeIcons range={priceRange} />
@@ -408,17 +410,17 @@ export function SponsoredRestaurantTemplateCard({
             <div className="inline-flex min-w-[2.7rem] items-center justify-center rounded-xl bg-primary px-2.5 py-1.5 text-sm font-bold text-primary-foreground">
               {displayRating || "—"}{displayRating ? <span className="sr-only"> sur 10</span> : null}
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground">{safeReviewCount > 0 ? `${safeReviewCount} avis` : "Pas encore d’avis"}</p>
+            <p className={cn("mt-1 text-[10px] text-muted-foreground", homeRail && "text-xs font-semibold text-slate-700")}>{safeReviewCount > 0 ? `${safeReviewCount} avis` : "Pas encore d’avis"}</p>
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        <div className={cn("mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground", homeRail && "text-sm font-semibold text-slate-700")}>
           <span className="inline-flex min-w-0 items-start gap-1.5">
             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/75" />
             <span className="min-w-0 break-words font-medium text-foreground/90 [overflow-wrap:anywhere]">{displayCity}</span>
           </span>
         </div>
-        <p className="mt-2 break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
+        <p className={cn("mt-2 break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]", homeRail && "font-medium text-slate-700")}>
           {displayAddressCopy}
         </p>
 
@@ -465,7 +467,7 @@ export function SponsoredRestaurantTemplateCard({
             ))}
           </div>
           {slots.length > 0 ? (
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className={cn("mt-2 text-xs text-muted-foreground", homeRail && "text-sm font-medium text-slate-700")}>
             Créneaux promo visibles. Plus d'options sur la fiche.
             </p>
           ) : null}
