@@ -1,0 +1,48 @@
+name: Temporary TOK canton index reconciliation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/workflows/_temporary-tok-canton-index.yml
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  sync:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'codex/tok-home-canton-localization-20261012' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 20
+          persist-credentials: true
+      - name: Setup versioned toolchain
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Regenerate from the final tracked Git tree
+        run: |
+          set -euo pipefail
+          git config user.name "TOK CI Assistant"
+          git config user.email "tok-ci-assistant@users.noreply.github.com"
+          git fetch --no-tags --depth=20 origin main:refs/remotes/origin/main
+          git merge --no-edit --no-ff origin/main
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+          pnpm install --frozen-lockfile
+          rm .github/workflows/_temporary-tok-canton-index.yml
+          git add -u .github/workflows/_temporary-tok-canton-index.yml
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
+          git diff --cached --check
+          git commit -m "docs: reconcile TOK canton application index with final tree"
+          git push origin HEAD:refs/heads/codex/tok-home-canton-localization-20261012
+      - name: Validate the reconciled branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run ci.yml --ref codex/tok-home-canton-localization-20261012
