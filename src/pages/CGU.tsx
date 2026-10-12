@@ -3,6 +3,8 @@ import { SUPPORT_EMAIL } from "@/lib/contact";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { LEGAL_DOCUMENTS } from "@/lib/legalDocuments";
 
+const LEGAL_EFFECTIVE_DATE_FR = "12 octobre 2026";
+
 const sections = [
   {
     title: "1. Objet",
@@ -129,7 +131,7 @@ export default function CGU() {
       <div className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Conditions Générales d'Utilisation</h1>
         <p className="text-muted-foreground">
-          Version {LEGAL_DOCUMENTS.cgu.version} — applicable dès le 12 octobre 2026
+          Version {LEGAL_DOCUMENTS.cgu.version} — applicable dès le {LEGAL_EFFECTIVE_DATE_FR}
         </p>
       </div>
 
