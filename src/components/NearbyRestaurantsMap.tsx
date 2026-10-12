@@ -13,6 +13,8 @@ interface Restaurant {
   city?: string | null;
   address?: string | null;
   image_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 interface NearbyRestaurantsMapProps {
@@ -67,17 +69,12 @@ function getEmoji(cuisine?: string | null): string {
   return "\u{1F37D}\uFE0F";
 }
 
-function pseudoRandomOffset(name: string, index: number): [number, number] {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = (hash << 5) - hash + name.charCodeAt(i);
-    hash |= 0;
-  }
-  const latOffset = ((hash % 100) / 100) * 0.03 - 0.015;
-  const lngOffset = (((hash >> 8) % 100) / 100) * 0.03 - 0.015;
-  const angle = (index * 137.5 * Math.PI) / 180;
-  const radius = 0.003 + index * 0.001;
-  return [latOffset + Math.cos(angle) * radius, lngOffset + Math.sin(angle) * radius];
+function validCoordinates(restaurant: Restaurant): [number, number] | null {
+  const { latitude, longitude } = restaurant;
+  if (typeof latitude !== "number" || typeof longitude !== "number") return null;
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
+  return [latitude, longitude];
 }
 
 function createRestaurantPopup(restaurant: Restaurant) {
@@ -153,22 +150,26 @@ export default function NearbyRestaurantsMap({
     if (!mapRef.current || mapInstance.current) return;
 
     const map = L.map(mapRef.current, {
-      scrollWheelZoom: true,
+      scrollWheelZoom: false,
+      tap: false,
     }).setView([centerLat, centerLng], 14);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      referrerPolicy: "strict-origin",
     }).addTo(map);
 
     L.marker([centerLat, centerLng], { icon: userIcon }).addTo(map).bindPopup("Votre position");
 
     const bounds = L.latLngBounds([[centerLat, centerLng]]);
 
-    restaurants.forEach((restaurant, index) => {
+    let locatedCount = 0;
+    restaurants.forEach((restaurant) => {
+      const coordinates = validCoordinates(restaurant);
+      if (!coordinates) return;
+      locatedCount += 1;
       const emoji = getEmoji(restaurant.cuisine_type);
-      const [latOff, lngOff] = pseudoRandomOffset(restaurant.name, index);
-      const lat = centerLat + latOff;
-      const lng = centerLng + lngOff;
+      const [lat, lng] = coordinates;
 
       const marker = L.marker([lat, lng], { icon: restaurantIcon(emoji) })
         .addTo(map)
@@ -192,11 +193,21 @@ export default function NearbyRestaurantsMap({
       bounds.extend([lat, lng]);
     });
 
-    if (restaurants.length > 0) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+    if (locatedCount > 0) {
+      map.fitBounds(bounds, { padding: [32, 32], maxZoom: 15 });
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize({ pan: false });
+    });
+    resizeObserver.observe(mapRef.current);
+    const frame = requestAnimationFrame(() => map.invalidateSize({ pan: false }));
 
     mapInstance.current = map;
 
     return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
       map.remove();
       mapInstance.current = null;
     };
