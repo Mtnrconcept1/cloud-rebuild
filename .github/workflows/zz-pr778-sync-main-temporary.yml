@@ -28,6 +28,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Merge current main without overwriting any application logic
         run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch --depth=40 origin main
           git merge --no-commit --no-ff -X ours origin/main
       - name: Remove temporary workflow before regeneration
