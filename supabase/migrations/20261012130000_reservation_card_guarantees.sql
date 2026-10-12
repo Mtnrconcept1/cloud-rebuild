@@ -3,6 +3,22 @@
 -- off-session Stripe PaymentIntent with its own immutable audit record.
 BEGIN;
 
+CREATE TABLE IF NOT EXISTS public.reservation_card_guarantee_rollout (
+  id boolean PRIMARY KEY DEFAULT true CHECK (id),
+  enabled boolean NOT NULL DEFAULT false,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- Deploy the code and migrations without changing booking behavior.
+-- Operations may enable the rollout only after Stripe Test and legal sign-off.
+INSERT INTO public.reservation_card_guarantee_rollout (id, enabled)
+VALUES (true, false)
+ON CONFLICT (id) DO NOTHING;
+
+ALTER TABLE public.reservation_card_guarantee_rollout ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.reservation_card_guarantee_rollout FROM PUBLIC, anon, authenticated;
+GRANT SELECT ON TABLE public.reservation_card_guarantee_rollout TO service_role;
+
 CREATE TABLE IF NOT EXISTS public.reservation_card_guarantee_setups (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
@@ -88,6 +104,20 @@ BEGIN
   IF p_user_id IS NULL OR p_party_size IS NULL OR p_party_size < 1 OR p_party_size > 50 THEN
     RAISE EXCEPTION 'Invalid reservation guarantee quote' USING ERRCODE = '22023';
   END IF;
+  -- Fail-safe staged rollout. Missing or false row means no guarantee policy
+  -- is applied; merging this migration cannot disable existing bookings.
+  IF NOT EXISTS (
+    SELECT 1 FROM public.reservation_card_guarantee_rollout
+    WHERE id = true AND enabled = true
+  ) THEN
+    is_required := false;
+    cancellation_count := 0;
+    reason := 'none';
+    fee_amount_cents := 0;
+    RETURN NEXT;
+    RETURN;
+  END IF;
+
   v_start := date_trunc('year', now() AT TIME ZONE 'Europe/Zurich') AT TIME ZONE 'Europe/Zurich';
   v_end := (date_trunc('year', now() AT TIME ZONE 'Europe/Zurich') + interval '1 year') AT TIME ZONE 'Europe/Zurich';
   SELECT count(*) INTO v_count
