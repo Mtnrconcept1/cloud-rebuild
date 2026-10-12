@@ -105,4 +105,17 @@ describe("homepage positioning guards", () => {
     expect(css).toContain("transition-duration: 0.01ms !important");
     expect(css).toContain("scroll-behavior: auto !important");
   });
+  it("uses actual restaurant coordinates and refreshes the mobile Leaflet viewport", () => {
+    const map = read("src/components/NearbyRestaurantsMap.tsx");
+    const index = read("src/pages/Index.tsx");
+
+    expect(map).toContain("validCoordinates(restaurant)");
+    expect(map).toContain("resizeObserver.observe(mapRef.current)");
+    expect(map).toContain("map.invalidateSize({ pan: false })");
+    expect(map).not.toContain("pseudoRandomOffset");
+    expect(map).toContain("if (hasUserLocation)");
+    expect(index).toContain("centerLat={userCoordinates?.latitude}");
+    expect(index).toContain("centerLng={userCoordinates?.longitude}");
+  });
+
 });
