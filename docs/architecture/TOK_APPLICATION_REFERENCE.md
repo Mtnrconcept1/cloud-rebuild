@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `28bc5be62ffe663850a6863c7129e396f2755de230fb66907a15c80c34162ef8`
+- Empreinte SHA-256 des sources indexées : `6145cddcdcc8e1d8df7b6c1ddb4d732ea9e0e37be3ac2f307b5e6eecaafa6e32`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1861,8 +1861,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | token | — | 1 | [supabase/functions/marketing-unsubscribe/index.ts:66](../../supabase/functions/marketing-unsubscribe/index.ts#L66) |
 | tolerance | — | 1 | [src/test/home-canton-hero.test.ts:57](../../src/test/home-canton-hero.test.ts#L57) |
 | type | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:285](../../src/pages/Auth.tsx#L285) |
-| utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:644](../../src/components/ReservationDialog.tsx#L644) |
-| utm_source | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:640](../../src/components/ReservationDialog.tsx#L640) |
+| utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:652](../../src/components/ReservationDialog.tsx#L652) |
+| utm_source | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:648](../../src/components/ReservationDialog.tsx#L648) |
 | view | /admin/commandes-reservations | 2 | [src/marketing/useMarketingUrlState.ts:84](../../src/marketing/useMarketingUrlState.ts#L84) |
 | welcome | /coming-soon | 1 | [src/pages/ComingSoon.tsx:9](../../src/pages/ComingSoon.tsx#L9) |
 | width | — | 1 | [src/lib/optimizedImages.ts:37](../../src/lib/optimizedImages.ts#L37) |

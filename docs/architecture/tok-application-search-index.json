@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "28bc5be62ffe663850a6863c7129e396f2755de230fb66907a15c80c34162ef8",
+ "sourceDigest": "6145cddcdcc8e1d8df7b6c1ddb4d732ea9e0e37be3ac2f307b5e6eecaafa6e32",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -29512,7 +29512,7 @@
     "sources": [
      {
       "path": "src/components/ReservationDialog.tsx",
-      "line": 644
+      "line": 652
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
@@ -29528,7 +29528,7 @@
     "sources": [
      {
       "path": "src/components/ReservationDialog.tsx",
-      "line": 640
+      "line": 648
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
@@ -82848,7 +82848,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1104
+    "lineCount": 1112
    },
    {
     "path": "src/components/ReservationWidget.tsx",
@@ -106983,7 +106983,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3190,
+      "line": 3196,
       "kind": "function"
      }
     ],
@@ -106995,7 +106995,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3195
+    "lineCount": 3201
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -128589,7 +128589,7 @@
    "id": "code-module:2a61e80b3f5c",
    "type": "code-module",
    "title": "src/components/ReservationDialog.tsx",
-   "description": "Module de 1104 lignes; exports: default.",
+   "description": "Module de 1112 lignes; exports: default.",
    "path": "src/components/ReservationDialog.tsx",
    "line": 1,
    "surface": null,
@@ -128599,7 +128599,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "5b0c8400ce69"
+   "detailRef": "4dae06cdeecd"
   },
   {
    "id": "code-module:9a8f6d6b902a",
@@ -146284,7 +146284,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3195 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3201 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -146298,7 +146298,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "2fff4a75e614"
+   "detailRef": "45b986c4fa24"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -274572,12 +274572,12 @@
    "detailRef": "030eab57dc46"
   },
   {
-   "id": "exported-symbol:0abb78605e12",
+   "id": "exported-symbol:2e7fa1934ff2",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3190,
+   "line": 3196,
    "surface": null,
    "tags": [
     "firebase",
@@ -274587,7 +274587,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "310a9e335341"
+   "detailRef": "ec44ba1b5b6d"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -358716,32 +358716,32 @@
    "detailRef": "5d19f59b15f7"
   },
   {
-   "id": "query-parameter:dd76b6958108",
+   "id": "query-parameter:054c13fd06d3",
    "type": "query-parameter",
    "title": "utm_medium",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/components/ReservationDialog.tsx",
-   "line": 644,
+   "line": 652,
    "surface": null,
    "tags": [
     "src/components/ReservationDialog.tsx",
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "e8ad2063bc19"
+   "detailRef": "b559bbc02300"
   },
   {
-   "id": "query-parameter:961bb12de38e",
+   "id": "query-parameter:09e9100fcaff",
    "type": "query-parameter",
    "title": "utm_source",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/components/ReservationDialog.tsx",
-   "line": 640,
+   "line": 648,
    "surface": null,
    "tags": [
     "src/components/ReservationDialog.tsx",
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "4b4a73c1b4d1"
+   "detailRef": "b2951a39f3e8"
   },
   {
    "id": "query-parameter:e98354609202",
