@@ -1,0 +1,20 @@
+name: Independent Stripe audit tests
+on:
+  pull_request:
+    paths:
+      - "scripts/stripe-financial-reconciliation.mjs"
+      - "scripts/stripe-financial-reconciliation.test.mjs"
+      - ".github/workflows/stripe-audit-tests.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run independent Stripe audit unit tests (no credentials)
+        run: node --test scripts/stripe-financial-reconciliation.test.mjs
