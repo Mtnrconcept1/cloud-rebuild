@@ -66,6 +66,15 @@ BEGIN
     IF COALESCE((v_reservation.metadata ->> 'paid')::boolean, false) IS DISTINCT FROM true THEN
       RAISE EXCEPTION 'Confirmed hold missing completion proof';
     END IF;
+    IF p_points_to_redeem > 0 AND NOT EXISTS (
+      SELECT 1 FROM public.loyalty_transactions t
+      WHERE t.user_id = p_user_id
+        AND t.reservation_id = v_reservation.id
+        AND t.transaction_type = 'redeem'
+        AND t.amount = -p_points_to_redeem
+    ) THEN
+      RAISE EXCEPTION 'Confirmed hold lacks verified MIAMZ redemption';
+    END IF;
     RETURN v_reservation.id;
   END IF;
 
