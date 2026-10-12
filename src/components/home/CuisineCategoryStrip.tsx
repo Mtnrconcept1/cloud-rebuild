@@ -10,7 +10,7 @@ type CuisineCategory = {
   imageSrc: string;
 };
 
-// Visuels carrés avec intitulé intégré. Les autres catégories gardent leur ancien rendu.
+// Les catégories 3D utilisent un visuel carré ; leur libellé est toujours rendu en HTML sous l'image.
 const CATEGORIES_3D = new Set([
   "chinois", "creole", "suisse", "francais", "gastronomique", "grillades",
   "halal", "healthy", "indien", "japonais", "kebab", "libanais",
@@ -65,7 +65,7 @@ const CUISINE_CATEGORIES: CuisineCategory[] = [
   : category,
 ).sort((a, b) => a.label.localeCompare(b.label, "fr"));
 
-function CuisinePhoto({ src, label, isActive, hasIntegratedLabel }: { src: string; label: string; isActive: boolean; hasIntegratedLabel: boolean }) {
+function CuisinePhoto({ src, label, isActive, is3d }: { src: string; label: string; isActive: boolean; is3d: boolean }) {
   return (
     <span
       className={[
@@ -73,7 +73,7 @@ function CuisinePhoto({ src, label, isActive, hasIntegratedLabel }: { src: strin
         isActive ? "border-primary ring-2 ring-primary/20" : "border-border/80 group-hover:border-primary/60 group-hover:shadow-md",
       ].join(" ")}
     >
-      {hasIntegratedLabel ? (
+      {is3d ? (
         <img
           src={src}
           alt={`Cuisine ${label} : illustration photographique de la catégorie`}
@@ -159,17 +159,15 @@ export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }
                 aria-pressed={isActive}
                 aria-label={cat.label}
               >
-                <CuisinePhoto src={cat.imageSrc} label={cat.label} isActive={isActive} hasIntegratedLabel={CATEGORIES_3D.has(cat.slug)} />
-                {!CATEGORIES_3D.has(cat.slug) && (
-                  <span
-                    className={[
-                      "w-full break-words text-center text-[13px] font-bold leading-snug tracking-tight transition-colors sm:text-base md:text-lg md:leading-6",
-                      isActive ? "text-primary" : "text-foreground group-hover:text-primary",
-                    ].join(" ")}
-                  >
-                    {cat.label}
-                  </span>
-                )}
+                <CuisinePhoto src={cat.imageSrc} label={cat.label} isActive={isActive} is3d={CATEGORIES_3D.has(cat.slug)} />
+                <span
+                  className={[
+                    "w-full break-words text-center text-[13px] font-bold leading-snug tracking-tight transition-colors sm:text-base md:text-lg md:leading-6",
+                    isActive ? "text-primary" : "text-foreground group-hover:text-primary",
+                  ].join(" ")}
+                >
+                  {cat.label}
+                </span>
               </button>
             );
           })}
