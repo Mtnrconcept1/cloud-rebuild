@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `eff6331ced36123eec78eb7099d7674277b6bb42823ab0a15c5a9ddbb676d78b`
+- Empreinte SHA-256 des sources indexées : `ee1da4967b9731ee4f9477c2b5106fca1dd00c6892edb3246e52e41657cc88fa`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 527 |
-| modules | 1503 |
+| modules | 1504 |
 | pages | 128 |
 | pathLiterals | 644 |
 | publicAssets | 387 |
 | publicEntries | 412 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15972 |
-| repositoryFiles | 2896 |
+| records | 15974 |
+| repositoryFiles | 2897 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1286,7 +1286,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /higgsfield/tok-intro-mobile.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:24](../../src/test/mobile-logo-intro.test.tsx#L24) |
 | /icon-192.png | 2 | [public/firebase-messaging-sw.js:46](../../public/firebase-messaging-sw.js#L46) |
 | /icon-72.png | 2 | [public/firebase-messaging-sw.js:47](../../public/firebase-messaging-sw.js#L47) |
-| /images/ | 2 | [src/components/RestaurantCard.tsx:69](../../src/components/RestaurantCard.tsx#L69) |
+| /images/ | 2 | [src/components/RestaurantCard.tsx:70](../../src/components/RestaurantCard.tsx#L70) |
 | /images/1.webp | 9 | [src/lib/menu-item-images.ts:15](../../src/lib/menu-item-images.ts#L15) |
 | /images/baklava.jpg | 2 | [src/lib/menu-item-images.ts:97](../../src/lib/menu-item-images.ts#L97) |
 | /images/bruschetta.jpg | 3 | [src/lib/menu-item-images.ts:54](../../src/lib/menu-item-images.ts#L54) |
@@ -1410,10 +1410,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/samosa.jpg | 3 | [src/lib/menu-item-images.ts:94](../../src/lib/menu-item-images.ts#L94) |
 | /images/section-headers/calendar-3d.png | 2 | [src/lib/dashboardIllustrations.ts:57](../../src/lib/dashboardIllustrations.ts#L57) |
 | /images/section-headers/fire-3d.png | 1 | [src/lib/dashboardIllustrations.ts:59](../../src/lib/dashboardIllustrations.ts#L59) |
-| /images/section-headers/gift-3d.png | 2 | [src/components/home/RestaurantSection.tsx:29](../../src/components/home/RestaurantSection.tsx#L29) |
+| /images/section-headers/gift-3d.png | 2 | [src/components/home/RestaurantSection.tsx:42](../../src/components/home/RestaurantSection.tsx#L42) |
 | /images/section-headers/plate-3d.png | 2 | [src/lib/dashboardIllustrations.ts:56](../../src/lib/dashboardIllustrations.ts#L56) |
 | /images/section-headers/shopping-bags-3d.png | 1 | [src/lib/dashboardIllustrations.ts:60](../../src/lib/dashboardIllustrations.ts#L60) |
-| /images/section-headers/tok-editorial- | 1 | [src/components/home/SectionShowcaseHeader.tsx:49](../../src/components/home/SectionShowcaseHeader.tsx#L49) |
+| /images/section-headers/tok-editorial- | 1 | [src/components/home/SectionShowcaseHeader.tsx:51](../../src/components/home/SectionShowcaseHeader.tsx#L51) |
 | /images/section-headers/tok-editorial-cuisine-full.jpg | 2 | [src/components/home/CuisineCategoryStrip.tsx:95](../../src/components/home/CuisineCategoryStrip.tsx#L95) |
 | /images/section-headers/tok-editorial-delivery-full.jpg | 1 | [src/pages/Index.tsx:61](../../src/pages/Index.tsx#L61) |
 | /images/section-headers/tok-editorial-evening-full.jpg | 1 | [src/pages/Index.tsx:62](../../src/pages/Index.tsx#L62) |
@@ -1432,7 +1432,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/thai-spread.jpeg | 3 | [src/lib/menu-item-images.ts:51](../../src/lib/menu-item-images.ts#L51) |
 | /images/tok-connect/tok-connect-widget-details.svg | 1 | [src/pages/TokConnect.tsx:103](../../src/pages/TokConnect.tsx#L103) |
 | /images/tok-connect/tok-connect-widget-restaurants.svg | 1 | [src/pages/TokConnect.tsx:97](../../src/pages/TokConnect.tsx#L97) |
-| /images/tok-restaurant-placeholder.svg | 2 | [src/components/RestaurantCard.tsx:50](../../src/components/RestaurantCard.tsx#L50) |
+| /images/tok-restaurant-placeholder.svg | 2 | [src/components/RestaurantCard.tsx:51](../../src/components/RestaurantCard.tsx#L51) |
 | /index.html | 28 | [scripts/application-index-core.mjs:767](../../scripts/application-index-core.mjs#L767) |
 | /inventory/partners/{partnerId}/merchants/{merchantId}/availability:replace | 1 | [supabase/functions/google-actions-center-sync/index.ts:52](../../supabase/functions/google-actions-center-sync/index.ts#L52) |
 | /launch | 1 | [src/components/launch/LaunchArtwork.tsx:51](../../src/components/launch/LaunchArtwork.tsx#L51) |
@@ -5911,7 +5911,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 592 |
+| test | 593 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -8492,7 +8492,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (592)</summary>
+<details><summary>test (593)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -8752,6 +8752,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/home-hero-search.test.tsx`
 - `src/test/home-mobile-newsletter.test.tsx`
 - `src/test/home-nearby-catalog-contract.test.ts`
+- `src/test/home-restaurant-carousel.test.tsx`
 - `src/test/home-section-showcase-header.test.tsx`
 - `src/test/homepage-photo-only-sections.test.ts`
 - `src/test/homepage-positioning-guards.test.ts`
