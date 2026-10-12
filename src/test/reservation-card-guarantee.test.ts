@@ -110,6 +110,7 @@ describe("server-side reservation card guarantee invariants", () => {
     expect(sql).toContain("p_party_size > 6 OR v_count >= 3");
     expect(sql).toContain("now() AT TIME ZONE 'Europe/Zurich'");
     expect(sql).toContain("r.cancelled_by = 'customer'");
+    expect(sql).toContain("r.metadata ->> 'google_actions_center'");
     expect(sql).toContain("r.cancelled_at >= v_start");
     expect(sql).toContain("r.cancelled_at < v_end");
   });
