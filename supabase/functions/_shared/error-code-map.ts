@@ -952,7 +952,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/create-zero-attente-reservation/index.ts",
-      "line": 62
+      "line": 66
     },
     {
       "file": "supabase/functions/notification-dispatch/index.ts",
@@ -1872,31 +1872,31 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "payment_attempt_identity_mismatch": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 378
+      "line": 379
     }
   ],
   "payment_attempt_order_expired_recreate": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2046
+      "line": 2061
     }
   ],
   "payment_attempt_reacquire_failed": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2054
+      "line": 2069
     }
   ],
   "payment_attempt_request_mismatch": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 397
+      "line": 398
     }
   ],
   "payment_attempt_session_expired_retry": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2409
+      "line": 2431
     }
   ],
   "personalization_consent_required": [

@@ -1019,7 +1019,7 @@ export default function ZeroAttente() {
                   </div>
                   <Button onClick={() => setStep("payment")} className="w-full bg-indigo-500 hover:opacity-90 gap-2 mt-2">
                     <CreditCard className="h-4 w-4" />
-                    Passer au paiement · {totalAfterDiscount.toFixed(2)} CHF
+                    {totalAfterDiscount === 0 ? "Passer à la confirmation · 0 CHF" : `Passer au paiement · ${totalAfterDiscount.toFixed(2)} CHF`}
                   </Button>
                 </div>
               )}
@@ -1111,7 +1111,7 @@ export default function ZeroAttente() {
                 disabled={loading || allowedPaymentMethods.length === 0}
                 className="w-full bg-indigo-500 hover:opacity-90 gap-2 text-base py-6"
               >
-                {loading ? "Traitement en cours..." : `Payer ${totalAfterDiscount.toFixed(2)} CHF et réserver`}
+                {loading ? "Traitement en cours..." : totalAfterDiscount === 0 ? "Confirmer ma réservation · 0 CHF" : `Payer ${totalAfterDiscount.toFixed(2)} CHF et réserver`}
               </Button>
             </div>
           )}
@@ -1120,8 +1120,8 @@ export default function ZeroAttente() {
             <div className="space-y-6 animate-in slide-in-from-bottom-8">
               <div className="rounded-2xl bg-indigo-500/5 border border-indigo-500/20 p-6 text-center space-y-2">
                 <CheckCircle2 className="h-12 w-12 text-indigo-500 mx-auto" />
-                <h2 className="font-display text-xl font-bold">Réservation confirmée et payée !</h2>
-                <p className="text-sm text-muted-foreground">Votre table et vos plats précommandés sont réservés. Le paiement a été effectué.</p>
+                <h2 className="font-display text-xl font-bold">Réservation confirmée !</h2>
+                <p className="text-sm text-muted-foreground">Votre table et vos plats précommandés sont réservés. {displayPricing.total === 0 ? "Aucun paiement bancaire n'a été nécessaire." : "Le paiement a été effectué."}</p>
               </div>
               <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-sm">
                 <div className="flex justify-between">

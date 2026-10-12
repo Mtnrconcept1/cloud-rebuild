@@ -6,6 +6,7 @@ import {
 } from "./notifications.ts";
 import { recordZeroAttenteChargeIfMissing } from "./payment-transactions.ts";
 import { queueReservationConfirmationEmails } from "./transactional-emails.ts";
+import { isCompletedNoCostZeroAttenteSession } from "./zero-cost-checkout.ts";
 
 type LoggerLike = {
   error?: (event: string, data?: Record<string, unknown>) => void;
@@ -162,7 +163,8 @@ export async function finalizeZeroAttenteCheckout(input: {
     fetchLineItems,
   } = input;
 
-  if (!session || session.payment_status !== "paid") {
+  const noCostCheckout = isCompletedNoCostZeroAttenteSession(session);
+  if (!session || (session.payment_status !== "paid" && !noCostCheckout)) {
     throw new Error("Session Stripe non payee.");
   }
 
@@ -179,7 +181,9 @@ export async function finalizeZeroAttenteCheckout(input: {
   const arrivalDate = String(session.metadata?.arrival_date || "");
   const arrivalTime = String(session.metadata?.arrival_time || "");
   const partySize = Math.max(1, Number(session.metadata?.party_size || 1));
-  const paymentMethod = String(session.metadata?.payment_method_label || "card");
+  const paymentMethod = noCostCheckout
+    ? (Number(session.metadata?.points_to_redeem || 0) > 0 ? "miamz" : "avantages")
+    : String(session.metadata?.payment_method_label || "card");
   const subtotal = parseMoney(session.metadata?.pre_discount_subtotal);
   const formulaDiscount = parseMoney(session.metadata?.formula_discount_amount);
   const formulaDiscountPercent = parseMoney(session.metadata?.formula_discount_percent);
@@ -247,6 +251,9 @@ export async function finalizeZeroAttenteCheckout(input: {
     arrival_time: arrivalTime,
     payment_method: paymentMethod,
     checkout_session_id: session.id,
+    finance_routing_mode: session.metadata?.finance_routing_mode || null,
+    authoritative_total_cents: session.metadata?.authoritative_total_cents || null,
+    payment_attempt_id: session.metadata?.payment_attempt_id || null,
     paid: true,
     card_brand: cardBrand,
     card_last4: cardLast4,
@@ -259,7 +266,7 @@ export async function finalizeZeroAttenteCheckout(input: {
 
   const { data: existingReservation } = await adminClient
     .from("reservations")
-    .select("id")
+    .select("id, status")
     .eq("user_id", userId)
     .eq("feature", "zero-attente")
     .filter("metadata->>checkout_session_id", "eq", session.id)
@@ -267,10 +274,34 @@ export async function finalizeZeroAttenteCheckout(input: {
     .limit(1)
     .maybeSingle();
 
-  const reservationAlreadyExisted = Boolean(existingReservation?.id);
+  const reservationAlreadyExisted = noCostCheckout
+    ? existingReservation?.status === "confirmed"
+    : Boolean(existingReservation?.id);
   let reservationId = existingReservation?.id || null;
 
-  if (reservationId) {
+  if (noCostCheckout) {
+    // Postgres locks the capacity hold, debits MIAMZ, and confirms atomically.
+    // On failure, no reservation is confirmed and no points leave the wallet.
+    const { data: confirmedId, error: confirmError } = await adminClient.rpc(
+      "finalize_zero_attente_no_cost_hold", {
+        p_session_id: session.id,
+        p_user_id: userId,
+        p_restaurant_id: restaurantId,
+        p_points_to_redeem: pointsToRedeem,
+        p_preorder_items: preorderItems,
+        p_metadata: {
+          ...reservationPayload,
+          payment_attempt_version: session.metadata?.payment_attempt_version,
+          operation_key: session.metadata?.operation_key,
+        },
+        p_notes: note,
+      },
+    );
+    if (confirmError || !confirmedId) {
+      throw new Error(confirmError?.message || "Impossible de confirmer la reservation MIAMZ.");
+    }
+    reservationId = String(confirmedId);
+  } else if (reservationId) {
     await adminClient
       .from("reservations")
       .update({
@@ -303,6 +334,8 @@ export async function finalizeZeroAttenteCheckout(input: {
     reservationId = createdReservationId;
   }
 
+  // A free Stripe Checkout has no PaymentIntent and must not look like a card charge.
+  if (!noCostCheckout) {
   await recordZeroAttenteChargeIfMissing({
     adminClient,
     userId,
@@ -343,6 +376,7 @@ export async function finalizeZeroAttenteCheckout(input: {
       p_description: `Paiement Zero Attente ${orderReference}`,
     });
     if (pointsError) throw pointsError;
+  }
   }
 
   const zaItemCount = preorderItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0);

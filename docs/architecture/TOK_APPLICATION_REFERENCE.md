@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `154726aefd402a0d94cc901971eb4d77565691bb015e7680cd5a4ff11b6dee4f`
+- Empreinte SHA-256 des sources indexées : `7297ae0e2af521ae45a97c3a37183b92d27f09617c1a8b7241d07935208d9048`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 9 |
 | cronJobs | 33 |
 | databaseContract | 228 |
-| databaseObjects | 2736 |
+| databaseObjects | 2737 |
 | documents | 202 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3404 |
+| exportedSymbols | 3406 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
 | marketingOperations | 36 |
-| migrations | 528 |
-| modules | 1506 |
+| migrations | 529 |
+| modules | 1508 |
 | pages | 128 |
 | pathLiterals | 648 |
 | publicAssets | 462 |
 | publicEntries | 487 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16154 |
-| repositoryFiles | 2986 |
+| records | 16163 |
+| repositoryFiles | 2989 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2160,7 +2160,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (739)</summary>
+<details><summary>function (740)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2508,6 +2508,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.finalize_paid_print_order` (1 définition(s))
 - `public.finalize_payment_attempt` (1 définition(s))
 - `public.finalize_progressive_offer` (1 définition(s))
+- `public.finalize_zero_attente_no_cost_hold` (1 définition(s))
 - `public.find_nearby_couriers` (2 définition(s))
 - `public.finish_print_fulfillment_submission` (1 définition(s))
 - `public.floor_plan_autoassign_reservation` (1 définition(s))
@@ -5750,6 +5751,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261010224500 Actualites Billing Identity | 190 | 1 | [supabase/migrations/20261010224500_actualites_billing_identity.sql:1](../../supabase/migrations/20261010224500_actualites_billing_identity.sql#L1) |
 | 20261011052254 Notification Support Realtime Publication | 58 | 0 | [supabase/migrations/20261011052254_notification_support_realtime_publication.sql:1](../../supabase/migrations/20261011052254_notification_support_realtime_publication.sql#L1) |
 | 20261012063000 Decouple Delivery Orders Flag | 186 | 2 | [supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql:1](../../supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql#L1) |
+| 20261012090000 Finalize Zero Attente No Cost Hold | 113 | 1 | [supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql:1](../../supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -5973,8 +5975,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 213 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 673 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 215 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 674 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 59 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5987,7 +5989,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 205 |
 | automation-script | 64 |
 | documentation | 6 |
-| edge-function-source | 186 |
+| edge-function-source | 187 |
 | frontend-component | 251 |
 | frontend-hook | 22 |
 | frontend-page | 128 |
@@ -5995,7 +5997,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 594 |
+| test | 595 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6589,7 +6591,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (528)</summary>
+<details><summary>database-migration (529)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7119,6 +7121,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261010224500_actualites_billing_identity.sql`
 - `supabase/migrations/20261011052254_notification_support_realtime_publication.sql`
 - `supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql`
+- `supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql`
 
 </details>
 
@@ -7282,7 +7285,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (186)</summary>
+<details><summary>edge-function-source (187)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7351,6 +7354,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/transactional-emails.ts`
 - `supabase/functions/_shared/user-storage-cleanup.ts`
 - `supabase/functions/_shared/zero-attente.ts`
+- `supabase/functions/_shared/zero-cost-checkout.ts`
 - `supabase/functions/admin-demo-entities/index.ts`
 - `supabase/functions/admin-restaurant-adjustment/index.ts`
 - `supabase/functions/ai-accounting-agent/index.ts`
@@ -8664,7 +8668,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (594)</summary>
+<details><summary>test (595)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9252,6 +9256,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/user-facing-errors.test.ts`
 - `src/test/vercel-rewrites.test.ts`
 - `src/test/zero-attente-finalization-governance.test.ts`
+- `src/test/zero-attente-free-miamz.test.ts`
 - `src/test/zero-attente-reservation-context.test.ts`
 - `supabase/functions/process-refund/refund-utils.test.ts`
 - `workers/image-ai-worker/config.test.mjs`

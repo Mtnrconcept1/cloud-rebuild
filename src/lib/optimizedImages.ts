@@ -67,7 +67,9 @@ export function getOptimizedImageSrcSet(
   const entries = SRC_SET_WIDTHS[preset]
     .map((width) => {
       const transformedUrl = getOptimizedImageUrl(rawUrl, preset, { ...overrides, width, height: undefined });
-      return transformedUrl === rawUrl ? null : `${transformedUrl} ${width}w`;
+      // Invalid/blocked image URLs can normalize to an empty string. Never
+      // expose a bare width descriptor (" 360w") as an image URL in srcSet.
+      return !transformedUrl || transformedUrl === rawUrl ? null : `${transformedUrl} ${width}w`;
     })
     .filter(Boolean);
 

@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "154726aefd402a0d94cc901971eb4d77565691bb015e7680cd5a4ff11b6dee4f",
+ "sourceDigest": "7297ae0e2af521ae45a97c3a37183b92d27f09617c1a8b7241d07935208d9048",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
-  "databaseObjects": 2736,
+  "databaseObjects": 2737,
   "documents": 202,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3404,
+  "exportedSymbols": 3406,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 528,
-  "modules": 1506,
+  "migrations": 529,
+  "modules": 1508,
   "pages": 128,
   "pathLiterals": 648,
   "publicAssets": 462,
   "publicEntries": 487,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16154,
-  "repositoryFiles": 2986,
+  "records": 16163,
+  "repositoryFiles": 2989,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -18947,7 +18947,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1968
+      "line": 1972
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -19168,7 +19168,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1610
+      "line": 1614
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -19672,11 +19672,11 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1734
+      "line": 1738
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2107
+      "line": 2111
      }
     ]
    },
@@ -19772,7 +19772,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2248
+      "line": 2252
      }
     ]
    },
@@ -20041,7 +20041,7 @@
      },
      {
       "path": "supabase/functions/_shared/zero-attente.ts",
-      "line": 374
+      "line": 408
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -23831,7 +23831,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2582
+      "line": 2586
      }
     ]
    },
@@ -25013,7 +25013,7 @@
      },
      {
       "path": "supabase/functions/_shared/zero-attente.ts",
-      "line": 397
+      "line": 431
      },
      {
       "path": "supabase/functions/ai-support-resolution/index.ts",
@@ -30042,6 +30042,7 @@
      "src/test/user-facing-errors.test.ts",
      "src/test/vercel-rewrites.test.ts",
      "src/test/zero-attente-finalization-governance.test.ts",
+     "src/test/zero-attente-free-miamz.test.ts",
      "supabase/functions/_shared/ai-security.ts",
      "supabase/functions/_shared/apple-storekit.ts",
      "supabase/functions/_shared/auth.ts",
@@ -30062,6 +30063,7 @@
      "supabase/functions/_shared/stripe-client.ts",
      "supabase/functions/_shared/tok-one.ts",
      "supabase/functions/_shared/zero-attente.ts",
+     "supabase/functions/_shared/zero-cost-checkout.ts",
      "supabase/functions/admin-demo-entities/index.ts",
      "supabase/functions/admin-restaurant-adjustment/index.ts",
      "supabase/functions/ai-accounting-agent/index.ts",
@@ -30700,6 +30702,7 @@
      "src/test/user-facing-errors.test.ts",
      "src/test/vercel-rewrites.test.ts",
      "src/test/zero-attente-finalization-governance.test.ts",
+     "src/test/zero-attente-free-miamz.test.ts",
      "supabase/functions/_shared/ai-security.ts",
      "supabase/functions/_shared/apple-storekit.ts",
      "supabase/functions/_shared/auth.ts",
@@ -34047,6 +34050,12 @@
     "path": "supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql",
     "lineCount": 186,
     "objectCount": 2
+   },
+   {
+    "name": "20261012090000 Finalize Zero Attente No Cost Hold",
+    "path": "supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql",
+    "lineCount": 113,
+    "objectCount": 1
    }
   ],
   "databaseObjects": [
@@ -38099,6 +38108,16 @@
      {
       "path": "supabase/migrations/20260615070000_progressive_reservation_offers.sql",
       "line": 292
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.finalize_zero_attente_no_cost_hold",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql",
+      "line": 3
      }
     ]
    },
@@ -94230,22 +94249,22 @@
      },
      {
       "name": "getOptimizedImageSizes",
-      "line": 77,
+      "line": 79,
       "kind": "function"
      },
      {
       "name": "IMAGE_UPLOAD_MAX_DIMENSION",
-      "line": 84,
+      "line": 86,
       "kind": "variable"
      },
      {
       "name": "IMAGE_UPLOAD_WEBP_QUALITY",
-      "line": 85,
+      "line": 87,
       "kind": "variable"
      },
      {
       "name": "optimizeImageUpload",
-      "line": 132,
+      "line": 134,
       "kind": "function"
      }
     ],
@@ -94253,7 +94272,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 154
+    "lineCount": 156
    },
    {
     "path": "src/lib/orderConfirmation.ts",
@@ -104209,7 +104228,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 31
+    "lineCount": 33
    },
    {
     "path": "src/test/order-capacity-acceptance-10k.test.ts",
@@ -106083,6 +106102,16 @@
     "lineCount": 57
    },
    {
+    "path": "src/test/zero-attente-free-miamz.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 67
+   },
+   {
     "path": "src/test/zero-attente-reservation-context.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -107395,17 +107424,17 @@
      },
      {
       "name": "recordCheckoutFinance",
-      "line": 562,
+      "line": 574,
       "kind": "function"
      },
      {
       "name": "recordReconciledCheckoutFinance",
-      "line": 637,
+      "line": 649,
       "kind": "function"
      },
      {
       "name": "recordRefundFinance",
-      "line": 678,
+      "line": 690,
       "kind": "function"
      }
     ],
@@ -107414,7 +107443,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 732
+    "lineCount": 744
    },
    {
     "path": "supabase/functions/_shared/mcp-http.ts",
@@ -109320,12 +109349,12 @@
     "exports": [
      {
       "name": "FinalizedZeroAttenteCheckout",
-      "line": 28,
+      "line": 29,
       "kind": "typealias"
      },
      {
       "name": "finalizeZeroAttenteCheckout",
-      "line": 140,
+      "line": 141,
       "kind": "function"
      }
     ],
@@ -109338,7 +109367,27 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 482
+    "lineCount": 516
+   },
+   {
+    "path": "supabase/functions/_shared/zero-cost-checkout.ts",
+    "exports": [
+     {
+      "name": "ZeroCostCheckoutSession",
+      "line": 2,
+      "kind": "typealias"
+     },
+     {
+      "name": "isCompletedNoCostZeroAttenteSession",
+      "line": 10,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe"
+    ],
+    "lineCount": 23
    },
    {
     "path": "supabase/functions/admin-demo-entities/index.ts",
@@ -109774,7 +109823,7 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 2741
+    "lineCount": 2763
    },
    {
     "path": "supabase/functions/create-chefs-table-reservation/index.ts",
@@ -109817,7 +109866,7 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 146
+    "lineCount": 150
    },
    {
     "path": "supabase/functions/crm-mfa-recovery/index.ts",
@@ -110193,7 +110242,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 154
+    "lineCount": 157
    },
    {
     "path": "supabase/functions/print-admin/index.ts",
@@ -110509,7 +110558,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3166
+    "lineCount": 3171
    },
    {
     "path": "supabase/functions/stripe-worker/index.ts",
@@ -122026,6 +122075,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/zero-attente-free-miamz.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/zero-attente-reservation-context.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -122432,6 +122486,11 @@
    },
    {
     "path": "supabase/functions/_shared/zero-attente.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/zero-cost-checkout.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -125672,6 +125731,11 @@
    },
    {
     "path": "supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -134570,7 +134634,7 @@
    "id": "code-module:bebbeb17ee25",
    "type": "code-module",
    "title": "src/lib/optimizedImages.ts",
-   "description": "Module de 154 lignes; exports: OptimizedImagePreset, getOptimizedImageUrl, getOptimizedImageSrcSet, getOptimizedImageSizes, IMAGE_UPLOAD_MAX_DIMENSION, IMAGE_UPLOAD_WEBP_QUALITY, optimizeImageUpload.",
+   "description": "Module de 156 lignes; exports: OptimizedImagePreset, getOptimizedImageUrl, getOptimizedImageSrcSet, getOptimizedImageSizes, IMAGE_UPLOAD_MAX_DIMENSION, IMAGE_UPLOAD_WEBP_QUALITY, optimizeImageUpload.",
    "path": "src/lib/optimizedImages.ts",
    "line": 1,
    "surface": null,
@@ -134584,7 +134648,7 @@
     "optimizeImageUpload",
     "supabase"
    ],
-   "detailRef": "df35463c2345"
+   "detailRef": "7585366c988b"
   },
   {
    "id": "code-module:85a70971850e",
@@ -142930,14 +142994,14 @@
    "id": "code-module:16304e69d048",
    "type": "code-module",
    "title": "src/test/optimized-images.test.ts",
-   "description": "Module de 31 lignes; exports: aucun export statique.",
+   "description": "Module de 33 lignes; exports: aucun export statique.",
    "path": "src/test/optimized-images.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "62000221ff1e"
+   "detailRef": "d52a4cc5cb5b"
   },
   {
    "id": "code-module:621bcb963ce1",
@@ -145660,6 +145724,20 @@
    "detailRef": "d509e02b99a3"
   },
   {
+   "id": "code-module:ea374d1aaaa8",
+   "type": "code-module",
+   "title": "src/test/zero-attente-free-miamz.test.ts",
+   "description": "Module de 67 lignes; exports: aucun export statique.",
+   "path": "src/test/zero-attente-free-miamz.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "ef2d0f1e3dcd"
+  },
+  {
    "id": "code-module:b349b2edeaa4",
    "type": "code-module",
    "title": "src/test/zero-attente-reservation-context.test.ts",
@@ -146270,7 +146348,7 @@
    "id": "code-module:d4342a85991e",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketplace-finance.ts",
-   "description": "Module de 732 lignes; exports: TOK_PLATFORM_FEE_BPS, TOK_DEVELOPER_SHARE_BPS, TOK_ORDER_DEVELOPER_SHARE_BPS, FAIR_GROWTH_PRICING_VERSION, MAX_FAIR_GROWTH_PLATFORM_FEE_BPS, MARKETPLACE_CHECKOUT_KINDS, calculateMarketplaceSplit, calculateDeveloperRevenueSplit, calculateOrderPaymentDistribution, resolveMarketplaceRouting, recordCheckoutFinance, recordReconciledCheckoutFinance, recordRefundFinance.",
+   "description": "Module de 744 lignes; exports: TOK_PLATFORM_FEE_BPS, TOK_DEVELOPER_SHARE_BPS, TOK_ORDER_DEVELOPER_SHARE_BPS, FAIR_GROWTH_PRICING_VERSION, MAX_FAIR_GROWTH_PLATFORM_FEE_BPS, MARKETPLACE_CHECKOUT_KINDS, calculateMarketplaceSplit, calculateDeveloperRevenueSplit, calculateOrderPaymentDistribution, resolveMarketplaceRouting, recordCheckoutFinance, recordReconciledCheckoutFinance, recordRefundFinance.",
    "path": "supabase/functions/_shared/marketplace-finance.ts",
    "line": 1,
    "surface": null,
@@ -146291,7 +146369,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ef4df2aedd2f"
+   "detailRef": "2c1ece4452ee"
   },
   {
    "id": "code-module:3707ee31392a",
@@ -147089,7 +147167,7 @@
    "id": "code-module:1c4d59fe853c",
    "type": "code-module",
    "title": "supabase/functions/_shared/zero-attente.ts",
-   "description": "Module de 482 lignes; exports: FinalizedZeroAttenteCheckout, finalizeZeroAttenteCheckout.",
+   "description": "Module de 516 lignes; exports: FinalizedZeroAttenteCheckout, finalizeZeroAttenteCheckout.",
    "path": "supabase/functions/_shared/zero-attente.ts",
    "line": 1,
    "surface": null,
@@ -147102,7 +147180,22 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "e86ac68e81a8"
+   "detailRef": "b20be3656466"
+  },
+  {
+   "id": "code-module:3306eafa3290",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/zero-cost-checkout.ts",
+   "description": "Module de 23 lignes; exports: ZeroCostCheckoutSession, isCompletedNoCostZeroAttenteSession.",
+   "path": "supabase/functions/_shared/zero-cost-checkout.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "ZeroCostCheckoutSession",
+    "isCompletedNoCostZeroAttenteSession",
+    "stripe"
+   ],
+   "detailRef": "49e441404516"
   },
   {
    "id": "code-module:f30d01f39fe5",
@@ -147611,7 +147704,7 @@
    "id": "code-module:ee34f3a570c0",
    "type": "code-module",
    "title": "supabase/functions/create-checkout/index.ts",
-   "description": "Module de 2741 lignes; exports: aucun export statique.",
+   "description": "Module de 2763 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-checkout/index.ts",
    "line": 1,
    "surface": null,
@@ -147619,7 +147712,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "72ed014b71fc"
+   "detailRef": "5b485ee86df3"
   },
   {
    "id": "code-module:4160ab4db106",
@@ -147668,7 +147761,7 @@
    "id": "code-module:53981d6c932a",
    "type": "code-module",
    "title": "supabase/functions/create-zero-attente-reservation/index.ts",
-   "description": "Module de 146 lignes; exports: aucun export statique.",
+   "description": "Module de 150 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-zero-attente-reservation/index.ts",
    "line": 1,
    "surface": null,
@@ -147676,7 +147769,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "59ce1c80a59c"
+   "detailRef": "c2986151ef5b"
   },
   {
    "id": "code-module:542d19ed8ba2",
@@ -148098,14 +148191,14 @@
    "id": "code-module:2211a7151f18",
    "type": "code-module",
    "title": "supabase/functions/payment-attempt-status/index.ts",
-   "description": "Module de 154 lignes; exports: aucun export statique.",
+   "description": "Module de 157 lignes; exports: aucun export statique.",
    "path": "supabase/functions/payment-attempt-status/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "stripe"
    ],
-   "detailRef": "616e05c0d348"
+   "detailRef": "d5aab0c47246"
   },
   {
    "id": "code-module:897e9a24ce1c",
@@ -148497,7 +148590,7 @@
    "id": "code-module:9ac355dfd729",
    "type": "code-module",
    "title": "supabase/functions/stripe-webhook/index.ts",
-   "description": "Module de 3166 lignes; exports: aucun export statique.",
+   "description": "Module de 3171 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-webhook/index.ts",
    "line": 1,
    "surface": null,
@@ -148505,7 +148598,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "69877fe7d402"
+   "detailRef": "4685e11bc265"
   },
   {
    "id": "code-module:f3fa7c18e7bc",
@@ -172727,6 +172820,21 @@
     "supabase"
    ],
    "detailRef": "ebdd1ce041e7"
+  },
+  {
+   "id": "database-object:8e6fca3411ba",
+   "type": "database-object",
+   "title": "public.finalize_zero_attente_no_cost_hold",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "daa0e69e8083"
   },
   {
    "id": "database-object:b58ee1ce367d",
@@ -242200,19 +242308,19 @@
    "detailRef": "d6bcc8089b62"
   },
   {
-   "id": "exported-symbol:d383bacb4822",
+   "id": "exported-symbol:65d2a7e147b8",
    "type": "exported-symbol",
    "title": "FinalizedZeroAttenteCheckout",
    "description": "Export typealias de supabase/functions/_shared/zero-attente.ts.",
    "path": "supabase/functions/_shared/zero-attente.ts",
-   "line": 28,
+   "line": 29,
    "surface": null,
    "tags": [
     "stripe",
     "twint",
     "typealias"
    ],
-   "detailRef": "62b79ca9dfe7"
+   "detailRef": "ee86e450cc59"
   },
   {
    "id": "exported-symbol:1ae0bfe97b2b",
@@ -243322,32 +243430,32 @@
    "detailRef": "49b043f1cab6"
   },
   {
-   "id": "exported-symbol:d22e15f4555c",
+   "id": "exported-symbol:b657a86699db",
    "type": "exported-symbol",
    "title": "IMAGE_UPLOAD_MAX_DIMENSION",
    "description": "Export variable de src/lib/optimizedImages.ts.",
    "path": "src/lib/optimizedImages.ts",
-   "line": 84,
+   "line": 86,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "84e981e43a4b"
+   "detailRef": "b08627565adc"
   },
   {
-   "id": "exported-symbol:4556889e9fbf",
+   "id": "exported-symbol:fdc8d04a5276",
    "type": "exported-symbol",
    "title": "IMAGE_UPLOAD_WEBP_QUALITY",
    "description": "Export variable de src/lib/optimizedImages.ts.",
    "path": "src/lib/optimizedImages.ts",
-   "line": 85,
+   "line": 87,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "f45b972726fe"
+   "detailRef": "3684c12da791"
   },
   {
    "id": "exported-symbol:045457caef58",
@@ -255254,6 +255362,20 @@
    "detailRef": "d4674a286c19"
   },
   {
+   "id": "exported-symbol:ee8df8aea639",
+   "type": "exported-symbol",
+   "title": "ZeroCostCheckoutSession",
+   "description": "Export typealias de supabase/functions/_shared/zero-cost-checkout.ts.",
+   "path": "supabase/functions/_shared/zero-cost-checkout.ts",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "cd83e4f2e4a3"
+  },
+  {
    "id": "exported-symbol:51eb15e9c04a",
    "type": "exported-symbol",
    "title": "__restaurantSeoInternals",
@@ -265557,19 +265679,19 @@
    "detailRef": "2d0cc640f5cb"
   },
   {
-   "id": "exported-symbol:8c3c932ebee0",
+   "id": "exported-symbol:e8680dbe2118",
    "type": "exported-symbol",
    "title": "finalizeZeroAttenteCheckout",
    "description": "Export function de supabase/functions/_shared/zero-attente.ts.",
    "path": "supabase/functions/_shared/zero-attente.ts",
-   "line": 140,
+   "line": 141,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "twint"
    ],
-   "detailRef": "511cf052e633"
+   "detailRef": "659e74e52d34"
   },
   {
    "id": "exported-symbol:775c95a397be",
@@ -268912,18 +269034,18 @@
    "detailRef": "0a2cd5c02401"
   },
   {
-   "id": "exported-symbol:978c7e828a74",
+   "id": "exported-symbol:1a3f173575ba",
    "type": "exported-symbol",
    "title": "getOptimizedImageSizes",
    "description": "Export function de src/lib/optimizedImages.ts.",
    "path": "src/lib/optimizedImages.ts",
-   "line": 77,
+   "line": 79,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "b9a7214300c5"
+   "detailRef": "4c046128c5bb"
   },
   {
    "id": "exported-symbol:7299bbf41ffd",
@@ -272123,6 +272245,20 @@
     "vercel"
    ],
    "detailRef": "abe4735693f5"
+  },
+  {
+   "id": "exported-symbol:68ec98452fd3",
+   "type": "exported-symbol",
+   "title": "isCompletedNoCostZeroAttenteSession",
+   "description": "Export function de supabase/functions/_shared/zero-cost-checkout.ts.",
+   "path": "supabase/functions/_shared/zero-cost-checkout.ts",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe"
+   ],
+   "detailRef": "a90e7fc2622f"
   },
   {
    "id": "exported-symbol:675f24f1fc00",
@@ -275470,18 +275606,18 @@
    "detailRef": "e695a1176ee7"
   },
   {
-   "id": "exported-symbol:62cd04595b7e",
+   "id": "exported-symbol:fd88cf74c787",
    "type": "exported-symbol",
    "title": "optimizeImageUpload",
    "description": "Export function de src/lib/optimizedImages.ts.",
    "path": "src/lib/optimizedImages.ts",
-   "line": 132,
+   "line": 134,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "0be4a4b0e919"
+   "detailRef": "7b30dcbeb998"
   },
   {
    "id": "exported-symbol:3e9b935b8d34",
@@ -276407,19 +276543,19 @@
    "detailRef": "3fae9704ed7a"
   },
   {
-   "id": "exported-symbol:d8b4eb8fe7b5",
+   "id": "exported-symbol:eb17d809b78a",
    "type": "exported-symbol",
    "title": "recordCheckoutFinance",
    "description": "Export function de supabase/functions/_shared/marketplace-finance.ts.",
    "path": "supabase/functions/_shared/marketplace-finance.ts",
-   "line": 562,
+   "line": 574,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "79e62183b57d"
+   "detailRef": "cae72741d960"
   },
   {
    "id": "exported-symbol:077c7f867f12",
@@ -276449,34 +276585,34 @@
    "detailRef": "144cf8ffb5b2"
   },
   {
-   "id": "exported-symbol:91a64d7afcf6",
+   "id": "exported-symbol:fa7bb095c370",
    "type": "exported-symbol",
    "title": "recordReconciledCheckoutFinance",
    "description": "Export function de supabase/functions/_shared/marketplace-finance.ts.",
    "path": "supabase/functions/_shared/marketplace-finance.ts",
-   "line": 637,
+   "line": 649,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "3c0a14e1ab3d"
+   "detailRef": "6e7f07a9d822"
   },
   {
-   "id": "exported-symbol:086113efac22",
+   "id": "exported-symbol:a9e7e45760c1",
    "type": "exported-symbol",
    "title": "recordRefundFinance",
    "description": "Export function de supabase/functions/_shared/marketplace-finance.ts.",
    "path": "supabase/functions/_shared/marketplace-finance.ts",
-   "line": 678,
+   "line": 690,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "83487797e330"
+   "detailRef": "e570ed0dc054"
   },
   {
    "id": "exported-symbol:9ad076579ae2",
@@ -314266,6 +314402,20 @@
    "detailRef": "3fdc4ceba609"
   },
   {
+   "id": "file:c9cbe595efe6",
+   "type": "file",
+   "title": "src/test/zero-attente-free-miamz.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/zero-attente-free-miamz.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "17890af18a75"
+  },
+  {
    "id": "file:15213cac901c",
    "type": "file",
    "title": "src/test/zero-attente-reservation-context.test.ts",
@@ -315412,6 +315562,20 @@
     "edge-function-source"
    ],
    "detailRef": "36f527dac702"
+  },
+  {
+   "id": "file:fe2eb32ec5a1",
+   "type": "file",
+   "title": "supabase/functions/_shared/zero-cost-checkout.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/zero-cost-checkout.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "ef0312495744"
   },
   {
    "id": "file:44e40db728b0",
@@ -324486,6 +324650,20 @@
    "detailRef": "eedc095ec0db"
   },
   {
+   "id": "file:a2e43bd62679",
+   "type": "file",
+   "title": "supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "ceabd0309d2f"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -328106,7 +328284,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 213 module(s).",
+   "description": "Intégration externe détectée dans 215 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -328261,6 +328439,7 @@
     "src/test/user-facing-errors.test.ts",
     "src/test/vercel-rewrites.test.ts",
     "src/test/zero-attente-finalization-governance.test.ts",
+    "src/test/zero-attente-free-miamz.test.ts",
     "stripe",
     "supabase/functions/_shared/ai-security.ts",
     "supabase/functions/_shared/apple-storekit.ts",
@@ -328282,6 +328461,7 @@
     "supabase/functions/_shared/stripe-client.ts",
     "supabase/functions/_shared/tok-one.ts",
     "supabase/functions/_shared/zero-attente.ts",
+    "supabase/functions/_shared/zero-cost-checkout.ts",
     "supabase/functions/admin-demo-entities/index.ts",
     "supabase/functions/admin-restaurant-adjustment/index.ts",
     "supabase/functions/ai-accounting-agent/index.ts",
@@ -328326,13 +328506,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "b995d836ff17"
+   "detailRef": "9cbbc2532d22"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 673 module(s).",
+   "description": "Intégration externe détectée dans 674 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -328927,6 +329107,7 @@
     "src/test/user-facing-errors.test.ts",
     "src/test/vercel-rewrites.test.ts",
     "src/test/zero-attente-finalization-governance.test.ts",
+    "src/test/zero-attente-free-miamz.test.ts",
     "supabase",
     "supabase/functions/_shared/ai-security.ts",
     "supabase/functions/_shared/apple-storekit.ts",
@@ -329012,7 +329193,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "30dd1ceaffc3"
+   "detailRef": "f8cbf3381161"
   },
   {
    "id": "integration:c20910a79a78",
@@ -337070,6 +337251,20 @@
    "detailRef": "06fce6ce3776"
   },
   {
+   "id": "migration:9e98c10806a6",
+   "type": "migration",
+   "title": "20261012090000 Finalize Zero Attente No Cost Hold",
+   "description": "Migration SQL de 113 lignes, 1 objets CREATE détectés.",
+   "path": "supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "dea449c12df5"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -342858,7 +343053,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "82b0f7b630c8"
+   "detailRef": "55eb55742100"
   },
   {
    "id": "path-literal:98441ce078ff",
@@ -343140,7 +343335,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "037e377669b8"
+   "detailRef": "19741c5f32c3"
   },
   {
    "id": "path-literal:916ad1246b1e",
@@ -343205,7 +343400,7 @@
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "f00d50f58bcb"
+   "detailRef": "03309d78b3d5"
   },
   {
    "id": "path-literal:272c2aa15b3e",
@@ -343355,7 +343550,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "20367b9075db"
+   "detailRef": "52d40941959c"
   },
   {
    "id": "path-literal:c0eff3341b29",
@@ -343515,7 +343710,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "ae8f768f7c2f"
+   "detailRef": "23c2dd545b87"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -346659,7 +346854,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "be24a5e3f35c"
+   "detailRef": "34ef04e36a52"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -347314,7 +347509,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "31a6a0cea678"
+   "detailRef": "46935fc4fd66"
   },
   {
    "id": "path-literal:0af02260597a",
