@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7297ae0e2af521ae45a97c3a37183b92d27f09617c1a8b7241d07935208d9048`
+- Empreinte SHA-256 des sources indexées : `12e793fcf1fd980ce2368e43ff6a51e99192172fa211859df3199848592198bb`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,7 +32,7 @@
 | documents | 202 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3406 |
+| exportedSymbols | 3408 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
@@ -45,7 +45,7 @@
 | publicEntries | 487 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16163 |
+| records | 16165 |
 | repositoryFiles | 2989 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1245,24 +1245,24 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commandes | 35 | [scripts/prerender-seo.mjs:1215](../../scripts/prerender-seo.mjs#L1215) |
 | /commercial | 43 | [scripts/application-index-core.mjs:166](../../scripts/application-index-core.mjs#L166) |
 | /commercial/ | 4 | [src/App.tsx:314](../../src/App.tsx#L314) |
-| /commercial/anything | 1 | [src/test/commercial-domain-isolation.test.ts:146](../../src/test/commercial-domain-isolation.test.ts#L146) |
+| /commercial/anything | 1 | [src/test/commercial-domain-isolation.test.ts:147](../../src/test/commercial-domain-isolation.test.ts#L147) |
 | /commercial/comptabilite | 9 | [src/App.tsx:426](../../src/App.tsx#L426) |
 | /commercial/demo-live | 28 | [src/App.tsx:535](../../src/App.tsx#L535) |
-| /commercial/demo-live/ | 1 | [src/test/commercial-domain-isolation.test.ts:154](../../src/test/commercial-domain-isolation.test.ts#L154) |
-| /commercial/demo-live/evil | 1 | [src/test/commercial-domain-isolation.test.ts:93](../../src/test/commercial-domain-isolation.test.ts#L93) |
+| /commercial/demo-live/ | 1 | [src/test/commercial-domain-isolation.test.ts:155](../../src/test/commercial-domain-isolation.test.ts#L155) |
+| /commercial/demo-live/evil | 1 | [src/test/commercial-domain-isolation.test.ts:94](../../src/test/commercial-domain-isolation.test.ts#L94) |
 | /commercial/demo-live/frame/ | 1 | [src/test/commercial-multi-space-demo.test.ts:121](../../src/test/commercial-multi-space-demo.test.ts#L121) |
 | /commercial/demo-live/frame/:surface/:sessionId/* | 2 | [scripts/application-index-core.mjs:846](../../scripts/application-index-core.mjs#L846) |
-| /commercial/demo-live/frame/client/not-a-uuid/mon-espace | 1 | [src/test/commercial-domain-isolation.test.ts:94](../../src/test/commercial-domain-isolation.test.ts#L94) |
+| /commercial/demo-live/frame/client/not-a-uuid/mon-espace | 1 | [src/test/commercial-domain-isolation.test.ts:95](../../src/test/commercial-domain-isolation.test.ts#L95) |
 | /commercial/demo-live/frame/courier/not-a-uuid/courier | 1 | [src/test/commercial-demo-frame.test.ts:32](../../src/test/commercial-demo-frame.test.ts#L32) |
-| /commercial/demo-live?panel=client | 1 | [src/test/commercial-domain-isolation.test.ts:310](../../src/test/commercial-domain-isolation.test.ts#L310) |
+| /commercial/demo-live?panel=client | 1 | [src/test/commercial-domain-isolation.test.ts:373](../../src/test/commercial-domain-isolation.test.ts#L373) |
 | /commercial/demo-live?surface=client | 1 | [src/test/demo-workspace-access.test.ts:127](../../src/test/demo-workspace-access.test.ts#L127) |
 | /commercial/demo-live?surface=courier | 2 | [src/test/demo-workspace-access.test.ts:60](../../src/test/demo-workspace-access.test.ts#L60) |
 | /commercial/demo-live?surface=restaurant | 2 | [src/test/demo-workspace-access.test.ts:62](../../src/test/demo-workspace-access.test.ts#L62) |
 | /commercial/notifications | 11 | [src/App.tsx:603](../../src/App.tsx#L603) |
 | /commercial/prospection | 7 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
-| /commercial/route-inconnue | 1 | [src/test/commercial-domain-isolation.test.ts:158](../../src/test/commercial-domain-isolation.test.ts#L158) |
+| /commercial/route-inconnue | 1 | [src/test/commercial-domain-isolation.test.ts:159](../../src/test/commercial-domain-isolation.test.ts#L159) |
 | /commercial?tab=followups | 2 | [src/test/notifications-sinistres-governance.test.ts:39](../../src/test/notifications-sinistres-governance.test.ts#L39) |
-| /commercially | 1 | [src/test/commercial-domain-isolation.test.ts:147](../../src/test/commercial-domain-isolation.test.ts#L147) |
+| /commercially | 1 | [src/test/commercial-domain-isolation.test.ts:148](../../src/test/commercial-domain-isolation.test.ts#L148) |
 | /compte | 5 | [scripts/prerender-seo.mjs:1219](../../scripts/prerender-seo.mjs#L1219) |
 | /conditions-restaurateurs | 15 | [scripts/prerender-seo.mjs:1184](../../scripts/prerender-seo.mjs#L1184) |
 | /contact | 19 | [scripts/prerender-seo.mjs:797](../../scripts/prerender-seo.mjs#L797) |
@@ -1538,7 +1538,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /mes-avis | 8 | [scripts/prerender-seo.mjs:1221](../../scripts/prerender-seo.mjs#L1221) |
 | /miamz | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:206](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L206) |
 | /miamz-solidaires | 12 | [scripts/prerender-seo.mjs:563](../../scripts/prerender-seo.mjs#L563) |
-| /mon-espace | 29 | [scripts/prerender-seo.mjs:1218](../../scripts/prerender-seo.mjs#L1218) |
+| /mon-espace | 30 | [scripts/prerender-seo.mjs:1218](../../scripts/prerender-seo.mjs#L1218) |
 | /mon-espace?source=pwa-shortcut | 1 | [src/test/application-search-index.test.ts:95](../../src/test/application-search-index.test.ts#L95) |
 | /multi-restaurant | 15 | [scripts/prerender-seo.mjs:1033](../../scripts/prerender-seo.mjs#L1033) |
 | /multi-stop | 12 | [scripts/prerender-seo.mjs:1041](../../scripts/prerender-seo.mjs#L1041) |
@@ -1593,8 +1593,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurant/:id/reserver | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:201](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L201) |
 | /restaurant/cc47c8c6-752f-406c-8c2f-ed04ebd0ca20 | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
 | /restaurant/la-table-test-restaurant-1 | 1 | [src/test/restaurant-entity-seo.test.ts:39](../../src/test/restaurant-entity-seo.test.ts#L39) |
-| /restaurant/production-id | 1 | [src/test/commercial-domain-isolation.test.ts:89](../../src/test/commercial-domain-isolation.test.ts#L89) |
-| /restaurant/real-id | 1 | [src/test/commercial-domain-isolation.test.ts:262](../../src/test/commercial-domain-isolation.test.ts#L262) |
+| /restaurant/production-id | 1 | [src/test/commercial-domain-isolation.test.ts:90](../../src/test/commercial-domain-isolation.test.ts#L90) |
+| /restaurant/real-id | 1 | [src/test/commercial-domain-isolation.test.ts:325](../../src/test/commercial-domain-isolation.test.ts#L325) |
 | /restaurant/sans-donnee-inventee-restaurant-2 | 1 | [src/test/restaurant-entity-seo.test.ts:150](../../src/test/restaurant-entity-seo.test.ts#L150) |
 | /restaurants | 5 | [src/components/marketing/views/MarketingOutreachView.tsx:102](../../src/components/marketing/views/MarketingOutreachView.tsx#L102) |
 | /restaurants-pres/:path* | 2 | [middleware.js:5](../../middleware.js#L5) |
@@ -1626,7 +1626,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants/carouge/r/le-jardin-de-pinchat | 1 | [src/test/seo-city-identity.test.ts:67](../../src/test/seo-city-identity.test.ts#L67) |
 | /restaurants/carouge/r/other-city | 1 | [src/test/seo-restaurant-context-hardening.test.ts:30](../../src/test/seo-restaurant-context-hardening.test.ts#L30) |
 | /restaurants/chene-bourg/r/la-caf | 1 | [src/test/seo-web-artifact-names.test.ts:55](../../src/test/seo-web-artifact-names.test.ts#L55) |
-| /restaurants/geneve | 8 | [src/test/commercial-domain-isolation.test.ts:88](../../src/test/commercial-domain-isolation.test.ts#L88) |
+| /restaurants/geneve | 8 | [src/test/commercial-domain-isolation.test.ts:89](../../src/test/commercial-domain-isolation.test.ts#L89) |
 | /restaurants/geneve/eaux-vives | 2 | [src/test/seo-crawl-hardening.test.ts:93](../../src/test/seo-crawl-hardening.test.ts#L93) |
 | /restaurants/geneve/italien | 2 | [src/test/seo-crawl-hardening.test.ts:99](../../src/test/seo-crawl-hardening.test.ts#L99) |
 | /restaurants/geneve/r/a | 6 | [src/test/seo-directory-quality-hardening.test.ts:47](../../src/test/seo-directory-quality-hardening.test.ts#L47) |

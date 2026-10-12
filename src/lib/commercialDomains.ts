@@ -167,6 +167,42 @@ export function canOperateCommercialDemoHost(roles: readonly UserRole[] = []) {
   return roles.includes("commercial") || roles.includes("admin");
 }
 
+export type CommercialIdentityGateState = "ready" | "verification-error" | "role-mismatch";
+
+/**
+ * A failed restriction RPC is not evidence that the user is a commercial.
+ * Never redirect an unverifiable identity between production hosts. When a
+ * durable demo marker exists but the roles cannot operate the commercial host,
+ * block navigation locally instead of bouncing between the two origins.
+ */
+export function getCommercialIdentityGateState({
+  isAuthenticated = false,
+  roles = [],
+  accountType = null,
+  serverCommercialDemoRestricted = false,
+  restrictionCheckFailed = false,
+}: Pick<
+  CommercialHostRedirectInput,
+  "isAuthenticated" | "roles" | "accountType" | "serverCommercialDemoRestricted"
+> & { restrictionCheckFailed?: boolean }): CommercialIdentityGateState {
+  if (!isAuthenticated) return "ready";
+
+  const managedCommercial = isManagedCommercialAccount(
+    roles,
+    accountType,
+    serverCommercialDemoRestricted,
+  );
+
+  if (managedCommercial && !canOperateCommercialDemoHost(roles)) {
+    return "role-mismatch";
+  }
+  if (restrictionCheckFailed && !managedCommercial) {
+    return "verification-error";
+  }
+
+  return "ready";
+}
+
 export function getCommercialNavigationHref(
   pathname = "/commercial",
   hostname?: string,
