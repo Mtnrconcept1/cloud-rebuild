@@ -73,4 +73,21 @@ describe("canton-specific TOK homepage imagery", () => {
     })) as unknown as typeof fetch;
     await expect(cantonAtCoordinates({ latitude: 46.2044, longitude: 6.1432 }, empty)).resolves.toBeNull();
   });
+  it("allows only the official Swiss GIS domain in the public homepage CSP", () => {
+    const vercel = JSON.parse(readFileSync(resolve(process.cwd(), "vercel.json"), "utf8")) as {
+      headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
+    };
+    const global = vercel.headers.find((entry) => entry.source === "/(.*)");
+    const policy = global?.headers.find((header) => header.key === "Content-Security-Policy")?.value;
+    expect(policy).toContain("https://api3.geo.admin.ch");
+    expect(policy).toContain("connect-src 'self'");
+
+    for (const restricted of ["commercial.thetok.ch", "marketing.thetok.ch"]) {
+      const host = vercel.headers.find((entry) =>
+        "has" in entry && (entry as { has?: Array<{ type: string; value: string }> }).has?.some((item) => item.type === "host" && item.value === restricted),
+      );
+      expect(host?.headers.find((header) => header.key === "Content-Security-Policy")?.value).not.toContain("https://api3.geo.admin.ch");
+    }
+  });
+
 });
