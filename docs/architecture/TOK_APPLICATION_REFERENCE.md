@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `bb152104cb57604293c6174e41ccd7a893e2104a7b1de11697a1eb17685167c5`
+- Empreinte SHA-256 des sources indexées : `40b64bb198bc70ca5d4312839a9fb446863259fbe897373fef84ebc8a0a3935c`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 202 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3399 |
+| exportedSymbols | 3404 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 528 |
-| modules | 1504 |
+| modules | 1506 |
 | pages | 128 |
-| pathLiterals | 645 |
-| publicAssets | 436 |
-| publicEntries | 461 |
+| pathLiterals | 648 |
+| publicAssets | 413 |
+| publicEntries | 438 |
 | publicNavigableRoutes | 2 |
-| queryParameters | 104 |
-| records | 16086 |
-| repositoryFiles | 2958 |
+| queryParameters | 108 |
+| records | 16045 |
+| repositoryFiles | 2926 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -642,12 +642,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /data/geneva-commercial-prospects.json | data | [public/data/geneva-commercial-prospects.json](../../public/data/geneva-commercial-prospects.json) |
 | /data/thefork-geneva-commercial-prospects.json | data | [public/data/thefork-geneva-commercial-prospects.json](../../public/data/thefork-geneva-commercial-prospects.json) |
 | /dd35c5e3-5254-41eb-afdd-b3d5b3f43fcc.png | media | [public/dd35c5e3-5254-41eb-afdd-b3d5b3f43fcc.png](../../public/dd35c5e3-5254-41eb-afdd-b3d5b3f43fcc.png) |
-| /desig app/02B9B29C-0EB1-40EC-BE64-769CABCD2630.png | media | [public/desig app/02B9B29C-0EB1-40EC-BE64-769CABCD2630.png](../../public/desig%20app/02B9B29C-0EB1-40EC-BE64-769CABCD2630.png) |
-| /desig app/068456A5-9E7F-48FF-A059-035CFBEB2D0A.png | media | [public/desig app/068456A5-9E7F-48FF-A059-035CFBEB2D0A.png](../../public/desig%20app/068456A5-9E7F-48FF-A059-035CFBEB2D0A.png) |
-| /desig app/0B173D23-371C-4C0A-A5D2-815F1479AF29.png | media | [public/desig app/0B173D23-371C-4C0A-A5D2-815F1479AF29.png](../../public/desig%20app/0B173D23-371C-4C0A-A5D2-815F1479AF29.png) |
-| /desig app/132FD385-BA2B-418A-92A1-7FD564DCD9C3.png | media | [public/desig app/132FD385-BA2B-418A-92A1-7FD564DCD9C3.png](../../public/desig%20app/132FD385-BA2B-418A-92A1-7FD564DCD9C3.png) |
-| /desig app/197B0A17-E35B-4FE5-89D8-06B8226B33B0.png | media | [public/desig app/197B0A17-E35B-4FE5-89D8-06B8226B33B0.png](../../public/desig%20app/197B0A17-E35B-4FE5-89D8-06B8226B33B0.png) |
-| /desig app/1F5998CA-93CD-438A-81F6-ACF8151C03E6.png | media | [public/desig app/1F5998CA-93CD-438A-81F6-ACF8151C03E6.png](../../public/desig%20app/1F5998CA-93CD-438A-81F6-ACF8151C03E6.png) |
 | /desig app/1_0000_template_pub_04.png | media | [public/desig app/1_0000_template_pub_04.png](../../public/desig%20app/1_0000_template_pub_04.png) |
 | /desig app/1_0001_template_pub_08.png | media | [public/desig app/1_0001_template_pub_08.png](../../public/desig%20app/1_0001_template_pub_08.png) |
 | /desig app/1_0002_template_pub_01.png | media | [public/desig app/1_0002_template_pub_01.png](../../public/desig%20app/1_0002_template_pub_01.png) |
@@ -656,19 +650,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /desig app/1_0005_template_pub_06.png | media | [public/desig app/1_0005_template_pub_06.png](../../public/desig%20app/1_0005_template_pub_06.png) |
 | /desig app/1_0006_template_pub_05.png | media | [public/desig app/1_0006_template_pub_05.png](../../public/desig%20app/1_0006_template_pub_05.png) |
 | /desig app/1_0007_Calque-1.png | media | [public/desig app/1_0007_Calque-1.png](../../public/desig%20app/1_0007_Calque-1.png) |
-| /desig app/28EE1FCE-18E1-4A94-B9B6-E6DCE30F74AC.png | media | [public/desig app/28EE1FCE-18E1-4A94-B9B6-E6DCE30F74AC.png](../../public/desig%20app/28EE1FCE-18E1-4A94-B9B6-E6DCE30F74AC.png) |
-| /desig app/33B9DDFC-2EC1-4A1B-8B34-6A021691ECFF.png | media | [public/desig app/33B9DDFC-2EC1-4A1B-8B34-6A021691ECFF.png](../../public/desig%20app/33B9DDFC-2EC1-4A1B-8B34-6A021691ECFF.png) |
-| /desig app/4BC6A770-6263-4D9C-863D-89D87FFB99A7.png | media | [public/desig app/4BC6A770-6263-4D9C-863D-89D87FFB99A7.png](../../public/desig%20app/4BC6A770-6263-4D9C-863D-89D87FFB99A7.png) |
-| /desig app/63331163-6799-4EF7-9415-3CC851C1748B.png | media | [public/desig app/63331163-6799-4EF7-9415-3CC851C1748B.png](../../public/desig%20app/63331163-6799-4EF7-9415-3CC851C1748B.png) |
-| /desig app/63E3E3E7-8255-46B1-B408-52C66A61B491.png | media | [public/desig app/63E3E3E7-8255-46B1-B408-52C66A61B491.png](../../public/desig%20app/63E3E3E7-8255-46B1-B408-52C66A61B491.png) |
-| /desig app/64641818-05F4-4086-A785-5B19573EE57C.png | media | [public/desig app/64641818-05F4-4086-A785-5B19573EE57C.png](../../public/desig%20app/64641818-05F4-4086-A785-5B19573EE57C.png) |
-| /desig app/6D8E604E-6939-48A5-B6AC-9B8FC3722D53.png | media | [public/desig app/6D8E604E-6939-48A5-B6AC-9B8FC3722D53.png](../../public/desig%20app/6D8E604E-6939-48A5-B6AC-9B8FC3722D53.png) |
-| /desig app/761B16F6-6DB0-452E-97B9-CE51FFAA8A57.png | media | [public/desig app/761B16F6-6DB0-452E-97B9-CE51FFAA8A57.png](../../public/desig%20app/761B16F6-6DB0-452E-97B9-CE51FFAA8A57.png) |
-| /desig app/8C943CAD-9A8E-4185-ADED-1C8817CB918E.png | media | [public/desig app/8C943CAD-9A8E-4185-ADED-1C8817CB918E.png](../../public/desig%20app/8C943CAD-9A8E-4185-ADED-1C8817CB918E.png) |
-| /desig app/AA898C7A-5458-41EC-9E20-86AA6636DB27.png | media | [public/desig app/AA898C7A-5458-41EC-9E20-86AA6636DB27.png](../../public/desig%20app/AA898C7A-5458-41EC-9E20-86AA6636DB27.png) |
-| /desig app/AC118A6F-42DA-4D40-A924-D94D2BE5B27F.png | media | [public/desig app/AC118A6F-42DA-4D40-A924-D94D2BE5B27F.png](../../public/desig%20app/AC118A6F-42DA-4D40-A924-D94D2BE5B27F.png) |
-| /desig app/DAC6DF61-D4FF-41A9-A90A-559D177F757D.png | media | [public/desig app/DAC6DF61-D4FF-41A9-A90A-559D177F757D.png](../../public/desig%20app/DAC6DF61-D4FF-41A9-A90A-559D177F757D.png) |
-| /desig app/FC0EAC72-1821-488C-8323-D53D471055AF.png | media | [public/desig app/FC0EAC72-1821-488C-8323-D53D471055AF.png](../../public/desig%20app/FC0EAC72-1821-488C-8323-D53D471055AF.png) |
 | /desig app/assiette.png | media | [public/desig app/assiette.png](../../public/desig%20app/assiette.png) |
 | /desig app/burger.png | media | [public/desig app/burger.png](../../public/desig%20app/burger.png) |
 | /desig app/cadeau.png | media | [public/desig app/cadeau.png](../../public/desig%20app/cadeau.png) |
@@ -677,6 +658,32 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /desig app/chefsection2.png | media | [public/desig app/chefsection2.png](../../public/desig%20app/chefsection2.png) |
 | /desig app/db166d8e-afaa-475a-83b0-8510279ca071.png | media | [public/desig app/db166d8e-afaa-475a-83b0-8510279ca071.png](../../public/desig%20app/db166d8e-afaa-475a-83b0-8510279ca071.png) |
 | /desig app/flamme.png | media | [public/desig app/flamme.png](../../public/desig%20app/flamme.png) |
+| /desig app/tok-ch-ag.webp | media | [public/desig app/tok-ch-ag.webp](../../public/desig%20app/tok-ch-ag.webp) |
+| /desig app/tok-ch-ai.webp | media | [public/desig app/tok-ch-ai.webp](../../public/desig%20app/tok-ch-ai.webp) |
+| /desig app/tok-ch-ar.webp | media | [public/desig app/tok-ch-ar.webp](../../public/desig%20app/tok-ch-ar.webp) |
+| /desig app/tok-ch-be.webp | media | [public/desig app/tok-ch-be.webp](../../public/desig%20app/tok-ch-be.webp) |
+| /desig app/tok-ch-bl.webp | media | [public/desig app/tok-ch-bl.webp](../../public/desig%20app/tok-ch-bl.webp) |
+| /desig app/tok-ch-bs.webp | media | [public/desig app/tok-ch-bs.webp](../../public/desig%20app/tok-ch-bs.webp) |
+| /desig app/tok-ch-fr.webp | media | [public/desig app/tok-ch-fr.webp](../../public/desig%20app/tok-ch-fr.webp) |
+| /desig app/tok-ch-ge.webp | media | [public/desig app/tok-ch-ge.webp](../../public/desig%20app/tok-ch-ge.webp) |
+| /desig app/tok-ch-gl.webp | media | [public/desig app/tok-ch-gl.webp](../../public/desig%20app/tok-ch-gl.webp) |
+| /desig app/tok-ch-gr.webp | media | [public/desig app/tok-ch-gr.webp](../../public/desig%20app/tok-ch-gr.webp) |
+| /desig app/tok-ch-ju.webp | media | [public/desig app/tok-ch-ju.webp](../../public/desig%20app/tok-ch-ju.webp) |
+| /desig app/tok-ch-lu.webp | media | [public/desig app/tok-ch-lu.webp](../../public/desig%20app/tok-ch-lu.webp) |
+| /desig app/tok-ch-ne.webp | media | [public/desig app/tok-ch-ne.webp](../../public/desig%20app/tok-ch-ne.webp) |
+| /desig app/tok-ch-nw.webp | media | [public/desig app/tok-ch-nw.webp](../../public/desig%20app/tok-ch-nw.webp) |
+| /desig app/tok-ch-ow.webp | media | [public/desig app/tok-ch-ow.webp](../../public/desig%20app/tok-ch-ow.webp) |
+| /desig app/tok-ch-sg.webp | media | [public/desig app/tok-ch-sg.webp](../../public/desig%20app/tok-ch-sg.webp) |
+| /desig app/tok-ch-sh.webp | media | [public/desig app/tok-ch-sh.webp](../../public/desig%20app/tok-ch-sh.webp) |
+| /desig app/tok-ch-so.webp | media | [public/desig app/tok-ch-so.webp](../../public/desig%20app/tok-ch-so.webp) |
+| /desig app/tok-ch-sz.webp | media | [public/desig app/tok-ch-sz.webp](../../public/desig%20app/tok-ch-sz.webp) |
+| /desig app/tok-ch-tg.webp | media | [public/desig app/tok-ch-tg.webp](../../public/desig%20app/tok-ch-tg.webp) |
+| /desig app/tok-ch-ti.webp | media | [public/desig app/tok-ch-ti.webp](../../public/desig%20app/tok-ch-ti.webp) |
+| /desig app/tok-ch-ur.webp | media | [public/desig app/tok-ch-ur.webp](../../public/desig%20app/tok-ch-ur.webp) |
+| /desig app/tok-ch-vd.webp | media | [public/desig app/tok-ch-vd.webp](../../public/desig%20app/tok-ch-vd.webp) |
+| /desig app/tok-ch-vs.webp | media | [public/desig app/tok-ch-vs.webp](../../public/desig%20app/tok-ch-vs.webp) |
+| /desig app/tok-ch-zg.webp | media | [public/desig app/tok-ch-zg.webp](../../public/desig%20app/tok-ch-zg.webp) |
+| /desig app/tok-ch-zh.webp | media | [public/desig app/tok-ch-zh.webp](../../public/desig%20app/tok-ch-zh.webp) |
 | /favicon-180x180.png | media | [public/favicon-180x180.png](../../public/favicon-180x180.png) |
 | /favicon-192x192.png | media | [public/favicon-192x192.png](../../public/favicon-192x192.png) |
 | /favicon-48x48.png | media | [public/favicon-48x48.png](../../public/favicon-48x48.png) |
@@ -992,36 +999,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/campaigns/geneve-20261012/j19.jpg | media | [public/marketing/campaigns/geneve-20261012/j19.jpg](../../public/marketing/campaigns/geneve-20261012/j19.jpg) |
 | /marketing/campaigns/geneve-20261012/j20.jpg | media | [public/marketing/campaigns/geneve-20261012/j20.jpg](../../public/marketing/campaigns/geneve-20261012/j20.jpg) |
 | /miamz.png | media | [public/miamz.png](../../public/miamz.png) |
-| /miniatures-3d/chinois.webp | media | [public/miniatures-3d/chinois.webp](../../public/miniatures-3d/chinois.webp) |
-| /miniatures-3d/creole.webp | media | [public/miniatures-3d/creole.webp](../../public/miniatures-3d/creole.webp) |
-| /miniatures-3d/fondue-suisse.webp | media | [public/miniatures-3d/fondue-suisse.webp](../../public/miniatures-3d/fondue-suisse.webp) |
-| /miniatures-3d/francais.webp | media | [public/miniatures-3d/francais.webp](../../public/miniatures-3d/francais.webp) |
-| /miniatures-3d/gastronomique.webp | media | [public/miniatures-3d/gastronomique.webp](../../public/miniatures-3d/gastronomique.webp) |
-| /miniatures-3d/grillades.webp | media | [public/miniatures-3d/grillades.webp](../../public/miniatures-3d/grillades.webp) |
-| /miniatures-3d/halal.webp | media | [public/miniatures-3d/halal.webp](../../public/miniatures-3d/halal.webp) |
-| /miniatures-3d/healthy.webp | media | [public/miniatures-3d/healthy.webp](../../public/miniatures-3d/healthy.webp) |
-| /miniatures-3d/indien.webp | media | [public/miniatures-3d/indien.webp](../../public/miniatures-3d/indien.webp) |
-| /miniatures-3d/japonais.webp | media | [public/miniatures-3d/japonais.webp](../../public/miniatures-3d/japonais.webp) |
-| /miniatures-3d/kebab.webp | media | [public/miniatures-3d/kebab.webp](../../public/miniatures-3d/kebab.webp) |
-| /miniatures-3d/libanais.webp | media | [public/miniatures-3d/libanais.webp](../../public/miniatures-3d/libanais.webp) |
-| /miniatures-3d/marocain.webp | media | [public/miniatures-3d/marocain.webp](../../public/miniatures-3d/marocain.webp) |
-| /miniatures-3d/mediterraneen.webp | media | [public/miniatures-3d/mediterraneen.webp](../../public/miniatures-3d/mediterraneen.webp) |
-| /miniatures-3d/mexicain.webp | media | [public/miniatures-3d/mexicain.webp](../../public/miniatures-3d/mexicain.webp) |
-| /miniatures-3d/pakistanais.webp | media | [public/miniatures-3d/pakistanais.webp](../../public/miniatures-3d/pakistanais.webp) |
-| /miniatures-3d/pates.webp | media | [public/miniatures-3d/pates.webp](../../public/miniatures-3d/pates.webp) |
-| /miniatures-3d/patisserie.webp | media | [public/miniatures-3d/patisserie.webp](../../public/miniatures-3d/patisserie.webp) |
-| /miniatures-3d/petit-dejeuner.webp | media | [public/miniatures-3d/petit-dejeuner.webp](../../public/miniatures-3d/petit-dejeuner.webp) |
-| /miniatures-3d/pizza.webp | media | [public/miniatures-3d/pizza.webp](../../public/miniatures-3d/pizza.webp) |
-| /miniatures-3d/poke.webp | media | [public/miniatures-3d/poke.webp](../../public/miniatures-3d/poke.webp) |
-| /miniatures-3d/ramen.webp | media | [public/miniatures-3d/ramen.webp](../../public/miniatures-3d/ramen.webp) |
-| /miniatures-3d/salades.webp | media | [public/miniatures-3d/salades.webp](../../public/miniatures-3d/salades.webp) |
-| /miniatures-3d/sandwich.webp | media | [public/miniatures-3d/sandwich.webp](../../public/miniatures-3d/sandwich.webp) |
-| /miniatures-3d/street-food.webp | media | [public/miniatures-3d/street-food.webp](../../public/miniatures-3d/street-food.webp) |
-| /miniatures-3d/sushi.webp | media | [public/miniatures-3d/sushi.webp](../../public/miniatures-3d/sushi.webp) |
-| /miniatures-3d/thai.webp | media | [public/miniatures-3d/thai.webp](../../public/miniatures-3d/thai.webp) |
-| /miniatures-3d/turc.webp | media | [public/miniatures-3d/turc.webp](../../public/miniatures-3d/turc.webp) |
-| /miniatures-3d/vegan.webp | media | [public/miniatures-3d/vegan.webp](../../public/miniatures-3d/vegan.webp) |
-| /miniatures-3d/vegetarien.webp | media | [public/miniatures-3d/vegetarien.webp](../../public/miniatures-3d/vegetarien.webp) |
 | /mockup.png | media | [public/mockup.png](../../public/mockup.png) |
 | /placeholder.svg | media | [public/placeholder.svg](../../public/placeholder.svg) |
 | /plan salle/generated-host-stand.png | media | [public/plan salle/generated-host-stand.png](../../public/plan%20salle/generated-host-stand.png) |
@@ -1079,7 +1056,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
 | / | 235 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
-| /(.*) | 4 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
+| /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:68](../../src/test/application-search-index.test.ts#L68) |
 | /.well-known/apple-app-site-association-extra | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
@@ -1299,6 +1276,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /data/thefork-geneva-commercial-prospects.json | 1 | [src/data/theForkCommercialProspects.ts:7](../../src/data/theForkCommercialProspects.ts#L7) |
 | /database/query | 1 | [src/test/production-preflight-hardening.test.ts:204](../../src/test/production-preflight-hardening.test.ts#L204) |
 | /demo-restaurant.jpg | 1 | [src/test/commercial-demo-client-data-isolation.test.ts:19](../../src/test/commercial-demo-client-data-isolation.test.ts#L19) |
+| /desig%20app/tok-ch- | 2 | [src/lib/homeCantonHero.ts:72](../../src/lib/homeCantonHero.ts#L72) |
+| /desig%20app/tok-ch-ju.webp | 3 | [src/test/home-hero-search.test.tsx:43](../../src/test/home-hero-search.test.tsx#L43) |
+| /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:51](../../src/test/home-hero-search.test.tsx#L51) |
 | /enrich-directory-cuisines | 1 | [src/test/directory-cuisine-enrichment.test.ts:40](../../src/test/directory-cuisine-enrichment.test.ts#L40) |
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
 | /enrich-directory-images | 2 | [src/test/directory-image-discovery-worker.test.ts:44](../../src/test/directory-image-discovery-worker.test.ts#L44) |
@@ -1389,9 +1369,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-geneve-desktop.webp | 1 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
-| /images/home/tok-geneve-mobile-fast.webp | 3 | [src/components/home/HeroSection.tsx:82](../../src/components/home/HeroSection.tsx#L82) |
-| /images/home/tok-leman-signature-fast.webp | 3 | [src/components/home/HeroSection.tsx:83](../../src/components/home/HeroSection.tsx#L83) |
+| /images/home/tok-geneve-desktop.webp | 1 | [src/components/home/HeroSection.tsx:91](../../src/components/home/HeroSection.tsx#L91) |
+| /images/home/tok-geneve-mobile-fast.webp | 3 | [src/components/home/HeroSection.tsx:92](../../src/components/home/HeroSection.tsx#L92) |
+| /images/home/tok-leman-signature-fast.webp | 4 | [src/components/home/HeroSection.tsx:93](../../src/components/home/HeroSection.tsx#L93) |
 | /images/home/tok-logo-ui.webp | 1 | [src/lib/tokLogo.ts:2](../../src/lib/tokLogo.ts#L2) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
@@ -1403,45 +1383,45 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/meringue-double.webp | 3 | [src/lib/securityUrls.ts:27](../../src/lib/securityUrls.ts#L27) |
 | /images/milkshake-oreo.jpg | 3 | [src/lib/securityUrls.ts:28](../../src/lib/securityUrls.ts#L28) |
 | /images/milkshake-vanille.jpeg | 9 | [src/lib/menu-item-images.ts:30](../../src/lib/menu-item-images.ts#L30) |
-| /images/miniatures/01_africain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:42](../../src/components/home/CuisineCategoryStrip.tsx#L42) |
-| /images/miniatures/02_americain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:44](../../src/components/home/CuisineCategoryStrip.tsx#L44) |
-| /images/miniatures/03_bistro.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:28](../../src/components/home/CuisineCategoryStrip.tsx#L28) |
-| /images/miniatures/04_boulangerie.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:57](../../src/components/home/CuisineCategoryStrip.tsx#L57) |
-| /images/miniatures/05_brunch.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:55](../../src/components/home/CuisineCategoryStrip.tsx#L55) |
-| /images/miniatures/06_burger.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:29](../../src/components/home/CuisineCategoryStrip.tsx#L29) |
-| /images/miniatures/07_cafe.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:60](../../src/components/home/CuisineCategoryStrip.tsx#L60) |
-| /images/miniatures/08_chinois.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:33](../../src/components/home/CuisineCategoryStrip.tsx#L33) |
-| /images/miniatures/09_creole.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:43](../../src/components/home/CuisineCategoryStrip.tsx#L43) |
-| /images/miniatures/10_desserts.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:59](../../src/components/home/CuisineCategoryStrip.tsx#L59) |
-| /images/miniatures/11_francais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:31](../../src/components/home/CuisineCategoryStrip.tsx#L31) |
-| /images/miniatures/12_gastronomique.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:24](../../src/components/home/CuisineCategoryStrip.tsx#L24) |
-| /images/miniatures/13_grillades.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:47](../../src/components/home/CuisineCategoryStrip.tsx#L47) |
-| /images/miniatures/14_halal.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:49](../../src/components/home/CuisineCategoryStrip.tsx#L49) |
-| /images/miniatures/15_healthy.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:52](../../src/components/home/CuisineCategoryStrip.tsx#L52) |
-| /images/miniatures/16_indien.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:35](../../src/components/home/CuisineCategoryStrip.tsx#L35) |
-| /images/miniatures/17_italien.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:25](../../src/components/home/CuisineCategoryStrip.tsx#L25) |
-| /images/miniatures/18_japonais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:30](../../src/components/home/CuisineCategoryStrip.tsx#L30) |
-| /images/miniatures/19_kebab.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:38](../../src/components/home/CuisineCategoryStrip.tsx#L38) |
-| /images/miniatures/20_libanais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:36](../../src/components/home/CuisineCategoryStrip.tsx#L36) |
-| /images/miniatures/21_marocain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:40](../../src/components/home/CuisineCategoryStrip.tsx#L40) |
-| /images/miniatures/22_mediterranee.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:41](../../src/components/home/CuisineCategoryStrip.tsx#L41) |
-| /images/miniatures/23_mexicain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:39](../../src/components/home/CuisineCategoryStrip.tsx#L39) |
-| /images/miniatures/24_pakistanais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:48](../../src/components/home/CuisineCategoryStrip.tsx#L48) |
-| /images/miniatures/25_pizza.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:26](../../src/components/home/CuisineCategoryStrip.tsx#L26) |
-| /images/miniatures/26_sushi.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:27](../../src/components/home/CuisineCategoryStrip.tsx#L27) |
-| /images/miniatures/27_ramen.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:32](../../src/components/home/CuisineCategoryStrip.tsx#L32) |
-| /images/miniatures/28_thai.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:34](../../src/components/home/CuisineCategoryStrip.tsx#L34) |
-| /images/miniatures/29_turc.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:37](../../src/components/home/CuisineCategoryStrip.tsx#L37) |
-| /images/miniatures/30_salades.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:53](../../src/components/home/CuisineCategoryStrip.tsx#L53) |
-| /images/miniatures/31_poke.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:54](../../src/components/home/CuisineCategoryStrip.tsx#L54) |
-| /images/miniatures/32_petit-dejeuner.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:56](../../src/components/home/CuisineCategoryStrip.tsx#L56) |
-| /images/miniatures/33_pates.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:46](../../src/components/home/CuisineCategoryStrip.tsx#L46) |
-| /images/miniatures/34_fondue-suisse.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:45](../../src/components/home/CuisineCategoryStrip.tsx#L45) |
-| /images/miniatures/35_patisserie.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:58](../../src/components/home/CuisineCategoryStrip.tsx#L58) |
-| /images/miniatures/36_sandwich.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:61](../../src/components/home/CuisineCategoryStrip.tsx#L61) |
-| /images/miniatures/37_street-food.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:62](../../src/components/home/CuisineCategoryStrip.tsx#L62) |
-| /images/miniatures/38_vegetarien.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:50](../../src/components/home/CuisineCategoryStrip.tsx#L50) |
-| /images/miniatures/39_vegan.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:51](../../src/components/home/CuisineCategoryStrip.tsx#L51) |
+| /images/miniatures/01_africain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:32](../../src/components/home/CuisineCategoryStrip.tsx#L32) |
+| /images/miniatures/02_americain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:34](../../src/components/home/CuisineCategoryStrip.tsx#L34) |
+| /images/miniatures/03_bistro.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:18](../../src/components/home/CuisineCategoryStrip.tsx#L18) |
+| /images/miniatures/04_boulangerie.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:47](../../src/components/home/CuisineCategoryStrip.tsx#L47) |
+| /images/miniatures/05_brunch.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:45](../../src/components/home/CuisineCategoryStrip.tsx#L45) |
+| /images/miniatures/06_burger.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:19](../../src/components/home/CuisineCategoryStrip.tsx#L19) |
+| /images/miniatures/07_cafe.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:50](../../src/components/home/CuisineCategoryStrip.tsx#L50) |
+| /images/miniatures/08_chinois.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:23](../../src/components/home/CuisineCategoryStrip.tsx#L23) |
+| /images/miniatures/09_creole.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:33](../../src/components/home/CuisineCategoryStrip.tsx#L33) |
+| /images/miniatures/10_desserts.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:49](../../src/components/home/CuisineCategoryStrip.tsx#L49) |
+| /images/miniatures/11_francais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:21](../../src/components/home/CuisineCategoryStrip.tsx#L21) |
+| /images/miniatures/12_gastronomique.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:14](../../src/components/home/CuisineCategoryStrip.tsx#L14) |
+| /images/miniatures/13_grillades.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:37](../../src/components/home/CuisineCategoryStrip.tsx#L37) |
+| /images/miniatures/14_halal.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:39](../../src/components/home/CuisineCategoryStrip.tsx#L39) |
+| /images/miniatures/15_healthy.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:42](../../src/components/home/CuisineCategoryStrip.tsx#L42) |
+| /images/miniatures/16_indien.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:25](../../src/components/home/CuisineCategoryStrip.tsx#L25) |
+| /images/miniatures/17_italien.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:15](../../src/components/home/CuisineCategoryStrip.tsx#L15) |
+| /images/miniatures/18_japonais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:20](../../src/components/home/CuisineCategoryStrip.tsx#L20) |
+| /images/miniatures/19_kebab.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:28](../../src/components/home/CuisineCategoryStrip.tsx#L28) |
+| /images/miniatures/20_libanais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:26](../../src/components/home/CuisineCategoryStrip.tsx#L26) |
+| /images/miniatures/21_marocain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:30](../../src/components/home/CuisineCategoryStrip.tsx#L30) |
+| /images/miniatures/22_mediterranee.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:31](../../src/components/home/CuisineCategoryStrip.tsx#L31) |
+| /images/miniatures/23_mexicain.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:29](../../src/components/home/CuisineCategoryStrip.tsx#L29) |
+| /images/miniatures/24_pakistanais.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:38](../../src/components/home/CuisineCategoryStrip.tsx#L38) |
+| /images/miniatures/25_pizza.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:16](../../src/components/home/CuisineCategoryStrip.tsx#L16) |
+| /images/miniatures/26_sushi.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:17](../../src/components/home/CuisineCategoryStrip.tsx#L17) |
+| /images/miniatures/27_ramen.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:22](../../src/components/home/CuisineCategoryStrip.tsx#L22) |
+| /images/miniatures/28_thai.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:24](../../src/components/home/CuisineCategoryStrip.tsx#L24) |
+| /images/miniatures/29_turc.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:27](../../src/components/home/CuisineCategoryStrip.tsx#L27) |
+| /images/miniatures/30_salades.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:43](../../src/components/home/CuisineCategoryStrip.tsx#L43) |
+| /images/miniatures/31_poke.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:44](../../src/components/home/CuisineCategoryStrip.tsx#L44) |
+| /images/miniatures/32_petit-dejeuner.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:46](../../src/components/home/CuisineCategoryStrip.tsx#L46) |
+| /images/miniatures/33_pates.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:36](../../src/components/home/CuisineCategoryStrip.tsx#L36) |
+| /images/miniatures/34_fondue-suisse.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:35](../../src/components/home/CuisineCategoryStrip.tsx#L35) |
+| /images/miniatures/35_patisserie.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:48](../../src/components/home/CuisineCategoryStrip.tsx#L48) |
+| /images/miniatures/36_sandwich.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:51](../../src/components/home/CuisineCategoryStrip.tsx#L51) |
+| /images/miniatures/37_street-food.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:52](../../src/components/home/CuisineCategoryStrip.tsx#L52) |
+| /images/miniatures/38_vegetarien.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:40](../../src/components/home/CuisineCategoryStrip.tsx#L40) |
+| /images/miniatures/39_vegan.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:41](../../src/components/home/CuisineCategoryStrip.tsx#L41) |
 | /images/mixed-grill-platter-fast.webp | 1 | [src/components/PromoCarousel.tsx:24](../../src/components/PromoCarousel.tsx#L24) |
 | /images/mixed-grill-platter.jpeg | 9 | [src/components/AntiWasteCard.tsx:34](../../src/components/AntiWasteCard.tsx#L34) |
 | /images/mochi-glaces.jpg | 7 | [src/lib/menu-item-images.ts:52](../../src/lib/menu-item-images.ts#L52) |
@@ -1464,14 +1444,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/section-headers/plate-3d.png | 2 | [src/lib/dashboardIllustrations.ts:56](../../src/lib/dashboardIllustrations.ts#L56) |
 | /images/section-headers/shopping-bags-3d.png | 1 | [src/lib/dashboardIllustrations.ts:60](../../src/lib/dashboardIllustrations.ts#L60) |
 | /images/section-headers/tok-editorial- | 1 | [src/components/home/SectionShowcaseHeader.tsx:51](../../src/components/home/SectionShowcaseHeader.tsx#L51) |
-| /images/section-headers/tok-editorial-cuisine-full.jpg | 2 | [src/components/home/CuisineCategoryStrip.tsx:120](../../src/components/home/CuisineCategoryStrip.tsx#L120) |
-| /images/section-headers/tok-editorial-delivery-full.jpg | 1 | [src/pages/Index.tsx:61](../../src/pages/Index.tsx#L61) |
-| /images/section-headers/tok-editorial-evening-full.jpg | 1 | [src/pages/Index.tsx:62](../../src/pages/Index.tsx#L62) |
-| /images/section-headers/tok-editorial-feast-full.jpg | 1 | [src/pages/Index.tsx:58](../../src/pages/Index.tsx#L58) |
-| /images/section-headers/tok-editorial-gastronomy-full.jpg | 1 | [src/pages/Index.tsx:60](../../src/pages/Index.tsx#L60) |
-| /images/section-headers/tok-editorial-geneva-full.jpg | 4 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
-| /images/section-headers/tok-editorial-reservation-full.jpg | 1 | [src/pages/Index.tsx:59](../../src/pages/Index.tsx#L59) |
-| /images/section-headers/tok-editorial-rewards-full.jpg | 1 | [src/pages/Index.tsx:56](../../src/pages/Index.tsx#L56) |
+| /images/section-headers/tok-editorial-cuisine-full.jpg | 2 | [src/components/home/CuisineCategoryStrip.tsx:95](../../src/components/home/CuisineCategoryStrip.tsx#L95) |
+| /images/section-headers/tok-editorial-delivery-full.jpg | 1 | [src/pages/Index.tsx:62](../../src/pages/Index.tsx#L62) |
+| /images/section-headers/tok-editorial-evening-full.jpg | 1 | [src/pages/Index.tsx:63](../../src/pages/Index.tsx#L63) |
+| /images/section-headers/tok-editorial-feast-full.jpg | 1 | [src/pages/Index.tsx:59](../../src/pages/Index.tsx#L59) |
+| /images/section-headers/tok-editorial-gastronomy-full.jpg | 1 | [src/pages/Index.tsx:61](../../src/pages/Index.tsx#L61) |
+| /images/section-headers/tok-editorial-geneva-full.jpg | 4 | [src/pages/Index.tsx:58](../../src/pages/Index.tsx#L58) |
+| /images/section-headers/tok-editorial-reservation-full.jpg | 1 | [src/pages/Index.tsx:60](../../src/pages/Index.tsx#L60) |
+| /images/section-headers/tok-editorial-rewards-full.jpg | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
 | /images/smash-burger-single.jpeg | 3 | [src/lib/menu-item-images.ts:23](../../src/lib/menu-item-images.ts#L23) |
 | /images/smash-burgers.jpeg | 3 | [src/components/AntiWasteCard.tsx:39](../../src/components/AntiWasteCard.tsx#L39) |
 | /images/stack-shake-spread.jpeg | 1 | [src/components/AntiWasteCard.tsx:35](../../src/components/AntiWasteCard.tsx#L35) |
@@ -1765,10 +1745,12 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | filter[platform] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:160](../../scripts/app-store-connect-upload-screenshots.mjs#L160) |
 | format | — | 1 | [src/lib/optimizedImages.ts:41](../../src/lib/optimizedImages.ts#L41) |
 | from | — | 1 | [src/marketing/useMarketingUrlState.ts:91](../../src/marketing/useMarketingUrlState.ts#L91) |
+| geometry | — | 1 | [src/test/home-canton-hero.test.ts:55](../../src/test/home-canton-hero.test.ts#L55) |
 | height | — | 1 | [src/lib/optimizedImages.ts:38](../../src/lib/optimizedImages.ts#L38) |
 | incident | /admin/guardian, /admin/sinistres, /admin/support-resolution | 4 | [src/pages/admin/AdminGuardian.tsx:105](../../src/pages/admin/AdminGuardian.tsx#L105) |
 | job | /courier/jobs | 1 | [src/pages/courier/CourierJobs.tsx:54](../../src/pages/courier/CourierJobs.tsx#L54) |
 | lat | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 2 | [src/pages/LocalRestaurants.tsx:475](../../src/pages/LocalRestaurants.tsx#L475) |
+| layers | — | 1 | [src/test/home-canton-hero.test.ts:58](../../src/test/home-canton-hero.test.ts#L58) |
 | limit | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 13 | [scripts/app-store-connect-preflight.mjs:77](../../scripts/app-store-connect-preflight.mjs#L77) |
 | lng | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 1 | [src/pages/LocalRestaurants.tsx:478](../../src/pages/LocalRestaurants.tsx#L478) |
 | lon | — | 1 | [src/test/address-autocomplete-location-bias.test.tsx:78](../../src/test/address-autocomplete-location-bias.test.tsx#L78) |
@@ -1816,6 +1798,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | slug | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:172](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L172) |
 | sort | /recherche | 1 | [src/pages/Recherche.tsx:249](../../src/pages/Recherche.tsx#L249) |
 | source | /mon-espace | 1 | [public/manifest.json:50](../../public/manifest.json#L50) |
+| sr | — | 1 | [src/test/home-canton-hero.test.ts:56](../../src/test/home-canton-hero.test.ts#L56) |
 | state | — | 2 | [supabase/functions/tok-connect-oauth/index.ts:222](../../supabase/functions/tok-connect-oauth/index.ts#L222) |
 | status | /chefs-table, /dashboard, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 12 | [src/lib/iosCommerceFetch.ts:137](../../src/lib/iosCommerceFetch.ts#L137) |
 | stripe_session_id | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:81](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L81) |
@@ -1826,6 +1809,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | to | — | 1 | [src/marketing/useMarketingUrlState.ts:92](../../src/marketing/useMarketingUrlState.ts#L92) |
 | tok_connect_route | — | 4 | [supabase/functions/tok-connect-chatgpt/index.ts:504](../../supabase/functions/tok-connect-chatgpt/index.ts#L504) |
 | token | — | 1 | [supabase/functions/marketing-unsubscribe/index.ts:66](../../supabase/functions/marketing-unsubscribe/index.ts#L66) |
+| tolerance | — | 1 | [src/test/home-canton-hero.test.ts:57](../../src/test/home-canton-hero.test.ts#L57) |
 | type | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:285](../../src/pages/Auth.tsx#L285) |
 | utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:598](../../src/components/ReservationDialog.tsx#L598) |
 | utm_source | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:594](../../src/components/ReservationDialog.tsx#L594) |
@@ -5943,7 +5927,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Stripe | 213 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 673 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 58 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 59 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
@@ -5951,7 +5935,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 204 |
+| application-library | 205 |
 | automation-script | 64 |
 | documentation | 6 |
 | edge-function-source | 186 |
@@ -5962,7 +5946,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 593 |
+| test | 594 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6238,7 +6222,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (204)</summary>
+<details><summary>application-library (205)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/actualitesFeedOrdering.ts`
@@ -6339,6 +6323,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/googleBusinessServiceScope.ts`
 - `src/lib/guaranteedDeliveryCart.ts`
 - `src/lib/helpChat.ts`
+- `src/lib/homeCantonHero.ts`
 - `src/lib/homeRestaurantDiscovery.ts`
 - `src/lib/invoicePresentation.ts`
 - `src/lib/iosCommerceFetch.ts`
@@ -7945,7 +7930,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (461)</summary>
+<details><summary>public-asset (438)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -7977,12 +7962,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/data/geneva-commercial-prospects.json`
 - `public/data/thefork-geneva-commercial-prospects.json`
 - `public/dd35c5e3-5254-41eb-afdd-b3d5b3f43fcc.png`
-- `public/desig app/02B9B29C-0EB1-40EC-BE64-769CABCD2630.png`
-- `public/desig app/068456A5-9E7F-48FF-A059-035CFBEB2D0A.png`
-- `public/desig app/0B173D23-371C-4C0A-A5D2-815F1479AF29.png`
-- `public/desig app/132FD385-BA2B-418A-92A1-7FD564DCD9C3.png`
-- `public/desig app/197B0A17-E35B-4FE5-89D8-06B8226B33B0.png`
-- `public/desig app/1F5998CA-93CD-438A-81F6-ACF8151C03E6.png`
 - `public/desig app/1_0000_template_pub_04.png`
 - `public/desig app/1_0001_template_pub_08.png`
 - `public/desig app/1_0002_template_pub_01.png`
@@ -7991,19 +7970,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/desig app/1_0005_template_pub_06.png`
 - `public/desig app/1_0006_template_pub_05.png`
 - `public/desig app/1_0007_Calque-1.png`
-- `public/desig app/28EE1FCE-18E1-4A94-B9B6-E6DCE30F74AC.png`
-- `public/desig app/33B9DDFC-2EC1-4A1B-8B34-6A021691ECFF.png`
-- `public/desig app/4BC6A770-6263-4D9C-863D-89D87FFB99A7.png`
-- `public/desig app/63331163-6799-4EF7-9415-3CC851C1748B.png`
-- `public/desig app/63E3E3E7-8255-46B1-B408-52C66A61B491.png`
-- `public/desig app/64641818-05F4-4086-A785-5B19573EE57C.png`
-- `public/desig app/6D8E604E-6939-48A5-B6AC-9B8FC3722D53.png`
-- `public/desig app/761B16F6-6DB0-452E-97B9-CE51FFAA8A57.png`
-- `public/desig app/8C943CAD-9A8E-4185-ADED-1C8817CB918E.png`
-- `public/desig app/AA898C7A-5458-41EC-9E20-86AA6636DB27.png`
-- `public/desig app/AC118A6F-42DA-4D40-A924-D94D2BE5B27F.png`
-- `public/desig app/DAC6DF61-D4FF-41A9-A90A-559D177F757D.png`
-- `public/desig app/FC0EAC72-1821-488C-8323-D53D471055AF.png`
 - `public/desig app/assiette.png`
 - `public/desig app/burger.png`
 - `public/desig app/cadeau.png`
@@ -8012,6 +7978,32 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/desig app/chefsection2.png`
 - `public/desig app/db166d8e-afaa-475a-83b0-8510279ca071.png`
 - `public/desig app/flamme.png`
+- `public/desig app/tok-ch-ag.webp`
+- `public/desig app/tok-ch-ai.webp`
+- `public/desig app/tok-ch-ar.webp`
+- `public/desig app/tok-ch-be.webp`
+- `public/desig app/tok-ch-bl.webp`
+- `public/desig app/tok-ch-bs.webp`
+- `public/desig app/tok-ch-fr.webp`
+- `public/desig app/tok-ch-ge.webp`
+- `public/desig app/tok-ch-gl.webp`
+- `public/desig app/tok-ch-gr.webp`
+- `public/desig app/tok-ch-ju.webp`
+- `public/desig app/tok-ch-lu.webp`
+- `public/desig app/tok-ch-ne.webp`
+- `public/desig app/tok-ch-nw.webp`
+- `public/desig app/tok-ch-ow.webp`
+- `public/desig app/tok-ch-sg.webp`
+- `public/desig app/tok-ch-sh.webp`
+- `public/desig app/tok-ch-so.webp`
+- `public/desig app/tok-ch-sz.webp`
+- `public/desig app/tok-ch-tg.webp`
+- `public/desig app/tok-ch-ti.webp`
+- `public/desig app/tok-ch-ur.webp`
+- `public/desig app/tok-ch-vd.webp`
+- `public/desig app/tok-ch-vs.webp`
+- `public/desig app/tok-ch-zg.webp`
+- `public/desig app/tok-ch-zh.webp`
 - `public/favicon-180x180.png`
 - `public/favicon-192x192.png`
 - `public/favicon-48x48.png`
@@ -8327,36 +8319,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/marketing/campaigns/geneve-20261012/j19.jpg`
 - `public/marketing/campaigns/geneve-20261012/j20.jpg`
 - `public/miamz.png`
-- `public/miniatures-3d/chinois.webp`
-- `public/miniatures-3d/creole.webp`
-- `public/miniatures-3d/fondue-suisse.webp`
-- `public/miniatures-3d/francais.webp`
-- `public/miniatures-3d/gastronomique.webp`
-- `public/miniatures-3d/grillades.webp`
-- `public/miniatures-3d/halal.webp`
-- `public/miniatures-3d/healthy.webp`
-- `public/miniatures-3d/indien.webp`
-- `public/miniatures-3d/japonais.webp`
-- `public/miniatures-3d/kebab.webp`
-- `public/miniatures-3d/libanais.webp`
-- `public/miniatures-3d/marocain.webp`
-- `public/miniatures-3d/mediterraneen.webp`
-- `public/miniatures-3d/mexicain.webp`
-- `public/miniatures-3d/pakistanais.webp`
-- `public/miniatures-3d/pates.webp`
-- `public/miniatures-3d/patisserie.webp`
-- `public/miniatures-3d/petit-dejeuner.webp`
-- `public/miniatures-3d/pizza.webp`
-- `public/miniatures-3d/poke.webp`
-- `public/miniatures-3d/ramen.webp`
-- `public/miniatures-3d/salades.webp`
-- `public/miniatures-3d/sandwich.webp`
-- `public/miniatures-3d/street-food.webp`
-- `public/miniatures-3d/sushi.webp`
-- `public/miniatures-3d/thai.webp`
-- `public/miniatures-3d/turc.webp`
-- `public/miniatures-3d/vegan.webp`
-- `public/miniatures-3d/vegetarien.webp`
 - `public/mockup.png`
 - `public/placeholder.svg`
 - `public/plan salle/generated-host-stand.png`
@@ -8411,7 +8373,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>repository-file (152)</summary>
+<details><summary>repository-file (141)</summary>
 
 - `.agents/skills/stripe-best-practices/SKILL.md`
 - `.agents/skills/stripe-best-practices/references/billing.md`
@@ -8496,18 +8458,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.pnpm-store/v10/files/b7/ca3e00f05ddd45aed19f2bcad1ce71addf370ffb10d8b99db34187416d74ae93b07aa9f752d9394a7ed05135ef7afcce7c3988852256b194c4c990d5ea7c06`
 - `.pnpm-store/v10/files/b7/cc71f90740600a44e2ba9b80afa1c39ea1d7a8227a6f28478959a42aa6eb404870121574d408b7f028aa356677484c1b44c5d9ccd73fb210553944fba710bf`
 - `.vercelignore`
-- `0D7E5920-0964-4729-AECF-33FA2F21601E.png`
-- `0F45EEAF-9C14-446B-9D68-C16213628B0C.png`
-- `1044CB5F-134F-4EFD-AC5E-160BE607C7D2.png`
-- `25D85885-735D-4DC3-A69B-9AA7CF61B26D.png`
-- `6EFC5A85-A2FC-41C0-8D12-D5A606B81D99.png`
-- `91D540B8-B9E9-4FCD-9616-913A873E3B5B.png`
-- `A1C10E01-8B56-4781-98C0-AD1DE1A24975.png`
 - `AGENTS.md`
-- `B32D4A86-EB08-4EA8-9A53-C0E30CA84A2B.png`
-- `C4715632-EC78-401C-A5BF-37EDEBC9E711.png`
-- `CE1B2E33-4809-4C71-971E-2B5C15ED73B9.png`
-- `D771C600-3297-4C7C-B7E9-12453DB9B81D.png`
 - `README.md`
 - `README_DEPLOY.md`
 - `SECURITY.md`
@@ -8604,7 +8555,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (593)</summary>
+<details><summary>test (594)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -8859,6 +8810,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/guaranteed-delivery-cart.test.ts`
 - `src/test/health-score-advisors.test.ts`
 - `src/test/home-assets-budget.test.ts`
+- `src/test/home-canton-hero.test.ts`
 - `src/test/home-core-web-vitals.test.ts`
 - `src/test/home-cuisine-accessibility.test.tsx`
 - `src/test/home-hero-search.test.tsx`

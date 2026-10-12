@@ -180,3 +180,11 @@ body:has(.tok-home-first-screen) .tok-site-header .tok-desktop-guest-hide{displa
 .tok-or-banner{gap:13px;padding:17px 20px}
 .tok-or-banner__brand{font-size:28px;padding-right:15px}
 }
+
+/* Original landscape illustrations: keep the TOK chef visible on narrow viewports. */
+@media(max-width:767px){
+.tok-home-hero__art[data-canton-image="true"] .tok-home-hero__background img{object-position:68% center}
+}
+@media(min-width:1024px){
+.tok-home-first-screen .tok-home-hero__art[data-canton-image="true"] .tok-home-hero__background img{transform:none;object-position:center center}
+}

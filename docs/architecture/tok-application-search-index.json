@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "bb152104cb57604293c6174e41ccd7a893e2104a7b1de11697a1eb17685167c5",
+ "sourceDigest": "40b64bb198bc70ca5d4312839a9fb446863259fbe897373fef84ebc8a0a3935c",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 202,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3399,
+  "exportedSymbols": 3404,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 528,
-  "modules": 1504,
+  "modules": 1506,
   "pages": 128,
-  "pathLiterals": 645,
-  "publicAssets": 436,
-  "publicEntries": 461,
+  "pathLiterals": 648,
+  "publicAssets": 413,
+  "publicEntries": 438,
   "publicNavigableRoutes": 2,
-  "queryParameters": 104,
-  "records": 16086,
-  "repositoryFiles": 2958,
+  "queryParameters": 108,
+  "records": 16045,
+  "repositoryFiles": 2926,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -3199,7 +3199,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 208,
+      "line": 209,
       "kind": "function"
      }
     ],
@@ -10613,36 +10613,6 @@
     "kind": "media"
    },
    {
-    "route": "/desig app/02B9B29C-0EB1-40EC-BE64-769CABCD2630.png",
-    "path": "public/desig app/02B9B29C-0EB1-40EC-BE64-769CABCD2630.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/068456A5-9E7F-48FF-A059-035CFBEB2D0A.png",
-    "path": "public/desig app/068456A5-9E7F-48FF-A059-035CFBEB2D0A.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/0B173D23-371C-4C0A-A5D2-815F1479AF29.png",
-    "path": "public/desig app/0B173D23-371C-4C0A-A5D2-815F1479AF29.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/132FD385-BA2B-418A-92A1-7FD564DCD9C3.png",
-    "path": "public/desig app/132FD385-BA2B-418A-92A1-7FD564DCD9C3.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/197B0A17-E35B-4FE5-89D8-06B8226B33B0.png",
-    "path": "public/desig app/197B0A17-E35B-4FE5-89D8-06B8226B33B0.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/1F5998CA-93CD-438A-81F6-ACF8151C03E6.png",
-    "path": "public/desig app/1F5998CA-93CD-438A-81F6-ACF8151C03E6.png",
-    "kind": "media"
-   },
-   {
     "route": "/desig app/1_0000_template_pub_04.png",
     "path": "public/desig app/1_0000_template_pub_04.png",
     "kind": "media"
@@ -10683,71 +10653,6 @@
     "kind": "media"
    },
    {
-    "route": "/desig app/28EE1FCE-18E1-4A94-B9B6-E6DCE30F74AC.png",
-    "path": "public/desig app/28EE1FCE-18E1-4A94-B9B6-E6DCE30F74AC.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/33B9DDFC-2EC1-4A1B-8B34-6A021691ECFF.png",
-    "path": "public/desig app/33B9DDFC-2EC1-4A1B-8B34-6A021691ECFF.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/4BC6A770-6263-4D9C-863D-89D87FFB99A7.png",
-    "path": "public/desig app/4BC6A770-6263-4D9C-863D-89D87FFB99A7.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/63331163-6799-4EF7-9415-3CC851C1748B.png",
-    "path": "public/desig app/63331163-6799-4EF7-9415-3CC851C1748B.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/63E3E3E7-8255-46B1-B408-52C66A61B491.png",
-    "path": "public/desig app/63E3E3E7-8255-46B1-B408-52C66A61B491.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/64641818-05F4-4086-A785-5B19573EE57C.png",
-    "path": "public/desig app/64641818-05F4-4086-A785-5B19573EE57C.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/6D8E604E-6939-48A5-B6AC-9B8FC3722D53.png",
-    "path": "public/desig app/6D8E604E-6939-48A5-B6AC-9B8FC3722D53.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/761B16F6-6DB0-452E-97B9-CE51FFAA8A57.png",
-    "path": "public/desig app/761B16F6-6DB0-452E-97B9-CE51FFAA8A57.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/8C943CAD-9A8E-4185-ADED-1C8817CB918E.png",
-    "path": "public/desig app/8C943CAD-9A8E-4185-ADED-1C8817CB918E.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/AA898C7A-5458-41EC-9E20-86AA6636DB27.png",
-    "path": "public/desig app/AA898C7A-5458-41EC-9E20-86AA6636DB27.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/AC118A6F-42DA-4D40-A924-D94D2BE5B27F.png",
-    "path": "public/desig app/AC118A6F-42DA-4D40-A924-D94D2BE5B27F.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/DAC6DF61-D4FF-41A9-A90A-559D177F757D.png",
-    "path": "public/desig app/DAC6DF61-D4FF-41A9-A90A-559D177F757D.png",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/FC0EAC72-1821-488C-8323-D53D471055AF.png",
-    "path": "public/desig app/FC0EAC72-1821-488C-8323-D53D471055AF.png",
-    "kind": "media"
-   },
-   {
     "route": "/desig app/assiette.png",
     "path": "public/desig app/assiette.png",
     "kind": "media"
@@ -10785,6 +10690,136 @@
    {
     "route": "/desig app/flamme.png",
     "path": "public/desig app/flamme.png",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-ag.webp",
+    "path": "public/desig app/tok-ch-ag.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-ai.webp",
+    "path": "public/desig app/tok-ch-ai.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-ar.webp",
+    "path": "public/desig app/tok-ch-ar.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-be.webp",
+    "path": "public/desig app/tok-ch-be.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-bl.webp",
+    "path": "public/desig app/tok-ch-bl.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-bs.webp",
+    "path": "public/desig app/tok-ch-bs.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-fr.webp",
+    "path": "public/desig app/tok-ch-fr.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-ge.webp",
+    "path": "public/desig app/tok-ch-ge.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-gl.webp",
+    "path": "public/desig app/tok-ch-gl.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-gr.webp",
+    "path": "public/desig app/tok-ch-gr.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-ju.webp",
+    "path": "public/desig app/tok-ch-ju.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-lu.webp",
+    "path": "public/desig app/tok-ch-lu.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-ne.webp",
+    "path": "public/desig app/tok-ch-ne.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-nw.webp",
+    "path": "public/desig app/tok-ch-nw.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-ow.webp",
+    "path": "public/desig app/tok-ch-ow.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-sg.webp",
+    "path": "public/desig app/tok-ch-sg.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-sh.webp",
+    "path": "public/desig app/tok-ch-sh.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-so.webp",
+    "path": "public/desig app/tok-ch-so.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-sz.webp",
+    "path": "public/desig app/tok-ch-sz.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-tg.webp",
+    "path": "public/desig app/tok-ch-tg.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-ti.webp",
+    "path": "public/desig app/tok-ch-ti.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-ur.webp",
+    "path": "public/desig app/tok-ch-ur.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-vd.webp",
+    "path": "public/desig app/tok-ch-vd.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-vs.webp",
+    "path": "public/desig app/tok-ch-vs.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-zg.webp",
+    "path": "public/desig app/tok-ch-zg.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/desig app/tok-ch-zh.webp",
+    "path": "public/desig app/tok-ch-zh.webp",
     "kind": "media"
    },
    {
@@ -12363,156 +12398,6 @@
     "kind": "media"
    },
    {
-    "route": "/miniatures-3d/chinois.webp",
-    "path": "public/miniatures-3d/chinois.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/creole.webp",
-    "path": "public/miniatures-3d/creole.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/fondue-suisse.webp",
-    "path": "public/miniatures-3d/fondue-suisse.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/francais.webp",
-    "path": "public/miniatures-3d/francais.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/gastronomique.webp",
-    "path": "public/miniatures-3d/gastronomique.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/grillades.webp",
-    "path": "public/miniatures-3d/grillades.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/halal.webp",
-    "path": "public/miniatures-3d/halal.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/healthy.webp",
-    "path": "public/miniatures-3d/healthy.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/indien.webp",
-    "path": "public/miniatures-3d/indien.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/japonais.webp",
-    "path": "public/miniatures-3d/japonais.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/kebab.webp",
-    "path": "public/miniatures-3d/kebab.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/libanais.webp",
-    "path": "public/miniatures-3d/libanais.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/marocain.webp",
-    "path": "public/miniatures-3d/marocain.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/mediterraneen.webp",
-    "path": "public/miniatures-3d/mediterraneen.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/mexicain.webp",
-    "path": "public/miniatures-3d/mexicain.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/pakistanais.webp",
-    "path": "public/miniatures-3d/pakistanais.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/pates.webp",
-    "path": "public/miniatures-3d/pates.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/patisserie.webp",
-    "path": "public/miniatures-3d/patisserie.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/petit-dejeuner.webp",
-    "path": "public/miniatures-3d/petit-dejeuner.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/pizza.webp",
-    "path": "public/miniatures-3d/pizza.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/poke.webp",
-    "path": "public/miniatures-3d/poke.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/ramen.webp",
-    "path": "public/miniatures-3d/ramen.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/salades.webp",
-    "path": "public/miniatures-3d/salades.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/sandwich.webp",
-    "path": "public/miniatures-3d/sandwich.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/street-food.webp",
-    "path": "public/miniatures-3d/street-food.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/sushi.webp",
-    "path": "public/miniatures-3d/sushi.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/thai.webp",
-    "path": "public/miniatures-3d/thai.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/turc.webp",
-    "path": "public/miniatures-3d/turc.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/vegan.webp",
-    "path": "public/miniatures-3d/vegan.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/miniatures-3d/vegetarien.webp",
-    "path": "public/miniatures-3d/vegetarien.webp",
-    "kind": "media"
-   },
-   {
     "route": "/mockup.png",
     "path": "public/mockup.png",
     "kind": "media"
@@ -13720,6 +13605,10 @@
      {
       "path": "src/test/daily-slot-machine-security.test.ts",
       "line": 48
+     },
+     {
+      "path": "src/test/home-canton-hero.test.ts",
+      "line": 80
      },
      {
       "path": "src/test/seo-indexation-hardening.test.ts",
@@ -16023,7 +15912,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 94
+      "line": 104
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -16809,7 +16698,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 76
+      "line": 86
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -16837,7 +16726,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 649
+      "line": 659
      },
      {
       "path": "src/pages/Panier.tsx",
@@ -16857,7 +16746,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 43
+      "line": 63
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -20111,6 +20000,45 @@
     ]
    },
    {
+    "value": "/desig%20app/tok-ch-",
+    "sources": [
+     {
+      "path": "src/lib/homeCantonHero.ts",
+      "line": 72
+     },
+     {
+      "path": "src/test/home-canton-hero.test.ts",
+      "line": 16
+     }
+    ]
+   },
+   {
+    "value": "/desig%20app/tok-ch-ju.webp",
+    "sources": [
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 43
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 44
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 45
+     }
+    ]
+   },
+   {
+    "value": "/desig%20app/tok-ch-vd.webp",
+    "sources": [
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 51
+     }
+    ]
+   },
+   {
     "value": "/enrich-directory-cuisines",
     "sources": [
      {
@@ -21345,7 +21273,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 81
+      "line": 91
      }
     ]
    },
@@ -21354,7 +21282,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 82
+      "line": 92
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
@@ -21371,7 +21299,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 83
+      "line": 93
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
@@ -21380,6 +21308,10 @@
      {
       "path": "src/test/home-hero-search.test.tsx",
       "line": 38
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 54
      }
     ]
    },
@@ -21475,7 +21407,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 707
+      "line": 717
      },
      {
       "path": "src/pages/MatchGroupes.tsx",
@@ -21647,7 +21579,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 42
+      "line": 32
      }
     ]
    },
@@ -21656,7 +21588,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 44
+      "line": 34
      }
     ]
    },
@@ -21665,7 +21597,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 28
+      "line": 18
      }
     ]
    },
@@ -21674,7 +21606,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 57
+      "line": 47
      }
     ]
    },
@@ -21683,7 +21615,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 55
+      "line": 45
      }
     ]
    },
@@ -21692,7 +21624,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 29
+      "line": 19
      }
     ]
    },
@@ -21701,7 +21633,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 60
+      "line": 50
      }
     ]
    },
@@ -21710,7 +21642,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 33
+      "line": 23
      }
     ]
    },
@@ -21719,7 +21651,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 43
+      "line": 33
      }
     ]
    },
@@ -21728,7 +21660,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 59
+      "line": 49
      }
     ]
    },
@@ -21737,7 +21669,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 31
+      "line": 21
      }
     ]
    },
@@ -21746,7 +21678,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 24
+      "line": 14
      }
     ]
    },
@@ -21755,7 +21687,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 47
+      "line": 37
      }
     ]
    },
@@ -21764,7 +21696,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 49
+      "line": 39
      }
     ]
    },
@@ -21773,7 +21705,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 52
+      "line": 42
      }
     ]
    },
@@ -21782,7 +21714,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 35
+      "line": 25
      }
     ]
    },
@@ -21791,7 +21723,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 25
+      "line": 15
      }
     ]
    },
@@ -21800,7 +21732,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 30
+      "line": 20
      }
     ]
    },
@@ -21809,7 +21741,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 38
+      "line": 28
      }
     ]
    },
@@ -21818,7 +21750,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 36
+      "line": 26
      }
     ]
    },
@@ -21827,7 +21759,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 40
+      "line": 30
      }
     ]
    },
@@ -21836,7 +21768,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 41
+      "line": 31
      }
     ]
    },
@@ -21845,7 +21777,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 39
+      "line": 29
      }
     ]
    },
@@ -21854,7 +21786,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 48
+      "line": 38
      }
     ]
    },
@@ -21863,7 +21795,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 26
+      "line": 16
      }
     ]
    },
@@ -21872,7 +21804,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 27
+      "line": 17
      }
     ]
    },
@@ -21881,7 +21813,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 32
+      "line": 22
      }
     ]
    },
@@ -21890,7 +21822,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 34
+      "line": 24
      }
     ]
    },
@@ -21899,7 +21831,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 37
+      "line": 27
      }
     ]
    },
@@ -21908,7 +21840,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 53
+      "line": 43
      }
     ]
    },
@@ -21917,7 +21849,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 54
+      "line": 44
      }
     ]
    },
@@ -21926,7 +21858,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 56
+      "line": 46
      }
     ]
    },
@@ -21935,7 +21867,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 46
+      "line": 36
      }
     ]
    },
@@ -21944,7 +21876,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 45
+      "line": 35
      }
     ]
    },
@@ -21953,7 +21885,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 58
+      "line": 48
      }
     ]
    },
@@ -21962,7 +21894,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 61
+      "line": 51
      }
     ]
    },
@@ -21971,7 +21903,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 62
+      "line": 52
      }
     ]
    },
@@ -21980,7 +21912,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 50
+      "line": 40
      }
     ]
    },
@@ -21989,7 +21921,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 51
+      "line": 41
      }
     ]
    },
@@ -22380,7 +22312,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 120
+      "line": 95
      },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
@@ -22393,7 +22325,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 61
+      "line": 62
      }
     ]
    },
@@ -22402,7 +22334,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 62
+      "line": 63
      }
     ]
    },
@@ -22411,7 +22343,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 58
+      "line": 59
      }
     ]
    },
@@ -22420,7 +22352,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 60
+      "line": 61
      }
     ]
    },
@@ -22429,11 +22361,11 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 57
+      "line": 58
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 63
+      "line": 64
      },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
@@ -22450,7 +22382,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 59
+      "line": 60
      }
     ]
    },
@@ -22459,7 +22391,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 56
+      "line": 57
      }
     ]
    },
@@ -23908,7 +23840,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 602
+      "line": 612
      },
      {
       "path": "src/pages/MultiRestaurant.tsx",
@@ -24279,7 +24211,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 827
+      "line": 837
      }
     ]
    },
@@ -24305,7 +24237,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 616
+      "line": 626
      }
     ]
    },
@@ -24476,11 +24408,11 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 73
+      "line": 83
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 75
+      "line": 85
      },
      {
       "path": "src/components/home/RestaurantSection.tsx",
@@ -24620,11 +24552,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 57
+      "line": 77
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 64
+      "line": 84
      },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
@@ -25988,7 +25920,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 89
+      "line": 99
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -26020,7 +25952,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 50
+      "line": 70
      },
      {
       "path": "src/test/marketing-legacy-landing.test.ts",
@@ -27414,7 +27346,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 74
+      "line": 84
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -27450,7 +27382,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 42
+      "line": 62
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -27699,11 +27631,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 59
+      "line": 79
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 73
+      "line": 93
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
@@ -28151,6 +28083,16 @@
     "routes": []
    },
    {
+    "name": "geometry",
+    "sources": [
+     {
+      "path": "src/test/home-canton-hero.test.ts",
+      "line": 55
+     }
+    ],
+    "routes": []
+   },
+   {
     "name": "height",
     "sources": [
      {
@@ -28216,6 +28158,16 @@
      "/restaurants/:city/:category",
      "/restaurants/:city/r/:restaurantSlug"
     ]
+   },
+   {
+    "name": "layers",
+    "sources": [
+     {
+      "path": "src/test/home-canton-hero.test.ts",
+      "line": 58
+     }
+    ],
+    "routes": []
    },
    {
     "name": "limit",
@@ -28709,11 +28661,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 58
+      "line": 78
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 74
+      "line": 94
      }
     ],
     "routes": [
@@ -28989,6 +28941,16 @@
     ]
    },
    {
+    "name": "sr",
+    "sources": [
+     {
+      "path": "src/test/home-canton-hero.test.ts",
+      "line": 56
+     }
+    ],
+    "routes": []
+   },
+   {
     "name": "state",
     "sources": [
      {
@@ -29221,6 +29183,16 @@
      {
       "path": "supabase/functions/marketing-unsubscribe/index.ts",
       "line": 66
+     }
+    ],
+    "routes": []
+   },
+   {
+    "name": "tolerance",
+    "sources": [
+     {
+      "path": "src/test/home-canton-hero.test.ts",
+      "line": 57
      }
     ],
     "routes": []
@@ -30606,6 +30578,7 @@
      "src/test/commercial-domain-isolation.test.ts",
      "src/test/daily-slot-machine-security.test.ts",
      "src/test/demo-workspace-access.test.ts",
+     "src/test/home-canton-hero.test.ts",
      "src/test/legacy-provider-cleanup.test.ts",
      "src/test/marketing-bff-security.test.ts",
      "src/test/marketing-bff-vercel-entrypoints.test.ts",
@@ -84191,13 +84164,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 95,
+      "line": 70,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 181
+    "lineCount": 154
    },
    {
     "path": "src/components/home/FeaturesSection.tsx",
@@ -84232,13 +84205,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 19,
+      "line": 20,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 121
+    "lineCount": 131
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -92774,6 +92747,39 @@
     "lineCount": 20
    },
    {
+    "path": "src/lib/homeCantonHero.ts",
+    "exports": [
+     {
+      "name": "SWISS_CANTON_CODES",
+      "line": 2,
+      "kind": "variable"
+     },
+     {
+      "name": "SwissCantonCode",
+      "line": 7,
+      "kind": "typealias"
+     },
+     {
+      "name": "cantonFromPlaceName",
+      "line": 58,
+      "kind": "function"
+     },
+     {
+      "name": "cantonHeroSrc",
+      "line": 71,
+      "kind": "function"
+     },
+     {
+      "name": "cantonAtCoordinates",
+      "line": 76,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 119
+   },
+   {
     "path": "src/lib/homeRestaurantDiscovery.ts",
     "exports": [
      {
@@ -98855,7 +98861,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 208,
+      "line": 209,
       "kind": "function"
      }
     ],
@@ -98863,7 +98869,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 992
+    "lineCount": 1002
    },
    {
     "path": "src/pages/LocalRestaurants.tsx",
@@ -102887,6 +102893,15 @@
     "lineCount": 40
    },
    {
+    "path": "src/test/home-canton-hero.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "vercel"
+    ],
+    "lineCount": 94
+   },
+   {
     "path": "src/test/home-core-web-vitals.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -102907,7 +102922,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 84
+    "lineCount": 104
    },
    {
     "path": "src/test/home-mobile-newsletter.test.tsx",
@@ -111321,64 +111336,9 @@
     "extension": "(none)"
    },
    {
-    "path": "0D7E5920-0964-4729-AECF-33FA2F21601E.png",
-    "category": "repository-file",
-    "extension": ".png"
-   },
-   {
-    "path": "0F45EEAF-9C14-446B-9D68-C16213628B0C.png",
-    "category": "repository-file",
-    "extension": ".png"
-   },
-   {
-    "path": "1044CB5F-134F-4EFD-AC5E-160BE607C7D2.png",
-    "category": "repository-file",
-    "extension": ".png"
-   },
-   {
-    "path": "25D85885-735D-4DC3-A69B-9AA7CF61B26D.png",
-    "category": "repository-file",
-    "extension": ".png"
-   },
-   {
-    "path": "6EFC5A85-A2FC-41C0-8D12-D5A606B81D99.png",
-    "category": "repository-file",
-    "extension": ".png"
-   },
-   {
-    "path": "91D540B8-B9E9-4FCD-9616-913A873E3B5B.png",
-    "category": "repository-file",
-    "extension": ".png"
-   },
-   {
-    "path": "A1C10E01-8B56-4781-98C0-AD1DE1A24975.png",
-    "category": "repository-file",
-    "extension": ".png"
-   },
-   {
     "path": "AGENTS.md",
     "category": "repository-file",
     "extension": ".md"
-   },
-   {
-    "path": "B32D4A86-EB08-4EA8-9A53-C0E30CA84A2B.png",
-    "category": "repository-file",
-    "extension": ".png"
-   },
-   {
-    "path": "C4715632-EC78-401C-A5BF-37EDEBC9E711.png",
-    "category": "repository-file",
-    "extension": ".png"
-   },
-   {
-    "path": "CE1B2E33-4809-4C71-971E-2B5C15ED73B9.png",
-    "category": "repository-file",
-    "extension": ".png"
-   },
-   {
-    "path": "D771C600-3297-4C7C-B7E9-12453DB9B81D.png",
-    "category": "repository-file",
-    "extension": ".png"
    },
    {
     "path": "README.md",
@@ -112956,36 +112916,6 @@
     "extension": ".png"
    },
    {
-    "path": "public/desig app/02B9B29C-0EB1-40EC-BE64-769CABCD2630.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/068456A5-9E7F-48FF-A059-035CFBEB2D0A.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/0B173D23-371C-4C0A-A5D2-815F1479AF29.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/132FD385-BA2B-418A-92A1-7FD564DCD9C3.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/197B0A17-E35B-4FE5-89D8-06B8226B33B0.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/1F5998CA-93CD-438A-81F6-ACF8151C03E6.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
     "path": "public/desig app/1_0000_template_pub_04.png",
     "category": "public-asset",
     "extension": ".png"
@@ -113022,71 +112952,6 @@
    },
    {
     "path": "public/desig app/1_0007_Calque-1.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/28EE1FCE-18E1-4A94-B9B6-E6DCE30F74AC.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/33B9DDFC-2EC1-4A1B-8B34-6A021691ECFF.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/4BC6A770-6263-4D9C-863D-89D87FFB99A7.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/63331163-6799-4EF7-9415-3CC851C1748B.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/63E3E3E7-8255-46B1-B408-52C66A61B491.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/64641818-05F4-4086-A785-5B19573EE57C.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/6D8E604E-6939-48A5-B6AC-9B8FC3722D53.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/761B16F6-6DB0-452E-97B9-CE51FFAA8A57.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/8C943CAD-9A8E-4185-ADED-1C8817CB918E.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/AA898C7A-5458-41EC-9E20-86AA6636DB27.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/AC118A6F-42DA-4D40-A924-D94D2BE5B27F.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/DAC6DF61-D4FF-41A9-A90A-559D177F757D.png",
-    "category": "public-asset",
-    "extension": ".png"
-   },
-   {
-    "path": "public/desig app/FC0EAC72-1821-488C-8323-D53D471055AF.png",
     "category": "public-asset",
     "extension": ".png"
    },
@@ -113129,6 +112994,136 @@
     "path": "public/desig app/flamme.png",
     "category": "public-asset",
     "extension": ".png"
+   },
+   {
+    "path": "public/desig app/tok-ch-ag.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-ai.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-ar.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-be.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-bl.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-bs.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-fr.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-ge.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-gl.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-gr.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-ju.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-lu.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-ne.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-nw.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-ow.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-sg.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-sh.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-so.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-sz.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-tg.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-ti.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-ur.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-vd.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-vs.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-zg.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/desig app/tok-ch-zh.webp",
+    "category": "public-asset",
+    "extension": ".webp"
    },
    {
     "path": "public/favicon-180x180.png",
@@ -114704,156 +114699,6 @@
     "path": "public/miamz.png",
     "category": "public-asset",
     "extension": ".png"
-   },
-   {
-    "path": "public/miniatures-3d/chinois.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/creole.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/fondue-suisse.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/francais.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/gastronomique.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/grillades.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/halal.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/healthy.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/indien.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/japonais.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/kebab.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/libanais.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/marocain.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/mediterraneen.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/mexicain.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/pakistanais.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/pates.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/patisserie.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/petit-dejeuner.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/pizza.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/poke.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/ramen.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/salades.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/sandwich.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/street-food.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/sushi.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/thai.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/turc.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/vegan.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/miniatures-3d/vegetarien.webp",
-    "category": "public-asset",
-    "extension": ".webp"
    },
    {
     "path": "public/mockup.png",
@@ -117461,6 +117306,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/lib/homeCantonHero.ts",
+    "category": "application-library",
+    "extension": ".ts"
+   },
+   {
     "path": "src/lib/homeRestaurantDiscovery.ts",
     "category": "application-library",
     "extension": ".ts"
@@ -119937,6 +119787,11 @@
    },
    {
     "path": "src/test/home-assets-budget.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/home-canton-hero.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -129279,14 +129134,14 @@
    "id": "code-module:a586b6706f43",
    "type": "code-module",
    "title": "src/components/home/CuisineCategoryStrip.tsx",
-   "description": "Module de 181 lignes; exports: default.",
+   "description": "Module de 154 lignes; exports: default.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "6f67ce55fd83"
+   "detailRef": "6f631ca1ac1c"
   },
   {
    "id": "code-module:1ce158045d40",
@@ -129319,14 +129174,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 121 lignes; exports: default.",
+   "description": "Module de 131 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "5da96b3faba3"
+   "detailRef": "7f24d15babc3"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -133595,6 +133450,23 @@
    "detailRef": "14580775fe28"
   },
   {
+   "id": "code-module:2cd105712d72",
+   "type": "code-module",
+   "title": "src/lib/homeCantonHero.ts",
+   "description": "Module de 119 lignes; exports: SWISS_CANTON_CODES, SwissCantonCode, cantonFromPlaceName, cantonHeroSrc, cantonAtCoordinates.",
+   "path": "src/lib/homeCantonHero.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "SWISS_CANTON_CODES",
+    "SwissCantonCode",
+    "cantonAtCoordinates",
+    "cantonFromPlaceName",
+    "cantonHeroSrc"
+   ],
+   "detailRef": "088266b543e5"
+  },
+  {
    "id": "code-module:9a4adaab1d25",
    "type": "code-module",
    "title": "src/lib/homeRestaurantDiscovery.ts",
@@ -136401,7 +136273,7 @@
    "id": "code-module:8d761926e269",
    "type": "code-module",
    "title": "src/pages/Index.tsx",
-   "description": "Module de 992 lignes; exports: default.",
+   "description": "Module de 1002 lignes; exports: default.",
    "path": "src/pages/Index.tsx",
    "line": 1,
    "surface": null,
@@ -136409,7 +136281,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "5059fd5c8587"
+   "detailRef": "d132cb50e199"
   },
   {
    "id": "code-module:d39f2c12cbfd",
@@ -140972,6 +140844,19 @@
    "detailRef": "bef0e9a50ff9"
   },
   {
+   "id": "code-module:3cf97490d8aa",
+   "type": "code-module",
+   "title": "src/test/home-canton-hero.test.ts",
+   "description": "Module de 94 lignes; exports: aucun export statique.",
+   "path": "src/test/home-canton-hero.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "vercel"
+   ],
+   "detailRef": "7056494490a9"
+  },
+  {
    "id": "code-module:e91250480351",
    "type": "code-module",
    "title": "src/test/home-core-web-vitals.test.ts",
@@ -140999,12 +140884,12 @@
    "id": "code-module:a714f68588b7",
    "type": "code-module",
    "title": "src/test/home-hero-search.test.tsx",
-   "description": "Module de 84 lignes; exports: aucun export statique.",
+   "description": "Module de 104 lignes; exports: aucun export statique.",
    "path": "src/test/home-hero-search.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "be22dd7dec40"
+   "detailRef": "45725c6d6f24"
   },
   {
    "id": "code-module:d67b9bd34728",
@@ -250477,6 +250362,19 @@
    "detailRef": "2d9b1972df8a"
   },
   {
+   "id": "exported-symbol:9a761a03d864",
+   "type": "exported-symbol",
+   "title": "SWISS_CANTON_CODES",
+   "description": "Export variable de src/lib/homeCantonHero.ts.",
+   "path": "src/lib/homeCantonHero.ts",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "e2e30f212911"
+  },
+  {
    "id": "exported-symbol:89f2f8b566ef",
    "type": "exported-symbol",
    "title": "Scene",
@@ -252300,6 +252198,19 @@
     "typealias"
    ],
    "detailRef": "e59174cd43ff"
+  },
+  {
+   "id": "exported-symbol:0fde7d13dcb5",
+   "type": "exported-symbol",
+   "title": "SwissCantonCode",
+   "description": "Export typealias de src/lib/homeCantonHero.ts.",
+   "path": "src/lib/homeCantonHero.ts",
+   "line": 7,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "b8a1a3d709ac"
   },
   {
    "id": "exported-symbol:8b3843dc12f2",
@@ -257979,6 +257890,45 @@
    "detailRef": "aa3d3a3b10b2"
   },
   {
+   "id": "exported-symbol:02a0b116ac60",
+   "type": "exported-symbol",
+   "title": "cantonAtCoordinates",
+   "description": "Export function de src/lib/homeCantonHero.ts.",
+   "path": "src/lib/homeCantonHero.ts",
+   "line": 76,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "69553ff2a23a"
+  },
+  {
+   "id": "exported-symbol:74e752313b7f",
+   "type": "exported-symbol",
+   "title": "cantonFromPlaceName",
+   "description": "Export function de src/lib/homeCantonHero.ts.",
+   "path": "src/lib/homeCantonHero.ts",
+   "line": 58,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "54c49f556b11"
+  },
+  {
+   "id": "exported-symbol:39bf2fef005f",
+   "type": "exported-symbol",
+   "title": "cantonHeroSrc",
+   "description": "Export function de src/lib/homeCantonHero.ts.",
+   "path": "src/lib/homeCantonHero.ts",
+   "line": 71,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "210836aa2071"
+  },
+  {
    "id": "exported-symbol:18651ea23ed9",
    "type": "exported-symbol",
    "title": "captureException",
@@ -261345,17 +261295,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:34b83656c47a",
+   "id": "exported-symbol:155f144c5b00",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/CuisineCategoryStrip.tsx.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 95,
+   "line": 70,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "67b9c2f5a8dd"
+   "detailRef": "9e21199ba19e"
   },
   {
    "id": "exported-symbol:2c6d5de51291",
@@ -261385,17 +261335,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:c79006a5ef87",
+   "id": "exported-symbol:5e0f36a7a5bf",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/HeroSection.tsx.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 19,
+   "line": 20,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "f6bed50c25fe"
+   "detailRef": "73328efdea37"
   },
   {
    "id": "exported-symbol:54d561e65de4",
@@ -262424,18 +262374,18 @@
    "detailRef": "5d76487d5d73"
   },
   {
-   "id": "exported-symbol:0f1a7a9cfbdc",
+   "id": "exported-symbol:90d0b83c1d44",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/Index.tsx.",
    "path": "src/pages/Index.tsx",
-   "line": 208,
+   "line": 209,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "ffdb4846c903"
+   "detailRef": "eb298203d01a"
   },
   {
    "id": "exported-symbol:535ee8eebd83",
@@ -284561,104 +284511,6 @@
    "detailRef": "72d62d0dc4ae"
   },
   {
-   "id": "file:3170412ef56c",
-   "type": "file",
-   "title": "0D7E5920-0964-4729-AECF-33FA2F21601E.png",
-   "description": "Fichier du dépôt classé repository-file.",
-   "path": "0D7E5920-0964-4729-AECF-33FA2F21601E.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "repository-file"
-   ],
-   "detailRef": "c81aa60e39b4"
-  },
-  {
-   "id": "file:ac4fe9d9ddf7",
-   "type": "file",
-   "title": "0F45EEAF-9C14-446B-9D68-C16213628B0C.png",
-   "description": "Fichier du dépôt classé repository-file.",
-   "path": "0F45EEAF-9C14-446B-9D68-C16213628B0C.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "repository-file"
-   ],
-   "detailRef": "88dc70b6afe7"
-  },
-  {
-   "id": "file:58ae80340264",
-   "type": "file",
-   "title": "1044CB5F-134F-4EFD-AC5E-160BE607C7D2.png",
-   "description": "Fichier du dépôt classé repository-file.",
-   "path": "1044CB5F-134F-4EFD-AC5E-160BE607C7D2.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "repository-file"
-   ],
-   "detailRef": "5d660787bad2"
-  },
-  {
-   "id": "file:1a64f2c973e9",
-   "type": "file",
-   "title": "25D85885-735D-4DC3-A69B-9AA7CF61B26D.png",
-   "description": "Fichier du dépôt classé repository-file.",
-   "path": "25D85885-735D-4DC3-A69B-9AA7CF61B26D.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "repository-file"
-   ],
-   "detailRef": "cebcb144a1e0"
-  },
-  {
-   "id": "file:f18cbe4c2759",
-   "type": "file",
-   "title": "6EFC5A85-A2FC-41C0-8D12-D5A606B81D99.png",
-   "description": "Fichier du dépôt classé repository-file.",
-   "path": "6EFC5A85-A2FC-41C0-8D12-D5A606B81D99.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "repository-file"
-   ],
-   "detailRef": "608d0045d48c"
-  },
-  {
-   "id": "file:7a96e5a4f48b",
-   "type": "file",
-   "title": "91D540B8-B9E9-4FCD-9616-913A873E3B5B.png",
-   "description": "Fichier du dépôt classé repository-file.",
-   "path": "91D540B8-B9E9-4FCD-9616-913A873E3B5B.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "repository-file"
-   ],
-   "detailRef": "745265f4b391"
-  },
-  {
-   "id": "file:2ce1270de8aa",
-   "type": "file",
-   "title": "A1C10E01-8B56-4781-98C0-AD1DE1A24975.png",
-   "description": "Fichier du dépôt classé repository-file.",
-   "path": "A1C10E01-8B56-4781-98C0-AD1DE1A24975.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "repository-file"
-   ],
-   "detailRef": "f6d5f5aea48f"
-  },
-  {
    "id": "file:d306cf885427",
    "type": "file",
    "title": "AGENTS.md",
@@ -284671,62 +284523,6 @@
     "repository-file"
    ],
    "detailRef": "4998f4465c26"
-  },
-  {
-   "id": "file:2a6dd02d8844",
-   "type": "file",
-   "title": "B32D4A86-EB08-4EA8-9A53-C0E30CA84A2B.png",
-   "description": "Fichier du dépôt classé repository-file.",
-   "path": "B32D4A86-EB08-4EA8-9A53-C0E30CA84A2B.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "repository-file"
-   ],
-   "detailRef": "ff2685fc75dc"
-  },
-  {
-   "id": "file:221b3896b165",
-   "type": "file",
-   "title": "C4715632-EC78-401C-A5BF-37EDEBC9E711.png",
-   "description": "Fichier du dépôt classé repository-file.",
-   "path": "C4715632-EC78-401C-A5BF-37EDEBC9E711.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "repository-file"
-   ],
-   "detailRef": "3ebde0096a8f"
-  },
-  {
-   "id": "file:425d30b2265d",
-   "type": "file",
-   "title": "CE1B2E33-4809-4C71-971E-2B5C15ED73B9.png",
-   "description": "Fichier du dépôt classé repository-file.",
-   "path": "CE1B2E33-4809-4C71-971E-2B5C15ED73B9.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "repository-file"
-   ],
-   "detailRef": "8c8e08105574"
-  },
-  {
-   "id": "file:903ec5cb9a9a",
-   "type": "file",
-   "title": "D771C600-3297-4C7C-B7E9-12453DB9B81D.png",
-   "description": "Fichier du dépôt classé repository-file.",
-   "path": "D771C600-3297-4C7C-B7E9-12453DB9B81D.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "repository-file"
-   ],
-   "detailRef": "761ab887f1a2"
   },
   {
    "id": "file:7574bbe3088c",
@@ -289139,90 +288935,6 @@
    "detailRef": "f561f747b473"
   },
   {
-   "id": "file:4efceb83e3d0",
-   "type": "file",
-   "title": "public/desig app/02B9B29C-0EB1-40EC-BE64-769CABCD2630.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/02B9B29C-0EB1-40EC-BE64-769CABCD2630.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "2554013c7f05"
-  },
-  {
-   "id": "file:b8dab650fc28",
-   "type": "file",
-   "title": "public/desig app/068456A5-9E7F-48FF-A059-035CFBEB2D0A.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/068456A5-9E7F-48FF-A059-035CFBEB2D0A.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "ccad757d552a"
-  },
-  {
-   "id": "file:d927dad44812",
-   "type": "file",
-   "title": "public/desig app/0B173D23-371C-4C0A-A5D2-815F1479AF29.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/0B173D23-371C-4C0A-A5D2-815F1479AF29.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "de270385aeb0"
-  },
-  {
-   "id": "file:747b01ce7e0b",
-   "type": "file",
-   "title": "public/desig app/132FD385-BA2B-418A-92A1-7FD564DCD9C3.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/132FD385-BA2B-418A-92A1-7FD564DCD9C3.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "e6425875901b"
-  },
-  {
-   "id": "file:487ae1a28d66",
-   "type": "file",
-   "title": "public/desig app/197B0A17-E35B-4FE5-89D8-06B8226B33B0.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/197B0A17-E35B-4FE5-89D8-06B8226B33B0.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "95cc0d7686c3"
-  },
-  {
-   "id": "file:f473873941a0",
-   "type": "file",
-   "title": "public/desig app/1F5998CA-93CD-438A-81F6-ACF8151C03E6.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/1F5998CA-93CD-438A-81F6-ACF8151C03E6.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "682666db29d3"
-  },
-  {
    "id": "file:b706ad90cf85",
    "type": "file",
    "title": "public/desig app/1_0000_template_pub_04.png",
@@ -289335,188 +289047,6 @@
    "detailRef": "98b57b643349"
   },
   {
-   "id": "file:163c57682e8a",
-   "type": "file",
-   "title": "public/desig app/28EE1FCE-18E1-4A94-B9B6-E6DCE30F74AC.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/28EE1FCE-18E1-4A94-B9B6-E6DCE30F74AC.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "f934e885457b"
-  },
-  {
-   "id": "file:609b64d7ff28",
-   "type": "file",
-   "title": "public/desig app/33B9DDFC-2EC1-4A1B-8B34-6A021691ECFF.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/33B9DDFC-2EC1-4A1B-8B34-6A021691ECFF.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "e28aafda902c"
-  },
-  {
-   "id": "file:4b5edf7b8d3f",
-   "type": "file",
-   "title": "public/desig app/4BC6A770-6263-4D9C-863D-89D87FFB99A7.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/4BC6A770-6263-4D9C-863D-89D87FFB99A7.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "d690134c2c40"
-  },
-  {
-   "id": "file:3936a727b96c",
-   "type": "file",
-   "title": "public/desig app/63331163-6799-4EF7-9415-3CC851C1748B.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/63331163-6799-4EF7-9415-3CC851C1748B.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "404bbe6cae7a"
-  },
-  {
-   "id": "file:ad2a806c5c39",
-   "type": "file",
-   "title": "public/desig app/63E3E3E7-8255-46B1-B408-52C66A61B491.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/63E3E3E7-8255-46B1-B408-52C66A61B491.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "32b98f9e660b"
-  },
-  {
-   "id": "file:21d328c9d2ab",
-   "type": "file",
-   "title": "public/desig app/64641818-05F4-4086-A785-5B19573EE57C.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/64641818-05F4-4086-A785-5B19573EE57C.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "a8b0b161a25e"
-  },
-  {
-   "id": "file:9e4b21c7ac0a",
-   "type": "file",
-   "title": "public/desig app/6D8E604E-6939-48A5-B6AC-9B8FC3722D53.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/6D8E604E-6939-48A5-B6AC-9B8FC3722D53.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "0227499f8e85"
-  },
-  {
-   "id": "file:dddad2ab864a",
-   "type": "file",
-   "title": "public/desig app/761B16F6-6DB0-452E-97B9-CE51FFAA8A57.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/761B16F6-6DB0-452E-97B9-CE51FFAA8A57.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "fe411518a75c"
-  },
-  {
-   "id": "file:ccd263213c0a",
-   "type": "file",
-   "title": "public/desig app/8C943CAD-9A8E-4185-ADED-1C8817CB918E.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/8C943CAD-9A8E-4185-ADED-1C8817CB918E.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "e6fa8824c604"
-  },
-  {
-   "id": "file:8fb4d53be3ce",
-   "type": "file",
-   "title": "public/desig app/AA898C7A-5458-41EC-9E20-86AA6636DB27.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/AA898C7A-5458-41EC-9E20-86AA6636DB27.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "a4aba2462e18"
-  },
-  {
-   "id": "file:8cea1886c414",
-   "type": "file",
-   "title": "public/desig app/AC118A6F-42DA-4D40-A924-D94D2BE5B27F.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/AC118A6F-42DA-4D40-A924-D94D2BE5B27F.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "08034cd57fda"
-  },
-  {
-   "id": "file:3b2c096ec05a",
-   "type": "file",
-   "title": "public/desig app/DAC6DF61-D4FF-41A9-A90A-559D177F757D.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/DAC6DF61-D4FF-41A9-A90A-559D177F757D.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "e322305f3514"
-  },
-  {
-   "id": "file:dc155732e4b8",
-   "type": "file",
-   "title": "public/desig app/FC0EAC72-1821-488C-8323-D53D471055AF.png",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/FC0EAC72-1821-488C-8323-D53D471055AF.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".png",
-    "public-asset"
-   ],
-   "detailRef": "557a28028304"
-  },
-  {
    "id": "file:55ed3029aae5",
    "type": "file",
    "title": "public/desig app/assiette.png",
@@ -289627,6 +289157,370 @@
     "public-asset"
    ],
    "detailRef": "0a35a2fdffb3"
+  },
+  {
+   "id": "file:61f0b76e4be5",
+   "type": "file",
+   "title": "public/desig app/tok-ch-ag.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-ag.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "aa85f3f544c3"
+  },
+  {
+   "id": "file:a43f92528990",
+   "type": "file",
+   "title": "public/desig app/tok-ch-ai.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-ai.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "9f86a96da07c"
+  },
+  {
+   "id": "file:6060e498b6fe",
+   "type": "file",
+   "title": "public/desig app/tok-ch-ar.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-ar.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "0d298dd839bd"
+  },
+  {
+   "id": "file:ba92d783722d",
+   "type": "file",
+   "title": "public/desig app/tok-ch-be.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-be.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "3ecafaf0b657"
+  },
+  {
+   "id": "file:e4f030367f0c",
+   "type": "file",
+   "title": "public/desig app/tok-ch-bl.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-bl.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "e1cba9432293"
+  },
+  {
+   "id": "file:ecf49ba77f5c",
+   "type": "file",
+   "title": "public/desig app/tok-ch-bs.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-bs.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "f1b5b61928ca"
+  },
+  {
+   "id": "file:5eaa39aa9d72",
+   "type": "file",
+   "title": "public/desig app/tok-ch-fr.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-fr.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "b2a13328260e"
+  },
+  {
+   "id": "file:cf8daae837af",
+   "type": "file",
+   "title": "public/desig app/tok-ch-ge.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-ge.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "aa07c877de8b"
+  },
+  {
+   "id": "file:0fb995712348",
+   "type": "file",
+   "title": "public/desig app/tok-ch-gl.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-gl.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "bd3162139797"
+  },
+  {
+   "id": "file:1d654c0d936f",
+   "type": "file",
+   "title": "public/desig app/tok-ch-gr.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-gr.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "7de60bb1f5ab"
+  },
+  {
+   "id": "file:b0f59cf1a9c5",
+   "type": "file",
+   "title": "public/desig app/tok-ch-ju.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-ju.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "04b678249c5b"
+  },
+  {
+   "id": "file:e28ec96f91b7",
+   "type": "file",
+   "title": "public/desig app/tok-ch-lu.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-lu.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "732aa9a5f63f"
+  },
+  {
+   "id": "file:51c2738f1ed3",
+   "type": "file",
+   "title": "public/desig app/tok-ch-ne.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-ne.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "c8f1ff36930e"
+  },
+  {
+   "id": "file:31da77327828",
+   "type": "file",
+   "title": "public/desig app/tok-ch-nw.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-nw.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "db09a4bd587e"
+  },
+  {
+   "id": "file:431bf03519ce",
+   "type": "file",
+   "title": "public/desig app/tok-ch-ow.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-ow.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "c35fbe80020a"
+  },
+  {
+   "id": "file:04160b7f2198",
+   "type": "file",
+   "title": "public/desig app/tok-ch-sg.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-sg.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "4ad0b0ca35e7"
+  },
+  {
+   "id": "file:413a3be8e02e",
+   "type": "file",
+   "title": "public/desig app/tok-ch-sh.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-sh.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "70c9eed49f0c"
+  },
+  {
+   "id": "file:c38c5a0313a3",
+   "type": "file",
+   "title": "public/desig app/tok-ch-so.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-so.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "7985a2ada65f"
+  },
+  {
+   "id": "file:43a181832d82",
+   "type": "file",
+   "title": "public/desig app/tok-ch-sz.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-sz.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "a2631198fd03"
+  },
+  {
+   "id": "file:ecd40f09cf81",
+   "type": "file",
+   "title": "public/desig app/tok-ch-tg.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-tg.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "ac7aed3b5dbe"
+  },
+  {
+   "id": "file:39c77927a7be",
+   "type": "file",
+   "title": "public/desig app/tok-ch-ti.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-ti.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "419bb451ab46"
+  },
+  {
+   "id": "file:c894f4857cfc",
+   "type": "file",
+   "title": "public/desig app/tok-ch-ur.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-ur.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "80635e31a36e"
+  },
+  {
+   "id": "file:db38a56c04c2",
+   "type": "file",
+   "title": "public/desig app/tok-ch-vd.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-vd.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "939b726a8c6e"
+  },
+  {
+   "id": "file:88a4f089a215",
+   "type": "file",
+   "title": "public/desig app/tok-ch-vs.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-vs.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "bc53e53ae6da"
+  },
+  {
+   "id": "file:4a5666c37343",
+   "type": "file",
+   "title": "public/desig app/tok-ch-zg.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-zg.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "b21ab15d14e6"
+  },
+  {
+   "id": "file:f6d83b129209",
+   "type": "file",
+   "title": "public/desig app/tok-ch-zh.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/desig app/tok-ch-zh.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "b5e79ed0f4c2"
   },
   {
    "id": "file:e005d0c8c3c5",
@@ -294037,426 +293931,6 @@
     "public-asset"
    ],
    "detailRef": "387043e32323"
-  },
-  {
-   "id": "file:0b7dd2775ebb",
-   "type": "file",
-   "title": "public/miniatures-3d/chinois.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/chinois.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "21b762c3610b"
-  },
-  {
-   "id": "file:de989f1a0bbb",
-   "type": "file",
-   "title": "public/miniatures-3d/creole.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/creole.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "d806c6026c2c"
-  },
-  {
-   "id": "file:dff16c7a6250",
-   "type": "file",
-   "title": "public/miniatures-3d/fondue-suisse.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/fondue-suisse.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "a5a3cb8db32e"
-  },
-  {
-   "id": "file:6d5189c804bd",
-   "type": "file",
-   "title": "public/miniatures-3d/francais.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/francais.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "8aaec66ea732"
-  },
-  {
-   "id": "file:3f6448d17e25",
-   "type": "file",
-   "title": "public/miniatures-3d/gastronomique.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/gastronomique.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "f2332f84ad14"
-  },
-  {
-   "id": "file:e0283efbe2db",
-   "type": "file",
-   "title": "public/miniatures-3d/grillades.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/grillades.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "9437bd9971d6"
-  },
-  {
-   "id": "file:80e62ac3af57",
-   "type": "file",
-   "title": "public/miniatures-3d/halal.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/halal.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "60c65f3c6399"
-  },
-  {
-   "id": "file:031bc89c0418",
-   "type": "file",
-   "title": "public/miniatures-3d/healthy.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/healthy.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "236d20cceebd"
-  },
-  {
-   "id": "file:91264a3c0a07",
-   "type": "file",
-   "title": "public/miniatures-3d/indien.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/indien.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "e692ec826686"
-  },
-  {
-   "id": "file:fcfa0627eefc",
-   "type": "file",
-   "title": "public/miniatures-3d/japonais.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/japonais.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "68211a294883"
-  },
-  {
-   "id": "file:00ea3069b302",
-   "type": "file",
-   "title": "public/miniatures-3d/kebab.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/kebab.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "ffe405364705"
-  },
-  {
-   "id": "file:88337129f0a6",
-   "type": "file",
-   "title": "public/miniatures-3d/libanais.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/libanais.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "608a76a9385c"
-  },
-  {
-   "id": "file:ab6525378475",
-   "type": "file",
-   "title": "public/miniatures-3d/marocain.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/marocain.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "e087107ac17d"
-  },
-  {
-   "id": "file:c875c79e3d7f",
-   "type": "file",
-   "title": "public/miniatures-3d/mediterraneen.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/mediterraneen.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "f6b0b088e968"
-  },
-  {
-   "id": "file:42581bfd9246",
-   "type": "file",
-   "title": "public/miniatures-3d/mexicain.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/mexicain.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "1f095c06f504"
-  },
-  {
-   "id": "file:1333aa856ccd",
-   "type": "file",
-   "title": "public/miniatures-3d/pakistanais.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/pakistanais.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "ac08245d2c6d"
-  },
-  {
-   "id": "file:3fda6612b2ce",
-   "type": "file",
-   "title": "public/miniatures-3d/pates.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/pates.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "0ea33854567e"
-  },
-  {
-   "id": "file:c2f470f971bd",
-   "type": "file",
-   "title": "public/miniatures-3d/patisserie.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/patisserie.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "4dccb6bf0663"
-  },
-  {
-   "id": "file:d5a60774caa8",
-   "type": "file",
-   "title": "public/miniatures-3d/petit-dejeuner.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/petit-dejeuner.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "7958b24198bb"
-  },
-  {
-   "id": "file:f3d34857a657",
-   "type": "file",
-   "title": "public/miniatures-3d/pizza.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/pizza.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "dcf215d4a869"
-  },
-  {
-   "id": "file:70884ee0b9ba",
-   "type": "file",
-   "title": "public/miniatures-3d/poke.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/poke.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "69a1fd67220e"
-  },
-  {
-   "id": "file:ad8de708e2ef",
-   "type": "file",
-   "title": "public/miniatures-3d/ramen.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/ramen.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "1772798da0ac"
-  },
-  {
-   "id": "file:a9aa24b6a44f",
-   "type": "file",
-   "title": "public/miniatures-3d/salades.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/salades.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "fc085a85fa60"
-  },
-  {
-   "id": "file:c4d7bd69f65f",
-   "type": "file",
-   "title": "public/miniatures-3d/sandwich.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/sandwich.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "20e095d56f8f"
-  },
-  {
-   "id": "file:24e2c4ee6c09",
-   "type": "file",
-   "title": "public/miniatures-3d/street-food.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/street-food.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "b2f8a4f5feb4"
-  },
-  {
-   "id": "file:03633397ee5b",
-   "type": "file",
-   "title": "public/miniatures-3d/sushi.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/sushi.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "430f822f3c6b"
-  },
-  {
-   "id": "file:12c909798f4a",
-   "type": "file",
-   "title": "public/miniatures-3d/thai.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/thai.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "77dfbe4accc0"
-  },
-  {
-   "id": "file:fd6a58d4bcfd",
-   "type": "file",
-   "title": "public/miniatures-3d/turc.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/turc.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "ca39ec53943e"
-  },
-  {
-   "id": "file:49f02531f514",
-   "type": "file",
-   "title": "public/miniatures-3d/vegan.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/vegan.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "2f6051ff88ea"
-  },
-  {
-   "id": "file:4c813eb83b83",
-   "type": "file",
-   "title": "public/miniatures-3d/vegetarien.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/miniatures-3d/vegetarien.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "af6bbb5a9a65"
   },
   {
    "id": "file:2c3affc6f420",
@@ -301753,6 +301227,20 @@
    "detailRef": "81c741a396e0"
   },
   {
+   "id": "file:e91dc66a3280",
+   "type": "file",
+   "title": "src/lib/homeCantonHero.ts",
+   "description": "Fichier du dépôt classé application-library.",
+   "path": "src/lib/homeCantonHero.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "application-library"
+   ],
+   "detailRef": "6394aa7bb697"
+  },
+  {
    "id": "file:ad18a6f6e544",
    "type": "file",
    "title": "src/lib/homeRestaurantDiscovery.ts",
@@ -308695,6 +308183,20 @@
     "test"
    ],
    "detailRef": "85fd7e43ee57"
+  },
+  {
+   "id": "file:87df253cfcf7",
+   "type": "file",
+   "title": "src/test/home-canton-hero.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/home-canton-hero.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "cd199376008c"
   },
   {
    "id": "file:fc8746b3f12a",
@@ -328148,7 +327650,7 @@
    "id": "integration:077d0104684d",
    "type": "integration",
    "title": "Vercel",
-   "description": "Intégration externe détectée dans 58 module(s).",
+   "description": "Intégration externe détectée dans 59 module(s).",
    "path": "middleware.js",
    "line": null,
    "surface": null,
@@ -328179,6 +327681,7 @@
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/daily-slot-machine-security.test.ts",
     "src/test/demo-workspace-access.test.ts",
+    "src/test/home-canton-hero.test.ts",
     "src/test/legacy-provider-cleanup.test.ts",
     "src/test/marketing-bff-security.test.ts",
     "src/test/marketing-bff-vercel-entrypoints.test.ts",
@@ -328213,7 +327716,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "vercel"
    ],
-   "detailRef": "911908ac8fc5"
+   "detailRef": "5e149539fd73"
   },
   {
    "id": "marketing-operation:59948b4790ce",
@@ -338453,7 +337956,7 @@
     "/",
     "supabase"
    ],
-   "detailRef": "cfa83d1b4b27"
+   "detailRef": "d3941a6bb29f"
   },
   {
    "id": "page:3d4a292c788d",
@@ -338918,16 +338421,17 @@
    "id": "path-literal:19f327b7fcb7",
    "type": "path-literal",
    "title": "/(.*)",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/daily-slot-machine-security.test.ts",
    "line": 48,
    "surface": null,
    "tags": [
     "src/test/daily-slot-machine-security.test.ts",
+    "src/test/home-canton-hero.test.ts",
     "src/test/seo-indexation-hardening.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "fd96cb6d2081"
+   "detailRef": "9d02897d9c89"
   },
   {
    "id": "path-literal:3ab1900d2ade",
@@ -340718,7 +340222,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "97486da40a65"
+   "detailRef": "4630249b0445"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -341014,7 +340518,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "ffb1128734b3"
+   "detailRef": "4de9c70ccdf1"
   },
   {
    "id": "path-literal:4fb16aa3df8b",
@@ -342660,6 +342164,46 @@
    "detailRef": "72467c0cf980"
   },
   {
+   "id": "path-literal:0606bdee36c9",
+   "type": "path-literal",
+   "title": "/desig%20app/tok-ch-",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeCantonHero.ts",
+   "line": 72,
+   "surface": null,
+   "tags": [
+    "src/lib/homeCantonHero.ts",
+    "src/test/home-canton-hero.test.ts"
+   ],
+   "detailRef": "3825809d0730"
+  },
+  {
+   "id": "path-literal:f843691d54f0",
+   "type": "path-literal",
+   "title": "/desig%20app/tok-ch-ju.webp",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/home-hero-search.test.tsx",
+   "line": 43,
+   "surface": null,
+   "tags": [
+    "src/test/home-hero-search.test.tsx"
+   ],
+   "detailRef": "84aaaba7ad69"
+  },
+  {
+   "id": "path-literal:2396a4e40c12",
+   "type": "path-literal",
+   "title": "/desig%20app/tok-ch-vd.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/home-hero-search.test.tsx",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "src/test/home-hero-search.test.tsx"
+   ],
+   "detailRef": "bf888cc9c616"
+  },
+  {
    "id": "path-literal:2c32550db633",
    "type": "path-literal",
    "title": "/enrich-directory-cuisines-osm",
@@ -343885,47 +343429,47 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:740c46ce6d2c",
+   "id": "path-literal:693c415f6a85",
    "type": "path-literal",
    "title": "/images/home/tok-geneve-desktop.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 81,
+   "line": 91,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx"
    ],
-   "detailRef": "553d739e43f0"
+   "detailRef": "540893d43c59"
   },
   {
-   "id": "path-literal:f79ff15cb4bd",
+   "id": "path-literal:db022c8a4906",
    "type": "path-literal",
    "title": "/images/home/tok-geneve-mobile-fast.webp",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 82,
+   "line": 92,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx",
     "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "bd063f96b981"
+   "detailRef": "6437579a4472"
   },
   {
-   "id": "path-literal:105b3076027d",
+   "id": "path-literal:f1f911a4ab9c",
    "type": "path-literal",
    "title": "/images/home/tok-leman-signature-fast.webp",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 83,
+   "line": 93,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx",
     "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "50d1eb551b23"
+   "detailRef": "161c2ac20d99"
   },
   {
    "id": "path-literal:638981aff331",
@@ -343995,7 +343539,7 @@
     "src/pages/admin/AdminRestaurants.tsx",
     "src/test/optimized-images.test.ts"
    ],
-   "detailRef": "f8ba7f38932d"
+   "detailRef": "acbfab2b6ce7"
   },
   {
    "id": "path-literal:ecd720b69356",
@@ -344098,347 +343642,9 @@
    "detailRef": "57572b86cde9"
   },
   {
-   "id": "path-literal:5967e7a11843",
+   "id": "path-literal:d4dd1117d817",
    "type": "path-literal",
    "title": "/images/miniatures/01_africain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 42,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "84229ae9417e"
-  },
-  {
-   "id": "path-literal:49b8556e08f1",
-   "type": "path-literal",
-   "title": "/images/miniatures/02_americain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 44,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "019f132a684a"
-  },
-  {
-   "id": "path-literal:10e511c2a87e",
-   "type": "path-literal",
-   "title": "/images/miniatures/03_bistro.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 28,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "53b2a61cd67c"
-  },
-  {
-   "id": "path-literal:1f04d32ecd32",
-   "type": "path-literal",
-   "title": "/images/miniatures/04_boulangerie.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 57,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "2189ebf2692a"
-  },
-  {
-   "id": "path-literal:8eac1c1bcb91",
-   "type": "path-literal",
-   "title": "/images/miniatures/05_brunch.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 55,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "f50f0dff169d"
-  },
-  {
-   "id": "path-literal:204e718a470e",
-   "type": "path-literal",
-   "title": "/images/miniatures/06_burger.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 29,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "837b5b7e5639"
-  },
-  {
-   "id": "path-literal:195e8436260c",
-   "type": "path-literal",
-   "title": "/images/miniatures/07_cafe.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 60,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "c5218787ac76"
-  },
-  {
-   "id": "path-literal:ec0e62e6667c",
-   "type": "path-literal",
-   "title": "/images/miniatures/08_chinois.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 33,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "5014e350e49a"
-  },
-  {
-   "id": "path-literal:5ec814d7d2f8",
-   "type": "path-literal",
-   "title": "/images/miniatures/09_creole.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 43,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "42fe4fec326c"
-  },
-  {
-   "id": "path-literal:8aae1c834d17",
-   "type": "path-literal",
-   "title": "/images/miniatures/10_desserts.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 59,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "66d690930da8"
-  },
-  {
-   "id": "path-literal:69de9751c9fe",
-   "type": "path-literal",
-   "title": "/images/miniatures/11_francais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 31,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "efa40499a7de"
-  },
-  {
-   "id": "path-literal:6ad53149335e",
-   "type": "path-literal",
-   "title": "/images/miniatures/12_gastronomique.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 24,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "b58dd2835480"
-  },
-  {
-   "id": "path-literal:e5e0ab4becaf",
-   "type": "path-literal",
-   "title": "/images/miniatures/13_grillades.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 47,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "f9cc2ec279cb"
-  },
-  {
-   "id": "path-literal:aaaa02255bac",
-   "type": "path-literal",
-   "title": "/images/miniatures/14_halal.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 49,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "118092f84d08"
-  },
-  {
-   "id": "path-literal:7e3108932051",
-   "type": "path-literal",
-   "title": "/images/miniatures/15_healthy.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 52,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "4d445fcf1acf"
-  },
-  {
-   "id": "path-literal:3c950d3f34dd",
-   "type": "path-literal",
-   "title": "/images/miniatures/16_indien.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 35,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "2ac0feede013"
-  },
-  {
-   "id": "path-literal:f48b905d7d98",
-   "type": "path-literal",
-   "title": "/images/miniatures/17_italien.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 25,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "5d0fe06cb5ad"
-  },
-  {
-   "id": "path-literal:ffc5da7a158d",
-   "type": "path-literal",
-   "title": "/images/miniatures/18_japonais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 30,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "f95f0e6def69"
-  },
-  {
-   "id": "path-literal:596c9de35373",
-   "type": "path-literal",
-   "title": "/images/miniatures/19_kebab.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 38,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "a6f4ade434d8"
-  },
-  {
-   "id": "path-literal:423a4a8d205e",
-   "type": "path-literal",
-   "title": "/images/miniatures/20_libanais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 36,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "46a7969221eb"
-  },
-  {
-   "id": "path-literal:6f7d75f474c4",
-   "type": "path-literal",
-   "title": "/images/miniatures/21_marocain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 40,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "afe1818c62e8"
-  },
-  {
-   "id": "path-literal:4be1a9edaa3d",
-   "type": "path-literal",
-   "title": "/images/miniatures/22_mediterranee.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 41,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "192fdf3e7634"
-  },
-  {
-   "id": "path-literal:e08c5058df0c",
-   "type": "path-literal",
-   "title": "/images/miniatures/23_mexicain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 39,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "7ff0e5150a90"
-  },
-  {
-   "id": "path-literal:02cff0c6fe10",
-   "type": "path-literal",
-   "title": "/images/miniatures/24_pakistanais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 48,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "d3359a13d584"
-  },
-  {
-   "id": "path-literal:163919a499a2",
-   "type": "path-literal",
-   "title": "/images/miniatures/25_pizza.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 26,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "7098c22ef803"
-  },
-  {
-   "id": "path-literal:44c46cd3ccb1",
-   "type": "path-literal",
-   "title": "/images/miniatures/26_sushi.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 27,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "dd4845c55b93"
-  },
-  {
-   "id": "path-literal:ca49da4a5163",
-   "type": "path-literal",
-   "title": "/images/miniatures/27_ramen.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 32,
@@ -344446,12 +343652,12 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "83a66b768737"
+   "detailRef": "5afcf449b3db"
   },
   {
-   "id": "path-literal:324c6671937b",
+   "id": "path-literal:1b7159c954ce",
    "type": "path-literal",
-   "title": "/images/miniatures/28_thai.webp",
+   "title": "/images/miniatures/02_americain.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 34,
@@ -344459,77 +343665,38 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "77bbac90d5e4"
+   "detailRef": "05169fd5389c"
   },
   {
-   "id": "path-literal:fa7bda03452f",
+   "id": "path-literal:562c79a43c55",
    "type": "path-literal",
-   "title": "/images/miniatures/29_turc.webp",
+   "title": "/images/miniatures/03_bistro.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 37,
+   "line": 18,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "e25cb1025e62"
+   "detailRef": "730e464b6a5a"
   },
   {
-   "id": "path-literal:f588683b0f24",
+   "id": "path-literal:64fa8aba3743",
    "type": "path-literal",
-   "title": "/images/miniatures/30_salades.webp",
+   "title": "/images/miniatures/04_boulangerie.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 53,
+   "line": 47,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "9c4193dfcdd6"
+   "detailRef": "3e2dba6dae37"
   },
   {
-   "id": "path-literal:0f4b70c43418",
+   "id": "path-literal:7dcb0251d1e4",
    "type": "path-literal",
-   "title": "/images/miniatures/31_poke.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 54,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "64ba32d8d446"
-  },
-  {
-   "id": "path-literal:41c0e826e03f",
-   "type": "path-literal",
-   "title": "/images/miniatures/32_petit-dejeuner.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 56,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "37d60b5b591f"
-  },
-  {
-   "id": "path-literal:81c4602985f2",
-   "type": "path-literal",
-   "title": "/images/miniatures/33_pates.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 46,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "fe6938b0ef40"
-  },
-  {
-   "id": "path-literal:0f0c65417f30",
-   "type": "path-literal",
-   "title": "/images/miniatures/34_fondue-suisse.webp",
+   "title": "/images/miniatures/05_brunch.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 45,
@@ -344537,51 +343704,25 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "3a4aa270223d"
+   "detailRef": "32efa44e4aee"
   },
   {
-   "id": "path-literal:f761213c4186",
+   "id": "path-literal:05c3ff20afee",
    "type": "path-literal",
-   "title": "/images/miniatures/35_patisserie.webp",
+   "title": "/images/miniatures/06_burger.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 58,
+   "line": 19,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "f516fc78cbc2"
+   "detailRef": "99d1eb8cd64d"
   },
   {
-   "id": "path-literal:8d48fa11df94",
+   "id": "path-literal:9f33bb1276ac",
    "type": "path-literal",
-   "title": "/images/miniatures/36_sandwich.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 61,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "306c66e0a24e"
-  },
-  {
-   "id": "path-literal:2a712941525f",
-   "type": "path-literal",
-   "title": "/images/miniatures/37_street-food.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 62,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "26e76442f1cb"
-  },
-  {
-   "id": "path-literal:2b13621fc800",
-   "type": "path-literal",
-   "title": "/images/miniatures/38_vegetarien.webp",
+   "title": "/images/miniatures/07_cafe.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 50,
@@ -344589,12 +343730,376 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "13b37953fb11"
+   "detailRef": "97e7fec11336"
   },
   {
-   "id": "path-literal:2886fc87582e",
+   "id": "path-literal:3e4da7cde70f",
    "type": "path-literal",
-   "title": "/images/miniatures/39_vegan.webp",
+   "title": "/images/miniatures/08_chinois.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "749047ba8b88"
+  },
+  {
+   "id": "path-literal:fd8d6afdac77",
+   "type": "path-literal",
+   "title": "/images/miniatures/09_creole.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "360881b03ebe"
+  },
+  {
+   "id": "path-literal:783a9df3a47f",
+   "type": "path-literal",
+   "title": "/images/miniatures/10_desserts.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 49,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "562a7dbb0c19"
+  },
+  {
+   "id": "path-literal:4c6c73580778",
+   "type": "path-literal",
+   "title": "/images/miniatures/11_francais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 21,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "8ba779ea7d55"
+  },
+  {
+   "id": "path-literal:16d52d41b981",
+   "type": "path-literal",
+   "title": "/images/miniatures/12_gastronomique.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "57d51d8ce2b7"
+  },
+  {
+   "id": "path-literal:1b198dfa6335",
+   "type": "path-literal",
+   "title": "/images/miniatures/13_grillades.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 37,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "9f30eb26f65e"
+  },
+  {
+   "id": "path-literal:bf8a4d97a623",
+   "type": "path-literal",
+   "title": "/images/miniatures/14_halal.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "b85650aab153"
+  },
+  {
+   "id": "path-literal:5df4f4f30a1f",
+   "type": "path-literal",
+   "title": "/images/miniatures/15_healthy.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 42,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "bc3da6a61ac2"
+  },
+  {
+   "id": "path-literal:11d1aca654ac",
+   "type": "path-literal",
+   "title": "/images/miniatures/16_indien.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "d492de3fb7c0"
+  },
+  {
+   "id": "path-literal:ff5270465cc6",
+   "type": "path-literal",
+   "title": "/images/miniatures/17_italien.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 15,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "f0d8bd3ae09f"
+  },
+  {
+   "id": "path-literal:32b675488f6d",
+   "type": "path-literal",
+   "title": "/images/miniatures/18_japonais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 20,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "37b3feedc022"
+  },
+  {
+   "id": "path-literal:ce7842c308b4",
+   "type": "path-literal",
+   "title": "/images/miniatures/19_kebab.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "4d3f74cf8128"
+  },
+  {
+   "id": "path-literal:e91b3e58111a",
+   "type": "path-literal",
+   "title": "/images/miniatures/20_libanais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 26,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "9723c63a6cf5"
+  },
+  {
+   "id": "path-literal:5a4793ef4e3d",
+   "type": "path-literal",
+   "title": "/images/miniatures/21_marocain.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "b05422a86c6a"
+  },
+  {
+   "id": "path-literal:c003cb5b9728",
+   "type": "path-literal",
+   "title": "/images/miniatures/22_mediterranee.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "561d36175d57"
+  },
+  {
+   "id": "path-literal:9fa91e6eb235",
+   "type": "path-literal",
+   "title": "/images/miniatures/23_mexicain.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 29,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "98af77e57108"
+  },
+  {
+   "id": "path-literal:9a08837d872b",
+   "type": "path-literal",
+   "title": "/images/miniatures/24_pakistanais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 38,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "8fe9f0bd495c"
+  },
+  {
+   "id": "path-literal:f2b829e8b114",
+   "type": "path-literal",
+   "title": "/images/miniatures/25_pizza.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "42746c4b56b1"
+  },
+  {
+   "id": "path-literal:1285800116c2",
+   "type": "path-literal",
+   "title": "/images/miniatures/26_sushi.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "afa6df566914"
+  },
+  {
+   "id": "path-literal:a53cb7cb5e3e",
+   "type": "path-literal",
+   "title": "/images/miniatures/27_ramen.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 22,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "0ef1a47b6207"
+  },
+  {
+   "id": "path-literal:dfd30ca3b5b2",
+   "type": "path-literal",
+   "title": "/images/miniatures/28_thai.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 24,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "5697daa074c1"
+  },
+  {
+   "id": "path-literal:5867bb1159fc",
+   "type": "path-literal",
+   "title": "/images/miniatures/29_turc.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "d77d3bf659b7"
+  },
+  {
+   "id": "path-literal:8bf3b99285f0",
+   "type": "path-literal",
+   "title": "/images/miniatures/30_salades.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 43,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "ca85df49a3f0"
+  },
+  {
+   "id": "path-literal:88163d9e7890",
+   "type": "path-literal",
+   "title": "/images/miniatures/31_poke.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 44,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "93cdabf43d12"
+  },
+  {
+   "id": "path-literal:22846173cf78",
+   "type": "path-literal",
+   "title": "/images/miniatures/32_petit-dejeuner.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 46,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "49df0ea01878"
+  },
+  {
+   "id": "path-literal:2b909e366f1f",
+   "type": "path-literal",
+   "title": "/images/miniatures/33_pates.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "07102645bb63"
+  },
+  {
+   "id": "path-literal:85a467f2418a",
+   "type": "path-literal",
+   "title": "/images/miniatures/34_fondue-suisse.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "d303b7ed8b63"
+  },
+  {
+   "id": "path-literal:fea11e2a15ca",
+   "type": "path-literal",
+   "title": "/images/miniatures/35_patisserie.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 48,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "53228e2afdfa"
+  },
+  {
+   "id": "path-literal:1f7f5161de94",
+   "type": "path-literal",
+   "title": "/images/miniatures/36_sandwich.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 51,
@@ -344602,7 +344107,46 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "f18dd34f6681"
+   "detailRef": "12a4edc84023"
+  },
+  {
+   "id": "path-literal:8daf6c454dbd",
+   "type": "path-literal",
+   "title": "/images/miniatures/37_street-food.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 52,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "a8876f0a1c28"
+  },
+  {
+   "id": "path-literal:bafb2f4fc52d",
+   "type": "path-literal",
+   "title": "/images/miniatures/38_vegetarien.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "e150e3156edc"
+  },
+  {
+   "id": "path-literal:e8f494c699c1",
+   "type": "path-literal",
+   "title": "/images/miniatures/39_vegan.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 41,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "975df30b3a2d"
   },
   {
    "id": "path-literal:7005454c2cb8",
@@ -344913,36 +344457,23 @@
    "detailRef": "7ef2b2d0761c"
   },
   {
-   "id": "path-literal:e955970e8a4a",
+   "id": "path-literal:72f7bb085637",
    "type": "path-literal",
    "title": "/images/section-headers/tok-editorial-cuisine-full.jpg",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 120,
+   "line": 95,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx",
     "src/test/home-section-showcase-header.test.tsx"
    ],
-   "detailRef": "0435669213b4"
+   "detailRef": "386bfe84eba3"
   },
   {
-   "id": "path-literal:cec79352983c",
+   "id": "path-literal:c192985cf97d",
    "type": "path-literal",
    "title": "/images/section-headers/tok-editorial-delivery-full.jpg",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 61,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "c2011acccf5d"
-  },
-  {
-   "id": "path-literal:aa58359caaef",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-evening-full.jpg",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 62,
@@ -344950,52 +344481,25 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "9a3f234487a4"
+   "detailRef": "69ef75c95cef"
   },
   {
-   "id": "path-literal:5eaa75db56e8",
+   "id": "path-literal:63ac9565fe78",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-evening-full.jpg",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 63,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "63d468d6bb88"
+  },
+  {
+   "id": "path-literal:ee94ef7aee08",
    "type": "path-literal",
    "title": "/images/section-headers/tok-editorial-feast-full.jpg",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 58,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "5e49c97a00a9"
-  },
-  {
-   "id": "path-literal:d237fe54675d",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 60,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "5cdb8f911cbd"
-  },
-  {
-   "id": "path-literal:a4f6f008f2f2",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-geneva-full.jpg",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 57,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx",
-    "src/test/home-section-showcase-header.test.tsx"
-   ],
-   "detailRef": "7817990177e3"
-  },
-  {
-   "id": "path-literal:a882d7d5e0df",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-reservation-full.jpg",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 59,
@@ -345003,20 +344507,60 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "0d8db670b360"
+   "detailRef": "e9f1f0ba1eb6"
   },
   {
-   "id": "path-literal:b575f620174a",
+   "id": "path-literal:c086202c19e1",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-rewards-full.jpg",
+   "title": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
-   "line": 56,
+   "line": 61,
    "surface": null,
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "19d6e0f461ca"
+   "detailRef": "7ec1fdb55f8b"
+  },
+  {
+   "id": "path-literal:009a8bc72fdb",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-geneva-full.jpg",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 58,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx",
+    "src/test/home-section-showcase-header.test.tsx"
+   ],
+   "detailRef": "8bcda8ca4fa1"
+  },
+  {
+   "id": "path-literal:4c2a34a00c35",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-reservation-full.jpg",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 60,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "858e436c66be"
+  },
+  {
+   "id": "path-literal:24fe35163e62",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-rewards-full.jpg",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "c648999d87ec"
   },
   {
    "id": "path-literal:71dec4dbed86",
@@ -345883,7 +345427,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "5f818c4bbd3b"
+   "detailRef": "e6504e6c8af9"
   },
   {
    "id": "path-literal:f0ef50bf980c",
@@ -346074,7 +345618,7 @@
     "src/pages/ClientDashboardHome.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "307cfbdff69e"
+   "detailRef": "379869bc74ab"
   },
   {
    "id": "path-literal:8a35ee0b46e4",
@@ -346102,7 +345646,7 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "99cbf46dda83"
+   "detailRef": "d290c3f75ce7"
   },
   {
    "id": "path-literal:1f7d4d48ee1e",
@@ -346240,7 +345784,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "c9f14e9427a2"
+   "detailRef": "3644c2b86eeb"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -347526,7 +347070,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "d9d3eb18721d"
+   "detailRef": "0ffe7555c003"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -348716,7 +348260,7 @@
     "src/test/home-hero-search.test.tsx",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "edbf2c1b3919"
+   "detailRef": "7dc6581c9bd6"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -349262,90 +348806,6 @@
    "detailRef": "6918cafd8563"
   },
   {
-   "id": "public-asset:456054275c20",
-   "type": "public-asset",
-   "title": "/desig app/02B9B29C-0EB1-40EC-BE64-769CABCD2630.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/02B9B29C-0EB1-40EC-BE64-769CABCD2630.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "0270ff573065"
-  },
-  {
-   "id": "public-asset:6858e6af0345",
-   "type": "public-asset",
-   "title": "/desig app/068456A5-9E7F-48FF-A059-035CFBEB2D0A.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/068456A5-9E7F-48FF-A059-035CFBEB2D0A.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "580e2e39d4ee"
-  },
-  {
-   "id": "public-asset:fa1492234c2d",
-   "type": "public-asset",
-   "title": "/desig app/0B173D23-371C-4C0A-A5D2-815F1479AF29.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/0B173D23-371C-4C0A-A5D2-815F1479AF29.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "5dd50f40663b"
-  },
-  {
-   "id": "public-asset:c32d4bf5b6cf",
-   "type": "public-asset",
-   "title": "/desig app/132FD385-BA2B-418A-92A1-7FD564DCD9C3.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/132FD385-BA2B-418A-92A1-7FD564DCD9C3.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "85bb5bac896d"
-  },
-  {
-   "id": "public-asset:0def8d01052e",
-   "type": "public-asset",
-   "title": "/desig app/197B0A17-E35B-4FE5-89D8-06B8226B33B0.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/197B0A17-E35B-4FE5-89D8-06B8226B33B0.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "8ac46a0001fb"
-  },
-  {
-   "id": "public-asset:8b68c126c034",
-   "type": "public-asset",
-   "title": "/desig app/1F5998CA-93CD-438A-81F6-ACF8151C03E6.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/1F5998CA-93CD-438A-81F6-ACF8151C03E6.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "2c32c2c2faba"
-  },
-  {
    "id": "public-asset:82507f3003cd",
    "type": "public-asset",
    "title": "/desig app/1_0000_template_pub_04.png",
@@ -349458,188 +348918,6 @@
    "detailRef": "83dd8c3fbf81"
   },
   {
-   "id": "public-asset:433b00b36ad2",
-   "type": "public-asset",
-   "title": "/desig app/28EE1FCE-18E1-4A94-B9B6-E6DCE30F74AC.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/28EE1FCE-18E1-4A94-B9B6-E6DCE30F74AC.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "17066ba305f2"
-  },
-  {
-   "id": "public-asset:c7c63c8ea660",
-   "type": "public-asset",
-   "title": "/desig app/33B9DDFC-2EC1-4A1B-8B34-6A021691ECFF.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/33B9DDFC-2EC1-4A1B-8B34-6A021691ECFF.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "160955d98b3f"
-  },
-  {
-   "id": "public-asset:938f31c4d690",
-   "type": "public-asset",
-   "title": "/desig app/4BC6A770-6263-4D9C-863D-89D87FFB99A7.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/4BC6A770-6263-4D9C-863D-89D87FFB99A7.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "1877ff0f1357"
-  },
-  {
-   "id": "public-asset:5a9f40121fb0",
-   "type": "public-asset",
-   "title": "/desig app/63331163-6799-4EF7-9415-3CC851C1748B.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/63331163-6799-4EF7-9415-3CC851C1748B.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "8e4d8b675384"
-  },
-  {
-   "id": "public-asset:4e08e04d3f75",
-   "type": "public-asset",
-   "title": "/desig app/63E3E3E7-8255-46B1-B408-52C66A61B491.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/63E3E3E7-8255-46B1-B408-52C66A61B491.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "d5eac32fe3a8"
-  },
-  {
-   "id": "public-asset:1eb585b9589f",
-   "type": "public-asset",
-   "title": "/desig app/64641818-05F4-4086-A785-5B19573EE57C.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/64641818-05F4-4086-A785-5B19573EE57C.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "c7e71d693004"
-  },
-  {
-   "id": "public-asset:c0fde2f20023",
-   "type": "public-asset",
-   "title": "/desig app/6D8E604E-6939-48A5-B6AC-9B8FC3722D53.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/6D8E604E-6939-48A5-B6AC-9B8FC3722D53.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "f7677cde6668"
-  },
-  {
-   "id": "public-asset:eeb9d0d04dd0",
-   "type": "public-asset",
-   "title": "/desig app/761B16F6-6DB0-452E-97B9-CE51FFAA8A57.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/761B16F6-6DB0-452E-97B9-CE51FFAA8A57.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "0e2825be76e6"
-  },
-  {
-   "id": "public-asset:69ec6b2521e3",
-   "type": "public-asset",
-   "title": "/desig app/8C943CAD-9A8E-4185-ADED-1C8817CB918E.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/8C943CAD-9A8E-4185-ADED-1C8817CB918E.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "31d43c26e13a"
-  },
-  {
-   "id": "public-asset:0532ba7b0ffa",
-   "type": "public-asset",
-   "title": "/desig app/AA898C7A-5458-41EC-9E20-86AA6636DB27.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/AA898C7A-5458-41EC-9E20-86AA6636DB27.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "a4b93e1a4126"
-  },
-  {
-   "id": "public-asset:a5d706f049c6",
-   "type": "public-asset",
-   "title": "/desig app/AC118A6F-42DA-4D40-A924-D94D2BE5B27F.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/AC118A6F-42DA-4D40-A924-D94D2BE5B27F.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "c10accaea6ca"
-  },
-  {
-   "id": "public-asset:5df6842b236c",
-   "type": "public-asset",
-   "title": "/desig app/DAC6DF61-D4FF-41A9-A90A-559D177F757D.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/DAC6DF61-D4FF-41A9-A90A-559D177F757D.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "f10c1cb0435f"
-  },
-  {
-   "id": "public-asset:9fc3523a3603",
-   "type": "public-asset",
-   "title": "/desig app/FC0EAC72-1821-488C-8323-D53D471055AF.png",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/FC0EAC72-1821-488C-8323-D53D471055AF.png",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "e7a7f86ce9d4"
-  },
-  {
    "id": "public-asset:b419cdac8635",
    "type": "public-asset",
    "title": "/desig app/assiette.png",
@@ -349750,6 +349028,370 @@
     "public"
    ],
    "detailRef": "c315a35922bc"
+  },
+  {
+   "id": "public-asset:e4b2692dded9",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-ag.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-ag.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "8b5dcf2f7f22"
+  },
+  {
+   "id": "public-asset:6abee36d14a8",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-ai.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-ai.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "91a51e7e34a5"
+  },
+  {
+   "id": "public-asset:c23634ec629d",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-ar.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-ar.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "bcc72daec0ef"
+  },
+  {
+   "id": "public-asset:a270f431450a",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-be.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-be.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "d7222a5c13b3"
+  },
+  {
+   "id": "public-asset:b44fbd643469",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-bl.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-bl.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "d8310f0a77d9"
+  },
+  {
+   "id": "public-asset:22a4c91d96e0",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-bs.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-bs.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "5fda7e9e21b2"
+  },
+  {
+   "id": "public-asset:c941f713f437",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-fr.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-fr.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "e45a78ffa811"
+  },
+  {
+   "id": "public-asset:a7083d9e4f3e",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-ge.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-ge.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "3e86945dd8e2"
+  },
+  {
+   "id": "public-asset:fd981dd08f71",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-gl.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-gl.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "fcad57f65188"
+  },
+  {
+   "id": "public-asset:c06ce5e03e9c",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-gr.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-gr.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "82b10e267e93"
+  },
+  {
+   "id": "public-asset:ba16895ae96a",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-ju.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-ju.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "f5d3bcc63546"
+  },
+  {
+   "id": "public-asset:12e3adb5ba8f",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-lu.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-lu.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "309e590a141a"
+  },
+  {
+   "id": "public-asset:928665d4b784",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-ne.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-ne.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "b5e6e2f0c412"
+  },
+  {
+   "id": "public-asset:d804f3308683",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-nw.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-nw.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "7cf2e10654b9"
+  },
+  {
+   "id": "public-asset:34f7e3f58ebe",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-ow.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-ow.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "8776a03db8fa"
+  },
+  {
+   "id": "public-asset:3e790cd45af7",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-sg.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-sg.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "d83e8c699e31"
+  },
+  {
+   "id": "public-asset:0962d69ed416",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-sh.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-sh.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "2c7a308b36d6"
+  },
+  {
+   "id": "public-asset:6f761d4b27cf",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-so.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-so.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "954fc7610102"
+  },
+  {
+   "id": "public-asset:2948b7218932",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-sz.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-sz.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "2d4e15b21509"
+  },
+  {
+   "id": "public-asset:fdcb03bae367",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-tg.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-tg.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "544571235bbd"
+  },
+  {
+   "id": "public-asset:7e43ca77fdcb",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-ti.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-ti.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "a323659fda7c"
+  },
+  {
+   "id": "public-asset:97eb307fa3c1",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-ur.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-ur.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "dd758717f9de"
+  },
+  {
+   "id": "public-asset:a152a13b56a8",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-vd.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-vd.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "e06bc8a0449a"
+  },
+  {
+   "id": "public-asset:acf3f4d9c84f",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-vs.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-vs.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "0ab06aa3c6cd"
+  },
+  {
+   "id": "public-asset:069b4512dde1",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-zg.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-zg.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "c6cafae559ec"
+  },
+  {
+   "id": "public-asset:5413f2a359e4",
+   "type": "public-asset",
+   "title": "/desig app/tok-ch-zh.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/desig app/tok-ch-zh.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "2e8c589e16fb"
   },
   {
    "id": "public-asset:000cc4542ae9",
@@ -354050,426 +353692,6 @@
    "detailRef": "b6e88c398ded"
   },
   {
-   "id": "public-asset:7f96bc8b7e3e",
-   "type": "public-asset",
-   "title": "/miniatures-3d/chinois.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/chinois.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "29479842b15e"
-  },
-  {
-   "id": "public-asset:8873a2ee174f",
-   "type": "public-asset",
-   "title": "/miniatures-3d/creole.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/creole.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "30dda03473c7"
-  },
-  {
-   "id": "public-asset:96fa98a5812b",
-   "type": "public-asset",
-   "title": "/miniatures-3d/fondue-suisse.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/fondue-suisse.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "d889f80ebd52"
-  },
-  {
-   "id": "public-asset:7b22b893b83b",
-   "type": "public-asset",
-   "title": "/miniatures-3d/francais.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/francais.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "b70404d9448e"
-  },
-  {
-   "id": "public-asset:722a05712abf",
-   "type": "public-asset",
-   "title": "/miniatures-3d/gastronomique.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/gastronomique.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "0f68d29726c6"
-  },
-  {
-   "id": "public-asset:b8a5bdbe6915",
-   "type": "public-asset",
-   "title": "/miniatures-3d/grillades.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/grillades.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "7d6daa5f3400"
-  },
-  {
-   "id": "public-asset:ca612321b697",
-   "type": "public-asset",
-   "title": "/miniatures-3d/halal.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/halal.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "580c1dbb007d"
-  },
-  {
-   "id": "public-asset:753750a68526",
-   "type": "public-asset",
-   "title": "/miniatures-3d/healthy.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/healthy.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "047206a29ccd"
-  },
-  {
-   "id": "public-asset:ea09790b8707",
-   "type": "public-asset",
-   "title": "/miniatures-3d/indien.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/indien.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "a21c2d749391"
-  },
-  {
-   "id": "public-asset:6961f6a82a21",
-   "type": "public-asset",
-   "title": "/miniatures-3d/japonais.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/japonais.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "9a552d1f29e8"
-  },
-  {
-   "id": "public-asset:d0ff9cd62b1d",
-   "type": "public-asset",
-   "title": "/miniatures-3d/kebab.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/kebab.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "cabb4ed6ded9"
-  },
-  {
-   "id": "public-asset:e40dad9e9d88",
-   "type": "public-asset",
-   "title": "/miniatures-3d/libanais.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/libanais.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "52f2bf6e1e7b"
-  },
-  {
-   "id": "public-asset:c4d074f82d7a",
-   "type": "public-asset",
-   "title": "/miniatures-3d/marocain.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/marocain.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "a08ecc0c037c"
-  },
-  {
-   "id": "public-asset:55f4c4273fbd",
-   "type": "public-asset",
-   "title": "/miniatures-3d/mediterraneen.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/mediterraneen.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "fc78e6d186ba"
-  },
-  {
-   "id": "public-asset:046694bf5916",
-   "type": "public-asset",
-   "title": "/miniatures-3d/mexicain.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/mexicain.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "6d50ae5cf00a"
-  },
-  {
-   "id": "public-asset:6fbde38d1b71",
-   "type": "public-asset",
-   "title": "/miniatures-3d/pakistanais.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/pakistanais.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "d717add6bb98"
-  },
-  {
-   "id": "public-asset:55c4c57b3643",
-   "type": "public-asset",
-   "title": "/miniatures-3d/pates.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/pates.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "c381bcb70dec"
-  },
-  {
-   "id": "public-asset:4852c48e0cdb",
-   "type": "public-asset",
-   "title": "/miniatures-3d/patisserie.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/patisserie.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "4c9a2fb8c946"
-  },
-  {
-   "id": "public-asset:8c684874ee2c",
-   "type": "public-asset",
-   "title": "/miniatures-3d/petit-dejeuner.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/petit-dejeuner.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "87dcbbbbb8dd"
-  },
-  {
-   "id": "public-asset:fbc15be39cec",
-   "type": "public-asset",
-   "title": "/miniatures-3d/pizza.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/pizza.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "0205dbf546a7"
-  },
-  {
-   "id": "public-asset:d05bb298ab91",
-   "type": "public-asset",
-   "title": "/miniatures-3d/poke.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/poke.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "9c612af31528"
-  },
-  {
-   "id": "public-asset:a164d4c9a583",
-   "type": "public-asset",
-   "title": "/miniatures-3d/ramen.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/ramen.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "20b49df1fc4f"
-  },
-  {
-   "id": "public-asset:3122d7c57393",
-   "type": "public-asset",
-   "title": "/miniatures-3d/salades.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/salades.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "3f53d3d70053"
-  },
-  {
-   "id": "public-asset:1c357b264b09",
-   "type": "public-asset",
-   "title": "/miniatures-3d/sandwich.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/sandwich.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "8d9596f3b603"
-  },
-  {
-   "id": "public-asset:6e0bce99d463",
-   "type": "public-asset",
-   "title": "/miniatures-3d/street-food.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/street-food.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "fbbc5c8693ae"
-  },
-  {
-   "id": "public-asset:b4c37d85aa94",
-   "type": "public-asset",
-   "title": "/miniatures-3d/sushi.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/sushi.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "be18c30d987c"
-  },
-  {
-   "id": "public-asset:a227ecf97e8b",
-   "type": "public-asset",
-   "title": "/miniatures-3d/thai.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/thai.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "c14c43c1da19"
-  },
-  {
-   "id": "public-asset:ab9f833a22e5",
-   "type": "public-asset",
-   "title": "/miniatures-3d/turc.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/turc.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "2c8f023fe164"
-  },
-  {
-   "id": "public-asset:0a34b2bdcc71",
-   "type": "public-asset",
-   "title": "/miniatures-3d/vegan.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/vegan.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "c83d436f7572"
-  },
-  {
-   "id": "public-asset:557b07c3427a",
-   "type": "public-asset",
-   "title": "/miniatures-3d/vegetarien.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/miniatures-3d/vegetarien.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "a60e2754f86b"
-  },
-  {
    "id": "public-asset:facd86c990d6",
    "type": "public-asset",
    "title": "/mockup.png",
@@ -355219,7 +354441,7 @@
     "src/test/home-hero-search.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "9ca34a2915d7"
+   "detailRef": "7105527b86ed"
   },
   {
    "id": "query-parameter:97c42c624f4b",
@@ -355595,6 +354817,19 @@
    "detailRef": "ec896be48984"
   },
   {
+   "id": "query-parameter:02cb94be5ba4",
+   "type": "query-parameter",
+   "title": "geometry",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "src/test/home-canton-hero.test.ts",
+   "line": 55,
+   "surface": null,
+   "tags": [
+    "src/test/home-canton-hero.test.ts"
+   ],
+   "detailRef": "7211355ff53b"
+  },
+  {
    "id": "query-parameter:d486a6e252d1",
    "type": "query-parameter",
    "title": "height",
@@ -355648,6 +354883,19 @@
     "src/test/address-autocomplete-location-bias.test.tsx"
    ],
    "detailRef": "13384aca1044"
+  },
+  {
+   "id": "query-parameter:4bad4f46859c",
+   "type": "query-parameter",
+   "title": "layers",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "src/test/home-canton-hero.test.ts",
+   "line": 58,
+   "surface": null,
+   "tags": [
+    "src/test/home-canton-hero.test.ts"
+   ],
+   "detailRef": "fb07a8de1eaa"
   },
   {
    "id": "query-parameter:2c0948ce234d",
@@ -356045,7 +355293,7 @@
     "src/pages/Recherche.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "75115318c0dd"
+   "detailRef": "b6e33090e840"
   },
   {
    "id": "query-parameter:1969b37dad55",
@@ -356291,6 +355539,19 @@
    "detailRef": "085655cb6c3e"
   },
   {
+   "id": "query-parameter:ffa246ec66b7",
+   "type": "query-parameter",
+   "title": "sr",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "src/test/home-canton-hero.test.ts",
+   "line": 56,
+   "surface": null,
+   "tags": [
+    "src/test/home-canton-hero.test.ts"
+   ],
+   "detailRef": "62a417d9045c"
+  },
+  {
    "id": "query-parameter:3bfca3e02fd5",
    "type": "query-parameter",
    "title": "state",
@@ -356437,6 +355698,19 @@
     "supabase/functions/marketing-unsubscribe/index.ts"
    ],
    "detailRef": "b0efbd0e763d"
+  },
+  {
+   "id": "query-parameter:767d8ac9aeea",
+   "type": "query-parameter",
+   "title": "tolerance",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "src/test/home-canton-hero.test.ts",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "src/test/home-canton-hero.test.ts"
+   ],
+   "detailRef": "aea9f02e4c0f"
   },
   {
    "id": "query-parameter:7e0bc57e0111",
