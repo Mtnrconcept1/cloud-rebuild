@@ -1,6 +1,13 @@
 import RestaurantCard from "@/components/RestaurantCard";
 import type { LucideIcon } from "lucide-react";
 import SectionShowcaseHeader, { type SectionHeaderTheme } from "@/components/home/SectionShowcaseHeader";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface RestaurantSectionProps {
   title: string;
@@ -17,6 +24,12 @@ interface RestaurantSectionProps {
   linkText?: string;
   linkTo?: string;
 }
+
+// Keep one row per section at every breakpoint. On phones, one full card plus
+// one third of the following card signals that the rail can be swiped.
+const RAIL_ITEM_CLASS =
+  "min-w-0 pl-0 basis-[calc(75%-9px)] sm:basis-[calc(43.5%-7px)] lg:basis-[calc(30.77%-5px)]";
+const RAIL_OPTIONS = { align: "start", containScroll: "trimSnaps", slidesToScroll: 1 } as const;
 
 export default function RestaurantSection({
   title,
@@ -35,10 +48,11 @@ export default function RestaurantSection({
 
   return (
     <section
-      className="relative py-7 md:py-10"
+      data-home-restaurant-rail
+      className="relative py-6 md:py-10"
       aria-busy={loading && restaurants.length === 0}
     >
-      <div className="container relative space-y-5 md:space-y-6">
+      <div className="container relative space-y-4 md:space-y-6">
         <SectionShowcaseHeader
           title={title}
           subtitle={subtitle}
@@ -47,50 +61,83 @@ export default function RestaurantSection({
           imageSrc={headerImageSrc}
           description={headerDescription}
           theme={headerTheme}
+          className="tok-section-header--home-rail"
           linkText={linkText}
+          mobileLinkText="Voir plus"
           linkTo={linkTo}
         />
-        {restaurants.length === 0 ? (
-          <div data-testid="home-restaurant-skeleton" aria-hidden="true" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[0, 1, 2].map((item) => (
-              <div key={item} className="h-[410px] overflow-hidden rounded-[26px] border border-border bg-card">
-                <div className="aspect-[16/10] bg-muted/60" />
-                <div className="space-y-4 p-5">
-                  <div className="h-5 w-3/4 rounded-md bg-muted/70" />
-                  <div className="h-4 w-1/2 rounded-md bg-muted/70" />
-                  <div className="h-12 w-full rounded-lg bg-muted/50" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {restaurants.map((r: any) => (
-            <div key={`${r.id}-${r.campaign_id || "organic"}`} className="min-w-0">
-              <RestaurantCard
-                id={r.id}
-                name={r.name}
-                cuisine={r.cuisine_type || ""}
-                rating={Number(r.rating) || 0}
-                reviewCount={r.review_count || 0}
-                imageUrl={r.image_url || ""}
-                priceRange={r.price_range || 2}
-                deliveryAvailable={r.delivery_available || false}
-                city={r.city}
-                address={r.address || ""}
-                slug={r.slug || null}
-                openingHours={Object.prototype.hasOwnProperty.call(r, "opening_hours") ? r.opening_hours : undefined}
-                supportsReservation={Object.prototype.hasOwnProperty.call(r, "supports_reservation") ? r.supports_reservation : undefined}
-                sponsoredCampaignId={r.campaign_id || undefined}
-                sponsoredPromoImage={r.promo_image || undefined}
-                sponsoredCampaignTitle={r.campaign_title || undefined}
-                sponsoredCampaignBody={r.campaign_body || undefined}
-                sponsoredCampaignCreative={r.campaign_creative || undefined}
+
+        <Carousel
+          data-testid="home-restaurant-carousel"
+          aria-label={`Restaurants : ${title}`}
+          opts={RAIL_OPTIONS}
+          className="min-w-0"
+        >
+          <CarouselContent className="ml-0 gap-3 sm:gap-4">
+            {restaurants.length === 0 ? (
+              [0, 1, 2].map((item) => (
+                <CarouselItem
+                  key={item}
+                  className={RAIL_ITEM_CLASS}
+                >
+                  <div
+                    data-testid="home-restaurant-skeleton"
+                    aria-hidden="true"
+                    className="h-[380px] overflow-hidden rounded-[26px] border border-border bg-card sm:h-[410px]"
+                  >
+                    <div className="aspect-[16/10] bg-muted/60" />
+                    <div className="space-y-4 p-4 sm:p-5">
+                      <div className="h-5 w-3/4 rounded-md bg-muted/70" />
+                      <div className="h-4 w-1/2 rounded-md bg-muted/70" />
+                      <div className="h-12 w-full rounded-lg bg-muted/50" />
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))
+            ) : (
+              restaurants.map((r: any) => (
+                <CarouselItem
+                  key={`${r.id}-${r.campaign_id || "organic"}`}
+                  className={RAIL_ITEM_CLASS}
+                >
+                  <RestaurantCard
+                    homeRail
+                    id={r.id}
+                    name={r.name}
+                    cuisine={r.cuisine_type || ""}
+                    rating={Number(r.rating) || 0}
+                    reviewCount={r.review_count || 0}
+                    imageUrl={r.image_url || ""}
+                    priceRange={r.price_range || 2}
+                    deliveryAvailable={r.delivery_available || false}
+                    city={r.city}
+                    address={r.address || ""}
+                    slug={r.slug || null}
+                    openingHours={Object.prototype.hasOwnProperty.call(r, "opening_hours") ? r.opening_hours : undefined}
+                    supportsReservation={Object.prototype.hasOwnProperty.call(r, "supports_reservation") ? r.supports_reservation : undefined}
+                    sponsoredCampaignId={r.campaign_id || undefined}
+                    sponsoredPromoImage={r.promo_image || undefined}
+                    sponsoredCampaignTitle={r.campaign_title || undefined}
+                    sponsoredCampaignBody={r.campaign_body || undefined}
+                    sponsoredCampaignCreative={r.campaign_creative || undefined}
+                  />
+                </CarouselItem>
+              ))
+            )}
+          </CarouselContent>
+          {restaurants.length > 1 ? (
+            <>
+              <CarouselPrevious
+                aria-label={`Restaurants précédents : ${title}`}
+                className="left-2 z-10 hidden h-11 w-11 border-border bg-background/95 shadow-lg sm:inline-flex"
               />
-            </div>
-          ))}
-        </div>
-        )}
+              <CarouselNext
+                aria-label={`Restaurants suivants : ${title}`}
+                className="right-2 z-10 hidden h-11 w-11 border-border bg-background/95 shadow-lg sm:inline-flex"
+              />
+            </>
+          ) : null}
+        </Carousel>
       </div>
     </section>
   );

@@ -16,6 +16,7 @@ type SectionShowcaseHeaderProps = {
   iconColor?: string;
   theme?: SectionHeaderTheme;
   linkText?: string;
+  mobileLinkText?: string;
   linkTo?: string;
   className?: string;
   titleClassName?: string;
@@ -38,6 +39,7 @@ export default function SectionShowcaseHeader({
   iconColor,
   theme = "orange",
   linkText,
+  mobileLinkText,
   linkTo,
   className,
   titleClassName,
@@ -71,8 +73,9 @@ export default function SectionShowcaseHeader({
             {actions}
             {linkText && linkTo ? (
               <Button variant="ghost" className="tok-section-header__cta" asChild>
-                <Link to={linkTo}>
-                  <span>{linkText}</span>
+                <Link to={linkTo} aria-label={mobileLinkText ? linkText : undefined}>
+                  <span className={mobileLinkText ? "hidden sm:inline" : undefined}>{linkText}</span>
+                  {mobileLinkText ? <span className="sm:hidden" aria-hidden="true">{mobileLinkText}</span> : null}
                   <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
                 </Link>
               </Button>
