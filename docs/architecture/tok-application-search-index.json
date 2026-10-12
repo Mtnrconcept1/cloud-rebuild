@@ -2,37 +2,37 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "e248276689afd3f55e5314cd7800eeffc809207c0c1b82a24f336aaf597f10c6",
+ "sourceDigest": "6098c3bf774f4b40a6abe874495e3b209bb6dcf23f8be4b94d83f504b01f9949",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2736,
-  "documents": 202,
+  "documents": 203,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3399,
+  "exportedSymbols": 3403,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 527,
-  "modules": 1503,
+  "modules": 1505,
   "pages": 128,
-  "pathLiterals": 644,
+  "pathLiterals": 647,
   "publicAssets": 387,
   "publicEntries": 412,
   "publicNavigableRoutes": 2,
-  "queryParameters": 104,
-  "records": 15972,
-  "repositoryFiles": 2896,
+  "queryParameters": 110,
+  "records": 15996,
+  "repositoryFiles": 2900,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 27
+  "workflows": 28
  },
  "catalogs": {
   "frontendRoutes": [
@@ -24612,6 +24612,18 @@
     "value": "/rest/v1/",
     "sources": [
      {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 55
+     },
+     {
+      "path": "scripts/stripe-financial-reconciliation.test.mjs",
+      "line": 26
+     },
+     {
+      "path": "scripts/stripe-financial-reconciliation.test.mjs",
+      "line": 41
+     },
+     {
       "path": "src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx",
       "line": 106
      },
@@ -24622,6 +24634,15 @@
      {
       "path": "src/lib/commercialDemoHostSecurity.ts",
       "line": 155
+     }
+    ]
+   },
+   {
+    "value": "/rest/v1/payment_attempts",
+    "sources": [
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 73
      }
     ]
    },
@@ -26624,6 +26645,19 @@
     ]
    },
    {
+    "value": "/v1/account",
+    "sources": [
+     {
+      "path": "scripts/stripe-financial-reconciliation.test.mjs",
+      "line": 27
+     },
+     {
+      "path": "scripts/stripe-financial-reconciliation.test.mjs",
+      "line": 42
+     }
+    ]
+   },
+   {
     "value": "/v1/appScreenshotSets",
     "sources": [
      {
@@ -26728,6 +26762,15 @@
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
       "line": 1061
+     }
+    ]
+   },
+   {
+    "value": "/v1/payment_intents",
+    "sources": [
+     {
+      "path": "scripts/stripe-financial-reconciliation.test.mjs",
+      "line": 43
      }
     ]
    },
@@ -27344,6 +27387,20 @@
   ],
   "queryParameters": [
    {
+    "name": "and",
+    "sources": [
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 58
+     },
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 76
+     }
+    ],
+    "routes": []
+   },
+   {
     "name": "apiKey",
     "sources": [
      {
@@ -27642,6 +27699,40 @@
      "/auth/callback",
      "/auth/demo"
     ]
+   },
+   {
+    "name": "created[gte]",
+    "sources": [
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 39
+     }
+    ],
+    "routes": []
+   },
+   {
+    "name": "created[lt]",
+    "sources": [
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 40
+     }
+    ],
+    "routes": []
+   },
+   {
+    "name": "created_at",
+    "sources": [
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 57
+     },
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 75
+     }
+    ],
+    "routes": []
    },
    {
     "name": "cuisine",
@@ -28028,6 +28119,18 @@
       "line": 98
      },
      {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 38
+     },
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 59
+     },
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 77
+     },
+     {
       "path": "src/test/address-autocomplete-location-bias.test.tsx",
       "line": 79
      },
@@ -28198,6 +28301,14 @@
      {
       "path": "scripts/prerender-stoppin-restaurants.mjs",
       "line": 97
+     },
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 60
+     },
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 78
      }
     ],
     "routes": []
@@ -28659,6 +28770,20 @@
     ]
    },
    {
+    "name": "select",
+    "sources": [
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 56
+     },
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 74
+     }
+    ],
+    "routes": []
+   },
+   {
     "name": "session_id",
     "sources": [
      {
@@ -28754,6 +28879,16 @@
     "routes": [
      "/mon-espace"
     ]
+   },
+   {
+    "name": "starting_after",
+    "sources": [
+     {
+      "path": "scripts/stripe-financial-reconciliation.mjs",
+      "line": 41
+     }
+    ],
+    "routes": []
    },
    {
     "name": "state",
@@ -29433,6 +29568,8 @@
      "scripts/release-readiness.mjs",
      "scripts/resolve-live-stripe-publishable-key.mjs",
      "scripts/scale-readiness-check.mjs",
+     "scripts/stripe-financial-reconciliation.mjs",
+     "scripts/stripe-financial-reconciliation.test.mjs",
      "scripts/test-checkout-security-postgres.mjs",
      "scripts/write-commercial-demo-secrets-env.mjs",
      "scripts/write-production-env.mjs",
@@ -29672,6 +29809,8 @@
      "scripts/release-readiness-core.mjs",
      "scripts/restaurant-image-truth-worker.mjs",
      "scripts/scale-readiness-check.mjs",
+     "scripts/stripe-financial-reconciliation.mjs",
+     "scripts/stripe-financial-reconciliation.test.mjs",
      "scripts/supabase-db-push.mjs",
      "scripts/supabase-doctor.mjs",
      "scripts/supabase-target.mjs",
@@ -67987,6 +68126,14 @@
     ]
    },
    {
+    "name": "Independent Stripe audit tests",
+    "path": ".github/workflows/stripe-audit-tests.yml",
+    "jobs": [
+     "audit-unit-tests",
+     "refresh-application-index"
+    ]
+   },
+   {
     "name": "Sync Cloudprinter Secrets",
     "path": ".github/workflows/sync-cloudprinter-secrets.yml",
     "jobs": [
@@ -73407,6 +73554,27 @@
       "level": 2,
       "title": "Incidents",
       "line": 58
+     }
+    ]
+   },
+   {
+    "path": "docs/runbooks/stripe-independent-audit.md",
+    "title": "Contrôle indépendant Stripe / TOK (lecture seule)",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Contrôle indépendant Stripe / TOK (lecture seule)",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Prérequis et exécution",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Alertes et limites de sécurité",
+      "line": 20
      }
     ]
    },
@@ -81169,6 +81337,47 @@
      "vercel"
     ],
     "lineCount": 196
+   },
+   {
+    "path": "scripts/stripe-financial-reconciliation.mjs",
+    "exports": [
+     {
+      "name": "safeAccountLabel",
+      "line": 10,
+      "kind": "function"
+     },
+     {
+      "name": "classifyPayment",
+      "line": 13,
+      "kind": "function"
+     },
+     {
+      "name": "fetchJson",
+      "line": 22,
+      "kind": "function"
+     },
+     {
+      "name": "runAudit",
+      "line": 87,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 131
+   },
+   {
+    "path": "scripts/stripe-financial-reconciliation.test.mjs",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 55
    },
    {
     "path": "scripts/supabase-db-push.mjs",
@@ -111032,6 +111241,11 @@
     "extension": ".yml"
    },
    {
+    "path": ".github/workflows/stripe-audit-tests.yml",
+    "category": "ci-workflow",
+    "extension": ".yml"
+   },
+   {
     "path": ".github/workflows/sync-cloudprinter-secrets.yml",
     "category": "ci-workflow",
     "extension": ".yml"
@@ -111908,6 +112122,11 @@
    },
    {
     "path": "docs/runbooks/stripe-financial-ops.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/runbooks/stripe-independent-audit.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -114873,6 +115092,16 @@
    },
    {
     "path": "scripts/stoppin-venue-seo.test.mjs",
+    "category": "test",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/stripe-financial-reconciliation.mjs",
+    "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/stripe-financial-reconciliation.test.mjs",
     "category": "test",
     "extension": ".mjs"
    },
@@ -126457,6 +126686,38 @@
     "vercel"
    ],
    "detailRef": "3089589935e8"
+  },
+  {
+   "id": "code-module:33dd5ff9a6c3",
+   "type": "code-module",
+   "title": "scripts/stripe-financial-reconciliation.mjs",
+   "description": "Module de 131 lignes; exports: safeAccountLabel, classifyPayment, fetchJson, runAudit.",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "classifyPayment",
+    "fetchJson",
+    "runAudit",
+    "safeAccountLabel",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "f87068fa1141"
+  },
+  {
+   "id": "code-module:c22165f8738b",
+   "type": "code-module",
+   "title": "scripts/stripe-financial-reconciliation.test.mjs",
+   "description": "Module de 55 lignes; exports: aucun export statique.",
+   "path": "scripts/stripe-financial-reconciliation.test.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "c9ea912cfc2e"
   },
   {
    "id": "code-module:0ce82db17075",
@@ -198446,6 +198707,20 @@
    "detailRef": "e95d698ef393"
   },
   {
+   "id": "document-section:3b9acda74a21",
+   "type": "document-section",
+   "title": "Alertes et limites de sécurité",
+   "description": "Section de Contrôle indépendant Stripe / TOK (lecture seule).",
+   "path": "docs/runbooks/stripe-independent-audit.md",
+   "line": 20,
+   "surface": null,
+   "tags": [
+    "Contrôle indépendant Stripe / TOK (lecture seule)",
+    "h2"
+   ],
+   "detailRef": "c213bb82db10"
+  },
+  {
    "id": "document-section:88adb3d7f8fc",
    "type": "document-section",
    "title": "Analytics",
@@ -202084,6 +202359,20 @@
     "h2"
    ],
    "detailRef": "edddf4570708"
+  },
+  {
+   "id": "document-section:9c7356faa702",
+   "type": "document-section",
+   "title": "Contrôle indépendant Stripe / TOK (lecture seule)",
+   "description": "Section de Contrôle indépendant Stripe / TOK (lecture seule).",
+   "path": "docs/runbooks/stripe-independent-audit.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Contrôle indépendant Stripe / TOK (lecture seule)",
+    "h1"
+   ],
+   "detailRef": "fa364e641b81"
   },
   {
    "id": "document-section:5803a3eb9353",
@@ -212402,6 +212691,20 @@
     "h2"
    ],
    "detailRef": "90252fac3c46"
+  },
+  {
+   "id": "document-section:e2fab89fd054",
+   "type": "document-section",
+   "title": "Prérequis et exécution",
+   "description": "Section de Contrôle indépendant Stripe / TOK (lecture seule).",
+   "path": "docs/runbooks/stripe-independent-audit.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "Contrôle indépendant Stripe / TOK (lecture seule)",
+    "h2"
+   ],
+   "detailRef": "de1df07c7ae0"
   },
   {
    "id": "document-section:27172af9c4a7",
@@ -224549,6 +224852,21 @@
     "Contrat-cadre restaurateur TOK"
    ],
    "detailRef": "604bd1c9cbb2"
+  },
+  {
+   "id": "document:9c7356faa702",
+   "type": "document",
+   "title": "Contrôle indépendant Stripe / TOK (lecture seule)",
+   "description": "Document Markdown avec 3 section(s).",
+   "path": "docs/runbooks/stripe-independent-audit.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Alertes et limites de sécurité",
+    "Contrôle indépendant Stripe / TOK (lecture seule)",
+    "Prérequis et exécution"
+   ],
+   "detailRef": "fb8a641ecb12"
   },
   {
    "id": "document:038da9ee83b2",
@@ -257652,6 +257970,21 @@
    "detailRef": "1e02036484c1"
   },
   {
+   "id": "exported-symbol:73654a365d9b",
+   "type": "exported-symbol",
+   "title": "classifyPayment",
+   "description": "Export function de scripts/stripe-financial-reconciliation.mjs.",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 13,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "082e2235a5be"
+  },
+  {
    "id": "exported-symbol:81c204ca4598",
    "type": "exported-symbol",
    "title": "classifyRecoveryEmailProviderError",
@@ -264318,6 +264651,21 @@
     "function"
    ],
    "detailRef": "fe32fbc5bb4a"
+  },
+  {
+   "id": "exported-symbol:ec6620a1c4c6",
+   "type": "exported-symbol",
+   "title": "fetchJson",
+   "description": "Export function de scripts/stripe-financial-reconciliation.mjs.",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 22,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "b5b8a2770578"
   },
   {
    "id": "exported-symbol:ede863908bfb",
@@ -276589,6 +276937,21 @@
    "detailRef": "817381ac614c"
   },
   {
+   "id": "exported-symbol:1a08ec479262",
+   "type": "exported-symbol",
+   "title": "runAudit",
+   "description": "Export function de scripts/stripe-financial-reconciliation.mjs.",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 87,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "e4328ffd76e5"
+  },
+  {
    "id": "exported-symbol:d5e8aee4523b",
    "type": "exported-symbol",
    "title": "runBackfill",
@@ -276701,6 +277064,21 @@
     "supabase"
    ],
    "detailRef": "aef9015b5053"
+  },
+  {
+   "id": "exported-symbol:d5f04d68d41b",
+   "type": "exported-symbol",
+   "title": "safeAccountLabel",
+   "description": "Export function de scripts/stripe-financial-reconciliation.mjs.",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "5e1fc6b5d84e"
   },
   {
    "id": "exported-symbol:6fcf5baf38d4",
@@ -283891,6 +284269,20 @@
    "detailRef": "7498562118dd"
   },
   {
+   "id": "file:d5d61c1fdb8b",
+   "type": "file",
+   "title": ".github/workflows/stripe-audit-tests.yml",
+   "description": "Fichier du dépôt classé ci-workflow.",
+   "path": ".github/workflows/stripe-audit-tests.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".yml",
+    "ci-workflow"
+   ],
+   "detailRef": "dce3a8e01d05"
+  },
+  {
    "id": "file:4a2ba2b432c2",
    "type": "file",
    "title": ".github/workflows/sync-cloudprinter-secrets.yml",
@@ -286353,6 +286745,20 @@
     "documentation"
    ],
    "detailRef": "44c9ff1ddb59"
+  },
+  {
+   "id": "file:f57eb1b3cb14",
+   "type": "file",
+   "title": "docs/runbooks/stripe-independent-audit.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/runbooks/stripe-independent-audit.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "c3fc510310d6"
   },
   {
    "id": "file:75f415953a86",
@@ -294655,6 +295061,34 @@
     "test"
    ],
    "detailRef": "2d75965be0b9"
+  },
+  {
+   "id": "file:b4c00d39aaa1",
+   "type": "file",
+   "title": "scripts/stripe-financial-reconciliation.mjs",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "automation-script"
+   ],
+   "detailRef": "f16b401f93fd"
+  },
+  {
+   "id": "file:40deb294d9e8",
+   "type": "file",
+   "title": "scripts/stripe-financial-reconciliation.test.mjs",
+   "description": "Fichier du dépôt classé test.",
+   "path": "scripts/stripe-financial-reconciliation.test.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "test"
+   ],
+   "detailRef": "327c1d718cb5"
   },
   {
    "id": "file:c1992031fb34",
@@ -325765,7 +326199,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 213 module(s).",
+   "description": "Intégration externe détectée dans 215 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -325781,6 +326215,8 @@
     "scripts/release-readiness.mjs",
     "scripts/resolve-live-stripe-publishable-key.mjs",
     "scripts/scale-readiness-check.mjs",
+    "scripts/stripe-financial-reconciliation.mjs",
+    "scripts/stripe-financial-reconciliation.test.mjs",
     "scripts/test-checkout-security-postgres.mjs",
     "scripts/write-commercial-demo-secrets-env.mjs",
     "scripts/write-production-env.mjs",
@@ -325985,13 +326421,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "b995d836ff17"
+   "detailRef": "b4d5a29c3279"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 673 module(s).",
+   "description": "Intégration externe détectée dans 675 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -326028,6 +326464,8 @@
     "scripts/release-readiness-core.mjs",
     "scripts/restaurant-image-truth-worker.mjs",
     "scripts/scale-readiness-check.mjs",
+    "scripts/stripe-financial-reconciliation.mjs",
+    "scripts/stripe-financial-reconciliation.test.mjs",
     "scripts/supabase-db-push.mjs",
     "scripts/supabase-doctor.mjs",
     "scripts/supabase-target.mjs",
@@ -326671,7 +327109,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "30dd1ceaffc3"
+   "detailRef": "db0b45c20562"
   },
   {
    "id": "integration:c20910a79a78",
@@ -344917,19 +345355,34 @@
    "detailRef": "83cc484636b0"
   },
   {
-   "id": "path-literal:7a3faec4c8c1",
+   "id": "path-literal:f1188b586cd6",
    "type": "path-literal",
    "title": "/rest/v1/",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx",
-   "line": 106,
+   "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 55,
    "surface": null,
    "tags": [
+    "scripts/stripe-financial-reconciliation.mjs",
+    "scripts/stripe-financial-reconciliation.test.mjs",
     "src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx",
     "src/lib/commercialDemoEffects.ts",
     "src/lib/commercialDemoHostSecurity.ts"
    ],
-   "detailRef": "d10c652398cd"
+   "detailRef": "fc3c2a0a58ba"
+  },
+  {
+   "id": "path-literal:62094d3de9f8",
+   "type": "path-literal",
+   "title": "/rest/v1/payment_attempts",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 73,
+   "surface": null,
+   "tags": [
+    "scripts/stripe-financial-reconciliation.mjs"
+   ],
+   "detailRef": "8291bd986cbd"
   },
   {
    "id": "path-literal:9776c0c8b22a",
@@ -346706,6 +347159,19 @@
    "detailRef": "477540d8f557"
   },
   {
+   "id": "path-literal:8cbe2a67e719",
+   "type": "path-literal",
+   "title": "/v1/account",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/stripe-financial-reconciliation.test.mjs",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "scripts/stripe-financial-reconciliation.test.mjs"
+   ],
+   "detailRef": "615de05216e9"
+  },
+  {
    "id": "path-literal:e029d6ca54c2",
    "type": "path-literal",
    "title": "/v1/appScreenshotSets",
@@ -346817,6 +347283,19 @@
     "supabase/functions/tok-connect-api/index.ts"
    ],
    "detailRef": "3244c8943610"
+  },
+  {
+   "id": "path-literal:4b099eccaf98",
+   "type": "path-literal",
+   "title": "/v1/payment_intents",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/stripe-financial-reconciliation.test.mjs",
+   "line": 43,
+   "surface": null,
+   "tags": [
+    "scripts/stripe-financial-reconciliation.test.mjs"
+   ],
+   "detailRef": "589f945d099f"
   },
   {
    "id": "path-literal:72496838cd58",
@@ -352953,6 +353432,19 @@
    "detailRef": "e39213c326d4"
   },
   {
+   "id": "query-parameter:0fb7b673b6af",
+   "type": "query-parameter",
+   "title": "and",
+   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 58,
+   "surface": null,
+   "tags": [
+    "scripts/stripe-financial-reconciliation.mjs"
+   ],
+   "detailRef": "a6930c349529"
+  },
+  {
    "id": "query-parameter:4010247b74b1",
    "type": "query-parameter",
    "title": "apiKey",
@@ -353205,6 +353697,45 @@
     "src/pages/Auth.tsx"
    ],
    "detailRef": "68ca789e853b"
+  },
+  {
+   "id": "query-parameter:a2f293776e7a",
+   "type": "query-parameter",
+   "title": "created[gte]",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "scripts/stripe-financial-reconciliation.mjs"
+   ],
+   "detailRef": "7cd51bd9315f"
+  },
+  {
+   "id": "query-parameter:5962ff14470f",
+   "type": "query-parameter",
+   "title": "created[lt]",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "scripts/stripe-financial-reconciliation.mjs"
+   ],
+   "detailRef": "9582d04a25f8"
+  },
+  {
+   "id": "query-parameter:d2748df33d02",
+   "type": "query-parameter",
+   "title": "created_at",
+   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "scripts/stripe-financial-reconciliation.mjs"
+   ],
+   "detailRef": "19779703a252"
   },
   {
    "id": "query-parameter:6f48ee40f004",
@@ -353506,7 +354037,7 @@
    "id": "query-parameter:2c0948ce234d",
    "type": "query-parameter",
    "title": "limit",
-   "description": "Paramètre d’URL détecté dans 13 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 16 emplacement(s).",
    "path": "scripts/app-store-connect-preflight.mjs",
    "line": 77,
    "surface": null,
@@ -353516,10 +354047,11 @@
     "scripts/google-actions-center-export-feeds.mjs",
     "scripts/prerender-stoppin-restaurants-bounded.mjs",
     "scripts/prerender-stoppin-restaurants.mjs",
+    "scripts/stripe-financial-reconciliation.mjs",
     "src/test/address-autocomplete-location-bias.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "406ed0ff9663"
+   "detailRef": "db65a27569db"
   },
   {
    "id": "query-parameter:c65ed1a49ef6",
@@ -353656,15 +354188,16 @@
    "id": "query-parameter:13ab169c3958",
    "type": "query-parameter",
    "title": "offset",
-   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 5 emplacement(s).",
    "path": "scripts/prerender-stoppin-restaurants-bounded.mjs",
    "line": 118,
    "surface": null,
    "tags": [
     "scripts/prerender-stoppin-restaurants-bounded.mjs",
-    "scripts/prerender-stoppin-restaurants.mjs"
+    "scripts/prerender-stoppin-restaurants.mjs",
+    "scripts/stripe-financial-reconciliation.mjs"
    ],
-   "detailRef": "d3f9ffc14677"
+   "detailRef": "d4334400f10c"
   },
   {
    "id": "query-parameter:46a3808a48dd",
@@ -354072,6 +354605,19 @@
    "detailRef": "426137aba722"
   },
   {
+   "id": "query-parameter:cbe821cb4f99",
+   "type": "query-parameter",
+   "title": "select",
+   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 56,
+   "surface": null,
+   "tags": [
+    "scripts/stripe-financial-reconciliation.mjs"
+   ],
+   "detailRef": "3da182cb0703"
+  },
+  {
    "id": "query-parameter:39f1fcc7c252",
    "type": "query-parameter",
    "title": "session_id",
@@ -354142,6 +354688,19 @@
     "public/manifest.json"
    ],
    "detailRef": "085655cb6c3e"
+  },
+  {
+   "id": "query-parameter:6ed8c3e313d4",
+   "type": "query-parameter",
+   "title": "starting_after",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "scripts/stripe-financial-reconciliation.mjs",
+   "line": 41,
+   "surface": null,
+   "tags": [
+    "scripts/stripe-financial-reconciliation.mjs"
+   ],
+   "detailRef": "750c5721a5b9"
   },
   {
    "id": "query-parameter:3bfca3e02fd5",
@@ -357054,6 +357613,20 @@
     "configure"
    ],
    "detailRef": "6406d0a940be"
+  },
+  {
+   "id": "workflow:e72002ff5f80",
+   "type": "workflow",
+   "title": "Independent Stripe audit tests",
+   "description": "Workflow GitHub Actions; jobs: audit-unit-tests, refresh-application-index.",
+   "path": ".github/workflows/stripe-audit-tests.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "audit-unit-tests",
+    "refresh-application-index"
+   ],
+   "detailRef": "1d815a105256"
   },
   {
    "id": "workflow:683fcaa4093a",
