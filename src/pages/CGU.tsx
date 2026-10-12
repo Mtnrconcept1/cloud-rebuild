@@ -40,6 +40,9 @@ const sections = [
     paragraphs: [
       "Une réservation bloque une table ou un créneau selon les disponibilités communiquées par le restaurant. Certaines expériences peuvent comporter des conditions particulières clairement affichées avant confirmation.",
       "Le client doit respecter l'horaire, la taille du groupe et les conditions d'annulation affichées. Le restaurant reste responsable de l'accueil et de l'exécution de la prestation sur place.",
+      "Pour une nouvelle réservation classique de 7 convives ou plus, une carte bancaire peut être exigée comme garantie. Cette exigence s'applique également si le client a déjà annulé au moins 3 réservations de sa propre initiative pendant l'année civile en cours, calculée selon le fuseau Europe/Zurich.",
+      "La carte est enregistrée via Stripe avec accord explicite du client et sans paiement initial. Si le client annule cette réservation garantie, une indemnité de 10 CHF par convive, dont le total est présenté avant validation, peut être débitée ultérieurement sur cette carte, même pour une annulation anticipée. Il n'y a pas de pénalité pour une annulation décidée par le restaurant, ni pour les réservations antérieures n'ayant pas été assorties de cette garantie.",
+      "En cas de difficulté de paiement ou d'authentification bancaire, TOK peut demander au client de régulariser les frais par un parcours sécurisé. Le client peut signaler une erreur ou contester une pénalité auprès du support et demander un examen humain. Les dispositions légales impératives demeurent applicables.",
     ],
   },
   {
