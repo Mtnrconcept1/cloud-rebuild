@@ -40,7 +40,7 @@ describe("Stripe disputes → TOK support", () => {
 
   it("only creates cases for live webhook events with a verified order link and ignores duplicate IDs", () => {
     expect(webhook).toContain("if (!input.event.livemode) return;");
-    expect(webhook).toContain('.eq("stripe_payment_intent_id", paymentIntentId)');
+    expect(webhook).toContain('.eq("stripe_payment_intent_id", input.paymentIntentId)');
     expect(webhook).toContain('.from("orders")');
     expect(webhook).toContain("stripeDisputeSupportId(input.dispute.id)");
     expect(webhook).toContain('onConflict: "id", ignoreDuplicates: true');
