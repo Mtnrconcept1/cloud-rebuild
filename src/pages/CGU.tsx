@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
-import { LEGAL_DOCUMENTS, LEGAL_EFFECTIVE_DATE_FR } from "@/lib/legalDocuments";
+import { LEGAL_DOCUMENTS } from "@/lib/legalDocuments";
 
 const sections = [
   {
