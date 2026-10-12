@@ -197,7 +197,7 @@ export default function Reservations() {
             description: "Votre carte a été enregistrée en toute sécurité, sans débit immédiat.",
           });
           await refetch();
-        } else if (!result.ok) {
+        } else if ("errorMessage" in result) {
           toast({
             title: "Réservation non confirmée",
             description: result.errorMessage,
