@@ -33,6 +33,10 @@ import {
   recordRefundFinance,
 } from "../_shared/marketplace-finance.ts";
 import {
+  stripeDisputeSupportId,
+  stripeDisputeSupportRow,
+} from "../_shared/stripe-dispute-support.ts";
+import {
   abandonPaymentAttemptSession,
   assertCheckoutSessionIntegrity,
   claimStripeWebhookEvent as claimStripeWebhookEventLease,
@@ -233,6 +237,63 @@ async function recordRefundStatusForKnownTargets(input: {
   return recorded;
 }
 
+// One case per dispute, only when Stripe's live payment can be safely matched
+// to a TOK order and its restaurant. No automatic refund, debit or evidence submission.
+async function recordStripeDisputeSupport(input: {
+  adminClient: ReturnType<typeof createClient>;
+  dispute: Stripe.Dispute;
+  event: Stripe.Event;
+  paymentIntentId: string;
+}) {
+  if (!input.event.livemode) return;
+
+  const { data: transaction, error: transactionError } = await input.adminClient
+    .from("payment_transactions")
+    .select("order_id")
+    .eq("stripe_payment_intent_id", input.paymentIntentId)
+    .not("order_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (transactionError) {
+    throw new Error(`DISPUTE_SUPPORT_PAYMENT_LOOKUP_FAILED:${transactionError.message}`);
+  }
+
+  // Subscriptions, AI credits and orphaned disputes require separate human
+  // reconciliation; never attach them to an unrelated restaurant.
+  if (!transaction?.order_id) return;
+
+  const { data: order, error: orderError } = await input.adminClient
+    .from("orders")
+    .select("id, restaurant_id, user_id")
+    .eq("id", transaction.order_id)
+    .maybeSingle();
+  if (orderError) {
+    throw new Error(`DISPUTE_SUPPORT_ORDER_LOOKUP_FAILED:${orderError.message}`);
+  }
+  if (!order?.restaurant_id) return;
+
+  const incidentId = await stripeDisputeSupportId(input.dispute.id);
+  const { error: incidentError } = await input.adminClient
+    .from("support_incidents")
+    .upsert(stripeDisputeSupportRow({
+      id: incidentId,
+      orderId: order.id,
+      userId: order.user_id,
+      restaurantId: order.restaurant_id,
+      disputeId: input.dispute.id,
+      paymentIntentId: input.paymentIntentId,
+      stripeEventId: input.event.id,
+      stripeStatus: input.dispute.status,
+      stripeReason: input.dispute.reason || null,
+      amountCents: Math.max(0, Math.round(Number(input.dispute.amount || 0))),
+      currency: input.dispute.currency || "chf",
+    }), { onConflict: "id", ignoreDuplicates: true });
+  if (incidentError) {
+    throw new Error(`DISPUTE_SUPPORT_INSERT_FAILED:${incidentError.message}`);
+  }
+}
+
 async function recordDisputeLedger(input: {
   adminClient: ReturnType<typeof createClient>;
   stripe: Stripe;
@@ -267,6 +328,12 @@ async function recordDisputeLedger(input: {
     },
   });
   if (error) throw new Error(`DISPUTE_LEDGER_RECORD_FAILED:${error.message}`);
+  await recordStripeDisputeSupport({
+    adminClient: input.adminClient,
+    dispute: input.dispute,
+    event: input.event,
+    paymentIntentId,
+  });
 }
 
 async function resolveStripeFeeCents(stripe: Stripe, paymentIntentId: string | null) {

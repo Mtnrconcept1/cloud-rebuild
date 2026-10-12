@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "12e793fcf1fd980ce2368e43ff6a51e99192172fa211859df3199848592198bb",
+ "sourceDigest": "16047307d15718b088d5df38b66bf31dd3141931d14dd7674eafd8bf49a0e221",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
   "databaseObjects": 2737,
-  "documents": 202,
+  "documents": 203,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3408,
+  "exportedSymbols": 3410,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 529,
-  "modules": 1508,
+  "modules": 1510,
   "pages": 128,
   "pathLiterals": 648,
   "publicAssets": 462,
   "publicEntries": 487,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16165,
-  "repositoryFiles": 2989,
+  "records": 16181,
+  "repositoryFiles": 2992,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -18947,7 +18947,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1972
+      "line": 2039
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -19168,7 +19168,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1614
+      "line": 1681
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -19672,11 +19672,11 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1738
+      "line": 1805
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2111
+      "line": 2178
      }
     ]
    },
@@ -19772,7 +19772,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2252
+      "line": 2319
      }
     ]
    },
@@ -23835,7 +23835,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2586
+      "line": 2653
      }
     ]
    },
@@ -30037,6 +30037,7 @@
      "src/test/security-edge-functions.test.ts",
      "src/test/security-url-helpers.test.ts",
      "src/test/stripe-developer-share-routing.test.ts",
+     "src/test/stripe-dispute-support.test.ts",
      "src/test/stripe-return.test.ts",
      "src/test/stripe-security-hardening.test.ts",
      "src/test/super-admin-sensitive-rls.test.ts",
@@ -30065,6 +30066,7 @@
      "supabase/functions/_shared/refund-allocations.ts",
      "supabase/functions/_shared/restaurant-subscription-billing.ts",
      "supabase/functions/_shared/stripe-client.ts",
+     "supabase/functions/_shared/stripe-dispute-support.ts",
      "supabase/functions/_shared/tok-one.ts",
      "supabase/functions/_shared/zero-attente.ts",
      "supabase/functions/_shared/zero-cost-checkout.ts",
@@ -30665,6 +30667,7 @@
      "src/test/space-help-chat.test.ts",
      "src/test/sponsored-event-signing.test.ts",
      "src/test/stripe-developer-share-routing.test.ts",
+     "src/test/stripe-dispute-support.test.ts",
      "src/test/stripe-security-hardening.test.ts",
      "src/test/submitSignupValidation.test.ts",
      "src/test/subscription-dispatch.test.ts",
@@ -73919,6 +73922,52 @@
     ]
    },
    {
+    "path": "docs/runbooks/tok-litiges-stripe-connect.md",
+    "title": "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Modèle économique autorisé",
+      "line": 6
+     },
+     {
+      "level": 2,
+      "title": "Constat sur la production au 12 octobre 2026",
+      "line": 20
+     },
+     {
+      "level": 2,
+      "title": "Processus de sinistre",
+      "line": 30
+     },
+     {
+      "level": 3,
+      "title": "Priorités",
+      "line": 39
+     },
+     {
+      "level": 3,
+      "title": "Cas non reliés à une commande",
+      "line": 47
+     },
+     {
+      "level": 2,
+      "title": "Validations contractuelles et assurances à effectuer",
+      "line": 51
+     },
+     {
+      "level": 2,
+      "title": "Contrôles techniques avant activation Connect",
+      "line": 61
+     }
+    ]
+   },
+   {
     "path": "docs/security/SEO_BOT_PROTECTION_RUNBOOK.md",
     "title": "Protection SEO et anti-scraping de TOK",
     "headings": [
@@ -105643,6 +105692,16 @@
     "lineCount": 214
    },
    {
+    "path": "src/test/stripe-dispute-support.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 52
+   },
+   {
     "path": "src/test/stripe-return.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -108713,6 +108772,26 @@
     "lineCount": 308
    },
    {
+    "path": "supabase/functions/_shared/stripe-dispute-support.ts",
+    "exports": [
+     {
+      "name": "stripeDisputeSupportId",
+      "line": 6,
+      "kind": "function"
+     },
+     {
+      "name": "stripeDisputeSupportRow",
+      "line": 21,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe"
+    ],
+    "lineCount": 57
+   },
+   {
     "path": "supabase/functions/_shared/tok-connect-auth.ts",
     "exports": [
      {
@@ -110572,7 +110651,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3171
+    "lineCount": 3238
    },
    {
     "path": "supabase/functions/stripe-worker/index.ts",
@@ -112560,6 +112639,11 @@
    },
    {
     "path": "docs/runbooks/stripe-financial-ops.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/runbooks/tok-litiges-stripe-connect.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -121834,6 +121918,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/stripe-dispute-support.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/stripe-return.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -122460,6 +122549,11 @@
    },
    {
     "path": "supabase/functions/_shared/stripe-client.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/stripe-dispute-support.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -145065,6 +145159,20 @@
    "detailRef": "c751951f619c"
   },
   {
+   "id": "code-module:4d183bd93435",
+   "type": "code-module",
+   "title": "src/test/stripe-dispute-support.test.ts",
+   "description": "Module de 52 lignes; exports: aucun export statique.",
+   "path": "src/test/stripe-dispute-support.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "fa0466b66723"
+  },
+  {
    "id": "code-module:cfe1245370df",
    "type": "code-module",
    "title": "src/test/stripe-return.test.ts",
@@ -146973,6 +147081,21 @@
    "detailRef": "d6d0c2d69d0b"
   },
   {
+   "id": "code-module:e93c5dd88ff1",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/stripe-dispute-support.ts",
+   "description": "Module de 57 lignes; exports: stripeDisputeSupportId, stripeDisputeSupportRow.",
+   "path": "supabase/functions/_shared/stripe-dispute-support.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "stripeDisputeSupportId",
+    "stripeDisputeSupportRow"
+   ],
+   "detailRef": "7021a26dce93"
+  },
+  {
    "id": "code-module:b79df7c0068c",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-auth.ts",
@@ -148606,7 +148729,7 @@
    "id": "code-module:9ac355dfd729",
    "type": "code-module",
    "title": "supabase/functions/stripe-webhook/index.ts",
-   "description": "Module de 3171 lignes; exports: aucun export statique.",
+   "description": "Module de 3238 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-webhook/index.ts",
    "line": 1,
    "surface": null,
@@ -148614,7 +148737,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "4685e11bc265"
+   "detailRef": "dc23c8b5ff51"
   },
   {
    "id": "code-module:f3fa7c18e7bc",
@@ -201037,6 +201160,20 @@
    "detailRef": "43016caddc44"
   },
   {
+   "id": "document-section:423e5389f6fd",
+   "type": "document-section",
+   "title": "Cas non reliés à une commande",
+   "description": "Section de TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026).",
+   "path": "docs/runbooks/tok-litiges-stripe-connect.md",
+   "line": 47,
+   "surface": null,
+   "tags": [
+    "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+    "h3"
+   ],
+   "detailRef": "3b7d5b185d8a"
+  },
+  {
    "id": "document-section:9364723f607f",
    "type": "document-section",
    "title": "Categories de classification",
@@ -202815,6 +202952,20 @@
    "detailRef": "8cf68da83ab0"
   },
   {
+   "id": "document-section:54ca30d3ab6d",
+   "type": "document-section",
+   "title": "Constat sur la production au 12 octobre 2026",
+   "description": "Section de TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026).",
+   "path": "docs/runbooks/tok-litiges-stripe-connect.md",
+   "line": 20,
+   "surface": null,
+   "tags": [
+    "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+    "h2"
+   ],
+   "detailRef": "82cc9c5e8d83"
+  },
+  {
    "id": "document-section:7a385950441b",
    "type": "document-section",
    "title": "Constat",
@@ -203247,6 +203398,20 @@
     "h2"
    ],
    "detailRef": "8cd4f45b74c8"
+  },
+  {
+   "id": "document-section:963c15667c4e",
+   "type": "document-section",
+   "title": "Contrôles techniques avant activation Connect",
+   "description": "Section de TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026).",
+   "path": "docs/runbooks/tok-litiges-stripe-connect.md",
+   "line": 61,
+   "surface": null,
+   "tags": [
+    "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+    "h2"
+   ],
+   "detailRef": "3d5f1766ff8f"
   },
   {
    "id": "document-section:02e7e137f476",
@@ -209339,6 +209504,20 @@
    "detailRef": "9821d5e1633c"
   },
   {
+   "id": "document-section:0c6521692a00",
+   "type": "document-section",
+   "title": "Modèle économique autorisé",
+   "description": "Section de TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026).",
+   "path": "docs/runbooks/tok-litiges-stripe-connect.md",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+    "h2"
+   ],
+   "detailRef": "77f5b682feab"
+  },
+  {
    "id": "document-section:a0f0e6aa2198",
    "type": "document-section",
    "title": "Modèle économique restaurateur — hypothèses",
@@ -213231,6 +213410,20 @@
    "detailRef": "01c4c40a327e"
   },
   {
+   "id": "document-section:a54fa6d5b7b2",
+   "type": "document-section",
+   "title": "Priorités",
+   "description": "Section de TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026).",
+   "path": "docs/runbooks/tok-litiges-stripe-connect.md",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+    "h3"
+   ],
+   "detailRef": "9f648c98b7b5"
+  },
+  {
    "id": "document-section:9b750bcbb47c",
    "type": "document-section",
    "title": "Prix et communication",
@@ -213327,6 +213520,20 @@
     "h2"
    ],
    "detailRef": "8d763653d3ef"
+  },
+  {
+   "id": "document-section:2c0e00cd7c6f",
+   "type": "document-section",
+   "title": "Processus de sinistre",
+   "description": "Section de TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026).",
+   "path": "docs/runbooks/tok-litiges-stripe-connect.md",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+    "h2"
+   ],
+   "detailRef": "6ffd68c1c42e"
   },
   {
    "id": "document-section:3359fd2015a4",
@@ -218803,6 +219010,20 @@
    "detailRef": "7d7878d6a7a3"
   },
   {
+   "id": "document-section:41339a068b0b",
+   "type": "document-section",
+   "title": "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+   "description": "Section de TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026).",
+   "path": "docs/runbooks/tok-litiges-stripe-connect.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+    "h1"
+   ],
+   "detailRef": "2c5ce3d0b15f"
+  },
+  {
    "id": "document-section:7043f98b87e4",
    "type": "document-section",
    "title": "TOK — Proposition UX/UI du 10 octobre 2026",
@@ -222483,6 +222704,20 @@
     "h2"
    ],
    "detailRef": "d52299df7a33"
+  },
+  {
+   "id": "document-section:fe93b4c6919d",
+   "type": "document-section",
+   "title": "Validations contractuelles et assurances à effectuer",
+   "description": "Section de TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026).",
+   "path": "docs/runbooks/tok-litiges-stripe-connect.md",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+    "h2"
+   ],
+   "detailRef": "1dfa34a698ba"
   },
   {
    "id": "document-section:1f3ad548a99c",
@@ -228391,6 +228626,26 @@
     "« Je suis déjà sur Uber Eats ou Just Eat »"
    ],
    "detailRef": "32c0320007d2"
+  },
+  {
+   "id": "document:41339a068b0b",
+   "type": "document",
+   "title": "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+   "description": "Document Markdown avec 8 section(s).",
+   "path": "docs/runbooks/tok-litiges-stripe-connect.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Cas non reliés à une commande",
+    "Constat sur la production au 12 octobre 2026",
+    "Contrôles techniques avant activation Connect",
+    "Modèle économique autorisé",
+    "Priorités",
+    "Processus de sinistre",
+    "TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026)",
+    "Validations contractuelles et assurances à effectuer"
+   ],
+   "detailRef": "c731fe546a7c"
   },
   {
    "id": "document:7043f98b87e4",
@@ -279208,6 +279463,34 @@
    "detailRef": "2fcf4ce24bed"
   },
   {
+   "id": "exported-symbol:0b146400543b",
+   "type": "exported-symbol",
+   "title": "stripeDisputeSupportId",
+   "description": "Export function de supabase/functions/_shared/stripe-dispute-support.ts.",
+   "path": "supabase/functions/_shared/stripe-dispute-support.ts",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe"
+   ],
+   "detailRef": "4da1266c237d"
+  },
+  {
+   "id": "exported-symbol:64fa032b1b10",
+   "type": "exported-symbol",
+   "title": "stripeDisputeSupportRow",
+   "description": "Export function de supabase/functions/_shared/stripe-dispute-support.ts.",
+   "path": "supabase/functions/_shared/stripe-dispute-support.ts",
+   "line": 21,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe"
+   ],
+   "detailRef": "d892741b87c9"
+  },
+  {
    "id": "exported-symbol:a5ab8f8cf745",
    "type": "exported-symbol",
    "title": "stripeWebhookEventMatchesExpectedMode",
@@ -287776,6 +288059,20 @@
     "documentation"
    ],
    "detailRef": "44c9ff1ddb59"
+  },
+  {
+   "id": "file:e7816bceb1f3",
+   "type": "file",
+   "title": "docs/runbooks/tok-litiges-stripe-connect.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/runbooks/tok-litiges-stripe-connect.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "af82dbe31527"
   },
   {
    "id": "file:75f415953a86",
@@ -313734,6 +314031,20 @@
    "detailRef": "ae42228ad6c9"
   },
   {
+   "id": "file:c954036fb35a",
+   "type": "file",
+   "title": "src/test/stripe-dispute-support.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/stripe-dispute-support.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "8ba8537a1a00"
+  },
+  {
    "id": "file:87c4568c876c",
    "type": "file",
    "title": "src/test/stripe-return.test.ts",
@@ -315496,6 +315807,20 @@
     "edge-function-source"
    ],
    "detailRef": "fce7fb81f49a"
+  },
+  {
+   "id": "file:295e13d187fb",
+   "type": "file",
+   "title": "supabase/functions/_shared/stripe-dispute-support.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/stripe-dispute-support.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "1fda63a32e1d"
   },
   {
    "id": "file:1d8640341532",
@@ -328330,7 +328655,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 215 module(s).",
+   "description": "Intégration externe détectée dans 217 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -328476,6 +328801,7 @@
     "src/test/security-edge-functions.test.ts",
     "src/test/security-url-helpers.test.ts",
     "src/test/stripe-developer-share-routing.test.ts",
+    "src/test/stripe-dispute-support.test.ts",
     "src/test/stripe-return.test.ts",
     "src/test/stripe-security-hardening.test.ts",
     "src/test/super-admin-sensitive-rls.test.ts",
@@ -328505,6 +328831,7 @@
     "supabase/functions/_shared/refund-allocations.ts",
     "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "supabase/functions/_shared/stripe-client.ts",
+    "supabase/functions/_shared/stripe-dispute-support.ts",
     "supabase/functions/_shared/tok-one.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/_shared/zero-cost-checkout.ts",
@@ -328552,13 +328879,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "9cbbc2532d22"
+   "detailRef": "124f0ca0903f"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 674 module(s).",
+   "description": "Intégration externe détectée dans 675 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -329112,6 +329439,7 @@
     "src/test/space-help-chat.test.ts",
     "src/test/sponsored-event-signing.test.ts",
     "src/test/stripe-developer-share-routing.test.ts",
+    "src/test/stripe-dispute-support.test.ts",
     "src/test/stripe-security-hardening.test.ts",
     "src/test/submitSignupValidation.test.ts",
     "src/test/subscription-dispatch.test.ts",
@@ -329239,7 +329567,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f8cbf3381161"
+   "detailRef": "a4cc66a6a327"
   },
   {
    "id": "integration:c20910a79a78",
@@ -343099,7 +343427,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "55eb55742100"
+   "detailRef": "7d2ff90b6f03"
   },
   {
    "id": "path-literal:98441ce078ff",
@@ -343381,7 +343709,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "19741c5f32c3"
+   "detailRef": "d4362bb1387b"
   },
   {
    "id": "path-literal:916ad1246b1e",
@@ -343446,7 +343774,7 @@
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "03309d78b3d5"
+   "detailRef": "126fe5d5e4a9"
   },
   {
    "id": "path-literal:272c2aa15b3e",
@@ -343756,7 +344084,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "4274f71bb12b"
+   "detailRef": "225b75b04850"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -346900,7 +347228,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "34ef04e36a52"
+   "detailRef": "6054d8f6761a"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
