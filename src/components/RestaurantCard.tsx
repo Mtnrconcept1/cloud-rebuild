@@ -44,6 +44,7 @@ interface RestaurantCardProps {
   sponsoredCampaignTitle?: string;
   sponsoredCampaignBody?: string;
   sponsoredCampaignCreative?: CampaignCreativeConfig | unknown;
+  homeRail?: boolean;
 }
 
 const CUISINE_FALLBACKS: Record<string, string> = {
@@ -163,6 +164,7 @@ export default function RestaurantCard({
   sponsoredCampaignTitle,
   sponsoredCampaignBody,
   sponsoredCampaignCreative,
+  homeRail = false,
 }: RestaurantCardProps) {
   const distanceLabel = formatDistance(distanceKm);
   const navigate = useNavigate();
@@ -387,6 +389,7 @@ export default function RestaurantCard({
         >
           <SponsoredRestaurantTemplateCard
             creative={sponsoredCampaignCreative}
+            homeRail={homeRail}
             imageUrl={optimizedImage}
             restaurantName={name}
             restaurantHref={restaurantPath}
@@ -451,7 +454,7 @@ export default function RestaurantCard({
               </>
             ) : null}
             {showDelivery ? (
-              <Badge className="gap-1 border-none bg-primary/95 text-[9px] font-bold uppercase text-white shadow-sm backdrop-blur-md">
+              <Badge className={cn("gap-1 border-none bg-primary/95 text-[9px] font-bold uppercase text-white shadow-sm backdrop-blur-md", homeRail && "text-[11px]")}>
                 <Bike className="h-3 w-3" /> Livraison
               </Badge>
             ) : null}
@@ -481,10 +484,10 @@ export default function RestaurantCard({
           ) : null}
         </div>
 
-        <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <div className={cn("flex flex-1 flex-col p-4 sm:p-5", homeRail && "p-3.5 sm:p-5")}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1 space-y-1">
-              <h3 className="font-display text-xl font-semibold leading-snug text-foreground transition-colors group-hover:text-primary dark:text-white ">
+              <h3 className={cn("font-display text-xl font-semibold leading-snug text-foreground transition-colors group-hover:text-primary dark:text-white", homeRail && "font-bold")}>
                 <Link
                   to={restaurantPath}
                   data-card-action="restaurant-link"
@@ -494,7 +497,7 @@ export default function RestaurantCard({
                   {name}
                 </Link>
               </h3>
-              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground/90 dark:text-slate-200/90">
+              <div className={cn("flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground/90 dark:text-slate-200/90", homeRail && "text-sm font-semibold text-slate-700 dark:text-slate-200")}>
                 {cuisine ? <span className="max-w-full truncate">{cuisine}</span> : null}
                 {cuisine ? <span className="text-border">/</span> : null}
                 <PriceRangeIcons range={priceRange} />
@@ -506,12 +509,12 @@ export default function RestaurantCard({
                 <div className={`inline-flex min-w-[2.7rem] items-center justify-center rounded-xl px-2.5 py-1.5 text-sm font-bold ${getRatingColor(ratingNum)}`}>
                   {displayRating}<span className="sr-only"> sur 10</span>
                 </div>
-                <p className="mt-1 text-[10px] text-muted-foreground dark:text-slate-300/90">{reviewCount} avis</p>
+                <p className={cn("mt-1 text-[10px] text-muted-foreground dark:text-slate-300/90", homeRail && "text-xs font-semibold text-slate-700 dark:text-slate-200")}>{reviewCount} avis</p>
               </div>
             ) : null}
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground dark:text-slate-300">
+          <div className={cn("mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground dark:text-slate-300", homeRail && "text-sm font-semibold text-slate-700 dark:text-slate-200")}>
             <span className="inline-flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-primary/75" />
               <span className="font-medium text-foreground/90 dark:text-white/90">
@@ -521,11 +524,11 @@ export default function RestaurantCard({
           </div>
 
           {address ? (
-            <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground dark:text-slate-300/90">
+            <p className={cn("mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground dark:text-slate-300/90", homeRail && "font-medium text-slate-700 dark:text-slate-200")}>
               {address}
             </p>
           ) : (
-            <p className="mt-2 text-sm leading-6 text-muted-foreground dark:text-slate-300/90">
+            <p className={cn("mt-2 text-sm leading-6 text-muted-foreground dark:text-slate-300/90", homeRail && "font-medium text-slate-700 dark:text-slate-200")}>
               Ouvrez la fiche pour voir le menu, les disponibilités et les détails.
             </p>
           )}
@@ -597,7 +600,7 @@ export default function RestaurantCard({
               ))}
             </div>
             {timeSlots.length > 0 ? (
-              <p className="mt-2 text-xs text-muted-foreground dark:text-slate-300/90">
+              <p className={cn("mt-2 text-xs text-muted-foreground dark:text-slate-300/90", homeRail && "text-sm font-medium text-slate-700 dark:text-slate-200")}>
                 {hasDiscount
                   ? "Créneaux promo visibles. Plus d'options sur la fiche."
                   : "Prochains créneaux visibles. Plus d'options sur la fiche."}
