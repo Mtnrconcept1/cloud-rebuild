@@ -9,6 +9,7 @@ import ReservationDetailModal from "@/components/ReservationDetailModal";
 import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +39,10 @@ import {
   isReservationCalendarDateDisabled,
   type ReservationSlotAvailability,
 } from "@/lib/reservationAvailability";
-import { createReservationWithValidation } from "@/lib/reservationMutations";
+import {
+  createReservationWithValidation,
+  getReservationGuaranteeQuote,
+} from "@/lib/reservationMutations";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { createCommercialDemoReservation } from "@/lib/commercialDemoJourney";
 import {
@@ -143,6 +147,23 @@ export default function ReservationDialog({
   const [loading, setLoading] = useState(false);
   const [donatePoints, setDonatePoints] = useState(false);
   const [reservationMode, setReservationMode] = useState<ReservationMode>("classique");
+  const [guaranteeAccepted, setGuaranteeAccepted] = useState(false);
+
+  useEffect(() => {
+    setGuaranteeAccepted(false);
+  }, [date, time, partySize, open]);
+
+  const {
+    data: guaranteeQuote,
+    isLoading: isGuaranteeQuoteLoading,
+    isError: isGuaranteeQuoteError,
+  } = useQuery({
+    queryKey: ["reservation-card-guarantee-quote", user?.id, partySize],
+    queryFn: () => getReservationGuaranteeQuote(partySize),
+    enabled: open && step === "confirm" && !!user && !isCommercialDemoClient,
+    retry: false,
+    staleTime: 15_000,
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -482,6 +503,23 @@ export default function ReservationDialog({
       return;
     }
 
+    if (isGuaranteeQuoteLoading || !guaranteeQuote || isGuaranteeQuoteError) {
+      toast({
+        title: "Vérification bancaire indisponible",
+        description: "Nous ne pouvons pas vérifier les conditions de réservation pour le moment.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (guaranteeQuote.required && !guaranteeAccepted) {
+      toast({
+        title: "Accord bancaire requis",
+        description: "Veuillez accepter les conditions des frais d'annulation avant de continuer.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!restaurantSettings) {
       toast({
         title: "Horaires indisponibles",
@@ -569,6 +607,7 @@ export default function ReservationDialog({
         acquisitionChannelToken,
         notes: offerPrefix + (notes || ""),
         progressiveOfferId: hasProgressiveOffer ? selectedPromo?.progressiveOfferId ?? null : null,
+        guaranteeAccepted: guaranteeQuote.required && guaranteeAccepted,
       });
     } catch (reservationError) {
       setLoading(false);
@@ -584,6 +623,13 @@ export default function ReservationDialog({
 
     if ("errorMessage" in reservationResult) {
       toast({ title: "Erreur", description: reservationResult.errorMessage, variant: "destructive" });
+      return;
+    }
+
+    if (reservationResult.requiresCardGuarantee) {
+      // Stripe-hosted setup mode saves a card but does not debit or authorize
+      // money. The reservation is inserted only after Stripe verification.
+      window.location.assign(reservationResult.checkoutUrl);
       return;
     }
 
@@ -955,6 +1001,50 @@ export default function ReservationDialog({
                   )}
                 </div>
 
+                {!isCommercialDemoClient && (
+                  isGuaranteeQuoteLoading ? (
+                    <div className="rounded-xl border p-3 text-xs text-muted-foreground">
+                      Vérification des conditions de garantie bancaire…
+                    </div>
+                  ) : isGuaranteeQuoteError || !guaranteeQuote ? (
+                    <div role="alert" className="rounded-xl border border-destructive/40 p-3 text-sm text-destructive">
+                      Conditions de réservation indisponibles. Veuillez réessayer.
+                    </div>
+                  ) : guaranteeQuote.required ? (
+                    <div className="space-y-3 rounded-xl border border-amber-500/40 bg-amber-50/70 p-4 text-sm dark:bg-amber-950/20">
+                      <p className="font-semibold">Garantie bancaire obligatoire</p>
+                      <p>
+                        {guaranteeQuote.reason === "large_party"
+                          ? "Cette table accueille plus de 6 convives."
+                          : guaranteeQuote.reason === "repeated_cancellations"
+                            ? "Vous avez déjà annulé 3 réservations ou plus cette année."
+                            : "Votre groupe compte plus de 6 convives et vous avez déjà annulé 3 réservations ou plus cette année."}
+                      </p>
+                      <p className="text-xs leading-relaxed">
+                        Stripe enregistrera votre carte sans prélèvement immédiat. Si vous annulez
+                        cette réservation, des frais de <strong>10 CHF par convive</strong>, soit
+                        <strong> {(guaranteeQuote.feeAmountCents / 100).toFixed(2)} CHF</strong>,
+                        seront facturés sur cette carte, y compris en cas d’annulation anticipée.
+                        La banque peut refuser un paiement ultérieur.
+                      </p>
+                      <div className="flex items-start gap-2">
+                        <Checkbox
+                          id="reservation-card-guarantee-consent"
+                          checked={guaranteeAccepted}
+                          onCheckedChange={(checked) => setGuaranteeAccepted(checked === true)}
+                          className="mt-0.5"
+                        />
+                        <Label htmlFor="reservation-card-guarantee-consent" className="cursor-pointer text-xs leading-relaxed">
+                          J’accepte l’enregistrement sécurisé de ma carte et les frais d’annulation
+                          de {(guaranteeQuote.feeAmountCents / 100).toFixed(2)} CHF applicables à cette réservation.
+                        </Label>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Aucune garantie bancaire requise pour cette réservation.</p>
+                  )
+                )}
+
                 <div className="flex items-center justify-between rounded-lg border border-pink-300/40 bg-pink-50 dark:bg-pink-950/20 p-3">
                   <div className="flex items-center gap-3">
                     <Heart className="h-5 w-5 fill-pink-500 text-pink-500" />
@@ -972,7 +1062,14 @@ export default function ReservationDialog({
                   <Button variant="outline" onClick={() => setStep("promo")}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <Button onClick={handleSubmit} disabled={loading} className="flex-1">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={loading || (!isCommercialDemoClient && (
+                      isGuaranteeQuoteLoading || isGuaranteeQuoteError || !guaranteeQuote
+                      || (guaranteeQuote.required && !guaranteeAccepted)
+                    ))}
+                    className="flex-1"
+                  >
                     {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {loading ? "Confirmation…" : "Confirmer"}
                   </Button>
