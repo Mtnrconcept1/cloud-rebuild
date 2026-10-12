@@ -223,7 +223,14 @@ export default function Reservations() {
         setSearchParams(remainingParams, { replace: true });
       });
 
-    return () => { active = false; };
+    return () => {
+      active = false;
+      // React StrictMode can mount effects twice in development. Allow the
+      // second effect to retry instead of permanently losing Stripe's return.
+      if (processedGuaranteeReturn.current === guaranteeSessionId) {
+        processedGuaranteeReturn.current = null;
+      }
+    };
   }, [commercialDemoFrame, guaranteeSessionId, refetch, setSearchParams, toast, user?.id]);
 
   const demoReservations = useMemo<ReservationWithRestaurant[]>(() => {
