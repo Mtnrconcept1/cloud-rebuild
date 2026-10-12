@@ -67,6 +67,16 @@ function getFirstRow<T>(data: T[] | T | null | undefined): T | null {
   return data ?? null;
 }
 
+async function cardGuaranteesEnabled(adminClient: any): Promise<boolean> {
+  const { data, error } = await adminClient
+    .from("feature_flags")
+    .select("is_active")
+    .eq("name", "reservation-card-guarantee")
+    .maybeSingle();
+  if (error) throw new HttpError(503, "Configuration des réservations indisponible.");
+  return data?.is_active === true;
+}
+
 function getPublicAppBaseUrl() {
   return Deno.env.get("PUBLIC_APP_URL")
     || Deno.env.get("APP_BASE_URL")
@@ -120,6 +130,15 @@ Deno.serve(async (req) => {
       if (!Number.isInteger(requestedSize) || requestedSize < 1 || requestedSize > 50) {
         throw new HttpError(400, "Nombre de convives invalide.");
       }
+      // The free-table flow must work if frontend/Edge is deployed before
+      // the new migration. An absent or disabled flag means no guarantee.
+      if (!await cardGuaranteesEnabled(actor.adminClient)) {
+        return jsonResponse({
+          ok: true, required: false, cancellation_count: 0,
+          reason: "none", fee_amount_cents: 0,
+        }, 200, corsHeaders);
+      }
+
       const { data: quoteData, error: quoteError } = await actor.adminClient.rpc(
         "reservation_card_guarantee_quote",
         { p_user_id: actor.userId, p_party_size: requestedSize },
@@ -260,15 +279,21 @@ Deno.serve(async (req) => {
 
     // The quote is recalculated server-side at creation. A browser-provided
     // party size, cancellation count or "payment complete" flag is never trusted.
-    const { data: guaranteeQuoteData, error: guaranteeQuoteError } = await actor.adminClient.rpc(
-      "reservation_card_guarantee_quote",
-      { p_user_id: actor.userId, p_party_size: partySize },
-    );
-    if (guaranteeQuoteError) throw new HttpError(503, "Vérification de garantie bancaire indisponible.");
-    const guaranteeQuote = getFirstRow<{
+    let guaranteeQuote: {
       is_required: boolean; fee_amount_cents: number; reason: string;
-    }>(guaranteeQuoteData);
-    if (!guaranteeQuote) throw new HttpError(503, "Vérification de garantie bancaire indisponible.");
+    } = { is_required: false, fee_amount_cents: 0, reason: "none" };
+    if (await cardGuaranteesEnabled(actor.adminClient)) {
+      const { data: guaranteeQuoteData, error: guaranteeQuoteError } = await actor.adminClient.rpc(
+        "reservation_card_guarantee_quote",
+        { p_user_id: actor.userId, p_party_size: partySize },
+      );
+      if (guaranteeQuoteError) throw new HttpError(503, "Vérification de garantie bancaire indisponible.");
+      const validated = getFirstRow<{
+        is_required: boolean; fee_amount_cents: number; reason: string;
+      }>(guaranteeQuoteData);
+      if (!validated) throw new HttpError(503, "Vérification de garantie bancaire indisponible.");
+      guaranteeQuote = validated;
+    }
 
     const freeTableReservation = !["zero-attente", "chefs_table"].includes(feature.toLowerCase());
     if (freeTableReservation && guaranteeQuote.is_required) {
