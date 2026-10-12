@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "7297ae0e2af521ae45a97c3a37183b92d27f09617c1a8b7241d07935208d9048",
+ "sourceDigest": "12e793fcf1fd980ce2368e43ff6a51e99192172fa211859df3199848592198bb",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,7 +12,7 @@
   "documents": 202,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3406,
+  "exportedSymbols": 3408,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
@@ -25,7 +25,7 @@
   "publicEntries": 487,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16163,
+  "records": 16165,
   "repositoryFiles": 2989,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -13408,7 +13408,7 @@
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 234
+      "line": 270
      },
      {
       "path": "src/lib/commercialProspectionMarkerTheme.ts",
@@ -13560,11 +13560,11 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 53
+      "line": 54
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 86
+      "line": 87
      },
      {
       "path": "src/test/daily-slot-machine-security.test.ts",
@@ -14711,19 +14711,19 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 92
+      "line": 93
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 217
+      "line": 280
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 226
+      "line": 289
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 236
+      "line": 299
      },
      {
       "path": "src/test/notifications-sinistres-governance.test.ts",
@@ -16161,7 +16161,7 @@
      },
      {
       "path": "src/components/commercial/CommercialHostBoundary.tsx",
-      "line": 90
+      "line": 118
      },
      {
       "path": "src/components/home/HeroSection.tsx",
@@ -16197,15 +16197,15 @@
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 228
+      "line": 264
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 246
+      "line": 282
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 270
+      "line": 306
      },
      {
       "path": "src/lib/launchGate.ts",
@@ -16309,19 +16309,19 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 64
+      "line": 65
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 70
+      "line": 71
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 166
+      "line": 167
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 171
+      "line": 172
      },
      {
       "path": "src/test/home-mobile-newsletter.test.tsx",
@@ -16350,7 +16350,7 @@
      },
      {
       "path": "src/components/commercial/CommercialHostBoundary.tsx",
-      "line": 90
+      "line": 118
      },
      {
       "path": "src/lib/adminDomains.ts",
@@ -16366,15 +16366,15 @@
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 228
+      "line": 264
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 246
+      "line": 282
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 270
+      "line": 306
      },
      {
       "path": "src/lib/deep-links.ts",
@@ -16398,15 +16398,15 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 71
+      "line": 72
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 175
+      "line": 176
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 293
+      "line": 356
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -17527,19 +17527,19 @@
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 171
+      "line": 207
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 191
+      "line": 227
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 265
+      "line": 301
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 266
+      "line": 302
      },
      {
       "path": "src/lib/commercialProspectionMarkerTheme.ts",
@@ -17579,23 +17579,23 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 72
+      "line": 73
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 107
+      "line": 108
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 142
+      "line": 143
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 183
+      "line": 184
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 273
+      "line": 336
      },
      {
       "path": "src/test/role-access.test.ts",
@@ -17636,7 +17636,7 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 150
+      "line": 151
      }
     ]
    },
@@ -17645,7 +17645,7 @@
     "sources": [
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 146
+      "line": 147
      }
     ]
    },
@@ -17674,11 +17674,11 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 74
+      "line": 75
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 114
+      "line": 115
      },
      {
       "path": "src/test/commercial-prospection.test.ts",
@@ -17743,7 +17743,7 @@
      },
      {
       "path": "src/lib/commercialDomains.ts",
-      "line": 238
+      "line": 274
      },
      {
       "path": "src/lib/demoWorkspaces.ts",
@@ -17759,15 +17759,11 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 57
+      "line": 58
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 76
-     },
-     {
-      "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 134
+      "line": 77
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -17775,27 +17771,31 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 246
+      "line": 136
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 282
+      "line": 309
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 303
+      "line": 345
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 304
+      "line": 366
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 312
+      "line": 367
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 314
+      "line": 375
+     },
+     {
+      "path": "src/test/commercial-domain-isolation.test.ts",
+      "line": 377
      },
      {
       "path": "src/test/demo-workspace-access.test.ts",
@@ -17812,7 +17812,7 @@
     "sources": [
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 154
+      "line": 155
      }
     ]
    },
@@ -17821,7 +17821,7 @@
     "sources": [
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 93
+      "line": 94
      }
     ]
    },
@@ -17852,7 +17852,7 @@
     "sources": [
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 94
+      "line": 95
      }
     ]
    },
@@ -17870,7 +17870,7 @@
     "sources": [
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 310
+      "line": 373
      }
     ]
    },
@@ -17938,7 +17938,7 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 75
+      "line": 76
      },
      {
       "path": "src/test/notifications-sinistres-governance.test.ts",
@@ -17987,7 +17987,7 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 73
+      "line": 74
      }
     ]
    },
@@ -17996,7 +17996,7 @@
     "sources": [
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 158
+      "line": 159
      }
     ]
    },
@@ -18018,7 +18018,7 @@
     "sources": [
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 147
+      "line": 148
      }
     ]
    },
@@ -18359,7 +18359,7 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 91
+      "line": 92
      },
      {
       "path": "src/test/role-access.test.ts",
@@ -18907,7 +18907,7 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 90
+      "line": 91
      },
      {
       "path": "src/test/dashboard-selection-navigation.test.tsx",
@@ -20416,19 +20416,19 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 309
+      "line": 372
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 311
+      "line": 374
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 313
+      "line": 376
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 315
+      "line": 378
      },
      {
       "path": "src/test/launch-state.test.ts",
@@ -23565,6 +23565,10 @@
       "line": 14
      },
      {
+      "path": "src/test/commercial-domain-isolation.test.ts",
+      "line": 206
+     },
+     {
       "path": "src/test/role-access.test.ts",
       "line": 153
      },
@@ -24797,11 +24801,11 @@
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 87
+      "line": 88
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 257
+      "line": 320
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
@@ -25201,7 +25205,7 @@
     "sources": [
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 89
+      "line": 90
      }
     ]
    },
@@ -25210,7 +25214,7 @@
     "sources": [
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 262
+      "line": 325
      }
     ]
    },
@@ -25602,19 +25606,19 @@
     "sources": [
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 88
+      "line": 89
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 138
+      "line": 139
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 201
+      "line": 264
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
-      "line": 298
+      "line": 361
      },
      {
       "path": "src/test/mobile-association-hosting.test.ts",
@@ -83310,7 +83314,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 34,
+      "line": 83,
       "kind": "function"
      }
     ],
@@ -83318,7 +83322,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 106
+    "lineCount": 184
    },
    {
     "path": "src/components/commercial/CommercialMultiSpaceDemo.tsx",
@@ -90698,18 +90702,28 @@
       "kind": "function"
      },
      {
-      "name": "getCommercialNavigationHref",
+      "name": "CommercialIdentityGateState",
       "line": 170,
+      "kind": "typealias"
+     },
+     {
+      "name": "getCommercialIdentityGateState",
+      "line": 178,
+      "kind": "function"
+     },
+     {
+      "name": "getCommercialNavigationHref",
+      "line": 206,
       "kind": "function"
      },
      {
       "name": "getCommercialReauthenticationHref",
-      "line": 190,
+      "line": 226,
       "kind": "function"
      },
      {
       "name": "getCommercialHostRedirectTarget",
-      "line": 200,
+      "line": 236,
       "kind": "function"
      }
     ],
@@ -90718,7 +90732,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 290
+    "lineCount": 326
    },
    {
     "path": "src/lib/commercialProspectionMarkerTheme.ts",
@@ -102279,7 +102293,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 372
+    "lineCount": 439
    },
    {
     "path": "src/test/commercial-multi-space-demo.test.ts",
@@ -128918,7 +128932,7 @@
    "id": "code-module:95b169662089",
    "type": "code-module",
    "title": "src/components/commercial/CommercialHostBoundary.tsx",
-   "description": "Module de 106 lignes; exports: default.",
+   "description": "Module de 184 lignes; exports: default.",
    "path": "src/components/commercial/CommercialHostBoundary.tsx",
    "line": 1,
    "surface": null,
@@ -128926,7 +128940,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "e1c7f696530c"
+   "detailRef": "456ae9b24f24"
   },
   {
    "id": "code-module:27fd7d4a652e",
@@ -133088,17 +133102,19 @@
    "id": "code-module:586625079808",
    "type": "code-module",
    "title": "src/lib/commercialDomains.ts",
-   "description": "Module de 290 lignes; exports: TOK_COMMERCIAL_APP_HOST, TOK_COMMERCIAL_APP_ORIGIN, TOK_PUBLIC_APP_ORIGIN, TOK_ADMIN_APP_ORIGIN, isOwnedTokPreviewHost, isCommercialAppHost, getDemoWorkspaceSurfaceForHost, isDemoWorkspaceHost, isCommercialDemoFrameHostPath, isCommercialHostPathAllowed, isCommercialNamespacePath, isManagedCommercialAccount, canOperateCommercialDemoHost, getCommercialNavigationHref, getCommercialReauthenticationHref, getCommercialHostRedirectTarget.",
+   "description": "Module de 326 lignes; exports: TOK_COMMERCIAL_APP_HOST, TOK_COMMERCIAL_APP_ORIGIN, TOK_PUBLIC_APP_ORIGIN, TOK_ADMIN_APP_ORIGIN, isOwnedTokPreviewHost, isCommercialAppHost, getDemoWorkspaceSurfaceForHost, isDemoWorkspaceHost, isCommercialDemoFrameHostPath, isCommercialHostPathAllowed, isCommercialNamespacePath, isManagedCommercialAccount, canOperateCommercialDemoHost, CommercialIdentityGateState, getCommercialIdentityGateState, getCommercialNavigationHref, getCommercialReauthenticationHref, getCommercialHostRedirectTarget.",
    "path": "src/lib/commercialDomains.ts",
    "line": 1,
    "surface": null,
    "tags": [
+    "CommercialIdentityGateState",
     "TOK_ADMIN_APP_ORIGIN",
     "TOK_COMMERCIAL_APP_HOST",
     "TOK_COMMERCIAL_APP_ORIGIN",
     "TOK_PUBLIC_APP_ORIGIN",
     "canOperateCommercialDemoHost",
     "getCommercialHostRedirectTarget",
+    "getCommercialIdentityGateState",
     "getCommercialNavigationHref",
     "getCommercialReauthenticationHref",
     "getDemoWorkspaceSurfaceForHost",
@@ -133112,7 +133128,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "f7441ddf9bd3"
+   "detailRef": "cd018c646b17"
   },
   {
    "id": "code-module:4bd00d36b0a5",
@@ -140145,7 +140161,7 @@
    "id": "code-module:0cebfa79a702",
    "type": "code-module",
    "title": "src/test/commercial-domain-isolation.test.ts",
-   "description": "Module de 372 lignes; exports: aucun export statique.",
+   "description": "Module de 439 lignes; exports: aucun export statique.",
    "path": "src/test/commercial-domain-isolation.test.ts",
    "line": 1,
    "surface": null,
@@ -140153,7 +140169,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "fc05adca2ba7"
+   "detailRef": "294318bfd6b9"
   },
   {
    "id": "code-module:d612203fb0d7",
@@ -239469,6 +239485,21 @@
    "detailRef": "988b35a13d53"
   },
   {
+   "id": "exported-symbol:cdf8a23cf0b5",
+   "type": "exported-symbol",
+   "title": "CommercialIdentityGateState",
+   "description": "Export typealias de src/lib/commercialDomains.ts.",
+   "path": "src/lib/commercialDomains.ts",
+   "line": 170,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias",
+    "vercel"
+   ],
+   "detailRef": "eba56fab8579"
+  },
+  {
    "id": "exported-symbol:48e84188f767",
    "type": "exported-symbol",
    "title": "CommercialRefusalReasonCode",
@@ -261352,18 +261383,18 @@
    "detailRef": "59d2d5a52deb"
   },
   {
-   "id": "exported-symbol:71a84d0aae12",
+   "id": "exported-symbol:fea741678cb8",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/commercial/CommercialHostBoundary.tsx.",
    "path": "src/components/commercial/CommercialHostBoundary.tsx",
-   "line": 34,
+   "line": 83,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "3db7dbaf3952"
+   "detailRef": "eeb2f870fc3e"
   },
   {
    "id": "exported-symbol:93646c0fcd1f",
@@ -267539,49 +267570,64 @@
    "detailRef": "1444480a1745"
   },
   {
-   "id": "exported-symbol:c6754d707863",
+   "id": "exported-symbol:8ebd3e2ce389",
    "type": "exported-symbol",
    "title": "getCommercialHostRedirectTarget",
    "description": "Export function de src/lib/commercialDomains.ts.",
    "path": "src/lib/commercialDomains.ts",
-   "line": 200,
+   "line": 236,
    "surface": null,
    "tags": [
     "function",
     "supabase",
     "vercel"
    ],
-   "detailRef": "c0d302d8a125"
+   "detailRef": "a9f0e70e6a84"
   },
   {
-   "id": "exported-symbol:526e45b05ee2",
+   "id": "exported-symbol:0489d4013ed1",
+   "type": "exported-symbol",
+   "title": "getCommercialIdentityGateState",
+   "description": "Export function de src/lib/commercialDomains.ts.",
+   "path": "src/lib/commercialDomains.ts",
+   "line": 178,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase",
+    "vercel"
+   ],
+   "detailRef": "5d841de5aff6"
+  },
+  {
+   "id": "exported-symbol:0851462c09f2",
    "type": "exported-symbol",
    "title": "getCommercialNavigationHref",
    "description": "Export function de src/lib/commercialDomains.ts.",
    "path": "src/lib/commercialDomains.ts",
-   "line": 170,
+   "line": 206,
    "surface": null,
    "tags": [
     "function",
     "supabase",
     "vercel"
    ],
-   "detailRef": "a38b70a3b7a3"
+   "detailRef": "90c7ae2af244"
   },
   {
-   "id": "exported-symbol:b2f2ccc9ac19",
+   "id": "exported-symbol:b98615591055",
    "type": "exported-symbol",
    "title": "getCommercialReauthenticationHref",
    "description": "Export function de src/lib/commercialDomains.ts.",
    "path": "src/lib/commercialDomains.ts",
-   "line": 190,
+   "line": 226,
    "surface": null,
    "tags": [
     "function",
     "supabase",
     "vercel"
    ],
-   "detailRef": "973c9d48effb"
+   "detailRef": "d699c373d020"
   },
   {
    "id": "exported-symbol:2169493bc1e2",
@@ -340266,7 +340312,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "afd44719d580"
+   "detailRef": "67751dc2ccbc"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -341306,7 +341352,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "7c1fe304addd"
+   "detailRef": "55cca4b1092a"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -341664,7 +341710,7 @@
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "9e560d101b20"
+   "detailRef": "87c56a0dae22"
   },
   {
    "id": "path-literal:7e02e7d7b2d4",
@@ -341824,7 +341870,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "4630249b0445"
+   "detailRef": "441a35eebc83"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -342352,20 +342398,20 @@
     "src/lib/notificationRouting.ts",
     "src/test/commercial-domain-isolation.test.ts"
    ],
-   "detailRef": "00d7e4d3f3d4"
+   "detailRef": "d0dfd934ca81"
   },
   {
-   "id": "path-literal:503e7f04c6cd",
+   "id": "path-literal:d239d609c5b0",
    "type": "path-literal",
    "title": "/commercial/anything",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 146,
+   "line": 147,
    "surface": null,
    "tags": [
     "src/test/commercial-domain-isolation.test.ts"
    ],
-   "detailRef": "442f4dba1a42"
+   "detailRef": "795783d2f082"
   },
   {
    "id": "path-literal:c7cfbf7589b5",
@@ -342384,33 +342430,33 @@
     "src/test/commercial-prospection.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "3b2b2a54fe45"
+   "detailRef": "6fc9b21bd4b3"
   },
   {
-   "id": "path-literal:bd55ac040e9c",
+   "id": "path-literal:945b2ca0f23e",
    "type": "path-literal",
    "title": "/commercial/demo-live/",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 154,
+   "line": 155,
    "surface": null,
    "tags": [
     "src/test/commercial-domain-isolation.test.ts"
    ],
-   "detailRef": "48a1af24c811"
+   "detailRef": "5cc47b7ad018"
   },
   {
-   "id": "path-literal:cca1d8af2cca",
+   "id": "path-literal:7ce204169850",
    "type": "path-literal",
    "title": "/commercial/demo-live/evil",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 93,
+   "line": 94,
    "surface": null,
    "tags": [
     "src/test/commercial-domain-isolation.test.ts"
    ],
-   "detailRef": "ff7ce8f61714"
+   "detailRef": "4c51bedbff35"
   },
   {
    "id": "path-literal:568c71f29fc4",
@@ -342440,17 +342486,17 @@
    "detailRef": "bc0f6da3dcf8"
   },
   {
-   "id": "path-literal:049f12de7503",
+   "id": "path-literal:eff0109abf67",
    "type": "path-literal",
    "title": "/commercial/demo-live/frame/client/not-a-uuid/mon-espace",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 94,
+   "line": 95,
    "surface": null,
    "tags": [
     "src/test/commercial-domain-isolation.test.ts"
    ],
-   "detailRef": "98f232f14444"
+   "detailRef": "45c1194bdd1c"
   },
   {
    "id": "path-literal:aeb00dcae9fe",
@@ -342489,20 +342535,20 @@
     "src/test/demo-workspace-access.test.ts",
     "supabase/functions/commercial-demo-checkout/index.ts"
    ],
-   "detailRef": "a8012d1142b8"
+   "detailRef": "fff7113b68f4"
   },
   {
-   "id": "path-literal:1c4f71b0c6f7",
+   "id": "path-literal:480e4d4e55f1",
    "type": "path-literal",
    "title": "/commercial/demo-live?panel=client",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 310,
+   "line": 373,
    "surface": null,
    "tags": [
     "src/test/commercial-domain-isolation.test.ts"
    ],
-   "detailRef": "364839bc3d7b"
+   "detailRef": "102363288f24"
   },
   {
    "id": "path-literal:e817fb0ba952",
@@ -342561,7 +342607,7 @@
     "src/test/notifications-sinistres-governance.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "f85bfa614bdd"
+   "detailRef": "9d297e45eb35"
   },
   {
    "id": "path-literal:e74909072ee9",
@@ -342580,20 +342626,20 @@
     "src/lib/featureCatalog.ts",
     "src/test/commercial-domain-isolation.test.ts"
    ],
-   "detailRef": "fd130b0d157a"
+   "detailRef": "3ef48d859cdb"
   },
   {
-   "id": "path-literal:81a6e0d0f091",
+   "id": "path-literal:85af39bcac07",
    "type": "path-literal",
    "title": "/commercial/route-inconnue",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 158,
+   "line": 159,
    "surface": null,
    "tags": [
     "src/test/commercial-domain-isolation.test.ts"
    ],
-   "detailRef": "c17ac629c630"
+   "detailRef": "7c86fca15fc8"
   },
   {
    "id": "path-literal:053613bdd5da",
@@ -342632,7 +342678,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "eab878530897"
+   "detailRef": "be1e4bd3f215"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -342648,17 +342694,17 @@
    "detailRef": "5e7bc5eb15fb"
   },
   {
-   "id": "path-literal:c58c987d53f9",
+   "id": "path-literal:9729baeeeaaf",
    "type": "path-literal",
    "title": "/commercially",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 147,
+   "line": 148,
    "surface": null,
    "tags": [
     "src/test/commercial-domain-isolation.test.ts"
    ],
-   "detailRef": "691c50f2d7c3"
+   "detailRef": "5f469116d5a3"
   },
   {
    "id": "path-literal:de8985e95fa9",
@@ -342886,7 +342932,7 @@
     "src/test/role-access.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "3aa8645a200e"
+   "detailRef": "63521f4fa0d0"
   },
   {
    "id": "path-literal:43753dbe7662",
@@ -343710,7 +343756,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "23c2dd545b87"
+   "detailRef": "4274f71bb12b"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -343884,7 +343930,7 @@
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "96644e165654"
+   "detailRef": "7f85b9e03f87"
   },
   {
    "id": "path-literal:26d622419e15",
@@ -346725,7 +346771,7 @@
    "id": "path-literal:2f9f04e8e3d8",
    "type": "path-literal",
    "title": "/mon-espace",
-   "description": "Chemin référencé dans 29 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 30 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1218,
    "surface": null,
@@ -346747,7 +346793,7 @@
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "e71839650bb9"
+   "detailRef": "263e2a042ea1"
   },
   {
    "id": "path-literal:48897d739ef3",
@@ -347387,7 +347433,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "41b8aba02400"
+   "detailRef": "d36a23ac7bc6"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -347652,30 +347698,30 @@
    "detailRef": "1ee398374927"
   },
   {
-   "id": "path-literal:628a7e26a60e",
+   "id": "path-literal:d3e8dd49ca9e",
    "type": "path-literal",
    "title": "/restaurant/production-id",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 89,
+   "line": 90,
    "surface": null,
    "tags": [
     "src/test/commercial-domain-isolation.test.ts"
    ],
-   "detailRef": "94f529170a2d"
+   "detailRef": "d4940ca8bce6"
   },
   {
-   "id": "path-literal:17b6f818486e",
+   "id": "path-literal:421041c04d31",
    "type": "path-literal",
    "title": "/restaurant/real-id",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 262,
+   "line": 325,
    "surface": null,
    "tags": [
     "src/test/commercial-domain-isolation.test.ts"
    ],
-   "detailRef": "1f6edad6ea6f"
+   "detailRef": "6e2abab8ec9a"
   },
   {
    "id": "path-literal:e6f1da04a461",
@@ -348499,12 +348545,12 @@
    "detailRef": "0b9abf8b0a3e"
   },
   {
-   "id": "path-literal:1e7aa12ea99e",
+   "id": "path-literal:75bd39c5bcf4",
    "type": "path-literal",
    "title": "/restaurants/geneve",
    "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 88,
+   "line": 89,
    "surface": null,
    "tags": [
     "src/test/commercial-domain-isolation.test.ts",
@@ -348512,7 +348558,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/seo-public-name-hardening.test.ts"
    ],
-   "detailRef": "2680c48222af"
+   "detailRef": "ae766dde96db"
   },
   {
    "id": "path-literal:31608bd1732b",

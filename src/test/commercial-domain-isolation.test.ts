@@ -20,6 +20,7 @@ import {
   canOperateCommercialDemoHost,
   getDemoWorkspaceSurfaceForHost,
   getCommercialHostRedirectTarget,
+  getCommercialIdentityGateState,
   getCommercialNavigationHref,
   getCommercialReauthenticationHref,
   isCommercialAppHost,
@@ -193,6 +194,68 @@ describe("commercial.thetok.ch canonical isolation", () => {
     expect(reauthenticationHref).not.toContain("jwt-secret");
   });
 
+  it("does not turn a failed 403 restriction check into a commercial identity", () => {
+    expect(getCommercialIdentityGateState({
+      isAuthenticated: true,
+      roles: ["client"],
+      restrictionCheckFailed: true,
+    })).toBe("verification-error");
+
+    expect(getCommercialHostRedirectTarget({
+      hostname: "www.thetok.ch",
+      pathname: "/mon-espace",
+      authResolved: true,
+      isAuthenticated: true,
+      activeRole: "client",
+      roles: ["client"],
+      serverCommercialDemoRestricted: false,
+    })).toBeNull();
+
+    expect(getCommercialIdentityGateState({
+      isAuthenticated: false,
+      restrictionCheckFailed: true,
+    })).toBe("ready");
+
+    expect(getCommercialIdentityGateState({
+      isAuthenticated: true,
+      roles: ["admin", "commercial"],
+      restrictionCheckFailed: true,
+    })).toBe("verification-error");
+  });
+
+  it("blocks commercial-marker/role disagreements without cross-domain bouncing", () => {
+    expect(getCommercialIdentityGateState({
+      isAuthenticated: true,
+      roles: ["client"],
+      accountType: "commercial_demo",
+    })).toBe("role-mismatch");
+
+    expect(getCommercialIdentityGateState({
+      isAuthenticated: true,
+      roles: ["client"],
+      serverCommercialDemoRestricted: true,
+    })).toBe("role-mismatch");
+
+    expect(getCommercialIdentityGateState({
+      isAuthenticated: true,
+      roles: ["client"],
+      accountType: "commercial_demo",
+      restrictionCheckFailed: true,
+    })).toBe("role-mismatch");
+
+    expect(getCommercialIdentityGateState({
+      isAuthenticated: true,
+      roles: ["commercial"],
+      restrictionCheckFailed: true,
+    })).toBe("ready");
+
+    expect(getCommercialIdentityGateState({
+      isAuthenticated: true,
+      roles: ["admin"],
+      serverCommercialDemoRestricted: true,
+    })).toBe("ready");
+  });
+
   it("moves a managed commercial away from every public production surface", () => {
     expect(isManagedCommercialAccount(["client", "restaurateur", "commercial"])).toBe(true);
     expect(canOperateCommercialDemoHost(["commercial"])).toBe(true);
@@ -358,6 +421,10 @@ describe("commercial.thetok.ch canonical isolation", () => {
     expect(boundary).toContain("accountType");
     expect(boundary).toContain('"commercial_demo_current_user_is_restricted"');
     expect(boundary).toContain("serverCommercialDemoRestricted");
+    expect(boundary).toContain("getCommercialIdentityGateState");
+    expect(boundary).toContain("if (isIdentityBlocked");
+    expect(boundary).toContain("commercial-identity-recovery");
+    expect(boundary).not.toContain("restrictionQuery.data === true\n    || Boolean(user?.id && restrictionQuery.error)");
     expect(boundary).toContain("shouldWaitForRoleResolution");
     expect(boundary).toContain("if (shouldRedirect || shouldWaitForRoleResolution) return <LoadingCommercialRedirect />");
     expect(frameProvider).toContain("[...auth.roles, forcedRole]");
