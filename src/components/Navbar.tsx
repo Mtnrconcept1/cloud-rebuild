@@ -400,10 +400,10 @@ export default function Navbar() {
                       <Link to="/mon-espace">Mon espace</Link>
                     </DropdownMenuItem>
                   ) : null}
-                  {showClientSurface && activeFeatures.has("commandes") ? (
+                  {showClientSurface ? (
                     <DropdownMenuItem asChild>
                       <Link to="/commandes" className="flex w-full items-center gap-2">
-                        <span>Mes commandes</span>
+                        <span>Mes achats</span>
                         <NotificationMenuBadge route="/commandes" role={role} unreadNotifications={unreadNotifications} />
                       </Link>
                     </DropdownMenuItem>
@@ -576,10 +576,10 @@ export default function Navbar() {
                           Mon profil
                         </Link>
                       ) : null}
-                      {showClientSurface && activeFeatures.has("commandes") ? (
+                      {showClientSurface ? (
                         <Link to="/commandes" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                           <ShoppingBag className="h-4 w-4" />
-                          <span>Mes commandes</span>
+                          <span>Mes achats</span>
                           <NotificationMenuBadge route="/commandes" role={role} unreadNotifications={unreadNotifications} />
                         </Link>
                       ) : null}

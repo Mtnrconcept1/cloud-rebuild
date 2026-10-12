@@ -14,7 +14,7 @@ export const PUBLIC_DISCOVER_LINKS: PublicDiscoverLink[] = [
 ];
 
 const HELP_CATEGORY_REQUIREMENTS: Record<string, string | string[]> = {
-  orders: "commandes",
+  orders: ["commandes", "emporter", "zero-attente", "chefs-table"],
   delivery: ["livraison", "emporter"],
   reservations: "reservation",
   social: "actualites-sociales",
@@ -83,6 +83,7 @@ export function isHelpQuestionVisible(
   const searchable = normalizeForSearch(`${categoryId} ${question} ${answer}`);
   return !HELP_FEATURE_RULES.some((rule) => {
     if (activeFeatures.has(rule.feature)) return false;
+    if (rule.feature === "commandes" && hasRequiredFeature(activeFeatures, HELP_CATEGORY_REQUIREMENTS.orders)) return false;
     return rule.terms.some((term) => searchable.includes(normalizeForSearch(term)));
   });
 }

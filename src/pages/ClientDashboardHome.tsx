@@ -254,7 +254,7 @@ function LiveClientDashboardHome() {
   } = useNotificationCenter(50, { realtime: true });
 
   const reservationEnabled = activeFeatures.has("reservation");
-  const ordersEnabled = activeFeatures.has("commandes");
+  const ordersEnabled = activeFeatures.has("commandes") || activeFeatures.has("emporter") || activeFeatures.has("zero-attente") || activeFeatures.has("chefs-table");
   const today = useMemo(() => getBusinessDateKey(), []);
 
   const overviewQuery = useQuery<ClientDashboardOverviewData>({
@@ -513,7 +513,7 @@ function LiveClientDashboardHome() {
                 <MetricCard icon={CalendarDays} label="Réservations à venir" value={upcomingReservations.length} to={clientTarget("/reservations")} accent="bg-orange-500/10 text-orange-600" />
               ) : null}
               {ordersEnabled ? (
-                <MetricCard icon={ShoppingBag} label="Commandes en cours" value={activeOrders.length} to={clientTarget("/commandes")} accent="bg-indigo-500/10 text-indigo-600" />
+                <MetricCard icon={ShoppingBag} label="Achats en cours" value={activeOrders.length} to={clientTarget("/commandes")} accent="bg-indigo-500/10 text-indigo-600" />
               ) : null}
               <MetricCard icon={Trophy} label="Miamz disponibles" value={points.toLocaleString("fr-CH")} to={clientTarget("/profil?tab=fidelite")} accent="bg-pink-500/10 text-pink-600" />
               <MetricCard icon={Bell} label="Notifications non lues" value={unreadCount} to={clientTarget("/notifications")} accent="bg-sky-500/10 text-sky-600" />
