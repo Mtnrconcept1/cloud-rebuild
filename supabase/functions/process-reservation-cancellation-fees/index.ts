@@ -78,6 +78,13 @@ Deno.serve(async (req) => {
           throw new Error("RESTAURANT_CONNECT_NOT_READY");
         }
 
+        // Recheck the live beneficiary on Stripe, not only cached database
+        // flags. Never collect fees until the connected restaurant can receive.
+        const connectedAccount = await runtime.stripe.accounts.retrieve(connect.stripe_account_id);
+        if (connectedAccount.capabilities?.transfers !== "active" || !connectedAccount.payouts_enabled) {
+          throw new Error("RESTAURANT_STRIPE_TRANSFERS_NOT_ACTIVE");
+        }
+
         let intent;
         if (fee.stripe_payment_intent_id) {
           intent = await runtime.stripe.paymentIntents.retrieve(fee.stripe_payment_intent_id);
