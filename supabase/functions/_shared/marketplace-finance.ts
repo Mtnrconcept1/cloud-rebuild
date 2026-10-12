@@ -319,6 +319,18 @@ export async function resolveMarketplaceRouting(input: {
     },
   );
 
+  // No Stripe transfer is due on a verified server-priced CHF 0 checkout.
+  // Live marketplace payments above zero still require Connect activation.
+  if (checkoutKind === "zero-attente" && distribution.grossCents === 0) {
+    return {
+      enabled: false,
+      mode: "no_cost" as const,
+      destinationAccountId: null,
+      ...pricingSnapshot,
+      ...distribution,
+    };
+  }
+
   if (!financeConfig?.connect_routing_enabled) {
     if (stripeMode === "live") {
       throw new HttpError(
