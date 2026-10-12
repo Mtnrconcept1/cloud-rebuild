@@ -12,6 +12,8 @@ import { makeLogger } from "../_shared/logging.ts";
 import { triggerNotificationDispatch } from "../_shared/notifications.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { queueReservationConfirmationEmails } from "../_shared/transactional-emails.ts";
+import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import { finalizeReservationCardGuarantee } from "../_shared/reservation-card-guarantee.ts";
 
 type CreateReservationPayload = {
   restaurant_id?: string;
@@ -24,6 +26,9 @@ type CreateReservationPayload = {
   acquisition_channel_token?: string | null;
   notes?: string | null;
   progressive_offer_id?: string | null;
+  action?: "quote" | "create" | "finalize";
+  guarantee_accepted?: boolean;
+  checkout_session_id?: string;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -40,6 +45,13 @@ const ATTRIBUTION_METADATA_KEYS = new Set([
   "acquisition_channel_token",
   "reservation_fee_chf",
   "billing_fee_chf",
+  "paid",
+  "checkout_session_id",
+  "payment_method",
+  "total_amount",
+  "card_guarantee_setup_id",
+  "card_guarantee_fee_chf",
+  "card_guarantee_policy_version",
   "honored_at",
   "attributed_table_revenue_chf",
 ]);
@@ -102,6 +114,53 @@ Deno.serve(async (req) => {
     await rateLimiter.consume("global", { maxRequests: 1000, windowSeconds: 60 });
 
     const body: CreateReservationPayload = await req.json().catch(() => ({}));
+    const action = String(body.action || "create").trim();
+    if (action === "quote") {
+      const requestedSize = Number(body.party_size);
+      if (!Number.isInteger(requestedSize) || requestedSize < 1 || requestedSize > 50) {
+        throw new HttpError(400, "Nombre de convives invalide.");
+      }
+      const { data: quoteData, error: quoteError } = await actor.adminClient.rpc(
+        "reservation_card_guarantee_quote",
+        { p_user_id: actor.userId, p_party_size: requestedSize },
+      );
+      if (quoteError) throw new HttpError(503, "Vérification de garantie bancaire indisponible.");
+      const quote = getFirstRow<{
+        is_required: boolean;
+        cancellation_count: number;
+        reason: string;
+        fee_amount_cents: number;
+      }>(quoteData);
+      if (!quote) throw new HttpError(503, "Vérification de garantie bancaire indisponible.");
+      return jsonResponse({
+        ok: true,
+        required: Boolean(quote.is_required),
+        cancellation_count: Number(quote.cancellation_count || 0),
+        reason: quote.reason || "none",
+        fee_amount_cents: Number(quote.fee_amount_cents || 0),
+      }, 200, corsHeaders);
+    }
+
+    if (action === "finalize") {
+      const checkoutSessionId = String(body.checkout_session_id || "").trim();
+      if (!/^cs_live_[a-zA-Z0-9_]+$/.test(checkoutSessionId)) {
+        throw new HttpError(400, "Session de garantie bancaire invalide.");
+      }
+      const runtime = getStripeRuntimeForCheckoutKind("reservation");
+      if (runtime.mode !== "live") throw new HttpError(503, "Paiement sécurisé non configuré.");
+      const result = await finalizeReservationCardGuarantee({
+        adminClient: actor.adminClient,
+        stripe: runtime.stripe,
+        checkoutSessionId,
+        authenticatedUserId: actor.userId,
+      });
+      return jsonResponse(result.ok
+        ? { ok: true, reservation_id: result.reservationId, reservationId: result.reservationId }
+        : { ok: false, error_code: result.errorCode, error_message: result.errorMessage },
+        200, corsHeaders);
+    }
+    if (action !== "create") throw new HttpError(400, "Action inconnue.");
+
     const restaurantId = String(body.restaurant_id || "").trim();
     const date = String(body.date || "").trim();
     const time = String(body.time || "").trim().slice(0, 5);
@@ -188,6 +247,109 @@ Deno.serve(async (req) => {
         acquisitionSource = "customer_file";
       } else {
         throw new HttpError(400, "Source d'acquisition invalide.");
+      }
+    }
+
+    // The quote is recalculated server-side at creation. A browser-provided
+    // party size, cancellation count or "payment complete" flag is never trusted.
+    const { data: guaranteeQuoteData, error: guaranteeQuoteError } = await actor.adminClient.rpc(
+      "reservation_card_guarantee_quote",
+      { p_user_id: actor.userId, p_party_size: partySize },
+    );
+    if (guaranteeQuoteError) throw new HttpError(503, "Vérification de garantie bancaire indisponible.");
+    const guaranteeQuote = getFirstRow<{
+      is_required: boolean; fee_amount_cents: number; reason: string;
+    }>(guaranteeQuoteData);
+    if (!guaranteeQuote) throw new HttpError(503, "Vérification de garantie bancaire indisponible.");
+
+    const freeTableReservation = !["zero-attente", "chefs_table"].includes(feature.toLowerCase());
+    if (freeTableReservation && guaranteeQuote.is_required) {
+      if (body.guarantee_accepted !== true) {
+        return jsonResponse({
+          ok: false,
+          error_code: "card_guarantee_consent_required",
+          error_message: "Une carte bancaire et votre accord sur les frais d'annulation de 10 CHF par convive sont requis.",
+        }, 200, corsHeaders);
+      }
+      if (notes && notes.length > 1500) throw new HttpError(400, "Notes trop longues.");
+
+      const { data: setup, error: setupError } = await actor.adminClient
+        .from("reservation_card_guarantee_setups")
+        .insert({
+          user_id: actor.userId,
+          restaurant_id: restaurantId,
+          date,
+          time,
+          party_size: partySize,
+          feature,
+          metadata: {
+            ...metadata,
+            acquisition_source: acquisitionSource,
+            ...(acquisitionChannelId ? { acquisition_channel_id: acquisitionChannelId } : {}),
+            ...(acquisitionSource === "google" ? { acquisition_channel_token: acquisitionChannelToken } : {}),
+          },
+          acquisition_source: acquisitionSource,
+          acquisition_channel_token: acquisitionChannelToken || null,
+          notes,
+          progressive_offer_id: progressiveOfferId,
+          fee_amount_cents: partySize * 1000,
+          policy_version: "reservation-cancellation-v1",
+          consented_at: new Date().toISOString(),
+        })
+        .select("id")
+        .single();
+      if (setupError || !setup?.id) throw new HttpError(500, "Impossible d'initialiser la garantie bancaire.");
+
+      try {
+        const runtime = getStripeRuntimeForCheckoutKind("reservation");
+        if (runtime.mode !== "live") throw new HttpError(503, "Stripe Live indisponible.");
+        const email = await getAuthUserEmail(actor.adminClient, actor.userId);
+        const customer = await runtime.stripe.customers.create({
+          email: email || undefined,
+          metadata: { tok_user_id: actor.userId, card_guarantee_setup_id: setup.id },
+        }, { idempotencyKey: `tok:reservation-guarantee:customer:${setup.id}` });
+        const baseUrl = getPublicAppBaseUrl().replace(/\\/+$/, "");
+        const session = await runtime.stripe.checkout.sessions.create({
+          mode: "setup",
+          payment_method_types: ["card"],
+          customer: customer.id,
+          client_reference_id: setup.id,
+          success_url: `${baseUrl}/reservations?guarantee_session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${baseUrl}/restaurant/${encodeURIComponent(restaurantId)}?open=reservation`,
+          metadata: {
+            checkout_kind: "reservation-card-guarantee",
+            reservation_card_guarantee_setup_id: setup.id,
+            user_id: actor.userId,
+            restaurant_id: restaurantId,
+            stripe_mode: "live",
+            fee_amount_cents: String(partySize * 1000),
+            policy_version: "reservation-cancellation-v1",
+          },
+        }, { idempotencyKey: `tok:reservation-guarantee:session:${setup.id}` });
+        if (!session.url) throw new HttpError(503, "La page bancaire n'est pas disponible.");
+
+        const { error: bindingError } = await actor.adminClient
+          .from("reservation_card_guarantee_setups")
+          .update({
+            stripe_customer_id: customer.id,
+            stripe_checkout_session_id: session.id,
+            status: "checkout_ready",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", setup.id).eq("user_id", actor.userId).eq("status", "pending");
+        if (bindingError) throw new Error("Checkout binding failed");
+
+        return jsonResponse({
+          ok: true,
+          requires_card_guarantee: true,
+          checkout_url: session.url,
+          fee_amount_cents: partySize * 1000,
+        }, 200, corsHeaders);
+      } catch (setupFailure) {
+        await actor.adminClient.from("reservation_card_guarantee_setups")
+          .update({ status: "failed", error_code: "checkout_setup_failed" })
+          .eq("id", setup.id).eq("status", "pending");
+        throw setupFailure;
       }
     }
 
