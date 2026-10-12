@@ -336,47 +336,47 @@ export async function finalizeZeroAttenteCheckout(input: {
 
   // A free Stripe Checkout has no PaymentIntent and must not look like a card charge.
   if (!noCostCheckout) {
-  await recordZeroAttenteChargeIfMissing({
-    adminClient,
-    userId,
-    sessionId: session.id,
-    paymentIntentId: typeof session.payment_intent === "string"
-      ? session.payment_intent
-      : session.payment_intent?.id || null,
-    amount: total,
-    currency: (session.currency || "chf").toLowerCase(),
-    stripeMode: String(session.metadata?.stripe_mode || "").toLowerCase() === "test" ? "test" : "live",
-    paymentAttemptId: String(session.metadata?.payment_attempt_id || "") || null,
-    stripeEventId,
-    reservationId,
-    metadata: {
-      reservation_id: reservationId,
-      feature: "zero-attente",
-      restaurant_id: restaurantId,
-      payment_method: paymentMethod,
-      card_brand: cardBrand,
-      card_last4: cardLast4,
-      twint_phone_number: twintPhoneNumber || null,
-      tok_one_member: tokOneMember,
-      tok_one_discount_amount: tokOneDiscount,
-      tok_one_discount_percent: tokOneDiscountPercent,
-      tok_one_delivery_saved: tokOneDeliverySaved,
-      tok_one_total_saved: tokOneTotalSaved,
-      points_to_redeem: pointsToRedeem,
-      points_discount_amount: pointsDiscount,
-    },
-    log,
-  });
-
-  if (pointsToRedeem > 0) {
-    const { error: pointsError } = await adminClient.rpc("apply_reservation_loyalty_points", {
-      p_user_id: userId,
-      p_reservation_id: reservationId,
-      p_points_to_redeem: pointsToRedeem,
-      p_description: `Paiement Zero Attente ${orderReference}`,
+    await recordZeroAttenteChargeIfMissing({
+      adminClient,
+      userId,
+      sessionId: session.id,
+      paymentIntentId: typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : session.payment_intent?.id || null,
+      amount: total,
+      currency: (session.currency || "chf").toLowerCase(),
+      stripeMode: String(session.metadata?.stripe_mode || "").toLowerCase() === "test" ? "test" : "live",
+      paymentAttemptId: String(session.metadata?.payment_attempt_id || "") || null,
+      stripeEventId,
+      reservationId,
+      metadata: {
+        reservation_id: reservationId,
+        feature: "zero-attente",
+        restaurant_id: restaurantId,
+        payment_method: paymentMethod,
+        card_brand: cardBrand,
+        card_last4: cardLast4,
+        twint_phone_number: twintPhoneNumber || null,
+        tok_one_member: tokOneMember,
+        tok_one_discount_amount: tokOneDiscount,
+        tok_one_discount_percent: tokOneDiscountPercent,
+        tok_one_delivery_saved: tokOneDeliverySaved,
+        tok_one_total_saved: tokOneTotalSaved,
+        points_to_redeem: pointsToRedeem,
+        points_discount_amount: pointsDiscount,
+      },
+      log,
     });
-    if (pointsError) throw pointsError;
-  }
+
+    if (pointsToRedeem > 0) {
+      const { error: pointsError } = await adminClient.rpc("apply_reservation_loyalty_points", {
+        p_user_id: userId,
+        p_reservation_id: reservationId,
+        p_points_to_redeem: pointsToRedeem,
+        p_description: `Paiement Zero Attente ${orderReference}`,
+      });
+      if (pointsError) throw pointsError;
+    }
   }
 
   const zaItemCount = preorderItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
