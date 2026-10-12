@@ -1,7 +1,7 @@
 export type ProRole = "restaurateur" | "courier";
 
 export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-08-v7";
-export const LEGAL_ACCEPTANCE_VERSION = "cgu-2026-08-v5+privacy-2026-08-v5";
+export const LEGAL_ACCEPTANCE_VERSION = "cgu-2026-10-v6+privacy-2026-08-v5";
 
 export const ACCEPTED_MIME_TYPES = [
   "application/pdf",
