@@ -243,6 +243,12 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
     minute: "2-digit",
   });
 
+  const cardGuaranteeMetadata = isJsonRecord(reservation.metadata) ? reservation.metadata : {};
+  const cancellationFeeChf = typeof cardGuaranteeMetadata.card_guarantee_fee_chf === "number"
+    && Number.isFinite(cardGuaranteeMetadata.card_guarantee_fee_chf)
+    ? Math.max(0, cardGuaranteeMetadata.card_guarantee_fee_chf)
+    : 0;
+
   const isCancelled = reservation.status === "cancelled";
   const isNoShow = reservation.status === "no_show";
   const isLateCancellation = !canCancel(reservation);
@@ -268,7 +274,12 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
       } catch (dispatchError) {
         console.error("Reservation cancellation notification dispatch failed:", dispatchError);
       }
-      toast({ title: "Réservation annulée", description: "Votre réservation a bien été annulée." });
+      toast({
+        title: "Réservation annulée",
+        description: cancellationFeeChf > 0
+          ? `Des frais d'annulation de ${cancellationFeeChf.toFixed(2)} CHF sont prévus conformément à votre accord bancaire.`
+          : "Votre réservation a bien été annulée.",
+      });
       queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
       setConfirmCancel(false);
       onOpenChange(false);
@@ -549,6 +560,13 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
                   <div>
                     <p className="text-sm font-semibold text-destructive">Confirmer l'annulation ?</p>
                     <p className="text-xs text-muted-foreground">Cette action est irréversible.</p>
+                    {cancellationFeeChf > 0 && (
+                      <p className="mt-2 text-xs font-semibold text-destructive">
+                        Des frais d'annulation de {cancellationFeeChf.toFixed(2)} CHF
+                        (10 CHF par convive) seront facturés sur la carte enregistrée.
+                        Confirmez uniquement si vous acceptez ce prélèvement.
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2">
