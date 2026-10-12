@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "6145cddcdcc8e1d8df7b6c1ddb4d732ea9e0e37be3ac2f307b5e6eecaafa6e32",
+ "sourceDigest": "51c261b1e80d1327db86a701d7c3876515daf51209c5f2501760e453affdbc34",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
-  "cronJobs": 33,
+  "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2749,
   "documents": 202,
-  "edgeFunctions": 114,
+  "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3413,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 530,
-  "modules": 1510,
+  "migrations": 531,
+  "modules": 1511,
   "pages": 128,
   "pathLiterals": 648,
   "publicAssets": 462,
   "publicEntries": 487,
   "publicNavigableRoutes": 2,
   "queryParameters": 109,
-  "records": 16191,
-  "repositoryFiles": 2992,
+  "records": 16198,
+  "repositoryFiles": 2994,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -2884,7 +2884,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 117,
+      "line": 120,
       "kind": "function"
      }
     ],
@@ -6885,7 +6885,7 @@
     "endpoint": "/functions/v1/admin-restaurant-adjustment",
     "path": "supabase/functions/admin-restaurant-adjustment/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 194,
+    "configLine": 197,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -7245,7 +7245,7 @@
     "endpoint": "/functions/v1/apple-storekit-webhook",
     "path": "supabase/functions/apple-storekit-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 272,
+    "configLine": 275,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -7373,7 +7373,7 @@
     "endpoint": "/functions/v1/cloudprinter-webhook",
     "path": "supabase/functions/cloudprinter-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 284,
+    "configLine": 287,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -7982,7 +7982,7 @@
     "endpoint": "/functions/v1/generate-invoices",
     "path": "supabase/functions/generate-invoices/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 203,
+    "configLine": 206,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8050,7 +8050,7 @@
     "endpoint": "/functions/v1/manage-restaurant-subscription",
     "path": "supabase/functions/manage-restaurant-subscription/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 209,
+    "configLine": 212,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8072,7 +8072,7 @@
     "endpoint": "/functions/v1/manage-tok-one-subscription",
     "path": "supabase/functions/manage-tok-one-subscription/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 206,
+    "configLine": 209,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8093,7 +8093,7 @@
     "endpoint": "/functions/v1/marketing-orchestrator",
     "path": "supabase/functions/marketing-orchestrator/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 275,
+    "configLine": 278,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8120,7 +8120,7 @@
     "endpoint": "/functions/v1/marketing-provider-webhook",
     "path": "supabase/functions/marketing-provider-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 278,
+    "configLine": 281,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8136,7 +8136,7 @@
     "endpoint": "/functions/v1/marketing-unsubscribe",
     "path": "supabase/functions/marketing-unsubscribe/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 281,
+    "configLine": 284,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -8153,7 +8153,7 @@
     "endpoint": "/functions/v1/menu-image-import",
     "path": "supabase/functions/menu-image-import/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 212,
+    "configLine": 215,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8250,7 +8250,7 @@
     "endpoint": "/functions/v1/print-admin",
     "path": "supabase/functions/print-admin/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 287,
+    "configLine": 290,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8276,7 +8276,7 @@
     "endpoint": "/functions/v1/print-catalog",
     "path": "supabase/functions/print-catalog/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 290,
+    "configLine": 293,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8300,7 +8300,7 @@
     "endpoint": "/functions/v1/print-checkout",
     "path": "supabase/functions/print-checkout/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 293,
+    "configLine": 296,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8323,7 +8323,7 @@
     "endpoint": "/functions/v1/print-export",
     "path": "supabase/functions/print-export/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 299,
+    "configLine": 302,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8341,7 +8341,7 @@
     "endpoint": "/functions/v1/print-orchestrator",
     "path": "supabase/functions/print-orchestrator/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 302,
+    "configLine": 305,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8364,7 +8364,7 @@
     "endpoint": "/functions/v1/print-order-action",
     "path": "supabase/functions/print-order-action/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 305,
+    "configLine": 308,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8387,7 +8387,7 @@
     "endpoint": "/functions/v1/print-quote",
     "path": "supabase/functions/print-quote/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 308,
+    "configLine": 311,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8403,7 +8403,7 @@
     "endpoint": "/functions/v1/print-reconcile",
     "path": "supabase/functions/print-reconcile/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 311,
+    "configLine": 314,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8419,7 +8419,7 @@
     "endpoint": "/functions/v1/print-sandbox-complete",
     "path": "supabase/functions/print-sandbox-complete/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 296,
+    "configLine": 299,
     "verifyJwt": false,
     "methods": [
      "GET"
@@ -8454,11 +8454,32 @@
     "sourcePresent": true
    },
    {
+    "name": "process-reservation-cancellation-fees",
+    "endpoint": "/functions/v1/process-reservation-cancellation-fees",
+    "path": "supabase/functions/process-reservation-cancellation-fees/index.ts",
+    "configPath": "supabase/config.toml",
+    "configLine": 194,
+    "verifyJwt": false,
+    "methods": [
+     "POST"
+    ],
+    "actions": [],
+    "environmentNames": [
+     "TOK_RESERVATION_CANCELLATION_COLLECTION_ENABLED"
+    ],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "configured": true,
+    "sourcePresent": true
+   },
+   {
     "name": "provision-commercial-accounts",
     "endpoint": "/functions/v1/provision-commercial-accounts",
     "path": "supabase/functions/provision-commercial-accounts/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 197,
+    "configLine": 200,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8479,7 +8500,7 @@
     "endpoint": "/functions/v1/provision-commercial-demo-logins",
     "path": "supabase/functions/provision-commercial-demo-logins/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 351,
+    "configLine": 354,
     "verifyJwt": true,
     "methods": [
      "OPTIONS"
@@ -8497,7 +8518,7 @@
     "endpoint": "/functions/v1/provision-commercial-demo-project-session",
     "path": "supabase/functions/provision-commercial-demo-project-session/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 200,
+    "configLine": 203,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8521,7 +8542,7 @@
     "endpoint": "/functions/v1/reconcile-match-group-authorizations",
     "path": "supabase/functions/reconcile-match-group-authorizations/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 215,
+    "configLine": 218,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8539,7 +8560,7 @@
     "endpoint": "/functions/v1/reconcile-paid-order-checkouts",
     "path": "supabase/functions/reconcile-paid-order-checkouts/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 218,
+    "configLine": 221,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8557,7 +8578,7 @@
     "endpoint": "/functions/v1/restaurant-advisor",
     "path": "supabase/functions/restaurant-advisor/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 221,
+    "configLine": 224,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8576,7 +8597,7 @@
     "endpoint": "/functions/v1/restaurant-media-governance",
     "path": "supabase/functions/restaurant-media-governance/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 227,
+    "configLine": 230,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8597,7 +8618,7 @@
     "endpoint": "/functions/v1/restaurant-order-status",
     "path": "supabase/functions/restaurant-order-status/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 224,
+    "configLine": 227,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8613,7 +8634,7 @@
     "endpoint": "/functions/v1/scrape-restaurants",
     "path": "supabase/functions/scrape-restaurants/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 230,
+    "configLine": 233,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8633,7 +8654,7 @@
     "endpoint": "/functions/v1/send-email",
     "path": "supabase/functions/send-email/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 233,
+    "configLine": 236,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8660,7 +8681,7 @@
     "endpoint": "/functions/v1/send-push",
     "path": "supabase/functions/send-push/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 236,
+    "configLine": 239,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8683,7 +8704,7 @@
     "endpoint": "/functions/v1/settle-developer-statement",
     "path": "supabase/functions/settle-developer-statement/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 254,
+    "configLine": 257,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8701,7 +8722,7 @@
     "endpoint": "/functions/v1/stripe-connect-onboard",
     "path": "supabase/functions/stripe-connect-onboard/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 239,
+    "configLine": 242,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8719,7 +8740,7 @@
     "endpoint": "/functions/v1/stripe-connect-status",
     "path": "supabase/functions/stripe-connect-status/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 242,
+    "configLine": 245,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8756,7 +8777,7 @@
     "endpoint": "/functions/v1/stripe-subscription-reconcile",
     "path": "supabase/functions/stripe-subscription-reconcile/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 251,
+    "configLine": 254,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8775,7 +8796,7 @@
     "endpoint": "/functions/v1/stripe-webhook",
     "path": "supabase/functions/stripe-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 245,
+    "configLine": 248,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8794,7 +8815,7 @@
     "endpoint": "/functions/v1/stripe-worker",
     "path": "supabase/functions/stripe-worker/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 248,
+    "configLine": 251,
     "verifyJwt": false,
     "methods": [
      "OPTIONS",
@@ -8816,7 +8837,7 @@
     "endpoint": "/functions/v1/submit-signup-application",
     "path": "supabase/functions/submit-signup-application/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 266,
+    "configLine": 269,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8832,7 +8853,7 @@
     "endpoint": "/functions/v1/sync-apple-storekit",
     "path": "supabase/functions/sync-apple-storekit/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 269,
+    "configLine": 272,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8848,7 +8869,7 @@
     "endpoint": "/functions/v1/tok-connect-admin",
     "path": "supabase/functions/tok-connect-admin/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 329,
+    "configLine": 332,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8869,7 +8890,7 @@
     "endpoint": "/functions/v1/tok-connect-api",
     "path": "supabase/functions/tok-connect-api/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 317,
+    "configLine": 320,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -8886,7 +8907,7 @@
     "endpoint": "/functions/v1/tok-connect-app-bridge",
     "path": "supabase/functions/tok-connect-app-bridge/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 335,
+    "configLine": 338,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -8915,7 +8936,7 @@
     "endpoint": "/functions/v1/tok-connect-chatgpt",
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 338,
+    "configLine": 341,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -8940,7 +8961,7 @@
     "endpoint": "/functions/v1/tok-connect-commercial-bridge",
     "path": "supabase/functions/tok-connect-commercial-bridge/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 341,
+    "configLine": 344,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8967,7 +8988,7 @@
     "endpoint": "/functions/v1/tok-connect-full-app-mcp",
     "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 323,
+    "configLine": 326,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -8992,7 +9013,7 @@
     "endpoint": "/functions/v1/tok-connect-mcp",
     "path": "supabase/functions/tok-connect-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 320,
+    "configLine": 323,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9017,7 +9038,7 @@
     "endpoint": "/functions/v1/tok-connect-oauth",
     "path": "supabase/functions/tok-connect-oauth/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 314,
+    "configLine": 317,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9038,7 +9059,7 @@
     "endpoint": "/functions/v1/tok-connect-portal",
     "path": "supabase/functions/tok-connect-portal/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 326,
+    "configLine": 329,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9074,7 +9095,7 @@
     "endpoint": "/functions/v1/tok-connect-remote-mcp",
     "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 344,
+    "configLine": 347,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9098,7 +9119,7 @@
     "endpoint": "/functions/v1/tok-connect-webhook-dispatch",
     "path": "supabase/functions/tok-connect-webhook-dispatch/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 332,
+    "configLine": 335,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9116,7 +9137,7 @@
     "endpoint": "/functions/v1/tok-pulse-widget",
     "path": "supabase/functions/tok-pulse-widget/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 347,
+    "configLine": 350,
     "verifyJwt": false,
     "methods": [
      "GET"
@@ -9137,7 +9158,7 @@
     "endpoint": "/functions/v1/track-analytics",
     "path": "supabase/functions/track-analytics/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 257,
+    "configLine": 260,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9159,7 +9180,7 @@
     "endpoint": "/functions/v1/track-sponsored-event",
     "path": "supabase/functions/track-sponsored-event/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 260,
+    "configLine": 263,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9181,7 +9202,7 @@
     "endpoint": "/functions/v1/validate-order",
     "path": "supabase/functions/validate-order/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 263,
+    "configLine": 266,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -16853,7 +16874,7 @@
      },
      {
       "path": "src/pages/CGU.tsx",
-      "line": 121
+      "line": 124
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -23841,7 +23862,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2607
+      "line": 2643
      }
     ]
    },
@@ -30126,6 +30147,7 @@
      "supabase/functions/process-refund/index.ts",
      "supabase/functions/process-refund/refund-utils.test.ts",
      "supabase/functions/process-refund/refund-utils.ts",
+     "supabase/functions/process-reservation-cancellation-fees/index.ts",
      "supabase/functions/provision-commercial-demo-project-session/index.ts",
      "supabase/functions/reconcile-match-group-authorizations/index.ts",
      "supabase/functions/reconcile-paid-order-checkouts/index.ts",
@@ -30788,6 +30810,7 @@
      "supabase/functions/ops-incident-control/index.ts",
      "supabase/functions/ops-incident-native-scan/index.ts",
      "supabase/functions/print-checkout/index.ts",
+     "supabase/functions/process-reservation-cancellation-fees/index.ts",
      "supabase/functions/provision-commercial-demo-logins/index.ts",
      "supabase/functions/provision-commercial-demo-project-session/index.ts",
      "supabase/functions/scrape-restaurants/index.ts",
@@ -34095,8 +34118,14 @@
    {
     "name": "20261012130000 Reservation Card Guarantees",
     "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-    "lineCount": 364,
+    "lineCount": 368,
     "objectCount": 12
+   },
+   {
+    "name": "20261012203000 Schedule Reservation Cancellation Fee Collection",
+    "path": "supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql",
+    "lineCount": 42,
+    "objectCount": 0
    }
   ],
   "databaseObjects": [
@@ -66454,6 +66483,18 @@
      {
       "path": "supabase/migrations/20260712060000_fix_production_security_alerts.sql",
       "line": 219
+     }
+    ]
+   },
+   {
+    "name": "tok-reservation-cancellation-fees",
+    "schedules": [
+     "42 * * * *"
+    ],
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql",
+      "line": 27
      }
     ]
    },
@@ -99077,7 +99118,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 117,
+      "line": 120,
       "kind": "function"
      }
     ],
@@ -99085,7 +99126,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 160
+    "lineCount": 163
    },
    {
     "path": "src/pages/ChefsTable.tsx",
@@ -104932,13 +104973,15 @@
    {
     "path": "src/test/reservation-card-guarantee.test.ts",
     "exports": [],
-    "environmentNames": [],
+    "environmentNames": [
+     "TOK_RESERVATION_CANCELLATION_COLLECTION_ENABLED"
+    ],
     "integrations": [
      "google",
      "stripe",
      "supabase"
     ],
-    "lineCount": 159
+    "lineCount": 199
    },
    {
     "path": "src/test/reservation-confirmation-deposit-ops.test.ts",
@@ -110612,6 +110655,18 @@
     "lineCount": 37
    },
    {
+    "path": "supabase/functions/process-reservation-cancellation-fees/index.ts",
+    "exports": [],
+    "environmentNames": [
+     "TOK_RESERVATION_CANCELLATION_COLLECTION_ENABLED"
+    ],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 181
+   },
+   {
     "path": "supabase/functions/provision-commercial-accounts/index.ts",
     "exports": [],
     "environmentNames": [],
@@ -110784,7 +110839,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3192
+    "lineCount": 3228
    },
    {
     "path": "supabase/functions/stripe-worker/index.ts",
@@ -123141,6 +123196,11 @@
     "extension": ".ts"
    },
    {
+    "path": "supabase/functions/process-reservation-cancellation-fees/index.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
     "path": "supabase/functions/provision-commercial-accounts/index.ts",
     "category": "edge-function-source",
     "extension": ".ts"
@@ -125977,6 +126037,11 @@
    },
    {
     "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -136902,7 +136967,7 @@
    "id": "code-module:14169390d06f",
    "type": "code-module",
    "title": "src/pages/CGU.tsx",
-   "description": "Module de 160 lignes; exports: default.",
+   "description": "Module de 163 lignes; exports: default.",
    "path": "src/pages/CGU.tsx",
    "line": 1,
    "surface": null,
@@ -136910,7 +136975,7 @@
     "default",
     "stripe"
    ],
-   "detailRef": "0fedb1e7b1af"
+   "detailRef": "d462dfe516ee"
   },
   {
    "id": "code-module:5e810c8845db",
@@ -143985,16 +144050,17 @@
    "id": "code-module:6b9612f4b367",
    "type": "code-module",
    "title": "src/test/reservation-card-guarantee.test.ts",
-   "description": "Module de 159 lignes; exports: aucun export statique.",
+   "description": "Module de 199 lignes; exports: aucun export statique.",
    "path": "src/test/reservation-card-guarantee.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
+    "TOK_RESERVATION_CANCELLATION_COLLECTION_ENABLED",
     "google",
     "stripe",
     "supabase"
    ],
-   "detailRef": "e1722b165934"
+   "detailRef": "4a04cce25254"
   },
   {
    "id": "code-module:53932cd19dea",
@@ -148646,6 +148712,21 @@
    "detailRef": "9fc855a25f90"
   },
   {
+   "id": "code-module:34dae82023af",
+   "type": "code-module",
+   "title": "supabase/functions/process-reservation-cancellation-fees/index.ts",
+   "description": "Module de 181 lignes; exports: aucun export statique.",
+   "path": "supabase/functions/process-reservation-cancellation-fees/index.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK_RESERVATION_CANCELLATION_COLLECTION_ENABLED",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "a0cb1625b8e2"
+  },
+  {
    "id": "code-module:8b06422b1e78",
    "type": "code-module",
    "title": "supabase/functions/provision-commercial-accounts/index.ts",
@@ -148874,7 +148955,7 @@
    "id": "code-module:9ac355dfd729",
    "type": "code-module",
    "title": "supabase/functions/stripe-webhook/index.ts",
-   "description": "Module de 3192 lignes; exports: aucun export statique.",
+   "description": "Module de 3228 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-webhook/index.ts",
    "line": 1,
    "surface": null,
@@ -148882,7 +148963,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "5bf25c225811"
+   "detailRef": "4aff11199906"
   },
   {
    "id": "code-module:f3fa7c18e7bc",
@@ -149827,6 +149908,20 @@
     "pg_cron"
    ],
    "detailRef": "9a9d65360907"
+  },
+  {
+   "id": "cron-job:396bc0881238",
+   "type": "cron-job",
+   "title": "tok-reservation-cancellation-fees",
+   "description": "Tâche pg_cron versionnée; planification(s): 42 * * * *.",
+   "path": "supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "42 * * * *",
+    "pg_cron"
+   ],
+   "detailRef": "c2abb82e0e08"
   },
   {
    "id": "cron-job:d434352150eb",
@@ -231222,7 +231317,7 @@
     "POST",
     "stripe"
    ],
-   "detailRef": "c6ab0a54acd7"
+   "detailRef": "29322da31f8d"
   },
   {
    "id": "edge-function:af4558dcb1d1",
@@ -231501,7 +231596,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "a214451af0e0"
+   "detailRef": "fbc8015d5a82"
   },
   {
    "id": "edge-function:8e9e04a29952",
@@ -231602,7 +231697,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "2736ebc73364"
+   "detailRef": "9cb597bf16e6"
   },
   {
    "id": "edge-function:7a772e15f6d3",
@@ -232083,7 +232178,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "4e46ac6c5ddc"
+   "detailRef": "110f38bc6316"
   },
   {
    "id": "edge-function:05af66aa208e",
@@ -232138,7 +232233,7 @@
     "resume",
     "stripe"
    ],
-   "detailRef": "0bb317cc51d6"
+   "detailRef": "30fe9eea5eb5"
   },
   {
    "id": "edge-function:e8af611cc121",
@@ -232154,7 +232249,7 @@
     "stripe",
     "sync_checkout_session"
    ],
-   "detailRef": "c971b015512a"
+   "detailRef": "b05d87c0a613"
   },
   {
    "id": "edge-function:cc8ddfcc2b80",
@@ -232175,7 +232270,7 @@
     "run_item",
     "supabase"
    ],
-   "detailRef": "840f80d8aa36"
+   "detailRef": "74f0a2a1d70f"
   },
   {
    "id": "edge-function:ea04d0a7dc94",
@@ -232188,7 +232283,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "93f557b9b2fa"
+   "detailRef": "1c86c2b87d44"
   },
   {
    "id": "edge-function:766b313fa071",
@@ -232202,7 +232297,7 @@
     "GET",
     "POST"
    ],
-   "detailRef": "6b7c8a7c405a"
+   "detailRef": "2d1373480796"
   },
   {
    "id": "edge-function:b0143386fc19",
@@ -232216,7 +232311,7 @@
     "POST",
     "openai"
    ],
-   "detailRef": "d7547f169b2e"
+   "detailRef": "22cc1be6c7c4"
   },
   {
    "id": "edge-function:636bb88e8d73",
@@ -232300,7 +232395,7 @@
     "settings",
     "update_settings"
    ],
-   "detailRef": "3895261a42e1"
+   "detailRef": "50e1a39ef740"
   },
   {
    "id": "edge-function:6744b1da8833",
@@ -232320,7 +232415,7 @@
     "map",
     "sync"
    ],
-   "detailRef": "e4adf5942321"
+   "detailRef": "4a15a5633716"
   },
   {
    "id": "edge-function:4202905f7b82",
@@ -232338,7 +232433,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "30d56fec1d31"
+   "detailRef": "ebc34f883194"
   },
   {
    "id": "edge-function:895f528e4b5c",
@@ -232352,7 +232447,7 @@
     "POST",
     "approve"
    ],
-   "detailRef": "bf78a5064486"
+   "detailRef": "16e8dbaadcac"
   },
   {
    "id": "edge-function:2d7ec7a7fbe0",
@@ -232369,7 +232464,7 @@
     "stop",
     "stripe"
    ],
-   "detailRef": "e77ee2f9f300"
+   "detailRef": "e459e7d65818"
   },
   {
    "id": "edge-function:00482f3f0a8a",
@@ -232387,7 +232482,7 @@
     "reorder",
     "stripe"
    ],
-   "detailRef": "3360f0de41cd"
+   "detailRef": "5ac9fe4de6ed"
   },
   {
    "id": "edge-function:d4675b82f334",
@@ -232400,7 +232495,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "e93ff1ed4a17"
+   "detailRef": "6504c23f6a98"
   },
   {
    "id": "edge-function:93cadf906a52",
@@ -232413,7 +232508,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "73afdf4ec2c1"
+   "detailRef": "06bd5d4a7653"
   },
   {
    "id": "edge-function:12f5ed65e97d",
@@ -232429,7 +232524,7 @@
     "SITE_URL",
     "stripe"
    ],
-   "detailRef": "cd000e3f7432"
+   "detailRef": "8263c27251e9"
   },
   {
    "id": "edge-function:c64ea182a555",
@@ -232446,6 +232541,22 @@
    "detailRef": "344381f5656b"
   },
   {
+   "id": "edge-function:bf433d1be77b",
+   "type": "edge-function",
+   "title": "process-reservation-cancellation-fees",
+   "description": "Fonction Edge POST; JWT config=false.",
+   "path": "supabase/functions/process-reservation-cancellation-fees/index.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "POST",
+    "TOK_RESERVATION_CANCELLATION_COLLECTION_ENABLED",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "db6cca2594f7"
+  },
+  {
    "id": "edge-function:648ff798f90c",
    "type": "edge-function",
    "title": "provision-commercial-accounts",
@@ -232460,7 +232571,7 @@
     "reset_password",
     "string"
    ],
-   "detailRef": "5cf0807bc381"
+   "detailRef": "4d5a1d36ae80"
   },
   {
    "id": "edge-function:dd7197332058",
@@ -232474,7 +232585,7 @@
     "OPTIONS",
     "supabase"
    ],
-   "detailRef": "ab5538be4a32"
+   "detailRef": "ab1f62d20122"
   },
   {
    "id": "edge-function:ee5743deb4a2",
@@ -232493,7 +232604,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "5c7130f4bfe6"
+   "detailRef": "4aa0aeeabb0b"
   },
   {
    "id": "edge-function:81bb6e1306e4",
@@ -232507,7 +232618,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "d15083ef2edb"
+   "detailRef": "52937e1b58c1"
   },
   {
    "id": "edge-function:c069d76c1b37",
@@ -232521,7 +232632,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "20ec97aaf50c"
+   "detailRef": "e3cc7dd2d2df"
   },
   {
    "id": "edge-function:8f850940a2c6",
@@ -232536,7 +232647,7 @@
     "openai",
     "stripe"
    ],
-   "detailRef": "ec339cff3a2c"
+   "detailRef": "9933cf6d0bdb"
   },
   {
    "id": "edge-function:d9d1b11c432b",
@@ -232552,7 +232663,7 @@
     "add_ai_creation_to_gallery",
     "string"
    ],
-   "detailRef": "a13c1dce0b3b"
+   "detailRef": "7aefa9b3709c"
   },
   {
    "id": "edge-function:44ed8631d43d",
@@ -232565,7 +232676,7 @@
    "tags": [
     "ANY"
    ],
-   "detailRef": "b7cdaa971133"
+   "detailRef": "68cce03ae8b0"
   },
   {
    "id": "edge-function:4a0e241783e5",
@@ -232580,7 +232691,7 @@
     "POST",
     "supabase"
    ],
-   "detailRef": "8b7a398d202f"
+   "detailRef": "642eb2130847"
   },
   {
    "id": "edge-function:482e409f0108",
@@ -232602,7 +232713,7 @@
     "resend",
     "supabase"
    ],
-   "detailRef": "0f7cbe7ea295"
+   "detailRef": "fd2e786aba82"
   },
   {
    "id": "edge-function:63a0488de187",
@@ -232620,7 +232731,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "54c03cf05da5"
+   "detailRef": "7f03f0febd53"
   },
   {
    "id": "edge-function:4b955302ab67",
@@ -232634,7 +232745,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "470c01d4ba99"
+   "detailRef": "c0fef5b8153c"
   },
   {
    "id": "edge-function:96edd241b1ec",
@@ -232648,7 +232759,7 @@
     "POST",
     "stripe"
    ],
-   "detailRef": "563f46dff964"
+   "detailRef": "b8802a844c0a"
   },
   {
    "id": "edge-function:8e0ac9e090fa",
@@ -232662,7 +232773,7 @@
     "POST",
     "stripe"
    ],
-   "detailRef": "592bd5066095"
+   "detailRef": "6e1386a9f1db"
   },
   {
    "id": "edge-function:72765419a956",
@@ -232692,7 +232803,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "266824a8b2ec"
+   "detailRef": "8470e509b365"
   },
   {
    "id": "edge-function:f46a6de88d5a",
@@ -232707,7 +232818,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "73f8c52eed7c"
+   "detailRef": "a8ca6f66eccc"
   },
   {
    "id": "edge-function:955e7c78a21a",
@@ -232724,7 +232835,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "b0811c007d6a"
+   "detailRef": "14074843fc63"
   },
   {
    "id": "edge-function:6955272728a1",
@@ -232737,7 +232848,7 @@
    "tags": [
     "ANY"
    ],
-   "detailRef": "1c88df570f65"
+   "detailRef": "b864b8027297"
   },
   {
    "id": "edge-function:debd98d4a448",
@@ -232750,7 +232861,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "3574eced3cc5"
+   "detailRef": "99988f262bca"
   },
   {
    "id": "edge-function:8e71119bbca0",
@@ -232766,7 +232877,7 @@
     "set-restaurant-mcp-access",
     "supabase"
    ],
-   "detailRef": "e26712edab4a"
+   "detailRef": "23e9209e7bd5"
   },
   {
    "id": "edge-function:d39678843030",
@@ -232780,7 +232891,7 @@
     "GET",
     "POST"
    ],
-   "detailRef": "06acdd768350"
+   "detailRef": "46389a08e99d"
   },
   {
    "id": "edge-function:06314d9483f8",
@@ -232803,7 +232914,7 @@
     "supabase",
     "update"
    ],
-   "detailRef": "c47db9d54c4d"
+   "detailRef": "240721ae9494"
   },
   {
    "id": "edge-function:4ae45b142614",
@@ -232823,7 +232934,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "efb05dd9ebe2"
+   "detailRef": "e008e028b2d3"
   },
   {
    "id": "edge-function:c9c1a5f4268f",
@@ -232844,7 +232955,7 @@
     "rpc",
     "supabase"
    ],
-   "detailRef": "4099c2a464f3"
+   "detailRef": "b88005664649"
   },
   {
    "id": "edge-function:f38098ad6d58",
@@ -232864,7 +232975,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "c765e5301ae3"
+   "detailRef": "375f4ea46d3d"
   },
   {
    "id": "edge-function:c07dbf75dc6d",
@@ -232884,7 +232995,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "e005c07245f5"
+   "detailRef": "83237706adc8"
   },
   {
    "id": "edge-function:4576e3c0c057",
@@ -232900,7 +233011,7 @@
     "SUPABASE_SERVICE_ROLE_KEY",
     "supabase"
    ],
-   "detailRef": "c69beadc1f1e"
+   "detailRef": "6fe2e3d8f234"
   },
   {
    "id": "edge-function:19db644bfd2f",
@@ -232930,7 +233041,7 @@
     "update-grant-status",
     "upsert-restaurant-grant"
    ],
-   "detailRef": "6193e594ffa4"
+   "detailRef": "bed7fd805d6e"
   },
   {
    "id": "edge-function:2b5564847db9",
@@ -232949,7 +233060,7 @@
     "TOK_CONNECT_PUBLIC_ORIGIN",
     "supabase"
    ],
-   "detailRef": "3a5f66311e38"
+   "detailRef": "0207fed13b34"
   },
   {
    "id": "edge-function:18e2720fac44",
@@ -232963,7 +233074,7 @@
     "POST",
     "supabase"
    ],
-   "detailRef": "b6c0ef5ebfdf"
+   "detailRef": "d75cf04208fa"
   },
   {
    "id": "edge-function:c49d4f8a4fa9",
@@ -232979,7 +233090,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "60320cb36538"
+   "detailRef": "042006f82b3e"
   },
   {
    "id": "edge-function:c25351474d05",
@@ -232996,7 +233107,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "31823f1e7966"
+   "detailRef": "96382bea3e3a"
   },
   {
    "id": "edge-function:4dcfc3d7fc50",
@@ -233013,7 +233124,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "9681812241d3"
+   "detailRef": "568d201b3f0a"
   },
   {
    "id": "edge-function:dd31c294fa37",
@@ -233030,7 +233141,7 @@
     "SITE_URL",
     "stripe"
    ],
-   "detailRef": "697ed410055b"
+   "detailRef": "fb9994f80379"
   },
   {
    "id": "edge-function:4bdac8cea73e",
@@ -235298,6 +235409,20 @@
     "scripts/test-print-protocol-postgres.mjs"
    ],
    "detailRef": "978c2685fef1"
+  },
+  {
+   "id": "environment-variable:131b49bd1b5e",
+   "type": "environment-variable",
+   "title": "TOK_RESERVATION_CANCELLATION_COLLECTION_ENABLED",
+   "description": "Nom de variable d’environnement référencé dans 2 module(s); aucune valeur n’est indexée.",
+   "path": "src/test/reservation-card-guarantee.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "src/test/reservation-card-guarantee.test.ts",
+    "supabase/functions/process-reservation-cancellation-fees/index.ts"
+   ],
+   "detailRef": "ec24aae185b5"
   },
   {
    "id": "environment-variable:eb2722dfd0c5",
@@ -263367,18 +263492,18 @@
    "detailRef": "653293981fae"
   },
   {
-   "id": "exported-symbol:1a1340442fbf",
+   "id": "exported-symbol:a95f7a360dcc",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/CGU.tsx.",
    "path": "src/pages/CGU.tsx",
-   "line": 117,
+   "line": 120,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "84cfb8d28dd5"
+   "detailRef": "b601d8cff75d"
   },
   {
    "id": "exported-symbol:75aac54c9ecb",
@@ -317373,6 +317498,20 @@
    "detailRef": "444eca38d46b"
   },
   {
+   "id": "file:e239b1410665",
+   "type": "file",
+   "title": "supabase/functions/process-reservation-cancellation-fees/index.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/process-reservation-cancellation-fees/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "e9ddf98a5eec"
+  },
+  {
    "id": "file:68535e900079",
    "type": "file",
    "title": "supabase/functions/provision-commercial-accounts/index.ts",
@@ -325325,6 +325464,20 @@
    "detailRef": "22fdfbeda8f7"
   },
   {
+   "id": "file:58f26963c87f",
+   "type": "file",
+   "title": "supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "093fc94be624"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -328946,7 +329099,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 222 module(s).",
+   "description": "Intégration externe détectée dans 223 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -329159,6 +329312,7 @@
     "supabase/functions/process-refund/index.ts",
     "supabase/functions/process-refund/refund-utils.test.ts",
     "supabase/functions/process-refund/refund-utils.ts",
+    "supabase/functions/process-reservation-cancellation-fees/index.ts",
     "supabase/functions/provision-commercial-demo-project-session/index.ts",
     "supabase/functions/reconcile-match-group-authorizations/index.ts",
     "supabase/functions/reconcile-paid-order-checkouts/index.ts",
@@ -329175,13 +329329,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "7fe3355388b9"
+   "detailRef": "09e68aad0212"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 675 module(s).",
+   "description": "Intégration externe détectée dans 676 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -329829,6 +329983,7 @@
     "supabase/functions/ops-incident-control/index.ts",
     "supabase/functions/ops-incident-native-scan/index.ts",
     "supabase/functions/print-checkout/index.ts",
+    "supabase/functions/process-reservation-cancellation-fees/index.ts",
     "supabase/functions/provision-commercial-demo-logins/index.ts",
     "supabase/functions/provision-commercial-demo-project-session/index.ts",
     "supabase/functions/scrape-restaurants/index.ts",
@@ -329863,7 +330018,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "0f99cb46417e"
+   "detailRef": "3ebd118a8390"
   },
   {
    "id": "integration:c20910a79a78",
@@ -337938,7 +338093,7 @@
    "id": "migration:7b40e7175d27",
    "type": "migration",
    "title": "20261012130000 Reservation Card Guarantees",
-   "description": "Migration SQL de 364 lignes, 12 objets CREATE détectés.",
+   "description": "Migration SQL de 368 lignes, 12 objets CREATE détectés.",
    "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
    "line": 1,
    "surface": null,
@@ -337946,7 +338101,21 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "b385c661b41f"
+   "detailRef": "78f2ff244fb2"
+  },
+  {
+   "id": "migration:321c054329a9",
+   "type": "migration",
+   "title": "20261012203000 Schedule Reservation Cancellation Fee Collection",
+   "description": "Migration SQL de 42 lignes, 0 objets CREATE détectés.",
+   "path": "supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "a6584df928a6"
   },
   {
    "id": "package-script:5bd6dc98483a",
@@ -339448,7 +339617,7 @@
     "/cgu",
     "stripe"
    ],
-   "detailRef": "a655950d3bcb"
+   "detailRef": "196598d9fbb2"
   },
   {
    "id": "page:ecb9c79ee3f1",
@@ -342705,7 +342874,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "2f4dd6061a11"
+   "detailRef": "4e0ea867b31e"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -347539,7 +347708,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "86a19e39ba93"
+   "detailRef": "a2f1ac2b9a69"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
