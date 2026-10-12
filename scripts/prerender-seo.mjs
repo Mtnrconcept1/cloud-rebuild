@@ -1437,7 +1437,7 @@ async function collectVerifiedCuisinesByRestaurant(supabase) {
       if (offset + CUISINE_LINK_BATCH_SIZE >= MAX_CUISINE_LINKS) break;
     }
   } catch (error) {
-    console.warn(`SEO cuisines: lecture impossible (${error?.message || error}).`);
+    console.warn(`SEO cuisines: lecture impossible (${formatSeoReadError(error)}).`);
   }
   return byRestaurant;
 }
@@ -1489,7 +1489,7 @@ async function collectDynamicRestaurantPages() {
 
     if (totalRestaurantCount !== null && totalRestaurantCount > MAX_DYNAMIC_RESTAURANTS) {
       console.warn(
-        `SEO restaurants: ${totalRestaurantCount} fiches actives détectées, mais la limite de pré-rendu est ${MAX_DYNAMIC_RESTAURANTS}. `
+        `SEO restaurants: ${totalRestaurantCount} fiches actives estimées, mais la limite de pré-rendu est ${MAX_DYNAMIC_RESTAURANTS}. `
           + "Augmentez SEO_SITEMAP_MAX_RESTAURANTS pour conserver une couverture exhaustive.",
       );
     }
@@ -1802,7 +1802,7 @@ async function collectDynamicActualitesPages() {
 
     if (totalActualitesCount !== null && totalActualitesCount > MAX_DYNAMIC_ACTUALITES) {
       console.warn(
-        `SEO actualités: ${totalActualitesCount} publications détectées, mais la limite de pré-rendu est ${MAX_DYNAMIC_ACTUALITES}. `
+        `SEO actualités: ${totalActualitesCount} publications estimées, mais la limite de pré-rendu est ${MAX_DYNAMIC_ACTUALITES}. `
           + "Augmentez SEO_SITEMAP_MAX_ACTUALITES pour conserver une couverture exhaustive.",
       );
     }
