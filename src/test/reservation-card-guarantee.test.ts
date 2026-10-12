@@ -210,7 +210,7 @@ describe("server-side reservation card guarantee invariants", () => {
   });
 
   it("requires explicit consent and shows the CHF total before continuing", () => {
-    expect(dialog).toContain("guaranteeQuote.required && guaranteeAccepted");
+    expect(dialog).toContain("guaranteeEnabled && guaranteeQuote?.required === true && guaranteeAccepted");
     expect(dialog).toContain("10 CHF par convive");
     expect(dialog).toContain("card");
     expect(dialog).toContain("isGuaranteeQuoteLoading");
