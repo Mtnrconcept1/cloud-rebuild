@@ -12,6 +12,7 @@ import {
   getFirstAvailablePaymentMethod,
   getGloballyEnabledPaymentMethods,
 } from "@/lib/paymentMethods";
+import { getEffectiveFeatureFlagSet } from "../../supabase/functions/_shared/feature-flags";
 
 function buildRows(overrides: Record<string, boolean>): FeatureFlagRow[] {
   return Object.entries(overrides).map(([name, isActive]) => ({
@@ -157,3 +158,52 @@ describe("payment helpers", () => {
   });
 });
 
+
+describe("Edge Function flags — delivery-only commandes", () => {
+  const resolveEdgeFlags = async (overrides: Record<string, boolean>) => {
+    const rows = Object.entries(overrides).map(([name, is_active]) => ({ name, is_active }));
+    return getEffectiveFeatureFlagSet({
+      from(table: string) {
+        if (table !== "feature_flags") throw new Error("Unexpected table");
+        return { select: async () => ({ data: rows, error: null }) };
+      },
+    });
+  };
+
+  it("does not treat pickup as a reason to enable delivery orders", async () => {
+    const active = await resolveEdgeFlags({
+      commandes: true,
+      livraison: false,
+      emporter: true,
+      reservation: true,
+      "sur-place": true,
+      "zero-attente": true,
+      "payment-card": true,
+      "payment-twint": true,
+    });
+
+    expect(active.has("commandes")).toBe(false);
+    expect(active.has("emporter")).toBe(true);
+    expect(active.has("reservation")).toBe(true);
+    expect(active.has("zero-attente")).toBe(true);
+    expect(active.has("payment-card")).toBe(true);
+    expect(active.has("payment-twint")).toBe(true);
+  });
+
+  it("allows delivery orders only when both delivery and commandes are enabled", async () => {
+    const enabled = await resolveEdgeFlags({ commandes: true, livraison: true, emporter: false });
+    const paused = await resolveEdgeFlags({ commandes: false, livraison: true, emporter: true });
+
+    expect(enabled.has("commandes")).toBe(true);
+    expect(enabled.has("emporter")).toBe(false);
+    expect(paused.has("commandes")).toBe(false);
+    expect(paused.has("emporter")).toBe(true);
+  });
+
+  it("fails closed if the remote flag read fails", async () => {
+    const adminClient = {
+      from: () => ({ select: async () => ({ data: null, error: { message: "feature_flags unavailable" } }) }),
+    };
+    await expect(getEffectiveFeatureFlagSet(adminClient)).rejects.toThrow("feature_flags unavailable");
+  });
+});

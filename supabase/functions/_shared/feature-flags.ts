@@ -20,7 +20,7 @@ const FEATURE_DEFINITIONS: Record<string, FeatureDefinition> = {
   emporter: { defaultEnabled: true },
   "sur-place": { defaultEnabled: true },
   reservation: { defaultEnabled: true },
-  commandes: { defaultEnabled: true, requiresAnyOf: ["livraison", "emporter"] },
+  commandes: { defaultEnabled: true, dependsOn: ["livraison"] },
   "anti-gaspi": { defaultEnabled: true, dependsOn: ["emporter"] },
   "ventes-flash": { defaultEnabled: true },
   "zero-attente": { defaultEnabled: true, dependsOn: ["reservation", "sur-place"] },

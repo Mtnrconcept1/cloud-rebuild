@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "38bb9bdbc0151e7cd5f0a110bccc4ed798d7b1a3af97da7aa385e4a539e2177a",
+ "sourceDigest": "b3937175160d54f038431e60b4957b9cf5c513985243fdb4e1e4da4c649f7ac3",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -14621,7 +14621,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 90
+      "line": 91
      },
      {
       "path": "src/test/notifications-sinistres-governance.test.ts",
@@ -14785,7 +14785,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 86
+      "line": 87
      }
     ]
    },
@@ -14847,7 +14847,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 87
+      "line": 88
      }
     ]
    },
@@ -15034,7 +15034,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 88
+      "line": 89
      }
     ]
    },
@@ -16822,7 +16822,7 @@
     "sources": [
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 77
+      "line": 78
      }
     ]
    },
@@ -16855,7 +16855,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 82
+      "line": 83
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -18087,7 +18087,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 78
+      "line": 79
      },
      {
       "path": "src/test/navigation.test.ts",
@@ -18773,7 +18773,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 76
+      "line": 77
      },
      {
       "path": "src/test/restaurant-dashboard-overview-navigation.test.ts",
@@ -18937,7 +18937,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 83
+      "line": 84
      }
     ]
    },
@@ -19096,7 +19096,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 84
+      "line": 85
      }
     ]
    },
@@ -19154,7 +19154,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 85
+      "line": 86
      }
     ]
    },
@@ -19381,7 +19381,7 @@
     "sources": [
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 106
+      "line": 107
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
@@ -22621,7 +22621,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 89
+      "line": 90
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
@@ -23806,7 +23806,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 91
+      "line": 92
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -102386,7 +102386,7 @@
      "supabase",
      "twint"
     ],
-    "lineCount": 160
+    "lineCount": 210
    },
    {
     "path": "src/test/feature-visibility.test.ts",
@@ -140042,7 +140042,7 @@
    "id": "code-module:8e347747b418",
    "type": "code-module",
    "title": "src/test/feature-flags.test.ts",
-   "description": "Module de 160 lignes; exports: aucun export statique.",
+   "description": "Module de 210 lignes; exports: aucun export statique.",
    "path": "src/test/feature-flags.test.ts",
    "line": 1,
    "surface": null,
@@ -140051,7 +140051,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "0057342e9675"
+   "detailRef": "191ff2fc2226"
   },
   {
    "id": "code-module:798293610b8e",
@@ -338300,7 +338300,7 @@
     "src/test/feature-flags.test.ts",
     "src/test/notifications-sinistres-governance.test.ts"
    ],
-   "detailRef": "177c75c9fc12"
+   "detailRef": "757ed5ae6d8a"
   },
   {
    "id": "path-literal:1e75a2497da9",
@@ -338398,7 +338398,7 @@
     "src/pages/admin/AdminComptaOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "4cf7525eaf69"
+   "detailRef": "de44055e81ef"
   },
   {
    "id": "path-literal:3acf611bfbe2",
@@ -338434,7 +338434,7 @@
     "src/pages/admin/AdminComptaOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "87ad8fcd9657"
+   "detailRef": "ad0495f9392f"
   },
   {
    "id": "path-literal:361008cba629",
@@ -338575,7 +338575,7 @@
     "src/test/admin-mobile-navigation.test.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "0d87e73643a7"
+   "detailRef": "fbaa4b96cc61"
   },
   {
    "id": "path-literal:8d302745f8f8",
@@ -339726,17 +339726,17 @@
    "detailRef": "cdaba9c37e54"
   },
   {
-   "id": "path-literal:7cd8b37104a6",
+   "id": "path-literal:b338c78bd5ce",
    "type": "path-literal",
    "title": "/commande/abc-123",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/feature-flags.test.ts",
-   "line": 77,
+   "line": 78,
    "surface": null,
    "tags": [
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "08dc4cd8aaef"
+   "detailRef": "aa650ba5b832"
   },
   {
    "id": "path-literal:8c0b2484c0ad",
@@ -339758,7 +339758,7 @@
     "src/test/security-url-helpers.test.ts",
     "src/test/stripe-return.test.ts"
    ],
-   "detailRef": "41d5990dc3ae"
+   "detailRef": "c1964c654cc2"
   },
   {
    "id": "path-literal:2f80fcd74d96",
@@ -340313,7 +340313,7 @@
     "src/test/navigation.test.ts",
     "supabase/functions/dispatch-order/index.ts"
    ],
-   "detailRef": "f31f9be87e17"
+   "detailRef": "ef993c68aefe"
   },
   {
    "id": "path-literal:b442b5bc4279",
@@ -340562,7 +340562,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "941ffbe7125a"
+   "detailRef": "82b0f7b630c8"
   },
   {
    "id": "path-literal:98441ce078ff",
@@ -340638,7 +340638,7 @@
     "src/lib/featureCatalog.ts",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "50a42ac8b4c2"
+   "detailRef": "839a584cc662"
   },
   {
    "id": "path-literal:90131fc48ece",
@@ -340725,7 +340725,7 @@
     "src/pages/dashboard/DashboardFacturesOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "97bbfb112827"
+   "detailRef": "8e290f7fcdc4"
   },
   {
    "id": "path-literal:dd7c3a826d77",
@@ -340760,7 +340760,7 @@
     "src/pages/dashboard/DashboardFacturesOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "f5fae356e177"
+   "detailRef": "f8942a3c094c"
   },
   {
    "id": "path-literal:9083402a7e1e",
@@ -340898,18 +340898,18 @@
    "detailRef": "05ed9e6df0d6"
   },
   {
-   "id": "path-literal:cef8313b32c0",
+   "id": "path-literal:e2a2a3d765a3",
    "type": "path-literal",
    "title": "/dashboard/pack",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/feature-flags.test.ts",
-   "line": 106,
+   "line": 107,
    "surface": null,
    "tags": [
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "3e875e0ca792"
+   "detailRef": "f00d50f58bcb"
   },
   {
    "id": "path-literal:272c2aa15b3e",
@@ -344049,7 +344049,7 @@
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "d04a329941e0"
+   "detailRef": "5441afeb0124"
   },
   {
    "id": "path-literal:c76dba69accc",
@@ -344552,7 +344552,7 @@
     "src/test/feature-flags.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "6c8c791d195f"
+   "detailRef": "ce80ed993e04"
   },
   {
    "id": "path-literal:f7202580b828",
