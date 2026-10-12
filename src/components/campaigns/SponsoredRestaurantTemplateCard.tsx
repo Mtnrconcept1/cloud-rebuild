@@ -196,24 +196,24 @@ export function SponsoredRestaurantTemplateCard({
         className={cn(
           "ad-banner-spotlight [container-type:inline-size] [container-name:sponsored-banner] group relative isolate w-full overflow-hidden rounded-[28px] border border-[#ffe0a2] bg-[#fffdf9] shadow-[0_18px_52px_rgba(138,77,22,0.14)] transition-shadow duration-300 hover:shadow-[0_24px_65px_rgba(249,115,22,0.21)] dark:border-amber-800/50 dark:bg-slate-900",
           "dark:[--sponsored-heading:#f8fafc] dark:[--sponsored-body:#e2e8f0] dark:[--sponsored-muted:#cbd5e1]",
-          compactBanner ? "min-h-[268px]" : "min-h-[260px]",
+          compactBanner ? "[@container_sponsored-banner_(min-width:48rem)]:min-h-[268px]" : "[@container_sponsored-banner_(min-width:48rem)]:min-h-[260px]",
           className,
         )}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_13%_15%,rgba(255,255,255,1),transparent_63%),linear-gradient(110deg,#fffdfa_0%,#fff8ed_68%,#ffebce_100%)] dark:bg-[linear-gradient(110deg,#0f172a_0%,#1e293b_67%,#7c2d12_100%)]" />
-        <div className="relative grid grid-cols-1 [@container_sponsored-banner_(min-width:48rem)]:grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:grid-rows-1">
+        <div className="relative grid aspect-[2.05/1] grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:aspect-auto [@container_sponsored-banner_(min-width:48rem)]:grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:grid-rows-1">
           <div
             className={cn(
-              "relative z-20 order-2 flex min-w-0 flex-col px-5 pb-5 pt-5 [@container_sponsored-banner_(min-width:40rem)]:px-7 [@container_sponsored-banner_(min-width:48rem)]:order-1 [@container_sponsored-banner_(min-width:48rem)]:justify-center [@container_sponsored-banner_(min-width:48rem)]:py-7 [@container_sponsored-banner_(min-width:48rem)]:pl-7 [@container_sponsored-banner_(min-width:48rem)]:pr-5 [@container_sponsored-banner_(min-width:72rem)]:py-8 [@container_sponsored-banner_(min-width:72rem)]:pl-10 [@container_sponsored-banner_(min-width:72rem)]:pr-7",
+              "relative z-20 order-1 flex min-w-0 flex-col justify-center px-2 py-2 [@container_sponsored-banner_(min-width:40rem)]:px-7 [@container_sponsored-banner_(min-width:48rem)]:order-1 [@container_sponsored-banner_(min-width:48rem)]:justify-center [@container_sponsored-banner_(min-width:48rem)]:py-7 [@container_sponsored-banner_(min-width:48rem)]:pl-7 [@container_sponsored-banner_(min-width:48rem)]:pr-5 [@container_sponsored-banner_(min-width:72rem)]:py-8 [@container_sponsored-banner_(min-width:72rem)]:pl-10 [@container_sponsored-banner_(min-width:72rem)]:pr-7",
               compactBanner && "[@container_sponsored-banner_(min-width:48rem)]:py-5",
             )}
           >
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-1 [@container_sponsored-banner_(min-width:48rem)]:gap-2">
               <span
-                className={cn("inline-flex min-w-0 max-w-full items-center gap-2 rounded-full bg-gradient-to-r from-[#ff710b] to-[#f95b08] px-3.5 py-2 text-[10px] uppercase leading-snug tracking-[0.14em] text-white shadow-[0_8px_18px_rgba(249,115,22,0.16)] [overflow-wrap:anywhere] [@container_sponsored-banner_(min-width:64rem)]:px-4 [@container_sponsored-banner_(min-width:64rem)]:text-xs", getTypographyClass(normalized.text.badge))}
+                className={cn("inline-flex min-w-0 max-w-full items-center gap-1 rounded-full bg-gradient-to-r from-[#ff710b] to-[#f95b08] px-1.5 py-1 text-[clamp(7px,2cqw,10px)] uppercase leading-snug tracking-[0.14em] text-white shadow-[0_8px_18px_rgba(249,115,22,0.16)] [overflow-wrap:anywhere] [@container_sponsored-banner_(min-width:64rem)]:px-4 [@container_sponsored-banner_(min-width:64rem)]:text-xs", getTypographyClass(normalized.text.badge))}
                 style={getTextInlineStyle(normalized.text.badge)}
               >
-                <Megaphone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <Megaphone className="h-3 w-3 shrink-0 [@container_sponsored-banner_(min-width:48rem)]:h-4 [@container_sponsored-banner_(min-width:48rem)]:w-4" aria-hidden="true" />
                 <span className="min-w-0 break-words">{displayBadge}</span>
               </span>
               {showSecondaryBadge ? (
@@ -227,7 +227,7 @@ export function SponsoredRestaurantTemplateCard({
               ) : null}
             </div>
 
-            <div className="mt-4 min-w-0 [@container_sponsored-banner_(min-width:64rem)]:mt-5">
+            <div className="mt-1 min-w-0 [@container_sponsored-banner_(min-width:48rem)]:mt-4 [@container_sponsored-banner_(min-width:64rem)]:mt-5">
               <p
                 className={cn("break-words text-[10px] uppercase leading-5 tracking-[0.23em] text-slate-500 [overflow-wrap:anywhere] [@container_sponsored-banner_(min-width:64rem)]:text-xs dark:text-slate-300", getTypographyClass(normalized.text.eyebrow))}
                 style={getTextInlineStyle(normalized.text.eyebrow)}
@@ -236,7 +236,7 @@ export function SponsoredRestaurantTemplateCard({
               </p>
               <h3
                 className={cn(
-                  "mt-1.5 break-words text-[clamp(1.65rem,4.9cqw,3.2rem)] leading-[1.08] tracking-[-0.035em] [overflow-wrap:anywhere] [text-wrap:balance]",
+                  "mt-1 break-words text-[clamp(0.85rem,4.9cqw,1.65rem)] [@container_sponsored-banner_(min-width:48rem)]:text-[clamp(1.65rem,4.9cqw,3.2rem)] leading-[1.08] tracking-[-0.035em] [overflow-wrap:anywhere] [text-wrap:balance]",
                   getTypographyClass(normalized.text.restaurant),
                 )}
                 style={{
@@ -249,14 +249,14 @@ export function SponsoredRestaurantTemplateCard({
                 {displayRestaurantName}
               </h3>
               <p
-                className={cn("mt-1.5 break-words text-[clamp(1.1rem,2.9cqw,1.9rem)] leading-tight [overflow-wrap:anywhere]", getTypographyClass(normalized.text.tagline))}
+                className={cn("mt-0.5 break-words text-[clamp(0.65rem,2.9cqw,1.9rem)] leading-tight [overflow-wrap:anywhere]", getTypographyClass(normalized.text.tagline))}
                 style={getTextInlineStyle(normalized.text.tagline)}
               >
                 {displayTagline}
               </p>
               {displayAddressCopy || displayCity ? (
                 <p
-                  className={cn("mt-3 flex min-w-0 items-start gap-2 text-[13px] leading-5 [@container_sponsored-banner_(min-width:64rem)]:text-sm", getTypographyClass(normalized.text.address))}
+                  className={cn("mt-3 hidden min-w-0 items-start [@container_sponsored-banner_(min-width:48rem)]:flex gap-2 text-[13px] leading-5 [@container_sponsored-banner_(min-width:64rem)]:text-sm", getTypographyClass(normalized.text.address))}
                   style={getTextInlineStyle(normalized.text.address)}
                 >
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#ff710b]" aria-hidden="true" />
@@ -265,7 +265,7 @@ export function SponsoredRestaurantTemplateCard({
               ) : null}
             </div>
 
-            <div className="mt-4 rounded-[21px] border border-[#f9d994] bg-white/75 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] [@container_sponsored-banner_(min-width:64rem)]:p-3.5 dark:border-amber-800/45 dark:bg-slate-800/75">
+            <div className="mt-4 hidden [@container_sponsored-banner_(min-width:48rem)]:block rounded-[21px] border border-[#f9d994] bg-white/75 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] [@container_sponsored-banner_(min-width:64rem)]:p-3.5 dark:border-amber-800/45 dark:bg-slate-800/75">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#fff0e4] via-[#fff8ed] to-[#fff1bd] text-[#f76b13] shadow-[0_8px_18px_rgba(249,115,22,0.12)]" aria-hidden="true">
                   <Sparkles className="h-5 w-5" />
@@ -279,7 +279,7 @@ export function SponsoredRestaurantTemplateCard({
             <div
               data-sponsored-banner-seal
               className={cn(
-                "mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[10px] leading-snug text-[#d65a08] dark:text-orange-300",
+                "mt-2 hidden min-w-0 flex-wrap items-center [@container_sponsored-banner_(min-width:48rem)]:flex gap-x-2 gap-y-1 text-[10px] leading-snug text-[#d65a08] dark:text-orange-300",
                 isDefaultSeal && "hidden",
               )}
             >
@@ -290,18 +290,18 @@ export function SponsoredRestaurantTemplateCard({
 
             <div
               data-sponsored-banner-cta
-              className="mt-4 flex min-h-12 min-w-0 items-center justify-center gap-3 rounded-[18px] bg-gradient-to-r from-[#ff710b] to-[#ef4e08] px-4 py-3 text-center text-base font-bold text-white shadow-[0_10px_24px_rgba(249,115,22,0.22)] transition-[filter,transform] duration-200 group-hover:brightness-105 group-active:scale-[0.99] [@container_sponsored-banner_(min-width:64rem)]:min-h-14 [@container_sponsored-banner_(min-width:64rem)]:text-lg"
+              className="mt-1 flex min-h-0 min-w-0 items-center justify-center gap-1 rounded-[12px] [@container_sponsored-banner_(min-width:48rem)]:mt-4 [@container_sponsored-banner_(min-width:48rem)]:min-h-12 [@container_sponsored-banner_(min-width:48rem)]:gap-3 [@container_sponsored-banner_(min-width:48rem)]:rounded-[18px] bg-gradient-to-r from-[#ff710b] to-[#ef4e08] px-1.5 py-1 text-center text-[clamp(8px,2.6cqw,16px)] font-bold text-white [@container_sponsored-banner_(min-width:48rem)]:px-4 [@container_sponsored-banner_(min-width:48rem)]:py-3 shadow-[0_10px_24px_rgba(249,115,22,0.22)] transition-[filter,transform] duration-200 group-hover:brightness-105 group-active:scale-[0.99] [@container_sponsored-banner_(min-width:64rem)]:min-h-14 [@container_sponsored-banner_(min-width:64rem)]:text-lg"
             >
               <span className={cn("min-w-0 break-words leading-snug [overflow-wrap:anywhere]", getTypographyClass(normalized.text.cta))} style={normalized.text.cta.color === "#ffffff" ? undefined : getTextInlineStyle(normalized.text.cta)}>{displayCta}</span>
-              <ArrowRight className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <ArrowRight className="h-3 w-3 shrink-0 [@container_sponsored-banner_(min-width:48rem)]:h-5 [@container_sponsored-banner_(min-width:48rem)]:w-5" aria-hidden="true" />
             </div>
           </div>
 
-          <div className="relative z-10 order-1 min-h-[200px] [@container_sponsored-banner_(min-width:48rem)]:order-2 [@container_sponsored-banner_(min-width:48rem)]:min-h-0">
+          <div className="relative z-10 order-2 min-h-0 [@container_sponsored-banner_(min-width:48rem)]:order-2 [@container_sponsored-banner_(min-width:48rem)]:min-h-0">
             <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-b from-[#ffac4b] via-[#ff7915] to-[#ff9b34] [clip-path:ellipse(97%_120%_at_100%_50%)] [@container_sponsored-banner_(min-width:48rem)]:block" />
             <div
               data-sponsored-banner-media
-              className="absolute inset-0 overflow-hidden rounded-t-[27px] bg-[#fff4e5] [@container_sponsored-banner_(min-width:48rem)]:left-3 [@container_sponsored-banner_(min-width:48rem)]:rounded-none [@container_sponsored-banner_(min-width:48rem)]:[clip-path:ellipse(97%_120%_at_100%_50%)] dark:bg-slate-900"
+              className="absolute inset-0 overflow-hidden rounded-r-[27px] bg-[#fff4e5] [@container_sponsored-banner_(min-width:48rem)]:left-3 [@container_sponsored-banner_(min-width:48rem)]:rounded-none [@container_sponsored-banner_(min-width:48rem)]:[clip-path:ellipse(97%_120%_at_100%_50%)] dark:bg-slate-900"
             >
               <img
                 src={imageUrl || DEFAULT_IMAGE}
