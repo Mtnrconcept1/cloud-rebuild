@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "154726aefd402a0d94cc901971eb4d77565691bb015e7680cd5a4ff11b6dee4f",
+ "sourceDigest": "2106f50f65600a97f6ea20916d9993f0620e0e9e7ad5f0212419ba8f52ec17db",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -20,12 +20,12 @@
   "migrations": 528,
   "modules": 1506,
   "pages": 128,
-  "pathLiterals": 648,
+  "pathLiterals": 650,
   "publicAssets": 462,
   "publicEntries": 487,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16154,
+  "records": 16156,
   "repositoryFiles": 2986,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -16165,7 +16165,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 104
+      "line": 123
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -16951,7 +16951,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 86
+      "line": 94
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -16979,7 +16979,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 659
+      "line": 668
      },
      {
       "path": "src/pages/Panier.tsx",
@@ -16999,7 +16999,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 63
+      "line": 78
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -20266,16 +20266,17 @@
     ]
    },
    {
-    "value": "/desig%20app/tok-ch-ju.webp",
+    "value": "/desig%20app/tok-ch-ge.webp",
     "sources": [
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 43
-     },
-     {
-      "path": "src/test/home-hero-search.test.tsx",
-      "line": 44
-     },
+      "line": 51
+     }
+    ]
+   },
+   {
+    "value": "/desig%20app/tok-ch-ju.webp",
+    "sources": [
      {
       "path": "src/test/home-hero-search.test.tsx",
       "line": 45
@@ -20287,7 +20288,7 @@
     "sources": [
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 51
+      "line": 66
      }
     ]
    },
@@ -20483,7 +20484,7 @@
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 39
+      "line": 56
      }
     ]
    },
@@ -20509,7 +20510,7 @@
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 38
+      "line": 55
      }
     ]
    },
@@ -21522,24 +21523,11 @@
     ]
    },
    {
-    "value": "/images/home/tok-geneve-desktop.webp",
-    "sources": [
-     {
-      "path": "src/components/home/HeroSection.tsx",
-      "line": 91
-     }
-    ]
-   },
-   {
     "value": "/images/home/tok-geneve-mobile-fast.webp",
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 92
-     },
-     {
-      "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 15
+      "line": 101
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
@@ -21552,11 +21540,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 93
-     },
-     {
-      "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 16
+      "line": 104
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
@@ -21564,7 +21548,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 54
+      "line": 69
      }
     ]
    },
@@ -21660,7 +21644,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 717
+      "line": 726
      },
      {
       "path": "src/pages/MatchGroupes.tsx",
@@ -22556,7 +22540,7 @@
     "sources": [
      {
       "path": "src/components/home/SectionShowcaseHeader.tsx",
-      "line": 51
+      "line": 55
      }
     ]
    },
@@ -22564,17 +22548,22 @@
     "value": "/images/section-headers/tok-editorial-cuisine-full.jpg",
     "sources": [
      {
-      "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 120
-     },
-     {
       "path": "src/test/home-section-showcase-header.test.tsx",
       "line": 62
      }
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-delivery-full.jpg",
+    "value": "/images/section-headers/tok-editorial-cuisine-optimized.webp",
+    "sources": [
+     {
+      "path": "src/components/home/CuisineCategoryStrip.tsx",
+      "line": 120
+     }
+    ]
+   },
+   {
+    "value": "/images/section-headers/tok-editorial-delivery-optimized.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -22583,7 +22572,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-evening-full.jpg",
+    "value": "/images/section-headers/tok-editorial-evening-optimized.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -22592,7 +22581,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-feast-full.jpg",
+    "value": "/images/section-headers/tok-editorial-feast-optimized.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -22601,7 +22590,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
+    "value": "/images/section-headers/tok-editorial-gastronomy-optimized.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -22613,14 +22602,6 @@
     "value": "/images/section-headers/tok-editorial-geneva-full.jpg",
     "sources": [
      {
-      "path": "src/pages/Index.tsx",
-      "line": 58
-     },
-     {
-      "path": "src/pages/Index.tsx",
-      "line": 64
-     },
-     {
       "path": "src/test/home-section-showcase-header.test.tsx",
       "line": 33
      },
@@ -22631,7 +22612,20 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-reservation-full.jpg",
+    "value": "/images/section-headers/tok-editorial-geneva-optimized.webp",
+    "sources": [
+     {
+      "path": "src/pages/Index.tsx",
+      "line": 58
+     },
+     {
+      "path": "src/pages/Index.tsx",
+      "line": 64
+     }
+    ]
+   },
+   {
+    "value": "/images/section-headers/tok-editorial-reservation-optimized.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -22640,7 +22634,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-rewards-full.jpg",
+    "value": "/images/section-headers/tok-editorial-rewards-optimized.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -24093,7 +24087,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 612
+      "line": 615
      },
      {
       "path": "src/pages/MultiRestaurant.tsx",
@@ -24464,7 +24458,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 837
+      "line": 846
      }
     ]
    },
@@ -24490,7 +24484,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 626
+      "line": 629
      }
     ]
    },
@@ -24661,11 +24655,11 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 83
+      "line": 91
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 85
+      "line": 93
      },
      {
       "path": "src/components/home/RestaurantSection.tsx",
@@ -24805,11 +24799,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 77
+      "line": 92
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 84
+      "line": 99
      },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
@@ -26177,7 +26171,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 99
+      "line": 118
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -26209,7 +26203,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 70
+      "line": 85
      },
      {
       "path": "src/test/marketing-legacy-landing.test.ts",
@@ -27607,7 +27601,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 84
+      "line": 92
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -27643,7 +27637,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 62
+      "line": 77
      },
      {
       "path": "src/test/navbar-action-stability.test.ts",
@@ -27896,11 +27890,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 79
+      "line": 94
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 93
+      "line": 108
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
@@ -28926,11 +28920,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 78
+      "line": 93
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 94
+      "line": 109
      }
     ],
     "routes": [
@@ -82463,7 +82457,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 231
+    "lineCount": 235
    },
    {
     "path": "src/components/MenuItemCard.tsx",
@@ -82580,7 +82574,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 100
+    "lineCount": 104
    },
    {
     "path": "src/components/PromoCodeInput.tsx",
@@ -84435,7 +84429,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 181
+    "lineCount": 183
    },
    {
     "path": "src/components/home/FeaturesSection.tsx",
@@ -84476,7 +84470,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 131
+    "lineCount": 150
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -84516,13 +84510,13 @@
      },
      {
       "name": "default",
-      "line": 33,
+      "line": 35,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 101
+    "lineCount": 106
    },
    {
     "path": "src/components/home/SolidaritySection.tsx",
@@ -99134,7 +99128,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 1002
+    "lineCount": 1011
    },
    {
     "path": "src/pages/LocalRestaurants.tsx",
@@ -103173,7 +103167,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 74
+    "lineCount": 91
    },
    {
     "path": "src/test/home-cuisine-accessibility.test.tsx",
@@ -103187,7 +103181,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 104
+    "lineCount": 119
    },
    {
     "path": "src/test/home-mobile-newsletter.test.tsx",
@@ -128094,7 +128088,7 @@
    "id": "code-module:064c6a7622b0",
    "type": "code-module",
    "title": "src/components/LoyaltyStatus.tsx",
-   "description": "Module de 231 lignes; exports: default.",
+   "description": "Module de 235 lignes; exports: default.",
    "path": "src/components/LoyaltyStatus.tsx",
    "line": 1,
    "surface": null,
@@ -128102,7 +128096,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "b231c3426e30"
+   "detailRef": "18749ab49c06"
   },
   {
    "id": "code-module:51ac53e03675",
@@ -128212,14 +128206,14 @@
    "id": "code-module:83f47322c63e",
    "type": "code-module",
    "title": "src/components/PromoCarousel.tsx",
-   "description": "Module de 100 lignes; exports: default.",
+   "description": "Module de 104 lignes; exports: default.",
    "path": "src/components/PromoCarousel.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "6554de52f996"
+   "detailRef": "38a9059b1683"
   },
   {
    "id": "code-module:655c9f7a7790",
@@ -129699,14 +129693,14 @@
    "id": "code-module:a586b6706f43",
    "type": "code-module",
    "title": "src/components/home/CuisineCategoryStrip.tsx",
-   "description": "Module de 181 lignes; exports: default.",
+   "description": "Module de 183 lignes; exports: default.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "6f67ce55fd83"
+   "detailRef": "e978b91c889c"
   },
   {
    "id": "code-module:1ce158045d40",
@@ -129739,14 +129733,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 131 lignes; exports: default.",
+   "description": "Module de 150 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "7f24d15babc3"
+   "detailRef": "81d1334e836e"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -129779,7 +129773,7 @@
    "id": "code-module:cefe66a55dad",
    "type": "code-module",
    "title": "src/components/home/SectionShowcaseHeader.tsx",
-   "description": "Module de 101 lignes; exports: SectionHeaderTheme, default.",
+   "description": "Module de 106 lignes; exports: SectionHeaderTheme, default.",
    "path": "src/components/home/SectionShowcaseHeader.tsx",
    "line": 1,
    "surface": null,
@@ -129787,7 +129781,7 @@
     "SectionHeaderTheme",
     "default"
    ],
-   "detailRef": "a09aa8313213"
+   "detailRef": "1f1654925dc7"
   },
   {
    "id": "code-module:9ef57ffb1c0d",
@@ -136838,7 +136832,7 @@
    "id": "code-module:8d761926e269",
    "type": "code-module",
    "title": "src/pages/Index.tsx",
-   "description": "Module de 1002 lignes; exports: default.",
+   "description": "Module de 1011 lignes; exports: default.",
    "path": "src/pages/Index.tsx",
    "line": 1,
    "surface": null,
@@ -136846,7 +136840,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "d132cb50e199"
+   "detailRef": "5b9dcaaf7643"
   },
   {
    "id": "code-module:d39f2c12cbfd",
@@ -141425,14 +141419,14 @@
    "id": "code-module:e91250480351",
    "type": "code-module",
    "title": "src/test/home-core-web-vitals.test.ts",
-   "description": "Module de 74 lignes; exports: aucun export statique.",
+   "description": "Module de 91 lignes; exports: aucun export statique.",
    "path": "src/test/home-core-web-vitals.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "74b31b75ef93"
+   "detailRef": "6bcb00950e9a"
   },
   {
    "id": "code-module:b8f0d2b164b6",
@@ -141449,12 +141443,12 @@
    "id": "code-module:a714f68588b7",
    "type": "code-module",
    "title": "src/test/home-hero-search.test.tsx",
-   "description": "Module de 104 lignes; exports: aucun export statique.",
+   "description": "Module de 119 lignes; exports: aucun export statique.",
    "path": "src/test/home-hero-search.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "45725c6d6f24"
+   "detailRef": "b5c77e389a44"
   },
   {
    "id": "code-module:d67b9bd34728",
@@ -261940,17 +261934,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:c7c1c395f38d",
+   "id": "exported-symbol:6b32243ddcff",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/SectionShowcaseHeader.tsx.",
    "path": "src/components/home/SectionShowcaseHeader.tsx",
-   "line": 33,
+   "line": 35,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "c77ff8620583"
+   "detailRef": "700e13046dca"
   },
   {
    "id": "exported-symbol:98328a933ca9",
@@ -341629,7 +341623,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "4630249b0445"
+   "detailRef": "3bc1ac599e61"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -341925,7 +341919,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "4de9c70ccdf1"
+   "detailRef": "b5bd5a88fb6b"
   },
   {
    "id": "path-literal:4fb16aa3df8b",
@@ -343585,22 +343579,9 @@
    "detailRef": "3825809d0730"
   },
   {
-   "id": "path-literal:f843691d54f0",
+   "id": "path-literal:889962554f4b",
    "type": "path-literal",
-   "title": "/desig%20app/tok-ch-ju.webp",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/home-hero-search.test.tsx",
-   "line": 43,
-   "surface": null,
-   "tags": [
-    "src/test/home-hero-search.test.tsx"
-   ],
-   "detailRef": "84aaaba7ad69"
-  },
-  {
-   "id": "path-literal:2396a4e40c12",
-   "type": "path-literal",
-   "title": "/desig%20app/tok-ch-vd.webp",
+   "title": "/desig%20app/tok-ch-ge.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/home-hero-search.test.tsx",
    "line": 51,
@@ -343608,7 +343589,33 @@
    "tags": [
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "bf888cc9c616"
+   "detailRef": "b3e53edafafa"
+  },
+  {
+   "id": "path-literal:156c6fe1adb4",
+   "type": "path-literal",
+   "title": "/desig%20app/tok-ch-ju.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/home-hero-search.test.tsx",
+   "line": 45,
+   "surface": null,
+   "tags": [
+    "src/test/home-hero-search.test.tsx"
+   ],
+   "detailRef": "fc52ca1e378f"
+  },
+  {
+   "id": "path-literal:6fc634a86134",
+   "type": "path-literal",
+   "title": "/desig%20app/tok-ch-vd.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/home-hero-search.test.tsx",
+   "line": 66,
+   "surface": null,
+   "tags": [
+    "src/test/home-hero-search.test.tsx"
+   ],
+   "detailRef": "7952a5bafee2"
   },
   {
    "id": "path-literal:2c32550db633",
@@ -343729,7 +343736,7 @@
     "src/hooks/useTokLogo.ts",
     "src/test/home-core-web-vitals.test.ts"
    ],
-   "detailRef": "45ef91170025"
+   "detailRef": "e10fc5c3b97b"
   },
   {
    "id": "path-literal:b584574f88b2",
@@ -343756,7 +343763,7 @@
     "src/hooks/useTokLogo.ts",
     "src/test/home-core-web-vitals.test.ts"
    ],
-   "detailRef": "2498d47a83a1"
+   "detailRef": "45bda81e6b0d"
   },
   {
    "id": "path-literal:13b6127784de",
@@ -344836,47 +344843,32 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:693c415f6a85",
-   "type": "path-literal",
-   "title": "/images/home/tok-geneve-desktop.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/HeroSection.tsx",
-   "line": 91,
-   "surface": null,
-   "tags": [
-    "src/components/home/HeroSection.tsx"
-   ],
-   "detailRef": "540893d43c59"
-  },
-  {
-   "id": "path-literal:db022c8a4906",
+   "id": "path-literal:bb60ebe59e42",
    "type": "path-literal",
    "title": "/images/home/tok-geneve-mobile-fast.webp",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 92,
+   "line": 101,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx",
-    "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "6437579a4472"
+   "detailRef": "4c3cd70915f6"
   },
   {
-   "id": "path-literal:f1f911a4ab9c",
+   "id": "path-literal:49dc96e0d9cf",
    "type": "path-literal",
    "title": "/images/home/tok-leman-signature-fast.webp",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 93,
+   "line": 104,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx",
-    "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "161c2ac20d99"
+   "detailRef": "caa2af484a61"
   },
   {
    "id": "path-literal:638981aff331",
@@ -344946,7 +344938,7 @@
     "src/pages/admin/AdminRestaurants.tsx",
     "src/test/optimized-images.test.ts"
    ],
-   "detailRef": "acbfab2b6ce7"
+   "detailRef": "8e84bbcc396e"
   },
   {
    "id": "path-literal:ecd720b69356",
@@ -345851,36 +345843,48 @@
    "detailRef": "0e27b28545ec"
   },
   {
-   "id": "path-literal:449434e25bbf",
+   "id": "path-literal:a426ec9139b3",
    "type": "path-literal",
    "title": "/images/section-headers/tok-editorial-",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/SectionShowcaseHeader.tsx",
-   "line": 51,
+   "line": 55,
    "surface": null,
    "tags": [
     "src/components/home/SectionShowcaseHeader.tsx"
    ],
-   "detailRef": "7ef2b2d0761c"
+   "detailRef": "c3597cdde9ff"
   },
   {
-   "id": "path-literal:e955970e8a4a",
+   "id": "path-literal:02c83b5f08e3",
    "type": "path-literal",
    "title": "/images/section-headers/tok-editorial-cuisine-full.jpg",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/home-section-showcase-header.test.tsx",
+   "line": 62,
+   "surface": null,
+   "tags": [
+    "src/test/home-section-showcase-header.test.tsx"
+   ],
+   "detailRef": "d681b2d8805f"
+  },
+  {
+   "id": "path-literal:97db896fcfa7",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-cuisine-optimized.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 120,
    "surface": null,
    "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx",
-    "src/test/home-section-showcase-header.test.tsx"
+    "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "0435669213b4"
+   "detailRef": "4e217c3e2616"
   },
   {
-   "id": "path-literal:c192985cf97d",
+   "id": "path-literal:6bce360d22e9",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-delivery-full.jpg",
+   "title": "/images/section-headers/tok-editorial-delivery-optimized.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 62,
@@ -345888,12 +345892,12 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "69ef75c95cef"
+   "detailRef": "cca464027c04"
   },
   {
-   "id": "path-literal:63ac9565fe78",
+   "id": "path-literal:8ae66376f1b8",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-evening-full.jpg",
+   "title": "/images/section-headers/tok-editorial-evening-optimized.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 63,
@@ -345901,12 +345905,12 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "63d468d6bb88"
+   "detailRef": "71f6b0d59f89"
   },
   {
-   "id": "path-literal:ee94ef7aee08",
+   "id": "path-literal:4b66b5dd35c0",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-feast-full.jpg",
+   "title": "/images/section-headers/tok-editorial-feast-optimized.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 59,
@@ -345914,12 +345918,12 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "e9f1f0ba1eb6"
+   "detailRef": "9abf331f5e67"
   },
   {
-   "id": "path-literal:c086202c19e1",
+   "id": "path-literal:5de8459f8f6c",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
+   "title": "/images/section-headers/tok-editorial-gastronomy-optimized.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 61,
@@ -345927,26 +345931,38 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "7ec1fdb55f8b"
+   "detailRef": "17f8674324b5"
   },
   {
-   "id": "path-literal:009a8bc72fdb",
+   "id": "path-literal:e17d513c27f1",
    "type": "path-literal",
    "title": "/images/section-headers/tok-editorial-geneva-full.jpg",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/home-section-showcase-header.test.tsx",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "src/test/home-section-showcase-header.test.tsx"
+   ],
+   "detailRef": "9f4bef683352"
+  },
+  {
+   "id": "path-literal:56785c6ae0fd",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-geneva-optimized.webp",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 58,
    "surface": null,
    "tags": [
-    "src/pages/Index.tsx",
-    "src/test/home-section-showcase-header.test.tsx"
+    "src/pages/Index.tsx"
    ],
-   "detailRef": "8bcda8ca4fa1"
+   "detailRef": "c92bf8499685"
   },
   {
-   "id": "path-literal:4c2a34a00c35",
+   "id": "path-literal:a792cc18421b",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-reservation-full.jpg",
+   "title": "/images/section-headers/tok-editorial-reservation-optimized.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 60,
@@ -345954,12 +345970,12 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "858e436c66be"
+   "detailRef": "45301d513d09"
   },
   {
-   "id": "path-literal:24fe35163e62",
+   "id": "path-literal:2abf83bb3bf4",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-rewards-full.jpg",
+   "title": "/images/section-headers/tok-editorial-rewards-optimized.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 57,
@@ -345967,7 +345983,7 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "c648999d87ec"
+   "detailRef": "ff6987695e8b"
   },
   {
    "id": "path-literal:71dec4dbed86",
@@ -346834,7 +346850,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "e6504e6c8af9"
+   "detailRef": "efadd9acb7ca"
   },
   {
    "id": "path-literal:f0ef50bf980c",
@@ -347025,7 +347041,7 @@
     "src/pages/ClientDashboardHome.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "379869bc74ab"
+   "detailRef": "97480d8161d8"
   },
   {
    "id": "path-literal:8a35ee0b46e4",
@@ -347053,7 +347069,7 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "d290c3f75ce7"
+   "detailRef": "2d64d47af08c"
   },
   {
    "id": "path-literal:1f7d4d48ee1e",
@@ -347192,7 +347208,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "41b8aba02400"
+   "detailRef": "a13935b2ac5b"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -348478,7 +348494,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "0ffe7555c003"
+   "detailRef": "ff9bcaae07ea"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -349670,7 +349686,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "01aafb38352e"
+   "detailRef": "4ee6b932f4ca"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -356537,7 +356553,7 @@
     "src/test/home-hero-search.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "7105527b86ed"
+   "detailRef": "0590e27d6b5d"
   },
   {
    "id": "query-parameter:97c42c624f4b",
@@ -357389,7 +357405,7 @@
     "src/pages/Recherche.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "b6e33090e840"
+   "detailRef": "7813d04e6126"
   },
   {
    "id": "query-parameter:1969b37dad55",

@@ -7,23 +7,40 @@ const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 const assetSize = (path: string) => statSync(resolve(root, "public", path)).size;
 
 describe("TOK homepage Core Web Vitals safeguards", () => {
-  it("discovers the matching responsive hero photo directly in the initial HTML", () => {
+  it("does not preload competing generic images when a canton is available", () => {
     const html = read("index.html");
     const hero = read("src/components/home/HeroSection.tsx");
-
-    for (const [path, media] of [
-      ["/images/home/tok-geneve-mobile-fast.webp", "(max-width: 767px)"],
-      ["/images/home/tok-leman-signature-fast.webp", "(min-width: 768px)"],
-    ]) {
-      expect(html).toContain(`href="${path}"`);
-      expect(html).toContain(`media="${media}" fetchpriority="high"`);
-      expect(hero).toContain(path);
-    }
-
+    const css = read("src/components/home/HeroSection.css");
+    expect(html).not.toContain('href="/images/home/tok-geneve-mobile-fast.webp"');
+    expect(html).not.toContain('href="/images/home/tok-leman-signature-fast.webp"');
+    expect(html).toContain('href="/images/section-headers/tok-editorial-cuisine-optimized.webp"');
+    expect(hero).toContain('key={cantonImage ?? "default"}');
     expect(hero).toContain('loading="eager"');
     expect(hero).toContain('fetchpriority: "high"');
-    expect(assetSize("images/home/tok-leman-signature-fast.webp")).toBeLessThan(160_000);
-    expect(assetSize("images/home/tok-geneve-mobile-fast.webp")).toBeLessThan(165_000);
+    expect(css).not.toContain("url('/images/home/tok-leman-signature-fast.webp')");
+  });
+
+  it("serves lightweight editorial sections and prioritizes the visible LCP image", () => {
+    const page = read("src/pages/Index.tsx");
+    const cuisine = read("src/components/home/CuisineCategoryStrip.tsx");
+    const header = read("src/components/home/SectionShowcaseHeader.tsx");
+    for (const subject of ["cuisine", "feast", "gastronomy", "rewards", "geneva", "delivery", "evening", "reservation"]) {
+      const asset = `images/section-headers/tok-editorial-${subject}-optimized.webp`;
+      expect(existsSync(resolve(root, "public", asset))).toBe(true);
+      expect(assetSize(asset)).toBeLessThan(90_000);
+      expect(subject === "cuisine" ? cuisine : page).toContain(`/${asset}`);
+    }
+    expect(cuisine).toContain('imageLoading={homeVariant ? "eager" : "lazy"}');
+    expect(cuisine).toContain('imageFetchPriority={homeVariant ? "high" : undefined}');
+    expect(header).toContain("fetchpriority: imageFetchPriority");
+  });
+
+  it("keeps interaction affordances accessible to screen readers", () => {
+    const promotions = read("src/components/PromoCarousel.tsx");
+    const loyalty = read("src/components/LoyaltyStatus.tsx");
+    expect(promotions).toContain('aria-label="Offre précédente"');
+    expect(promotions).toContain('aria-label="Offre suivante"');
+    expect(loyalty).toContain("aria-label={nextTierLabel");
   });
 
   it("uses a lightweight visible logo without changing the canonical app icon", () => {

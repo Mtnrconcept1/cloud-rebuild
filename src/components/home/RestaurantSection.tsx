@@ -28,7 +28,7 @@ interface RestaurantSectionProps {
 // Keep one row per section at every breakpoint. On phones, one full card plus
 // one third of the following card signals that the rail can be swiped.
 const RAIL_ITEM_CLASS =
-  "min-w-0 pl-0 basis-[calc(75%-9px)] sm:basis-[calc(43.5%-7px)] lg:basis-[calc(30.77%-5px)]";
+  "min-w-0 min-h-[400px] pl-0 basis-[calc(75%-9px)] sm:min-h-[450px] sm:basis-[calc(43.5%-7px)] lg:basis-[calc(30.77%-5px)]";
 const RAIL_OPTIONS = { align: "start", containScroll: "trimSnaps", slidesToScroll: 1 } as const;
 
 export default function RestaurantSection({
@@ -83,7 +83,7 @@ export default function RestaurantSection({
                   <div
                     data-testid="home-restaurant-skeleton"
                     aria-hidden="true"
-                    className="h-[380px] overflow-hidden rounded-[26px] border border-border bg-card sm:h-[410px]"
+                    className="h-full min-h-[400px] overflow-hidden rounded-[26px] border border-border bg-card sm:min-h-[450px]"
                   >
                     <div className="aspect-[16/10] bg-muted/60" />
                     <div className="space-y-4 p-4 sm:p-5">

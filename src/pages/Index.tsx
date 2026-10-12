@@ -54,14 +54,14 @@ const HOME_NEARBY_RADIUS_KM = 5;
 const PROGRESSIVE_OFFERS_TABLE = "reservation_progressive_offers";
 
 const SECTION_HEADER_IMAGES = {
-  personal: "/images/section-headers/tok-editorial-rewards-full.jpg",
-  local: "/images/section-headers/tok-editorial-geneva-full.jpg",
-  lunch: "/images/section-headers/tok-editorial-feast-full.jpg",
-  reservation: "/images/section-headers/tok-editorial-reservation-full.jpg",
-  promo: "/images/section-headers/tok-editorial-gastronomy-full.jpg",
-  offers: "/images/section-headers/tok-editorial-delivery-full.jpg",
-  trending: "/images/section-headers/tok-editorial-evening-full.jpg",
-  nearby: "/images/section-headers/tok-editorial-geneva-full.jpg",
+  personal: "/images/section-headers/tok-editorial-rewards-optimized.webp",
+  local: "/images/section-headers/tok-editorial-geneva-optimized.webp",
+  lunch: "/images/section-headers/tok-editorial-feast-optimized.webp",
+  reservation: "/images/section-headers/tok-editorial-reservation-optimized.webp",
+  promo: "/images/section-headers/tok-editorial-gastronomy-optimized.webp",
+  offers: "/images/section-headers/tok-editorial-delivery-optimized.webp",
+  trending: "/images/section-headers/tok-editorial-evening-optimized.webp",
+  nearby: "/images/section-headers/tok-editorial-geneva-optimized.webp",
 } as const;
 
 type SearchSort =
@@ -363,16 +363,7 @@ export default function Index() {
     });
   }, [progressiveOffers, todayServiceDate, userCoordinates]);
 
-  // Reuse the position already requested for nearby restaurants: no second GPS permission.
-  const { data: locationCanton = null } = useQuery({
-    queryKey: ["home-hero-canton", geolocationQueryKey],
-    queryFn: () => cantonAtCoordinates(userCoordinates!),
-    enabled: Boolean(userCoordinates) && !isCommercialDemoClient,
-    staleTime: 30 * 60_000,
-    retry: false,
-  });
-
-  const { data: userContext } = useQuery({
+  const { data: userContext, isPending: profileCityPending } = useQuery({
     queryKey: ["home-user-context", user?.id, demoSessionKey],
     enabled: Boolean(isCommercialDemoClient || user?.id),
     queryFn: async () => {
@@ -455,6 +446,18 @@ export default function Index() {
         personalRestaurants: [...favoriteRestaurants, ...recentRestaurants].slice(0, 4),
       };
     },
+  });
+
+  // Wait for the saved city, and skip redundant GPS lookups when it is configured.
+  const { data: locationCanton = null } = useQuery({
+    queryKey: ["home-hero-canton", geolocationQueryKey],
+    queryFn: () => cantonAtCoordinates(userCoordinates!),
+    enabled: Boolean(userCoordinates)
+      && !isCommercialDemoClient
+      && (!user || !profileCityPending)
+      && !userContext?.city?.trim(),
+    staleTime: 30 * 60_000,
+    retry: false,
   });
 
   const candidateCity = userCoordinates ? null : userContext?.city || null;
@@ -560,7 +563,7 @@ export default function Index() {
   const trendingIsSignalBased = homeSections.trendingMode === "trending";
   const hasSavedCity = Boolean(userContext?.city);
   const hasProfileName = Boolean(userContext?.fullName);
-  const profileNeedsAttention = Boolean(user && (!hasSavedCity || !hasProfileName));
+  const profileNeedsAttention = Boolean(user && !profileCityPending && (!hasSavedCity || !hasProfileName));
   const primaryRail = lunchFocus
     ? {
       title: "Pour ce midi",
@@ -628,7 +631,7 @@ export default function Index() {
         tint: "bg-sky-500/10 text-sky-600",
       }
       : null,
-    user && itemCount === 0 && personalCards.length === 0
+    user && !isCatalogLoading && itemCount === 0 && personalCards.length === 0
       ? {
         key: "discover",
         eyebrow: "Découverte",
@@ -653,7 +656,13 @@ export default function Index() {
 
   return (
     <main className="min-h-screen pb-20">
-      <HeroSection contentVisible={isVisible} activeFeatures={activeFeatures} locationCanton={locationCanton} profileCity={userContext?.city} />
+      <HeroSection
+        contentVisible={isVisible}
+        activeFeatures={activeFeatures}
+        locationCanton={locationCanton}
+        profileCity={userContext?.city}
+        profileCityPending={Boolean(user && !isCommercialDemoClient && profileCityPending)}
+      />
       {activeFeatures.has("chefs-table") ? (
         <section className="tok-or-banner-shell" aria-label="La TOK d’Or">
           <Link to="/chefs-table" className="tok-or-banner">
@@ -793,7 +802,7 @@ export default function Index() {
                         {card.description}
                       </p>
                       <div className="mt-4 flex items-center justify-between gap-3">
-                        <Button className="rounded-full px-4" asChild>
+                        <Button className="rounded-full bg-[#a53a0a] px-4 text-white hover:bg-[#842e09]" asChild>
                           <Link to={card.href}>
                             {card.cta}
                             <ChevronRight className="ml-1 h-4 w-4" />

@@ -13,6 +13,8 @@ type SectionShowcaseHeaderProps = {
   description?: string;
   icon: LucideIcon;
   imageSrc: string;
+  imageLoading?: "eager" | "lazy";
+  imageFetchPriority?: "high" | "auto" | "low";
   iconColor?: string;
   theme?: SectionHeaderTheme;
   linkText?: string;
@@ -36,6 +38,8 @@ export default function SectionShowcaseHeader({
   description,
   icon: Icon,
   imageSrc,
+  imageLoading = "lazy",
+  imageFetchPriority,
   iconColor,
   theme = "orange",
   linkText,
@@ -90,8 +94,9 @@ export default function SectionShowcaseHeader({
           alt=""
           width={photographic ? 2508 : 600}
           height={photographic ? 627 : 340}
-          loading="lazy"
+          loading={imageLoading}
           decoding="async"
+          {...(imageFetchPriority ? ({ fetchpriority: imageFetchPriority } as const) : {})}
           className={cn("tok-section-header__image", imageClassName)}
         />
       </div>
