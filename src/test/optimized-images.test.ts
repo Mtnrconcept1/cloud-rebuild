@@ -25,6 +25,8 @@ describe("optimized image URLs", () => {
 
     expect(getOptimizedImageSrcSet(url, "thumbnail")).toContain("width=96");
     expect(getOptimizedImageSrcSet("/images/kebab-box-spread.jpeg", "thumbnail")).toBeUndefined();
+    expect(getOptimizedImageSrcSet("javascript:alert(1)", "card")).toBeUndefined();
+    expect(getOptimizedImageSrcSet("data:image/svg+xml;base64,ZmFrZQ==", "card")).toBeUndefined();
     expect(getOptimizedImageSizes("card")).toContain("100vw");
   });
 });
