@@ -1,0 +1,47 @@
+name: PR790 one-time canonical reference refresh
+
+on:
+  push:
+    branches:
+      - feat/reservation-card-guarantee-20261012
+    paths:
+      - .github/workflows/_pr790-regenerate-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.repository == 'Mtnrconcept1/cloud-rebuild'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/reservation-card-guarantee-20261012
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Delete one-time workflow before generating sources
+        run: git rm .github/workflows/_pr790-regenerate-once.yml
+      - name: Regenerate incident error location map
+        run: pnpm generate:error-code-map
+      - name: Regenerate canonical TOK application index
+        run: pnpm docs:application-index
+      - name: Verify generated application index
+        run: pnpm docs:application-index:check
+      - name: Test updated critical contracts
+        run: pnpm exec vitest run --mode production src/test/application-search-index.test.ts src/test/reservation-card-guarantee.test.ts src/test/legal-public-surface-hardening.test.ts
+      - name: Commit generated artifacts and remove helper workflow
+        run: |
+          git config user.name "tok-ci-bot"
+          git config user.email "tok-ci-bot@users.noreply.github.com"
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json supabase/functions/_shared/error-code-map.ts
+          git commit -m "docs(index): synchronize reservation guarantee release inventory"
+          git push origin HEAD:feat/reservation-card-guarantee-20261012
