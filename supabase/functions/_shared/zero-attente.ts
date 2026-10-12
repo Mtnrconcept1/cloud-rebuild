@@ -6,7 +6,6 @@ import {
 } from "./notifications.ts";
 import { recordZeroAttenteChargeIfMissing } from "./payment-transactions.ts";
 import { queueReservationConfirmationEmails } from "./transactional-emails.ts";
-import { isCompletedNoCostZeroAttenteSession } from "./zero-cost-checkout.ts";
 
 type LoggerLike = {
   error?: (event: string, data?: Record<string, unknown>) => void;
@@ -163,8 +162,7 @@ export async function finalizeZeroAttenteCheckout(input: {
     fetchLineItems,
   } = input;
 
-  const noCostCheckout = isCompletedNoCostZeroAttenteSession(session);
-  if (!session || (session.payment_status !== "paid" && !noCostCheckout)) {
+  if (!session || session.payment_status !== "paid") {
     throw new Error("Session Stripe non payee.");
   }
 

@@ -319,18 +319,6 @@ export async function resolveMarketplaceRouting(input: {
     },
   );
 
-  // A verified CHF 0 reservation moves no money and needs no Connect transfer.
-  // The live-routing safety gate remains mandatory for every positive charge.
-  if (checkoutKind === "zero-attente" && distribution.grossCents === 0) {
-    return {
-      enabled: false,
-      mode: "no_cost" as const,
-      destinationAccountId: null,
-      ...pricingSnapshot,
-      ...distribution,
-    };
-  }
-
   if (!financeConfig?.connect_routing_enabled) {
     if (stripeMode === "live") {
       throw new HttpError(

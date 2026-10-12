@@ -11,8 +11,6 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { finalizeZeroAttenteCheckout } from "../_shared/zero-attente.ts";
-import { isCompletedNoCostZeroAttenteSession } from "../_shared/zero-cost-checkout.ts";
-import { assertCheckoutSessionIntegrity } from "../_shared/payment-attempts.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 
 function getPaymentDetails(session: Stripe.Checkout.Session) {
@@ -45,19 +43,13 @@ Deno.serve(async (req) => {
     sessionId = typeof body?.session_id === "string" ? body.session_id.trim() : "";
     if (!sessionId) throw new HttpError(400, "session_id requis");
 
-    const runtime = getStripeRuntimeForCheckoutKind("zero-attente");
-    const { stripe } = runtime;
+    const { stripe } = getStripeRuntimeForCheckoutKind("zero-attente");
 
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["payment_intent.payment_method"],
     });
 
-    assertCheckoutSessionIntegrity({
-      session,
-      livemode: runtime.mode === "live",
-      expectedCurrency: "CHF",
-    });
-    if (session.payment_status !== "paid" && !isCompletedNoCostZeroAttenteSession(session)) {
+    if (!session || session.payment_status !== "paid") {
       throw new HttpError(400, "Session Stripe non payee.");
     }
 

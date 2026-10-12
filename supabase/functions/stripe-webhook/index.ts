@@ -4,7 +4,6 @@ import { getEnv, writeAuditLog } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { finalizeChefsTableCheckout } from "../_shared/chefs-table.ts";
 import { finalizeZeroAttenteCheckout } from "../_shared/zero-attente.ts";
-import { isCompletedNoCostZeroAttenteSession } from "../_shared/zero-cost-checkout.ts";
 import {
   enqueueNotification,
   triggerNotificationDispatch,
@@ -1535,11 +1534,7 @@ Deno.serve(async (req) => {
           });
         }
 
-        if (
-          session.mode === "payment" &&
-          session.payment_status !== "paid" &&
-          !isCompletedNoCostZeroAttenteSession(session)
-        ) {
+        if (session.mode === "payment" && session.payment_status !== "paid") {
           log.info("checkout_waiting_for_async_payment", {
             sessionId: session.id,
             checkoutKind,
@@ -2762,7 +2757,6 @@ Deno.serve(async (req) => {
       const shouldFinalizeAttempt = session.metadata?.payment_attempt_version === "2"
         && (
           (session.mode === "payment" && session.payment_status === "paid")
-          || isCompletedNoCostZeroAttenteSession(session)
           || (session.mode === "subscription" && session.status === "complete")
         );
       if (shouldFinalizeAttempt) {
