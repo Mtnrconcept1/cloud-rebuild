@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `12e793fcf1fd980ce2368e43ff6a51e99192172fa211859df3199848592198bb`
+- Empreinte SHA-256 des sources indexées : `4432392c6b9f1e915c1a8579beb57e9e10a4f5a6551fd8e2c5cdac94f3287984`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 9 |
 | cronJobs | 33 |
 | databaseContract | 228 |
-| databaseObjects | 2737 |
+| databaseObjects | 2749 |
 | documents | 202 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3408 |
+| exportedSymbols | 3413 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
 | marketingOperations | 36 |
-| migrations | 529 |
-| modules | 1508 |
+| migrations | 530 |
+| modules | 1510 |
 | pages | 128 |
 | pathLiterals | 648 |
 | publicAssets | 462 |
 | publicEntries | 487 |
 | publicNavigableRoutes | 2 |
-| queryParameters | 108 |
-| records | 16165 |
-| repositoryFiles | 2989 |
+| queryParameters | 109 |
+| records | 16191 |
+| repositoryFiles | 2992 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -493,7 +493,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | courier-portal | [supabase/functions/courier-portal/index.ts:1](../../supabase/functions/courier-portal/index.ts#L1) | oui ([supabase/config.toml:104](../../supabase/config.toml#L104)) | false | ANY | ensure_profile, respond_attempt, save_profile, sync_presence, update_job_status, verify_delivery_proof | — |
 | create-checkout | [supabase/functions/create-checkout/index.ts:1](../../supabase/functions/create-checkout/index.ts#L1) | oui ([supabase/config.toml:107](../../supabase/config.toml#L107)) | false | ANY | — | stripe, twint |
 | create-chefs-table-reservation | [supabase/functions/create-chefs-table-reservation/index.ts:1](../../supabase/functions/create-chefs-table-reservation/index.ts#L1) | oui ([supabase/config.toml:110](../../supabase/config.toml#L110)) | false | ANY | — | stripe |
-| create-reservation | [supabase/functions/create-reservation/index.ts:1](../../supabase/functions/create-reservation/index.ts#L1) | oui ([supabase/config.toml:113](../../supabase/config.toml#L113)) | false | ANY | — | google |
+| create-reservation | [supabase/functions/create-reservation/index.ts:1](../../supabase/functions/create-reservation/index.ts#L1) | oui ([supabase/config.toml:113](../../supabase/config.toml#L113)) | false | ANY | finalize, quote | google, stripe |
 | create-social-post-boost | [supabase/functions/create-social-post-boost/index.ts:1](../../supabase/functions/create-social-post-boost/index.ts#L1) | oui ([supabase/config.toml:116](../../supabase/config.toml#L116)) | false | POST | — | supabase |
 | create-zero-attente-reservation | [supabase/functions/create-zero-attente-reservation/index.ts:1](../../supabase/functions/create-zero-attente-reservation/index.ts#L1) | oui ([supabase/config.toml:119](../../supabase/config.toml#L119)) | false | ANY | — | stripe, twint |
 | crm-mfa-recovery | [supabase/functions/crm-mfa-recovery/index.ts:1](../../supabase/functions/crm-mfa-recovery/index.ts#L1) | oui ([supabase/config.toml:95](../../supabase/config.toml#L95)) | false | POST | confirm, request, string | resend, supabase |
@@ -512,7 +512,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | floorplan-ai | [supabase/functions/floorplan-ai/index.ts:1](../../supabase/functions/floorplan-ai/index.ts#L1) | oui ([supabase/config.toml:164](../../supabase/config.toml#L164)) | false | POST | generate, image-import, optimize, suggest-furniture | openai |
 | generate-campaign | [supabase/functions/generate-campaign/index.ts:1](../../supabase/functions/generate-campaign/index.ts#L1) | oui ([supabase/config.toml:167](../../supabase/config.toml#L167)) | false | ANY | — | openai |
 | generate-invoices | [supabase/functions/generate-invoices/index.ts:1](../../supabase/functions/generate-invoices/index.ts#L1) | oui ([supabase/config.toml:203](../../supabase/config.toml#L203)) | false | ANY | — | supabase |
-| google-actions-center | [supabase/functions/google-actions-center/index.ts:1](../../supabase/functions/google-actions-center/index.ts#L1) | oui ([supabase/config.toml:170](../../supabase/config.toml#L170)) | false | GET, POST | — | google |
+| google-actions-center | [supabase/functions/google-actions-center/index.ts:1](../../supabase/functions/google-actions-center/index.ts#L1) | oui ([supabase/config.toml:170](../../supabase/config.toml#L170)) | false | GET, POST | — | google, stripe |
 | google-actions-center-sync | [supabase/functions/google-actions-center-sync/index.ts:1](../../supabase/functions/google-actions-center-sync/index.ts#L1) | oui ([supabase/config.toml:173](../../supabase/config.toml#L173)) | false | POST | — | google, supabase |
 | manage-restaurant-subscription | [supabase/functions/manage-restaurant-subscription/index.ts:1](../../supabase/functions/manage-restaurant-subscription/index.ts#L1) | oui ([supabase/config.toml:209](../../supabase/config.toml#L209)) | false | ANY | cancel, change_plan, resume | stripe |
 | manage-tok-one-subscription | [supabase/functions/manage-tok-one-subscription/index.ts:1](../../supabase/functions/manage-tok-one-subscription/index.ts#L1) | oui ([supabase/config.toml:206](../../supabase/config.toml#L206)) | false | ANY | cancel, sync_checkout_session | stripe |
@@ -576,15 +576,15 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 
 | Fonction | Méthode | Route | Endpoint complet | Paramètres | Source |
 | --- | --- | --- | --- | --- | --- |
-| google-actions-center | POST | /v3/BatchAvailabilityLookup/ | /functions/v1/google-actions-center/v3/BatchAvailabilityLookup/ | — | [supabase/functions/google-actions-center/index.ts:991](../../supabase/functions/google-actions-center/index.ts#L991) |
-| google-actions-center | POST | /v3/CreateBooking/ | /functions/v1/google-actions-center/v3/CreateBooking/ | — | [supabase/functions/google-actions-center/index.ts:994](../../supabase/functions/google-actions-center/index.ts#L994) |
-| google-actions-center | POST | /v3/GetBookingStatus/ | /functions/v1/google-actions-center/v3/GetBookingStatus/ | — | [supabase/functions/google-actions-center/index.ts:1000](../../supabase/functions/google-actions-center/index.ts#L1000) |
-| google-actions-center | GET | /v3/HealthCheck/ | /functions/v1/google-actions-center/v3/HealthCheck/ | — | [supabase/functions/google-actions-center/index.ts:985](../../supabase/functions/google-actions-center/index.ts#L985) |
-| google-actions-center | POST | /v3/ListBookings/ | /functions/v1/google-actions-center/v3/ListBookings/ | — | [supabase/functions/google-actions-center/index.ts:1003](../../supabase/functions/google-actions-center/index.ts#L1003) |
-| google-actions-center | POST | /v3/UpdateBooking/ | /functions/v1/google-actions-center/v3/UpdateBooking/ | — | [supabase/functions/google-actions-center/index.ts:997](../../supabase/functions/google-actions-center/index.ts#L997) |
-| google-actions-center | GET | /v3/feeds/availability/ | /functions/v1/google-actions-center/v3/feeds/availability/ | — | [supabase/functions/google-actions-center/index.ts:1012](../../supabase/functions/google-actions-center/index.ts#L1012) |
-| google-actions-center | GET | /v3/feeds/merchants/ | /functions/v1/google-actions-center/v3/feeds/merchants/ | — | [supabase/functions/google-actions-center/index.ts:1006](../../supabase/functions/google-actions-center/index.ts#L1006) |
-| google-actions-center | GET | /v3/feeds/services/ | /functions/v1/google-actions-center/v3/feeds/services/ | — | [supabase/functions/google-actions-center/index.ts:1009](../../supabase/functions/google-actions-center/index.ts#L1009) |
+| google-actions-center | POST | /v3/BatchAvailabilityLookup/ | /functions/v1/google-actions-center/v3/BatchAvailabilityLookup/ | — | [supabase/functions/google-actions-center/index.ts:995](../../supabase/functions/google-actions-center/index.ts#L995) |
+| google-actions-center | POST | /v3/CreateBooking/ | /functions/v1/google-actions-center/v3/CreateBooking/ | — | [supabase/functions/google-actions-center/index.ts:998](../../supabase/functions/google-actions-center/index.ts#L998) |
+| google-actions-center | POST | /v3/GetBookingStatus/ | /functions/v1/google-actions-center/v3/GetBookingStatus/ | — | [supabase/functions/google-actions-center/index.ts:1004](../../supabase/functions/google-actions-center/index.ts#L1004) |
+| google-actions-center | GET | /v3/HealthCheck/ | /functions/v1/google-actions-center/v3/HealthCheck/ | — | [supabase/functions/google-actions-center/index.ts:989](../../supabase/functions/google-actions-center/index.ts#L989) |
+| google-actions-center | POST | /v3/ListBookings/ | /functions/v1/google-actions-center/v3/ListBookings/ | — | [supabase/functions/google-actions-center/index.ts:1007](../../supabase/functions/google-actions-center/index.ts#L1007) |
+| google-actions-center | POST | /v3/UpdateBooking/ | /functions/v1/google-actions-center/v3/UpdateBooking/ | — | [supabase/functions/google-actions-center/index.ts:1001](../../supabase/functions/google-actions-center/index.ts#L1001) |
+| google-actions-center | GET | /v3/feeds/availability/ | /functions/v1/google-actions-center/v3/feeds/availability/ | — | [supabase/functions/google-actions-center/index.ts:1016](../../supabase/functions/google-actions-center/index.ts#L1016) |
+| google-actions-center | GET | /v3/feeds/merchants/ | /functions/v1/google-actions-center/v3/feeds/merchants/ | — | [supabase/functions/google-actions-center/index.ts:1010](../../supabase/functions/google-actions-center/index.ts#L1010) |
+| google-actions-center | GET | /v3/feeds/services/ | /functions/v1/google-actions-center/v3/feeds/services/ | — | [supabase/functions/google-actions-center/index.ts:1013](../../supabase/functions/google-actions-center/index.ts#L1013) |
 | tok-connect-api | POST | /v1/autopilot/plan | /functions/v1/tok-connect-api/v1/autopilot/plan | — | [supabase/functions/tok-connect-api/index.ts:1016](../../supabase/functions/tok-connect-api/index.ts#L1016) |
 | tok-connect-api | POST | /v1/campaigns/preview | /functions/v1/tok-connect-api/v1/campaigns/preview | — | [supabase/functions/tok-connect-api/index.ts:952](../../supabase/functions/tok-connect-api/index.ts#L952) |
 | tok-connect-api | GET | /v1/credits/balance | /functions/v1/tok-connect-api/v1/credits/balance | — | [supabase/functions/tok-connect-api/index.ts:839](../../supabase/functions/tok-connect-api/index.ts#L839) |
@@ -1795,6 +1795,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | format | — | 1 | [src/lib/optimizedImages.ts:41](../../src/lib/optimizedImages.ts#L41) |
 | from | — | 1 | [src/marketing/useMarketingUrlState.ts:91](../../src/marketing/useMarketingUrlState.ts#L91) |
 | geometry | — | 1 | [src/test/home-canton-hero.test.ts:55](../../src/test/home-canton-hero.test.ts#L55) |
+| guarantee_session_id | /reservations | 2 | [src/pages/Reservations.tsx:163](../../src/pages/Reservations.tsx#L163) |
 | height | — | 1 | [src/lib/optimizedImages.ts:38](../../src/lib/optimizedImages.ts#L38) |
 | incident | /admin/guardian, /admin/sinistres, /admin/support-resolution | 4 | [src/pages/admin/AdminGuardian.tsx:105](../../src/pages/admin/AdminGuardian.tsx#L105) |
 | job | /courier/jobs | 1 | [src/pages/courier/CourierJobs.tsx:54](../../src/pages/courier/CourierJobs.tsx#L54) |
@@ -1834,7 +1835,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | redirect | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:1108](../../src/pages/Auth.tsx#L1108) |
 | redirect_uri | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:221](../../supabase/functions/tok-connect-oauth/index.ts#L221) |
 | removeRestaurant | — | 1 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:171](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L171) |
-| reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:230](../../src/pages/Reservations.tsx#L230) |
+| reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:281](../../src/pages/Reservations.tsx#L281) |
 | reservationStep | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:153](../../src/pages/RestaurantDetail.tsx#L153) |
 | reserve | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:149](../../src/pages/RestaurantDetail.tsx#L149) |
 | resize | — | 1 | [src/lib/optimizedImages.ts:40](../../src/lib/optimizedImages.ts#L40) |
@@ -1860,8 +1861,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | token | — | 1 | [supabase/functions/marketing-unsubscribe/index.ts:66](../../supabase/functions/marketing-unsubscribe/index.ts#L66) |
 | tolerance | — | 1 | [src/test/home-canton-hero.test.ts:57](../../src/test/home-canton-hero.test.ts#L57) |
 | type | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:285](../../src/pages/Auth.tsx#L285) |
-| utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:598](../../src/components/ReservationDialog.tsx#L598) |
-| utm_source | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:594](../../src/components/ReservationDialog.tsx#L594) |
+| utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:644](../../src/components/ReservationDialog.tsx#L644) |
+| utm_source | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:640](../../src/components/ReservationDialog.tsx#L640) |
 | view | /admin/commandes-reservations | 2 | [src/marketing/useMarketingUrlState.ts:84](../../src/marketing/useMarketingUrlState.ts#L84) |
 | welcome | /coming-soon | 1 | [src/pages/ComingSoon.tsx:9](../../src/pages/ComingSoon.tsx#L9) |
 | width | — | 1 | [src/lib/optimizedImages.ts:37](../../src/lib/optimizedImages.ts#L37) |
@@ -2160,7 +2161,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (740)</summary>
+<details><summary>function (745)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2412,6 +2413,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.claim_next_match_group_capture_candidate` (1 définition(s))
 - `public.claim_notification_deliveries` (1 définition(s))
 - `public.claim_print_fulfillment_jobs` (2 définition(s))
+- `public.claim_reservation_cancellation_fees` (1 définition(s))
 - `public.claim_restaurant_daily_dish_run` (2 définition(s))
 - `public.claim_restaurant_image_discovery_jobs` (2 définition(s))
 - `public.claim_restaurant_image_discovery_jobs_for_edge` (1 définition(s))
@@ -2508,6 +2510,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.finalize_paid_print_order` (1 définition(s))
 - `public.finalize_payment_attempt` (1 définition(s))
 - `public.finalize_progressive_offer` (1 définition(s))
+- `public.finalize_reservation_card_guarantee` (1 définition(s))
 - `public.finalize_zero_attente_no_cost_hold` (1 définition(s))
 - `public.find_nearby_couriers` (2 définition(s))
 - `public.finish_print_fulfillment_submission` (1 définition(s))
@@ -2580,6 +2583,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.guard_commercial_role_assignment` (3 définition(s))
 - `public.guard_human_signup_review` (2 définition(s))
 - `public.guard_online_order_confirmation_requires_payment` (1 définition(s))
+- `public.guard_reservation_card_guarantee` (1 définition(s))
 - `public.guard_reservation_table_slot` (1 définition(s))
 - `public.guard_restaurant_image_client_writes` (1 définition(s))
 - `public.guard_restaurant_tok_credit_spend` (1 définition(s))
@@ -2699,6 +2703,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.publish_restaurant_daily_dish` (2 définition(s))
 - `public.queue_directory_image_candidate` (1 définition(s))
 - `public.queue_notification_deliveries` (3 définition(s))
+- `public.queue_reservation_card_cancellation_fee` (1 définition(s))
 - `public.queue_restaurant_image_discovery_after_name_verification` (2 définition(s))
 - `public.rate_limit_consume` (1 définition(s))
 - `public.read_meal_formula_max_tables_per_service` (1 définition(s))
@@ -2745,6 +2750,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.renew_match_group_capture_claim` (1 définition(s))
 - `public.request_fair_growth_module` (1 définition(s))
 - `public.request_invoiced_reservation_fee_reconciliation` (1 définition(s))
+- `public.reservation_card_guarantee_quote` (1 définition(s))
 - `public.resolve_google_booking_slug` (3 définition(s))
 - `public.resolve_miamz_benefit_state` (1 définition(s))
 - `public.resolve_swiss_vat_rate_bps` (1 définition(s))
@@ -2905,7 +2911,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (649)</summary>
+<details><summary>index (652)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3187,6 +3193,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `idx_refund_operations_payment_intent` (1 définition(s))
 - `idx_refund_operations_stripe_event_fk` (1 définition(s))
 - `idx_refund_operations_target` (1 définition(s))
+- `idx_reservation_cancel_fees_claim` (1 définition(s))
+- `idx_reservation_card_setups_user_created` (1 définition(s))
+- `idx_reservation_customer_cancellations_year` (1 définition(s))
 - `idx_reservation_flat_fee_charges_restaurant` (1 définition(s))
 - `idx_reservation_progressive_offers_one_active_per_day` (1 définition(s))
 - `idx_reservation_progressive_offers_public` (1 définition(s))
@@ -4324,7 +4333,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (343)</summary>
+<details><summary>table (345)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -4540,6 +4549,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.recommendation_logs` (1 définition(s))
 - `public.referral_codes` (2 définition(s))
 - `public.refund_operations` (1 définition(s))
+- `public.reservation_cancellation_fees` (1 définition(s))
+- `public.reservation_card_guarantee_setups` (1 définition(s))
 - `public.reservation_fee_adjustments` (1 définition(s))
 - `public.reservation_fee_charges` (1 définition(s))
 - `public.reservation_flat_fee_charges` (1 définition(s))
@@ -4672,7 +4683,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (239)</summary>
+<details><summary>trigger (241)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -4717,6 +4728,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `guard_recognized_restaurant_invoice_header` (1 définition(s))
 - `guard_recognized_restaurant_invoice_lines` (1 définition(s))
 - `guard_referenced_feature_flag` (1 définition(s))
+- `guard_reservation_card_guarantee_insert` (1 définition(s))
 - `guard_restaurant_image_client_writes_on_write` (1 définition(s))
 - `guard_restaurateur_signup_approval_payment` (1 définition(s))
 - `guard_tok_credit_spend_ad_campaigns` (1 définition(s))
@@ -4783,6 +4795,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `protect_match_group_capture_claim_mutation` (1 définition(s))
 - `protect_restaurant_moderation_state` (2 définition(s))
 - `protect_restaurant_subscription_pricing_snapshot` (1 définition(s))
+- `queue_reservation_card_cancellation_fee` (1 définition(s))
 - `queue_subscription_activation_on_order` (1 définition(s))
 - `queue_subscription_activation_on_reservation` (1 définition(s))
 - `record_actualites_order_conversion_on_orders` (2 définition(s))
@@ -5752,6 +5765,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261011052254 Notification Support Realtime Publication | 58 | 0 | [supabase/migrations/20261011052254_notification_support_realtime_publication.sql:1](../../supabase/migrations/20261011052254_notification_support_realtime_publication.sql#L1) |
 | 20261012063000 Decouple Delivery Orders Flag | 186 | 2 | [supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql:1](../../supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql#L1) |
 | 20261012090000 Finalize Zero Attente No Cost Hold | 113 | 1 | [supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql:1](../../supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql#L1) |
+| 20261012130000 Reservation Card Guarantees | 363 | 12 | [supabase/migrations/20261012130000_reservation_card_guarantees.sql:1](../../supabase/migrations/20261012130000_reservation_card_guarantees.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -5970,13 +5984,13 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | --- | --- | --- |
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
-| Google | 111 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Google | 112 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Openai | 116 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 215 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 674 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 222 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 675 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 59 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5989,7 +6003,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 205 |
 | automation-script | 64 |
 | documentation | 6 |
-| edge-function-source | 187 |
+| edge-function-source | 188 |
 | frontend-component | 251 |
 | frontend-hook | 22 |
 | frontend-page | 128 |
@@ -5997,7 +6011,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 595 |
+| test | 596 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6591,7 +6605,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (529)</summary>
+<details><summary>database-migration (530)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7122,6 +7136,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261011052254_notification_support_realtime_publication.sql`
 - `supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql`
 - `supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql`
+- `supabase/migrations/20261012130000_reservation_card_guarantees.sql`
 
 </details>
 
@@ -7285,7 +7300,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (187)</summary>
+<details><summary>edge-function-source (188)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7341,6 +7356,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/print/types.ts`
 - `supabase/functions/_shared/rate-limit.ts`
 - `supabase/functions/_shared/refund-allocations.ts`
+- `supabase/functions/_shared/reservation-card-guarantee.ts`
 - `supabase/functions/_shared/restaurant-credits.ts`
 - `supabase/functions/_shared/restaurant-subscription-billing.ts`
 - `supabase/functions/_shared/return-url.ts`
@@ -8668,7 +8684,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (595)</summary>
+<details><summary>test (596)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9100,6 +9116,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/reservation-10k-hardening.test.ts`
 - `src/test/reservation-availability.test.ts`
 - `src/test/reservation-branch-rls-visibility.test.ts`
+- `src/test/reservation-card-guarantee.test.ts`
 - `src/test/reservation-confirmation-deposit-ops.test.ts`
 - `src/test/reservation-fee-integrity.test.ts`
 - `src/test/reservation-inventory-health.test.ts`

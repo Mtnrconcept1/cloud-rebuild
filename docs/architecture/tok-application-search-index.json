@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "12e793fcf1fd980ce2368e43ff6a51e99192172fa211859df3199848592198bb",
+ "sourceDigest": "4432392c6b9f1e915c1a8579beb57e9e10a4f5a6551fd8e2c5cdac94f3287984",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 33,
   "databaseContract": 228,
-  "databaseObjects": 2737,
+  "databaseObjects": 2749,
   "documents": 202,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3408,
+  "exportedSymbols": 3413,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 529,
-  "modules": 1508,
+  "migrations": 530,
+  "modules": 1510,
   "pages": 128,
   "pathLiterals": 648,
   "publicAssets": 462,
   "publicEntries": 487,
   "publicNavigableRoutes": 2,
-  "queryParameters": 108,
-  "records": 16165,
-  "repositoryFiles": 2989,
+  "queryParameters": 109,
+  "records": 16191,
+  "repositoryFiles": 2992,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -3475,11 +3475,12 @@
     "exports": [
      {
       "name": "default",
-      "line": 154,
+      "line": 156,
       "kind": "function"
      }
     ],
     "integrations": [
+     "stripe",
      "supabase"
     ]
    },
@@ -7597,14 +7598,18 @@
     "methods": [
      "ANY"
     ],
-    "actions": [],
+    "actions": [
+     "finalize",
+     "quote"
+    ],
     "environmentNames": [
      "APP_BASE_URL",
      "PUBLIC_APP_URL",
      "SITE_URL"
     ],
     "integrations": [
-     "google"
+     "google",
+     "stripe"
     ],
     "configured": true,
     "sourcePresent": true
@@ -8015,7 +8020,8 @@
      "SITE_URL"
     ],
     "integrations": [
-     "google"
+     "google",
+     "stripe"
     ],
     "configured": true,
     "sourcePresent": true
@@ -9240,7 +9246,7 @@
     "endpoint": "/functions/v1/google-actions-center/v3/BatchAvailabilityLookup/",
     "parameters": [],
     "path": "supabase/functions/google-actions-center/index.ts",
-    "line": 991
+    "line": 995
    },
    {
     "function": "google-actions-center",
@@ -9249,7 +9255,7 @@
     "endpoint": "/functions/v1/google-actions-center/v3/CreateBooking/",
     "parameters": [],
     "path": "supabase/functions/google-actions-center/index.ts",
-    "line": 994
+    "line": 998
    },
    {
     "function": "google-actions-center",
@@ -9258,7 +9264,7 @@
     "endpoint": "/functions/v1/google-actions-center/v3/GetBookingStatus/",
     "parameters": [],
     "path": "supabase/functions/google-actions-center/index.ts",
-    "line": 1000
+    "line": 1004
    },
    {
     "function": "google-actions-center",
@@ -9267,7 +9273,7 @@
     "endpoint": "/functions/v1/google-actions-center/v3/HealthCheck/",
     "parameters": [],
     "path": "supabase/functions/google-actions-center/index.ts",
-    "line": 985
+    "line": 989
    },
    {
     "function": "google-actions-center",
@@ -9276,7 +9282,7 @@
     "endpoint": "/functions/v1/google-actions-center/v3/ListBookings/",
     "parameters": [],
     "path": "supabase/functions/google-actions-center/index.ts",
-    "line": 1003
+    "line": 1007
    },
    {
     "function": "google-actions-center",
@@ -9285,7 +9291,7 @@
     "endpoint": "/functions/v1/google-actions-center/v3/UpdateBooking/",
     "parameters": [],
     "path": "supabase/functions/google-actions-center/index.ts",
-    "line": 997
+    "line": 1001
    },
    {
     "function": "google-actions-center",
@@ -9294,7 +9300,7 @@
     "endpoint": "/functions/v1/google-actions-center/v3/feeds/availability/",
     "parameters": [],
     "path": "supabase/functions/google-actions-center/index.ts",
-    "line": 1012
+    "line": 1016
    },
    {
     "function": "google-actions-center",
@@ -9303,7 +9309,7 @@
     "endpoint": "/functions/v1/google-actions-center/v3/feeds/merchants/",
     "parameters": [],
     "path": "supabase/functions/google-actions-center/index.ts",
-    "line": 1006
+    "line": 1010
    },
    {
     "function": "google-actions-center",
@@ -9312,7 +9318,7 @@
     "endpoint": "/functions/v1/google-actions-center/v3/feeds/services/",
     "parameters": [],
     "path": "supabase/functions/google-actions-center/index.ts",
-    "line": 1009
+    "line": 1013
    },
    {
     "function": "tok-connect-api",
@@ -18947,7 +18953,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1972
+      "line": 1993
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -19168,7 +19174,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1614
+      "line": 1635
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -19672,11 +19678,11 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1738
+      "line": 1759
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2111
+      "line": 2132
      }
     ]
    },
@@ -19772,7 +19778,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2252
+      "line": 2273
      }
     ]
    },
@@ -23835,7 +23841,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2586
+      "line": 2607
      }
     ]
    },
@@ -24753,7 +24759,7 @@
      },
      {
       "path": "src/pages/Reservations.tsx",
-      "line": 483
+      "line": 539
      },
      {
       "path": "src/pages/RestaurantBookingRedirect.tsx",
@@ -24957,7 +24963,7 @@
      },
      {
       "path": "src/components/ReservationDialog.tsx",
-      "line": 472
+      "line": 493
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -28362,6 +28368,22 @@
     "routes": []
    },
    {
+    "name": "guarantee_session_id",
+    "sources": [
+     {
+      "path": "src/pages/Reservations.tsx",
+      "line": 163
+     },
+     {
+      "path": "src/pages/Reservations.tsx",
+      "line": 222
+     }
+    ],
+    "routes": [
+     "/reservations"
+    ]
+   },
+   {
     "name": "height",
     "sources": [
      {
@@ -29002,7 +29024,7 @@
     "sources": [
      {
       "path": "src/pages/Reservations.tsx",
-      "line": 230
+      "line": 281
      },
      {
       "path": "src/pages/dashboard/DashboardReservations.tsx",
@@ -29490,7 +29512,7 @@
     "sources": [
      {
       "path": "src/components/ReservationDialog.tsx",
-      "line": 598
+      "line": 644
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
@@ -29506,7 +29528,7 @@
     "sources": [
      {
       "path": "src/components/ReservationDialog.tsx",
-      "line": 594
+      "line": 640
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
@@ -29682,6 +29704,7 @@
      "src/test/plan-phase1-readiness.test.ts",
      "src/test/public-feature-legal-matrix.test.ts",
      "src/test/release-readiness.test.ts",
+     "src/test/reservation-card-guarantee.test.ts",
      "src/test/responsive-seo-regressions.test.ts",
      "src/test/restaurateur-commercial-pages.test.ts",
      "src/test/route-serving-regression.test.ts",
@@ -29912,6 +29935,7 @@
      "scripts/write-production-env.mjs",
      "scripts/write-supabase-secrets-env.mjs",
      "src/components/ProtectedRoute.tsx",
+     "src/components/ReservationDialog.tsx",
      "src/components/RestaurantCancellationDialog.tsx",
      "src/components/cart/PaymentMethodSelector.tsx",
      "src/components/commercial/CommercialDemoActorWorkspace.tsx",
@@ -29936,6 +29960,7 @@
      "src/lib/orderConfirmation.ts",
      "src/lib/paymentMethods.ts",
      "src/lib/refundMutations.ts",
+     "src/lib/reservationMutations.ts",
      "src/lib/restaurantAdjustments.ts",
      "src/lib/restaurantOnboardingLifecycle.ts",
      "src/lib/restaurantPartnerContract.ts",
@@ -29955,6 +29980,7 @@
      "src/pages/Panier.tsx",
      "src/pages/PolitiqueConfidentialite.tsx",
      "src/pages/Profil.tsx",
+     "src/pages/Reservations.tsx",
      "src/pages/RestaurantDetail.tsx",
      "src/pages/TokOne.tsx",
      "src/pages/ZeroAttente.tsx",
@@ -30026,6 +30052,7 @@
      "src/test/refund-allocations.test.ts",
      "src/test/release-readiness-stripe-resolver.test.ts",
      "src/test/release-readiness.test.ts",
+     "src/test/reservation-card-guarantee.test.ts",
      "src/test/restaurant-billing-account.test.ts",
      "src/test/restaurant-onboarding-payments.test.ts",
      "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
@@ -30063,6 +30090,7 @@
      "supabase/functions/_shared/payment-attempts.ts",
      "supabase/functions/_shared/payment-transactions.ts",
      "supabase/functions/_shared/refund-allocations.ts",
+     "supabase/functions/_shared/reservation-card-guarantee.ts",
      "supabase/functions/_shared/restaurant-subscription-billing.ts",
      "supabase/functions/_shared/stripe-client.ts",
      "supabase/functions/_shared/tok-one.ts",
@@ -30084,7 +30112,9 @@
      "supabase/functions/confirm-match-group-authorization/index.ts",
      "supabase/functions/create-checkout/index.ts",
      "supabase/functions/create-chefs-table-reservation/index.ts",
+     "supabase/functions/create-reservation/index.ts",
      "supabase/functions/create-zero-attente-reservation/index.ts",
+     "supabase/functions/google-actions-center/index.ts",
      "supabase/functions/manage-restaurant-subscription/index.ts",
      "supabase/functions/manage-tok-one-subscription/index.ts",
      "supabase/functions/ops-incident-control/index.ts",
@@ -30609,6 +30639,7 @@
      "src/test/repository-text-encoding.test.ts",
      "src/test/reservation-10k-hardening.test.ts",
      "src/test/reservation-branch-rls-visibility.test.ts",
+     "src/test/reservation-card-guarantee.test.ts",
      "src/test/reservation-confirmation-deposit-ops.test.ts",
      "src/test/reservation-fee-integrity.test.ts",
      "src/test/reservation-service-capacity.test.ts",
@@ -34060,6 +34091,12 @@
     "path": "supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql",
     "lineCount": 113,
     "objectCount": 1
+   },
+   {
+    "name": "20261012130000 Reservation Card Guarantees",
+    "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+    "lineCount": 363,
+    "objectCount": 12
    }
   ],
   "databaseObjects": [
@@ -36981,6 +37018,16 @@
    },
    {
     "type": "function",
+    "name": "public.claim_reservation_cancellation_fees",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 316
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.claim_restaurant_daily_dish_run",
     "sources": [
      {
@@ -38117,6 +38164,16 @@
    },
    {
     "type": "function",
+    "name": "public.finalize_reservation_card_guarantee",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 175
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.finalize_zero_attente_no_cost_hold",
     "sources": [
      {
@@ -39172,6 +39229,16 @@
      {
       "path": "supabase/migrations/20260616061331_online_order_payment_confirmation_guard.sql",
       "line": 3
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.guard_reservation_card_guarantee",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 121
      }
     ]
    },
@@ -40579,6 +40646,16 @@
    },
    {
     "type": "function",
+    "name": "public.queue_reservation_card_cancellation_fee",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 285
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.queue_restaurant_image_discovery_after_name_verification",
     "sources": [
      {
@@ -41170,6 +41247,16 @@
      {
       "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
       "line": 1083
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.reservation_card_guarantee_quote",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 72
      }
     ]
    },
@@ -46056,6 +46143,36 @@
      {
       "path": "supabase/migrations/20260715060000_payment_integrity_state_machine.sql",
       "line": 1677
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "idx_reservation_cancel_fees_claim",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 63
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "idx_reservation_card_setups_user_created",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 61
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "idx_reservation_customer_cancellations_year",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 66
      }
     ]
    },
@@ -60387,6 +60504,26 @@
    },
    {
     "type": "table",
+    "name": "public.reservation_cancellation_fees",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 35
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "name": "public.reservation_card_guarantee_setups",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "type": "table",
     "name": "public.reservation_fee_adjustments",
     "sources": [
      {
@@ -62235,6 +62372,16 @@
    },
    {
     "type": "trigger",
+    "name": "guard_reservation_card_guarantee_insert",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 169
+     }
+    ]
+   },
+   {
+    "type": "trigger",
     "name": "guard_restaurant_image_client_writes_on_write",
     "sources": [
      {
@@ -62934,6 +63081,16 @@
      {
       "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
       "line": 2535
+     }
+    ]
+   },
+   {
+    "type": "trigger",
+    "name": "queue_reservation_card_cancellation_fee",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+      "line": 310
      }
     ]
    },
@@ -82674,23 +82831,24 @@
     "integrations": [
      "twint"
     ],
-    "lineCount": 588
+    "lineCount": 606
    },
    {
     "path": "src/components/ReservationDialog.tsx",
     "exports": [
      {
       "name": "default",
-      "line": 109,
+      "line": 113,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [
      "google",
+     "stripe",
      "supabase"
     ],
-    "lineCount": 1007
+    "lineCount": 1104
    },
    {
     "path": "src/components/ReservationWidget.tsx",
@@ -95566,62 +95724,83 @@
     "path": "src/lib/reservationMutations.ts",
     "exports": [
      {
+      "name": "ReservationCreateResult",
+      "line": 29,
+      "kind": "typealias"
+     },
+     {
+      "name": "ReservationGuaranteeQuote",
+      "line": 34,
+      "kind": "typealias"
+     },
+     {
       "name": "ReservationStatusResult",
-      "line": 32,
+      "line": 41,
       "kind": "typealias"
      },
      {
       "name": "ReservationMutationResult",
-      "line": 38,
+      "line": 47,
       "kind": "typealias"
      },
      {
       "name": "CancellationReasonCode",
-      "line": 44,
+      "line": 53,
       "kind": "typealias"
      },
      {
       "name": "CANCELLATION_REASONS",
-      "line": 53,
+      "line": 62,
       "kind": "variable"
      },
      {
       "name": "PROGRESSIVE_OFFER_REENTRY_MESSAGE",
-      "line": 68,
+      "line": 77,
       "kind": "variable"
      },
      {
       "name": "createReservationWithValidation",
-      "line": 84,
+      "line": 93,
+      "kind": "function"
+     },
+     {
+      "name": "getReservationGuaranteeQuote",
+      "line": 164,
+      "kind": "function"
+     },
+     {
+      "name": "finalizeReservationGuaranteeSession",
+      "line": 185,
       "kind": "function"
      },
      {
       "name": "markReservationHonored",
-      "line": 139,
+      "line": 205,
       "kind": "function"
      },
      {
       "name": "updateRestaurantReservationStatus",
-      "line": 169,
+      "line": 235,
       "kind": "function"
      },
      {
       "name": "cancelReservationByCustomer",
-      "line": 196,
+      "line": 262,
       "kind": "function"
      },
      {
       "name": "cancelReservationByRestaurant",
-      "line": 221,
+      "line": 287,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [
      "google",
+     "stripe",
      "supabase"
     ],
-    "lineCount": 249
+    "lineCount": 315
    },
    {
     "path": "src/lib/restaurantAdjustments.ts",
@@ -99387,15 +99566,16 @@
     "exports": [
      {
       "name": "default",
-      "line": 154,
+      "line": 156,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [
+     "stripe",
      "supabase"
     ],
-    "lineCount": 498
+    "lineCount": 554
    },
    {
     "path": "src/pages/RestaurantBookingRedirect.tsx",
@@ -104750,6 +104930,17 @@
     "lineCount": 41
    },
    {
+    "path": "src/test/reservation-card-guarantee.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "google",
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 158
+   },
+   {
     "path": "src/test/reservation-confirmation-deposit-ops.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -108479,6 +108670,25 @@
     "lineCount": 124
    },
    {
+    "path": "supabase/functions/_shared/reservation-card-guarantee.ts",
+    "exports": [
+     {
+      "name": "finalizeReservationCardGuarantee",
+      "line": 109,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [
+     "APP_BASE_URL",
+     "PUBLIC_APP_URL",
+     "SITE_URL"
+    ],
+    "integrations": [
+     "stripe"
+    ],
+    "lineCount": 200
+   },
+   {
     "path": "supabase/functions/_shared/restaurant-credits.ts",
     "exports": [
      {
@@ -109857,9 +110067,10 @@
      "SITE_URL"
     ],
     "integrations": [
-     "google"
+     "google",
+     "stripe"
     ],
-    "lineCount": 347
+    "lineCount": 509
    },
    {
     "path": "supabase/functions/create-social-post-boost/index.ts",
@@ -110161,9 +110372,10 @@
      "SITE_URL"
     ],
     "integrations": [
-     "google"
+     "google",
+     "stripe"
     ],
-    "lineCount": 1038
+    "lineCount": 1042
    },
    {
     "path": "supabase/functions/manage-restaurant-subscription/index.ts",
@@ -110572,7 +110784,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3171
+    "lineCount": 3192
    },
    {
     "path": "supabase/functions/stripe-worker/index.ts",
@@ -121304,6 +121516,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/reservation-card-guarantee.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/reservation-confirmation-deposit-ops.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -122435,6 +122652,11 @@
    },
    {
     "path": "supabase/functions/_shared/refund-allocations.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/reservation-card-guarantee.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -125754,6 +125976,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/actualites_billing_identity_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -128346,7 +128573,7 @@
    "id": "code-module:929e8c907f1a",
    "type": "code-module",
    "title": "src/components/ReservationDetailModal.tsx",
-   "description": "Module de 588 lignes; exports: Json, ReservationDetail, default.",
+   "description": "Module de 606 lignes; exports: Json, ReservationDetail, default.",
    "path": "src/components/ReservationDetailModal.tsx",
    "line": 1,
    "surface": null,
@@ -128356,22 +128583,23 @@
     "default",
     "twint"
    ],
-   "detailRef": "f4d134b14cb3"
+   "detailRef": "1609fbf7f7f7"
   },
   {
    "id": "code-module:2a61e80b3f5c",
    "type": "code-module",
    "title": "src/components/ReservationDialog.tsx",
-   "description": "Module de 1007 lignes; exports: default.",
+   "description": "Module de 1104 lignes; exports: default.",
    "path": "src/components/ReservationDialog.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default",
     "google",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "fdb76d942dff"
+   "detailRef": "5b0c8400ce69"
   },
   {
    "id": "code-module:9a8f6d6b902a",
@@ -135247,7 +135475,7 @@
    "id": "code-module:3e8ed0804f83",
    "type": "code-module",
    "title": "src/lib/reservationMutations.ts",
-   "description": "Module de 249 lignes; exports: ReservationStatusResult, ReservationMutationResult, CancellationReasonCode, CANCELLATION_REASONS, PROGRESSIVE_OFFER_REENTRY_MESSAGE, createReservationWithValidation, markReservationHonored, updateRestaurantReservationStatus, cancelReservationByCustomer, cancelReservationByRestaurant.",
+   "description": "Module de 315 lignes; exports: ReservationCreateResult, ReservationGuaranteeQuote, ReservationStatusResult, ReservationMutationResult, CancellationReasonCode, CANCELLATION_REASONS, PROGRESSIVE_OFFER_REENTRY_MESSAGE, createReservationWithValidation, getReservationGuaranteeQuote, finalizeReservationGuaranteeSession, markReservationHonored, updateRestaurantReservationStatus, cancelReservationByCustomer, cancelReservationByRestaurant.",
    "path": "src/lib/reservationMutations.ts",
    "line": 1,
    "surface": null,
@@ -135255,17 +135483,22 @@
     "CANCELLATION_REASONS",
     "CancellationReasonCode",
     "PROGRESSIVE_OFFER_REENTRY_MESSAGE",
+    "ReservationCreateResult",
+    "ReservationGuaranteeQuote",
     "ReservationMutationResult",
     "ReservationStatusResult",
     "cancelReservationByCustomer",
     "cancelReservationByRestaurant",
     "createReservationWithValidation",
+    "finalizeReservationGuaranteeSession",
+    "getReservationGuaranteeQuote",
     "google",
     "markReservationHonored",
+    "stripe",
     "supabase",
     "updateRestaurantReservationStatus"
    ],
-   "detailRef": "ea7db5135621"
+   "detailRef": "99d8ee4d7083"
   },
   {
    "id": "code-module:bf08478bcf82",
@@ -137134,15 +137367,16 @@
    "id": "code-module:48f0c4f52efa",
    "type": "code-module",
    "title": "src/pages/Reservations.tsx",
-   "description": "Module de 498 lignes; exports: default.",
+   "description": "Module de 554 lignes; exports: default.",
    "path": "src/pages/Reservations.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "caf0bf0d3a25"
+   "detailRef": "6870e5000105"
   },
   {
    "id": "code-module:54047e967c20",
@@ -143748,6 +143982,21 @@
    "detailRef": "78876e9ff7aa"
   },
   {
+   "id": "code-module:6b9612f4b367",
+   "type": "code-module",
+   "title": "src/test/reservation-card-guarantee.test.ts",
+   "description": "Module de 158 lignes; exports: aucun export statique.",
+   "path": "src/test/reservation-card-guarantee.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "665efb6366d1"
+  },
+  {
    "id": "code-module:53932cd19dea",
    "type": "code-module",
    "title": "src/test/reservation-confirmation-deposit-ops.test.ts",
@@ -146871,6 +147120,23 @@
    "detailRef": "d90d78cf6aeb"
   },
   {
+   "id": "code-module:df56e5f71846",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/reservation-card-guarantee.ts",
+   "description": "Module de 200 lignes; exports: finalizeReservationCardGuarantee.",
+   "path": "supabase/functions/_shared/reservation-card-guarantee.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "APP_BASE_URL",
+    "PUBLIC_APP_URL",
+    "SITE_URL",
+    "finalizeReservationCardGuarantee",
+    "stripe"
+   ],
+   "detailRef": "c19d2011f2e0"
+  },
+  {
    "id": "code-module:7e94167c321f",
    "type": "code-module",
    "title": "supabase/functions/_shared/restaurant-credits.ts",
@@ -147747,7 +148013,7 @@
    "id": "code-module:2de82e4df11d",
    "type": "code-module",
    "title": "supabase/functions/create-reservation/index.ts",
-   "description": "Module de 347 lignes; exports: aucun export statique.",
+   "description": "Module de 509 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-reservation/index.ts",
    "line": 1,
    "surface": null,
@@ -147755,9 +148021,10 @@
     "APP_BASE_URL",
     "PUBLIC_APP_URL",
     "SITE_URL",
-    "google"
+    "google",
+    "stripe"
    ],
-   "detailRef": "5df1d64b725f"
+   "detailRef": "55936aaca50f"
   },
   {
    "id": "code-module:9d76768ca095",
@@ -148068,7 +148335,7 @@
    "id": "code-module:25d8fc9b0a7e",
    "type": "code-module",
    "title": "supabase/functions/google-actions-center/index.ts",
-   "description": "Module de 1038 lignes; exports: aucun export statique.",
+   "description": "Module de 1042 lignes; exports: aucun export statique.",
    "path": "supabase/functions/google-actions-center/index.ts",
    "line": 1,
    "surface": null,
@@ -148080,9 +148347,10 @@
     "GOOGLE_ACTIONS_CENTER_USERNAME",
     "PUBLIC_APP_URL",
     "SITE_URL",
-    "google"
+    "google",
+    "stripe"
    ],
-   "detailRef": "4698e2d29ee4"
+   "detailRef": "96955d447de4"
   },
   {
    "id": "code-module:2983263ff828",
@@ -148606,7 +148874,7 @@
    "id": "code-module:9ac355dfd729",
    "type": "code-module",
    "title": "supabase/functions/stripe-webhook/index.ts",
-   "description": "Module de 3171 lignes; exports: aucun export statique.",
+   "description": "Module de 3192 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-webhook/index.ts",
    "line": 1,
    "surface": null,
@@ -148614,7 +148882,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "4685e11bc265"
+   "detailRef": "5bf25c225811"
   },
   {
    "id": "code-module:f3fa7c18e7bc",
@@ -155468,6 +155736,21 @@
    "detailRef": "75dc07a47af9"
   },
   {
+   "id": "database-object:7b5d24ada813",
+   "type": "database-object",
+   "title": "guard_reservation_card_guarantee_insert",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 169,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "c2e124cfc391"
+  },
+  {
    "id": "database-object:45885b8eef52",
    "type": "database-object",
    "title": "guard_restaurant_image_client_writes_on_write",
@@ -158361,6 +158644,51 @@
     "supabase"
    ],
    "detailRef": "29ee61c59628"
+  },
+  {
+   "id": "database-object:307ebf7a2a06",
+   "type": "database-object",
+   "title": "idx_reservation_cancel_fees_claim",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 63,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "c1eea1451752"
+  },
+  {
+   "id": "database-object:504fa5e0df94",
+   "type": "database-object",
+   "title": "idx_reservation_card_setups_user_created",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 61,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "ddae3d2ba805"
+  },
+  {
+   "id": "database-object:1abe9a6a1acc",
+   "type": "database-object",
+   "title": "idx_reservation_customer_cancellations_year",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 66,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "7acedf84ccd6"
   },
   {
    "id": "database-object:3003b3013741",
@@ -168413,6 +168741,21 @@
    "detailRef": "83429fdb5329"
   },
   {
+   "id": "database-object:33d09c741c53",
+   "type": "database-object",
+   "title": "public.claim_reservation_cancellation_fees",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 316,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "3054d9654e73"
+  },
+  {
    "id": "database-object:231f20fedcf4",
    "type": "database-object",
    "title": "public.claim_restaurant_daily_dish_run",
@@ -172838,6 +173181,21 @@
    "detailRef": "ebdd1ce041e7"
   },
   {
+   "id": "database-object:84ee011cd2c5",
+   "type": "database-object",
+   "title": "public.finalize_reservation_card_guarantee",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 175,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "c1d590c92c53"
+  },
+  {
    "id": "database-object:8e6fca3411ba",
    "type": "database-object",
    "title": "public.finalize_zero_attente_no_cost_hold",
@@ -174471,6 +174829,21 @@
     "supabase"
    ],
    "detailRef": "0066f9abfaff"
+  },
+  {
+   "id": "database-object:3d9f009696b9",
+   "type": "database-object",
+   "title": "public.guard_reservation_card_guarantee",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 121,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "767fdea4ba29"
   },
   {
    "id": "database-object:bb2a64ec5a98",
@@ -179528,6 +179901,21 @@
    "detailRef": "1cdc29db7cbe"
   },
   {
+   "id": "database-object:cba24b0087d6",
+   "type": "database-object",
+   "title": "public.queue_reservation_card_cancellation_fee",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 285,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "ddf7cb647ead"
+  },
+  {
    "id": "database-object:bcac6e18b61e",
    "type": "database-object",
    "title": "public.queue_restaurant_image_discovery_after_name_verification",
@@ -180351,6 +180739,51 @@
     "supabase"
    ],
    "detailRef": "1aade1f8750f"
+  },
+  {
+   "id": "database-object:32bfe9f0639c",
+   "type": "database-object",
+   "title": "public.reservation_cancellation_fees",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "4f54fdc1722a"
+  },
+  {
+   "id": "database-object:52f17a7da75b",
+   "type": "database-object",
+   "title": "public.reservation_card_guarantee_quote",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 72,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "1e9ec3e2fd53"
+  },
+  {
+   "id": "database-object:9f7e1e281cce",
+   "type": "database-object",
+   "title": "public.reservation_card_guarantee_setups",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "abf92d3ea284"
   },
   {
    "id": "database-object:3a8114980772",
@@ -188826,6 +189259,21 @@
     "table"
    ],
    "detailRef": "579d0ea717d5"
+  },
+  {
+   "id": "database-object:7994ac79843c",
+   "type": "database-object",
+   "title": "queue_reservation_card_cancellation_fee",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 310,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "8714ac9d485b"
   },
   {
    "id": "database-object:21ee0c439d23",
@@ -229467,6 +229915,20 @@
    "detailRef": "59b35cc221df"
   },
   {
+   "id": "edge-action:29f4fed2fed7",
+   "type": "edge-action",
+   "title": "finalize",
+   "description": "Action statiquement détectée dans la fonction Edge create-reservation.",
+   "path": "supabase/functions/create-reservation/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/create-reservation",
+    "create-reservation"
+   ],
+   "detailRef": "f8f5a3cbe8fc"
+  },
+  {
    "id": "edge-action:be0f038392d7",
    "type": "edge-action",
    "title": "full_report",
@@ -229969,6 +230431,20 @@
     "daily-dish-ai"
    ],
    "detailRef": "04b19197b6d9"
+  },
+  {
+   "id": "edge-action:10360bc92819",
+   "type": "edge-action",
+   "title": "quote",
+   "description": "Action statiquement détectée dans la fonction Edge create-reservation.",
+   "path": "supabase/functions/create-reservation/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/create-reservation",
+    "create-reservation"
+   ],
+   "detailRef": "a3ad2bb7fa8d"
   },
   {
    "id": "edge-action:e3df511a1fec",
@@ -231301,9 +231777,12 @@
     "APP_BASE_URL",
     "PUBLIC_APP_URL",
     "SITE_URL",
-    "google"
+    "finalize",
+    "google",
+    "quote",
+    "stripe"
    ],
-   "detailRef": "ecd01cd2b71d"
+   "detailRef": "e7cf841afe08"
   },
   {
    "id": "edge-function:1d80de4b3b0b",
@@ -231639,9 +232118,10 @@
     "POST",
     "PUBLIC_APP_URL",
     "SITE_URL",
-    "google"
+    "google",
+    "stripe"
    ],
-   "detailRef": "c2b38738f90c"
+   "detailRef": "0c522d544bb1"
   },
   {
    "id": "edge-function:b681163c61c7",
@@ -232662,64 +233142,64 @@
    "detailRef": "4f527ce68837"
   },
   {
-   "id": "edge-http-route:305d26e7bac3",
+   "id": "edge-http-route:cac942391016",
    "type": "edge-http-route",
    "title": "GET /v3/HealthCheck/",
    "description": "Sous-route HTTP de la fonction Edge google-actions-center; endpoint complet /functions/v1/google-actions-center/v3/HealthCheck/.",
    "path": "supabase/functions/google-actions-center/index.ts",
-   "line": 985,
+   "line": 989,
    "surface": null,
    "tags": [
     "/functions/v1/google-actions-center/v3/HealthCheck/",
     "GET",
     "google-actions-center"
    ],
-   "detailRef": "7b118d4c415e"
+   "detailRef": "968289bab728"
   },
   {
-   "id": "edge-http-route:521711d4f3a0",
+   "id": "edge-http-route:371ac2216b30",
    "type": "edge-http-route",
    "title": "GET /v3/feeds/availability/",
    "description": "Sous-route HTTP de la fonction Edge google-actions-center; endpoint complet /functions/v1/google-actions-center/v3/feeds/availability/.",
    "path": "supabase/functions/google-actions-center/index.ts",
-   "line": 1012,
+   "line": 1016,
    "surface": null,
    "tags": [
     "/functions/v1/google-actions-center/v3/feeds/availability/",
     "GET",
     "google-actions-center"
    ],
-   "detailRef": "09db51e7e72b"
+   "detailRef": "f08e29592828"
   },
   {
-   "id": "edge-http-route:619399e3af28",
+   "id": "edge-http-route:57f826a9e2f7",
    "type": "edge-http-route",
    "title": "GET /v3/feeds/merchants/",
    "description": "Sous-route HTTP de la fonction Edge google-actions-center; endpoint complet /functions/v1/google-actions-center/v3/feeds/merchants/.",
    "path": "supabase/functions/google-actions-center/index.ts",
-   "line": 1006,
+   "line": 1010,
    "surface": null,
    "tags": [
     "/functions/v1/google-actions-center/v3/feeds/merchants/",
     "GET",
     "google-actions-center"
    ],
-   "detailRef": "e191133c14b6"
+   "detailRef": "c3e42846500a"
   },
   {
-   "id": "edge-http-route:8730d6d13f60",
+   "id": "edge-http-route:d3a39832db86",
    "type": "edge-http-route",
    "title": "GET /v3/feeds/services/",
    "description": "Sous-route HTTP de la fonction Edge google-actions-center; endpoint complet /functions/v1/google-actions-center/v3/feeds/services/.",
    "path": "supabase/functions/google-actions-center/index.ts",
-   "line": 1009,
+   "line": 1013,
    "surface": null,
    "tags": [
     "/functions/v1/google-actions-center/v3/feeds/services/",
     "GET",
     "google-actions-center"
    ],
-   "detailRef": "b5512c4306ef"
+   "detailRef": "f29b20ad7f6e"
   },
   {
    "id": "edge-http-route:b85634f3d4e6",
@@ -232814,79 +233294,79 @@
    "detailRef": "0c3ea0cf9a10"
   },
   {
-   "id": "edge-http-route:aa39f651c2c5",
+   "id": "edge-http-route:27989b753b26",
    "type": "edge-http-route",
    "title": "POST /v3/BatchAvailabilityLookup/",
    "description": "Sous-route HTTP de la fonction Edge google-actions-center; endpoint complet /functions/v1/google-actions-center/v3/BatchAvailabilityLookup/.",
    "path": "supabase/functions/google-actions-center/index.ts",
-   "line": 991,
+   "line": 995,
    "surface": null,
    "tags": [
     "/functions/v1/google-actions-center/v3/BatchAvailabilityLookup/",
     "POST",
     "google-actions-center"
    ],
-   "detailRef": "b63eebff1217"
+   "detailRef": "f7c40116a5d9"
   },
   {
-   "id": "edge-http-route:367640b9db31",
+   "id": "edge-http-route:5e77e5e045e6",
    "type": "edge-http-route",
    "title": "POST /v3/CreateBooking/",
    "description": "Sous-route HTTP de la fonction Edge google-actions-center; endpoint complet /functions/v1/google-actions-center/v3/CreateBooking/.",
    "path": "supabase/functions/google-actions-center/index.ts",
-   "line": 994,
+   "line": 998,
    "surface": null,
    "tags": [
     "/functions/v1/google-actions-center/v3/CreateBooking/",
     "POST",
     "google-actions-center"
    ],
-   "detailRef": "36993b25283d"
+   "detailRef": "fae757c47a23"
   },
   {
-   "id": "edge-http-route:c78794aae227",
+   "id": "edge-http-route:ff9dbcb5277b",
    "type": "edge-http-route",
    "title": "POST /v3/GetBookingStatus/",
    "description": "Sous-route HTTP de la fonction Edge google-actions-center; endpoint complet /functions/v1/google-actions-center/v3/GetBookingStatus/.",
    "path": "supabase/functions/google-actions-center/index.ts",
-   "line": 1000,
+   "line": 1004,
    "surface": null,
    "tags": [
     "/functions/v1/google-actions-center/v3/GetBookingStatus/",
     "POST",
     "google-actions-center"
    ],
-   "detailRef": "b9e28ccbb093"
+   "detailRef": "734eb8493d84"
   },
   {
-   "id": "edge-http-route:37953e568dd2",
+   "id": "edge-http-route:dc5531e754c7",
    "type": "edge-http-route",
    "title": "POST /v3/ListBookings/",
    "description": "Sous-route HTTP de la fonction Edge google-actions-center; endpoint complet /functions/v1/google-actions-center/v3/ListBookings/.",
    "path": "supabase/functions/google-actions-center/index.ts",
-   "line": 1003,
+   "line": 1007,
    "surface": null,
    "tags": [
     "/functions/v1/google-actions-center/v3/ListBookings/",
     "POST",
     "google-actions-center"
    ],
-   "detailRef": "7530baf64120"
+   "detailRef": "468df760ecec"
   },
   {
-   "id": "edge-http-route:4b265589fd10",
+   "id": "edge-http-route:16231a73f2bc",
    "type": "edge-http-route",
    "title": "POST /v3/UpdateBooking/",
    "description": "Sous-route HTTP de la fonction Edge google-actions-center; endpoint complet /functions/v1/google-actions-center/v3/UpdateBooking/.",
    "path": "supabase/functions/google-actions-center/index.ts",
-   "line": 997,
+   "line": 1001,
    "surface": null,
    "tags": [
     "/functions/v1/google-actions-center/v3/UpdateBooking/",
     "POST",
     "google-actions-center"
    ],
-   "detailRef": "65ba19716360"
+   "detailRef": "f6430a762c4e"
   },
   {
    "id": "environment-variable:c20552ec7631",
@@ -232945,7 +233425,7 @@
    "id": "environment-variable:073379304fd9",
    "type": "environment-variable",
    "title": "APP_BASE_URL",
-   "description": "Nom de variable d’environnement référencé dans 10 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 11 module(s); aucune valeur n’est indexée.",
    "path": "supabase/functions/_shared/chefs-table.ts",
    "line": null,
    "surface": null,
@@ -232953,6 +233433,7 @@
     "supabase/functions/_shared/chefs-table.ts",
     "supabase/functions/_shared/cors.ts",
     "supabase/functions/_shared/order-checkout.ts",
+    "supabase/functions/_shared/reservation-card-guarantee.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-admin-monitor/index.ts",
     "supabase/functions/complete-order-checkout/_local.ts",
@@ -232961,7 +233442,7 @@
     "supabase/functions/send-email/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "3493c69e9244"
+   "detailRef": "fe36132cb30f"
   },
   {
    "id": "environment-variable:409e2231d970",
@@ -233953,7 +234434,7 @@
    "id": "environment-variable:515b6d80092e",
    "type": "environment-variable",
    "title": "PUBLIC_APP_URL",
-   "description": "Nom de variable d’environnement référencé dans 11 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 12 module(s); aucune valeur n’est indexée.",
    "path": "supabase/functions/_shared/chefs-table.ts",
    "line": null,
    "surface": null,
@@ -233961,6 +234442,7 @@
     "supabase/functions/_shared/chefs-table.ts",
     "supabase/functions/_shared/cors.ts",
     "supabase/functions/_shared/order-checkout.ts",
+    "supabase/functions/_shared/reservation-card-guarantee.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/complete-order-checkout/_local.ts",
     "supabase/functions/create-reservation/index.ts",
@@ -233970,7 +234452,7 @@
     "supabase/functions/send-email/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "8d484bce9207"
+   "detailRef": "2bc24fae4cb8"
   },
   {
    "id": "environment-variable:b47c2beec13e",
@@ -234314,7 +234796,7 @@
    "id": "environment-variable:3c67a4744afe",
    "type": "environment-variable",
    "title": "SITE_URL",
-   "description": "Nom de variable d’environnement référencé dans 12 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 13 module(s); aucune valeur n’est indexée.",
    "path": "supabase/functions/_shared/chefs-table.ts",
    "line": null,
    "surface": null,
@@ -234322,6 +234804,7 @@
     "supabase/functions/_shared/chefs-table.ts",
     "supabase/functions/_shared/cors.ts",
     "supabase/functions/_shared/order-checkout.ts",
+    "supabase/functions/_shared/reservation-card-guarantee.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-admin-monitor/index.ts",
     "supabase/functions/complete-order-checkout/_local.ts",
@@ -234332,7 +234815,7 @@
     "supabase/functions/send-email/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "c4960809a1fd"
+   "detailRef": "2466503ed2c1"
   },
   {
    "id": "environment-variable:a041b011f842",
@@ -237068,19 +237551,20 @@
    "detailRef": "eb73086fa0c8"
   },
   {
-   "id": "exported-symbol:bb92bffa93c3",
+   "id": "exported-symbol:922d72e3df8c",
    "type": "exported-symbol",
    "title": "CANCELLATION_REASONS",
    "description": "Export variable de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 53,
+   "line": 62,
    "surface": null,
    "tags": [
     "google",
+    "stripe",
     "supabase",
     "variable"
    ],
-   "detailRef": "7abae5323720"
+   "detailRef": "185cebd84787"
   },
   {
    "id": "exported-symbol:618722b85e1c",
@@ -237973,19 +238457,20 @@
    "detailRef": "50fccd702cca"
   },
   {
-   "id": "exported-symbol:10dd83864c82",
+   "id": "exported-symbol:13156dc6dde7",
    "type": "exported-symbol",
    "title": "CancellationReasonCode",
    "description": "Export typealias de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 44,
+   "line": 53,
    "surface": null,
    "tags": [
     "google",
+    "stripe",
     "supabase",
     "typealias"
    ],
-   "detailRef": "d298f8ba3449"
+   "detailRef": "2e052ece90e3"
   },
   {
    "id": "exported-symbol:d16312e86c52",
@@ -247567,19 +248052,20 @@
    "detailRef": "8af8e8297e37"
   },
   {
-   "id": "exported-symbol:7cc46e62408b",
+   "id": "exported-symbol:502efd4fa31b",
    "type": "exported-symbol",
    "title": "PROGRESSIVE_OFFER_REENTRY_MESSAGE",
    "description": "Export variable de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 68,
+   "line": 77,
    "surface": null,
    "tags": [
     "google",
+    "stripe",
     "supabase",
     "variable"
    ],
-   "detailRef": "d198eeda55c9"
+   "detailRef": "f92cce89e5b2"
   },
   {
    "id": "exported-symbol:27c79d2212e6",
@@ -249499,6 +249985,22 @@
    "detailRef": "6d55296a8f05"
   },
   {
+   "id": "exported-symbol:b9ce6f9be302",
+   "type": "exported-symbol",
+   "title": "ReservationCreateResult",
+   "description": "Export typealias de src/lib/reservationMutations.ts.",
+   "path": "src/lib/reservationMutations.ts",
+   "line": 29,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "abbd4af164a6"
+  },
+  {
    "id": "exported-symbol:7b7522cdcbbb",
    "type": "exported-symbol",
    "title": "ReservationDetail",
@@ -249569,6 +250071,22 @@
    "detailRef": "973b8b48fcdc"
   },
   {
+   "id": "exported-symbol:87120a7eb2eb",
+   "type": "exported-symbol",
+   "title": "ReservationGuaranteeQuote",
+   "description": "Export typealias de src/lib/reservationMutations.ts.",
+   "path": "src/lib/reservationMutations.ts",
+   "line": 34,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "e0cb4820227c"
+  },
+  {
    "id": "exported-symbol:09068aeaf3ff",
    "type": "exported-symbol",
    "title": "ReservationInventoryConflict",
@@ -249608,19 +250126,20 @@
    "detailRef": "3e804cfcfef4"
   },
   {
-   "id": "exported-symbol:5bffae948355",
+   "id": "exported-symbol:8937282beb7b",
    "type": "exported-symbol",
    "title": "ReservationMutationResult",
    "description": "Export typealias de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 38,
+   "line": 47,
    "surface": null,
    "tags": [
     "google",
+    "stripe",
     "supabase",
     "typealias"
    ],
-   "detailRef": "1997b7780300"
+   "detailRef": "8a030573ed3a"
   },
   {
    "id": "exported-symbol:8d4d874d4259",
@@ -249690,19 +250209,20 @@
    "detailRef": "60350df5397f"
   },
   {
-   "id": "exported-symbol:64918692bbc9",
+   "id": "exported-symbol:ce4a39c9349a",
    "type": "exported-symbol",
    "title": "ReservationStatusResult",
    "description": "Export typealias de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 32,
+   "line": 41,
    "surface": null,
    "tags": [
     "google",
+    "stripe",
     "supabase",
     "typealias"
    ],
-   "detailRef": "8f9b5db84a63"
+   "detailRef": "a9bffe1c9c46"
   },
   {
    "id": "exported-symbol:4e4bffa730cb",
@@ -258550,34 +259070,36 @@
    "detailRef": "a627db281bc2"
   },
   {
-   "id": "exported-symbol:7e36e59e1671",
+   "id": "exported-symbol:d498ad9e242f",
    "type": "exported-symbol",
    "title": "cancelReservationByCustomer",
    "description": "Export function de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 196,
+   "line": 262,
    "surface": null,
    "tags": [
     "function",
     "google",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "43b2c2e8f80d"
+   "detailRef": "da97f1a7a38a"
   },
   {
-   "id": "exported-symbol:d68c246ade96",
+   "id": "exported-symbol:4a62b3ec6391",
    "type": "exported-symbol",
    "title": "cancelReservationByRestaurant",
    "description": "Export function de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 221,
+   "line": 287,
    "surface": null,
    "tags": [
     "function",
     "google",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "f6b8c3195469"
+   "detailRef": "58c21e6214df"
   },
   {
    "id": "exported-symbol:1bc0576cfd10",
@@ -259903,19 +260425,20 @@
    "detailRef": "a1462496896c"
   },
   {
-   "id": "exported-symbol:67b9ae0fa58c",
+   "id": "exported-symbol:6ff9c5421ff7",
    "type": "exported-symbol",
    "title": "createReservationWithValidation",
    "description": "Export function de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 84,
+   "line": 93,
    "surface": null,
    "tags": [
     "function",
     "google",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "a2e6a560bc7a"
+   "detailRef": "c9363afaea03"
   },
   {
    "id": "exported-symbol:8a065a9f4c5a",
@@ -260849,19 +261372,20 @@
    "detailRef": "c701b519fdb8"
   },
   {
-   "id": "exported-symbol:a326da2ced0c",
+   "id": "exported-symbol:08b65a368c37",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/ReservationDialog.tsx.",
    "path": "src/components/ReservationDialog.tsx",
-   "line": 109,
+   "line": 113,
    "surface": null,
    "tags": [
     "function",
     "google",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "f644411bf738"
+   "detailRef": "2d5af5375a65"
   },
   {
    "id": "exported-symbol:5b379f652519",
@@ -263308,18 +263832,19 @@
    "detailRef": "bd1847e204bd"
   },
   {
-   "id": "exported-symbol:2e57018bca12",
+   "id": "exported-symbol:eca784872a5b",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/Reservations.tsx.",
    "path": "src/pages/Reservations.tsx",
-   "line": 154,
+   "line": 156,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "01a949d39e44"
+   "detailRef": "a1063ef8e2fa"
   },
   {
    "id": "exported-symbol:c0926cb02a6c",
@@ -265708,6 +266233,36 @@
     "stripe"
    ],
    "detailRef": "2d0cc640f5cb"
+  },
+  {
+   "id": "exported-symbol:55c25e31a5de",
+   "type": "exported-symbol",
+   "title": "finalizeReservationCardGuarantee",
+   "description": "Export function de supabase/functions/_shared/reservation-card-guarantee.ts.",
+   "path": "supabase/functions/_shared/reservation-card-guarantee.ts",
+   "line": 109,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe"
+   ],
+   "detailRef": "beb24b26d45e"
+  },
+  {
+   "id": "exported-symbol:162e1ae94a54",
+   "type": "exported-symbol",
+   "title": "finalizeReservationGuaranteeSession",
+   "description": "Export function de src/lib/reservationMutations.ts.",
+   "path": "src/lib/reservationMutations.ts",
+   "line": 185,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "14d01bc35a60"
   },
   {
    "id": "exported-symbol:e8680dbe2118",
@@ -269876,6 +270431,22 @@
     "supabase"
    ],
    "detailRef": "3360a4be5106"
+  },
+  {
+   "id": "exported-symbol:6438bc408a43",
+   "type": "exported-symbol",
+   "title": "getReservationGuaranteeQuote",
+   "description": "Export function de src/lib/reservationMutations.ts.",
+   "path": "src/lib/reservationMutations.ts",
+   "line": 164,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "ea7be1dd485d"
   },
   {
    "id": "exported-symbol:6d5b9ede22b1",
@@ -274248,19 +274819,20 @@
    "detailRef": "f7ea8e25913d"
   },
   {
-   "id": "exported-symbol:124c98300ffc",
+   "id": "exported-symbol:19eb76d789c7",
    "type": "exported-symbol",
    "title": "markReservationHonored",
    "description": "Export function de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 139,
+   "line": 205,
    "surface": null,
    "tags": [
     "function",
     "google",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "4ac9175f2cec"
+   "detailRef": "cca6614d87a7"
   },
   {
    "id": "exported-symbol:018aee008d1f",
@@ -280161,19 +280733,20 @@
    "detailRef": "654ea7ac72f3"
   },
   {
-   "id": "exported-symbol:d71b3ea5e1f5",
+   "id": "exported-symbol:f7b794fbf189",
    "type": "exported-symbol",
    "title": "updateRestaurantReservationStatus",
    "description": "Export function de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 169,
+   "line": 235,
    "surface": null,
    "tags": [
     "function",
     "google",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "c4e1417e9f5d"
+   "detailRef": "738f4bb69ada"
   },
   {
    "id": "exported-symbol:8c7e2e8ccbde",
@@ -312250,6 +312823,20 @@
    "detailRef": "145dacf2bdb8"
   },
   {
+   "id": "file:cac6af1b6e0a",
+   "type": "file",
+   "title": "src/test/reservation-card-guarantee.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/reservation-card-guarantee.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "4ad430439032"
+  },
+  {
    "id": "file:b4ec66ed82e1",
    "type": "file",
    "title": "src/test/reservation-confirmation-deposit-ops.test.ts",
@@ -315426,6 +316013,20 @@
     "edge-function-source"
    ],
    "detailRef": "eaf6d9533622"
+  },
+  {
+   "id": "file:bbc566f6250a",
+   "type": "file",
+   "title": "supabase/functions/_shared/reservation-card-guarantee.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/reservation-card-guarantee.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "091a88e5e64b"
   },
   {
    "id": "file:f929322bbb42",
@@ -324710,6 +325311,20 @@
    "detailRef": "ceabd0309d2f"
   },
   {
+   "id": "file:fe9d571bd880",
+   "type": "file",
+   "title": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "22fdfbeda8f7"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -327994,7 +328609,7 @@
    "id": "integration:5c0229914ab6",
    "type": "integration",
    "title": "Google",
-   "description": "Intégration externe détectée dans 111 module(s).",
+   "description": "Intégration externe détectée dans 112 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -328082,6 +328697,7 @@
     "src/test/plan-phase1-readiness.test.ts",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/release-readiness.test.ts",
+    "src/test/reservation-card-guarantee.test.ts",
     "src/test/responsive-seo-regressions.test.ts",
     "src/test/restaurateur-commercial-pages.test.ts",
     "src/test/route-serving-regression.test.ts",
@@ -328112,7 +328728,7 @@
     "supabase/functions/verify-directory-commercial-names/index.ts",
     "supabase/functions/verify-directory-image-truth/index.ts"
    ],
-   "detailRef": "c9741e3dcf19"
+   "detailRef": "6017f947bf69"
   },
   {
    "id": "integration:672e2c9b82f3",
@@ -328330,7 +328946,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 215 module(s).",
+   "description": "Intégration externe détectée dans 222 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -328351,6 +328967,7 @@
     "scripts/write-production-env.mjs",
     "scripts/write-supabase-secrets-env.mjs",
     "src/components/ProtectedRoute.tsx",
+    "src/components/ReservationDialog.tsx",
     "src/components/RestaurantCancellationDialog.tsx",
     "src/components/cart/PaymentMethodSelector.tsx",
     "src/components/commercial/CommercialDemoActorWorkspace.tsx",
@@ -328375,6 +328992,7 @@
     "src/lib/orderConfirmation.ts",
     "src/lib/paymentMethods.ts",
     "src/lib/refundMutations.ts",
+    "src/lib/reservationMutations.ts",
     "src/lib/restaurantAdjustments.ts",
     "src/lib/restaurantOnboardingLifecycle.ts",
     "src/lib/restaurantPartnerContract.ts",
@@ -328394,6 +329012,7 @@
     "src/pages/Panier.tsx",
     "src/pages/PolitiqueConfidentialite.tsx",
     "src/pages/Profil.tsx",
+    "src/pages/Reservations.tsx",
     "src/pages/RestaurantDetail.tsx",
     "src/pages/TokOne.tsx",
     "src/pages/ZeroAttente.tsx",
@@ -328465,6 +329084,7 @@
     "src/test/refund-allocations.test.ts",
     "src/test/release-readiness-stripe-resolver.test.ts",
     "src/test/release-readiness.test.ts",
+    "src/test/reservation-card-guarantee.test.ts",
     "src/test/restaurant-billing-account.test.ts",
     "src/test/restaurant-onboarding-payments.test.ts",
     "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
@@ -328503,6 +329123,7 @@
     "supabase/functions/_shared/payment-attempts.ts",
     "supabase/functions/_shared/payment-transactions.ts",
     "supabase/functions/_shared/refund-allocations.ts",
+    "supabase/functions/_shared/reservation-card-guarantee.ts",
     "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "supabase/functions/_shared/stripe-client.ts",
     "supabase/functions/_shared/tok-one.ts",
@@ -328524,7 +329145,9 @@
     "supabase/functions/confirm-match-group-authorization/index.ts",
     "supabase/functions/create-checkout/index.ts",
     "supabase/functions/create-chefs-table-reservation/index.ts",
+    "supabase/functions/create-reservation/index.ts",
     "supabase/functions/create-zero-attente-reservation/index.ts",
+    "supabase/functions/google-actions-center/index.ts",
     "supabase/functions/manage-restaurant-subscription/index.ts",
     "supabase/functions/manage-tok-one-subscription/index.ts",
     "supabase/functions/ops-incident-control/index.ts",
@@ -328552,13 +329175,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "9cbbc2532d22"
+   "detailRef": "7fe3355388b9"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 674 module(s).",
+   "description": "Intégration externe détectée dans 675 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -329056,6 +329679,7 @@
     "src/test/repository-text-encoding.test.ts",
     "src/test/reservation-10k-hardening.test.ts",
     "src/test/reservation-branch-rls-visibility.test.ts",
+    "src/test/reservation-card-guarantee.test.ts",
     "src/test/reservation-confirmation-deposit-ops.test.ts",
     "src/test/reservation-fee-integrity.test.ts",
     "src/test/reservation-service-capacity.test.ts",
@@ -329239,7 +329863,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f8cbf3381161"
+   "detailRef": "0f99cb46417e"
   },
   {
    "id": "integration:c20910a79a78",
@@ -337311,6 +337935,20 @@
    "detailRef": "dea449c12df5"
   },
   {
+   "id": "migration:7b40e7175d27",
+   "type": "migration",
+   "title": "20261012130000 Reservation Card Guarantees",
+   "description": "Migration SQL de 363 lignes, 12 objets CREATE détectés.",
+   "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "499248f86e00"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -339846,9 +340484,10 @@
    "surface": null,
    "tags": [
     "/reservations",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "cefafd2d4fb8"
+   "detailRef": "f0b5ebc48b06"
   },
   {
    "id": "page:ccd20f1c4063",
@@ -343099,7 +343738,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "55eb55742100"
+   "detailRef": "658a9574e6e6"
   },
   {
    "id": "path-literal:98441ce078ff",
@@ -343381,7 +344020,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "19741c5f32c3"
+   "detailRef": "6909dabd2d2e"
   },
   {
    "id": "path-literal:916ad1246b1e",
@@ -343446,7 +344085,7 @@
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "03309d78b3d5"
+   "detailRef": "759619b816b2"
   },
   {
    "id": "path-literal:272c2aa15b3e",
@@ -343756,7 +344395,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "4274f71bb12b"
+   "detailRef": "a9756b5fcd59"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -346900,7 +347539,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "34ef04e36a52"
+   "detailRef": "86a19e39ba93"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -347433,7 +348072,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "d36a23ac7bc6"
+   "detailRef": "d99601a47294"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -347555,7 +348194,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "46935fc4fd66"
+   "detailRef": "0233285c960e"
   },
   {
    "id": "path-literal:0af02260597a",
@@ -357167,6 +357806,19 @@
    "detailRef": "7211355ff53b"
   },
   {
+   "id": "query-parameter:3708454aeaf8",
+   "type": "query-parameter",
+   "title": "guarantee_session_id",
+   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "path": "src/pages/Reservations.tsx",
+   "line": 163,
+   "surface": null,
+   "tags": [
+    "src/pages/Reservations.tsx"
+   ],
+   "detailRef": "4b70d13dc6eb"
+  },
+  {
    "id": "query-parameter:d486a6e252d1",
    "type": "query-parameter",
    "title": "height",
@@ -357698,18 +358350,18 @@
    "detailRef": "eee0665bae4f"
   },
   {
-   "id": "query-parameter:cbf04808bd10",
+   "id": "query-parameter:19ae3fea3358",
    "type": "query-parameter",
    "title": "reservation",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/pages/Reservations.tsx",
-   "line": 230,
+   "line": 281,
    "surface": null,
    "tags": [
     "src/pages/Reservations.tsx",
     "src/pages/dashboard/DashboardReservations.tsx"
    ],
-   "detailRef": "839db9c14462"
+   "detailRef": "4c19af25d86b"
   },
   {
    "id": "query-parameter:16eb7241db4b",
@@ -358064,32 +358716,32 @@
    "detailRef": "5d19f59b15f7"
   },
   {
-   "id": "query-parameter:a15852b1a0d6",
+   "id": "query-parameter:dd76b6958108",
    "type": "query-parameter",
    "title": "utm_medium",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/components/ReservationDialog.tsx",
-   "line": 598,
+   "line": 644,
    "surface": null,
    "tags": [
     "src/components/ReservationDialog.tsx",
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "b2a7ca44bb11"
+   "detailRef": "e8ad2063bc19"
   },
   {
-   "id": "query-parameter:be04f5a7eda6",
+   "id": "query-parameter:961bb12de38e",
    "type": "query-parameter",
    "title": "utm_source",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/components/ReservationDialog.tsx",
-   "line": 594,
+   "line": 640,
    "surface": null,
    "tags": [
     "src/components/ReservationDialog.tsx",
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "97ca56523c4e"
+   "detailRef": "4b4a73c1b4d1"
   },
   {
    "id": "query-parameter:e98354609202",
