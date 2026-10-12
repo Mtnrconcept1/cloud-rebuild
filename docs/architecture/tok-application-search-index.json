@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "ee1da4967b9731ee4f9477c2b5106fca1dd00c6892edb3246e52e41657cc88fa",
+ "sourceDigest": "155cd869c70de53d856ed67465aeef70b3331a82e17832e76c7d093f2bb64c97",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -20,12 +20,12 @@
   "migrations": 527,
   "modules": 1504,
   "pages": 128,
-  "pathLiterals": 644,
+  "pathLiterals": 645,
   "publicAssets": 387,
   "publicEntries": 412,
   "publicNavigableRoutes": 2,
   "queryParameters": 104,
-  "records": 15974,
+  "records": 15975,
   "repositoryFiles": 2897,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -15799,7 +15799,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 93
+      "line": 94
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -21117,11 +21117,20 @@
     ]
    },
    {
-    "value": "/images/home/tok-geneve-mobile-fast.webp",
+    "value": "/images/home/tok-geneve-desktop.webp",
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
       "line": 81
+     }
+    ]
+   },
+   {
+    "value": "/images/home/tok-geneve-mobile-fast.webp",
+    "sources": [
+     {
+      "path": "src/components/home/HeroSection.tsx",
+      "line": 82
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
@@ -21138,7 +21147,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 82
+      "line": 83
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
@@ -25755,7 +25764,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 88
+      "line": 89
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -83991,7 +84000,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 120
+    "lineCount": 121
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -128767,14 +128776,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 120 lignes; exports: default.",
+   "description": "Module de 121 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "acc00ce79001"
+   "detailRef": "5da96b3faba3"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -339307,7 +339316,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "7999cdce0825"
+   "detailRef": "40a32ecf1d2c"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -342474,24 +342483,22 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:03eda02ddabc",
+   "id": "path-literal:740c46ce6d2c",
    "type": "path-literal",
-   "title": "/images/home/tok-geneve-mobile-fast.webp",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "title": "/images/home/tok-geneve-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 81,
    "surface": null,
    "tags": [
-    "src/components/home/HeroSection.tsx",
-    "src/test/home-core-web-vitals.test.ts",
-    "src/test/home-hero-search.test.tsx"
+    "src/components/home/HeroSection.tsx"
    ],
-   "detailRef": "500c4cc8e4aa"
+   "detailRef": "553d739e43f0"
   },
   {
-   "id": "path-literal:62b1c580652c",
+   "id": "path-literal:f79ff15cb4bd",
    "type": "path-literal",
-   "title": "/images/home/tok-leman-signature-fast.webp",
+   "title": "/images/home/tok-geneve-mobile-fast.webp",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 82,
@@ -342501,7 +342508,22 @@
     "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "e72200d851f2"
+   "detailRef": "bd063f96b981"
+  },
+  {
+   "id": "path-literal:105b3076027d",
+   "type": "path-literal",
+   "title": "/images/home/tok-leman-signature-fast.webp",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/HeroSection.tsx",
+   "line": 83,
+   "surface": null,
+   "tags": [
+    "src/components/home/HeroSection.tsx",
+    "src/test/home-core-web-vitals.test.ts",
+    "src/test/home-hero-search.test.tsx"
+   ],
+   "detailRef": "50d1eb551b23"
   },
   {
    "id": "path-literal:638981aff331",
@@ -346102,7 +346124,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "d369538bdb0c"
+   "detailRef": "e0c4498af6ac"
   },
   {
    "id": "path-literal:0cc14f352dc6",

@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `ee1da4967b9731ee4f9477c2b5106fca1dd00c6892edb3246e52e41657cc88fa`
+- Empreinte SHA-256 des sources indexées : `155cd869c70de53d856ed67465aeef70b3331a82e17832e76c7d093f2bb64c97`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 527 |
 | modules | 1504 |
 | pages | 128 |
-| pathLiterals | 644 |
+| pathLiterals | 645 |
 | publicAssets | 387 |
 | publicEntries | 412 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 104 |
-| records | 15974 |
+| records | 15975 |
 | repositoryFiles | 2897 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1340,8 +1340,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-geneve-mobile-fast.webp | 3 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
-| /images/home/tok-leman-signature-fast.webp | 3 | [src/components/home/HeroSection.tsx:82](../../src/components/home/HeroSection.tsx#L82) |
+| /images/home/tok-geneve-desktop.webp | 1 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
+| /images/home/tok-geneve-mobile-fast.webp | 3 | [src/components/home/HeroSection.tsx:82](../../src/components/home/HeroSection.tsx#L82) |
+| /images/home/tok-leman-signature-fast.webp | 3 | [src/components/home/HeroSection.tsx:83](../../src/components/home/HeroSection.tsx#L83) |
 | /images/home/tok-logo-ui.webp | 1 | [src/lib/tokLogo.ts:2](../../src/lib/tokLogo.ts#L2) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |

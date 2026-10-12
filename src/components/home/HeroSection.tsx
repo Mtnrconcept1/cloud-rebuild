@@ -78,6 +78,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         </div>
         <div className="tok-home-hero__art" aria-hidden="true">
           <picture className="tok-home-hero__background">
+            <source media="(min-width: 1024px)" type="image/webp" srcSet="/images/home/tok-geneve-desktop.webp" width={1672} height={941} />
             <source media="(max-width: 767px)" type="image/webp" srcSet="/images/home/tok-geneve-mobile-fast.webp" width={900} height={1599} />
             <img src="/images/home/tok-leman-signature-fast.webp" alt="" width={1200} height={675} {...({ fetchpriority: "high" } as const)} loading="eager" decoding="async" />
           </picture>
