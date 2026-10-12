@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "338fd18157215b48a4ad4d9cdb760510ef71894ac03bf2b8da405d139746abe2",
+ "sourceDigest": "f6a9c7686614fe08eaae586e766e60214d555123eef27daa3e0953c8acc0f2b8",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -9956,7 +9956,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1842
+     "line": 1848
     },
     {
      "route": "/restaurant/:id",
@@ -9972,7 +9972,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1627
+     "line": 1633
     },
     {
      "route": "/restaurants/:citySlug/:cuisineSlug",
@@ -9980,7 +9980,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1615
+     "line": 1621
     },
     {
      "route": "/restaurants/:citySlug/:districtSlug",
@@ -13207,15 +13207,15 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1385
+      "line": 1391
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1386
+      "line": 1392
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 2178
+      "line": 2184
      },
      {
       "path": "scripts/prerender-stoppin-restaurants-bounded.mjs",
@@ -14344,7 +14344,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1870
+      "line": 1876
      },
      {
       "path": "src/App.tsx",
@@ -24644,11 +24644,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1642
+      "line": 1648
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1871
+      "line": 1877
      },
      {
       "path": "scripts/prerender-stoppin-restaurants.mjs",
@@ -30904,6 +30904,7 @@
      "src/test/commercial-domain-isolation.test.ts",
      "src/test/daily-slot-machine-security.test.ts",
      "src/test/demo-workspace-access.test.ts",
+     "src/test/deploy-production-secret-scope.test.ts",
      "src/test/home-canton-hero.test.ts",
      "src/test/legacy-provider-cleanup.test.ts",
      "src/test/marketing-bff-security.test.ts",
@@ -81682,7 +81683,7 @@
      "twint",
      "vercel"
     ],
-    "lineCount": 2233
+    "lineCount": 2239
    },
    {
     "path": "scripts/prerender-stoppin-restaurants-bounded.mjs",
@@ -102989,9 +102990,10 @@
      "openai",
      "resend",
      "stripe",
-     "supabase"
+     "supabase",
+     "vercel"
     ],
-    "lineCount": 288
+    "lineCount": 300
    },
    {
     "path": "src/test/dialog-close-animation-guard.test.ts",
@@ -105534,7 +105536,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 286
+    "lineCount": 295
    },
    {
     "path": "src/test/seo-inventory-consistency.test.ts",
@@ -127617,7 +127619,7 @@
    "id": "code-module:c3dee908e582",
    "type": "code-module",
    "title": "scripts/prerender-seo.mjs",
-   "description": "Module de 2233 lignes; exports: aucun export statique.",
+   "description": "Module de 2239 lignes; exports: aucun export statique.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1,
    "surface": null,
@@ -127642,7 +127644,7 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "d2a324a9b626"
+   "detailRef": "ca45babed31f"
   },
   {
    "id": "code-module:6c15664b5a20",
@@ -141156,7 +141158,7 @@
    "id": "code-module:4c072fc6cddf",
    "type": "code-module",
    "title": "src/test/deploy-production-secret-scope.test.ts",
-   "description": "Module de 288 lignes; exports: aucun export statique.",
+   "description": "Module de 300 lignes; exports: aucun export statique.",
    "path": "src/test/deploy-production-secret-scope.test.ts",
    "line": 1,
    "surface": null,
@@ -141165,9 +141167,10 @@
     "openai",
     "resend",
     "stripe",
-    "supabase"
+    "supabase",
+    "vercel"
    ],
-   "detailRef": "153662798efc"
+   "detailRef": "307c84a987b6"
   },
   {
    "id": "code-module:0a24f0938a93",
@@ -144852,7 +144855,7 @@
    "id": "code-module:ba05d09cde5c",
    "type": "code-module",
    "title": "src/test/seo-indexation-hardening.test.ts",
-   "description": "Module de 286 lignes; exports: aucun export statique.",
+   "description": "Module de 295 lignes; exports: aucun export statique.",
    "path": "src/test/seo-indexation-hardening.test.ts",
    "line": 1,
    "surface": null,
@@ -144861,7 +144864,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "16672741d32a"
+   "detailRef": "226c51691187"
   },
   {
    "id": "code-module:27e64f71b864",
@@ -330086,7 +330089,7 @@
    "id": "integration:077d0104684d",
    "type": "integration",
    "title": "Vercel",
-   "description": "Intégration externe détectée dans 59 module(s).",
+   "description": "Intégration externe détectée dans 60 module(s).",
    "path": "middleware.js",
    "line": null,
    "surface": null,
@@ -330117,6 +330120,7 @@
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/daily-slot-machine-security.test.ts",
     "src/test/demo-workspace-access.test.ts",
+    "src/test/deploy-production-secret-scope.test.ts",
     "src/test/home-canton-hero.test.ts",
     "src/test/legacy-provider-cleanup.test.ts",
     "src/test/marketing-bff-security.test.ts",
@@ -330152,7 +330156,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "vercel"
    ],
-   "detailRef": "5e149539fd73"
+   "detailRef": "79723dd61c17"
   },
   {
    "id": "marketing-operation:59948b4790ce",
@@ -341145,7 +341149,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "67751dc2ccbc"
+   "detailRef": "15f4647c3bd3"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -341504,7 +341508,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "009a63b33656"
+   "detailRef": "53d84002bf13"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -348266,7 +348270,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "2cd5301d9725"
+   "detailRef": "302456065a6d"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -360593,19 +360597,19 @@
    "detailRef": "0d9b756710ee"
   },
   {
-   "id": "seo-build-route:a0913be7f529",
+   "id": "seo-build-route:41cafb00ce8b",
    "type": "seo-build-route",
    "title": "/actualites/:id",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1842,
+   "line": 1848,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "9c9c53a5945a"
+   "detailRef": "02d018e94bd1"
   },
   {
    "id": "seo-build-route:b6dc7682e25f",
@@ -360908,19 +360912,19 @@
    "detailRef": "82c5cee15538"
   },
   {
-   "id": "seo-build-route:021fd2d15b8e",
+   "id": "seo-build-route:d1b7a8cc8250",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug/:cuisineSlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1615,
+   "line": 1621,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "97c73b47422a"
+   "detailRef": "62b9c44bd4fc"
   },
   {
    "id": "seo-build-route:2fa4ea9000f0",
@@ -360968,19 +360972,19 @@
    "detailRef": "bd92e4613560"
   },
   {
-   "id": "seo-build-route:e8e7d5d384e6",
+   "id": "seo-build-route:4c22579476f7",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1627,
+   "line": 1633,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "faf00c2d0db2"
+   "detailRef": "ba731353c1a8"
   },
   {
    "id": "seo-build-route:e1c8faffbb03",

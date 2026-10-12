@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `338fd18157215b48a4ad4d9cdb760510ef71894ac03bf2b8da405d139746abe2`
+- Empreinte SHA-256 des sources indexées : `f6a9c7686614fe08eaae586e766e60214d555123eef27daa3e0953c8acc0f2b8`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1875,10 +1875,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 | Route ou famille | Type | Indexabilité | Source |
 | --- | --- | --- | --- |
 | /:param1 | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1233](../../scripts/prerender-seo.mjs#L1233) |
-| /actualites/:id | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1842](../../scripts/prerender-seo.mjs#L1842) |
+| /actualites/:id | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1848](../../scripts/prerender-seo.mjs#L1848) |
 | /restaurant/:id | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1293](../../scripts/prerender-seo.mjs#L1293) |
-| /restaurants/:citySlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1627](../../scripts/prerender-seo.mjs#L1627) |
-| /restaurants/:citySlug/:cuisineSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1615](../../scripts/prerender-seo.mjs#L1615) |
+| /restaurants/:citySlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1633](../../scripts/prerender-seo.mjs#L1633) |
+| /restaurants/:citySlug/:cuisineSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1621](../../scripts/prerender-seo.mjs#L1621) |
 | /restaurants/:citySlug/:districtSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:329](../../scripts/prerender-seo.mjs#L329) |
 | /restaurants/:citySlug/:slug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:313](../../scripts/prerender-seo.mjs#L313) |
 | /restaurants/:citySlug/r/:restaurantSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1290](../../scripts/prerender-seo.mjs#L1290) |
@@ -5996,7 +5996,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Stripe | 223 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 676 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 59 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 60 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 

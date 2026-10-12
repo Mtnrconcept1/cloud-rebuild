@@ -331,18 +331,20 @@ jobs:
               --token="$VERCEL_TOKEN"
           done
 
+  # Backend is gated by its own validated schema/functions and protected
+  # production preflight, not by Vercel's unrelated SEO prerender. Otherwise a
+  # frontend-only build failure strands payment migrations and Edge fixes.
+  # Frontend publication remains gated by build_frontend below.
   deploy_supabase:
     needs:
       - baseline
       - validation
       - preflight
-      - build_frontend
     if: >-
       ${{ always() &&
           vars.PRODUCTION_DEPLOY_ENABLED == 'true' &&
           needs.validation.result == 'success' &&
           needs.preflight.result == 'success' &&
-          (needs.build_frontend.result == 'success' || needs.build_frontend.result == 'skipped') &&
           (needs.validation.outputs.deploy_database == 'true' ||
            needs.validation.outputs.deploy_functions == 'true' ||
            needs.validation.outputs.sync_supabase_secrets == 'true') }}
