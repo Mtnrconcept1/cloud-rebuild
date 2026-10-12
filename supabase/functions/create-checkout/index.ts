@@ -63,6 +63,7 @@ import {
   markOrderCheckoutSessionState,
   persistOrderCheckoutSessionMapping,
 } from "../_shared/order-checkout.ts";
+import { isCompletedNoCostZeroAttenteSession } from "../_shared/zero-cost-checkout.ts";
 
 const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
 type CheckoutItem = Record<string, unknown>;
@@ -1637,6 +1638,10 @@ Deno.serve(async (req) => {
         miamz_benefits_applied: Array.from(miamzBenefitsApplied).join(","),
         miamz_points_multiplier: miamzPointsMultiplierMax.toFixed(2),
         points_discount_amount: pointsDiscountTotal.toFixed(2),
+        // Only server-verified MIAMZ can be debited upon fulfillment.
+        points_to_redeem: effectiveKind === "zero-attente"
+          ? String(Math.round(pointsDiscountTotal * 100))
+          : sessionMetadata.points_to_redeem,
         flex_discount_amount: flexDiscountTotal.toFixed(2),
         authoritative_total: authoritativeTotal.toFixed(2),
       };
@@ -2001,7 +2006,10 @@ Deno.serve(async (req) => {
         );
       }
 
-      if (existingSession.payment_status === "paid") {
+      if (
+        existingSession.payment_status === "paid" ||
+        isCompletedNoCostZeroAttenteSession(existingSession)
+      ) {
         return jsonResponse(
           {
             payment_attempt_id: clientPaymentAttemptId,
@@ -2169,10 +2177,18 @@ Deno.serve(async (req) => {
     if (!isRestaurantOnboardingSetup) {
       sessionParams.line_items = lineItems;
     }
+    if (effectiveKind === "zero-attente" && finalCheckoutTotalCents === 0) {
+      // 100%-discounted Stripe Checkout completes without collecting a card.
+      sessionParams.payment_method_collection = "if_required";
+    }
 
     // Checkout payments capture immediately. Match Group is the only manual
     // capture flow and is handled by authorize-match-group-order.
-    if (!isRestaurantOnboardingSetup && !isSubscriptionCheckout) {
+    if (
+      !isRestaurantOnboardingSetup &&
+      !isSubscriptionCheckout &&
+      !(effectiveKind === "zero-attente" && finalCheckoutTotalCents === 0)
+    ) {
       sessionParams.payment_intent_data = {
         capture_method: "automatic",
         metadata: sessionMetadata,
