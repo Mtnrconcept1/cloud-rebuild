@@ -153,7 +153,6 @@ export default function NearbyRestaurantsMap({
     const mapCenter: [number, number] = hasUserLocation ? [centerLat!, centerLng!] : [46.2044, 6.1432];
     const map = L.map(mapRef.current, {
       scrollWheelZoom: false,
-      tap: false,
     }).setView(mapCenter, 14);
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
