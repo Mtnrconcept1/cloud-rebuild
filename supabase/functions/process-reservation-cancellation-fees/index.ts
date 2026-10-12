@@ -45,6 +45,15 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: true, enabled: false, processed: 0 }, 200, cors);
     }
 
+    const { data: rollout, error: rolloutError } = await actor.adminClient
+      .from("reservation_card_guarantee_rollout")
+      .select("enabled")
+      .eq("id", true)
+      .maybeSingle();
+    if (rolloutError || !rollout?.enabled) {
+      return jsonResponse({ ok: true, enabled: false, processed: 0 }, 200, cors);
+    }
+
     const runtime = getStripeRuntimeForCheckoutKind("reservation");
     if (runtime.mode !== "live") throw new Error("STRIPE_MODE_MISMATCH");
     const body = await req.json().catch(() => ({})) as Record<string, unknown>;
