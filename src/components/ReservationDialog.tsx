@@ -633,6 +633,14 @@ export default function ReservationDialog({
       return;
     }
 
+    if (!("reservationId" in reservationResult) || !reservationResult.reservationId) {
+      toast({
+        title: "Réservation non confirmée",
+        description: "La confirmation de la réservation est incomplète. Veuillez réessayer.",
+        variant: "destructive",
+      });
+      return;
+    }
     const reservationId = reservationResult.reservationId;
 
     if (typeof window !== "undefined") {
