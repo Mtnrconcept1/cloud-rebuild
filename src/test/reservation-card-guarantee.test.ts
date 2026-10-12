@@ -119,6 +119,7 @@ describe("server-side reservation card guarantee invariants", () => {
     expect(sql).toContain("BEFORE INSERT ON public.reservations");
     expect(sql).toContain("RAISE EXCEPTION 'card_guarantee_required'");
     expect(sql).toContain("current_setting('tok.reservation_card_setup_id', true)");
+    expect(sql).toContain("lower(s.feature) = lower(NEW.feature)");
     expect(sql).toContain("s.stripe_setup_intent_id IS NOT NULL");
     expect(sql).toContain("s.stripe_payment_method_id IS NOT NULL");
   });
