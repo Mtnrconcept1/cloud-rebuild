@@ -416,10 +416,17 @@ async function resolveRestaurant(adminClient: ReturnType<typeof createAdminClien
 }
 
 async function getSlotAvailable(adminClient: ReturnType<typeof createAdminClient>, slot: Slot) {
-  // Google Booking Server cannot collect the individual guest's Stripe card
-  // guarantee. Direct groups larger than six to the TOK checkout instead of
-  // accepting an uncovered booking via the shared Google service account.
-  if (slot.party_size > 6) return false;
+  // The Booking Server cannot collect guests' Stripe guarantees.
+  // Preserve existing Google capacity before the guarantee rollout is enabled.
+  if (slot.party_size > 6) {
+    const { data: rollout, error: rolloutError } = await adminClient
+      .from("reservation_card_guarantee_rollout")
+      .select("enabled")
+      .eq("id", true)
+      .maybeSingle();
+    if (rolloutError) throw new HttpError(503, "Reservation guarantee configuration unavailable");
+    if (rollout?.enabled === true) return false;
+  }
   const restaurantDate = restaurantDateFromStartSec(slot.start_sec);
   const restaurantTime = restaurantTimeFromStartSec(slot.start_sec);
   const { data, error } = await adminClient.rpc("get_restaurant_reservation_slot_availability", {
