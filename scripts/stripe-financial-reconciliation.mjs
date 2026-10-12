@@ -124,7 +124,7 @@ export async function runAudit(env = process.env, fetcher = fetch) {
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   runAudit().then((result) => {
-    console.log(JSON.stringify(result, null, 2));
+    console.log(JSON.stringify({ checked_accounts: result.accounts.length, checked_payments: result.accounts.reduce((n, a) => n + a.successful_intents, 0), anomaly_count: result.anomalies.length }, null, 2));
     if (result.anomalies.length) process.exitCode = 2;
   }).catch((error) => { console.error("Stripe independent audit failed: " + error.message); process.exitCode = 1; });
 }
