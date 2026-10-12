@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `38bb9bdbc0151e7cd5f0a110bccc4ed798d7b1a3af97da7aa385e4a539e2177a`
+- Empreinte SHA-256 des sources indexées : `b3937175160d54f038431e60b4957b9cf5c513985243fdb4e1e4da4c649f7ac3`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1162,7 +1162,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commande/ | 3 | [src/components/navigation/BackNavigationButton.tsx:22](../../src/components/navigation/BackNavigationButton.tsx#L22) |
 | /commande/123?tab=details | 1 | [src/test/navigation.test.ts:24](../../src/test/navigation.test.ts#L24) |
 | /commande/:id | 4 | [src/App.tsx:575](../../src/App.tsx#L575) |
-| /commande/abc-123 | 1 | [src/test/feature-flags.test.ts:77](../../src/test/feature-flags.test.ts#L77) |
+| /commande/abc-123 | 1 | [src/test/feature-flags.test.ts:78](../../src/test/feature-flags.test.ts#L78) |
 | /commande/confirmation | 11 | [src/App.tsx:574](../../src/App.tsx#L574) |
 | /commande/confirmation?checkout_kind=order | 1 | [src/test/payment-attempt-state.test.ts:114](../../src/test/payment-attempt-state.test.ts#L114) |
 | /commande/id | 1 | [src/test/coming-soon-gate.test.tsx:16](../../src/test/coming-soon-gate.test.tsx#L16) |
@@ -1229,7 +1229,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1166](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1166) |
 | /dashboard/notifications | 12 | [src/App.tsx:610](../../src/App.tsx#L610) |
 | /dashboard/offres | 4 | [src/App.tsx:626](../../src/App.tsx#L626) |
-| /dashboard/pack | 2 | [src/test/feature-flags.test.ts:106](../../src/test/feature-flags.test.ts#L106) |
+| /dashboard/pack | 2 | [src/test/feature-flags.test.ts:107](../../src/test/feature-flags.test.ts#L107) |
 | /dashboard/performances | 6 | [src/App.tsx:617](../../src/App.tsx#L617) |
 | /dashboard/photos | 13 | [src/App.tsx:629](../../src/App.tsx#L629) |
 | /dashboard/plan-de-salle | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:211](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L211) |
