@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `94ef2ac6034a727cc7323e15cc4fd366a9effe63ba353d9bbff2890363a24905`
+- Empreinte SHA-256 des sources indexées : `46041143a25161be0024c7acf2fd8b1ec22d1711e5ff2986e22c7a0e3fa6547f`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,7 +32,7 @@
 | documents | 202 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3411 |
+| exportedSymbols | 3412 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
@@ -45,7 +45,7 @@
 | publicEntries | 487 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16172 |
+| records | 16173 |
 | repositoryFiles | 2991 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1201,8 +1201,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
 | /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:524](../../src/test/tok-ai-tools.test.ts#L524) |
 | /assets/missing.js | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
-| /auth | 54 | [scripts/prerender-seo.mjs:1225](../../scripts/prerender-seo.mjs#L1225) |
-| /auth/callback | 17 | [src/App.tsx:560](../../src/App.tsx#L560) |
+| /auth | 56 | [scripts/prerender-seo.mjs:1225](../../scripts/prerender-seo.mjs#L1225) |
+| /auth/callback | 19 | [src/App.tsx:560](../../src/App.tsx#L560) |
 | /auth/callback? | 1 | [src/lib/deep-links.ts:33](../../src/lib/deep-links.ts#L33) |
 | /auth/callback?code=pkce-code | 1 | [src/test/native-oauth.test.ts:114](../../src/test/native-oauth.test.ts#L114) |
 | /auth/demo | 6 | [src/App.tsx:559](../../src/App.tsx#L559) |
@@ -1243,26 +1243,26 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commande/id | 1 | [src/test/coming-soon-gate.test.tsx:16](../../src/test/coming-soon-gate.test.tsx#L16) |
 | /commande/order-1 | 3 | [src/test/notifications-sinistres-governance.test.ts:23](../../src/test/notifications-sinistres-governance.test.ts#L23) |
 | /commandes | 35 | [scripts/prerender-seo.mjs:1216](../../scripts/prerender-seo.mjs#L1216) |
-| /commercial | 43 | [scripts/application-index-core.mjs:166](../../scripts/application-index-core.mjs#L166) |
+| /commercial | 48 | [scripts/application-index-core.mjs:166](../../scripts/application-index-core.mjs#L166) |
 | /commercial/ | 4 | [src/App.tsx:314](../../src/App.tsx#L314) |
-| /commercial/anything | 1 | [src/test/commercial-domain-isolation.test.ts:147](../../src/test/commercial-domain-isolation.test.ts#L147) |
-| /commercial/comptabilite | 9 | [src/App.tsx:426](../../src/App.tsx#L426) |
-| /commercial/demo-live | 28 | [src/App.tsx:535](../../src/App.tsx#L535) |
-| /commercial/demo-live/ | 1 | [src/test/commercial-domain-isolation.test.ts:155](../../src/test/commercial-domain-isolation.test.ts#L155) |
-| /commercial/demo-live/evil | 1 | [src/test/commercial-domain-isolation.test.ts:94](../../src/test/commercial-domain-isolation.test.ts#L94) |
+| /commercial/anything | 1 | [src/test/commercial-domain-isolation.test.ts:177](../../src/test/commercial-domain-isolation.test.ts#L177) |
+| /commercial/comptabilite | 10 | [src/App.tsx:426](../../src/App.tsx#L426) |
+| /commercial/demo-live | 29 | [src/App.tsx:535](../../src/App.tsx#L535) |
+| /commercial/demo-live/ | 1 | [src/test/commercial-domain-isolation.test.ts:185](../../src/test/commercial-domain-isolation.test.ts#L185) |
+| /commercial/demo-live/evil | 1 | [src/test/commercial-domain-isolation.test.ts:124](../../src/test/commercial-domain-isolation.test.ts#L124) |
 | /commercial/demo-live/frame/ | 1 | [src/test/commercial-multi-space-demo.test.ts:121](../../src/test/commercial-multi-space-demo.test.ts#L121) |
 | /commercial/demo-live/frame/:surface/:sessionId/* | 2 | [scripts/application-index-core.mjs:846](../../scripts/application-index-core.mjs#L846) |
-| /commercial/demo-live/frame/client/not-a-uuid/mon-espace | 1 | [src/test/commercial-domain-isolation.test.ts:95](../../src/test/commercial-domain-isolation.test.ts#L95) |
+| /commercial/demo-live/frame/client/not-a-uuid/mon-espace | 1 | [src/test/commercial-domain-isolation.test.ts:125](../../src/test/commercial-domain-isolation.test.ts#L125) |
 | /commercial/demo-live/frame/courier/not-a-uuid/courier | 1 | [src/test/commercial-demo-frame.test.ts:32](../../src/test/commercial-demo-frame.test.ts#L32) |
-| /commercial/demo-live?panel=client | 1 | [src/test/commercial-domain-isolation.test.ts:373](../../src/test/commercial-domain-isolation.test.ts#L373) |
+| /commercial/demo-live?panel=client | 1 | [src/test/commercial-domain-isolation.test.ts:403](../../src/test/commercial-domain-isolation.test.ts#L403) |
 | /commercial/demo-live?surface=client | 1 | [src/test/demo-workspace-access.test.ts:127](../../src/test/demo-workspace-access.test.ts#L127) |
 | /commercial/demo-live?surface=courier | 2 | [src/test/demo-workspace-access.test.ts:60](../../src/test/demo-workspace-access.test.ts#L60) |
 | /commercial/demo-live?surface=restaurant | 2 | [src/test/demo-workspace-access.test.ts:62](../../src/test/demo-workspace-access.test.ts#L62) |
 | /commercial/notifications | 11 | [src/App.tsx:603](../../src/App.tsx#L603) |
 | /commercial/prospection | 7 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
-| /commercial/route-inconnue | 1 | [src/test/commercial-domain-isolation.test.ts:159](../../src/test/commercial-domain-isolation.test.ts#L159) |
+| /commercial/route-inconnue | 1 | [src/test/commercial-domain-isolation.test.ts:189](../../src/test/commercial-domain-isolation.test.ts#L189) |
 | /commercial?tab=followups | 2 | [src/test/notifications-sinistres-governance.test.ts:39](../../src/test/notifications-sinistres-governance.test.ts#L39) |
-| /commercially | 1 | [src/test/commercial-domain-isolation.test.ts:148](../../src/test/commercial-domain-isolation.test.ts#L148) |
+| /commercially | 1 | [src/test/commercial-domain-isolation.test.ts:178](../../src/test/commercial-domain-isolation.test.ts#L178) |
 | /compte | 5 | [scripts/prerender-seo.mjs:1220](../../scripts/prerender-seo.mjs#L1220) |
 | /conditions-restaurateurs | 15 | [scripts/prerender-seo.mjs:1185](../../scripts/prerender-seo.mjs#L1185) |
 | /contact | 19 | [scripts/prerender-seo.mjs:798](../../scripts/prerender-seo.mjs#L798) |
@@ -1593,8 +1593,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurant/:id/reserver | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:201](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L201) |
 | /restaurant/cc47c8c6-752f-406c-8c2f-ed04ebd0ca20 | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
 | /restaurant/la-table-test-restaurant-1 | 1 | [src/test/restaurant-entity-seo.test.ts:39](../../src/test/restaurant-entity-seo.test.ts#L39) |
-| /restaurant/production-id | 1 | [src/test/commercial-domain-isolation.test.ts:90](../../src/test/commercial-domain-isolation.test.ts#L90) |
-| /restaurant/real-id | 1 | [src/test/commercial-domain-isolation.test.ts:325](../../src/test/commercial-domain-isolation.test.ts#L325) |
+| /restaurant/production-id | 1 | [src/test/commercial-domain-isolation.test.ts:120](../../src/test/commercial-domain-isolation.test.ts#L120) |
+| /restaurant/real-id | 1 | [src/test/commercial-domain-isolation.test.ts:355](../../src/test/commercial-domain-isolation.test.ts#L355) |
 | /restaurant/sans-donnee-inventee-restaurant-2 | 1 | [src/test/restaurant-entity-seo.test.ts:150](../../src/test/restaurant-entity-seo.test.ts#L150) |
 | /restaurants | 5 | [src/components/marketing/views/MarketingOutreachView.tsx:102](../../src/components/marketing/views/MarketingOutreachView.tsx#L102) |
 | /restaurants-pres/:path* | 2 | [middleware.js:5](../../middleware.js#L5) |
@@ -1626,7 +1626,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants/carouge/r/le-jardin-de-pinchat | 1 | [src/test/seo-city-identity.test.ts:67](../../src/test/seo-city-identity.test.ts#L67) |
 | /restaurants/carouge/r/other-city | 1 | [src/test/seo-restaurant-context-hardening.test.ts:30](../../src/test/seo-restaurant-context-hardening.test.ts#L30) |
 | /restaurants/chene-bourg/r/la-caf | 1 | [src/test/seo-web-artifact-names.test.ts:55](../../src/test/seo-web-artifact-names.test.ts#L55) |
-| /restaurants/geneve | 8 | [src/test/commercial-domain-isolation.test.ts:89](../../src/test/commercial-domain-isolation.test.ts#L89) |
+| /restaurants/geneve | 8 | [src/test/commercial-domain-isolation.test.ts:119](../../src/test/commercial-domain-isolation.test.ts#L119) |
 | /restaurants/geneve/eaux-vives | 2 | [src/test/seo-crawl-hardening.test.ts:93](../../src/test/seo-crawl-hardening.test.ts#L93) |
 | /restaurants/geneve/italien | 2 | [src/test/seo-crawl-hardening.test.ts:99](../../src/test/seo-crawl-hardening.test.ts#L99) |
 | /restaurants/geneve/r/a | 6 | [src/test/seo-directory-quality-hardening.test.ts:47](../../src/test/seo-directory-quality-hardening.test.ts#L47) |
