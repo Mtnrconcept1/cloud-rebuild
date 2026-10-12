@@ -177,7 +177,7 @@ export default function Panier() {
   const isGuaranteedDeliveryCheckout = Boolean(guaranteedDeliveryContext);
   const authRedirectTarget = buildAuthRedirectTarget(location.pathname, location.search);
   const continueShoppingHref = restaurantId ? `/restaurant/${restaurantId}` : "/recherche";
-  const deliveryFeatureEnabled = activeFeatures.has("livraison");
+  const deliveryFeatureEnabled = activeFeatures.has("livraison") && activeFeatures.has("commandes");
   const takeawayFeatureEnabled = activeFeatures.has("emporter");
   const [address, setAddress] = useState("");
   const [deliverySelection, setDeliverySelection] = useState<AddressSelection | null>(null);

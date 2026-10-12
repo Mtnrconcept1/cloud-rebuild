@@ -159,12 +159,11 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   },
   {
     name: "commandes",
-    label: "Commandes",
-    description: "Expose l'historique client et le suivi des commandes du dashboard restaurateur.",
+    label: "Commandes avec livraison",
+    description: "Autorise uniquement les nouvelles commandes avec livraison. Les retraits et le suivi des achats sont indépendants.",
     defaultEnabled: true,
     group: "journeys",
-    requiresAnyOf: ["livraison", "emporter"],
-    routeTargets: ["/commandes", "/commande/confirmation", "/commande/:id"],
+    dependsOn: ["livraison"],
   },
   {
     name: "anti-gaspi",
@@ -518,11 +517,11 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   },
   {
     name: "dashboard-commandes",
-    label: "Dashboard: Commandes",
-    description: "Expose la vue commandes du dashboard restaurateur.",
+    label: "Dashboard: Commandes et retraits",
+    description: "Conserve le suivi des retraits et des commandes existantes, indépendamment de la création de nouvelles livraisons.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
-    dependsOn: ["dashboard-restaurateur", "commandes"],
+    dependsOn: ["dashboard-restaurateur"],
     routeTargets: ["/dashboard/commandes"],
   },
   {
@@ -604,7 +603,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
-    requiresAnyOf: ["commandes", "reservation"],
+    requiresAnyOf: ["commandes", "emporter", "reservation"],
     routeTargets: ["/dashboard/crm"],
   },
   {

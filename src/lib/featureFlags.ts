@@ -157,9 +157,6 @@ export function validateFeatureFlagPreset(preset: FeatureFlagPreset, flags: Feat
 
   Object.entries(preset.flags).forEach(([name, enabled]) => next.set(name, enabled));
 
-  if (next.get("payment-card") && next.get("commandes") === false) {
-    warnings.push("Paiement actif mais checkout/commandes désactivé.");
-  }
 
   if (next.get("actualites-sociales") && current.has("tracking") && next.get("tracking") === false) {
     warnings.push("Actualités sponsorisées actives sans tracking.");
