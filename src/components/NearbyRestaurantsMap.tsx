@@ -139,8 +139,8 @@ function createRestaurantPopup(restaurant: Restaurant) {
 
 export default function NearbyRestaurantsMap({
   restaurants,
-  centerLat = 46.2044,
-  centerLng = 6.1432,
+  centerLat,
+  centerLng,
 }: NearbyRestaurantsMapProps) {
   const navigate = useNavigate();
   const mapRef = useRef<HTMLDivElement>(null);
@@ -149,19 +149,21 @@ export default function NearbyRestaurantsMap({
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
 
+    const hasUserLocation = typeof centerLat === "number" && typeof centerLng === "number" && Number.isFinite(centerLat) && Number.isFinite(centerLng);
+    const mapCenter: [number, number] = hasUserLocation ? [centerLat!, centerLng!] : [46.2044, 6.1432];
     const map = L.map(mapRef.current, {
       scrollWheelZoom: false,
       tap: false,
-    }).setView([centerLat, centerLng], 14);
+    }).setView(mapCenter, 14);
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       referrerPolicy: "strict-origin",
     }).addTo(map);
 
-    L.marker([centerLat, centerLng], { icon: userIcon }).addTo(map).bindPopup("Votre position");
+    if (hasUserLocation) L.marker(mapCenter, { icon: userIcon }).addTo(map).bindPopup("Votre position");
 
-    const bounds = L.latLngBounds([[centerLat, centerLng]]);
+    const bounds = L.latLngBounds([mapCenter]);
 
     let locatedCount = 0;
     restaurants.forEach((restaurant) => {
