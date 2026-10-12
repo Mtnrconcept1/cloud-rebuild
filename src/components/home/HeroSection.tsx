@@ -4,6 +4,7 @@ import { ArrowRight, ChevronRight, Heart, Mail, MapPin, Navigation, Percent, Sea
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
+import { cantonFromPlaceName, cantonHeroSrc, type SwissCantonCode } from "@/lib/homeCantonHero";
 import "./HeroSection.css";
 
 const EMPTY_FEATURES: ReadonlySet<string> = new Set();
@@ -16,12 +17,20 @@ const newsletterConditions = [
   "TOK peut modifier, suspendre ou arrêter l'offre si nécessaire, notamment en cas d'usage abusif, de comptes multiples ou de tentative de contournement.",
 ];
 
-export default function HeroSection({ contentVisible = true, activeFeatures = EMPTY_FEATURES }: { contentVisible?: boolean; activeFeatures?: ReadonlySet<string> }) {
+export default function HeroSection({ contentVisible = true, activeFeatures = EMPTY_FEATURES, locationCanton = null, profileCity = null }: {
+  contentVisible?: boolean;
+  activeFeatures?: ReadonlySet<string>;
+  locationCanton?: SwissCantonCode | null;
+  profileCity?: string | null;
+}) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [city, setCity] = useState("");
   const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
+  // A typed destination takes precedence over the device position and the profile city.
+  const canton = city.trim() ? cantonFromPlaceName(city) : locationCanton ?? cantonFromPlaceName(profileCity);
+  const cantonImage = canton ? cantonHeroSrc(canton) : null;
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,6 +48,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         aria-labelledby="home-hero-title"
         data-content-visible={contentVisible}
         data-authenticated={Boolean(user)}
+        data-home-canton={canton ?? "default"}
       >
         <div className="tok-home-hero__content">
           <div className="tok-home-hero__brand">
@@ -76,11 +86,11 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
             {activeFeatures.has("chefs-table") ? <Link to="/chefs-table"><Users aria-hidden="true" /> Grandes tables</Link> : null}
           </nav>
         </div>
-        <div className="tok-home-hero__art" aria-hidden="true">
+        <div className="tok-home-hero__art" aria-hidden="true" data-canton-image={Boolean(cantonImage)}>
           <picture className="tok-home-hero__background">
-            <source media="(min-width: 1024px)" type="image/webp" srcSet="/images/home/tok-geneve-desktop.webp" width={1672} height={941} />
-            <source media="(max-width: 767px)" type="image/webp" srcSet="/images/home/tok-geneve-mobile-fast.webp" width={900} height={1599} />
-            <img src="/images/home/tok-leman-signature-fast.webp" alt="" width={1200} height={675} {...({ fetchpriority: "high" } as const)} loading="eager" decoding="async" />
+            <source media="(min-width: 1024px)" type="image/webp" srcSet={cantonImage ?? "/images/home/tok-geneve-desktop.webp"} width={cantonImage ? 1440 : 1672} height={cantonImage ? 810 : 941} />
+            <source media="(max-width: 767px)" type="image/webp" srcSet={cantonImage ?? "/images/home/tok-geneve-mobile-fast.webp"} width={cantonImage ? 1440 : 900} height={cantonImage ? 810 : 1599} />
+            <img src={cantonImage ?? "/images/home/tok-leman-signature-fast.webp"} alt="" width={cantonImage ? 1440 : 1200} height={cantonImage ? 810 : 675} {...({ fetchpriority: "high" } as const)} loading="eager" decoding="async" />
           </picture>
         </div>
       </section>
