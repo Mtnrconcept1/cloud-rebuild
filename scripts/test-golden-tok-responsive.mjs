@@ -26,6 +26,37 @@ async function run() {
   try {
     for (const viewport of VIEWPORTS) {
       const page = await browser.newPage();
+      // The production launch gate fails closed with a fake CI database.
+      // Stub only this read-only gate RPC in the browser, never application code.
+      await page.setRequestInterception(true);
+      page.on("request", (request) => {
+        const url = request.url();
+        if (!url.startsWith("https://example.supabase.co/")) {
+          void request.continue();
+          return;
+        }
+        const headers = {
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "GET, POST, OPTIONS",
+          "access-control-allow-headers": "apikey, authorization, content-type, x-client-info, prefer",
+        };
+        if (request.method() === "OPTIONS") {
+          void request.respond({ status: 204, headers });
+          return;
+        }
+        if (url.includes("/rpc/get_launch_gate_state")) {
+          void request.respond({
+            status: 200,
+            contentType: "application/json",
+            headers,
+            body: JSON.stringify({ enabled: false, ends_at: null, server_now: new Date().toISOString() }),
+          });
+          return;
+        }
+        // All other remote traffic stays unavailable in CI: fallback flags
+        // are used, and no real financial or reservation actions are performed.
+        void request.abort();
+      });
       const pageErrors = [];
       page.on("pageerror", (error) => pageErrors.push(error.message));
       try {

@@ -15,6 +15,47 @@ permissions:
   contents: read
 
 jobs:
+  index-sync:
+    name: Regenerate the application's canonical reference index
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'codex/golden-tok-refonte-responsive-20261012' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout dedicated PR branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Regenerate index
+        run: pnpm run docs:application-index
+      - name: Commit only generated index files back to PR branch
+        shell: bash
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md
+          if git diff --cached --quiet; then
+            echo "Index already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(index): refresh TOK application reference for Golden TOK"
+          git push origin "HEAD:refs/heads/${PR_HEAD}"
+
   browser:
     name: Golden TOK browser (8 device widths)
     runs-on: ubuntu-latest
