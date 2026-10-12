@@ -201,7 +201,7 @@ export function SponsoredRestaurantTemplateCard({
         )}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_13%_15%,rgba(255,255,255,1),transparent_63%),linear-gradient(110deg,#fffdfa_0%,#fff8ed_68%,#ffebce_100%)] dark:bg-[linear-gradient(110deg,#0f172a_0%,#1e293b_67%,#7c2d12_100%)]" />
-        <div className="relative grid aspect-[2.05/1] grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:aspect-auto">
+        <div className="relative grid aspect-[2.05/1] grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:aspect-auto [@container_sponsored-banner_(min-width:48rem)]:grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:grid-rows-1">
           <div
             className={cn(
               "relative z-20 order-1 flex min-w-0 flex-col justify-center px-2 py-2 [@container_sponsored-banner_(min-width:40rem)]:px-7 [@container_sponsored-banner_(min-width:48rem)]:order-1 [@container_sponsored-banner_(min-width:48rem)]:justify-center [@container_sponsored-banner_(min-width:48rem)]:py-7 [@container_sponsored-banner_(min-width:48rem)]:pl-7 [@container_sponsored-banner_(min-width:48rem)]:pr-5 [@container_sponsored-banner_(min-width:72rem)]:py-8 [@container_sponsored-banner_(min-width:72rem)]:pl-10 [@container_sponsored-banner_(min-width:72rem)]:pr-7",
@@ -236,7 +236,7 @@ export function SponsoredRestaurantTemplateCard({
               </p>
               <h3
                 className={cn(
-                  "mt-1 break-words text-[clamp(0.85rem,4.9cqw,3.2rem)] leading-[1.08] tracking-[-0.035em] [overflow-wrap:anywhere] [text-wrap:balance]",
+                  "mt-1 break-words text-[clamp(0.85rem,4.9cqw,1.65rem)] [@container_sponsored-banner_(min-width:48rem)]:text-[clamp(1.65rem,4.9cqw,3.2rem)] leading-[1.08] tracking-[-0.035em] [overflow-wrap:anywhere] [text-wrap:balance]",
                   getTypographyClass(normalized.text.restaurant),
                 )}
                 style={{
