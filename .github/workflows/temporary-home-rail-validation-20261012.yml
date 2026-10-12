@@ -1,0 +1,50 @@
+name: Temporary TOK homepage rail validation
+
+on:
+  push:
+    branches:
+      - codex/home-mobile-restaurant-carousels-20261012
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temporary-home-rail-validation
+  cancel-in-progress: true
+
+jobs:
+  validate-and-refresh-docs:
+    if: github.repository == 'Mtnrconcept1/cloud-rebuild'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dedicated branch
+        uses: actions/checkout@v6
+        with:
+          ref: codex/home-mobile-restaurant-carousels-20261012
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Configure pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run targeted homepage carousel tests
+        run: pnpm exec vitest run src/test/home-restaurant-carousel.test.tsx
+      - name: Lint modified frontend components
+        run: pnpm exec eslint src/components/home/RestaurantSection.tsx src/components/home/SectionShowcaseHeader.tsx src/components/RestaurantCard.tsx src/components/campaigns/SponsoredRestaurantTemplateCard.tsx src/test/home-restaurant-carousel.test.tsx
+      - name: Typecheck application
+        run: pnpm typecheck
+      - name: Regenerate index without temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -f .github/workflows/temporary-home-rail-validation-20261012.yml
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+          git add docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'docs: refresh application reference after homepage carousel update'
+          git push origin HEAD:codex/home-mobile-restaurant-carousels-20261012
