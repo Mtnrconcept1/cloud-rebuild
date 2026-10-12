@@ -332,7 +332,11 @@ BEGIN
     SELECT f.id
     FROM public.reservation_cancellation_fees f
     INNER JOIN public.reservations r ON r.id = f.reservation_id
-    WHERE (f.status = 'pending'
+    INNER JOIN public.restaurants restaurant ON restaurant.id = f.restaurant_id
+    WHERE restaurant.stripe_account_id IS NOT NULL
+      AND coalesce(restaurant.stripe_connect_charges_enabled, false)
+      AND coalesce(restaurant.stripe_connect_payouts_enabled, false)
+      AND (f.status = 'pending'
       OR (f.status = 'processing' AND f.lease_until < now()))
       AND f.attempt_count < 10
       AND r.status = 'cancelled'
