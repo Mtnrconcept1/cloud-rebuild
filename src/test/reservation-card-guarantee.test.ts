@@ -149,6 +149,46 @@ describe("server-side reservation card guarantee invariants", () => {
     expect(sql).toContain("newly_confirmed := false");
   });
 
+  it("keeps monetary collection disabled without explicit operations activation", () => {
+    const worker = source("supabase/functions/process-reservation-cancellation-fees/index.ts");
+    const config = source("supabase/config.toml");
+    expect(worker).toContain('Deno.env.get("TOK_RESERVATION_CANCELLATION_COLLECTION_ENABLED") !== "true"');
+    expect(config).toContain("[functions.process-reservation-cancellation-fees]");
+    expect(worker).toContain("actor.isServiceRole");
+    expect(worker).toContain("runtime.mode !== \"live\"");
+    expect(worker).not.toContain("Deno.env.get(\"TOK_RESERVATION_CANCELLATION_COLLECTION_ENABLED\") === undefined");
+  });
+
+  it("checks the beneficiary and binds a unique Stripe Intent before collecting", () => {
+    const worker = source("supabase/functions/process-reservation-cancellation-fees/index.ts");
+    expect(worker).toContain("RESTAURANT_CONNECT_NOT_READY");
+    expect(worker).toContain("RESTAURANT_STRIPE_TRANSFERS_NOT_ACTIVE");
+    expect(worker).toContain("transfer_data: { destination: connect.stripe_account_id }");
+    expect(worker).toContain(".is(\"stripe_payment_intent_id\", null)");
+    expect(worker).toContain('idempotencyKey: `tok:cancellation-fee:create:${fee.fee_id}`');
+    expect(worker).toContain('idempotencyKey: `tok:cancellation-fee:confirm:${fee.fee_id}`');
+    expect(worker).toContain("paymentIntents.retrieve(fee.stripe_payment_intent_id)");
+    expect(worker).toContain("off_session: true");
+    expect(sql).toContain("FOR UPDATE OF f SKIP LOCKED");
+    expect(sql).toContain("restaurant.stripe_account_id IS NOT NULL");
+  });
+
+  it("reconciles verified Stripe payment successes and failures", () => {
+    const webhook = source("supabase/functions/stripe-webhook/index.ts");
+    expect(webhook).toContain('case "payment_intent.succeeded"');
+    expect(webhook).toContain('case "payment_intent.payment_failed"');
+    expect(webhook).toContain('tok_purpose === "reservation_cancellation_fee"');
+    expect(webhook).toContain('"reservation_cancellation_fees"');
+    expect(webhook).toContain('.eq("stripe_payment_intent_id", intent.id)');
+  });
+
+  it("schedules a guarded cron and requires a Vault secret", () => {
+    const schedule = source("supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql");
+    expect(schedule).toContain("tok-reservation-cancellation-fees");
+    expect(schedule).toContain("vault.decrypted_secrets");
+    expect(schedule).toContain("x-internal-cron-secret");
+  });
+
   it("requires explicit consent and shows the CHF total before continuing", () => {
     expect(dialog).toContain("guaranteeQuote.required && guaranteeAccepted");
     expect(dialog).toContain("10 CHF par convive");
