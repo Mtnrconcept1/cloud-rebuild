@@ -200,7 +200,7 @@ export default function Navbar() {
     <>
       {/* ─── Top utility bar ─── */}
       {showClientSurface ? (
-        <div ref={utilityBarRef} className={`w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 ${isDesktopHomeReference ? "block lg:hidden" : "hidden lg:block"}`}>
+        <div ref={utilityBarRef} className={`w-full border-b border-border/60 bg-muted dark:border-white/10 dark:bg-slate-950 ${isDesktopHomeReference ? "block lg:hidden" : "hidden lg:block"}`}>
           <div className={isDesktopHomeReference
             ? "container flex h-9 items-center justify-end gap-1.5 px-2 text-[10px] text-muted-foreground min-[380px]:gap-2 min-[380px]:text-xs sm:gap-3"
             : "container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground"}>
@@ -239,29 +239,29 @@ export default function Navbar() {
       {/* ─── Main header ─── */}
       <header
         ref={headerRef}
-        className={`tok-site-header sticky top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border bg-background/95 backdrop-blur dark:border-border dark:bg-background/95" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
+        className={`tok-site-header sticky top-0 z-[70] w-full border-b bg-background shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out dark:bg-slate-950 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border dark:border-border" : "border-border/80 dark:border-white/20 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
         style={{
           opacity: isHeaderVisible ? 1 : 0,
           transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
         }}
       >
-        <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8 ${isMobileHomeHeader ? "h-[66px] bg-background dark:bg-background" : "h-16"}`}>
+        <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8 xl:px-4 2xl:px-8 ${isMobileHomeHeader ? "h-[66px]" : "h-16"}`}>
           <Link to={homeTarget} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
             <img src={logoSrc} alt="Tok" width={98} height={64} decoding="async" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16`} />
           </Link>
 
           {showClientSurface ? (
             <NavigationMenu className="hidden xl:flex">
-              <NavigationMenuList>
+              <NavigationMenuList className="min-w-max flex-nowrap whitespace-nowrap">
                 <NavigationMenuItem>
-                  <Link to="/recherche" className="flex items-center gap-1 min-h-11 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  <Link to="/recherche" className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                     <Search className="h-4 w-4" />
                     Explorer
                 </Link>
               </NavigationMenuItem>
               {actualitesEnabled ? (
                 <NavigationMenuItem>
-                  <Link to="/actualites" className="flex items-center gap-1 min-h-11 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  <Link to="/actualites" className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                     <Newspaper className="h-4 w-4" />
                     Actualités
                   </Link>
@@ -269,7 +269,7 @@ export default function Navbar() {
               ) : null}
               {antiWasteEnabled ? (
                 <NavigationMenuItem>
-                  <Link to="/anti-gaspi" className="flex items-center gap-1 min-h-11 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
+                  <Link to="/anti-gaspi" className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
                     <Leaf className="h-4 w-4" />
                     Anti-gaspi
                     </Link>
@@ -277,7 +277,7 @@ export default function Navbar() {
                 ) : null}
                 {flashSalesEnabled ? (
                   <NavigationMenuItem>
-                    <Link to="/ventes-flash" className="flex items-center gap-1 min-h-11 px-3 py-2 text-sm font-semibold text-amber-600 transition-colors hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300">
+                    <Link to="/ventes-flash" className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-2 text-sm font-semibold text-amber-600 transition-colors hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300">
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                   </Link>
@@ -285,7 +285,7 @@ export default function Navbar() {
               ) : null}
               {tokOneEnabled ? (
                 <NavigationMenuItem>
-                    <Link to="/tok-one" className="flex items-center gap-1 min-h-11 px-3 py-2 text-sm font-medium text-primary transition-colors hover:text-foreground">
+                    <Link to="/tok-one" className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-2 text-sm font-medium text-primary transition-colors hover:text-foreground">
                       <Crown className="h-4 w-4" />
                       Tok One
                     </Link>
@@ -293,7 +293,7 @@ export default function Navbar() {
                 ) : null}
                 {discoveryFeatures.length > 0 ? (
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger className="bg-transparent text-sm font-medium">
+                    <NavigationMenuTrigger className="shrink-0 whitespace-nowrap bg-transparent px-2 text-sm font-medium">
                       <Sparkles className="mr-1 h-4 w-4 text-primary" />
                       Plus
                     </NavigationMenuTrigger>
@@ -331,7 +331,7 @@ export default function Navbar() {
             </NavigationMenu>
           ) : null}
 
-          <div className="flex min-w-0 items-center gap-0.5 min-[380px]:gap-1">
+          <div className="flex shrink-0 items-center gap-0.5 min-[380px]:gap-1">
             {!showClientSurface && showSocialFeedSurface && actualitesEnabled ? (
               <Button variant="ghost" size="sm" asChild className="hidden gap-2 rounded-full lg:inline-flex">
                 <Link to="/actualites">
@@ -366,7 +366,7 @@ export default function Navbar() {
               <Link
                 to="/restaurateurs/geneve"
                 onMouseDown={preserveNavbarActionScrollPosition}
-                className="hidden h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground xl:inline-flex"
+                className="hidden h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground 2xl:inline-flex"
               >
                 <Store className="h-4 w-4" />
                 Restaurateurs
@@ -450,7 +450,7 @@ export default function Navbar() {
             )}
 
             {showClientSurface ? (
-              <ChefHelpButton surface="client" compact className="hidden h-20 w-20 xl:flex" />
+              <ChefHelpButton surface="client" compact className="hidden h-20 w-20 2xl:flex" />
             ) : null}
 
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -458,7 +458,7 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`${isMobileHomeHeader ? "order-2 text-foreground hover:bg-transparent" : ""} ${showSignedInDesktopHomeMenu ? "xl:inline-flex" : "xl:hidden"}`}
+                  className={`${isMobileHomeHeader ? "order-2 text-foreground hover:bg-transparent" : ""} ${showSignedInDesktopHomeMenu ? "xl:inline-flex" : "2xl:hidden"}`}
                 >
                   <Menu className={`${isMobileHomeHeader ? "h-8 w-8" : "h-5 w-5"}`} />
                   <span className="sr-only">Ouvrir le menu</span>
