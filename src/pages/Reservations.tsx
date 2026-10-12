@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { CalendarDays, ChevronDown, ChevronRight, Clock, Receipt, RefreshCcw, Users, Utensils } from "lucide-react";
@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/hooks/use-toast";
+import { finalizeReservationGuaranteeSession } from "@/lib/reservationMutations";
 import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { transitionCommercialDemoReservation } from "@/lib/commercialDemoJourney";
@@ -154,7 +156,11 @@ const RESERVATION_SORT_COLUMNS: SortColumn<ReservationWithRestaurant, Reservatio
 export default function Reservations() {
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
+  const processedGuaranteeReturn = useRef<string | null>(null);
+  const [guaranteeFinalizing, setGuaranteeFinalizing] = useState(false);
+  const guaranteeSessionId = searchParams.get("guarantee_session_id");
   const [sortKey, setSortKey] = useState<ReservationSortKey>("reservation_date");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [selectedReservation, setSelectedReservation] = useState<ReservationWithRestaurant | null>(null);
@@ -174,6 +180,58 @@ export default function Reservations() {
     },
     enabled: Boolean(user && !commercialDemoFrame),
   });
+
+  useEffect(() => {
+    if (!guaranteeSessionId || !user?.id || commercialDemoFrame
+      || processedGuaranteeReturn.current === guaranteeSessionId) return;
+    processedGuaranteeReturn.current = guaranteeSessionId;
+    let active = true;
+    setGuaranteeFinalizing(true);
+
+    void finalizeReservationGuaranteeSession(guaranteeSessionId)
+      .then(async (result) => {
+        if (!active) return;
+        if (result.ok && !result.requiresCardGuarantee) {
+          toast({
+            title: "Réservation confirmée",
+            description: "Votre carte a été enregistrée en toute sécurité, sans débit immédiat.",
+          });
+          await refetch();
+        } else if ("errorMessage" in result) {
+          toast({
+            title: "Réservation non confirmée",
+            description: result.errorMessage,
+            variant: "destructive",
+          });
+        }
+      })
+      .catch((confirmationError) => {
+        if (!active) return;
+        toast({
+          title: "Vérification bancaire incomplète",
+          description: confirmationError instanceof Error
+            ? confirmationError.message
+            : "Veuillez contacter l'assistance pour vérifier votre réservation.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        if (!active) return;
+        setGuaranteeFinalizing(false);
+        const remainingParams = new URLSearchParams(window.location.search);
+        remainingParams.delete("guarantee_session_id");
+        setSearchParams(remainingParams, { replace: true });
+      });
+
+    return () => {
+      active = false;
+      // React StrictMode can mount effects twice in development. Allow the
+      // second effect to retry instead of permanently losing Stripe's return.
+      if (processedGuaranteeReturn.current === guaranteeSessionId) {
+        processedGuaranteeReturn.current = null;
+      }
+    };
+  }, [commercialDemoFrame, guaranteeSessionId, refetch, setSearchParams, toast, user?.id]);
 
   const demoReservations = useMemo<ReservationWithRestaurant[]>(() => {
     if (!commercialDemoFrame) return [];
@@ -275,6 +333,11 @@ export default function Reservations() {
   return (
     <CustomerDashboardLayout>
       <div className="space-y-6">
+        {guaranteeFinalizing && (
+          <div role="status" className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm">
+            Vérification de votre garantie bancaire Stripe et de la disponibilité de la table…
+          </div>
+        )}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="font-display text-3xl font-bold">Mes réservations</h1>
           <SortControls

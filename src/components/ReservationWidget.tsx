@@ -289,7 +289,7 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
             Connexion pour réserver
           </Button>
         )}
-        <p className="text-[10px] text-muted-foreground text-center">Confirmation immédiate · Annulation gratuite</p>
+        <p className="text-[10px] text-muted-foreground text-center">Confirmation sous réserve des conditions de garantie bancaire, indiquées avant validation</p>
       </div>
     </div>
   );

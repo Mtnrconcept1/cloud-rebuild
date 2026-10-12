@@ -389,6 +389,12 @@ async function createReservation(req: Request, requestId: string, corsHeaders: R
     throw new HttpError(409, "end_user_confirmation_required");
   }
 
+  // Paid dining flows require dedicated payments. Partners may not bypass
+  // the card guarantee by labeling a free reservation as a paid feature.
+  if (["zero-attente", "chefs_table"].includes(String(body.feature || "").toLowerCase())) {
+    throw new HttpError(409, "special_reservation_requires_dedicated_checkout");
+  }
+
   await assertTokConnectRestaurantGrant(context, String(body.restaurant_id), "reservations:create", {
     partySize: Number(body.party_size),
     enforceDailyReservationLimit: true,

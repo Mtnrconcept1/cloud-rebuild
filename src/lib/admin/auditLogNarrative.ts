@@ -85,6 +85,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "cancel-pending-order-checkout": "l’annulation d’un paiement de commande en attente",
   "complete-restaurant-credit-pack-checkout": "l’achat d’un pack de crédits TOK",
   "process-refund": "le traitement d’un remboursement",
+  "process-reservation-cancellation-fees": "l’encaissement différé des indemnités d’annulation des réservations garanties",
   "payment-attempt-status": "la consultation de l’état d’une tentative de paiement",
   "cancel-payment-attempt": "l’annulation d’une tentative de paiement",
   "stripe-connect-onboard": "l’inscription d’un restaurant à Stripe Connect",

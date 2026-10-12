@@ -23,11 +23,20 @@ type CreateReservationInput = {
   acquisitionChannelToken?: string | null;
   notes?: string | null;
   progressiveOfferId?: string | null;
+  guaranteeAccepted?: boolean;
 };
 
-type ReservationCreateResult =
-  | { ok: true; reservationId: string }
+export type ReservationCreateResult =
+  | { ok: true; reservationId: string; requiresCardGuarantee?: false }
+  | { ok: true; requiresCardGuarantee: true; checkoutUrl: string; feeAmountCents: number }
   | { ok: false; errorCode: string; errorMessage: string };
+
+export type ReservationGuaranteeQuote = {
+  required: boolean;
+  cancellationCount: number;
+  reason: "large_party" | "repeated_cancellations" | "large_party_and_repeated_cancellations" | "none";
+  feeAmountCents: number;
+};
 
 export type ReservationStatusResult = {
   ok: boolean;
@@ -96,6 +105,7 @@ export async function createReservationWithValidation(
       acquisition_channel_token: input.acquisitionChannelToken ?? null,
       notes: input.notes ?? null,
       progressive_offer_id: input.progressiveOfferId ?? null,
+      guarantee_accepted: input.guaranteeAccepted === true,
     },
   });
 
@@ -111,6 +121,9 @@ export async function createReservationWithValidation(
     reservation_id?: string;
     error_code?: string;
     error_message?: string;
+    requires_card_guarantee?: boolean;
+    checkout_url?: string;
+    fee_amount_cents?: number;
   };
 
   if (result.ok === false || result.error_message) {
@@ -125,6 +138,18 @@ export async function createReservationWithValidation(
     };
   }
 
+  if (result.requires_card_guarantee) {
+    if (!result.checkout_url || !/^https:\/\//.test(result.checkout_url)) {
+      throw new Error("Adresse bancaire Stripe invalide.");
+    }
+    return {
+      ok: true,
+      requiresCardGuarantee: true,
+      checkoutUrl: result.checkout_url,
+      feeAmountCents: Number(result.fee_amount_cents || 0),
+    };
+  }
+
   const reservationId = result.reservationId || result.reservation_id;
   if (!reservationId) {
     throw new Error("Réservation non créée.");
@@ -134,6 +159,47 @@ export async function createReservationWithValidation(
     ok: true,
     reservationId,
   };
+}
+
+export async function getReservationGuaranteeQuote(
+  partySize: number,
+): Promise<ReservationGuaranteeQuote> {
+  if (!Number.isInteger(partySize) || partySize < 1 || partySize > 50) {
+    throw new Error("Nombre de convives invalide.");
+  }
+  const { data, error } = await getSupabase().functions.invoke("create-reservation", {
+    body: { action: "quote", party_size: partySize },
+  });
+  if (error) throw new Error("Vérification de garantie bancaire indisponible.");
+  if (!data || data.ok !== true || typeof data.required !== "boolean") {
+    throw new Error("Vérification de garantie bancaire indisponible.");
+  }
+  return {
+    required: data.required,
+    cancellationCount: Number(data.cancellation_count || 0),
+    reason: data.reason || "none",
+    feeAmountCents: Number(data.fee_amount_cents || 0),
+  };
+}
+
+export async function finalizeReservationGuaranteeSession(
+  checkoutSessionId: string,
+): Promise<ReservationCreateResult> {
+  if (!/^cs_live_[a-zA-Z0-9_]+$/.test(checkoutSessionId)) {
+    throw new Error("Session bancaire invalide.");
+  }
+  const { data, error } = await getSupabase().functions.invoke("create-reservation", {
+    body: { action: "finalize", checkout_session_id: checkoutSessionId },
+  });
+  if (error) throw new Error("La confirmation de la garantie bancaire a échoué.");
+  if (!data || data.ok !== true || typeof data.reservation_id !== "string") {
+    return {
+      ok: false,
+      errorCode: data?.error_code || "reservation_not_confirmed",
+      errorMessage: data?.error_message || "Le créneau n'est plus disponible. Aucun débit n'a été effectué.",
+    };
+  }
+  return { ok: true, reservationId: data.reservation_id };
 }
 
 export async function markReservationHonored(
