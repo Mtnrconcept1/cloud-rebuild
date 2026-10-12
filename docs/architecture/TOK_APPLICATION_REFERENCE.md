@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `4432392c6b9f1e915c1a8579beb57e9e10a4f5a6551fd8e2c5cdac94f3287984`
+- Empreinte SHA-256 des sources indexées : `28bc5be62ffe663850a6863c7129e396f2755de230fb66907a15c80c34162ef8`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -585,13 +585,13 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | google-actions-center | GET | /v3/feeds/availability/ | /functions/v1/google-actions-center/v3/feeds/availability/ | — | [supabase/functions/google-actions-center/index.ts:1016](../../supabase/functions/google-actions-center/index.ts#L1016) |
 | google-actions-center | GET | /v3/feeds/merchants/ | /functions/v1/google-actions-center/v3/feeds/merchants/ | — | [supabase/functions/google-actions-center/index.ts:1010](../../supabase/functions/google-actions-center/index.ts#L1010) |
 | google-actions-center | GET | /v3/feeds/services/ | /functions/v1/google-actions-center/v3/feeds/services/ | — | [supabase/functions/google-actions-center/index.ts:1013](../../supabase/functions/google-actions-center/index.ts#L1013) |
-| tok-connect-api | POST | /v1/autopilot/plan | /functions/v1/tok-connect-api/v1/autopilot/plan | — | [supabase/functions/tok-connect-api/index.ts:1016](../../supabase/functions/tok-connect-api/index.ts#L1016) |
-| tok-connect-api | POST | /v1/campaigns/preview | /functions/v1/tok-connect-api/v1/campaigns/preview | — | [supabase/functions/tok-connect-api/index.ts:952](../../supabase/functions/tok-connect-api/index.ts#L952) |
-| tok-connect-api | GET | /v1/credits/balance | /functions/v1/tok-connect-api/v1/credits/balance | — | [supabase/functions/tok-connect-api/index.ts:839](../../supabase/functions/tok-connect-api/index.ts#L839) |
-| tok-connect-api | POST | /v1/reservations/:id/cancel/preview | /functions/v1/tok-connect-api/v1/reservations/:id/cancel/preview | id | [supabase/functions/tok-connect-api/index.ts:588](../../supabase/functions/tok-connect-api/index.ts#L588) |
-| tok-connect-api | POST | /v1/reservations/:id/cancel | /functions/v1/tok-connect-api/v1/reservations/:id/cancel | id | [supabase/functions/tok-connect-api/index.ts:628](../../supabase/functions/tok-connect-api/index.ts#L628) |
+| tok-connect-api | POST | /v1/autopilot/plan | /functions/v1/tok-connect-api/v1/autopilot/plan | — | [supabase/functions/tok-connect-api/index.ts:1022](../../supabase/functions/tok-connect-api/index.ts#L1022) |
+| tok-connect-api | POST | /v1/campaigns/preview | /functions/v1/tok-connect-api/v1/campaigns/preview | — | [supabase/functions/tok-connect-api/index.ts:958](../../supabase/functions/tok-connect-api/index.ts#L958) |
+| tok-connect-api | GET | /v1/credits/balance | /functions/v1/tok-connect-api/v1/credits/balance | — | [supabase/functions/tok-connect-api/index.ts:845](../../supabase/functions/tok-connect-api/index.ts#L845) |
+| tok-connect-api | POST | /v1/reservations/:id/cancel/preview | /functions/v1/tok-connect-api/v1/reservations/:id/cancel/preview | id | [supabase/functions/tok-connect-api/index.ts:594](../../supabase/functions/tok-connect-api/index.ts#L594) |
+| tok-connect-api | POST | /v1/reservations/:id/cancel | /functions/v1/tok-connect-api/v1/reservations/:id/cancel | id | [supabase/functions/tok-connect-api/index.ts:634](../../supabase/functions/tok-connect-api/index.ts#L634) |
 | tok-connect-api | POST | /v1/reservations/preview | /functions/v1/tok-connect-api/v1/reservations/preview | — | [supabase/functions/tok-connect-api/index.ts:372](../../supabase/functions/tok-connect-api/index.ts#L372) |
-| tok-connect-api | POST | /v1/reservations | /functions/v1/tok-connect-api/v1/reservations | — | [supabase/functions/tok-connect-api/index.ts:422](../../supabase/functions/tok-connect-api/index.ts#L422) |
+| tok-connect-api | POST | /v1/reservations | /functions/v1/tok-connect-api/v1/reservations | — | [supabase/functions/tok-connect-api/index.ts:428](../../supabase/functions/tok-connect-api/index.ts#L428) |
 | tok-connect-api | GET | /v1/restaurants/:id/availability | /functions/v1/tok-connect-api/v1/restaurants/:id/availability | id | [supabase/functions/tok-connect-api/index.ts:332](../../supabase/functions/tok-connect-api/index.ts#L332) |
 | tok-connect-api | GET | /v1/restaurants/:id/menu | /functions/v1/tok-connect-api/v1/restaurants/:id/menu | id | [supabase/functions/tok-connect-api/index.ts:289](../../supabase/functions/tok-connect-api/index.ts#L289) |
 | tok-connect-api | GET | /v1/restaurants/:id | /functions/v1/tok-connect-api/v1/restaurants/:id | id | [supabase/functions/tok-connect-api/index.ts:250](../../supabase/functions/tok-connect-api/index.ts#L250) |
@@ -1219,7 +1219,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth?role=restaurateur | 1 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
 | /auth?type=client | 14 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
 | /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:606](../../src/test/auth-signup-form.test.tsx#L606) |
-| /availability | 1 | [supabase/functions/tok-connect-api/index.ts:1033](../../supabase/functions/tok-connect-api/index.ts#L1033) |
+| /availability | 1 | [supabase/functions/tok-connect-api/index.ts:1039](../../supabase/functions/tok-connect-api/index.ts#L1039) |
 | /budget-auto | 10 | [scripts/prerender-seo.mjs:1025](../../scripts/prerender-seo.mjs#L1025) |
 | /campagnes | 1 | [src/lib/commercialDemoAi.ts:298](../../src/lib/commercialDemoAi.ts#L298) |
 | /carte | 2 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
@@ -1835,13 +1835,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | redirect | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:1108](../../src/pages/Auth.tsx#L1108) |
 | redirect_uri | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:221](../../supabase/functions/tok-connect-oauth/index.ts#L221) |
 | removeRestaurant | — | 1 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:171](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L171) |
-| reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:281](../../src/pages/Reservations.tsx#L281) |
+| reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:288](../../src/pages/Reservations.tsx#L288) |
 | reservationStep | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:153](../../src/pages/RestaurantDetail.tsx#L153) |
 | reserve | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:149](../../src/pages/RestaurantDetail.tsx#L149) |
 | resize | — | 1 | [src/lib/optimizedImages.ts:40](../../src/lib/optimizedImages.ts#L40) |
 | response_type | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:219](../../supabase/functions/tok-connect-oauth/index.ts#L219) |
 | restaurant | /zero-attente | 1 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
-| restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 1 | [supabase/functions/tok-connect-api/index.ts:813](../../supabase/functions/tok-connect-api/index.ts#L813) |
+| restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 1 | [supabase/functions/tok-connect-api/index.ts:819](../../supabase/functions/tok-connect-api/index.ts#L819) |
 | scope | /actualites | 3 | [src/pages/Actualites.tsx:249](../../src/pages/Actualites.tsx#L249) |
 | session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:691](../../src/pages/ChefsTable.tsx#L691) |
 | signup_operation_id | /auth, /auth/callback, /auth/demo | 2 | [src/pages/Auth.tsx:133](../../src/pages/Auth.tsx#L133) |
@@ -5765,7 +5765,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261011052254 Notification Support Realtime Publication | 58 | 0 | [supabase/migrations/20261011052254_notification_support_realtime_publication.sql:1](../../supabase/migrations/20261011052254_notification_support_realtime_publication.sql#L1) |
 | 20261012063000 Decouple Delivery Orders Flag | 186 | 2 | [supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql:1](../../supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql#L1) |
 | 20261012090000 Finalize Zero Attente No Cost Hold | 113 | 1 | [supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql:1](../../supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql#L1) |
-| 20261012130000 Reservation Card Guarantees | 363 | 12 | [supabase/migrations/20261012130000_reservation_card_guarantees.sql:1](../../supabase/migrations/20261012130000_reservation_card_guarantees.sql#L1) |
+| 20261012130000 Reservation Card Guarantees | 364 | 12 | [supabase/migrations/20261012130000_reservation_card_guarantees.sql:1](../../supabase/migrations/20261012130000_reservation_card_guarantees.sql#L1) |
 
 ## Automatisation, dépendances et CI
 

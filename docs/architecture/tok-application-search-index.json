@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "4432392c6b9f1e915c1a8579beb57e9e10a4f5a6551fd8e2c5cdac94f3287984",
+ "sourceDigest": "28bc5be62ffe663850a6863c7129e396f2755de230fb66907a15c80c34162ef8",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -9327,7 +9327,7 @@
     "endpoint": "/functions/v1/tok-connect-api/v1/autopilot/plan",
     "parameters": [],
     "path": "supabase/functions/tok-connect-api/index.ts",
-    "line": 1016
+    "line": 1022
    },
    {
     "function": "tok-connect-api",
@@ -9336,7 +9336,7 @@
     "endpoint": "/functions/v1/tok-connect-api/v1/campaigns/preview",
     "parameters": [],
     "path": "supabase/functions/tok-connect-api/index.ts",
-    "line": 952
+    "line": 958
    },
    {
     "function": "tok-connect-api",
@@ -9345,7 +9345,7 @@
     "endpoint": "/functions/v1/tok-connect-api/v1/credits/balance",
     "parameters": [],
     "path": "supabase/functions/tok-connect-api/index.ts",
-    "line": 839
+    "line": 845
    },
    {
     "function": "tok-connect-api",
@@ -9356,7 +9356,7 @@
      "id"
     ],
     "path": "supabase/functions/tok-connect-api/index.ts",
-    "line": 588
+    "line": 594
    },
    {
     "function": "tok-connect-api",
@@ -9367,7 +9367,7 @@
      "id"
     ],
     "path": "supabase/functions/tok-connect-api/index.ts",
-    "line": 628
+    "line": 634
    },
    {
     "function": "tok-connect-api",
@@ -9385,7 +9385,7 @@
     "endpoint": "/functions/v1/tok-connect-api/v1/reservations",
     "parameters": [],
     "path": "supabase/functions/tok-connect-api/index.ts",
-    "line": 422
+    "line": 428
    },
    {
     "function": "tok-connect-api",
@@ -16725,7 +16725,7 @@
     "sources": [
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
-      "line": 1033
+      "line": 1039
      }
     ]
    },
@@ -23356,7 +23356,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
-      "line": 1028
+      "line": 1034
      }
     ]
    },
@@ -24759,7 +24759,7 @@
      },
      {
       "path": "src/pages/Reservations.tsx",
-      "line": 539
+      "line": 546
      },
      {
       "path": "src/pages/RestaurantBookingRedirect.tsx",
@@ -27125,7 +27125,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
-      "line": 1069
+      "line": 1075
      }
     ]
    },
@@ -27146,7 +27146,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
-      "line": 1065
+      "line": 1071
      }
     ]
    },
@@ -27163,7 +27163,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
-      "line": 1061
+      "line": 1067
      }
     ]
    },
@@ -27202,7 +27202,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
-      "line": 1047
+      "line": 1053
      },
      {
       "path": "supabase/functions/tok-connect-chatgpt/index.ts",
@@ -27227,7 +27227,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
-      "line": 1043
+      "line": 1049
      }
     ]
    },
@@ -27282,7 +27282,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
-      "line": 1024
+      "line": 1030
      }
     ]
    },
@@ -29024,7 +29024,7 @@
     "sources": [
      {
       "path": "src/pages/Reservations.tsx",
-      "line": 281
+      "line": 288
      },
      {
       "path": "src/pages/dashboard/DashboardReservations.tsx",
@@ -29097,7 +29097,7 @@
     "sources": [
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
-      "line": 813
+      "line": 819
      }
     ],
     "routes": [
@@ -34095,7 +34095,7 @@
    {
     "name": "20261012130000 Reservation Card Guarantees",
     "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-    "lineCount": 363,
+    "lineCount": 364,
     "objectCount": 12
    }
   ],
@@ -37022,7 +37022,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-      "line": 316
+      "line": 317
      }
     ]
    },
@@ -38168,7 +38168,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-      "line": 175
+      "line": 176
      }
     ]
    },
@@ -40650,7 +40650,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-      "line": 285
+      "line": 286
      }
     ]
    },
@@ -62376,7 +62376,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-      "line": 169
+      "line": 170
      }
     ]
    },
@@ -63090,7 +63090,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-      "line": 310
+      "line": 311
      }
     ]
    },
@@ -99575,7 +99575,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 554
+    "lineCount": 561
    },
    {
     "path": "src/pages/RestaurantBookingRedirect.tsx",
@@ -104938,7 +104938,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 158
+    "lineCount": 159
    },
    {
     "path": "src/test/reservation-confirmation-deposit-ops.test.ts",
@@ -110070,7 +110070,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 509
+    "lineCount": 517
    },
    {
     "path": "supabase/functions/create-social-post-boost/index.ts",
@@ -110869,7 +110869,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 1129
+    "lineCount": 1135
    },
    {
     "path": "supabase/functions/tok-connect-app-bridge/index.ts",
@@ -137367,7 +137367,7 @@
    "id": "code-module:48f0c4f52efa",
    "type": "code-module",
    "title": "src/pages/Reservations.tsx",
-   "description": "Module de 554 lignes; exports: default.",
+   "description": "Module de 561 lignes; exports: default.",
    "path": "src/pages/Reservations.tsx",
    "line": 1,
    "surface": null,
@@ -137376,7 +137376,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "6870e5000105"
+   "detailRef": "ba5165bb717c"
   },
   {
    "id": "code-module:54047e967c20",
@@ -143985,7 +143985,7 @@
    "id": "code-module:6b9612f4b367",
    "type": "code-module",
    "title": "src/test/reservation-card-guarantee.test.ts",
-   "description": "Module de 158 lignes; exports: aucun export statique.",
+   "description": "Module de 159 lignes; exports: aucun export statique.",
    "path": "src/test/reservation-card-guarantee.test.ts",
    "line": 1,
    "surface": null,
@@ -143994,7 +143994,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "665efb6366d1"
+   "detailRef": "e1722b165934"
   },
   {
    "id": "code-module:53932cd19dea",
@@ -148013,7 +148013,7 @@
    "id": "code-module:2de82e4df11d",
    "type": "code-module",
    "title": "supabase/functions/create-reservation/index.ts",
-   "description": "Module de 509 lignes; exports: aucun export statique.",
+   "description": "Module de 517 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-reservation/index.ts",
    "line": 1,
    "surface": null,
@@ -148024,7 +148024,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "55936aaca50f"
+   "detailRef": "e7b0b700ee6c"
   },
   {
    "id": "code-module:9d76768ca095",
@@ -148957,12 +148957,12 @@
    "id": "code-module:7c250bdbaa9d",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-api/index.ts",
-   "description": "Module de 1129 lignes; exports: aucun export statique.",
+   "description": "Module de 1135 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-api/index.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "c1b9e9a3c57f"
+   "detailRef": "c8ad20ad910b"
   },
   {
    "id": "code-module:5f5eb07543f1",
@@ -155736,19 +155736,19 @@
    "detailRef": "75dc07a47af9"
   },
   {
-   "id": "database-object:7b5d24ada813",
+   "id": "database-object:e7014081561b",
    "type": "database-object",
    "title": "guard_reservation_card_guarantee_insert",
    "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-   "line": 169,
+   "line": 170,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase",
     "trigger"
    ],
-   "detailRef": "c2e124cfc391"
+   "detailRef": "1a1384144023"
   },
   {
    "id": "database-object:45885b8eef52",
@@ -168741,19 +168741,19 @@
    "detailRef": "83429fdb5329"
   },
   {
-   "id": "database-object:33d09c741c53",
+   "id": "database-object:153a288e4ef4",
    "type": "database-object",
    "title": "public.claim_reservation_cancellation_fees",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-   "line": 316,
+   "line": 317,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "3054d9654e73"
+   "detailRef": "8e7c19ce1709"
   },
   {
    "id": "database-object:231f20fedcf4",
@@ -173181,19 +173181,19 @@
    "detailRef": "ebdd1ce041e7"
   },
   {
-   "id": "database-object:84ee011cd2c5",
+   "id": "database-object:93deaa0c34d6",
    "type": "database-object",
    "title": "public.finalize_reservation_card_guarantee",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-   "line": 175,
+   "line": 176,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "c1d590c92c53"
+   "detailRef": "89793116d973"
   },
   {
    "id": "database-object:8e6fca3411ba",
@@ -179901,19 +179901,19 @@
    "detailRef": "1cdc29db7cbe"
   },
   {
-   "id": "database-object:cba24b0087d6",
+   "id": "database-object:aef6dff78d21",
    "type": "database-object",
    "title": "public.queue_reservation_card_cancellation_fee",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-   "line": 285,
+   "line": 286,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "ddf7cb647ead"
+   "detailRef": "a92615cb4015"
   },
   {
    "id": "database-object:bcac6e18b61e",
@@ -189261,19 +189261,19 @@
    "detailRef": "579d0ea717d5"
   },
   {
-   "id": "database-object:7994ac79843c",
+   "id": "database-object:49edf8481215",
    "type": "database-object",
    "title": "queue_reservation_card_cancellation_fee",
    "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
-   "line": 310,
+   "line": 311,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase",
     "trigger"
    ],
-   "detailRef": "8714ac9d485b"
+   "detailRef": "9419367d4a35"
   },
   {
    "id": "database-object:21ee0c439d23",
@@ -233064,19 +233064,19 @@
    "detailRef": "4527d801f4a0"
   },
   {
-   "id": "edge-http-route:260574059be0",
+   "id": "edge-http-route:779a13bb932c",
    "type": "edge-http-route",
    "title": "GET /v1/credits/balance",
    "description": "Sous-route HTTP de la fonction Edge tok-connect-api; endpoint complet /functions/v1/tok-connect-api/v1/credits/balance.",
    "path": "supabase/functions/tok-connect-api/index.ts",
-   "line": 839,
+   "line": 845,
    "surface": null,
    "tags": [
     "/functions/v1/tok-connect-api/v1/credits/balance",
     "GET",
     "tok-connect-api"
    ],
-   "detailRef": "caccabc4af3d"
+   "detailRef": "de5c52838288"
   },
   {
    "id": "edge-http-route:b4e792380db5",
@@ -233202,42 +233202,42 @@
    "detailRef": "f29b20ad7f6e"
   },
   {
-   "id": "edge-http-route:b85634f3d4e6",
+   "id": "edge-http-route:0d34bcc72251",
    "type": "edge-http-route",
    "title": "POST /v1/autopilot/plan",
    "description": "Sous-route HTTP de la fonction Edge tok-connect-api; endpoint complet /functions/v1/tok-connect-api/v1/autopilot/plan.",
    "path": "supabase/functions/tok-connect-api/index.ts",
-   "line": 1016,
+   "line": 1022,
    "surface": null,
    "tags": [
     "/functions/v1/tok-connect-api/v1/autopilot/plan",
     "POST",
     "tok-connect-api"
    ],
-   "detailRef": "c7e789bacb50"
+   "detailRef": "7f28fa17a1f9"
   },
   {
-   "id": "edge-http-route:00086ec85728",
+   "id": "edge-http-route:6e2f1f57c597",
    "type": "edge-http-route",
    "title": "POST /v1/campaigns/preview",
    "description": "Sous-route HTTP de la fonction Edge tok-connect-api; endpoint complet /functions/v1/tok-connect-api/v1/campaigns/preview.",
    "path": "supabase/functions/tok-connect-api/index.ts",
-   "line": 952,
+   "line": 958,
    "surface": null,
    "tags": [
     "/functions/v1/tok-connect-api/v1/campaigns/preview",
     "POST",
     "tok-connect-api"
    ],
-   "detailRef": "c622171f8a9a"
+   "detailRef": "e28c93cb7f6f"
   },
   {
-   "id": "edge-http-route:be5f97abe813",
+   "id": "edge-http-route:0b098475c4a8",
    "type": "edge-http-route",
    "title": "POST /v1/reservations/:id/cancel/preview",
    "description": "Sous-route HTTP de la fonction Edge tok-connect-api; endpoint complet /functions/v1/tok-connect-api/v1/reservations/:id/cancel/preview.",
    "path": "supabase/functions/tok-connect-api/index.ts",
-   "line": 588,
+   "line": 594,
    "surface": null,
    "tags": [
     "/functions/v1/tok-connect-api/v1/reservations/:id/cancel/preview",
@@ -233245,15 +233245,15 @@
     "id",
     "tok-connect-api"
    ],
-   "detailRef": "fe1f5790cf2f"
+   "detailRef": "2c5a6d381b91"
   },
   {
-   "id": "edge-http-route:90b2903ec534",
+   "id": "edge-http-route:ab7510c0c1c1",
    "type": "edge-http-route",
    "title": "POST /v1/reservations/:id/cancel",
    "description": "Sous-route HTTP de la fonction Edge tok-connect-api; endpoint complet /functions/v1/tok-connect-api/v1/reservations/:id/cancel.",
    "path": "supabase/functions/tok-connect-api/index.ts",
-   "line": 628,
+   "line": 634,
    "surface": null,
    "tags": [
     "/functions/v1/tok-connect-api/v1/reservations/:id/cancel",
@@ -233261,7 +233261,7 @@
     "id",
     "tok-connect-api"
    ],
-   "detailRef": "6ca121f216eb"
+   "detailRef": "3155a7eeb6a9"
   },
   {
    "id": "edge-http-route:6e7ed151a1c6",
@@ -233279,19 +233279,19 @@
    "detailRef": "351adb47155c"
   },
   {
-   "id": "edge-http-route:5354eb38209b",
+   "id": "edge-http-route:05891ef9df76",
    "type": "edge-http-route",
    "title": "POST /v1/reservations",
    "description": "Sous-route HTTP de la fonction Edge tok-connect-api; endpoint complet /functions/v1/tok-connect-api/v1/reservations.",
    "path": "supabase/functions/tok-connect-api/index.ts",
-   "line": 422,
+   "line": 428,
    "surface": null,
    "tags": [
     "/functions/v1/tok-connect-api/v1/reservations",
     "POST",
     "tok-connect-api"
    ],
-   "detailRef": "0c3ea0cf9a10"
+   "detailRef": "06e9c14b0683"
   },
   {
    "id": "edge-http-route:27989b753b26",
@@ -337938,7 +337938,7 @@
    "id": "migration:7b40e7175d27",
    "type": "migration",
    "title": "20261012130000 Reservation Card Guarantees",
-   "description": "Migration SQL de 363 lignes, 12 objets CREATE détectés.",
+   "description": "Migration SQL de 364 lignes, 12 objets CREATE détectés.",
    "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
    "line": 1,
    "surface": null,
@@ -337946,7 +337946,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "499248f86e00"
+   "detailRef": "b385c661b41f"
   },
   {
    "id": "package-script:5bd6dc98483a",
@@ -342617,17 +342617,17 @@
    "detailRef": "f5140e32c247"
   },
   {
-   "id": "path-literal:34d93808d9e7",
+   "id": "path-literal:d822148ab793",
    "type": "path-literal",
    "title": "/availability",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/tok-connect-api/index.ts",
-   "line": 1033,
+   "line": 1039,
    "surface": null,
    "tags": [
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "5ed9ec825658"
+   "detailRef": "458380165b04"
   },
   {
    "id": "path-literal:d21c9552298f",
@@ -347349,7 +347349,7 @@
     "supabase/functions/enrich-directory-images/index.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "9cdd46ad2580"
+   "detailRef": "2bfba95a083d"
   },
   {
    "id": "path-literal:c45916fa54a6",
@@ -348072,7 +348072,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "d99601a47294"
+   "detailRef": "2cd5301d9725"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -350079,7 +350079,7 @@
     "src/test/tok-connect.test.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "cb5b4e3cd284"
+   "detailRef": "5cd3e5f4ca5d"
   },
   {
    "id": "path-literal:f4daee8725a2",
@@ -350095,7 +350095,7 @@
     "src/test/tok-connect.test.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "87306910758b"
+   "detailRef": "14b27730fabf"
   },
   {
    "id": "path-literal:dd011b46d71b",
@@ -350110,7 +350110,7 @@
     "src/test/tok-connect.test.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "3244c8943610"
+   "detailRef": "d0651b54abb8"
   },
   {
    "id": "path-literal:72496838cd58",
@@ -350152,7 +350152,7 @@
     "src/test/tok-connect.test.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "e0c7009640e6"
+   "detailRef": "2154670ff371"
   },
   {
    "id": "path-literal:6cbf11192b08",
@@ -350198,7 +350198,7 @@
     "supabase/functions/tok-connect-api/index.ts",
     "supabase/functions/tok-connect-chatgpt/index.ts"
    ],
-   "detailRef": "b2077c421d35"
+   "detailRef": "27bffed6bb44"
   },
   {
    "id": "path-literal:ec05e02dfbe7",
@@ -350257,7 +350257,7 @@
     "src/test/tok-connect.test.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "44a639bad346"
+   "detailRef": "ec6960de6e70"
   },
   {
    "id": "path-literal:9615b9840a62",
@@ -358350,18 +358350,18 @@
    "detailRef": "eee0665bae4f"
   },
   {
-   "id": "query-parameter:19ae3fea3358",
+   "id": "query-parameter:311c9f840a9c",
    "type": "query-parameter",
    "title": "reservation",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/pages/Reservations.tsx",
-   "line": 281,
+   "line": 288,
    "surface": null,
    "tags": [
     "src/pages/Reservations.tsx",
     "src/pages/dashboard/DashboardReservations.tsx"
    ],
-   "detailRef": "4c19af25d86b"
+   "detailRef": "803d76dcf3c1"
   },
   {
    "id": "query-parameter:16eb7241db4b",
@@ -358429,17 +358429,17 @@
    "detailRef": "8e8a11f93799"
   },
   {
-   "id": "query-parameter:01d87265e587",
+   "id": "query-parameter:c3625ca38afa",
    "type": "query-parameter",
    "title": "restaurant_id",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "supabase/functions/tok-connect-api/index.ts",
-   "line": 813,
+   "line": 819,
    "surface": null,
    "tags": [
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "8c2567a93e81"
+   "detailRef": "ab16afa880fd"
   },
   {
    "id": "query-parameter:8fb9decaced8",
