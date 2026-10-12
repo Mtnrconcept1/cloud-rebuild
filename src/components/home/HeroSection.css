@@ -138,3 +138,45 @@ padding-bottom:env(safe-area-inset-bottom,0px);
 .tok-home-first-screen .tok-home-hero__content{flex:0 0 auto}
 .tok-home-first-screen .tok-home-hero__secondary{flex:0 0 auto}
 }
+@media (min-width: 1024px) {
+body:has(.tok-home-first-screen) .tok-site-header{background:rgba(255,251,247,.45)!important;backdrop-filter:blur(6px);border-color:rgba(255,255,255,.4);box-shadow:none!important}
+body:has(.tok-home-first-screen) .tok-site-header>div{max-width:1320px}
+body:has(.tok-home-hero[data-authenticated="false"]) .tok-site-header :is(.tok-desktop-guest-hide,[aria-label="Panier"]){display:none!important}
+body:has(.tok-home-first-screen) .tok-site-header .tok-desktop-guest-hide{display:none!important}
+.tok-home-first-screen{position:relative;margin-top:calc(-1 * var(--tok-public-navbar-height,80px));isolation:isolate}
+.tok-home-first-screen .tok-home-hero{--tok-home-orange:#e45615;--tok-home-ink:#29201d;--tok-home-muted:#54514e;position:relative;isolation:isolate;display:flex;align-items:center;min-height:max(730px,100svh);width:100%;max-width:none;margin:0;padding:80px max(8.5vw,calc((100vw - 1280px)/2)) 172px;overflow:hidden;background:white}
+.tok-home-first-screen .tok-home-hero__art{position:absolute;inset:0;z-index:0;width:100%;height:100%;border-radius:0;overflow:hidden}
+.tok-home-first-screen .tok-home-hero__background{position:absolute;inset:0}
+.tok-home-first-screen .tok-home-hero__background img{object-fit:cover;object-position:52% center;transform:translateX(4%)}
+.tok-home-first-screen .tok-home-hero__art::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,.98) 17%,rgba(255,255,255,.92) 24%,rgba(255,255,255,.79) 32%,rgba(255,255,255,.48) 42%,rgba(255,255,255,.08) 55%,transparent 65%),linear-gradient(0deg,rgba(255,255,255,.65),transparent 23%)}
+.tok-home-first-screen .tok-home-hero__content{position:relative;z-index:2;flex:0 0 auto;width:min(690px,58vw);max-width:690px;margin-top:-6px;padding:0;text-align:left;background:none}
+.tok-home-first-screen .tok-home-hero__brand{display:block;margin-bottom:18px}
+.tok-home-first-screen .tok-home-hero__eyebrow{color:#403b38;font-size:11px;font-weight:700;letter-spacing:.36em}
+.tok-home-first-screen .tok-home-hero__title{color:#2a211e;font-size:clamp(56px,5.1vw,80px);font-weight:600;line-height:1.02;letter-spacing:-.055em}
+.tok-home-first-screen .tok-home-hero__title span{color:var(--tok-home-orange);font-style:italic;font-weight:500}
+.tok-home-first-screen .tok-home-hero__intro{max-width:550px;margin:19px 0 29px;color:#56524f;font-size:clamp(17px,1.3vw,20px);line-height:1.46}
+.tok-home-first-screen .tok-home-hero__form{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr) 160px;gap:0;align-items:center;width:min(675px,100%);min-height:76px;padding:6px;margin:0;border:1px solid #ebe6df;border-radius:20px;background:rgba(255,255,255,.96);box-shadow:0 9px 29px rgba(74,42,26,.11)}
+.tok-home-first-screen .tok-home-hero__field{min-height:61px;padding:4px 13px;display:flex;background:transparent;border:0;border-radius:0;box-shadow:none}
+.tok-home-first-screen .tok-home-hero__field--city{border-left:1px solid #e9e1d7}
+.tok-home-first-screen .tok-home-hero__field label{position:static;width:auto;height:auto;padding:0;margin:0 0 3px;overflow:visible;clip:auto;white-space:normal;color:#302a27;font-size:12px;font-weight:700}
+.tok-home-first-screen .tok-home-hero__input-row{min-width:0;height:auto;gap:10px}
+.tok-home-first-screen .tok-home-hero__input-row input{color:#36312d;font-size:14px}
+.tok-home-first-screen .tok-home-hero__cta{order:initial;min-height:56px;border-radius:30px;background:linear-gradient(115deg,#ed5d12,#d9480a);box-shadow:0 6px 14px rgba(219,76,18,.2)}
+.tok-home-first-screen .tok-home-hero__filters,.tok-home-first-screen .tok-home-hero__secondary{display:none}
+.tok-or-banner-shell{position:relative;z-index:3;width:min(940px,calc(100vw - 80px));max-width:none;margin:clamp(-168px,-18.4svh,-140px) auto 74px;padding:0 16px}
+.tok-or-banner{min-height:104px;justify-content:flex-start;gap:22px;padding:19px 30px;border-radius:16px;background:linear-gradient(108deg,#bc4a0a,#d85815 50%,#b94105);box-shadow:0 14px 30px rgba(91,39,18,.19)}
+.tok-or-banner__brand{flex:0 0 auto;padding-right:22px;font-size:clamp(28px,2.35vw,36px);font-weight:600;white-space:nowrap}
+.tok-or-banner__body{flex:1;flex-wrap:nowrap;justify-content:space-between;gap:18px;font-size:clamp(17px,1.55vw,22px)}
+.tok-or-banner__body>span:first-child{max-width:275px}
+.tok-or-banner__cta{min-height:44px;justify-content:center;flex:0 0 auto;padding:10px 18px;white-space:nowrap}
+.dark .tok-home-first-screen .tok-home-hero{--tok-home-ink:#29201d;--tok-home-muted:#54514e}
+.dark .tok-home-first-screen .tok-home-hero__form{background:#fff}
+.dark .tok-home-first-screen .tok-home-hero__field label,.dark .tok-home-first-screen .tok-home-hero__input-row input{color:#302a27}
+}
+@media (min-width:1024px) and (max-width:1250px){
+.tok-home-first-screen .tok-home-hero__content{width:min(630px,61vw)}
+.tok-home-first-screen .tok-home-hero__title{font-size:clamp(49px,4.7vw,63px)}
+.tok-home-first-screen .tok-home-hero__form{grid-template-columns:minmax(0,1fr) minmax(0,.8fr) 138px}
+.tok-or-banner{gap:13px;padding:17px 20px}
+.tok-or-banner__brand{font-size:28px;padding-right:15px}
+}
