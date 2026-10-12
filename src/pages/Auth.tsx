@@ -93,6 +93,7 @@ import {
   getSupabaseAuthRedirectState,
 } from "@/lib/authRedirect";
 import { useLaunchGate } from "@/components/launch/LaunchGateProvider";
+import { markPendingClientSignup } from "@/lib/launchSignupWelcome";
 import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
 import {
   getCanonicalAuthCallbackHref,
@@ -1492,10 +1493,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
               ? "Votre dossier est enregistré. Enregistrez maintenant votre carte pour débloquer la configuration du restaurant."
               : "Votre compte est en attente de validation humaine.",
         });
-        if (draft.requested_role === "restaurateur" && launchState?.enabled !== false) {
-          navigate("/coming-soon?welcome=1", { replace: true });
-          return;
-        }
         if (
           draft.requested_role === "restaurateur" &&
           recoveredOnboardingChoices
@@ -1538,7 +1535,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     documents,
     incompletePrivilegedSignupRole,
     legalAccepted,
-    launchState?.enabled,
     navigate,
     navigateToPostAuthTarget,
     refreshRoles,
@@ -2044,7 +2040,11 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         });
         setPrivilegedSignupSubmitting(false);
         if (!isPrivilegedSignup) {
-          navigate("/coming-soon?welcome=1&email=1", { replace: true });
+          markPendingClientSignup();
+          navigate("/coming-soon?welcome=1&email=1", {
+            replace: true,
+            state: { clientSignupPending: true },
+          });
         }
         return;
       }
@@ -2122,7 +2122,11 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             : "Si cette adresse peut être utilisée pour créer un compte, un email de confirmation sera envoyé. Si vous avez déjà un compte, connectez-vous.",
         });
         if (!isPrivilegedSignup) {
-          navigate("/coming-soon?welcome=1&email=1", { replace: true });
+          markPendingClientSignup();
+          navigate("/coming-soon?welcome=1&email=1", {
+            replace: true,
+            state: { clientSignupPending: true },
+          });
         }
         return;
       }
@@ -2176,10 +2180,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       }
 
       if (submittedRole === "restaurateur") {
-        if (launchState?.enabled !== false) {
-          navigate("/coming-soon?welcome=1");
-          return;
-        }
         await startRestaurantCardRegistrationAfterSignup(
           activeUser.id,
           submittedOnboardingChoices,

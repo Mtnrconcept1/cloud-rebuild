@@ -16,10 +16,10 @@ function isOAuthConsentTarget(target: string) {
 }
 
 /**
- * Every production login finishes on the canonical workspace chooser. The
- * selected dashboard may then move to its dedicated subdomain while reusing
- * the shared TOK session. OAuth consent is the only continuation that must
- * resume immediately. The internal demo login keeps its isolated role home.
+ * During launch, authenticated customers see the welcome animation, while
+ * staff reach the canonical workspace chooser and their dedicated areas.
+ * OAuth consent is the only continuation that must resume immediately.
+ * Internal demo login retains its isolated role home.
  */
 export function getPostAuthTargetForRole(
   selectedRole: UserRole,
@@ -30,7 +30,7 @@ export function getPostAuthTargetForRole(
     return getRoleHomePath(selectedRole);
   }
 
-  if (context.launchEnabled && (selectedRole === "client" || selectedRole === "restaurateur")) {
+  if (context.launchEnabled && selectedRole === "client") {
     return "/coming-soon";
   }
 
