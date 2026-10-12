@@ -1332,7 +1332,13 @@ const PUBLIC_FEATURE_BY_PATH = new Map([
 const DEFAULT_DISABLED_SEO_FEATURES = new Set(["tok-pulse"]);
 
 function handleDynamicSeoFailure(source, cause) {
-  const detail = cause instanceof Error ? cause.message : String(cause || "réponse invalide");
+  // Supabase/PostgREST often returns a plain object, not an Error instance.
+  // Keep only bounded, diagnostic fields; never print the request or API key.
+  const detail = cause && typeof cause === "object"
+    ? [typeof cause.code === "string" ? cause.code : null,
+       typeof cause.message === "string" ? cause.message : null]
+      .filter(Boolean).join(" : ").slice(0, 240) || "réponse invalide"
+    : String(cause || "réponse invalide").slice(0, 240);
   const failure = new DynamicSeoCollectionError(`[seo] Collecte ${source} impossible : ${detail}`);
   if (STRICT_DYNAMIC_SEO) throw failure;
   console.warn(failure.message);
