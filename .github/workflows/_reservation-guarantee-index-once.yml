@@ -1,0 +1,49 @@
+name: One-time reservation guarantee generated sources refresh
+
+on:
+  push:
+    branches:
+      - feat/reservation-card-guarantee-20261012
+    paths:
+      - .github/workflows/_reservation-guarantee-index-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.repository == 'Mtnrconcept1/cloud-rebuild'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/reservation-card-guarantee-20261012
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Remove one-time workflow before indexing
+        run: git rm .github/workflows/_reservation-guarantee-index-once.yml
+      - name: Refresh incident error-code map
+        run: pnpm generate:error-code-map
+      - name: Regenerate canonical application index
+        run: pnpm docs:application-index
+      - name: Commit exact generated outputs to the feature branch
+        run: |
+          git config user.name "tok-ci-bot"
+          git config user.email "tok-ci-bot@users.noreply.github.com"
+          git add supabase/functions/_shared/error-code-map.ts docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
+          if git diff --cached --quiet; then
+            echo "Generated files unchanged"
+          else
+            git commit -m "chore(generated): refresh app reference and error-code map"
+            git push origin HEAD:feat/reservation-card-guarantee-20261012
+          fi
