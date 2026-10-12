@@ -1,5 +1,8 @@
 name: Independent Stripe audit tests
 on:
+  push:
+    branches:
+      - codex/stripe-reconciliation-security-20261012
   pull_request:
     paths:
       - "scripts/stripe-financial-reconciliation.mjs"
@@ -18,3 +21,31 @@ jobs:
           node-version: "22"
       - name: Run independent Stripe audit unit tests (no credentials)
         run: node --test scripts/stripe-financial-reconciliation.test.mjs
+
+  refresh-application-index:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/stripe-reconciliation-security-20261012'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/stripe-reconciliation-security-20261012
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Update generated application reference on the dedicated branch
+        run: |
+          pnpm docs:application-index
+          git add docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'docs: regenerate application index for Stripe audit'
+            git push origin HEAD:codex/stripe-reconciliation-security-20261012
+          fi
