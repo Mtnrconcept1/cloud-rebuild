@@ -1,0 +1,43 @@
+name: Temporary PR 778 application index regeneration
+on:
+  push:
+    branches:
+      - fix/mobile-nearby-restaurants-map-20261012
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-index:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/mobile-nearby-restaurants-map-20261012
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Remove this temporary workflow before generation
+        run: git rm .github/workflows/zz-pr778-regenerate-index-temporary.yml
+      - name: Regenerate and verify application reference
+        run: |
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+          git diff --check
+      - name: Commit generated files and remove temporary workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md
+          git diff --cached --check
+          git commit -m 'docs: regenerate application index for PR 778'
+          git push origin HEAD:refs/heads/fix/mobile-nearby-restaurants-map-20261012
