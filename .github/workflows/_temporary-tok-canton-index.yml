@@ -18,19 +18,36 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 20
+          fetch-depth: 30
           persist-credentials: true
-      - name: Setup versioned toolchain
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - name: Regenerate from the final tracked Git tree
+      - name: Merge latest main (discard conflicts only in reproducible generated docs)
         run: |
           set -euo pipefail
           git config user.name "TOK CI Assistant"
           git config user.email "tok-ci-assistant@users.noreply.github.com"
-          git fetch --no-tags --depth=20 origin main:refs/remotes/origin/main
-          git merge --no-edit --no-ff origin/main
+          git fetch --no-tags --depth=30 origin main:refs/remotes/origin/main
+          if ! git merge --no-edit --no-ff origin/main; then
+            while IFS= read -r path; do
+              case "$path" in
+                docs/architecture/TOK_APPLICATION_REFERENCE.md|docs/architecture/tok-application-search-index.json)
+                  git checkout --ours -- "$path"
+                  git add -- "$path"
+                  ;;
+                *)
+                  echo "::error::Unexpected merge conflict: $path"
+                  exit 1
+                  ;;
+              esac
+            done < <(git diff --name-only --diff-filter=U)
+            test -z "$(git diff --name-only --diff-filter=U)"
+            git commit --no-edit
+          fi
+      - name: Generate final canonical docs and self-remove
+        run: |
+          set -euo pipefail
           corepack enable
           corepack prepare pnpm@10.28.1 --activate
           pnpm install --frozen-lockfile
@@ -40,9 +57,9 @@ jobs:
           pnpm docs:application-index:check
           git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
           git diff --cached --check
-          git commit -m "docs: reconcile TOK canton application index with final tree"
+          git commit -m "docs: regenerate canton reference from resolved final tree"
           git push origin HEAD:refs/heads/codex/tok-home-canton-localization-20261012
-      - name: Validate the reconciled branch
+      - name: Validate final branch
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run ci.yml --ref codex/tok-home-canton-localization-20261012
