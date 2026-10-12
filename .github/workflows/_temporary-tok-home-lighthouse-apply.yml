@@ -30,7 +30,7 @@ jobs:
           git config user.name "TOK CI Assistant"
           git config user.email "tok-ci-assistant@users.noreply.github.com"
           base64 --decode .tok_home_lighthouse.patch.gz.b64 | gzip -d > /tmp/tok-light.patch
-          echo "a9f82fe2478d9cfd919e0062ebac97151ebad5fbe441a2ccc78ccdc8685614586  /tmp/tok-light.patch" | sha256sum --check
+          echo "a9f82fe2478d9cfd919e0062ebc97151ebad5fbe441a2ccc78ccdc8685614586  /tmp/tok-light.patch" | sha256sum --check
           git apply --check /tmp/tok-light.patch
           git apply /tmp/tok-light.patch
           npm install --prefix /tmp/tok-imgsharp sharp --no-audit --no-fund --loglevel=error
