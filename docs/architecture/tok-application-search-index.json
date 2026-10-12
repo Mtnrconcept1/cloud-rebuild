@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "154726aefd402a0d94cc901971eb4d77565691bb015e7680cd5a4ff11b6dee4f",
+ "sourceDigest": "cf2e838306c7cf1902f14a680f095e911ce625f2b075cd951d34f9a7019d25e1",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 202,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3404,
+  "exportedSymbols": 3406,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 528,
-  "modules": 1506,
+  "migrations": 529,
+  "modules": 1509,
   "pages": 128,
-  "pathLiterals": 648,
+  "pathLiterals": 647,
   "publicAssets": 462,
   "publicEntries": 487,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16154,
-  "repositoryFiles": 2986,
+  "records": 16163,
+  "repositoryFiles": 2990,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -2845,7 +2845,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 865,
+      "line": 866,
       "kind": "function"
      }
     ],
@@ -2956,7 +2956,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 5,
+      "line": 7,
       "kind": "function"
      }
     ],
@@ -13504,11 +13504,23 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 225
+      "line": 226
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1110
+      "line": 1111
+     },
+     {
+      "path": "src/pages/ComingSoon.tsx",
+      "line": 22
+     },
+     {
+      "path": "src/pages/ComingSoon.tsx",
+      "line": 23
+     },
+     {
+      "path": "src/pages/ComingSoon.tsx",
+      "line": 39
      },
      {
       "path": "src/pages/LocalRestaurants.tsx",
@@ -13540,19 +13552,23 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 20
+      "line": 50
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 28
+      "line": 65
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 35
+      "line": 71
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 41
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -14654,6 +14670,10 @@
       "line": 139
      },
      {
+      "path": "src/lib/launchGate.ts",
+      "line": 33
+     },
+     {
       "path": "src/lib/notificationRouting.ts",
       "line": 129
      },
@@ -14667,11 +14687,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 239
+      "line": 240
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 29
+      "line": 40
      },
      {
       "path": "src/pages/WorkspaceChooser.tsx",
@@ -14699,11 +14719,11 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 45
+      "line": 103
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -16209,7 +16229,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 17
+      "line": 24
      },
      {
       "path": "src/lib/marketingDomains.ts",
@@ -16225,7 +16245,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 899
+      "line": 900
      },
      {
       "path": "src/pages/Auth.tsx",
@@ -16237,19 +16257,11 @@
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 13
+      "line": 42
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 28
-     },
-     {
-      "path": "src/pages/ComingSoon.tsx",
-      "line": 31
-     },
-     {
-      "path": "src/pages/ComingSoon.tsx",
-      "line": 32
+      "line": 43
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -16301,11 +16313,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 17
-     },
-     {
-      "path": "src/test/coming-soon-signup-page.test.tsx",
-      "line": 43
+      "line": 46
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -16386,7 +16394,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 880
+      "line": 881
      },
      {
       "path": "src/test/auth-redirect-security.test.ts",
@@ -16394,7 +16402,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 17
+      "line": 46
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -16453,7 +16461,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 899
+      "line": 900
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -16593,15 +16601,6 @@
      {
       "path": "src/test/auth-signup-form.test.tsx",
       "line": 944
-     }
-    ]
-   },
-   {
-    "value": "/auth?mode=recovery",
-    "sources": [
-     {
-      "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 17
      }
     ]
    },
@@ -16823,7 +16822,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 17
+      "line": 23
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -16851,7 +16850,7 @@
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 34
+      "line": 45
      },
      {
       "path": "src/pages/Cookies.tsx",
@@ -16863,7 +16862,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 17
+      "line": 46
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -17050,7 +17049,7 @@
      },
      {
       "path": "src/components/ComingSoonGate.tsx",
-      "line": 21
+      "line": 29
      },
      {
       "path": "src/lib/authPostLogin.ts",
@@ -17062,7 +17061,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 17
+      "line": 24
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -17074,15 +17073,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 10
-     },
-     {
-      "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 29
-     },
-     {
-      "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 36
+      "line": 26
      },
      {
       "path": "src/test/coming-soon-signup-page.test.tsx",
@@ -17090,11 +17081,19 @@
      },
      {
       "path": "src/test/coming-soon-signup-page.test.tsx",
-      "line": 75
+      "line": 73
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 79
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 94
      },
      {
       "path": "src/test/launch-state.test.ts",
-      "line": 11
+      "line": 12
      },
      {
       "path": "src/test/route-serving-regression.test.ts",
@@ -17111,15 +17110,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1496
-     },
-     {
-      "path": "src/pages/Auth.tsx",
-      "line": 2174
-     },
-     {
-      "path": "src/pages/Auth.tsx",
-      "line": 2180
+      "line": 2178
      }
     ]
    },
@@ -17128,19 +17119,23 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2047
+      "line": 2044
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2125
+      "line": 2126
      },
      {
       "path": "src/test/coming-soon-signup-page.test.tsx",
-      "line": 58
+      "line": 62
      },
      {
       "path": "src/test/coming-soon-signup-page.test.tsx",
-      "line": 68
+      "line": 67
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 88
      }
     ]
    },
@@ -17276,7 +17271,7 @@
     "sources": [
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
      }
     ]
    },
@@ -17551,7 +17546,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 25
+      "line": 36
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -17563,7 +17558,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 253
+      "line": 254
      },
      {
       "path": "src/pages/WorkspaceChooser.tsx",
@@ -18067,10 +18062,6 @@
       "line": 191
      },
      {
-      "path": "src/lib/launchGate.ts",
-      "line": 17
-     },
-     {
       "path": "src/lib/legalDocuments.ts",
       "line": 8
      },
@@ -18097,6 +18088,14 @@
      {
       "path": "src/pages/RestaurateursGoogleBusiness.tsx",
       "line": 284
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 42
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 50
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -18226,15 +18225,31 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 17
+      "line": 23
      },
      {
       "path": "src/lib/legalDocuments.ts",
       "line": 7
      },
      {
+      "path": "src/pages/ComingSoon.tsx",
+      "line": 47
+     },
+     {
       "path": "src/pages/Cookies.tsx",
       "line": 22
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 46
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 50
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 81
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -18335,7 +18350,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 24
+      "line": 35
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -18351,7 +18366,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 246
+      "line": 247
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -18847,7 +18862,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 23
+      "line": 34
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -18867,15 +18882,15 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 232
+      "line": 233
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 814
+      "line": 815
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 24
+      "line": 35
      },
      {
       "path": "src/pages/dashboard/DashboardHome.tsx",
@@ -18891,11 +18906,11 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 44
+      "line": 84
      },
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
@@ -18952,15 +18967,6 @@
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
       "line": 209
-     }
-    ]
-   },
-   {
-    "value": "/dashboard-spoof",
-    "sources": [
-     {
-      "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
      }
     ]
    },
@@ -19607,7 +19613,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 42
+      "line": 91
      },
      {
       "path": "src/test/restaurant-onboarding-payments.test.ts",
@@ -20368,15 +20374,15 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 26
+      "line": 32
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 13
+      "line": 23
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 28
+      "line": 39
      },
      {
       "path": "src/test/admin-domain-routing.test.ts",
@@ -20412,7 +20418,11 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 43
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -20432,11 +20442,15 @@
      },
      {
       "path": "src/test/launch-state.test.ts",
-      "line": 12
+      "line": 13
      },
      {
       "path": "src/test/launch-state.test.ts",
-      "line": 12
+      "line": 15
+     },
+     {
+      "path": "src/test/launch-state.test.ts",
+      "line": 15
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -23534,19 +23548,19 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 25
+      "line": 77
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 43
+      "line": 97
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 46
+      "line": 114
      },
      {
       "path": "src/test/commercial-demo-frame.test.ts",
@@ -24165,8 +24179,8 @@
       "line": 582
      },
      {
-      "path": "src/lib/launchGate.ts",
-      "line": 27
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 42
      },
      {
       "path": "src/test/route-serving-regression.test.ts",
@@ -24277,7 +24291,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 17
+      "line": 23
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -24293,7 +24307,7 @@
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 34
+      "line": 46
      },
      {
       "path": "src/pages/Cookies.tsx",
@@ -24313,7 +24327,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 17
+      "line": 46
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -24785,7 +24799,15 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 50
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 109
      },
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
@@ -25133,6 +25155,15 @@
      {
       "path": "src/test/restaurant-detail-preview.test.tsx",
       "line": 9
+     }
+    ]
+   },
+   {
+    "value": "/restaurant/123",
+    "sources": [
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 50
      }
     ]
    },
@@ -25600,6 +25631,10 @@
    {
     "value": "/restaurants/geneve",
     "sources": [
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 50
+     },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
       "line": 88
@@ -28021,15 +28056,15 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 906
-     },
-     {
-      "path": "src/pages/Auth.tsx",
-      "line": 1125
+      "line": 907
      },
      {
       "path": "src/pages/Auth.tsx",
       "line": 1126
+     },
+     {
+      "path": "src/pages/Auth.tsx",
+      "line": 1127
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -28060,11 +28095,11 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 131
+      "line": 132
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 921
+      "line": 922
      }
     ],
     "routes": [
@@ -28242,7 +28277,7 @@
     "sources": [
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 10
+      "line": 13
      }
     ],
     "routes": [
@@ -28616,11 +28651,11 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 948
+      "line": 949
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1002
+      "line": 1003
      },
      {
       "path": "public/manifest.json",
@@ -28964,7 +28999,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1108
+      "line": 1109
      }
     ],
     "routes": [
@@ -29158,11 +29193,11 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 133
+      "line": 134
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 923
+      "line": 924
      }
     ],
     "routes": [
@@ -29318,7 +29353,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 917
+      "line": 918
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -29467,7 +29502,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 285
+      "line": 286
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -29534,7 +29569,7 @@
     "sources": [
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 9
+      "line": 12
      }
     ],
     "routes": [
@@ -30249,6 +30284,7 @@
      "src/lib/env.ts",
      "src/lib/featureFlags.ts",
      "src/lib/iosCommerceFetch.ts",
+     "src/lib/launchGate.ts",
      "src/lib/marketingDomains.ts",
      "src/lib/monitoring.ts",
      "src/lib/nativeOAuth.ts",
@@ -30510,6 +30546,7 @@
      "src/test/incident-secret-sync-readiness.test.ts",
      "src/test/ios-storekit-subscription-management.test.ts",
      "src/test/la-gazelle-dor-seed.test.ts",
+     "src/test/launch-anonymous-browsing.test.ts",
      "src/test/launch-artwork-countdown.test.tsx",
      "src/test/launch-edge-access.test.ts",
      "src/test/launch-pack-ai-quotas.test.ts",
@@ -34047,6 +34084,12 @@
     "path": "supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql",
     "lineCount": 186,
     "objectCount": 2
+   },
+   {
+    "name": "20261012104500 Launch Anonymous Browsing",
+    "path": "supabase/migrations/20261012104500_launch_anonymous_browsing.sql",
+    "lineCount": 72,
+    "objectCount": 3
    }
   ],
   "databaseObjects": [
@@ -37863,6 +37906,10 @@
      {
       "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
       "line": 81
+     },
+     {
+      "path": "supabase/migrations/20261012104500_launch_anonymous_browsing.sql",
+      "line": 32
      }
     ]
    },
@@ -39439,6 +39486,10 @@
      {
       "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
       "line": 47
+     },
+     {
+      "path": "supabase/migrations/20261012104500_launch_anonymous_browsing.sql",
+      "line": 7
      }
     ]
    },
@@ -57941,6 +57992,10 @@
      {
       "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
       "line": 115
+     },
+     {
+      "path": "supabase/migrations/20261012104500_launch_anonymous_browsing.sql",
+      "line": 55
      }
     ]
    },
@@ -82209,13 +82264,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 5,
+      "line": 6,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 23
+    "lineCount": 31
    },
    {
     "path": "src/components/CountdownTimer.tsx",
@@ -93161,13 +93216,15 @@
      },
      {
       "name": "launchRouteAllowed",
-      "line": 19,
+      "line": 26,
       "kind": "function"
      }
     ],
     "environmentNames": [],
-    "integrations": [],
-    "lineCount": 29
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 41
    },
    {
     "path": "src/lib/launchPacks.ts",
@@ -93248,6 +93305,24 @@
      "stripe"
     ],
     "lineCount": 213
+   },
+   {
+    "path": "src/lib/launchSignupWelcome.ts",
+    "exports": [
+     {
+      "name": "markPendingClientSignup",
+      "line": 5,
+      "kind": "function"
+     },
+     {
+      "name": "hasPendingClientSignup",
+      "line": 13,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 22
    },
    {
     "path": "src/lib/legalDocuments.ts",
@@ -98832,7 +98907,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 865,
+      "line": 866,
       "kind": "function"
      }
     ],
@@ -98925,13 +99000,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 5,
+      "line": 7,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 39
+    "lineCount": 52
    },
    {
     "path": "src/pages/Commandes.tsx",
@@ -101886,14 +101961,14 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 48
+    "lineCount": 118
    },
    {
     "path": "src/test/coming-soon-signup-page.test.tsx",
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 81
+    "lineCount": 99
    },
    {
     "path": "src/test/commercial-contract-generation.test.ts",
@@ -103384,6 +103459,15 @@
     "lineCount": 75
    },
    {
+    "path": "src/test/launch-anonymous-browsing.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 22
+   },
+   {
     "path": "src/test/launch-artwork-countdown.test.tsx",
     "exports": [],
     "environmentNames": [],
@@ -103420,6 +103504,13 @@
     "lineCount": 44
    },
    {
+    "path": "src/test/launch-pending-signup.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 23
+   },
+   {
     "path": "src/test/launch-provider.test.tsx",
     "exports": [],
     "environmentNames": [],
@@ -103433,7 +103524,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 14
+    "lineCount": 17
    },
    {
     "path": "src/test/legacy-provider-cleanup.test.ts",
@@ -117901,6 +117992,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/lib/launchSignupWelcome.ts",
+    "category": "application-library",
+    "extension": ".ts"
+   },
+   {
     "path": "src/lib/legalDocuments.ts",
     "category": "application-library",
     "extension": ".ts"
@@ -120486,6 +120582,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/launch-anonymous-browsing.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/launch-artwork-countdown.test.tsx",
     "category": "test",
     "extension": ".tsx"
@@ -120502,6 +120603,11 @@
    },
    {
     "path": "src/test/launch-pack-ai-quotas.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/launch-pending-signup.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -125676,6 +125782,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261012104500_launch_anonymous_browsing.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/actualites_billing_identity_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -127895,14 +128006,14 @@
    "id": "code-module:74e9001c7c67",
    "type": "code-module",
    "title": "src/components/ComingSoonGate.tsx",
-   "description": "Module de 23 lignes; exports: default.",
+   "description": "Module de 31 lignes; exports: default.",
    "path": "src/components/ComingSoonGate.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "2d5d2f4cfcec"
+   "detailRef": "e29869c46a00"
   },
   {
    "id": "code-module:3f41c36a4647",
@@ -134087,7 +134198,7 @@
    "id": "code-module:8f61f2fc7aaf",
    "type": "code-module",
    "title": "src/lib/launchGate.ts",
-   "description": "Module de 29 lignes; exports: LaunchState, parseLaunchState, launchRemaining, launchRouteAllowed.",
+   "description": "Module de 41 lignes; exports: LaunchState, parseLaunchState, launchRemaining, launchRouteAllowed.",
    "path": "src/lib/launchGate.ts",
    "line": 1,
    "surface": null,
@@ -134095,9 +134206,10 @@
     "LaunchState",
     "launchRemaining",
     "launchRouteAllowed",
-    "parseLaunchState"
+    "parseLaunchState",
+    "supabase"
    ],
-   "detailRef": "8c25eb41ffe2"
+   "detailRef": "89c1da28d40c"
   },
   {
    "id": "code-module:1423ece8b4d9",
@@ -134125,6 +134237,20 @@
     "stripe"
    ],
    "detailRef": "2db270a2f060"
+  },
+  {
+   "id": "code-module:ad6517658aa5",
+   "type": "code-module",
+   "title": "src/lib/launchSignupWelcome.ts",
+   "description": "Module de 22 lignes; exports: markPendingClientSignup, hasPendingClientSignup.",
+   "path": "src/lib/launchSignupWelcome.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "hasPendingClientSignup",
+    "markPendingClientSignup"
+   ],
+   "detailRef": "9a70e3a97c5a"
   },
   {
    "id": "code-module:6be9833cc9ef",
@@ -136569,7 +136695,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "b6aeb3d678bf"
+   "detailRef": "31699acbfc3a"
   },
   {
    "id": "code-module:7a28b76c58b7",
@@ -136645,14 +136771,14 @@
    "id": "code-module:77e25833758b",
    "type": "code-module",
    "title": "src/pages/ComingSoon.tsx",
-   "description": "Module de 39 lignes; exports: default.",
+   "description": "Module de 52 lignes; exports: default.",
    "path": "src/pages/ComingSoon.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "ab26a81e4893"
+   "detailRef": "1a901d2061b2"
   },
   {
    "id": "code-module:7ecfb97734f1",
@@ -139552,23 +139678,23 @@
    "id": "code-module:d0beb0c6b87d",
    "type": "code-module",
    "title": "src/test/coming-soon-gate.test.tsx",
-   "description": "Module de 48 lignes; exports: aucun export statique.",
+   "description": "Module de 118 lignes; exports: aucun export statique.",
    "path": "src/test/coming-soon-gate.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "21e9a9ede8b8"
+   "detailRef": "011b85015e38"
   },
   {
    "id": "code-module:cfdd9e21db97",
    "type": "code-module",
    "title": "src/test/coming-soon-signup-page.test.tsx",
-   "description": "Module de 81 lignes; exports: aucun export statique.",
+   "description": "Module de 99 lignes; exports: aucun export statique.",
    "path": "src/test/coming-soon-signup-page.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "50a9e12f7272"
+   "detailRef": "6a22f4b178b9"
   },
   {
    "id": "code-module:e839dfa53017",
@@ -141737,6 +141863,19 @@
    "detailRef": "b1501e93c86e"
   },
   {
+   "id": "code-module:fae50965b4aa",
+   "type": "code-module",
+   "title": "src/test/launch-anonymous-browsing.test.ts",
+   "description": "Module de 22 lignes; exports: aucun export statique.",
+   "path": "src/test/launch-anonymous-browsing.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "8d60be0534a1"
+  },
+  {
    "id": "code-module:24d99e443c74",
    "type": "code-module",
    "title": "src/test/launch-artwork-countdown.test.tsx",
@@ -141789,6 +141928,17 @@
    "detailRef": "bb4a911aa74b"
   },
   {
+   "id": "code-module:d84da7678dd7",
+   "type": "code-module",
+   "title": "src/test/launch-pending-signup.test.ts",
+   "description": "Module de 23 lignes; exports: aucun export statique.",
+   "path": "src/test/launch-pending-signup.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "9a62d96b756e"
+  },
+  {
    "id": "code-module:679826483d42",
    "type": "code-module",
    "title": "src/test/launch-provider.test.tsx",
@@ -141805,12 +141955,12 @@
    "id": "code-module:25386fbabb0c",
    "type": "code-module",
    "title": "src/test/launch-state.test.ts",
-   "description": "Module de 14 lignes; exports: aucun export statique.",
+   "description": "Module de 17 lignes; exports: aucun export statique.",
    "path": "src/test/launch-state.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "ecfb7da35b6e"
+   "detailRef": "f45974b54a8d"
   },
   {
    "id": "code-module:f891840e775d",
@@ -172099,19 +172249,19 @@
    "detailRef": "edd5c9c1f67b"
   },
   {
-   "id": "database-object:6c2c56457eeb",
+   "id": "database-object:30a4ed5fc405",
    "type": "database-object",
    "title": "public.enforce_launch_gate",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
-   "line": 81,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012104500_launch_anonymous_browsing.sql",
+   "line": 32,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "bc8c89ec0239"
+   "detailRef": "a49ba518ce29"
   },
   {
    "id": "database-object:9a55cca5c7fe",
@@ -175159,19 +175309,19 @@
    "detailRef": "a327caf0a6ff"
   },
   {
-   "id": "database-object:d5b2a3889239",
+   "id": "database-object:c5fa32d4d159",
    "type": "database-object",
    "title": "public.launch_table_allowed",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
-   "line": 47,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012104500_launch_anonymous_browsing.sql",
+   "line": 7,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "55148a4d1877"
+   "detailRef": "3e7f420ecbea"
   },
   {
    "id": "database-object:35714b5830e0",
@@ -191959,19 +192109,19 @@
    "detailRef": "87ade0e294d3"
   },
   {
-   "id": "database-object:4917d9e90940",
+   "id": "database-object:4fcbfddff9a1",
    "type": "database-object",
    "title": "storage.objects.launch_access_guard",
-   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
-   "line": 115,
+   "description": "Objet PostgreSQL de type policy; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261012104500_launch_anonymous_browsing.sql",
+   "line": 55,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "664c32a8e475"
+   "detailRef": "a81afb9d7d4a"
   },
   {
    "id": "database-object:86a613f3a915",
@@ -244103,6 +244253,7 @@
    "line": 3,
    "surface": null,
    "tags": [
+    "supabase",
     "typealias"
    ],
    "detailRef": "6a50769ebe0a"
@@ -260345,17 +260496,17 @@
    "detailRef": "73328efdea37"
   },
   {
-   "id": "exported-symbol:da50adc6fcae",
+   "id": "exported-symbol:f83f1351ef6a",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/ComingSoonGate.tsx.",
    "path": "src/components/ComingSoonGate.tsx",
-   "line": 5,
+   "line": 6,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "e5bf779a1bbc"
+   "detailRef": "232de49df979"
   },
   {
    "id": "exported-symbol:dfa453ea3998",
@@ -262659,12 +262810,12 @@
    "detailRef": "f6ad11948f69"
   },
   {
-   "id": "exported-symbol:eabd35491cf8",
+   "id": "exported-symbol:a93127180d99",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/Auth.tsx.",
    "path": "src/pages/Auth.tsx",
-   "line": 865,
+   "line": 866,
    "surface": null,
    "tags": [
     "function",
@@ -262673,7 +262824,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "aaddf455b8ae"
+   "detailRef": "02ef6cfaf188"
   },
   {
    "id": "exported-symbol:c06480596608",
@@ -262746,17 +262897,17 @@
    "detailRef": "67b9c2f5a8dd"
   },
   {
-   "id": "exported-symbol:6c101d2d897a",
+   "id": "exported-symbol:80549f6faa3f",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/ComingSoon.tsx.",
    "path": "src/pages/ComingSoon.tsx",
-   "line": 5,
+   "line": 7,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "e5bf779a1bbc"
+   "detailRef": "8b1af992a16b"
   },
   {
    "id": "exported-symbol:2138778a9cf2",
@@ -271265,6 +271416,19 @@
    "detailRef": "7b4d59ec9f64"
   },
   {
+   "id": "exported-symbol:87da05a4b2d2",
+   "type": "exported-symbol",
+   "title": "hasPendingClientSignup",
+   "description": "Export function de src/lib/launchSignupWelcome.ts.",
+   "path": "src/lib/launchSignupWelcome.ts",
+   "line": 13,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "7a03c994657c"
+  },
+  {
    "id": "exported-symbol:94f3713eae6c",
    "type": "exported-symbol",
    "title": "hasPrivilegedRole",
@@ -273545,22 +273709,24 @@
    "line": 13,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
    "detailRef": "f47fc93afccd"
   },
   {
-   "id": "exported-symbol:42d3ab4d9015",
+   "id": "exported-symbol:76273cdcaea8",
    "type": "exported-symbol",
    "title": "launchRouteAllowed",
    "description": "Export function de src/lib/launchGate.ts.",
    "path": "src/lib/launchGate.ts",
-   "line": 19,
+   "line": 26,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "b914f3a20d4e"
+   "detailRef": "d2d9ee218b50"
   },
   {
    "id": "exported-symbol:c62481f95841",
@@ -274049,6 +274215,19 @@
     "function"
    ],
    "detailRef": "2a4f2203f6fc"
+  },
+  {
+   "id": "exported-symbol:526c753195e5",
+   "type": "exported-symbol",
+   "title": "markPendingClientSignup",
+   "description": "Export function de src/lib/launchSignupWelcome.ts.",
+   "path": "src/lib/launchSignupWelcome.ts",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "c614417c5ff2"
   },
   {
    "id": "exported-symbol:383b0e3994cb",
@@ -275657,7 +275836,8 @@
    "line": 4,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
    "detailRef": "6c4691cbada4"
   },
@@ -302716,6 +302896,20 @@
    "detailRef": "c5ef01662aec"
   },
   {
+   "id": "file:1b43a2d2a8b1",
+   "type": "file",
+   "title": "src/lib/launchSignupWelcome.ts",
+   "description": "Fichier du dépôt classé application-library.",
+   "path": "src/lib/launchSignupWelcome.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "application-library"
+   ],
+   "detailRef": "3c9766386c68"
+  },
+  {
    "id": "file:d4835ce3e489",
    "type": "file",
    "title": "src/lib/legalDocuments.ts",
@@ -309954,6 +310148,20 @@
    "detailRef": "eaa207f9fa05"
   },
   {
+   "id": "file:dde6a6f4e3f0",
+   "type": "file",
+   "title": "src/test/launch-anonymous-browsing.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/launch-anonymous-browsing.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "38ba86d79981"
+  },
+  {
    "id": "file:b102646c12a9",
    "type": "file",
    "title": "src/test/launch-artwork-countdown.test.tsx",
@@ -310008,6 +310216,20 @@
     "test"
    ],
    "detailRef": "77e2d7fba7ee"
+  },
+  {
+   "id": "file:cd44d1598d97",
+   "type": "file",
+   "title": "src/test/launch-pending-signup.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/launch-pending-signup.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "a80e89e2e9c9"
   },
   {
    "id": "file:a3d87c1ea9ce",
@@ -324486,6 +324708,20 @@
    "detailRef": "eedc095ec0db"
   },
   {
+   "id": "file:7318b80be926",
+   "type": "file",
+   "title": "supabase/migrations/20261012104500_launch_anonymous_browsing.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261012104500_launch_anonymous_browsing.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "147fe0004181"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -328332,7 +328568,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 673 module(s).",
+   "description": "Intégration externe détectée dans 675 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -328476,6 +328712,7 @@
     "src/lib/env.ts",
     "src/lib/featureFlags.ts",
     "src/lib/iosCommerceFetch.ts",
+    "src/lib/launchGate.ts",
     "src/lib/marketingDomains.ts",
     "src/lib/monitoring.ts",
     "src/lib/nativeOAuth.ts",
@@ -328737,6 +328974,7 @@
     "src/test/incident-secret-sync-readiness.test.ts",
     "src/test/ios-storekit-subscription-management.test.ts",
     "src/test/la-gazelle-dor-seed.test.ts",
+    "src/test/launch-anonymous-browsing.test.ts",
     "src/test/launch-artwork-countdown.test.tsx",
     "src/test/launch-edge-access.test.ts",
     "src/test/launch-pack-ai-quotas.test.ts",
@@ -329012,7 +329250,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "30dd1ceaffc3"
+   "detailRef": "848678b1d674"
   },
   {
    "id": "integration:c20910a79a78",
@@ -337070,6 +337308,20 @@
    "detailRef": "06fce6ce3776"
   },
   {
+   "id": "migration:94871204888b",
+   "type": "migration",
+   "title": "20261012104500 Launch Anonymous Browsing",
+   "description": "Migration SQL de 72 lignes, 3 objets CREATE détectés.",
+   "path": "supabase/migrations/20261012104500_launch_anonymous_browsing.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "2bfd4d4fceeb"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -338541,7 +338793,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "d3d73b7e22de"
+   "detailRef": "71fb764a424c"
   },
   {
    "id": "page:7f83ca0b2fd1",
@@ -338624,7 +338876,7 @@
    "tags": [
     "/coming-soon"
    ],
-   "detailRef": "d9298b17c791"
+   "detailRef": "ec369df21b06"
   },
   {
    "id": "page:20d7738531bc",
@@ -339952,7 +340204,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 235 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 239 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -340021,6 +340273,7 @@
     "src/lib/stripeReturn.ts",
     "src/pages/APropos.tsx",
     "src/pages/Auth.tsx",
+    "src/pages/ComingSoon.tsx",
     "src/pages/LocalRestaurants.tsx",
     "src/pages/NotFound.tsx",
     "src/pages/Profil.tsx",
@@ -340028,6 +340281,7 @@
     "src/pages/TokConnect.tsx",
     "src/test/admin-domain-routing.test.ts",
     "src/test/coming-soon-gate.test.tsx",
+    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/daily-slot-machine-security.test.ts",
     "src/test/dashboard-illustrations.test.ts",
@@ -340071,7 +340325,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "afd44719d580"
+   "detailRef": "ede8e3af454d"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -341075,7 +341329,7 @@
    "id": "path-literal:3fad8d2570d5",
    "type": "path-literal",
    "title": "/admin",
-   "description": "Chemin référencé dans 65 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 66 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 162,
    "surface": null,
@@ -341093,6 +341347,7 @@
     "src/lib/adminDomains.ts",
     "src/lib/backNavigation.ts",
     "src/lib/featureFlags.ts",
+    "src/lib/launchGate.ts",
     "src/lib/notificationRouting.ts",
     "src/lib/roleAccess.ts",
     "src/pages/Auth.tsx",
@@ -341111,7 +341366,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "7c1fe304addd"
+   "detailRef": "352ad288c3c6"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -341469,7 +341724,7 @@
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "9e560d101b20"
+   "detailRef": "d96201d0b78c"
   },
   {
    "id": "path-literal:7e02e7d7b2d4",
@@ -341513,7 +341768,7 @@
     "src/pages/Auth.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "cf2ca9642760"
+   "detailRef": "cadf80b6dd23"
   },
   {
    "id": "path-literal:0e40cdcc0a96",
@@ -341584,7 +341839,7 @@
    "id": "path-literal:684553841fb1",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 54 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 51 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1224,
    "surface": null,
@@ -341622,14 +341877,13 @@
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
-    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/home-mobile-newsletter.test.tsx",
     "src/test/monitoring-consent.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "4630249b0445"
+   "detailRef": "b0cb9b2edb12"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -341656,19 +341910,6 @@
     "src/test/auth-signup-form.test.tsx"
    ],
    "detailRef": "eda73f7478f1"
-  },
-  {
-   "id": "path-literal:27784688802a",
-   "type": "path-literal",
-   "title": "/auth?mode=recovery",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/coming-soon-gate.test.tsx",
-   "line": 17,
-   "surface": null,
-   "tags": [
-    "src/test/coming-soon-gate.test.tsx"
-   ],
-   "detailRef": "b486dee17331"
   },
   {
    "id": "path-literal:7afea8315dad",
@@ -341825,7 +342066,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "2f4dd6061a11"
+   "detailRef": "f3a04e316f48"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -341948,34 +342189,34 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "30e3c9a9367d"
+   "detailRef": "f73ccf064441"
   },
   {
-   "id": "path-literal:0ad0fce02bb8",
+   "id": "path-literal:a39119476bea",
    "type": "path-literal",
    "title": "/coming-soon?welcome=1&email=1",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Auth.tsx",
-   "line": 2047,
+   "line": 2044,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx",
     "src/test/coming-soon-signup-page.test.tsx"
    ],
-   "detailRef": "6739a56876e1"
+   "detailRef": "39af25bc1e1a"
   },
   {
-   "id": "path-literal:a6290b9b06b5",
+   "id": "path-literal:b71dd3b23d75",
    "type": "path-literal",
    "title": "/coming-soon?welcome=1",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Auth.tsx",
-   "line": 1496,
+   "line": 2178,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "0c9cbb032b74"
+   "detailRef": "f3d282ce3ec9"
   },
   {
    "id": "path-literal:708387adb2eb",
@@ -342070,17 +342311,17 @@
    "detailRef": "39bcbf38965d"
   },
   {
-   "id": "path-literal:cba4a82040f6",
+   "id": "path-literal:3fbce223be57",
    "type": "path-literal",
    "title": "/commande/id",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/coming-soon-gate.test.tsx",
-   "line": 16,
+   "line": 42,
    "surface": null,
    "tags": [
     "src/test/coming-soon-gate.test.tsx"
    ],
-   "detailRef": "fb5e2611b657"
+   "detailRef": "1a2f76d115d0"
   },
   {
    "id": "path-literal:7018411a845d",
@@ -342437,7 +342678,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "eab878530897"
+   "detailRef": "189422aea76a"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -342486,7 +342727,7 @@
    "id": "path-literal:f7019df7a0b6",
    "type": "path-literal",
    "title": "/conditions-restaurateurs",
-   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 16 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1184,
    "surface": null,
@@ -342495,16 +342736,16 @@
     "src/App.tsx",
     "src/components/home/FooterSection.tsx",
     "src/hooks/useSeoMeta.ts",
-    "src/lib/launchGate.ts",
     "src/lib/legalDocuments.ts",
     "src/lib/publicFeatureMatrix.ts",
     "src/pages/ConditionsRestaurateurs.tsx",
     "src/pages/Cookies.tsx",
     "src/pages/RestaurateursGoogleBusiness.tsx",
+    "src/test/coming-soon-gate.test.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "047e2bb04d97"
+   "detailRef": "7b5e28dfbeea"
   },
   {
    "id": "path-literal:686daa729d7c",
@@ -342537,7 +342778,7 @@
    "id": "path-literal:09145bbf5f6b",
    "type": "path-literal",
    "title": "/cookies",
-   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1177,
    "surface": null,
@@ -342550,11 +342791,14 @@
     "src/hooks/useSeoMeta.ts",
     "src/lib/launchGate.ts",
     "src/lib/legalDocuments.ts",
+    "src/pages/ComingSoon.tsx",
     "src/pages/Cookies.tsx",
+    "src/test/coming-soon-gate.test.tsx",
+    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "230cf48e015c"
+   "detailRef": "d4f6d5cf7625"
   },
   {
    "id": "path-literal:72d2d0c1a1f8",
@@ -342691,7 +342935,7 @@
     "src/test/role-access.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "3aa8645a200e"
+   "detailRef": "99b99290b516"
   },
   {
    "id": "path-literal:43753dbe7662",
@@ -342714,19 +342958,6 @@
     "src/test/route-serving-regression.test.ts"
    ],
    "detailRef": "daad93b81a70"
-  },
-  {
-   "id": "path-literal:4e887d7f6aeb",
-   "type": "path-literal",
-   "title": "/dashboard-spoof",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/coming-soon-gate.test.tsx",
-   "line": 16,
-   "surface": null,
-   "tags": [
-    "src/test/coming-soon-gate.test.tsx"
-   ],
-   "detailRef": "11c7c5107e15"
   },
   {
    "id": "path-literal:d89d7e5d80e3",
@@ -343115,7 +343346,7 @@
     "src/test/restaurant-onboarding-payments.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "4b30febfe776"
+   "detailRef": "d60016ef2b44"
   },
   {
    "id": "path-literal:ea6a35ac2429",
@@ -343515,7 +343746,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "ae8f768f7c2f"
+   "detailRef": "6d2a7a67fc7e"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -343670,7 +343901,7 @@
    "id": "path-literal:57859266b8fe",
    "type": "path-literal",
    "title": "/espaces",
-   "description": "Chemin référencé dans 24 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 26 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1226,
    "surface": null,
@@ -343685,11 +343916,12 @@
     "src/test/auth-post-login-routing.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
+    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "96644e165654"
+   "detailRef": "d831b8915db7"
   },
   {
    "id": "path-literal:26d622419e15",
@@ -346552,7 +346784,7 @@
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "e71839650bb9"
+   "detailRef": "f7d3af3410ab"
   },
   {
    "id": "path-literal:48897d739ef3",
@@ -346846,11 +347078,11 @@
    "surface": null,
    "tags": [
     "src/App.tsx",
-    "src/lib/launchGate.ts",
+    "src/test/coming-soon-gate.test.tsx",
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "da8a33dc323e"
+   "detailRef": "944d7fe9991c"
   },
   {
    "id": "path-literal:dcca78612246",
@@ -346918,7 +347150,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "dde7d30eb980"
+   "detailRef": "63d88dcbea99"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -347144,7 +347376,7 @@
    "id": "path-literal:f7a8242103a1",
    "type": "path-literal",
    "title": "/recherche",
-   "description": "Chemin référencé dans 67 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 69 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/seo-trust-runtime.js",
    "line": 138,
    "surface": null,
@@ -347192,7 +347424,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "41b8aba02400"
+   "detailRef": "6a760fec3dd0"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -347383,6 +347615,19 @@
     "src/test/restaurant-detail-preview.test.tsx"
    ],
    "detailRef": "597984386f71"
+  },
+  {
+   "id": "path-literal:a0c57616d659",
+   "type": "path-literal",
+   "title": "/restaurant/123",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/coming-soon-gate.test.tsx",
+   "line": 50,
+   "surface": null,
+   "tags": [
+    "src/test/coming-soon-gate.test.tsx"
+   ],
+   "detailRef": "f21e370c7b58"
   },
   {
    "id": "path-literal:86538a16126d",
@@ -348304,20 +348549,21 @@
    "detailRef": "0b9abf8b0a3e"
   },
   {
-   "id": "path-literal:1e7aa12ea99e",
+   "id": "path-literal:91dbdec4ab07",
    "type": "path-literal",
    "title": "/restaurants/geneve",
-   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 88,
+   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/coming-soon-gate.test.tsx",
+   "line": 50,
    "surface": null,
    "tags": [
+    "src/test/coming-soon-gate.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/mobile-association-hosting.test.ts",
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/seo-public-name-hardening.test.ts"
    ],
-   "detailRef": "2680c48222af"
+   "detailRef": "7bd569602eb2"
   },
   {
    "id": "path-literal:31608bd1732b",
@@ -356632,18 +356878,18 @@
    "detailRef": "337f3422ef70"
   },
   {
-   "id": "query-parameter:c88f989a1f26",
+   "id": "query-parameter:5368f390a4df",
    "type": "query-parameter",
    "title": "commercialReferral",
    "description": "Paramètre d’URL détecté dans 4 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 906,
+   "line": 907,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "620088410e58"
+   "detailRef": "3a66018ec9fa"
   },
   {
    "id": "query-parameter:e58a726e4a9a",
@@ -356659,17 +356905,17 @@
    "detailRef": "55908339808b"
   },
   {
-   "id": "query-parameter:f263c6d34321",
+   "id": "query-parameter:0778a1ba6be1",
    "type": "query-parameter",
    "title": "confirmed",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 131,
+   "line": 132,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "68ca789e853b"
+   "detailRef": "a4c3daf33ba1"
   },
   {
    "id": "query-parameter:6f48ee40f004",
@@ -356782,17 +357028,17 @@
    "detailRef": "e2b4b8cb2d57"
   },
   {
-   "id": "query-parameter:28a42fb11a0b",
+   "id": "query-parameter:d39655cf815a",
    "type": "query-parameter",
    "title": "email",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/ComingSoon.tsx",
-   "line": 10,
+   "line": 13,
    "surface": null,
    "tags": [
     "src/pages/ComingSoon.tsx"
    ],
-   "detailRef": "1dd95c2cbd7e"
+   "detailRef": "6181b1370cec"
   },
   {
    "id": "query-parameter:4b8ca1ad9f1a",
@@ -357130,18 +357376,18 @@
    "detailRef": "7416fc2814b7"
   },
   {
-   "id": "query-parameter:113d269f19f7",
+   "id": "query-parameter:b05842177da1",
    "type": "query-parameter",
    "title": "mode",
    "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 948,
+   "line": 949,
    "surface": null,
    "tags": [
     "public/manifest.json",
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "799f1dc673ed"
+   "detailRef": "0582a5a477c8"
   },
   {
    "id": "query-parameter:13ab169c3958",
@@ -357418,17 +357664,17 @@
    "detailRef": "253a489c0969"
   },
   {
-   "id": "query-parameter:bea8d69e69d4",
+   "id": "query-parameter:757af4b148dd",
    "type": "query-parameter",
    "title": "redirect",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 1108,
+   "line": 1109,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "94a7b5eca48b"
+   "detailRef": "89680d4ef903"
   },
   {
    "id": "query-parameter:9c0596468b12",
@@ -357583,17 +357829,17 @@
    "detailRef": "48195b816109"
   },
   {
-   "id": "query-parameter:32944e8d118e",
+   "id": "query-parameter:7bc59953d8a2",
    "type": "query-parameter",
    "title": "signup_operation_id",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 133,
+   "line": 134,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "0ed0a0bcf305"
+   "detailRef": "372769a76b5c"
   },
   {
    "id": "query-parameter:9cbcceee78f6",
@@ -357697,18 +357943,18 @@
    "detailRef": "650d497360f1"
   },
   {
-   "id": "query-parameter:293b5f23a696",
+   "id": "query-parameter:e720a1cf0d76",
    "type": "query-parameter",
    "title": "subscriptionPlan",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 917,
+   "line": 918,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "1163ce1d0ec5"
+   "detailRef": "5e8b8b6675b2"
   },
   {
    "id": "query-parameter:acdea8095242",
@@ -357809,18 +358055,18 @@
    "detailRef": "aea9f02e4c0f"
   },
   {
-   "id": "query-parameter:7e0bc57e0111",
+   "id": "query-parameter:cb61dfa6916c",
    "type": "query-parameter",
    "title": "type",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 285,
+   "line": 286,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "5d19f59b15f7"
+   "detailRef": "674f3f6850d6"
   },
   {
    "id": "query-parameter:a15852b1a0d6",
@@ -357865,17 +358111,17 @@
    "detailRef": "1f47d438fd22"
   },
   {
-   "id": "query-parameter:3ec8d61f77ae",
+   "id": "query-parameter:9f62200bcef3",
    "type": "query-parameter",
    "title": "welcome",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/ComingSoon.tsx",
-   "line": 9,
+   "line": 12,
    "surface": null,
    "tags": [
     "src/pages/ComingSoon.tsx"
    ],
-   "detailRef": "1065e845a882"
+   "detailRef": "c37eb8046d34"
   },
   {
    "id": "query-parameter:c8f359edafb0",
