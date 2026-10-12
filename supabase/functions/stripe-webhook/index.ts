@@ -4,6 +4,7 @@ import { getEnv, writeAuditLog } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { finalizeChefsTableCheckout } from "../_shared/chefs-table.ts";
 import { finalizeZeroAttenteCheckout } from "../_shared/zero-attente.ts";
+import { finalizeReservationCardGuarantee } from "../_shared/reservation-card-guarantee.ts";
 import { isCompletedNoCostZeroAttenteSession } from "../_shared/zero-cost-checkout.ts";
 import {
   enqueueNotification,
@@ -1521,6 +1522,26 @@ Deno.serve(async (req) => {
         const checkoutKind = String(session.metadata?.checkout_kind || "order");
         const userId = session.metadata?.user_id || null;
         const campaignId = session.metadata?.campaign_id || null;
+
+        if (checkoutKind === "reservation-card-guarantee") {
+          // Checkout setup has no payment currency or amount. Never apply the
+          // payment-session integrity check to a successful SetupIntent.
+          if (session.mode !== "setup" || session.status !== "complete" || !event.livemode) {
+            throw new Error("RESERVATION_CARD_SETUP_SESSION_INVALID");
+          }
+          const guarantee = await finalizeReservationCardGuarantee({
+            adminClient: supabaseAdmin,
+            stripe: stripe as unknown as Parameters<typeof finalizeReservationCardGuarantee>[0]["stripe"],
+            checkoutSessionId: session.id,
+          });
+          if (!guarantee.ok) {
+            log.warn("reservation_card_setup_no_longer_available", {
+              sessionId: session.id,
+              errorCode: guarantee.errorCode,
+            });
+          }
+          break;
+        }
 
         if (checkoutKind === "restaurant-onboarding") {
           assertRestaurantOnboardingSetupSessionIntegrity({
