@@ -1,5 +1,7 @@
 # Audit de candidature — TOK comme fournisseur de réservation Google
 
+> **AUDIT HISTORIQUE — certaines conclusions sont désormais périmées (12 octobre 2026).** La synchronisation temps réel (outbox + worker) existe dans le dépôt et est déployée, mais le cron est désactivé faute de configuration et les appels RTU ne correspondent pas encore à la spécification officielle Google. La Suisse figure dans les pays pris en charge. Le contrôle de production et le dossier de candidature actualisés se trouvent dans [`google-actions-center-candidature-2026-10-12.md`](./google-actions-center-candidature-2026-10-12.md). Ne pas réactiver la synchronisation sur la base de cet audit historique.
+
 Audit de l'écart entre l'implémentation TOK et ce qu'exige Google Actions Center
 (Reservations End-to-End) pour figurer parmi les fournisseurs du bouton
 « Réserver » d'une fiche Google Business Profile.
