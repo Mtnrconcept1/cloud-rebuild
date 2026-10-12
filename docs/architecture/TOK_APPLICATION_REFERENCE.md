@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `12e793fcf1fd980ce2368e43ff6a51e99192172fa211859df3199848592198bb`
+- Empreinte SHA-256 des sources indexées : `16047307d15718b088d5df38b66bf31dd3141931d14dd7674eafd8bf49a0e221`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,24 +29,24 @@
 | cronJobs | 33 |
 | databaseContract | 228 |
 | databaseObjects | 2737 |
-| documents | 202 |
+| documents | 203 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3408 |
+| exportedSymbols | 3410 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 529 |
-| modules | 1508 |
+| modules | 1510 |
 | pages | 128 |
 | pathLiterals | 648 |
 | publicAssets | 462 |
 | publicEntries | 487 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16165 |
-| repositoryFiles | 2989 |
+| records | 16181 |
+| repositoryFiles | 2992 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -5975,8 +5975,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 215 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 674 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 217 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 675 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 59 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5989,7 +5989,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 205 |
 | automation-script | 64 |
 | documentation | 6 |
-| edge-function-source | 187 |
+| edge-function-source | 188 |
 | frontend-component | 251 |
 | frontend-hook | 22 |
 | frontend-page | 128 |
@@ -5997,7 +5997,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 595 |
+| test | 596 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6130,6 +6130,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Hébergement des associations mobiles | 3 | [docs/runbooks/mobile-association-hosting.md:1](../../docs/runbooks/mobile-association-hosting.md#L1) |
 | Runbook release production securisee | 8 | [docs/runbooks/production-release-readiness.md:1](../../docs/runbooks/production-release-readiness.md#L1) |
 | Runbook Stripe et reconciliation financiere | 8 | [docs/runbooks/stripe-financial-ops.md:1](../../docs/runbooks/stripe-financial-ops.md#L1) |
+| TOK — Litiges, Stripe Connect et responsabilités (12 octobre 2026) | 8 | [docs/runbooks/tok-litiges-stripe-connect.md:1](../../docs/runbooks/tok-litiges-stripe-connect.md#L1) |
 | Protection SEO et anti-scraping de TOK | 10 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
 | Tok audit readiness — plan 10/10 | 5 | [docs/security/audit-readiness-10-10.md:1](../../docs/security/audit-readiness-10-10.md#L1) |
 | Audit d’intégrité des paiements — 15 juillet 2026 | 15 | [docs/security/payment-integrity-audit-2026-07-15.md:1](../../docs/security/payment-integrity-audit-2026-07-15.md#L1) |
@@ -7125,7 +7126,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (155)</summary>
+<details><summary>documentation (156)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7212,6 +7213,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/runbooks/mobile-association-hosting.md`
 - `docs/runbooks/production-release-readiness.md`
 - `docs/runbooks/stripe-financial-ops.md`
+- `docs/runbooks/tok-litiges-stripe-connect.md`
 - `docs/security/SEO_BOT_PROTECTION_RUNBOOK.md`
 - `docs/security/audit-readiness-10-10.md`
 - `docs/security/payment-integrity-audit-2026-07-15.md`
@@ -7285,7 +7287,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (187)</summary>
+<details><summary>edge-function-source (188)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7346,6 +7348,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/return-url.ts`
 - `supabase/functions/_shared/safe-public-fetch.ts`
 - `supabase/functions/_shared/stripe-client.ts`
+- `supabase/functions/_shared/stripe-dispute-support.ts`
 - `supabase/functions/_shared/tok-connect-auth.ts`
 - `supabase/functions/_shared/tok-connect-discovery-widget.ts`
 - `supabase/functions/_shared/tok-connect-discovery.ts`
@@ -8668,7 +8671,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (595)</summary>
+<details><summary>test (596)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9205,6 +9208,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/stoppin-thetok-routes.test.ts`
 - `src/test/stoppin-venue-dedupe.test.ts`
 - `src/test/stripe-developer-share-routing.test.ts`
+- `src/test/stripe-dispute-support.test.ts`
 - `src/test/stripe-return.test.ts`
 - `src/test/stripe-security-hardening.test.ts`
 - `src/test/studio-canvas.test.tsx`
