@@ -32,20 +32,35 @@ describe("homepage semantic search", () => {
     expect(css).toContain("var(--tok-home-paper) 100%");
   });
 
-  it("uses a portrait hero asset on mobile and the supplied Léman illustration on desktop", () => {
+  it("uses the portrait fallback on mobile and one default image on desktop", () => {
     setup();
     expect(document.querySelector('.tok-home-hero__background source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/images/home/tok-geneve-mobile-fast.webp");
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/home/tok-leman-signature-fast.webp");
   });
   it("renders the correct canton art for device localization on desktop and mobile", () => {
-    render(<MemoryRouter><HeroSection locationCanton="JU" profileCity="Genève" /></MemoryRouter>);
+    render(<MemoryRouter><HeroSection locationCanton="JU" /></MemoryRouter>);
     expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "JU");
-    expect(document.querySelector('.tok-home-hero__background source[media="(min-width: 1024px)"]')).toHaveAttribute("srcset", "/desig%20app/tok-ch-ju.webp");
-    expect(document.querySelector('.tok-home-hero__background source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/desig%20app/tok-ch-ju.webp");
+    expect(document.querySelectorAll(".tok-home-hero__background source")).toHaveLength(0);
+    expect(document.querySelectorAll(".tok-home-hero__background img")).toHaveLength(1);
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/desig%20app/tok-ch-ju.webp");
   });
-  it("lets the entered city override automatic device localization", () => {
-    render(<MemoryRouter><HeroSection locationCanton="GE" /></MemoryRouter>);
+  it("uses the saved profile canton instead of a different GPS canton, never two photos", () => {
+    render(<MemoryRouter><HeroSection locationCanton="BE" profileCity="Genève" /></MemoryRouter>);
+    expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "GE");
+    expect(document.querySelectorAll(".tok-home-hero__background img")).toHaveLength(1);
+    expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/desig%20app/tok-ch-ge.webp");
+    expect(document.querySelectorAll(".tok-home-hero__background source")).toHaveLength(0);
+  });
+  it("waits for the saved city without loading a GPS/fallback image underneath", () => {
+    const { rerender } = render(<MemoryRouter><HeroSection profileCityPending locationCanton="BE" /></MemoryRouter>);
+    expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "pending");
+    expect(document.querySelectorAll(".tok-home-hero__background img")).toHaveLength(0);
+    rerender(<MemoryRouter><HeroSection profileCity="Genève" locationCanton="BE" /></MemoryRouter>);
+    expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "GE");
+    expect(document.querySelectorAll(".tok-home-hero__background img")).toHaveLength(1);
+  });
+  it("lets the search city override the profile city and GPS", () => {
+    render(<MemoryRouter><HeroSection locationCanton="GE" profileCity="Lugano" /></MemoryRouter>);
     fireEvent.change(screen.getByRole("textbox", { name: /Où/ }), { target: { value: "Lausanne" } });
     expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "VD");
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/desig%20app/tok-ch-vd.webp");

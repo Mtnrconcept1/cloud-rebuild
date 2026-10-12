@@ -17,20 +17,28 @@ const newsletterConditions = [
   "TOK peut modifier, suspendre ou arrêter l'offre si nécessaire, notamment en cas d'usage abusif, de comptes multiples ou de tentative de contournement.",
 ];
 
-export default function HeroSection({ contentVisible = true, activeFeatures = EMPTY_FEATURES, locationCanton = null, profileCity = null }: {
+export default function HeroSection({ contentVisible = true, activeFeatures = EMPTY_FEATURES, locationCanton = null, profileCity = null, profileCityPending = false }: {
   contentVisible?: boolean;
   activeFeatures?: ReadonlySet<string>;
   locationCanton?: SwissCantonCode | null;
   profileCity?: string | null;
+  profileCityPending?: boolean;
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [city, setCity] = useState("");
   const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
-  // A typed destination takes precedence over the device position and the profile city.
-  const canton = city.trim() ? cantonFromPlaceName(city) : locationCanton ?? cantonFromPlaceName(profileCity);
-  const cantonImage = canton ? cantonHeroSrc(canton) : null;
+  // Explicit search city > saved profile city > GPS. Never show two competing photos.
+  const typedCity = city.trim();
+  const savedCity = profileCity?.trim() || "";
+  const canton = typedCity
+    ? cantonFromPlaceName(typedCity)
+    : savedCity
+      ? cantonFromPlaceName(savedCity)
+      : locationCanton;
+  const imageReady = Boolean(typedCity) || !profileCityPending;
+  const cantonImage = imageReady && canton ? cantonHeroSrc(canton) : null;
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -48,7 +56,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         aria-labelledby="home-hero-title"
         data-content-visible={contentVisible}
         data-authenticated={Boolean(user)}
-        data-home-canton={canton ?? "default"}
+        data-home-canton={imageReady ? (canton ?? "default") : "pending"}
       >
         <div className="tok-home-hero__content">
           <div className="tok-home-hero__brand">
@@ -87,11 +95,22 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
           </nav>
         </div>
         <div className="tok-home-hero__art" aria-hidden="true" data-canton-image={Boolean(cantonImage)}>
-          <picture className="tok-home-hero__background">
-            <source media="(min-width: 1024px)" type="image/webp" srcSet={cantonImage ?? "/images/home/tok-geneve-desktop.webp"} width={cantonImage ? 1440 : 1672} height={cantonImage ? 810 : 941} />
-            <source media="(max-width: 767px)" type="image/webp" srcSet={cantonImage ?? "/images/home/tok-geneve-mobile-fast.webp"} width={cantonImage ? 1440 : 900} height={cantonImage ? 810 : 1599} />
-            <img src={cantonImage ?? "/images/home/tok-leman-signature-fast.webp"} alt="" width={cantonImage ? 1440 : 1200} height={cantonImage ? 810 : 675} {...({ fetchpriority: "high" } as const)} loading="eager" decoding="async" />
-          </picture>
+          {imageReady ? (
+            <picture key={cantonImage ?? "default"} className="tok-home-hero__background">
+              {!cantonImage ? (
+                <source media="(max-width: 767px)" type="image/webp" srcSet="/images/home/tok-geneve-mobile-fast.webp" width={900} height={1599} />
+              ) : null}
+              <img
+                src={cantonImage ?? "/images/home/tok-leman-signature-fast.webp"}
+                alt=""
+                width={cantonImage ? 1440 : 1200}
+                height={cantonImage ? 810 : 675}
+                {...({ fetchpriority: "high" } as const)}
+                loading="eager"
+                decoding="async"
+              />
+            </picture>
+          ) : null}
         </div>
       </section>
       <aside className="tok-home-hero__secondary" aria-label="Rejoindre TOK">

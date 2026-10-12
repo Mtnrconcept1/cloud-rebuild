@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `154726aefd402a0d94cc901971eb4d77565691bb015e7680cd5a4ff11b6dee4f`
+- Empreinte SHA-256 des sources indexées : `2106f50f65600a97f6ea20916d9993f0620e0e9e7ad5f0212419ba8f52ec17db`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 528 |
 | modules | 1506 |
 | pages | 128 |
-| pathLiterals | 648 |
+| pathLiterals | 650 |
 | publicAssets | 462 |
 | publicEntries | 487 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16154 |
+| records | 16156 |
 | repositoryFiles | 2986 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1326,8 +1326,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /database/query | 1 | [src/test/production-preflight-hardening.test.ts:204](../../src/test/production-preflight-hardening.test.ts#L204) |
 | /demo-restaurant.jpg | 1 | [src/test/commercial-demo-client-data-isolation.test.ts:19](../../src/test/commercial-demo-client-data-isolation.test.ts#L19) |
 | /desig%20app/tok-ch- | 2 | [src/lib/homeCantonHero.ts:72](../../src/lib/homeCantonHero.ts#L72) |
-| /desig%20app/tok-ch-ju.webp | 3 | [src/test/home-hero-search.test.tsx:43](../../src/test/home-hero-search.test.tsx#L43) |
-| /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:51](../../src/test/home-hero-search.test.tsx#L51) |
+| /desig%20app/tok-ch-ge.webp | 1 | [src/test/home-hero-search.test.tsx:51](../../src/test/home-hero-search.test.tsx#L51) |
+| /desig%20app/tok-ch-ju.webp | 1 | [src/test/home-hero-search.test.tsx:45](../../src/test/home-hero-search.test.tsx#L45) |
+| /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:66](../../src/test/home-hero-search.test.tsx#L66) |
 | /enrich-directory-cuisines | 1 | [src/test/directory-cuisine-enrichment.test.ts:40](../../src/test/directory-cuisine-enrichment.test.ts#L40) |
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
 | /enrich-directory-images | 2 | [src/test/directory-image-discovery-worker.test.ts:44](../../src/test/directory-image-discovery-worker.test.ts#L44) |
@@ -1418,9 +1419,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-geneve-desktop.webp | 1 | [src/components/home/HeroSection.tsx:91](../../src/components/home/HeroSection.tsx#L91) |
-| /images/home/tok-geneve-mobile-fast.webp | 3 | [src/components/home/HeroSection.tsx:92](../../src/components/home/HeroSection.tsx#L92) |
-| /images/home/tok-leman-signature-fast.webp | 4 | [src/components/home/HeroSection.tsx:93](../../src/components/home/HeroSection.tsx#L93) |
+| /images/home/tok-geneve-mobile-fast.webp | 2 | [src/components/home/HeroSection.tsx:101](../../src/components/home/HeroSection.tsx#L101) |
+| /images/home/tok-leman-signature-fast.webp | 3 | [src/components/home/HeroSection.tsx:104](../../src/components/home/HeroSection.tsx#L104) |
 | /images/home/tok-logo-ui.webp | 1 | [src/lib/tokLogo.ts:2](../../src/lib/tokLogo.ts#L2) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
@@ -1492,15 +1492,17 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/section-headers/gift-3d.png | 2 | [src/components/home/RestaurantSection.tsx:42](../../src/components/home/RestaurantSection.tsx#L42) |
 | /images/section-headers/plate-3d.png | 2 | [src/lib/dashboardIllustrations.ts:56](../../src/lib/dashboardIllustrations.ts#L56) |
 | /images/section-headers/shopping-bags-3d.png | 1 | [src/lib/dashboardIllustrations.ts:60](../../src/lib/dashboardIllustrations.ts#L60) |
-| /images/section-headers/tok-editorial- | 1 | [src/components/home/SectionShowcaseHeader.tsx:51](../../src/components/home/SectionShowcaseHeader.tsx#L51) |
-| /images/section-headers/tok-editorial-cuisine-full.jpg | 2 | [src/components/home/CuisineCategoryStrip.tsx:120](../../src/components/home/CuisineCategoryStrip.tsx#L120) |
-| /images/section-headers/tok-editorial-delivery-full.jpg | 1 | [src/pages/Index.tsx:62](../../src/pages/Index.tsx#L62) |
-| /images/section-headers/tok-editorial-evening-full.jpg | 1 | [src/pages/Index.tsx:63](../../src/pages/Index.tsx#L63) |
-| /images/section-headers/tok-editorial-feast-full.jpg | 1 | [src/pages/Index.tsx:59](../../src/pages/Index.tsx#L59) |
-| /images/section-headers/tok-editorial-gastronomy-full.jpg | 1 | [src/pages/Index.tsx:61](../../src/pages/Index.tsx#L61) |
-| /images/section-headers/tok-editorial-geneva-full.jpg | 4 | [src/pages/Index.tsx:58](../../src/pages/Index.tsx#L58) |
-| /images/section-headers/tok-editorial-reservation-full.jpg | 1 | [src/pages/Index.tsx:60](../../src/pages/Index.tsx#L60) |
-| /images/section-headers/tok-editorial-rewards-full.jpg | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
+| /images/section-headers/tok-editorial- | 1 | [src/components/home/SectionShowcaseHeader.tsx:55](../../src/components/home/SectionShowcaseHeader.tsx#L55) |
+| /images/section-headers/tok-editorial-cuisine-full.jpg | 1 | [src/test/home-section-showcase-header.test.tsx:62](../../src/test/home-section-showcase-header.test.tsx#L62) |
+| /images/section-headers/tok-editorial-cuisine-optimized.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:120](../../src/components/home/CuisineCategoryStrip.tsx#L120) |
+| /images/section-headers/tok-editorial-delivery-optimized.webp | 1 | [src/pages/Index.tsx:62](../../src/pages/Index.tsx#L62) |
+| /images/section-headers/tok-editorial-evening-optimized.webp | 1 | [src/pages/Index.tsx:63](../../src/pages/Index.tsx#L63) |
+| /images/section-headers/tok-editorial-feast-optimized.webp | 1 | [src/pages/Index.tsx:59](../../src/pages/Index.tsx#L59) |
+| /images/section-headers/tok-editorial-gastronomy-optimized.webp | 1 | [src/pages/Index.tsx:61](../../src/pages/Index.tsx#L61) |
+| /images/section-headers/tok-editorial-geneva-full.jpg | 2 | [src/test/home-section-showcase-header.test.tsx:33](../../src/test/home-section-showcase-header.test.tsx#L33) |
+| /images/section-headers/tok-editorial-geneva-optimized.webp | 2 | [src/pages/Index.tsx:58](../../src/pages/Index.tsx#L58) |
+| /images/section-headers/tok-editorial-reservation-optimized.webp | 1 | [src/pages/Index.tsx:60](../../src/pages/Index.tsx#L60) |
+| /images/section-headers/tok-editorial-rewards-optimized.webp | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
 | /images/smash-burger-single.jpeg | 3 | [src/lib/menu-item-images.ts:23](../../src/lib/menu-item-images.ts#L23) |
 | /images/smash-burgers.jpeg | 3 | [src/components/AntiWasteCard.tsx:39](../../src/components/AntiWasteCard.tsx#L39) |
 | /images/stack-shake-spread.jpeg | 1 | [src/components/AntiWasteCard.tsx:35](../../src/components/AntiWasteCard.tsx#L35) |
