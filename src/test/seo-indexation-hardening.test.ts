@@ -264,6 +264,15 @@ describe("SEO indexation and crawler hardening", () => {
     }
   });
 
+  it("surfaces structured PostgREST errors without weakening strict SEO builds", () => {
+    const prerender = read("scripts/prerender-seo.mjs");
+    expect(prerender).toContain('typeof cause.code === "string"');
+    expect(prerender).toContain('typeof cause.message === "string"');
+    expect(prerender).toContain('.filter(Boolean).join(" : ").slice(0, 240)');
+    expect(prerender).toContain("if (STRICT_DYNAMIC_SEO) throw failure");
+    expect(prerender).not.toContain("console.warn(JSON.stringify(cause))");
+  });
+
   it("bounds the public Supabase catalog query before invoking its private implementation", () => {
     const migration = read(
       "supabase/migrations/20260801120000_harden_public_restaurant_search_bounds.sql",
