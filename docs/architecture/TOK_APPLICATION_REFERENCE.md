@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `e248276689afd3f55e5314cd7800eeffc809207c0c1b82a24f336aaf597f10c6`
+- Empreinte SHA-256 des sources indexées : `604d2001e949d6e3bdf6e0ca1a09c9b76abbdd6008755b1e6baa37969794d3db`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,30 +29,30 @@
 | cronJobs | 33 |
 | databaseContract | 228 |
 | databaseObjects | 2736 |
-| documents | 202 |
+| documents | 203 |
 | edgeFunctions | 114 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3399 |
+| exportedSymbols | 3403 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 527 |
-| modules | 1503 |
+| modules | 1505 |
 | pages | 128 |
-| pathLiterals | 644 |
+| pathLiterals | 647 |
 | publicAssets | 387 |
 | publicEntries | 412 |
 | publicNavigableRoutes | 2 |
-| queryParameters | 104 |
-| records | 15972 |
-| repositoryFiles | 2896 |
+| queryParameters | 110 |
+| records | 15996 |
+| repositoryFiles | 2900 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 27 |
+| workflows | 28 |
 
 ## État distant observé
 
@@ -1504,7 +1504,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /reseaux-sociaux | 1 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
 | /reservations | 24 | [scripts/prerender-seo.mjs:1217](../../scripts/prerender-seo.mjs#L1217) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
-| /rest/v1/ | 3 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
+| /rest/v1/ | 6 | [scripts/stripe-financial-reconciliation.mjs:55](../../scripts/stripe-financial-reconciliation.mjs#L55) |
+| /rest/v1/payment_attempts | 1 | [scripts/stripe-financial-reconciliation.mjs:73](../../scripts/stripe-financial-reconciliation.mjs#L73) |
 | /rest/v1/rpc/ | 2 | [src/lib/commercialDemoEffects.ts:20](../../src/lib/commercialDemoEffects.ts#L20) |
 | /rest/v1/user_roles? | 7 | [src/test/marketing-bff-security.test.ts:249](../../src/test/marketing-bff-security.test.ts#L249) |
 | /restaurant | 4 | [supabase/functions/discover-thefork-official-sites/index.ts:459](../../supabase/functions/discover-thefork-official-sites/index.ts#L459) |
@@ -1631,6 +1632,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /user_roles? | 4 | [src/test/marketing-agent-bff.test.ts:28](../../src/test/marketing-agent-bff.test.ts#L28) |
 | /users/[email] | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /users/private%40example.test#token | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
+| /v1/account | 2 | [scripts/stripe-financial-reconciliation.test.mjs:27](../../scripts/stripe-financial-reconciliation.test.mjs#L27) |
 | /v1/appScreenshotSets | 1 | [scripts/app-store-connect-upload-screenshots.mjs:216](../../scripts/app-store-connect-upload-screenshots.mjs#L216) |
 | /v1/appScreenshots | 1 | [scripts/app-store-connect-upload-screenshots.mjs:283](../../scripts/app-store-connect-upload-screenshots.mjs#L283) |
 | /v1/appStoreReviewDetails | 1 | [scripts/app-store-connect-finalize-v1.mjs:248](../../scripts/app-store-connect-finalize-v1.mjs#L248) |
@@ -1639,6 +1641,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /v1/autopilot/plan | 4 | [src/lib/tokConnect.ts:160](../../src/lib/tokConnect.ts#L160) |
 | /v1/campaigns/preview | 4 | [src/lib/tokConnect.ts:154](../../src/lib/tokConnect.ts#L154) |
 | /v1/credits/balance | 3 | [src/lib/tokConnect.ts:148](../../src/lib/tokConnect.ts#L148) |
+| /v1/payment_intents | 1 | [scripts/stripe-financial-reconciliation.test.mjs:43](../../scripts/stripe-financial-reconciliation.test.mjs#L43) |
 | /v1/projects/${encodeURIComponent(projectRef)}/database/query | 1 | [src/test/commercial-demo-migration-workflow.test.ts:34](../../src/test/commercial-demo-migration-workflow.test.ts#L34) |
 | /v1/projects/${projectRef}/config/auth | 1 | [src/test/plan-phase1-readiness.test.ts:100](../../src/test/plan-phase1-readiness.test.ts#L100) |
 | /v1/reservations | 5 | [src/lib/tokConnect.ts:130](../../src/lib/tokConnect.ts#L130) |
@@ -1678,6 +1681,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Paramètre | Routes associées | Occurrences | Première source |
 | --- | --- | --- | --- |
+| and | — | 2 | [scripts/stripe-financial-reconciliation.mjs:58](../../scripts/stripe-financial-reconciliation.mjs#L58) |
 | apiKey | — | 1 | [src/lib/push.ts:81](../../src/lib/push.ts#L81) |
 | appId | — | 1 | [src/lib/push.ts:84](../../src/lib/push.ts#L84) |
 | appsecret_proof | — | 1 | [supabase/functions/_shared/meta-marketing-health.ts:25](../../supabase/functions/_shared/meta-marketing-health.ts#L25) |
@@ -1697,6 +1701,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:906](../../src/pages/Auth.tsx#L906) |
 | commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:280](../../src/pages/CommercialComptabilite.tsx#L280) |
 | confirmed | /auth, /auth/callback, /auth/demo | 2 | [src/pages/Auth.tsx:131](../../src/pages/Auth.tsx#L131) |
+| created[gte] | — | 1 | [scripts/stripe-financial-reconciliation.mjs:39](../../scripts/stripe-financial-reconciliation.mjs#L39) |
+| created[lt] | — | 1 | [scripts/stripe-financial-reconciliation.mjs:40](../../scripts/stripe-financial-reconciliation.mjs#L40) |
+| created_at | — | 2 | [scripts/stripe-financial-reconciliation.mjs:57](../../scripts/stripe-financial-reconciliation.mjs#L57) |
 | cuisine | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/pages/Recherche.tsx:240](../../src/pages/Recherche.tsx#L240) |
 | cursor | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 1 | [supabase/functions/tok-connect-api/index.ts:210](../../supabase/functions/tok-connect-api/index.ts#L210) |
 | date | /restaurant/:id, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/lib/zeroAttenteReservationContext.ts:76](../../src/lib/zeroAttenteReservationContext.ts#L76) |
@@ -1719,7 +1726,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | incident | /admin/guardian, /admin/sinistres, /admin/support-resolution | 4 | [src/pages/admin/AdminGuardian.tsx:105](../../src/pages/admin/AdminGuardian.tsx#L105) |
 | job | /courier/jobs | 1 | [src/pages/courier/CourierJobs.tsx:54](../../src/pages/courier/CourierJobs.tsx#L54) |
 | lat | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 2 | [src/pages/LocalRestaurants.tsx:475](../../src/pages/LocalRestaurants.tsx#L475) |
-| limit | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 13 | [scripts/app-store-connect-preflight.mjs:77](../../scripts/app-store-connect-preflight.mjs#L77) |
+| limit | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 16 | [scripts/app-store-connect-preflight.mjs:77](../../scripts/app-store-connect-preflight.mjs#L77) |
 | lng | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 1 | [src/pages/LocalRestaurants.tsx:478](../../src/pages/LocalRestaurants.tsx#L478) |
 | lon | — | 1 | [src/test/address-autocomplete-location-bias.test.tsx:78](../../src/test/address-autocomplete-location-bias.test.tsx#L78) |
 | match_group_authorized | /match-groupes | 2 | [src/pages/MatchGroupes.tsx:389](../../src/pages/MatchGroupes.tsx#L389) |
@@ -1730,7 +1737,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | min_lat | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:120](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L120) |
 | min_lng | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:122](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L122) |
 | mode | /auth, /auth/callback, /auth/demo, /recherche | 3 | [src/pages/Auth.tsx:948](../../src/pages/Auth.tsx#L948) |
-| offset | — | 3 | [scripts/prerender-stoppin-restaurants-bounded.mjs:118](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L118) |
+| offset | — | 5 | [scripts/prerender-stoppin-restaurants-bounded.mjs:118](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L118) |
 | on_conflict | — | 1 | [scripts/restaurant-image-truth-worker.mjs:548](../../scripts/restaurant-image-truth-worker.mjs#L548) |
 | open | /restaurant/:id | 2 | [src/pages/RestaurantDetail.tsx:148](../../src/pages/RestaurantDetail.tsx#L148) |
 | operation | /admin/commandes-reservations | 2 | [src/pages/admin/AdminOperationsCenter.tsx:65](../../src/pages/admin/AdminOperationsCenter.tsx#L65) |
@@ -1761,11 +1768,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | restaurant | /zero-attente | 1 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
 | restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 1 | [supabase/functions/tok-connect-api/index.ts:813](../../supabase/functions/tok-connect-api/index.ts#L813) |
 | scope | /actualites | 3 | [src/pages/Actualites.tsx:249](../../src/pages/Actualites.tsx#L249) |
+| select | — | 2 | [scripts/stripe-financial-reconciliation.mjs:56](../../scripts/stripe-financial-reconciliation.mjs#L56) |
 | session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:691](../../src/pages/ChefsTable.tsx#L691) |
 | signup_operation_id | /auth, /auth/callback, /auth/demo | 2 | [src/pages/Auth.tsx:133](../../src/pages/Auth.tsx#L133) |
 | slug | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:172](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L172) |
 | sort | /recherche | 1 | [src/pages/Recherche.tsx:249](../../src/pages/Recherche.tsx#L249) |
 | source | /mon-espace | 1 | [public/manifest.json:50](../../public/manifest.json#L50) |
+| starting_after | — | 1 | [scripts/stripe-financial-reconciliation.mjs:41](../../scripts/stripe-financial-reconciliation.mjs#L41) |
 | state | — | 2 | [supabase/functions/tok-connect-oauth/index.ts:222](../../supabase/functions/tok-connect-oauth/index.ts#L222) |
 | status | /chefs-table, /dashboard, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 12 | [src/lib/iosCommerceFetch.ts:137](../../src/lib/iosCommerceFetch.ts#L137) |
 | stripe_session_id | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:81](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L81) |
@@ -5773,6 +5782,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Prepare TOK App Icon | generate | [.github/workflows/prepare-logotok-app-icon.yml](../../.github/workflows/prepare-logotok-app-icon.yml) |
 | Print protocol PostgreSQL replay | replay | [.github/workflows/print-protocol-postgres.yml](../../.github/workflows/print-protocol-postgres.yml) |
 | Restaurant Image Truth Backfill | backfill | [.github/workflows/restaurant-image-truth-backfill.yml](../../.github/workflows/restaurant-image-truth-backfill.yml) |
+| Independent Stripe audit tests | audit-unit-tests, refresh-application-index | [.github/workflows/stripe-audit-tests.yml](../../.github/workflows/stripe-audit-tests.yml) |
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
 
@@ -5889,8 +5899,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 213 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 673 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 215 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 675 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 58 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -5901,7 +5911,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 204 |
-| automation-script | 64 |
+| automation-script | 65 |
 | documentation | 6 |
 | edge-function-source | 186 |
 | frontend-component | 251 |
@@ -5911,7 +5921,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 592 |
+| test | 593 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6044,6 +6054,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Hébergement des associations mobiles | 3 | [docs/runbooks/mobile-association-hosting.md:1](../../docs/runbooks/mobile-association-hosting.md#L1) |
 | Runbook release production securisee | 8 | [docs/runbooks/production-release-readiness.md:1](../../docs/runbooks/production-release-readiness.md#L1) |
 | Runbook Stripe et reconciliation financiere | 8 | [docs/runbooks/stripe-financial-ops.md:1](../../docs/runbooks/stripe-financial-ops.md#L1) |
+| Contrôle indépendant Stripe / TOK (lecture seule) | 3 | [docs/runbooks/stripe-independent-audit.md:1](../../docs/runbooks/stripe-independent-audit.md#L1) |
 | Protection SEO et anti-scraping de TOK | 10 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
 | Tok audit readiness — plan 10/10 | 5 | [docs/security/audit-readiness-10-10.md:1](../../docs/security/audit-readiness-10-10.md#L1) |
 | Audit d’intégrité des paiements — 15 juillet 2026 | 15 | [docs/security/payment-integrity-audit-2026-07-15.md:1](../../docs/security/payment-integrity-audit-2026-07-15.md#L1) |
@@ -6396,7 +6407,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (71)</summary>
+<details><summary>automation-script (72)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -6455,6 +6466,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/restaurant-image-truth-worker.mjs`
 - `scripts/scale-readiness-check.mjs`
 - `scripts/search-application-index.mjs`
+- `scripts/stripe-financial-reconciliation.mjs`
 - `scripts/supabase-ci-retry.sh`
 - `scripts/supabase-db-push.mjs`
 - `scripts/supabase-doctor.mjs`
@@ -6472,7 +6484,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (27)</summary>
+<details><summary>ci-workflow (28)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -6499,6 +6511,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/prepare-logotok-app-icon.yml`
 - `.github/workflows/print-protocol-postgres.yml`
 - `.github/workflows/restaurant-image-truth-backfill.yml`
+- `.github/workflows/stripe-audit-tests.yml`
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
 
@@ -7036,7 +7049,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (155)</summary>
+<details><summary>documentation (156)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7123,6 +7136,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/runbooks/mobile-association-hosting.md`
 - `docs/runbooks/production-release-readiness.md`
 - `docs/runbooks/stripe-financial-ops.md`
+- `docs/runbooks/stripe-independent-audit.md`
 - `docs/security/SEO_BOT_PROTECTION_RUNBOOK.md`
 - `docs/security/audit-readiness-10-10.md`
 - `docs/security/payment-integrity-audit-2026-07-15.md`
@@ -8492,7 +8506,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (592)</summary>
+<details><summary>test (593)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -8501,6 +8515,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/dependabot-policy.test.mjs`
 - `scripts/dependency-security.test.mjs`
 - `scripts/stoppin-venue-seo.test.mjs`
+- `scripts/stripe-financial-reconciliation.test.mjs`
 - `scripts/test-actualites-billing-runner.test.mjs`
 - `scripts/test-checkout-security-runner.test.mjs`
 - `scripts/test-print-protocol-runner.test.mjs`
