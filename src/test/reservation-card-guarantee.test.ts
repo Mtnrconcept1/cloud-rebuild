@@ -115,6 +115,19 @@ describe("server-side reservation card guarantee invariants", () => {
     expect(sql).toContain("r.cancelled_at < v_end");
   });
 
+  it("deploys dormant and only activates after explicit SQL rollout", () => {
+    const worker = source("supabase/functions/process-reservation-cancellation-fees/index.ts");
+    const google = source("supabase/functions/google-actions-center/index.ts");
+    expect(sql).toContain("CREATE TABLE IF NOT EXISTS public.reservation_card_guarantee_rollout");
+    expect(sql).toContain("VALUES (true, false)");
+    expect(sql).toContain("WHERE id = true AND enabled = true");
+    expect(sql).toContain("REVOKE ALL ON TABLE public.reservation_card_guarantee_rollout");
+    expect(worker).toContain('Deno.env.get("TOK_RESERVATION_CANCELLATION_COLLECTION_ENABLED") !== "true"');
+    expect(worker).toContain('.from("reservation_card_guarantee_rollout")');
+    expect(google).toContain('.from("reservation_card_guarantee_rollout")');
+    expect(google).toContain("if (rollout?.enabled === true) return false");
+  });
+
   it("guards every free table booking server-side against unsigned cards", () => {
     expect(sql).toContain("BEFORE INSERT ON public.reservations");
     expect(sql).toContain("RAISE EXCEPTION 'card_guarantee_required'");
