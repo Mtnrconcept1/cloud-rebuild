@@ -14,6 +14,7 @@ import {
   requireClientPaymentAttemptId,
 } from "../_shared/payment-attempts.ts";
 import { getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
+import { isCompletedNoCostZeroAttenteSession } from "../_shared/zero-cost-checkout.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
@@ -78,7 +79,9 @@ Deno.serve(async (req) => {
         if (session.status === "open" && session.url) {
           state = "session_bound";
           url = session.url;
-        } else if (session.payment_status === "paid") {
+        } else if (
+          session.payment_status === "paid" || isCompletedNoCostZeroAttenteSession(session)
+        ) {
           state = attempt.state === "finalized" ? "finalized" : "paid" as typeof state;
         } else if (session.status === "expired") {
           state = "expired";
