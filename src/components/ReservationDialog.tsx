@@ -134,6 +134,7 @@ export default function ReservationDialog({
     ? new Set(commercialDemoFrame.snapshot.active_features)
     : globalActiveFeatures;
   const zeroWaitEnabled = activeFeatures.has("zero-attente");
+  const guaranteeEnabled = activeFeatures.has("reservation-card-guarantee");
   const steps: Step[] = zeroWaitEnabled ? ["datetime", "mode", "promo", "confirm"] : ["datetime", "promo", "confirm"];
 
   const [step, setStep] = useState<Step>("datetime");
@@ -160,7 +161,7 @@ export default function ReservationDialog({
   } = useQuery({
     queryKey: ["reservation-card-guarantee-quote", user?.id, partySize],
     queryFn: () => getReservationGuaranteeQuote(partySize),
-    enabled: open && step === "confirm" && !!user && !isCommercialDemoClient,
+    enabled: open && step === "confirm" && !!user && !isCommercialDemoClient && guaranteeEnabled,
     retry: false,
     staleTime: 15_000,
   });
@@ -503,7 +504,7 @@ export default function ReservationDialog({
       return;
     }
 
-    if (isGuaranteeQuoteLoading || !guaranteeQuote || isGuaranteeQuoteError) {
+    if (guaranteeEnabled && (isGuaranteeQuoteLoading || !guaranteeQuote || isGuaranteeQuoteError)) {
       toast({
         title: "Vérification bancaire indisponible",
         description: "Nous ne pouvons pas vérifier les conditions de réservation pour le moment.",
@@ -511,7 +512,7 @@ export default function ReservationDialog({
       });
       return;
     }
-    if (guaranteeQuote.required && !guaranteeAccepted) {
+    if (guaranteeEnabled && guaranteeQuote?.required && !guaranteeAccepted) {
       toast({
         title: "Accord bancaire requis",
         description: "Veuillez accepter les conditions des frais d'annulation avant de continuer.",
@@ -607,7 +608,7 @@ export default function ReservationDialog({
         acquisitionChannelToken,
         notes: offerPrefix + (notes || ""),
         progressiveOfferId: hasProgressiveOffer ? selectedPromo?.progressiveOfferId ?? null : null,
-        guaranteeAccepted: guaranteeQuote.required && guaranteeAccepted,
+        guaranteeAccepted: guaranteeEnabled && guaranteeQuote?.required === true && guaranteeAccepted,
       });
     } catch (reservationError) {
       setLoading(false);
@@ -1009,7 +1010,7 @@ export default function ReservationDialog({
                   )}
                 </div>
 
-                {!isCommercialDemoClient && (
+                {!isCommercialDemoClient && guaranteeEnabled && (
                   isGuaranteeQuoteLoading ? (
                     <div className="rounded-xl border p-3 text-xs text-muted-foreground">
                       Vérification des conditions de garantie bancaire…
@@ -1072,7 +1073,7 @@ export default function ReservationDialog({
                   </Button>
                   <Button
                     onClick={handleSubmit}
-                    disabled={loading || (!isCommercialDemoClient && (
+                    disabled={loading || (!isCommercialDemoClient && guaranteeEnabled && (
                       isGuaranteeQuoteLoading || isGuaranteeQuoteError || !guaranteeQuote
                       || (guaranteeQuote.required && !guaranteeAccepted)
                     ))}
