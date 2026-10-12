@@ -149,6 +149,7 @@ BEGIN
     AND s.date = NEW.date
     AND s.time = NEW.time
     AND s.party_size = NEW.party_size
+    AND lower(s.feature) = lower(NEW.feature)
     AND s.status = 'checkout_ready'
     AND s.stripe_customer_id IS NOT NULL
     AND s.stripe_checkout_session_id IS NOT NULL
