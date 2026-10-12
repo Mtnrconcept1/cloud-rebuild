@@ -52,14 +52,34 @@ describe("feature flag catalog", () => {
     expect(zeroWait?.blockedBy).toContain("reservation");
   });
 
+  it("keeps pickup, reservations and checkout history independent of delivery flags", () => {
+    const flags = resolveFlags(buildRows({
+      commandes: false, livraison: false, emporter: true, reservation: true,
+      "sur-place": true, "zero-attente": true, "chefs-table": true,
+      "payment-card": true, "payment-twint": true,
+      "dashboard-restaurateur": true, "dashboard-commandes": true,
+    }));
+    const enabled = (name: string) => flags.find((flag) => flag.name === name)?.effectiveEnabled;
+    expect(enabled("commandes")).toBe(false);
+    for (const name of ["emporter", "reservation", "zero-attente", "chefs-table", "payment-card", "payment-twint", "dashboard-commandes"]) {
+      expect(enabled(name)).toBe(true);
+    }
+  });
+
+  it("requires delivery for new delivered orders, without blocking pickup", () => {
+    const flags = resolveFlags(buildRows({ commandes: true, livraison: false, emporter: true }));
+    expect(flags.find((flag) => flag.name === "commandes")?.effectiveEnabled).toBe(false);
+    expect(flags.find((flag) => flag.name === "emporter")?.effectiveEnabled).toBe(true);
+  });
+
   it("maps guarded routes to their feature names", () => {
     expect(getFeatureNameForRoute("/dashboard/campagnes")).toBe("dashboard-campagnes");
-    expect(getFeatureNameForRoute("/commande/abc-123")).toBe("commandes");
+    expect(getFeatureNameForRoute("/commande/abc-123")).toBeNull();
     expect(getFeatureNameForRoute("/courier/jobs")).toBe("courier-jobs");
   });
 
   it("documents all guarded feature route targets explicitly", () => {
-    expect(getExactFeatureForRoute("/commande/confirmation")).toBe("commandes");
+    expect(getExactFeatureForRoute("/commande/confirmation")).toBeNull();
     expect(getExactFeatureForRoute("/dashboard/compta")).toBe("dashboard-performances");
     expect(getExactFeatureForRoute("/dashboard/factures/entrees")).toBe("dashboard-factures");
     expect(getExactFeatureForRoute("/dashboard/factures/sorties")).toBe("dashboard-factures");

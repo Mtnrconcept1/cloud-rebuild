@@ -23,6 +23,23 @@ function latestMigrationContaining(pattern: RegExp) {
 }
 
 describe("admin feature flag governance", () => {
+  it("decouples delivery orders from payments and preserves checkout confirmations", () => {
+    const sql = readMigration("20261012063000_decouple_delivery_orders_flag.sql");
+    const edge = readFileSync(resolve(root, "supabase/functions/validate-order/index.ts"), "utf8");
+    const checkout = readFileSync(resolve(root, "supabase/functions/create-checkout/index.ts"), "utf8");
+    const app = readFileSync(resolve(root, "src/App.tsx"), "utf8");
+
+    expect(sql).not.toContain("payment-card requires commandes checkout to stay enabled");
+    expect(sql).toContain("'commandes',");
+    expect(sql).toMatch(/WHEN 'commandes' THEN\s+RETURN public\.is_feature_flag_active\('livraison'\);/);
+    expect(sql).toContain("INSERT INTO public.feature_flag_audit_logs");
+    expect(edge).toContain('!activeFlags.has("commandes")');
+    expect(edge).toContain('!activeFlags.has("emporter")');
+    expect(checkout).toContain("assertPaymentMethodAllowed");
+    expect(app).toContain('<ClientSurfaceRoute><OrderConfirmation /></ClientSurfaceRoute>');
+    expect(app).not.toContain("enabled={commandesEnabled}");
+  });
+
   it("adds audited feature flag history, presets and guarded admin RPCs", () => {
     const sql = latestMigrationContaining(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.feature_flag_audit_logs/i);
 

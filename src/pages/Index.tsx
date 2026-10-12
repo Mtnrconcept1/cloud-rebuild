@@ -979,7 +979,7 @@ export default function Index() {
                     </div>
                   }
                 >
-                  <NearbyRestaurantsMap restaurants={allRestaurants || []} />
+                  <NearbyRestaurantsMap restaurants={allRestaurants || []} centerLat={userCoordinates?.latitude} centerLng={userCoordinates?.longitude} />
                 </Suspense>
               ) : (
                 <div className="h-[380px] rounded-2xl border bg-muted/30" aria-hidden="true" />

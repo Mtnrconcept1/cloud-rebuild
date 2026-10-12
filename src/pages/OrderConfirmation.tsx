@@ -452,7 +452,7 @@ export default function OrderConfirmation() {
                 <Link to="/panier"><ShoppingCart className="mr-2 h-4 w-4" />Retour au panier</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link to="/commandes"><History className="mr-2 h-4 w-4" />Mes commandes</Link>
+                <Link to="/commandes"><History className="mr-2 h-4 w-4" />Mes achats</Link>
               </Button>
             </div>
           </div>
@@ -477,7 +477,7 @@ export default function OrderConfirmation() {
                 </Button>
               ) : null}
               <Button asChild>
-                <Link to="/commandes"><History className="mr-2 h-4 w-4" />Mes commandes</Link>
+                <Link to="/commandes"><History className="mr-2 h-4 w-4" />Mes achats</Link>
               </Button>
               {pendingPaymentAttemptId ? (
                 <Button type="button" variant="outline" onClick={() => window.location.reload()}>
@@ -529,7 +529,7 @@ export default function OrderConfirmation() {
                   </Button>
                 ) : null}
                 <Button asChild variant="outline">
-                  <Link to="/commandes"><History className="mr-2 h-4 w-4" />Mes commandes</Link>
+                  <Link to="/commandes"><History className="mr-2 h-4 w-4" />Mes achats</Link>
                 </Button>
               </div>
             </div>

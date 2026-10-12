@@ -465,7 +465,6 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
     if (featureFlagsLoading) return null;
     return activeFeatures.has(flagName);
   };
-  const commandesEnabled = hasFeature("commandes");
   const antiWasteEnabled = hasFeature("anti-gaspi");
   const flashSalesEnabled = hasFeature("ventes-flash");
   const actualitesSocialesEnabled = hasFeature("actualites-sociales");
@@ -571,9 +570,9 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/restaurant/:id" element={<ClientSurfaceRoute><RestaurantDetail /></ClientSurfaceRoute>} />
           <Route path="/anti-gaspi" element={<ClientSurfaceRoute><FeatureSwitch enabled={antiWasteEnabled}><AntiGaspi /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/panier" element={<ClientSurfaceRoute><Panier /></ClientSurfaceRoute>} />
-          <Route path="/commandes" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={commandesEnabled} fallback="/"><Commandes /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/commande/confirmation" element={<ClientSurfaceRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><OrderConfirmation /></FeatureSwitch></ClientSurfaceRoute>} />
-          <Route path="/commande/:id" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={commandesEnabled} fallback="/"><SuiviCommande /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/commandes" element={<ProtectedRoute requiredRole="client"><Commandes /></ProtectedRoute>} />
+          <Route path="/commande/confirmation" element={<ClientSurfaceRoute><OrderConfirmation /></ClientSurfaceRoute>} />
+          <Route path="/commande/:id" element={<ProtectedRoute requiredRole="client"><SuiviCommande /></ProtectedRoute>} />
           <Route path="/mon-espace" element={<ProtectedRoute requiredRole="client"><ClientDashboardHome /></ProtectedRoute>} />
           <Route path="/compte" element={<Navigate to="/mon-espace" replace />} />
           <Route path="/espace-client" element={<Navigate to="/mon-espace" replace />} />

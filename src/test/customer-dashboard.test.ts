@@ -21,6 +21,7 @@ describe("espace client central", () => {
 
     expect(dashboard).toContain('activeFeatures.has("reservation")');
     expect(dashboard).toContain('activeFeatures.has("commandes")');
+    expect(dashboard).toContain('activeFeatures.has("emporter")');
     expect(dashboard).toContain('activeFeatures.has(action.feature)');
     expect(dashboard).toContain('.eq("user_id", user!.id)');
     expect(dashboard).toContain('from("favorites")');
