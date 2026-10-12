@@ -203,6 +203,31 @@ export function getCommercialIdentityGateState({
   return "ready";
 }
 
+/**
+ * A protected commercial route must not silently bounce to /auth on the public
+ * origin when this particular browser origin has no session. In that situation
+ * public /auth can still have a valid role and redirect straight back here.
+ * Stop locally and require a deliberate reauthentication action.
+ *
+ * Signed demonstration frames use their own session verification and are not
+ * subject to this fallback.
+ */
+export function shouldShowCommercialSessionRecovery({
+  hostname,
+  pathname,
+  authResolved = false,
+  isAuthenticated = false,
+}: Pick<
+  CommercialHostRedirectInput,
+  "hostname" | "pathname" | "authResolved" | "isAuthenticated"
+>): boolean {
+  if (!isCommercialAppHost(hostname) || !authResolved || isAuthenticated) return false;
+  const path = normalizePath(pathname).toLowerCase();
+  return path !== "/auth"
+    && path !== "/auth/callback"
+    && !isCommercialDemoFrameHostPath(path);
+}
+
 export function getCommercialNavigationHref(
   pathname = "/commercial",
   hostname?: string,
