@@ -6,6 +6,7 @@ import {
 } from "./notifications.ts";
 import { recordZeroAttenteChargeIfMissing } from "./payment-transactions.ts";
 import { queueReservationConfirmationEmails } from "./transactional-emails.ts";
+import { isCompletedNoCostZeroAttenteSession } from "./zero-cost-checkout.ts";
 
 type LoggerLike = {
   error?: (event: string, data?: Record<string, unknown>) => void;
@@ -162,7 +163,8 @@ export async function finalizeZeroAttenteCheckout(input: {
     fetchLineItems,
   } = input;
 
-  if (!session || session.payment_status !== "paid") {
+  const noCostCheckout = isCompletedNoCostZeroAttenteSession(session);
+  if (!session || (session.payment_status !== "paid" && !noCostCheckout)) {
     throw new Error("Session Stripe non payee.");
   }
 
@@ -179,7 +181,9 @@ export async function finalizeZeroAttenteCheckout(input: {
   const arrivalDate = String(session.metadata?.arrival_date || "");
   const arrivalTime = String(session.metadata?.arrival_time || "");
   const partySize = Math.max(1, Number(session.metadata?.party_size || 1));
-  const paymentMethod = String(session.metadata?.payment_method_label || "card");
+  const paymentMethod = noCostCheckout
+    ? (Number(session.metadata?.points_to_redeem || 0) > 0 ? "miamz" : "avantages")
+    : String(session.metadata?.payment_method_label || "card");
   const subtotal = parseMoney(session.metadata?.pre_discount_subtotal);
   const formulaDiscount = parseMoney(session.metadata?.formula_discount_amount);
   const formulaDiscountPercent = parseMoney(session.metadata?.formula_discount_percent);
@@ -247,6 +251,9 @@ export async function finalizeZeroAttenteCheckout(input: {
     arrival_time: arrivalTime,
     payment_method: paymentMethod,
     checkout_session_id: session.id,
+    finance_routing_mode: session.metadata?.finance_routing_mode || null,
+    authoritative_total_cents: session.metadata?.authoritative_total_cents || null,
+    payment_attempt_id: session.metadata?.payment_attempt_id || null,
     paid: true,
     card_brand: cardBrand,
     card_last4: cardLast4,
