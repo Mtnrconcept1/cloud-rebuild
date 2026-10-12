@@ -308,7 +308,7 @@ Deno.serve(async (req) => {
           email: email || undefined,
           metadata: { tok_user_id: actor.userId, card_guarantee_setup_id: setup.id },
         }, { idempotencyKey: `tok:reservation-guarantee:customer:${setup.id}` });
-        const baseUrl = getPublicAppBaseUrl().replace(/\\/+$/, "");
+        const baseUrl = getPublicAppBaseUrl().replace(/\/+$/, "");
         const session = await runtime.stripe.checkout.sessions.create({
           mode: "setup",
           payment_method_types: ["card"],
