@@ -44,7 +44,7 @@ describe("Zéro Attente fully covered by MIAMZ", () => {
     expect(sql).toContain("FOR UPDATE");
     expect(sql).toContain("public.apply_reservation_loyalty_points(");
     expect(sql).toContain("status = 'confirmed'");
-    expect(sql.indexOf("public.apply_reservation_loyalty_points(")).toBeLessThan(sql.indexOf("status = 'confirmed'"));
+    expect(sql.indexOf("public.apply_reservation_loyalty_points(")).toBeLessThan(sql.indexOf("SET status = 'confirmed'"));
     expect(sql).toContain("TO service_role");
     expect(sql).toContain("FROM PUBLIC, anon, authenticated");
     expect(finalizer).toContain("finalize_zero_attente_no_cost_hold");
