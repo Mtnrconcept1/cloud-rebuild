@@ -124,6 +124,8 @@ describe("server-side reservation card guarantee invariants", () => {
     expect(sql).toContain("ON CONFLICT (name) DO NOTHING");
     expect(sql).toContain("AND is_active = true");
     expect(dialog).toContain('const guaranteeEnabled = activeFeatures.has("reservation-card-guarantee")');
+    expect(create).toContain("if (!await cardGuaranteesEnabled(actor.adminClient))");
+    expect(create).toContain("if (await cardGuaranteesEnabled(actor.adminClient))");
     expect(dialog).toContain('&& !isCommercialDemoClient && guaranteeEnabled');
     expect(sql).toContain("WHERE id = true AND enabled = true");
     expect(sql).toContain("REVOKE ALL ON TABLE public.reservation_card_guarantee_rollout");
