@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "155cd869c70de53d856ed67465aeef70b3331a82e17832e76c7d093f2bb64c97",
+ "sourceDigest": "7d8e9a709d7286ea3f0b3d707c3c7fa6f03dfb65d8c10853adde31fcf319f448",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -82046,13 +82046,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 143,
+      "line": 140,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 213
+    "lineCount": 225
    },
    {
     "path": "src/components/OrderConflictDialog.tsx",
@@ -102715,7 +102715,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 109
+    "lineCount": 122
    },
    {
     "path": "src/test/image-metadata-ai.test.ts",
@@ -127197,14 +127197,14 @@
    "id": "code-module:bcb7d2dbc4fa",
    "type": "code-module",
    "title": "src/components/NearbyRestaurantsMap.tsx",
-   "description": "Module de 213 lignes; exports: default.",
+   "description": "Module de 225 lignes; exports: default.",
    "path": "src/components/NearbyRestaurantsMap.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "1320dcb4beda"
+   "detailRef": "1fd297f069b6"
   },
   {
    "id": "code-module:21c4026df53c",
@@ -140524,14 +140524,14 @@
    "id": "code-module:06afdea6867d",
    "type": "code-module",
    "title": "src/test/homepage-positioning-guards.test.ts",
-   "description": "Module de 109 lignes; exports: aucun export statique.",
+   "description": "Module de 122 lignes; exports: aucun export statique.",
    "path": "src/test/homepage-positioning-guards.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "62ff3b09acf8"
+   "detailRef": "fd03e53dd7e1"
   },
   {
    "id": "code-module:c469797bc2dd",
@@ -259516,17 +259516,17 @@
    "detailRef": "3daf30571d61"
   },
   {
-   "id": "exported-symbol:0e348bfaaf44",
+   "id": "exported-symbol:5a3044409913",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/NearbyRestaurantsMap.tsx.",
    "path": "src/components/NearbyRestaurantsMap.tsx",
-   "line": 143,
+   "line": 140,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "3521cf229453"
+   "detailRef": "9da2805b3436"
   },
   {
    "id": "exported-symbol:865947364fdf",
