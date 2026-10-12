@@ -196,12 +196,35 @@ export function SponsoredRestaurantTemplateCard({
         className={cn(
           "ad-banner-spotlight [container-type:inline-size] [container-name:sponsored-banner] group relative isolate w-full overflow-hidden rounded-[28px] border border-[#ffe0a2] bg-[#fffdf9] shadow-[0_18px_52px_rgba(138,77,22,0.14)] transition-shadow duration-300 hover:shadow-[0_24px_65px_rgba(249,115,22,0.21)] dark:border-amber-800/50 dark:bg-slate-900",
           "dark:[--sponsored-heading:#f8fafc] dark:[--sponsored-body:#e2e8f0] dark:[--sponsored-muted:#cbd5e1]",
-          compactBanner ? "min-h-[268px]" : "min-h-[260px]",
+          compactBanner ? "[@container_sponsored-banner_(min-width:48rem)]:min-h-[268px]" : "[@container_sponsored-banner_(min-width:48rem)]:min-h-[260px]",
           className,
         )}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_13%_15%,rgba(255,255,255,1),transparent_63%),linear-gradient(110deg,#fffdfa_0%,#fff8ed_68%,#ffebce_100%)] dark:bg-[linear-gradient(110deg,#0f172a_0%,#1e293b_67%,#7c2d12_100%)]" />
-        <div className="relative grid grid-cols-1 [@container_sponsored-banner_(min-width:48rem)]:grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:grid-rows-1">
+        {/* The mobile placement remains a landscape banner, not a stacked restaurant card. */}
+        <div className="relative grid aspect-[2.05/1] grid-cols-[47%_53%] [@container_sponsored-banner_(min-width:48rem)]:hidden">
+          <div className="relative z-20 flex min-w-0 flex-col justify-center gap-[clamp(3px,1.2cqw,10px)] py-2 pl-[5%] pr-1">
+            <span className="inline-flex w-fit max-w-full items-center gap-1 rounded-full bg-[#ff710b] px-2 py-1 text-[clamp(7px,2.3cqw,11px)] font-bold uppercase tracking-wide text-white">
+              <Megaphone className="h-[1em] w-[1em] shrink-0" aria-hidden="true" />
+              <span className="truncate">{displayBadge}</span>
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-[clamp(8px,2.2cqw,11px)] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">{displayEyebrow}</p>
+              <h3 className={cn("line-clamp-2 text-[clamp(14px,4.4cqw,26px)] leading-tight", getTypographyClass(normalized.text.restaurant))} style={getTextInlineStyle(normalized.text.restaurant)}>{displayRestaurantName}</h3>
+              <p className={cn("mt-0.5 line-clamp-1 text-[clamp(9px,2.8cqw,15px)] italic", getTypographyClass(normalized.text.tagline))} style={getTextInlineStyle(normalized.text.tagline)}>{displayTagline}</p>
+            </div>
+            <span className="inline-flex min-w-0 w-fit max-w-full items-center gap-1 rounded-lg bg-gradient-to-r from-[#ff710b] to-[#ef4e08] px-2 py-1.5 text-[clamp(9px,2.6cqw,13px)] font-bold text-white shadow-sm">
+              <span className="truncate">{displayCta}</span>
+              <ArrowRight className="h-[1em] w-[1em] shrink-0" aria-hidden="true" />
+            </span>
+          </div>
+          <div className="relative min-w-0 overflow-hidden rounded-r-[27px] bg-[#fff4e5] dark:bg-slate-900">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-2 bg-gradient-to-b from-[#ffac4b] via-[#ff7915] to-[#ff9b34]" />
+            <img src={imageUrl || DEFAULT_IMAGE} alt="" className="absolute inset-0 z-10 h-full w-full object-contain" onError={handleImageError} loading="lazy" decoding="async" />
+            <img src={imageUrl || DEFAULT_IMAGE} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover blur-lg brightness-[0.88]" onError={handleImageError} loading="lazy" decoding="async" />
+          </div>
+        </div>
+        <div className="relative hidden grid-cols-1 [@container_sponsored-banner_(min-width:48rem)]:grid [@container_sponsored-banner_(min-width:48rem)]:grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:grid-rows-1">
           <div
             className={cn(
               "relative z-20 order-2 flex min-w-0 flex-col px-5 pb-5 pt-5 [@container_sponsored-banner_(min-width:40rem)]:px-7 [@container_sponsored-banner_(min-width:48rem)]:order-1 [@container_sponsored-banner_(min-width:48rem)]:justify-center [@container_sponsored-banner_(min-width:48rem)]:py-7 [@container_sponsored-banner_(min-width:48rem)]:pl-7 [@container_sponsored-banner_(min-width:48rem)]:pr-5 [@container_sponsored-banner_(min-width:72rem)]:py-8 [@container_sponsored-banner_(min-width:72rem)]:pl-10 [@container_sponsored-banner_(min-width:72rem)]:pr-7",
