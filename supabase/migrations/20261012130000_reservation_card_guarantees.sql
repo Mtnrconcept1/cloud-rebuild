@@ -95,6 +95,9 @@ BEGIN
     WHERE r.user_id = p_user_id
       AND r.cancelled_by = 'customer'
       AND r.status = 'cancelled'
+      -- Google Actions Center currently uses one shared service identity for
+      -- multiple guests. Its cancellations must not count against each other.
+      AND coalesce(r.metadata ->> 'google_actions_center', 'false') <> 'true'
       AND r.cancelled_at >= v_start
       AND r.cancelled_at < v_end;
   is_required := p_party_size > 6 OR v_count >= 3;
