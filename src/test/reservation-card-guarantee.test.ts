@@ -120,6 +120,11 @@ describe("server-side reservation card guarantee invariants", () => {
     const google = source("supabase/functions/google-actions-center/index.ts");
     expect(sql).toContain("CREATE TABLE IF NOT EXISTS public.reservation_card_guarantee_rollout");
     expect(sql).toContain("VALUES (true, false)");
+    expect(sql).toContain("'reservation-card-guarantee'");
+    expect(sql).toContain("ON CONFLICT (name) DO NOTHING");
+    expect(sql).toContain("AND is_active = true");
+    expect(dialog).toContain('const guaranteeEnabled = activeFeatures.has("reservation-card-guarantee")');
+    expect(dialog).toContain('&& !isCommercialDemoClient && guaranteeEnabled');
     expect(sql).toContain("WHERE id = true AND enabled = true");
     expect(sql).toContain("REVOKE ALL ON TABLE public.reservation_card_guarantee_rollout");
     expect(worker).toContain('Deno.env.get("TOK_RESERVATION_CANCELLATION_COLLECTION_ENABLED") !== "true"');
