@@ -3,6 +3,17 @@
 -- off-session Stripe PaymentIntent with its own immutable audit record.
 BEGIN;
 
+-- Separate UI switch: avoids blocking reservations if a frontend deploy
+-- completes before the corresponding Edge Function deployment.
+INSERT INTO public.feature_flags (name, label, description, is_active)
+VALUES (
+  'reservation-card-guarantee',
+  'Garantie bancaire des réservations',
+  'Exige une carte sauvegardée pour les groupes de 7+ et après 3 annulations annuelles.',
+  false
+)
+ON CONFLICT (name) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS public.reservation_card_guarantee_rollout (
   id boolean PRIMARY KEY DEFAULT true CHECK (id),
   enabled boolean NOT NULL DEFAULT false,
@@ -109,6 +120,9 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM public.reservation_card_guarantee_rollout
     WHERE id = true AND enabled = true
+  ) OR NOT EXISTS (
+    SELECT 1 FROM public.feature_flags
+    WHERE name = 'reservation-card-guarantee' AND is_active = true
   ) THEN
     is_required := false;
     cancellation_count := 0;
