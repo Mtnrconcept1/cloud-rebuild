@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `51c261b1e80d1327db86a701d7c3876515daf51209c5f2501760e453affdbc34`
+- Empreinte SHA-256 des sources indexées : `338fd18157215b48a4ad4d9cdb760510ef71894ac03bf2b8da405d139746abe2`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,7 +28,7 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2749 |
+| databaseObjects | 2750 |
 | documents | 202 |
 | edgeFunctions | 115 |
 | edgeHttpRoutes | 20 |
@@ -45,7 +45,7 @@
 | publicEntries | 487 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 109 |
-| records | 16198 |
+| records | 16199 |
 | repositoryFiles | 2994 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -577,15 +577,15 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 
 | Fonction | Méthode | Route | Endpoint complet | Paramètres | Source |
 | --- | --- | --- | --- | --- | --- |
-| google-actions-center | POST | /v3/BatchAvailabilityLookup/ | /functions/v1/google-actions-center/v3/BatchAvailabilityLookup/ | — | [supabase/functions/google-actions-center/index.ts:995](../../supabase/functions/google-actions-center/index.ts#L995) |
-| google-actions-center | POST | /v3/CreateBooking/ | /functions/v1/google-actions-center/v3/CreateBooking/ | — | [supabase/functions/google-actions-center/index.ts:998](../../supabase/functions/google-actions-center/index.ts#L998) |
-| google-actions-center | POST | /v3/GetBookingStatus/ | /functions/v1/google-actions-center/v3/GetBookingStatus/ | — | [supabase/functions/google-actions-center/index.ts:1004](../../supabase/functions/google-actions-center/index.ts#L1004) |
-| google-actions-center | GET | /v3/HealthCheck/ | /functions/v1/google-actions-center/v3/HealthCheck/ | — | [supabase/functions/google-actions-center/index.ts:989](../../supabase/functions/google-actions-center/index.ts#L989) |
-| google-actions-center | POST | /v3/ListBookings/ | /functions/v1/google-actions-center/v3/ListBookings/ | — | [supabase/functions/google-actions-center/index.ts:1007](../../supabase/functions/google-actions-center/index.ts#L1007) |
-| google-actions-center | POST | /v3/UpdateBooking/ | /functions/v1/google-actions-center/v3/UpdateBooking/ | — | [supabase/functions/google-actions-center/index.ts:1001](../../supabase/functions/google-actions-center/index.ts#L1001) |
-| google-actions-center | GET | /v3/feeds/availability/ | /functions/v1/google-actions-center/v3/feeds/availability/ | — | [supabase/functions/google-actions-center/index.ts:1016](../../supabase/functions/google-actions-center/index.ts#L1016) |
-| google-actions-center | GET | /v3/feeds/merchants/ | /functions/v1/google-actions-center/v3/feeds/merchants/ | — | [supabase/functions/google-actions-center/index.ts:1010](../../supabase/functions/google-actions-center/index.ts#L1010) |
-| google-actions-center | GET | /v3/feeds/services/ | /functions/v1/google-actions-center/v3/feeds/services/ | — | [supabase/functions/google-actions-center/index.ts:1013](../../supabase/functions/google-actions-center/index.ts#L1013) |
+| google-actions-center | POST | /v3/BatchAvailabilityLookup/ | /functions/v1/google-actions-center/v3/BatchAvailabilityLookup/ | — | [supabase/functions/google-actions-center/index.ts:1002](../../supabase/functions/google-actions-center/index.ts#L1002) |
+| google-actions-center | POST | /v3/CreateBooking/ | /functions/v1/google-actions-center/v3/CreateBooking/ | — | [supabase/functions/google-actions-center/index.ts:1005](../../supabase/functions/google-actions-center/index.ts#L1005) |
+| google-actions-center | POST | /v3/GetBookingStatus/ | /functions/v1/google-actions-center/v3/GetBookingStatus/ | — | [supabase/functions/google-actions-center/index.ts:1011](../../supabase/functions/google-actions-center/index.ts#L1011) |
+| google-actions-center | GET | /v3/HealthCheck/ | /functions/v1/google-actions-center/v3/HealthCheck/ | — | [supabase/functions/google-actions-center/index.ts:996](../../supabase/functions/google-actions-center/index.ts#L996) |
+| google-actions-center | POST | /v3/ListBookings/ | /functions/v1/google-actions-center/v3/ListBookings/ | — | [supabase/functions/google-actions-center/index.ts:1014](../../supabase/functions/google-actions-center/index.ts#L1014) |
+| google-actions-center | POST | /v3/UpdateBooking/ | /functions/v1/google-actions-center/v3/UpdateBooking/ | — | [supabase/functions/google-actions-center/index.ts:1008](../../supabase/functions/google-actions-center/index.ts#L1008) |
+| google-actions-center | GET | /v3/feeds/availability/ | /functions/v1/google-actions-center/v3/feeds/availability/ | — | [supabase/functions/google-actions-center/index.ts:1023](../../supabase/functions/google-actions-center/index.ts#L1023) |
+| google-actions-center | GET | /v3/feeds/merchants/ | /functions/v1/google-actions-center/v3/feeds/merchants/ | — | [supabase/functions/google-actions-center/index.ts:1017](../../supabase/functions/google-actions-center/index.ts#L1017) |
+| google-actions-center | GET | /v3/feeds/services/ | /functions/v1/google-actions-center/v3/feeds/services/ | — | [supabase/functions/google-actions-center/index.ts:1020](../../supabase/functions/google-actions-center/index.ts#L1020) |
 | tok-connect-api | POST | /v1/autopilot/plan | /functions/v1/tok-connect-api/v1/autopilot/plan | — | [supabase/functions/tok-connect-api/index.ts:1022](../../supabase/functions/tok-connect-api/index.ts#L1022) |
 | tok-connect-api | POST | /v1/campaigns/preview | /functions/v1/tok-connect-api/v1/campaigns/preview | — | [supabase/functions/tok-connect-api/index.ts:958](../../supabase/functions/tok-connect-api/index.ts#L958) |
 | tok-connect-api | GET | /v1/credits/balance | /functions/v1/tok-connect-api/v1/credits/balance | — | [supabase/functions/tok-connect-api/index.ts:845](../../supabase/functions/tok-connect-api/index.ts#L845) |
@@ -1862,8 +1862,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | token | — | 1 | [supabase/functions/marketing-unsubscribe/index.ts:66](../../supabase/functions/marketing-unsubscribe/index.ts#L66) |
 | tolerance | — | 1 | [src/test/home-canton-hero.test.ts:57](../../src/test/home-canton-hero.test.ts#L57) |
 | type | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:285](../../src/pages/Auth.tsx#L285) |
-| utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:652](../../src/components/ReservationDialog.tsx#L652) |
-| utm_source | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:648](../../src/components/ReservationDialog.tsx#L648) |
+| utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:653](../../src/components/ReservationDialog.tsx#L653) |
+| utm_source | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:649](../../src/components/ReservationDialog.tsx#L649) |
 | view | /admin/commandes-reservations | 2 | [src/marketing/useMarketingUrlState.ts:84](../../src/marketing/useMarketingUrlState.ts#L84) |
 | welcome | /coming-soon | 1 | [src/pages/ComingSoon.tsx:9](../../src/pages/ComingSoon.tsx#L9) |
 | width | — | 1 | [src/lib/optimizedImages.ts:37](../../src/lib/optimizedImages.ts#L37) |
@@ -4334,7 +4334,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (345)</summary>
+<details><summary>table (346)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -4551,6 +4551,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.referral_codes` (2 définition(s))
 - `public.refund_operations` (1 définition(s))
 - `public.reservation_cancellation_fees` (1 définition(s))
+- `public.reservation_card_guarantee_rollout` (1 définition(s))
 - `public.reservation_card_guarantee_setups` (1 définition(s))
 - `public.reservation_fee_adjustments` (1 définition(s))
 - `public.reservation_fee_charges` (1 définition(s))
@@ -5767,7 +5768,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261011052254 Notification Support Realtime Publication | 58 | 0 | [supabase/migrations/20261011052254_notification_support_realtime_publication.sql:1](../../supabase/migrations/20261011052254_notification_support_realtime_publication.sql#L1) |
 | 20261012063000 Decouple Delivery Orders Flag | 186 | 2 | [supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql:1](../../supabase/migrations/20261012063000_decouple_delivery_orders_flag.sql#L1) |
 | 20261012090000 Finalize Zero Attente No Cost Hold | 113 | 1 | [supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql:1](../../supabase/migrations/20261012090000_finalize_zero_attente_no_cost_hold.sql#L1) |
-| 20261012130000 Reservation Card Guarantees | 368 | 12 | [supabase/migrations/20261012130000_reservation_card_guarantees.sql:1](../../supabase/migrations/20261012130000_reservation_card_guarantees.sql#L1) |
+| 20261012130000 Reservation Card Guarantees | 412 | 13 | [supabase/migrations/20261012130000_reservation_card_guarantees.sql:1](../../supabase/migrations/20261012130000_reservation_card_guarantees.sql#L1) |
 | 20261012203000 Schedule Reservation Cancellation Fee Collection | 42 | 0 | [supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql:1](../../supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql#L1) |
 
 ## Automatisation, dépendances et CI
