@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "e64b4e7ce7553e89ac2581b308c27dec5edf9f5dbd2f54f86bf6c461ca1312d3",
+ "sourceDigest": "b3937175160d54f038431e60b4957b9cf5c513985243fdb4e1e4da4c649f7ac3",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,27 +12,27 @@
   "documents": 202,
   "edgeFunctions": 114,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3404,
+  "exportedSymbols": 3399,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 528,
-  "modules": 1506,
+  "modules": 1504,
   "pages": 128,
-  "pathLiterals": 648,
-  "publicAssets": 413,
-  "publicEntries": 438,
+  "pathLiterals": 645,
+  "publicAssets": 387,
+  "publicEntries": 412,
   "publicNavigableRoutes": 2,
-  "queryParameters": 108,
-  "records": 16047,
-  "repositoryFiles": 2927,
+  "queryParameters": 104,
+  "records": 15977,
+  "repositoryFiles": 2898,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 28
+  "workflows": 27
  },
  "catalogs": {
   "frontendRoutes": [
@@ -3199,7 +3199,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 209,
+      "line": 208,
       "kind": "function"
      }
     ],
@@ -10693,136 +10693,6 @@
     "kind": "media"
    },
    {
-    "route": "/desig app/tok-ch-ag.webp",
-    "path": "public/desig app/tok-ch-ag.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-ai.webp",
-    "path": "public/desig app/tok-ch-ai.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-ar.webp",
-    "path": "public/desig app/tok-ch-ar.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-be.webp",
-    "path": "public/desig app/tok-ch-be.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-bl.webp",
-    "path": "public/desig app/tok-ch-bl.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-bs.webp",
-    "path": "public/desig app/tok-ch-bs.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-fr.webp",
-    "path": "public/desig app/tok-ch-fr.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-ge.webp",
-    "path": "public/desig app/tok-ch-ge.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-gl.webp",
-    "path": "public/desig app/tok-ch-gl.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-gr.webp",
-    "path": "public/desig app/tok-ch-gr.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-ju.webp",
-    "path": "public/desig app/tok-ch-ju.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-lu.webp",
-    "path": "public/desig app/tok-ch-lu.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-ne.webp",
-    "path": "public/desig app/tok-ch-ne.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-nw.webp",
-    "path": "public/desig app/tok-ch-nw.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-ow.webp",
-    "path": "public/desig app/tok-ch-ow.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-sg.webp",
-    "path": "public/desig app/tok-ch-sg.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-sh.webp",
-    "path": "public/desig app/tok-ch-sh.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-so.webp",
-    "path": "public/desig app/tok-ch-so.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-sz.webp",
-    "path": "public/desig app/tok-ch-sz.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-tg.webp",
-    "path": "public/desig app/tok-ch-tg.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-ti.webp",
-    "path": "public/desig app/tok-ch-ti.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-ur.webp",
-    "path": "public/desig app/tok-ch-ur.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-vd.webp",
-    "path": "public/desig app/tok-ch-vd.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-vs.webp",
-    "path": "public/desig app/tok-ch-vs.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-zg.webp",
-    "path": "public/desig app/tok-ch-zg.webp",
-    "kind": "media"
-   },
-   {
-    "route": "/desig app/tok-ch-zh.webp",
-    "path": "public/desig app/tok-ch-zh.webp",
-    "kind": "media"
-   },
-   {
     "route": "/favicon-180x180.png",
     "path": "public/favicon-180x180.png",
     "kind": "media"
@@ -13607,10 +13477,6 @@
       "line": 48
      },
      {
-      "path": "src/test/home-canton-hero.test.ts",
-      "line": 80
-     },
-     {
       "path": "src/test/seo-indexation-hardening.test.ts",
       "line": 28
      },
@@ -14755,7 +14621,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 90
+      "line": 91
      },
      {
       "path": "src/test/notifications-sinistres-governance.test.ts",
@@ -14919,7 +14785,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 86
+      "line": 87
      }
     ]
    },
@@ -14981,7 +14847,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 87
+      "line": 88
      }
     ]
    },
@@ -15168,7 +15034,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 88
+      "line": 89
      }
     ]
    },
@@ -15912,7 +15778,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 104
+      "line": 94
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -16698,7 +16564,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 86
+      "line": 76
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -16726,7 +16592,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 659
+      "line": 649
      },
      {
       "path": "src/pages/Panier.tsx",
@@ -16746,7 +16612,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 63
+      "line": 43
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -16956,7 +16822,7 @@
     "sources": [
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 77
+      "line": 78
      }
     ]
    },
@@ -16989,7 +16855,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 82
+      "line": 83
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -18221,7 +18087,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 78
+      "line": 79
      },
      {
       "path": "src/test/navigation.test.ts",
@@ -18907,7 +18773,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 76
+      "line": 77
      },
      {
       "path": "src/test/restaurant-dashboard-overview-navigation.test.ts",
@@ -19071,7 +18937,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 83
+      "line": 84
      }
     ]
    },
@@ -19230,7 +19096,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 84
+      "line": 85
      }
     ]
    },
@@ -19288,7 +19154,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 85
+      "line": 86
      }
     ]
    },
@@ -19515,7 +19381,7 @@
     "sources": [
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 106
+      "line": 107
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
@@ -19996,45 +19862,6 @@
      {
       "path": "src/test/commercial-demo-client-data-isolation.test.ts",
       "line": 19
-     }
-    ]
-   },
-   {
-    "value": "/desig%20app/tok-ch-",
-    "sources": [
-     {
-      "path": "src/lib/homeCantonHero.ts",
-      "line": 72
-     },
-     {
-      "path": "src/test/home-canton-hero.test.ts",
-      "line": 16
-     }
-    ]
-   },
-   {
-    "value": "/desig%20app/tok-ch-ju.webp",
-    "sources": [
-     {
-      "path": "src/test/home-hero-search.test.tsx",
-      "line": 43
-     },
-     {
-      "path": "src/test/home-hero-search.test.tsx",
-      "line": 44
-     },
-     {
-      "path": "src/test/home-hero-search.test.tsx",
-      "line": 45
-     }
-    ]
-   },
-   {
-    "value": "/desig%20app/tok-ch-vd.webp",
-    "sources": [
-     {
-      "path": "src/test/home-hero-search.test.tsx",
-      "line": 51
      }
     ]
    },
@@ -21273,7 +21100,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 91
+      "line": 81
      }
     ]
    },
@@ -21282,7 +21109,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 92
+      "line": 82
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
@@ -21299,7 +21126,7 @@
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 93
+      "line": 83
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
@@ -21308,10 +21135,6 @@
      {
       "path": "src/test/home-hero-search.test.tsx",
       "line": 38
-     },
-     {
-      "path": "src/test/home-hero-search.test.tsx",
-      "line": 54
      }
     ]
    },
@@ -21407,7 +21230,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 717
+      "line": 707
      },
      {
       "path": "src/pages/MatchGroupes.tsx",
@@ -22325,7 +22148,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 62
+      "line": 61
      }
     ]
    },
@@ -22334,7 +22157,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 63
+      "line": 62
      }
     ]
    },
@@ -22343,7 +22166,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 59
+      "line": 58
      }
     ]
    },
@@ -22352,7 +22175,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 61
+      "line": 60
      }
     ]
    },
@@ -22361,11 +22184,11 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 58
+      "line": 57
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 64
+      "line": 63
      },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
@@ -22382,7 +22205,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 60
+      "line": 59
      }
     ]
    },
@@ -22391,7 +22214,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 57
+      "line": 56
      }
     ]
    },
@@ -22798,7 +22621,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 89
+      "line": 90
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
@@ -23840,7 +23663,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 612
+      "line": 602
      },
      {
       "path": "src/pages/MultiRestaurant.tsx",
@@ -23983,7 +23806,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 91
+      "line": 92
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -24211,7 +24034,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 837
+      "line": 827
      }
     ]
    },
@@ -24237,7 +24060,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 626
+      "line": 616
      }
     ]
    },
@@ -24408,11 +24231,11 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 83
+      "line": 73
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 85
+      "line": 75
      },
      {
       "path": "src/components/home/RestaurantSection.tsx",
@@ -24552,11 +24375,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 77
+      "line": 57
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 84
+      "line": 64
      },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
@@ -25920,7 +25743,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 99
+      "line": 89
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -25952,7 +25775,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 70
+      "line": 50
      },
      {
       "path": "src/test/marketing-legacy-landing.test.ts",
@@ -27346,7 +27169,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 84
+      "line": 74
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -27382,7 +27205,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 62
+      "line": 42
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -27631,11 +27454,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 79
+      "line": 59
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 93
+      "line": 73
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
@@ -28083,16 +27906,6 @@
     "routes": []
    },
    {
-    "name": "geometry",
-    "sources": [
-     {
-      "path": "src/test/home-canton-hero.test.ts",
-      "line": 55
-     }
-    ],
-    "routes": []
-   },
-   {
     "name": "height",
     "sources": [
      {
@@ -28158,16 +27971,6 @@
      "/restaurants/:city/:category",
      "/restaurants/:city/r/:restaurantSlug"
     ]
-   },
-   {
-    "name": "layers",
-    "sources": [
-     {
-      "path": "src/test/home-canton-hero.test.ts",
-      "line": 58
-     }
-    ],
-    "routes": []
    },
    {
     "name": "limit",
@@ -28661,11 +28464,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 78
+      "line": 58
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 94
+      "line": 74
      }
     ],
     "routes": [
@@ -28941,16 +28744,6 @@
     ]
    },
    {
-    "name": "sr",
-    "sources": [
-     {
-      "path": "src/test/home-canton-hero.test.ts",
-      "line": 56
-     }
-    ],
-    "routes": []
-   },
-   {
     "name": "state",
     "sources": [
      {
@@ -29183,16 +28976,6 @@
      {
       "path": "supabase/functions/marketing-unsubscribe/index.ts",
       "line": 66
-     }
-    ],
-    "routes": []
-   },
-   {
-    "name": "tolerance",
-    "sources": [
-     {
-      "path": "src/test/home-canton-hero.test.ts",
-      "line": 57
      }
     ],
     "routes": []
@@ -30578,7 +30361,6 @@
      "src/test/commercial-domain-isolation.test.ts",
      "src/test/daily-slot-machine-security.test.ts",
      "src/test/demo-workspace-access.test.ts",
-     "src/test/home-canton-hero.test.ts",
      "src/test/legacy-provider-cleanup.test.ts",
      "src/test/marketing-bff-security.test.ts",
      "src/test/marketing-bff-vercel-entrypoints.test.ts",
@@ -68007,11 +67789,6 @@
   },
   "workflows": [
    {
-    "name": " Temporary Tok Canton Index",
-    "path": ".github/workflows/_temporary-tok-canton-index.yml",
-    "jobs": []
-   },
-   {
     "name": "Reusable validation",
     "path": ".github/workflows/_validation.yml",
     "jobs": [
@@ -84210,13 +83987,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 20,
+      "line": 19,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 131
+    "lineCount": 121
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -92752,39 +92529,6 @@
     "lineCount": 20
    },
    {
-    "path": "src/lib/homeCantonHero.ts",
-    "exports": [
-     {
-      "name": "SWISS_CANTON_CODES",
-      "line": 2,
-      "kind": "variable"
-     },
-     {
-      "name": "SwissCantonCode",
-      "line": 7,
-      "kind": "typealias"
-     },
-     {
-      "name": "cantonFromPlaceName",
-      "line": 58,
-      "kind": "function"
-     },
-     {
-      "name": "cantonHeroSrc",
-      "line": 71,
-      "kind": "function"
-     },
-     {
-      "name": "cantonAtCoordinates",
-      "line": 76,
-      "kind": "function"
-     }
-    ],
-    "environmentNames": [],
-    "integrations": [],
-    "lineCount": 119
-   },
-   {
     "path": "src/lib/homeRestaurantDiscovery.ts",
     "exports": [
      {
@@ -98866,7 +98610,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 209,
+      "line": 208,
       "kind": "function"
      }
     ],
@@ -98874,7 +98618,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 1002
+    "lineCount": 992
    },
    {
     "path": "src/pages/LocalRestaurants.tsx",
@@ -102642,7 +102386,7 @@
      "supabase",
      "twint"
     ],
-    "lineCount": 160
+    "lineCount": 210
    },
    {
     "path": "src/test/feature-visibility.test.ts",
@@ -102898,15 +102642,6 @@
     "lineCount": 40
    },
    {
-    "path": "src/test/home-canton-hero.test.ts",
-    "exports": [],
-    "environmentNames": [],
-    "integrations": [
-     "vercel"
-    ],
-    "lineCount": 94
-   },
-   {
     "path": "src/test/home-core-web-vitals.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -102927,7 +102662,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 104
+    "lineCount": 84
    },
    {
     "path": "src/test/home-mobile-newsletter.test.tsx",
@@ -111181,11 +110916,6 @@
     "extension": ".yml"
    },
    {
-    "path": ".github/workflows/_temporary-tok-canton-index.yml",
-    "category": "ci-workflow",
-    "extension": ".yml"
-   },
-   {
     "path": ".github/workflows/_validation.yml",
     "category": "ci-workflow",
     "extension": ".yml"
@@ -113004,136 +112734,6 @@
     "path": "public/desig app/flamme.png",
     "category": "public-asset",
     "extension": ".png"
-   },
-   {
-    "path": "public/desig app/tok-ch-ag.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-ai.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-ar.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-be.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-bl.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-bs.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-fr.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-ge.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-gl.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-gr.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-ju.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-lu.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-ne.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-nw.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-ow.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-sg.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-sh.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-so.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-sz.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-tg.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-ti.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-ur.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-vd.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-vs.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-zg.webp",
-    "category": "public-asset",
-    "extension": ".webp"
-   },
-   {
-    "path": "public/desig app/tok-ch-zh.webp",
-    "category": "public-asset",
-    "extension": ".webp"
    },
    {
     "path": "public/favicon-180x180.png",
@@ -117316,11 +116916,6 @@
     "extension": ".ts"
    },
    {
-    "path": "src/lib/homeCantonHero.ts",
-    "category": "application-library",
-    "extension": ".ts"
-   },
-   {
     "path": "src/lib/homeRestaurantDiscovery.ts",
     "category": "application-library",
     "extension": ".ts"
@@ -119797,11 +119392,6 @@
    },
    {
     "path": "src/test/home-assets-budget.test.ts",
-    "category": "test",
-    "extension": ".ts"
-   },
-   {
-    "path": "src/test/home-canton-hero.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -129184,14 +128774,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 131 lignes; exports: default.",
+   "description": "Module de 121 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "7f24d15babc3"
+   "detailRef": "5da96b3faba3"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -133460,23 +133050,6 @@
    "detailRef": "14580775fe28"
   },
   {
-   "id": "code-module:2cd105712d72",
-   "type": "code-module",
-   "title": "src/lib/homeCantonHero.ts",
-   "description": "Module de 119 lignes; exports: SWISS_CANTON_CODES, SwissCantonCode, cantonFromPlaceName, cantonHeroSrc, cantonAtCoordinates.",
-   "path": "src/lib/homeCantonHero.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "SWISS_CANTON_CODES",
-    "SwissCantonCode",
-    "cantonAtCoordinates",
-    "cantonFromPlaceName",
-    "cantonHeroSrc"
-   ],
-   "detailRef": "088266b543e5"
-  },
-  {
    "id": "code-module:9a4adaab1d25",
    "type": "code-module",
    "title": "src/lib/homeRestaurantDiscovery.ts",
@@ -136283,7 +135856,7 @@
    "id": "code-module:8d761926e269",
    "type": "code-module",
    "title": "src/pages/Index.tsx",
-   "description": "Module de 1002 lignes; exports: default.",
+   "description": "Module de 992 lignes; exports: default.",
    "path": "src/pages/Index.tsx",
    "line": 1,
    "surface": null,
@@ -136291,7 +135864,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "d132cb50e199"
+   "detailRef": "5059fd5c8587"
   },
   {
    "id": "code-module:d39f2c12cbfd",
@@ -140469,7 +140042,7 @@
    "id": "code-module:8e347747b418",
    "type": "code-module",
    "title": "src/test/feature-flags.test.ts",
-   "description": "Module de 160 lignes; exports: aucun export statique.",
+   "description": "Module de 210 lignes; exports: aucun export statique.",
    "path": "src/test/feature-flags.test.ts",
    "line": 1,
    "surface": null,
@@ -140478,7 +140051,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "0057342e9675"
+   "detailRef": "191ff2fc2226"
   },
   {
    "id": "code-module:798293610b8e",
@@ -140854,19 +140427,6 @@
    "detailRef": "bef0e9a50ff9"
   },
   {
-   "id": "code-module:3cf97490d8aa",
-   "type": "code-module",
-   "title": "src/test/home-canton-hero.test.ts",
-   "description": "Module de 94 lignes; exports: aucun export statique.",
-   "path": "src/test/home-canton-hero.test.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "vercel"
-   ],
-   "detailRef": "7056494490a9"
-  },
-  {
    "id": "code-module:e91250480351",
    "type": "code-module",
    "title": "src/test/home-core-web-vitals.test.ts",
@@ -140894,12 +140454,12 @@
    "id": "code-module:a714f68588b7",
    "type": "code-module",
    "title": "src/test/home-hero-search.test.tsx",
-   "description": "Module de 104 lignes; exports: aucun export statique.",
+   "description": "Module de 84 lignes; exports: aucun export statique.",
    "path": "src/test/home-hero-search.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "45725c6d6f24"
+   "detailRef": "be22dd7dec40"
   },
   {
    "id": "code-module:d67b9bd34728",
@@ -250372,19 +249932,6 @@
    "detailRef": "2d9b1972df8a"
   },
   {
-   "id": "exported-symbol:9a761a03d864",
-   "type": "exported-symbol",
-   "title": "SWISS_CANTON_CODES",
-   "description": "Export variable de src/lib/homeCantonHero.ts.",
-   "path": "src/lib/homeCantonHero.ts",
-   "line": 2,
-   "surface": null,
-   "tags": [
-    "variable"
-   ],
-   "detailRef": "e2e30f212911"
-  },
-  {
    "id": "exported-symbol:89f2f8b566ef",
    "type": "exported-symbol",
    "title": "Scene",
@@ -252208,19 +251755,6 @@
     "typealias"
    ],
    "detailRef": "e59174cd43ff"
-  },
-  {
-   "id": "exported-symbol:0fde7d13dcb5",
-   "type": "exported-symbol",
-   "title": "SwissCantonCode",
-   "description": "Export typealias de src/lib/homeCantonHero.ts.",
-   "path": "src/lib/homeCantonHero.ts",
-   "line": 7,
-   "surface": null,
-   "tags": [
-    "typealias"
-   ],
-   "detailRef": "b8a1a3d709ac"
   },
   {
    "id": "exported-symbol:8b3843dc12f2",
@@ -257900,45 +257434,6 @@
    "detailRef": "aa3d3a3b10b2"
   },
   {
-   "id": "exported-symbol:02a0b116ac60",
-   "type": "exported-symbol",
-   "title": "cantonAtCoordinates",
-   "description": "Export function de src/lib/homeCantonHero.ts.",
-   "path": "src/lib/homeCantonHero.ts",
-   "line": 76,
-   "surface": null,
-   "tags": [
-    "function"
-   ],
-   "detailRef": "69553ff2a23a"
-  },
-  {
-   "id": "exported-symbol:74e752313b7f",
-   "type": "exported-symbol",
-   "title": "cantonFromPlaceName",
-   "description": "Export function de src/lib/homeCantonHero.ts.",
-   "path": "src/lib/homeCantonHero.ts",
-   "line": 58,
-   "surface": null,
-   "tags": [
-    "function"
-   ],
-   "detailRef": "54c49f556b11"
-  },
-  {
-   "id": "exported-symbol:39bf2fef005f",
-   "type": "exported-symbol",
-   "title": "cantonHeroSrc",
-   "description": "Export function de src/lib/homeCantonHero.ts.",
-   "path": "src/lib/homeCantonHero.ts",
-   "line": 71,
-   "surface": null,
-   "tags": [
-    "function"
-   ],
-   "detailRef": "210836aa2071"
-  },
-  {
    "id": "exported-symbol:18651ea23ed9",
    "type": "exported-symbol",
    "title": "captureException",
@@ -261345,17 +260840,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:5e0f36a7a5bf",
+   "id": "exported-symbol:c79006a5ef87",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/HeroSection.tsx.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 20,
+   "line": 19,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "73328efdea37"
+   "detailRef": "f6bed50c25fe"
   },
   {
    "id": "exported-symbol:54d561e65de4",
@@ -262384,18 +261879,18 @@
    "detailRef": "5d76487d5d73"
   },
   {
-   "id": "exported-symbol:90d0b83c1d44",
+   "id": "exported-symbol:0f1a7a9cfbdc",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/Index.tsx.",
    "path": "src/pages/Index.tsx",
-   "line": 209,
+   "line": 208,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "eb298203d01a"
+   "detailRef": "ffdb4846c903"
   },
   {
    "id": "exported-symbol:535ee8eebd83",
@@ -284073,20 +283568,6 @@
    "detailRef": "ce4d60cf7b25"
   },
   {
-   "id": "file:91ad84c47929",
-   "type": "file",
-   "title": ".github/workflows/_temporary-tok-canton-index.yml",
-   "description": "Fichier du dépôt classé ci-workflow.",
-   "path": ".github/workflows/_temporary-tok-canton-index.yml",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".yml",
-    "ci-workflow"
-   ],
-   "detailRef": "22b19445c4ae"
-  },
-  {
    "id": "file:007e12d373d0",
    "type": "file",
    "title": ".github/workflows/_validation.yml",
@@ -289181,370 +288662,6 @@
     "public-asset"
    ],
    "detailRef": "0a35a2fdffb3"
-  },
-  {
-   "id": "file:61f0b76e4be5",
-   "type": "file",
-   "title": "public/desig app/tok-ch-ag.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-ag.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "aa85f3f544c3"
-  },
-  {
-   "id": "file:a43f92528990",
-   "type": "file",
-   "title": "public/desig app/tok-ch-ai.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-ai.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "9f86a96da07c"
-  },
-  {
-   "id": "file:6060e498b6fe",
-   "type": "file",
-   "title": "public/desig app/tok-ch-ar.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-ar.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "0d298dd839bd"
-  },
-  {
-   "id": "file:ba92d783722d",
-   "type": "file",
-   "title": "public/desig app/tok-ch-be.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-be.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "3ecafaf0b657"
-  },
-  {
-   "id": "file:e4f030367f0c",
-   "type": "file",
-   "title": "public/desig app/tok-ch-bl.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-bl.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "e1cba9432293"
-  },
-  {
-   "id": "file:ecf49ba77f5c",
-   "type": "file",
-   "title": "public/desig app/tok-ch-bs.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-bs.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "f1b5b61928ca"
-  },
-  {
-   "id": "file:5eaa39aa9d72",
-   "type": "file",
-   "title": "public/desig app/tok-ch-fr.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-fr.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "b2a13328260e"
-  },
-  {
-   "id": "file:cf8daae837af",
-   "type": "file",
-   "title": "public/desig app/tok-ch-ge.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-ge.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "aa07c877de8b"
-  },
-  {
-   "id": "file:0fb995712348",
-   "type": "file",
-   "title": "public/desig app/tok-ch-gl.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-gl.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "bd3162139797"
-  },
-  {
-   "id": "file:1d654c0d936f",
-   "type": "file",
-   "title": "public/desig app/tok-ch-gr.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-gr.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "7de60bb1f5ab"
-  },
-  {
-   "id": "file:b0f59cf1a9c5",
-   "type": "file",
-   "title": "public/desig app/tok-ch-ju.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-ju.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "04b678249c5b"
-  },
-  {
-   "id": "file:e28ec96f91b7",
-   "type": "file",
-   "title": "public/desig app/tok-ch-lu.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-lu.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "732aa9a5f63f"
-  },
-  {
-   "id": "file:51c2738f1ed3",
-   "type": "file",
-   "title": "public/desig app/tok-ch-ne.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-ne.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "c8f1ff36930e"
-  },
-  {
-   "id": "file:31da77327828",
-   "type": "file",
-   "title": "public/desig app/tok-ch-nw.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-nw.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "db09a4bd587e"
-  },
-  {
-   "id": "file:431bf03519ce",
-   "type": "file",
-   "title": "public/desig app/tok-ch-ow.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-ow.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "c35fbe80020a"
-  },
-  {
-   "id": "file:04160b7f2198",
-   "type": "file",
-   "title": "public/desig app/tok-ch-sg.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-sg.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "4ad0b0ca35e7"
-  },
-  {
-   "id": "file:413a3be8e02e",
-   "type": "file",
-   "title": "public/desig app/tok-ch-sh.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-sh.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "70c9eed49f0c"
-  },
-  {
-   "id": "file:c38c5a0313a3",
-   "type": "file",
-   "title": "public/desig app/tok-ch-so.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-so.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "7985a2ada65f"
-  },
-  {
-   "id": "file:43a181832d82",
-   "type": "file",
-   "title": "public/desig app/tok-ch-sz.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-sz.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "a2631198fd03"
-  },
-  {
-   "id": "file:ecd40f09cf81",
-   "type": "file",
-   "title": "public/desig app/tok-ch-tg.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-tg.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "ac7aed3b5dbe"
-  },
-  {
-   "id": "file:39c77927a7be",
-   "type": "file",
-   "title": "public/desig app/tok-ch-ti.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-ti.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "419bb451ab46"
-  },
-  {
-   "id": "file:c894f4857cfc",
-   "type": "file",
-   "title": "public/desig app/tok-ch-ur.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-ur.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "80635e31a36e"
-  },
-  {
-   "id": "file:db38a56c04c2",
-   "type": "file",
-   "title": "public/desig app/tok-ch-vd.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-vd.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "939b726a8c6e"
-  },
-  {
-   "id": "file:88a4f089a215",
-   "type": "file",
-   "title": "public/desig app/tok-ch-vs.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-vs.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "bc53e53ae6da"
-  },
-  {
-   "id": "file:4a5666c37343",
-   "type": "file",
-   "title": "public/desig app/tok-ch-zg.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-zg.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "b21ab15d14e6"
-  },
-  {
-   "id": "file:f6d83b129209",
-   "type": "file",
-   "title": "public/desig app/tok-ch-zh.webp",
-   "description": "Fichier du dépôt classé public-asset.",
-   "path": "public/desig app/tok-ch-zh.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".webp",
-    "public-asset"
-   ],
-   "detailRef": "b5e79ed0f4c2"
   },
   {
    "id": "file:e005d0c8c3c5",
@@ -301251,20 +300368,6 @@
    "detailRef": "81c741a396e0"
   },
   {
-   "id": "file:e91dc66a3280",
-   "type": "file",
-   "title": "src/lib/homeCantonHero.ts",
-   "description": "Fichier du dépôt classé application-library.",
-   "path": "src/lib/homeCantonHero.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "application-library"
-   ],
-   "detailRef": "6394aa7bb697"
-  },
-  {
    "id": "file:ad18a6f6e544",
    "type": "file",
    "title": "src/lib/homeRestaurantDiscovery.ts",
@@ -308207,20 +307310,6 @@
     "test"
    ],
    "detailRef": "85fd7e43ee57"
-  },
-  {
-   "id": "file:87df253cfcf7",
-   "type": "file",
-   "title": "src/test/home-canton-hero.test.ts",
-   "description": "Fichier du dépôt classé test.",
-   "path": "src/test/home-canton-hero.test.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "test"
-   ],
-   "detailRef": "cd199376008c"
   },
   {
    "id": "file:fc8746b3f12a",
@@ -327674,7 +326763,7 @@
    "id": "integration:077d0104684d",
    "type": "integration",
    "title": "Vercel",
-   "description": "Intégration externe détectée dans 59 module(s).",
+   "description": "Intégration externe détectée dans 58 module(s).",
    "path": "middleware.js",
    "line": null,
    "surface": null,
@@ -327705,7 +326794,6 @@
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/daily-slot-machine-security.test.ts",
     "src/test/demo-workspace-access.test.ts",
-    "src/test/home-canton-hero.test.ts",
     "src/test/legacy-provider-cleanup.test.ts",
     "src/test/marketing-bff-security.test.ts",
     "src/test/marketing-bff-vercel-entrypoints.test.ts",
@@ -327740,7 +326828,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "vercel"
    ],
-   "detailRef": "5e149539fd73"
+   "detailRef": "911908ac8fc5"
   },
   {
    "id": "marketing-operation:59948b4790ce",
@@ -337980,7 +337068,7 @@
     "/",
     "supabase"
    ],
-   "detailRef": "d3941a6bb29f"
+   "detailRef": "cfa83d1b4b27"
   },
   {
    "id": "page:3d4a292c788d",
@@ -338445,17 +337533,16 @@
    "id": "path-literal:19f327b7fcb7",
    "type": "path-literal",
    "title": "/(.*)",
-   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/daily-slot-machine-security.test.ts",
    "line": 48,
    "surface": null,
    "tags": [
     "src/test/daily-slot-machine-security.test.ts",
-    "src/test/home-canton-hero.test.ts",
     "src/test/seo-indexation-hardening.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "9d02897d9c89"
+   "detailRef": "fd96cb6d2081"
   },
   {
    "id": "path-literal:3ab1900d2ade",
@@ -339213,7 +338300,7 @@
     "src/test/feature-flags.test.ts",
     "src/test/notifications-sinistres-governance.test.ts"
    ],
-   "detailRef": "177c75c9fc12"
+   "detailRef": "757ed5ae6d8a"
   },
   {
    "id": "path-literal:1e75a2497da9",
@@ -339311,7 +338398,7 @@
     "src/pages/admin/AdminComptaOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "4cf7525eaf69"
+   "detailRef": "de44055e81ef"
   },
   {
    "id": "path-literal:3acf611bfbe2",
@@ -339347,7 +338434,7 @@
     "src/pages/admin/AdminComptaOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "87ad8fcd9657"
+   "detailRef": "ad0495f9392f"
   },
   {
    "id": "path-literal:361008cba629",
@@ -339488,7 +338575,7 @@
     "src/test/admin-mobile-navigation.test.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "0d87e73643a7"
+   "detailRef": "fbaa4b96cc61"
   },
   {
    "id": "path-literal:8d302745f8f8",
@@ -340246,7 +339333,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "4630249b0445"
+   "detailRef": "97486da40a65"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -340542,7 +339629,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "4de9c70ccdf1"
+   "detailRef": "ffb1128734b3"
   },
   {
    "id": "path-literal:4fb16aa3df8b",
@@ -340639,17 +339726,17 @@
    "detailRef": "cdaba9c37e54"
   },
   {
-   "id": "path-literal:7cd8b37104a6",
+   "id": "path-literal:b338c78bd5ce",
    "type": "path-literal",
    "title": "/commande/abc-123",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/feature-flags.test.ts",
-   "line": 77,
+   "line": 78,
    "surface": null,
    "tags": [
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "08dc4cd8aaef"
+   "detailRef": "aa650ba5b832"
   },
   {
    "id": "path-literal:8c0b2484c0ad",
@@ -340671,7 +339758,7 @@
     "src/test/security-url-helpers.test.ts",
     "src/test/stripe-return.test.ts"
    ],
-   "detailRef": "41d5990dc3ae"
+   "detailRef": "c1964c654cc2"
   },
   {
    "id": "path-literal:2f80fcd74d96",
@@ -341226,7 +340313,7 @@
     "src/test/navigation.test.ts",
     "supabase/functions/dispatch-order/index.ts"
    ],
-   "detailRef": "f31f9be87e17"
+   "detailRef": "ef993c68aefe"
   },
   {
    "id": "path-literal:b442b5bc4279",
@@ -341475,7 +340562,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "941ffbe7125a"
+   "detailRef": "82b0f7b630c8"
   },
   {
    "id": "path-literal:98441ce078ff",
@@ -341551,7 +340638,7 @@
     "src/lib/featureCatalog.ts",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "50a42ac8b4c2"
+   "detailRef": "839a584cc662"
   },
   {
    "id": "path-literal:90131fc48ece",
@@ -341638,7 +340725,7 @@
     "src/pages/dashboard/DashboardFacturesOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "97bbfb112827"
+   "detailRef": "8e290f7fcdc4"
   },
   {
    "id": "path-literal:dd7c3a826d77",
@@ -341673,7 +340760,7 @@
     "src/pages/dashboard/DashboardFacturesOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "f5fae356e177"
+   "detailRef": "f8942a3c094c"
   },
   {
    "id": "path-literal:9083402a7e1e",
@@ -341811,18 +340898,18 @@
    "detailRef": "05ed9e6df0d6"
   },
   {
-   "id": "path-literal:cef8313b32c0",
+   "id": "path-literal:e2a2a3d765a3",
    "type": "path-literal",
    "title": "/dashboard/pack",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/feature-flags.test.ts",
-   "line": 106,
+   "line": 107,
    "surface": null,
    "tags": [
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "3e875e0ca792"
+   "detailRef": "f00d50f58bcb"
   },
   {
    "id": "path-literal:272c2aa15b3e",
@@ -342186,46 +341273,6 @@
     "src/test/commercial-demo-client-data-isolation.test.ts"
    ],
    "detailRef": "72467c0cf980"
-  },
-  {
-   "id": "path-literal:0606bdee36c9",
-   "type": "path-literal",
-   "title": "/desig%20app/tok-ch-",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/lib/homeCantonHero.ts",
-   "line": 72,
-   "surface": null,
-   "tags": [
-    "src/lib/homeCantonHero.ts",
-    "src/test/home-canton-hero.test.ts"
-   ],
-   "detailRef": "3825809d0730"
-  },
-  {
-   "id": "path-literal:f843691d54f0",
-   "type": "path-literal",
-   "title": "/desig%20app/tok-ch-ju.webp",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/home-hero-search.test.tsx",
-   "line": 43,
-   "surface": null,
-   "tags": [
-    "src/test/home-hero-search.test.tsx"
-   ],
-   "detailRef": "84aaaba7ad69"
-  },
-  {
-   "id": "path-literal:2396a4e40c12",
-   "type": "path-literal",
-   "title": "/desig%20app/tok-ch-vd.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/home-hero-search.test.tsx",
-   "line": 51,
-   "surface": null,
-   "tags": [
-    "src/test/home-hero-search.test.tsx"
-   ],
-   "detailRef": "bf888cc9c616"
   },
   {
    "id": "path-literal:2c32550db633",
@@ -343453,47 +342500,47 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:693c415f6a85",
+   "id": "path-literal:740c46ce6d2c",
    "type": "path-literal",
    "title": "/images/home/tok-geneve-desktop.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 91,
+   "line": 81,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx"
    ],
-   "detailRef": "540893d43c59"
+   "detailRef": "553d739e43f0"
   },
   {
-   "id": "path-literal:db022c8a4906",
+   "id": "path-literal:f79ff15cb4bd",
    "type": "path-literal",
    "title": "/images/home/tok-geneve-mobile-fast.webp",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 92,
+   "line": 82,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx",
     "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "6437579a4472"
+   "detailRef": "bd063f96b981"
   },
   {
-   "id": "path-literal:f1f911a4ab9c",
+   "id": "path-literal:105b3076027d",
    "type": "path-literal",
    "title": "/images/home/tok-leman-signature-fast.webp",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 93,
+   "line": 83,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx",
     "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "161c2ac20d99"
+   "detailRef": "50d1eb551b23"
   },
   {
    "id": "path-literal:638981aff331",
@@ -343563,7 +342610,7 @@
     "src/pages/admin/AdminRestaurants.tsx",
     "src/test/optimized-images.test.ts"
    ],
-   "detailRef": "acbfab2b6ce7"
+   "detailRef": "f8ba7f38932d"
   },
   {
    "id": "path-literal:ecd720b69356",
@@ -344495,48 +343542,9 @@
    "detailRef": "386bfe84eba3"
   },
   {
-   "id": "path-literal:c192985cf97d",
+   "id": "path-literal:cec79352983c",
    "type": "path-literal",
    "title": "/images/section-headers/tok-editorial-delivery-full.jpg",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 62,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "69ef75c95cef"
-  },
-  {
-   "id": "path-literal:63ac9565fe78",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-evening-full.jpg",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 63,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "63d468d6bb88"
-  },
-  {
-   "id": "path-literal:ee94ef7aee08",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-feast-full.jpg",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 59,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "e9f1f0ba1eb6"
-  },
-  {
-   "id": "path-literal:c086202c19e1",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 61,
@@ -344544,26 +343552,38 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "7ec1fdb55f8b"
+   "detailRef": "c2011acccf5d"
   },
   {
-   "id": "path-literal:009a8bc72fdb",
+   "id": "path-literal:aa58359caaef",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-geneva-full.jpg",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "title": "/images/section-headers/tok-editorial-evening-full.jpg",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 62,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "9a3f234487a4"
+  },
+  {
+   "id": "path-literal:5eaa75db56e8",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-feast-full.jpg",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 58,
    "surface": null,
    "tags": [
-    "src/pages/Index.tsx",
-    "src/test/home-section-showcase-header.test.tsx"
+    "src/pages/Index.tsx"
    ],
-   "detailRef": "8bcda8ca4fa1"
+   "detailRef": "5e49c97a00a9"
   },
   {
-   "id": "path-literal:4c2a34a00c35",
+   "id": "path-literal:d237fe54675d",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-reservation-full.jpg",
+   "title": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 60,
@@ -344571,20 +343591,47 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "858e436c66be"
+   "detailRef": "5cdb8f911cbd"
   },
   {
-   "id": "path-literal:24fe35163e62",
+   "id": "path-literal:a4f6f008f2f2",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-rewards-full.jpg",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "title": "/images/section-headers/tok-editorial-geneva-full.jpg",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 57,
    "surface": null,
    "tags": [
+    "src/pages/Index.tsx",
+    "src/test/home-section-showcase-header.test.tsx"
+   ],
+   "detailRef": "7817990177e3"
+  },
+  {
+   "id": "path-literal:a882d7d5e0df",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-reservation-full.jpg",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 59,
+   "surface": null,
+   "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "c648999d87ec"
+   "detailRef": "0d8db670b360"
+  },
+  {
+   "id": "path-literal:b575f620174a",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-rewards-full.jpg",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 56,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "19d6e0f461ca"
   },
   {
    "id": "path-literal:71dec4dbed86",
@@ -345002,7 +344049,7 @@
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "d04a329941e0"
+   "detailRef": "5441afeb0124"
   },
   {
    "id": "path-literal:c76dba69accc",
@@ -345451,7 +344498,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "e6504e6c8af9"
+   "detailRef": "5f818c4bbd3b"
   },
   {
    "id": "path-literal:f0ef50bf980c",
@@ -345505,7 +344552,7 @@
     "src/test/feature-flags.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "6c8c791d195f"
+   "detailRef": "ce80ed993e04"
   },
   {
    "id": "path-literal:f7202580b828",
@@ -345642,7 +344689,7 @@
     "src/pages/ClientDashboardHome.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "379869bc74ab"
+   "detailRef": "307cfbdff69e"
   },
   {
    "id": "path-literal:8a35ee0b46e4",
@@ -345670,7 +344717,7 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "d290c3f75ce7"
+   "detailRef": "99cbf46dda83"
   },
   {
    "id": "path-literal:1f7d4d48ee1e",
@@ -345808,7 +344855,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "3644c2b86eeb"
+   "detailRef": "c9f14e9427a2"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -347094,7 +346141,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "0ffe7555c003"
+   "detailRef": "d9d3eb18721d"
   },
   {
    "id": "path-literal:0cc14f352dc6",
@@ -348284,7 +347331,7 @@
     "src/test/home-hero-search.test.tsx",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "7dc6581c9bd6"
+   "detailRef": "edbf2c1b3919"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -349052,370 +348099,6 @@
     "public"
    ],
    "detailRef": "c315a35922bc"
-  },
-  {
-   "id": "public-asset:e4b2692dded9",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-ag.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-ag.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "8b5dcf2f7f22"
-  },
-  {
-   "id": "public-asset:6abee36d14a8",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-ai.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-ai.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "91a51e7e34a5"
-  },
-  {
-   "id": "public-asset:c23634ec629d",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-ar.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-ar.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "bcc72daec0ef"
-  },
-  {
-   "id": "public-asset:a270f431450a",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-be.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-be.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "d7222a5c13b3"
-  },
-  {
-   "id": "public-asset:b44fbd643469",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-bl.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-bl.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "d8310f0a77d9"
-  },
-  {
-   "id": "public-asset:22a4c91d96e0",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-bs.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-bs.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "5fda7e9e21b2"
-  },
-  {
-   "id": "public-asset:c941f713f437",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-fr.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-fr.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "e45a78ffa811"
-  },
-  {
-   "id": "public-asset:a7083d9e4f3e",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-ge.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-ge.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "3e86945dd8e2"
-  },
-  {
-   "id": "public-asset:fd981dd08f71",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-gl.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-gl.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "fcad57f65188"
-  },
-  {
-   "id": "public-asset:c06ce5e03e9c",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-gr.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-gr.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "82b10e267e93"
-  },
-  {
-   "id": "public-asset:ba16895ae96a",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-ju.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-ju.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "f5d3bcc63546"
-  },
-  {
-   "id": "public-asset:12e3adb5ba8f",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-lu.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-lu.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "309e590a141a"
-  },
-  {
-   "id": "public-asset:928665d4b784",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-ne.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-ne.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "b5e6e2f0c412"
-  },
-  {
-   "id": "public-asset:d804f3308683",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-nw.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-nw.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "7cf2e10654b9"
-  },
-  {
-   "id": "public-asset:34f7e3f58ebe",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-ow.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-ow.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "8776a03db8fa"
-  },
-  {
-   "id": "public-asset:3e790cd45af7",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-sg.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-sg.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "d83e8c699e31"
-  },
-  {
-   "id": "public-asset:0962d69ed416",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-sh.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-sh.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "2c7a308b36d6"
-  },
-  {
-   "id": "public-asset:6f761d4b27cf",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-so.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-so.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "954fc7610102"
-  },
-  {
-   "id": "public-asset:2948b7218932",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-sz.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-sz.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "2d4e15b21509"
-  },
-  {
-   "id": "public-asset:fdcb03bae367",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-tg.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-tg.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "544571235bbd"
-  },
-  {
-   "id": "public-asset:7e43ca77fdcb",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-ti.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-ti.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "a323659fda7c"
-  },
-  {
-   "id": "public-asset:97eb307fa3c1",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-ur.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-ur.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "dd758717f9de"
-  },
-  {
-   "id": "public-asset:a152a13b56a8",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-vd.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-vd.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "e06bc8a0449a"
-  },
-  {
-   "id": "public-asset:acf3f4d9c84f",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-vs.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-vs.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "0ab06aa3c6cd"
-  },
-  {
-   "id": "public-asset:069b4512dde1",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-zg.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-zg.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "c6cafae559ec"
-  },
-  {
-   "id": "public-asset:5413f2a359e4",
-   "type": "public-asset",
-   "title": "/desig app/tok-ch-zh.webp",
-   "description": "Ressource media servie depuis le dossier public.",
-   "path": "public/desig app/tok-ch-zh.webp",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "media",
-    "public"
-   ],
-   "detailRef": "2e8c589e16fb"
   },
   {
    "id": "public-asset:000cc4542ae9",
@@ -354465,7 +353148,7 @@
     "src/test/home-hero-search.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "7105527b86ed"
+   "detailRef": "9ca34a2915d7"
   },
   {
    "id": "query-parameter:97c42c624f4b",
@@ -354841,19 +353524,6 @@
    "detailRef": "ec896be48984"
   },
   {
-   "id": "query-parameter:02cb94be5ba4",
-   "type": "query-parameter",
-   "title": "geometry",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
-   "path": "src/test/home-canton-hero.test.ts",
-   "line": 55,
-   "surface": null,
-   "tags": [
-    "src/test/home-canton-hero.test.ts"
-   ],
-   "detailRef": "7211355ff53b"
-  },
-  {
    "id": "query-parameter:d486a6e252d1",
    "type": "query-parameter",
    "title": "height",
@@ -354907,19 +353577,6 @@
     "src/test/address-autocomplete-location-bias.test.tsx"
    ],
    "detailRef": "13384aca1044"
-  },
-  {
-   "id": "query-parameter:4bad4f46859c",
-   "type": "query-parameter",
-   "title": "layers",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
-   "path": "src/test/home-canton-hero.test.ts",
-   "line": 58,
-   "surface": null,
-   "tags": [
-    "src/test/home-canton-hero.test.ts"
-   ],
-   "detailRef": "fb07a8de1eaa"
   },
   {
    "id": "query-parameter:2c0948ce234d",
@@ -355317,7 +353974,7 @@
     "src/pages/Recherche.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "b6e33090e840"
+   "detailRef": "75115318c0dd"
   },
   {
    "id": "query-parameter:1969b37dad55",
@@ -355563,19 +354220,6 @@
    "detailRef": "085655cb6c3e"
   },
   {
-   "id": "query-parameter:ffa246ec66b7",
-   "type": "query-parameter",
-   "title": "sr",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
-   "path": "src/test/home-canton-hero.test.ts",
-   "line": 56,
-   "surface": null,
-   "tags": [
-    "src/test/home-canton-hero.test.ts"
-   ],
-   "detailRef": "62a417d9045c"
-  },
-  {
    "id": "query-parameter:3bfca3e02fd5",
    "type": "query-parameter",
    "title": "state",
@@ -355722,19 +354366,6 @@
     "supabase/functions/marketing-unsubscribe/index.ts"
    ],
    "detailRef": "b0efbd0e763d"
-  },
-  {
-   "id": "query-parameter:767d8ac9aeea",
-   "type": "query-parameter",
-   "title": "tolerance",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
-   "path": "src/test/home-canton-hero.test.ts",
-   "line": 57,
-   "surface": null,
-   "tags": [
-    "src/test/home-canton-hero.test.ts"
-   ],
-   "detailRef": "aea9f02e4c0f"
   },
   {
    "id": "query-parameter:7e0bc57e0111",
@@ -358251,17 +356882,6 @@
     "image-ai-worker"
    ],
    "detailRef": "3d2d48cf2e6f"
-  },
-  {
-   "id": "workflow:de88aa5804c4",
-   "type": "workflow",
-   "title": " Temporary Tok Canton Index",
-   "description": "Workflow GitHub Actions; jobs: définition dynamique.",
-   "path": ".github/workflows/_temporary-tok-canton-index.yml",
-   "line": null,
-   "surface": null,
-   "tags": [],
-   "detailRef": "0ab89dbd4970"
   },
   {
    "id": "workflow:5181ebb2d66a",
