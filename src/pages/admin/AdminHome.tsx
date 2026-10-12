@@ -163,8 +163,8 @@ const ADMIN_TOOLS = [
     color: "text-amber-500",
   },
   {
-    title: "La Table du Chef",
-    description: "Créer et gérer les expériences exclusives La Table du Chef.",
+    title: "La Tok d’Or",
+    description: "Créer et gérer les expériences exclusives La Tok d’Or.",
     icon: UtensilsCrossed,
     href: "/admin/drops",
     feature: "admin-drops",

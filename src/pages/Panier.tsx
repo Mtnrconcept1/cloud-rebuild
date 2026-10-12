@@ -913,7 +913,7 @@ export default function Panier() {
         if (paymentMethod === "cash") {
           return toast({
             title: "Paiement sécurisé requis",
-          description: "La Table du Chef doit être réglée à l'avance pour confirmer la réservation.",
+          description: "La Tok d’Or doit être réglée à l'avance pour confirmer la réservation.",
             variant: "destructive",
           });
         }
@@ -1705,7 +1705,7 @@ export default function Panier() {
           <div className="rounded-3xl border bg-card/60 p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold">{isChefsTableCheckout ? "Reservation La Table du Chef" : cartRestaurantSummaryLabel}</p>
+                <p className="text-sm font-semibold">{isChefsTableCheckout ? "Reservation La Tok d’Or" : cartRestaurantSummaryLabel}</p>
                 <p className="text-xs text-muted-foreground">
                   {isChefsTableCheckout
                     ? `${chefsTableReservationGroups.length} réservation(s) à confirmer`
@@ -1792,7 +1792,7 @@ export default function Panier() {
         <h1 className="font-display text-3xl font-bold">Votre panier</h1>
         <p className="text-sm text-muted-foreground">
           {isChefsTableCheckout
-            ? `${chefsTableReservationGroups.length} réservation(s) La Table du Chef à confirmer`
+            ? `${chefsTableReservationGroups.length} réservation(s) La Tok d’Or à confirmer`
             : cartRestaurantSummaryLabel}
         </p>
 
@@ -1872,7 +1872,7 @@ export default function Panier() {
           <div className="rounded-3xl border border-amber-300 bg-gradient-to-br from-amber-100 via-white to-orange-50 p-5 shadow-[0_24px_70px_-38px_rgba(245,158,11,0.5)] space-y-4">
             <div className="flex items-center gap-2 text-amber-700">
               <ChefHat className="h-5 w-5" />
-              <p className="font-semibold">Reservation La Table du Chef</p>
+              <p className="font-semibold">Reservation La Tok d’Or</p>
             </div>
             <p className="text-sm text-muted-foreground">
               Le paiement sécurisé confirme la réservation et les plats précommandés. Chaque drop garde son horaire de service et son nombre de convives.
@@ -1900,7 +1900,7 @@ export default function Panier() {
                 <div>
                   <p className="text-sm font-semibold text-foreground">Paiement visible et prioritaire</p>
                   <p className="text-xs text-muted-foreground">
-                    Les convives choisis dans La Table du Chef sont déjà intégrés dans cette étape de paiement.
+                    Les convives choisis dans La Tok d’Or sont déjà intégrés dans cette étape de paiement.
                   </p>
                 </div>
                 <span className="font-display text-2xl font-bold text-foreground">{finalTotal.toFixed(2)} CHF</span>
@@ -2275,7 +2275,7 @@ export default function Panier() {
           }
           variant={isChefsTableCheckout ? "chef-table" : "default"}
           secureDescription={isChefsTableCheckout
-            ? "Paiement sécurisé requis pour confirmer votre réservation La Table du Chef"
+            ? "Paiement sécurisé requis pour confirmer votre réservation La Tok d’Or"
             : isCommercialDemoClient
               ? "Démonstration isolée — paiement accepté simulé, aucun débit"
               : "Paiement sécurisé via Stripe"}

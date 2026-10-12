@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     },
     chef_table: {
       count: chef,
-      title: chef > 0 ? `${chef} Table${chef > 1 ? "s" : ""} du Chef` : "La Table du Chef",
+      title: chef > 0 ? `${chef} expérience${chef > 1 ? "s" : ""} La Tok d’Or` : "La Tok d’Or",
       subtitle: chef > 0 ? "Drops à venir" : "Active les alertes",
       url: `${PUBLIC_ORIGIN}/chefs-table`,
     },

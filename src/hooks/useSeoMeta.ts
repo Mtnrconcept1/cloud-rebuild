@@ -51,7 +51,7 @@ const PUBLIC_ROUTE_FALLBACKS: Record<string, { title: string; description: strin
   "/match-groupes": { title: "Match groupes | TOK", description: "Organisez plus facilement vos repas de groupe avec TOK." },
   "/multi-stop": { title: "Multi-stop | TOK", description: "Composez un parcours food multi-stop avec TOK." },
   "/multi-restaurant": { title: "Multi-restaurant | TOK", description: "Découvrez les expériences multi-restaurant proposées par TOK." },
-  "/chefs-table": { title: "Table du Chef | TOK", description: "Découvrez les expériences Table du Chef disponibles sur TOK." },
+  "/chefs-table": { title: "La Tok d’Or | TOK", description: "Découvrez les expériences La Tok d’Or disponibles sur TOK." },
   "/zero-attente": { title: "Zéro attente | TOK", description: "Précommandez et synchronisez votre arrivée avec Zéro attente sur TOK." },
   "/garantie-qualite": { title: "Garantie qualité | TOK", description: "Découvrez les engagements de qualité et de confiance de TOK." },
   "/budget-auto": { title: "Budget auto | TOK", description: "Maîtrisez votre budget food grâce aux outils TOK." },

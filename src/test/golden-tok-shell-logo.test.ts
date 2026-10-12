@@ -75,4 +75,27 @@ describe("Golden TOK public chrome", () => {
     expect(v4).toContain("golden-tok-header-action");
     expect(v4).toContain("@media (max-width: 520px)");
   });
+
+  it("renders La Tok d’Or as real semantic content rather than CSS-injected copy", () => {
+    const wizard = read("src/components/FeatureWizard.tsx");
+    const page = read("src/pages/ChefsTable.tsx");
+    const stylesheet = read("src/styles/golden-tok-chefs-table-v5.css");
+    const main = read("src/main.tsx");
+
+    expect(page).toContain('title="La Tok d’Or"');
+    expect(wizard).toContain('if (title === "La Tok d’Or")');
+    expect(wizard).toContain('className="golden-tok-hero-title" aria-label={title}');
+    expect(wizard).toContain('className="golden-tok-discover"');
+    expect(wizard).toContain('href="#la-tok-dor-offres"');
+    expect(page).toContain('id="la-tok-dor-offres"');
+    expect(stylesheet).toContain('h1.golden-tok-hero-title::after');
+    expect(stylesheet).toContain('content: none !important');
+    expect(stylesheet).toContain('@media (max-width: 820px)');
+    expect(stylesheet).toContain('@media (max-width: 600px)');
+    expect(stylesheet).toContain('@media (max-width: 370px)');
+    expect(main.indexOf("golden-tok-chefs-table-v5.css")).toBeGreaterThan(
+      main.indexOf("golden-tok-chefs-table-v4.css"),
+    );
+  });
+
 });

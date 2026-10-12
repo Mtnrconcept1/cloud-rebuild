@@ -153,7 +153,7 @@ const CORE_BENEFITS: BenefitCard[] = [
     description:
       "Les tables VIP, créneaux rares et drops partenaires remontent plus tôt dans votre expérience.",
     details: [
-      "Les tables VIP La Table du Chef sont mises en avant avant les créneaux standards.",
+      "Les tables VIP La Tok d’Or sont mises en avant avant les créneaux standards.",
       "Les drops limités et créneaux Zéro Attente peuvent être proposés plus haut dans le parcours.",
       "La priorité reste dépendante des disponibilités réelles du restaurant.",
     ],
@@ -191,7 +191,7 @@ const CORE_BENEFITS: BenefitCard[] = [
 const ENTITLEMENT_BENEFITS: Record<string, BenefitPresentation> = {
   discount_percentage: CORE_BENEFITS[2],
   chef_table_priority: {
-    title: "Priorité La Table du Chef",
+    title: "Priorité La Tok d’Or",
     description:
       "Accédez plus tôt aux expériences gastronomiques et tables rares proposées par les partenaires TOK.",
     details: [
@@ -252,7 +252,7 @@ const HOW_IT_WORKS = [
   {
     title: "Profitez chez les partenaires",
     description:
-      "Commandes, réservations, La Table du Chef et ventes flash utilisent votre niveau Tok One.",
+      "Commandes, réservations, La Tok d’Or et ventes flash utilisent votre niveau Tok One.",
     icon: Utensils,
   },
 ];
@@ -1405,7 +1405,7 @@ export default function TokOne() {
               Activez Tok One et laissez les avantages se déclencher.
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
-              Commandes à emporter, réservations, ventes flash ou Table du Chef :
+              Commandes à emporter, réservations, ventes flash ou La Tok d’Or :
               votre statut premium suit votre compte.
             </p>
           </div>

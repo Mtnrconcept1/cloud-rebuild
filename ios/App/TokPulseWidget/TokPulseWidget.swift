@@ -39,7 +39,7 @@ private struct PulsePayload: Codable, Hashable {
         priority: "reservation",
         reservation: PulseItem(count: 0, title: "Trouver une table", subtitle: "Réserver avec TOK", url: "https://www.thetok.ch/recherche?mode=reservation"),
         flash: PulseItem(count: 0, title: "Offres flash", subtitle: "Voir les offres", url: "https://www.thetok.ch/ventes-flash"),
-        chefTable: PulseItem(count: 0, title: "La Table du Chef", subtitle: "Drops exclusifs", url: "https://www.thetok.ch/chefs-table"),
+        chefTable: PulseItem(count: 0, title: "La Tok d’Or", subtitle: "Drops exclusifs", url: "https://www.thetok.ch/chefs-table"),
         antiWaste: PulseItem(count: 0, title: "Anti-gaspi", subtitle: "Mieux manger", url: "https://www.thetok.ch/anti-gaspi")
     )
 
@@ -311,7 +311,7 @@ struct TokPulseWidget: Widget {
             PulseWidgetView(entry: entry)
         }
         .configurationDisplayName("TOK Pulse")
-        .description("Tables, offres flash, Table du Chef et anti-gaspi directement sur l’écran d’accueil.")
+        .description("Tables, offres flash, La Tok d’Or et anti-gaspi directement sur l’écran d’accueil.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }

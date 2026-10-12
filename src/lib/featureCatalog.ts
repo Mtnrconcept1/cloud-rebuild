@@ -245,7 +245,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   },
   {
     name: "chefs-table",
-    label: "La Table du Chef",
+    label: "La Tok d’Or",
     description: "Active les expériences exclusives et leurs pages associées.",
     defaultEnabled: true,
     group: "client_features",

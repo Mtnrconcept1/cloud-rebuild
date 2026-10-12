@@ -27,7 +27,7 @@ const PROMOS = [
     icon: Sparkles,
   },
   {
-    title: "La Table du Chef",
+    title: "La Tok d’Or",
     desc: "Découvrez des plats exclusifs en édition limitée.",
     img: "/images/octopus-fine-dining-fast.webp",
     link: "/chefs-table",

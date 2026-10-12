@@ -29,7 +29,7 @@ const fallbackPulse: PulsePayload = {
   priority: "reservation",
   reservation: { count: 0, title: "Trouver une table", subtitle: "Réservation TOK", url: "/recherche?mode=reservation" },
   flash: { count: 0, title: "Offres flash", subtitle: "Voir les offres", url: "/ventes-flash" },
-  chef_table: { count: 0, title: "La Table du Chef", subtitle: "Drops exclusifs", url: "/chefs-table" },
+  chef_table: { count: 0, title: "La Tok d’Or", subtitle: "Drops exclusifs", url: "/chefs-table" },
   anti_waste: { count: 0, title: "Anti-gaspi", subtitle: "Mieux manger", url: "/anti-gaspi" },
 };
 
@@ -109,7 +109,7 @@ export default function TokPulse() {
                 <Link to="/recherche?mode=reservation">Trouver une table</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-2xl border-white/20 bg-white/10 text-white hover:bg-white/20">
-                <Link to="/chefs-table">La Table du Chef</Link>
+                <Link to="/chefs-table">La Tok d’Or</Link>
               </Button>
             </div>
 

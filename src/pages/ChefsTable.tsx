@@ -176,7 +176,7 @@ function ChefTableDropCard({
         <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4">
           <div className="flex flex-wrap gap-2">
             <Badge className="border-none bg-black/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-white backdrop-blur-md">
-              La Table du Chef
+              La Tok d’Or
             </Badge>
             {drop.isVip ? (
               <Badge className="gap-1 border-none bg-amber-400 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-950 shadow-lg">
@@ -513,7 +513,7 @@ export default function ChefsTable() {
       restaurantAddress: buildRestaurantAddress(restaurant),
       restaurantId: restaurant.id,
       dish: item.name,
-      description: item.description || "Création du menu du restaurant simulé, proposée pour le parcours Table du Chef.",
+      description: item.description || "Création du menu du restaurant simulé, proposée pour le parcours La Tok d’Or.",
       price: Number(item.price),
       originalPrice: Number(item.price),
       savingsAmount: 0,
@@ -626,7 +626,7 @@ export default function ChefsTable() {
     () =>
       chefsTableCartItems.map((item) => ({
         key: item.menuItemId,
-        name: item.name.replace("[La Table du Chef] ", ""),
+        name: item.name.replace(/^\[(?:La Table du Chef|La Tok d’Or)\]\s*/, ""),
         restaurantName: item.restaurantName,
         serviceTime: String(item.metadata?.service_time || "--:--"),
         guestCount: Math.max(1, Number(item.metadata?.party_size || item.quantity || 1)),
@@ -647,7 +647,7 @@ export default function ChefsTable() {
       });
 
       if (error) {
-        throw new Error(error.message || "Impossible de finaliser la réservation La Table du Chef.");
+        throw new Error(error.message || "Impossible de finaliser la réservation La Tok d’Or.");
       }
 
       const reservations = Array.isArray(data?.reservations)
@@ -667,8 +667,8 @@ export default function ChefsTable() {
         title: "Paiement confirmé",
         description:
           reservations.length > 1
-            ? `${reservations.length} réservations La Table du Chef ont été confirmées.`
-            : "Votre réservation La Table du Chef est confirmée.",
+            ? `${reservations.length} réservations La Tok d’Or ont été confirmées.`
+            : "Votre réservation La Tok d’Or est confirmée.",
       });
     } catch (error) {
       toast({
@@ -676,7 +676,7 @@ export default function ChefsTable() {
         description:
           error instanceof Error
             ? error.message
-            : "Impossible de finaliser la réservation La Table du Chef.",
+            : "Impossible de finaliser la réservation La Tok d’Or.",
         variant: "destructive",
       });
     } finally {
@@ -717,7 +717,7 @@ export default function ChefsTable() {
       attemptedFinalizationRef.current.add(pendingCheckoutSessionId);
       toast({
         title: "Reconnectez-vous",
-        description: "Le paiement a été validé. Reconnectez-vous pour récupérer votre réservation La Table du Chef.",
+        description: "Le paiement a été validé. Reconnectez-vous pour récupérer votre réservation La Tok d’Or.",
         variant: "destructive",
       });
       return;
@@ -740,7 +740,7 @@ export default function ChefsTable() {
     if (!hasForeignCartItems) return true;
     toast({
       title: "Panier déjà en cours",
-      description: "Finalisez ou videz votre panier actuel avant d'ajouter une expérience La Table du Chef.",
+      description: "Finalisez ou videz votre panier actuel avant d'ajouter une expérience La Tok d’Or.",
       variant: "destructive",
     });
     navigate("/panier");
@@ -793,7 +793,7 @@ export default function ChefsTable() {
     updateCartMetadata({ feature: "chefs_table" });
     addItem({
       menuItemId,
-      name: `[La Table du Chef] ${drop.dish}`,
+      name: `[La Tok d’Or] ${drop.dish}`,
       price: drop.price,
       quantity: safePartySize,
       restaurantId: drop.restaurantId,
@@ -827,7 +827,7 @@ export default function ChefsTable() {
       removeItem(menuItemId);
       toast({
         title: "Retire du panier",
-        description: `${drop.dish} a été retire de votre panier La Table du Chef.`,
+        description: `${drop.dish} a été retire de votre panier La Tok d’Or.`,
       });
       return;
     }
@@ -891,7 +891,7 @@ export default function ChefsTable() {
   return (
     <>
       <FeatureWizard
-        title="La Table du Chef"
+        title="La Tok d’Or"
         subtitle="Plats off-menu en édition ultra-limitée"
         icon={ChefHat}
         colorClass="amber-500"
@@ -939,7 +939,7 @@ export default function ChefsTable() {
 
               queryClient.invalidateQueries({ queryKey: ["chefs-table-subscription", user.id] });
               toast({
-                title: notifyAll ? "Alertes désactivées" : "Alertes La Table du Chef activées",
+                title: notifyAll ? "Alertes désactivées" : "Alertes La Tok d’Or activées",
               });
             }}
             className="gap-2"
@@ -950,7 +950,7 @@ export default function ChefsTable() {
         }
       >
         <div className="space-y-8">
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 p-4">
+          <div id="la-tok-dor-offres" className="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 p-4">
             <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
             <p className="text-sm font-medium">
               <span className="font-semibold text-amber-700">
@@ -971,7 +971,7 @@ export default function ChefsTable() {
                   <Sparkles className="mx-auto h-12 w-12 text-amber-500" />
                   <h2 className="mt-4 font-display text-2xl font-bold">Paiement reçu</h2>
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                    Nous finalisons vos réservations La Table du Chef. Cela prend seulement quelques secondes.
+                    Nous finalisons vos réservations La Tok d’Or. Cela prend seulement quelques secondes.
                   </p>
                 </div>
               ) : drops.length > 0 ? (
@@ -1009,7 +1009,7 @@ export default function ChefsTable() {
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                       <div className="space-y-2">
                         <p className="font-display text-2xl font-bold leading-tight text-white">
-                          Votre Table du Chef est presque confirmée
+                          Votre La Tok d’Or est presque confirmée
                         </p>
                         <p className="text-sm text-white/75">
                           {reservedRestaurantCount} restaurant(s) · économie totale{" "}
@@ -1062,7 +1062,7 @@ export default function ChefsTable() {
                 <h2 className="font-display text-xl font-bold">Reservation confirmée !</h2>
                 <p className="text-sm text-muted-foreground">
                   {confirmedReservations.length > 1
-                    ? `${confirmedReservations.length} réservations La Table du Chef ont été confirmées après paiement.`
+                    ? `${confirmedReservations.length} réservations La Tok d’Or ont été confirmées après paiement.`
                     : "Votre table et vos plats exclusifs sont réservés après paiement."}
                 </p>
               </div>

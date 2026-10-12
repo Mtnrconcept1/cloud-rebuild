@@ -24,7 +24,7 @@ export const TOK_ONE_DEFAULT_BENEFITS = [
   },
   {
     id: "chef_table_priority",
-    label: "Accès prioritaire La Table du Chef",
+    label: "Accès prioritaire La Tok d’Or",
     description: "Accès prioritaire aux expériences gastronomiques.",
   },
   {

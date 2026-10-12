@@ -79,7 +79,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "validate-order": "la validation et la création d’une commande",
   "create-reservation": "la validation et la création d’une réservation",
   "create-zero-attente-reservation": "la création d’une réservation Zéro Attente",
-  "create-chefs-table-reservation": "la création d’une réservation Table du Chef",
+  "create-chefs-table-reservation": "la création d’une réservation La Tok d’Or",
   "create-checkout": "l’ouverture d’une session de paiement",
   "complete-order-checkout": "la finalisation du paiement d’une commande",
   "cancel-pending-order-checkout": "l’annulation d’un paiement de commande en attente",

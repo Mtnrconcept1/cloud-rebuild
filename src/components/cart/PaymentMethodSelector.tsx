@@ -66,7 +66,7 @@ export default function PaymentMethodSelector({
           <div className="space-y-1">
             <p className="text-sm font-semibold text-white">Confirmation immédiate après paiement</p>
             <p className="text-xs leading-5 text-white/72">
-              Vos créneaux Table du Chef et votre nombre de convives sont déjà pris en compte dans cette étape.
+              Vos créneaux La Tok d’Or et votre nombre de convives sont déjà pris en compte dans cette étape.
             </p>
           </div>
         </div>

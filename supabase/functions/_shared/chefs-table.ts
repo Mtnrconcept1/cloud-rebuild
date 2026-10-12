@@ -76,7 +76,7 @@ function buildReservationNote(input: {
   cardLast4?: string | null;
 }) {
   const parts = [
-    `[La Table du Chef] ${input.count} experience(s) reservee(s)`,
+    `[La Tok d’Or] ${input.count} experience(s) reservee(s)`,
     `Sous-total: ${input.subtotal.toFixed(2)} CHF`,
     `Total: ${input.total.toFixed(2)} CHF`,
     `Paiement: ${input.paymentMethod} (paye)`,
@@ -188,7 +188,7 @@ function buildChefTableLineItems(lineItems: Stripe.ApiList<Stripe.LineItem>) {
         serviceTime,
         quantity,
         unitPrice: unitAmount,
-        name: lineItem.description || product?.name || "Experience La Table du Chef",
+        name: lineItem.description || product?.name || "Experience La Tok d’Or",
         isVip,
         requiredMiamzPoints,
       };
@@ -211,7 +211,7 @@ async function decrementDropPortions(input: {
 
   const remaining = Number(dropRow?.remaining_portions || 0);
   if (remaining < input.quantity) {
-    throw new Error("Certaines experiences La Table du Chef ne sont plus disponibles.");
+    throw new Error("Certaines experiences La Tok d’Or ne sont plus disponibles.");
   }
 
   const { error: updateError } = await input.adminClient
@@ -377,7 +377,7 @@ export async function finalizeChefsTableCheckout(input: {
   for (const item of reservationItems) {
     const drop = dropMap.get(item.dropId);
     if (!drop) {
-      throw new Error("Drop La Table du Chef introuvable.");
+      throw new Error("Drop La Tok d’Or introuvable.");
     }
 
     const reservationKey = buildReservationKey({
@@ -603,7 +603,7 @@ export async function finalizeChefsTableCheckout(input: {
           continue;
         }
 
-        throw new Error(reservationError?.message || "Impossible de creer la reservation La Table du Chef.");
+        throw new Error(reservationError?.message || "Impossible de creer la reservation La Tok d’Or.");
       }
 
       const { error: statusUpdateError } = await adminClient
@@ -673,7 +673,7 @@ export async function finalizeChefsTableCheckout(input: {
           await enqueueNotification({
             adminClient,
             userId: restaurantOwnerId,
-            title: "Nouvelle reservation La Table du Chef",
+            title: "Nouvelle reservation La Tok d’Or",
             body: `${group.partySize} experience(s) reservee(s) pour le ${group.date} a ${group.time} - ${group.total.toFixed(2)} CHF`,
             type: "reservation",
             category: "transactional",
@@ -698,7 +698,7 @@ export async function finalizeChefsTableCheckout(input: {
         await enqueueNotification({
           adminClient,
           userId,
-          title: "Reservation La Table du Chef confirmee",
+          title: "Reservation La Tok d’Or confirmee",
           body: `Votre experience chez ${group.restaurantName} est confirmee le ${group.date} a ${group.time}.`,
           type: "reservation",
           category: "transactional",
@@ -752,11 +752,11 @@ export async function finalizeChefsTableCheckout(input: {
             email: customerEmail,
           },
           restaurantEmail,
-          featureLabel: "La Table du Chef",
+          featureLabel: "La Tok d’Or",
           items: group.preorderItems.map((item) => {
             const metadata = item.metadata as Record<string, unknown> | undefined;
             return {
-              name: String(item.name || "Expérience La Table du Chef"),
+              name: String(item.name || "Expérience La Tok d’Or"),
               description: metadata?.chef_name ? `Chef ${metadata.chef_name}` : "Expérience réservée",
               quantity: Number(item.quantity || 1),
               unitPrice: Number(item.unit_price || 0),

@@ -132,7 +132,7 @@ const MENU_CATEGORY_PRESETS = [
   "Digestifs",
   "Anti-gaspi",
   "Ventes flash",
-  "Table du chef",
+  "La Tok d’Or",
   "Autres",
 ];
 

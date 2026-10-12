@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     if (!actor.userId) {
       throw new HttpError(401, "Unauthorized");
     }
-    await assertProductionFlowAllowed(actor, "réservation Table du Chef réelle");
+    await assertProductionFlowAllowed(actor, "réservation La Tok d’Or réelle");
 
     const body = await req.json().catch(() => ({}));
     sessionId = typeof body?.session_id === "string" ? body.session_id.trim() : "";
@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
 
     const checkoutKind = String(session.metadata?.checkout_kind || "");
     if (checkoutKind !== "chefs-table") {
-      throw new HttpError(400, "Session Stripe invalide pour La Table du Chef.");
+      throw new HttpError(400, "Session Stripe invalide pour La Tok d’Or.");
     }
 
     if (String(session.metadata?.user_id || "") !== actor.userId) {

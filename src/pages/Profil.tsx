@@ -426,7 +426,7 @@ export default function Profil() {
 
   const topics = [
     { id: "flash_sales", feature: "ventes-flash", label: "Ventes Flash", desc: "Offres limitées en temps réel." },
-    { id: "chefs_table", feature: "chefs-table", label: "La Table du Chef", desc: "Nouveaux drops exclusifs." },
+    { id: "chefs_table", feature: "chefs-table", label: "La Tok d’Or", desc: "Nouveaux drops exclusifs." },
     { id: "anti_gaspi", feature: "anti-gaspi", label: "Anti-gaspi", desc: "Offres solidaires et anti-gaspi." },
   ].filter((topic) => activeFeatures.has(topic.feature));
 
