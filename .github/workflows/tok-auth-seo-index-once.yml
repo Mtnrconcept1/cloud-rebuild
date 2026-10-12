@@ -1,0 +1,47 @@
+name: Temporary TOK SEO source index refresh
+on:
+  push:
+    branches:
+      - fix/auth-loop-seo-prerender-20261012
+    paths:
+      - .github/workflows/tok-auth-seo-index-once.yml
+permissions:
+  contents: write
+concurrency:
+  group: tok-auth-seo-index-refresh
+  cancel-in-progress: false
+jobs:
+  generate:
+    if: github.repository == 'Mtnrconcept1/cloud-rebuild'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Untrack this one-shot workflow before indexing
+        run: git rm .github/workflows/tok-auth-seo-index-once.yml
+      - name: Update canonical application index and validate targeted behavior
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+          pnpm exec vitest run src/test/seo-query-retry.test.ts src/test/commercial-domain-isolation.test.ts
+      - name: Commit canonical index to the dedicated feature branch
+        env:
+          TARGET_BRANCH: fix/auth-loop-seo-prerender-20261012
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
+          git diff --cached --check
+          git commit -m "docs(index): regenerate application reference for resilient SEO build"
+          git push origin "HEAD:refs/heads/${TARGET_BRANCH}"
