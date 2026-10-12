@@ -2425,8 +2425,44 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case "payment_intent.succeeded": {
+        const intent = event.data.object as Stripe.PaymentIntent;
+        if (intent.metadata?.tok_purpose === "reservation_cancellation_fee") {
+          if (!event.livemode || intent.currency !== "chf" || !intent.metadata?.fee_id) {
+            throw new Error("CANCELLATION_FEE_WEBHOOK_INTEGRITY_FAILED");
+          }
+          const { data: paid, error: paidError } = await supabaseAdmin
+            .from("reservation_cancellation_fees")
+            .update({ status: "paid", paid_at: new Date().toISOString(),
+              lease_until: null, last_error_code: null, updated_at: new Date().toISOString() })
+            .eq("id", intent.metadata.fee_id)
+            .eq("stripe_payment_intent_id", intent.id)
+            .eq("amount_cents", intent.amount)
+            .eq("user_id", intent.metadata.user_id || "")
+            .select("id").maybeSingle();
+          if (paidError || !paid) throw new Error("CANCELLATION_FEE_WEBHOOK_RECONCILE_FAILED");
+        }
+        break;
+      }
+
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        if (paymentIntent.metadata?.tok_purpose === "reservation_cancellation_fee") {
+          if (!event.livemode || paymentIntent.currency !== "chf" || !paymentIntent.metadata?.fee_id) {
+            throw new Error("CANCELLATION_FEE_WEBHOOK_INTEGRITY_FAILED");
+          }
+          const { error: failedFeeError } = await supabaseAdmin
+            .from("reservation_cancellation_fees")
+            .update({ status: "failed", lease_until: null,
+              last_error_code: paymentIntent.last_payment_error?.code || "stripe_payment_failed",
+              updated_at: new Date().toISOString() })
+            .eq("id", paymentIntent.metadata.fee_id)
+            .eq("stripe_payment_intent_id", paymentIntent.id)
+            .eq("amount_cents", paymentIntent.amount)
+            .neq("status", "paid");
+          if (failedFeeError) throw new Error("CANCELLATION_FEE_FAILURE_RECONCILE_FAILED");
+          break;
+        }
         const { data: transactions, error: transactionsError } = await supabaseAdmin
           .from("payment_transactions")
           .select("order_id, user_id, metadata")
