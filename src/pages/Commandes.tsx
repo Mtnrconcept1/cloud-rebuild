@@ -276,7 +276,7 @@ function LiveCommandes() {
     <CustomerDashboardLayout>
       <div className="space-y-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <h1 className="font-display text-3xl font-bold">Mes commandes</h1>
+          <h1 className="font-display text-3xl font-bold">Mes achats</h1>
           <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end lg:w-auto">
             <SortControls
               columns={CUSTOMER_ORDER_SORT_COLUMNS}

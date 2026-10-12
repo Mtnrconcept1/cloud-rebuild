@@ -22,6 +22,7 @@ import { queueOrderConfirmationEmails } from "../_shared/transactional-emails.ts
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
+import { getEffectiveFeatureFlagSet } from "../_shared/feature-flags.ts";
 
 interface OrderItem {
   menu_item_id: string;
@@ -262,6 +263,15 @@ Deno.serve(async (req) => {
       metadata: baseMetadata,
       orderType: String((baseMetadata as Record<string, unknown>).type || ""),
     });
+
+    // Delivery orders and pickup use separate commercial switches. Payments stay shared.
+    const activeFlags = await getEffectiveFeatureFlagSet(actor.adminClient);
+    if (isDelivery && (!activeFlags.has("livraison") || !activeFlags.has("commandes"))) {
+      throw new HttpError(503, "Les nouvelles commandes avec livraison sont temporairement indisponibles.");
+    }
+    if (!isDelivery && !activeFlags.has("emporter")) {
+      throw new HttpError(503, "Les nouvelles commandes à emporter sont temporairement indisponibles.");
+    }
 
     const scheduledDelivery = isDelivery
       ? await resolveScheduledDelivery(actor.adminClient, restaurant_id, baseMetadata)

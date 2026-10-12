@@ -40,6 +40,10 @@ const CORE_ROUTES = new Set([
   "/r/:slug",
   "/restaurant/:id",
   "/panier",
+  // Paid receipts and historical transactions must not disappear when delivery is paused.
+  "/commandes",
+  "/commande/confirmation",
+  "/commande/:id",
   "/mon-espace",
   "/memoire-tok",
   "/compte",
