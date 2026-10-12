@@ -1,0 +1,44 @@
+name: One-shot refresh application index (PR 782)
+on:
+  push:
+    branches:
+      - codex/cuisine-3d-webp-seo-20261012
+    paths:
+      - .github/workflows/_one-shot-refresh-cuisine-index.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Remove one-shot workflow before creating the index
+        run: git rm -- .github/workflows/_one-shot-refresh-cuisine-index.yml
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Regenerate canonical application index
+        run: pnpm docs:application-index
+      - name: Check regenerated index
+        run: pnpm docs:application-index:check
+      - name: Run application index test
+        run: pnpm exec vitest run src/test/application-search-index.test.ts
+      - name: Commit docs and remove the temporary workflow
+        run: |
+          git add docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'docs: refresh application index after cuisine assets'
+          git push origin HEAD:codex/cuisine-3d-webp-seo-20261012
