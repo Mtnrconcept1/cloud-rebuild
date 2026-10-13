@@ -244,7 +244,7 @@ export default function AdminTokConnect() {
         <Card className="rounded-3xl">
           <CardContent className="flex items-center gap-4 p-5">
             <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary"><Store className="h-5 w-5" /></div>
-            <div><p className="text-2xl font-black">{overview.restaurant_totals?.enabled ?? enabledRestaurants}/{overview.restaurant_totals?.total ?? overview.restaurants.length}</p><p className="text-sm text-muted-foreground">Restaurants autorisés</p></div>
+            <div><p className="text-2xl font-black">{overview.restaurant_totals?.enabled ?? enabledRestaurants}/{overview.restaurant_totals?.total ?? overview.restaurants.length}</p><p className="text-sm text-muted-foreground">Accès MCP actifs (annuaire inclus)</p></div>
           </CardContent>
         </Card>
         <Card className="rounded-3xl">
@@ -328,6 +328,9 @@ export default function AdminTokConnect() {
                   <h3 className="text-xl font-black">{selectedRestaurant.restaurant_name}</h3>
                   <Badge variant={selectedRestaurant.mcp_enabled ? "default" : "secondary"} className="rounded-full">
                     {selectedRestaurant.mcp_enabled ? "Autorisé" : "Révoqué"}
+                  </Badge>
+                  <Badge variant="outline" className="rounded-full">
+                    {selectedRestaurant.directory_listing ? "Annuaire public" : "Restaurant revendiqué"}
                   </Badge>
                 </div>
                 <div className="grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3">
