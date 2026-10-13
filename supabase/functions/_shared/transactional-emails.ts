@@ -442,7 +442,7 @@ function buildReservationCustomerShell(input: ReservationConfirmationEmailInput)
       .tok-hero-image img { width:158px!important;height:auto!important;margin:0 auto!important; }
       .tok-heading { font-size:29px!important; }
       .tok-cell { display:inline-block!important;box-sizing:border-box!important;width:50%!important;min-height:148px!important;vertical-align:top!important; }
-      .tok-info { display:block!important;box-sizing:border-box!important;width:100%!important; }
+      .tok-info { display:inline-block!important;box-sizing:border-box!important;width:50%!important;vertical-align:top!important; }
       .tok-foot { display:block!important;box-sizing:border-box!important;width:100%!important;text-align:center!important;padding:8px 0!important; }
       .tok-cta { display:block!important;box-sizing:border-box!important;width:100%!important;text-align:center!important; }
     }
@@ -486,9 +486,10 @@ function buildReservationCustomerShell(input: ReservationConfirmationEmailInput)
       </td></tr>
       <tr><td class="tok-pad" style="padding:22px 26px 0;">
        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;"><tr>
-        <td class="tok-info" width="33%" style="width:33%;text-align:center;padding:10px 8px;vertical-align:top;font-size:12px;line-height:1.5;color:#263247;"><span style="font-size:22px;color:#ff4814;">&#9733;</span><br><strong>Des restaurants d’exception</strong></td>
-        <td class="tok-info" width="34%" style="width:34%;text-align:center;padding:10px 8px;vertical-align:top;font-size:12px;line-height:1.5;color:#263247;"><span style="font-size:22px;color:#ff4814;">&#9889;</span><br><strong>Zéro attente avec TOK</strong></td>
-        <td class="tok-info" width="33%" style="width:33%;text-align:center;padding:10px 8px;vertical-align:top;font-size:12px;line-height:1.5;color:#263247;"><span style="font-size:22px;color:#ff4814;">&#9825;</span><br><strong>Une cuisine plus responsable</strong></td>
+        <td class="tok-info" width="25%" style="width:25%;text-align:center;padding:10px 8px;vertical-align:top;font-size:12px;line-height:1.5;color:#263247;"><span style="font-size:22px;color:#ff4814;">&#9733;</span><br><strong>Des restaurants d’exception</strong></td>
+        <td class="tok-info" width="25%" style="width:25%;text-align:center;padding:10px 8px;vertical-align:top;font-size:12px;line-height:1.5;color:#263247;"><span style="font-size:22px;color:#ff4814;">&#9889;</span><br><strong>Zéro attente avec TOK</strong></td>
+        <td class="tok-info" width="25%" style="width:25%;text-align:center;padding:10px 8px;vertical-align:top;font-size:12px;line-height:1.5;color:#263247;"><span style="font-size:22px;color:#ff4814;">&#9825;</span><br><strong>Une cuisine plus responsable</strong></td>
+        <td class="tok-info" width="25%" style="width:25%;text-align:center;padding:10px 8px;vertical-align:top;font-size:12px;line-height:1.5;color:#263247;"><span style="font-size:22px;color:#ff4814;">&#10084;</span><br><strong>2 % reversés à l’Hospice Général</strong></td>
        </tr></table>
       </td></tr>
       <tr><td class="tok-pad" style="padding:24px 26px 0;">
