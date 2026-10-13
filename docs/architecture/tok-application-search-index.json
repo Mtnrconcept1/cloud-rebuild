@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "7abd23a3f4144c6163d83dd37c00f0530d9427e3a589cdf1fc55cb013544241c",
+ "sourceDigest": "17ddb5cd8250585e5e216f019545e59e4d5d4a398e849518d0591b82b7e8b636",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -20,12 +20,12 @@
   "migrations": 533,
   "modules": 1539,
   "pages": 129,
-  "pathLiterals": 693,
+  "pathLiterals": 694,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16503,
+  "records": 16504,
   "repositoryFiles": 3070,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -14102,6 +14102,10 @@
       "line": 501
      },
      {
+      "path": "supabase/functions/_shared/marketing-service-auth.ts",
+      "line": 48
+     },
+     {
       "path": "supabase/functions/_shared/tok-connect.ts",
       "line": 313
      },
@@ -16496,7 +16500,11 @@
      },
      {
       "path": "src/test/marketing-session-recovery.test.tsx",
-      "line": 57
+      "line": 59
+     },
+     {
+      "path": "src/test/marketing-session-recovery.test.tsx",
+      "line": 73
      }
     ]
    },
@@ -16576,6 +16584,10 @@
      {
       "path": "src/test/marketing-bff-client.test.ts",
       "line": 110
+     },
+     {
+      "path": "src/test/marketing-session-recovery.test.tsx",
+      "line": 60
      }
     ]
    },
@@ -24548,11 +24560,11 @@
      },
      {
       "path": "src/marketing/MarketingSessionProvider.tsx",
-      "line": 328
+      "line": 331
      },
      {
       "path": "src/marketing/MarketingSessionProvider.tsx",
-      "line": 336
+      "line": 339
      },
      {
       "path": "src/marketing/marketingBffClient.ts",
@@ -26480,6 +26492,15 @@
      {
       "path": "src/lib/commercialDemoHostSecurity.ts",
       "line": 147
+     }
+    ]
+   },
+   {
+    "value": "/rest/v1/rpc/service_get_marketing_web_session",
+    "sources": [
+     {
+      "path": "supabase/functions/_shared/marketing-service-auth.ts",
+      "line": 53
      }
     ]
    },
@@ -100013,7 +100034,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 365
+    "lineCount": 368
    },
    {
     "path": "src/marketing/autopilotClient.ts",
@@ -106165,14 +106186,14 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 76
+    "lineCount": 147
    },
    {
     "path": "src/test/marketing-session-recovery.test.tsx",
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 60
+    "lineCount": 76
    },
    {
     "path": "src/test/marketing-social-editorial.test.ts",
@@ -109749,17 +109770,18 @@
     "exports": [
      {
       "name": "authenticateMarketingRequest",
-      "line": 37,
+      "line": 78,
       "kind": "function"
      }
     ],
     "environmentNames": [
-     "SUPABASE_SECRET_KEYS"
+     "SUPABASE_SECRET_KEYS",
+     "SUPABASE_URL"
     ],
     "integrations": [
      "supabase"
     ],
-    "lineCount": 64
+    "lineCount": 105
    },
    {
     "path": "supabase/functions/_shared/marketing-social-editorial.ts",
@@ -139377,7 +139399,7 @@
    "id": "code-module:453d970374f8",
    "type": "code-module",
    "title": "src/marketing/MarketingSessionProvider.tsx",
-   "description": "Module de 365 lignes; exports: SessionSnapshot, normalizeMarketingSessionPayload, default.",
+   "description": "Module de 368 lignes; exports: SessionSnapshot, normalizeMarketingSessionPayload, default.",
    "path": "src/marketing/MarketingSessionProvider.tsx",
    "line": 1,
    "surface": null,
@@ -139386,7 +139408,7 @@
     "default",
     "normalizeMarketingSessionPayload"
    ],
-   "detailRef": "20ac515d55bc"
+   "detailRef": "b02371ecd6a2"
   },
   {
    "id": "code-module:25ec9bbc5f5d",
@@ -145829,25 +145851,25 @@
    "id": "code-module:4223f26bf632",
    "type": "code-module",
    "title": "src/test/marketing-service-auth.test.ts",
-   "description": "Module de 76 lignes; exports: aucun export statique.",
+   "description": "Module de 147 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-service-auth.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "2502d0f4354c"
+   "detailRef": "ee02862bd3f1"
   },
   {
    "id": "code-module:35d405c0e261",
    "type": "code-module",
    "title": "src/test/marketing-session-recovery.test.tsx",
-   "description": "Module de 60 lignes; exports: aucun export statique.",
+   "description": "Module de 76 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-session-recovery.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "9219b1ebbcc5"
+   "detailRef": "dc6c144d215e"
   },
   {
    "id": "code-module:9ef61d768bcd",
@@ -149722,16 +149744,17 @@
    "id": "code-module:e887a3d462c8",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-service-auth.ts",
-   "description": "Module de 64 lignes; exports: authenticateMarketingRequest.",
+   "description": "Module de 105 lignes; exports: authenticateMarketingRequest.",
    "path": "supabase/functions/_shared/marketing-service-auth.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "SUPABASE_SECRET_KEYS",
+    "SUPABASE_URL",
     "authenticateMarketingRequest",
     "supabase"
    ],
-   "detailRef": "12f3f167f750"
+   "detailRef": "0d82c0849991"
   },
   {
    "id": "code-module:32a3bad56cc4",
@@ -238441,7 +238464,7 @@
    "id": "environment-variable:a761a6cbaaec",
    "type": "environment-variable",
    "title": "SUPABASE_URL",
-   "description": "Nom de variable d’environnement référencé dans 37 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 38 module(s); aucune valeur n’est indexée.",
    "path": "scripts/harden-directory-restaurant-seo.mjs",
    "line": null,
    "surface": null,
@@ -238462,6 +238485,7 @@
     "src/test/marketing-bff-security.test.ts",
     "supabase/functions/_shared/commercial-demo-host.ts",
     "supabase/functions/_shared/delivery-dispatch.ts",
+    "supabase/functions/_shared/marketing-service-auth.ts",
     "supabase/functions/admin-demo-entities/index.ts",
     "supabase/functions/ai-support-resolution/index.ts",
     "supabase/functions/create-social-post-boost/index.ts",
@@ -238484,7 +238508,7 @@
     "supabase/functions/track-sponsored-event/index.ts",
     "vite.config.ts"
    ],
-   "detailRef": "21dcc7a83ad9"
+   "detailRef": "f622f8466176"
   },
   {
    "id": "environment-variable:b61dd74da707",
@@ -261021,18 +261045,18 @@
    "detailRef": "0527a99dde8d"
   },
   {
-   "id": "exported-symbol:62d0037b2f86",
+   "id": "exported-symbol:a6bb49efc907",
    "type": "exported-symbol",
    "title": "authenticateMarketingRequest",
    "description": "Export function de supabase/functions/_shared/marketing-service-auth.ts.",
    "path": "supabase/functions/_shared/marketing-service-auth.ts",
-   "line": 37,
+   "line": 78,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "8dec132cbc0f"
+   "detailRef": "a964d9a7ba8a"
   },
   {
    "id": "exported-symbol:298b422f5624",
@@ -346847,7 +346871,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 243 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 244 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -346952,6 +346976,7 @@
     "src/test/tok-logo-calendar.test.ts",
     "src/test/vercel-rewrites.test.ts",
     "supabase/functions/_shared/auth.ts",
+    "supabase/functions/_shared/marketing-service-auth.ts",
     "supabase/functions/_shared/tok-connect.ts",
     "supabase/functions/_shared/transactional-emails.ts",
     "supabase/functions/aligro-catalog-sync/index.ts",
@@ -346971,7 +346996,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "1a169b8c2a5f"
+   "detailRef": "5623f57f37b5"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -348249,7 +348274,7 @@
    "id": "path-literal:656b984b0c67",
    "type": "path-literal",
    "title": "/api/marketing/mfa/verify",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/marketing/marketingBffClient.ts",
    "line": 9,
    "surface": null,
@@ -348258,7 +348283,7 @@
     "src/test/marketing-bff-client.test.ts",
     "src/test/marketing-session-recovery.test.tsx"
    ],
-   "detailRef": "fc5e05099bbd"
+   "detailRef": "14e3ca815731"
   },
   {
    "id": "path-literal:58a720700b49",
@@ -348293,7 +348318,7 @@
    "id": "path-literal:fe2dadfb3854",
    "type": "path-literal",
    "title": "/api/marketing/session",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/stoppin-venue-seo.test.mjs",
    "line": 140,
    "surface": null,
@@ -348301,9 +348326,10 @@
     "scripts/stoppin-venue-seo.test.mjs",
     "src/marketing/marketingBffClient.ts",
     "src/test/application-search-index.test.ts",
-    "src/test/marketing-bff-client.test.ts"
+    "src/test/marketing-bff-client.test.ts",
+    "src/test/marketing-session-recovery.test.tsx"
    ],
-   "detailRef": "fb8f1e8fbc9e"
+   "detailRef": "313745030b3e"
   },
   {
    "id": "path-literal:4457ca298944",
@@ -353941,7 +353967,7 @@
     "src/test/marketing-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "9d33f8166d7f"
+   "detailRef": "f5eb85a542c8"
   },
   {
    "id": "path-literal:782adb141974",
@@ -354948,6 +354974,19 @@
     "src/lib/commercialDemoHostSecurity.ts"
    ],
    "detailRef": "1252f2a4f973"
+  },
+  {
+   "id": "path-literal:5cb9ddc40f0e",
+   "type": "path-literal",
+   "title": "/rest/v1/rpc/service_get_marketing_web_session",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "supabase/functions/_shared/marketing-service-auth.ts",
+   "line": 53,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/marketing-service-auth.ts"
+   ],
+   "detailRef": "59cebc45297e"
   },
   {
    "id": "path-literal:36917b9fd325",
