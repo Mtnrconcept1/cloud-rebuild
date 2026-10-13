@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "6c1b05c2d3c1ba9422f5aef575153d9e10d7fc8bfc30826f22a63a6f0bd43f25",
+ "sourceDigest": "1fcc42ce94db26e42d7b58be04f8ad744dac0dd5e6ab20a76868ef9c8b481835",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -9956,7 +9956,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1860
+     "line": 1866
     },
     {
      "route": "/restaurant/:id",
@@ -9972,7 +9972,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1640
+     "line": 1646
     },
     {
      "route": "/restaurants/:citySlug/:cuisineSlug",
@@ -9980,7 +9980,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1628
+     "line": 1634
     },
     {
      "route": "/restaurants/:citySlug/:districtSlug",
@@ -13207,15 +13207,15 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1398
+      "line": 1404
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1399
+      "line": 1405
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 2200
+      "line": 2207
      },
      {
       "path": "scripts/prerender-stoppin-restaurants-bounded.mjs",
@@ -14344,11 +14344,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1888
+      "line": 1894
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1951
+      "line": 1957
      },
      {
       "path": "src/App.tsx",
@@ -24648,11 +24648,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1655
+      "line": 1661
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1889
+      "line": 1895
      },
      {
       "path": "scripts/prerender-stoppin-restaurants.mjs",
@@ -25261,6 +25261,10 @@
    {
     "value": "/restaurants",
     "sources": [
+     {
+      "path": "scripts/prerender-seo.mjs",
+      "line": 1958
+     },
      {
       "path": "src/components/marketing/views/MarketingOutreachView.tsx",
       "line": 102
@@ -81687,7 +81691,7 @@
      "twint",
      "vercel"
     ],
-    "lineCount": 2255
+    "lineCount": 2262
    },
    {
     "path": "scripts/prerender-stoppin-restaurants-bounded.mjs",
@@ -101401,7 +101405,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 88
+    "lineCount": 96
    },
    {
     "path": "src/test/actualites-search.test.tsx",
@@ -127623,7 +127627,7 @@
    "id": "code-module:c3dee908e582",
    "type": "code-module",
    "title": "scripts/prerender-seo.mjs",
-   "description": "Module de 2255 lignes; exports: aucun export statique.",
+   "description": "Module de 2262 lignes; exports: aucun export statique.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1,
    "surface": null,
@@ -127648,7 +127652,7 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "80b228e5cabd"
+   "detailRef": "22e051f6bc2a"
   },
   {
    "id": "code-module:6c15664b5a20",
@@ -138847,12 +138851,12 @@
    "id": "code-module:91e30e250312",
    "type": "code-module",
    "title": "src/test/actualites-search-seo.test.ts",
-   "description": "Module de 88 lignes; exports: aucun export statique.",
+   "description": "Module de 96 lignes; exports: aucun export statique.",
    "path": "src/test/actualites-search-seo.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "94c0758d75c9"
+   "detailRef": "b6b5366ed92a"
   },
   {
    "id": "code-module:2c1279fd9d8b",
@@ -341153,7 +341157,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "7394b7791966"
+   "detailRef": "2fb7f933b824"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -341512,7 +341516,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "0a6b14450d0a"
+   "detailRef": "fff7451c8dd2"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -348274,7 +348278,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "6ebb43b83739"
+   "detailRef": "fd523009ddb7"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -349470,18 +349474,19 @@
    "detailRef": "e58a4d69c856"
   },
   {
-   "id": "path-literal:725130042616",
+   "id": "path-literal:ccd38bb7abb8",
    "type": "path-literal",
    "title": "/restaurants",
-   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/marketing/views/MarketingOutreachView.tsx",
-   "line": 102,
+   "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/prerender-seo.mjs",
+   "line": 1958,
    "surface": null,
    "tags": [
+    "scripts/prerender-seo.mjs",
     "src/components/marketing/views/MarketingOutreachView.tsx",
     "src/marketing/marketingClient.ts"
    ],
-   "detailRef": "f63fc32e363d"
+   "detailRef": "20297bf34ded"
   },
   {
    "id": "path-literal:38729e52638a",
@@ -360601,19 +360606,19 @@
    "detailRef": "0d9b756710ee"
   },
   {
-   "id": "seo-build-route:0318ffdecf7e",
+   "id": "seo-build-route:13e648c957df",
    "type": "seo-build-route",
    "title": "/actualites/:id",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1860,
+   "line": 1866,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "cf75c83b4bc8"
+   "detailRef": "b83956b8a93a"
   },
   {
    "id": "seo-build-route:b6dc7682e25f",
@@ -360916,19 +360921,19 @@
    "detailRef": "82c5cee15538"
   },
   {
-   "id": "seo-build-route:96b33e6ce27c",
+   "id": "seo-build-route:e99238302dc3",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug/:cuisineSlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1628,
+   "line": 1634,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "04b793407f2b"
+   "detailRef": "f81eef0ee42a"
   },
   {
    "id": "seo-build-route:2fa4ea9000f0",
@@ -360976,19 +360981,19 @@
    "detailRef": "bd92e4613560"
   },
   {
-   "id": "seo-build-route:82a6c68bb08b",
+   "id": "seo-build-route:2c61e9ec4c96",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1640,
+   "line": 1646,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "b648e520f9e5"
+   "detailRef": "b45cca405041"
   },
   {
    "id": "seo-build-route:e1c8faffbb03",

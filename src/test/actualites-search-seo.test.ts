@@ -58,11 +58,19 @@ describe("Actualites global search and public post SEO", () => {
     expect(carousel).toContain("Agrandir l’image");
   });
 
+  it("omits launch-protected restaurant pages without bypassing unexpected errors", () => {
+    const prerender = readProjectFile("scripts/prerender-seo.mjs");
+    expect(prerender).toContain('source === "restaurants" && isActualitesLaunchClosed(cause)');
+    expect(prerender).toContain("restaurantsClosedByLaunchGate = true");
+    expect(prerender).toContain('!page.path.startsWith("/restaurants")');
+    expect(prerender).toContain("if (STRICT_DYNAMIC_SEO) throw failure");
+  });
+
   it("omits all launch-protected actualités pages without masking other SEO errors", () => {
     const prerender = readProjectFile("scripts/prerender-seo.mjs");
     expect(prerender).toContain('error?.code === "PT403" && error?.message === "TOK_LAUNCH_CLOSED"');
     expect(prerender).toContain("actualitesClosedByLaunchGate = true");
-    expect(prerender).toContain('publicPages.filter((page) => page.path !== "/actualites")');
+    expect(prerender).toContain('!actualitesClosedByLaunchGate || page.path !== "/actualites"');
     expect(prerender).toContain('if (error || !Array.isArray(batch)) return handleDynamicSeoFailure("actualités"');
     expect(prerender).toContain("if (STRICT_DYNAMIC_SEO) throw failure");
   });

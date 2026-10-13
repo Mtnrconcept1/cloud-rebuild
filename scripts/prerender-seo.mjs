@@ -1333,12 +1333,18 @@ const DEFAULT_DISABLED_SEO_FEATURES = new Set(["tok-pulse"]);
 
 // RLS may deliberately refuse anonymous reads while TOK's launch gate is
 // closed. Such content must not enter pre-rendered pages or the sitemap.
+let restaurantsClosedByLaunchGate = false;
 let actualitesClosedByLaunchGate = false;
 function isActualitesLaunchClosed(error) {
   return error?.code === "PT403" && error?.message === "TOK_LAUNCH_CLOSED";
 }
 
 function handleDynamicSeoFailure(source, cause) {
+  if (source === "restaurants" && isActualitesLaunchClosed(cause)) {
+    restaurantsClosedByLaunchGate = true;
+    console.info("SEO restaurants: catalogue masqué par le lancement TOK ; aucune fiche indexée.");
+    return [];
+  }
   // Supabase/PostgREST often returns a plain object, not an Error instance.
   // Keep only bounded, diagnostic fields; never print the request or API key.
   const detail = cause && typeof cause === "object"
@@ -1947,9 +1953,10 @@ async function collectSeoPages() {
   );
   const enabledActualitesPages = disabledFeatures.has("actualites-sociales") || actualitesClosedByLaunchGate
     ? [] : actualitesPages;
-  const visiblePublicPages = actualitesClosedByLaunchGate
-    ? publicPages.filter((page) => page.path !== "/actualites")
-    : publicPages;
+  const visiblePublicPages = publicPages.filter((page) => (
+    (!actualitesClosedByLaunchGate || page.path !== "/actualites")
+    && (!restaurantsClosedByLaunchGate || !page.path.startsWith("/restaurants"))
+  ));
   const pages = dedupePages([...visiblePublicPages, ...restaurantPages, ...enabledActualitesPages]);
   const minimumInventoryForLocalPage = (page) =>
     page.localPageType === "city" ? MIN_LOCAL_RESTAURANTS : MIN_SPECIALIZED_LOCAL_RESTAURANTS;
