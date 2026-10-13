@@ -326,12 +326,12 @@ function routeWorkflow(route: GuideRouteEntry, title: string): RouteWorkflow {
       prerequisites: ["Être connecté avec un rôle restaurateur autorisé.", "Vérifier le nom de l’établissement actif dans la navigation.", ...gate],
       steps: [
         `Depuis le tableau de bord, ouvrir ${route.path}.`,
-        `Contrôler l’état actuel de ${subject} avant toute modification.`,
+        `Contrôler l’état actuel concernant ${subject} avant toute modification.`,
         "Utiliser la recherche, les filtres ou l’action principale pour cibler l’élément concerné.",
         "Renseigner les champs obligatoires, relire les valeurs sensibles puis enregistrer.",
         "Vérifier le message de confirmation et l’état final dans la liste ou l’aperçu.",
       ],
-      expectedResults: [`La page affiche un état cohérent de ${subject}.`, "Toute modification validée est visible dans le récapitulatif ou dans l’écran public correspondant."],
+      expectedResults: [`La page affiche un état cohérent concernant ${subject}.`, "Toute modification validée est visible dans le récapitulatif ou dans l’écran public correspondant."],
       safeguards: ["Ne jamais changer d’établissement pendant une saisie non enregistrée.", "Pour une publication, un paiement ou une connexion partenaire, distinguer la préparation de la confirmation externe."],
     };
   }
@@ -355,7 +355,7 @@ function routeWorkflow(route: GuideRouteEntry, title: string): RouteWorkflow {
         "Préparer l’action, lire son impact et demander la confirmation lorsque l’interface l’exige.",
         "Après exécution, contrôler le nouvel état et la trace d’audit.",
       ],
-      expectedResults: [`Une vue vérifiable de ${subject} est disponible.`, "Toute action autorisée produit un état final explicite et, lorsqu’applicable, une trace d’audit."],
+      expectedResults: [`Une vue vérifiable concernant ${subject} est disponible.`, "Toute action autorisée produit un état final explicite et, lorsqu’applicable, une trace d’audit."],
       safeguards: ["Ne jamais utiliser le back-office pour contourner un contrôle de rôle, un verrou financier ou une règle de production.", "Ne pas exposer de données personnelles dans une capture, un export ou un rapport de diligence."],
     };
   }
