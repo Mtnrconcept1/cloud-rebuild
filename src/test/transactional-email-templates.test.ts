@@ -100,6 +100,9 @@ describe("transactional order and reservation emails", () => {
     expect(email.bodyHtml).toContain("/logotok.png");
     expect(email.bodyHtml).toContain("/chef2.png");
     expect(email.bodyHtml).toContain("/images/octopus-fine-dining.jpeg");
+    expect(email.bodyHtml).toContain("/images/emails/tok-reservation-hero.webp");
+    expect(email.bodyHtml).toContain('class="tok-hero-desktop"');
+    expect(email.bodyHtml).toContain('class="tok-hero-mobile"');
     expect(email.bodyHtml).toContain("/images/mixed-grill-platter.jpeg");
     expect(email.bodyHtml).toContain("@media only screen and (max-width:600px)");
     expect(email.bodyHtml).toContain("width:50%!important");
