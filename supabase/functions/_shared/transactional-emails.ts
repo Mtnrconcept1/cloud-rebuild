@@ -456,15 +456,16 @@ function buildReservationCustomerShell(input: ReservationConfirmationEmailInput)
    <tr><td align="center" style="padding:20px 8px;">
     <table role="presentation" class="tok-wrap" width="700" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="width:100%;max-width:700px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;border-collapse:separate;">
       <tr class="tok-hero-desktop"><td bgcolor="#20140e" style="background-color:#20140e;">
-        <img src="${escapeHtml(assetUrl(base, "/images/emails/tok-reservation-hero.webp"))}" alt="TOK : votre réservation est confirmée, bon appétit et à très bientôt" width="700" style="display:block;width:100%;max-width:700px;height:auto;border:0;">
+        <img src="${escapeHtml(assetUrl(base, "/images/emails/tok-reservation-hero.jpg"))}" alt="TOK : votre réservation est confirmée, bon appétit et à très bientôt" width="700" height="350" style="display:block;width:100%;max-width:700px;height:auto;border:0;color:#ffffff;background-color:#20140e;">
       </td></tr>
       <tr class="tok-desktop-intro"><td class="tok-pad" style="padding:23px 30px 0;background:#ffffff;">
+        <h2 style="margin:0 0 11px;font-size:22px;font-weight:900;color:#e94816;">Votre réservation est confirmée !</h2>
         <p style="margin:0 0 8px;font-size:18px;color:#111827;font-weight:900;">Bonjour ${escapeHtml(input.customerName || "cher client")},</p>
         <p style="margin:0;font-size:14px;line-height:1.65;color:#334155;">Excellente nouvelle ! Votre table chez <strong>${escapeHtml(input.restaurantName)}</strong> est bien enregistrée. Toute l'équipe a hâte de vous accueillir pour un moment gourmand et convivial.</p>
       </td></tr>
-      <tr class="tok-hero-mobile" style="display:none;max-height:0;overflow:hidden;"><td bgcolor="#20140e" background="${hero}" style="padding:28px 32px;background-color:#20140e;background-image:linear-gradient(90deg,rgba(20,14,10,.94),rgba(20,14,10,.78)),url('${hero}');background-position:center;background-size:cover;">
+      <tr class="tok-hero-mobile" style="display:none;max-height:0;overflow:hidden;"><td bgcolor="#20140e" background="${hero}" style="padding:28px 32px;background-color:#20140e;background-image:url('${hero}');background-position:center;background-size:cover;">
        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
-        <td class="tok-hero-copy" width="68%" valign="top" style="width:68%;">
+        <td class="tok-hero-copy" width="68%" valign="top" bgcolor="#20140e" style="width:68%;padding:20px 18px;background-color:rgba(20,14,10,.90);border-radius:12px;">
          <img src="${logo}" alt="TOK" width="78" height="78" style="display:block;width:78px;height:78px;object-fit:contain;border:0;">
          <div style="margin-top:12px;color:#ffffff;font-size:11px;font-weight:700;">Le goût fait maison, livré avec passion.</div>
          <h1 class="tok-heading" style="margin:26px 0 18px;color:#ffffff;font-size:36px;line-height:1.06;">Votre réservation<br>est <span style="color:#ff5a1f;">confirmée !</span></h1>
@@ -502,12 +503,16 @@ function buildReservationCustomerShell(input: ReservationConfirmationEmailInput)
        </tr></table>
       </td></tr>
       <tr><td class="tok-pad" style="padding:24px 26px 0;">
-       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#20140e" style="border-radius:12px;border-collapse:separate;background:#20140e;"><tr><td background="${promo}" bgcolor="#20140e" style="padding:24px;background-color:#20140e;background-image:linear-gradient(90deg,rgba(20,14,10,.97),rgba(20,14,10,.78)),url('${promo}');background-position:center;background-size:cover;">
+       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#20140e" style="border-radius:12px;border-collapse:separate;background:#20140e;"><tr><td background="${promo}" bgcolor="#20140e" style="padding:12px;background-color:#20140e;background-image:url('${promo}');background-position:center;background-size:cover;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#20140e" style="background-color:rgba(20,14,10,.93);border-collapse:separate;border-radius:10px;">
+          <tr><td style="padding:18px 20px;">
         <div style="font-size:12px;color:#ffffff;font-weight:800;">Découvrez aussi</div>
         <div style="font-size:30px;line-height:1.2;color:#ff9b17;font-weight:900;margin:8px 0;">La Tok d’Or &#9819;</div>
         <p style="font-size:13px;line-height:1.6;color:#ffffff;margin:0 0 17px;">Des tables d’exception à prix irrésistibles, avec des offres pouvant aller jusqu’à −70 % selon les disponibilités.</p>
         <a href="${offers}" style="display:inline-block;border:1px solid #ffffff;color:#ffffff;border-radius:8px;text-decoration:none;padding:10px 16px;font-size:13px;font-weight:800;">Voir les offres &rarr;</a>
-       </td></tr></table>
+          </td></tr>
+        </table>
+</td></tr></table>
       </td></tr>
       <tr><td class="tok-pad" style="padding:24px 30px;">
        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
