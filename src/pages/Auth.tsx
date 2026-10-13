@@ -165,6 +165,7 @@ type RestaurateurContractSignature = {
 type SignupLegalAcceptance = {
   termsAccepted: boolean;
   privacyPolicyAccepted: boolean;
+  commissionConsentAccepted?: boolean;
   acceptedAt: string;
   version: string;
 };
@@ -361,10 +362,12 @@ function getSignupValidationError(
 
 function createLegalAcceptancePayload(
   acceptedAt = new Date().toISOString(),
+  commissionConsentAccepted = false,
 ): SignupLegalAcceptance {
   return {
     termsAccepted: true,
     privacyPolicyAccepted: true,
+    commissionConsentAccepted,
     acceptedAt,
     version: LEGAL_ACCEPTANCE_VERSION,
   };
@@ -377,6 +380,11 @@ function toLegalAcceptanceMetadata(legalAcceptance: SignupLegalAcceptance) {
     legal_terms_accepted_at: legalAcceptance.acceptedAt,
     privacy_policy_accepted_at: legalAcceptance.acceptedAt,
     legal_acceptance_version: legalAcceptance.version,
+    ...(legalAcceptance.commissionConsentAccepted === true ? {
+      commission_auto_debit_consent_version: "v1",
+      commission_auto_debit_consent_accepted_at: legalAcceptance.acceptedAt,
+      commission_auto_debit_consent_accepted: true,
+    } : {}),
   };
 }
 
@@ -969,6 +977,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   ] = useState<SignupSubscriptionBillingPeriod>("monthly");
   const [legalAccepted, setLegalAccepted] = useState(false);
   const [legalAcceptanceDraft, setLegalAcceptanceDraft] = useState(false);
+  const [commissionConsentDraft, setCommissionConsentDraft] = useState(false);
   const [contractSignerName, setContractSignerName] = useState("");
   const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
   const [subscriptionPlans, setSubscriptionPlans] = useState<
@@ -1336,10 +1345,14 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             safe.privacy_policy_accepted_at ||
             "",
         );
-        const recoveredLegalAccepted = Boolean(acceptedAt);
+        const recoveredCommissionConsent = recovery?.legalAcceptance.commissionConsentAccepted === true
+          || safe.commission_auto_debit_consent_version === "v1";
+        const recoveredLegalAccepted = Boolean(acceptedAt) &&
+          (draft.requested_role !== "restaurateur" || recoveredCommissionConsent);
         const recoveredLegalAcceptance: SignupLegalAcceptance = {
           termsAccepted: recoveredLegalAccepted,
           privacyPolicyAccepted: recoveredLegalAccepted,
+          commissionConsentAccepted: recoveredCommissionConsent,
           acceptedAt,
           version:
             recovery?.legalAcceptance.version || LEGAL_ACCEPTANCE_VERSION,
@@ -1383,6 +1396,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           setDocuments(recoveredDocuments);
           setLegalAccepted(recoveredLegalAccepted);
           setLegalAcceptanceDraft(recoveredLegalAccepted);
+          setCommissionConsentDraft(recoveredCommissionConsent);
           if (recoveredOnboardingChoices) {
             setSelectedSubscriptionPlanId(
               recoveredOnboardingChoices.subscriptionPlanId,
@@ -1879,7 +1893,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         signupForm.vehicleType,
       );
       const submittedOnboardingChoices = restaurateurOnboardingChoices;
-      const submittedLegalAcceptance = createLegalAcceptancePayload();
+      const submittedLegalAcceptance = createLegalAcceptancePayload(
+        new Date().toISOString(),
+        submittedRole === "restaurateur" && commissionConsentDraft,
+      );
       const submittedContractSignature: RestaurateurContractSignature = {
         signerName: contractSignerName,
         signatureDataUrl: contractSignatureDataUrl,
@@ -1897,6 +1914,9 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         !isContinuingConfirmedSignup,
       );
       if (validationError) throw new Error(validationError);
+      if (submittedRole === "restaurateur" && !commissionConsentDraft) {
+        throw new Error("Autorisez les prélèvements de l'abonnement et des commissions avant de continuer.");
+      }
       if (!isContinuingConfirmedSignup && isCaptchaEnabled() && !captchaToken) {
         throw new Error("Validation anti-abus requise.");
       }
@@ -3118,6 +3138,26 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                         de TOK.
                       </div>
                     </div>
+                    {roleMode === "restaurateur" ? (
+                      <div className="mt-3 flex items-start gap-3 rounded-2xl border border-primary/25 bg-primary/5 p-4 text-left text-sm">
+                        <Checkbox
+                          id="commission-mandate-consent"
+                          checked={commissionConsentDraft}
+                          onCheckedChange={(checked) => setCommissionConsentDraft(checked === true)}
+                          aria-label="J'autorise le prélèvement automatique des abonnements et commissions TOK"
+                          className="mt-0.5"
+                        />
+                        <label htmlFor="commission-mandate-consent" className="cursor-pointer leading-6 text-slate-700">
+                          J'autorise TOK à enregistrer ma carte via Stripe et à débiter
+                          l'abonnement choisi dès la première véritable réservation,
+                          puis à chaque échéance mensuelle ou annuelle. J'autorise
+                          aussi le prélèvement de CHF 5 par table réellement honorée,
+                          jamais par personne. Aucun montant n'est bloqué à
+                          l'inscription ; les paiements refusés ou nécessitant
+                          une authentification bancaire restent à confirmer.
+                        </label>
+                      </div>
+                    ) : null}
                     <p className="mt-4 text-center text-xs leading-5 text-slate-500">
                       Cochez la case, puis confirmez votre choix. La fenêtre
                       reste ouverte tant que vous n'avez pas accepté ou refusé.
@@ -3128,6 +3168,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                         variant="outline"
                         onClick={() => {
                           setLegalAcceptanceDraft(false);
+                          setCommissionConsentDraft(false);
                           setLegalAccepted(false);
                           setIsLogin(true);
                           setForgotPassword(false);
@@ -3137,7 +3178,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                       </Button>
                       <Button
                         type="button"
-                        disabled={!legalAcceptanceDraft}
+                        disabled={!legalAcceptanceDraft || (roleMode === "restaurateur" && !commissionConsentDraft)}
                         onClick={() => setLegalAccepted(true)}
                       >
                         Accepter et continuer
