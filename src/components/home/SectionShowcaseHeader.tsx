@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, type LucideIcon } from "lucide-react";
 
@@ -49,6 +49,32 @@ export default function SectionShowcaseHeader({
   actions,
 }: SectionShowcaseHeaderProps) {
   const photographic = imageSrc.startsWith("/images/section-headers/tok-editorial-");
+  const visualRef = useRef<HTMLDivElement>(null);
+  const [shouldLoadImage, setShouldLoadImage] = useState(!photographic);
+
+  useEffect(() => {
+    if (!photographic || shouldLoadImage) return;
+
+    const visual = visualRef.current;
+    if (!visual) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setShouldLoadImage(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setShouldLoadImage(true);
+        observer.disconnect();
+      },
+      { rootMargin: "600px 0px" },
+    );
+
+    observer.observe(visual);
+    return () => observer.disconnect();
+  }, [photographic, shouldLoadImage]);
 
   return (
     <div
@@ -84,9 +110,15 @@ export default function SectionShowcaseHeader({
         ) : null}
       </div>
 
-      <div className={cn("tok-section-header__visual", illustrationClassName)} aria-hidden="true">
+      <div
+        ref={visualRef}
+        className={cn("tok-section-header__visual", illustrationClassName)}
+        aria-hidden="true"
+        data-image-ready={!photographic || shouldLoadImage}
+      >
         <img
-          src={imageSrc}
+          src={!photographic || shouldLoadImage ? imageSrc : undefined}
+          data-deferred-src={photographic ? imageSrc : undefined}
           alt=""
           width={photographic ? 2508 : 600}
           height={photographic ? 627 : 340}

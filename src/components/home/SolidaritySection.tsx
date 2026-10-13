@@ -38,12 +38,21 @@ export default function SolidaritySection({ donatedPoints }: SolidaritySectionPr
           </p>
 
           <picture>
-            <source media="(max-width: 767px)" srcSet="/Miamz3.webp" type="image/webp" />
+            <source
+              media="(max-width: 767px)"
+              srcSet="/Miamz3.webp"
+              type="image/webp"
+              width={1370}
+              height={1685}
+            />
             <img
               src="/Miamz2.webp"
               alt="Miamz solidaire Tok"
-              className="block w-full"
+              width={1370}
+              height={1352}
+              className="block h-auto w-full"
               loading="lazy"
+              decoding="async"
             />
           </picture>
 
