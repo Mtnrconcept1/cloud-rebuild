@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "a47fa5ae551872eaca5f52c6385e010fc498e07d6539c02aaf361757699407f3",
+ "sourceDigest": "16f7630b60d496d5bb05fcc1c9afea7bcbbd5495103f41f11de4198dd1a3f2ee",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -20,12 +20,12 @@
   "migrations": 533,
   "modules": 1538,
   "pages": 129,
-  "pathLiterals": 694,
+  "pathLiterals": 695,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16499,
+  "records": 16500,
   "repositoryFiles": 3068,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -26458,6 +26458,15 @@
     ]
    },
    {
+    "value": "/rest/v1/feature_flags",
+    "sources": [
+     {
+      "path": "scripts/test-golden-tok-responsive.mjs",
+      "line": 47
+     }
+    ]
+   },
+   {
     "value": "/rest/v1/rpc/",
     "sources": [
      {
@@ -27817,7 +27826,7 @@
     "sources": [
      {
       "path": "scripts/test-golden-tok-responsive.mjs",
-      "line": 47
+      "line": 55
      }
     ]
    },
@@ -83597,7 +83606,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 130
+    "lineCount": 138
    },
    {
     "path": "scripts/test-print-protocol-postgres.mjs",
@@ -130629,7 +130638,7 @@
    "id": "code-module:f473faa38d50",
    "type": "code-module",
    "title": "scripts/test-golden-tok-responsive.mjs",
-   "description": "Module de 130 lignes; exports: aucun export statique.",
+   "description": "Module de 138 lignes; exports: aucun export statique.",
    "path": "scripts/test-golden-tok-responsive.mjs",
    "line": 1,
    "surface": null,
@@ -130638,7 +130647,7 @@
     "GOLDEN_TOK_TEST_URL",
     "supabase"
    ],
-   "detailRef": "f422b3aca0ab"
+   "detailRef": "e1b16e8287ad"
   },
   {
    "id": "code-module:325f58f098fe",
@@ -354840,6 +354849,19 @@
    "detailRef": "d10c652398cd"
   },
   {
+   "id": "path-literal:487ade4d22b4",
+   "type": "path-literal",
+   "title": "/rest/v1/feature_flags",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/test-golden-tok-responsive.mjs",
+   "line": 47,
+   "surface": null,
+   "tags": [
+    "scripts/test-golden-tok-responsive.mjs"
+   ],
+   "detailRef": "356298769e0f"
+  },
+  {
    "id": "path-literal:9776c0c8b22a",
    "type": "path-literal",
    "title": "/rest/v1/rpc/",
@@ -356069,17 +356091,17 @@
    "detailRef": "50953b4927c6"
   },
   {
-   "id": "path-literal:ba2885163265",
+   "id": "path-literal:7c41902a347f",
    "type": "path-literal",
    "title": "/rpc/get_launch_gate_state",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/test-golden-tok-responsive.mjs",
-   "line": 47,
+   "line": 55,
    "surface": null,
    "tags": [
     "scripts/test-golden-tok-responsive.mjs"
    ],
-   "detailRef": "180a66c7ef1f"
+   "detailRef": "ebf441fec8f8"
   },
   {
    "id": "path-literal:d63d9fbbcb79",
