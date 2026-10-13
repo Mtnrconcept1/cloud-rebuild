@@ -30,7 +30,7 @@ export function getPostAuthTargetForRole(
     return getRoleHomePath(selectedRole);
   }
 
-  if (context.launchEnabled && (selectedRole === "client" || selectedRole === "restaurateur")) {
+  if (context.launchEnabled && selectedRole === "client") {
     return "/coming-soon";
   }
 

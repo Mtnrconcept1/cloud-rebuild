@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "10144cc87deabd367475d787a96c25ee9680382c0f482dc7de432f4d34d530ca",
+ "sourceDigest": "53717ab988649f377ee283ef6c1a564b0b03cd989a143e7cd8e5fa3e1656cab0",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 202,
   "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3422,
+  "exportedSymbols": 3417,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
-  "migrations": 531,
-  "modules": 1516,
+  "migrations": 532,
+  "modules": 1514,
   "pages": 128,
   "pathLiterals": 650,
   "publicAssets": 462,
   "publicEntries": 487,
   "publicNavigableRoutes": 2,
-  "queryParameters": 109,
-  "records": 16221,
-  "repositoryFiles": 2999,
+  "queryParameters": 107,
+  "records": 16211,
+  "repositoryFiles": 2998,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -2956,7 +2956,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 5,
+      "line": 6,
       "kind": "function"
      }
     ],
@@ -4139,12 +4139,12 @@
     "exports": [
      {
       "name": "ADMIN_TOK_CONNECT_LOG_LIMIT",
-      "line": 26,
+      "line": 24,
       "kind": "variable"
      },
      {
       "name": "default",
-      "line": 141,
+      "line": 138,
       "kind": "function"
      }
     ],
@@ -8876,7 +8876,6 @@
     ],
     "actions": [
      "admin-overview",
-     "admin-restaurants",
      "set-restaurant-mcp-access"
     ],
     "environmentNames": [],
@@ -13536,7 +13535,19 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1110
+      "line": 1111
+     },
+     {
+      "path": "src/pages/Auth.tsx",
+      "line": 2325
+     },
+     {
+      "path": "src/pages/ComingSoon.tsx",
+      "line": 17
+     },
+     {
+      "path": "src/pages/ComingSoon.tsx",
+      "line": 36
      },
      {
       "path": "src/pages/LocalRestaurants.tsx",
@@ -13568,18 +13579,22 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 20
+      "line": 50
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 28
+      "line": 65
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 71
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
       "line": 35
      },
      {
@@ -14686,6 +14701,10 @@
       "line": 139
      },
      {
+      "path": "src/lib/launchGate.ts",
+      "line": 33
+     },
+     {
       "path": "src/lib/notificationRouting.ts",
       "line": 129
      },
@@ -14700,10 +14719,6 @@
      {
       "path": "src/pages/Auth.tsx",
       "line": 239
-     },
-     {
-      "path": "src/pages/ComingSoon.tsx",
-      "line": 29
      },
      {
       "path": "src/pages/WorkspaceChooser.tsx",
@@ -14731,11 +14746,11 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 45
+      "line": 103
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -16164,6 +16179,10 @@
       "line": 559
      },
      {
+      "path": "src/components/ComingSoonGate.tsx",
+      "line": 13
+     },
+     {
       "path": "src/components/DirectoryRestaurantOwnershipNotice.tsx",
       "line": 77
      },
@@ -16245,7 +16264,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 17
+      "line": 24
      },
      {
       "path": "src/lib/marketingDomains.ts",
@@ -16265,27 +16284,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2221
+      "line": 2215
      },
      {
       "path": "src/pages/ChefsTable.tsx",
       "line": 767
-     },
-     {
-      "path": "src/pages/ComingSoon.tsx",
-      "line": 13
-     },
-     {
-      "path": "src/pages/ComingSoon.tsx",
-      "line": 28
-     },
-     {
-      "path": "src/pages/ComingSoon.tsx",
-      "line": 31
-     },
-     {
-      "path": "src/pages/ComingSoon.tsx",
-      "line": 32
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -16333,15 +16336,11 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 884
+      "line": 887
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 17
-     },
-     {
-      "path": "src/test/coming-soon-signup-page.test.tsx",
-      "line": 43
+      "line": 46
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -16378,6 +16377,15 @@
      {
       "path": "src/test/support-chat-auth-gate.test.tsx",
       "line": 63
+     }
+    ]
+   },
+   {
+    "value": "/auth/",
+    "sources": [
+     {
+      "path": "src/components/ComingSoonGate.tsx",
+      "line": 13
      }
     ]
    },
@@ -16438,7 +16446,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 17
+      "line": 46
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -16636,20 +16644,11 @@
     "sources": [
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 520
+      "line": 523
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 944
-     }
-    ]
-   },
-   {
-    "value": "/auth?mode=recovery",
-    "sources": [
-     {
-      "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 17
+      "line": 947
      }
     ]
    },
@@ -16721,23 +16720,23 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 484
+      "line": 486
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 498
+      "line": 500
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 530
+      "line": 533
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 959
+      "line": 962
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 984
+      "line": 987
      }
     ]
    },
@@ -16746,19 +16745,19 @@
     "sources": [
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 606
+      "line": 609
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 738
+      "line": 741
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 882
+      "line": 885
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 1004
+      "line": 1007
      }
     ]
    },
@@ -16871,7 +16870,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 17
+      "line": 23
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -16891,7 +16890,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3094
+      "line": 3104
      },
      {
       "path": "src/pages/CGU.tsx",
@@ -16899,7 +16898,7 @@
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 34
+      "line": 38
      },
      {
       "path": "src/pages/Cookies.tsx",
@@ -16911,7 +16910,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 17
+      "line": 46
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -17098,7 +17097,7 @@
      },
      {
       "path": "src/components/ComingSoonGate.tsx",
-      "line": 21
+      "line": 31
      },
      {
       "path": "src/lib/authPostLogin.ts",
@@ -17110,7 +17109,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 17
+      "line": 24
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -17118,31 +17117,35 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 886
+      "line": 889
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 10
+      "line": 26
      },
      {
-      "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 29
-     },
-     {
-      "path": "src/test/coming-soon-gate.test.tsx",
+      "path": "src/test/coming-soon-signup-page.test.tsx",
       "line": 36
      },
      {
       "path": "src/test/coming-soon-signup-page.test.tsx",
-      "line": 42
+      "line": 53
      },
      {
       "path": "src/test/coming-soon-signup-page.test.tsx",
-      "line": 75
+      "line": 68
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 89
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 95
      },
      {
       "path": "src/test/launch-state.test.ts",
-      "line": 11
+      "line": 12
      },
      {
       "path": "src/test/route-serving-regression.test.ts",
@@ -17158,16 +17161,16 @@
     "value": "/coming-soon?welcome=1",
     "sources": [
      {
-      "path": "src/pages/Auth.tsx",
-      "line": 1496
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 53
      },
      {
-      "path": "src/pages/Auth.tsx",
-      "line": 2174
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 74
      },
      {
-      "path": "src/pages/Auth.tsx",
-      "line": 2180
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 82
      }
     ]
    },
@@ -17175,20 +17178,12 @@
     "value": "/coming-soon?welcome=1&email=1",
     "sources": [
      {
-      "path": "src/pages/Auth.tsx",
-      "line": 2047
-     },
-     {
-      "path": "src/pages/Auth.tsx",
-      "line": 2125
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 53
      },
      {
       "path": "src/test/coming-soon-signup-page.test.tsx",
-      "line": 58
-     },
-     {
-      "path": "src/test/coming-soon-signup-page.test.tsx",
-      "line": 68
+      "line": 63
      }
     ]
    },
@@ -17324,7 +17319,7 @@
     "sources": [
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
      }
     ]
    },
@@ -17599,7 +17594,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 25
+      "line": 36
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -18143,10 +18138,6 @@
       "line": 191
      },
      {
-      "path": "src/lib/launchGate.ts",
-      "line": 17
-     },
-     {
       "path": "src/lib/legalDocuments.ts",
       "line": 8
      },
@@ -18173,6 +18164,14 @@
      {
       "path": "src/pages/RestaurateursGoogleBusiness.tsx",
       "line": 284
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 42
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 50
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -18302,15 +18301,31 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 17
+      "line": 23
      },
      {
       "path": "src/lib/legalDocuments.ts",
       "line": 7
      },
      {
+      "path": "src/pages/ComingSoon.tsx",
+      "line": 40
+     },
+     {
       "path": "src/pages/Cookies.tsx",
       "line": 22
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 46
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 50
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 76
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -18411,7 +18426,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 24
+      "line": 35
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -18923,7 +18938,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 23
+      "line": 34
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -18950,10 +18965,6 @@
       "line": 814
      },
      {
-      "path": "src/pages/ComingSoon.tsx",
-      "line": 24
-     },
-     {
       "path": "src/pages/dashboard/DashboardHome.tsx",
       "line": 561
      },
@@ -18967,11 +18978,11 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 44
+      "line": 84
      },
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
@@ -19028,15 +19039,6 @@
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
       "line": 209
-     }
-    ]
-   },
-   {
-    "value": "/dashboard-spoof",
-    "sources": [
-     {
-      "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
      }
     ]
    },
@@ -19683,7 +19685,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 42
+      "line": 91
      },
      {
       "path": "src/test/restaurant-onboarding-payments.test.ts",
@@ -20444,15 +20446,15 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 26
+      "line": 32
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 13
+      "line": 18
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 28
+      "line": 21
      },
      {
       "path": "src/test/admin-domain-routing.test.ts",
@@ -20484,11 +20486,15 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 885
+      "line": 888
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
+     },
+     {
+      "path": "src/test/coming-soon-signup-page.test.tsx",
+      "line": 37
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -20508,11 +20514,15 @@
      },
      {
       "path": "src/test/launch-state.test.ts",
-      "line": 12
+      "line": 13
      },
      {
       "path": "src/test/launch-state.test.ts",
-      "line": 12
+      "line": 15
+     },
+     {
+      "path": "src/test/launch-state.test.ts",
+      "line": 15
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -23624,19 +23634,19 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 25
+      "line": 77
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 43
+      "line": 97
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 46
+      "line": 114
      },
      {
       "path": "src/test/commercial-demo-frame.test.ts",
@@ -24259,8 +24269,8 @@
       "line": 583
      },
      {
-      "path": "src/lib/launchGate.ts",
-      "line": 27
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 42
      },
      {
       "path": "src/test/route-serving-regression.test.ts",
@@ -24371,7 +24381,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 17
+      "line": 23
      },
      {
       "path": "src/lib/legalDocuments.ts",
@@ -24383,11 +24393,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3102
+      "line": 3112
      },
      {
       "path": "src/pages/ComingSoon.tsx",
-      "line": 34
+      "line": 39
      },
      {
       "path": "src/pages/Cookies.tsx",
@@ -24407,7 +24417,7 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 17
+      "line": 46
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -24879,7 +24889,15 @@
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
-      "line": 16
+      "line": 42
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 50
+     },
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 109
      },
      {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
@@ -25227,6 +25245,15 @@
      {
       "path": "src/test/restaurant-detail-preview.test.tsx",
       "line": 9
+     }
+    ]
+   },
+   {
+    "value": "/restaurant/123",
+    "sources": [
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 50
      }
     ]
    },
@@ -25698,6 +25725,10 @@
    {
     "value": "/restaurants/geneve",
     "sources": [
+     {
+      "path": "src/test/coming-soon-gate.test.tsx",
+      "line": 50
+     },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
       "line": 119
@@ -28123,11 +28154,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1125
+      "line": 1126
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1126
+      "line": 1127
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -28326,25 +28357,13 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2332
+      "line": 2342
      }
     ],
     "routes": [
      "/auth",
      "/auth/callback",
      "/auth/demo"
-    ]
-   },
-   {
-    "name": "email",
-    "sources": [
-     {
-      "path": "src/pages/ComingSoon.tsx",
-      "line": 10
-     }
-    ],
-    "routes": [
-     "/coming-soon"
     ]
    },
    {
@@ -28734,7 +28753,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1002
+      "line": 1003
      },
      {
       "path": "public/manifest.json",
@@ -29078,7 +29097,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1108
+      "line": 1109
      }
     ],
     "routes": [
@@ -29641,18 +29660,6 @@
     ],
     "routes": [
      "/admin/commandes-reservations"
-    ]
-   },
-   {
-    "name": "welcome",
-    "sources": [
-     {
-      "path": "src/pages/ComingSoon.tsx",
-      "line": 9
-     }
-    ],
-    "routes": [
-     "/coming-soon"
     ]
    },
    {
@@ -30375,6 +30382,7 @@
      "src/lib/env.ts",
      "src/lib/featureFlags.ts",
      "src/lib/iosCommerceFetch.ts",
+     "src/lib/launchGate.ts",
      "src/lib/marketingDomains.ts",
      "src/lib/monitoring.ts",
      "src/lib/nativeOAuth.ts",
@@ -30636,6 +30644,7 @@
      "src/test/incident-secret-sync-readiness.test.ts",
      "src/test/ios-storekit-subscription-management.test.ts",
      "src/test/la-gazelle-dor-seed.test.ts",
+     "src/test/launch-anonymous-browsing.test.ts",
      "src/test/launch-artwork-countdown.test.tsx",
      "src/test/launch-edge-access.test.ts",
      "src/test/launch-pack-ai-quotas.test.ts",
@@ -30807,7 +30816,6 @@
      "src/test/tok-ai-platform-plan.test.ts",
      "src/test/tok-ai-tools.test.ts",
      "src/test/tok-connect-admin-humanized.test.ts",
-     "src/test/tok-connect-admin-pagination.test.ts",
      "src/test/tok-connect-admin-schema-contract.test.ts",
      "src/test/tok-connect-app-bridge.test.ts",
      "src/test/tok-connect-chatgpt-finalization.test.ts",
@@ -34197,6 +34205,12 @@
     "path": "supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql",
     "lineCount": 42,
     "objectCount": 0
+   },
+   {
+    "name": "20261013014557 Launch Guest Discovery Authenticated Clients Only",
+    "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+    "lineCount": 85,
+    "objectCount": 4
    }
   ],
   "databaseObjects": [
@@ -38023,6 +38037,10 @@
      {
       "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
       "line": 81
+     },
+     {
+      "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+      "line": 46
      }
     ]
    },
@@ -39619,6 +39637,10 @@
      {
       "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
       "line": 69
+     },
+     {
+      "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+      "line": 30
      }
     ]
    },
@@ -39629,6 +39651,10 @@
      {
       "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
       "line": 47
+     },
+     {
+      "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+      "line": 5
      }
     ]
    },
@@ -58181,6 +58207,10 @@
      {
       "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
       "line": 115
+     },
+     {
+      "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+      "line": 69
      }
     ]
    },
@@ -82536,13 +82566,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 5,
+      "line": 6,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 23
+    "lineCount": 33
    },
    {
     "path": "src/components/CountdownTimer.tsx",
@@ -83263,19 +83293,6 @@
      "supabase"
     ],
     "lineCount": 477
-   },
-   {
-    "path": "src/components/admin/TokConnectCatalogControls.tsx",
-    "exports": [
-     {
-      "name": "default",
-      "line": 17,
-      "kind": "function"
-     }
-    ],
-    "environmentNames": [],
-    "integrations": [],
-    "lineCount": 52
    },
    {
     "path": "src/components/auth/AccountPasswordForm.tsx",
@@ -88127,34 +88144,6 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 89
-   },
-   {
-    "path": "src/hooks/useTokConnectAdminCatalog.ts",
-    "exports": [
-     {
-      "name": "TokAdminRestaurant",
-      "line": 3,
-      "kind": "typealias"
-     },
-     {
-      "name": "CatalogCategory",
-      "line": 16,
-      "kind": "typealias"
-     },
-     {
-      "name": "CatalogAccess",
-      "line": 17,
-      "kind": "typealias"
-     },
-     {
-      "name": "useTokConnectAdminCatalog",
-      "line": 28,
-      "kind": "function"
-     }
-    ],
-    "environmentNames": [],
-    "integrations": [],
-    "lineCount": 82
    },
    {
     "path": "src/hooks/useTokLogo.ts",
@@ -93545,13 +93534,15 @@
      },
      {
       "name": "launchRouteAllowed",
-      "line": 19,
+      "line": 26,
       "kind": "function"
      }
     ],
     "environmentNames": [],
-    "integrations": [],
-    "lineCount": 29
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 41
    },
    {
     "path": "src/lib/launchPacks.ts",
@@ -99248,7 +99239,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3356
+    "lineCount": 3366
    },
    {
     "path": "src/pages/BudgetAuto.tsx",
@@ -99330,13 +99321,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 5,
+      "line": 6,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 39
+    "lineCount": 45
    },
    {
     "path": "src/pages/Commandes.tsx",
@@ -100318,12 +100309,12 @@
     "exports": [
      {
       "name": "ADMIN_TOK_CONNECT_LOG_LIMIT",
-      "line": 26,
+      "line": 24,
       "kind": "variable"
      },
      {
       "name": "default",
-      "line": 141,
+      "line": 138,
       "kind": "function"
      }
     ],
@@ -100331,7 +100322,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 416
+    "lineCount": 413
    },
    {
     "path": "src/pages/admin/AdminUtilisateurs.tsx",
@@ -102017,7 +102008,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1019
+    "lineCount": 1022
    },
    {
     "path": "src/test/authenticated-security-audit-hardening.test.ts",
@@ -102292,14 +102283,14 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 48
+    "lineCount": 118
    },
    {
     "path": "src/test/coming-soon-signup-page.test.tsx",
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 81
+    "lineCount": 105
    },
    {
     "path": "src/test/commercial-contract-generation.test.ts",
@@ -103791,6 +103782,15 @@
     "lineCount": 75
    },
    {
+    "path": "src/test/launch-anonymous-browsing.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 27
+   },
+   {
     "path": "src/test/launch-artwork-countdown.test.tsx",
     "exports": [],
     "environmentNames": [],
@@ -103840,7 +103840,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 14
+    "lineCount": 17
    },
    {
     "path": "src/test/legacy-provider-cleanup.test.ts",
@@ -106289,15 +106289,6 @@
     "lineCount": 79
    },
    {
-    "path": "src/test/tok-connect-admin-pagination.test.ts",
-    "exports": [],
-    "environmentNames": [],
-    "integrations": [
-     "supabase"
-    ],
-    "lineCount": 43
-   },
-   {
     "path": "src/test/tok-connect-admin-schema-contract.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -107199,7 +107190,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3214,
+      "line": 3196,
       "kind": "function"
      }
     ],
@@ -107211,7 +107202,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3219
+    "lineCount": 3201
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -111090,7 +111081,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 359
+    "lineCount": 283
    },
    {
     "path": "supabase/functions/tok-connect-api/index.ts",
@@ -116734,11 +116725,6 @@
     "extension": ".tsx"
    },
    {
-    "path": "src/components/admin/TokConnectCatalogControls.tsx",
-    "category": "frontend-component",
-    "extension": ".tsx"
-   },
-   {
     "path": "src/components/auth/AccountPasswordForm.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
@@ -117850,11 +117836,6 @@
    },
    {
     "path": "src/hooks/useSponsoredImpressionOnView.ts",
-    "category": "frontend-hook",
-    "extension": ".ts"
-   },
-   {
-    "path": "src/hooks/useTokConnectAdminCatalog.ts",
     "category": "frontend-hook",
     "extension": ".ts"
    },
@@ -121004,6 +120985,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/launch-anonymous-browsing.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/launch-artwork-countdown.test.tsx",
     "category": "test",
     "extension": ".tsx"
@@ -122430,11 +122416,6 @@
    },
    {
     "path": "src/test/tok-connect-admin-humanized.test.ts",
-    "category": "test",
-    "extension": ".ts"
-   },
-   {
-    "path": "src/test/tok-connect-admin-pagination.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -126244,6 +126225,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/actualites_billing_identity_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -128479,14 +128465,14 @@
    "id": "code-module:74e9001c7c67",
    "type": "code-module",
    "title": "src/components/ComingSoonGate.tsx",
-   "description": "Module de 23 lignes; exports: default.",
+   "description": "Module de 33 lignes; exports: default.",
    "path": "src/components/ComingSoonGate.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "2d5d2f4cfcec"
+   "detailRef": "5cacb860bc9c"
   },
   {
    "id": "code-module:3f41c36a4647",
@@ -129129,19 +129115,6 @@
     "supabase"
    ],
    "detailRef": "debbbc5334df"
-  },
-  {
-   "id": "code-module:0c5529e62dd1",
-   "type": "code-module",
-   "title": "src/components/admin/TokConnectCatalogControls.tsx",
-   "description": "Module de 52 lignes; exports: default.",
-   "path": "src/components/admin/TokConnectCatalogControls.tsx",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "default"
-   ],
-   "detailRef": "baf7ec908203"
   },
   {
    "id": "code-module:51351c02ce3b",
@@ -132423,22 +132396,6 @@
    "detailRef": "4adc41a1343b"
   },
   {
-   "id": "code-module:e59a62afe80d",
-   "type": "code-module",
-   "title": "src/hooks/useTokConnectAdminCatalog.ts",
-   "description": "Module de 82 lignes; exports: TokAdminRestaurant, CatalogCategory, CatalogAccess, useTokConnectAdminCatalog.",
-   "path": "src/hooks/useTokConnectAdminCatalog.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "CatalogAccess",
-    "CatalogCategory",
-    "TokAdminRestaurant",
-    "useTokConnectAdminCatalog"
-   ],
-   "detailRef": "869c3054932a"
-  },
-  {
    "id": "code-module:85ab9a02d88a",
    "type": "code-module",
    "title": "src/hooks/useTokLogo.ts",
@@ -134704,7 +134661,7 @@
    "id": "code-module:8f61f2fc7aaf",
    "type": "code-module",
    "title": "src/lib/launchGate.ts",
-   "description": "Module de 29 lignes; exports: LaunchState, parseLaunchState, launchRemaining, launchRouteAllowed.",
+   "description": "Module de 41 lignes; exports: LaunchState, parseLaunchState, launchRemaining, launchRouteAllowed.",
    "path": "src/lib/launchGate.ts",
    "line": 1,
    "surface": null,
@@ -134712,9 +134669,10 @@
     "LaunchState",
     "launchRemaining",
     "launchRouteAllowed",
-    "parseLaunchState"
+    "parseLaunchState",
+    "supabase"
    ],
-   "detailRef": "8c25eb41ffe2"
+   "detailRef": "89c1da28d40c"
   },
   {
    "id": "code-module:1423ece8b4d9",
@@ -137180,7 +137138,7 @@
    "id": "code-module:bf93db106c70",
    "type": "code-module",
    "title": "src/pages/Auth.tsx",
-   "description": "Module de 3356 lignes; exports: default.",
+   "description": "Module de 3366 lignes; exports: default.",
    "path": "src/pages/Auth.tsx",
    "line": 1,
    "surface": null,
@@ -137191,7 +137149,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "b6aeb3d678bf"
+   "detailRef": "722e8b9dfb82"
   },
   {
    "id": "code-module:7a28b76c58b7",
@@ -137267,14 +137225,14 @@
    "id": "code-module:77e25833758b",
    "type": "code-module",
    "title": "src/pages/ComingSoon.tsx",
-   "description": "Module de 39 lignes; exports: default.",
+   "description": "Module de 45 lignes; exports: default.",
    "path": "src/pages/ComingSoon.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "ab26a81e4893"
+   "detailRef": "205347dfab82"
   },
   {
    "id": "code-module:7ecfb97734f1",
@@ -138205,7 +138163,7 @@
    "id": "code-module:3bf7067934a6",
    "type": "code-module",
    "title": "src/pages/admin/AdminTokConnect.tsx",
-   "description": "Module de 416 lignes; exports: ADMIN_TOK_CONNECT_LOG_LIMIT, default.",
+   "description": "Module de 413 lignes; exports: ADMIN_TOK_CONNECT_LOG_LIMIT, default.",
    "path": "src/pages/admin/AdminTokConnect.tsx",
    "line": 1,
    "surface": null,
@@ -138214,7 +138172,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "08e1e080f6e3"
+   "detailRef": "17987264f301"
   },
   {
    "id": "code-module:469ce60ccea0",
@@ -139769,7 +139727,7 @@
    "id": "code-module:4322e22c03e6",
    "type": "code-module",
    "title": "src/test/auth-signup-form.test.tsx",
-   "description": "Module de 1019 lignes; exports: aucun export statique.",
+   "description": "Module de 1022 lignes; exports: aucun export statique.",
    "path": "src/test/auth-signup-form.test.tsx",
    "line": 1,
    "surface": null,
@@ -139779,7 +139737,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "185a6ca98879"
+   "detailRef": "cb2530fa8530"
   },
   {
    "id": "code-module:65a61c431414",
@@ -140175,23 +140133,23 @@
    "id": "code-module:d0beb0c6b87d",
    "type": "code-module",
    "title": "src/test/coming-soon-gate.test.tsx",
-   "description": "Module de 48 lignes; exports: aucun export statique.",
+   "description": "Module de 118 lignes; exports: aucun export statique.",
    "path": "src/test/coming-soon-gate.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "21e9a9ede8b8"
+   "detailRef": "011b85015e38"
   },
   {
    "id": "code-module:cfdd9e21db97",
    "type": "code-module",
    "title": "src/test/coming-soon-signup-page.test.tsx",
-   "description": "Module de 81 lignes; exports: aucun export statique.",
+   "description": "Module de 105 lignes; exports: aucun export statique.",
    "path": "src/test/coming-soon-signup-page.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "50a9e12f7272"
+   "detailRef": "d91b7e1de100"
   },
   {
    "id": "code-module:e839dfa53017",
@@ -142361,6 +142319,19 @@
    "detailRef": "b1501e93c86e"
   },
   {
+   "id": "code-module:fae50965b4aa",
+   "type": "code-module",
+   "title": "src/test/launch-anonymous-browsing.test.ts",
+   "description": "Module de 27 lignes; exports: aucun export statique.",
+   "path": "src/test/launch-anonymous-browsing.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "f1eb24837968"
+  },
+  {
    "id": "code-module:24d99e443c74",
    "type": "code-module",
    "title": "src/test/launch-artwork-countdown.test.tsx",
@@ -142429,12 +142400,12 @@
    "id": "code-module:25386fbabb0c",
    "type": "code-module",
    "title": "src/test/launch-state.test.ts",
-   "description": "Module de 14 lignes; exports: aucun export statique.",
+   "description": "Module de 17 lignes; exports: aucun export statique.",
    "path": "src/test/launch-state.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "ecfb7da35b6e"
+   "detailRef": "f45974b54a8d"
   },
   {
    "id": "code-module:f891840e775d",
@@ -145993,19 +145964,6 @@
    "detailRef": "9a7590a9605e"
   },
   {
-   "id": "code-module:3d912d66f0b0",
-   "type": "code-module",
-   "title": "src/test/tok-connect-admin-pagination.test.ts",
-   "description": "Module de 43 lignes; exports: aucun export statique.",
-   "path": "src/test/tok-connect-admin-pagination.test.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "supabase"
-   ],
-   "detailRef": "cae7e4f140d7"
-  },
-  {
    "id": "code-module:c306e2dd9053",
    "type": "code-module",
    "title": "src/test/tok-connect-admin-schema-contract.test.ts",
@@ -146622,7 +146580,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3219 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3201 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -146636,7 +146594,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "bf576340ab75"
+   "detailRef": "45b986c4fa24"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -149297,14 +149255,14 @@
    "id": "code-module:e4c50a0d224d",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-admin/index.ts",
-   "description": "Module de 359 lignes; exports: aucun export statique.",
+   "description": "Module de 283 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-admin/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "d1a7f62b90a8"
+   "detailRef": "7e96426bfdb7"
   },
   {
    "id": "code-module:7c250bdbaa9d",
@@ -172918,19 +172876,19 @@
    "detailRef": "edd5c9c1f67b"
   },
   {
-   "id": "database-object:6c2c56457eeb",
+   "id": "database-object:0921a995c26a",
    "type": "database-object",
    "title": "public.enforce_launch_gate",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
-   "line": 81,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+   "line": 46,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "bc8c89ec0239"
+   "detailRef": "d056c99fb9b6"
   },
   {
    "id": "database-object:9a55cca5c7fe",
@@ -176008,34 +175966,34 @@
    "detailRef": "ccbd0d0b9b81"
   },
   {
-   "id": "database-object:39dfce10734f",
+   "id": "database-object:7ea98f947bc5",
    "type": "database-object",
    "title": "public.launch_rpc_allowed",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
-   "line": 69,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+   "line": 30,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "a327caf0a6ff"
+   "detailRef": "f2ccf5ed63ba"
   },
   {
-   "id": "database-object:d5b2a3889239",
+   "id": "database-object:d684a3c3b285",
    "type": "database-object",
    "title": "public.launch_table_allowed",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
-   "line": 47,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+   "line": 5,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "55148a4d1877"
+   "detailRef": "c6f23a52d078"
   },
   {
    "id": "database-object:35714b5830e0",
@@ -192913,19 +192871,19 @@
    "detailRef": "87ade0e294d3"
   },
   {
-   "id": "database-object:4917d9e90940",
+   "id": "database-object:fcd486fcf94a",
    "type": "database-object",
    "title": "storage.objects.launch_access_guard",
-   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261010220000_launch_animation_access_gate.sql",
-   "line": 115,
+   "description": "Objet PostgreSQL de type policy; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+   "line": 69,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "664c32a8e475"
+   "detailRef": "980c8c193bf5"
   },
   {
    "id": "database-object:86a613f3a915",
@@ -229849,20 +229807,6 @@
    "detailRef": "2f3dcb5bba32"
   },
   {
-   "id": "edge-action:d54d985a9a14",
-   "type": "edge-action",
-   "title": "admin-restaurants",
-   "description": "Action statiquement détectée dans la fonction Edge tok-connect-admin.",
-   "path": "supabase/functions/tok-connect-admin/index.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "/functions/v1/tok-connect-admin",
-    "tok-connect-admin"
-   ],
-   "detailRef": "5b29648a435c"
-  },
-  {
    "id": "edge-action:e90e70852be7",
    "type": "edge-action",
    "title": "admin_mappings",
@@ -233175,11 +233119,10 @@
    "tags": [
     "POST",
     "admin-overview",
-    "admin-restaurants",
     "set-restaurant-mcp-access",
     "supabase"
    ],
-   "detailRef": "2ce3eca7bdcc"
+   "detailRef": "23e9209e7bd5"
   },
   {
    "id": "edge-function:d39678843030",
@@ -236174,18 +236117,18 @@
    "detailRef": "936b52ede148"
   },
   {
-   "id": "exported-symbol:7ae8621bfc99",
+   "id": "exported-symbol:6975fdd23e8f",
    "type": "exported-symbol",
    "title": "ADMIN_TOK_CONNECT_LOG_LIMIT",
    "description": "Export variable de src/pages/admin/AdminTokConnect.tsx.",
    "path": "src/pages/admin/AdminTokConnect.tsx",
-   "line": 26,
+   "line": 24,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "61f8fcd1f25a"
+   "detailRef": "ef665cb84e90"
   },
   {
    "id": "exported-symbol:5cd4273fe721",
@@ -239185,32 +239128,6 @@
     "function"
    ],
    "detailRef": "c641decfb13c"
-  },
-  {
-   "id": "exported-symbol:e1dc8f12e1bb",
-   "type": "exported-symbol",
-   "title": "CatalogAccess",
-   "description": "Export typealias de src/hooks/useTokConnectAdminCatalog.ts.",
-   "path": "src/hooks/useTokConnectAdminCatalog.ts",
-   "line": 17,
-   "surface": null,
-   "tags": [
-    "typealias"
-   ],
-   "detailRef": "2ebb663dd579"
-  },
-  {
-   "id": "exported-symbol:cc451754b1af",
-   "type": "exported-symbol",
-   "title": "CatalogCategory",
-   "description": "Export typealias de src/hooks/useTokConnectAdminCatalog.ts.",
-   "path": "src/hooks/useTokConnectAdminCatalog.ts",
-   "line": 16,
-   "surface": null,
-   "tags": [
-    "typealias"
-   ],
-   "detailRef": "0f65c051e3d6"
   },
   {
    "id": "exported-symbol:4ff18e4bbaaa",
@@ -245181,6 +245098,7 @@
    "line": 3,
    "surface": null,
    "tags": [
+    "supabase",
     "typealias"
    ],
    "detailRef": "6a50769ebe0a"
@@ -255270,19 +255188,6 @@
    "detailRef": "a15eda20885a"
   },
   {
-   "id": "exported-symbol:6ecff8b662ea",
-   "type": "exported-symbol",
-   "title": "TokAdminRestaurant",
-   "description": "Export typealias de src/hooks/useTokConnectAdminCatalog.ts.",
-   "path": "src/hooks/useTokConnectAdminCatalog.ts",
-   "line": 3,
-   "surface": null,
-   "tags": [
-    "typealias"
-   ],
-   "detailRef": "dbcf1c39abcb"
-  },
-  {
    "id": "exported-symbol:87f201937d01",
    "type": "exported-symbol",
    "title": "TokAiMessage",
@@ -261488,17 +261393,17 @@
    "detailRef": "73328efdea37"
   },
   {
-   "id": "exported-symbol:da50adc6fcae",
+   "id": "exported-symbol:f83f1351ef6a",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/ComingSoonGate.tsx.",
    "path": "src/components/ComingSoonGate.tsx",
-   "line": 5,
+   "line": 6,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "e5bf779a1bbc"
+   "detailRef": "232de49df979"
   },
   {
    "id": "exported-symbol:dfa453ea3998",
@@ -262102,19 +262007,6 @@
     "supabase"
    ],
    "detailRef": "c31d75e6188a"
-  },
-  {
-   "id": "exported-symbol:282af76f3648",
-   "type": "exported-symbol",
-   "title": "default",
-   "description": "Export function de src/components/admin/TokConnectCatalogControls.tsx.",
-   "path": "src/components/admin/TokConnectCatalogControls.tsx",
-   "line": 17,
-   "surface": null,
-   "tags": [
-    "function"
-   ],
-   "detailRef": "f6ad11948f69"
   },
   {
    "id": "exported-symbol:f6c3e385537b",
@@ -263903,17 +263795,17 @@
    "detailRef": "67b9c2f5a8dd"
   },
   {
-   "id": "exported-symbol:6c101d2d897a",
+   "id": "exported-symbol:e5d2aaa65b11",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/ComingSoon.tsx.",
    "path": "src/pages/ComingSoon.tsx",
-   "line": 5,
+   "line": 6,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "e5bf779a1bbc"
+   "detailRef": "232de49df979"
   },
   {
    "id": "exported-symbol:2138778a9cf2",
@@ -264841,18 +264733,18 @@
    "detailRef": "eeb2f870fc3e"
   },
   {
-   "id": "exported-symbol:4bafcb6cc2d1",
+   "id": "exported-symbol:5003fe71b8c1",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/admin/AdminTokConnect.tsx.",
    "path": "src/pages/admin/AdminTokConnect.tsx",
-   "line": 141,
+   "line": 138,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "845e54510aab"
+   "detailRef": "501c05f603c3"
   },
   {
    "id": "exported-symbol:c8660832f0dc",
@@ -274806,22 +274698,24 @@
    "line": 13,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
    "detailRef": "f47fc93afccd"
   },
   {
-   "id": "exported-symbol:42d3ab4d9015",
+   "id": "exported-symbol:76273cdcaea8",
    "type": "exported-symbol",
    "title": "launchRouteAllowed",
    "description": "Export function de src/lib/launchGate.ts.",
    "path": "src/lib/launchGate.ts",
-   "line": 19,
+   "line": 26,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "b914f3a20d4e"
+   "detailRef": "d2d9ee218b50"
   },
   {
    "id": "exported-symbol:c62481f95841",
@@ -275094,12 +274988,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:9d5e486ea779",
+   "id": "exported-symbol:2e7fa1934ff2",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3214,
+   "line": 3196,
    "surface": null,
    "tags": [
     "firebase",
@@ -275109,7 +275003,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "c62a25ac128f"
+   "detailRef": "ec44ba1b5b6d"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -276933,7 +276827,8 @@
    "line": 4,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
    "detailRef": "6c4691cbada4"
   },
@@ -282588,19 +282483,6 @@
     "supabase"
    ],
    "detailRef": "1a412ea41ded"
-  },
-  {
-   "id": "exported-symbol:67b1bc0d841b",
-   "type": "exported-symbol",
-   "title": "useTokConnectAdminCatalog",
-   "description": "Export function de src/hooks/useTokConnectAdminCatalog.ts.",
-   "path": "src/hooks/useTokConnectAdminCatalog.ts",
-   "line": 28,
-   "surface": null,
-   "tags": [
-    "function"
-   ],
-   "detailRef": "93b39dea0752"
   },
   {
    "id": "exported-symbol:0eb5cdbcc623",
@@ -299345,20 +299227,6 @@
    "detailRef": "78119aa064a9"
   },
   {
-   "id": "file:0f1b4d12a4a2",
-   "type": "file",
-   "title": "src/components/admin/TokConnectCatalogControls.tsx",
-   "description": "Fichier du dépôt classé frontend-component.",
-   "path": "src/components/admin/TokConnectCatalogControls.tsx",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".tsx",
-    "frontend-component"
-   ],
-   "detailRef": "8c5038ea745e"
-  },
-  {
    "id": "file:001e9b963fa1",
    "type": "file",
    "title": "src/components/auth/AccountPasswordForm.tsx",
@@ -302479,20 +302347,6 @@
     "frontend-hook"
    ],
    "detailRef": "2358bb6259c9"
-  },
-  {
-   "id": "file:44cd592fbcf0",
-   "type": "file",
-   "title": "src/hooks/useTokConnectAdminCatalog.ts",
-   "description": "Fichier du dépôt classé frontend-hook.",
-   "path": "src/hooks/useTokConnectAdminCatalog.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "frontend-hook"
-   ],
-   "detailRef": "90605565e8ff"
   },
   {
    "id": "file:8a95f36d6e23",
@@ -311301,6 +311155,20 @@
    "detailRef": "eaa207f9fa05"
   },
   {
+   "id": "file:dde6a6f4e3f0",
+   "type": "file",
+   "title": "src/test/launch-anonymous-browsing.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/launch-anonymous-browsing.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "38ba86d79981"
+  },
+  {
    "id": "file:b102646c12a9",
    "type": "file",
    "title": "src/test/launch-artwork-countdown.test.tsx",
@@ -315303,20 +315171,6 @@
     "test"
    ],
    "detailRef": "3f66c39a4d2f"
-  },
-  {
-   "id": "file:6a09d3e271e1",
-   "type": "file",
-   "title": "src/test/tok-connect-admin-pagination.test.ts",
-   "description": "Fichier du dépôt classé test.",
-   "path": "src/test/tok-connect-admin-pagination.test.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "test"
-   ],
-   "detailRef": "1785cffd89b0"
   },
   {
    "id": "file:ddc1cd8dc206",
@@ -325973,6 +325827,20 @@
    "detailRef": "093fc94be624"
   },
   {
+   "id": "file:a79fd9f6fcfe",
+   "type": "file",
+   "title": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "394e1a59697e"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -329830,7 +329698,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 678 module(s).",
+   "description": "Intégration externe détectée dans 679 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -329975,6 +329843,7 @@
     "src/lib/env.ts",
     "src/lib/featureFlags.ts",
     "src/lib/iosCommerceFetch.ts",
+    "src/lib/launchGate.ts",
     "src/lib/marketingDomains.ts",
     "src/lib/monitoring.ts",
     "src/lib/nativeOAuth.ts",
@@ -330236,6 +330105,7 @@
     "src/test/incident-secret-sync-readiness.test.ts",
     "src/test/ios-storekit-subscription-management.test.ts",
     "src/test/la-gazelle-dor-seed.test.ts",
+    "src/test/launch-anonymous-browsing.test.ts",
     "src/test/launch-artwork-countdown.test.tsx",
     "src/test/launch-edge-access.test.ts",
     "src/test/launch-pack-ai-quotas.test.ts",
@@ -330407,7 +330277,6 @@
     "src/test/tok-ai-platform-plan.test.ts",
     "src/test/tok-ai-tools.test.ts",
     "src/test/tok-connect-admin-humanized.test.ts",
-    "src/test/tok-connect-admin-pagination.test.ts",
     "src/test/tok-connect-admin-schema-contract.test.ts",
     "src/test/tok-connect-app-bridge.test.ts",
     "src/test/tok-connect-chatgpt-finalization.test.ts",
@@ -330515,7 +330384,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "66adde9363f2"
+   "detailRef": "565068021ed0"
   },
   {
    "id": "integration:c20910a79a78",
@@ -338617,6 +338486,20 @@
    "detailRef": "a6584df928a6"
   },
   {
+   "id": "migration:31aa3cf8f51a",
+   "type": "migration",
+   "title": "20261013014557 Launch Guest Discovery Authenticated Clients Only",
+   "description": "Migration SQL de 85 lignes, 4 objets CREATE détectés.",
+   "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "b8e5de905eba"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -340011,7 +339894,7 @@
     "/admin/tok-connect",
     "supabase"
    ],
-   "detailRef": "2025b5cb462a"
+   "detailRef": "f5d977b53b68"
   },
   {
    "id": "page:23fdf92a043b",
@@ -340171,7 +340054,7 @@
    "tags": [
     "/coming-soon"
    ],
-   "detailRef": "d9298b17c791"
+   "detailRef": "1c5d5746843e"
   },
   {
    "id": "page:20d7738531bc",
@@ -341500,7 +341383,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 235 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 239 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -341569,6 +341452,7 @@
     "src/lib/stripeReturn.ts",
     "src/pages/APropos.tsx",
     "src/pages/Auth.tsx",
+    "src/pages/ComingSoon.tsx",
     "src/pages/LocalRestaurants.tsx",
     "src/pages/NotFound.tsx",
     "src/pages/Profil.tsx",
@@ -341576,6 +341460,7 @@
     "src/pages/TokConnect.tsx",
     "src/test/admin-domain-routing.test.ts",
     "src/test/coming-soon-gate.test.tsx",
+    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/daily-slot-machine-security.test.ts",
     "src/test/dashboard-illustrations.test.ts",
@@ -341619,7 +341504,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "1e7f0b468fb8"
+   "detailRef": "9d19f664ba1f"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -342641,10 +342526,10 @@
     "src/lib/adminDomains.ts",
     "src/lib/backNavigation.ts",
     "src/lib/featureFlags.ts",
+    "src/lib/launchGate.ts",
     "src/lib/notificationRouting.ts",
     "src/lib/roleAccess.ts",
     "src/pages/Auth.tsx",
-    "src/pages/ComingSoon.tsx",
     "src/pages/WorkspaceChooser.tsx",
     "src/pages/admin/AdminLaunchPacks.tsx",
     "src/test/admin-domain-routing.test.ts",
@@ -342659,7 +342544,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "47e794fc9c66"
+   "detailRef": "a960decf7e55"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -342996,6 +342881,19 @@
    "detailRef": "18ad6ee0bfef"
   },
   {
+   "id": "path-literal:01e229a7f116",
+   "type": "path-literal",
+   "title": "/auth/",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/ComingSoonGate.tsx",
+   "line": 13,
+   "surface": null,
+   "tags": [
+    "src/components/ComingSoonGate.tsx"
+   ],
+   "detailRef": "bcba9d109ca4"
+  },
+  {
    "id": "path-literal:48f55307f5c7",
    "type": "path-literal",
    "title": "/auth/callback",
@@ -343017,7 +342915,7 @@
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "17951adbabdd"
+   "detailRef": "d7b0bb41a445"
   },
   {
    "id": "path-literal:7e02e7d7b2d4",
@@ -343132,13 +343030,14 @@
    "id": "path-literal:f57b02c91322",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 56 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 52 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1225,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
     "src/App.tsx",
+    "src/components/ComingSoonGate.tsx",
     "src/components/DirectoryRestaurantOwnershipNotice.tsx",
     "src/components/Navbar.tsx",
     "src/components/ProtectedRoute.tsx",
@@ -343159,7 +343058,6 @@
     "src/lib/stripeReturn.ts",
     "src/pages/Auth.tsx",
     "src/pages/ChefsTable.tsx",
-    "src/pages/ComingSoon.tsx",
     "src/pages/CommercialProspection.tsx",
     "src/pages/GiftPoints.tsx",
     "src/pages/MatchGroupes.tsx",
@@ -343170,14 +343068,13 @@
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
-    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/home-mobile-newsletter.test.tsx",
     "src/test/monitoring-consent.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "236206b4624c"
+   "detailRef": "f87bd3a5d4df"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -343193,30 +343090,17 @@
    "detailRef": "8130f837ff8f"
   },
   {
-   "id": "path-literal:977886af64b6",
+   "id": "path-literal:5e6ef4a2312f",
    "type": "path-literal",
    "title": "/auth?confirmed=1",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/auth-signup-form.test.tsx",
-   "line": 520,
+   "line": 523,
    "surface": null,
    "tags": [
     "src/test/auth-signup-form.test.tsx"
    ],
-   "detailRef": "eda73f7478f1"
-  },
-  {
-   "id": "path-literal:27784688802a",
-   "type": "path-literal",
-   "title": "/auth?mode=recovery",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/coming-soon-gate.test.tsx",
-   "line": 17,
-   "surface": null,
-   "tags": [
-    "src/test/coming-soon-gate.test.tsx"
-   ],
-   "detailRef": "b486dee17331"
+   "detailRef": "33e066e3ea88"
   },
   {
    "id": "path-literal:7afea8315dad",
@@ -343269,20 +343153,20 @@
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx"
    ],
-   "detailRef": "638a781415a7"
+   "detailRef": "8958e02aca0d"
   },
   {
-   "id": "path-literal:f40bdaba386c",
+   "id": "path-literal:3c153c14003c",
    "type": "path-literal",
    "title": "/auth?type=restaurateur",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/auth-signup-form.test.tsx",
-   "line": 606,
+   "line": 609,
    "surface": null,
    "tags": [
     "src/test/auth-signup-form.test.tsx"
    ],
-   "detailRef": "f5140e32c247"
+   "detailRef": "06a517a01469"
   },
   {
    "id": "path-literal:d822148ab793",
@@ -343373,7 +343257,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "e1ec02c3252c"
+   "detailRef": "f3179124027f"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -343479,7 +343363,7 @@
    "id": "path-literal:4fb16aa3df8b",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 530,
    "surface": null,
@@ -343496,34 +343380,33 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "598fcea14f62"
+   "detailRef": "f974a3762a9d"
   },
   {
-   "id": "path-literal:0ad0fce02bb8",
+   "id": "path-literal:e53adf57f6c1",
    "type": "path-literal",
    "title": "/coming-soon?welcome=1&email=1",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Auth.tsx",
-   "line": 2047,
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/coming-soon-signup-page.test.tsx",
+   "line": 53,
    "surface": null,
    "tags": [
-    "src/pages/Auth.tsx",
     "src/test/coming-soon-signup-page.test.tsx"
    ],
-   "detailRef": "6739a56876e1"
+   "detailRef": "847356372d63"
   },
   {
-   "id": "path-literal:a6290b9b06b5",
+   "id": "path-literal:0b9ed58a0805",
    "type": "path-literal",
    "title": "/coming-soon?welcome=1",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Auth.tsx",
-   "line": 1496,
+   "path": "src/test/coming-soon-signup-page.test.tsx",
+   "line": 53,
    "surface": null,
    "tags": [
-    "src/pages/Auth.tsx"
+    "src/test/coming-soon-signup-page.test.tsx"
    ],
-   "detailRef": "0c9cbb032b74"
+   "detailRef": "7636145115ab"
   },
   {
    "id": "path-literal:708387adb2eb",
@@ -343618,17 +343501,17 @@
    "detailRef": "39bcbf38965d"
   },
   {
-   "id": "path-literal:cba4a82040f6",
+   "id": "path-literal:3fbce223be57",
    "type": "path-literal",
    "title": "/commande/id",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/coming-soon-gate.test.tsx",
-   "line": 16,
+   "line": 42,
    "surface": null,
    "tags": [
     "src/test/coming-soon-gate.test.tsx"
    ],
-   "detailRef": "fb5e2611b657"
+   "detailRef": "1a2f76d115d0"
   },
   {
    "id": "path-literal:7018411a845d",
@@ -343985,7 +343868,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "2c5a8776388d"
+   "detailRef": "2b8b89c37fe2"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -344034,7 +343917,7 @@
    "id": "path-literal:ee9c34d7d537",
    "type": "path-literal",
    "title": "/conditions-restaurateurs",
-   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 16 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1185,
    "surface": null,
@@ -344043,16 +343926,16 @@
     "src/App.tsx",
     "src/components/home/FooterSection.tsx",
     "src/hooks/useSeoMeta.ts",
-    "src/lib/launchGate.ts",
     "src/lib/legalDocuments.ts",
     "src/lib/publicFeatureMatrix.ts",
     "src/pages/ConditionsRestaurateurs.tsx",
     "src/pages/Cookies.tsx",
     "src/pages/RestaurateursGoogleBusiness.tsx",
+    "src/test/coming-soon-gate.test.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "4f9ad7d1317c"
+   "detailRef": "3abbb850d659"
   },
   {
    "id": "path-literal:2a26b0d45a67",
@@ -344085,7 +343968,7 @@
    "id": "path-literal:5c1c55111e98",
    "type": "path-literal",
    "title": "/cookies",
-   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1178,
    "surface": null,
@@ -344098,11 +343981,14 @@
     "src/hooks/useSeoMeta.ts",
     "src/lib/launchGate.ts",
     "src/lib/legalDocuments.ts",
+    "src/pages/ComingSoon.tsx",
     "src/pages/Cookies.tsx",
+    "src/test/coming-soon-gate.test.tsx",
+    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "44bef7cc31ad"
+   "detailRef": "1c4df7628bbd"
   },
   {
    "id": "path-literal:72d2d0c1a1f8",
@@ -344239,7 +344125,7 @@
     "src/test/role-access.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "20bf8d726438"
+   "detailRef": "ff543edf1659"
   },
   {
    "id": "path-literal:53f7ddd4b372",
@@ -344262,19 +344148,6 @@
     "src/test/route-serving-regression.test.ts"
    ],
    "detailRef": "029eece8502d"
-  },
-  {
-   "id": "path-literal:4e887d7f6aeb",
-   "type": "path-literal",
-   "title": "/dashboard-spoof",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/coming-soon-gate.test.tsx",
-   "line": 16,
-   "surface": null,
-   "tags": [
-    "src/test/coming-soon-gate.test.tsx"
-   ],
-   "detailRef": "11c7c5107e15"
   },
   {
    "id": "path-literal:d89d7e5d80e3",
@@ -344663,7 +344536,7 @@
     "src/test/restaurant-onboarding-payments.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "a68bdff1f64c"
+   "detailRef": "8921c33cba04"
   },
   {
    "id": "path-literal:59f9fa011e3d",
@@ -345023,7 +344896,7 @@
    "id": "path-literal:388f33a815f3",
    "type": "path-literal",
    "title": "/dashboard",
-   "description": "Chemin référencé dans 79 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 78 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 164,
    "surface": null,
@@ -345050,7 +344923,6 @@
     "src/lib/publicFeatureMatrix.ts",
     "src/lib/roleAccess.ts",
     "src/pages/Auth.tsx",
-    "src/pages/ComingSoon.tsx",
     "src/pages/dashboard/DashboardHome.tsx",
     "src/pages/dashboard/useDashboardRestaurant.ts",
     "src/test/auth-post-login-routing.test.ts",
@@ -345063,7 +344935,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "7cb7a03a1af4"
+   "detailRef": "577ecf54416e"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -345218,7 +345090,7 @@
    "id": "path-literal:7a50cf3ee0ea",
    "type": "path-literal",
    "title": "/espaces",
-   "description": "Chemin référencé dans 24 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 26 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1227,
    "surface": null,
@@ -345233,11 +345105,12 @@
     "src/test/auth-post-login-routing.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
+    "src/test/coming-soon-signup-page.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "6ace6a466018"
+   "detailRef": "33b63c7f0db0"
   },
   {
    "id": "path-literal:26d622419e15",
@@ -348125,7 +347998,7 @@
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "6065bbbd7780"
+   "detailRef": "9e611199b1dc"
   },
   {
    "id": "path-literal:48897d739ef3",
@@ -348419,11 +348292,11 @@
    "surface": null,
    "tags": [
     "src/App.tsx",
-    "src/lib/launchGate.ts",
+    "src/test/coming-soon-gate.test.tsx",
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "5fa269d70834"
+   "detailRef": "b892e16ce28a"
   },
   {
    "id": "path-literal:dcca78612246",
@@ -348491,7 +348364,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "bcf22260a131"
+   "detailRef": "5962c55cd9de"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -348717,7 +348590,7 @@
    "id": "path-literal:f7a8242103a1",
    "type": "path-literal",
    "title": "/recherche",
-   "description": "Chemin référencé dans 67 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 69 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/seo-trust-runtime.js",
    "line": 138,
    "surface": null,
@@ -348765,7 +348638,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "12100118a806"
+   "detailRef": "31092e98edae"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -348956,6 +348829,19 @@
     "src/test/restaurant-detail-preview.test.tsx"
    ],
    "detailRef": "597984386f71"
+  },
+  {
+   "id": "path-literal:a0c57616d659",
+   "type": "path-literal",
+   "title": "/restaurant/123",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/coming-soon-gate.test.tsx",
+   "line": 50,
+   "surface": null,
+   "tags": [
+    "src/test/coming-soon-gate.test.tsx"
+   ],
+   "detailRef": "f21e370c7b58"
   },
   {
    "id": "path-literal:86538a16126d",
@@ -349877,20 +349763,21 @@
    "detailRef": "0b9abf8b0a3e"
   },
   {
-   "id": "path-literal:952f0b083eeb",
+   "id": "path-literal:91dbdec4ab07",
    "type": "path-literal",
    "title": "/restaurants/geneve",
-   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/commercial-domain-isolation.test.ts",
-   "line": 119,
+   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/coming-soon-gate.test.tsx",
+   "line": 50,
    "surface": null,
    "tags": [
+    "src/test/coming-soon-gate.test.tsx",
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/mobile-association-hosting.test.ts",
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/seo-public-name-hardening.test.ts"
    ],
-   "detailRef": "f812b60831f6"
+   "detailRef": "af17b73c613d"
   },
   {
    "id": "path-literal:31608bd1732b",
@@ -358217,7 +358104,7 @@
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "620088410e58"
+   "detailRef": "6f430e6b8cea"
   },
   {
    "id": "query-parameter:e58a726e4a9a",
@@ -358343,30 +358230,17 @@
    "detailRef": "b8e891e32777"
   },
   {
-   "id": "query-parameter:ff7e4f23b3be",
+   "id": "query-parameter:bae83c455f36",
    "type": "query-parameter",
    "title": "domain",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 2332,
+   "line": 2342,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "e2b4b8cb2d57"
-  },
-  {
-   "id": "query-parameter:28a42fb11a0b",
-   "type": "query-parameter",
-   "title": "email",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
-   "path": "src/pages/ComingSoon.tsx",
-   "line": 10,
-   "surface": null,
-   "tags": [
-    "src/pages/ComingSoon.tsx"
-   ],
-   "detailRef": "1dd95c2cbd7e"
+   "detailRef": "a7da9c56ee7c"
   },
   {
    "id": "query-parameter:4b8ca1ad9f1a",
@@ -358728,7 +358602,7 @@
     "public/manifest.json",
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "799f1dc673ed"
+   "detailRef": "f8d89f042823"
   },
   {
    "id": "query-parameter:13ab169c3958",
@@ -359005,17 +358879,17 @@
    "detailRef": "253a489c0969"
   },
   {
-   "id": "query-parameter:bea8d69e69d4",
+   "id": "query-parameter:757af4b148dd",
    "type": "query-parameter",
    "title": "redirect",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 1108,
+   "line": 1109,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "94a7b5eca48b"
+   "detailRef": "89680d4ef903"
   },
   {
    "id": "query-parameter:9c0596468b12",
@@ -359450,19 +359324,6 @@
     "src/pages/admin/AdminOperationsCenter.tsx"
    ],
    "detailRef": "1f47d438fd22"
-  },
-  {
-   "id": "query-parameter:3ec8d61f77ae",
-   "type": "query-parameter",
-   "title": "welcome",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
-   "path": "src/pages/ComingSoon.tsx",
-   "line": 9,
-   "surface": null,
-   "tags": [
-    "src/pages/ComingSoon.tsx"
-   ],
-   "detailRef": "1065e845a882"
   },
   {
    "id": "query-parameter:c8f359edafb0",
