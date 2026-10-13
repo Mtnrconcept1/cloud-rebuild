@@ -1,4 +1,4 @@
-export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-08-v7";
+export const RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-10-v8";
 
 export const RESTAURANT_PARTNER_CONTRACT_TITLE =
   "Contrat de partenariat restaurateur TOK";
@@ -51,6 +51,9 @@ export const RESTAURANT_PARTNER_CONTRACT_SECTIONS = [
       "5. Paiements, annulations, no-show, remboursements et litiges clients",
     paragraphs: [
       "Les paiements peuvent être traités par Stripe, Stripe Connect ou tout prestataire activé par TOK. Le restaurateur fournit des informations de paiement exactes, maintient son compte connecté opérationnel et accepte que les contrôles KYC puissent retarder ou bloquer un versement.",
+      "Par une case distincte à l'inscription, le restaurateur autorise TOK à enregistrer auprès de Stripe une carte réutilisable pour des débits hors session : l'abonnement commence au premier acte client éligible, puis est facturé à chaque échéance mensuelle ou annuelle selon le plan accepté. Chaque table réellement honorée donne lieu à un prélèvement distinct de CHF 5, pas chaque couvert. Les refus bancaires ou authentifications fortes exigent une nouvelle action du restaurateur.",
+      "L'IBAN renseigné dans l'inscription est destiné aux versements au restaurateur : il ne constitue pas un mandat de prélèvement bancaire. L'enregistrement de la carte n'immobilise pas le montant des futures réservations, et une facture n'est comptabilisée comme payée qu'après confirmation effective du prestataire.",
+
       "Les règles d'annulation client, no-show, réservation non honorée, restaurant fermé, client refusé, commande préparée mais non récupérée, rupture de stock, réservation double, erreur de menu, erreur de prix et retard important sont définies dans l'annexe opérationnelle applicable.",
       "Lorsqu'un paiement est capturé sans commande confirmée, lorsqu'une commande est confirmée sans transaction réussie ou lorsqu'un remboursement partiel est nécessaire, TOK peut appliquer une procédure de réconciliation, de remboursement ou d'avoir au moyen d'une procédure documentée.",
       "Les rétrofacturations, contestations bancaires, frais Stripe, remboursements imposés par un prestataire ou litiges clients sont supportés par la partie à l'origine de l'incident lorsque celle-ci peut être déterminée; à défaut, TOK applique les règles de l'annexe tarifaire et conserve les preuves disponibles.",
