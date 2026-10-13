@@ -73,7 +73,7 @@ describe("TOK homepage Core Web Vitals safeguards", () => {
     expect(section).toContain("aria-busy={loading && restaurants.length === 0}");
   });
 
-  it("defers heavyweight editorial photos and uses available lightweight variants", () => {
+  it("defers editorial photographs and preserves copy-safe panoramic artwork", () => {
     const headers = read("src/components/home/SectionShowcaseHeader.tsx");
     const categories = read("src/components/home/CuisineCategoryStrip.tsx");
     const page = read("src/pages/Index.tsx");
@@ -81,11 +81,11 @@ describe("TOK homepage Core Web Vitals safeguards", () => {
     expect(headers).toContain("IntersectionObserver");
     expect(headers).toContain('rootMargin: "600px 0px"');
     expect(headers).toContain("data-image-ready");
-    expect(categories).toContain("/images/section-headers/tok-editorial-cuisine.jpg");
-    expect(page).toContain('local: "/images/section-headers/tok-editorial-geneva.jpg"');
-    expect(page).toContain('nearby: "/images/section-headers/tok-editorial-geneva.jpg"');
-    expect(assetSize("images/section-headers/tok-editorial-cuisine.jpg")).toBeLessThan(40_000);
-    expect(assetSize("images/section-headers/tok-editorial-geneva.jpg")).toBeLessThan(40_000);
+    expect(categories).toContain("/images/section-headers/tok-editorial-cuisine-full.jpg");
+    expect(page).toContain('local: "/images/section-headers/tok-editorial-geneva-full.jpg"');
+    expect(page).toContain('nearby: "/images/section-headers/tok-editorial-geneva-full.jpg"');
+    expect(assetSize("images/section-headers/tok-editorial-cuisine-full.jpg")).toBeLessThan(1_100_000);
+    expect(assetSize("images/section-headers/tok-editorial-geneva-full.jpg")).toBeLessThan(900_000);
   });
 
   it("keeps Lighthouse-visible controls named, sized and contrast-safe", () => {

@@ -55,13 +55,13 @@ const PROGRESSIVE_OFFERS_TABLE = "reservation_progressive_offers";
 
 const SECTION_HEADER_IMAGES = {
   personal: "/images/section-headers/tok-editorial-rewards-full.jpg",
-  local: "/images/section-headers/tok-editorial-geneva.jpg",
+  local: "/images/section-headers/tok-editorial-geneva-full.jpg",
   lunch: "/images/section-headers/tok-editorial-feast-full.jpg",
   reservation: "/images/section-headers/tok-editorial-reservation-full.jpg",
   promo: "/images/section-headers/tok-editorial-gastronomy-full.jpg",
   offers: "/images/section-headers/tok-editorial-delivery-full.jpg",
   trending: "/images/section-headers/tok-editorial-evening-full.jpg",
-  nearby: "/images/section-headers/tok-editorial-geneva.jpg",
+  nearby: "/images/section-headers/tok-editorial-geneva-full.jpg",
 } as const;
 
 type SearchSort =
