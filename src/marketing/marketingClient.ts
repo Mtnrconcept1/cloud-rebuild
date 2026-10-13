@@ -37,6 +37,7 @@ import type {
   MarketingOutreachTargetDraft,
   MarketingOverview,
   MarketingProspect,
+  MarketingPostFormat,
   MarketingManualTarget,
   MarketingOffsetPage,
   MarketingRestaurantContactDraft,
@@ -94,6 +95,20 @@ function contentMessage(value: unknown) {
   return asString(pick(asRecord(value), "message", "body", "text"));
 }
 
+function contentValue(value: unknown, key: string) {
+  return asString(asRecord(value)[key]);
+}
+
+function marketingVisualUrl(value: unknown) {
+  const url = contentValue(value, "visual_url").trim();
+  return /^https:\/\//i.test(url) ? url : null;
+}
+
+function marketingPostFormat(value: unknown): MarketingPostFormat | null {
+  const format = contentValue(value, "format");
+  return ["1:1", "9:16", "16:9"].includes(format) ? format as MarketingPostFormat : null;
+}
+
 function safeErrorMessage(error: unknown) {
   const message = error instanceof Error
     ? error.message
@@ -149,8 +164,9 @@ function normalizeCampaign(value: unknown, fallback?: MarketingCampaign): Market
   };
 }
 
-function normalizeCalendarItem(value: unknown, fallback?: MarketingCalendarItem): MarketingCalendarItem {
+export function normalizeCalendarItem(value: unknown, fallback?: MarketingCalendarItem): MarketingCalendarItem {
   const row = asRecord(value);
+  const content = pick(row, "content", "message");
   const manualOutcomeValue = asString(pick(row, "manual_outcome", "manualOutcome"));
   return {
     id: asString(pick(row, "id"), fallback?.id || crypto.randomUUID()),
@@ -164,7 +180,9 @@ function normalizeCalendarItem(value: unknown, fallback?: MarketingCalendarItem)
     audienceName: asString(pick(row, "audience_name", "audienceName"), fallback?.audienceName || "Audience"),
     audienceSize: asNumber(pick(row, "audience_size", "audienceSize"), fallback?.audienceSize || 0),
     approvalStatus: asString(pick(row, "approval_status", "approvalStatus"), fallback?.approvalStatus || "pending") as MarketingCalendarItem["approvalStatus"],
-    content: contentMessage(pick(row, "content", "message")) || fallback?.content || "",
+    content: contentMessage(content) || fallback?.content || "",
+    visualUrl: marketingVisualUrl(content) || fallback?.visualUrl || null,
+    format: marketingPostFormat(content) || fallback?.format || null,
     manualOutcome: ["published", "failed"].includes(manualOutcomeValue)
       ? manualOutcomeValue as MarketingCalendarItem["manualOutcome"]
       : fallback?.manualOutcome || null,

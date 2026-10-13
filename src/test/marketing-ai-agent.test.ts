@@ -151,8 +151,12 @@ describe("marketing AI bundle payload", () => {
       content: { ...plan.items[0].content, subject: "Objet retenu" },
     });
 
-    const bundle = toBundlePayload(validatePlan(plan, ["in_app", "email"]), new Map([[1, "https://cdn/x.png"]])) as {
-      items: Array<{ channel: string; content: { subject: string | null; visual_url: string | null; visual_brand_profile?: string; visual_reference_ids?: string[] } }>;
+    const bundle = toBundlePayload(
+      validatePlan(plan, ["in_app", "email"]),
+      new Map([[1, "https://cdn/x.png"]]),
+      { email: "16:9" },
+    ) as {
+      items: Array<{ channel: string; content: { subject: string | null; visual_url: string | null; format: string | null; visual_brand_profile?: string; visual_reference_ids?: string[] } }>;
     };
 
     expect(bundle.items[0].content.subject).toBeNull();
@@ -162,6 +166,7 @@ describe("marketing AI bundle payload", () => {
     expect(bundle.items[1].content.visual_url).toBe("https://cdn/x.png");
     expect(bundle.items[1].content.visual_brand_profile).toBe("tok-v1-20261011");
     expect(bundle.items[1].content.visual_reference_ids).toEqual(["geneva", "loyalty", "flash", "pricing"]);
+    expect(bundle.items[1].content.format).toBe("16:9");
   });
 });
 

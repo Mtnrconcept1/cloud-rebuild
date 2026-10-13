@@ -39,6 +39,27 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("marketing agent service boundary", () => {
+  it.each([
+    { instagram: "4:3" },
+    { unknown: "1:1" },
+    "1:1",
+  ])("rejects an unsupported network format before image generation: %o", async (formats) => {
+    const fetchMock = upstream(); vi.stubGlobal("fetch", fetchMock);
+    const res = recorder();
+    await marketingAgentHandler(request({
+      action: "generate",
+      objective: "Promouvoir les offres anti-gaspi confirmées à Genève.",
+      audienceHint: "Clients à Genève",
+      channels: ["instagram"],
+      formats,
+      startsAt: "2026-10-14T07:00:00.000Z",
+      endsAt: "2026-10-20T16:00:00.000Z",
+      itemCount: 3,
+    }), res.response);
+    expect(res.response.statusCode).toBe(400);
+    expect(fetchMock.mock.calls.every(([url]) => !String(url).includes("/functions/v1/"))).toBe(true);
+  });
+
   it.each([401, 403])("reports upstream %i as a service problem, not invalid input or expired browser session", async (agentStatus) => {
     vi.stubGlobal("fetch", upstream({ agentStatus }));
     const res = recorder();

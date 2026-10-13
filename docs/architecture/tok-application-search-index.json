@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "c56d41a215121c91d53e41e81906db57179e186239a7231c5a79ee09fcf9b6e1",
+ "sourceDigest": "98e8ca90ab275d04c5d8e785a38dfd79aff2686065e6a22dd7c532cbdc79e0bf",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 202,
   "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3422,
+  "exportedSymbols": 3436,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 532,
-  "modules": 1517,
+  "modules": 1519,
   "pages": 128,
   "pathLiterals": 652,
   "publicAssets": 464,
   "publicEntries": 489,
   "publicNavigableRoutes": 2,
   "queryParameters": 107,
-  "records": 16229,
-  "repositoryFiles": 3003,
+  "records": 16247,
+  "repositoryFiles": 3005,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -15997,6 +15997,14 @@
       "line": 13
      },
      {
+      "path": "src/test/marketing-campaign-builder.test.tsx",
+      "line": 6
+     },
+     {
+      "path": "src/test/marketing-campaign-builder.test.tsx",
+      "line": 58
+     },
+     {
       "path": "src/test/marketing-source-discovery.test.tsx",
       "line": 5
      },
@@ -20748,11 +20756,15 @@
      },
      {
       "path": "src/test/marketing-agent-bff.test.ts",
-      "line": 74
+      "line": 60
      },
      {
       "path": "src/test/marketing-agent-bff.test.ts",
-      "line": 82
+      "line": 95
+     },
+     {
+      "path": "src/test/marketing-agent-bff.test.ts",
+      "line": 103
      }
     ]
    },
@@ -20774,11 +20786,11 @@
      },
      {
       "path": "src/test/marketing-agent-bff.test.ts",
-      "line": 55
+      "line": 76
      },
      {
       "path": "src/test/marketing-agent-bff.test.ts",
-      "line": 99
+      "line": 120
      }
     ]
    },
@@ -20921,7 +20933,7 @@
     "sources": [
      {
       "path": "src/test/marketing-brand-references.test.ts",
-      "line": 77
+      "line": 87
      }
     ]
    },
@@ -25434,11 +25446,11 @@
      },
      {
       "path": "src/marketing/marketingClient.ts",
-      "line": 241
+      "line": 259
      },
      {
       "path": "src/marketing/marketingClient.ts",
-      "line": 1148
+      "line": 1166
      }
     ]
    },
@@ -29821,6 +29833,7 @@
      "src/lib/publicFeatureMatrix.ts",
      "src/lib/reservationMutations.ts",
      "src/lib/restaurantPartnerContract.ts",
+     "src/marketing/campaignTemplates.ts",
      "src/marketing/fallbackSnapshot.ts",
      "src/marketing/types.ts",
      "src/marketing/useMarketingUrlState.ts",
@@ -82427,47 +82440,47 @@
      },
      {
       "name": "marketingLoginHandler",
-      "line": 1884,
+      "line": 1904,
       "kind": "function"
      },
      {
       "name": "marketingMfaEnrollHandler",
-      "line": 1891,
+      "line": 1911,
       "kind": "function"
      },
      {
       "name": "marketingMfaVerifyHandler",
-      "line": 1898,
+      "line": 1918,
       "kind": "function"
      },
      {
       "name": "marketingLogoutHandler",
-      "line": 1905,
+      "line": 1925,
       "kind": "function"
      },
      {
       "name": "marketingSessionHandler",
-      "line": 1916,
+      "line": 1936,
       "kind": "function"
      },
      {
       "name": "marketingRpcHandler",
-      "line": 1932,
+      "line": 1952,
       "kind": "function"
      },
      {
       "name": "marketingOrchestratorHandler",
-      "line": 1939,
+      "line": 1959,
       "kind": "function"
      },
      {
       "name": "marketingAgentHandler",
-      "line": 1946,
+      "line": 1966,
       "kind": "function"
      },
      {
       "name": "marketingLaunchHandler",
-      "line": 1953,
+      "line": 1973,
       "kind": "function"
      }
     ],
@@ -82485,7 +82498,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 1959
+    "lineCount": 1979
    },
    {
     "path": "src/App.tsx",
@@ -85388,13 +85401,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 77,
+      "line": 97,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 431
+    "lineCount": 546
    },
    {
     "path": "src/components/marketing/views/MarketingAudiencesView.tsx",
@@ -85433,20 +85446,20 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 386
+    "lineCount": 401
    },
    {
     "path": "src/components/marketing/views/MarketingCampaignsView.tsx",
     "exports": [
      {
       "name": "default",
-      "line": 73,
+      "line": 74,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 428
+    "lineCount": 467
    },
    {
     "path": "src/components/marketing/views/MarketingFaqView.tsx",
@@ -98599,6 +98612,66 @@
     "lineCount": 254
    },
    {
+    "path": "src/marketing/campaignTemplates.ts",
+    "exports": [
+     {
+      "name": "MarketingPostFormat",
+      "line": 3,
+      "kind": "re-export"
+     },
+     {
+      "name": "MARKETING_POST_FORMATS",
+      "line": 5,
+      "kind": "variable"
+     },
+     {
+      "name": "MARKETING_CAMPAIGN_FREQUENCIES",
+      "line": 7,
+      "kind": "variable"
+     },
+     {
+      "name": "MarketingCampaignFrequency",
+      "line": 14,
+      "kind": "typealias"
+     },
+     {
+      "name": "MARKETING_CAMPAIGN_TEMPLATES",
+      "line": 16,
+      "kind": "variable"
+     },
+     {
+      "name": "MarketingCampaignTemplateId",
+      "line": 55,
+      "kind": "typealias"
+     },
+     {
+      "name": "VISUAL_MARKETING_CHANNELS",
+      "line": 57,
+      "kind": "variable"
+     },
+     {
+      "name": "DEFAULT_MARKETING_FORMATS",
+      "line": 69,
+      "kind": "variable"
+     },
+     {
+      "name": "campaignEndDate",
+      "line": 81,
+      "kind": "function"
+     },
+     {
+      "name": "buildCampaignObjective",
+      "line": 89,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "google"
+    ],
+    "lineCount": 104
+   },
+   {
     "path": "src/marketing/fallbackSnapshot.ts",
     "exports": [
      {
@@ -98668,153 +98741,158 @@
     "exports": [
      {
       "name": "invokeOutreachRpc",
-      "line": 115,
+      "line": 130,
+      "kind": "function"
+     },
+     {
+      "name": "normalizeCalendarItem",
+      "line": 167,
       "kind": "function"
      },
      {
       "name": "listMarketingContactsPage",
-      "line": 581,
+      "line": 599,
       "kind": "function"
      },
      {
       "name": "listMarketingDeliveriesPage",
-      "line": 595,
+      "line": 613,
       "kind": "function"
      },
      {
       "name": "loadMarketingSnapshot",
-      "line": 609,
+      "line": 627,
       "kind": "function"
      },
      {
       "name": "upsertMarketingCampaign",
-      "line": 777,
+      "line": 795,
       "kind": "function"
      },
      {
       "name": "createMarketingCampaignBundle",
-      "line": 800,
+      "line": 818,
       "kind": "function"
      },
      {
       "name": "upsertMarketingCalendarItem",
-      "line": 834,
+      "line": 852,
       "kind": "function"
      },
      {
       "name": "cancelMarketingItem",
-      "line": 842,
+      "line": 860,
       "kind": "function"
      },
      {
       "name": "completeManualMarketingItem",
-      "line": 849,
+      "line": 867,
       "kind": "function"
      },
      {
       "name": "estimateMarketingAudience",
-      "line": 861,
+      "line": 879,
       "kind": "function"
      },
      {
       "name": "approveMarketingCampaign",
-      "line": 888,
+      "line": 906,
       "kind": "function"
      },
      {
       "name": "approveMarketingItem",
-      "line": 895,
+      "line": 913,
       "kind": "function"
      },
      {
       "name": "retryMarketingDelivery",
-      "line": 902,
-      "kind": "function"
-     },
-     {
-      "name": "completeManualMarketingDelivery",
-      "line": 908,
-      "kind": "function"
-     },
-     {
-      "name": "upsertMarketingRestaurantContact",
       "line": 920,
       "kind": "function"
      },
      {
+      "name": "completeManualMarketingDelivery",
+      "line": 926,
+      "kind": "function"
+     },
+     {
+      "name": "upsertMarketingRestaurantContact",
+      "line": 938,
+      "kind": "function"
+     },
+     {
       "name": "suppressMarketingContact",
-      "line": 946,
+      "line": 964,
       "kind": "function"
      },
      {
       "name": "revealManualMarketingDeliveryTarget",
-      "line": 953,
+      "line": 971,
       "kind": "function"
      },
      {
       "name": "setMarketingGlobalPause",
-      "line": 979,
+      "line": 997,
       "kind": "function"
      },
      {
       "name": "syncMarketingProspectCatalog",
-      "line": 1041,
+      "line": 1059,
       "kind": "function"
      },
      {
       "name": "syncMarketingClientConsents",
-      "line": 1055,
+      "line": 1073,
       "kind": "function"
      },
      {
       "name": "upsertMarketingAutomation",
-      "line": 1067,
+      "line": 1085,
       "kind": "function"
      },
      {
       "name": "runMarketingOrchestrator",
-      "line": 1083,
+      "line": 1101,
       "kind": "function"
      },
      {
       "name": "loadMarketingOutreach",
-      "line": 1099,
+      "line": 1117,
       "kind": "function"
      },
      {
       "name": "upsertMarketingOutreachTarget",
-      "line": 1118,
+      "line": 1136,
       "kind": "function"
      },
      {
       "name": "upsertMarketingOutreachOpportunity",
-      "line": 1139,
+      "line": 1157,
       "kind": "function"
      },
      {
       "name": "upsertMarketingOutreachDraft",
-      "line": 1159,
+      "line": 1177,
       "kind": "function"
      },
      {
       "name": "approveMarketingOutreachDraft",
-      "line": 1175,
+      "line": 1193,
       "kind": "function"
      },
      {
       "name": "recordMarketingOutreachResult",
-      "line": 1182,
+      "line": 1200,
       "kind": "function"
      },
      {
       "name": "upsertMarketingBacklink",
-      "line": 1196,
+      "line": 1214,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 1212
+    "lineCount": 1230
    },
    {
     "path": "src/marketing/offsetPage.ts",
@@ -98888,223 +98966,228 @@
       "kind": "typealias"
      },
      {
-      "name": "MarketingProspectStatus",
+      "name": "MarketingPostFormat",
       "line": 65,
       "kind": "typealias"
      },
      {
-      "name": "MARKETING_PROSPECT_STATUSES",
+      "name": "MarketingProspectStatus",
       "line": 66,
+      "kind": "typealias"
+     },
+     {
+      "name": "MARKETING_PROSPECT_STATUSES",
+      "line": 67,
       "kind": "variable"
      },
      {
       "name": "MarketingContactType",
-      "line": 74,
-      "kind": "typealias"
-     },
-     {
-      "name": "MarketingLawfulBasis",
       "line": 75,
       "kind": "typealias"
      },
      {
-      "name": "MarketingAutomationStatus",
+      "name": "MarketingLawfulBasis",
       "line": 76,
       "kind": "typealias"
      },
      {
-      "name": "MarketingDeliveryStatus",
+      "name": "MarketingAutomationStatus",
       "line": 77,
       "kind": "typealias"
      },
      {
+      "name": "MarketingDeliveryStatus",
+      "line": 78,
+      "kind": "typealias"
+     },
+     {
       "name": "MARKETING_DELIVERY_STATUSES",
-      "line": 96,
+      "line": 97,
       "kind": "variable"
      },
      {
       "name": "MarketingChannel",
-      "line": 116,
+      "line": 117,
       "kind": "typealias"
      },
      {
       "name": "MarketingOverview",
-      "line": 125,
+      "line": 126,
       "kind": "typealias"
      },
      {
       "name": "MarketingCampaign",
-      "line": 143,
+      "line": 144,
       "kind": "typealias"
      },
      {
       "name": "MarketingCalendarItem",
-      "line": 163,
+      "line": 164,
       "kind": "typealias"
      },
      {
       "name": "MarketingAudience",
-      "line": 182,
+      "line": 185,
       "kind": "typealias"
      },
      {
       "name": "MarketingProspect",
-      "line": 196,
+      "line": 199,
       "kind": "typealias"
      },
      {
       "name": "MarketingRestaurantContactDraft",
-      "line": 218,
+      "line": 221,
       "kind": "typealias"
      },
      {
       "name": "MarketingManualTarget",
-      "line": 233,
+      "line": 236,
       "kind": "typealias"
      },
      {
       "name": "MarketingOffsetPage",
-      "line": 240,
+      "line": 243,
       "kind": "typealias"
      },
      {
       "name": "MarketingContactListParams",
-      "line": 245,
+      "line": 248,
       "kind": "typealias"
      },
      {
       "name": "MarketingDeliveryListParams",
-      "line": 253,
+      "line": 256,
       "kind": "typealias"
      },
      {
       "name": "MarketingSourceSyncBatch",
-      "line": 261,
+      "line": 264,
       "kind": "typealias"
      },
      {
       "name": "MarketingSourceSyncResume",
-      "line": 273,
+      "line": 276,
       "kind": "typealias"
      },
      {
       "name": "MarketingAutomation",
-      "line": 285,
+      "line": 288,
       "kind": "typealias"
      },
      {
       "name": "MarketingAutomationDraft",
-      "line": 302,
+      "line": 305,
       "kind": "typealias"
      },
      {
       "name": "MarketingDelivery",
-      "line": 312,
+      "line": 315,
       "kind": "typealias"
      },
      {
       "name": "MarketingResultPoint",
-      "line": 335,
+      "line": 338,
       "kind": "typealias"
      },
      {
       "name": "MarketingIntegration",
-      "line": 343,
+      "line": 346,
       "kind": "typealias"
      },
      {
       "name": "MarketingOutreachKind",
-      "line": 354,
+      "line": 357,
       "kind": "typealias"
      },
      {
       "name": "MarketingOutreachTargetStatus",
-      "line": 355,
+      "line": 358,
       "kind": "typealias"
      },
      {
       "name": "MarketingOutreachOpportunityStatus",
-      "line": 356,
+      "line": 359,
       "kind": "typealias"
      },
      {
       "name": "MarketingOutreachDraftStatus",
-      "line": 365,
+      "line": 368,
       "kind": "typealias"
      },
      {
       "name": "MarketingBacklinkRel",
-      "line": 366,
-      "kind": "typealias"
-     },
-     {
-      "name": "MarketingBacklinkStatus",
-      "line": 367,
-      "kind": "typealias"
-     },
-     {
-      "name": "MarketingOutreachTarget",
       "line": 369,
       "kind": "typealias"
      },
      {
+      "name": "MarketingBacklinkStatus",
+      "line": 370,
+      "kind": "typealias"
+     },
+     {
+      "name": "MarketingOutreachTarget",
+      "line": 372,
+      "kind": "typealias"
+     },
+     {
       "name": "MarketingOutreachOpportunity",
-      "line": 387,
+      "line": 390,
       "kind": "typealias"
      },
      {
       "name": "MarketingOutreachDraft",
-      "line": 410,
+      "line": 413,
       "kind": "typealias"
      },
      {
       "name": "MarketingBacklink",
-      "line": 427,
+      "line": 430,
       "kind": "typealias"
      },
      {
       "name": "MarketingOutreachSnapshot",
-      "line": 441,
+      "line": 444,
       "kind": "typealias"
      },
      {
       "name": "MarketingOutreachTargetDraft",
-      "line": 457,
+      "line": 460,
       "kind": "typealias"
      },
      {
       "name": "MarketingOutreachOpportunityDraft",
-      "line": 472,
+      "line": 475,
       "kind": "typealias"
      },
      {
       "name": "MarketingOutreachDraftInput",
-      "line": 486,
+      "line": 489,
       "kind": "typealias"
      },
      {
       "name": "MarketingBacklinkInput",
-      "line": 496,
+      "line": 499,
       "kind": "typealias"
      },
      {
       "name": "MarketingSnapshot",
-      "line": 507,
+      "line": 510,
       "kind": "typealias"
      },
      {
       "name": "CursorPage",
-      "line": 522,
+      "line": 525,
       "kind": "typealias"
      },
      {
       "name": "MarketingAudienceEstimate",
-      "line": 527,
+      "line": 530,
       "kind": "typealias"
      },
      {
       "name": "MarketingCampaignDraft",
-      "line": 534,
+      "line": 537,
       "kind": "typealias"
      }
     ],
@@ -99112,7 +99195,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 549
+    "lineCount": 552
    },
    {
     "path": "src/marketing/useMarketingAutopilot.ts",
@@ -104042,7 +104125,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 104
+    "lineCount": 125
    },
    {
     "path": "src/test/marketing-ai-agent.test.ts",
@@ -104053,7 +104136,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 324
+    "lineCount": 329
    },
    {
     "path": "src/test/marketing-approval-readiness.test.ts",
@@ -104155,7 +104238,14 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 111
+    "lineCount": 121
+   },
+   {
+    "path": "src/test/marketing-campaign-builder.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 124
    },
    {
     "path": "src/test/marketing-consent-dispatch.test.ts",
@@ -104453,7 +104543,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 28
+    "lineCount": 37
    },
    {
     "path": "src/test/marketing-zurich-time.test.ts",
@@ -107310,7 +107400,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3214,
+      "line": 3220,
       "kind": "function"
      }
     ],
@@ -107322,7 +107412,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3219
+    "lineCount": 3225
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -107562,48 +107652,53 @@
       "kind": "typealias"
      },
      {
+      "name": "MarketingPostFormat",
+      "line": 32,
+      "kind": "typealias"
+     },
+     {
       "name": "MAX_PLAN_ITEMS",
-      "line": 46,
+      "line": 47,
       "kind": "variable"
      },
      {
       "name": "MarketingPlanError",
-      "line": 48,
+      "line": 49,
       "kind": "class"
      },
      {
       "name": "MarketingPlanItem",
-      "line": 60,
+      "line": 61,
       "kind": "typealias"
      },
      {
       "name": "MarketingPlan",
-      "line": 76,
+      "line": 77,
       "kind": "typealias"
      },
      {
       "name": "buildPlanSchema",
-      "line": 111,
+      "line": 112,
       "kind": "function"
      },
      {
       "name": "stripEmptySelectors",
-      "line": 200,
+      "line": 201,
       "kind": "function"
      },
      {
       "name": "validatePlan",
-      "line": 223,
+      "line": 224,
       "kind": "function"
      },
      {
       "name": "slugifyCampaignName",
-      "line": 270,
+      "line": 271,
       "kind": "function"
      },
      {
       "name": "toBundlePayload",
-      "line": 288,
+      "line": 289,
       "kind": "function"
      }
     ],
@@ -107612,59 +107707,64 @@
      "google",
      "stripe"
     ],
-    "lineCount": 334
+    "lineCount": 337
    },
    {
     "path": "supabase/functions/_shared/marketing-ai.ts",
     "exports": [
      {
       "name": "MARKETING_CHANNELS",
-      "line": 17,
-      "kind": "re-export"
-     },
-     {
-      "name": "slugifyCampaignName",
       "line": 18,
       "kind": "re-export"
      },
      {
-      "name": "stripEmptySelectors",
+      "name": "slugifyCampaignName",
       "line": 19,
       "kind": "re-export"
      },
      {
-      "name": "toBundlePayload",
+      "name": "stripEmptySelectors",
       "line": 20,
       "kind": "re-export"
      },
      {
-      "name": "MarketingChannel",
+      "name": "toBundlePayload",
       "line": 21,
       "kind": "re-export"
      },
      {
-      "name": "MarketingPlan",
+      "name": "MarketingChannel",
       "line": 22,
       "kind": "re-export"
      },
      {
-      "name": "MarketingPlanItem",
+      "name": "MarketingPlan",
       "line": 23,
       "kind": "re-export"
      },
      {
+      "name": "MarketingPlanItem",
+      "line": 24,
+      "kind": "re-export"
+     },
+     {
+      "name": "MarketingPostFormat",
+      "line": 25,
+      "kind": "re-export"
+     },
+     {
       "name": "generateCampaignVisual",
-      "line": 26,
+      "line": 28,
       "kind": "re-export"
      },
      {
       "name": "MarketingBriefContext",
-      "line": 28,
+      "line": 30,
       "kind": "typealias"
      },
      {
       "name": "generateMarketingPlan",
-      "line": 67,
+      "line": 71,
       "kind": "function"
      }
     ],
@@ -107673,7 +107773,7 @@
      "openai",
      "stripe"
     ],
-    "lineCount": 114
+    "lineCount": 118
    },
    {
     "path": "supabase/functions/_shared/marketing-backlink-discovery.ts",
@@ -107836,19 +107936,19 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 25
+    "lineCount": 26
    },
    {
     "path": "supabase/functions/_shared/marketing-visual.ts",
     "exports": [
      {
       "name": "buildTokMarketingImageForm",
-      "line": 57,
+      "line": 58,
       "kind": "function"
      },
      {
       "name": "generateCampaignVisual",
-      "line": 80,
+      "line": 90,
       "kind": "function"
      }
     ],
@@ -107856,7 +107956,7 @@
     "integrations": [
      "openai"
     ],
-    "lineCount": 113
+    "lineCount": 130
    },
    {
     "path": "supabase/functions/_shared/marketing.ts",
@@ -110069,7 +110169,7 @@
     "integrations": [
      "openai"
     ],
-    "lineCount": 288
+    "lineCount": 315
    },
    {
     "path": "supabase/functions/ai-restaurant-agent/index.ts",
@@ -119065,6 +119165,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/marketing/campaignTemplates.ts",
+    "category": "frontend-source",
+    "extension": ".ts"
+   },
+   {
     "path": "src/marketing/fallbackSnapshot.ts",
     "category": "frontend-source",
     "extension": ".ts"
@@ -121273,6 +121378,11 @@
     "path": "src/test/marketing-brand-references.test.ts",
     "category": "test",
     "extension": ".ts"
+   },
+   {
+    "path": "src/test/marketing-campaign-builder.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/marketing-consent-dispatch.test.ts",
@@ -128437,7 +128547,7 @@
    "id": "code-module:e80a711be244",
    "type": "code-module",
    "title": "server/marketingBff.ts",
-   "description": "Module de 1959 lignes; exports: MARKETING_HOST, MARKETING_ORIGIN, MARKETING_CSRF_HEADER, MARKETING_SESSION_COOKIE, MARKETING_CSRF_COOKIE, MARKETING_PENDING_COOKIE, MARKETING_OPERATION_NAMES, MarketingOperation, MARKETING_OUTREACH_OPERATION_NAMES, MarketingOutreachOperation, MARKETING_AUTOPILOT_OPERATION_NAMES, MarketingAutopilotOperation, MarketingApiRequest, MarketingApiResponse, validateMarketingRequestContext, sha256Hex, parseCookies, marketingLoginHandler, marketingMfaEnrollHandler, marketingMfaVerifyHandler, marketingLogoutHandler, marketingSessionHandler, marketingRpcHandler, marketingOrchestratorHandler, marketingAgentHandler, marketingLaunchHandler.",
+   "description": "Module de 1979 lignes; exports: MARKETING_HOST, MARKETING_ORIGIN, MARKETING_CSRF_HEADER, MARKETING_SESSION_COOKIE, MARKETING_CSRF_COOKIE, MARKETING_PENDING_COOKIE, MARKETING_OPERATION_NAMES, MarketingOperation, MARKETING_OUTREACH_OPERATION_NAMES, MarketingOutreachOperation, MARKETING_AUTOPILOT_OPERATION_NAMES, MarketingAutopilotOperation, MarketingApiRequest, MarketingApiResponse, validateMarketingRequestContext, sha256Hex, parseCookies, marketingLoginHandler, marketingMfaEnrollHandler, marketingMfaVerifyHandler, marketingLogoutHandler, marketingSessionHandler, marketingRpcHandler, marketingOrchestratorHandler, marketingAgentHandler, marketingLaunchHandler.",
    "path": "server/marketingBff.ts",
    "line": 1,
    "surface": null,
@@ -128479,7 +128589,7 @@
     "validateMarketingRequestContext",
     "vercel"
    ],
-   "detailRef": "bc8c3edd2ec6"
+   "detailRef": "427b9962071b"
   },
   {
    "id": "code-module:fe5a8fc33137",
@@ -130827,14 +130937,14 @@
    "id": "code-module:2f00b6eaa4cd",
    "type": "code-module",
    "title": "src/components/marketing/views/MarketingAgentView.tsx",
-   "description": "Module de 431 lignes; exports: default.",
+   "description": "Module de 546 lignes; exports: default.",
    "path": "src/components/marketing/views/MarketingAgentView.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "9c1c34d1a175"
+   "detailRef": "bdc43bebe4e4"
   },
   {
    "id": "code-module:4ed087a90254",
@@ -130866,27 +130976,27 @@
    "id": "code-module:274f0d9e4ca6",
    "type": "code-module",
    "title": "src/components/marketing/views/MarketingCalendarView.tsx",
-   "description": "Module de 386 lignes; exports: default.",
+   "description": "Module de 401 lignes; exports: default.",
    "path": "src/components/marketing/views/MarketingCalendarView.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "2faf52348f2e"
+   "detailRef": "3eec1609203b"
   },
   {
    "id": "code-module:4c5780559cdf",
    "type": "code-module",
    "title": "src/components/marketing/views/MarketingCampaignsView.tsx",
-   "description": "Module de 428 lignes; exports: default.",
+   "description": "Module de 467 lignes; exports: default.",
    "path": "src/components/marketing/views/MarketingCampaignsView.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "cf1f1ea0297d"
+   "detailRef": "680e5d51d221"
   },
   {
    "id": "code-module:bcc691cff3f0",
@@ -136977,6 +137087,29 @@
    "detailRef": "dd1c8b01af1c"
   },
   {
+   "id": "code-module:88e1440e1a34",
+   "type": "code-module",
+   "title": "src/marketing/campaignTemplates.ts",
+   "description": "Module de 104 lignes; exports: MarketingPostFormat, MARKETING_POST_FORMATS, MARKETING_CAMPAIGN_FREQUENCIES, MarketingCampaignFrequency, MARKETING_CAMPAIGN_TEMPLATES, MarketingCampaignTemplateId, VISUAL_MARKETING_CHANNELS, DEFAULT_MARKETING_FORMATS, campaignEndDate, buildCampaignObjective.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "DEFAULT_MARKETING_FORMATS",
+    "MARKETING_CAMPAIGN_FREQUENCIES",
+    "MARKETING_CAMPAIGN_TEMPLATES",
+    "MARKETING_POST_FORMATS",
+    "MarketingCampaignFrequency",
+    "MarketingCampaignTemplateId",
+    "MarketingPostFormat",
+    "VISUAL_MARKETING_CHANNELS",
+    "buildCampaignObjective",
+    "campaignEndDate",
+    "google"
+   ],
+   "detailRef": "9dae4a245ae2"
+  },
+  {
    "id": "code-module:02aea71ce125",
    "type": "code-module",
    "title": "src/marketing/fallbackSnapshot.ts",
@@ -137016,7 +137149,7 @@
    "id": "code-module:c86b4d8c159a",
    "type": "code-module",
    "title": "src/marketing/marketingClient.ts",
-   "description": "Module de 1212 lignes; exports: invokeOutreachRpc, listMarketingContactsPage, listMarketingDeliveriesPage, loadMarketingSnapshot, upsertMarketingCampaign, createMarketingCampaignBundle, upsertMarketingCalendarItem, cancelMarketingItem, completeManualMarketingItem, estimateMarketingAudience, approveMarketingCampaign, approveMarketingItem, retryMarketingDelivery, completeManualMarketingDelivery, upsertMarketingRestaurantContact, suppressMarketingContact, revealManualMarketingDeliveryTarget, setMarketingGlobalPause, syncMarketingProspectCatalog, syncMarketingClientConsents, upsertMarketingAutomation, runMarketingOrchestrator, loadMarketingOutreach, upsertMarketingOutreachTarget, upsertMarketingOutreachOpportunity, upsertMarketingOutreachDraft, approveMarketingOutreachDraft, recordMarketingOutreachResult, upsertMarketingBacklink.",
+   "description": "Module de 1230 lignes; exports: invokeOutreachRpc, normalizeCalendarItem, listMarketingContactsPage, listMarketingDeliveriesPage, loadMarketingSnapshot, upsertMarketingCampaign, createMarketingCampaignBundle, upsertMarketingCalendarItem, cancelMarketingItem, completeManualMarketingItem, estimateMarketingAudience, approveMarketingCampaign, approveMarketingItem, retryMarketingDelivery, completeManualMarketingDelivery, upsertMarketingRestaurantContact, suppressMarketingContact, revealManualMarketingDeliveryTarget, setMarketingGlobalPause, syncMarketingProspectCatalog, syncMarketingClientConsents, upsertMarketingAutomation, runMarketingOrchestrator, loadMarketingOutreach, upsertMarketingOutreachTarget, upsertMarketingOutreachOpportunity, upsertMarketingOutreachDraft, approveMarketingOutreachDraft, recordMarketingOutreachResult, upsertMarketingBacklink.",
    "path": "src/marketing/marketingClient.ts",
    "line": 1,
    "surface": null,
@@ -137034,6 +137167,7 @@
     "listMarketingDeliveriesPage",
     "loadMarketingOutreach",
     "loadMarketingSnapshot",
+    "normalizeCalendarItem",
     "recordMarketingOutreachResult",
     "retryMarketingDelivery",
     "revealManualMarketingDeliveryTarget",
@@ -137051,7 +137185,7 @@
     "upsertMarketingOutreachTarget",
     "upsertMarketingRestaurantContact"
    ],
-   "detailRef": "8ab138e23181"
+   "detailRef": "c44a04c808a7"
   },
   {
    "id": "code-module:1dffa5fd442b",
@@ -137070,7 +137204,7 @@
    "id": "code-module:a71732066117",
    "type": "code-module",
    "title": "src/marketing/types.ts",
-   "description": "Module de 549 lignes; exports: MARKETING_VIEWS, MarketingView, MARKETING_OUTREACH_OPERATION_NAMES, MarketingOutreachOperation, MarketingChannelId, PUBLIC_MARKETING_CHANNELS, isPublicMarketingChannel, MarketingAvailability, MarketingCampaignStatus, MarketingItemStatus, MarketingAudienceKind, MarketingProspectStatus, MARKETING_PROSPECT_STATUSES, MarketingContactType, MarketingLawfulBasis, MarketingAutomationStatus, MarketingDeliveryStatus, MARKETING_DELIVERY_STATUSES, MarketingChannel, MarketingOverview, MarketingCampaign, MarketingCalendarItem, MarketingAudience, MarketingProspect, MarketingRestaurantContactDraft, MarketingManualTarget, MarketingOffsetPage, MarketingContactListParams, MarketingDeliveryListParams, MarketingSourceSyncBatch, MarketingSourceSyncResume, MarketingAutomation, MarketingAutomationDraft, MarketingDelivery, MarketingResultPoint, MarketingIntegration, MarketingOutreachKind, MarketingOutreachTargetStatus, MarketingOutreachOpportunityStatus, MarketingOutreachDraftStatus, MarketingBacklinkRel, MarketingBacklinkStatus, MarketingOutreachTarget, MarketingOutreachOpportunity, MarketingOutreachDraft, MarketingBacklink, MarketingOutreachSnapshot, MarketingOutreachTargetDraft, MarketingOutreachOpportunityDraft, MarketingOutreachDraftInput, MarketingBacklinkInput, MarketingSnapshot, CursorPage, MarketingAudienceEstimate, MarketingCampaignDraft.",
+   "description": "Module de 552 lignes; exports: MARKETING_VIEWS, MarketingView, MARKETING_OUTREACH_OPERATION_NAMES, MarketingOutreachOperation, MarketingChannelId, PUBLIC_MARKETING_CHANNELS, isPublicMarketingChannel, MarketingAvailability, MarketingCampaignStatus, MarketingItemStatus, MarketingAudienceKind, MarketingPostFormat, MarketingProspectStatus, MARKETING_PROSPECT_STATUSES, MarketingContactType, MarketingLawfulBasis, MarketingAutomationStatus, MarketingDeliveryStatus, MARKETING_DELIVERY_STATUSES, MarketingChannel, MarketingOverview, MarketingCampaign, MarketingCalendarItem, MarketingAudience, MarketingProspect, MarketingRestaurantContactDraft, MarketingManualTarget, MarketingOffsetPage, MarketingContactListParams, MarketingDeliveryListParams, MarketingSourceSyncBatch, MarketingSourceSyncResume, MarketingAutomation, MarketingAutomationDraft, MarketingDelivery, MarketingResultPoint, MarketingIntegration, MarketingOutreachKind, MarketingOutreachTargetStatus, MarketingOutreachOpportunityStatus, MarketingOutreachDraftStatus, MarketingBacklinkRel, MarketingBacklinkStatus, MarketingOutreachTarget, MarketingOutreachOpportunity, MarketingOutreachDraft, MarketingBacklink, MarketingOutreachSnapshot, MarketingOutreachTargetDraft, MarketingOutreachOpportunityDraft, MarketingOutreachDraftInput, MarketingBacklinkInput, MarketingSnapshot, CursorPage, MarketingAudienceEstimate, MarketingCampaignDraft.",
    "path": "src/marketing/types.ts",
    "line": 1,
    "surface": null,
@@ -137120,6 +137254,7 @@
     "MarketingOutreachTargetDraft",
     "MarketingOutreachTargetStatus",
     "MarketingOverview",
+    "MarketingPostFormat",
     "MarketingProspect",
     "MarketingProspectStatus",
     "MarketingRestaurantContactDraft",
@@ -137132,7 +137267,7 @@
     "google",
     "isPublicMarketingChannel"
    ],
-   "detailRef": "177a5969aab6"
+   "detailRef": "a9805851f7dc"
   },
   {
    "id": "code-module:2af43986ec52",
@@ -142705,7 +142840,7 @@
    "id": "code-module:790464136dcb",
    "type": "code-module",
    "title": "src/test/marketing-agent-bff.test.ts",
-   "description": "Module de 104 lignes; exports: aucun export statique.",
+   "description": "Module de 125 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-agent-bff.test.ts",
    "line": 1,
    "surface": null,
@@ -142713,13 +142848,13 @@
     "SUPABASE_SERVICE_ROLE_KEY",
     "supabase"
    ],
-   "detailRef": "1e0a66f4ac3f"
+   "detailRef": "874eef867760"
   },
   {
    "id": "code-module:f1aadb4d91ba",
    "type": "code-module",
    "title": "src/test/marketing-ai-agent.test.ts",
-   "description": "Module de 324 lignes; exports: aucun export statique.",
+   "description": "Module de 329 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-ai-agent.test.ts",
    "line": 1,
    "surface": null,
@@ -142728,7 +142863,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "2d966bc2231e"
+   "detailRef": "0cc53628d0bb"
   },
   {
    "id": "code-module:976170c43393",
@@ -142865,7 +143000,7 @@
    "id": "code-module:7c7f69a170c4",
    "type": "code-module",
    "title": "src/test/marketing-brand-references.test.ts",
-   "description": "Module de 111 lignes; exports: aucun export statique.",
+   "description": "Module de 121 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-brand-references.test.ts",
    "line": 1,
    "surface": null,
@@ -142873,7 +143008,18 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "eeeff7e63b82"
+   "detailRef": "9731b3565b3a"
+  },
+  {
+   "id": "code-module:ba62251e5408",
+   "type": "code-module",
+   "title": "src/test/marketing-campaign-builder.test.tsx",
+   "description": "Module de 124 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-campaign-builder.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "4349947bc1fa"
   },
   {
    "id": "code-module:674ccefbc9c0",
@@ -143293,14 +143439,14 @@
    "id": "code-module:c2bc3df76680",
    "type": "code-module",
    "title": "src/test/marketing-visual-allocation.test.ts",
-   "description": "Module de 28 lignes; exports: aucun export statique.",
+   "description": "Module de 37 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-visual-allocation.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "289dd8304849"
+   "detailRef": "0cc800b226d9"
   },
   {
    "id": "code-module:9d4b0651ffe8",
@@ -146767,7 +146913,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3219 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3225 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -146781,7 +146927,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "bf576340ab75"
+   "detailRef": "1dd6dc2a1499"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -146894,7 +147040,7 @@
    "id": "code-module:adb722f71bc6",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "description": "Module de 334 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MAX_PLAN_ITEMS, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload.",
+   "description": "Module de 337 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MarketingPostFormat, MAX_PLAN_ITEMS, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
    "line": 1,
    "surface": null,
@@ -146905,6 +147051,7 @@
     "MarketingPlan",
     "MarketingPlanError",
     "MarketingPlanItem",
+    "MarketingPostFormat",
     "buildPlanSchema",
     "google",
     "slugifyCampaignName",
@@ -146913,13 +147060,13 @@
     "toBundlePayload",
     "validatePlan"
    ],
-   "detailRef": "bbf63f191379"
+   "detailRef": "028ff0c9a249"
   },
   {
    "id": "code-module:c71bdc6fa97b",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-ai.ts",
-   "description": "Module de 114 lignes; exports: MARKETING_CHANNELS, slugifyCampaignName, stripEmptySelectors, toBundlePayload, MarketingChannel, MarketingPlan, MarketingPlanItem, generateCampaignVisual, MarketingBriefContext, generateMarketingPlan.",
+   "description": "Module de 118 lignes; exports: MARKETING_CHANNELS, slugifyCampaignName, stripEmptySelectors, toBundlePayload, MarketingChannel, MarketingPlan, MarketingPlanItem, MarketingPostFormat, generateCampaignVisual, MarketingBriefContext, generateMarketingPlan.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
    "line": 1,
    "surface": null,
@@ -146929,6 +147076,7 @@
     "MarketingChannel",
     "MarketingPlan",
     "MarketingPlanItem",
+    "MarketingPostFormat",
     "generateCampaignVisual",
     "generateMarketingPlan",
     "openai",
@@ -146937,7 +147085,7 @@
     "stripe",
     "toBundlePayload"
    ],
-   "detailRef": "b508438476aa"
+   "detailRef": "1eff24a74dbd"
   },
   {
    "id": "code-module:8f9a90f373f3",
@@ -147049,20 +147197,20 @@
    "id": "code-module:3bc285ebb141",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-visual-allocation.ts",
-   "description": "Module de 25 lignes; exports: allocateMarketingVisuals.",
+   "description": "Module de 26 lignes; exports: allocateMarketingVisuals.",
    "path": "supabase/functions/_shared/marketing-visual-allocation.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "allocateMarketingVisuals"
    ],
-   "detailRef": "081d60c1a172"
+   "detailRef": "d82b9f0aea58"
   },
   {
    "id": "code-module:972beba2be23",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-visual.ts",
-   "description": "Module de 113 lignes; exports: buildTokMarketingImageForm, generateCampaignVisual.",
+   "description": "Module de 130 lignes; exports: buildTokMarketingImageForm, generateCampaignVisual.",
    "path": "supabase/functions/_shared/marketing-visual.ts",
    "line": 1,
    "surface": null,
@@ -147071,7 +147219,7 @@
     "generateCampaignVisual",
     "openai"
    ],
-   "detailRef": "11c2779f2565"
+   "detailRef": "d65852fb6c96"
   },
   {
    "id": "code-module:4a617f373b8d",
@@ -148128,14 +148276,14 @@
    "id": "code-module:2d59c9951508",
    "type": "code-module",
    "title": "supabase/functions/ai-marketing-agent/index.ts",
-   "description": "Module de 288 lignes; exports: aucun export statique.",
+   "description": "Module de 315 lignes; exports: aucun export statique.",
    "path": "supabase/functions/ai-marketing-agent/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "openai"
    ],
-   "detailRef": "77ede1e775d5"
+   "detailRef": "98d55891c91e"
   },
   {
    "id": "code-module:10cec8069bd9",
@@ -241051,18 +241199,18 @@
    "detailRef": "46738bae59ae"
   },
   {
-   "id": "exported-symbol:dfb30b06c817",
+   "id": "exported-symbol:ee2d034265a0",
    "type": "exported-symbol",
    "title": "CursorPage",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 522,
+   "line": 525,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "836149a84cfb"
+   "detailRef": "b1544d1ebe91"
   },
   {
    "id": "exported-symbol:67603802732c",
@@ -241318,6 +241466,20 @@
     "variable"
    ],
    "detailRef": "2b6044ac7102"
+  },
+  {
+   "id": "exported-symbol:11d38e018e5c",
+   "type": "exported-symbol",
+   "title": "DEFAULT_MARKETING_FORMATS",
+   "description": "Export variable de src/marketing/campaignTemplates.ts.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": 69,
+   "surface": null,
+   "tags": [
+    "google",
+    "variable"
+   ],
+   "detailRef": "23a1f7ae8a60"
   },
   {
    "id": "exported-symbol:38f843e96880",
@@ -245493,6 +245655,34 @@
    "detailRef": "5a7a4d67dbb3"
   },
   {
+   "id": "exported-symbol:2de31090d161",
+   "type": "exported-symbol",
+   "title": "MARKETING_CAMPAIGN_FREQUENCIES",
+   "description": "Export variable de src/marketing/campaignTemplates.ts.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": 7,
+   "surface": null,
+   "tags": [
+    "google",
+    "variable"
+   ],
+   "detailRef": "036785d58560"
+  },
+  {
+   "id": "exported-symbol:31b24288795e",
+   "type": "exported-symbol",
+   "title": "MARKETING_CAMPAIGN_TEMPLATES",
+   "description": "Export variable de src/marketing/campaignTemplates.ts.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "google",
+    "variable"
+   ],
+   "detailRef": "ce10944f5a46"
+  },
+  {
    "id": "exported-symbol:dd626c3d6e37",
    "type": "exported-symbol",
    "title": "MARKETING_CHANNELS",
@@ -245508,19 +245698,19 @@
    "detailRef": "d4c593d906bd"
   },
   {
-   "id": "exported-symbol:e31417f03f1d",
+   "id": "exported-symbol:b414ee375179",
    "type": "exported-symbol",
    "title": "MARKETING_CHANNELS",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 17,
+   "line": 18,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "6c37ac3d64ed"
+   "detailRef": "dece849e8139"
   },
   {
    "id": "exported-symbol:cbe070031e73",
@@ -245595,18 +245785,18 @@
    "detailRef": "45215c8a7a6b"
   },
   {
-   "id": "exported-symbol:0594801fbfa0",
+   "id": "exported-symbol:872579b162b1",
    "type": "exported-symbol",
    "title": "MARKETING_DELIVERY_STATUSES",
    "description": "Export variable de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 96,
+   "line": 97,
    "surface": null,
    "tags": [
     "google",
     "variable"
    ],
-   "detailRef": "c355bcc81567"
+   "detailRef": "19ef225784a3"
   },
   {
    "id": "exported-symbol:637c78af582e",
@@ -245703,18 +245893,32 @@
    "detailRef": "b46a82a316eb"
   },
   {
-   "id": "exported-symbol:bf97a6dd58ad",
+   "id": "exported-symbol:b4d21c3bce23",
    "type": "exported-symbol",
-   "title": "MARKETING_PROSPECT_STATUSES",
-   "description": "Export variable de src/marketing/types.ts.",
-   "path": "src/marketing/types.ts",
-   "line": 66,
+   "title": "MARKETING_POST_FORMATS",
+   "description": "Export variable de src/marketing/campaignTemplates.ts.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": 5,
    "surface": null,
    "tags": [
     "google",
     "variable"
    ],
-   "detailRef": "3c3a1c499338"
+   "detailRef": "51f3f4ab6255"
+  },
+  {
+   "id": "exported-symbol:baf6a4712a58",
+   "type": "exported-symbol",
+   "title": "MARKETING_PROSPECT_STATUSES",
+   "description": "Export variable de src/marketing/types.ts.",
+   "path": "src/marketing/types.ts",
+   "line": 67,
+   "surface": null,
+   "tags": [
+    "google",
+    "variable"
+   ],
+   "detailRef": "f56c5bbf3525"
   },
   {
    "id": "exported-symbol:8f33f3858935",
@@ -245913,19 +246117,19 @@
    "detailRef": "9d74d17f7dc9"
   },
   {
-   "id": "exported-symbol:50e13474e954",
+   "id": "exported-symbol:d544443229f5",
    "type": "exported-symbol",
    "title": "MAX_PLAN_ITEMS",
    "description": "Export variable de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 46,
+   "line": 47,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "variable"
    ],
-   "detailRef": "42cd0b6cced3"
+   "detailRef": "af297621b221"
   },
   {
    "id": "exported-symbol:578161e2101d",
@@ -246198,32 +246402,32 @@
    "detailRef": "2530babceabc"
   },
   {
-   "id": "exported-symbol:24417b2e8cd3",
+   "id": "exported-symbol:04e559206ce9",
    "type": "exported-symbol",
    "title": "MarketingAudience",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 182,
+   "line": 185,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "3ed3c2ff499c"
+   "detailRef": "d983d923123d"
   },
   {
-   "id": "exported-symbol:f9c672f76565",
+   "id": "exported-symbol:c5347bb83beb",
    "type": "exported-symbol",
    "title": "MarketingAudienceEstimate",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 527,
+   "line": 530,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "f58bb402aff0"
+   "detailRef": "c25b40a2e375"
   },
   {
    "id": "exported-symbol:68ed1cc48f79",
@@ -246240,32 +246444,32 @@
    "detailRef": "ad63088b30a5"
   },
   {
-   "id": "exported-symbol:aef7b3d7b8b5",
+   "id": "exported-symbol:f6f17b278d92",
    "type": "exported-symbol",
    "title": "MarketingAutomation",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 285,
+   "line": 288,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "00a28db0d70a"
+   "detailRef": "add1181e2d06"
   },
   {
-   "id": "exported-symbol:ca7fc37123e7",
+   "id": "exported-symbol:8c18ca81fe55",
    "type": "exported-symbol",
    "title": "MarketingAutomationDraft",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 302,
+   "line": 305,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "783b312aded1"
+   "detailRef": "b8a618cbaf10"
   },
   {
    "id": "exported-symbol:ce05b26ebd1b",
@@ -246281,18 +246485,18 @@
    "detailRef": "774d0abb7711"
   },
   {
-   "id": "exported-symbol:30b023b13287",
+   "id": "exported-symbol:5880094bdb47",
    "type": "exported-symbol",
    "title": "MarketingAutomationStatus",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 76,
+   "line": 77,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "4d4aa9dc9e83"
+   "detailRef": "02477b24e607"
   },
   {
    "id": "exported-symbol:4e3d2c0036c8",
@@ -246507,60 +246711,60 @@
    "detailRef": "fb785022f1f5"
   },
   {
-   "id": "exported-symbol:90e26565bab8",
+   "id": "exported-symbol:d84d5470d99f",
    "type": "exported-symbol",
    "title": "MarketingBacklink",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 427,
+   "line": 430,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "8f68a5b2b36d"
+   "detailRef": "05b84c875118"
   },
   {
-   "id": "exported-symbol:d37c55cdb0bf",
+   "id": "exported-symbol:46305f17a368",
    "type": "exported-symbol",
    "title": "MarketingBacklinkInput",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 496,
+   "line": 499,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "fb5bdb363356"
+   "detailRef": "6d6f58e87cd5"
   },
   {
-   "id": "exported-symbol:9f2d30667935",
+   "id": "exported-symbol:01ec67fe3e7d",
    "type": "exported-symbol",
    "title": "MarketingBacklinkRel",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 366,
+   "line": 369,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "fc3ebeba0534"
+   "detailRef": "478cbce50d08"
   },
   {
-   "id": "exported-symbol:f28479af57b6",
+   "id": "exported-symbol:4d1b93b9e010",
    "type": "exported-symbol",
    "title": "MarketingBacklinkStatus",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 367,
+   "line": 370,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "7d348880f6cc"
+   "detailRef": "a4a0bcabcf37"
   },
   {
    "id": "exported-symbol:cc7b76f6d8d1",
@@ -246590,61 +246794,75 @@
    "detailRef": "0a6883c5c4e1"
   },
   {
-   "id": "exported-symbol:1ee3d02281cf",
+   "id": "exported-symbol:8a9a1c868d0f",
    "type": "exported-symbol",
    "title": "MarketingBriefContext",
    "description": "Export typealias de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 28,
+   "line": 30,
    "surface": null,
    "tags": [
     "openai",
     "stripe",
     "typealias"
    ],
-   "detailRef": "569908365e27"
+   "detailRef": "e0b95745b63e"
   },
   {
-   "id": "exported-symbol:27482f272cde",
+   "id": "exported-symbol:fdeaaf66df64",
    "type": "exported-symbol",
    "title": "MarketingCalendarItem",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 163,
+   "line": 164,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "bb0cd60d2a0d"
+   "detailRef": "09665adfecfa"
   },
   {
-   "id": "exported-symbol:904bc02c4c08",
+   "id": "exported-symbol:b05da0391ea8",
    "type": "exported-symbol",
    "title": "MarketingCampaign",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 143,
+   "line": 144,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "a7d9608f218f"
+   "detailRef": "6428d3ab2e23"
   },
   {
-   "id": "exported-symbol:1d8245611835",
+   "id": "exported-symbol:1f2e6be4bff1",
    "type": "exported-symbol",
    "title": "MarketingCampaignDraft",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 534,
+   "line": 537,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "4cc6317de4c4"
+   "detailRef": "8f42ec1f41e6"
+  },
+  {
+   "id": "exported-symbol:860e4b195dbe",
+   "type": "exported-symbol",
+   "title": "MarketingCampaignFrequency",
+   "description": "Export typealias de src/marketing/campaignTemplates.ts.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "google",
+    "typealias"
+   ],
+   "detailRef": "67c601144a24"
   },
   {
    "id": "exported-symbol:1557686302f1",
@@ -246661,18 +246879,32 @@
    "detailRef": "f8a057d904a0"
   },
   {
-   "id": "exported-symbol:1e39b309bf12",
+   "id": "exported-symbol:0042a5025128",
    "type": "exported-symbol",
-   "title": "MarketingChannel",
-   "description": "Export typealias de src/marketing/types.ts.",
-   "path": "src/marketing/types.ts",
-   "line": 116,
+   "title": "MarketingCampaignTemplateId",
+   "description": "Export typealias de src/marketing/campaignTemplates.ts.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": 55,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "da0039216488"
+   "detailRef": "4f39a9b22a6a"
+  },
+  {
+   "id": "exported-symbol:f07cad70d0ea",
+   "type": "exported-symbol",
+   "title": "MarketingChannel",
+   "description": "Export typealias de src/marketing/types.ts.",
+   "path": "src/marketing/types.ts",
+   "line": 117,
+   "surface": null,
+   "tags": [
+    "google",
+    "typealias"
+   ],
+   "detailRef": "388f2d943d30"
   },
   {
    "id": "exported-symbol:610998e40238",
@@ -246690,19 +246922,19 @@
    "detailRef": "47c1ff66b047"
   },
   {
-   "id": "exported-symbol:441d9617fd65",
+   "id": "exported-symbol:d68cdc86118f",
    "type": "exported-symbol",
    "title": "MarketingChannel",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 21,
+   "line": 22,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "ed8a0e29e8ce"
+   "detailRef": "22721c6079a3"
   },
   {
    "id": "exported-symbol:63729798ddad",
@@ -246733,74 +246965,74 @@
    "detailRef": "b5b5e36da30e"
   },
   {
-   "id": "exported-symbol:70f04e42ce03",
+   "id": "exported-symbol:8330b6397b27",
    "type": "exported-symbol",
    "title": "MarketingContactListParams",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 245,
+   "line": 248,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "bb4b03a53fcf"
+   "detailRef": "ba76ac40cbc7"
   },
   {
-   "id": "exported-symbol:e084f3b11fa8",
+   "id": "exported-symbol:d6db07d866a0",
    "type": "exported-symbol",
    "title": "MarketingContactType",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 74,
+   "line": 75,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "8bdd7e6919f8"
+   "detailRef": "8ff52fb1cf84"
   },
   {
-   "id": "exported-symbol:5b13cc6e292f",
+   "id": "exported-symbol:214bfbcbf94e",
    "type": "exported-symbol",
    "title": "MarketingDelivery",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 312,
+   "line": 315,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "96d307cb3eb8"
+   "detailRef": "89df40e19b1b"
   },
   {
-   "id": "exported-symbol:1d9eb3cb8f0d",
+   "id": "exported-symbol:03c8e7e40d8c",
    "type": "exported-symbol",
    "title": "MarketingDeliveryListParams",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 253,
+   "line": 256,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "c32ccd7edeeb"
+   "detailRef": "f2e9907e66cd"
   },
   {
-   "id": "exported-symbol:d637390f408b",
+   "id": "exported-symbol:12d065a4d463",
    "type": "exported-symbol",
    "title": "MarketingDeliveryStatus",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 77,
+   "line": 78,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "47ef0e122be8"
+   "detailRef": "621011cee811"
   },
   {
    "id": "exported-symbol:62de2aaffda0",
@@ -246843,18 +247075,18 @@
    "detailRef": "bf35b9760be1"
   },
   {
-   "id": "exported-symbol:c743d8d017e5",
+   "id": "exported-symbol:e53437f41182",
    "type": "exported-symbol",
    "title": "MarketingIntegration",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 343,
+   "line": 346,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "a9e67901c7b4"
+   "detailRef": "25d010c2bdb5"
   },
   {
    "id": "exported-symbol:72ef8864b5d8",
@@ -246871,32 +247103,32 @@
    "detailRef": "57ea8d056381"
   },
   {
-   "id": "exported-symbol:ac71f2feb382",
+   "id": "exported-symbol:a5c049eca096",
    "type": "exported-symbol",
    "title": "MarketingLawfulBasis",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 75,
+   "line": 76,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "a2f8054a25b3"
+   "detailRef": "9d1d15506841"
   },
   {
-   "id": "exported-symbol:f13fd1bfe895",
+   "id": "exported-symbol:d38f65d5c27c",
    "type": "exported-symbol",
    "title": "MarketingManualTarget",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 233,
+   "line": 236,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "48e52f3179b4"
+   "detailRef": "03684e373565"
   },
   {
    "id": "exported-symbol:6d1005540e56",
@@ -246926,18 +247158,18 @@
    "detailRef": "c22b9ba5897a"
   },
   {
-   "id": "exported-symbol:898bba3721dc",
+   "id": "exported-symbol:c49234035035",
    "type": "exported-symbol",
    "title": "MarketingOffsetPage",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 240,
+   "line": 243,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "97af40914361"
+   "detailRef": "5759ff50ddd0"
   },
   {
    "id": "exported-symbol:59f04270045b",
@@ -247021,60 +247253,60 @@
    "detailRef": "2edea243c767"
   },
   {
-   "id": "exported-symbol:c20370768a68",
+   "id": "exported-symbol:736308d92201",
    "type": "exported-symbol",
    "title": "MarketingOutreachDraft",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 410,
+   "line": 413,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "3f3a7541b987"
+   "detailRef": "132ca1227065"
   },
   {
-   "id": "exported-symbol:41c42185920c",
+   "id": "exported-symbol:4806015efb07",
    "type": "exported-symbol",
    "title": "MarketingOutreachDraftInput",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 486,
+   "line": 489,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "c65f22e75661"
+   "detailRef": "b148c875e9c7"
   },
   {
-   "id": "exported-symbol:f0f9a8936de2",
+   "id": "exported-symbol:04d56fd0e727",
    "type": "exported-symbol",
    "title": "MarketingOutreachDraftStatus",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 365,
+   "line": 368,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "7a7a87a8812e"
+   "detailRef": "fb0812f98d3c"
   },
   {
-   "id": "exported-symbol:08991049d12d",
+   "id": "exported-symbol:7efc561ba8c0",
    "type": "exported-symbol",
    "title": "MarketingOutreachKind",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 354,
+   "line": 357,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "4d0c6717a0f1"
+   "detailRef": "d6368bdad089"
   },
   {
    "id": "exported-symbol:f30b153eefc0",
@@ -247107,116 +247339,116 @@
    "detailRef": "24ed565830b2"
   },
   {
-   "id": "exported-symbol:3317cdd71c5d",
+   "id": "exported-symbol:08673c064bb5",
    "type": "exported-symbol",
    "title": "MarketingOutreachOpportunity",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 387,
+   "line": 390,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "bb3d5a2098e3"
+   "detailRef": "beb703a17919"
   },
   {
-   "id": "exported-symbol:3cd0fd21a8a0",
+   "id": "exported-symbol:4ecd81140504",
    "type": "exported-symbol",
    "title": "MarketingOutreachOpportunityDraft",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 472,
+   "line": 475,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "c7c3680f318c"
+   "detailRef": "6b69b937e48c"
   },
   {
-   "id": "exported-symbol:34ab805325a5",
+   "id": "exported-symbol:7b36f019a3f8",
    "type": "exported-symbol",
    "title": "MarketingOutreachOpportunityStatus",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 356,
+   "line": 359,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "eb01a0ca96d4"
+   "detailRef": "e15d5ce5c735"
   },
   {
-   "id": "exported-symbol:9a1ac357e385",
+   "id": "exported-symbol:2f1baf9b1c2a",
    "type": "exported-symbol",
    "title": "MarketingOutreachSnapshot",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 441,
+   "line": 444,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "051e459c3322"
+   "detailRef": "dbd5dc76a14f"
   },
   {
-   "id": "exported-symbol:5343cb4928af",
+   "id": "exported-symbol:12c05eeeffc1",
    "type": "exported-symbol",
    "title": "MarketingOutreachTarget",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 369,
+   "line": 372,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "69e6f32d60fb"
+   "detailRef": "a4138dc91232"
   },
   {
-   "id": "exported-symbol:352b1843dabe",
+   "id": "exported-symbol:2531a42b9639",
    "type": "exported-symbol",
    "title": "MarketingOutreachTargetDraft",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 457,
+   "line": 460,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "b70c81f7edb9"
+   "detailRef": "b3322e92ae90"
   },
   {
-   "id": "exported-symbol:0de89c193d03",
+   "id": "exported-symbol:160018adf746",
    "type": "exported-symbol",
    "title": "MarketingOutreachTargetStatus",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 355,
+   "line": 358,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "d9adf3fbd771"
+   "detailRef": "48e044468243"
   },
   {
-   "id": "exported-symbol:89d62dbf72f4",
+   "id": "exported-symbol:fdb7ee05e14f",
    "type": "exported-symbol",
    "title": "MarketingOverview",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 125,
+   "line": 126,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "a3f297756c90"
+   "detailRef": "a227f09ab72b"
   },
   {
    "id": "exported-symbol:a468713801bb",
@@ -247233,69 +247465,24 @@
    "detailRef": "a131869525f1"
   },
   {
-   "id": "exported-symbol:138d700083e3",
+   "id": "exported-symbol:ce871415d8bf",
    "type": "exported-symbol",
    "title": "MarketingPlan",
    "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 76,
+   "line": 77,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "typealias"
    ],
-   "detailRef": "50356772ce5f"
+   "detailRef": "8ef08786650e"
   },
   {
-   "id": "exported-symbol:8f1bf1a7f6ef",
+   "id": "exported-symbol:14a1bc231ca3",
    "type": "exported-symbol",
    "title": "MarketingPlan",
-   "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
-   "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 22,
-   "surface": null,
-   "tags": [
-    "openai",
-    "re-export",
-    "stripe"
-   ],
-   "detailRef": "9ea164a0967c"
-  },
-  {
-   "id": "exported-symbol:c71932f87054",
-   "type": "exported-symbol",
-   "title": "MarketingPlanError",
-   "description": "Export class de supabase/functions/_shared/marketing-ai-plan.ts.",
-   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 48,
-   "surface": null,
-   "tags": [
-    "class",
-    "google",
-    "stripe"
-   ],
-   "detailRef": "a249307b9d5c"
-  },
-  {
-   "id": "exported-symbol:50bfe4047e72",
-   "type": "exported-symbol",
-   "title": "MarketingPlanItem",
-   "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
-   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 60,
-   "surface": null,
-   "tags": [
-    "google",
-    "stripe",
-    "typealias"
-   ],
-   "detailRef": "ade82f5f7959"
-  },
-  {
-   "id": "exported-symbol:cb5bade7a8c9",
-   "type": "exported-symbol",
-   "title": "MarketingPlanItem",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
    "line": 23,
@@ -247305,7 +247492,110 @@
     "re-export",
     "stripe"
    ],
-   "detailRef": "b9387062b886"
+   "detailRef": "95a28fa00e7a"
+  },
+  {
+   "id": "exported-symbol:dfb473bb92c2",
+   "type": "exported-symbol",
+   "title": "MarketingPlanError",
+   "description": "Export class de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 49,
+   "surface": null,
+   "tags": [
+    "class",
+    "google",
+    "stripe"
+   ],
+   "detailRef": "fa0fe1350705"
+  },
+  {
+   "id": "exported-symbol:ae8db10ddd61",
+   "type": "exported-symbol",
+   "title": "MarketingPlanItem",
+   "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 61,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "a2396da29043"
+  },
+  {
+   "id": "exported-symbol:fa4c13541174",
+   "type": "exported-symbol",
+   "title": "MarketingPlanItem",
+   "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
+   "path": "supabase/functions/_shared/marketing-ai.ts",
+   "line": 24,
+   "surface": null,
+   "tags": [
+    "openai",
+    "re-export",
+    "stripe"
+   ],
+   "detailRef": "45571c880585"
+  },
+  {
+   "id": "exported-symbol:8be608a2128b",
+   "type": "exported-symbol",
+   "title": "MarketingPostFormat",
+   "description": "Export re-export de src/marketing/campaignTemplates.ts.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "google",
+    "re-export"
+   ],
+   "detailRef": "4d7b5188d476"
+  },
+  {
+   "id": "exported-symbol:aba053fd94a5",
+   "type": "exported-symbol",
+   "title": "MarketingPostFormat",
+   "description": "Export typealias de src/marketing/types.ts.",
+   "path": "src/marketing/types.ts",
+   "line": 65,
+   "surface": null,
+   "tags": [
+    "google",
+    "typealias"
+   ],
+   "detailRef": "e22429063214"
+  },
+  {
+   "id": "exported-symbol:f47249191282",
+   "type": "exported-symbol",
+   "title": "MarketingPostFormat",
+   "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 32,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "10c0d97c5282"
+  },
+  {
+   "id": "exported-symbol:b1a4fc0e7840",
+   "type": "exported-symbol",
+   "title": "MarketingPostFormat",
+   "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
+   "path": "supabase/functions/_shared/marketing-ai.ts",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "openai",
+    "re-export",
+    "stripe"
+   ],
+   "detailRef": "555aa45b2f06"
   },
   {
    "id": "exported-symbol:178fe0300b49",
@@ -247347,32 +247637,32 @@
    "detailRef": "a677101e9e49"
   },
   {
-   "id": "exported-symbol:8ee41a7c1234",
+   "id": "exported-symbol:98604b47b9ef",
    "type": "exported-symbol",
    "title": "MarketingProspect",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 196,
+   "line": 199,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "fde33287415c"
+   "detailRef": "be6ff1d3f875"
   },
   {
-   "id": "exported-symbol:e64dedccdbed",
+   "id": "exported-symbol:b91a90ffff79",
    "type": "exported-symbol",
    "title": "MarketingProspectStatus",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 65,
+   "line": 66,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "65a624b59aa9"
+   "detailRef": "a5cca948d9d2"
   },
   {
    "id": "exported-symbol:a0f1c1881018",
@@ -247414,32 +247704,32 @@
    "detailRef": "5c8f0a333aac"
   },
   {
-   "id": "exported-symbol:9b060c46c79b",
+   "id": "exported-symbol:cb4bc45bd835",
    "type": "exported-symbol",
    "title": "MarketingRestaurantContactDraft",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 218,
+   "line": 221,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "b61568684336"
+   "detailRef": "0a3ea56ea8a1"
   },
   {
-   "id": "exported-symbol:b4290b435bdd",
+   "id": "exported-symbol:8287fafd9b5d",
    "type": "exported-symbol",
    "title": "MarketingResultPoint",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 335,
+   "line": 338,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "e5458745c2a2"
+   "detailRef": "a5efa187995e"
   },
   {
    "id": "exported-symbol:7806a912974f",
@@ -247481,46 +247771,46 @@
    "detailRef": "e30fb6f76609"
   },
   {
-   "id": "exported-symbol:02841439662d",
+   "id": "exported-symbol:df18b84dd6f6",
    "type": "exported-symbol",
    "title": "MarketingSnapshot",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 507,
+   "line": 510,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "c0b2ebe05742"
+   "detailRef": "5875df395154"
   },
   {
-   "id": "exported-symbol:949b480bc9dd",
+   "id": "exported-symbol:961d93b8045b",
    "type": "exported-symbol",
    "title": "MarketingSourceSyncBatch",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 261,
+   "line": 264,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "b63014aeb5ab"
+   "detailRef": "11d96f99376c"
   },
   {
-   "id": "exported-symbol:773fa2ae718a",
+   "id": "exported-symbol:c11380466c02",
    "type": "exported-symbol",
    "title": "MarketingSourceSyncResume",
    "description": "Export typealias de src/marketing/types.ts.",
    "path": "src/marketing/types.ts",
-   "line": 273,
+   "line": 276,
    "surface": null,
    "tags": [
     "google",
     "typealias"
    ],
-   "detailRef": "0e44dd1b3834"
+   "detailRef": "58dcf28e8fda"
   },
   {
    "id": "exported-symbol:677d317ec555",
@@ -256367,6 +256657,20 @@
    "detailRef": "fc2c2d68ad12"
   },
   {
+   "id": "exported-symbol:2371dd3df355",
+   "type": "exported-symbol",
+   "title": "VISUAL_MARKETING_CHANNELS",
+   "description": "Export variable de src/marketing/campaignTemplates.ts.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "google",
+    "variable"
+   ],
+   "detailRef": "70ad2a54bfe3"
+  },
+  {
    "id": "exported-symbol:2105eb3d5f47",
    "type": "exported-symbol",
    "title": "VerificationDocumentCleanupOptions",
@@ -256924,43 +257228,43 @@
    "detailRef": "f60a8373ef18"
   },
   {
-   "id": "exported-symbol:1e7bf17de47c",
+   "id": "exported-symbol:21b72e502b14",
    "type": "exported-symbol",
    "title": "approveMarketingCampaign",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 888,
+   "line": 906,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "d2827a7bd075"
+   "detailRef": "ed6a0317dead"
   },
   {
-   "id": "exported-symbol:28781b732c63",
+   "id": "exported-symbol:a479c0423f47",
    "type": "exported-symbol",
    "title": "approveMarketingItem",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 895,
+   "line": 913,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "41e9c201cf10"
+   "detailRef": "78b99ccb3f0c"
   },
   {
-   "id": "exported-symbol:215658333f52",
+   "id": "exported-symbol:f7da05395b66",
    "type": "exported-symbol",
    "title": "approveMarketingOutreachDraft",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1175,
+   "line": 1193,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "72a4927fc618"
+   "detailRef": "65aed52a3c74"
   },
   {
    "id": "exported-symbol:dd79007a6d4a",
@@ -257668,6 +257972,20 @@
     "google"
    ],
    "detailRef": "db7b2b23177a"
+  },
+  {
+   "id": "exported-symbol:71fc018a22dd",
+   "type": "exported-symbol",
+   "title": "buildCampaignObjective",
+   "description": "Export function de src/marketing/campaignTemplates.ts.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": 89,
+   "surface": null,
+   "tags": [
+    "function",
+    "google"
+   ],
+   "detailRef": "a53d43873845"
   },
   {
    "id": "exported-symbol:4a58b27b04a2",
@@ -258545,19 +258863,19 @@
    "detailRef": "195e319b6035"
   },
   {
-   "id": "exported-symbol:84df4988e884",
+   "id": "exported-symbol:ac2fada5c81f",
    "type": "exported-symbol",
    "title": "buildPlanSchema",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 111,
+   "line": 112,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "7169c9eacc9f"
+   "detailRef": "2fc10052b87d"
   },
   {
    "id": "exported-symbol:651ae00df605",
@@ -259143,18 +259461,18 @@
    "detailRef": "355dc1381a5f"
   },
   {
-   "id": "exported-symbol:9fb4ab619794",
+   "id": "exported-symbol:c48bb56c3e9c",
    "type": "exported-symbol",
    "title": "buildTokMarketingImageForm",
    "description": "Export function de supabase/functions/_shared/marketing-visual.ts.",
    "path": "supabase/functions/_shared/marketing-visual.ts",
-   "line": 57,
+   "line": 58,
    "surface": null,
    "tags": [
     "function",
     "openai"
    ],
-   "detailRef": "2f5d9f7cdfbf"
+   "detailRef": "3813e71db9b3"
   },
   {
    "id": "exported-symbol:88a121493f3f",
@@ -259507,6 +259825,20 @@
    "detailRef": "9c6dae9934c3"
   },
   {
+   "id": "exported-symbol:44c989f1c3d6",
+   "type": "exported-symbol",
+   "title": "campaignEndDate",
+   "description": "Export function de src/marketing/campaignTemplates.ts.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": 81,
+   "surface": null,
+   "tags": [
+    "function",
+    "google"
+   ],
+   "detailRef": "593348e03ff7"
+  },
+  {
    "id": "exported-symbol:096bf72de9c2",
    "type": "exported-symbol",
    "title": "campaignSupportsPlacement",
@@ -259627,17 +259959,17 @@
    "detailRef": "2e3c584afc94"
   },
   {
-   "id": "exported-symbol:9cf9a33a104b",
+   "id": "exported-symbol:391359d33d0b",
    "type": "exported-symbol",
    "title": "cancelMarketingItem",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 842,
+   "line": 860,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "75543b60d28c"
+   "detailRef": "9591ad2f31e1"
   },
   {
    "id": "exported-symbol:690ce4c570b3",
@@ -260326,30 +260658,30 @@
    "detailRef": "ec67cf96fee4"
   },
   {
-   "id": "exported-symbol:13260e43944d",
+   "id": "exported-symbol:e03ed06206e8",
    "type": "exported-symbol",
    "title": "completeManualMarketingDelivery",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 908,
+   "line": 926,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "f1006c52b3df"
+   "detailRef": "311da6e60911"
   },
   {
-   "id": "exported-symbol:f7bc71eb986d",
+   "id": "exported-symbol:c47ae9e3f266",
    "type": "exported-symbol",
    "title": "completeManualMarketingItem",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 849,
+   "line": 867,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "7b97322986fd"
+   "detailRef": "0e90ae9c5b54"
   },
   {
    "id": "exported-symbol:90405ccc5e04",
@@ -260915,17 +261247,17 @@
    "detailRef": "767d1cd6598e"
   },
   {
-   "id": "exported-symbol:7c3bd3a5d4b8",
+   "id": "exported-symbol:25f3f0232686",
    "type": "exported-symbol",
    "title": "createMarketingCampaignBundle",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 800,
+   "line": 818,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "02cafa6306d9"
+   "detailRef": "001e189b11b3"
   },
   {
    "id": "exported-symbol:5bf4720bbab8",
@@ -263386,17 +263718,17 @@
    "detailRef": "26c3c627aee3"
   },
   {
-   "id": "exported-symbol:9cc6336d059a",
+   "id": "exported-symbol:ff504ba24158",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/marketing/views/MarketingAgentView.tsx.",
    "path": "src/components/marketing/views/MarketingAgentView.tsx",
-   "line": 77,
+   "line": 97,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "c6a430952c38"
+   "detailRef": "6693dd6e3026"
   },
   {
    "id": "exported-symbol:3b712df3a287",
@@ -263438,17 +263770,17 @@
    "detailRef": "589385507c5b"
   },
   {
-   "id": "exported-symbol:2c45a2eb751d",
+   "id": "exported-symbol:494e2fb1e49c",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/marketing/views/MarketingCampaignsView.tsx.",
    "path": "src/components/marketing/views/MarketingCampaignsView.tsx",
-   "line": 73,
+   "line": 74,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "38aa46840c39"
+   "detailRef": "2fad4e86bcf2"
   },
   {
    "id": "exported-symbol:5be2db846546",
@@ -266302,17 +266634,17 @@
    "detailRef": "4ceebf4e84bb"
   },
   {
-   "id": "exported-symbol:57e1ab835ee5",
+   "id": "exported-symbol:2ffaa051340b",
    "type": "exported-symbol",
    "title": "estimateMarketingAudience",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 861,
+   "line": 879,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "bc918aaa2cc4"
+   "detailRef": "b61b9d5026ed"
   },
   {
    "id": "exported-symbol:d3669e6808bd",
@@ -267625,33 +267957,33 @@
    "detailRef": "95a6c8c90699"
   },
   {
-   "id": "exported-symbol:6d4fab5cd135",
+   "id": "exported-symbol:c31ef097cd1c",
    "type": "exported-symbol",
    "title": "generateCampaignVisual",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 26,
+   "line": 28,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "a7680016ef89"
+   "detailRef": "2047af8e9d95"
   },
   {
-   "id": "exported-symbol:c7bd4b14c0ac",
+   "id": "exported-symbol:e4d6de1a8cca",
    "type": "exported-symbol",
    "title": "generateCampaignVisual",
    "description": "Export function de supabase/functions/_shared/marketing-visual.ts.",
    "path": "supabase/functions/_shared/marketing-visual.ts",
-   "line": 80,
+   "line": 90,
    "surface": null,
    "tags": [
     "function",
     "openai"
    ],
-   "detailRef": "25e70521b927"
+   "detailRef": "bb728968bc0a"
   },
   {
    "id": "exported-symbol:990271c9422d",
@@ -267725,19 +268057,19 @@
    "detailRef": "f5c63b8db0dd"
   },
   {
-   "id": "exported-symbol:3f46dbeb45dc",
+   "id": "exported-symbol:24ffca7c0b14",
    "type": "exported-symbol",
    "title": "generateMarketingPlan",
    "description": "Export function de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 67,
+   "line": 71,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "stripe"
    ],
-   "detailRef": "df104df7d212"
+   "detailRef": "07139aaf0cdb"
   },
   {
    "id": "exported-symbol:5c4910fc0ae5",
@@ -272990,17 +273322,17 @@
    "detailRef": "923c41b8b73f"
   },
   {
-   "id": "exported-symbol:922d2b59ca23",
+   "id": "exported-symbol:30f87ea51768",
    "type": "exported-symbol",
    "title": "invokeOutreachRpc",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 115,
+   "line": 130,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "26be7460a802"
+   "detailRef": "4479b906746f"
   },
   {
    "id": "exported-symbol:1457bd32706b",
@@ -275013,30 +275345,30 @@
    "detailRef": "7a98b7677d2a"
   },
   {
-   "id": "exported-symbol:17f9fe374bb3",
+   "id": "exported-symbol:2c2e1bd6343d",
    "type": "exported-symbol",
    "title": "listMarketingContactsPage",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 581,
+   "line": 599,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "1ce3570919a0"
+   "detailRef": "9ef223a16e4f"
   },
   {
-   "id": "exported-symbol:988c13ca9db8",
+   "id": "exported-symbol:9801321ffde0",
    "type": "exported-symbol",
    "title": "listMarketingDeliveriesPage",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 595,
+   "line": 613,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "3a3101cbed51"
+   "detailRef": "ab3641de16ea"
   },
   {
    "id": "exported-symbol:b61a92d66ce7",
@@ -275174,30 +275506,30 @@
    "detailRef": "6b0a2a24a7b0"
   },
   {
-   "id": "exported-symbol:bce9bbaa74ee",
+   "id": "exported-symbol:a08d95adfe18",
    "type": "exported-symbol",
    "title": "loadMarketingOutreach",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1099,
+   "line": 1117,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "66991fedf3e2"
+   "detailRef": "2ca2106914ea"
   },
   {
-   "id": "exported-symbol:7c749b74dbcc",
+   "id": "exported-symbol:3faa1978cd44",
    "type": "exported-symbol",
    "title": "loadMarketingSnapshot",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 609,
+   "line": 627,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "855ee3c7c8ec"
+   "detailRef": "8b30575841da"
   },
   {
    "id": "exported-symbol:36e763c89f56",
@@ -275242,12 +275574,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:9d5e486ea779",
+   "id": "exported-symbol:e98eb0a0521c",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3214,
+   "line": 3220,
    "surface": null,
    "tags": [
     "firebase",
@@ -275257,7 +275589,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "c62a25ac128f"
+   "detailRef": "aa501a979840"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -275505,12 +275837,12 @@
    "detailRef": "cca6614d87a7"
   },
   {
-   "id": "exported-symbol:018aee008d1f",
+   "id": "exported-symbol:84f7283ae4e9",
    "type": "exported-symbol",
    "title": "marketingAgentHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1946,
+   "line": 1966,
    "surface": null,
    "tags": [
     "function",
@@ -275518,7 +275850,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "33159560a6ac"
+   "detailRef": "e162b4cb2bce"
   },
   {
    "id": "exported-symbol:028c677c9456",
@@ -275534,12 +275866,12 @@
    "detailRef": "3b94cf954fc4"
   },
   {
-   "id": "exported-symbol:f87e45420cb2",
+   "id": "exported-symbol:d17fb16bc47a",
    "type": "exported-symbol",
    "title": "marketingLaunchHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1953,
+   "line": 1973,
    "surface": null,
    "tags": [
     "function",
@@ -275547,15 +275879,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "5931e459de19"
+   "detailRef": "c7dc2864a3e5"
   },
   {
-   "id": "exported-symbol:d50968837c16",
+   "id": "exported-symbol:0d1b1f84b6cc",
    "type": "exported-symbol",
    "title": "marketingLoginHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1884,
+   "line": 1904,
    "surface": null,
    "tags": [
     "function",
@@ -275563,15 +275895,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "dc503cb0d1f7"
+   "detailRef": "dfd6b0343ddc"
   },
   {
-   "id": "exported-symbol:1779ce492796",
+   "id": "exported-symbol:f71e44183151",
    "type": "exported-symbol",
    "title": "marketingLogoutHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1905,
+   "line": 1925,
    "surface": null,
    "tags": [
     "function",
@@ -275579,15 +275911,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "b6e615705c94"
+   "detailRef": "ecb18c7006fb"
   },
   {
-   "id": "exported-symbol:06fa331809c9",
+   "id": "exported-symbol:55c0c79377f0",
    "type": "exported-symbol",
    "title": "marketingMfaEnrollHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1891,
+   "line": 1911,
    "surface": null,
    "tags": [
     "function",
@@ -275595,15 +275927,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "c2e9852bc54c"
+   "detailRef": "33d1f4bebcd7"
   },
   {
-   "id": "exported-symbol:fb42a8433794",
+   "id": "exported-symbol:f4d804e43635",
    "type": "exported-symbol",
    "title": "marketingMfaVerifyHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1898,
+   "line": 1918,
    "surface": null,
    "tags": [
     "function",
@@ -275611,7 +275943,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "582141fb05c7"
+   "detailRef": "b55e46f00eda"
   },
   {
    "id": "exported-symbol:19ab8e50dae1",
@@ -275627,12 +275959,12 @@
    "detailRef": "6e8251e72194"
   },
   {
-   "id": "exported-symbol:fe62af20d648",
+   "id": "exported-symbol:6e4a0ff13799",
    "type": "exported-symbol",
    "title": "marketingOrchestratorHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1939,
+   "line": 1959,
    "surface": null,
    "tags": [
     "function",
@@ -275640,7 +275972,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "e64cb76a3a4c"
+   "detailRef": "b545ee693db3"
   },
   {
    "id": "exported-symbol:c4d899e3cdd3",
@@ -275669,12 +276001,12 @@
    "detailRef": "40523290a88c"
   },
   {
-   "id": "exported-symbol:a4b69040f5f6",
+   "id": "exported-symbol:75c0157237de",
    "type": "exported-symbol",
    "title": "marketingRpcHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1932,
+   "line": 1952,
    "surface": null,
    "tags": [
     "function",
@@ -275682,15 +276014,15 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "6000b49784e8"
+   "detailRef": "3a5a3dc4689c"
   },
   {
-   "id": "exported-symbol:9c284c694021",
+   "id": "exported-symbol:722941452660",
    "type": "exported-symbol",
    "title": "marketingSessionHandler",
    "description": "Export function de server/marketingBff.ts.",
    "path": "server/marketingBff.ts",
-   "line": 1916,
+   "line": 1936,
    "surface": null,
    "tags": [
     "function",
@@ -275698,7 +276030,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "93bc1bb87a0d"
+   "detailRef": "bdd9cea16b22"
   },
   {
    "id": "exported-symbol:7c4d43963f98",
@@ -275997,6 +276329,19 @@
     "function"
    ],
    "detailRef": "77fe63719165"
+  },
+  {
+   "id": "exported-symbol:c4f880047069",
+   "type": "exported-symbol",
+   "title": "normalizeCalendarItem",
+   "description": "Export function de src/marketing/marketingClient.ts.",
+   "path": "src/marketing/marketingClient.ts",
+   "line": 167,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "abc20f9a4942"
   },
   {
    "id": "exported-symbol:f611125f7ac6",
@@ -277847,17 +278192,17 @@
    "detailRef": "cae72741d960"
   },
   {
-   "id": "exported-symbol:077c7f867f12",
+   "id": "exported-symbol:8ead8298269e",
    "type": "exported-symbol",
    "title": "recordMarketingOutreachResult",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1182,
+   "line": 1200,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "56e1b20920f1"
+   "detailRef": "e6b09f185ee8"
   },
   {
    "id": "exported-symbol:684ee2d9d6c0",
@@ -278949,30 +279294,30 @@
    "detailRef": "02eef465c475"
   },
   {
-   "id": "exported-symbol:32fc83d221b1",
+   "id": "exported-symbol:78b7c03ddf08",
    "type": "exported-symbol",
    "title": "retryMarketingDelivery",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 902,
+   "line": 920,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "0972903fe0d6"
+   "detailRef": "dd78ad4971aa"
   },
   {
-   "id": "exported-symbol:4a7b1af345a6",
+   "id": "exported-symbol:66db44a0b3b7",
    "type": "exported-symbol",
    "title": "revealManualMarketingDeliveryTarget",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 953,
+   "line": 971,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "5b163bce718f"
+   "detailRef": "f449e21c27ce"
   },
   {
    "id": "exported-symbol:29dda7898d66",
@@ -279119,17 +279464,17 @@
    "detailRef": "464e316108ec"
   },
   {
-   "id": "exported-symbol:b5c7cfe228d6",
+   "id": "exported-symbol:84183547f17e",
    "type": "exported-symbol",
    "title": "runMarketingOrchestrator",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1083,
+   "line": 1101,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "7bd07c671458"
+   "detailRef": "6ee006dd5047"
   },
   {
    "id": "exported-symbol:9b49d84c736d",
@@ -279925,17 +280270,17 @@
    "detailRef": "41d8f0a71899"
   },
   {
-   "id": "exported-symbol:4fd1253d8219",
+   "id": "exported-symbol:dab5fe63f057",
    "type": "exported-symbol",
    "title": "setMarketingGlobalPause",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 979,
+   "line": 997,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "39eeb3544e3f"
+   "detailRef": "4b7eec84f59c"
   },
   {
    "id": "exported-symbol:89ab9c40eaa9",
@@ -280309,34 +280654,34 @@
    "detailRef": "6a8c9c10b9f2"
   },
   {
-   "id": "exported-symbol:634ba1d01406",
+   "id": "exported-symbol:624596a1e84a",
    "type": "exported-symbol",
    "title": "slugifyCampaignName",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 270,
+   "line": 271,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "d2be16eaf5d4"
+   "detailRef": "f7e9ae7d06ff"
   },
   {
-   "id": "exported-symbol:881bca0be170",
+   "id": "exported-symbol:8899fec7652c",
    "type": "exported-symbol",
    "title": "slugifyCampaignName",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 18,
+   "line": 19,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "dfd462c919a9"
+   "detailRef": "dff9f2ced9af"
   },
   {
    "id": "exported-symbol:057efeee2f10",
@@ -280436,34 +280781,34 @@
    "detailRef": "e1a5ce22e576"
   },
   {
-   "id": "exported-symbol:dd77d9fd7ebc",
+   "id": "exported-symbol:e00025f58295",
    "type": "exported-symbol",
    "title": "stripEmptySelectors",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 200,
+   "line": 201,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "a4214743c7ba"
+   "detailRef": "f5f53dce4f97"
   },
   {
-   "id": "exported-symbol:14546db04290",
+   "id": "exported-symbol:130b8b686a69",
    "type": "exported-symbol",
    "title": "stripEmptySelectors",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 19,
+   "line": 20,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "2fcf4ce24bed"
+   "detailRef": "99089fd4f4a4"
   },
   {
    "id": "exported-symbol:a5ab8f8cf745",
@@ -280643,17 +280988,17 @@
    "detailRef": "d831a09371e9"
   },
   {
-   "id": "exported-symbol:0f6d7dfd4352",
+   "id": "exported-symbol:81707aeaa045",
    "type": "exported-symbol",
    "title": "suppressMarketingContact",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 946,
+   "line": 964,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "c15d34059952"
+   "detailRef": "e6e61db7d8fb"
   },
   {
    "id": "exported-symbol:fa84501cfc4e",
@@ -280670,30 +281015,30 @@
    "detailRef": "8434263e56d6"
   },
   {
-   "id": "exported-symbol:b01dab7c68da",
+   "id": "exported-symbol:7703fc7ff861",
    "type": "exported-symbol",
    "title": "syncMarketingClientConsents",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1055,
+   "line": 1073,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "457a3cb34fa0"
+   "detailRef": "fecf2f5b4984"
   },
   {
-   "id": "exported-symbol:1767fa3251d0",
+   "id": "exported-symbol:efc23cb6e262",
    "type": "exported-symbol",
    "title": "syncMarketingProspectCatalog",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1041,
+   "line": 1059,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "1a71a9e09800"
+   "detailRef": "ba7420f8b266"
   },
   {
    "id": "exported-symbol:d72c18f2409d",
@@ -280768,34 +281113,34 @@
    "detailRef": "193ca02afa50"
   },
   {
-   "id": "exported-symbol:c256bed9ddb9",
+   "id": "exported-symbol:63fc8b5b9836",
    "type": "exported-symbol",
    "title": "toBundlePayload",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 288,
+   "line": 289,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "24fc110d9637"
+   "detailRef": "f07c0059ae90"
   },
   {
-   "id": "exported-symbol:33ce03be26e4",
+   "id": "exported-symbol:899690147fdb",
    "type": "exported-symbol",
    "title": "toBundlePayload",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 20,
+   "line": 21,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "a0917ac58cb2"
+   "detailRef": "acb2b0752230"
   },
   {
    "id": "exported-symbol:9b03f630711d",
@@ -281490,108 +281835,108 @@
    "detailRef": "cbca4b5715a2"
   },
   {
-   "id": "exported-symbol:4540d82081e7",
+   "id": "exported-symbol:1a8b99b7549a",
    "type": "exported-symbol",
    "title": "upsertMarketingAutomation",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1067,
+   "line": 1085,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "2154d82fd750"
+   "detailRef": "4285c2d7ffba"
   },
   {
-   "id": "exported-symbol:e320f5abee14",
+   "id": "exported-symbol:25c7a8bf6dfd",
    "type": "exported-symbol",
    "title": "upsertMarketingBacklink",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1196,
+   "line": 1214,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "a5330dba7b50"
+   "detailRef": "ea3c8554414c"
   },
   {
-   "id": "exported-symbol:c1d61d248e7d",
+   "id": "exported-symbol:d4e6e37c418a",
    "type": "exported-symbol",
    "title": "upsertMarketingCalendarItem",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 834,
+   "line": 852,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "0f989fd437db"
+   "detailRef": "87d053bc55a7"
   },
   {
-   "id": "exported-symbol:e582ad249b09",
+   "id": "exported-symbol:3b7864a67578",
    "type": "exported-symbol",
    "title": "upsertMarketingCampaign",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 777,
+   "line": 795,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "0a1c809c21f3"
+   "detailRef": "31933da18354"
   },
   {
-   "id": "exported-symbol:fec9b509634e",
+   "id": "exported-symbol:11ee5720f1a0",
    "type": "exported-symbol",
    "title": "upsertMarketingOutreachDraft",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1159,
+   "line": 1177,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "66d791d34578"
+   "detailRef": "f73716d8f8c9"
   },
   {
-   "id": "exported-symbol:00e7d9310aed",
+   "id": "exported-symbol:b76e24c99c5f",
    "type": "exported-symbol",
    "title": "upsertMarketingOutreachOpportunity",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1139,
+   "line": 1157,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "2a06b2790fb3"
+   "detailRef": "409d7c0acfab"
   },
   {
-   "id": "exported-symbol:3abbd850b637",
+   "id": "exported-symbol:c77485704dbb",
    "type": "exported-symbol",
    "title": "upsertMarketingOutreachTarget",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 1118,
+   "line": 1136,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "b8cbf3df9786"
+   "detailRef": "c6cd5794a92b"
   },
   {
-   "id": "exported-symbol:62893979fb6f",
+   "id": "exported-symbol:6d61092c4c35",
    "type": "exported-symbol",
    "title": "upsertMarketingRestaurantContact",
    "description": "Export function de src/marketing/marketingClient.ts.",
    "path": "src/marketing/marketingClient.ts",
-   "line": 920,
+   "line": 938,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "eb17b638dfff"
+   "detailRef": "e6409f87679d"
   },
   {
    "id": "exported-symbol:049e5639f02b",
@@ -282979,19 +283324,19 @@
    "detailRef": "aac99c9319e2"
   },
   {
-   "id": "exported-symbol:162e2335dc82",
+   "id": "exported-symbol:0f3884ffac02",
    "type": "exported-symbol",
    "title": "validatePlan",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 223,
+   "line": 224,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b0172a85f363"
+   "detailRef": "a2620450cae3"
   },
   {
    "id": "exported-symbol:c88ecd4fb1d2",
@@ -305710,6 +306055,20 @@
    "detailRef": "54717fc0b2af"
   },
   {
+   "id": "file:32b215723987",
+   "type": "file",
+   "title": "src/marketing/campaignTemplates.ts",
+   "description": "Fichier du dépôt classé frontend-source.",
+   "path": "src/marketing/campaignTemplates.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "frontend-source"
+   ],
+   "detailRef": "4ebc9420f474"
+  },
+  {
    "id": "file:0525ac1e54c6",
    "type": "file",
    "title": "src/marketing/fallbackSnapshot.ts",
@@ -311896,6 +312255,20 @@
     "test"
    ],
    "detailRef": "728120fa0446"
+  },
+  {
+   "id": "file:bce3ad5991a1",
+   "type": "file",
+   "title": "src/test/marketing-campaign-builder.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-campaign-builder.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "0dd8e26e4d46"
   },
   {
    "id": "file:f95aa31150e0",
@@ -329462,7 +329835,7 @@
    "id": "integration:5c0229914ab6",
    "type": "integration",
    "title": "Google",
-   "description": "Intégration externe détectée dans 112 module(s).",
+   "description": "Intégration externe détectée dans 113 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -329503,6 +329876,7 @@
     "src/lib/publicFeatureMatrix.ts",
     "src/lib/reservationMutations.ts",
     "src/lib/restaurantPartnerContract.ts",
+    "src/marketing/campaignTemplates.ts",
     "src/marketing/fallbackSnapshot.ts",
     "src/marketing/types.ts",
     "src/marketing/useMarketingUrlState.ts",
@@ -329581,7 +329955,7 @@
     "supabase/functions/verify-directory-commercial-names/index.ts",
     "supabase/functions/verify-directory-image-truth/index.ts"
    ],
-   "detailRef": "6017f947bf69"
+   "detailRef": "a5d39aa8857a"
   },
   {
    "id": "integration:672e2c9b82f3",
@@ -343030,15 +343404,16 @@
    "id": "path-literal:134f25384925",
    "type": "path-literal",
    "title": "/api/marketing/agent",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/marketing/marketingBffClient.ts",
    "line": 13,
    "surface": null,
    "tags": [
     "src/marketing/marketingBffClient.ts",
+    "src/test/marketing-campaign-builder.test.tsx",
     "src/test/marketing-source-discovery.test.tsx"
    ],
-   "detailRef": "41b06192e28c"
+   "detailRef": "e29648000720"
   },
   {
    "id": "path-literal:107cc0a99bd5",
@@ -345616,7 +345991,7 @@
    "id": "path-literal:86a5c723657e",
    "type": "path-literal",
    "title": "/functions/v1/",
-   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/lib/commercialDemoEffects.ts",
    "line": 27,
    "surface": null,
@@ -345626,7 +346001,7 @@
     "src/lib/iosCommerceFetch.ts",
     "src/test/marketing-agent-bff.test.ts"
    ],
-   "detailRef": "fecd491d45cb"
+   "detailRef": "6e44702954ba"
   },
   {
    "id": "path-literal:4d3338389c80",
@@ -345639,7 +346014,7 @@
    "tags": [
     "src/test/marketing-agent-bff.test.ts"
    ],
-   "detailRef": "1598fd6c0a56"
+   "detailRef": "d1924113f14b"
   },
   {
    "id": "path-literal:e23ffb63f273",
@@ -345782,17 +346157,17 @@
    "detailRef": "dbec53578e36"
   },
   {
-   "id": "path-literal:3394bed816e5",
+   "id": "path-literal:c4b140e9a214",
    "type": "path-literal",
    "title": "/generations",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/marketing-brand-references.test.ts",
-   "line": 77,
+   "line": 87,
    "surface": null,
    "tags": [
     "src/test/marketing-brand-references.test.ts"
    ],
-   "detailRef": "d9b3dca0baa3"
+   "detailRef": "3bd06bafac35"
   },
   {
    "id": "path-literal:95e27403bc7d",
@@ -350232,7 +350607,7 @@
     "src/components/marketing/views/MarketingOutreachView.tsx",
     "src/marketing/marketingClient.ts"
    ],
-   "detailRef": "d823d96a9e59"
+   "detailRef": "79febe4bedca"
   },
   {
    "id": "path-literal:38729e52638a",

@@ -1,11 +1,12 @@
 import { buildTokMarketingVisualPrompt, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
+import type { MarketingPostFormat } from "./marketing-ai-plan.ts";
 
 const REFERENCE_ORIGIN = "https://www.thetok.ch";
 const MAX_REFERENCE_BYTES = 2_000_000;
 const MAX_OUTPUT_BYTES = 8_000_000;
 let referenceCache: Promise<Blob[]> | undefined;
 
-async function readBounded(response: Response, maximum: number): Promise<ArrayBuffer> {
+async function readBounded(response: Response, maximum: number): Promise<Uint8Array> {
   if (!response.ok || !response.body || Number(response.headers.get("content-length")) > maximum) {
     await response.body?.cancel();
     throw new Error("marketing_image_response_invalid");
@@ -30,7 +31,7 @@ async function readBounded(response: Response, maximum: number): Promise<ArrayBu
   const bytes = new Uint8Array(size);
   let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-  return bytes.buffer;
+  return bytes;
 }
 
 async function loadReferences(): Promise<Blob[]> {
@@ -54,13 +55,22 @@ async function loadReferences(): Promise<Blob[]> {
   }
 }
 
-export async function buildTokMarketingImageForm(prompt: string): Promise<FormData> {
+export async function buildTokMarketingImageForm(
+  prompt: string,
+  format?: MarketingPostFormat,
+): Promise<FormData> {
   referenceCache ??= loadReferences().catch((error) => { referenceCache = undefined; throw error; });
   const references = await referenceCache;
   const form = new FormData();
   form.set("model", "gpt-image-2");
   form.set("prompt", buildTokMarketingVisualPrompt(prompt));
-  form.set("size", "1024x1280");
+  form.set("size", format === "9:16"
+    ? "1024x1536"
+    : format === "16:9"
+      ? "1536x1024"
+      : format === "1:1"
+        ? "1024x1024"
+        : "1024x1280");
   form.set("output_format", "jpeg");
   form.set("output_compression", "90");
   form.set("n", "1");
@@ -79,11 +89,18 @@ type VisualStorageClient = {
 /** A failed reference/edit leaves a draft without an image; never fall back to unbranded generation. */
 export async function generateCampaignVisual(
   adminClient: VisualStorageClient,
-  options: { prompt: string; campaignSlug: string; index: number; apiKey: string; timeoutMs?: number },
+  options: {
+    prompt: string;
+    campaignSlug: string;
+    index: number;
+    apiKey: string;
+    format?: MarketingPostFormat;
+    timeoutMs?: number;
+  },
 ): Promise<string | null> {
   if (!options.apiKey || !options.prompt.trim()) return null;
   try {
-    const body = await buildTokMarketingImageForm(options.prompt);
+    const body = await buildTokMarketingImageForm(options.prompt, options.format);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), Math.max(1, Math.min(options.timeoutMs ?? 90_000, 90_000)));
     let payload: { data?: Array<{ b64_json?: string }> };

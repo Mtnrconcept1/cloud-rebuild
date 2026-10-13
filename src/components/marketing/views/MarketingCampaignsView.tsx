@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, Megaphone, Plus, Search, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, ImageIcon, Megaphone, Plus, Search, ShieldCheck, Sparkles } from "lucide-react";
 
 import {
   MarketingChannelBadge,
@@ -34,6 +34,7 @@ import {
   type MarketingCampaignDraft,
   type MarketingChannelId,
   type MarketingSnapshot,
+  type MarketingView,
 } from "@/marketing/types";
 import type { MarketingUrlState } from "@/marketing/useMarketingUrlState";
 import { marketingZurichLocalDateTimeToIso } from "@/marketing/zurichTime";
@@ -80,6 +81,7 @@ export default function MarketingCampaignsView({
   onSave,
   onApprove,
   onRecommendChannels,
+  onNavigate,
 }: {
   snapshot: MarketingSnapshot;
   filters: MarketingUrlState;
@@ -93,6 +95,7 @@ export default function MarketingCampaignsView({
     audienceFilter: Record<string, unknown>,
     channels: MarketingChannelId[],
   ) => Promise<MarketingAudienceEstimate | undefined>;
+  onNavigate: (view: MarketingView) => void;
 }) {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -248,9 +251,14 @@ export default function MarketingCampaignsView({
           <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Campagnes d'acquisition</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Chaque création commence en brouillon, avec approbation humaine obligatoire et canaux filtrés par disponibilité réelle.</p>
         </div>
-        <Button type="button" onClick={() => setWizardOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Créer une campagne
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" onClick={() => onNavigate("agent")}>
+            <Sparkles className="mr-2 h-4 w-4" /> Générer avec un modèle
+          </Button>
+          <Button type="button" variant="outline" onClick={() => setWizardOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Créer manuellement
+          </Button>
+        </div>
       </div>
 
       {!canMutateBackend ? (
@@ -294,6 +302,8 @@ export default function MarketingCampaignsView({
         <div className="grid gap-4 xl:grid-cols-2">
           {pageItems.map((campaign) => {
             const deliveryRate = campaign.sent ? campaign.delivered / campaign.sent : 0;
+            const campaignItems = snapshot.calendar.filter((item) => item.campaignId === campaign.id);
+            const visualItems = campaignItems.filter((item) => item.visualUrl);
             return (
               <Card key={campaign.id} className="min-w-0 overflow-hidden">
                 <CardHeader className="space-y-3">
@@ -304,6 +314,35 @@ export default function MarketingCampaignsView({
                   <div className="flex flex-wrap gap-2">{campaign.channels.map((channel) => <MarketingChannelBadge key={channel} channel={channel} />)}</div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="rounded-xl border bg-muted/20 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><ImageIcon className="h-4 w-4" />Visuels à approuver</p>
+                      <span className="text-xs text-muted-foreground">{visualItems.length}</span>
+                    </div>
+                    {visualItems.length ? (
+                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {visualItems.slice(0, 6).map((item) => (
+                          <figure key={item.id} className="min-w-0 overflow-hidden rounded-lg border bg-background">
+                            <img
+                              src={item.visualUrl || ""}
+                              alt={`Visuel généré pour ${item.title}`}
+                              className="w-full object-cover"
+                              style={{ aspectRatio: (item.format || "1:1").replace(":", " / ") }}
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
+                            />
+                            <figcaption className="space-y-1 p-2">
+                              <p className="truncate text-[11px] font-semibold" title={item.title}>{item.title}</p>
+                              <div className="flex items-center justify-between gap-1"><span className="text-[10px] text-muted-foreground">{item.format || "1:1"}</span><MarketingStatusBadge status={item.approvalStatus} className="px-1.5 py-0 text-[9px]" /></div>
+                            </figcaption>
+                          </figure>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-xs text-muted-foreground">Aucun visuel n'est encore rattaché à cette campagne.</p>
+                    )}
+                    {campaignItems.length ? <Button type="button" size="sm" variant="ghost" className="mt-2 w-full" onClick={() => onNavigate("calendar")}>Relire les publications et les visuels</Button> : null}
+                  </div>
                   <div className="rounded-xl border bg-muted/20 p-3">
                     <p className="text-xs text-muted-foreground">Audience</p>
                     <p className="mt-1 truncate text-sm font-semibold">{campaign.audienceName}</p>

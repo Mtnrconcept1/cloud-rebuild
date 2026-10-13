@@ -1669,6 +1669,24 @@ function agentChannels(body: JsonObject): string[] {
   return channels;
 }
 
+const MARKETING_POST_FORMAT_VALUES = new Set(["1:1", "9:16", "16:9"]);
+
+function agentFormats(body: JsonObject, channels: readonly string[]): JsonObject {
+  if (body.formats === undefined) return {};
+  if (!isPlainObject(body.formats)) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+  const allowedChannels = new Set(channels);
+  const formats: JsonObject = {};
+  for (const [channel, format] of Object.entries(body.formats)) {
+    if (!allowedChannels.has(channel) || typeof format !== "string" || !MARKETING_POST_FORMAT_VALUES.has(format)) {
+      throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+    }
+    formats[channel] = format;
+  }
+  return formats;
+}
+
 function agentTimestamp(body: JsonObject, key: string): string {
   const value = body[key];
   const parsed = typeof value === "string" ? Date.parse(value) : Number.NaN;
@@ -1770,7 +1788,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     return;
   }
 
-  const allowedKeys = ["action", "objective", "audienceHint", "channels", "startsAt", "endsAt", "itemCount"];
+  const allowedKeys = ["action", "objective", "audienceHint", "channels", "formats", "startsAt", "endsAt", "itemCount"];
   if (Object.keys(body).some((key) => !allowedKeys.includes(key))) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
@@ -1778,6 +1796,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
   if (!objective) throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   const audienceHint = body.audienceHint === undefined ? "" : stringField(body, "audienceHint", 500);
   const channels = agentChannels(body);
+  const formats = agentFormats(body, channels);
   const startsAt = agentTimestamp(body, "startsAt");
   const endsAt = agentTimestamp(body, "endsAt");
   if (Date.parse(endsAt) <= Date.parse(startsAt)) {
@@ -1793,6 +1812,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     objective,
     audienceHint,
     channels,
+    formats,
     startsAt,
     endsAt,
     itemCount,
