@@ -623,6 +623,192 @@ html body [data-golden-tok-chefs-table] .golden-tok-stage::after {
     background-position: center, 60% 60% !important;
   }
 }
+
+/* Golden TOK — live offers + compact first-screen mobile layout (2026-10-13).
+   Earlier editorial layers used display:contents on the actual offer container:
+   that flattened the DOM into the outer grid/flex and left ghost grid tracks on
+   desktop. Keep the business content together in one normal flow container. */
+html body [data-golden-tok-chefs-table] .golden-tok-stage > .golden-tok-content {
+  display: block !important;
+  order: 5 !important;
+  flex: 0 0 auto !important;
+  position: relative !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: clamp(14px, 1.65vw, 22px) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > * {
+  margin-block: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  align-self: stretch !important;
+}
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > [data-golden-tok-offers] {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)) !important;
+  gap: clamp(14px, 1.5vw, 22px) !important;
+  position: relative !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  scroll-snap-type: none !important;
+}
+html body [data-golden-tok-chefs-table] [data-golden-tok-offers] > article {
+  display: block !important;
+  position: relative !important;
+  height: auto !important;
+  min-height: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  align-self: start !important;
+  transform: none !important;
+}
+html body [data-golden-tok-chefs-table] #la-tok-dor-offres {
+  scroll-margin-top: calc(var(--tok-public-navbar-offset, 80px) + 12px);
+}
+
+/* Mobile uses the vertical space available on arrival, not a 720px+
+   decorative hero. Keep the photograph and both actionable buttons while
+   placing the complete four-benefit strip inside the initial viewport. */
+@media (max-width: 600px) {
+  html body [data-golden-tok-chefs-table] .golden-tok-stage {
+    padding-top: 5px !important;
+    padding-bottom: 28px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading {
+    box-sizing: border-box !important;
+    height: clamp(400px, calc(100svh - 310px), 510px) !important;
+    min-height: 0 !important;
+    max-height: 510px !important;
+    padding: 17px 16px 105px !important;
+    overflow: hidden !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading > .golden-tok-hero-copy {
+    max-width: 100% !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-eyebrow {
+    margin-bottom: 8px !important;
+    font-size: .57rem !important;
+    letter-spacing: .25em !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-eyebrow::after {
+    width: 40px;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1.golden-tok-hero-title {
+    width: fit-content !important;
+    max-width: 78% !important;
+    font-size: clamp(3rem, 12.6vw, 3.9rem) !important;
+    line-height: .91 !important;
+    letter-spacing: -.07em !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading p.golden-tok-hero-tagline {
+    margin-top: 10px !important;
+    max-width: min(65%, 245px) !important;
+    font-size: .61rem !important;
+    line-height: 1.45 !important;
+    letter-spacing: .12em !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading p.golden-tok-hero-description {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    max-width: min(76%, 260px) !important;
+    margin-top: 9px !important;
+    overflow: hidden;
+    font-size: .74rem !important;
+    line-height: 1.36 !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading p.golden-tok-hero-script {
+    display: none !important; /* The full editorial quote remains below, in .golden-tok-story. */
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-hero-seal {
+    top: 83px !important;
+    right: 9px !important;
+    width: 64px !important;
+    gap: 4px !important;
+    padding: 8px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-hero-seal svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-hero-seal span {
+    font-size: .44rem !important;
+    letter-spacing: 0 !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-hero-actions {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    gap: 6px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-discover,
+  html body [data-golden-tok-chefs-table] .golden-tok-hero-actions .golden-tok-header-action button {
+    min-height: 43px !important;
+    padding: 8px 12px !important;
+    font-size: .85rem !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefits {
+    width: calc(100% - 6px) !important;
+    margin-top: -2px !important;
+    border-radius: 14px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefits > .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit {
+    min-height: 58px !important;
+    gap: 7px !important;
+    padding: 6px 8px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit-icon {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit-title {
+    font-size: .72rem !important;
+    line-height: 1.14 !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit-description {
+    margin-top: 2px !important;
+    font-size: .47rem !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0 !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > [data-golden-tok-offers] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+@media (max-width: 370px) {
+  html body [data-golden-tok-chefs-table] .golden-tok-heading {
+    padding-inline: 13px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1.golden-tok-hero-title {
+    font-size: 2.95rem !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefit-title {
+    font-size: .68rem !important;
+  }
+}
+
 /* Tie-break with V3's multi-class card-grid rule. */
 html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > [class~="grid"][class~="gap-6"][data-golden-tok-offers] {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)) !important;
