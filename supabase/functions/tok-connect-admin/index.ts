@@ -19,10 +19,10 @@ function stringValue(value: unknown) {
 }
 
 async function buildAdminOverview(adminClient: ReturnType<typeof createAdminClient>) {
-  const [restaurantsResult, partnersResult, clientsResult, runsResult, requestsResult] = await Promise.all([
+  const [restaurantsResult, partnersResult, clientsResult, runsResult, requestsResult, enabledCountResult] = await Promise.all([
     adminClient
       .from("restaurants")
-      .select("id, name, city, address, owner_id, status, is_active, is_demo, tok_connect_mcp_enabled")
+      .select("id, name, city, address, owner_id, status, is_active, is_demo, tok_connect_mcp_enabled", { count: "exact" })
       .eq("is_demo", false)
       .order("name", { ascending: true })
       .limit(1500),
@@ -46,6 +46,8 @@ async function buildAdminOverview(adminClient: ReturnType<typeof createAdminClie
       .select("id, partner_id, client_id, restaurant_id, route, status_code, error_code, created_at, request_metadata")
       .order("created_at", { ascending: false })
       .limit(100),
+    adminClient.from("restaurants").select("id", { count: "exact", head: true })
+      .eq("is_demo", false).eq("tok_connect_mcp_enabled", true),
   ]);
 
   const firstError = [
@@ -54,6 +56,7 @@ async function buildAdminOverview(adminClient: ReturnType<typeof createAdminClie
     clientsResult.error,
     runsResult.error,
     requestsResult.error,
+    enabledCountResult.error,
   ].find(Boolean);
   if (firstError) throw new HttpError(500, firstError.message);
 
@@ -165,6 +168,10 @@ async function buildAdminOverview(adminClient: ReturnType<typeof createAdminClie
 
   return {
     restaurants: humanRestaurants,
+    restaurant_totals: {
+      total: restaurantsResult.count ?? humanRestaurants.length,
+      enabled: enabledCountResult.count ?? humanRestaurants.filter((r) => r.mcp_enabled).length,
+    },
     agents: humanAgents,
     runs: humanRuns,
     activity: humanActivity,
@@ -187,6 +194,71 @@ async function buildAdminOverview(adminClient: ReturnType<typeof createAdminClie
   };
 }
 
+// The public directory owner is defined by the existing catalog migrations.
+const DIRECTORY_OWNER_ID = "00000000-0000-4000-8000-000000000404";
+const CATALOG_PAGE_SIZE = 50;
+
+async function buildRestaurantCatalog(adminClient: ReturnType<typeof createAdminClient>, body: Record<string, unknown>) {
+  const page = body.page === undefined ? 0 : body.page;
+  if (typeof page !== "number" || !Number.isInteger(page) || page < 0 || page > 100000) {
+    throw new HttpError(400, "invalid_catalog_page");
+  }
+  const category = body.category ?? "all";
+  const access = body.access ?? "all";
+  if (!["all", "partner", "directory"].includes(String(category)) ||
+      !["all", "enabled", "revoked"].includes(String(access))) throw new HttpError(400, "invalid_catalog_filter");
+  const value = body.search ?? "";
+  if (typeof value !== "string" || value.length > 80) throw new HttpError(400, "invalid_catalog_search");
+  // Remove PostgREST .or() syntax and LIKE wildcard operators before interpolation.
+  const search = value.normalize("NFKC").replace(/[^\p{L}\p{N} .'-]/gu, " ").replace(/\s+/g, " ").trim();
+  let query = adminClient.from("restaurants")
+    .select("id, name, city, address, owner_id, status, is_active, tok_connect_mcp_enabled", { count: "exact" })
+    .eq("is_demo", false);
+  if (category === "directory") query = query.eq("owner_id", DIRECTORY_OWNER_ID);
+  if (category === "partner") query = query.neq("owner_id", DIRECTORY_OWNER_ID);
+  if (access === "enabled") query = query.eq("tok_connect_mcp_enabled", true);
+  if (access === "revoked") query = query.eq("tok_connect_mcp_enabled", false);
+  if (search) {
+    const term = `%${search}%`;
+    query = query.or(`name.ilike.${term},city.ilike.${term},address.ilike.${term}`);
+  }
+  const start = page * CATALOG_PAGE_SIZE;
+  const { data, count, error } = await query.order("name", { ascending: true })
+    .order("id", { ascending: true }).range(start, start + CATALOG_PAGE_SIZE - 1);
+  if (error) throw new HttpError(500, error.message);
+  const restaurants = data || [];
+  const ownerIds = [...new Set(restaurants.map((r) => r.owner_id)
+    .filter((id): id is string => typeof id === "string" && id !== DIRECTORY_OWNER_ID))];
+  const profilesResult = ownerIds.length
+    ? await adminClient.from("profiles").select("user_id, full_name").in("user_id", ownerIds)
+    : { data: [], error: null };
+  if (profilesResult.error) throw new HttpError(500, profilesResult.error.message);
+  const names = new Map((profilesResult.data || []).map((p) => [p.user_id, p.full_name]));
+  const emails = new Map<string, string>();
+  await Promise.all(ownerIds.map(async (id) => {
+    const { data: result } = await adminClient.auth.admin.getUserById(id);
+    if (result?.user?.email) emails.set(id, result.user.email);
+  }));
+  return {
+    restaurants: restaurants.map((r) => ({
+      restaurant_id: r.id,
+      restaurant_name: r.name || "Restaurant sans nom",
+      restaurant_city: r.city || null,
+      restaurant_address: r.address || null,
+      owner_name: r.owner_id === DIRECTORY_OWNER_ID ? "Annuaire public (non revendiqué)" :
+        names.get(r.owner_id) || "Propriétaire non renseigné",
+      owner_email: emails.get(r.owner_id) || null,
+      mcp_enabled: r.tok_connect_mcp_enabled !== false,
+      restaurant_status: r.status || null,
+      restaurant_active: r.is_active === true,
+      directory_listing: r.owner_id === DIRECTORY_OWNER_ID,
+    })),
+    total: count ?? 0,
+    page,
+    page_size: CATALOG_PAGE_SIZE,
+  };
+}
+
 Deno.serve(async (req) => {
   const cors = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, cors);
@@ -205,6 +277,10 @@ Deno.serve(async (req) => {
 
     if (action === "admin-overview") {
       return jsonResponse({ ok: true, data: await buildAdminOverview(adminClient), error: null }, 200, cors);
+    }
+
+    if (action === "admin-restaurants") {
+      return jsonResponse({ ok: true, data: await buildRestaurantCatalog(adminClient, body), error: null }, 200, cors);
     }
 
     if (action === "set-restaurant-mcp-access") {
