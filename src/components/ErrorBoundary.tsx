@@ -74,6 +74,18 @@ function storeLastChunkRecoveryAttempt(timestamp: number) {
   }
 }
 
+export function recoverChunkLoadError(error: unknown, force = false) {
+  if (typeof window === "undefined" || !isRecoverableChunkLoadError(error)) return false;
+
+  const now = Date.now();
+  const lastAttempt = readLastChunkRecoveryAttempt();
+  if (!force && lastAttempt > 0 && now - lastAttempt < CHUNK_RECOVERY_COOLDOWN_MS) return false;
+
+  storeLastChunkRecoveryAttempt(now);
+  window.location.replace(buildChunkRecoveryUrl(window.location.href, now));
+  return true;
+}
+
 export default class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -95,19 +107,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   private recoverFromChunkLoadError(error: Error | null, force = false) {
-    if (typeof window === "undefined" || !error || !isRecoverableChunkLoadError(error)) {
-      return;
-    }
-
-    const now = Date.now();
-    const lastAttempt = readLastChunkRecoveryAttempt();
-
-    if (!force && lastAttempt > 0 && now - lastAttempt < CHUNK_RECOVERY_COOLDOWN_MS) {
-      return;
-    }
-
-    storeLastChunkRecoveryAttempt(now);
-    window.location.replace(buildChunkRecoveryUrl(window.location.href, now));
+    recoverChunkLoadError(error, force);
   }
 
   render() {
