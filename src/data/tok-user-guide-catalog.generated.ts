@@ -1,9 +1,9 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "17ddb5cd8250585e5e216f019545e59e4d5d4a398e849518d0591b82b7e8b636",
+  "sourceDigest": "52a3e2a81b3f86c793dbd54d515a565b17d95e6f6a9726e77839950324857c10",
   "routeCount": 135,
-  "toolCount": 115
+  "toolCount": 116
 } as const;
 
 export const TOK_USER_GUIDE_ROUTES = [
@@ -2662,6 +2662,24 @@ export const TOK_USER_GUIDE_TOOLS = [
       "string"
     ],
     "integrations": []
+  },
+  {
+    "name": "restaurant-meta-social",
+    "endpoint": "/functions/v1/restaurant-meta-social",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "actions": [
+      "accounts",
+      "disconnect",
+      "publish",
+      "select",
+      "start"
+    ],
+    "integrations": [
+      "supabase"
+    ]
   },
   {
     "name": "restaurant-order-status",

@@ -47,6 +47,7 @@ import {
   parseCommercialDemoAiJson,
 } from "@/lib/commercialDemoAi";
 import { invokeSupabaseFunction } from "@/lib/session";
+import { listRestaurantMetaAccounts, publishRestaurantMetaContent } from "@/lib/restaurantMetaSocial";
 import {
   getSocialPostShareUrl,
   getVisibilityForAudienceSegment,
@@ -330,9 +331,29 @@ export default function SocialComposer({
   const premiumBannerAudience = useRestaurantActualitesPremiumBannerAudience(restaurantId);
   const recordExternalShare = useRecordExternalShare();
   const minimumScheduledAt = useMemo(() => getMinimumScheduledAtInputValue(), []);
+  const [activeMetaAccount, setActiveMetaAccount] = useState<Awaited<ReturnType<typeof listRestaurantMetaAccounts>>[number] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setActiveMetaAccount(null);
+    if (!restaurantId || commercialDemoFrame?.surface === "restaurant") return () => { cancelled = true; };
+    void listRestaurantMetaAccounts(restaurantId)
+      .then((accounts) => {
+        if (!cancelled) setActiveMetaAccount(accounts.find((account) => account.enabled && account.connected) || null);
+      })
+      .catch(() => {
+        if (!cancelled) setActiveMetaAccount(null);
+      });
+    return () => { cancelled = true; };
+  }, [restaurantId, commercialDemoFrame?.surface]);
+  const canMetaFacebook = Boolean(activeMetaAccount);
+  const canMetaInstagram = Boolean(activeMetaAccount?.instagramUserId && files.some((file) => file.type.startsWith("image/")));
   const availableCrossPostPlatforms = useMemo(
-    () => getAvailableSocialCrossPostPlatforms(socialLinks),
-    [socialLinks],
+    () => Array.from(new Set<SocialCrossPostPlatform>([
+      ...getAvailableSocialCrossPostPlatforms(socialLinks),
+      ...(canMetaFacebook ? ["facebook" as const] : []),
+      ...(canMetaInstagram ? ["instagram" as const] : []),
+    ])),
+    [socialLinks, canMetaFacebook, canMetaInstagram],
   );
   const canCrossPostNow = availableCrossPostPlatforms.length > 0 && !scheduledAt;
   const sponsorBudgetValue = Math.max(0, Number(sponsorBudget) || 0);
@@ -730,10 +751,33 @@ export default function SocialComposer({
       utmCampaign,
     });
 
+    const metaChannels = crossPostPlatforms.filter((platform): platform is "facebook" | "instagram" =>
+      (platform === "facebook" && canMetaFacebook) || (platform === "instagram" && canMetaInstagram));
+    if (metaChannels.length > 0) {
+      try {
+        const results = await publishRestaurantMetaContent(restaurantId, "post", postId, metaChannels);
+        if (results.length !== metaChannels.length || results.some((result) => result.status !== "published")) {
+          toast({
+            title: "Publication Meta non confirmée",
+            description: "Le post a été créé sur TOK. Vérifiez votre Page Meta avant de réessayer.",
+            variant: "destructive",
+          });
+        } else {
+          toast({ title: "Actualité publiée sur vos réseaux Meta" });
+        }
+      } catch (error) {
+        toast({
+          title: "Publication Meta impossible",
+          description: error instanceof Error ? error.message : "Votre actualité reste publiée sur TOK.",
+          variant: "destructive",
+        });
+      }
+    }
+
     const crossPostActions = buildSocialCrossPostActions({
       body,
       postUrl: getSocialPostShareUrl(postId),
-      selectedPlatforms: crossPostPlatforms,
+      selectedPlatforms: crossPostPlatforms.filter((platform) => !metaChannels.includes(platform as "facebook" | "instagram")),
       socialLinks,
     });
 
@@ -1409,7 +1453,7 @@ export default function SocialComposer({
               Publier aussi sur vos réseaux ?
             </DialogTitle>
             <DialogDescription>
-              Le post sera publié sur TOK. Vous pouvez aussi ouvrir vos réseaux connectés pour relayer le contenu.
+              Le post sera publié sur TOK. Les Pages Meta autorisées sont publiées automatiquement après votre validation. Les autres profils s’ouvrent pour un partage manuel.
             </DialogDescription>
           </DialogHeader>
 
@@ -1446,7 +1490,7 @@ export default function SocialComposer({
             </div>
 
             <p className="text-xs leading-5 text-muted-foreground">
-              Instagram et TikTok copient le texte puis ouvrent le profil. Facebook ouvre une fenêtre de partage.
+              Facebook et Instagram sont publiés via Meta seulement si leur Page est autorisée. Les autres comptes nécessitent un partage manuel. Instagram requiert une image.
             </p>
 
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

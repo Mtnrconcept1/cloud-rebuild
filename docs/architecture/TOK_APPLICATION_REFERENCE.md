@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `17ddb5cd8250585e5e216f019545e59e4d5d4a398e849518d0591b82b7e8b636`
+- Empreinte SHA-256 des sources indexées : `52a3e2a81b3f86c793dbd54d515a565b17d95e6f6a9726e77839950324857c10`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2751 |
+| databaseObjects | 2758 |
 | documents | 203 |
-| edgeFunctions | 115 |
+| edgeFunctions | 116 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3508 |
+| exportedSymbols | 3522 |
 | featureFlags | 99 |
 | frontendRoutes | 135 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 533 |
-| modules | 1539 |
+| migrations | 534 |
+| modules | 1545 |
 | pages | 129 |
-| pathLiterals | 694 |
+| pathLiterals | 700 |
 | publicAssets | 502 |
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
-| queryParameters | 108 |
-| records | 16504 |
-| repositoryFiles | 3070 |
+| queryParameters | 110 |
+| records | 16553 |
+| repositoryFiles | 3077 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 42 |
@@ -546,6 +546,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | reconcile-paid-order-checkouts | [supabase/functions/reconcile-paid-order-checkouts/index.ts:1](../../supabase/functions/reconcile-paid-order-checkouts/index.ts#L1) | oui ([supabase/config.toml:221](../../supabase/config.toml#L221)) | false | ANY | — | stripe |
 | restaurant-advisor | [supabase/functions/restaurant-advisor/index.ts:1](../../supabase/functions/restaurant-advisor/index.ts#L1) | oui ([supabase/config.toml:224](../../supabase/config.toml#L224)) | false | POST | — | openai, stripe |
 | restaurant-media-governance | [supabase/functions/restaurant-media-governance/index.ts:1](../../supabase/functions/restaurant-media-governance/index.ts#L1) | oui ([supabase/config.toml:230](../../supabase/config.toml#L230)) | false | POST | add_ai_creation_to_gallery, string | — |
+| restaurant-meta-social | [supabase/functions/restaurant-meta-social/index.ts:1](../../supabase/functions/restaurant-meta-social/index.ts#L1) | oui ([supabase/config.toml:357](../../supabase/config.toml#L357)) | false | GET, POST | accounts, disconnect, publish, select, start | supabase |
 | restaurant-order-status | [supabase/functions/restaurant-order-status/index.ts:1](../../supabase/functions/restaurant-order-status/index.ts#L1) | oui ([supabase/config.toml:227](../../supabase/config.toml#L227)) | false | ANY | — | — |
 | scrape-restaurants | [supabase/functions/scrape-restaurants/index.ts:1](../../supabase/functions/scrape-restaurants/index.ts#L1) | oui ([supabase/config.toml:233](../../supabase/config.toml#L233)) | false | POST | — | supabase |
 | send-email | [supabase/functions/send-email/index.ts:1](../../supabase/functions/send-email/index.ts#L1) | oui ([supabase/config.toml:236](../../supabase/config.toml#L236)) | false | POST | — | resend, supabase |
@@ -1149,7 +1150,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 244 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 245 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:73](../../src/test/application-search-index.test.ts#L73) |
@@ -1372,6 +1373,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /desig%20app/tok-ch- | 2 | [src/lib/homeCantonHero.ts:72](../../src/lib/homeCantonHero.ts#L72) |
 | /desig%20app/tok-ch-ju.webp | 3 | [src/test/home-hero-search.test.tsx:43](../../src/test/home-hero-search.test.tsx#L43) |
 | /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:51](../../src/test/home-hero-search.test.tsx#L51) |
+| /dialog/oauth | 1 | [supabase/functions/restaurant-meta-social/index.ts:25](../../supabase/functions/restaurant-meta-social/index.ts#L25) |
 | /enrich-directory-cuisines | 1 | [src/test/directory-cuisine-enrichment.test.ts:40](../../src/test/directory-cuisine-enrichment.test.ts#L40) |
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
 | /enrich-directory-images | 2 | [src/test/directory-image-discovery-worker.test.ts:44](../../src/test/directory-image-discovery-worker.test.ts#L44) |
@@ -1383,6 +1385,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /favicon-192x192.png | 2 | [src/test/favicon-branding.test.ts:53](../../src/test/favicon-branding.test.ts#L53) |
 | /favicon-48x48.png | 2 | [src/hooks/useTokLogo.ts:25](../../src/hooks/useTokLogo.ts#L25) |
 | /favicon-512x512.png | 1 | [src/test/favicon-branding.test.ts:59](../../src/test/favicon-branding.test.ts#L59) |
+| /feed | 1 | [supabase/functions/restaurant-meta-social/index.ts:259](../../supabase/functions/restaurant-meta-social/index.ts#L259) |
 | /firebase-messaging-sw.js | 1 | [src/lib/push.ts:80](../../src/lib/push.ts#L80) |
 | /flex-prix-bas | 11 | [scripts/prerender-seo.mjs:1058](../../scripts/prerender-seo.mjs#L1058) |
 | /fond3.png | 7 | [public/seo-trust-runtime.js:8](../../public/seo-trust-runtime.js#L8) |
@@ -1395,6 +1398,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /functions/v1/daily-dish-ai?user=891a6eef-5be3-4d4a-9887-2e4f27bf39ee | 1 | [src/test/incident-intelligence-routing.test.ts:95](../../src/test/incident-intelligence-routing.test.ts#L95) |
 | /functions/v1/dispatch-order | 1 | [src/test/dispatch-client-fallback.test.ts:18](../../src/test/dispatch-client-fallback.test.ts#L18) |
 | /functions/v1/marketing-orchestrator | 1 | [src/test/marketing-meta-bff.test.ts:6](../../src/test/marketing-meta-bff.test.ts#L6) |
+| /functions/v1/restaurant-meta-social | 1 | [supabase/functions/restaurant-meta-social/index.ts:26](../../supabase/functions/restaurant-meta-social/index.ts#L26) |
 | /functions/v1/stripe-webhook | 1 | [src/test/checkout-stripe-guards.test.ts:182](../../src/test/checkout-stripe-guards.test.ts#L182) |
 | /functions/v1/tok-pulse-widget | 2 | [src/pages/TokPulse.tsx:57](../../src/pages/TokPulse.tsx#L57) |
 | /galerie | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
@@ -1622,6 +1626,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing_calendar_items? | 5 | [src/test/marketing-approval-readiness.test.ts:30](../../src/test/marketing-approval-readiness.test.ts#L30) |
 | /match-groupes | 13 | [scripts/prerender-seo.mjs:1050](../../scripts/prerender-seo.mjs#L1050) |
 | /me/accounts? | 1 | [src/test/marketing-meta-publishing.test.ts:106](../../src/test/marketing-meta-publishing.test.ts#L106) |
+| /media | 1 | [supabase/functions/restaurant-meta-social/index.ts:270](../../supabase/functions/restaurant-meta-social/index.ts#L270) |
+| /media_publish | 1 | [supabase/functions/restaurant-meta-social/index.ts:282](../../supabase/functions/restaurant-meta-social/index.ts#L282) |
 | /memoire-tok | 7 | [scripts/prerender-seo.mjs:1268](../../scripts/prerender-seo.mjs#L1268) |
 | /menu | 3 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
 | /mes-avis | 8 | [scripts/prerender-seo.mjs:1276](../../scripts/prerender-seo.mjs#L1276) |
@@ -1644,6 +1650,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /packs-restaurateur | 14 | [scripts/prerender-seo.mjs:595](../../scripts/prerender-seo.mjs#L595) |
 | /panier | 42 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
 | /parametres/securite | 5 | [src/App.tsx:359](../../src/App.tsx#L359) |
+| /photos | 1 | [supabase/functions/restaurant-meta-social/index.ts:259](../../supabase/functions/restaurant-meta-social/index.ts#L259) |
 | /placeholder.svg | 2 | [public/seo-trust-runtime.js:10](../../public/seo-trust-runtime.js#L10) |
 | /points-cadeau | 12 | [scripts/prerender-seo.mjs:1277](../../scripts/prerender-seo.mjs#L1277) |
 | /politique-confidentialite | 21 | [scripts/prerender-seo.mjs:1254](../../scripts/prerender-seo.mjs#L1254) |
@@ -1863,7 +1870,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | claimPhone | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:81](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L81) |
 | claimRestaurant | — | 2 | [src/components/DirectoryClaimPersistenceBridge.tsx:37](../../src/components/DirectoryClaimPersistenceBridge.tsx#L37) |
 | client_id | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:220](../../supabase/functions/tok-connect-oauth/index.ts#L220) |
-| code | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:250](../../supabase/functions/tok-connect-oauth/index.ts#L250) |
+| code | — | 2 | [supabase/functions/restaurant-meta-social/index.ts:149](../../supabase/functions/restaurant-meta-social/index.ts#L149) |
 | commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:906](../../src/pages/Auth.tsx#L906) |
 | commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:280](../../src/pages/CommercialComptabilite.tsx#L280) |
 | confirmed | /auth, /auth/callback, /auth/demo | 2 | [src/pages/Auth.tsx:131](../../src/pages/Auth.tsx#L131) |
@@ -1875,6 +1882,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:85](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L85) |
 | demo_session_id | — | 4 | [src/components/commercial/CommercialDemoActorWorkspace.tsx:88](../../src/components/commercial/CommercialDemoActorWorkspace.tsx#L88) |
 | domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2342](../../src/pages/Auth.tsx#L2342) |
+| error | — | 1 | [supabase/functions/restaurant-meta-social/index.ts:150](../../supabase/functions/restaurant-meta-social/index.ts#L150) |
 | fields | — | 1 | [supabase/functions/_shared/meta-marketing-health.ts:24](../../supabase/functions/_shared/meta-marketing-health.ts#L24) |
 | fields[appScreenshotSets] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:205](../../scripts/app-store-connect-upload-screenshots.mjs#L205) |
 | fields[appScreenshots] | — | 2 | [scripts/app-store-connect-upload-screenshots.mjs:237](../../scripts/app-store-connect-upload-screenshots.mjs#L237) |
@@ -1900,6 +1908,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | max_lng | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:123](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L123) |
 | member_order_id | /match-groupes | 2 | [src/pages/MatchGroupes.tsx:390](../../src/pages/MatchGroupes.tsx#L390) |
 | messagingSenderId | — | 1 | [src/lib/push.ts:83](../../src/lib/push.ts#L83) |
+| meta | — | 1 | [supabase/functions/restaurant-meta-social/index.ts:127](../../supabase/functions/restaurant-meta-social/index.ts#L127) |
 | min_lat | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:120](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L120) |
 | min_lng | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:122](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L122) |
 | mode | /auth, /auth/callback, /auth/demo, /recherche | 3 | [src/pages/Auth.tsx:948](../../src/pages/Auth.tsx#L948) |
@@ -1940,7 +1949,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | sort | /recherche | 1 | [src/pages/Recherche.tsx:249](../../src/pages/Recherche.tsx#L249) |
 | source | /mon-espace | 1 | [public/manifest.json:50](../../public/manifest.json#L50) |
 | sr | — | 1 | [src/test/home-canton-hero.test.ts:56](../../src/test/home-canton-hero.test.ts#L56) |
-| state | — | 2 | [supabase/functions/tok-connect-oauth/index.ts:222](../../supabase/functions/tok-connect-oauth/index.ts#L222) |
+| state | — | 4 | [supabase/functions/restaurant-meta-social/index.ts:148](../../supabase/functions/restaurant-meta-social/index.ts#L148) |
 | status | /chefs-table, /dashboard, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 12 | [src/lib/iosCommerceFetch.ts:137](../../src/lib/iosCommerceFetch.ts#L137) |
 | stripe_session_id | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:81](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L81) |
 | subscriptionPlan | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:917](../../src/pages/Auth.tsx#L917) |
@@ -3006,7 +3015,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (652)</summary>
+<details><summary>index (656)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3547,6 +3556,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `restaurant_images_source_idx` (1 définition(s))
 - `restaurant_media_one_cover_per_restaurant_idx` (1 définition(s))
 - `restaurant_media_storage_object_unique_idx` (1 définition(s))
+- `restaurant_meta_accounts_restaurant_idx` (1 définition(s))
+- `restaurant_meta_oauth_states_expiry_idx` (1 définition(s))
+- `restaurant_meta_one_active_page_per_restaurant` (1 définition(s))
+- `restaurant_meta_publications_history_idx` (1 définition(s))
 - `restaurant_paid_module_events_restaurant_created_idx` (1 définition(s))
 - `restaurant_paid_modules_cancelled_at_idx` (1 définition(s))
 - `restaurant_paid_modules_module_idx` (1 définition(s))
@@ -4428,7 +4441,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (346)</summary>
+<details><summary>table (349)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -4694,6 +4707,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restaurant_launch_packs` (1 définition(s))
 - `public.restaurant_leads` (1 définition(s))
 - `public.restaurant_media` (1 définition(s))
+- `public.restaurant_meta_accounts` (1 définition(s))
+- `public.restaurant_meta_oauth_states` (1 définition(s))
+- `public.restaurant_meta_publications` (1 définition(s))
 - `public.restaurant_onboarding_state_events` (1 définition(s))
 - `public.restaurant_paid_module_events` (1 définition(s))
 - `public.restaurant_paid_modules` (1 définition(s))
@@ -5866,6 +5882,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261012203000 Schedule Reservation Cancellation Fee Collection | 42 | 0 | [supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql:1](../../supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql#L1) |
 | 20261013014557 Launch Guest Discovery Authenticated Clients Only | 85 | 4 | [supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql:1](../../supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql#L1) |
 | 20261013110000 Marketing Campaign Items Preview | 113 | 1 | [supabase/migrations/20261013110000_marketing_campaign_items_preview.sql:1](../../supabase/migrations/20261013110000_marketing_campaign_items_preview.sql#L1) |
+| 20261014010000 Restaurant Meta Social Oauth | 66 | 7 | [supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql:1](../../supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6091,7 +6108,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 226 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 687 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 691 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6101,18 +6118,18 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 205 |
+| application-library | 206 |
 | automation-script | 66 |
 | documentation | 6 |
-| edge-function-source | 193 |
-| frontend-component | 254 |
+| edge-function-source | 195 |
+| frontend-component | 256 |
 | frontend-hook | 23 |
 | frontend-page | 129 |
 | frontend-source | 28 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 608 |
+| test | 609 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6389,7 +6406,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (205)</summary>
+<details><summary>application-library (206)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/actualitesFeedOrdering.ts`
@@ -6556,6 +6573,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/restaurantAmenities.ts`
 - `src/lib/restaurantCategories.ts`
 - `src/lib/restaurantMediaGovernance.ts`
+- `src/lib/restaurantMetaSocial.ts`
 - `src/lib/restaurantOnboardingLifecycle.ts`
 - `src/lib/restaurantPartnerContract.ts`
 - `src/lib/restaurantSlugs.ts`
@@ -6711,7 +6729,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (533)</summary>
+<details><summary>database-migration (534)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7246,6 +7264,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql`
 - `supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql`
 - `supabase/migrations/20261013110000_marketing_campaign_items_preview.sql`
+- `supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql`
 
 </details>
 
@@ -7410,7 +7429,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (193)</summary>
+<details><summary>edge-function-source (195)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7472,6 +7491,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/refund-allocations.ts`
 - `supabase/functions/_shared/reservation-card-guarantee.ts`
 - `supabase/functions/_shared/restaurant-credits.ts`
+- `supabase/functions/_shared/restaurant-meta-helpers.ts`
 - `supabase/functions/_shared/restaurant-subscription-billing.ts`
 - `supabase/functions/_shared/return-url.ts`
 - `supabase/functions/_shared/safe-public-fetch.ts`
@@ -7574,6 +7594,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/reconcile-paid-order-checkouts/index.ts`
 - `supabase/functions/restaurant-advisor/index.ts`
 - `supabase/functions/restaurant-media-governance/index.ts`
+- `supabase/functions/restaurant-meta-social/index.ts`
 - `supabase/functions/restaurant-order-status/index.ts`
 - `supabase/functions/scrape-restaurants/index.ts`
 - `supabase/functions/send-email/index.ts`
@@ -7608,7 +7629,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (258)</summary>
+<details><summary>frontend-component (260)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -7711,6 +7732,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/dashboard/IllustratedActionCard.tsx`
 - `src/components/dashboard/RestaurantDashboardHomeView.css`
 - `src/components/dashboard/RestaurantDashboardHomeView.tsx`
+- `src/components/dashboard/RestaurantMetaCampaignActions.tsx`
+- `src/components/dashboard/RestaurantMetaConnectionsCard.tsx`
 - `src/components/dashboard/TokAiMarketingStudio.tsx`
 - `src/components/dashboard/TokAiMarketingStudioPrintShell.tsx`
 - `src/components/dashboard/TokAiPhotoStudio.tsx`
@@ -8852,7 +8875,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (608)</summary>
+<details><summary>test (609)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9319,6 +9342,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-image-truth-pipeline.test.ts`
 - `src/test/restaurant-media-governance.test.ts`
 - `src/test/restaurant-media-watermark.test.ts`
+- `src/test/restaurant-meta-social.test.ts`
 - `src/test/restaurant-onboarding-payments.test.ts`
 - `src/test/restaurant-paid-tok-purchases-invoices.test.ts`
 - `src/test/restaurant-partner-contract-export.test.ts`

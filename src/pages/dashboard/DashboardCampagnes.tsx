@@ -36,6 +36,7 @@ import {
 import AudienceTargeting from "@/components/AudienceTargeting";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import RestaurantMetaCampaignActions from "@/components/dashboard/RestaurantMetaCampaignActions";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import ImageUpload from "@/components/ImageUpload";
 import CampaignInternalTestSummary from "@/components/campaigns/CampaignInternalTestSummary";
@@ -819,6 +820,14 @@ export default function DashboardCampagnes() {
                         </div>
 
                         {campaign.body ? <p className="mt-1 text-sm text-muted-foreground">{campaign.body}</p> : null}
+                        {selectedId ? (
+                          <RestaurantMetaCampaignActions
+                            restaurantId={selectedId}
+                            campaignId={campaign.id}
+                            imageUrl={typeof campaign.image_url === "string" ? campaign.image_url : null}
+                            enabled={!isCommercialDemo && campaign.status === "active" && campaign.payment_status === "paid"}
+                          />
+                        ) : null}
 
                         {pages.length > 0 ? (
                           <div className="flex flex-wrap gap-1 mt-2">

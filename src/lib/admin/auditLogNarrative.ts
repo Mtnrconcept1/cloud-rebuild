@@ -97,6 +97,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "generate-invoices": "la génération des factures",
   "settle-developer-statement": "le règlement d’un relevé développeur",
   "campaign-portal": "la gestion des campagnes sponsorisées",
+  "restaurant-meta-social": "la connexion sécurisée et la publication sur les pages Facebook et comptes Instagram professionnels des restaurateurs",
   "generate-campaign": "la génération d’une campagne marketing",
   "ai-marketing-agent": "la rédaction par IA d’un plan de campagne marketing soumis à approbation",
   "marketing-orchestrator": "l’exécution gouvernée des campagnes marketing planifiées",
