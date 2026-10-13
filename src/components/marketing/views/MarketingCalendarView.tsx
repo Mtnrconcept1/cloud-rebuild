@@ -301,6 +301,21 @@ export default function MarketingCalendarView({
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contenu</p>
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{selectedItem.content || "Aucun contenu confirmé"}</p>
               </div>
+              {selectedItem.visualUrl ? (
+                <figure className="overflow-hidden rounded-xl border bg-muted/20">
+                  <img
+                    src={selectedItem.visualUrl}
+                    alt={`Visuel généré pour ${selectedItem.title}`}
+                    className="max-h-[60dvh] w-full object-contain"
+                    style={{ aspectRatio: (selectedItem.format || "1:1").replace(":", " / ") }}
+                    referrerPolicy="no-referrer"
+                  />
+                  <figcaption className="flex items-center justify-between gap-3 p-3 text-xs text-muted-foreground">
+                    <span>Format {selectedItem.format || "1:1"}</span>
+                    <MarketingStatusBadge status={selectedItem.approvalStatus} />
+                  </figcaption>
+                </figure>
+              ) : null}
               {selectedItem.manualOutcome || selectedItem.manualNote ? (
                 <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Suivi manuel</p>

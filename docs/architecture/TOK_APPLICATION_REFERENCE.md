@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `c56d41a215121c91d53e41e81906db57179e186239a7231c5a79ee09fcf9b6e1`
+- Empreinte SHA-256 des sources indexées : `98e8ca90ab275d04c5d8e785a38dfd79aff2686065e6a22dd7c532cbdc79e0bf`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 202 |
 | edgeFunctions | 115 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3422 |
+| exportedSymbols | 3436 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 532 |
-| modules | 1517 |
+| modules | 1519 |
 | pages | 128 |
 | pathLiterals | 652 |
 | publicAssets | 464 |
 | publicEntries | 489 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 107 |
-| records | 16229 |
-| repositoryFiles | 3003 |
+| records | 16247 |
+| repositoryFiles | 3005 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1191,7 +1191,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/embed | 2 | [src/test/image-metadata-ai.test.ts:131](../../src/test/image-metadata-ai.test.ts#L131) |
 | /api/embeddings | 1 | [src/test/image-metadata-ai.test.ts:132](../../src/test/image-metadata-ai.test.ts#L132) |
 | /api/generate | 1 | [src/test/image-metadata-ai.test.ts:130](../../src/test/image-metadata-ai.test.ts#L130) |
-| /api/marketing/agent | 3 | [src/marketing/marketingBffClient.ts:13](../../src/marketing/marketingBffClient.ts#L13) |
+| /api/marketing/agent | 5 | [src/marketing/marketingBffClient.ts:13](../../src/marketing/marketingBffClient.ts#L13) |
 | /api/marketing/launch | 2 | [src/marketing/marketingBffClient.ts:14](../../src/marketing/marketingBffClient.ts#L14) |
 | /api/marketing/login | 1 | [src/marketing/marketingBffClient.ts:7](../../src/marketing/marketingBffClient.ts#L7) |
 | /api/marketing/logout | 1 | [src/marketing/marketingBffClient.ts:10](../../src/marketing/marketingBffClient.ts#L10) |
@@ -1345,7 +1345,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /flex-prix-bas | 11 | [scripts/prerender-seo.mjs:1058](../../scripts/prerender-seo.mjs#L1058) |
 | /fond3.png | 7 | [public/seo-trust-runtime.js:8](../../public/seo-trust-runtime.js#L8) |
 | /fondbanniere.png | 1 | [src/test/dashboard-overview-google-compact.test.ts:24](../../src/test/dashboard-overview-google-compact.test.ts#L24) |
-| /functions/v1/ | 5 | [src/lib/commercialDemoEffects.ts:27](../../src/lib/commercialDemoEffects.ts#L27) |
+| /functions/v1/ | 6 | [src/lib/commercialDemoEffects.ts:27](../../src/lib/commercialDemoEffects.ts#L27) |
 | /functions/v1/:path* | 1 | [src/test/vercel-rewrites.test.ts:128](../../src/test/vercel-rewrites.test.ts#L128) |
 | /functions/v1/ai-marketing-agent | 3 | [src/test/marketing-agent-bff.test.ts:30](../../src/test/marketing-agent-bff.test.ts#L30) |
 | /functions/v1/create-checkout | 1 | [src/lib/iosCommerceFetch.ts:291](../../src/lib/iosCommerceFetch.ts#L291) |
@@ -1358,7 +1358,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /galerie | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
 | /gallery | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
 | /garantie-qualite | 11 | [scripts/prerender-seo.mjs:1018](../../scripts/prerender-seo.mjs#L1018) |
-| /generations | 1 | [src/test/marketing-brand-references.test.ts:77](../../src/test/marketing-brand-references.test.ts#L77) |
+| /generations | 1 | [src/test/marketing-brand-references.test.ts:87](../../src/test/marketing-brand-references.test.ts#L87) |
 | /google-actions-center-sync | 1 | [src/test/google-actions-center-outbox.test.ts:147](../../src/test/google-actions-center-outbox.test.ts#L147) |
 | /healthz | 2 | [src/test/application-search-index.test.ts:71](../../src/test/application-search-index.test.ts#L71) |
 | /help.png | 1 | [src/components/help/ChefHelpButton.tsx:36](../../src/components/help/ChefHelpButton.tsx#L36) |
@@ -5993,7 +5993,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | --- | --- | --- |
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
-| Google | 112 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Google | 113 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Openai | 116 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
@@ -6016,11 +6016,11 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | frontend-component | 252 |
 | frontend-hook | 23 |
 | frontend-page | 128 |
-| frontend-source | 23 |
+| frontend-source | 24 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 599 |
+| test | 600 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -7928,7 +7928,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (32)</summary>
+<details><summary>frontend-source (33)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -7945,6 +7945,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/marketing/MarketingSessionProvider.tsx`
 - `src/marketing/autopilotClient.ts`
 - `src/marketing/autopilotTypes.ts`
+- `src/marketing/campaignTemplates.ts`
 - `src/marketing/fallbackSnapshot.ts`
 - `src/marketing/marketingBffClient.ts`
 - `src/marketing/marketingClient.ts`
@@ -8701,7 +8702,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (599)</summary>
+<details><summary>test (600)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9012,6 +9013,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-bff-vercel-entrypoints.test.ts`
 - `src/test/marketing-brand-gallery.test.tsx`
 - `src/test/marketing-brand-references.test.ts`
+- `src/test/marketing-campaign-builder.test.tsx`
 - `src/test/marketing-consent-dispatch.test.ts`
 - `src/test/marketing-domain-isolation.test.ts`
 - `src/test/marketing-edge-security.test.ts`

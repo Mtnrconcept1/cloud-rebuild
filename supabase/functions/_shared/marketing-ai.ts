@@ -11,6 +11,7 @@ import {
   buildPlanSchema,
   validatePlan,
   type MarketingPlan,
+  type MarketingPostFormat,
 } from "./marketing-ai-plan.ts";
 
 export {
@@ -21,6 +22,7 @@ export {
   type MarketingChannel,
   type MarketingPlan,
   type MarketingPlanItem,
+  type MarketingPostFormat,
 } from "./marketing-ai-plan.ts";
 
 export { generateCampaignVisual } from "./marketing-visual.ts";
@@ -34,6 +36,7 @@ export type MarketingBriefContext = {
   endsAt: string;
   itemCount: number;
   locale: string;
+  formats?: Partial<Record<string, MarketingPostFormat>>;
 };
 
 function buildSystemPrompt(context: MarketingBriefContext) {
@@ -59,6 +62,7 @@ function buildSystemPrompt(context: MarketingBriefContext) {
     "Au moins un sélecteur doit être renseigné ; mets null pour ceux qui ne s'appliquent pas.",
     "",
     `Produis exactement ${context.itemCount} élément(s) de calendrier, répartis entre ${context.startsAt} et ${context.endsAt}.`,
+    `Formats visuels demandés par canal : ${JSON.stringify(context.formats || {})}. Compose chaque visuel pour son format sans placer de texte important près des bords.`,
     "Renseigne visual_prompt uniquement pour les canaux où une image a du sens (réseaux sociaux, e-mail), sinon null.",
     "Le champ subject n'est renseigné que pour le canal email.",
   ].join("\n");

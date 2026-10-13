@@ -62,6 +62,7 @@ export type MarketingAvailability = "available" | "manual" | "blocked_configurat
 export type MarketingCampaignStatus = "draft" | "scheduled" | "active" | "paused" | "completed" | "cancelled" | "failed";
 export type MarketingItemStatus = "draft" | "scheduled" | "running" | "published" | "completed" | "failed" | "cancelled" | "blocked_configuration";
 export type MarketingAudienceKind = "restaurant" | "client" | "mixed";
+export type MarketingPostFormat = "1:1" | "9:16" | "16:9";
 export type MarketingProspectStatus = "new" | "qualified" | "contacted" | "follow_up" | "converted" | "opted_out";
 export const MARKETING_PROSPECT_STATUSES: readonly MarketingProspectStatus[] = [
   "new",
@@ -173,6 +174,8 @@ export type MarketingCalendarItem = {
   audienceSize: number;
   approvalStatus: "pending" | "approved" | "rejected";
   content: string;
+  visualUrl: string | null;
+  format: MarketingPostFormat | null;
   manualOutcome: "published" | "failed" | null;
   manualNote: string | null;
   publishedAt: string | null;

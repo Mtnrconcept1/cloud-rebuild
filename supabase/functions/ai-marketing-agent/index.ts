@@ -19,6 +19,8 @@ import {
   generateMarketingPlan,
   slugifyCampaignName,
   toBundlePayload,
+  type MarketingChannel,
+  type MarketingPostFormat,
 } from "../_shared/marketing-ai.ts";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -102,6 +104,21 @@ function parseChannels(value: unknown): string[] {
   return channels;
 }
 
+function parseFormats(value: unknown, channels: readonly string[]) {
+  if (value === undefined) return {};
+  const record = asRecord(value);
+  const allowedFormats = new Set(["1:1", "9:16", "16:9"]);
+  const allowedChannels = new Set(channels);
+  const formats: Partial<Record<MarketingChannel, MarketingPostFormat>> = {};
+  for (const [channel, format] of Object.entries(record)) {
+    if (!allowedChannels.has(channel) || typeof format !== "string" || !allowedFormats.has(format)) {
+      throw new HttpError(400, "formats_invalid");
+    }
+    formats[channel as MarketingChannel] = format as MarketingPostFormat;
+  }
+  return formats;
+}
+
 async function readConnectedChannels(
   adminClient: ReturnType<typeof createAdminClient>,
 ): Promise<string[]> {
@@ -166,6 +183,7 @@ Deno.serve(async (req) => {
       ? payload.audienceHint.trim().slice(0, 500)
       : "";
     const channels = parseChannels(payload.channels);
+    const formats = parseFormats(payload.formats, channels);
     const startsAt = parseIsoDate(payload.startsAt, "startsAt");
     const endsAt = parseIsoDate(payload.endsAt, "endsAt");
     if (Date.parse(endsAt) <= Date.parse(startsAt)) {
@@ -198,17 +216,26 @@ Deno.serve(async (req) => {
       endsAt,
       itemCount: rawCount,
       locale: "fr-CH",
+      formats,
     });
 
     // Visuals are generated after the plan and never block it: a failed image
     // leaves the item without one instead of discarding a usable campaign.
     const slug = slugifyCampaignName(plan.campaign.name);
-    const visuals = await allocateMarketingVisuals(plan.items, (prompt, index) => generateCampaignVisual(client, {
-      prompt, campaignSlug: slug, index, apiKey: OPENAI_API_KEY,
+    const visualRequests = plan.items.map((item) => ({
+      visual_prompt: item.visual_prompt,
+      visual_format: formats[item.channel] || null,
+    }));
+    const visuals = await allocateMarketingVisuals(visualRequests, (prompt, index) => generateCampaignVisual(client, {
+      prompt,
+      campaignSlug: slug,
+      index,
+      apiKey: OPENAI_API_KEY,
+      format: formats[plan.items[index].channel],
     }), MAX_VISUALS);
     const assetCount = new Set(visuals.values()).size;
 
-    const bundle = toBundlePayload(plan, visuals);
+    const bundle = toBundlePayload(plan, visuals, formats);
 
     await writeAuditLog({
       adminClient: client,

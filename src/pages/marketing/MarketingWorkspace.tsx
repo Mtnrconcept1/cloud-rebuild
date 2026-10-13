@@ -56,7 +56,7 @@ export default function MarketingWorkspace() {
       case "calendar":
         return <MarketingCalendarView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onCancel={operations.cancelItem} onApprove={operations.approveItem} onCompleteManual={operations.completeManualItem} />;
       case "campaigns":
-        return <MarketingCampaignsView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} savePending={operations.pendingAction === "save-campaign"} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onSave={operations.saveCampaign} onApprove={operations.approveCampaign} onRecommendChannels={operations.recommendChannels} />;
+        return <MarketingCampaignsView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} savePending={operations.pendingAction === "save-campaign"} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onSave={operations.saveCampaign} onApprove={operations.approveCampaign} onRecommendChannels={operations.recommendChannels} onNavigate={setView} />;
       case "audiences":
         return <MarketingAudiencesView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onNavigate={setView} onSyncSources={operations.syncSources} onLoadContactsPage={operations.loadContactsPage} contactsRevision={operations.contactsRevision} onQualifyContact={operations.qualifyRestaurantContact} onSuppressContact={operations.suppressContact} />;
       case "automations":
