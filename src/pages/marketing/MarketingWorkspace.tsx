@@ -52,7 +52,7 @@ export default function MarketingWorkspace() {
       case "faq":
         return <MarketingFaqView />;
       case "agent":
-        return <MarketingAgentView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} onNavigate={setView} />;
+        return <MarketingAgentView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} onNavigate={setView} onGenerated={operations.refresh} />;
       case "calendar":
         return <MarketingCalendarView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onCancel={operations.cancelItem} onApprove={operations.approveItem} onCompleteManual={operations.completeManualItem} />;
       case "campaigns":

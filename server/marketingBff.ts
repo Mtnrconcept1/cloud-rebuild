@@ -1,4 +1,5 @@
 import { MetaPublishError, validateMetaMediaContent } from "../supabase/functions/_shared/meta-publishing.js";
+import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../supabase/functions/_shared/marketing-campaign-options.js";
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 
 /**
@@ -57,6 +58,7 @@ export const MARKETING_OPERATION_NAMES = [
   "admin_list_marketing_automations",
   "admin_list_marketing_calendar",
   "admin_list_marketing_campaigns",
+  "admin_list_marketing_campaign_items",
   "admin_list_marketing_contacts",
   "admin_list_marketing_deliveries",
   "admin_list_marketing_integrations",
@@ -1451,7 +1453,7 @@ async function checkMarketingApprovalMedia(config: BffConfig, operation: string,
   let after = "";
   for (let page = 0; page < 20; page += 1) {
     const query = new URLSearchParams({
-      select: "id,channel,visual_url:content->>visual_url,visual_required:content->visual_required,visual_prompt:content->>visual_prompt,visual_status:content->>visual_status",
+      select: "id,channel,visual_url:content->>visual_url,visual_required:content->visual_required,visual_prompt:content->>visual_prompt,visual_status:content->>visual_status,visual_format:content->>visual_format,format:content->>format",
       [campaign ? "campaign_id" : "id"]: `eq.${id}`,
       channel: "in.(facebook,instagram)",
       status: "not.in.(published,sent,cancelled,completed)",
@@ -1468,9 +1470,14 @@ async function checkMarketingApprovalMedia(config: BffConfig, operation: string,
         throw new PublicBffError(503, "marketing_readiness_unavailable", "Vérification des visuels indisponible.");
       }
       try {
-        validateMetaMediaContent(row, row.channel as "facebook" | "instagram");
+        // Campaign approval reviews its content; only item approval schedules
+        // automatic delivery. Manual Story exports must not block sibling posts.
+        validateMetaMediaContent(campaign ? { ...row, visual_format: undefined, format: undefined } : row, row.channel as "facebook" | "instagram");
       } catch (error) {
         if (!(error instanceof MetaPublishError)) throw error;
+        if (error.code === "instagram_story_manual_required") {
+          throw new PublicBffError(400, error.code, "Le visuel Instagram 9:16 est prévu pour une Story manuelle. Exportez-le ou choisissez un format du fil avant de planifier l’envoi automatique.");
+        }
         throw new PublicBffError(400, "marketing_visual_required",
           "Ajoutez un visuel HTTPS valide à chaque publication illustrée avant de l’approuver.");
       }
@@ -1788,7 +1795,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     return;
   }
 
-  const allowedKeys = ["action", "objective", "audienceHint", "channels", "formats", "startsAt", "endsAt", "itemCount"];
+  const allowedKeys = ["action", "objective", "audienceHint", "channels", "formats", "startsAt", "endsAt", "itemCount", "campaignOptions"];
   if (Object.keys(body).some((key) => !allowedKeys.includes(key))) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
@@ -1807,6 +1814,18 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
 
+  let campaignOptions;
+  try {
+    campaignOptions = parseCampaignOptions(body.campaignOptions, channels);
+    if (campaignOptions && (itemCount !== campaignOptions.postCount || Date.parse(startsAt) <= Date.now()
+      || buildCampaignSlots(campaignOptions, channels, startsAt).some((slot) => Date.parse(slot.scheduledAt) > Date.parse(endsAt)))) {
+      throw new CampaignOptionsError("campaign_window_or_count_invalid");
+    }
+  } catch (error) {
+    if (!(error instanceof CampaignOptionsError)) throw error;
+    throw new PublicBffError(400, "invalid_campaign_options", "Vérifiez les thèmes, les formats et la période : maximum 6 visuels et 12 publications par génération.");
+  }
+
   const generated = await callMarketingAgent(config, session.userId, {
     action: "generate",
     objective,
@@ -1816,6 +1835,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     startsAt,
     endsAt,
     itemCount,
+    ...(campaignOptions ? { campaignOptions } : {}),
   });
 
   const runId = typeof generated.runId === "string" ? generated.runId : null;
@@ -1860,6 +1880,9 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
       summary: generated.summary ?? "",
       assetCount: Number(generated.assetCount) || 0,
       estimatedCostChf: Number(generated.estimatedCostChf) || 0,
+      warnings: Number(generated.missingVisualCount) > 0
+        ? [`${Number(generated.missingVisualCount)} publication(s) attendent encore leur visuel. Vérifiez les aperçus avant toute approbation.`]
+        : [],
     });
   } catch (error) {
     if (runId) {

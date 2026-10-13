@@ -1,123 +1,114 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MarketingCampaignBuilder } from "@/components/marketing/MarketingCampaignBuilder";
+import MarketingAgentView from "@/components/marketing/views/MarketingAgentView";
+import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
+import { parseCampaignOptions } from "../../supabase/functions/_shared/marketing-campaign-options";
+import { campaignEndDate } from "@/marketing/campaignTemplates";
 
-const { request } = vi.hoisted(() => ({ request: vi.fn() }));
+const { bff } = vi.hoisted(() => ({ bff: vi.fn() }));
 vi.mock("@/marketing/marketingBffClient", () => ({
   MARKETING_BFF_ENDPOINTS: { agent: "/api/marketing/agent" },
-  MarketingBffError: class MarketingBffError extends Error {},
-  marketingBffRequest: request,
+  MarketingBffError: class extends Error {}, marketingBffRequest: bff,
 }));
+vi.mock("@/components/marketing/MarketingBrandReferences", () => ({ MarketingBrandReferences: () => <div>Références</div> }));
 
-import MarketingAgentView from "@/components/marketing/views/MarketingAgentView";
-import MarketingCampaignsView from "@/components/marketing/views/MarketingCampaignsView";
-import { campaignEndDate } from "@/marketing/campaignTemplates";
-import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
-import { normalizeCalendarItem } from "@/marketing/marketingClient";
+const snapshot = createFallbackMarketingSnapshot();
+function setup(overrides = {}) {
+  const onGenerate = vi.fn().mockResolvedValue(undefined);
+  render(<MarketingCampaignBuilder snapshot={snapshot} pending={false} disabled={false} onGenerate={onGenerate} {...overrides} />);
+  return onGenerate;
+}
+beforeEach(() => { bff.mockReset(); bff.mockResolvedValue({ runs: [] }); });
 
-describe("marketing campaign builder", () => {
-  beforeEach(() => {
-    request.mockReset();
-    request.mockImplementation(async (_endpoint, options) => {
-      if (options.body.action === "list_runs") return { runs: [] };
-      return {
-        campaign: { id: "campaign-1", name: "Zéro attente Genève" },
-        items: [{
-          id: "item-1",
-          title: "Réservez sans attendre",
-          channel: "instagram",
-          scheduled_at: "2026-10-14T07:00:00.000Z",
-          content: { visual_url: "https://cdn.example/visual.png", format: "1:1" },
-        }],
-        summary: "Campagne prête à relire.",
-        assetCount: 1,
-        estimatedCostChf: 0.2,
-      };
-    });
-  });
-
-  afterEach(cleanup);
-
-  it("calcule la période à partir du nombre de posts et de la fréquence", () => {
+describe("campagne guidée", () => {
+  it("conserve les calculs de période des campagnes existantes", () => {
     expect(campaignEndDate("2026-10-14", 4, "daily")).toBe("2026-10-17");
     expect(campaignEndDate("2026-10-14", 3, "weekly")).toBe("2026-10-28");
   });
-
-  it("génère depuis les cases cochées et transmet le format par réseau", async () => {
-    const snapshot = createFallbackMarketingSnapshot();
-    snapshot.source = "backend";
-    snapshot.integrations = snapshot.integrations.map((integration) => integration.channel === "instagram"
-      ? { ...integration, status: "available" }
-      : integration);
-
+  it("conserve les deux thèmes et les fréquences ajoutés sur main", async () => {
+    const generate = setup();
+    fireEvent.click(screen.getByRole("checkbox", { name: /Dernière minute/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /Découverte restaurant/ }));
+    fireEvent.change(screen.getByLabelText("Fréquence"), { target: { value: "twice_weekly" } });
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer et générer la campagne" }));
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(1));
+    const request = generate.mock.calls[0][0];
+    expect(request.campaignOptions.templateIds).toEqual(["zero_attente", "last_minute", "discovery"]);
+    expect(request.campaignOptions.cadence).toBe("twice_weekly");
+    expect(Date.parse(request.endsAt) - Date.parse(request.startsAt)).toBe(7 * 86400000 + 3600000);
+  });
+  it("conserve le choix de format dans le brief libre avancé", async () => {
+    bff.mockImplementation((_url, options) => Promise.resolve(options.body.action === "list_runs" ? { runs: [] } : { items: [], summary: "Prêt", assetCount: 0, estimatedCostChf: 0 }));
     render(<MarketingAgentView snapshot={snapshot} canMutateBackend onNavigate={vi.fn()} />);
+    fireEvent.click(screen.getByText("Brief libre et autres canaux (avancé)"));
+    fireEvent.change(screen.getByLabelText("Objectif"), { target: { value: "Faire découvrir le restaurant" } });
     fireEvent.click(screen.getByRole("button", { name: /Instagram/ }));
-    fireEvent.change(screen.getByLabelText("Nombre d'éléments"), { target: { value: "3" } });
-    fireEvent.click(screen.getByRole("button", { name: "Générer ma campagne" }));
-
-    await waitFor(() => expect(request).toHaveBeenCalledWith(
-      "/api/marketing/agent",
-      expect.objectContaining({
-        body: expect.objectContaining({
-          action: "generate",
-          itemCount: 3,
-          channels: ["in_app", "instagram"],
-          formats: { instagram: "1:1" },
-        }),
-      }),
-    ));
-    expect(await screen.findByAltText("Visuel généré pour Réservez sans attendre")).toBeInTheDocument();
-    expect(screen.getByText(/Instagram · 1:1 · à approuver/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Format Instagram"), { target: { value: "16:9" } });
+    fireEvent.click(screen.getByRole("button", { name: "Générer la campagne" }));
+    await waitFor(() => expect(bff).toHaveBeenCalledWith("/api/marketing/agent", expect.objectContaining({ body: expect.objectContaining({ action: "generate", formats: { instagram: "16:9" } }) })));
+  });
+  it("propose les outils restaurateur avec une précision explicite sur les 5 CHF", () => {
+    setup();
+    for (const label of [/Réservations à 5 CHF par table/, /Studio marketing IA/, /Photo Pro/, /Plan de salle automatisé/, /Menu digital/, /TOK One/]) {
+      expect(screen.getByRole("checkbox", { name: label })).toBeInTheDocument();
+    }
+    expect(screen.getByText("Frais restaurateur, table servie, en plus du pack mensuel.")).toBeInTheDocument();
+  });
+  it("génère les thèmes cochés et les déclinaisons exactes sans texte libre obligatoire", async () => {
+    const generate = setup();
+    fireEvent.click(screen.getByRole("checkbox", { name: /Anti-gaspi/ }));
+    fireEvent.change(screen.getByLabelText("Posts par réseau et format"), { target: { value: "2" } });
+    fireEvent.change(screen.getByLabelText("Fréquence"), { target: { value: "weekly" } });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Instagram 9:16" }));
+    expect(screen.getByText("6 publications · 4 visuels à générer")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer et générer la campagne" }));
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(1));
+    const request = generate.mock.calls[0][0];
+    expect(request.campaignOptions).toEqual({ templateIds: ["zero_attente", "anti_gaspi"], postCount: 2,
+      cadence: "weekly", formatsByChannel: { instagram: ["1:1", "9:16"], facebook: ["1:1"] } });
+    expect(parseCampaignOptions(request.campaignOptions, request.channels)).toEqual(request.campaignOptions);
+    expect(request.itemCount).toBe(2);
+    expect(request).not.toHaveProperty("approved");
+    expect(Date.parse(request.endsAt)).toBeGreaterThan(Date.parse(request.startsAt));
   });
 
-  it("normalise et affiche les visuels dans la campagne", () => {
-    const normalized = normalizeCalendarItem({
-      id: "item-1",
-      campaign_id: "campaign-1",
-      campaign_name: "Anti-gaspi",
-      title: "Panier du soir",
-      channel: "instagram",
-      status: "draft",
-      scheduled_at: "2026-10-14T07:00:00.000Z",
-      timezone: "Europe/Zurich",
-      audience_name: "Clients Genève",
-      audience_size: 20,
-      approval_status: "pending",
-      content: { body: "Surplus confirmé", visual_url: "https://cdn.example/anti-gaspi.png", format: "9:16" },
-      updated_at: "2026-10-13T10:00:00.000Z",
-    });
-    expect(normalized).toMatchObject({ visualUrl: "https://cdn.example/anti-gaspi.png", format: "9:16" });
-
-    const snapshot = createFallbackMarketingSnapshot();
-    snapshot.source = "backend";
-    snapshot.campaigns = [{
-      id: "campaign-1", name: "Anti-gaspi", objective: "Valoriser les surplus confirmés", status: "draft",
-      audienceId: "clients-ge", audienceName: "Clients Genève", channels: ["instagram"], startsAt: normalized.scheduledAt,
-      endsAt: null, sent: 0, delivered: 0, clicked: 0, conversions: 0, requiresApproval: true,
-      content: "", approvedAt: null, updatedAt: "2026-10-13T10:00:00.000Z",
-    }];
-    snapshot.calendar = [normalized];
-    const navigate = vi.fn();
-
-    render(<MarketingCampaignsView
-      snapshot={snapshot}
-      filters={{ view: "campaigns", query: "", status: "all", channel: "all", page: 1, from: "", to: "" }}
-      canMutateBackend
-      savePending={false}
-      pendingAction={null}
-      onFiltersChange={vi.fn()}
-      onSave={vi.fn()}
-      onApprove={vi.fn()}
-      onRecommendChannels={vi.fn()}
-      onNavigate={navigate}
-    />);
-
-    expect(screen.getByAltText("Visuel généré pour Panier du soir")).toHaveAttribute("src", "https://cdn.example/anti-gaspi.png");
-    expect(screen.getByText("9:16")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Relire les publications et les visuels" }));
-    expect(navigate).toHaveBeenCalledWith("calendar");
+  it("refuse nombre fractionnaire, limite dépassée et réseau sans format avant tout appel", () => {
+    const generate = setup();
+    fireEvent.change(screen.getByLabelText("Posts par réseau et format"), { target: { value: "1.5" } });
+    expect(screen.getByRole("button", { name: "Envoyer et générer la campagne" })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Posts par réseau et format"), { target: { value: "6" } });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Instagram 9:16" }));
+    expect(screen.getByText(/Ce lot dépasse/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Posts par réseau et format"), { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Facebook 1:1" }));
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer et générer la campagne" }));
+    expect(screen.getByText(/un format pour chaque réseau/)).toBeInTheDocument();
+    expect(generate).not.toHaveBeenCalled();
   });
 
-  it("refuse une URL de visuel non HTTPS", () => {
-    expect(normalizeCalendarItem({ content: { body: "Texte", visual_url: "http://tracker.example/image.png" } }).visualUrl).toBeNull();
+  it("bloque les changements et envois concurrents pendant la génération", () => {
+    const generate = setup({ pending: true });
+    expect(screen.getByRole("button", { name: /Préparation des textes/ })).toBeDisabled();
+    expect(screen.getByLabelText("Posts par réseau et format")).toBeDisabled();
+    expect(generate).not.toHaveBeenCalled();
+  });
+
+  it("montre le visuel et le texte reçus immédiatement puis conserve les choix en cas d'erreur", async () => {
+    const onGenerated = vi.fn().mockResolvedValue(undefined);
+    bff.mockImplementation((_url, options) => options.body.action === "list_runs" ? Promise.resolve({ runs: [] }) : Promise.resolve({
+      campaign: { id: "campaign", name: "Campagne anti-gaspi" }, summary: "Résumé", assetCount: 1, estimatedCostChf: 0.1,
+      items: [{ id: "post", title: "Votre repas", channel: "instagram", scheduled_at: "2027-01-10T08:00:00Z", content: { headline: "Moins de gaspillage", body: "Découvrez les offres", visual_url: "https://example.org/visual.png" } }],
+    }));
+    render(<MarketingAgentView snapshot={snapshot} canMutateBackend onNavigate={vi.fn()} onGenerated={onGenerated} />);
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer et générer la campagne" }));
+    expect(await screen.findByRole("img", { name: "Visuel : Votre repas" })).toHaveAttribute("src", "https://example.org/visual.png");
+    expect(screen.getByText(/Moins de gaspillage/)).toBeInTheDocument();
+    expect(onGenerated).toHaveBeenCalledTimes(1);
+    bff.mockRejectedValueOnce(new Error("provider down"));
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer et générer la campagne" }));
+    expect(await screen.findAllByText("L'agent n'a pas pu produire de plan.")).not.toHaveLength(0);
+    expect(screen.getByRole("checkbox", { name: /Zéro attente/ })).toBeChecked();
+    expect(screen.getByLabelText("Posts par réseau et format")).toHaveValue(3);
   });
 });

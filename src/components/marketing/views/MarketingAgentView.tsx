@@ -1,9 +1,12 @@
 import { MarketingBrandReferences } from "@/components/marketing/MarketingBrandReferences";
+import { MarketingCampaignBuilder, type CampaignGenerationRequest } from "@/components/marketing/MarketingCampaignBuilder";
+import { MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
+import { marketingPostPreview } from "@/marketing/postPreview";
+import { DEFAULT_MARKETING_FORMATS, MARKETING_POST_FORMATS, VISUAL_MARKETING_CHANNELS, type MarketingPostFormat } from "@/marketing/campaignTemplates";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 
 import {
-  MarketingChannelBadge,
   MARKETING_CHANNEL_LABELS,
   MarketingEmptyState,
   formatMarketingDate,
@@ -13,20 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  DEFAULT_MARKETING_FORMATS,
-  MARKETING_CAMPAIGN_FREQUENCIES,
-  MARKETING_CAMPAIGN_TEMPLATES,
-  MARKETING_POST_FORMATS,
-  VISUAL_MARKETING_CHANNELS,
-  buildCampaignObjective,
-  campaignEndDate,
-  type MarketingCampaignFrequency,
-  type MarketingCampaignTemplateId,
-  type MarketingPostFormat,
-} from "@/marketing/campaignTemplates";
 import {
   MARKETING_BFF_ENDPOINTS,
   MarketingBffError,
@@ -70,16 +60,11 @@ type AgentRun = {
 
 type GenerateResult = {
   campaign: { id: string; name: string } | null;
-  items: Array<{
-    id: string;
-    title: string;
-    channel: MarketingChannelId;
-    scheduled_at: string;
-    content?: { visual_url?: string | null; format?: MarketingPostFormat | null };
-  }>;
+  items: Array<{ id: string; title: string; channel: MarketingChannelId; scheduled_at: string; content?: unknown }>;
   summary: string;
   assetCount: number;
   estimatedCostChf: number;
+  warnings?: string[];
 };
 
 function isoDay(offsetDays: number) {
@@ -98,18 +83,19 @@ export default function MarketingAgentView({
   snapshot,
   canMutateBackend,
   onNavigate,
+  onGenerated,
 }: {
   snapshot: MarketingSnapshot;
   canMutateBackend: boolean;
   onNavigate: (view: MarketingView) => void;
+  onGenerated?: () => Promise<unknown>;
 }) {
   const [objective, setObjective] = useState("");
-  const [templateIds, setTemplateIds] = useState<MarketingCampaignTemplateId[]>(["zero_wait"]);
   const [audienceHint, setAudienceHint] = useState("");
   const [channels, setChannels] = useState<MarketingChannelId[]>(["in_app"]);
   const [startsAt, setStartsAt] = useState(isoDay(1));
+  const [endsAt, setEndsAt] = useState(isoDay(15));
   const [itemCount, setItemCount] = useState(4);
-  const [frequency, setFrequency] = useState<MarketingCampaignFrequency>("twice_weekly");
   const [formats, setFormats] = useState<Partial<Record<MarketingChannelId, MarketingPostFormat>>>(DEFAULT_MARKETING_FORMATS);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,14 +110,6 @@ export default function MarketingAgentView({
           .map((integration) => integration.channel),
       ),
     [snapshot.integrations],
-  );
-  const endsAt = useMemo(
-    () => campaignEndDate(startsAt, itemCount, frequency),
-    [frequency, itemCount, startsAt],
-  );
-  const generatedObjective = useMemo(
-    () => buildCampaignObjective(templateIds, objective),
-    [objective, templateIds],
   );
 
   const loadRuns = useCallback(async () => {
@@ -160,17 +138,31 @@ export default function MarketingAgentView({
     );
   };
 
-  const toggleTemplate = (templateId: MarketingCampaignTemplateId) => {
-    setTemplateIds((current) => current.includes(templateId)
-      ? current.filter((entry) => entry !== templateId)
-      : [...current, templateId]);
+  const generate = async (request: CampaignGenerationRequest) => {
+    if (pending || !canMutateBackend) return;
+    setPending(true);
+    setError(null);
+    setResult(null);
+    try {
+      const response = await marketingBffRequest<GenerateResult>(MARKETING_BFF_ENDPOINTS.agent, {
+        method: "POST", timeoutMs: AGENT_TIMEOUT_MS, body: { action: "generate", ...request },
+      });
+      setResult(response);
+      void loadRuns();
+      // A refresh failure must not present a persisted campaign as a failed generation.
+      if (onGenerated) void onGenerated().catch(() => undefined);
+    } catch (caught) {
+      setError(caught instanceof MarketingBffError ? caught.message : "L'agent n'a pas pu produire de plan.");
+    } finally {
+      setPending(false);
+    }
   };
 
   const submit = async () => {
     setError(null);
     setResult(null);
-    if (!templateIds.length && !objective.trim()) {
-      setError("Sélectionnez au moins un modèle ou précisez votre objectif.");
+    if (!objective.trim()) {
+      setError("Décrivez l'objectif de la campagne.");
       return;
     }
     if (channels.length === 0) {
@@ -189,37 +181,9 @@ export default function MarketingAgentView({
       return;
     }
 
-    setPending(true);
-    try {
-      const response = await marketingBffRequest<GenerateResult>(MARKETING_BFF_ENDPOINTS.agent, {
-        method: "POST",
-        timeoutMs: AGENT_TIMEOUT_MS,
-        body: {
-          action: "generate",
-          objective: generatedObjective.slice(0, 2000),
-          audienceHint: audienceHint.trim(),
-          channels,
-          formats: Object.fromEntries(
-            channels
-              .filter((channel) => VISUAL_MARKETING_CHANNELS.includes(channel) && formats[channel])
-              .map((channel) => [channel, formats[channel]]),
-          ),
-          startsAt: startIso,
-          endsAt: endIso,
-          itemCount,
-        },
-      });
-      setResult(response);
-      void loadRuns();
-    } catch (caught) {
-      setError(
-        caught instanceof MarketingBffError
-          ? caught.message
-          : "L'agent n'a pas pu produire de plan.",
-      );
-    } finally {
-      setPending(false);
-    }
+    await generate({ objective: objective.trim(), audienceHint: audienceHint.trim(), channels,
+      formats: Object.fromEntries(channels.filter((channel) => VISUAL_MARKETING_CHANNELS.includes(channel) && formats[channel]).map((channel) => [channel, formats[channel]])),
+      startsAt: startIso, endsAt: endIso, itemCount });
   };
 
   const unconnectedSelected = channels.filter((channel) => !connectedChannels.has(channel));
@@ -236,8 +200,12 @@ export default function MarketingAgentView({
         </AlertDescription>
       </Alert>
 
-      <MarketingBrandReferences />
+      <MarketingCampaignBuilder snapshot={snapshot} pending={pending} disabled={!canMutateBackend} onGenerate={generate} />
+      {error ? <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription></Alert> : null}
 
+      <details className="rounded-xl border p-4"><summary className="cursor-pointer text-sm font-medium">Identité visuelle et références TOK</summary><div className="mt-4"><MarketingBrandReferences /></div></details>
+
+      <details className="rounded-xl border p-4"><summary className="cursor-pointer text-sm font-medium">Brief libre et autres canaux (avancé)</summary><div className="mt-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -246,42 +214,15 @@ export default function MarketingAgentView({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <fieldset className="space-y-3">
-            <legend className="text-sm font-medium">1. Choisissez un ou plusieurs modèles</legend>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {MARKETING_CAMPAIGN_TEMPLATES.map((template) => {
-                const selected = templateIds.includes(template.id);
-                return (
-                  <button
-                    key={template.id}
-                    type="button"
-                    aria-pressed={selected}
-                    disabled={pending}
-                    onClick={() => toggleTemplate(template.id)}
-                    className={`rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 ${selected ? "border-orange-500 bg-orange-50 text-orange-950" : "border-slate-200 bg-white hover:border-slate-400"}`}
-                  >
-                    <span className="flex items-center gap-2 text-sm font-semibold">
-                      <span className={`flex h-5 w-5 items-center justify-center rounded border ${selected ? "border-orange-500 bg-orange-500 text-white" : "border-slate-300"}`} aria-hidden>
-                        {selected ? "✓" : ""}
-                      </span>
-                      {template.label}
-                    </span>
-                    <span className="mt-2 block text-xs leading-relaxed text-slate-600">{template.summary}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
-
           <div className="space-y-2">
-            <Label htmlFor="agent-objective">Précision ou objectif personnalisé (facultatif)</Label>
+            <Label htmlFor="agent-objective">Objectif</Label>
             <Textarea
               id="agent-objective"
               rows={3}
-              maxLength={700}
+              maxLength={2000}
               value={objective}
               disabled={pending}
-              placeholder="Ex. : mettre en avant les tables disponibles ce vendredi à Genève."
+              placeholder="Ex. : recruter des restaurants indépendants à Genève et Lausanne avant la rentrée."
               onChange={(event) => setObjective(event.target.value)}
             />
           </div>
@@ -299,7 +240,7 @@ export default function MarketingAgentView({
           </div>
 
           <div className="space-y-2">
-            <Label>2. Où publier ?</Label>
+            <Label>Canaux</Label>
             <div className="flex flex-wrap gap-2">
               {PROPOSABLE_CHANNELS.map((channel) => {
                 const selected = channels.includes(channel);
@@ -338,30 +279,14 @@ export default function MarketingAgentView({
             ) : null}
           </div>
 
-          {channels.some((channel) => VISUAL_MARKETING_CHANNELS.includes(channel)) ? (
-            <div className="space-y-3 rounded-2xl border bg-slate-50 p-4">
-              <div>
-                <p className="text-sm font-medium">3. Format du visuel par réseau</p>
-                <p className="mt-1 text-xs text-slate-500">Chaque brouillon conserve le cadrage choisi pour sa relecture.</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {channels.filter((channel) => VISUAL_MARKETING_CHANNELS.includes(channel)).map((channel) => (
-                  <div key={channel} className="space-y-2">
-                    <Label htmlFor={`agent-format-${channel}`}>{MARKETING_CHANNEL_LABELS[channel]}</Label>
-                    <Select
-                      value={formats[channel] || DEFAULT_MARKETING_FORMATS[channel] || "1:1"}
-                      onValueChange={(format) => setFormats((current) => ({ ...current, [channel]: format as MarketingPostFormat }))}
-                    >
-                      <SelectTrigger id={`agent-format-${channel}`}><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {MARKETING_POST_FORMATS.map((format) => <SelectItem key={format} value={format}>{format}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {channels.filter((channel) => VISUAL_MARKETING_CHANNELS.includes(channel)).map((channel) => <div key={channel} className="space-y-2">
+              <Label htmlFor={`agent-format-${channel}`}>Format {MARKETING_CHANNEL_LABELS[channel]}</Label>
+              <select id={`agent-format-${channel}`} disabled={pending} className="h-10 w-full rounded-md border px-3 text-sm" value={formats[channel] || "1:1"} onChange={(event) => setFormats((current) => ({ ...current, [channel]: event.target.value as MarketingPostFormat }))}>
+                {MARKETING_POST_FORMATS.map((format) => <option key={format} value={format}>{format}</option>)}
+              </select>
+            </div>)}
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
@@ -375,11 +300,14 @@ export default function MarketingAgentView({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="agent-frequency">Fréquence</Label>
-              <Select value={frequency} onValueChange={(value) => setFrequency(value as MarketingCampaignFrequency)} disabled={pending}>
-                <SelectTrigger id="agent-frequency"><SelectValue /></SelectTrigger>
-                <SelectContent>{MARKETING_CAMPAIGN_FREQUENCIES.map((item) => <SelectItem key={item.id} value={item.id}>{item.label}</SelectItem>)}</SelectContent>
-              </Select>
+              <Label htmlFor="agent-end">Fin</Label>
+              <Input
+                id="agent-end"
+                type="date"
+                value={endsAt}
+                disabled={pending}
+                onChange={(event) => setEndsAt(event.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="agent-count">Nombre d'éléments</Label>
@@ -390,11 +318,10 @@ export default function MarketingAgentView({
                 max={12}
                 value={itemCount}
                 disabled={pending}
-                onChange={(event) => setItemCount(Math.min(12, Math.max(1, Number(event.target.value) || 1)))}
+                onChange={(event) => setItemCount(Number(event.target.value) || 1)}
               />
             </div>
           </div>
-          <p className="text-xs text-slate-500">Calendrier calculé automatiquement du {startsAt} au {endsAt}, en heure suisse.</p>
 
           {error ? (
             <Alert variant="destructive">
@@ -412,7 +339,7 @@ export default function MarketingAgentView({
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" aria-hidden />
-                Générer ma campagne
+                Générer la campagne
               </>
             )}
           </Button>
@@ -423,6 +350,7 @@ export default function MarketingAgentView({
           ) : null}
         </CardContent>
       </Card>
+      </div></details>
 
       {result ? (
         <Card className="border-emerald-200">
@@ -433,6 +361,7 @@ export default function MarketingAgentView({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {result.warnings?.length ? <Alert variant="destructive"><AlertTitle>Campagne enregistrée, visuels à compléter</AlertTitle><AlertDescription>{result.warnings.join(" ")}</AlertDescription></Alert> : null}
             {result.summary ? (
               <p className="text-sm leading-relaxed text-slate-700">{result.summary}</p>
             ) : null}
@@ -440,43 +369,17 @@ export default function MarketingAgentView({
               {result.items.length} élément(s) en brouillon · {result.assetCount} visuel(s) généré(s)
               · coût estimé {formatChf(result.estimatedCostChf)}
             </p>
-            {result.items.some((item) => item.content?.visual_url) ? (
-              <div>
-                <p className="mb-3 text-sm font-semibold text-slate-900">Visuels générés à approuver</p>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {result.items.filter((item) => item.content?.visual_url).map((item) => (
-                    <figure key={`visual-${item.id}`} className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-                      <img
-                        src={item.content?.visual_url || ""}
-                        alt={`Visuel généré pour ${item.title}`}
-                        className="w-full object-cover"
-                        style={{ aspectRatio: (item.content?.format || "1:1").replace(":", " / ") }}
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                      />
-                      <figcaption className="space-y-1 p-3">
-                        <p className="truncate text-xs font-semibold">{item.title}</p>
-                        <p className="text-[11px] text-slate-500">{MARKETING_CHANNEL_LABELS[item.channel]} · {item.content?.format || "1:1"} · à approuver</p>
-                      </figcaption>
-                    </figure>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+            <ul className="grid gap-4 md:grid-cols-2">
               {result.items.map((item) => (
-                <li key={item.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
-                  <MarketingChannelBadge channel={item.channel} />
-                  <span className="min-w-0 flex-1 truncate font-medium">{item.title}</span>
-                  <span className="text-xs text-slate-500">
-                    {formatMarketingDate(item.scheduled_at)}
-                  </span>
+                <li key={item.id} className="min-w-0 rounded-xl border p-4 text-sm">
+                  <h3 className="mb-3 font-medium">{item.title}</h3>
+                  <MarketingPostPreview title={item.title} channel={item.channel} scheduledAt={item.scheduled_at} preview={marketingPostPreview(item.content, item.channel)} />
                 </li>
               ))}
             </ul>
             <div className="flex flex-wrap gap-2">
               <Button type="button" onClick={() => onNavigate("campaigns")}>
-                Voir la campagne et ses visuels
+                Ouvrir les campagnes pour approbation
               </Button>
               <Button type="button" variant="outline" onClick={() => onNavigate("calendar")}>Relire et approuver les éléments</Button>
             </div>

@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, ImageIcon, Megaphone, Plus, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, ImageIcon, Images, Megaphone, Plus, RefreshCw, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { MarketingPostImage, MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
+import { loadMarketingCampaignItems } from "@/marketing/marketingClient";
 
 import {
   MarketingChannelBadge,
@@ -32,6 +34,7 @@ import {
   type MarketingAudienceEstimate,
   type MarketingCampaign,
   type MarketingCampaignDraft,
+  type MarketingCalendarItem,
   type MarketingChannelId,
   type MarketingSnapshot,
   type MarketingView,
@@ -71,6 +74,60 @@ const EMPTY_WIZARD: WizardState = {
   endsAt: "",
 };
 
+function CampaignPostsGallery({ campaignId, loadItems }: {
+  campaignId: string;
+  loadItems: typeof loadMarketingCampaignItems;
+}) {
+  const [items, setItems] = useState<MarketingCalendarItem[]>([]);
+  const [cursor, setCursor] = useState<Record<string, string> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  const requestId = useRef(0);
+  const load = useCallback(async (next: Record<string, string> | null = null) => {
+    const currentRequest = ++requestId.current;
+    setLoading(true);
+    setError(false);
+    if (!next) { setItems([]); setLoaded(false); setCursor(null); }
+    try {
+      const page = await loadItems(campaignId, next);
+      if (currentRequest !== requestId.current) return;
+      setItems((previous) => next
+        ? [...previous, ...page.items.filter((item) => !previous.some((existing) => existing.id === item.id))]
+        : page.items);
+      setCursor(page.nextCursor);
+      setLoaded(true);
+    } catch {
+      if (currentRequest === requestId.current) setError(true);
+    } finally {
+      if (currentRequest === requestId.current) setLoading(false);
+    }
+  }, [campaignId, loadItems]);
+  useEffect(() => {
+    void load();
+    return () => { requestId.current += 1; };
+  }, [load]);
+
+  return (
+    <section className="min-w-0 space-y-4" aria-label="Publications de la campagne" aria-busy={loading}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><h3 className="font-semibold">Visuels et textes à relire</h3><p className="text-xs text-muted-foreground">Toutes les dates de cette campagne, y compris hors du mois affiché.</p></div>
+        <Button type="button" size="sm" variant="outline" disabled={loading} onClick={() => void load()}><RefreshCw className="mr-2 h-4 w-4" />Actualiser les visuels</Button>
+      </div>
+      {loading ? <p role="status" className="text-sm text-muted-foreground">Chargement des publications…</p> : null}
+      {error ? <Alert variant="destructive"><AlertTitle>Publications indisponibles</AlertTitle><AlertDescription>Impossible de charger les visuels et les textes. Réessayez avec « Actualiser les visuels ».</AlertDescription></Alert> : null}
+      {loaded && !loading && !error && items.length === 0 ? <MarketingEmptyState title="Aucune publication enregistrée" description="Cette campagne ne contient pas encore de publication. Les visuels générés apparaîtront ici après leur enregistrement." /> : null}
+      <div className="grid min-w-0 gap-5 md:grid-cols-2">
+        {items.map((item) => <article key={item.id} className="min-w-0 space-y-3 rounded-2xl border p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="min-w-0 break-words font-semibold">{item.title}</h4><MarketingStatusBadge status={item.approvalStatus} /></div>
+          <MarketingPostPreview title={item.title} channel={item.channel} scheduledAt={item.scheduledAt} preview={item.postPreview || { caption: item.content, visualUrl: item.visualUrl, visualFormat: item.format || undefined }} />
+        </article>)}
+      </div>
+      {cursor ? <Button type="button" variant="outline" disabled={loading} onClick={() => void load(cursor)}>Charger les publications suivantes</Button> : null}
+    </section>
+  );
+}
+
 export default function MarketingCampaignsView({
   snapshot,
   filters,
@@ -81,7 +138,7 @@ export default function MarketingCampaignsView({
   onSave,
   onApprove,
   onRecommendChannels,
-  onNavigate,
+  onLoadCampaignItems = loadMarketingCampaignItems,
 }: {
   snapshot: MarketingSnapshot;
   filters: MarketingUrlState;
@@ -91,11 +148,12 @@ export default function MarketingCampaignsView({
   onFiltersChange: (patch: Partial<MarketingUrlState>) => void;
   onSave: (draft: MarketingCampaignDraft) => Promise<{ complete: boolean } | null | undefined>;
   onApprove: (campaignId: string, reason: string) => Promise<unknown>;
+  onLoadCampaignItems?: typeof loadMarketingCampaignItems;
   onRecommendChannels: (
     audienceFilter: Record<string, unknown>,
     channels: MarketingChannelId[],
   ) => Promise<MarketingAudienceEstimate | undefined>;
-  onNavigate: (view: MarketingView) => void;
+  onNavigate?: (view: MarketingView) => void;
 }) {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -252,12 +310,10 @@ export default function MarketingCampaignsView({
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Chaque création commence en brouillon, avec approbation humaine obligatoire et canaux filtrés par disponibilité réelle.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" onClick={() => onNavigate("agent")}>
-            <Sparkles className="mr-2 h-4 w-4" /> Générer avec un modèle
-          </Button>
-          <Button type="button" variant="outline" onClick={() => setWizardOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Créer manuellement
-          </Button>
+        <Button type="button" onClick={() => onFiltersChange({ view: "agent", query: "", status: "all", channel: "all", page: 1 })}><Sparkles className="mr-2 h-4 w-4" />Créer avec un modèle</Button>
+        <Button type="button" variant="outline" onClick={() => setWizardOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Créer une campagne
+        </Button>
         </div>
       </div>
 
@@ -316,21 +372,14 @@ export default function MarketingCampaignsView({
                 <CardContent className="space-y-4">
                   <div className="rounded-xl border bg-muted/20 p-3">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><ImageIcon className="h-4 w-4" />Visuels à approuver</p>
+                      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><ImageIcon className="h-4 w-4" />Aperçu du calendrier affiché</p>
                       <span className="text-xs text-muted-foreground">{visualItems.length}</span>
                     </div>
                     {visualItems.length ? (
                       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                         {visualItems.slice(0, 6).map((item) => (
                           <figure key={item.id} className="min-w-0 overflow-hidden rounded-lg border bg-background">
-                            <img
-                              src={item.visualUrl || ""}
-                              alt={`Visuel généré pour ${item.title}`}
-                              className="w-full object-cover"
-                              style={{ aspectRatio: (item.format || "1:1").replace(":", " / ") }}
-                              loading="lazy"
-                              referrerPolicy="no-referrer"
-                            />
+                            <MarketingPostImage url={item.postPreview?.visualUrl || item.visualUrl} title={item.title} />
                             <figcaption className="space-y-1 p-2">
                               <p className="truncate text-[11px] font-semibold" title={item.title}>{item.title}</p>
                               <div className="flex items-center justify-between gap-1"><span className="text-[10px] text-muted-foreground">{item.format || "1:1"}</span><MarketingStatusBadge status={item.approvalStatus} className="px-1.5 py-0 text-[9px]" /></div>
@@ -339,9 +388,9 @@ export default function MarketingCampaignsView({
                         ))}
                       </div>
                     ) : (
-                      <p className="mt-2 text-xs text-muted-foreground">Aucun visuel n'est encore rattaché à cette campagne.</p>
+                      <p className="mt-2 text-xs text-muted-foreground">Ouvrez les visuels et publications pour consulter cette campagne sur toutes les dates.</p>
                     )}
-                    {campaignItems.length ? <Button type="button" size="sm" variant="ghost" className="mt-2 w-full" onClick={() => onNavigate("calendar")}>Relire les publications et les visuels</Button> : null}
+                    {campaignItems.length ? <Button type="button" size="sm" variant="ghost" className="mt-2 w-full" onClick={() => { setApprovalReason(""); setApprovalCampaign(campaign); }}>Relire les publications et les visuels</Button> : null}
                   </div>
                   <div className="rounded-xl border bg-muted/20 p-3">
                     <p className="text-xs text-muted-foreground">Audience</p>
@@ -360,6 +409,7 @@ export default function MarketingCampaignsView({
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-3">
                     <MarketingStatusBadge status={campaign.approvedAt ? "approved" : "pending"} />
+                    <Button type="button" size="sm" variant="outline" onClick={() => { setApprovalReason(""); setApprovalCampaign(campaign); }}><Images className="mr-2 h-4 w-4" />Voir les visuels et publications</Button>
                     {!campaign.approvedAt && campaign.status === "draft" ? <Button type="button" size="sm" variant="outline" disabled={!canMutateBackend || pendingAction === `approve-campaign-${campaign.id}`} onClick={() => setApprovalCampaign(campaign)}><ShieldCheck className="mr-2 h-4 w-4" />Approuver la campagne</Button> : null}
                   </div>
                 </CardContent>
@@ -454,11 +504,14 @@ export default function MarketingCampaignsView({
       </Dialog>
 
       <Dialog open={Boolean(approvalCampaign)} onOpenChange={(open) => { if (!open) { setApprovalCampaign(null); setApprovalReason(""); } }}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>Approuver la campagne</DialogTitle><DialogDescription>{approvalCampaign?.name} · Cette étape autorise seulement l'approbation future de ses éléments calendrier.</DialogDescription></DialogHeader>
+        <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-4xl">
+          <DialogHeader><DialogTitle>{approvalCampaign?.name}</DialogTitle><DialogDescription>Relisez les visuels et les textes avant d'approuver la campagne. Chaque publication garde sa validation séparée dans le calendrier.</DialogDescription></DialogHeader>
+          {approvalCampaign ? <CampaignPostsGallery key={approvalCampaign.id} campaignId={approvalCampaign.id} loadItems={onLoadCampaignItems} /> : null}
+          {approvalCampaign && !approvalCampaign.approvedAt && approvalCampaign.status === "draft" ? <>
           <div><Label htmlFor="campaign-approval-reason">Motif de l'approbation</Label><Textarea id="campaign-approval-reason" className="mt-2" value={approvalReason} onChange={(event) => setApprovalReason(event.target.value)} maxLength={400} placeholder="Minimum 8 caractères, conservé dans l'audit…" /></div>
           <Alert><ShieldCheck className="h-4 w-4" /><AlertTitle>Aucun envoi immédiat</AlertTitle><AlertDescription>Après cette approbation, chaque publication devra encore être approuvée et planifiée depuis le calendrier.</AlertDescription></Alert>
           <DialogFooter><Button type="button" variant="outline" onClick={() => setApprovalCampaign(null)}>Annuler</Button><Button type="button" disabled={!canMutateBackend || approvalReason.trim().length < 8 || pendingAction === `approve-campaign-${approvalCampaign?.id}`} onClick={approve}>Approuver et journaliser</Button></DialogFooter>
+          </> : <DialogFooter><Button type="button" variant="outline" onClick={() => setApprovalCampaign(null)}>Fermer</Button></DialogFooter>}
         </DialogContent>
       </Dialog>
     </div>

@@ -432,7 +432,8 @@ describe("marketing SQL governance", () => {
       "CREATE OR REPLACE FUNCTION public.service_execute_marketing_admin_operation",
     );
     const dispatcherEnd = sql.indexOf("-- Revoke the default PUBLIC EXECUTE", dispatcherStart);
-    const dispatcher = sql.slice(dispatcherStart, dispatcherEnd);
+    const dispatcher = sql.slice(dispatcherStart, dispatcherEnd)
+      + readFileSync(resolve(process.cwd(), "supabase/migrations/20261013110000_marketing_campaign_items_preview.sql"), "utf8");
     const clientOperations = Array.from(new Set(
       Array.from(client.matchAll(/invokeRpc(?:<[^>]+>)?\("(admin_[a-z0-9_]+)"/gi), (match) => match[1]),
     )).sort();
@@ -440,7 +441,7 @@ describe("marketing SQL governance", () => {
       Array.from(dispatcher.matchAll(/WHEN\s+'(admin_[a-z0-9_]+)'\s+THEN/gi), (match) => match[1]),
     )).sort();
 
-    expect(clientOperations).toHaveLength(24);
+    expect(clientOperations).toHaveLength(25);
     expect(dispatcherOperations).toEqual(clientOperations);
     expect(dispatcher).toContain("service_get_marketing_web_session");
     expect(dispatcher).toContain("set_config('app.marketing_actor_user_id'");

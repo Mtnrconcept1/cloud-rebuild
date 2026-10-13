@@ -39,6 +39,22 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("marketing agent service boundary", () => {
+  const campaignOptions = { templateIds: ["zero_attente"], postCount: 2, cadence: "daily", formatsByChannel: { instagram: ["1:1"] } };
+  const guidedRequest = () => ({ action: "generate", objective: "Faire découvrir les fonctionnalités TOK", audienceHint: "", channels: ["instagram"],
+    startsAt: new Date(Date.now() + 86400000).toISOString(), endsAt: new Date(Date.now() + 4 * 86400000).toISOString(), itemCount: 2, campaignOptions });
+
+  it.each([
+    { ...campaignOptions, postCount: 1.5 }, { ...campaignOptions, postCount: 12 },
+    { ...campaignOptions, templateIds: ["unknown"] }, { ...campaignOptions, formatsByChannel: { instagram: ["20:1"] } },
+    { ...campaignOptions, formatsByChannel: { facebook: ["1:1"] } }, { ...campaignOptions, approved: true },
+  ])("rejects unsafe guided options before generation: %o", async (options) => {
+    const fetchMock = upstream(); vi.stubGlobal("fetch", fetchMock);
+    const res = recorder();
+    await marketingAgentHandler(request({ ...guidedRequest(), campaignOptions: options }), res.response);
+    expect(res.response.statusCode).toBe(400);
+    expect(fetchMock.mock.calls.every(([url]) => !String(url).includes("/functions/v1/"))).toBe(true);
+  });
+
   it.each([
     { instagram: "4:3" },
     { unknown: "1:1" },
@@ -58,6 +74,32 @@ describe("marketing agent service boundary", () => {
     }), res.response);
     expect(res.response.statusCode).toBe(400);
     expect(fetchMock.mock.calls.every(([url]) => !String(url).includes("/functions/v1/"))).toBe(true);
+  });
+
+  it.each([
+    { guided: true, formats: undefined },
+    { guided: false, formats: { instagram: "9:16" } },
+    { guided: true, formats: { instagram: "9:16" } },
+  ])("forwards validated templates and/or network formats and saves draft visuals: %o", async ({ guided, formats }) => {
+    const base = upstream();
+    const content = { body: "Bonjour", visual_url: "https://example.org/visual.png" };
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.endsWith("/functions/v1/ai-marketing-agent")) return json({ bundle: { campaign: { status: "draft" }, items: [{ content }] }, missingVisualCount: 1 });
+      if (url.endsWith("/rpc/service_execute_marketing_admin_operation")) return json({ campaign: { id: actor }, items: [{ id: actor, content }] });
+      return base(input);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const res = recorder();
+    const { campaignOptions: guidedOptions, ...baseRequest } = guidedRequest();
+    await marketingAgentHandler(request({ ...baseRequest, ...(guided ? { campaignOptions: guidedOptions } : {}), ...(formats ? { formats } : {}) }), res.response);
+    expect(res.response.statusCode).toBe(200);
+    expect(res.value().items[0].content).toEqual(content);
+    expect(res.value().warnings[0]).toMatch(/attendent encore leur visuel/);
+    const call = fetchMock.mock.calls.find(([url]) => String(url).includes("/functions/v1/"));
+    const forwarded = JSON.parse(String((call as unknown as [string, RequestInit])[1].body));
+    expect(forwarded.campaignOptions).toEqual(guided ? campaignOptions : undefined);
+    expect(forwarded.formats).toEqual(formats ?? {});
   });
 
   it.each([401, 403])("reports upstream %i as a service problem, not invalid input or expired browser session", async (agentStatus) => {

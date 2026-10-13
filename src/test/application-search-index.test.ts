@@ -53,7 +53,7 @@ describe("application search index", () => {
     expect(index.catalogs.apiRoutes).toHaveLength(9);
     expect(index.catalogs.edgeFunctions).toHaveLength(115);
     expect(index.catalogs.edgeHttpRoutes).toHaveLength(20);
-    expect(index.catalogs.marketingOperations).toHaveLength(36);
+    expect(index.catalogs.marketingOperations).toHaveLength(37);
     expect(index.catalogs.cronJobs).toHaveLength(34);
     expect(index.catalogs.storageBuckets).toHaveLength(9);
     expect(index.catalogs.databaseContract).toHaveLength(228);

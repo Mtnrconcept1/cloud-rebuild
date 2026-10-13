@@ -19,6 +19,7 @@ import {
   MarketingStatusBadge,
   formatMarketingDate,
 } from "@/components/marketing/MarketingShared";
+import { MarketingPostImage, MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -73,7 +74,7 @@ export default function MarketingCalendarView({
   const initialRange = filters.from ? marketingMonthRange(filters.from) : currentMarketingMonthRange();
   const initialMonth = new Date(`${initialRange?.from || currentMarketingMonthRange().from}T12:00:00`);
   const [currentMonth, setCurrentMonth] = useState(initialMonth);
-  const [selectedItem, setSelectedItem] = useState<MarketingCalendarItem | null>(null);
+  const [selectedItemSnapshot, setSelectedItem] = useState<MarketingCalendarItem | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [approvalSchedule, setApprovalSchedule] = useState("");
   const [manualItem, setManualItem] = useState<MarketingCalendarItem | null>(null);
@@ -156,6 +157,7 @@ export default function MarketingCalendarView({
     if (result) closeManualDialog();
   };
 
+  const selectedItem = snapshot.calendar.find((item) => item.id === selectedItemSnapshot?.id) || selectedItemSnapshot;
   const selectedChannel = selectedItem
     ? snapshot.channels.find((channel) => channel.id === selectedItem.channel)
     : null;
@@ -268,9 +270,12 @@ export default function MarketingCalendarView({
             <div className="space-y-3">
               {agenda.map((item) => (
                 <button key={item.id} type="button" onClick={() => openItem(item)} className="flex w-full min-w-0 flex-col gap-3 rounded-2xl border p-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 sm:flex-row sm:items-center">
+                  <MarketingPostImage url={item.postPreview?.visualUrl || item.visualUrl} title={item.title} compact />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{item.title}</p>
+                    <p className="break-words font-semibold">{item.title}</p>
                     <p className="mt-1 truncate text-xs text-muted-foreground">{item.campaignName} · {formatMarketingDate(item.scheduledAt)}</p>
+                    <p className="mt-2 line-clamp-2 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">{item.postPreview?.caption || item.content || "Aucun texte enregistré"}</p>
+                    <span className="mt-2 inline-block text-xs font-semibold text-primary">Voir le visuel et le texte</span>
                   </div>
                   <div className="flex flex-wrap gap-2"><MarketingChannelBadge channel={item.channel} /><MarketingStatusBadge status={item.status} /></div>
                 </button>
@@ -284,7 +289,7 @@ export default function MarketingCalendarView({
       </Card>
 
       <Dialog open={Boolean(selectedItem)} onOpenChange={(open) => { if (!open) { setSelectedItem(null); setCancelReason(""); setApprovalSchedule(""); } }}>
-        <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-xl">
+        <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{selectedItem?.title}</DialogTitle>
             <DialogDescription>{selectedItem ? `${selectedItem.campaignName} · ${formatMarketingDate(selectedItem.scheduledAt)}` : ""}</DialogDescription>
@@ -297,25 +302,12 @@ export default function MarketingCalendarView({
                 <div><p className="text-xs text-muted-foreground">Audience</p><p className="mt-1 text-sm font-medium">{selectedItem.audienceName}</p></div>
                 <div><p className="text-xs text-muted-foreground">Taille éligible</p><p className="mt-1 text-sm font-medium">{selectedItem.audienceSize.toLocaleString("fr-CH")}</p></div>
               </div>
-              <div className="rounded-xl border bg-muted/20 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contenu</p>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{selectedItem.content || "Aucun contenu confirmé"}</p>
-              </div>
-              {selectedItem.visualUrl ? (
-                <figure className="overflow-hidden rounded-xl border bg-muted/20">
-                  <img
-                    src={selectedItem.visualUrl}
-                    alt={`Visuel généré pour ${selectedItem.title}`}
-                    className="max-h-[60dvh] w-full object-contain"
-                    style={{ aspectRatio: (selectedItem.format || "1:1").replace(":", " / ") }}
-                    referrerPolicy="no-referrer"
-                  />
-                  <figcaption className="flex items-center justify-between gap-3 p-3 text-xs text-muted-foreground">
-                    <span>Format {selectedItem.format || "1:1"}</span>
-                    <MarketingStatusBadge status={selectedItem.approvalStatus} />
-                  </figcaption>
-                </figure>
-              ) : null}
+              <MarketingPostPreview
+                title={selectedItem.title}
+                channel={selectedItem.channel}
+                scheduledAt={selectedItem.scheduledAt}
+                preview={selectedItem.postPreview || { caption: selectedItem.content, visualUrl: selectedItem.visualUrl, visualFormat: selectedItem.format || undefined }}
+              />
               {selectedItem.manualOutcome || selectedItem.manualNote ? (
                 <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Suivi manuel</p>

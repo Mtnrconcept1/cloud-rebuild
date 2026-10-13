@@ -1,4 +1,5 @@
 import { allocateMarketingVisuals } from "../_shared/marketing-visual-allocation.ts";
+import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../_shared/marketing-campaign-options.ts";
 import {
   HttpError,
   authenticateRequest,
@@ -106,6 +107,7 @@ function parseChannels(value: unknown): string[] {
 
 function parseFormats(value: unknown, channels: readonly string[]) {
   if (value === undefined) return {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new HttpError(400, "formats_invalid");
   const record = asRecord(value);
   const allowedFormats = new Set(["1:1", "9:16", "16:9"]);
   const allowedChannels = new Set(channels);
@@ -131,6 +133,7 @@ async function readConnectedChannels(
 }
 
 Deno.serve(async (req) => {
+  const generationDeadline = Date.now() + 110_000;
   const corsHeaders = buildCorsHeaders(req);
   const origin = req.headers.get("origin");
   if (origin === "https://marketing.thetok.ch") {
@@ -193,6 +196,15 @@ Deno.serve(async (req) => {
     if (!Number.isInteger(rawCount) || rawCount < MIN_ITEMS || rawCount > MAX_ITEMS) {
       throw new HttpError(400, "item_count_invalid");
     }
+    const campaignOptions = parseCampaignOptions(payload.campaignOptions, channels);
+    if (campaignOptions) {
+      if (Date.parse(startsAt) <= Date.now()) throw new HttpError(400, "campaign_start_must_be_future");
+      if (campaignOptions.postCount !== rawCount) throw new HttpError(400, "campaign_post_count_mismatch");
+      const slots = buildCampaignSlots(campaignOptions, channels, startsAt);
+      if (slots.some((slot) => Date.parse(slot.scheduledAt) > Date.parse(endsAt))) {
+        throw new HttpError(400, "campaign_window_too_short");
+      }
+    }
 
     const connectedChannels = await readConnectedChannels(client);
 
@@ -216,6 +228,7 @@ Deno.serve(async (req) => {
       endsAt,
       itemCount: rawCount,
       locale: "fr-CH",
+      campaignOptions,
       formats,
     });
 
@@ -224,16 +237,16 @@ Deno.serve(async (req) => {
     const slug = slugifyCampaignName(plan.campaign.name);
     const visualRequests = plan.items.map((item) => ({
       visual_prompt: item.visual_prompt,
-      visual_format: formats[item.channel] || null,
+      visual_format: item.visual_format || formats[item.channel],
     }));
     const visuals = await allocateMarketingVisuals(visualRequests, (prompt, index) => generateCampaignVisual(client, {
-      prompt,
-      campaignSlug: slug,
-      index,
-      apiKey: OPENAI_API_KEY,
-      format: formats[plan.items[index].channel],
+      prompt, campaignSlug: slug, index, apiKey: OPENAI_API_KEY,
+      format: visualRequests[index].visual_format,
+      timeoutMs: Math.max(1, generationDeadline - Date.now()),
     }), MAX_VISUALS);
     const assetCount = new Set(visuals.values()).size;
+    const missingVisualCount = plan.items.filter((item, index) =>
+      (item.channel === "instagram" || item.channel === "facebook" || Boolean(item.visual_prompt)) && !visuals.has(index)).length;
 
     const bundle = toBundlePayload(plan, visuals, formats);
 
@@ -262,6 +275,8 @@ Deno.serve(async (req) => {
         summary: plan.campaign.summary,
         itemCount: plan.items.length,
         assetCount,
+        missingVisualCount,
+        warnings: missingVisualCount > 0 ? ["visual_generation_incomplete"] : [],
         model,
         inputTokens: usage.input_tokens || 0,
         outputTokens: usage.output_tokens || 0,
@@ -272,7 +287,7 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     const message = safeMarketingError(error);
-    const status = error instanceof HttpError ? error.status : 500;
+    const status = error instanceof CampaignOptionsError ? 400 : error instanceof HttpError ? error.status : 500;
     log.error("agent_failed", { message, action, status });
 
     if (runId) {
@@ -309,6 +324,7 @@ Deno.serve(async (req) => {
     });
 
     if (error instanceof HttpError) return jsonResponse({ error: message }, error.status, corsHeaders);
+    if (error instanceof CampaignOptionsError) return jsonResponse({ error: error.reason }, 400, corsHeaders);
     return jsonResponse({ error: "Erreur interne de l’agent marketing" }, 500, corsHeaders);
   }
 });

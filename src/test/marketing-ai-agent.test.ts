@@ -168,6 +168,19 @@ describe("marketing AI bundle payload", () => {
     expect(bundle.items[1].content.visual_reference_ids).toEqual(["geneva", "loyalty", "flash", "pricing"]);
     expect(bundle.items[1].content.format).toBe("16:9");
   });
+  it("keeps guided per-item ratios authoritative while preserving the legacy format alias", () => {
+    const plan = validPlan();
+    plan.items[0].channel = "instagram";
+    plan.items[0].visual_format = "4:5";
+    const bundle = toBundlePayload(plan, new Map(), { instagram: "1:1" }) as {
+      items: Array<{ content: { format: string | null; visual_format: string | null } }>;
+    };
+    expect(bundle.items[0].content).toMatchObject({ format: "4:5", visual_format: "4:5" });
+    delete plan.items[0].visual_format;
+    expect(toBundlePayload(plan, new Map(), { instagram: "9:16" })).toMatchObject({
+      items: [{ content: { format: "9:16", visual_format: "9:16" } }],
+    });
+  });
 });
 
 describe("marketing AI agent migration", () => {

@@ -9,9 +9,9 @@ export const TOK_MARKETING_REFERENCES = [
   { id: "pricing", label: "Comparatif · mise en page", path: "/marketing/brand/tok-v1/pricing.jpg", sha256: "8fe551553759590706275e19b7d32a6e479b6cc6c9f3c0104fe93a3ffceb7d89" },
 ] as const;
 
-export function buildTokMarketingVisualPrompt(brief: string): string {
+export function buildTokMarketingVisualPrompt(brief: string, format: string = "4:5"): string {
   return [
-    "Créer une seule publicité TOK complète, au format portrait 4:5, à partir des QUATRE images jointes.",
+    `Créer une seule publicité TOK complète, au format ${format}, à partir des QUATRE images jointes.`,
     "CHARTE TOK OBLIGATOIRE : les références sont la source d'identité, pas une banque de promotions.",
     "Référence 1 : identité principale du chef et du logo, Genève. Référence 2 : lumière et restaurant. Référence 3 : énergie graphique. Référence 4 : comparaison claire sur fond crème.",
     "Conserver le même chef cartoon 3D : visage chaleureux, grand sourire, moustache noire recourbée, sourcils noirs épais, lunettes de soleil noires, toque blanche, veste blanche à boutons noirs, foulard rouge et ceinture rouge/noire. Ne pas remplacer par un chef réaliste ou un autre personnage. Adapter uniquement pose et cadrage.",

@@ -1,6 +1,7 @@
 import { addDays, subDays } from "date-fns";
 
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
+import { marketingPostPreview, marketingPreviewImageUrl } from "@/marketing/postPreview";
 import {
   MARKETING_BFF_ENDPOINTS,
   marketingBffRequest,
@@ -100,13 +101,12 @@ function contentValue(value: unknown, key: string) {
 }
 
 function marketingVisualUrl(value: unknown) {
-  const url = contentValue(value, "visual_url").trim();
-  return /^https:\/\//i.test(url) ? url : null;
+  return marketingPreviewImageUrl(contentValue(value, "visual_url"));
 }
 
 function marketingPostFormat(value: unknown): MarketingPostFormat | null {
-  const format = contentValue(value, "format");
-  return ["1:1", "9:16", "16:9"].includes(format) ? format as MarketingPostFormat : null;
+  const format = contentValue(value, "visual_format") || contentValue(value, "format");
+  return ["1:1", "4:5", "9:16", "16:9"].includes(format) ? format as MarketingPostFormat : null;
 }
 
 function safeErrorMessage(error: unknown) {
@@ -180,9 +180,14 @@ export function normalizeCalendarItem(value: unknown, fallback?: MarketingCalend
     audienceName: asString(pick(row, "audience_name", "audienceName"), fallback?.audienceName || "Audience"),
     audienceSize: asNumber(pick(row, "audience_size", "audienceSize"), fallback?.audienceSize || 0),
     approvalStatus: asString(pick(row, "approval_status", "approvalStatus"), fallback?.approvalStatus || "pending") as MarketingCalendarItem["approvalStatus"],
-    content: contentMessage(content) || fallback?.content || "",
-    visualUrl: marketingVisualUrl(content) || fallback?.visualUrl || null,
-    format: marketingPostFormat(content) || fallback?.format || null,
+    content: contentMessage(pick(row, "content", "message")) || fallback?.content || "",
+    postPreview: row.content !== undefined || row.message !== undefined
+      ? marketingPostPreview(pick(row, "content", "message"), asString(row.channel, fallback?.channel || "in_app") as MarketingChannelId)
+      : fallback?.postPreview,
+    visualUrl: row.content !== undefined || row.message !== undefined
+      ? marketingVisualUrl(content) : fallback?.visualUrl || null,
+    format: row.content !== undefined || row.message !== undefined
+      ? marketingPostFormat(content) : fallback?.format || null,
     manualOutcome: ["published", "failed"].includes(manualOutcomeValue)
       ? manualOutcomeValue as MarketingCalendarItem["manualOutcome"]
       : fallback?.manualOutcome || null,
@@ -365,6 +370,27 @@ function normalizeCursorPage<T>(
       Object.entries(asRecord(next)).map(([key, item]) => [key, String(item)]),
     ) : null,
   };
+}
+
+/** Campaign-scoped pagination deliberately ignores the calendar's visible month. */
+export async function loadMarketingCampaignItems(
+  campaignId: string,
+  cursor: Record<string, string> | null = null,
+): Promise<CursorPage<MarketingCalendarItem>> {
+  const result = await invokeRpc<unknown>("admin_list_marketing_campaign_items", {
+    p_campaign_id: campaignId,
+    p_limit: 24,
+    p_cursor_scheduled_at: cursor?.scheduled_at || null,
+    p_cursor_id: cursor?.id || null,
+  });
+  if (!Array.isArray(asRecord(result).items)) {
+    throw new Error("La liste des publications n'a pas pu être confirmée.");
+  }
+  const page = normalizeCursorPage(result, normalizeCalendarItem);
+  if (page.items.some((item) => item.campaignId !== campaignId)) {
+    throw new Error("Les publications reçues ne correspondent pas à cette campagne.");
+  }
+  return page;
 }
 
 function normalizeChannels(value: unknown, fallback: MarketingChannel[]) {

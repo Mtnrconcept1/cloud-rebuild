@@ -104,7 +104,7 @@ describe("retired one-button launch", () => {
   it("is no longer exposed as a single action from the agent view", () => {
     expect(view).not.toContain("MARKETING_BFF_ENDPOINTS.launch");
     expect(view).not.toContain("Approuver et lancer la campagne");
-    expect(view).toContain("Relire et approuver les éléments");
+    expect(view).toContain("Ouvrir les campagnes pour approbation");
     expect(view).toContain("Chaque élément doit être");
   });
 });
