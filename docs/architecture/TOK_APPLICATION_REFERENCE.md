@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `ac75c92a036b1a29845aa928128babed16e191d5e750ea577889eedc4eed6b2d`
+- Empreinte SHA-256 des sources indexées : `c56d41a215121c91d53e41e81906db57179e186239a7231c5a79ee09fcf9b6e1`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,13 +40,13 @@
 | migrations | 532 |
 | modules | 1517 |
 | pages | 128 |
-| pathLiterals | 651 |
-| publicAssets | 463 |
-| publicEntries | 488 |
+| pathLiterals | 652 |
+| publicAssets | 464 |
+| publicEntries | 489 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 107 |
-| records | 16226 |
-| repositoryFiles | 3002 |
+| records | 16229 |
+| repositoryFiles | 3003 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -798,6 +798,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-tok-connect.webp | media | [public/images/dashboard-3d/restaurant-tok-connect.webp](../../public/images/dashboard-3d/restaurant-tok-connect.webp) |
 | /images/doner-kebab-plate.jpeg | media | [public/images/doner-kebab-plate.jpeg](../../public/images/doner-kebab-plate.jpeg) |
 | /images/edamame.webp | media | [public/images/edamame.webp](../../public/images/edamame.webp) |
+| /images/emails/tok-reservation-hero.jpg | media | [public/images/emails/tok-reservation-hero.jpg](../../public/images/emails/tok-reservation-hero.jpg) |
 | /images/emails/tok-reservation-hero.webp | media | [public/images/emails/tok-reservation-hero.webp](../../public/images/emails/tok-reservation-hero.webp) |
 | /images/falafel wrap.jpeg | media | [public/images/falafel wrap.jpeg](../../public/images/falafel%20wrap.jpeg) |
 | /images/fattouche.webp | media | [public/images/fattouche.webp](../../public/images/fattouche.webp) |
@@ -1413,7 +1414,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-tok-connect.webp | 1 | [src/lib/dashboardIllustrations.ts:38](../../src/lib/dashboardIllustrations.ts#L38) |
 | /images/doner-kebab-plate.jpeg | 2 | [src/lib/menu-item-images.ts:48](../../src/lib/menu-item-images.ts#L48) |
 | /images/edamame.webp | 1 | [src/lib/menu-item-images.ts:49](../../src/lib/menu-item-images.ts#L49) |
-| /images/emails/tok-reservation-hero.webp | 2 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
+| /images/emails/tok-reservation-hero.jpg | 2 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
+| /images/emails/tok-reservation-hero.webp | 1 | [src/test/transactional-email-templates.test.ts:104](../../src/test/transactional-email-templates.test.ts#L104) |
 | /images/fattouche.webp | 5 | [src/lib/menu-item-images.ts:21](../../src/lib/menu-item-images.ts#L21) |
 | /images/fondue%20moiti%C3%A9%20moiti%C3%A9.jpg | 2 | [src/test/menu-item-images.test.ts:9](../../src/test/menu-item-images.test.ts#L9) |
 | /images/fondue-moitie-moitie.jpg | 5 | [src/lib/securityUrls.ts:26](../../src/lib/securityUrls.ts#L26) |
@@ -8012,7 +8014,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (488)</summary>
+<details><summary>public-asset (489)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8199,6 +8201,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/dashboard-3d/restaurant-tok-connect.webp`
 - `public/images/doner-kebab-plate.jpeg`
 - `public/images/edamame.webp`
+- `public/images/emails/tok-reservation-hero.jpg`
 - `public/images/emails/tok-reservation-hero.webp`
 - `public/images/falafel wrap.jpeg`
 - `public/images/fattouche.webp`
