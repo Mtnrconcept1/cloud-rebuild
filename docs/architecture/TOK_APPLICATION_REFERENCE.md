@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `9b464e503037cf9bcbfc9cd9fdf5c8388e020ffd6a149c3f79e1ef11f3f611d9`
+- Empreinte SHA-256 des sources indexées : `6ecea85d7236e05bb736d73afb26fc5bd23145de60516677027a0b4c4745fd70`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,24 +29,24 @@
 | cronJobs | 34 |
 | databaseContract | 228 |
 | databaseObjects | 2751 |
-| documents | 202 |
+| documents | 203 |
 | edgeFunctions | 115 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3495 |
+| exportedSymbols | 3506 |
 | featureFlags | 99 |
 | frontendRoutes | 135 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 533 |
-| modules | 1533 |
+| modules | 1536 |
 | pages | 129 |
 | pathLiterals | 677 |
 | publicAssets | 486 |
 | publicEntries | 511 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16417 |
-| repositoryFiles | 3044 |
+| records | 16441 |
+| repositoryFiles | 3048 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 42 |
@@ -1722,7 +1722,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants/vesenaz/r/sushi-zen-sa | 2 | [src/test/seo-directory-quality-hardening.test.ts:32](../../src/test/seo-directory-quality-hardening.test.ts#L32) |
 | /restaurateurs-geneve | 1 | [src/test/marketing-legacy-landing.test.ts:7](../../src/test/marketing-legacy-landing.test.ts#L7) |
 | /restaurateurs/:city | 3 | [src/App.tsx:683](../../src/App.tsx#L683) |
-| /restaurateurs/alternative-commission-couvert | 17 | [scripts/prerender-seo.mjs:675](../../scripts/prerender-seo.mjs#L675) |
+| /restaurateurs/alternative-commission-couvert | 18 | [scripts/prerender-seo.mjs:675](../../scripts/prerender-seo.mjs#L675) |
 | /restaurateurs/geneve | 23 | [scripts/prerender-seo.mjs:610](../../scripts/prerender-seo.mjs#L610) |
 | /restaurateurs/google-business | 18 | [scripts/prerender-seo.mjs:674](../../scripts/prerender-seo.mjs#L674) |
 | /restaurateurs/lausanne | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
@@ -6051,13 +6051,13 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | --- | --- | --- |
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
-| Google | 117 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 116 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Google | 118 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 117 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 226 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 685 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 687 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6070,7 +6070,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 205 |
 | automation-script | 65 |
 | documentation | 6 |
-| edge-function-source | 192 |
+| edge-function-source | 193 |
 | frontend-component | 254 |
 | frontend-hook | 23 |
 | frontend-page | 129 |
@@ -6078,7 +6078,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 605 |
+| test | 607 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6194,6 +6194,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Répartition des responsabilités — prix, disponibilité, allergènes et qualité | 3 | [docs/legal/10-responsabilites-produits.md:1](../../docs/legal/10-responsabilites-produits.md#L1) |
 | Pack contractuel TOK | 3 | [docs/legal/README.md:1](../../docs/legal/README.md#L1) |
 | Pistes de backlinks TOK sans compte existant | 6 | [docs/marketing-backlink-opportunities.md:1](../../docs/marketing-backlink-opportunities.md#L1) |
+| Légendes des campagnes TOK | 5 | [docs/marketing/SOCIAL_EDITORIAL_POLICY.md:1](../../docs/marketing/SOCIAL_EDITORIAL_POLICY.md#L1) |
 | Références visuelles des campagnes TOK | 4 | [docs/marketing/TOK_BRAND_REFERENCES.md:1](../../docs/marketing/TOK_BRAND_REFERENCES.md#L1) |
 | Audit du marketing automatique TOK — 8 octobre 2026 | 7 | [docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md:1](../../docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md#L1) |
 | TOK Marketing Autopilot — runbook d'exploitation | 13 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
@@ -7211,7 +7212,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (155)</summary>
+<details><summary>documentation (156)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7280,6 +7281,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing-email-examples/02-pizzeria-carouge.txt`
 - `docs/marketing-email-examples/03-rive-droite-soiree.html`
 - `docs/marketing-email-examples/03-rive-droite-soiree.txt`
+- `docs/marketing/SOCIAL_EDITORIAL_POLICY.md`
 - `docs/marketing/TOK_BRAND_REFERENCES.md`
 - `docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md`
 - `docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md`
@@ -7371,7 +7373,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (192)</summary>
+<details><summary>edge-function-source (193)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7399,6 +7401,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/marketing-campaign-templates.ts`
 - `supabase/functions/_shared/marketing-email-template.ts`
 - `supabase/functions/_shared/marketing-service-auth.ts`
+- `supabase/functions/_shared/marketing-social-editorial.ts`
 - `supabase/functions/_shared/marketing-unsubscribe-secrets.ts`
 - `supabase/functions/_shared/marketing-unsubscribe-token.ts`
 - `supabase/functions/_shared/marketing-visual-allocation.ts`
@@ -8794,7 +8797,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (605)</summary>
+<details><summary>test (607)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9094,6 +9097,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/loyalty-status-dialog-layout.test.tsx`
 - `src/test/marketing-agent-bff.test.ts`
 - `src/test/marketing-ai-agent.test.ts`
+- `src/test/marketing-ai-editorial-provider.test.ts`
 - `src/test/marketing-approval-readiness.test.ts`
 - `src/test/marketing-autopilot-frontend.test.tsx`
 - `src/test/marketing-autopilot-sql.test.ts`
@@ -9137,6 +9141,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-runtime-hardening.test.ts`
 - `src/test/marketing-service-auth.test.ts`
 - `src/test/marketing-session-recovery.test.tsx`
+- `src/test/marketing-social-editorial.test.ts`
 - `src/test/marketing-source-discovery.test.tsx`
 - `src/test/marketing-sql-governance.test.ts`
 - `src/test/marketing-studio-output-targets.test.ts`

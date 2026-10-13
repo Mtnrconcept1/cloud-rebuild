@@ -76,6 +76,9 @@ export type MarketingPlanItem = {
   visual_format?: CampaignFormat;
   post_index?: number;
   template_ids?: CampaignTemplateId[];
+  primary_template_id?: CampaignTemplateId;
+  channel_variants?: Array<{ channel: MarketingChannel; content: MarketingPlanItem["content"] }>;
+  editorial?: { version: string; primary_template_id: CampaignTemplateId; destination_url: string };
 };
 
 export type MarketingPlan = {
@@ -199,6 +202,61 @@ export function buildPlanSchema(allowedChannels: readonly string[]) {
       },
     },
   };
+}
+
+/** Guided posts have one editorial variant per network; image formats are expanded later. */
+export function buildGuidedPlanSchema(allowedChannels: readonly string[], templateIds: readonly CampaignTemplateId[]) {
+  const base = buildPlanSchema(allowedChannels);
+  const item = base.schema.properties.items.items.properties;
+  return { ...base, schema: { ...base.schema, properties: { ...base.schema.properties, items: {
+    type: "array", items: {
+      type: "object", additionalProperties: false,
+      required: ["title", "scheduled_at", "audience_name", "targeting", "visual_prompt", "primary_template_id", "channel_variants"],
+      properties: {
+        title: item.title, scheduled_at: item.scheduled_at, audience_name: item.audience_name,
+        targeting: item.targeting, visual_prompt: { type: "string" },
+        primary_template_id: { type: "string", enum: [...templateIds] },
+        channel_variants: { type: "array", minItems: allowedChannels.length, maxItems: allowedChannels.length,
+          items: { type: "object", additionalProperties: false, required: ["channel", "content"],
+            properties: { channel: item.channel, content: item.content } } },
+      },
+    },
+  } } } };
+}
+
+function isPlanRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+/** Reject missing/duplicate networks and unselected topics before generating paid assets. */
+export function validateGuidedPlan(raw: unknown, channels: readonly string[], templateIds: readonly CampaignTemplateId[], postCount: number): MarketingPlan {
+  if (!isPlanRecord(raw) || !isPlanRecord(raw.campaign) || !Array.isArray(raw.items)) throw new MarketingPlanError("not_an_object");
+  if (raw.items.length !== postCount) throw new MarketingPlanError("item_count_mismatch");
+  for (const field of ["name", "objective", "summary", "audience_name"]) {
+    if (typeof raw.campaign[field] !== "string" || !(raw.campaign[field] as string).trim()) throw new MarketingPlanError("invalid_campaign_content");
+  }
+  const items = raw.items.map((item, index) => {
+    if (!isPlanRecord(item) || typeof item.title !== "string" || typeof item.audience_name !== "string" ||
+      typeof item.primary_template_id !== "string" || !templateIds.includes(item.primary_template_id as CampaignTemplateId)) throw new MarketingPlanError("invalid_primary_template", { index });
+    if (typeof item.visual_prompt !== "string" || !item.visual_prompt.trim()) throw new MarketingPlanError("missing_visual_prompt", { index });
+    if (!Array.isArray(item.channel_variants) || item.channel_variants.length !== channels.length) throw new MarketingPlanError("missing_channel_variants", { index });
+    const seen = new Set<string>();
+    const variants = item.channel_variants.map((variant) => {
+      if (!isPlanRecord(variant) || typeof variant.channel !== "string" || !channels.includes(variant.channel) || seen.has(variant.channel)) throw new MarketingPlanError("invalid_channel_variants", { index });
+      seen.add(variant.channel);
+      const content = variant.content;
+      if (!isPlanRecord(content) || ["headline", "body", "call_to_action"].some((key) => typeof content[key] !== "string" || (content[key] as string).length > 5000) ||
+        !Array.isArray(content.hashtags) || content.hashtags.length > 20 || content.hashtags.some((tag) => typeof tag !== "string") ||
+        !(content.subject === null || typeof content.subject === "string")) throw new MarketingPlanError("invalid_variant_content", { index });
+      if (!(content.body as string).trim()) throw new MarketingPlanError("empty_item_body", { index });
+      return { channel: variant.channel as MarketingChannel, content: content as MarketingPlanItem["content"] };
+    });
+    return { ...item, channel: variants[0].channel, content: variants[0].content, channel_variants: variants } as MarketingPlanItem;
+  });
+  if (postCount >= templateIds.length && templateIds.some((id) => !items.some((item) => item.primary_template_id === id))) {
+    throw new MarketingPlanError("missing_selected_template");
+  }
+  return validatePlan({ campaign: { ...raw.campaign, channels: [...channels] } as MarketingPlan["campaign"], items }, channels);
 }
 
 /** Postgres accepts only string values in an audience filter. */
@@ -333,6 +391,7 @@ export function toBundlePayload(
         visual_format: item.visual_format || formats[item.channel] || null,
         visual_prompt: item.visual_prompt,
         ...(item.visual_format ? { post_index: item.post_index, template_ids: item.template_ids } : {}),
+        ...(item.editorial ? { editorial: item.editorial } : {}),
         visual_required: item.channel === "facebook" || item.channel === "instagram" || Boolean(item.visual_prompt),
         visual_status: visuals.get(index) ? "ready"
           : item.channel === "facebook" || item.channel === "instagram" || item.visual_prompt

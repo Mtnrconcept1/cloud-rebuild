@@ -1,5 +1,6 @@
 import { HttpError } from "./auth.ts";
 import { applyCampaignOptions, CAMPAIGN_TEMPLATES, type CampaignOptions } from "./marketing-campaign-options.ts";
+import { normalizeLegacySocialPlan, socialEditorialPrompt } from "./marketing-social-editorial.ts";
 import {
   createOpenAIResponse,
   estimateOpenAITextCostChf,
@@ -10,7 +11,9 @@ import {
 import {
   MarketingPlanError,
   buildPlanSchema,
+  buildGuidedPlanSchema,
   validatePlan,
+  validateGuidedPlan,
   type MarketingPlan,
   type MarketingPostFormat,
 } from "./marketing-ai-plan.ts";
@@ -68,11 +71,12 @@ function buildSystemPrompt(context: MarketingBriefContext) {
       "Thèmes sélectionnés et contraintes éditoriales (couvre ces thèmes sans inventer d'offre) :",
       "Les fonctionnalités dépendent de leur activation et de l'éligibilité de la formule. N'invente ni prix, ni quota, ni promotion. Distingue toujours l'audience client de l'audience restaurateur.",
       ...CAMPAIGN_TEMPLATES.filter((template) => context.campaignOptions!.templateIds.includes(template.id)).map((template) => `${template.label} — audience ${template.audience} : ${template.guidance}`),
-      "Chaque élément correspond à un post éditorial qui sera décliné automatiquement sur TOUS les réseaux et formats sélectionnés. Ne duplique pas toi-même les éléments par réseau.",
-      "Renseigne obligatoirement visual_prompt pour chaque post. Écris un texte utilisable sur tous les réseaux choisis. La cadence, les réseaux et les formats seront fixés par le serveur.",
-    ] : []),
+      "Chaque élément correspond à un post éditorial avec ses variantes par réseau. Ne duplique pas les éléments pour les formats : le serveur les décline.",
+      "Renseigne obligatoirement visual_prompt pour chaque post, partagé par les réseaux ; n'y inscris ni URL ni mention. La cadence et les formats seront fixés par le serveur.",
+      ...socialEditorialPrompt(context.campaignOptions.templateIds, context.audienceHint),
+    ] : socialEditorialPrompt(CAMPAIGN_TEMPLATES.map((template) => template.id), context.audienceHint, false)),
     `Formats visuels demandés par canal : ${JSON.stringify(context.campaignOptions?.formatsByChannel || context.formats || {})}. Compose chaque visuel pour son format sans placer de texte important près des bords.`,
-    "Renseigne visual_prompt uniquement pour les canaux où une image a du sens (réseaux sociaux, e-mail), sinon null.",
+    ...(!context.campaignOptions ? ["Renseigne visual_prompt uniquement pour les canaux où une image a du sens (réseaux sociaux, e-mail), sinon null."] : []),
     "Le champ subject n'est renseigné que pour le canal email.",
   ].join("\n");
 }
@@ -95,18 +99,23 @@ export async function generateMarketingPlan(context: MarketingBriefContext) {
           .join("\n"),
       },
     ],
-    jsonSchema: buildPlanSchema(context.allowedChannels),
-    maxOutputTokens: 8000,
+    jsonSchema: context.campaignOptions ? buildGuidedPlanSchema(context.allowedChannels, context.campaignOptions.templateIds) : buildPlanSchema(context.allowedChannels),
+    maxOutputTokens: context.campaignOptions ? 12000 : 8000,
     timeoutMs: 90_000,
   });
 
   const usage = extractUsage(response);
   let plan: MarketingPlan;
   try {
-    plan = validatePlan(parseStructuredOutput<MarketingPlan>(response), context.allowedChannels);
+    const output = parseStructuredOutput<MarketingPlan>(response);
+    plan = context.campaignOptions
+      ? validateGuidedPlan(output, context.allowedChannels, context.campaignOptions.templateIds, context.itemCount)
+      : validatePlan(output, context.allowedChannels);
     if (plan.items.length !== context.itemCount) throw new MarketingPlanError("item_count_mismatch");
     if (context.campaignOptions) {
-      plan = applyCampaignOptions(plan, context.campaignOptions, context.allowedChannels, context.startsAt, context.endsAt);
+      plan = applyCampaignOptions(plan, context.campaignOptions, context.allowedChannels, context.startsAt, context.endsAt, context.audienceHint);
+    } else {
+      plan = normalizeLegacySocialPlan(plan, context.objective, context.audienceHint);
     }
   } catch (error) {
     // A rejected plan is a provider-quality problem, not a caller mistake; the
