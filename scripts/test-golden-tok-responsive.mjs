@@ -44,6 +44,14 @@ async function run() {
           void request.respond({ status: 204, headers });
           return;
         }
+        if (url.includes("/rest/v1/feature_flags") && request.method() === "GET") {
+          void request.respond({
+            status: 200,
+            headers: { ...headers, "content-type": "application/json", "content-range": "0-0/1" },
+            body: JSON.stringify([{ id: "chefs-table", name: "chefs-table", label: "La Tok d’Or", description: "Expériences exclusives", is_active: true }]),
+          });
+          return;
+        }
         if (url.includes("/rpc/get_launch_gate_state")) {
           void request.respond({
             status: 200,
@@ -53,7 +61,7 @@ async function run() {
           });
           return;
         }
-        // All other remote traffic stays unavailable in CI: fallback flags
+        // All other remote traffic stays unavailable in CI; only the Golden TOK flag
         // are used, and no real financial or reservation actions are performed.
         void request.abort();
       });
