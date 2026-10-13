@@ -218,6 +218,8 @@ export default function Navbar() {
               </>
             ) : null}
             <span className="text-border">|</span>
+            <Link to="/guide" className="shrink-0 whitespace-nowrap transition-colors hover:text-foreground">Guide</Link>
+            <span className="text-border">|</span>
             <Link to="/aide" className="shrink-0 whitespace-nowrap transition-colors hover:text-foreground">Aide</Link>
             {isDesktopHomeReference ? (
               <>

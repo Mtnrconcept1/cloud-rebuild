@@ -8,8 +8,13 @@ import ts from "typescript";
 export const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const INDEX_JSON_PATH = "docs/architecture/tok-application-search-index.json";
 export const REFERENCE_MARKDOWN_PATH = "docs/architecture/TOK_APPLICATION_REFERENCE.md";
+export const USER_GUIDE_CATALOG_PATH = "src/data/tok-user-guide-catalog.generated.ts";
 export const RUNTIME_EVIDENCE_PATH = "docs/architecture/tok-runtime-evidence-2026-10-03.json";
-export const GENERATED_PATHS = new Set([INDEX_JSON_PATH, REFERENCE_MARKDOWN_PATH]);
+export const GENERATED_PATHS = new Set([
+  INDEX_JSON_PATH,
+  REFERENCE_MARKDOWN_PATH,
+  USER_GUIDE_CATALOG_PATH,
+]);
 const INDEX_IMPLEMENTATION_PATHS = [
   "scripts/application-index-core.mjs",
   "scripts/generate-application-index.mjs",
@@ -1768,6 +1773,34 @@ export function buildApplicationIndex(root = REPOSITORY_ROOT) {
 }
 
 export const serializeIndex = (index) => `${JSON.stringify(index, null, 1)}\n`;
+
+export function renderUserGuideCatalog(index) {
+  const routes = index.catalogs.frontendRoutes.map((route) => ({
+    path: route.path,
+    surface: route.surface,
+    components: route.components,
+    requiredRoles: route.requiredRoles,
+    featureGate: route.featureGate,
+    redirectTo: route.redirectTo,
+  }));
+  const tools = index.catalogs.edgeFunctions.map((tool) => ({
+    name: tool.name,
+    endpoint: tool.endpoint,
+    methods: tool.methods,
+    actions: tool.actions,
+    integrations: tool.integrations,
+  }));
+
+  return `// Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.\n` +
+    `export const TOK_USER_GUIDE_META = ${JSON.stringify({
+      repository: index.repository,
+      sourceDigest: index.sourceDigest,
+      routeCount: routes.length,
+      toolCount: tools.length,
+    }, null, 2)} as const;\n\n` +
+    `export const TOK_USER_GUIDE_ROUTES = ${JSON.stringify(routes, null, 2)} as const;\n\n` +
+    `export const TOK_USER_GUIDE_TOOLS = ${JSON.stringify(tools, null, 2)} as const;\n`;
+}
 
 function markdownCell(value) {
   if (value === null || value === undefined || value === "") return "—";
