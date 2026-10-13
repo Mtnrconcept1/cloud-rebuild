@@ -163,7 +163,7 @@ export default function ChefTableSlotDialog({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/80">
               <ChefHat className="h-3.5 w-3.5 text-amber-300" />
-              Table du Chef
+              La Tok d’Or
             </div>
             {remainingPortions != null ? (
               <div className="rounded-full border border-amber-300/40 bg-amber-500/20 px-3 py-1 text-xs font-medium text-amber-100">
@@ -295,7 +295,7 @@ export default function ChefTableSlotDialog({
                 <div>
                   <p className="text-sm font-semibold text-white">Paiement sécurisé ensuite</p>
                   <p className="mt-1 text-xs leading-5 text-white/68">
-                    Cette étape prepare votre réservation. Le paiement confirme ensuite votre Table du Chef.
+                    Cette étape prepare votre réservation. Le paiement confirme ensuite votre La Tok d’Or.
                   </p>
                 </div>
               </div>

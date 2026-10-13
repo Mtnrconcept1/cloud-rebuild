@@ -27,7 +27,7 @@ describe("dashboard menu category presets", () => {
       "Cocktails",
       "Anti-gaspi",
       "Ventes flash",
-      "Table du chef",
+      "La Tok d’Or",
     ]) {
       expect(source).toContain(category);
     }

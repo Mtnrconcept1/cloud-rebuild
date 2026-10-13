@@ -87,7 +87,7 @@ const getRestaurantName = (restaurant: ReservationWithRestaurant["restaurants"])
 const getFeatureBadge = (feature: string) => {
   switch (feature) {
     case "zero-attente": return { label: "Zéro attente", className: "border-indigo-200 text-indigo-600 bg-indigo-50" };
-    case "chefs_table": return { label: "La Table du Chef", className: "border-amber-200 text-amber-600 bg-amber-50" };
+    case "chefs_table": return { label: "La Tok d’Or", className: "border-amber-200 text-amber-600 bg-amber-50" };
     case "promo-formule": return { label: "Formule promo", className: "border-emerald-200 text-emerald-600 bg-emerald-50" };
     case "promo-offre": return { label: "Offre promo", className: "border-emerald-200 text-emerald-600 bg-emerald-50" };
     case "promo-progressive": return { label: "Offre progressive", className: "border-orange-200 text-orange-600 bg-orange-50" };

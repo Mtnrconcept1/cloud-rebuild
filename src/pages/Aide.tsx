@@ -217,7 +217,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Comment choisir entre retrait à emporter et réservation ?",
-        a: "Le retrait à emporter vous permet de commander puis de récupérer la commande directement au restaurant au créneau choisi. La réservation sert à bloquer une table, parfois avec des options premium comme Zéro Attente ou La Table du Chef lorsqu'elles sont disponibles.",
+        a: "Le retrait à emporter vous permet de commander puis de récupérer la commande directement au restaurant au créneau choisi. La réservation sert à bloquer une table, parfois avec des options premium comme Zéro Attente ou La Tok d’Or lorsqu'elles sont disponibles.",
       },
       {
         q: "Que faire si l'application semble bloquée ou n'affiche pas les données ?",
@@ -452,8 +452,8 @@ const FAQS: FaqSection[] = [
         a: "Utilisez le champ note : poussette, chaise bébé, anniversaire, terrasse, allergie, accès PMR, table calme. Les demandes sont transmises au restaurant mais restent soumises à disponibilité.",
       },
       {
-        q: "Qu'est-ce que La Table du Chef ?",
-        a: "La Table du Chef correspond à des expériences, plats signature, tables VIP ou créneaux limités proposés par certains restaurants. Les quantités et horaires sont restreints. Les conditions, prix et priorités sont affichés dans l'application.",
+        q: "Qu'est-ce que La Tok d’Or ?",
+        a: "La Tok d’Or correspond à des expériences, plats signature, tables VIP ou créneaux limités proposés par certains restaurants. Les quantités et horaires sont restreints. Les conditions, prix et priorités sont affichés dans l'application.",
       },
       {
         q: "Dois-je payer pour réserver ?",

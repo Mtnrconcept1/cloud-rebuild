@@ -19,23 +19,23 @@ const GOLDEN_TOK_LOGO = "/Image%20Codex%203%20sept.%202026,%2002_31_12.png";
 
 const GOLDEN_TOK_BENEFITS = [
   {
-    title: "Créations exclusives",
-    description: "Off-menu & ultra-limitées, imaginées par des chefs sélectionnés.",
-    icon: ChefHat,
-  },
-  {
-    title: "Chefs partenaires",
-    description: "Talents sélectionnés pour leur excellence.",
-    icon: Crown,
-  },
-  {
-    title: "Expérience premium",
-    description: "Réservée aux gourmets en quête d'exception.",
+    title: "Ingrédients rares",
+    description: "Sélection d’exception",
     icon: Sparkles,
   },
   {
-    title: "Paiement sécurisé",
-    description: "Transaction sécurisée et données protégées.",
+    title: "Créations exclusives",
+    description: "Édition ultra-limitée",
+    icon: ChefHat,
+  },
+  {
+    title: "Par nos chefs",
+    description: "Talents sélectionnés",
+    icon: Crown,
+  },
+  {
+    title: "Une expérience unique",
+    description: "Seulement chez TOK",
     icon: ShieldCheck,
   },
 ] as const;
@@ -553,26 +553,45 @@ function GoldenTokFeatureWizard({
         </aside>
 
         <section className="golden-tok-stage min-w-0 px-4 py-7 sm:px-6 sm:py-9 lg:px-8 xl:px-9 xl:py-10">
-          <div className="golden-tok-heading flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-            <div className="flex min-w-0 items-start gap-4 sm:items-center sm:gap-5">
-              <div className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#d8ae4f]/72 bg-[#11100d] text-[#e1b851] shadow-[0_14px_32px_-20px_rgba(0,0,0,0.78),0_0_0_6px_rgba(216,174,79,0.05)] sm:flex sm:h-16 sm:w-16">
-                <ChefHat className="h-7 w-7 sm:h-8 sm:w-8" strokeWidth={1.6} />
-              </div>
-              <div className="min-w-0">
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.38em] text-[#d7aa49] sm:text-[11px]">
-                  Golden TOK
-                </p>
-                <h1 className="font-display text-4xl font-bold leading-none sm:text-5xl xl:text-[56px]">
-                  {title}
-                </h1>
-                <p className="mt-3 text-sm sm:text-base">{subtitle}</p>
-              </div>
+          <div className="golden-tok-heading">
+            <div className="golden-tok-hero-copy">
+              <p className="golden-tok-eyebrow">GOLDEN TOK</p>
+              <h1 className="golden-tok-hero-title" aria-label={title}>
+                <span>La Tok</span> <span className="golden-tok-hero-gold">d’Or</span>
+              </h1>
+              <p className="golden-tok-hero-tagline">{subtitle}</p>
+              <p className="golden-tok-hero-description">
+                Des créations d’exception imaginées par nos chefs, avec des ingrédients rares
+                et d’exception. Une expérience culinaire unique, seulement chez TOK.
+              </p>
+              <p className="golden-tok-hero-script">Plus qu’un plat, une expérience.</p>
             </div>
-
-            {headerAction ? (
-              <div className="golden-tok-header-action shrink-0 md:pl-4">{headerAction}</div>
-            ) : null}
+            <div className="golden-tok-hero-seal" aria-hidden="true">
+              <ChefHat size={22} strokeWidth={1.4} />
+              <span>CUISINE<br />D’EXCEPTION</span>
+            </div>
+            <div className="golden-tok-hero-actions">
+              <a href="#la-tok-dor-offres" className="golden-tok-discover">
+                <Sparkles size={19} strokeWidth={1.7} aria-hidden="true" />
+                <span>Découvrir La Tok d’Or</span>
+                <ChevronRight size={21} aria-hidden="true" />
+              </a>
+              {headerAction ? (
+                <div className="golden-tok-header-action">{headerAction}</div>
+              ) : null}
+            </div>
           </div>
+
+          <section className="golden-tok-story" aria-label="L’expérience La Tok d’Or">
+            <div className="golden-tok-story-quote">
+              <p>« Quand la créativité culinaire rencontre l’exception. »</p>
+              <span>TOK × LES CHEFS</span>
+            </div>
+            <div className="golden-tok-story-detail">
+              <span className="golden-tok-story-marker">ÉDITION ULTRA-LIMITÉE</span>
+              <p>Des saveurs rares, pensées par nos chefs partenaires. Découvrez les créations disponibles et réservez votre expérience.</p>
+            </div>
+          </section>
 
           <div className="golden-tok-stepper rounded-[20px] px-4 py-3 sm:px-5">
             <div className="flex items-center">
@@ -645,7 +664,7 @@ function GoldenTokFeatureWizard({
 }
 
 export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, currentStepId, onStepChange, headerAction, children }: FeatureWizardProps) {
-  if (title === "La Table du Chef") {
+  if (title === "La Tok d’Or") {
     return (
       <GoldenTokFeatureWizard
         title={title}

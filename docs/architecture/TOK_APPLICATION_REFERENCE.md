@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `4f5da38d72e1facdc944ac4d545ed1200b2830fbf23b695e782e306b1b523583`
+- Empreinte SHA-256 des sources indexées : `fa392ed1a7d366cf7cc1d17c2a11a790d3d622ecf5d6793fa6ae4ece27dea5ab`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,21 +38,21 @@
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 533 |
-| modules | 1536 |
+| modules | 1539 |
 | pages | 129 |
 | pathLiterals | 693 |
 | publicAssets | 502 |
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16489 |
-| repositoryFiles | 3064 |
+| records | 16501 |
+| repositoryFiles | 3070 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 42 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 27 |
+| workflows | 28 |
 
 ## État distant observé
 
@@ -1164,7 +1164,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /?$ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /?q=restaurant | 1 | [src/test/marketing-autopilot-frontend.test.tsx:255](../../src/test/marketing-autopilot-frontend.test.tsx#L255) |
 | /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:147](../../src/test/plan-phase1-readiness.test.ts#L147) |
-| /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 3 | [src/components/FeatureWizard.tsx:18](../../src/components/FeatureWizard.tsx#L18) |
+| /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 4 | [src/components/FeatureWizard.tsx:18](../../src/components/FeatureWizard.tsx#L18) |
 | /Miamz2.webp | 4 | [src/components/home/SolidaritySection.tsx:49](../../src/components/home/SolidaritySection.tsx#L49) |
 | /Miamz3.webp | 3 | [src/components/home/SolidaritySection.tsx:43](../../src/components/home/SolidaritySection.tsx#L43) |
 | /[^/]+ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
@@ -1282,7 +1282,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commande/ | 3 | [src/components/navigation/BackNavigationButton.tsx:22](../../src/components/navigation/BackNavigationButton.tsx#L22) |
 | /commande/123?tab=details | 1 | [src/test/navigation.test.ts:24](../../src/test/navigation.test.ts#L24) |
 | /commande/:id | 4 | [src/App.tsx:577](../../src/App.tsx#L577) |
-| /commande/abc-123 | 1 | [src/test/feature-flags.test.ts:78](../../src/test/feature-flags.test.ts#L78) |
+| /commande/abc-123 | 1 | [src/test/feature-flags.test.ts:91](../../src/test/feature-flags.test.ts#L91) |
 | /commande/confirmation | 11 | [src/App.tsx:576](../../src/App.tsx#L576) |
 | /commande/confirmation?checkout_kind=order | 1 | [src/test/payment-attempt-state.test.ts:114](../../src/test/payment-attempt-state.test.ts#L114) |
 | /commande/id | 1 | [src/test/coming-soon-gate.test.tsx:42](../../src/test/coming-soon-gate.test.tsx#L42) |
@@ -1348,7 +1348,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1166](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1166) |
 | /dashboard/notifications | 13 | [src/App.tsx:612](../../src/App.tsx#L612) |
 | /dashboard/offres | 5 | [src/App.tsx:628](../../src/App.tsx#L628) |
-| /dashboard/pack | 2 | [src/test/feature-flags.test.ts:107](../../src/test/feature-flags.test.ts#L107) |
+| /dashboard/pack | 2 | [src/test/feature-flags.test.ts:120](../../src/test/feature-flags.test.ts#L120) |
 | /dashboard/performances | 7 | [src/App.tsx:619](../../src/App.tsx#L619) |
 | /dashboard/photos | 14 | [src/App.tsx:631](../../src/App.tsx#L631) |
 | /dashboard/plan-de-salle | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:211](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L211) |
@@ -2037,7 +2037,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 | match-groupes | Match groupes | client_features | false | /match-groupes | livraison | Active la commande groupée mutualisee. | [src/lib/featureCatalog.ts:219](../../src/lib/featureCatalog.ts#L219) |
 | multi-stop | Multi-stop | client_features | false | /multi-stop | livraison | Active un trajet unique vers plusieurs adresses. | [src/lib/featureCatalog.ts:228](../../src/lib/featureCatalog.ts#L228) |
 | multi-restaurant | Multi-restos | client_features | true | /multi-restaurant | livraison, emporter | Active les paniers composes de plusieurs restaurants. | [src/lib/featureCatalog.ts:237](../../src/lib/featureCatalog.ts#L237) |
-| chefs-table | La Table du Chef | client_features | true | /chefs-table | — | Active les expériences exclusives et leurs pages associées. | [src/lib/featureCatalog.ts:246](../../src/lib/featureCatalog.ts#L246) |
+| chefs-table | La Tok d’Or | client_features | true | /chefs-table | — | Active les expériences exclusives et leurs pages associées. | [src/lib/featureCatalog.ts:246](../../src/lib/featureCatalog.ts#L246) |
 | zero-attente | Zéro attente | client_features | true | /zero-attente | reservation, sur-place | Active la précommande synchronisée sur réservation payée. | [src/lib/featureCatalog.ts:254](../../src/lib/featureCatalog.ts#L254) |
 | garantie-qualite | Garantie qualité | client_features | false | /garantie-qualite | livraison | Active la garantie chaud ou remboursé. | [src/lib/featureCatalog.ts:263](../../src/lib/featureCatalog.ts#L263) |
 | budget-auto | Budget auto | client_features | true | /budget-auto | — | Active les menus optimisés par objectifs. | [src/lib/featureCatalog.ts:272](../../src/lib/featureCatalog.ts#L272) |
@@ -5966,6 +5966,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | CI | validate, validation | [.github/workflows/ci.yml](../../.github/workflows/ci.yml) |
 | Deploy Production | attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation | [.github/workflows/deploy-production.yml](../../.github/workflows/deploy-production.yml) |
 | Ensure Supabase Auth SMTP | configure | [.github/workflows/ensure-supabase-auth-smtp.yml](../../.github/workflows/ensure-supabase-auth-smtp.yml) |
+| Golden TOK responsive browser | browser, index-sync | [.github/workflows/golden-tok-browser.yml](../../.github/workflows/golden-tok-browser.yml) |
 | TOK Codex Incident Repair | prepare, publish, report, validate | [.github/workflows/incident-codex-repair.yml](../../.github/workflows/incident-codex-repair.yml) |
 | TOK Incident Monitor | report-workflow-failure, scan-runtime | [.github/workflows/incident-monitor.yml](../../.github/workflows/incident-monitor.yml) |
 | iOS Native Validation | native-build | [.github/workflows/ios-native-validation.yml](../../.github/workflows/ios-native-validation.yml) |
@@ -6100,17 +6101,17 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 205 |
-| automation-script | 65 |
+| automation-script | 66 |
 | documentation | 6 |
 | edge-function-source | 193 |
 | frontend-component | 254 |
 | frontend-hook | 23 |
 | frontend-page | 129 |
-| frontend-source | 27 |
+| frontend-source | 28 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 607 |
+| test | 608 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6597,7 +6598,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (72)</summary>
+<details><summary>automation-script (74)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -6619,6 +6620,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/codex-auto-pre-edit.mjs`
 - `scripts/ensure-supabase-auth-security.mjs`
 - `scripts/ensure-supabase-auth-smtp.mjs`
+- `scripts/fixtures/golden-tok-preview.html`
 - `scripts/frontend-10k-readiness.mjs`
 - `scripts/generate-application-index.mjs`
 - `scripts/generate-error-code-map.mjs`
@@ -6664,6 +6666,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/take-screenshots.mjs`
 - `scripts/test-actualites-billing-postgres.mjs`
 - `scripts/test-checkout-security-postgres.mjs`
+- `scripts/test-golden-tok-responsive.mjs`
 - `scripts/test-print-protocol-postgres.mjs`
 - `scripts/verify-supabase-runtime-security.mjs`
 - `scripts/write-apple-app-site-association.mjs`
@@ -6674,7 +6677,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (27)</summary>
+<details><summary>ci-workflow (28)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -6695,6 +6698,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/ci.yml`
 - `.github/workflows/deploy-production.yml`
 - `.github/workflows/ensure-supabase-auth-smtp.yml`
+- `.github/workflows/golden-tok-browser.yml`
 - `.github/workflows/incident-codex-repair.yml`
 - `.github/workflows/incident-monitor.yml`
 - `.github/workflows/ios-native-validation.yml`
@@ -8028,7 +8032,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (36)</summary>
+<details><summary>frontend-source (38)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -8063,7 +8067,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/styles/golden-tok-chefs-table-v2.css`
 - `src/styles/golden-tok-chefs-table-v3.css`
 - `src/styles/golden-tok-chefs-table-v4.css`
+- `src/styles/golden-tok-chefs-table-v5.css`
 - `src/styles/golden-tok-chefs-table.css`
+- `src/test/fixtures/golden-tok-preview.tsx`
 - `src/test/setup.ts`
 - `src/vite-env.d.ts`
 
@@ -8845,7 +8851,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (607)</summary>
+<details><summary>test (608)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9126,6 +9132,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/ios-commerce-policy.test.ts`
 - `src/test/ios-storekit-subscription-management.test.ts`
 - `src/test/la-gazelle-dor-seed.test.ts`
+- `src/test/la-tok-dor-naming.test.ts`
 - `src/test/launch-anonymous-browsing.test.ts`
 - `src/test/launch-artwork-countdown.test.tsx`
 - `src/test/launch-edge-access.test.ts`

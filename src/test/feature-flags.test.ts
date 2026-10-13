@@ -27,6 +27,19 @@ describe("feature flag catalog", () => {
     return FEATURE_ROUTE_DEFINITIONS.find((definition) => definition.routeTarget === routeTarget)?.featureName || null;
   }
 
+  it("uses La Tok d’Or for the historical server flag label without changing its state", () => {
+    const legacyRow: FeatureFlagRow = {
+      id: "chefs-table",
+      name: "chefs-table",
+      label: "Chefs Table",
+      is_active: true,
+    };
+    const golden = resolveFlags([legacyRow]).find((flag) => flag.name === "chefs-table");
+    expect(golden?.label).toBe("La Tok d’Or");
+    expect(golden?.explicitEnabled).toBe(true);
+    expect(golden?.effectiveEnabled).toBe(true);
+  });
+
   it("computes effective state from dependencies", () => {
     const flags = resolveFlags(buildRows({
       reservation: true,

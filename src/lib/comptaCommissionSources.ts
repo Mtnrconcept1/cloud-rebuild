@@ -16,7 +16,7 @@ export const COMMISSION_SOURCE_ORDER: readonly CommissionSource[] = [
 export const COMMISSION_SOURCE_LABELS: Record<CommissionSource, string> = {
   orders: "Commandes",
   zero_attente: "Zéro Attente",
-  chefs_table: "La Table du Chef",
+  chefs_table: "La Tok d’Or",
   flash_sales: "Ventes flash",
   anti_gaspi: "Anti-gaspi",
 };

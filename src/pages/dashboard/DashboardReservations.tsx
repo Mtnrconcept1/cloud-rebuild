@@ -822,7 +822,7 @@ function LiveDashboardReservations() {
                   const typeLabel = isZeroAttente
                     ? "Zéro Attente"
                     : isChefTable
-                      ? "La Table du Chef"
+                      ? "La Tok d’Or"
                       : progressiveDiscountPercent
                         ? "Promo progressive"
                         : hasFormula
@@ -1026,7 +1026,7 @@ function LiveDashboardReservations() {
                                             <Badge className="border-indigo-300 bg-indigo-500 text-[10px] uppercase tracking-widest text-white">Zéro Attente</Badge>
                                           )}
                                           {isChefTable && (
-                                            <Badge className="border-amber-300 bg-amber-500 text-[10px] uppercase tracking-widest text-white">La Table du Chef</Badge>
+                                            <Badge className="border-amber-300 bg-amber-500 text-[10px] uppercase tracking-widest text-white">La Tok d’Or</Badge>
                                           )}
                                         </div>
                                         {!isCompactMode ? (

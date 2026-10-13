@@ -9,7 +9,7 @@ export type PublicDiscoverLink = {
 export const PUBLIC_DISCOVER_LINKS: PublicDiscoverLink[] = [
   { label: "Anti-gaspi", to: "/anti-gaspi", feature: "anti-gaspi" },
   { label: "Ventes flash", to: "/ventes-flash", feature: "ventes-flash" },
-  { label: "La Table du Chef", to: "/chefs-table", feature: "chefs-table" },
+  { label: "La Tok d’Or", to: "/chefs-table", feature: "chefs-table" },
   { label: "Tok One", to: "/tok-one", feature: "tok-one" },
 ];
 
@@ -41,7 +41,7 @@ const HELP_FEATURE_RULES: Array<{ feature: string; terms: string[] }> = [
   { feature: "creneaux-garantis", terms: ["creneaux garantis", "creneau garanti", "ponctualite"] },
   { feature: "flex-prix-bas", terms: ["flex prix bas", "fenetre flexible"] },
   { feature: "zero-attente", terms: ["zero attente", "precommande synchronisee", "precommandes"] },
-  { feature: "chefs-table", terms: ["la table du chef", "tables vip", "plats signature"] },
+  { feature: "chefs-table", terms: ["la tok d’or", "la tok d'or", "la table du chef", "tables vip", "plats signature"] },
   { feature: "budget-auto", terms: ["budget auto"] },
   { feature: "abonnement", terms: ["abonnement repas", "repas recurrents"] },
   { feature: "dashboard-actualites", terms: ["outil marketing", "cockpit actualites"] },

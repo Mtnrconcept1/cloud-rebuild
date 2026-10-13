@@ -90,7 +90,7 @@ function featureLabel(feature: string, metadata: Record<string, unknown>) {
   if (feature === "promo-progressive") return progressive || "Offre progressive";
   if (feature === "promo-formule") return formula || "Formule";
   if (feature === "zero-attente") return "Zéro Attente";
-  if (feature === "chefs_table") return "La Table du Chef";
+  if (feature === "chefs_table") return "La Tok d’Or";
   return "Réservation classique";
 }
 

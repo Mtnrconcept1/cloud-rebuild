@@ -1146,7 +1146,7 @@ Deno.serve(async (req) => {
       );
     } else if (effectiveKind === "chefs-table") {
       if (!Array.isArray(items) || items.length === 0) {
-        throw new HttpError(400, "Aucune experience La Table du Chef.");
+        throw new HttpError(400, "Aucune experience La Tok d’Or.");
       }
 
       auditTargetEntityType = "chef_table_drops";
@@ -1161,7 +1161,7 @@ Deno.serve(async (req) => {
       );
 
       if (dropIds.length === 0) {
-        throw new HttpError(400, "Drop La Table du Chef introuvable.");
+        throw new HttpError(400, "Drop La Tok d’Or introuvable.");
       }
 
       const { data: dropRows, error: dropsError } = await actor.adminClient
@@ -1199,7 +1199,7 @@ Deno.serve(async (req) => {
       if (dropRestaurantIds.length !== 1) {
         throw new HttpError(
           400,
-          "Une session La Table du Chef doit concerner un seul restaurant. Separez les reservations.",
+          "Une session La Tok d’Or doit concerner un seul restaurant. Separez les reservations.",
         );
       }
       marketplaceRestaurantId = dropRestaurantIds[0];
@@ -1227,12 +1227,12 @@ Deno.serve(async (req) => {
         const drop = dropMap.get(dropId);
 
         if (!drop) {
-          throw new HttpError(404, "Drop La Table du Chef introuvable.");
+          throw new HttpError(404, "Drop La Tok d’Or introuvable.");
         }
         if (!drop.is_active) {
           throw new HttpError(
             409,
-            "Ce drop La Table du Chef n'est plus disponible.",
+            "Ce drop La Tok d’Or n'est plus disponible.",
           );
         }
         if (Number(drop.remaining_portions || 0) < quantity) {
@@ -1256,14 +1256,14 @@ Deno.serve(async (req) => {
           if (!hasActiveTokOneSubscription) {
             throw new HttpError(
               403,
-              "Ce drop VIP La Table du Chef est reserve aux abonnes Tok One actifs.",
+              "Ce drop VIP La Tok d’Or est reserve aux abonnes Tok One actifs.",
             );
           }
         }
 
         const unitAmount = Math.round(Number(drop.price || 0) * 100);
         if (unitAmount <= 0) {
-          throw new HttpError(400, "Prix La Table du Chef invalide.");
+          throw new HttpError(400, "Prix La Tok d’Or invalide.");
         }
 
         chefTableHoldItems.push({ drop_id: drop.id, quantity });
@@ -1273,12 +1273,12 @@ Deno.serve(async (req) => {
             currency: "chf",
             product_data: {
               name: String(
-                drop.dish_name || item?.name || "Experience La Table du Chef",
+                drop.dish_name || item?.name || "Experience La Tok d’Or",
               ),
               description: String(
                 drop.restaurants?.name ||
                   item?.restaurant_name ||
-                  "La Table du Chef",
+                  "La Tok d’Or",
               ),
               metadata: {
                 chef_table_drop_id: drop.id,
@@ -2593,7 +2593,7 @@ Deno.serve(async (req) => {
         throw new HttpError(
           409,
           holdError?.message ||
-            "Certaines experiences La Table du Chef ne sont plus disponibles.",
+            "Certaines experiences La Tok d’Or ne sont plus disponibles.",
         );
       }
 

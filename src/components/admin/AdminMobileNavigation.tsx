@@ -82,7 +82,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
       { to: "/admin/avis", label: "Avis", icon: MessageSquareText, feature: "admin-avis" },
       { to: "/admin/catalog", label: "Catalogue central", icon: Layers, feature: "admin-catalog" },
       { to: "/admin/loyalty", label: "Fidelite et abonnement", icon: Crown, feature: "admin-loyalty" },
-      { to: "/admin/drops", label: "La Table du Chef", icon: UtensilsCrossed, feature: "admin-drops" },
+      { to: "/admin/drops", label: "La Tok d’Or", icon: UtensilsCrossed, feature: "admin-drops" },
       { to: "/admin/notifications", label: "Notifications", icon: Bell, feature: "admin-notifications" },
       { to: "/admin/actualites", label: "Actualites sociales", icon: Newspaper, feature: "admin-actualites" },
       { to: "/admin/crm", label: "CRM clients", icon: Users, feature: "admin-crm" },
