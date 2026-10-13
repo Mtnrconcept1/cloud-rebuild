@@ -106,14 +106,15 @@ afterEach(() => {
 });
 
 describe("marketing server-only BFF", () => {
-  it("uses the exact closed set of 24 marketing operations", () => {
-    expect(MARKETING_OPERATION_NAMES).toHaveLength(24);
-    expect(new Set(MARKETING_OPERATION_NAMES).size).toBe(24);
+  it("uses the exact closed set of 25 marketing operations", () => {
+    expect(MARKETING_OPERATION_NAMES).toHaveLength(25);
+    expect(new Set(MARKETING_OPERATION_NAMES).size).toBe(25);
     expect(MARKETING_OPERATION_NAMES.every((name) => name.startsWith("admin_"))).toBe(true);
     expect(MARKETING_OPERATION_NAMES).toEqual(expect.arrayContaining([
       "admin_upsert_marketing_contact",
       "admin_suppress_marketing_contact",
       "admin_reveal_manual_delivery_target",
+      "admin_list_marketing_campaign_items",
     ]));
   });
 

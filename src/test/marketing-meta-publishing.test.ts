@@ -9,6 +9,7 @@ import {
   normalizeMetaMediaUrl,
   publishMetaContent,
   validateMetaPublishingConfig,
+  validateMetaMediaContent,
 } from "../../supabase/functions/_shared/meta-publishing";
 
 const metaIntegrationMigration = readFileSync(
@@ -56,6 +57,17 @@ function queuedFetch(responses: Array<MockResponse | Error>) {
 }
 
 describe("Meta marketing publishing adapter", () => {
+  it("blocks Instagram 9:16 drafts before any provider request or publish marker", async () => {
+    const fetchImpl = vi.fn();
+    const beforePublish = vi.fn();
+    const content = { body: "Visuel Story à exporter", visual_url: "https://cdn.example.com/story.jpg", visual_format: "9:16" };
+    expect(() => validateMetaMediaContent(content, "instagram")).toThrow("instagram_story_manual_required");
+    expect(validateMetaMediaContent(content, "facebook")).toBe(content.visual_url);
+    await expect(publishMetaContent({ channel: "instagram", content, config: baseConfig, fetchImpl, beforeExternalPublish: beforePublish }))
+      .rejects.toMatchObject({ code: "instagram_story_manual_required", retryable: false });
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(beforePublish).not.toHaveBeenCalled();
+  });
   it("builds the existing TOK social content contract without inventing another payload shape", () => {
     expect(buildMetaCaption({
       headline: "TOK à Genève",

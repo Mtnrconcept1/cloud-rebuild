@@ -9,6 +9,7 @@ export type MetaSocialContent = {
   visual_required?: unknown;
   visual_prompt?: unknown;
   visual_status?: unknown;
+  visual_format?: unknown;
 };
 
 export type MetaPublishingConfig = {
@@ -80,7 +81,8 @@ function normalizeHashtags(value: unknown) {
   return tags;
 }
 
-export function buildMetaCaption(content: MetaSocialContent, channel: MetaChannel) {
+/** Pure composition shared with previews, including content that still needs validation. */
+export function composeMetaCaption(content: MetaSocialContent) {
   const headline = cleanString(content.headline);
   const body = cleanString(content.body);
   const callToAction = cleanString(content.call_to_action);
@@ -103,7 +105,11 @@ export function buildMetaCaption(content: MetaSocialContent, channel: MetaChanne
     (match) => match[0].normalize("NFC").toLocaleLowerCase()));
   const hashtags = normalizeHashtags(content.hashtags)
     .filter((tag) => !existingTags.has(tag.normalize("NFC").toLocaleLowerCase())).join(" ");
-  const text = [...parts, hashtags].filter(Boolean).join("\n\n");
+  return [...parts, hashtags].filter(Boolean).join("\n\n");
+}
+
+export function buildMetaCaption(content: MetaSocialContent, channel: MetaChannel) {
+  const text = composeMetaCaption(content);
   if (!text) {
     throw new MetaPublishError("meta_content_empty");
   }
@@ -152,6 +158,9 @@ export function normalizeMetaMediaUrl(value: unknown) {
 
 /** Reused by approval and by the worker immediately before any provider call. */
 export function validateMetaMediaContent(content: MetaSocialContent, channel: MetaChannel) {
+  if (channel === "instagram" && cleanString(content.visual_format) === "9:16") {
+    throw new MetaPublishError("instagram_story_manual_required");
+  }
   const visualUrl = normalizeMetaMediaUrl(content.visual_url);
   const status = cleanString(content.visual_status);
   const expectsVisual = channel === "instagram" || content.visual_required === true

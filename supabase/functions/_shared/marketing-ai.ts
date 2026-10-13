@@ -1,4 +1,5 @@
 import { HttpError } from "./auth.ts";
+import { applyCampaignOptions, CAMPAIGN_TEMPLATES, type CampaignOptions } from "./marketing-campaign-options.ts";
 import {
   createOpenAIResponse,
   estimateOpenAITextCostChf,
@@ -34,6 +35,7 @@ export type MarketingBriefContext = {
   endsAt: string;
   itemCount: number;
   locale: string;
+  campaignOptions?: CampaignOptions;
 };
 
 function buildSystemPrompt(context: MarketingBriefContext) {
@@ -59,6 +61,13 @@ function buildSystemPrompt(context: MarketingBriefContext) {
     "Au moins un sélecteur doit être renseigné ; mets null pour ceux qui ne s'appliquent pas.",
     "",
     `Produis exactement ${context.itemCount} élément(s) de calendrier, répartis entre ${context.startsAt} et ${context.endsAt}.`,
+    ...(context.campaignOptions ? [
+      "Thèmes sélectionnés et contraintes éditoriales (couvre ces thèmes sans inventer d'offre) :",
+      "Les fonctionnalités dépendent de leur activation et de l'éligibilité de la formule. N'invente ni prix, ni quota, ni promotion. Distingue toujours l'audience client de l'audience restaurateur.",
+      ...CAMPAIGN_TEMPLATES.filter((template) => context.campaignOptions!.templateIds.includes(template.id)).map((template) => `${template.label} — audience ${template.audience} : ${template.guidance}`),
+      "Chaque élément correspond à un post éditorial qui sera décliné automatiquement sur TOUS les réseaux et formats sélectionnés. Ne duplique pas toi-même les éléments par réseau.",
+      "Renseigne obligatoirement visual_prompt pour chaque post. Écris un texte utilisable sur tous les réseaux choisis. La cadence, les réseaux et les formats seront fixés par le serveur.",
+    ] : []),
     "Renseigne visual_prompt uniquement pour les canaux où une image a du sens (réseaux sociaux, e-mail), sinon null.",
     "Le champ subject n'est renseigné que pour le canal email.",
   ].join("\n");
@@ -91,6 +100,10 @@ export async function generateMarketingPlan(context: MarketingBriefContext) {
   let plan: MarketingPlan;
   try {
     plan = validatePlan(parseStructuredOutput<MarketingPlan>(response), context.allowedChannels);
+    if (plan.items.length !== context.itemCount) throw new MarketingPlanError("item_count_mismatch");
+    if (context.campaignOptions) {
+      plan = applyCampaignOptions(plan, context.campaignOptions, context.allowedChannels, context.startsAt, context.endsAt);
+    }
   } catch (error) {
     // A rejected plan is a provider-quality problem, not a caller mistake; the
     // reason travels into the audit log without carrying any generated content.

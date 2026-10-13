@@ -1,9 +1,11 @@
 import { MarketingBrandReferences } from "@/components/marketing/MarketingBrandReferences";
+import { MarketingCampaignBuilder, type CampaignGenerationRequest } from "@/components/marketing/MarketingCampaignBuilder";
+import { MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
+import { marketingPostPreview } from "@/marketing/postPreview";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 
 import {
-  MarketingChannelBadge,
   MarketingEmptyState,
   formatMarketingDate,
 } from "@/components/marketing/MarketingShared";
@@ -56,10 +58,11 @@ type AgentRun = {
 
 type GenerateResult = {
   campaign: { id: string; name: string } | null;
-  items: Array<{ id: string; title: string; channel: MarketingChannelId; scheduled_at: string }>;
+  items: Array<{ id: string; title: string; channel: MarketingChannelId; scheduled_at: string; content?: unknown }>;
   summary: string;
   assetCount: number;
   estimatedCostChf: number;
+  warnings?: string[];
 };
 
 function isoDay(offsetDays: number) {
@@ -78,10 +81,12 @@ export default function MarketingAgentView({
   snapshot,
   canMutateBackend,
   onNavigate,
+  onGenerated,
 }: {
   snapshot: MarketingSnapshot;
   canMutateBackend: boolean;
   onNavigate: (view: MarketingView) => void;
+  onGenerated?: () => Promise<unknown>;
 }) {
   const [objective, setObjective] = useState("");
   const [audienceHint, setAudienceHint] = useState("");
@@ -130,6 +135,26 @@ export default function MarketingAgentView({
     );
   };
 
+  const generate = async (request: CampaignGenerationRequest) => {
+    if (pending || !canMutateBackend) return;
+    setPending(true);
+    setError(null);
+    setResult(null);
+    try {
+      const response = await marketingBffRequest<GenerateResult>(MARKETING_BFF_ENDPOINTS.agent, {
+        method: "POST", timeoutMs: AGENT_TIMEOUT_MS, body: { action: "generate", ...request },
+      });
+      setResult(response);
+      void loadRuns();
+      // A refresh failure must not present a persisted campaign as a failed generation.
+      if (onGenerated) void onGenerated().catch(() => undefined);
+    } catch (caught) {
+      setError(caught instanceof MarketingBffError ? caught.message : "L'agent n'a pas pu produire de plan.");
+    } finally {
+      setPending(false);
+    }
+  };
+
   const submit = async () => {
     setError(null);
     setResult(null);
@@ -153,32 +178,8 @@ export default function MarketingAgentView({
       return;
     }
 
-    setPending(true);
-    try {
-      const response = await marketingBffRequest<GenerateResult>(MARKETING_BFF_ENDPOINTS.agent, {
-        method: "POST",
-        timeoutMs: AGENT_TIMEOUT_MS,
-        body: {
-          action: "generate",
-          objective: objective.trim(),
-          audienceHint: audienceHint.trim(),
-          channels,
-          startsAt: startIso,
-          endsAt: endIso,
-          itemCount,
-        },
-      });
-      setResult(response);
-      void loadRuns();
-    } catch (caught) {
-      setError(
-        caught instanceof MarketingBffError
-          ? caught.message
-          : "L'agent n'a pas pu produire de plan.",
-      );
-    } finally {
-      setPending(false);
-    }
+    await generate({ objective: objective.trim(), audienceHint: audienceHint.trim(), channels,
+      startsAt: startIso, endsAt: endIso, itemCount });
   };
 
   const unconnectedSelected = channels.filter((channel) => !connectedChannels.has(channel));
@@ -195,8 +196,12 @@ export default function MarketingAgentView({
         </AlertDescription>
       </Alert>
 
-      <MarketingBrandReferences />
+      <MarketingCampaignBuilder snapshot={snapshot} pending={pending} disabled={!canMutateBackend} onGenerate={generate} />
+      {error ? <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription></Alert> : null}
 
+      <details className="rounded-xl border p-4"><summary className="cursor-pointer text-sm font-medium">Identité visuelle et références TOK</summary><div className="mt-4"><MarketingBrandReferences /></div></details>
+
+      <details className="rounded-xl border p-4"><summary className="cursor-pointer text-sm font-medium">Brief libre et autres canaux (avancé)</summary><div className="mt-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -332,6 +337,7 @@ export default function MarketingAgentView({
           ) : null}
         </CardContent>
       </Card>
+      </div></details>
 
       {result ? (
         <Card className="border-emerald-200">
@@ -342,6 +348,7 @@ export default function MarketingAgentView({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {result.warnings?.length ? <Alert variant="destructive"><AlertTitle>Campagne enregistrée, visuels à compléter</AlertTitle><AlertDescription>{result.warnings.join(" ")}</AlertDescription></Alert> : null}
             {result.summary ? (
               <p className="text-sm leading-relaxed text-slate-700">{result.summary}</p>
             ) : null}
@@ -349,20 +356,17 @@ export default function MarketingAgentView({
               {result.items.length} élément(s) en brouillon · {result.assetCount} visuel(s) généré(s)
               · coût estimé {formatChf(result.estimatedCostChf)}
             </p>
-            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+            <ul className="grid gap-4 md:grid-cols-2">
               {result.items.map((item) => (
-                <li key={item.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
-                  <MarketingChannelBadge channel={item.channel} />
-                  <span className="min-w-0 flex-1 truncate font-medium">{item.title}</span>
-                  <span className="text-xs text-slate-500">
-                    {formatMarketingDate(item.scheduled_at)}
-                  </span>
+                <li key={item.id} className="min-w-0 rounded-xl border p-4 text-sm">
+                  <h3 className="mb-3 font-medium">{item.title}</h3>
+                  <MarketingPostPreview title={item.title} channel={item.channel} scheduledAt={item.scheduled_at} preview={marketingPostPreview(item.content, item.channel)} />
                 </li>
               ))}
             </ul>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" onClick={() => onNavigate("calendar")}>
-                Relire et approuver les éléments
+              <Button type="button" onClick={() => onNavigate("campaigns")}>
+                Ouvrir les campagnes pour approbation
               </Button>
             </div>
             <p className="text-xs leading-relaxed text-slate-500">

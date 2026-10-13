@@ -1,6 +1,7 @@
 import { addDays, subDays } from "date-fns";
 
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
+import { marketingPostPreview } from "@/marketing/postPreview";
 import {
   MARKETING_BFF_ENDPOINTS,
   marketingBffRequest,
@@ -149,7 +150,7 @@ function normalizeCampaign(value: unknown, fallback?: MarketingCampaign): Market
   };
 }
 
-function normalizeCalendarItem(value: unknown, fallback?: MarketingCalendarItem): MarketingCalendarItem {
+export function normalizeCalendarItem(value: unknown, fallback?: MarketingCalendarItem): MarketingCalendarItem {
   const row = asRecord(value);
   const manualOutcomeValue = asString(pick(row, "manual_outcome", "manualOutcome"));
   return {
@@ -165,6 +166,9 @@ function normalizeCalendarItem(value: unknown, fallback?: MarketingCalendarItem)
     audienceSize: asNumber(pick(row, "audience_size", "audienceSize"), fallback?.audienceSize || 0),
     approvalStatus: asString(pick(row, "approval_status", "approvalStatus"), fallback?.approvalStatus || "pending") as MarketingCalendarItem["approvalStatus"],
     content: contentMessage(pick(row, "content", "message")) || fallback?.content || "",
+    postPreview: row.content !== undefined || row.message !== undefined
+      ? marketingPostPreview(pick(row, "content", "message"), asString(row.channel, fallback?.channel || "in_app") as MarketingChannelId)
+      : fallback?.postPreview,
     manualOutcome: ["published", "failed"].includes(manualOutcomeValue)
       ? manualOutcomeValue as MarketingCalendarItem["manualOutcome"]
       : fallback?.manualOutcome || null,
@@ -347,6 +351,27 @@ function normalizeCursorPage<T>(
       Object.entries(asRecord(next)).map(([key, item]) => [key, String(item)]),
     ) : null,
   };
+}
+
+/** Campaign-scoped pagination deliberately ignores the calendar's visible month. */
+export async function loadMarketingCampaignItems(
+  campaignId: string,
+  cursor: Record<string, string> | null = null,
+): Promise<CursorPage<MarketingCalendarItem>> {
+  const result = await invokeRpc<unknown>("admin_list_marketing_campaign_items", {
+    p_campaign_id: campaignId,
+    p_limit: 24,
+    p_cursor_scheduled_at: cursor?.scheduled_at || null,
+    p_cursor_id: cursor?.id || null,
+  });
+  if (!Array.isArray(asRecord(result).items)) {
+    throw new Error("La liste des publications n'a pas pu être confirmée.");
+  }
+  const page = normalizeCursorPage(result, normalizeCalendarItem);
+  if (page.items.some((item) => item.campaignId !== campaignId)) {
+    throw new Error("Les publications reçues ne correspondent pas à cette campagne.");
+  }
+  return page;
 }
 
 function normalizeChannels(value: unknown, fallback: MarketingChannel[]) {

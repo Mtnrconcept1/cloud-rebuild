@@ -24,7 +24,8 @@ function setup(mode: "ok" | "missing" | "changed" | "provider" | "invalid-output
     return Response.json({ data: [{ b64_json: (mode === "invalid-output" ? Buffer.from("not a JPEG") : jpeg).toString("base64") }] });
   });
   vi.stubGlobal("fetch", fetcher);
-  vi.stubGlobal("crypto", webcrypto);
+  // jsdom's ArrayBuffer belongs to another realm than Node's native WebCrypto.
+  vi.stubGlobal("crypto", { subtle: { digest: (algorithm: string, bytes: ArrayBuffer) => webcrypto.subtle.digest(algorithm, Buffer.from(new Uint8Array(bytes))) } });
   return { fetcher, client, upload };
 }
 const options = { prompt: "5 CHF par table. Découvrez TOK.", campaignSlug: "tok-geneve", index: 0, apiKey: "test-only" };
@@ -106,5 +107,12 @@ describe("TOK brand reference conditioning", () => {
     expect(prompt).toContain("Ne reprendre AUCUN prix concurrent");
     expect(prompt).toContain("CONTRÔLE FINAL");
     expect(prompt).not.toContain("x".repeat(4001));
+  });
+  it.each([["1:1", "1024x1024"], ["9:16", "720x1280"], ["16:9", "1280x720"], ["4:5", "1024x1280"]] as const)("sends the selected %s ratio to the image provider", async (format, size) => {
+    setup();
+    const { buildTokMarketingImageForm } = await import("../../supabase/functions/_shared/marketing-visual");
+    const form = await buildTokMarketingImageForm(options.prompt, format);
+    expect(form.get("size")).toBe(size);
+    expect(form.get("prompt")).toContain(`au format ${format}`);
   });
 });

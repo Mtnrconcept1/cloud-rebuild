@@ -1,4 +1,5 @@
 import { TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
+import type { CampaignFormat, CampaignTemplateId } from "./marketing-campaign-options.ts";
 
 /**
  * Plan contract for the marketing AI agent.
@@ -71,6 +72,9 @@ export type MarketingPlanItem = {
     hashtags: string[];
   };
   visual_prompt: string | null;
+  visual_format?: CampaignFormat;
+  post_index?: number;
+  template_ids?: CampaignTemplateId[];
 };
 
 export type MarketingPlan = {
@@ -318,6 +322,7 @@ export function toBundlePayload(
         hashtags: item.content.hashtags.slice(0, 12),
         visual_url: visuals.get(index) || null,
         visual_prompt: item.visual_prompt,
+        ...(item.visual_format ? { visual_format: item.visual_format, post_index: item.post_index, template_ids: item.template_ids } : {}),
         visual_required: item.channel === "facebook" || item.channel === "instagram" || Boolean(item.visual_prompt),
         visual_status: visuals.get(index) ? "ready"
           : item.channel === "facebook" || item.channel === "instagram" || item.visual_prompt

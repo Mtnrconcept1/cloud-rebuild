@@ -42,6 +42,18 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("approval checks the stored social image after authentication", () => {
+  it("allows campaign review but blocks automatic approval of a manual Story export", async () => {
+    const story = { ...ready, channel: "instagram", visual_format: "9:16" };
+    const fetchMock = upstream([[story], [story]]); vi.stubGlobal("fetch", fetchMock);
+    const campaign = recorder(); await marketingRpcHandler(request("admin_approve_marketing_campaign"), campaign.response);
+    expect(campaign.response.statusCode).toBe(200);
+    const item = recorder(); await marketingRpcHandler(request(), item.response);
+    expect(item.response.statusCode).toBe(400);
+    expect(item.value().error.code).toBe("instagram_story_manual_required");
+    expect(item.value().error.message).toMatch(/Story manuelle/);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("service_execute_marketing_admin_operation"))).toHaveLength(1);
+    expect(fetchMock.mock.calls.some(([url]) => decodeURIComponent(String(url)).includes("visual_format:content->>visual_format"))).toBe(true);
+  });
   it.each(["admin_approve_marketing_campaign", "admin_approve_marketing_item"])("refuses %s for an incomplete visual", async (operation) => {
     const fetchMock = upstream([[incomplete]]); vi.stubGlobal("fetch", fetchMock);
     const res = recorder(); await marketingRpcHandler(request(operation), res.response);
