@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "dff3a221ea954cd3891027842f6e9f60c03dd4bef8e2a39b129e87489b48f11f",
+ "sourceDigest": "fa392ed1a7d366cf7cc1d17c2a11a790d3d622ecf5d6793fa6ae4ece27dea5ab",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -15422,7 +15422,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 91
+      "line": 104
      },
      {
       "path": "src/test/notifications-sinistres-governance.test.ts",
@@ -15594,7 +15594,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 87
+      "line": 100
      }
     ]
    },
@@ -15656,7 +15656,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 88
+      "line": 101
      }
     ]
    },
@@ -15863,7 +15863,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 89
+      "line": 102
      }
     ]
    },
@@ -17731,7 +17731,7 @@
     "sources": [
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 78
+      "line": 91
      }
     ]
    },
@@ -17764,7 +17764,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 83
+      "line": 96
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -19104,7 +19104,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 79
+      "line": 92
      },
      {
       "path": "src/test/navigation.test.ts",
@@ -19809,7 +19809,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 77
+      "line": 90
      },
      {
       "path": "src/test/restaurant-dashboard-overview-navigation.test.ts",
@@ -19993,7 +19993,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 84
+      "line": 97
      }
     ]
    },
@@ -20168,7 +20168,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 85
+      "line": 98
      }
     ]
    },
@@ -20234,7 +20234,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 86
+      "line": 99
      }
     ]
    },
@@ -20493,7 +20493,7 @@
     "sources": [
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 107
+      "line": 120
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
@@ -24393,7 +24393,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 90
+      "line": 103
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
@@ -25626,7 +25626,7 @@
      },
      {
       "path": "src/test/feature-flags.test.ts",
-      "line": 92
+      "line": 105
      },
      {
       "path": "src/test/role-route-wiring.test.ts",
@@ -94207,32 +94207,32 @@
      },
      {
       "name": "rehydrateFlagRows",
-      "line": 1048,
+      "line": 1050,
       "kind": "function"
      },
      {
       "name": "buildSafeFallbackFlags",
-      "line": 1058,
+      "line": 1060,
       "kind": "function"
      },
      {
       "name": "buildFeatureMap",
-      "line": 1070,
+      "line": 1072,
       "kind": "function"
      },
      {
       "name": "isFeatureEnabled",
-      "line": 1074,
+      "line": 1076,
       "kind": "function"
      },
      {
       "name": "isFeatureExplicitlyEnabled",
-      "line": 1078,
+      "line": 1080,
       "kind": "function"
      },
      {
       "name": "FEATURE_ROUTE_MAP",
-      "line": 1082,
+      "line": 1084,
       "kind": "variable"
      }
     ],
@@ -94243,7 +94243,7 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 1088
+    "lineCount": 1090
    },
    {
     "path": "src/lib/featureFlags.ts",
@@ -105096,7 +105096,7 @@
      "supabase",
      "twint"
     ],
-    "lineCount": 210
+    "lineCount": 223
    },
    {
     "path": "src/test/feature-visibility.test.ts",
@@ -136855,7 +136855,7 @@
    "id": "code-module:fc2fb1d5b1f2",
    "type": "code-module",
    "title": "src/lib/featureCatalog.ts",
-   "description": "Module de 1088 lignes; exports: FeatureFlagGroup, FeatureFlagDefinition, FeatureFlag, FeatureFlagRow, FEATURE_FLAG_GROUP_LABELS, FEATURE_FLAG_GROUP_DESCRIPTIONS, FEATURE_FLAG_GROUP_ORDER, FEATURE_DEFINITIONS, FEATURE_ROUTE_DEFINITIONS, getFeatureDefinition, getFeatureNameForRoute, resolveFlags, rehydrateFlagRows, buildSafeFallbackFlags, buildFeatureMap, isFeatureEnabled, isFeatureExplicitlyEnabled, FEATURE_ROUTE_MAP.",
+   "description": "Module de 1090 lignes; exports: FeatureFlagGroup, FeatureFlagDefinition, FeatureFlag, FeatureFlagRow, FEATURE_FLAG_GROUP_LABELS, FEATURE_FLAG_GROUP_DESCRIPTIONS, FEATURE_FLAG_GROUP_ORDER, FEATURE_DEFINITIONS, FEATURE_ROUTE_DEFINITIONS, getFeatureDefinition, getFeatureNameForRoute, resolveFlags, rehydrateFlagRows, buildSafeFallbackFlags, buildFeatureMap, isFeatureEnabled, isFeatureExplicitlyEnabled, FEATURE_ROUTE_MAP.",
    "path": "src/lib/featureCatalog.ts",
    "line": 1,
    "surface": null,
@@ -136883,7 +136883,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "ec9b8479d2e3"
+   "detailRef": "c79c452357e6"
   },
   {
    "id": "code-module:de1cc72cbc23",
@@ -144283,7 +144283,7 @@
    "id": "code-module:8e347747b418",
    "type": "code-module",
    "title": "src/test/feature-flags.test.ts",
-   "description": "Module de 210 lignes; exports: aucun export statique.",
+   "description": "Module de 223 lignes; exports: aucun export statique.",
    "path": "src/test/feature-flags.test.ts",
    "line": 1,
    "surface": null,
@@ -144292,7 +144292,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "191ff2fc2226"
+   "detailRef": "8d15659d2176"
   },
   {
    "id": "code-module:798293610b8e",
@@ -245875,12 +245875,12 @@
    "detailRef": "d88dffa4df5a"
   },
   {
-   "id": "exported-symbol:5f4163d64937",
+   "id": "exported-symbol:a17673dd8d6a",
    "type": "exported-symbol",
    "title": "FEATURE_ROUTE_MAP",
    "description": "Export variable de src/lib/featureCatalog.ts.",
    "path": "src/lib/featureCatalog.ts",
-   "line": 1082,
+   "line": 1084,
    "surface": null,
    "tags": [
     "google",
@@ -245889,7 +245889,7 @@
     "twint",
     "variable"
    ],
-   "detailRef": "d1c969ac2bfa"
+   "detailRef": "dd38c28ed47a"
   },
   {
    "id": "exported-symbol:fb503c5c978e",
@@ -261828,12 +261828,12 @@
    "detailRef": "2a450f994f2c"
   },
   {
-   "id": "exported-symbol:fc52436e5414",
+   "id": "exported-symbol:07c2e6bd95a3",
    "type": "exported-symbol",
    "title": "buildFeatureMap",
    "description": "Export function de src/lib/featureCatalog.ts.",
    "path": "src/lib/featureCatalog.ts",
-   "line": 1070,
+   "line": 1072,
    "surface": null,
    "tags": [
     "function",
@@ -261842,7 +261842,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "2d3a81dd34c7"
+   "detailRef": "1116528813a3"
   },
   {
    "id": "exported-symbol:3bfaaf49d7b2",
@@ -262422,12 +262422,12 @@
    "detailRef": "2897517c6663"
   },
   {
-   "id": "exported-symbol:62a20ddc50bc",
+   "id": "exported-symbol:08de495bde9e",
    "type": "exported-symbol",
    "title": "buildSafeFallbackFlags",
    "description": "Export function de src/lib/featureCatalog.ts.",
    "path": "src/lib/featureCatalog.ts",
-   "line": 1058,
+   "line": 1060,
    "surface": null,
    "tags": [
     "function",
@@ -262436,7 +262436,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "90ae4209a718"
+   "detailRef": "5b19c3ba9f6d"
   },
   {
    "id": "exported-symbol:b654e6008071",
@@ -277617,12 +277617,12 @@
    "detailRef": "c62ef3b5568a"
   },
   {
-   "id": "exported-symbol:082b5db0be2f",
+   "id": "exported-symbol:4ee28993a3ed",
    "type": "exported-symbol",
    "title": "isFeatureEnabled",
    "description": "Export function de src/lib/featureCatalog.ts.",
    "path": "src/lib/featureCatalog.ts",
-   "line": 1074,
+   "line": 1076,
    "surface": null,
    "tags": [
     "function",
@@ -277631,15 +277631,15 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "01f46ef91c12"
+   "detailRef": "bbd9fcd2a233"
   },
   {
-   "id": "exported-symbol:32850af75958",
+   "id": "exported-symbol:074625a47faa",
    "type": "exported-symbol",
    "title": "isFeatureExplicitlyEnabled",
    "description": "Export function de src/lib/featureCatalog.ts.",
    "path": "src/lib/featureCatalog.ts",
-   "line": 1078,
+   "line": 1080,
    "surface": null,
    "tags": [
     "function",
@@ -277648,7 +277648,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "ba74303e10bf"
+   "detailRef": "2188aa98776c"
   },
   {
    "id": "exported-symbol:0468993284e1",
@@ -282044,12 +282044,12 @@
    "detailRef": "9f6bb33873b2"
   },
   {
-   "id": "exported-symbol:13d8ca28ea28",
+   "id": "exported-symbol:d8740490bdde",
    "type": "exported-symbol",
    "title": "rehydrateFlagRows",
    "description": "Export function de src/lib/featureCatalog.ts.",
    "path": "src/lib/featureCatalog.ts",
-   "line": 1048,
+   "line": 1050,
    "surface": null,
    "tags": [
     "function",
@@ -282058,7 +282058,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "c499340a2461"
+   "detailRef": "9cf31b77ba9a"
   },
   {
    "id": "exported-symbol:e510c61093d0",
@@ -347455,7 +347455,7 @@
     "src/test/feature-flags.test.ts",
     "src/test/notifications-sinistres-governance.test.ts"
    ],
-   "detailRef": "4c394ee9b3a8"
+   "detailRef": "ebf2c3cf3155"
   },
   {
    "id": "path-literal:1e75a2497da9",
@@ -347553,7 +347553,7 @@
     "src/pages/admin/AdminComptaOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "6d67ec483041"
+   "detailRef": "55b1926d0f75"
   },
   {
    "id": "path-literal:a73698a39de9",
@@ -347589,7 +347589,7 @@
     "src/pages/admin/AdminComptaOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "ff258943b9c8"
+   "detailRef": "34763cbc2578"
   },
   {
    "id": "path-literal:3a9da2433210",
@@ -347735,7 +347735,7 @@
     "src/test/admin-mobile-navigation.test.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "fd02735d4587"
+   "detailRef": "dc624dc28c66"
   },
   {
    "id": "path-literal:d1fafaf2641e",
@@ -348903,17 +348903,17 @@
    "detailRef": "cdaba9c37e54"
   },
   {
-   "id": "path-literal:b338c78bd5ce",
+   "id": "path-literal:d4539a34afad",
    "type": "path-literal",
    "title": "/commande/abc-123",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/feature-flags.test.ts",
-   "line": 78,
+   "line": 91,
    "surface": null,
    "tags": [
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "aa650ba5b832"
+   "detailRef": "7767b01e00e3"
   },
   {
    "id": "path-literal:72a0d93ede80",
@@ -348935,7 +348935,7 @@
     "src/test/security-url-helpers.test.ts",
     "src/test/stripe-return.test.ts"
    ],
-   "detailRef": "bcac457dd3b3"
+   "detailRef": "0232315f2222"
   },
   {
    "id": "path-literal:2f80fcd74d96",
@@ -349504,7 +349504,7 @@
     "src/test/navigation.test.ts",
     "supabase/functions/dispatch-order/index.ts"
    ],
-   "detailRef": "fd581bf08b0e"
+   "detailRef": "5a7272f1f68d"
   },
   {
    "id": "path-literal:b442b5bc4279",
@@ -349746,7 +349746,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "46f2855040d1"
+   "detailRef": "1c810a7b6489"
   },
   {
    "id": "path-literal:b6abce7fd060",
@@ -349826,7 +349826,7 @@
     "src/lib/featureCatalog.ts",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "a66160af9397"
+   "detailRef": "92daf7933b62"
   },
   {
    "id": "path-literal:90131fc48ece",
@@ -349915,7 +349915,7 @@
     "src/pages/dashboard/DashboardFacturesOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "16b372e93b45"
+   "detailRef": "380f90116f68"
   },
   {
    "id": "path-literal:d1c5b97db6ca",
@@ -349952,7 +349952,7 @@
     "src/pages/dashboard/DashboardFacturesOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "7eed476a6a15"
+   "detailRef": "e8e0e99a6818"
   },
   {
    "id": "path-literal:d19cb7be0676",
@@ -350097,18 +350097,18 @@
    "detailRef": "c972924a9e44"
   },
   {
-   "id": "path-literal:e2a2a3d765a3",
+   "id": "path-literal:7d76dfe32995",
    "type": "path-literal",
    "title": "/dashboard/pack",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/feature-flags.test.ts",
-   "line": 107,
+   "line": 120,
    "surface": null,
    "tags": [
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "759619b816b2"
+   "detailRef": "9327966f38f4"
   },
   {
    "id": "path-literal:d7fb77c2dbf9",
@@ -353916,7 +353916,7 @@
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "c1984f3de634"
+   "detailRef": "c03ca82d9801"
   },
   {
    "id": "path-literal:c76dba69accc",
@@ -354426,7 +354426,7 @@
     "src/test/feature-flags.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "a3e5ed1b066d"
+   "detailRef": "213045164e28"
   },
   {
    "id": "path-literal:1c51bd257ceb",
