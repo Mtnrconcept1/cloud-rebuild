@@ -136,7 +136,7 @@ export default function LoyaltyStatus({
             <span className="text-muted-foreground">Progression vers le niveau suivant</span>
             <span>{loyalty.nextThreshold ? `${points} / ${loyalty.nextThreshold}` : "Niveau maximum atteint"}</span>
           </div>
-          <Progress value={loyalty.progressPercent} className="h-2 bg-secondary/50" />
+          <Progress value={loyalty.progressPercent} aria-label="Progression vers le niveau suivant" className="h-2 bg-secondary/50" />
         </div>
 
         {previewBenefits.length > 0 ? (

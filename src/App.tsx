@@ -547,6 +547,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
       <Suspense
         fallback={(
           <AppLoadingScreen
+            fullScreen
             title="Ouverture de la page"
             description="TOK charge les outils nécessaires et restaure vos dernières données…"
           />

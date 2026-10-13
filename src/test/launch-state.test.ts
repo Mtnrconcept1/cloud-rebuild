@@ -8,6 +8,9 @@ describe('server launch clock',()=>{
  it('expired countdown never disables the flag',()=>{expect(launchRemaining(state,now+1728000001)).toBe(0);expect(state.enabled).toBe(true);});
  it('corrects the viewer clock from server time',()=>{const skew=parseLaunchState({enabled:true,server_now:new Date(now).toISOString(),ends_at:new Date(now+2000).toISOString()},now+300000);expect(launchRemaining(skew,now+300000)).toBe(2);});
  it.each([null,{}, {enabled:false}, {enabled:true,ends_at:'bad',server_now:'bad'}, {enabled:true,ends_at:null,server_now:new Date(now).toISOString()}])('rejects unverifiable state %j',value=>expect(()=>parseLaunchState(value)).toThrow());
- it.each(['client','restaurateur'] as const)('takes %s to animation during launch',role=>expect(getPostAuthTargetForRole(role,null,{launchEnabled:true})).toBe('/coming-soon'));
+ it('takes customers, not restaurant staff, to animation during launch',()=>{
+   expect(getPostAuthTargetForRole('client',null,{launchEnabled:true})).toBe('/coming-soon');
+   expect(getPostAuthTargetForRole('restaurateur',null,{launchEnabled:true})).toBe('/espaces');
+ });
  it('keeps admin and open launch routing intact',()=>{expect(getPostAuthTargetForRole('admin',null,{launchEnabled:true})).toBe('/espaces');expect(getPostAuthTargetForRole('client',null,{launchEnabled:false})).toBe('/espaces');});
 });

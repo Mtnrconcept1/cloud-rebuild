@@ -469,13 +469,15 @@ describe("Auth signup form", () => {
       title: "Demande prise en compte",
       description: "Si cette adresse peut être utilisée pour créer un compte, un email de confirmation sera envoyé. Si vous avez déjà un compte, connectez-vous.",
     });
-    await waitFor(() => expect(screen.getByText("Launch countdown")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Vérifiez votre boîte de réception")).toBeInTheDocument());
+    expect(screen.queryByText("Launch countdown")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Parcourir TOK en invité" })).toBeInTheDocument();
   });
 
   it.each([
-    { enabled: false, expected: "Launch countdown" },
+    { enabled: false, expected: "Workspace available" },
     { enabled: true, expected: "Launch countdown" },
-  ])("routes a completed client signup to its welcome animation ($enabled)", async ({ enabled, expected }) => {
+  ])("routes an authenticated client signup according to launch status ($enabled)", async ({ enabled, expected }) => {
     launchGateMock.enabled = enabled;
     supabaseMocks.signUp.mockResolvedValue({
       data: { session: { access_token: "signup-session" }, user: { id: "client-user-id" } },
@@ -507,8 +509,9 @@ describe("Auth signup form", () => {
       expect(supabaseMocks.signUp).toHaveBeenCalledWith(expect.objectContaining({
         email: "existing@example.com",
       }));
-      expect(screen.getByText("Launch countdown")).toBeInTheDocument();
+      expect(screen.getByText("Vérifiez votre boîte de réception")).toBeInTheDocument();
     });
+    expect(screen.queryByText("Launch countdown")).not.toBeInTheDocument();
     expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({
       title: "Demande prise en compte",
       description: expect.stringContaining("Si vous avez déjà un compte, connectez-vous."),

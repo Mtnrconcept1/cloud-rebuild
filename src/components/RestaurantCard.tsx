@@ -564,7 +564,7 @@ export default function RestaurantCard({
                   "inline-flex h-11 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-white transition-all",
                   isSponsored
                     ? "bg-gradient-to-r from-primary via-orange-500 to-orange-600 shadow-[0_14px_30px_rgba(249,115,22,0.26)] hover:brightness-105"
-                    : "bg-primary text-primary-foreground hover:bg-primary/90",
+                    : "bg-orange-700 text-white hover:bg-orange-800",
                 )}
               >
                 {isSponsored ? "Découvrir l'offre" : "Voir le restaurant"}
@@ -574,7 +574,7 @@ export default function RestaurantCard({
                 <button
                   key={slot.time}
                   type="button"
-                  aria-label={`Réserver ${name} à ${slot.time}`}
+                  aria-label={`Réserver ${name} à ${slot.time}${discountShortLabel ? `, remise ${discountShortLabel}` : ""}`}
                   data-card-action="reservation-slot"
                   data-reservation-slot={slot.time}
                   data-testid="restaurant-card-reservation-slot"
@@ -585,7 +585,7 @@ export default function RestaurantCard({
                   className={cn(
                     "relative z-20 inline-flex min-w-[4.75rem] touch-manipulation select-none items-center justify-center rounded-xl border px-3.5 font-bold transition-colors",
                     hasDiscount
-                      ? "h-12 flex-col gap-0.5 border-emerald-500 bg-emerald-600 text-white shadow-[0_12px_24px_rgba(16,185,129,0.22)] hover:bg-emerald-700 dark:border-emerald-300/60 dark:bg-emerald-500 dark:text-slate-950"
+                      ? "h-12 flex-col gap-0.5 border-emerald-600 bg-emerald-700 text-white shadow-[0_12px_24px_rgba(16,185,129,0.22)] hover:bg-emerald-800 dark:border-emerald-300/60 dark:bg-emerald-500 dark:text-slate-950"
                       : "h-11 border-emerald-500/35 bg-emerald-50 text-sm text-emerald-700 hover:border-emerald-500 hover:bg-emerald-500 hover:text-white dark:bg-emerald-400/10 dark:text-emerald-200 dark:shadow-[0_0_20px_rgba(16,185,129,0.14)]",
                   )}
                 >

@@ -66,7 +66,7 @@ export default function PromoCarousel() {
                   <p className="text-lg font-medium text-white/80 md:text-xl">{promo.desc}</p>
                 </div>
                 <div className="pt-4">
-                  <Button size="lg" className="rounded-full px-8 shadow-lg shadow-primary/20" asChild>
+                  <Button size="lg" className="rounded-full bg-orange-700 px-8 text-white shadow-lg shadow-primary/20 hover:bg-orange-800" asChild>
                     <Link to={promo.link}>En savoir plus</Link>
                   </Button>
                 </div>
@@ -77,16 +77,20 @@ export default function PromoCarousel() {
       </div>
 
       <button
+        type="button"
+        aria-label="Promotion précédente"
         onClick={scrollPrev}
         className="absolute left-4 top-1/2 z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white opacity-0 backdrop-blur-md transition-opacity hover:bg-white/20 group-hover:opacity-100"
       >
-        <ChevronLeft className="h-6 w-6" />
+        <ChevronLeft className="h-6 w-6" aria-hidden="true" />
       </button>
       <button
+        type="button"
+        aria-label="Promotion suivante"
         onClick={scrollNext}
         className="absolute right-4 top-1/2 z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white opacity-0 backdrop-blur-md transition-opacity hover:bg-white/20 group-hover:opacity-100"
       >
-        <ChevronRight className="h-6 w-6" />
+        <ChevronRight className="h-6 w-6" aria-hidden="true" />
       </button>
 
       <div className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 gap-2">
