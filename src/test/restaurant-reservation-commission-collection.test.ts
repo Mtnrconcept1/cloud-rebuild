@@ -18,7 +18,7 @@ describe("restaurant commission consent, collection and accounting", () => {
     expect(auth).toContain("commission_auto_debit_consent_accepted_at");
     expect(auth).toContain('submittedRole === "restaurateur" && !commissionConsentDraft');
     expect(contract).toContain("TOK-CH-RP-2026-10-v8");
-    expect(contract).toContain("prélèvement automatique hors session");
+    expect(contract).toContain("débits hors session");
   });
 
   it("defaults to disabled and requires a newer, signed consent receipt", () => {
