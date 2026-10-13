@@ -81,6 +81,59 @@ describe("transactional order and reservation emails", () => {
     expect(email.bodyText).toContain("Réservation reservation-1");
   });
 
+
+  it("renders an accessible responsive TOK booking email for customers", () => {
+    const email = buildReservationConfirmationEmail({
+      audience: "customer", reservationId: "4a8d821b-5b92-4e6f-bbf3-c436f0557b4c",
+      customerName: "Raph", restaurantName: "La Gazelle d’Or",
+      restaurantAddress: "Rue de Lyon 55", restaurantCity: "Genève",
+      date: "2026-10-20", time: "19:00", partySize: 2,
+      featureLabel: "Réservation classique", items: [],
+      detailUrl: "https://www.thetok.ch/reservations",
+    });
+    expect(email.bodyHtml).toContain("Votre réservation");
+    expect(email.bodyHtml).toContain("confirmée !");
+    expect(email.bodyHtml).toContain("20 octobre 2026 à 19:00");
+    expect(email.bodyHtml).toContain("La Gazelle d’Or");
+    expect(email.bodyHtml).toContain("Rue de Lyon 55, Genève");
+    expect(email.bodyHtml).toContain("4a8d821b-5b92-4e6f-bbf3-c436f0557b4c");
+    expect(email.bodyHtml).toContain("/logotok.png");
+    expect(email.bodyHtml).toContain("/chef2.png");
+    expect(email.bodyHtml).toContain("/images/octopus-fine-dining.jpeg");
+    expect(email.bodyHtml).toContain("/images/emails/tok-reservation-hero.webp");
+    expect(email.bodyHtml).toContain('class="tok-hero-desktop"');
+    expect(email.bodyHtml).toContain('class="tok-hero-mobile"');
+    expect(email.bodyHtml).toContain("/images/mixed-grill-platter.jpeg");
+    expect(email.bodyHtml).toContain("@media only screen and (max-width:600px)");
+    expect(email.bodyHtml).toContain("width:50%!important");
+    expect(email.bodyHtml).toContain("Voir ou modifier ma réservation");
+    expect(email.bodyHtml).toContain("Cet e-mail confirme une réservation effectuée sur TOK.");
+    expect(email.bodyHtml).toContain("La Tok d’Or");
+    expect(email.bodyHtml).toContain("2 % reversés à l’Hospice Général");
+    expect(email.bodyHtml).toContain('href="https://www.thetok.ch/chefs-table"');
+    expect(email.bodyHtml).not.toContain("Votre précommande");
+    expect(email.bodyText).toContain("20 octobre 2026 à 19:00");
+  });
+
+  it("escapes variable HTML and shows preorders and notes only when present", () => {
+    const email = buildReservationConfirmationEmail({
+      audience: "customer", reservationId: "reservation-2",
+      customerName: "<script>bad</script>", restaurantName: 'Le "Bistro" <img>',
+      date: "2026-10-20", time: "20:30", partySize: 3,
+      featureLabel: "Zéro Attente", notes: "<b>Fenêtre</b>",
+      items: [{ name: "Plat <spécial>", quantity: 2, unitPrice: 12.5 }],
+      total: 25, detailUrl: "https://www.thetok.ch/reservations",
+    });
+    expect(email.bodyHtml).not.toContain("<script>");
+    expect(email.bodyHtml).not.toContain("<img>");
+    expect(email.bodyHtml).toContain("&lt;script&gt;");
+    expect(email.bodyHtml).toContain("&lt;img&gt;");
+    expect(email.bodyHtml).toContain("&lt;b&gt;Fenêtre&lt;/b&gt;");
+    expect(email.bodyHtml).toContain("Votre précommande");
+    expect(email.bodyHtml).toContain("Plat &lt;spécial&gt;");
+    expect(email.bodyHtml).toContain("25.00 CHF");
+  });
+
   it("wires transactional emails from every order and reservation creation flow", () => {
     expect(read("supabase/functions/validate-order/index.ts")).toContain("queueOrderConfirmationEmails");
     expect(read("supabase/functions/_shared/order-checkout.ts")).toContain("queueOrderConfirmationEmails");
