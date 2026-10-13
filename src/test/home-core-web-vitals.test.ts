@@ -61,13 +61,50 @@ describe("TOK homepage Core Web Vitals safeguards", () => {
   });
 
   it("isolates live countdown updates and reserves stable dimensions during catalog loads", () => {
+    const app = read("src/App.tsx");
     const page = read("src/pages/Index.tsx");
     const section = read("src/components/home/RestaurantSection.tsx");
 
+    expect(app).toContain("<AppLoadingScreen\n            fullScreen");
     expect(page).toContain("function ProgressiveOfferCountdown");
     expect(page).toContain("window.setInterval(() => setNowMs(Date.now()), 60_000)");
     expect(page).toContain("loading={isCatalogLoading}");
     expect(section).toContain('data-testid="home-restaurant-skeleton"');
     expect(section).toContain("aria-busy={loading && restaurants.length === 0}");
+  });
+
+  it("defers heavyweight editorial photos and uses available lightweight variants", () => {
+    const headers = read("src/components/home/SectionShowcaseHeader.tsx");
+    const categories = read("src/components/home/CuisineCategoryStrip.tsx");
+    const page = read("src/pages/Index.tsx");
+
+    expect(headers).toContain("IntersectionObserver");
+    expect(headers).toContain('rootMargin: "600px 0px"');
+    expect(headers).toContain("data-image-ready");
+    expect(categories).toContain("/images/section-headers/tok-editorial-cuisine.jpg");
+    expect(page).toContain('local: "/images/section-headers/tok-editorial-geneva.jpg"');
+    expect(page).toContain('nearby: "/images/section-headers/tok-editorial-geneva.jpg"');
+    expect(assetSize("images/section-headers/tok-editorial-cuisine.jpg")).toBeLessThan(40_000);
+    expect(assetSize("images/section-headers/tok-editorial-geneva.jpg")).toBeLessThan(40_000);
+  });
+
+  it("keeps Lighthouse-visible controls named, sized and contrast-safe", () => {
+    const navbar = read("src/components/Navbar.tsx");
+    const carousel = read("src/components/PromoCarousel.tsx");
+    const card = read("src/components/RestaurantCard.tsx");
+    const loyalty = read("src/components/LoyaltyStatus.tsx");
+    const solidarity = read("src/components/home/SolidaritySection.tsx");
+
+    expect(navbar).toContain("bg-orange-700");
+    expect(carousel).toContain('aria-label="Promotion précédente"');
+    expect(carousel).toContain('aria-label="Promotion suivante"');
+    expect(carousel).toContain("bg-orange-700");
+    expect(card).toContain("bg-orange-700 text-white hover:bg-orange-800");
+    expect(card).toContain("bg-emerald-700 text-white");
+    expect(card).toContain("remise ${discountShortLabel}");
+    expect(loyalty).toContain('aria-label="Progression vers le niveau suivant"');
+    expect(solidarity).toContain("width={1370}");
+    expect(solidarity).toContain("height={1352}");
+    expect(solidarity).toContain("height={1685}");
   });
 });
