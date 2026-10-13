@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "e28de383d23257da798e70d6ade3f008d39503717f38e196f0c3de7f151eb794",
+ "sourceDigest": "dff3a221ea954cd3891027842f6e9f60c03dd4bef8e2a39b129e87489b48f11f",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -83589,7 +83589,7 @@
      "GOLDEN_TOK_TEST_URL"
     ],
     "integrations": [],
-    "lineCount": 89
+    "lineCount": 95
    },
    {
     "path": "scripts/test-print-protocol-postgres.mjs",
@@ -130638,7 +130638,7 @@
    "id": "code-module:f473faa38d50",
    "type": "code-module",
    "title": "scripts/test-golden-tok-responsive.mjs",
-   "description": "Module de 89 lignes; exports: aucun export statique.",
+   "description": "Module de 95 lignes; exports: aucun export statique.",
    "path": "scripts/test-golden-tok-responsive.mjs",
    "line": 1,
    "surface": null,
@@ -130646,7 +130646,7 @@
     "CHROME_BIN",
     "GOLDEN_TOK_TEST_URL"
    ],
-   "detailRef": "c6c07fcdad73"
+   "detailRef": "1fc43974ec86"
   },
   {
    "id": "code-module:325f58f098fe",
