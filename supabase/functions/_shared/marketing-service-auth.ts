@@ -30,6 +30,47 @@ function configuredSecretKeys(): string[] {
   }
 }
 
+/**
+ * A new or rotated secret key can be usable by the Data API before this Edge
+ * isolate sees its refreshed SUPABASE_SECRET_KEYS snapshot. In that case,
+ * prove service_role privileges against the existing, service-role-only RPC.
+ * Its nonexistent session hash returns JSON null and never touches user data.
+ */
+async function verifyLiveProjectSecretKey(provided: string): Promise<boolean> {
+  let projectUrl: URL;
+  try {
+    projectUrl = new URL(Deno.env.get("SUPABASE_URL") || "");
+  } catch {
+    return false;
+  }
+  const hostParts = projectUrl.hostname.split(".");
+  if (projectUrl.protocol !== "https:" || projectUrl.username || projectUrl.password
+    || projectUrl.port || projectUrl.pathname !== "/" || projectUrl.search || projectUrl.hash
+    || hostParts.length !== 3 || hostParts[1] !== "supabase" || hostParts[2] !== "co"
+    || !/^[a-z0-9-]+$/.test(hostParts[0])) return false;
+
+  try {
+    const response = await fetch(projectUrl.origin + "/rest/v1/rpc/service_get_marketing_web_session", {
+      method: "POST",
+      headers: {
+        apikey: provided,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ p_sid_hash: "0".repeat(64), p_csrf_hash: null, p_touch: false }),
+      signal: AbortSignal.timeout(5_000),
+      redirect: "error",
+    });
+    const contentType = (response.headers.get("content-type") || "").trim().toLowerCase();
+    if (response.status !== 200 || (contentType !== "application/json"
+      && !contentType.startsWith("application/json;"))) return false;
+    return (await response.json()) === null;
+  } catch {
+    // Unknown, revoked or mismatched credentials always fail closed.
+    return false;
+  }
+}
+
 /** Authenticate server calls using a configured new API key or existing auth.
  * Callers must still reject user_jwt and validate delegated admin identity.
  * A key prefix or an unverified JWT claim is never evidence of privilege.
@@ -44,7 +85,7 @@ export async function authenticateMarketingRequest(
     for (const configured of configuredSecretKeys()) {
       matches |= Number(constantTimeEqual(provided, configured));
     }
-    if (matches !== 0) {
+    if (matches !== 0 || (provided.length >= 25 && await verifyLiveProjectSecretKey(provided))) {
       return {
         adminClient: createAdminClient(),
         userClient: null,
