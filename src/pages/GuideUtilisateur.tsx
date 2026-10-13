@@ -3,11 +3,13 @@ import {
   ArrowRight,
   BookOpen,
   Boxes,
+  CameraOff,
   CheckCircle2,
   ClipboardCheck,
   ChevronRight,
   Code2,
   Filter,
+  ExternalLink,
   Image as ImageIcon,
   Info,
   LayoutDashboard,
@@ -327,6 +329,13 @@ function FeatureDetailPanel({
   detail: GuideFeatureDetail | null;
   onOpenChange: (open: boolean) => void;
 }) {
+  const canOpenReference = Boolean(
+    detail?.kind === "route"
+    && detail.reference.startsWith("/")
+    && !detail.reference.includes(":")
+    && detail.reference !== "*",
+  );
+
   return (
     <Dialog open={Boolean(detail)} onOpenChange={onOpenChange}>
       {detail ? (
@@ -350,17 +359,53 @@ function FeatureDetailPanel({
 
             <div className="grid gap-8 px-5 py-6 sm:px-8 sm:py-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,.8fr)]">
               <div className="space-y-8">
-                <figure className="overflow-hidden rounded-2xl border bg-slate-100 shadow-sm dark:bg-slate-950">
-                  <img
-                    src={detail.screenshot.src}
-                    alt={detail.screenshot.alt}
-                    className="max-h-[38rem] w-full object-contain object-top"
-                  />
-                  <figcaption className="border-t bg-white p-4 text-sm leading-relaxed dark:bg-slate-900">
-                    <p className="font-bold">{detail.screenshot.caption}</p>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{detail.screenshot.provenance}</p>
-                  </figcaption>
-                </figure>
+                {detail.screenshot ? (
+                  <figure className="overflow-hidden rounded-2xl border bg-slate-100 shadow-sm dark:bg-slate-950">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-white px-4 py-3 dark:bg-slate-900">
+                      <Badge variant={detail.screenshot.representation === "exact-route" ? "default" : "secondary"}>
+                        {detail.screenshot.representation === "exact-route"
+                          ? "Capture exacte de cet écran"
+                          : "Surface associée — pas l’écran de l’outil"}
+                      </Badge>
+                      <code className="text-xs font-bold text-slate-500">{detail.screenshot.capturedRoute}</code>
+                    </div>
+                    <img
+                      src={detail.screenshot.src}
+                      alt={detail.screenshot.alt}
+                      className="max-h-[38rem] w-full object-contain object-top"
+                    />
+                    <figcaption className="border-t bg-white p-4 text-sm leading-relaxed dark:bg-slate-900">
+                      <p className="font-bold">{detail.screenshot.caption}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{detail.screenshot.provenance}</p>
+                    </figcaption>
+                  </figure>
+                ) : (
+                  <section
+                    data-testid="guide-exact-screenshot-missing"
+                    className="rounded-2xl border border-dashed border-amber-300 bg-amber-50 p-6 dark:border-amber-500/40 dark:bg-amber-500/10"
+                  >
+                    <div className="flex items-start gap-4">
+                      <span className="rounded-2xl bg-white p-3 text-amber-700 shadow-sm dark:bg-slate-900 dark:text-amber-300">
+                        <CameraOff className="h-5 w-5" />
+                      </span>
+                      <div>
+                        <h3 className="font-black">Aucune capture générique utilisée</h3>
+                        <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                          {detail.kind === "tool"
+                            ? "Ce service serveur n’a pas d’écran autonome et aucune surface suffisamment précise n’a encore été associée. Le guide préfère ne montrer aucune image plutôt qu’une capture trompeuse."
+                            : "Aucune capture exacte et validée n’est encore publiée pour cette route. Le guide préfère ne montrer aucune image plutôt qu’un autre écran de l’application."}
+                        </p>
+                        {canOpenReference ? (
+                          <Button asChild variant="outline" className="mt-4">
+                            <a href={detail.reference} target="_blank" rel="noreferrer">
+                              Ouvrir l’écran réel <ExternalLink className="ml-2 h-4 w-4" />
+                            </a>
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  </section>
+                )}
 
                 <section className="rounded-2xl border bg-white p-5 dark:bg-slate-900">
                   <h3 className="flex items-center gap-2 text-base font-black"><Info className="h-4 w-4 text-violet-600" /> Fonctionnement précis</h3>

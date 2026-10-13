@@ -11,7 +11,11 @@ export type GuideFeatureScreenshot = {
   alt: string;
   caption: string;
   provenance: string;
+  representation: "exact-route" | "related-surface";
+  capturedRoute: string;
 };
+
+type GuideScreenshotSource = Omit<GuideFeatureScreenshot, "representation" | "capturedRoute">;
 
 export type GuideFeatureDetail = {
   id: string;
@@ -27,7 +31,7 @@ export type GuideFeatureDetail = {
   expectedResults: readonly string[];
   safeguards: readonly string[];
   technicalNotes: readonly string[];
-  screenshot: GuideFeatureScreenshot;
+  screenshot: GuideFeatureScreenshot | null;
 };
 
 const IGNORED_COMPONENTS = new Set([
@@ -163,7 +167,167 @@ const SCREENSHOTS = {
     caption: "Point de contrôle de la surface marketing isolée.",
     provenance: "Capture directe de l’accès marketing TOK.",
   },
-} satisfies Record<string, GuideFeatureScreenshot>;
+  antiWaste: {
+    src: "/images/user-guide/routes/anti-gaspi.png",
+    alt: "Écran réel de la fonctionnalité Anti-gaspi TOK",
+    caption: "Paniers surprise, dons solidaires et état réel des offres Anti-gaspi.",
+    provenance: "Capture directe de la route /anti-gaspi sur l’application TOK.",
+  },
+  cart: {
+    src: "/images/user-guide/routes/panier.png",
+    alt: "Panier réel de TOK avec un article de démonstration",
+    caption: "Panier TOK réel avec quantités, mode de retrait, total et étape de connexion.",
+    provenance: "Capture directe de la route /panier avec des données locales de démonstration, sans donnée personnelle.",
+  },
+  chefsTable: {
+    src: "/images/user-guide/routes/chefs-table.png",
+    alt: "Écran réel de La Table du Chef dans TOK",
+    caption: "Parcours public La Table du Chef tel qu’il est rendu dans l’application.",
+    provenance: "Capture directe de la route /chefs-table sur l’application TOK.",
+  },
+  budgetAuto: {
+    src: "/images/user-guide/routes/budget-auto.png",
+    alt: "Écran réel Budget Auto dans TOK",
+    caption: "Assistant Budget Auto avec ses paramètres et son parcours réel.",
+    provenance: "Capture directe de la route /budget-auto sur l’application TOK.",
+  },
+  tokOne: {
+    src: "/images/user-guide/routes/tok-one.png",
+    alt: "Écran réel de l’offre Tok One",
+    caption: "Présentation réelle de Tok One, de ses avantages et de son activation.",
+    provenance: "Capture directe de la route /tok-one sur l’application TOK.",
+  },
+  tokConnectWidget: {
+    src: "/images/user-guide/routes/tok-connect-mcp-widget.png",
+    alt: "Widget MCP réel de TOK Connect",
+    caption: "Widget TOK Connect tel qu’il apparaît sur sa route dédiée.",
+    provenance: "Capture directe de la route /tok-connect/mcp-widget sur l’application TOK.",
+  },
+  solidarity: {
+    src: "/images/user-guide/routes/miamz-solidaires.png",
+    alt: "Écran réel Miamz Solidaires dans TOK",
+    caption: "Parcours solidaire et informations présentés dans l’application.",
+    provenance: "Capture directe de la route /miamz-solidaires sur l’application TOK.",
+  },
+  flashSales: {
+    src: "/images/user-guide/routes/ventes-flash.png",
+    alt: "Écran réel des ventes flash TOK",
+    caption: "Liste et état réel des ventes flash proposées aux clients.",
+    provenance: "Capture directe de la route /ventes-flash sur l’application TOK.",
+  },
+  news: {
+    src: "/images/user-guide/routes/actualites.png",
+    alt: "Fil d’actualités réel de TOK",
+    caption: "Fil, filtres et indicateurs d’actualités tels qu’ils sont rendus dans TOK.",
+    provenance: "Capture directe de la route /actualites sur l’application TOK.",
+  },
+  about: {
+    src: "/images/user-guide/routes/a-propos.png",
+    alt: "Page À propos réelle de TOK",
+    caption: "Présentation publique de TOK et de sa mission.",
+    provenance: "Capture directe de la route /a-propos sur l’application TOK.",
+  },
+  terms: {
+    src: "/images/user-guide/routes/cgu.png",
+    alt: "Conditions générales réelles de TOK",
+    caption: "Conditions générales affichées dans l’application.",
+    provenance: "Capture directe de la route /cgu sur l’application TOK.",
+  },
+  privacy: {
+    src: "/images/user-guide/routes/confidentialite.png",
+    alt: "Politique de confidentialité réelle de TOK",
+    caption: "Politique de confidentialité affichée dans l’application.",
+    provenance: "Capture directe de la route /politique-confidentialite sur l’application TOK.",
+  },
+  cookies: {
+    src: "/images/user-guide/routes/cookies.png",
+    alt: "Page cookies réelle de TOK",
+    caption: "Inventaire et réglages des traceurs présentés dans l’application.",
+    provenance: "Capture directe de la route /cookies sur l’application TOK.",
+  },
+  restaurantTerms: {
+    src: "/images/user-guide/routes/conditions-restaurateurs.png",
+    alt: "Conditions restaurateurs réelles de TOK",
+    caption: "Conditions destinées aux établissements partenaires.",
+    provenance: "Capture directe de la route /conditions-restaurateurs sur l’application TOK.",
+  },
+  googleBusiness: {
+    src: "/images/user-guide/routes/google-business.png",
+    alt: "Audit Google Business réel de TOK",
+    caption: "Parcours d’audit Google Business destiné aux restaurateurs.",
+    provenance: "Capture directe de la route /restaurateurs/google-business sur l’application TOK.",
+  },
+  alternativeCommission: {
+    src: "/images/user-guide/routes/alternative-commission.png",
+    alt: "Comparateur de commissions réel de TOK",
+    caption: "Comparaison réelle des modèles de commission pour les restaurateurs.",
+    provenance: "Capture directe de la route /restaurateurs/alternative-commission-couvert sur l’application TOK.",
+  },
+} satisfies Record<string, GuideScreenshotSource>;
+
+type ScreenshotKey = keyof typeof SCREENSHOTS;
+
+const EXACT_ROUTE_SCREENSHOTS: Partial<Record<GuideRouteEntry["path"], ScreenshotKey>> = {
+  "/": "home",
+  "/auth": "auth",
+  "/recherche": "search",
+  "/anti-gaspi": "antiWaste",
+  "/panier": "cart",
+  "/chefs-table": "chefsTable",
+  "/zero-attente": "zeroWait",
+  "/budget-auto": "budgetAuto",
+  "/abonnement": "subscription",
+  "/tok-one": "tokOne",
+  "/tok-connect": "connect",
+  "/tok-connect/mcp-widget": "tokConnectWidget",
+  "/miamz-solidaires": "solidarity",
+  "/ventes-flash": "flashSales",
+  "/actualites": "news",
+  "/contact": "contact",
+  "/cgu": "terms",
+  "/politique-confidentialite": "privacy",
+  "/cookies": "cookies",
+  "/a-propos": "about",
+  "/packs-restaurateur": "packs",
+  "/conditions-restaurateurs": "restaurantTerms",
+  "/restaurateurs/geneve": "directory",
+  "/restaurateurs/google-business": "googleBusiness",
+  "/restaurateurs/alternative-commission-couvert": "alternativeCommission",
+  "/aide": "help",
+  "/dashboard": "restaurant",
+  "/courier": "courier",
+  "/commercial": "commercial",
+  "/admin": "admin",
+  "/admin/restaurants": "adminRestaurants",
+  "/admin/utilisateurs": "adminUsers",
+  "/admin/compta": "adminAccounting",
+  "/admin/commandes-reservations": "adminOperations",
+  "/admin/guardian": "adminGuardian",
+  "/marketing/login": "marketing",
+};
+
+function exactScreenshot(key: ScreenshotKey, capturedRoute: string): GuideFeatureScreenshot {
+  return {
+    ...SCREENSHOTS[key],
+    representation: "exact-route",
+    capturedRoute,
+  };
+}
+
+function relatedScreenshot(
+  key: ScreenshotKey,
+  capturedRoute: string,
+  toolName: string,
+): GuideFeatureScreenshot {
+  const source = SCREENSHOTS[key];
+  return {
+    ...source,
+    caption: `Écran réel associé à « ${humanizeGuideLabel(toolName)} » ; le service serveur n’a pas d’interface autonome.`,
+    provenance: `Capture directe de ${capturedRoute}, surface de déclenchement ou de supervision associée — et non capture de l’endpoint lui-même.`,
+    representation: "related-surface",
+    capturedRoute,
+  };
+}
 
 const TOOL_CATEGORY_RULES: readonly [string, RegExp][] = [
   ["Paiements & revenus", /(stripe|checkout|payment|invoice|billing|refund|subscription|payout|adjustment)/i],
@@ -211,31 +375,9 @@ export function getGuideToolCategory(tool: GuideToolEntry) {
   return TOOL_CATEGORY_RULES.find(([, pattern]) => pattern.test(tool.name))?.[0] || "Services de plateforme";
 }
 
-function screenshotForRoute(route: GuideRouteEntry): GuideFeatureScreenshot {
-  const path = route.path.toLowerCase();
-  if (route.surface === "restaurant") return SCREENSHOTS.restaurant;
-  if (route.surface === "courier") return SCREENSHOTS.courier;
-  if (route.surface === "commercial") return SCREENSHOTS.commercial;
-  if (route.surface === "marketing") return SCREENSHOTS.marketing;
-  if (route.surface === "admin") {
-    if (/(restaurants|google-business)/.test(path)) return SCREENSHOTS.adminRestaurants;
-    if (/(utilisateurs|packs)/.test(path)) return SCREENSHOTS.adminUsers;
-    if (/(commandes-reservations|sinistres|support-resolution)/.test(path)) return SCREENSHOTS.adminOperations;
-    if (/(guardian|audit|ai-operations)/.test(path)) return SCREENSHOTS.adminGuardian;
-    if (/compta/.test(path)) return SCREENSHOTS.adminAccounting;
-    if (/tok-connect/.test(path)) return SCREENSHOTS.connect;
-    return SCREENSHOTS.admin;
-  }
-  if (/(auth|oauth|espaces|profil|parametres\/securite)/.test(path)) return SCREENSHOTS.auth;
-  if (/(recherche|restaurants\/:city|restaurant\/:id)/.test(path)) return SCREENSHOTS.search;
-  if (/restaurateurs/.test(path)) return SCREENSHOTS.directory;
-  if (/(aide|cgu|confidentialite|cookies|mentions|conditions)/.test(path)) return SCREENSHOTS.help;
-  if (/contact/.test(path)) return SCREENSHOTS.contact;
-  if (/packs-restaurateur/.test(path)) return SCREENSHOTS.packs;
-  if (/(abonnement|tok-one|points-cadeau)/.test(path)) return SCREENSHOTS.subscription;
-  if (/(zero-attente|creneaux|flex-prix|match-groupes|multi-stop|multi-restaurant)/.test(path)) return SCREENSHOTS.zeroWait;
-  if (/tok-connect/.test(path)) return SCREENSHOTS.connect;
-  return SCREENSHOTS.home;
+function screenshotForRoute(route: GuideRouteEntry): GuideFeatureScreenshot | null {
+  const key = EXACT_ROUTE_SCREENSHOTS[route.path];
+  return key ? exactScreenshot(key, route.path) : null;
 }
 
 type RouteWorkflow = Pick<GuideFeatureDetail, "purpose" | "explanation" | "prerequisites" | "steps" | "expectedResults" | "safeguards">;
@@ -406,6 +548,7 @@ function routeWorkflow(route: GuideRouteEntry, title: string): RouteWorkflow {
 export function getRouteGuideDetail(route: GuideRouteEntry): GuideFeatureDetail {
   const title = getGuideRouteTitle(route);
   const workflow = routeWorkflow(route, title);
+  const screenshot = screenshotForRoute(route);
   return {
     id: `route:${route.surface}:${route.path}`,
     kind: "route",
@@ -418,24 +561,26 @@ export function getRouteGuideDetail(route: GuideRouteEntry): GuideFeatureDetail 
       `Composant(s) détecté(s) : ${route.components.join(", ") || "aucun composant nommé"}.`,
       route.featureGate ? `Activation conditionnelle : ${route.featureGate}.` : "Aucun drapeau d’activation explicite détecté sur la route.",
       route.redirectTo ? `Destination de redirection : ${route.redirectTo}.` : "La route rend directement son écran de référence.",
+      screenshot
+        ? `Capture exacte validée sur ${screenshot.capturedRoute}.`
+        : "Aucune capture exacte validée pour cette route : le guide n’affiche volontairement aucun visuel générique de remplacement.",
     ],
-    screenshot: screenshotForRoute(route),
+    screenshot,
   };
 }
 
-function screenshotForTool(tool: GuideToolEntry): GuideFeatureScreenshot {
+function screenshotForTool(tool: GuideToolEntry): GuideFeatureScreenshot | null {
   const name = tool.name.toLowerCase();
-  if (/(admin-demo|admin-restaurant|restaurant)/.test(name)) return SCREENSHOTS.adminRestaurants;
-  if (/(user|role|account|application|courier-profile)/.test(name)) return SCREENSHOTS.adminUsers;
-  if (/(order|reservation|dispatch|refund|incident|support)/.test(name)) return SCREENSHOTS.adminOperations;
-  if (/(guardian|audit|monitor|security|ai-admin)/.test(name)) return SCREENSHOTS.adminGuardian;
-  if (/(stripe|payment|invoice|billing|payout|accounting|adjustment)/.test(name)) return SCREENSHOTS.adminAccounting;
-  if (/(marketing|campaign|sponsored|newsletter)/.test(name)) return SCREENSHOTS.marketing;
-  if (/(tok-connect|oauth|webhook|google-actions|supplier|aligro)/.test(name)) return SCREENSHOTS.connect;
-  if (/(courier|mission)/.test(name)) return SCREENSHOTS.courier;
-  if (/(prospect|commercial)/.test(name)) return SCREENSHOTS.commercial;
-  if (/(menu|photo|floorplan|advisor|daily-dish|crm)/.test(name)) return SCREENSHOTS.restaurant;
-  return SCREENSHOTS.admin;
+  if (/(create-checkout|validate-order)/.test(name)) return relatedScreenshot("cart", "/panier", tool.name);
+  if (/(admin-demo|admin-restaurant|restaurant)/.test(name)) return relatedScreenshot("adminRestaurants", "/admin/restaurants", tool.name);
+  if (/(user|role|account|application|courier-profile)/.test(name)) return relatedScreenshot("adminUsers", "/admin/utilisateurs", tool.name);
+  if (/(order|reservation|dispatch|refund|incident|support)/.test(name)) return relatedScreenshot("adminOperations", "/admin/commandes-reservations", tool.name);
+  if (/(guardian|audit|monitor|security|ai-admin)/.test(name)) return relatedScreenshot("adminGuardian", "/admin/guardian", tool.name);
+  if (/(stripe|payment|invoice|billing|payout|accounting|adjustment)/.test(name)) return relatedScreenshot("adminAccounting", "/admin/compta", tool.name);
+  if (/(tok-connect|oauth|webhook|google-actions|supplier|aligro)/.test(name)) return relatedScreenshot("connect", "/tok-connect", tool.name);
+  if (/(courier|mission)/.test(name)) return relatedScreenshot("courier", "/courier", tool.name);
+  if (/(prospect|commercial)/.test(name)) return relatedScreenshot("commercial", "/commercial", tool.name);
+  return null;
 }
 
 export function getToolGuideDetail(tool: GuideToolEntry): GuideFeatureDetail {
@@ -448,6 +593,7 @@ export function getToolGuideDetail(tool: GuideToolEntry): GuideFeatureDetail {
     ? tool.integrations.map(humanizeGuideLabel)
     : ["Services internes TOK"];
   const isReadOnly = tool.methods.length > 0 && tool.methods.every((method) => method === "GET");
+  const screenshot = screenshotForTool(tool);
 
   return {
     id: `tool:${tool.name}`,
@@ -483,8 +629,10 @@ export function getToolGuideDetail(tool: GuideToolEntry): GuideFeatureDetail {
       `Méthodes détectées : ${tool.methods.join(", ") || "interne"}.`,
       `Actions détectées : ${actions.join(", ")}.`,
       `Intégrations détectées : ${integrations.join(", ")}.`,
-      "La capture montre la surface réelle qui déclenche ou supervise le service ; l’endpoint serveur ne possède pas d’écran propre.",
+      screenshot
+        ? `La capture montre ${screenshot.capturedRoute}, surface réelle associée ; elle n’est pas présentée comme l’écran de l’endpoint.`
+        : "Cet endpoint ne possède pas d’écran autonome et aucune association visuelle suffisamment précise n’est publiée.",
     ],
-    screenshot: screenshotForTool(tool),
+    screenshot,
   };
 }

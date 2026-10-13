@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "6ecea85d7236e05bb736d73afb26fc5bd23145de60516677027a0b4c4745fd70",
+ "sourceDigest": "4d1ecbf084a4fab00a2392fe696503f3b9d23f02040b32cdc5b4b570bb52d364",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -20,12 +20,12 @@
   "migrations": 533,
   "modules": 1536,
   "pages": 129,
-  "pathLiterals": 677,
+  "pathLiterals": 693,
   "publicAssets": 486,
   "publicEntries": 511,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16441,
+  "records": 16457,
   "repositoryFiles": 3048,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -3252,7 +3252,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 717,
+      "line": 762,
       "kind": "function"
      }
     ],
@@ -13565,6 +13565,10 @@
       "line": 125
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 271
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 33
      },
@@ -13778,7 +13782,11 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 145
+      "line": 147
+     },
+     {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 334
      },
      {
       "path": "src/pages/LocalRestaurants.tsx",
@@ -14475,6 +14483,10 @@
       "line": 125
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 290
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 189
      },
@@ -14534,6 +14546,10 @@
      {
       "path": "src/components/home/FeaturesSection.tsx",
       "line": 29
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 279
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -14624,6 +14640,10 @@
      {
       "path": "src/components/Navbar.tsx",
       "line": 504
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 285
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -14906,6 +14926,10 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 173
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 300
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -15281,6 +15305,14 @@
       "line": 173
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 304
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 577
+     },
+     {
       "path": "src/lib/featureCatalog.ts",
       "line": 850
      },
@@ -15405,6 +15437,14 @@
      {
       "path": "src/components/navigation/BackNavigationButton.tsx",
       "line": 17
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 303
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 579
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -15594,6 +15634,14 @@
       "line": 173
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 305
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 578
+     },
+     {
       "path": "src/lib/featureCatalog.ts",
       "line": 767
      },
@@ -15753,6 +15801,14 @@
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
       "line": 309
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 301
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 575
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -15979,6 +16035,14 @@
       "line": 64
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 302
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 576
+     },
+     {
       "path": "src/lib/featureCatalog.ts",
       "line": 793
      },
@@ -16072,6 +16136,10 @@
       "line": 261
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 296
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 195
      },
@@ -16081,11 +16149,11 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 149
+      "line": 151
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 707
+      "line": 752
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -16152,6 +16220,10 @@
      {
       "path": "src/components/home/FeaturesSection.tsx",
       "line": 46
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 274
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -16512,6 +16584,10 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 251
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 272
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -17093,6 +17169,10 @@
       "line": 28
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 278
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 57
      },
@@ -17158,6 +17238,10 @@
      {
       "path": "src/components/legal/LegalConsentBanner.tsx",
       "line": 96
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 287
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -17302,6 +17386,10 @@
      {
       "path": "src/components/home/HeroSection.tsx",
       "line": 86
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 276
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -17862,6 +17950,14 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 161
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 299
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 582
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -18457,6 +18553,10 @@
       "line": 255
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 292
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 191
      },
@@ -18550,6 +18650,10 @@
       "line": 260
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 286
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 59
      },
@@ -18621,6 +18725,10 @@
      {
       "path": "src/components/legal/LegalConsentBanner.tsx",
       "line": 98
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 289
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -18734,6 +18842,14 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 161
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 298
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 581
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -19258,6 +19374,10 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 149
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 297
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -20117,6 +20237,10 @@
      {
       "path": "src/test/user-guide.test.ts",
       "line": 32
+     },
+     {
+      "path": "src/test/user-guide.test.ts",
+      "line": 85
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -21447,15 +21571,15 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 138
+      "line": 140
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 628
+      "line": 673
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 636
+      "line": 681
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -21480,15 +21604,15 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 186
+      "line": 188
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 609
+      "line": 654
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 720
+      "line": 765
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -21521,15 +21645,15 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 169
+      "line": 171
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 609
+      "line": 654
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 719
+      "line": 764
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -23588,7 +23712,7 @@
      },
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 89
+      "line": 93
      }
     ]
    },
@@ -23601,7 +23725,7 @@
      },
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 47
+      "line": 51
      }
     ]
    },
@@ -23614,7 +23738,7 @@
      },
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 101
+      "line": 105
      }
     ]
    },
@@ -23623,7 +23747,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 143
+      "line": 147
      }
     ]
    },
@@ -23632,7 +23756,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 137
+      "line": 141
      }
     ]
    },
@@ -23641,7 +23765,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 131
+      "line": 135
      }
     ]
    },
@@ -23650,7 +23774,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 113
+      "line": 117
      }
     ]
    },
@@ -23659,7 +23783,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 119
+      "line": 123
      }
     ]
    },
@@ -23668,7 +23792,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 125
+      "line": 129
      }
     ]
    },
@@ -23677,7 +23801,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 65
+      "line": 69
      }
     ]
    },
@@ -23686,7 +23810,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 71
+      "line": 75
      }
     ]
    },
@@ -23695,7 +23819,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 149
+      "line": 153
      }
     ]
    },
@@ -23704,7 +23828,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 77
+      "line": 81
      }
     ]
    },
@@ -23713,7 +23837,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 155
+      "line": 159
      }
     ]
    },
@@ -23722,7 +23846,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 161
+      "line": 165
      }
     ]
    },
@@ -23731,7 +23855,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 83
+      "line": 87
      }
     ]
    },
@@ -23740,7 +23864,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 53
+      "line": 57
      }
     ]
    },
@@ -23749,7 +23873,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 59
+      "line": 63
      }
     ]
    },
@@ -23758,7 +23882,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 107
+      "line": 111
      }
     ]
    },
@@ -23767,7 +23891,7 @@
     "sources": [
      {
       "path": "src/data/userGuideFeatureDetails.ts",
-      "line": 95
+      "line": 99
      }
     ]
    },
@@ -23777,6 +23901,154 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 210
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/a-propos.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 225
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/actualites.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 219
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/alternative-commission.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 261
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/anti-gaspi.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 171
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/budget-auto.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 189
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/cgu.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 231
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/chefs-table.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 183
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/conditions-restaurateurs.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 249
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/confidentialite.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 237
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/cookies.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 243
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/google-business.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 255
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/miamz-solidaires.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 207
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/panier.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 177
+     },
+     {
+      "path": "src/test/user-guide.test.ts",
+      "line": 81
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/tok-connect-mcp-widget.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 201
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/tok-one.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 195
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/routes/ventes-flash.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 213
      }
     ]
    },
@@ -24178,6 +24450,10 @@
       "line": 185
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 306
+     },
+     {
       "path": "src/marketing/MarketingSessionProvider.tsx",
       "line": 328
      },
@@ -24412,6 +24688,10 @@
      {
       "path": "src/components/CustomerDashboardLayout.tsx",
       "line": 112
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 283
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -24973,6 +25253,10 @@
       "line": 254
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 291
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 190
      },
@@ -25040,6 +25324,14 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 137
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 275
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 574
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -25148,6 +25440,14 @@
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 42
+     },
+     {
+      "path": "src/test/user-guide.test.ts",
+      "line": 78
+     },
+     {
+      "path": "src/test/user-guide.test.ts",
+      "line": 82
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -25276,6 +25576,10 @@
      {
       "path": "src/components/legal/LegalConsentBanner.tsx",
       "line": 97
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 288
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -25688,6 +25992,10 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 137
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 273
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -27146,6 +27454,10 @@
       "line": 259
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 295
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 194
      },
@@ -27239,6 +27551,10 @@
       "line": 256
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 293
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 192
      },
@@ -27318,6 +27634,10 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 258
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 294
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -27769,6 +28089,14 @@
       "line": 197
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 281
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 580
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 60
      },
@@ -27877,6 +28205,10 @@
       "line": 601
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 282
+     },
+     {
       "path": "src/lib/featureCatalog.ts",
       "line": 303
      },
@@ -27924,6 +28256,10 @@
      {
       "path": "src/components/home/FeaturesSection.tsx",
       "line": 55
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 280
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -28685,6 +29021,10 @@
       "line": 84
      },
      {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 284
+     },
+     {
       "path": "src/hooks/useSeoMeta.ts",
       "line": 45
      },
@@ -28790,6 +29130,10 @@
      {
       "path": "src/components/home/FeaturesSection.tsx",
       "line": 37
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 277
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -29395,15 +29739,15 @@
     "sources": [
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 452
+      "line": 497
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 465
+      "line": 510
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 471
+      "line": 516
      }
     ],
     "routes": [
@@ -88733,37 +89077,37 @@
      },
      {
       "name": "GuideFeatureDetail",
-      "line": 16,
+      "line": 20,
       "kind": "typealias"
      },
      {
       "name": "humanizeGuideLabel",
-      "line": 179,
+      "line": 343,
       "kind": "function"
      },
      {
       "name": "getGuideRouteTitle",
-      "line": 192,
+      "line": 356,
       "kind": "function"
      },
      {
       "name": "getGuideRouteAccess",
-      "line": 200,
+      "line": 364,
       "kind": "function"
      },
      {
       "name": "getGuideToolCategory",
-      "line": 210,
+      "line": 374,
       "kind": "function"
      },
      {
       "name": "getRouteGuideDetail",
-      "line": 406,
+      "line": 548,
       "kind": "function"
      },
      {
       "name": "getToolGuideDetail",
-      "line": 441,
+      "line": 586,
       "kind": "function"
      }
     ],
@@ -88772,7 +89116,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 491
+    "lineCount": 639
    },
    {
     "path": "src/hooks/use-estimated-progress.ts",
@@ -100856,7 +101200,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 717,
+      "line": 762,
       "kind": "function"
      }
     ],
@@ -100865,7 +101209,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 723
+    "lineCount": 768
    },
    {
     "path": "src/pages/Index.tsx",
@@ -107918,7 +108262,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 90
+    "lineCount": 117
    },
    {
     "path": "src/test/vercel-rewrites.test.ts",
@@ -134062,7 +134406,7 @@
    "id": "code-module:0f3e1684311e",
    "type": "code-module",
    "title": "src/data/userGuideFeatureDetails.ts",
-   "description": "Module de 491 lignes; exports: GuideRouteEntry, GuideToolEntry, GuideFeatureScreenshot, GuideFeatureDetail, humanizeGuideLabel, getGuideRouteTitle, getGuideRouteAccess, getGuideToolCategory, getRouteGuideDetail, getToolGuideDetail.",
+   "description": "Module de 639 lignes; exports: GuideRouteEntry, GuideToolEntry, GuideFeatureScreenshot, GuideFeatureDetail, humanizeGuideLabel, getGuideRouteTitle, getGuideRouteAccess, getGuideToolCategory, getRouteGuideDetail, getToolGuideDetail.",
    "path": "src/data/userGuideFeatureDetails.ts",
    "line": 1,
    "surface": null,
@@ -134080,7 +134424,7 @@
     "humanizeGuideLabel",
     "stripe"
    ],
-   "detailRef": "96d64a8f0b75"
+   "detailRef": "44bbea13023a"
   },
   {
    "id": "code-module:1928271f37f2",
@@ -139496,7 +139840,7 @@
    "id": "code-module:c4d59f7cdd08",
    "type": "code-module",
    "title": "src/pages/GuideUtilisateur.tsx",
-   "description": "Module de 723 lignes; exports: default.",
+   "description": "Module de 768 lignes; exports: default.",
    "path": "src/pages/GuideUtilisateur.tsx",
    "line": 1,
    "surface": null,
@@ -139505,7 +139849,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "803ad73303ee"
+   "detailRef": "2a6ab5715020"
   },
   {
    "id": "code-module:8d761926e269",
@@ -148453,14 +148797,14 @@
    "id": "code-module:da69732beead",
    "type": "code-module",
    "title": "src/test/user-guide.test.ts",
-   "description": "Module de 90 lignes; exports: aucun export statique.",
+   "description": "Module de 117 lignes; exports: aucun export statique.",
    "path": "src/test/user-guide.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "stripe"
    ],
-   "detailRef": "c1b83f767f3c"
+   "detailRef": "c1edb3b05f93"
   },
   {
    "id": "code-module:3581bc9ee271",
@@ -246860,19 +247204,19 @@
    "detailRef": "020a9bc43d26"
   },
   {
-   "id": "exported-symbol:1dd69860b87e",
+   "id": "exported-symbol:870ac65f875e",
    "type": "exported-symbol",
    "title": "GuideFeatureDetail",
    "description": "Export typealias de src/data/userGuideFeatureDetails.ts.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 16,
+   "line": 20,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "typealias"
    ],
-   "detailRef": "0a56887ec47b"
+   "detailRef": "1a1052737b7e"
   },
   {
    "id": "exported-symbol:4790f07cbd3d",
@@ -267338,19 +267682,19 @@
    "detailRef": "5d76487d5d73"
   },
   {
-   "id": "exported-symbol:a78452a17592",
+   "id": "exported-symbol:a5839efa919f",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/GuideUtilisateur.tsx.",
    "path": "src/pages/GuideUtilisateur.tsx",
-   "line": 717,
+   "line": 762,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "92a225e242aa"
+   "detailRef": "b5c87fab0a8c"
   },
   {
    "id": "exported-symbol:90d0b83c1d44",
@@ -272780,49 +273124,49 @@
    "detailRef": "003a7d00d1e9"
   },
   {
-   "id": "exported-symbol:ab3dd245e18f",
+   "id": "exported-symbol:71b6acfded78",
    "type": "exported-symbol",
    "title": "getGuideRouteAccess",
    "description": "Export function de src/data/userGuideFeatureDetails.ts.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 200,
+   "line": 364,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "013945aad6ac"
+   "detailRef": "e79980cf5d0a"
   },
   {
-   "id": "exported-symbol:825abf2949c3",
+   "id": "exported-symbol:85334d24a61f",
    "type": "exported-symbol",
    "title": "getGuideRouteTitle",
    "description": "Export function de src/data/userGuideFeatureDetails.ts.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 192,
+   "line": 356,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "78511ac0698c"
+   "detailRef": "987b376b300e"
   },
   {
-   "id": "exported-symbol:005ad365585a",
+   "id": "exported-symbol:45b00d64c881",
    "type": "exported-symbol",
    "title": "getGuideToolCategory",
    "description": "Export function de src/data/userGuideFeatureDetails.ts.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 210,
+   "line": 374,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "0eef2ccdc6dc"
+   "detailRef": "ff2eb21707ca"
   },
   {
    "id": "exported-symbol:97b5b861f11f",
@@ -274627,19 +274971,19 @@
    "detailRef": "01388ec6fb68"
   },
   {
-   "id": "exported-symbol:2317911d37fa",
+   "id": "exported-symbol:f8a47f05f6da",
    "type": "exported-symbol",
    "title": "getRouteGuideDetail",
    "description": "Export function de src/data/userGuideFeatureDetails.ts.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 406,
+   "line": 548,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "20f1d2df1c16"
+   "detailRef": "43e86cea6a91"
   },
   {
    "id": "exported-symbol:f39ff8b670d2",
@@ -275428,19 +275772,19 @@
    "detailRef": "916335be58de"
   },
   {
-   "id": "exported-symbol:d7860a14e126",
+   "id": "exported-symbol:4fab5984627c",
    "type": "exported-symbol",
    "title": "getToolGuideDetail",
    "description": "Export function de src/data/userGuideFeatureDetails.ts.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 441,
+   "line": 586,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "e721f5214e4d"
+   "detailRef": "a49ac698006a"
   },
   {
    "id": "exported-symbol:40a626b357ce",
@@ -275964,19 +276308,19 @@
    "detailRef": "a662cada9702"
   },
   {
-   "id": "exported-symbol:ba77e9ee3242",
+   "id": "exported-symbol:6600ff24886d",
    "type": "exported-symbol",
    "title": "humanizeGuideLabel",
    "description": "Export function de src/data/userGuideFeatureDetails.ts.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 179,
+   "line": 343,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "42faf914d5cc"
+   "detailRef": "dc9f63bb72e6"
   },
   {
    "id": "exported-symbol:3e5a7e4a9827",
@@ -345253,7 +345597,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "bc6c162d54e8"
+   "detailRef": "6a222abbe094"
   },
   {
    "id": "page:3182d74e0e4c",
@@ -345859,7 +346203,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 241 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 243 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -345906,6 +346250,7 @@
     "src/components/legal/LegalConsentBanner.tsx",
     "src/components/navigation/BackNavigationButton.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/adminDomains.ts",
     "src/lib/analytics.ts",
@@ -345982,7 +346327,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "0f4f90ee0d30"
+   "detailRef": "1a169b8c2a5f"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -346189,7 +346534,7 @@
    "id": "path-literal:8c3db5e85ec5",
    "type": "path-literal",
    "title": "/a-propos",
-   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1066,
    "surface": null,
@@ -346199,6 +346544,7 @@
     "src/components/Navbar.tsx",
     "src/components/home/FooterSection.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/pages/APropos.tsx",
     "src/pages/Aide.tsx",
@@ -346207,7 +346553,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "976ad6d43e82"
+   "detailRef": "ad6379634561"
   },
   {
    "id": "path-literal:b93cc2bbc5bc",
@@ -346226,7 +346572,7 @@
    "id": "path-literal:fb6caf1ad553",
    "type": "path-literal",
    "title": "/abonnement",
-   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1002,
    "surface": null,
@@ -346236,6 +346582,7 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
     "src/components/home/FeaturesSection.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
@@ -346243,7 +346590,7 @@
     "src/test/meal-subscription-cart.test.tsx",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "d79dd6256fae"
+   "detailRef": "bdeda41eaa46"
   },
   {
    "id": "path-literal:a5b6aab3e61b",
@@ -346317,7 +346664,7 @@
    "id": "path-literal:e9c70eae30ca",
    "type": "path-literal",
    "title": "/actualites",
-   "description": "Chemin référencé dans 31 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 32 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/harden-seo-crawl.mjs",
    "line": 380,
    "surface": null,
@@ -346327,6 +346674,7 @@
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
@@ -346342,7 +346690,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "cdb1dc88147f"
+   "detailRef": "3a27fd57df30"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -346493,7 +346841,7 @@
    "id": "path-literal:d88ee884841c",
    "type": "path-literal",
    "title": "/admin/commandes-reservations",
-   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 669,
    "surface": null,
@@ -346501,6 +346849,7 @@
     "src/App.tsx",
     "src/components/admin/AdminMobileNavigation.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/lib/featureCatalog.ts",
     "src/lib/notificationRouting.ts",
     "src/pages/admin/AdminCompta.tsx",
@@ -346509,7 +346858,7 @@
     "src/test/feature-flags.test.ts",
     "src/test/notifications-sinistres-governance.test.ts"
    ],
-   "detailRef": "e22af4bcfdf2"
+   "detailRef": "4c394ee9b3a8"
   },
   {
    "id": "path-literal:1e75a2497da9",
@@ -346649,7 +346998,7 @@
    "id": "path-literal:3a9da2433210",
    "type": "path-literal",
    "title": "/admin/compta",
-   "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 16 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 665,
    "surface": null,
@@ -346657,13 +347006,14 @@
     "src/App.tsx",
     "src/components/admin/AdminMobileNavigation.tsx",
     "src/components/navigation/BackNavigationButton.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/lib/featureCatalog.ts",
     "src/pages/admin/AdminCompta.tsx",
     "src/pages/admin/AdminComptaInflow.tsx",
     "src/pages/admin/AdminComptaOutflow.tsx",
     "src/pages/admin/AdminHome.tsx"
    ],
-   "detailRef": "43272c158cc0"
+   "detailRef": "d9241e04e7f9"
   },
   {
    "id": "path-literal:a39aa0d86182",
@@ -346701,7 +347051,7 @@
    "id": "path-literal:1937087af5d8",
    "type": "path-literal",
    "title": "/admin/guardian",
-   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 672,
    "surface": null,
@@ -346709,6 +347059,7 @@
     "src/App.tsx",
     "src/components/admin/AdminMobileNavigation.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/lib/featureCatalog.ts",
     "src/pages/admin/AdminHome.tsx",
     "src/test/application-search-index.test.ts",
@@ -346716,7 +347067,7 @@
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/user-guide.test.ts"
    ],
-   "detailRef": "ebde85b889c4"
+   "detailRef": "13dcc04e284a"
   },
   {
    "id": "path-literal:1881763b0e39",
@@ -346811,7 +347162,7 @@
    "id": "path-literal:05ae2344154a",
    "type": "path-literal",
    "title": "/admin/restaurants",
-   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 653,
    "surface": null,
@@ -346819,6 +347170,7 @@
     "src/App.tsx",
     "src/components/admin/AdminDemoEntitiesDialog.tsx",
     "src/components/admin/AdminMobileNavigation.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/lib/featureCatalog.ts",
     "src/pages/admin/AdminAuditLogs.tsx",
     "src/pages/admin/AdminGoogleBusiness.tsx",
@@ -346827,7 +347179,7 @@
     "src/test/auth-post-login-routing.test.ts",
     "src/test/back-navigation.test.ts"
    ],
-   "detailRef": "26bd7e91ccff"
+   "detailRef": "9ffc3f760739"
   },
   {
    "id": "path-literal:c2c6cba854e5",
@@ -346930,7 +347282,7 @@
    "id": "path-literal:f0dbfa698f2e",
    "type": "path-literal",
    "title": "/admin/utilisateurs",
-   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 655,
    "surface": null,
@@ -346938,10 +347290,11 @@
     "src/App.tsx",
     "src/components/admin/AdminDemoEntitiesDialog.tsx",
     "src/components/admin/AdminMobileNavigation.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/lib/featureCatalog.ts",
     "src/pages/admin/AdminHome.tsx"
    ],
-   "detailRef": "afed1ecc1ec3"
+   "detailRef": "b8f5a37e050d"
   },
   {
    "id": "path-literal:1acfbab35067",
@@ -346992,7 +347345,7 @@
    "id": "path-literal:b68b25032a0b",
    "type": "path-literal",
    "title": "/admin",
-   "description": "Chemin référencé dans 68 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 69 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 167,
    "surface": null,
@@ -347007,6 +347360,7 @@
     "src/components/navigation/RoleSpaceMenuSection.tsx",
     "src/components/navigation/RoleSpaceSwitcher.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/adminDomains.ts",
     "src/lib/backNavigation.ts",
@@ -347030,7 +347384,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "2245164739f9"
+   "detailRef": "379d1604693f"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -347049,7 +347403,7 @@
    "id": "path-literal:72326e3872bb",
    "type": "path-literal",
    "title": "/aide",
-   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1082,
    "surface": null,
@@ -347059,13 +347413,14 @@
     "src/components/Navbar.tsx",
     "src/components/home/FooterSection.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/pages/Aide.tsx",
     "src/pages/GuideUtilisateur.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "b1bbea46ccf0"
+   "detailRef": "c962a8752fe4"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -347084,7 +347439,7 @@
    "id": "path-literal:d537690f2f80",
    "type": "path-literal",
    "title": "/anti-gaspi",
-   "description": "Chemin référencé dans 21 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 22 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 341,
    "surface": null,
@@ -347096,6 +347451,7 @@
     "src/components/Navbar.tsx",
     "src/components/PromoCarousel.tsx",
     "src/components/home/FeaturesSection.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
@@ -347108,7 +347464,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "b47835a09879"
+   "detailRef": "a555bfce6131"
   },
   {
    "id": "path-literal:b8366dc7f0ad",
@@ -347520,7 +347876,7 @@
    "id": "path-literal:41b6bbde7500",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 53 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 54 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1279,
    "surface": null,
@@ -347538,6 +347894,7 @@
     "src/components/home/HeroSection.tsx",
     "src/components/support/TokAiSupportChat.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/adminDomains.ts",
     "src/lib/authDomains.ts",
@@ -347565,7 +347922,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "0bd6a2da5089"
+   "detailRef": "672142e987c5"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -347676,7 +348033,7 @@
    "id": "path-literal:9e7d998e2afc",
    "type": "path-literal",
    "title": "/budget-auto",
-   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1026,
    "surface": null,
@@ -347686,12 +348043,13 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
     "src/components/home/FeaturesSection.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "a34f896c4baf"
+   "detailRef": "57ccfe9b8edb"
   },
   {
    "id": "path-literal:32d025d623e0",
@@ -347724,7 +348082,7 @@
    "id": "path-literal:28147ed6c1fc",
    "type": "path-literal",
    "title": "/cgu",
-   "description": "Chemin référencé dans 21 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 22 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1225,
    "surface": null,
@@ -347734,6 +348092,7 @@
     "src/components/Navbar.tsx",
     "src/components/home/FooterSection.tsx",
     "src/components/legal/LegalConsentBanner.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/launchGate.ts",
     "src/lib/legalDocuments.ts",
@@ -347748,7 +348107,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "774049c74868"
+   "detailRef": "9ef625e841ac"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -347822,7 +348181,7 @@
    "id": "path-literal:d7b2a9564c6c",
    "type": "path-literal",
    "title": "/chefs-table",
-   "description": "Chemin référencé dans 24 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 25 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 994,
    "surface": null,
@@ -347834,6 +348193,7 @@
     "src/components/Navbar.tsx",
     "src/components/PromoCarousel.tsx",
     "src/components/home/HeroSection.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
@@ -347850,7 +348210,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "8dea17e4c48a"
+   "detailRef": "524a0bd36c82"
   },
   {
    "id": "path-literal:f58c14b4a509",
@@ -348330,7 +348690,7 @@
    "id": "path-literal:a14905843751",
    "type": "path-literal",
    "title": "/commercial",
-   "description": "Chemin référencé dans 49 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 51 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 171,
    "surface": null,
@@ -348346,6 +348706,7 @@
     "src/components/navigation/RoleSpaceMenuSection.tsx",
     "src/components/navigation/RoleSpaceSwitcher.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoFrame.ts",
     "src/lib/commercialDomains.ts",
@@ -348364,7 +348725,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "dfb00e5d1065"
+   "detailRef": "c85aef564493"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -348413,7 +348774,7 @@
    "id": "path-literal:8b8b044b1bc0",
    "type": "path-literal",
    "title": "/conditions-restaurateurs",
-   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1239,
    "surface": null,
@@ -348422,6 +348783,7 @@
     "src/App.tsx",
     "src/components/home/FooterSection.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/legalDocuments.ts",
     "src/lib/publicFeatureMatrix.ts",
@@ -348432,13 +348794,13 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "8a621e0bdca9"
+   "detailRef": "c9cd834d8fe8"
   },
   {
    "id": "path-literal:2a26b0d45a67",
    "type": "path-literal",
    "title": "/contact",
-   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 21 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 798,
    "surface": null,
@@ -348449,6 +348811,7 @@
     "src/components/Navbar.tsx",
     "src/components/home/FooterSection.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/pages/Aide.tsx",
@@ -348460,13 +348823,13 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "417c9c168b73"
+   "detailRef": "ae955082493c"
   },
   {
    "id": "path-literal:8c3e160fbc5f",
    "type": "path-literal",
    "title": "/cookies",
-   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1232,
    "surface": null,
@@ -348476,6 +348839,7 @@
     "src/components/Navbar.tsx",
     "src/components/home/FooterSection.tsx",
     "src/components/legal/LegalConsentBanner.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/launchGate.ts",
     "src/lib/legalDocuments.ts",
@@ -348486,7 +348850,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "7cb8732f1816"
+   "detailRef": "f97768460f7b"
   },
   {
    "id": "path-literal:38c09027fcdd",
@@ -348600,7 +348964,7 @@
    "id": "path-literal:a7bb9de03d1b",
    "type": "path-literal",
    "title": "/courier",
-   "description": "Chemin référencé dans 30 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 32 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 170,
    "surface": null,
@@ -348613,6 +348977,7 @@
     "src/components/commercial/CommercialSingleSpaceDemo.tsx",
     "src/components/navigation/BackNavigationButton.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/backNavigation.ts",
     "src/lib/commercialDemoFrame.ts",
@@ -348626,7 +348991,7 @@
     "src/test/role-access.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "5d828fc644c8"
+   "detailRef": "2b13555ab9d8"
   },
   {
    "id": "path-literal:53f7ddd4b372",
@@ -349037,7 +349402,7 @@
    "id": "path-literal:2503817fabed",
    "type": "path-literal",
    "title": "/dashboard/menu",
-   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 16 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 615,
    "surface": null,
@@ -349053,7 +349418,7 @@
     "src/test/user-guide.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "6802461642c0"
+   "detailRef": "be62f1ef2cb4"
   },
   {
    "id": "path-literal:a625ca0f9d33",
@@ -349427,7 +349792,7 @@
    "id": "path-literal:a83de8cf5f54",
    "type": "path-literal",
    "title": "/dashboard",
-   "description": "Chemin référencé dans 80 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 81 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 169,
    "surface": null,
@@ -349445,6 +349810,7 @@
     "src/components/legal/LegalConsentBanner.tsx",
     "src/components/navigation/BackNavigationButton.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/backNavigation.ts",
     "src/lib/commercialDemoFrame.ts",
@@ -349467,7 +349833,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "7b488bfe23a2"
+   "detailRef": "9764455e7842"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -350015,7 +350381,7 @@
     "src/pages/GuideUtilisateur.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "5ecff2344e3d"
+   "detailRef": "8ed9cc5e27e3"
   },
   {
    "id": "path-literal:b3fde50ddf48",
@@ -350034,7 +350400,7 @@
     "src/pages/GuideUtilisateur.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "1a83978e1b92"
+   "detailRef": "6f9d20a3ee2f"
   },
   {
    "id": "path-literal:0951e3962fc3",
@@ -350054,7 +350420,7 @@
     "src/pages/GuideUtilisateur.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "8b21653f144a"
+   "detailRef": "ed166b397387"
   },
   {
    "id": "path-literal:ff548aad270f",
@@ -352197,7 +352563,7 @@
     "src/data/userGuideContent.ts",
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "1fb474e14f8a"
+   "detailRef": "ae2a51296bdc"
   },
   {
    "id": "path-literal:32985b87365c",
@@ -352211,7 +352577,7 @@
     "src/data/userGuideContent.ts",
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "168bca69f12d"
+   "detailRef": "ca66f5e352bf"
   },
   {
    "id": "path-literal:51db61899643",
@@ -352225,228 +352591,228 @@
     "src/data/userGuideContent.ts",
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "6a819fce3a9c"
+   "detailRef": "c72871ea75b6"
   },
   {
-   "id": "path-literal:290a84960aa1",
+   "id": "path-literal:489892dae6e1",
    "type": "path-literal",
    "title": "/images/user-guide/features/admin-comptabilite.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 143,
+   "line": 147,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "efb50b6d928f"
+   "detailRef": "489e10224553"
   },
   {
-   "id": "path-literal:9b322e2abf09",
+   "id": "path-literal:a34163bd8a23",
    "type": "path-literal",
    "title": "/images/user-guide/features/admin-guardian.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 137,
+   "line": 141,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "bc37c6feb9fe"
+   "detailRef": "e4d18d81eb7a"
   },
   {
-   "id": "path-literal:1aec0e686b88",
+   "id": "path-literal:6053ed50a218",
    "type": "path-literal",
    "title": "/images/user-guide/features/admin-operations.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 131,
+   "line": 135,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "4c8d5e6b352b"
+   "detailRef": "b55505632dc1"
   },
   {
-   "id": "path-literal:31fcde2757e2",
+   "id": "path-literal:331c09b35039",
    "type": "path-literal",
    "title": "/images/user-guide/features/admin-overview.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 113,
+   "line": 117,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "7444bc06262e"
+   "detailRef": "ccf52af77793"
   },
   {
-   "id": "path-literal:1c1c28698315",
+   "id": "path-literal:6e1e569a7e51",
    "type": "path-literal",
    "title": "/images/user-guide/features/admin-restaurants.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 119,
+   "line": 123,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "d08c051624ce"
+   "detailRef": "ed91df762578"
   },
   {
-   "id": "path-literal:03f74a7ab0f2",
+   "id": "path-literal:becdc8b3ffda",
    "type": "path-literal",
    "title": "/images/user-guide/features/admin-utilisateurs.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 125,
+   "line": 129,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "9aed3936b6ee"
+   "detailRef": "ea23561d8727"
   },
   {
-   "id": "path-literal:b082a9c85e2f",
+   "id": "path-literal:efaa3e9ed3fc",
    "type": "path-literal",
    "title": "/images/user-guide/features/authentification.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 65,
+   "line": 69,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "1a33ede6e21c"
+   "detailRef": "4318393bd029"
   },
   {
-   "id": "path-literal:e00b15274a4d",
+   "id": "path-literal:69c976f2d9bb",
    "type": "path-literal",
    "title": "/images/user-guide/features/centre-aide.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 71,
+   "line": 75,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "47db880787af"
+   "detailRef": "9a9f5ccebef3"
   },
   {
-   "id": "path-literal:96d79c626de9",
+   "id": "path-literal:830607fe937b",
    "type": "path-literal",
    "title": "/images/user-guide/features/commercial-prospection.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 149,
+   "line": 153,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "3b6b7a7b08a9"
+   "detailRef": "4ff36d20d643"
   },
   {
-   "id": "path-literal:23334f56c692",
+   "id": "path-literal:f3e5aae86004",
    "type": "path-literal",
    "title": "/images/user-guide/features/contact.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 77,
+   "line": 81,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "cc96fd7a1255"
+   "detailRef": "8f13cb990774"
   },
   {
-   "id": "path-literal:f7efe501f42f",
+   "id": "path-literal:ce399c7e00ef",
    "type": "path-literal",
    "title": "/images/user-guide/features/courier-dashboard.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 155,
+   "line": 159,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "12fb5e64355c"
+   "detailRef": "3811d648c64e"
   },
   {
-   "id": "path-literal:0425bc99016b",
+   "id": "path-literal:17422a4ceb7b",
    "type": "path-literal",
    "title": "/images/user-guide/features/marketing-login.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 161,
+   "line": 165,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "0f5cea4dc967"
+   "detailRef": "2c3cf05c3537"
   },
   {
-   "id": "path-literal:af806f3f9d6d",
+   "id": "path-literal:b2df4f2da936",
    "type": "path-literal",
    "title": "/images/user-guide/features/packs-restaurateur.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 83,
+   "line": 87,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "25c7d0f7dfb0"
+   "detailRef": "f669ece069c6"
   },
   {
-   "id": "path-literal:44d5ab1e95b3",
+   "id": "path-literal:92bb1cda07f8",
    "type": "path-literal",
    "title": "/images/user-guide/features/recherche-desktop.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 53,
+   "line": 57,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "0c7a033bc499"
+   "detailRef": "8cdbc466b1a1"
   },
   {
-   "id": "path-literal:2b2d5359c862",
+   "id": "path-literal:65fc4c1a5d99",
    "type": "path-literal",
    "title": "/images/user-guide/features/restaurateurs-geneve.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 59,
+   "line": 63,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "679ab04eb7ec"
+   "detailRef": "10be5a35317d"
   },
   {
-   "id": "path-literal:6254e6f033be",
+   "id": "path-literal:9ba0a6850145",
    "type": "path-literal",
    "title": "/images/user-guide/features/tok-connect.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 107,
+   "line": 111,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "0aa7d4524423"
+   "detailRef": "849ae11dd59d"
   },
   {
-   "id": "path-literal:6b1384398be6",
+   "id": "path-literal:f9ba45080944",
    "type": "path-literal",
    "title": "/images/user-guide/features/zero-attente.png",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideFeatureDetails.ts",
-   "line": 95,
+   "line": 99,
    "surface": null,
    "tags": [
     "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "cbc2e18a6291"
+   "detailRef": "7a60b39c11c6"
   },
   {
    "id": "path-literal:b7a7e5720d08",
@@ -352460,6 +352826,215 @@
     "src/data/userGuideContent.ts"
    ],
    "detailRef": "2b0b35c37597"
+  },
+  {
+   "id": "path-literal:05f5a2c75782",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/a-propos.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 225,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "f276b56d38d6"
+  },
+  {
+   "id": "path-literal:6b2943bbbf39",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/actualites.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 219,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "21aa4ce50c10"
+  },
+  {
+   "id": "path-literal:25e1bcd3b9ad",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/alternative-commission.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 261,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "2f1268a09512"
+  },
+  {
+   "id": "path-literal:a2078b8f97fd",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/anti-gaspi.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 171,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "6edd2825d998"
+  },
+  {
+   "id": "path-literal:30ff93da3101",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/budget-auto.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 189,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "c7b9b54994d9"
+  },
+  {
+   "id": "path-literal:2e4d2ea8ed32",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/cgu.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 231,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "b690cea44645"
+  },
+  {
+   "id": "path-literal:e68fb5635724",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/chefs-table.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 183,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "a5c52dc7cd48"
+  },
+  {
+   "id": "path-literal:37af95274f38",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/conditions-restaurateurs.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 249,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "5e82d62ddff2"
+  },
+  {
+   "id": "path-literal:525e7a7ad96b",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/confidentialite.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 237,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "84bc313f7284"
+  },
+  {
+   "id": "path-literal:644a46a4cba9",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/cookies.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 243,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "fda7403e3923"
+  },
+  {
+   "id": "path-literal:758fc85cdfef",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/google-business.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 255,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "8dcceb590c1f"
+  },
+  {
+   "id": "path-literal:47aee8a8c1a5",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/miamz-solidaires.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 207,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "ea64e2582b82"
+  },
+  {
+   "id": "path-literal:5f89d796bd2e",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/panier.png",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 177,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts",
+    "src/test/user-guide.test.ts"
+   ],
+   "detailRef": "b45baa3e1da1"
+  },
+  {
+   "id": "path-literal:bb4bec1292ec",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/tok-connect-mcp-widget.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 201,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "6430c7006d30"
+  },
+  {
+   "id": "path-literal:1636812d75c2",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/tok-one.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 195,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "b581d13c0b6d"
+  },
+  {
+   "id": "path-literal:76f98c6122ea",
+   "type": "path-literal",
+   "title": "/images/user-guide/routes/ventes-flash.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 213,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "fd9eedf5b911"
   },
   {
    "id": "path-literal:3adb47a07987",
@@ -352705,7 +353280,7 @@
    "id": "path-literal:4a3a869345b0",
    "type": "path-literal",
    "title": "/marketing/login",
-   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 730,
    "surface": null,
@@ -352713,13 +353288,14 @@
     "src/App.tsx",
     "src/components/marketing/MarketingProtectedRoute.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/marketing/MarketingSessionProvider.tsx",
     "src/marketing/marketingBffClient.ts",
     "src/test/marketing-bff-client.test.ts",
     "src/test/marketing-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "42eeb6e77c65"
+   "detailRef": "9d33f8166d7f"
   },
   {
    "id": "path-literal:782adb141974",
@@ -352853,7 +353429,7 @@
    "id": "path-literal:4465530a888e",
    "type": "path-literal",
    "title": "/miamz-solidaires",
-   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 564,
    "surface": null,
@@ -352861,6 +353437,7 @@
     "scripts/prerender-seo.mjs",
     "src/App.tsx",
     "src/components/CustomerDashboardLayout.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/pages/LocalRestaurants.tsx",
@@ -352869,7 +353446,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "c784ee9be945"
+   "detailRef": "bdbdab4da3e6"
   },
   {
    "id": "path-literal:0bc97f93cc32",
@@ -353135,7 +353712,7 @@
    "id": "path-literal:198b768de83f",
    "type": "path-literal",
    "title": "/packs-restaurateur",
-   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 595,
    "surface": null,
@@ -353144,6 +353721,7 @@
     "src/App.tsx",
     "src/components/home/FooterSection.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/publicFeatureMatrix.ts",
     "src/pages/APropos.tsx",
@@ -353152,13 +353730,13 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "3298da9d127a"
+   "detailRef": "42da94a45e27"
   },
   {
    "id": "path-literal:f15ac1b71119",
    "type": "path-literal",
    "title": "/panier",
-   "description": "Chemin référencé dans 38 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 42 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/launch-10k-load-check.mjs",
    "line": 25,
    "surface": null,
@@ -353171,6 +353749,7 @@
     "src/components/Navbar.tsx",
     "src/components/OrderConflictDialog.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureFlags.ts",
@@ -353192,10 +353771,11 @@
     "src/test/meal-subscription-cart.test.tsx",
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts",
+    "src/test/user-guide.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "8330398cebd8"
+   "detailRef": "589a8bf59741"
   },
   {
    "id": "path-literal:4c5c6c2d0994",
@@ -353255,7 +353835,7 @@
    "id": "path-literal:1c51bd257ceb",
    "type": "path-literal",
    "title": "/politique-confidentialite",
-   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 21 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1254,
    "surface": null,
@@ -353265,6 +353845,7 @@
     "src/components/Navbar.tsx",
     "src/components/home/FooterSection.tsx",
     "src/components/legal/LegalConsentBanner.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/launchGate.ts",
     "src/lib/legalDocuments.ts",
@@ -353279,7 +353860,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "55ae599d4000"
+   "detailRef": "d51b66019db8"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -353505,7 +354086,7 @@
    "id": "path-literal:f7a8242103a1",
    "type": "path-literal",
    "title": "/recherche",
-   "description": "Chemin référencé dans 70 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 71 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/seo-trust-runtime.js",
    "line": 138,
    "surface": null,
@@ -353524,6 +354105,7 @@
     "src/components/home/RestaurantSection.tsx",
     "src/components/home/SearchAndCategories.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureFlags.ts",
@@ -353554,7 +354136,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "9f0a0567a84e"
+   "detailRef": "fa4d4dff48e2"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -354812,7 +355394,7 @@
    "id": "path-literal:28ec8b0caf24",
    "type": "path-literal",
    "title": "/restaurateurs/alternative-commission-couvert",
-   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 675,
    "surface": null,
@@ -354821,6 +355403,7 @@
     "src/App.tsx",
     "src/components/home/FooterSection.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/publicFeatureMatrix.ts",
     "src/pages/AlternativeCommissionCouvert.tsx",
@@ -354832,13 +355415,13 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "575e9e1f88e9"
+   "detailRef": "6e33e3204ef2"
   },
   {
    "id": "path-literal:784b13bf4e15",
    "type": "path-literal",
    "title": "/restaurateurs/geneve",
-   "description": "Chemin référencé dans 23 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 24 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 610,
    "surface": null,
@@ -354849,6 +355432,7 @@
     "src/components/home/FooterSection.tsx",
     "src/components/home/HeroSection.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/publicFeatureMatrix.ts",
     "src/pages/AlternativeCommissionCouvert.tsx",
@@ -354861,13 +355445,13 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "6ffcc220642b"
+   "detailRef": "08b3053a8296"
   },
   {
    "id": "path-literal:ddcd2bd824da",
    "type": "path-literal",
    "title": "/restaurateurs/google-business",
-   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 674,
    "surface": null,
@@ -354876,6 +355460,7 @@
     "src/App.tsx",
     "src/components/home/FooterSection.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/publicFeatureMatrix.ts",
     "src/pages/AlternativeCommissionCouvert.tsx",
@@ -354888,7 +355473,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "7d1376136a8a"
+   "detailRef": "800b277479e5"
   },
   {
    "id": "path-literal:e0d8149df64e",
@@ -355316,23 +355901,24 @@
    "id": "path-literal:b9bb0d26f2ee",
    "type": "path-literal",
    "title": "/tok-connect/mcp-widget",
-   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 601,
    "surface": null,
    "tags": [
     "src/App.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/lib/featureCatalog.ts",
     "src/pages/TokConnect.tsx",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "ad44fc6899d6"
+   "detailRef": "5a586ee0ad92"
   },
   {
    "id": "path-literal:3a7121d06eeb",
    "type": "path-literal",
    "title": "/tok-connect",
-   "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 556,
    "surface": null,
@@ -355341,18 +355927,19 @@
     "src/App.tsx",
     "src/components/Navbar.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/featureCatalog.ts",
     "src/pages/TokConnect.tsx",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "ff20dcacd309"
+   "detailRef": "d112a1a16aa1"
   },
   {
    "id": "path-literal:9b50a6f5fb1d",
    "type": "path-literal",
    "title": "/tok-one",
-   "description": "Chemin référencé dans 24 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 25 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 548,
    "surface": null,
@@ -355362,6 +355949,7 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
     "src/components/home/FeaturesSection.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
@@ -355378,7 +355966,7 @@
     "src/test/navbar-action-stability.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "244327bb373d"
+   "detailRef": "4bcb3a5f98e9"
   },
   {
    "id": "path-literal:d01a3ea49721",
@@ -356034,7 +356622,7 @@
    "id": "path-literal:587e62a38f93",
    "type": "path-literal",
    "title": "/ventes-flash",
-   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 21 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 342,
    "surface": null,
@@ -356045,6 +356633,7 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
     "src/components/home/HeroSection.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
@@ -356057,7 +356646,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "9728dfc0fcae"
+   "detailRef": "b791c48d13f5"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -356089,7 +356678,7 @@
    "id": "path-literal:c501802f06a7",
    "type": "path-literal",
    "title": "/zero-attente",
-   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 676,
    "surface": null,
@@ -356099,6 +356688,7 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/components/Navbar.tsx",
     "src/components/home/FeaturesSection.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/commercialDemoClientRoutes.ts",
     "src/lib/featureCatalog.ts",
@@ -356111,7 +356701,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "85b4784e9f65"
+   "detailRef": "8d727ba09e74"
   },
   {
    "id": "path-literal:93c6bbab763a",
@@ -363597,17 +364187,17 @@
    "detailRef": "d5645c5b8401"
   },
   {
-   "id": "query-parameter:f8f607a0c2da",
+   "id": "query-parameter:9ddff0bd2cfc",
    "type": "query-parameter",
    "title": "fonction",
    "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
    "path": "src/pages/GuideUtilisateur.tsx",
-   "line": 452,
+   "line": 497,
    "surface": null,
    "tags": [
     "src/pages/GuideUtilisateur.tsx"
    ],
-   "detailRef": "6fa9fbe8182b"
+   "detailRef": "b7bfc7ebee02"
   },
   {
    "id": "query-parameter:364e188ebea8",
