@@ -85,6 +85,7 @@ type TechnicalOverview = {
 
 type AdminOverview = {
   restaurants: RestaurantOverview[];
+  restaurant_totals?: { total: number; enabled: number };
   agents: AgentOverview[];
   runs: RunOverview[];
   activity: ActivityOverview[];
@@ -251,7 +252,7 @@ export default function AdminTokConnect() {
         <Card className="rounded-3xl">
           <CardContent className="flex items-center gap-4 p-5">
             <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary"><Store className="h-5 w-5" /></div>
-            <div><p className="text-2xl font-black">{enabledRestaurants}/{overview.restaurants.length}</p><p className="text-sm text-muted-foreground">Restaurants autorisés</p></div>
+            <div><p className="text-2xl font-black">{overview.restaurant_totals?.enabled ?? enabledRestaurants}/{overview.restaurant_totals?.total ?? overview.restaurants.length}</p><p className="text-sm text-muted-foreground">Restaurants autorisés</p></div>
           </CardContent>
         </Card>
         <Card className="rounded-3xl">
