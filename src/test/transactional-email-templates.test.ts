@@ -100,7 +100,12 @@ describe("transactional order and reservation emails", () => {
     expect(email.bodyHtml).toContain("/logotok.png");
     expect(email.bodyHtml).toContain("/chef2.png");
     expect(email.bodyHtml).toContain("/images/octopus-fine-dining.jpeg");
-    expect(email.bodyHtml).toContain("/images/emails/tok-reservation-hero.webp");
+    expect(email.bodyHtml).toContain("/images/emails/tok-reservation-hero.jpg");
+    expect(email.bodyHtml).not.toContain("/images/emails/tok-reservation-hero.webp");
+    expect(email.bodyHtml).toContain('width="700" height="350"');
+    expect(email.bodyHtml).toContain('bgcolor="#20140e" style="width:68%;padding:20px 18px;background-color:rgba(20,14,10,.90)');
+    expect(email.bodyHtml).toContain('bgcolor="#20140e" style="background-color:rgba(20,14,10,.93)');
+    expect(email.bodyHtml).toContain("Votre réservation est confirmée !");
     expect(email.bodyHtml).toContain('class="tok-hero-desktop"');
     expect(email.bodyHtml).toContain('class="tok-hero-mobile"');
     expect(email.bodyHtml).toContain("/images/mixed-grill-platter.jpeg");
@@ -113,6 +118,13 @@ describe("transactional order and reservation emails", () => {
     expect(email.bodyHtml).toContain('href="https://www.thetok.ch/chefs-table"');
     expect(email.bodyHtml).not.toContain("Votre précommande");
     expect(email.bodyText).toContain("20 octobre 2026 à 19:00");
+  });
+
+  it("uses a real JPEG asset compatible with Outlook for the reservation hero", () => {
+    const image = readFileSync(resolve(process.cwd(), "public/images/emails/tok-reservation-hero.jpg"));
+    expect([...image.subarray(0, 3)]).toEqual([0xff, 0xd8, 0xff]);
+    expect(image.length).toBeGreaterThan(20_000);
+    expect(image.length).toBeLessThan(500_000);
   });
 
   it("escapes variable HTML and shows preorders and notes only when present", () => {
