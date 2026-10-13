@@ -243,8 +243,8 @@ BEGIN
             lease_expires_at=NULL,updated_at=now() WHERE id=v.id;
       CONTINUE;
     END IF;
-    UPDATE public.reservation_commission_collections
-       SET state='processing',attempt_count=attempt_count+1,
+    UPDATE public.reservation_commission_collections collection
+       SET state='processing',attempt_count=collection.attempt_count+1,
          lease_expires_at=now()+interval '5 minutes',updated_at=now()
        WHERE id=v.id;
     job_id:=v.id;restaurant_id:=v.restaurant_id;reservation_id:=v.reservation_id;
@@ -330,8 +330,19 @@ BEGIN
   SELECT * INTO v FROM public.reservation_commission_collections
     WHERE stripe_payment_intent_id=p_payment_intent_id AND stripe_mode=p_stripe_mode
     FOR UPDATE;
-  IF NOT FOUND OR v.state NOT IN ('paid','refunded','disputed') THEN RETURN false; END IF;
+  IF NOT FOUND THEN RETURN false; END IF;
   IF v.state IN ('refunded','disputed') THEN RETURN true; END IF;
+  -- A refund/dispute may arrive before the payment-success event.
+  IF v.state <> 'paid' THEN
+    UPDATE public.reservation_commission_collections
+      SET state=CASE WHEN p_reason='refund' THEN 'refunded' ELSE 'disputed' END,
+        refunded_at=CASE WHEN p_reason='refund' THEN now() ELSE NULL END,
+        updated_at=now() WHERE id=v.id;
+    UPDATE public.restaurant_invoices
+      SET status=CASE WHEN p_reason='refund' THEN 'refunded' ELSE 'disputed' END,
+        updated_at=now() WHERE id=v.invoice_id AND status<>'paid';
+    RETURN true;
+  END IF;
   UPDATE public.reservation_commission_collections
     SET state=CASE WHEN p_reason='refund' THEN 'refunded' ELSE 'disputed' END,
       refunded_at=CASE WHEN p_reason='refund' THEN now() ELSE NULL END,
@@ -362,6 +373,57 @@ END $fn$;
 REVOKE ALL ON FUNCTION public.reverse_restaurant_commission_payment(text,text,text)
  FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.reverse_restaurant_commission_payment(text,text,text)
+ TO service_role;
+
+-- Only an actual funds-reinstated webhook may restore dispute revenue.
+CREATE OR REPLACE FUNCTION public.restore_restaurant_commission_dispute(
+  p_payment_intent_id text,p_stripe_mode text
+) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
+AS $fn$
+DECLARE v public.reservation_commission_collections%ROWTYPE; v_entry record;
+BEGIN
+  IF p_stripe_mode NOT IN ('live','test') THEN
+    RAISE EXCEPTION 'invalid_commission_reinstatement_mode';
+  END IF;
+  SELECT * INTO v FROM public.reservation_commission_collections
+    WHERE stripe_payment_intent_id=p_payment_intent_id
+      AND stripe_mode=p_stripe_mode FOR UPDATE;
+  IF NOT FOUND OR v.state NOT IN ('disputed','paid') THEN RETURN false; END IF;
+  IF v.state='paid' THEN RETURN true; END IF;
+  UPDATE public.restaurant_invoices
+    SET status='paid',paid_at=COALESCE(paid_at,now()),updated_at=now(),
+      metadata=metadata||jsonb_build_object('dispute_reinstated_at',now())
+    WHERE id=v.invoice_id AND status='disputed';
+  FOR v_entry IN SELECT entry_id,account_code,direction,amount_cents,
+      currency,restaurant_id,metadata,stripe_mode,livemode
+    FROM public.financial_ledger entry
+    WHERE entry.source_type='reservation_commission_reversal'
+      AND entry.source_id=v.id::text
+      AND entry.metadata->>'reversal_reason'='dispute'
+  LOOP
+    INSERT INTO public.financial_ledger (
+      source_type,source_id,restaurant_id,account_code,direction,
+      amount_cents,currency,effective_at,reversal_of,metadata,stripe_mode,livemode
+    )
+    SELECT 'reservation_commission_reinstatement',v.id::text,
+      v_entry.restaurant_id,v_entry.account_code,
+      CASE WHEN v_entry.direction='debit' THEN 'credit' ELSE 'debit' END,
+      v_entry.amount_cents,v_entry.currency,now(),v_entry.entry_id,
+      v_entry.metadata||jsonb_build_object(
+        'reinstatement_payment_intent_id',p_payment_intent_id),
+      v_entry.stripe_mode,v_entry.livemode
+    WHERE NOT EXISTS (
+      SELECT 1 FROM public.financial_ledger existing
+      WHERE existing.reversal_of=v_entry.entry_id
+    );
+  END LOOP;
+  UPDATE public.reservation_commission_collections
+    SET state='paid',updated_at=now() WHERE id=v.id;
+  RETURN true;
+END $fn$;
+REVOKE ALL ON FUNCTION public.restore_restaurant_commission_dispute(text,text)
+ FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.restore_restaurant_commission_dispute(text,text)
  TO service_role;
 
 -- Do not backfill old reservations or activate production collection in SQL.
