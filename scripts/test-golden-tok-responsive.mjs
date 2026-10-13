@@ -43,6 +43,7 @@ async function main() {
           const live = root?.querySelector("#la-tok-dor-offres");
           const firstOffer = root?.querySelector("[data-golden-tok-offers] article");
           const firstOfferImage = firstOffer?.querySelector("img");
+          const offerTitle = firstOffer?.querySelector("h3");
           const box = (node) => {
             const rect = node?.getBoundingClientRect();
             return rect ? { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height } : null;
@@ -64,6 +65,7 @@ async function main() {
             offerImageReady: !!firstOfferImage?.complete && (firstOfferImage?.naturalWidth || 0) > 0,
             liveBottom: live?.getBoundingClientRect().bottom || 0,
             offerOpacity: firstOffer ? getComputedStyle(firstOffer).opacity : null,
+            offerTitleColor: offerTitle ? getComputedStyle(offerTitle).color : null,
             offerVisibility: firstOffer ? getComputedStyle(firstOffer).visibility : null,
             veilPresent: hero ? getComputedStyle(hero).backgroundImage.includes("linear-gradient") : false,
             benefitsAreText: Array.from(root?.querySelectorAll(".golden-tok-benefit") || []).every((node) => getComputedStyle(node, "::after").display === "none"),
@@ -90,6 +92,7 @@ async function main() {
           offerRenderedAndVisible: (metrics.firstOffer?.height || 0) > 250 && metrics.offerOpacity === "1" && metrics.offerVisibility === "visible",
           offerDirectlyBelowLive: (metrics.firstOffer?.top || 0) >= metrics.liveBottom && (metrics.firstOffer?.top || Infinity) - metrics.liveBottom <= 80,
           offerPictureLoaded: metrics.offerImageReady,
+          offerHeadingReadable: metrics.offerTitleColor === "rgb(255, 255, 255)",
         };
         await page.screenshot({ path: resolve(OUTPUT_DIR, viewport.name + ".png"), fullPage: true });
         console.log(JSON.stringify({ viewport: viewport.name, width: viewport.width, checks, metrics, errors }));

@@ -821,3 +821,10 @@ html body [data-golden-tok-chefs-table] #la-tok-dor-offres {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
+
+/* White-on-photo editorial copy: the inherited card theme is dark on light,
+   but the product image has a black gradient. Enforce readable text here. */
+html body [data-golden-tok-chefs-table] [data-golden-tok-offers] article > div:first-child > div.absolute.inset-x-0.bottom-0 :is(h3, p, span) {
+  color: #ffffff !important;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, .85) !important;
+}
