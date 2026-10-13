@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7abd23a3f4144c6163d83dd37c00f0530d9427e3a589cdf1fc55cb013544241c`
+- Empreinte SHA-256 des sources indexées : `f7900ce3467c24b862ec4cd3b4a56d3599318f34058ec414cc19a265d5c7235d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,7 +28,7 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2751 |
+| databaseObjects | 2767 |
 | documents | 203 |
 | edgeFunctions | 115 |
 | edgeHttpRoutes | 20 |
@@ -37,16 +37,16 @@
 | frontendRoutes | 135 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 533 |
-| modules | 1539 |
+| migrations | 534 |
+| modules | 1540 |
 | pages | 129 |
 | pathLiterals | 693 |
 | publicAssets | 502 |
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16503 |
-| repositoryFiles | 3070 |
+| records | 16523 |
+| repositoryFiles | 3072 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 42 |
@@ -1258,12 +1258,12 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/v1/token?grant_type=password | 5 | [src/test/marketing-bff-security.test.ts:240](../../src/test/marketing-bff-security.test.ts#L240) |
 | /auth/v1/user | 7 | [src/test/marketing-bff-security.test.ts:251](../../src/test/marketing-bff-security.test.ts#L251) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
-| /auth?confirmed=1 | 2 | [src/test/auth-signup-form.test.tsx:523](../../src/test/auth-signup-form.test.tsx#L523) |
+| /auth?confirmed=1 | 2 | [src/test/auth-signup-form.test.tsx:525](../../src/test/auth-signup-form.test.tsx#L525) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
 | /auth?redirect=/commercial | 1 | [src/test/admin-commercial-accounts.test.ts:192](../../src/test/admin-commercial-accounts.test.ts#L192) |
 | /auth?role=restaurateur | 1 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
 | /auth?type=client | 14 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
-| /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:609](../../src/test/auth-signup-form.test.tsx#L609) |
+| /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:611](../../src/test/auth-signup-form.test.tsx#L611) |
 | /availability | 1 | [supabase/functions/tok-connect-api/index.ts:1039](../../supabase/functions/tok-connect-api/index.ts#L1039) |
 | /budget-auto | 11 | [scripts/prerender-seo.mjs:1026](../../scripts/prerender-seo.mjs#L1026) |
 | /campagnes | 1 | [src/lib/commercialDemoAi.ts:298](../../src/lib/commercialDemoAi.ts#L298) |
@@ -1863,7 +1863,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | claimRestaurant | — | 2 | [src/components/DirectoryClaimPersistenceBridge.tsx:37](../../src/components/DirectoryClaimPersistenceBridge.tsx#L37) |
 | client_id | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:220](../../supabase/functions/tok-connect-oauth/index.ts#L220) |
 | code | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:250](../../supabase/functions/tok-connect-oauth/index.ts#L250) |
-| commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:906](../../src/pages/Auth.tsx#L906) |
+| commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:914](../../src/pages/Auth.tsx#L914) |
 | commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:280](../../src/pages/CommercialComptabilite.tsx#L280) |
 | confirmed | /auth, /auth/callback, /auth/demo | 2 | [src/pages/Auth.tsx:131](../../src/pages/Auth.tsx#L131) |
 | cuisine | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/pages/Recherche.tsx:240](../../src/pages/Recherche.tsx#L240) |
@@ -1873,7 +1873,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | delivery | /recherche | 1 | [src/pages/Recherche.tsx:244](../../src/pages/Recherche.tsx#L244) |
 | demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:85](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L85) |
 | demo_session_id | — | 4 | [src/components/commercial/CommercialDemoActorWorkspace.tsx:88](../../src/components/commercial/CommercialDemoActorWorkspace.tsx#L88) |
-| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2342](../../src/pages/Auth.tsx#L2342) |
+| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2363](../../src/pages/Auth.tsx#L2363) |
 | fields | — | 1 | [supabase/functions/_shared/meta-marketing-health.ts:24](../../supabase/functions/_shared/meta-marketing-health.ts#L24) |
 | fields[appScreenshotSets] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:205](../../scripts/app-store-connect-upload-screenshots.mjs#L205) |
 | fields[appScreenshots] | — | 2 | [scripts/app-store-connect-upload-screenshots.mjs:237](../../scripts/app-store-connect-upload-screenshots.mjs#L237) |
@@ -1901,7 +1901,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | messagingSenderId | — | 1 | [src/lib/push.ts:83](../../src/lib/push.ts#L83) |
 | min_lat | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:120](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L120) |
 | min_lng | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:122](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L122) |
-| mode | /auth, /auth/callback, /auth/demo, /recherche | 3 | [src/pages/Auth.tsx:948](../../src/pages/Auth.tsx#L948) |
+| mode | /auth, /auth/callback, /auth/demo, /recherche | 3 | [src/pages/Auth.tsx:956](../../src/pages/Auth.tsx#L956) |
 | offset | — | 3 | [scripts/prerender-stoppin-restaurants-bounded.mjs:118](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L118) |
 | on_conflict | — | 1 | [scripts/restaurant-image-truth-worker.mjs:548](../../scripts/restaurant-image-truth-worker.mjs#L548) |
 | open | /restaurant/:id | 2 | [src/pages/RestaurantDetail.tsx:148](../../src/pages/RestaurantDetail.tsx#L148) |
@@ -1922,7 +1922,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | q | /recherche | 4 | [src/marketing/useMarketingUrlState.ts:85](../../src/marketing/useMarketingUrlState.ts#L85) |
 | quality | — | 1 | [src/lib/optimizedImages.ts:39](../../src/lib/optimizedImages.ts#L39) |
 | rating | /recherche | 1 | [src/pages/Recherche.tsx:245](../../src/pages/Recherche.tsx#L245) |
-| redirect | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:1109](../../src/pages/Auth.tsx#L1109) |
+| redirect | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:1118](../../src/pages/Auth.tsx#L1118) |
 | redirect_uri | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:221](../../supabase/functions/tok-connect-oauth/index.ts#L221) |
 | removeRestaurant | — | 1 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:171](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L171) |
 | reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:288](../../src/pages/Reservations.tsx#L288) |
@@ -1942,7 +1942,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | state | — | 2 | [supabase/functions/tok-connect-oauth/index.ts:222](../../supabase/functions/tok-connect-oauth/index.ts#L222) |
 | status | /chefs-table, /dashboard, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 12 | [src/lib/iosCommerceFetch.ts:137](../../src/lib/iosCommerceFetch.ts#L137) |
 | stripe_session_id | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:81](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L81) |
-| subscriptionPlan | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:917](../../src/pages/Auth.tsx#L917) |
+| subscriptionPlan | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:925](../../src/pages/Auth.tsx#L925) |
 | tab | /admin/commandes-reservations, /admin/utilisateurs, /profil | 9 | [src/pages/Profil.tsx:178](../../src/pages/Profil.tsx#L178) |
 | ticket | /admin/sinistres | 2 | [src/pages/admin/AdminSinistres.tsx:874](../../src/pages/admin/AdminSinistres.tsx#L874) |
 | time | /restaurant/:id | 2 | [src/lib/zeroAttenteReservationContext.ts:77](../../src/lib/zeroAttenteReservationContext.ts#L77) |
@@ -1950,7 +1950,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | tok_connect_route | — | 4 | [supabase/functions/tok-connect-chatgpt/index.ts:504](../../supabase/functions/tok-connect-chatgpt/index.ts#L504) |
 | token | — | 1 | [supabase/functions/marketing-unsubscribe/index.ts:66](../../supabase/functions/marketing-unsubscribe/index.ts#L66) |
 | tolerance | — | 1 | [src/test/home-canton-hero.test.ts:57](../../src/test/home-canton-hero.test.ts#L57) |
-| type | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:285](../../src/pages/Auth.tsx#L285) |
+| type | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:286](../../src/pages/Auth.tsx#L286) |
 | utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:653](../../src/components/ReservationDialog.tsx#L653) |
 | utm_source | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:649](../../src/components/ReservationDialog.tsx#L649) |
 | view | /admin/commandes-reservations | 2 | [src/marketing/useMarketingUrlState.ts:84](../../src/marketing/useMarketingUrlState.ts#L84) |
@@ -2254,7 +2254,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (746)</summary>
+<details><summary>function (755)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2279,6 +2279,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `private_finance.invalidate_commercial_signup_referrals` (1 définition(s))
 - `private_finance.link_reservation_charge_to_invoice_once` (1 définition(s))
 - `private_finance.normalize_financial_ledger_stripe_mode` (1 définition(s))
+- `private_finance.open_reservation_commission_invoice` (1 définition(s))
 - `private_finance.payment_attempt_json` (1 définition(s))
 - `private_finance.prepare_commercial_commission_lifecycle` (1 définition(s))
 - `private_finance.prevent_append_only_finance_mutation` (1 définition(s))
@@ -2299,6 +2300,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `private_finance.set_payment_transaction_integrity` (1 définition(s))
 - `private_finance.set_reservation_fair_growth_snapshot` (1 définition(s))
 - `private_finance.signup_deferred_subscription_trigger` (1 définition(s))
+- `private_finance.stage_reservation_commission` (1 définition(s))
 - `private_finance.sync_commercial_subscription_commission` (1 définition(s))
 - `private_finance.transition_fair_growth_module` (1 définition(s))
 - `private_finance.validate_restaurant_subscription_pricing_insert` (1 définition(s))
@@ -2508,6 +2510,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.claim_notification_deliveries` (1 définition(s))
 - `public.claim_print_fulfillment_jobs` (2 définition(s))
 - `public.claim_reservation_cancellation_fees` (1 définition(s))
+- `public.claim_restaurant_commission_collections` (1 définition(s))
 - `public.claim_restaurant_daily_dish_run` (2 définition(s))
 - `public.claim_restaurant_image_discovery_jobs` (2 définition(s))
 - `public.claim_restaurant_image_discovery_jobs_for_edge` (1 définition(s))
@@ -2558,6 +2561,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.compute_order_acceptance_deadline` (1 définition(s))
 - `public.compute_order_discount_from_payload` (1 définition(s))
 - `public.compute_restaurant_reservation_fees` (3 définition(s))
+- `public.confirm_auto_arrived_reservation_commission` (1 définition(s))
 - `public.confirm_fair_growth_module_activation` (1 définition(s))
 - `public.consume_chef_table_checkout_hold` (1 définition(s))
 - `public.consume_crm_mfa_recovery_challenge` (1 définition(s))
@@ -2599,6 +2603,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.estimate_campaign_audience` (4 définition(s))
 - `public.fail_image_analysis_job` (2 définition(s))
 - `public.fail_payment_attempt` (1 définition(s))
+- `public.fail_restaurant_commission_collection` (1 définition(s))
 - `public.fail_restaurant_subscription_activation_job` (1 définition(s))
 - `public.fence_restaurant_payment_capture` (1 définition(s))
 - `public.finalize_paid_print_order` (1 définition(s))
@@ -2816,6 +2821,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.record_print_provider_event` (1 définition(s))
 - `public.record_refund_status` (1 définition(s))
 - `public.record_reservation_fee_adjustment` (1 définition(s))
+- `public.record_restaurant_commission_payment` (1 définition(s))
 - `public.record_restaurant_onboarding_payment_method_ready` (1 définition(s))
 - `public.record_restaurant_onboarding_state` (1 définition(s))
 - `public.record_restaurant_subscription_cancelled_before_payment` (1 définition(s))
@@ -2826,6 +2832,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.record_social_feed_event_v2` (1 définition(s))
 - `public.record_stripe_connect_fee_ledger` (1 définition(s))
 - `public.record_stripe_tax_fee_ledger` (2 définition(s))
+- `public.record_tok_bank_payout` (1 définition(s))
 - `public.recount_progressive_offer_reservations` (1 définition(s))
 - `public.redeem_loyalty_points` (2 définition(s))
 - `public.refresh_commercial_statement` (1 définition(s))
@@ -2888,8 +2895,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restaurant_upsert_anti_waste_offer` (1 définition(s))
 - `public.restaurant_upsert_flash_sale` (1 définition(s))
 - `public.restaurants_enqueue_directory_cuisine_osm_research` (1 définition(s))
+- `public.restore_restaurant_commission_dispute` (1 définition(s))
 - `public.restore_special_offer_stock` (1 définition(s))
 - `public.resume_fair_growth_module` (1 définition(s))
+- `public.reverse_restaurant_commission_payment` (1 définition(s))
 - `public.rls_auto_enable` (1 définition(s))
 - `public.run_social_post_promotion_status_sync` (1 définition(s))
 - `public.seal_payment_attempt_request` (1 définition(s))
@@ -3005,7 +3014,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (652)</summary>
+<details><summary>index (654)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3289,6 +3298,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `idx_refund_operations_target` (1 définition(s))
 - `idx_reservation_cancel_fees_claim` (1 définition(s))
 - `idx_reservation_card_setups_user_created` (1 définition(s))
+- `idx_reservation_commission_collections_claim` (1 définition(s))
+- `idx_reservation_commission_collections_restaurant` (1 définition(s))
 - `idx_reservation_customer_cancellations_year` (1 définition(s))
 - `idx_reservation_flat_fee_charges_restaurant` (1 définition(s))
 - `idx_reservation_progressive_offers_one_active_per_day` (1 définition(s))
@@ -3662,7 +3673,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>policy (760)</summary>
+<details><summary>policy (762)</summary>
 
 - `ad_campaigns.Admins can manage ad campaigns` (1 définition(s))
 - `ad_campaigns.Anyone can read active campaigns` (1 définition(s))
@@ -4089,6 +4100,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.referral_codes.Users manage own referral_codes` (1 définition(s))
 - `public.referral_codes.referral_own` (2 définition(s))
 - `public.referral_codes.referral_public_read` (2 définition(s))
+- `public.reservation_commission_collections.restaurant_commission_read_own` (1 définition(s))
 - `public.reservation_fee_adjustments.reservation_fee_adjustments_admin_select` (1 définition(s))
 - `public.reservation_fee_adjustments.reservation_fee_adjustments_owner_read` (1 définition(s))
 - `public.reservation_fee_charges.reservation_fee_charges_admin_select` (1 définition(s))
@@ -4318,6 +4330,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.support_tickets.support_tickets_admin` (2 définition(s))
 - `public.support_tickets.support_tickets_own` (2 définition(s))
 - `public.swiss_vat_rates.swiss_vat_rates_public_read` (1 définition(s))
+- `public.tok_bank_payout_reconciliations.tok_bank_payouts_admin_only` (1 définition(s))
 - `public.tok_connect_access_tokens.tok_connect_access_tokens_admin_select` (1 définition(s))
 - `public.tok_connect_agent_runs.tok_connect_agent_runs_admin_select` (1 définition(s))
 - `public.tok_connect_agent_runs.tok_connect_agent_runs_member_select` (1 définition(s))
@@ -4427,7 +4440,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (346)</summary>
+<details><summary>table (348)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -4646,6 +4659,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.reservation_cancellation_fees` (1 définition(s))
 - `public.reservation_card_guarantee_rollout` (1 définition(s))
 - `public.reservation_card_guarantee_setups` (1 définition(s))
+- `public.reservation_commission_collections` (1 définition(s))
 - `public.reservation_fee_adjustments` (1 définition(s))
 - `public.reservation_fee_charges` (1 définition(s))
 - `public.reservation_flat_fee_charges` (1 définition(s))
@@ -4749,6 +4763,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.support_tickets` (2 définition(s))
 - `public.swiss_vat_rates` (1 définition(s))
 - `public.thefork_deploy_probe` (1 définition(s))
+- `public.tok_bank_payout_reconciliations` (1 définition(s))
 - `public.tok_connect_access_tokens` (1 définition(s))
 - `public.tok_connect_agent_runs` (1 définition(s))
 - `public.tok_connect_api_requests` (1 définition(s))
@@ -4778,7 +4793,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (241)</summary>
+<details><summary>trigger (242)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -4959,6 +4974,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `social_external_shares_refresh_counts` (1 définition(s))
 - `social_likes_refresh_counts` (1 définition(s))
 - `social_reposts_refresh_counts` (1 définition(s))
+- `stage_reservation_commission_after_honoring` (1 définition(s))
 - `sync_actualites_media_image_index_on_write` (2 définition(s))
 - `sync_commercial_subscription_commission` (1 définition(s))
 - `sync_launch_gate_clock` (1 définition(s))
@@ -5865,6 +5881,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261012203000 Schedule Reservation Cancellation Fee Collection | 42 | 0 | [supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql:1](../../supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql#L1) |
 | 20261013014557 Launch Guest Discovery Authenticated Clients Only | 85 | 4 | [supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql:1](../../supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql#L1) |
 | 20261013110000 Marketing Campaign Items Preview | 113 | 1 | [supabase/migrations/20261013110000_marketing_campaign_items_preview.sql:1](../../supabase/migrations/20261013110000_marketing_campaign_items_preview.sql#L1) |
+| 20261014010000 Recurring Restaurant Reservation Commissions | 542 | 16 | [supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql:1](../../supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6089,8 +6106,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 226 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 687 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 227 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 688 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6111,7 +6128,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 608 |
+| test | 609 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6710,7 +6727,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (533)</summary>
+<details><summary>database-migration (534)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7245,6 +7262,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql`
 - `supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql`
 - `supabase/migrations/20261013110000_marketing_campaign_items_preview.sql`
+- `supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql`
 
 </details>
 
@@ -8851,7 +8869,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (608)</summary>
+<details><summary>test (609)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9324,6 +9342,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-partner-contract-preview.test.tsx`
 - `src/test/restaurant-promotions-governance.test.ts`
 - `src/test/restaurant-public-data-consistency.test.ts`
+- `src/test/restaurant-reservation-commission-collection.test.ts`
 - `src/test/restaurant-reservation-sidebar.test.ts`
 - `src/test/restaurant-search-preview.test.tsx`
 - `src/test/restaurant-slug-seo.test.ts`

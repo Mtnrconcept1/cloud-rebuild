@@ -22,52 +22,6 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  sync_generated_finance_pr_once:
-    name: Regenerate indexed files on finance PR (one-shot)
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/tok-restaurant-first-charge-20261014' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: write
-    steps:
-      - name: Checkout trusted finance PR branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-          persist-credentials: true
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.28.1
-      - name: Install Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: pnpm
-      - name: Restore original workflow and regenerate deterministic sources
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          # Restore this temporary workflow BEFORE indexing. The final
-          # commit contains the unchanged original CI workflow.
-          git show '16cad79a063c641b3fd733f85f79412d2354c11d:.github/workflows/ci.yml' > .github/workflows/ci.yml
-          pnpm install --frozen-lockfile
-          pnpm run generate:error-code-map
-          pnpm run docs:application-index
-          pnpm docs:application-index:check
-          git add -- .github/workflows/ci.yml \
-            supabase/functions/_shared/error-code-map.ts \
-            docs/architecture/tok-application-search-index.json \
-            docs/architecture/TOK_APPLICATION_REFERENCE.md \
-            src/data/tok-user-guide-catalog.generated.ts
-          git -c user.name='github-actions[bot]' \
-              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-              commit -m 'chore(finance): refresh generated indexes and restore CI'
-          git push origin HEAD:refs/heads/fix/tok-restaurant-first-charge-20261014
-          gh workflow run ci.yml --ref fix/tok-restaurant-first-charge-20261014
-
   validation:
     uses: ./.github/workflows/_validation.yml
     with:
