@@ -84,9 +84,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pnpm exec vite preview --host 127.0.0.1 --port 4173 > /tmp/golden-tok-vite.log 2>&1 &
+          pnpm exec vite --host 127.0.0.1 --port 4173 > /tmp/golden-tok-vite.log 2>&1 &
           for i in $(seq 1 40); do
-            if curl -fsS http://127.0.0.1:4173/chefs-table > /dev/null; then
+            if curl -fsS http://127.0.0.1:4173/scripts/fixtures/golden-tok-preview.html > /dev/null; then
               exit 0
             fi
             sleep 1
