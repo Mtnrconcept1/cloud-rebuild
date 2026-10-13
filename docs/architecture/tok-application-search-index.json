@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "c56d41a215121c91d53e41e81906db57179e186239a7231c5a79ee09fcf9b6e1",
+ "sourceDigest": "8563176c27b6b3509197bb8b7ca40a1a24dc967fec6ed7c4811980a9a0d6b6ac",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -21,12 +21,12 @@
   "modules": 1517,
   "pages": 128,
   "pathLiterals": 652,
-  "publicAssets": 464,
-  "publicEntries": 489,
+  "publicAssets": 473,
+  "publicEntries": 498,
   "publicNavigableRoutes": 2,
   "queryParameters": 107,
-  "records": 16229,
-  "repositoryFiles": 3003,
+  "records": 16247,
+  "repositoryFiles": 3012,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -12531,6 +12531,41 @@
     "kind": "media"
    },
    {
+    "route": "/miniatures-3d/africain.webp",
+    "path": "public/miniatures-3d/africain.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/americain.webp",
+    "path": "public/miniatures-3d/americain.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/bistro.webp",
+    "path": "public/miniatures-3d/bistro.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/boulangerie.webp",
+    "path": "public/miniatures-3d/boulangerie.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/brunch.webp",
+    "path": "public/miniatures-3d/brunch.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/burger.webp",
+    "path": "public/miniatures-3d/burger.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/cafe.webp",
+    "path": "public/miniatures-3d/cafe.webp",
+    "kind": "media"
+   },
+   {
     "route": "/miniatures-3d/chinois.webp",
     "path": "public/miniatures-3d/chinois.webp",
     "kind": "media"
@@ -12538,6 +12573,11 @@
    {
     "route": "/miniatures-3d/creole.webp",
     "path": "public/miniatures-3d/creole.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/desserts.webp",
+    "path": "public/miniatures-3d/desserts.webp",
     "kind": "media"
    },
    {
@@ -12573,6 +12613,11 @@
    {
     "route": "/miniatures-3d/indien.webp",
     "path": "public/miniatures-3d/indien.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/italien.webp",
+    "path": "public/miniatures-3d/italien.webp",
     "kind": "media"
    },
    {
@@ -21963,7 +22008,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 42
+      "line": 43
      }
     ]
    },
@@ -21972,7 +22017,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 44
+      "line": 45
      }
     ]
    },
@@ -21981,7 +22026,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 28
+      "line": 29
      }
     ]
    },
@@ -21990,7 +22035,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 57
+      "line": 58
      }
     ]
    },
@@ -21999,7 +22044,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 55
+      "line": 56
      }
     ]
    },
@@ -22008,7 +22053,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 29
+      "line": 30
      }
     ]
    },
@@ -22017,7 +22062,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 60
+      "line": 61
      }
     ]
    },
@@ -22026,7 +22071,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 33
+      "line": 34
      }
     ]
    },
@@ -22035,7 +22080,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 43
+      "line": 44
      }
     ]
    },
@@ -22044,7 +22089,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 59
+      "line": 60
      }
     ]
    },
@@ -22053,7 +22098,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 31
+      "line": 32
      }
     ]
    },
@@ -22062,7 +22107,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 24
+      "line": 25
      }
     ]
    },
@@ -22071,7 +22116,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 47
+      "line": 48
      }
     ]
    },
@@ -22080,7 +22125,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 49
+      "line": 50
      }
     ]
    },
@@ -22089,7 +22134,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 52
+      "line": 53
      }
     ]
    },
@@ -22098,7 +22143,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 35
+      "line": 36
      }
     ]
    },
@@ -22107,7 +22152,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 25
+      "line": 26
      }
     ]
    },
@@ -22116,7 +22161,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 30
+      "line": 31
      }
     ]
    },
@@ -22125,7 +22170,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 38
+      "line": 39
      }
     ]
    },
@@ -22134,7 +22179,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 36
+      "line": 37
      }
     ]
    },
@@ -22143,7 +22188,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 40
+      "line": 41
      }
     ]
    },
@@ -22152,7 +22197,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 41
+      "line": 42
      }
     ]
    },
@@ -22161,7 +22206,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 39
+      "line": 40
      }
     ]
    },
@@ -22170,7 +22215,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 48
+      "line": 49
      }
     ]
    },
@@ -22179,7 +22224,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 26
+      "line": 27
      }
     ]
    },
@@ -22188,7 +22233,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 27
+      "line": 28
      }
     ]
    },
@@ -22197,7 +22242,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 32
+      "line": 33
      }
     ]
    },
@@ -22206,7 +22251,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 34
+      "line": 35
      }
     ]
    },
@@ -22215,7 +22260,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 37
+      "line": 38
      }
     ]
    },
@@ -22224,7 +22269,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 53
+      "line": 54
      }
     ]
    },
@@ -22233,7 +22278,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 54
+      "line": 55
      }
     ]
    },
@@ -22242,7 +22287,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 56
+      "line": 57
      }
     ]
    },
@@ -22251,7 +22296,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 46
+      "line": 47
      }
     ]
    },
@@ -22260,7 +22305,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 45
+      "line": 46
      }
     ]
    },
@@ -22269,7 +22314,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 58
+      "line": 59
      }
     ]
    },
@@ -22278,7 +22323,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 61
+      "line": 62
      }
     ]
    },
@@ -22287,7 +22332,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 62
+      "line": 63
      }
     ]
    },
@@ -22296,7 +22341,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 50
+      "line": 51
      }
     ]
    },
@@ -22305,7 +22350,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 51
+      "line": 52
      }
     ]
    },
@@ -22721,7 +22766,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 120
+      "line": 121
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
@@ -25057,7 +25102,7 @@
     "sources": [
      {
       "path": "src/test/home-cuisine-accessibility.test.tsx",
-      "line": 41
+      "line": 57
      }
     ]
    },
@@ -84870,13 +84915,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 95,
+      "line": 96,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 181
+    "lineCount": 182
    },
    {
     "path": "src/components/home/FeaturesSection.tsx",
@@ -103689,7 +103734,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 44
+    "lineCount": 60
    },
    {
     "path": "src/test/home-hero-search.test.tsx",
@@ -115740,12 +115785,52 @@
     "extension": ".png"
    },
    {
+    "path": "public/miniatures-3d/africain.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/americain.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/bistro.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/boulangerie.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/brunch.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/burger.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/cafe.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/miniatures-3d/chinois.webp",
     "category": "public-asset",
     "extension": ".webp"
    },
    {
     "path": "public/miniatures-3d/creole.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/desserts.webp",
     "category": "public-asset",
     "extension": ".webp"
    },
@@ -115781,6 +115866,11 @@
    },
    {
     "path": "public/miniatures-3d/indien.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/italien.webp",
     "category": "public-asset",
     "extension": ".webp"
    },
@@ -130428,14 +130518,14 @@
    "id": "code-module:a586b6706f43",
    "type": "code-module",
    "title": "src/components/home/CuisineCategoryStrip.tsx",
-   "description": "Module de 181 lignes; exports: default.",
+   "description": "Module de 182 lignes; exports: default.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "6f67ce55fd83"
+   "detailRef": "d5b478015b89"
   },
   {
    "id": "code-module:1ce158045d40",
@@ -142194,12 +142284,12 @@
    "id": "code-module:b8f0d2b164b6",
    "type": "code-module",
    "title": "src/test/home-cuisine-accessibility.test.tsx",
-   "description": "Module de 44 lignes; exports: aucun export statique.",
+   "description": "Module de 60 lignes; exports: aucun export statique.",
    "path": "src/test/home-cuisine-accessibility.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "f38a795c3d93"
+   "detailRef": "370f9e319acf"
   },
   {
    "id": "code-module:a714f68588b7",
@@ -263163,17 +263253,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:34b83656c47a",
+   "id": "exported-symbol:6bea51449639",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/CuisineCategoryStrip.tsx.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 95,
+   "line": 96,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "67b9c2f5a8dd"
+   "detailRef": "a24d25e3daca"
   },
   {
    "id": "exported-symbol:2c6d5de51291",
@@ -296400,6 +296490,104 @@
    "detailRef": "387043e32323"
   },
   {
+   "id": "file:36a45b4c0681",
+   "type": "file",
+   "title": "public/miniatures-3d/africain.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/africain.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "159ce6704766"
+  },
+  {
+   "id": "file:97a5381f6aa0",
+   "type": "file",
+   "title": "public/miniatures-3d/americain.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/americain.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "2be6caab9a2f"
+  },
+  {
+   "id": "file:0ff482960008",
+   "type": "file",
+   "title": "public/miniatures-3d/bistro.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/bistro.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "d52cd2abd5ab"
+  },
+  {
+   "id": "file:215715ac126b",
+   "type": "file",
+   "title": "public/miniatures-3d/boulangerie.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/boulangerie.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "0a78436cdc43"
+  },
+  {
+   "id": "file:a234fa9b9f3f",
+   "type": "file",
+   "title": "public/miniatures-3d/brunch.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/brunch.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "2cd4af93d635"
+  },
+  {
+   "id": "file:30c0361ec6c4",
+   "type": "file",
+   "title": "public/miniatures-3d/burger.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/burger.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "b46915eeb2d7"
+  },
+  {
+   "id": "file:e0e1ba871672",
+   "type": "file",
+   "title": "public/miniatures-3d/cafe.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/cafe.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "362a2bf44fbc"
+  },
+  {
    "id": "file:0b7dd2775ebb",
    "type": "file",
    "title": "public/miniatures-3d/chinois.webp",
@@ -296426,6 +296614,20 @@
     "public-asset"
    ],
    "detailRef": "d806c6026c2c"
+  },
+  {
+   "id": "file:700b43e1153c",
+   "type": "file",
+   "title": "public/miniatures-3d/desserts.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/desserts.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "0d9bdbb65e11"
   },
   {
    "id": "file:dff16c7a6250",
@@ -296524,6 +296726,20 @@
     "public-asset"
    ],
    "detailRef": "e692ec826686"
+  },
+  {
+   "id": "file:0fdae45a3101",
+   "type": "file",
+   "title": "public/miniatures-3d/italien.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/italien.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "222143f62004"
   },
   {
    "id": "file:fcfa0627eefc",
@@ -346837,113 +347053,9 @@
    "detailRef": "57572b86cde9"
   },
   {
-   "id": "path-literal:5967e7a11843",
+   "id": "path-literal:8d81fa900f08",
    "type": "path-literal",
    "title": "/images/miniatures/01_africain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 42,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "84229ae9417e"
-  },
-  {
-   "id": "path-literal:49b8556e08f1",
-   "type": "path-literal",
-   "title": "/images/miniatures/02_americain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 44,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "019f132a684a"
-  },
-  {
-   "id": "path-literal:10e511c2a87e",
-   "type": "path-literal",
-   "title": "/images/miniatures/03_bistro.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 28,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "53b2a61cd67c"
-  },
-  {
-   "id": "path-literal:1f04d32ecd32",
-   "type": "path-literal",
-   "title": "/images/miniatures/04_boulangerie.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 57,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "2189ebf2692a"
-  },
-  {
-   "id": "path-literal:8eac1c1bcb91",
-   "type": "path-literal",
-   "title": "/images/miniatures/05_brunch.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 55,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "f50f0dff169d"
-  },
-  {
-   "id": "path-literal:204e718a470e",
-   "type": "path-literal",
-   "title": "/images/miniatures/06_burger.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 29,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "837b5b7e5639"
-  },
-  {
-   "id": "path-literal:195e8436260c",
-   "type": "path-literal",
-   "title": "/images/miniatures/07_cafe.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 60,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "c5218787ac76"
-  },
-  {
-   "id": "path-literal:ec0e62e6667c",
-   "type": "path-literal",
-   "title": "/images/miniatures/08_chinois.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 33,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "5014e350e49a"
-  },
-  {
-   "id": "path-literal:5ec814d7d2f8",
-   "type": "path-literal",
-   "title": "/images/miniatures/09_creole.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 43,
@@ -346951,324 +347063,12 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "42fe4fec326c"
+   "detailRef": "ae73908f554a"
   },
   {
-   "id": "path-literal:8aae1c834d17",
+   "id": "path-literal:b0c5a4c8b4da",
    "type": "path-literal",
-   "title": "/images/miniatures/10_desserts.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 59,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "66d690930da8"
-  },
-  {
-   "id": "path-literal:69de9751c9fe",
-   "type": "path-literal",
-   "title": "/images/miniatures/11_francais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 31,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "efa40499a7de"
-  },
-  {
-   "id": "path-literal:6ad53149335e",
-   "type": "path-literal",
-   "title": "/images/miniatures/12_gastronomique.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 24,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "b58dd2835480"
-  },
-  {
-   "id": "path-literal:e5e0ab4becaf",
-   "type": "path-literal",
-   "title": "/images/miniatures/13_grillades.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 47,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "f9cc2ec279cb"
-  },
-  {
-   "id": "path-literal:aaaa02255bac",
-   "type": "path-literal",
-   "title": "/images/miniatures/14_halal.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 49,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "118092f84d08"
-  },
-  {
-   "id": "path-literal:7e3108932051",
-   "type": "path-literal",
-   "title": "/images/miniatures/15_healthy.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 52,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "4d445fcf1acf"
-  },
-  {
-   "id": "path-literal:3c950d3f34dd",
-   "type": "path-literal",
-   "title": "/images/miniatures/16_indien.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 35,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "2ac0feede013"
-  },
-  {
-   "id": "path-literal:f48b905d7d98",
-   "type": "path-literal",
-   "title": "/images/miniatures/17_italien.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 25,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "5d0fe06cb5ad"
-  },
-  {
-   "id": "path-literal:ffc5da7a158d",
-   "type": "path-literal",
-   "title": "/images/miniatures/18_japonais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 30,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "f95f0e6def69"
-  },
-  {
-   "id": "path-literal:596c9de35373",
-   "type": "path-literal",
-   "title": "/images/miniatures/19_kebab.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 38,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "a6f4ade434d8"
-  },
-  {
-   "id": "path-literal:423a4a8d205e",
-   "type": "path-literal",
-   "title": "/images/miniatures/20_libanais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 36,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "46a7969221eb"
-  },
-  {
-   "id": "path-literal:6f7d75f474c4",
-   "type": "path-literal",
-   "title": "/images/miniatures/21_marocain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 40,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "afe1818c62e8"
-  },
-  {
-   "id": "path-literal:4be1a9edaa3d",
-   "type": "path-literal",
-   "title": "/images/miniatures/22_mediterranee.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 41,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "192fdf3e7634"
-  },
-  {
-   "id": "path-literal:e08c5058df0c",
-   "type": "path-literal",
-   "title": "/images/miniatures/23_mexicain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 39,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "7ff0e5150a90"
-  },
-  {
-   "id": "path-literal:02cff0c6fe10",
-   "type": "path-literal",
-   "title": "/images/miniatures/24_pakistanais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 48,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "d3359a13d584"
-  },
-  {
-   "id": "path-literal:163919a499a2",
-   "type": "path-literal",
-   "title": "/images/miniatures/25_pizza.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 26,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "7098c22ef803"
-  },
-  {
-   "id": "path-literal:44c46cd3ccb1",
-   "type": "path-literal",
-   "title": "/images/miniatures/26_sushi.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 27,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "dd4845c55b93"
-  },
-  {
-   "id": "path-literal:ca49da4a5163",
-   "type": "path-literal",
-   "title": "/images/miniatures/27_ramen.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 32,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "83a66b768737"
-  },
-  {
-   "id": "path-literal:324c6671937b",
-   "type": "path-literal",
-   "title": "/images/miniatures/28_thai.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 34,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "77bbac90d5e4"
-  },
-  {
-   "id": "path-literal:fa7bda03452f",
-   "type": "path-literal",
-   "title": "/images/miniatures/29_turc.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 37,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "e25cb1025e62"
-  },
-  {
-   "id": "path-literal:f588683b0f24",
-   "type": "path-literal",
-   "title": "/images/miniatures/30_salades.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 53,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "9c4193dfcdd6"
-  },
-  {
-   "id": "path-literal:0f4b70c43418",
-   "type": "path-literal",
-   "title": "/images/miniatures/31_poke.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 54,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "64ba32d8d446"
-  },
-  {
-   "id": "path-literal:41c0e826e03f",
-   "type": "path-literal",
-   "title": "/images/miniatures/32_petit-dejeuner.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 56,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "37d60b5b591f"
-  },
-  {
-   "id": "path-literal:81c4602985f2",
-   "type": "path-literal",
-   "title": "/images/miniatures/33_pates.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 46,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "fe6938b0ef40"
-  },
-  {
-   "id": "path-literal:0f0c65417f30",
-   "type": "path-literal",
-   "title": "/images/miniatures/34_fondue-suisse.webp",
+   "title": "/images/miniatures/02_americain.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 45,
@@ -347276,12 +347076,25 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "3a4aa270223d"
+   "detailRef": "efe3aefcc238"
   },
   {
-   "id": "path-literal:f761213c4186",
+   "id": "path-literal:88789a8dbe71",
    "type": "path-literal",
-   "title": "/images/miniatures/35_patisserie.webp",
+   "title": "/images/miniatures/03_bistro.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 29,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "1f8d94c99940"
+  },
+  {
+   "id": "path-literal:8baa666b323b",
+   "type": "path-literal",
+   "title": "/images/miniatures/04_boulangerie.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 58,
@@ -347289,12 +347102,38 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "f516fc78cbc2"
+   "detailRef": "4c1ce5c4b4a5"
   },
   {
-   "id": "path-literal:8d48fa11df94",
+   "id": "path-literal:805b893fccac",
    "type": "path-literal",
-   "title": "/images/miniatures/36_sandwich.webp",
+   "title": "/images/miniatures/05_brunch.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 56,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "1a1b7ac676cc"
+  },
+  {
+   "id": "path-literal:8aee78724172",
+   "type": "path-literal",
+   "title": "/images/miniatures/06_burger.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "46c62136c30d"
+  },
+  {
+   "id": "path-literal:3616109e9936",
+   "type": "path-literal",
+   "title": "/images/miniatures/07_cafe.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 61,
@@ -347302,25 +347141,90 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "306c66e0a24e"
+   "detailRef": "7287609eb2bc"
   },
   {
-   "id": "path-literal:2a712941525f",
+   "id": "path-literal:78d8bf3f667f",
    "type": "path-literal",
-   "title": "/images/miniatures/37_street-food.webp",
+   "title": "/images/miniatures/08_chinois.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 62,
+   "line": 34,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "26e76442f1cb"
+   "detailRef": "e0f4ca6f4377"
   },
   {
-   "id": "path-literal:2b13621fc800",
+   "id": "path-literal:3b30c175b419",
    "type": "path-literal",
-   "title": "/images/miniatures/38_vegetarien.webp",
+   "title": "/images/miniatures/09_creole.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 44,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "db3a1bb2a385"
+  },
+  {
+   "id": "path-literal:d05470644fcb",
+   "type": "path-literal",
+   "title": "/images/miniatures/10_desserts.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 60,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "68b7d365864c"
+  },
+  {
+   "id": "path-literal:e82e34f86c57",
+   "type": "path-literal",
+   "title": "/images/miniatures/11_francais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 32,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "b806528643c7"
+  },
+  {
+   "id": "path-literal:b54a4d64a099",
+   "type": "path-literal",
+   "title": "/images/miniatures/12_gastronomique.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "e1b2841d292a"
+  },
+  {
+   "id": "path-literal:0a5b39c79845",
+   "type": "path-literal",
+   "title": "/images/miniatures/13_grillades.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 48,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "e89486f59379"
+  },
+  {
+   "id": "path-literal:4b509777a057",
+   "type": "path-literal",
+   "title": "/images/miniatures/14_halal.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 50,
@@ -347328,12 +347232,311 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "13b37953fb11"
+   "detailRef": "922d35844b74"
   },
   {
-   "id": "path-literal:2886fc87582e",
+   "id": "path-literal:a73b2b549c96",
    "type": "path-literal",
-   "title": "/images/miniatures/39_vegan.webp",
+   "title": "/images/miniatures/15_healthy.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 53,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "5af408e6803d"
+  },
+  {
+   "id": "path-literal:8729c11d688e",
+   "type": "path-literal",
+   "title": "/images/miniatures/16_indien.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "8af6ca39fa10"
+  },
+  {
+   "id": "path-literal:13eac3b1786a",
+   "type": "path-literal",
+   "title": "/images/miniatures/17_italien.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 26,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "4ab0312119f2"
+  },
+  {
+   "id": "path-literal:c172bf70021e",
+   "type": "path-literal",
+   "title": "/images/miniatures/18_japonais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "83a4f359bbce"
+  },
+  {
+   "id": "path-literal:b19926a110e8",
+   "type": "path-literal",
+   "title": "/images/miniatures/19_kebab.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "086657d4949e"
+  },
+  {
+   "id": "path-literal:c0390312a2b2",
+   "type": "path-literal",
+   "title": "/images/miniatures/20_libanais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 37,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "c43178ba6640"
+  },
+  {
+   "id": "path-literal:5aee8aee39fb",
+   "type": "path-literal",
+   "title": "/images/miniatures/21_marocain.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 41,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "d4726df8665b"
+  },
+  {
+   "id": "path-literal:b1b42311b666",
+   "type": "path-literal",
+   "title": "/images/miniatures/22_mediterranee.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 42,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "207b9bf18d16"
+  },
+  {
+   "id": "path-literal:d628734f4ebb",
+   "type": "path-literal",
+   "title": "/images/miniatures/23_mexicain.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "fec76c02e948"
+  },
+  {
+   "id": "path-literal:0a281a9d1a3d",
+   "type": "path-literal",
+   "title": "/images/miniatures/24_pakistanais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 49,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "9ca963179ce0"
+  },
+  {
+   "id": "path-literal:7743734ac7b9",
+   "type": "path-literal",
+   "title": "/images/miniatures/25_pizza.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "4c697fa57c01"
+  },
+  {
+   "id": "path-literal:4a68202aabc2",
+   "type": "path-literal",
+   "title": "/images/miniatures/26_sushi.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "e83a7aec7009"
+  },
+  {
+   "id": "path-literal:4cb27798428f",
+   "type": "path-literal",
+   "title": "/images/miniatures/27_ramen.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "578e92889bf6"
+  },
+  {
+   "id": "path-literal:52ca72f5feea",
+   "type": "path-literal",
+   "title": "/images/miniatures/28_thai.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "d27065eeb3ab"
+  },
+  {
+   "id": "path-literal:a7e580535d90",
+   "type": "path-literal",
+   "title": "/images/miniatures/29_turc.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 38,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "f1aea41fedcd"
+  },
+  {
+   "id": "path-literal:8d1289141e53",
+   "type": "path-literal",
+   "title": "/images/miniatures/30_salades.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 54,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "c7e0d3904d27"
+  },
+  {
+   "id": "path-literal:3465ced1a4d0",
+   "type": "path-literal",
+   "title": "/images/miniatures/31_poke.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 55,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "60b2e122a00b"
+  },
+  {
+   "id": "path-literal:b941d1b95e39",
+   "type": "path-literal",
+   "title": "/images/miniatures/32_petit-dejeuner.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "54efd0266d43"
+  },
+  {
+   "id": "path-literal:fb1579074bd2",
+   "type": "path-literal",
+   "title": "/images/miniatures/33_pates.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 47,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "0e0cc6ed6d52"
+  },
+  {
+   "id": "path-literal:8ca1ddf6fcec",
+   "type": "path-literal",
+   "title": "/images/miniatures/34_fondue-suisse.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 46,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "bdd91d52474d"
+  },
+  {
+   "id": "path-literal:3c4434b34d0c",
+   "type": "path-literal",
+   "title": "/images/miniatures/35_patisserie.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 59,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "592b7ae8ad83"
+  },
+  {
+   "id": "path-literal:46b0f81b9820",
+   "type": "path-literal",
+   "title": "/images/miniatures/36_sandwich.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 62,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "a230221073bd"
+  },
+  {
+   "id": "path-literal:5dbd659e6daa",
+   "type": "path-literal",
+   "title": "/images/miniatures/37_street-food.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 63,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "330073410e59"
+  },
+  {
+   "id": "path-literal:a0aeaedb7a17",
+   "type": "path-literal",
+   "title": "/images/miniatures/38_vegetarien.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 51,
@@ -347341,7 +347544,20 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "f18dd34f6681"
+   "detailRef": "90cf0bd5ed15"
+  },
+  {
+   "id": "path-literal:997438b8b1dd",
+   "type": "path-literal",
+   "title": "/images/miniatures/39_vegan.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 52,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "991446517d74"
   },
   {
    "id": "path-literal:7005454c2cb8",
@@ -347669,18 +347885,18 @@
    "detailRef": "525f61796d27"
   },
   {
-   "id": "path-literal:da043ac98552",
+   "id": "path-literal:340b6679b6c2",
    "type": "path-literal",
    "title": "/images/section-headers/tok-editorial-cuisine.jpg",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 120,
+   "line": 121,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx",
     "src/test/home-core-web-vitals.test.ts"
    ],
-   "detailRef": "cbbd4d0479fb"
+   "detailRef": "add8f78c1253"
   },
   {
    "id": "path-literal:c192985cf97d",
@@ -349039,17 +349255,17 @@
    "detailRef": "cb0c29ac2ec8"
   },
   {
-   "id": "path-literal:d7c280b702d4",
+   "id": "path-literal:f8c983db07b4",
    "type": "path-literal",
    "title": "/recherche?q=francais",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/home-cuisine-accessibility.test.tsx",
-   "line": 41,
+   "line": 57,
    "surface": null,
    "tags": [
     "src/test/home-cuisine-accessibility.test.tsx"
    ],
-   "detailRef": "44e8d3c4c35f"
+   "detailRef": "05e468769cef"
   },
   {
    "id": "path-literal:aa078f0211e2",
@@ -357229,6 +357445,104 @@
    "detailRef": "b6e88c398ded"
   },
   {
+   "id": "public-asset:b942137d1080",
+   "type": "public-asset",
+   "title": "/miniatures-3d/africain.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/africain.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "8d980e4dc6b9"
+  },
+  {
+   "id": "public-asset:35ed5efcac86",
+   "type": "public-asset",
+   "title": "/miniatures-3d/americain.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/americain.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "170b1a66c1ea"
+  },
+  {
+   "id": "public-asset:b8de00c4fb00",
+   "type": "public-asset",
+   "title": "/miniatures-3d/bistro.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/bistro.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "6a7b60acf8b5"
+  },
+  {
+   "id": "public-asset:1a8ecb80067b",
+   "type": "public-asset",
+   "title": "/miniatures-3d/boulangerie.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/boulangerie.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "60fa5109979c"
+  },
+  {
+   "id": "public-asset:bc43773cba23",
+   "type": "public-asset",
+   "title": "/miniatures-3d/brunch.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/brunch.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "2e45446ad9b5"
+  },
+  {
+   "id": "public-asset:9fa7ea0e253a",
+   "type": "public-asset",
+   "title": "/miniatures-3d/burger.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/burger.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "c2cc3bd052b3"
+  },
+  {
+   "id": "public-asset:463541b3c436",
+   "type": "public-asset",
+   "title": "/miniatures-3d/cafe.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/cafe.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "6a9bee666874"
+  },
+  {
    "id": "public-asset:7f96bc8b7e3e",
    "type": "public-asset",
    "title": "/miniatures-3d/chinois.webp",
@@ -357255,6 +357569,20 @@
     "public"
    ],
    "detailRef": "30dda03473c7"
+  },
+  {
+   "id": "public-asset:6c24d7c8a8be",
+   "type": "public-asset",
+   "title": "/miniatures-3d/desserts.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/desserts.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "09b8a9a83350"
   },
   {
    "id": "public-asset:96fa98a5812b",
@@ -357353,6 +357681,20 @@
     "public"
    ],
    "detailRef": "a21c2d749391"
+  },
+  {
+   "id": "public-asset:e7b6bd895454",
+   "type": "public-asset",
+   "title": "/miniatures-3d/italien.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/italien.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "c1d3e990564a"
   },
   {
    "id": "public-asset:6961f6a82a21",

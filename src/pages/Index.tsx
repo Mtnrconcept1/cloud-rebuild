@@ -667,7 +667,7 @@ export default function Index() {
       ) : null}
       <CuisineCategoryStrip homeVariant />
       {!isCommercialDemoClient ? (
-        <section className="container py-4">
+        <section className="container py-1 empty:hidden md:py-4">
           <CampaignBanner page="home" maxBanners={1} />
         </section>
       ) : null}
