@@ -391,3 +391,89 @@ REVOKE ALL ON FUNCTION public.fail_restaurant_commission_collection(uuid,text,bo
  FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.fail_restaurant_commission_collection(uuid,text,boolean)
  TO service_role;
+
+
+-- Track Stripe PLATFORM payouts to TOK's own bank. Stripe already maintains
+-- the bank linkage and its payout schedule. Connect transfers are not payouts.
+CREATE TABLE IF NOT EXISTS public.tok_bank_payout_reconciliations (
+  stripe_payout_id text PRIMARY KEY CHECK (stripe_payout_id LIKE 'po_%'),
+  amount_cents integer NOT NULL CHECK(amount_cents > 0),
+  currency text NOT NULL DEFAULT 'CHF' CHECK(currency='CHF'),
+  status text NOT NULL CHECK(status IN('pending','in_transit','paid','failed','canceled')),
+  destination_id text,
+  arrival_date timestamptz,
+  paid_at timestamptz,
+  last_error_code text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.tok_bank_payout_reconciliations ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.tok_bank_payout_reconciliations FROM PUBLIC,anon,authenticated;
+GRANT ALL ON public.tok_bank_payout_reconciliations TO service_role;
+GRANT SELECT ON public.tok_bank_payout_reconciliations TO authenticated;
+DROP POLICY IF EXISTS tok_bank_payouts_admin_only ON public.tok_bank_payout_reconciliations;
+CREATE POLICY tok_bank_payouts_admin_only
+  ON public.tok_bank_payout_reconciliations FOR SELECT TO authenticated
+  USING ((SELECT public.auth_is_admin()));
+
+CREATE OR REPLACE FUNCTION public.record_tok_bank_payout(
+  p_stripe_payout_id text,p_amount_cents integer,p_currency text,
+  p_status text,p_destination_id text DEFAULT NULL,
+  p_arrival_date timestamptz DEFAULT NULL,p_error_code text DEFAULT NULL
+) RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
+AS $fn$
+DECLARE v public.tok_bank_payout_reconciliations%ROWTYPE; v_now timestamptz:=now();
+BEGIN
+  IF p_stripe_payout_id !~ '^po_[A-Za-z0-9]+$'
+    OR p_amount_cents<=0 OR upper(p_currency)<>'CHF'
+    OR p_status NOT IN ('pending','in_transit','paid','failed','canceled') THEN
+    RAISE EXCEPTION 'invalid_stripe_bank_payout_event';
+  END IF;
+  INSERT INTO public.tok_bank_payout_reconciliations(
+    stripe_payout_id,amount_cents,currency,status,destination_id,arrival_date,last_error_code
+  ) VALUES (
+    p_stripe_payout_id,p_amount_cents,'CHF',p_status,p_destination_id,
+    p_arrival_date,left(p_error_code,100)
+  ) ON CONFLICT(stripe_payout_id) DO NOTHING;
+  SELECT * INTO v FROM public.tok_bank_payout_reconciliations
+    WHERE stripe_payout_id=p_stripe_payout_id FOR UPDATE;
+  IF v.amount_cents<>p_amount_cents OR v.currency<>'CHF' THEN
+    RAISE EXCEPTION 'stripe_bank_payout_amount_mismatch';
+  END IF;
+  IF v.status IN ('paid','failed','canceled')
+    AND p_status IN ('pending','in_transit') THEN RETURN v.status; END IF;
+  IF p_status='paid' THEN
+    INSERT INTO public.financial_ledger(
+      source_type,source_id,account_code,direction,amount_cents,currency,
+      effective_at,metadata,stripe_mode,livemode
+    ) VALUES
+      ('stripe_payout',p_stripe_payout_id,'bank_chf','debit',p_amount_cents,'CHF',
+        v_now,jsonb_build_object('stripe_payout_id',p_stripe_payout_id),'live',true),
+      ('stripe_payout',p_stripe_payout_id,'payment_asset','credit',p_amount_cents,'CHF',
+        v_now,jsonb_build_object('stripe_payout_id',p_stripe_payout_id),'live',true)
+    ON CONFLICT DO NOTHING;
+  END IF;
+  IF p_status='failed' AND v.status='paid' THEN
+    INSERT INTO public.financial_ledger(
+      source_type,source_id,account_code,direction,amount_cents,currency,
+      effective_at,metadata,stripe_mode,livemode
+    ) VALUES
+      ('stripe_payout_failure',p_stripe_payout_id,'bank_chf','credit',p_amount_cents,'CHF',
+        v_now,jsonb_build_object('stripe_payout_id',p_stripe_payout_id),'live',true),
+      ('stripe_payout_failure',p_stripe_payout_id,'payment_asset','debit',p_amount_cents,'CHF',
+        v_now,jsonb_build_object('stripe_payout_id',p_stripe_payout_id),'live',true)
+    ON CONFLICT DO NOTHING;
+  END IF;
+  UPDATE public.tok_bank_payout_reconciliations
+     SET status=p_status,destination_id=COALESCE(p_destination_id,destination_id),
+         arrival_date=COALESCE(p_arrival_date,arrival_date),
+         paid_at=CASE WHEN p_status='paid' THEN COALESCE(paid_at,v_now) ELSE paid_at END,
+         last_error_code=CASE WHEN p_status='failed' THEN left(p_error_code,100) ELSE NULL END,
+         updated_at=v_now
+   WHERE stripe_payout_id=p_stripe_payout_id;
+  RETURN p_status;
+END $fn$;
+REVOKE ALL ON FUNCTION public.record_tok_bank_payout(text,integer,text,text,text,timestamp with time zone,text)
+ FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.record_tok_bank_payout(text,integer,text,text,text,timestamp with time zone,text)
+ TO service_role;
