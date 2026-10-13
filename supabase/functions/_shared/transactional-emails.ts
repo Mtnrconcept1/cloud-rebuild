@@ -437,6 +437,8 @@ function buildReservationCustomerShell(input: ReservationConfirmationEmailInput)
     @media only screen and (max-width:600px) {
       .tok-wrap { width:100%!important;max-width:100%!important; }
       .tok-pad { padding-left:16px!important;padding-right:16px!important; }
+      .tok-hero-desktop,.tok-desktop-intro { display:none!important;max-height:0!important;overflow:hidden!important; }
+      .tok-hero-mobile { display:table-row!important;max-height:none!important;overflow:visible!important; }
       .tok-hero-copy,.tok-hero-image { display:block!important;width:100%!important;box-sizing:border-box!important; }
       .tok-hero-image { text-align:center!important; }
       .tok-hero-image img { width:158px!important;height:auto!important;margin:0 auto!important; }
@@ -453,7 +455,14 @@ function buildReservationCustomerShell(input: ReservationConfirmationEmailInput)
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#f4f5f7" style="border-collapse:collapse;background:#f4f5f7;">
    <tr><td align="center" style="padding:20px 8px;">
     <table role="presentation" class="tok-wrap" width="700" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="width:100%;max-width:700px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;border-collapse:separate;">
-      <tr><td bgcolor="#20140e" background="${hero}" style="padding:28px 32px;background-color:#20140e;background-image:linear-gradient(90deg,rgba(20,14,10,.94),rgba(20,14,10,.78)),url('${hero}');background-position:center;background-size:cover;">
+      <tr class="tok-hero-desktop"><td bgcolor="#20140e" style="background-color:#20140e;">
+        <img src="${escapeHtml(assetUrl(base, "/images/emails/tok-reservation-hero.webp"))}" alt="TOK : votre réservation est confirmée, bon appétit et à très bientôt" width="700" style="display:block;width:100%;max-width:700px;height:auto;border:0;">
+      </td></tr>
+      <tr class="tok-desktop-intro"><td class="tok-pad" style="padding:23px 30px 0;background:#ffffff;">
+        <p style="margin:0 0 8px;font-size:18px;color:#111827;font-weight:900;">Bonjour ${escapeHtml(input.customerName || "cher client")},</p>
+        <p style="margin:0;font-size:14px;line-height:1.65;color:#334155;">Excellente nouvelle ! Votre table chez <strong>${escapeHtml(input.restaurantName)}</strong> est bien enregistrée. Toute l'équipe a hâte de vous accueillir pour un moment gourmand et convivial.</p>
+      </td></tr>
+      <tr class="tok-hero-mobile" style="display:none;max-height:0;overflow:hidden;"><td bgcolor="#20140e" background="${hero}" style="padding:28px 32px;background-color:#20140e;background-image:linear-gradient(90deg,rgba(20,14,10,.94),rgba(20,14,10,.78)),url('${hero}');background-position:center;background-size:cover;">
        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
         <td class="tok-hero-copy" width="68%" valign="top" style="width:68%;">
          <img src="${logo}" alt="TOK" width="78" height="78" style="display:block;width:78px;height:78px;object-fit:contain;border:0;">
