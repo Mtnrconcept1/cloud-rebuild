@@ -107,6 +107,7 @@ describe("transactional order and reservation emails", () => {
     expect(email.bodyHtml).toContain("@media only screen and (max-width:600px)");
     expect(email.bodyHtml).toContain("width:50%!important");
     expect(email.bodyHtml).toContain("Voir ou modifier ma réservation");
+    expect(email.bodyHtml).toContain("Cet e-mail confirme une réservation effectuée sur TOK.");
     expect(email.bodyHtml).toContain("La Tok d’Or");
     expect(email.bodyHtml).toContain("2 % reversés à l’Hospice Général");
     expect(email.bodyHtml).toContain('href="https://www.thetok.ch/chefs-table"');
