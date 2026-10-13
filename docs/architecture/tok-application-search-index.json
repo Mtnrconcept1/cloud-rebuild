@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "16f7630b60d496d5bb05fcc1c9afea7bcbbd5495103f41f11de4198dd1a3f2ee",
+ "sourceDigest": "dc0bdc708a2672044ee397b4f9c58a77eb8a9f8874a4e43ecd23c74ae5ab08b3",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -26462,7 +26462,7 @@
     "sources": [
      {
       "path": "scripts/test-golden-tok-responsive.mjs",
-      "line": 47
+      "line": 56
      }
     ]
    },
@@ -27826,7 +27826,7 @@
     "sources": [
      {
       "path": "scripts/test-golden-tok-responsive.mjs",
-      "line": 55
+      "line": 64
      }
     ]
    },
@@ -83606,7 +83606,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 138
+    "lineCount": 159
    },
    {
     "path": "scripts/test-print-protocol-postgres.mjs",
@@ -130638,7 +130638,7 @@
    "id": "code-module:f473faa38d50",
    "type": "code-module",
    "title": "scripts/test-golden-tok-responsive.mjs",
-   "description": "Module de 138 lignes; exports: aucun export statique.",
+   "description": "Module de 159 lignes; exports: aucun export statique.",
    "path": "scripts/test-golden-tok-responsive.mjs",
    "line": 1,
    "surface": null,
@@ -130647,7 +130647,7 @@
     "GOLDEN_TOK_TEST_URL",
     "supabase"
    ],
-   "detailRef": "e1b16e8287ad"
+   "detailRef": "daf99e910a02"
   },
   {
    "id": "code-module:325f58f098fe",
@@ -354849,17 +354849,17 @@
    "detailRef": "d10c652398cd"
   },
   {
-   "id": "path-literal:487ade4d22b4",
+   "id": "path-literal:652bc7b583fa",
    "type": "path-literal",
    "title": "/rest/v1/feature_flags",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/test-golden-tok-responsive.mjs",
-   "line": 47,
+   "line": 56,
    "surface": null,
    "tags": [
     "scripts/test-golden-tok-responsive.mjs"
    ],
-   "detailRef": "356298769e0f"
+   "detailRef": "22755c1020ba"
   },
   {
    "id": "path-literal:9776c0c8b22a",
@@ -356091,17 +356091,17 @@
    "detailRef": "50953b4927c6"
   },
   {
-   "id": "path-literal:7c41902a347f",
+   "id": "path-literal:9f573768f66b",
    "type": "path-literal",
    "title": "/rpc/get_launch_gate_state",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/test-golden-tok-responsive.mjs",
-   "line": 55,
+   "line": 64,
    "surface": null,
    "tags": [
     "scripts/test-golden-tok-responsive.mjs"
    ],
-   "detailRef": "ebf441fec8f8"
+   "detailRef": "3d30200ec97d"
   },
   {
    "id": "path-literal:d63d9fbbcb79",

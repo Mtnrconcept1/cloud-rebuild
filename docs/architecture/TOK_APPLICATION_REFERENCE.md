@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `16f7630b60d496d5bb05fcc1c9afea7bcbbd5495103f41f11de4198dd1a3f2ee`
+- Empreinte SHA-256 des sources indexées : `dc0bdc708a2672044ee397b4f9c58a77eb8a9f8874a4e43ecd23c74ae5ab08b3`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1673,7 +1673,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /reservations | 25 | [scripts/prerender-seo.mjs:1272](../../scripts/prerender-seo.mjs#L1272) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
 | /rest/v1/ | 3 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
-| /rest/v1/feature_flags | 1 | [scripts/test-golden-tok-responsive.mjs:47](../../scripts/test-golden-tok-responsive.mjs#L47) |
+| /rest/v1/feature_flags | 1 | [scripts/test-golden-tok-responsive.mjs:56](../../scripts/test-golden-tok-responsive.mjs#L56) |
 | /rest/v1/rpc/ | 2 | [src/lib/commercialDemoEffects.ts:20](../../src/lib/commercialDemoEffects.ts#L20) |
 | /rest/v1/user_roles? | 7 | [src/test/marketing-bff-security.test.ts:250](../../src/test/marketing-bff-security.test.ts#L250) |
 | /restaurant | 4 | [supabase/functions/discover-thefork-official-sites/index.ts:459](../../supabase/functions/discover-thefork-official-sites/index.ts#L459) |
@@ -1761,7 +1761,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurateurs/lausanne | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
 | /robots.txt | 5 | [supabase/functions/discover-thefork-official-sites/index.ts:348](../../supabase/functions/discover-thefork-official-sites/index.ts#L348) |
 | /rpc/ | 1 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
-| /rpc/get_launch_gate_state | 1 | [scripts/test-golden-tok-responsive.mjs:55](../../scripts/test-golden-tok-responsive.mjs#L55) |
+| /rpc/get_launch_gate_state | 1 | [scripts/test-golden-tok-responsive.mjs:64](../../scripts/test-golden-tok-responsive.mjs#L64) |
 | /rpc/service_clear_marketing_auth_attempt | 4 | [src/test/marketing-bff-security.test.ts:373](../../src/test/marketing-bff-security.test.ts#L373) |
 | /rpc/service_consume_marketing_auth_attempt | 10 | [src/test/marketing-agent-bff.test.ts:29](../../src/test/marketing-agent-bff.test.ts#L29) |
 | /rpc/service_execute_marketing_admin_operation | 2 | [src/test/marketing-agent-bff.test.ts:89](../../src/test/marketing-agent-bff.test.ts#L89) |
