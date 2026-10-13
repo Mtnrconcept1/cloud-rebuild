@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Activity,
   Bot,
@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import TokConnectCatalogControls from "@/components/admin/TokConnectCatalogControls";
+import { useTokConnectAdminCatalog, type CatalogCategory, type CatalogAccess } from "@/hooks/useTokConnectAdminCatalog";
 import { useToast } from "@/hooks/use-toast";
 import { SUPABASE_URL } from "@/lib/env";
 import { fetchWithFreshAccessToken } from "@/lib/session";
@@ -143,6 +145,8 @@ export default function AdminTokConnect() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [restaurantSearch, setRestaurantSearch] = useState("");
+  const [category, setCategory] = useState<CatalogCategory>("all");
+  const [access, setAccess] = useState<CatalogAccess>("all");
   const [selectedRestaurantId, setSelectedRestaurantId] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -152,10 +156,7 @@ export default function AdminTokConnect() {
     try {
       const next = await callTokConnectAdmin<AdminOverview>({ action: "admin-overview" });
       setOverview(next);
-      setSelectedRestaurantId((current) => {
-        if (current && next.restaurants.some((restaurant) => restaurant.restaurant_id === current)) return current;
-        return next.restaurants[0]?.restaurant_id || "";
-      });
+
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Chargement TOK Connect impossible.");
     } finally {
@@ -167,21 +168,12 @@ export default function AdminTokConnect() {
     void load();
   }, [load]);
 
-  const filteredRestaurants = useMemo(() => {
-    const needle = restaurantSearch.trim().toLowerCase();
-    if (!needle) return overview.restaurants;
-    return overview.restaurants.filter((restaurant) => [
-      restaurant.restaurant_name,
-      restaurant.restaurant_city,
-      restaurant.restaurant_address,
-      restaurant.owner_name,
-      restaurant.owner_email,
-    ].filter(Boolean).some((value) => String(value).toLowerCase().includes(needle)));
-  }, [overview.restaurants, restaurantSearch]);
-
-  const selectedRestaurant = overview.restaurants.find(
-    (restaurant) => restaurant.restaurant_id === selectedRestaurantId,
-  ) || filteredRestaurants[0] || null;
+  const catalog = useTokConnectAdminCatalog(
+    restaurantSearch, category, access, selectedRestaurantId, setSelectedRestaurantId,
+    overview, callTokConnectAdmin,
+  );
+  const filteredRestaurants = catalog.restaurants;
+  const selectedRestaurant = catalog.selectedRestaurant;
 
   const enabledRestaurants = overview.restaurants.filter((restaurant) => restaurant.mcp_enabled).length;
   const activeAgents = overview.agents.filter((agent) => agent.status === "active").length;
@@ -299,7 +291,7 @@ export default function AdminTokConnect() {
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={restaurantSearch}
-                  onChange={(event) => setRestaurantSearch(event.target.value)}
+                  onChange={(event) => { setRestaurantSearch(event.target.value); catalog.setPage(0); }}
                   placeholder="Nom, ville, adresse ou propriétaire…"
                   className="h-11 rounded-xl pl-9"
                 />
@@ -311,7 +303,7 @@ export default function AdminTokConnect() {
                 className="h-11 w-full rounded-xl border bg-background px-3 text-sm font-semibold"
                 value={selectedRestaurant?.restaurant_id || ""}
                 onChange={(event) => setSelectedRestaurantId(event.target.value)}
-                disabled={loading || filteredRestaurants.length === 0}
+                disabled={catalog.loading || filteredRestaurants.length === 0}
               >
                 {filteredRestaurants.map((restaurant) => (
                   <option key={restaurant.restaurant_id} value={restaurant.restaurant_id}>
@@ -322,6 +314,13 @@ export default function AdminTokConnect() {
             </label>
           </div>
 
+          <TokConnectCatalogControls
+            category={category} access={access} page={catalog.page} pageSize={catalog.pageSize}
+            total={catalog.total} loading={catalog.loading} error={catalog.error}
+            onCategory={(value) => { setCategory(value); catalog.setPage(0); }}
+            onAccess={(value) => { setAccess(value); catalog.setPage(0); }}
+            onPage={catalog.setPage}
+          />
           {selectedRestaurant ? (
             <div className="grid gap-4 rounded-2xl border bg-muted/20 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
               <div className="space-y-3">
