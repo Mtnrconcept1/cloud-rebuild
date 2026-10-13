@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `dc0bdc708a2672044ee397b4f9c58a77eb8a9f8874a4e43ecd23c74ae5ab08b3`
+- Empreinte SHA-256 des sources indexées : `e28de383d23257da798e70d6ade3f008d39503717f38e196f0c3de7f151eb794`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 533 |
-| modules | 1538 |
+| modules | 1539 |
 | pages | 129 |
-| pathLiterals | 695 |
+| pathLiterals | 693 |
 | publicAssets | 502 |
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16500 |
-| repositoryFiles | 3068 |
+| records | 16501 |
+| repositoryFiles | 3070 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 42 |
@@ -1164,7 +1164,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /?$ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /?q=restaurant | 1 | [src/test/marketing-autopilot-frontend.test.tsx:255](../../src/test/marketing-autopilot-frontend.test.tsx#L255) |
 | /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:147](../../src/test/plan-phase1-readiness.test.ts#L147) |
-| /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 3 | [src/components/FeatureWizard.tsx:18](../../src/components/FeatureWizard.tsx#L18) |
+| /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 4 | [src/components/FeatureWizard.tsx:18](../../src/components/FeatureWizard.tsx#L18) |
 | /Miamz2.webp | 4 | [src/components/home/SolidaritySection.tsx:49](../../src/components/home/SolidaritySection.tsx#L49) |
 | /Miamz3.webp | 3 | [src/components/home/SolidaritySection.tsx:43](../../src/components/home/SolidaritySection.tsx#L43) |
 | /[^/]+ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
@@ -1673,7 +1673,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /reservations | 25 | [scripts/prerender-seo.mjs:1272](../../scripts/prerender-seo.mjs#L1272) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
 | /rest/v1/ | 3 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
-| /rest/v1/feature_flags | 1 | [scripts/test-golden-tok-responsive.mjs:56](../../scripts/test-golden-tok-responsive.mjs#L56) |
 | /rest/v1/rpc/ | 2 | [src/lib/commercialDemoEffects.ts:20](../../src/lib/commercialDemoEffects.ts#L20) |
 | /rest/v1/user_roles? | 7 | [src/test/marketing-bff-security.test.ts:250](../../src/test/marketing-bff-security.test.ts#L250) |
 | /restaurant | 4 | [supabase/functions/discover-thefork-official-sites/index.ts:459](../../supabase/functions/discover-thefork-official-sites/index.ts#L459) |
@@ -1761,7 +1760,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurateurs/lausanne | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
 | /robots.txt | 5 | [supabase/functions/discover-thefork-official-sites/index.ts:348](../../supabase/functions/discover-thefork-official-sites/index.ts#L348) |
 | /rpc/ | 1 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
-| /rpc/get_launch_gate_state | 1 | [scripts/test-golden-tok-responsive.mjs:64](../../scripts/test-golden-tok-responsive.mjs#L64) |
 | /rpc/service_clear_marketing_auth_attempt | 4 | [src/test/marketing-bff-security.test.ts:373](../../src/test/marketing-bff-security.test.ts#L373) |
 | /rpc/service_consume_marketing_auth_attempt | 10 | [src/test/marketing-agent-bff.test.ts:29](../../src/test/marketing-agent-bff.test.ts#L29) |
 | /rpc/service_execute_marketing_admin_operation | 2 | [src/test/marketing-agent-bff.test.ts:89](../../src/test/marketing-agent-bff.test.ts#L89) |
@@ -6092,7 +6090,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 226 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 688 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 687 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6109,7 +6107,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | frontend-component | 254 |
 | frontend-hook | 23 |
 | frontend-page | 129 |
-| frontend-source | 27 |
+| frontend-source | 28 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
@@ -6600,7 +6598,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (73)</summary>
+<details><summary>automation-script (74)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -6622,6 +6620,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/codex-auto-pre-edit.mjs`
 - `scripts/ensure-supabase-auth-security.mjs`
 - `scripts/ensure-supabase-auth-smtp.mjs`
+- `scripts/fixtures/golden-tok-preview.html`
 - `scripts/frontend-10k-readiness.mjs`
 - `scripts/generate-application-index.mjs`
 - `scripts/generate-error-code-map.mjs`
@@ -8033,7 +8032,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (37)</summary>
+<details><summary>frontend-source (38)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -8070,6 +8069,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/styles/golden-tok-chefs-table-v4.css`
 - `src/styles/golden-tok-chefs-table-v5.css`
 - `src/styles/golden-tok-chefs-table.css`
+- `src/test/fixtures/golden-tok-preview.tsx`
 - `src/test/setup.ts`
 - `src/vite-env.d.ts`
 
