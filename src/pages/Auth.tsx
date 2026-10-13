@@ -960,6 +960,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     useState(false);
   const [privilegedSignupAwaitingEmail, setPrivilegedSignupAwaitingEmail] =
     useState(false);
+  const [clientConfirmationPending, setClientConfirmationPending] = useState(false);
   const [selectedSubscriptionPlanId, setSelectedSubscriptionPlanId] =
     useState("");
   const [
@@ -1492,10 +1493,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
               ? "Votre dossier est enregistré. Enregistrez maintenant votre carte pour débloquer la configuration du restaurant."
               : "Votre compte est en attente de validation humaine.",
         });
-        if (draft.requested_role === "restaurateur" && launchState?.enabled !== false) {
-          navigate("/coming-soon?welcome=1", { replace: true });
-          return;
-        }
         if (
           draft.requested_role === "restaurateur" &&
           recoveredOnboardingChoices
@@ -2044,7 +2041,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         });
         setPrivilegedSignupSubmitting(false);
         if (!isPrivilegedSignup) {
-          navigate("/coming-soon?welcome=1&email=1", { replace: true });
+          // Only an authenticated client can see the launch animation.
+          setClientConfirmationPending(true);
         }
         return;
       }
@@ -2122,7 +2120,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             : "Si cette adresse peut être utilisée pour créer un compte, un email de confirmation sera envoyé. Si vous avez déjà un compte, connectez-vous.",
         });
         if (!isPrivilegedSignup) {
-          navigate("/coming-soon?welcome=1&email=1", { replace: true });
+          setClientConfirmationPending(true);
         }
         return;
       }
@@ -2171,15 +2169,11 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       });
 
       if (submittedRole === "client") {
-        navigate("/coming-soon?welcome=1", { replace: true });
+        navigateToPostAuthTarget("client", true);
         return;
       }
 
       if (submittedRole === "restaurateur") {
-        if (launchState?.enabled !== false) {
-          navigate("/coming-soon?welcome=1");
-          return;
-        }
         await startRestaurantCardRegistrationAfterSignup(
           activeUser.id,
           submittedOnboardingChoices,
@@ -2318,6 +2312,22 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {clientConfirmationPending && !session && !isLogin ? (
+            <div className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950" role="status">
+              <p className="font-semibold">Vérifiez votre boîte de réception</p>
+              <p className="mt-1">
+                Si votre inscription nécessite une confirmation, ouvrez le lien reçu par email.
+                Tant que vous n’êtes pas connecté, vous pouvez parcourir TOK en tant qu’invité.
+              </p>
+              <button
+                type="button"
+                className="mt-3 rounded-lg border border-sky-400 px-3 py-2 font-medium"
+                onClick={() => navigate("/", { replace: true })}
+              >
+                Parcourir TOK en invité
+              </button>
+            </div>
+          ) : null}
           {confirmationCompleted && !user ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
               <p className="font-medium">Lien de confirmation ouvert</p>
