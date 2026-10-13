@@ -4,7 +4,9 @@ import {
   buildApplicationIndex,
   INDEX_JSON_PATH,
   REFERENCE_MARKDOWN_PATH,
+  USER_GUIDE_CATALOG_PATH,
   renderApplicationReference,
+  renderUserGuideCatalog,
   REPOSITORY_ROOT,
   serializeIndex,
 } from "./application-index-core.mjs";
@@ -14,6 +16,7 @@ const index = buildApplicationIndex(REPOSITORY_ROOT);
 const outputs = new Map([
   [INDEX_JSON_PATH, serializeIndex(index)],
   [REFERENCE_MARKDOWN_PATH, renderApplicationReference(index)],
+  [USER_GUIDE_CATALOG_PATH, renderUserGuideCatalog(index)],
 ]);
 
 let stale = false;

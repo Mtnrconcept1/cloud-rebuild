@@ -1235,6 +1235,11 @@ export default function Aide() {
                 les campagnes, le CRM, les avis, la facturation et le support opérationnel.
               </p>
               <div className="grid gap-2">
+                <Link to="/guide/restaurateur">
+                  <Button className="w-full gap-2 rounded-xl font-bold">
+                    Guide d’utilisation <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </Link>
                 <Link to="/packs-restaurateur">
                   <Button variant="outline" className="w-full gap-2 rounded-xl font-bold">
                     Packs restaurateurs <ChevronRight className="h-4 w-4" />
@@ -1254,6 +1259,9 @@ export default function Aide() {
                 Liens utiles
               </h3>
               <div className="space-y-2">
+                <Link to="/guide" className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+                  Guides d’utilisation <ChevronRight className="h-4 w-4" />
+                </Link>
                 <Link to="/cgu" className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
                   Conditions générales <ChevronRight className="h-4 w-4" />
                 </Link>

@@ -8,9 +8,11 @@ import {
   listRepositoryFiles,
   REFERENCE_MARKDOWN_PATH,
   renderApplicationReference,
+  renderUserGuideCatalog,
   REPOSITORY_ROOT,
   searchApplicationIndex,
   serializeIndex,
+  USER_GUIDE_CATALOG_PATH,
 } from "../../scripts/application-index-core.mjs";
 
 describe("application search index", () => {
@@ -20,6 +22,9 @@ describe("application search index", () => {
     expect(readFileSync(path.join(REPOSITORY_ROOT, INDEX_JSON_PATH), "utf8")).toBe(serializeIndex(index));
     expect(readFileSync(path.join(REPOSITORY_ROOT, REFERENCE_MARKDOWN_PATH), "utf8")).toBe(
       renderApplicationReference(index),
+    );
+    expect(readFileSync(path.join(REPOSITORY_ROOT, USER_GUIDE_CATALOG_PATH), "utf8")).toBe(
+      renderUserGuideCatalog(index),
     );
   });
 
@@ -48,7 +53,7 @@ describe("application search index", () => {
   });
 
   it("covers all primary application registries", () => {
-    expect(index.catalogs.frontendRoutes).toHaveLength(132);
+    expect(index.catalogs.frontendRoutes).toHaveLength(135);
     expect(index.catalogs.featureFlags).toHaveLength(99);
     expect(index.catalogs.apiRoutes).toHaveLength(9);
     expect(index.catalogs.edgeFunctions).toHaveLength(115);

@@ -1168,6 +1168,60 @@ const PUBLIC_SEO_PAGES = [
     },
   },
   {
+    path: "/guide",
+    title: "Guides d'utilisation TOK",
+    description:
+      "Choisissez le guide restaurateur ou la documentation complete de la plateforme TOK.",
+    priority: "0.6",
+    changefreq: "weekly",
+    staticContent: {
+      heading: "Guides d'utilisation TOK",
+      paragraphs: [
+        "Deux documentations distinctes donnent acces aux parcours TOK avec captures, recherche instantanee et filtres par categorie.",
+      ],
+      sections: [
+        { heading: "Guide restaurateur", items: ["Carte et photos", "Commandes et reservations", "Campagnes", "Performances", "Facturation"] },
+        { heading: "Guide plateforme", items: ["Experience client", "Restaurant", "Coursier", "Commercial", "Marketing", "Administration", "Outils serveur"] },
+      ],
+    },
+  },
+  {
+    path: "/guide/restaurateur",
+    title: "Guide restaurateur TOK - mode d'emploi complet",
+    description:
+      "Mode d'emploi TOK pour gerer le restaurant, la carte, les commandes, les reservations, les campagnes et la facturation.",
+    priority: "0.7",
+    changefreq: "weekly",
+    staticContent: {
+      heading: "Guide restaurateur TOK",
+      paragraphs: [
+        "Le parcours operationnel explique chaque outil utile a l'exploitation quotidienne du restaurant, avec captures de l'application et index de recherche.",
+      ],
+      sections: [
+        { heading: "Exploitation", items: ["Tableau de bord", "Carte et photos", "Commandes", "Reservations", "Service", "Plan de salle"] },
+        { heading: "Developpement", items: ["Offres", "Campagnes", "Actualites", "CRM", "Avis", "Performances", "Factures", "Support"] },
+      ],
+    },
+  },
+  {
+    path: "/guide/plateforme",
+    title: "Guide complet de la plateforme TOK",
+    description:
+      "Reference complete TOK pour examiner toutes les surfaces, routes, fonctions d'administration et outils serveur.",
+    priority: "0.5",
+    changefreq: "weekly",
+    staticContent: {
+      heading: "Guide complet de la plateforme TOK",
+      paragraphs: [
+        "La reference de diligence couvre les experiences client, restaurant, coursier, commercial, marketing et administration, ainsi que les services applicatifs indexes depuis le code.",
+      ],
+      sections: [
+        { heading: "Surfaces", items: ["Public", "Compte client", "Restaurant", "Coursier", "Commercial", "Marketing", "Administration"] },
+        { heading: "Architecture fonctionnelle", items: ["Routes frontend", "Outils serveur", "Integrations", "Controles d'acces", "Activation progressive"] },
+      ],
+    },
+  },
+  {
     path: "/cgu",
     title: "Conditions générales d'utilisation | TOK",
     description: "Consultez les conditions générales d'utilisation de TOK.",

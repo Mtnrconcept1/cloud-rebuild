@@ -59,6 +59,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
                 <Link to="/a-propos" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">À propos</Link>
                 <Link to="/contact" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Contact</Link>
+                <Link to="/guide" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Guides d’utilisation</Link>
                 <Link to="/aide" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Centre d'aide</Link>
                 <Link to="/cgu" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">CGU</Link>
                 <Link to="/politique-confidentialite" className="inline-flex min-h-11 items-center hover:text-primary transition-colors">Confidentialité</Link>

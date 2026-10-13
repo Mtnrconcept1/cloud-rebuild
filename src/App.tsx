@@ -88,6 +88,7 @@ const RestaurateursGoogleBusiness = lazy(() => import("./pages/RestaurateursGoog
 const AlternativeCommissionCouvert = lazy(() => import("./pages/AlternativeCommissionCouvert"));
 const MiamzSolidaires = lazy(() => import("./pages/MiamzSolidaires"));
 const Aide = lazy(() => import("./pages/Aide"));
+const GuideUtilisateur = lazy(() => import("./pages/GuideUtilisateur"));
 const CreneauxGarantis = lazy(() => import("./pages/CreneauxGarantis"));
 const FlexPrixBas = lazy(() => import("./pages/FlexPrixBas"));
 const MatchGroupes = lazy(() => import("./pages/MatchGroupes"));
@@ -683,6 +684,9 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/restaurateurs/google-business" element={<RestaurateursGoogleBusiness />} />
           <Route path="/restaurateurs/alternative-commission-couvert" element={<AlternativeCommissionCouvert />} />
           <Route path="/aide" element={<Aide />} />
+          <Route path="/guide" element={<GuideUtilisateur />} />
+          <Route path="/guide/restaurateur" element={<GuideUtilisateur />} />
+          <Route path="/guide/plateforme" element={<GuideUtilisateur />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
