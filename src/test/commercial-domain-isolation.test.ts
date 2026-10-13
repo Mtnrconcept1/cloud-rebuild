@@ -30,6 +30,7 @@ import {
   isDemoWorkspaceHost,
   isManagedCommercialAccount,
   isOwnedTokPreviewHost,
+  shouldShowCommercialSessionRecovery,
 } from "@/lib/commercialDomains";
 import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
 
@@ -42,6 +43,35 @@ describe("commercial.thetok.ch canonical isolation", () => {
     expect(isCommercialAppHost("COMMERCIAL.THETOK.CH.")).toBe(true);
     expect(isCommercialAppHost("commercial.thetok.ch.evil.example")).toBe(false);
     expect(isCommercialAppHost("notcommercial.thetok.ch")).toBe(false);
+  });
+
+  it("stops missing commercial-origin sessions locally instead of cycling between hosts", () => {
+    const commercial = { hostname: "commercial.thetok.ch", authResolved: true, isAuthenticated: false };
+
+    for (const pathname of ["/commercial", "/commercial/comptabilite", "/commercial/demo-live"]) {
+      expect(shouldShowCommercialSessionRecovery({ ...commercial, pathname })).toBe(true);
+    }
+    expect(shouldShowCommercialSessionRecovery({
+      ...commercial, pathname: "/commercial", isAuthenticated: true,
+    })).toBe(false);
+    expect(shouldShowCommercialSessionRecovery({
+      ...commercial, pathname: "/commercial", authResolved: false,
+    })).toBe(false);
+    for (const pathname of ["/auth", "/auth/callback", framePath]) {
+      expect(shouldShowCommercialSessionRecovery({ ...commercial, pathname })).toBe(false);
+    }
+    expect(shouldShowCommercialSessionRecovery({
+      hostname: "www.thetok.ch", pathname: "/commercial", authResolved: true, isAuthenticated: false,
+    })).toBe(false);
+    expect(shouldShowCommercialSessionRecovery({
+      hostname: "commercial.thetok.ch.evil.invalid", pathname: "/commercial",
+      authResolved: true, isAuthenticated: false,
+    })).toBe(false);
+    // The host is protected before <ProtectedRoute> can auto-navigate to /auth.
+    const boundary = readFileSync(resolve(process.cwd(), "src/components/commercial/CommercialHostBoundary.tsx"), "utf8");
+    expect(boundary).toContain("commercial-session-recovery");
+    expect(boundary).toContain("shouldShowCommercialSessionRecovery({");
+    expect(boundary).toContain('href={getCanonicalAuthHref()}');
   });
 
   it("keeps each dedicated demo hostname on its focused isolated console", () => {

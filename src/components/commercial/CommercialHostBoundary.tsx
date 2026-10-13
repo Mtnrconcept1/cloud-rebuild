@@ -12,6 +12,7 @@ import {
   getCommercialHostRedirectTarget,
   getCommercialIdentityGateState,
   isManagedCommercialAccount,
+  shouldShowCommercialSessionRecovery,
   type CommercialIdentityGateState,
 } from "@/lib/commercialDomains";
 import { getCanonicalAuthHref } from "@/lib/authDomains";
@@ -27,6 +28,34 @@ function LoadingCommercialRedirect() {
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-b-primary" />
       <p className="mt-4 font-semibold">Préparation de votre espace sécurisé…</p>
     </div>
+  );
+}
+
+/**
+ * When storage differs across subdomains, an automatic /auth redirect here
+ * can create a public ↔ commercial navigation loop. Never send an unauthenticated
+ * commercial visitor to another origin without an explicit click.
+ */
+function CommercialSessionRecovery() {
+  return (
+    <main
+      className="flex min-h-screen items-center justify-center bg-background p-6"
+      data-testid="commercial-session-recovery"
+    >
+      <section className="w-full max-w-md rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
+        <h1 className="text-xl font-semibold">Session commerciale non disponible</h1>
+        <p className="mt-3 text-sm text-muted-foreground" role="alert">
+          Cet espace ne retrouve pas votre session TOK. Pour éviter une boucle de connexion
+          entre les deux domaines, la redirection automatique a été interrompue.
+        </p>
+        <a
+          href={getCanonicalAuthHref()}
+          className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+        >
+          Se connecter sur TOK
+        </a>
+      </section>
+    </main>
   );
 }
 
@@ -160,6 +189,17 @@ export default function CommercialHostBoundary({ children }: { children: ReactNo
   }, [redirectTarget, shouldRedirect]);
 
   if (shouldRedirect || shouldWaitForRoleResolution) return <LoadingCommercialRedirect />;
+
+  // Prevent ProtectedRoute from auto-navigating to /auth on commercial.thetok.ch
+  // when the public origin has a login but this origin has no restored session.
+  if (browserLocation && shouldShowCommercialSessionRecovery({
+    hostname: browserLocation.hostname,
+    pathname: browserLocation.pathname,
+    authResolved,
+    isAuthenticated: Boolean(user),
+  })) {
+    return <CommercialSessionRecovery />;
+  }
 
   if (isIdentityBlocked && identityGateState !== "ready") {
     return (

@@ -3,6 +3,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { createClient } from "@supabase/supabase-js";
+import { formatSeoReadError, loadSeoPageWithRetry } from "./seo-query-retry.mjs";
 
 import { buildRestaurantSeoModel } from "../src/lib/seo/restaurantEntity.mjs";
 import {
@@ -32,11 +33,11 @@ const MAX_LOCAL_PARENT_COVERAGE = Math.min(
   Math.max(0.1, Number(process.env.SEO_MAX_LOCAL_PARENT_COVERAGE || 0.8) || 0.8),
 );
 const MIN_ACTUALITE_TEXT_LENGTH = Math.max(1, Number(process.env.SEO_MIN_ACTUALITE_TEXT_LENGTH || 80) || 80);
-const RESTAURANT_PRERENDER_BATCH_SIZE = 500;
-const CUISINE_LINK_BATCH_SIZE = 1000;
+const RESTAURANT_PRERENDER_BATCH_SIZE = 100;
+const CUISINE_LINK_BATCH_SIZE = 250;
 const MAX_CUISINE_LINKS = Math.max(1000, Number(process.env.SEO_MAX_CUISINE_LINKS || 50000) || 50000);
 const MAX_NEARBY_RESTAURANT_LINKS = Math.max(0, Number(process.env.SEO_MAX_NEARBY_LINKS || 6) || 6);
-const ACTUALITES_PRERENDER_BATCH_SIZE = 500;
+const ACTUALITES_PRERENDER_BATCH_SIZE = 100;
 
 const SITEMAP_GROUPS = [
   {
@@ -1347,11 +1348,7 @@ function handleDynamicSeoFailure(source, cause) {
   }
   // Supabase/PostgREST often returns a plain object, not an Error instance.
   // Keep only bounded, diagnostic fields; never print the request or API key.
-  const detail = cause && typeof cause === "object"
-    ? [typeof cause.code === "string" ? cause.code : null,
-       typeof cause.message === "string" ? cause.message : null]
-      .filter(Boolean).join(" : ").slice(0, 240) || "réponse invalide"
-    : String(cause || "réponse invalide").slice(0, 240);
+  const detail = formatSeoReadError(cause).slice(0, 240);
   const failure = new DynamicSeoCollectionError(`[seo] Collecte ${source} impossible : ${detail}`);
   if (STRICT_DYNAMIC_SEO) throw failure;
   console.warn(failure.message);
@@ -1372,9 +1369,9 @@ async function collectDisabledSeoFeatures() {
     const supabase = createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data, error } = await supabase
+    const { data, error } = await loadSeoPageWithRetry(() => supabase
       .from("feature_flags")
-      .select("name,is_active");
+      .select("name,is_active"), { source: "feature flags" });
 
     if (error || !Array.isArray(data)) {
       handleDynamicSeoFailure("feature flags", error || "réponse non tabulaire");
@@ -1431,13 +1428,13 @@ async function collectVerifiedCuisinesByRestaurant(supabase) {
   const byRestaurant = new Map();
   try {
     for (let offset = 0; ; offset += CUISINE_LINK_BATCH_SIZE) {
-      const { data, error } = await supabase
+      const { data, error } = await loadSeoPageWithRetry(() => supabase
         .from("restaurant_cuisines")
         .select("restaurant_id, cuisines(slug, name)")
         .order("restaurant_id", { ascending: true })
-        .range(offset, offset + CUISINE_LINK_BATCH_SIZE - 1);
+        .range(offset, offset + CUISINE_LINK_BATCH_SIZE - 1), { source: "cuisines restaurants" });
       if (error || !Array.isArray(data)) {
-        console.warn(`SEO cuisines: lecture impossible (${error?.message || "réponse invalide"}).`);
+        console.warn(`SEO cuisines: lecture impossible (${formatSeoReadError(error)}).`);
         return byRestaurant;
       }
       for (const row of data) {
@@ -1455,7 +1452,7 @@ async function collectVerifiedCuisinesByRestaurant(supabase) {
       if (offset + CUISINE_LINK_BATCH_SIZE >= MAX_CUISINE_LINKS) break;
     }
   } catch (error) {
-    console.warn(`SEO cuisines: lecture impossible (${error?.message || error}).`);
+    console.warn(`SEO cuisines: lecture impossible (${formatSeoReadError(error)}).`);
   }
   return byRestaurant;
 }
@@ -1488,16 +1485,16 @@ async function collectDynamicRestaurantPages() {
     let totalRestaurantCount = null;
     for (let offset = 0; offset < MAX_DYNAMIC_RESTAURANTS; offset += RESTAURANT_PRERENDER_BATCH_SIZE) {
       const batchSize = Math.min(RESTAURANT_PRERENDER_BATCH_SIZE, MAX_DYNAMIC_RESTAURANTS - offset);
-      const { data: batch, error, count } = await supabase
+      const { data: batch, error, count } = await loadSeoPageWithRetry(() => supabase
         .from("restaurants")
         .select(
           "id, name, slug, city, cuisine_type, image_url, rating, review_count, updated_at, description, address, phone, price_range, opening_hours, supports_reservation, delivery_available, supports_pickup, supports_dinein, latitude, longitude, amenities",
-          offset === 0 ? { count: "exact" } : undefined,
+          offset === 0 ? { count: "planned" } : undefined,
         )
         .eq("is_active", true)
         .order("updated_at", { ascending: false, nullsFirst: false })
         .order("id", { ascending: true })
-        .range(offset, offset + batchSize - 1);
+        .range(offset, offset + batchSize - 1), { source: "restaurants" });
 
       if (error || !Array.isArray(batch)) return handleDynamicSeoFailure("restaurants", error || "réponse non tabulaire");
       if (offset === 0 && Number.isFinite(count)) totalRestaurantCount = Number(count);
@@ -1507,7 +1504,7 @@ async function collectDynamicRestaurantPages() {
 
     if (totalRestaurantCount !== null && totalRestaurantCount > MAX_DYNAMIC_RESTAURANTS) {
       console.warn(
-        `SEO restaurants: ${totalRestaurantCount} fiches actives détectées, mais la limite de pré-rendu est ${MAX_DYNAMIC_RESTAURANTS}. `
+        `SEO restaurants: ${totalRestaurantCount} fiches actives estimées, mais la limite de pré-rendu est ${MAX_DYNAMIC_RESTAURANTS}. `
           + "Augmentez SEO_SITEMAP_MAX_RESTAURANTS pour conserver une couverture exhaustive.",
       );
     }
@@ -1800,17 +1797,17 @@ async function collectDynamicActualitesPages() {
     let totalActualitesCount = null;
     for (let offset = 0; offset < MAX_DYNAMIC_ACTUALITES; offset += ACTUALITES_PRERENDER_BATCH_SIZE) {
       const batchSize = Math.min(ACTUALITES_PRERENDER_BATCH_SIZE, MAX_DYNAMIC_ACTUALITES - offset);
-      const { data: batch, error, count } = await supabase
+      const { data: batch, error, count } = await loadSeoPageWithRetry(() => supabase
         .from("social_posts")
         .select(
           "id,body,post_type,published_at,created_at,updated_at,status,visibility,restaurants(id,name,city,cuisine_type,image_url),social_post_media(id,media_url,alt_text,metadata,sort_order,media_type)",
-          offset === 0 ? { count: "exact" } : undefined,
+          offset === 0 ? { count: "planned" } : undefined,
         )
         .eq("status", "published")
         .eq("visibility", "public")
         .order("published_at", { ascending: false, nullsFirst: false })
         .order("id", { ascending: true })
-        .range(offset, offset + batchSize - 1);
+        .range(offset, offset + batchSize - 1), { source: "actualités" });
 
       if (isActualitesLaunchClosed(error)) {
         actualitesClosedByLaunchGate = true;
@@ -1825,7 +1822,7 @@ async function collectDynamicActualitesPages() {
 
     if (totalActualitesCount !== null && totalActualitesCount > MAX_DYNAMIC_ACTUALITES) {
       console.warn(
-        `SEO actualités: ${totalActualitesCount} publications détectées, mais la limite de pré-rendu est ${MAX_DYNAMIC_ACTUALITES}. `
+        `SEO actualités: ${totalActualitesCount} publications estimées, mais la limite de pré-rendu est ${MAX_DYNAMIC_ACTUALITES}. `
           + "Augmentez SEO_SITEMAP_MAX_ACTUALITES pour conserver une couverture exhaustive.",
       );
     }
