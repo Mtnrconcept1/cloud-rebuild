@@ -126,7 +126,7 @@ function buildChefTableMenuItemId(dropId: string) {
   return `chef-table-${dropId}`;
 }
 
-function ChefTableDropCard({
+export function ChefTableDropCard({
   drop,
   index,
   isReserved,

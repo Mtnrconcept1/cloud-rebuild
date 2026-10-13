@@ -39,9 +39,13 @@ async function main() {
           const heading = root?.querySelector("h1.golden-tok-hero-title");
           const action = root?.querySelector(".golden-tok-discover");
           const alert = root?.querySelector(".golden-tok-header-action button");
+          const benefitCards = root?.querySelectorAll(".golden-tok-benefit");
+          const live = root?.querySelector("#la-tok-dor-offres");
+          const firstOffer = root?.querySelector("[data-golden-tok-offers] article");
+          const firstOfferImage = firstOffer?.querySelector("img");
           const box = (node) => {
             const rect = node?.getBoundingClientRect();
-            return rect ? { left: rect.left, right: rect.right, width: rect.width, height: rect.height } : null;
+            return rect ? { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height } : null;
           };
           return {
             name: heading?.textContent?.replace(/\s+/g, " ").trim(),
@@ -54,6 +58,13 @@ async function main() {
             horizontalOverflow: document.documentElement.scrollWidth - window.innerWidth,
             anchor: action?.getAttribute("href"),
             targetPresent: !!root?.querySelector("#la-tok-dor-offres"),
+            benefitBottom: benefitCards?.[benefitCards.length - 1]?.getBoundingClientRect().bottom || 0,
+            notifyBottom: alert?.getBoundingClientRect().bottom || 0,
+            firstOffer: box(firstOffer),
+            offerImageReady: !!firstOfferImage?.complete && (firstOfferImage?.naturalWidth || 0) > 0,
+            liveBottom: live?.getBoundingClientRect().bottom || 0,
+            offerOpacity: firstOffer ? getComputedStyle(firstOffer).opacity : null,
+            offerVisibility: firstOffer ? getComputedStyle(firstOffer).visibility : null,
             veilPresent: hero ? getComputedStyle(hero).backgroundImage.includes("linear-gradient") : false,
             benefitsAreText: Array.from(root?.querySelectorAll(".golden-tok-benefit") || []).every((node) => getComputedStyle(node, "::after").display === "none"),
             legacyTrustBarHidden: root ? getComputedStyle(root.querySelector(".golden-tok-stage"), "::after").display === "none" : false,
@@ -61,7 +72,7 @@ async function main() {
         });
         const checks = {
           semanticTitle: metrics.name === "La Tok d’Or",
-          visibleHero: (metrics.hero?.height || 0) > 450,
+          visibleHero: (metrics.hero?.height || 0) > (viewport.width <= 600 ? 350 : 450),
           realArtwork: metrics.artwork.includes("11_06_16.png"),
           visibleCTA: (metrics.action?.height || 0) >= 44,
           visibleNotification: (metrics.notification?.height || 0) >= 44,
@@ -74,6 +85,11 @@ async function main() {
           readablePhotoTransition: metrics.veilPresent,
           unclutteredBenefitStrip: metrics.benefitsAreText,
           noLegacyTrustBar: metrics.legacyTrustBarHidden,
+          mobileBenefitsInFirstViewport: viewport.width > 600 || (metrics.benefitBottom > 0 && metrics.benefitBottom <= viewport.height + 3),
+          mobileNotificationInFirstViewport: viewport.width > 600 || (metrics.notifyBottom > 0 && metrics.notifyBottom <= viewport.height + 3),
+          offerRenderedAndVisible: (metrics.firstOffer?.height || 0) > 250 && metrics.offerOpacity === "1" && metrics.offerVisibility === "visible",
+          offerDirectlyBelowLive: (metrics.firstOffer?.top || 0) >= metrics.liveBottom && (metrics.firstOffer?.top || Infinity) - metrics.liveBottom <= 80,
+          offerPictureLoaded: metrics.offerImageReady,
         };
         await page.screenshot({ path: resolve(OUTPUT_DIR, viewport.name + ".png"), fullPage: true });
         console.log(JSON.stringify({ viewport: viewport.name, width: viewport.width, checks, metrics, errors }));

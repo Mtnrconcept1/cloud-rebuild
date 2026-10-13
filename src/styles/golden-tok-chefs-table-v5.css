@@ -623,3 +623,15 @@ html body [data-golden-tok-chefs-table] .golden-tok-stage::after {
     background-position: center, 60% 60% !important;
   }
 }
+/* Tie-break with V3's multi-class card-grid rule. */
+html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > [class~="grid"][class~="gap-6"][data-golden-tok-offers] {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)) !important;
+}
+html body [data-golden-tok-chefs-table] #la-tok-dor-offres {
+  margin-bottom: 0 !important;
+}
+@media (max-width: 600px) {
+  html body [data-golden-tok-chefs-table] .golden-tok-content > [class~="space-y-8"] > [class~="grid"][class~="gap-6"][data-golden-tok-offers] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
