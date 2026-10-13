@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -13,12 +13,27 @@ import {
   RESTAURANT_GUIDE_CHAPTERS,
   isRestaurantGuideRoute,
 } from "@/data/userGuideContent";
+import { canAccessRestaurantDashboardRoute } from "@/pages/dashboard/useDashboardRestaurant";
 import {
   getRouteGuideDetail,
   getToolGuideDetail,
 } from "@/data/userGuideFeatureDetails";
 
 describe("guides d’utilisation TOK", () => {
+  it("reserve les deux guides aux routes de dashboard protègees", () => {
+    const app = readFileSync(path.join(process.cwd(), "src/App.tsx"), "utf8");
+    const prerender = readFileSync(path.join(process.cwd(), "scripts/prerender-seo.mjs"), "utf8");
+    expect(app).toContain('path="/dashboard/guide" element={<DashboardRoute><GuideUtilisateur /></DashboardRoute>}');
+    expect(app).toContain('path="/admin/guide" element={<AdminProtectedRoute><GuideUtilisateur /></AdminProtectedRoute>}');
+    expect(app).not.toContain('path="/guide/plateforme" element={<GuideUtilisateur />}');
+    expect(prerender).not.toContain('path: "/guide/plateforme"');
+    expect(prerender).not.toContain('path: "/guide/restaurateur"');
+    expect(canAccessRestaurantDashboardRoute({
+      pathname: "/dashboard/guide",
+      dashboardAccessLocked: true,
+      onboardingConfigurationUnlocked: false,
+    })).toBe(true);
+  });
   it("conserve un inventaire complet et cohérent pour le guide plateforme", () => {
     expect(TOK_USER_GUIDE_ROUTES).toHaveLength(TOK_USER_GUIDE_META.routeCount);
     expect(TOK_USER_GUIDE_TOOLS).toHaveLength(TOK_USER_GUIDE_META.toolCount);

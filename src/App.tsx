@@ -642,6 +642,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/dashboard/plan-salle" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalle /></FeatureSwitch></DashboardRoute>} />
           {/* Plan de salle 2 retire: l'URL reste vivante pour les favoris et renvoie au plan de salle. */}
           <Route path="/dashboard/plan-salle-v2" element={<Navigate to="/dashboard/plan-salle" replace />} />
+          <Route path="/dashboard/guide" element={<DashboardRoute><GuideUtilisateur /></DashboardRoute>} />
           <Route path="/dashboard/tok-connect" element={<DashboardRoute><FeatureSwitch enabled={dashboardTokConnectEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="tok-connect"><DashboardTokConnect /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierHomeEnabled}><CourierHome /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/jobs" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierJobsEnabled} fallback="/courier"><CourierJobs /></FeatureSwitch></ProtectedRoute>} />
@@ -671,6 +672,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/admin/support-resolution" element={<AdminProtectedRoute><FeatureSwitch enabled={adminSupportResolutionEnabled} fallback="/admin/sinistres"><AdminSupportResolution /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/guardian" element={<AdminProtectedRoute><FeatureSwitch enabled={adminGuardianEnabled} fallback="/admin"><AdminGuardian /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/ai-operations" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAiOperationsEnabled} fallback="/admin"><AdminAiOperations /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/guide" element={<AdminProtectedRoute><GuideUtilisateur /></AdminProtectedRoute>} />
           <Route path="/admin/tok-connect" element={<AdminProtectedRoute><FeatureSwitch enabled={adminTokConnectEnabled} fallback="/admin"><AdminTokConnect /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
@@ -684,9 +686,9 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/restaurateurs/google-business" element={<RestaurateursGoogleBusiness />} />
           <Route path="/restaurateurs/alternative-commission-couvert" element={<AlternativeCommissionCouvert />} />
           <Route path="/aide" element={<Aide />} />
-          <Route path="/guide" element={<GuideUtilisateur />} />
-          <Route path="/guide/restaurateur" element={<GuideUtilisateur />} />
-          <Route path="/guide/plateforme" element={<GuideUtilisateur />} />
+          <Route path="/guide" element={<Navigate to="/aide" replace />} />
+          <Route path="/guide/restaurateur" element={<Navigate to="/aide" replace />} />
+          <Route path="/guide/plateforme" element={<Navigate to="/aide" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

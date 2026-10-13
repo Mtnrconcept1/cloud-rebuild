@@ -1,8 +1,8 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "17ddb5cd8250585e5e216f019545e59e4d5d4a398e849518d0591b82b7e8b636",
-  "routeCount": 135,
+  "sourceDigest": "2931fe2d0153a9b00e8d8db59cd49b2758ccbb8bd0d53a4bd51d31c0cb2c7a3a",
+  "routeCount": 137,
   "toolCount": 115
 } as const;
 
@@ -1030,6 +1030,17 @@ export const TOK_USER_GUIDE_ROUTES = [
     "redirectTo": "/dashboard/plan-salle"
   },
   {
+    "path": "/dashboard/guide",
+    "surface": "restaurant",
+    "components": [
+      "DashboardRoute",
+      "GuideUtilisateur"
+    ],
+    "requiredRoles": [],
+    "featureGate": null,
+    "redirectTo": null
+  },
+  {
     "path": "/dashboard/tok-connect",
     "surface": "restaurant",
     "components": [
@@ -1386,6 +1397,17 @@ export const TOK_USER_GUIDE_ROUTES = [
     "redirectTo": null
   },
   {
+    "path": "/admin/guide",
+    "surface": "admin",
+    "components": [
+      "AdminProtectedRoute",
+      "GuideUtilisateur"
+    ],
+    "requiredRoles": [],
+    "featureGate": null,
+    "redirectTo": null
+  },
+  {
     "path": "/admin/tok-connect",
     "surface": "admin",
     "components": [
@@ -1521,31 +1543,31 @@ export const TOK_USER_GUIDE_ROUTES = [
     "path": "/guide",
     "surface": "public",
     "components": [
-      "GuideUtilisateur"
+      "Navigate"
     ],
     "requiredRoles": [],
     "featureGate": null,
-    "redirectTo": null
+    "redirectTo": "/aide"
   },
   {
     "path": "/guide/restaurateur",
     "surface": "public",
     "components": [
-      "GuideUtilisateur"
+      "Navigate"
     ],
     "requiredRoles": [],
     "featureGate": null,
-    "redirectTo": null
+    "redirectTo": "/aide"
   },
   {
     "path": "/guide/plateforme",
     "surface": "public",
     "components": [
-      "GuideUtilisateur"
+      "Navigate"
     ],
     "requiredRoles": [],
     "featureGate": null,
-    "redirectTo": null
+    "redirectTo": "/aide"
   },
   {
     "path": "*",
