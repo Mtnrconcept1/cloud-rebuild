@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `4d1ecbf084a4fab00a2392fe696503f3b9d23f02040b32cdc5b4b570bb52d364`
+- Empreinte SHA-256 des sources indexées : `4f5da38d72e1facdc944ac4d545ed1200b2830fbf23b695e782e306b1b523583`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -41,12 +41,12 @@
 | modules | 1536 |
 | pages | 129 |
 | pathLiterals | 693 |
-| publicAssets | 486 |
-| publicEntries | 511 |
+| publicAssets | 502 |
+| publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16457 |
-| repositoryFiles | 3048 |
+| records | 16489 |
+| repositoryFiles | 3064 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 42 |
@@ -1009,6 +1009,22 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/user-guide/features/tok-connect.png | media | [public/images/user-guide/features/tok-connect.png](../../public/images/user-guide/features/tok-connect.png) |
 | /images/user-guide/features/zero-attente.png | media | [public/images/user-guide/features/zero-attente.png](../../public/images/user-guide/features/zero-attente.png) |
 | /images/user-guide/recherche-mobile.png | media | [public/images/user-guide/recherche-mobile.png](../../public/images/user-guide/recherche-mobile.png) |
+| /images/user-guide/routes/a-propos.png | media | [public/images/user-guide/routes/a-propos.png](../../public/images/user-guide/routes/a-propos.png) |
+| /images/user-guide/routes/actualites.png | media | [public/images/user-guide/routes/actualites.png](../../public/images/user-guide/routes/actualites.png) |
+| /images/user-guide/routes/alternative-commission.png | media | [public/images/user-guide/routes/alternative-commission.png](../../public/images/user-guide/routes/alternative-commission.png) |
+| /images/user-guide/routes/anti-gaspi.png | media | [public/images/user-guide/routes/anti-gaspi.png](../../public/images/user-guide/routes/anti-gaspi.png) |
+| /images/user-guide/routes/budget-auto.png | media | [public/images/user-guide/routes/budget-auto.png](../../public/images/user-guide/routes/budget-auto.png) |
+| /images/user-guide/routes/cgu.png | media | [public/images/user-guide/routes/cgu.png](../../public/images/user-guide/routes/cgu.png) |
+| /images/user-guide/routes/chefs-table.png | media | [public/images/user-guide/routes/chefs-table.png](../../public/images/user-guide/routes/chefs-table.png) |
+| /images/user-guide/routes/conditions-restaurateurs.png | media | [public/images/user-guide/routes/conditions-restaurateurs.png](../../public/images/user-guide/routes/conditions-restaurateurs.png) |
+| /images/user-guide/routes/confidentialite.png | media | [public/images/user-guide/routes/confidentialite.png](../../public/images/user-guide/routes/confidentialite.png) |
+| /images/user-guide/routes/cookies.png | media | [public/images/user-guide/routes/cookies.png](../../public/images/user-guide/routes/cookies.png) |
+| /images/user-guide/routes/google-business.png | media | [public/images/user-guide/routes/google-business.png](../../public/images/user-guide/routes/google-business.png) |
+| /images/user-guide/routes/miamz-solidaires.png | media | [public/images/user-guide/routes/miamz-solidaires.png](../../public/images/user-guide/routes/miamz-solidaires.png) |
+| /images/user-guide/routes/panier.png | media | [public/images/user-guide/routes/panier.png](../../public/images/user-guide/routes/panier.png) |
+| /images/user-guide/routes/tok-connect-mcp-widget.png | media | [public/images/user-guide/routes/tok-connect-mcp-widget.png](../../public/images/user-guide/routes/tok-connect-mcp-widget.png) |
+| /images/user-guide/routes/tok-one.png | media | [public/images/user-guide/routes/tok-one.png](../../public/images/user-guide/routes/tok-one.png) |
+| /images/user-guide/routes/ventes-flash.png | media | [public/images/user-guide/routes/ventes-flash.png](../../public/images/user-guide/routes/ventes-flash.png) |
 | /images/user-guide/zero-attente-mobile.png | media | [public/images/user-guide/zero-attente-mobile.png](../../public/images/user-guide/zero-attente-mobile.png) |
 | /images/veggie burger.jpg | media | [public/images/veggie burger.jpg](../../public/images/veggie%20burger.jpg) |
 | /images/¨kébbé.jpeg | media | [public/images/¨kébbé.jpeg](../../public/images/%C2%A8k%C3%A9bb%C3%A9.jpeg) |
@@ -8103,7 +8119,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (511)</summary>
+<details><summary>public-asset (527)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8497,6 +8513,22 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/user-guide/features/tok-connect.png`
 - `public/images/user-guide/features/zero-attente.png`
 - `public/images/user-guide/recherche-mobile.png`
+- `public/images/user-guide/routes/a-propos.png`
+- `public/images/user-guide/routes/actualites.png`
+- `public/images/user-guide/routes/alternative-commission.png`
+- `public/images/user-guide/routes/anti-gaspi.png`
+- `public/images/user-guide/routes/budget-auto.png`
+- `public/images/user-guide/routes/cgu.png`
+- `public/images/user-guide/routes/chefs-table.png`
+- `public/images/user-guide/routes/conditions-restaurateurs.png`
+- `public/images/user-guide/routes/confidentialite.png`
+- `public/images/user-guide/routes/cookies.png`
+- `public/images/user-guide/routes/google-business.png`
+- `public/images/user-guide/routes/miamz-solidaires.png`
+- `public/images/user-guide/routes/panier.png`
+- `public/images/user-guide/routes/tok-connect-mcp-widget.png`
+- `public/images/user-guide/routes/tok-one.png`
+- `public/images/user-guide/routes/ventes-flash.png`
 - `public/images/user-guide/zero-attente-mobile.png`
 - `public/images/veggie burger.jpg`
 - `public/images/¨kébbé.jpeg`

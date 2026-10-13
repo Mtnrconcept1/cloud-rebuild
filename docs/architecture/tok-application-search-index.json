@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "4d1ecbf084a4fab00a2392fe696503f3b9d23f02040b32cdc5b4b570bb52d364",
+ "sourceDigest": "4f5da38d72e1facdc944ac4d545ed1200b2830fbf23b695e782e306b1b523583",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -21,12 +21,12 @@
   "modules": 1536,
   "pages": 129,
   "pathLiterals": 693,
-  "publicAssets": 486,
-  "publicEntries": 511,
+  "publicAssets": 502,
+  "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16457,
-  "repositoryFiles": 3048,
+  "records": 16489,
+  "repositoryFiles": 3064,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 42,
@@ -12550,6 +12550,86 @@
    {
     "route": "/images/user-guide/recherche-mobile.png",
     "path": "public/images/user-guide/recherche-mobile.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/a-propos.png",
+    "path": "public/images/user-guide/routes/a-propos.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/actualites.png",
+    "path": "public/images/user-guide/routes/actualites.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/alternative-commission.png",
+    "path": "public/images/user-guide/routes/alternative-commission.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/anti-gaspi.png",
+    "path": "public/images/user-guide/routes/anti-gaspi.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/budget-auto.png",
+    "path": "public/images/user-guide/routes/budget-auto.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/cgu.png",
+    "path": "public/images/user-guide/routes/cgu.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/chefs-table.png",
+    "path": "public/images/user-guide/routes/chefs-table.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/conditions-restaurateurs.png",
+    "path": "public/images/user-guide/routes/conditions-restaurateurs.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/confidentialite.png",
+    "path": "public/images/user-guide/routes/confidentialite.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/cookies.png",
+    "path": "public/images/user-guide/routes/cookies.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/google-business.png",
+    "path": "public/images/user-guide/routes/google-business.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/miamz-solidaires.png",
+    "path": "public/images/user-guide/routes/miamz-solidaires.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/panier.png",
+    "path": "public/images/user-guide/routes/panier.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/tok-connect-mcp-widget.png",
+    "path": "public/images/user-guide/routes/tok-connect-mcp-widget.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/tok-one.png",
+    "path": "public/images/user-guide/routes/tok-one.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/routes/ventes-flash.png",
+    "path": "public/images/user-guide/routes/ventes-flash.png",
     "kind": "media"
    },
    {
@@ -117566,6 +117646,86 @@
    },
    {
     "path": "public/images/user-guide/recherche-mobile.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/a-propos.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/actualites.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/alternative-commission.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/anti-gaspi.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/budget-auto.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/cgu.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/chefs-table.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/conditions-restaurateurs.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/confidentialite.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/cookies.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/google-business.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/miamz-solidaires.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/panier.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/tok-connect-mcp-widget.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/tok-one.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/routes/ventes-flash.png",
     "category": "public-asset",
     "extension": ".png"
    },
@@ -299939,6 +300099,230 @@
    "detailRef": "672092eb99ee"
   },
   {
+   "id": "file:2a929c434b56",
+   "type": "file",
+   "title": "public/images/user-guide/routes/a-propos.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/a-propos.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "04b1e5ae4025"
+  },
+  {
+   "id": "file:4217cdd07e80",
+   "type": "file",
+   "title": "public/images/user-guide/routes/actualites.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/actualites.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "c96d22251265"
+  },
+  {
+   "id": "file:426793888c15",
+   "type": "file",
+   "title": "public/images/user-guide/routes/alternative-commission.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/alternative-commission.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "4eeb8eeb0b82"
+  },
+  {
+   "id": "file:ee9b684e0cce",
+   "type": "file",
+   "title": "public/images/user-guide/routes/anti-gaspi.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/anti-gaspi.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "e16c4d87ea3d"
+  },
+  {
+   "id": "file:bd3aed0b18c5",
+   "type": "file",
+   "title": "public/images/user-guide/routes/budget-auto.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/budget-auto.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "6e42297d1560"
+  },
+  {
+   "id": "file:f8e281697a8e",
+   "type": "file",
+   "title": "public/images/user-guide/routes/cgu.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/cgu.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "42ddad4c131a"
+  },
+  {
+   "id": "file:41b04771e50f",
+   "type": "file",
+   "title": "public/images/user-guide/routes/chefs-table.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/chefs-table.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "c3b17499d024"
+  },
+  {
+   "id": "file:9d4ae8eacb8a",
+   "type": "file",
+   "title": "public/images/user-guide/routes/conditions-restaurateurs.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/conditions-restaurateurs.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "fa23b0f18194"
+  },
+  {
+   "id": "file:293beddbab89",
+   "type": "file",
+   "title": "public/images/user-guide/routes/confidentialite.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/confidentialite.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "cb9d297a249d"
+  },
+  {
+   "id": "file:0a1a22f1fa47",
+   "type": "file",
+   "title": "public/images/user-guide/routes/cookies.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/cookies.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "6bcfcffc54e9"
+  },
+  {
+   "id": "file:832112fa9419",
+   "type": "file",
+   "title": "public/images/user-guide/routes/google-business.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/google-business.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "4d890da57e24"
+  },
+  {
+   "id": "file:b3f20d842a3a",
+   "type": "file",
+   "title": "public/images/user-guide/routes/miamz-solidaires.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/miamz-solidaires.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "1b0ea12b1022"
+  },
+  {
+   "id": "file:f69fb240230e",
+   "type": "file",
+   "title": "public/images/user-guide/routes/panier.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/panier.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "2f6ce4ea986c"
+  },
+  {
+   "id": "file:82bbc1caef33",
+   "type": "file",
+   "title": "public/images/user-guide/routes/tok-connect-mcp-widget.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/tok-connect-mcp-widget.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "0cf876dacf92"
+  },
+  {
+   "id": "file:9a5f2cf8aa1a",
+   "type": "file",
+   "title": "public/images/user-guide/routes/tok-one.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/tok-one.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "4bf2826cffe9"
+  },
+  {
+   "id": "file:f769aa5b1639",
+   "type": "file",
+   "title": "public/images/user-guide/routes/ventes-flash.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/routes/ventes-flash.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "4ab10cdbd1fa"
+  },
+  {
    "id": "file:e587f843bada",
    "type": "file",
    "title": "public/images/user-guide/zero-attente-mobile.png",
@@ -362189,6 +362573,230 @@
     "public"
    ],
    "detailRef": "4e8b1384f597"
+  },
+  {
+   "id": "public-asset:e849b499f075",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/a-propos.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/a-propos.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "b96e80e3f037"
+  },
+  {
+   "id": "public-asset:ebbe121a54b8",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/actualites.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/actualites.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "bf05c71c3bb2"
+  },
+  {
+   "id": "public-asset:71ca46844cbe",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/alternative-commission.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/alternative-commission.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "59a6c900be04"
+  },
+  {
+   "id": "public-asset:af8826d1dc1e",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/anti-gaspi.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/anti-gaspi.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "52d894785925"
+  },
+  {
+   "id": "public-asset:6108cdb42f0b",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/budget-auto.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/budget-auto.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "c1dbf077057c"
+  },
+  {
+   "id": "public-asset:fba645826716",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/cgu.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/cgu.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "fcc9d1437a86"
+  },
+  {
+   "id": "public-asset:f19c64bf1290",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/chefs-table.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/chefs-table.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "d287edd17309"
+  },
+  {
+   "id": "public-asset:8cd466050c3b",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/conditions-restaurateurs.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/conditions-restaurateurs.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "9d27343dc8d9"
+  },
+  {
+   "id": "public-asset:876a96e7858b",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/confidentialite.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/confidentialite.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "0f90d4bd0a64"
+  },
+  {
+   "id": "public-asset:be7b2038d19c",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/cookies.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/cookies.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "b9510c5a8f71"
+  },
+  {
+   "id": "public-asset:d9667be1a37e",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/google-business.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/google-business.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "a44c0d6f0716"
+  },
+  {
+   "id": "public-asset:6f6481e0e682",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/miamz-solidaires.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/miamz-solidaires.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "b82a949f7a3e"
+  },
+  {
+   "id": "public-asset:d60907c1c508",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/panier.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/panier.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "47107d12c06c"
+  },
+  {
+   "id": "public-asset:6c951dfb85f3",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/tok-connect-mcp-widget.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/tok-connect-mcp-widget.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "34c34db3994f"
+  },
+  {
+   "id": "public-asset:01696255fac6",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/tok-one.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/tok-one.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "79ddea874d5a"
+  },
+  {
+   "id": "public-asset:a9649613461c",
+   "type": "public-asset",
+   "title": "/images/user-guide/routes/ventes-flash.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/routes/ventes-flash.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "c76f3c10a6f2"
   },
   {
    "id": "public-asset:4a1e4b3e4cad",
