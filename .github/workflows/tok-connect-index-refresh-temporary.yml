@@ -1,0 +1,50 @@
+name: TOK Connect temporary application index refresh
+
+on:
+  push:
+    branches:
+      - fix/tok-connect-admin-pagination-20261013
+    paths:
+      - .github/workflows/tok-connect-index-refresh-temporary.yml
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/tok-connect-admin-pagination-20261013
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate canonical references from final feature branch tree
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/tok-connect-index-refresh-temporary.yml
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+          git add docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md
+          git diff --cached --check
+
+      - name: Commit generated references and remove this temporary workflow
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "docs(tok-connect): regenerate canonical app references"
+          git push origin HEAD:refs/heads/fix/tok-connect-admin-pagination-20261013
