@@ -2425,6 +2425,40 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case "payout.created":
+      case "payout.updated":
+      case "payout.paid":
+      case "payout.failed":
+      case "payout.canceled": {
+        // This is the TOK PLATFORM payout. Connected-account payouts are not
+        // company bank receipts. No Connect transfer is created here.
+        if (!event.livemode || (event as Stripe.Event & { account?: string }).account) {
+          break;
+        }
+        const payout = event.data.object as Stripe.Payout;
+        if (payout.currency !== "chf" || !Number.isSafeInteger(payout.amount)
+          || payout.amount <= 0) {
+          throw new Error("TOK_BANK_PAYOUT_IDENTITY_MISMATCH");
+        }
+        const destination = typeof payout.destination === "string"
+          ? payout.destination : payout.destination?.id || null;
+        const arrivalDate = Number(payout.arrival_date);
+        const { error: payoutError } = await supabaseAdmin.rpc("record_tok_bank_payout", {
+          p_stripe_payout_id: payout.id,
+          p_amount_cents: payout.amount,
+          p_currency: payout.currency,
+          p_status: payout.status,
+          p_destination_id: destination,
+          p_arrival_date: Number.isFinite(arrivalDate) && arrivalDate > 0
+            ? new Date(arrivalDate * 1000).toISOString() : null,
+          p_error_code: payout.failure_code || null,
+        });
+        if (payoutError) throw new Error(
+          "TOK_BANK_PAYOUT_RECONCILE_FAILED:" + payoutError.message
+        );
+        break;
+      }
+
       case "payment_intent.succeeded": {
         const intent = event.data.object as Stripe.PaymentIntent;
         if (intent.metadata?.tok_purpose === "reservation_commission") {
