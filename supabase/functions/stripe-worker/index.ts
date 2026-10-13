@@ -8,7 +8,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
-import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import { getStripeRuntimeForCheckoutKind, getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
 import { getEffectiveFeatureFlagSet } from "../_shared/feature-flags.ts";
 import {
   FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
@@ -422,6 +422,148 @@ async function activateRestaurantSubscription(input: {
   };
 }
 
+
+type ReservationCommissionJob = {
+  job_id: string;
+  restaurant_id: string;
+  reservation_id: string;
+  invoice_id: string;
+  amount_cents: number;
+  stripe_customer_id: string;
+  stripe_payment_method_id: string;
+  stripe_subscription_id: string;
+  stripe_mode: "live" | "test";
+  attempt_count: number;
+};
+
+async function recordCommissionIntent(
+  adminClient: Awaited<ReturnType<typeof authenticateRequest>>["adminClient"],
+  job: ReservationCommissionJob,
+  paymentIntentId: string,
+  status: string,
+  errorCode: string | null = null,
+) {
+  const { error } = await adminClient.rpc("record_restaurant_commission_payment", {
+    p_collection_id: job.job_id,
+    p_payment_intent_id: paymentIntentId,
+    p_stripe_status: status,
+    p_stripe_mode: job.stripe_mode,
+    p_error_code: errorCode,
+  });
+  if (error) throw new Error("commission_record_payment_failed:" + error.message);
+}
+
+async function collectReservationCommissions(input: {
+  adminClient: Awaited<ReturnType<typeof authenticateRequest>>["adminClient"];
+  limit: number;
+}) {
+  const { adminClient, limit } = input;
+  const { data, error } = await adminClient.rpc(
+    "claim_restaurant_commission_collections",
+    { p_limit: limit },
+  );
+  if (error) throw new Error("commission_claim_failed:" + error.message);
+  const jobs = (Array.isArray(data) ? data : []) as ReservationCommissionJob[];
+  let succeeded = 0;
+  let failed = 0;
+  const log = makeLogger("stripe-reservation-commissions");
+
+  for (const job of jobs) {
+    try {
+      if (job.amount_cents !== 500 || !job.invoice_id || !job.stripe_subscription_id) {
+        throw new HttpError(422, "commission_invalid_server_snapshot");
+      }
+      const runtime = getStripeRuntimeForCheckoutKindAndMode(
+        "restaurant-subscription", job.stripe_mode,
+      );
+      const subscription = await runtime.stripe.subscriptions.retrieve(job.stripe_subscription_id);
+      if (subscription.status !== "active" ||
+          subscription.customer !== job.stripe_customer_id ||
+          subscription.metadata.restaurant_id !== job.restaurant_id) {
+        throw new HttpError(409, "commission_subscription_not_active");
+      }
+
+      // At most one PaymentIntent per table. Stripe's idempotency key is
+      // deterministic and the database stops retries once its TTL is unsafe.
+      // The intent is charged to the TOK platform directly; a Stripe Connect
+      // Transfer is neither necessary nor allowed for these platform fees.
+      const intent = await runtime.stripe.paymentIntents.create({
+        amount: job.amount_cents,
+        currency: "chf",
+        customer: job.stripe_customer_id,
+        payment_method: job.stripe_payment_method_id,
+        confirm: true,
+        off_session: true,
+        description: "TOK - commission réservation honorée",
+        metadata: {
+          tok_purpose: "reservation_commission",
+          commission_id: job.job_id,
+          restaurant_id: job.restaurant_id,
+          reservation_id: job.reservation_id,
+          local_invoice_id: job.invoice_id,
+          amount_cents: String(job.amount_cents),
+        },
+      }, {
+        idempotencyKey: "tok-reservation-commission:" + job.job_id,
+      });
+      await recordCommissionIntent(adminClient, job, intent.id, intent.status);
+      if (intent.status === "succeeded") succeeded++;
+      else {
+        failed++;
+        log.warn("commission_pending_customer_action", {
+          commissionId: job.job_id, status: intent.status,
+        });
+      }
+    } catch (error) {
+      failed++;
+      const rawIntent = (error as {
+        payment_intent?: string | { id?: string; status?: string };
+        raw?: { payment_intent?: string | { id?: string; status?: string } };
+      })?.payment_intent || (error as {
+        raw?: { payment_intent?: string | { id?: string; status?: string } };
+      })?.raw?.payment_intent;
+      const knownIntentId = getExpandableStripeId(rawIntent);
+      if (knownIntentId) {
+        try {
+          const runtime = getStripeRuntimeForCheckoutKindAndMode(
+            "restaurant-subscription", job.stripe_mode,
+          );
+          const intent = await runtime.stripe.paymentIntents.retrieve(knownIntentId);
+          await recordCommissionIntent(
+            adminClient, job, intent.id, intent.status,
+            stripeErrorCode(error),
+          );
+          continue;
+        } catch (recordingError) {
+          log.error("commission_intent_reconciliation_failed", {
+            commissionId: job.job_id,
+            reason: recordingError instanceof Error ? recordingError.message : "unknown",
+          });
+        }
+      }
+      const retryable = isRetryableActivationError(error)
+        && !(error instanceof HttpError);
+      const { error: failError } = await adminClient.rpc(
+        "fail_restaurant_commission_collection",
+        {
+          p_collection_id: job.job_id,
+          p_error_code: stripeErrorCode(error),
+          p_retryable: retryable,
+        },
+      );
+      if (failError) {
+        log.error("commission_failure_persistence_failed", {
+          commissionId: job.job_id, reason: failError.message,
+        });
+      }
+      log.warn("commission_collection_failed", {
+        commissionId: job.job_id, retryable, code: stripeErrorCode(error),
+      });
+    }
+  }
+  return { claimed: jobs.length, succeeded, failed };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS });
@@ -522,26 +664,33 @@ Deno.serve(async (req) => {
       }
     }
 
+    const commissionResults = await collectReservationCommissions({
+      adminClient: actor.adminClient,
+      limit,
+    });
+
     await writeAuditLog({
       adminClient: actor.adminClient,
       actor,
       request: req,
       functionName: "stripe-worker",
       action: "process_restaurant_subscription_activations",
-      status: "success",
+      status: commissionResults.failed > 0 ? "failure" : "success",
       targetEntityType: "restaurant_subscription_activation_jobs",
       metadata: {
         source: String(payload.source || "scheduler"),
         claimed: jobs.length,
         succeeded: results.filter((result) => result.ok === true).length,
         failed: results.filter((result) => result.ok === false).length,
+        reservation_commissions: commissionResults,
       },
     });
 
     return jsonResponse({
-      ok: true,
+      ok: commissionResults.failed === 0,
       claimed: jobs.length,
       results,
+      reservation_commissions: commissionResults,
     }, 200, CORS_HEADERS);
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
