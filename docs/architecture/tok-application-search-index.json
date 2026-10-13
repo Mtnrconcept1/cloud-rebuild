@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "fa392ed1a7d366cf7cc1d17c2a11a790d3d622ecf5d6793fa6ae4ece27dea5ab",
+ "sourceDigest": "700e9b408d1ed2b09c0fa485e01d2a16eb850ce2ab091f06ec21e8bf55fc4258",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,7 +12,7 @@
   "documents": 203,
   "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3506,
+  "exportedSymbols": 3507,
   "featureFlags": 99,
   "frontendRoutes": 135,
   "integrations": 11,
@@ -25,7 +25,7 @@
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16501,
+  "records": 16502,
   "repositoryFiles": 3070,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -2951,6 +2951,11 @@
     ],
     "mounted": true,
     "exports": [
+     {
+      "name": "ChefTableDropCard",
+      "line": 129,
+      "kind": "function"
+     },
      {
       "name": "default",
       "line": 416,
@@ -14417,7 +14422,7 @@
      },
      {
       "path": "src/test/fixtures/golden-tok-preview.tsx",
-      "line": 17
+      "line": 47
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -23259,6 +23264,10 @@
      {
       "path": "src/pages/TokOne.tsx",
       "line": 59
+     },
+     {
+      "path": "src/test/fixtures/golden-tok-preview.tsx",
+      "line": 29
      },
      {
       "path": "src/test/transactional-email-templates.test.ts",
@@ -83589,7 +83598,7 @@
      "GOLDEN_TOK_TEST_URL"
     ],
     "integrations": [],
-    "lineCount": 95
+    "lineCount": 114
    },
    {
     "path": "scripts/test-print-protocol-postgres.mjs",
@@ -101055,6 +101064,11 @@
     "path": "src/pages/ChefsTable.tsx",
     "exports": [
      {
+      "name": "ChefTableDropCard",
+      "line": 129,
+      "kind": "function"
+     },
+     {
       "name": "default",
       "line": 416,
       "kind": "function"
@@ -105130,7 +105144,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 47
+    "lineCount": 94
    },
    {
     "path": "src/test/flat-fee-on-arrival.test.ts",
@@ -105276,7 +105290,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 102
+    "lineCount": 108
    },
    {
     "path": "src/test/google-actions-center-feed-exporter.test.ts",
@@ -130638,7 +130652,7 @@
    "id": "code-module:f473faa38d50",
    "type": "code-module",
    "title": "scripts/test-golden-tok-responsive.mjs",
-   "description": "Module de 95 lignes; exports: aucun export statique.",
+   "description": "Module de 114 lignes; exports: aucun export statique.",
    "path": "scripts/test-golden-tok-responsive.mjs",
    "line": 1,
    "surface": null,
@@ -130646,7 +130660,7 @@
     "CHROME_BIN",
     "GOLDEN_TOK_TEST_URL"
    ],
-   "detailRef": "1fc43974ec86"
+   "detailRef": "12741bd893f8"
   },
   {
    "id": "code-module:325f58f098fe",
@@ -139845,15 +139859,16 @@
    "id": "code-module:5e810c8845db",
    "type": "code-module",
    "title": "src/pages/ChefsTable.tsx",
-   "description": "Module de 1114 lignes; exports: default.",
+   "description": "Module de 1114 lignes; exports: ChefTableDropCard, default.",
    "path": "src/pages/ChefsTable.tsx",
    "line": 1,
    "surface": null,
    "tags": [
+    "ChefTableDropCard",
     "default",
     "supabase"
    ],
-   "detailRef": "1d15df87240f"
+   "detailRef": "38e4b2530a2c"
   },
   {
    "id": "code-module:5ce6b49e4fe6",
@@ -144337,12 +144352,12 @@
    "id": "code-module:3b8920a68c2c",
    "type": "code-module",
    "title": "src/test/fixtures/golden-tok-preview.tsx",
-   "description": "Module de 47 lignes; exports: aucun export statique.",
+   "description": "Module de 94 lignes; exports: aucun export statique.",
    "path": "src/test/fixtures/golden-tok-preview.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "83f9773361f3"
+   "detailRef": "f69b5cbf21c8"
   },
   {
    "id": "code-module:dd8bbe6f1929",
@@ -144555,12 +144570,12 @@
    "id": "code-module:af90a689e08c",
    "type": "code-module",
    "title": "src/test/golden-tok-shell-logo.test.ts",
-   "description": "Module de 102 lignes; exports: aucun export statique.",
+   "description": "Module de 108 lignes; exports: aucun export statique.",
    "path": "src/test/golden-tok-shell-logo.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "3639833de6ad"
+   "detailRef": "d2af8a1627aa"
   },
   {
    "id": "code-module:85fda6ccd47b",
@@ -242605,6 +242620,20 @@
     "typealias"
    ],
    "detailRef": "63950ba29772"
+  },
+  {
+   "id": "exported-symbol:230bcde18b0c",
+   "type": "exported-symbol",
+   "title": "ChefTableDropCard",
+   "description": "Export function de src/pages/ChefsTable.tsx.",
+   "path": "src/pages/ChefsTable.tsx",
+   "line": 129,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "44009fda4251"
   },
   {
    "id": "exported-symbol:d3a0563df7f0",
@@ -345412,7 +345441,7 @@
     "/chefs-table",
     "supabase"
    ],
-   "detailRef": "0fecfd3b2419"
+   "detailRef": "365c6b534ec0"
   },
   {
    "id": "page:6889a2b1b469",
@@ -347004,7 +347033,7 @@
     "src/test/fixtures/golden-tok-preview.tsx",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "0d72de696c52"
+   "detailRef": "8e8f1f1494c6"
   },
   {
    "id": "path-literal:63609ef8a554",
@@ -352633,7 +352662,7 @@
    "id": "path-literal:ff8a9bfaae78",
    "type": "path-literal",
    "title": "/images/octopus-fine-dining.jpeg",
-   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/AntiWasteCard.tsx",
    "line": 36,
    "surface": null,
@@ -352642,10 +352671,11 @@
     "src/lib/menu-item-images.ts",
     "src/pages/ChefsTable.tsx",
     "src/pages/TokOne.tsx",
+    "src/test/fixtures/golden-tok-preview.tsx",
     "src/test/transactional-email-templates.test.ts",
     "supabase/functions/_shared/transactional-emails.ts"
    ],
-   "detailRef": "4cb18132ea90"
+   "detailRef": "354ecb78b502"
   },
   {
    "id": "path-literal:1761b539fab6",

@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `fa392ed1a7d366cf7cc1d17c2a11a790d3d622ecf5d6793fa6ae4ece27dea5ab`
+- Empreinte SHA-256 des sources indexées : `700e9b408d1ed2b09c0fa485e01d2a16eb850ce2ab091f06ec21e8bf55fc4258`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,7 +32,7 @@
 | documents | 203 |
 | edgeFunctions | 115 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3506 |
+| exportedSymbols | 3507 |
 | featureFlags | 99 |
 | frontendRoutes | 135 |
 | integrations | 11 |
@@ -45,7 +45,7 @@
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16501 |
+| records | 16502 |
 | repositoryFiles | 3070 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1525,7 +1525,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/mochi-glaces.jpg | 7 | [src/lib/menu-item-images.ts:52](../../src/lib/menu-item-images.ts#L52) |
 | /images/moshi%20glac%C3%A9s.jpg | 1 | [src/test/security-url-helpers.test.ts:23](../../src/test/security-url-helpers.test.ts#L23) |
 | /images/octopus-fine-dining-fast.webp | 1 | [src/components/PromoCarousel.tsx:32](../../src/components/PromoCarousel.tsx#L32) |
-| /images/octopus-fine-dining.jpeg | 9 | [src/components/AntiWasteCard.tsx:36](../../src/components/AntiWasteCard.tsx#L36) |
+| /images/octopus-fine-dining.jpeg | 10 | [src/components/AntiWasteCard.tsx:36](../../src/components/AntiWasteCard.tsx#L36) |
 | /images/pannacotta.webp | 3 | [src/lib/menu-item-images.ts:20](../../src/lib/menu-item-images.ts#L20) |
 | /images/pasta-assortment.jpeg | 5 | [src/components/AntiWasteCard.tsx:38](../../src/components/AntiWasteCard.tsx#L38) |
 | /images/poke-bowls.jpeg | 8 | [src/components/AntiWasteCard.tsx:37](../../src/components/AntiWasteCard.tsx#L37) |
@@ -2131,7 +2131,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 | Auth | /auth, /auth/demo, /auth/callback | oui | default | [src/pages/Auth.tsx](../../src/pages/Auth.tsx) |
 | Budget Auto | /budget-auto | oui | default | [src/pages/BudgetAuto.tsx](../../src/pages/BudgetAuto.tsx) |
 | CGU | /cgu | oui | default | [src/pages/CGU.tsx](../../src/pages/CGU.tsx) |
-| Chefs Table | /chefs-table | oui | default | [src/pages/ChefsTable.tsx](../../src/pages/ChefsTable.tsx) |
+| Chefs Table | /chefs-table | oui | ChefTableDropCard, default | [src/pages/ChefsTable.tsx](../../src/pages/ChefsTable.tsx) |
 | Client Dashboard Home | /mon-espace | oui | default | [src/pages/ClientDashboardHome.tsx](../../src/pages/ClientDashboardHome.tsx) |
 | Client Reviews | /mes-avis | oui | default | [src/pages/ClientReviews.tsx](../../src/pages/ClientReviews.tsx) |
 | Coming Soon | /coming-soon | oui | default | [src/pages/ComingSoon.tsx](../../src/pages/ComingSoon.tsx) |

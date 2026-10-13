@@ -126,7 +126,7 @@ function buildChefTableMenuItemId(dropId: string) {
   return `chef-table-${dropId}`;
 }
 
-function ChefTableDropCard({
+export function ChefTableDropCard({
   drop,
   index,
   isReserved,
@@ -155,7 +155,7 @@ function ChefTableDropCard({
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 22 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -6 }}
       transition={{ duration: 0.32, delay: index * 0.04 }}
@@ -169,7 +169,7 @@ function ChefTableDropCard({
           src={drop.image}
           alt={`${drop.dish} - ${drop.restaurant}`}
           className="h-64 w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-          loading="lazy"
+          loading={index === 0 ? "eager" : "lazy"}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10" />
 
@@ -975,7 +975,7 @@ export default function ChefsTable() {
                   </p>
                 </div>
               ) : drops.length > 0 ? (
-                <div className="grid gap-6">
+                <div data-golden-tok-offers className="grid gap-6" aria-label="Offres La Tok d’Or">
                   {drops.map((drop, index) => (
                     <ChefTableDropCard
                       key={drop.id}

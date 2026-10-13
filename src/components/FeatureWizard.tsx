@@ -635,7 +635,7 @@ function GoldenTokFeatureWizard({
             </div>
           </div>
 
-          <div className="golden-tok-content">{children}</div>
+          <div className="golden-tok-content" data-golden-tok-content>{children}</div>
 
           <div className="golden-tok-benefits">
             <div className="grid grid-cols-2 xl:grid-cols-4">

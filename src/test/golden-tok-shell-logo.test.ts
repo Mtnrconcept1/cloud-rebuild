@@ -88,6 +88,12 @@ describe("Golden TOK public chrome", () => {
     expect(wizard).toContain('className="golden-tok-discover"');
     expect(wizard).toContain('href="#la-tok-dor-offres"');
     expect(page).toContain('id="la-tok-dor-offres"');
+    expect(page).toContain('data-golden-tok-offers');
+    expect(page).toContain('initial={false}');
+    expect(wizard).toContain('data-golden-tok-content');
+    expect(stylesheet).toContain('display: block !important');
+    expect(read("scripts/test-golden-tok-responsive.mjs")).toContain("mobileBenefitsInFirstViewport");
+    expect(read("scripts/test-golden-tok-responsive.mjs")).toContain("offerRenderedAndVisible");
     expect(stylesheet).toContain('h1.golden-tok-hero-title::after');
     expect(stylesheet).toContain('content: none !important');
     expect(stylesheet).toContain('@media (max-width: 820px)');
