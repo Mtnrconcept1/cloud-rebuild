@@ -295,6 +295,7 @@ export function toBundlePayload(
   visuals: Map<number, string>,
   formats: Partial<Record<MarketingChannel, MarketingPostFormat>> = {},
 ): Record<string, unknown> {
+  const campaignAudience = stripEmptySelectors(plan.campaign.audience_definition);
   return {
     campaign: {
       name: plan.campaign.name.slice(0, 160),
@@ -303,7 +304,7 @@ export function toBundlePayload(
       starts_at: plan.campaign.starts_at,
       ends_at: plan.campaign.ends_at,
       audience_name: plan.campaign.audience_name.slice(0, 160),
-      audience_definition: stripEmptySelectors(plan.campaign.audience_definition),
+      audience_definition: campaignAudience,
       timezone: "Europe/Zurich",
       content: { summary: plan.campaign.summary, message: plan.campaign.summary },
       metadata: { generated_by: "ai-marketing-agent" },
@@ -315,7 +316,12 @@ export function toBundlePayload(
       scheduled_at: item.scheduled_at,
       timezone: "Europe/Zurich",
       audience_name: item.audience_name.slice(0, 160),
-      targeting: stripEmptySelectors(item.targeting),
+      // Meta posts are public broadcasts. Their editorial audience remains in
+      // audience_name, while approval must use the campaign's exact selectors.
+      // Keep recipient targeting unchanged for every other channel.
+      targeting: item.channel === "instagram" || item.channel === "facebook"
+        ? { ...campaignAudience }
+        : stripEmptySelectors(item.targeting),
       content: {
         subject: item.channel === "email" ? item.content.subject : null,
         headline: item.content.headline,

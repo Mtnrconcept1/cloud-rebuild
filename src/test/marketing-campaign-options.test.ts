@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { applyCampaignOptions, buildCampaignSlots, CAMPAIGN_TEMPLATES, CampaignOptionsError, campaignOptionCounts, parseCampaignOptions } from "../../supabase/functions/_shared/marketing-campaign-options";
-import { toBundlePayload, type MarketingPlan } from "../../supabase/functions/_shared/marketing-ai-plan";
+import { MARKETING_CHANNELS, toBundlePayload, validatePlan, type MarketingPlan } from "../../supabase/functions/_shared/marketing-ai-plan";
 import { allocateMarketingVisuals } from "../../supabase/functions/_shared/marketing-visual-allocation";
 import { parseCampaignOptions as parseCampaignRequest } from "../../supabase/functions/_shared/marketing-campaign-request";
 const channels = ["instagram", "facebook"];
@@ -52,6 +52,49 @@ describe("guided campaign server contract", () => {
     expect(bundle.items[0].content).toMatchObject({ visual_format: "1:1", post_index: 0, template_ids: ["zero_attente", "anti_gaspi"], visual_status: "pending_generation" });
     expect(bundle.items.every((item) => !("status" in item) && !("approval_status" in item))).toBe(true);
   });
+  it("keeps all ten public posts of a mixed five-theme campaign within its approved audience", () => {
+    const themes = ["zero_attente", "anti_gaspi", "studio_marketing", "photo_pro", "plan_salle"];
+    const parsed = parseCampaignOptions({ templateIds: themes, postCount: 5, cadence: "daily",
+      formatsByChannel: { instagram: ["1:1"], facebook: ["1:1"] } }, channels)!;
+    const generated = plan();
+    generated.campaign.audience_definition = { audience_kind: "mixed", city: " Genève ", canton: "GE", category: "" };
+    generated.items = themes.map((theme, index) => ({ ...generated.items[0], title: theme,
+      audience_name: index < 2 ? "Clients Genève" : "Restaurateurs Genève",
+      targeting: { audience_kind: index < 2 ? "client" : "restaurant", city: "Genève", canton: "GE",
+        contact_type: index < 2 ? "registered_user" : "restaurant_prospect" },
+      content: { ...generated.items[0].content, body: `Découvrir ${theme}` },
+    }));
+    const expanded = applyCampaignOptions(validatePlan(generated, channels), parsed, channels,
+      "2026-10-24T08:00:00Z", "2026-11-01T08:00:00Z");
+    const before = structuredClone(expanded);
+    const bundle = toBundlePayload(expanded, new Map()) as {
+      campaign: { audience_definition: Record<string, string> };
+      items: Array<{ channel: string; targeting: Record<string, string>; audience_name: string; content: { body: string } }>;
+    };
+    expect(bundle.campaign.audience_definition).toEqual({ audience_kind: "mixed", city: "Genève", canton: "GE" });
+    expect(bundle.items).toHaveLength(10);
+    expect(bundle.items.filter((item) => item.channel === "instagram")).toHaveLength(5);
+    expect(bundle.items.filter((item) => item.channel === "facebook")).toHaveLength(5);
+    bundle.items.forEach((item, index) => {
+      expect(item.targeting).toEqual(bundle.campaign.audience_definition);
+      expect(item.audience_name).toBe(expanded.items[index].audience_name);
+      expect(item.content.body).toBe(expanded.items[index].content.body);
+      expect(item).not.toHaveProperty("approval_status");
+      expect(item).not.toHaveProperty("status");
+    });
+    expect(expanded).toEqual(before);
+  });
+  it.each(MARKETING_CHANNELS.filter((channel) => channel !== "instagram" && channel !== "facebook"))(
+    "does not broaden the generated %s audience to the campaign audience", (channel) => {
+      const generated = plan();
+      generated.campaign.audience_definition = { audience_kind: "mixed", canton: "GE" };
+      generated.items = [{ ...generated.items[0], channel,
+        targeting: { audience_kind: "restaurant", canton: "GE", contact_type: "restaurant_prospect" } }];
+      const bundle = toBundlePayload(generated, new Map()) as { items: Array<{ targeting: Record<string, string> }> };
+      expect(bundle.items[0].targeting).toEqual(generated.items[0].targeting);
+      expect(bundle.items[0].targeting).not.toEqual(generated.campaign.audience_definition);
+    },
+  );
   it.each(["every_other_day", "weekly"] as const)("enforces %s cadence", (cadence) => {
     const parsed = parseCampaignOptions({ ...options(), cadence }, channels)!;
     const slots = buildCampaignSlots(parsed, channels, "2026-11-01T09:00:00Z");
