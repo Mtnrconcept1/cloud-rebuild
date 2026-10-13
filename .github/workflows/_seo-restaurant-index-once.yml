@@ -1,0 +1,43 @@
+name: One-time SEO restaurant launch index
+
+on:
+  push:
+    branches:
+      - fix/seo-launch-closed-restaurants-20261013
+    paths:
+      - .github/workflows/_seo-restaurant-index-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/seo-launch-closed-restaurants-20261013
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Setup tools
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+          pnpm install --frozen-lockfile
+      - name: Remove temporary file
+        run: git rm .github/workflows/_seo-restaurant-index-once.yml
+      - name: Generate verified references
+        run: |
+          pnpm generate:error-code-map
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+          pnpm exec vitest run --mode production src/test/actualites-search-seo.test.ts src/test/application-search-index.test.ts
+      - name: Save generated references
+        run: |
+          git config user.name "tok-ci-bot"
+          git config user.email "tok-ci-bot@users.noreply.github.com"
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json supabase/functions/_shared/error-code-map.ts
+          git commit -m "docs(index): match intentionally closed restaurant SEO catalog"
+          git push origin HEAD:fix/seo-launch-closed-restaurants-20261013
