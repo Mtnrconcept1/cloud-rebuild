@@ -1,0 +1,33 @@
+name: Temporary reservation email index refresh
+on:
+  push:
+    branches:
+      - feat/reservation-email-responsive-20261013
+permissions:
+  contents: write
+jobs:
+  refresh:
+    if: github.event.head_commit.message != 'chore(index): regenerate reservation email index'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate and commit current reference index, removing this temporary workflow
+        run: |
+          set -euo pipefail
+          git rm -- .github/workflows/temporary-reservation-email-index.yml
+          pnpm docs:application-index
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
+          git config user.name "tok-ci-bot"
+          git config user.email "tok-ci-bot@users.noreply.github.com"
+          git commit -m "chore(index): regenerate reservation email index"
+          git push origin HEAD:refs/heads/feat/reservation-email-responsive-20261013
