@@ -26,6 +26,15 @@ async function run() {
   try {
     for (const viewport of VIEWPORTS) {
       const page = await browser.newPage();
+      const remoteRequests = [];
+      page.on("request", (req) => {
+        if (req.url().includes("supabase.co")) {
+          try {
+            const u = new URL(req.url());
+            if (remoteRequests.length < 18) remoteRequests.push(req.method() + " " + u.origin + u.pathname);
+          } catch {}
+        }
+      });
       // The production launch gate fails closed with a fake CI database.
       // Stub only this read-only gate RPC in the browser, never application code.
       await page.setRequestInterception(true);
@@ -70,6 +79,14 @@ async function run() {
       try {
         await page.setViewport({ width: viewport.width, height: viewport.height, deviceScaleFactor: 1 });
         await page.goto(BASE_URL, { waitUntil: "domcontentloaded", timeout: 45_000 });
+        await page.waitForFunction(
+          () => Array.from(document.querySelectorAll("button")).some((el) => el.textContent?.includes("Tout refuser")),
+          { timeout: 3_000 },
+        ).catch(() => {});
+        await page.evaluate(() => {
+          const reject = Array.from(document.querySelectorAll("button")).find((el) => el.textContent?.includes("Tout refuser"));
+          reject?.click();
+        });
         await page.waitForSelector("[data-golden-tok-chefs-table] h1.golden-tok-hero-title", { timeout: 15_000 });
         await page.evaluate(async () => { await document.fonts?.ready; });
         const metrics = await page.evaluate(() => {
@@ -118,8 +135,12 @@ async function run() {
       } catch (error) {
         failures += 1;
         console.error(viewport.name + ": " + error.message + " (" + page.url() + ")");
+        console.error("requests: " + JSON.stringify(remoteRequests));
+        console.error("page errors: " + JSON.stringify(pageErrors.slice(0,5)));
+        console.error("render states: " + (await page.evaluate(() => JSON.stringify({ path: location.pathname, spinners: document.querySelectorAll(".animate-spin").length, rootText: document.querySelector("#root")?.textContent?.slice(0,500) })).catch(()=>"error")));
         console.error("visible text: " + (await page.evaluate(() => document.body?.innerText?.slice(0,600) ?? "").catch(()=>"error")) );
         await page.screenshot({ path: resolve(ARTIFACT_DIR, viewport.name + "-failure.png"), fullPage: false }).catch(() => {});
+        throw error; // One blocked route is enough for diagnosis; do not repeat eight timeouts.
       } finally {
         await page.close();
       }
