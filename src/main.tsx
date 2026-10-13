@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { Analytics } from "@vercel/analytics/react";
 import App from "./App.tsx";
+import { recoverChunkLoadError } from "@/components/ErrorBoundary";
 import "./index.css";
 import "./home-section-headers.css";
 import "./styles/commercial-prospection-markers.css";
@@ -16,6 +17,13 @@ import { initMonitoring } from "@/lib/monitoring";
 import { isNative } from "@/lib/platform";
 import DirectoryRestaurantOwnershipNotice from "@/components/DirectoryRestaurantOwnershipNotice";
 import DirectoryClaimPersistenceBridge from "@/components/DirectoryClaimPersistenceBridge";
+
+// Vite emits this before React can necessarily catch a failed lazy module.
+// Prevent the unhandled preload error only when a bounded recovery has started.
+window.addEventListener("vite:preloadError", (event) => {
+  const payload = (event as Event & { payload?: unknown }).payload;
+  if (recoverChunkLoadError(payload)) event.preventDefault();
+});
 
 // Restore dark mode preference
 const storedTheme = localStorage.getItem("theme");
