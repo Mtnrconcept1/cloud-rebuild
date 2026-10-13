@@ -10,6 +10,7 @@ export type MetaSocialContent = {
   visual_prompt?: unknown;
   visual_status?: unknown;
   visual_format?: unknown;
+  format?: unknown;
 };
 
 export type MetaPublishingConfig = {
@@ -158,7 +159,7 @@ export function normalizeMetaMediaUrl(value: unknown) {
 
 /** Reused by approval and by the worker immediately before any provider call. */
 export function validateMetaMediaContent(content: MetaSocialContent, channel: MetaChannel) {
-  if (channel === "instagram" && cleanString(content.visual_format) === "9:16") {
+  if (channel === "instagram" && (cleanString(content.visual_format) || cleanString(content.format)) === "9:16") {
     throw new MetaPublishError("instagram_story_manual_required");
   }
   const visualUrl = normalizeMetaMediaUrl(content.visual_url);

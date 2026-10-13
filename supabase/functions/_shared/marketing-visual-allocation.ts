@@ -1,6 +1,6 @@
 /** Allocate at most six generations; exact matching briefs may share a file. */
 export async function allocateMarketingVisuals(
-  items: ReadonlyArray<{ visual_prompt: string | null; visual_format?: string }>,
+  items: ReadonlyArray<{ visual_prompt: string | null; visual_format?: string | null }>,
   generate: (prompt: string, index: number) => Promise<string | null>,
   budget: number,
 ): Promise<Map<number, string>> {

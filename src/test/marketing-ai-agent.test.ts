@@ -151,8 +151,12 @@ describe("marketing AI bundle payload", () => {
       content: { ...plan.items[0].content, subject: "Objet retenu" },
     });
 
-    const bundle = toBundlePayload(validatePlan(plan, ["in_app", "email"]), new Map([[1, "https://cdn/x.png"]])) as {
-      items: Array<{ channel: string; content: { subject: string | null; visual_url: string | null; visual_brand_profile?: string; visual_reference_ids?: string[] } }>;
+    const bundle = toBundlePayload(
+      validatePlan(plan, ["in_app", "email"]),
+      new Map([[1, "https://cdn/x.png"]]),
+      { email: "16:9" },
+    ) as {
+      items: Array<{ channel: string; content: { subject: string | null; visual_url: string | null; format: string | null; visual_brand_profile?: string; visual_reference_ids?: string[] } }>;
     };
 
     expect(bundle.items[0].content.subject).toBeNull();
@@ -162,6 +166,20 @@ describe("marketing AI bundle payload", () => {
     expect(bundle.items[1].content.visual_url).toBe("https://cdn/x.png");
     expect(bundle.items[1].content.visual_brand_profile).toBe("tok-v1-20261011");
     expect(bundle.items[1].content.visual_reference_ids).toEqual(["geneva", "loyalty", "flash", "pricing"]);
+    expect(bundle.items[1].content.format).toBe("16:9");
+  });
+  it("keeps guided per-item ratios authoritative while preserving the legacy format alias", () => {
+    const plan = validPlan();
+    plan.items[0].channel = "instagram";
+    plan.items[0].visual_format = "4:5";
+    const bundle = toBundlePayload(plan, new Map(), { instagram: "1:1" }) as {
+      items: Array<{ content: { format: string | null; visual_format: string | null } }>;
+    };
+    expect(bundle.items[0].content).toMatchObject({ format: "4:5", visual_format: "4:5" });
+    delete plan.items[0].visual_format;
+    expect(toBundlePayload(plan, new Map(), { instagram: "9:16" })).toMatchObject({
+      items: [{ content: { format: "9:16", visual_format: "9:16" } }],
+    });
   });
 });
 

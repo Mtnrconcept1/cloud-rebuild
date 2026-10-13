@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, Images, Megaphone, Plus, RefreshCw, Search, ShieldCheck, Sparkles } from "lucide-react";
-import { MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
+import { ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, ImageIcon, Images, Megaphone, Plus, RefreshCw, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { MarketingPostImage, MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
 import { loadMarketingCampaignItems } from "@/marketing/marketingClient";
 
 import {
@@ -37,6 +37,7 @@ import {
   type MarketingCalendarItem,
   type MarketingChannelId,
   type MarketingSnapshot,
+  type MarketingView,
 } from "@/marketing/types";
 import type { MarketingUrlState } from "@/marketing/useMarketingUrlState";
 import { marketingZurichLocalDateTimeToIso } from "@/marketing/zurichTime";
@@ -119,7 +120,7 @@ function CampaignPostsGallery({ campaignId, loadItems }: {
       <div className="grid min-w-0 gap-5 md:grid-cols-2">
         {items.map((item) => <article key={item.id} className="min-w-0 space-y-3 rounded-2xl border p-4">
           <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="min-w-0 break-words font-semibold">{item.title}</h4><MarketingStatusBadge status={item.approvalStatus} /></div>
-          <MarketingPostPreview title={item.title} channel={item.channel} scheduledAt={item.scheduledAt} preview={item.postPreview || { caption: item.content, visualUrl: null }} />
+          <MarketingPostPreview title={item.title} channel={item.channel} scheduledAt={item.scheduledAt} preview={item.postPreview || { caption: item.content, visualUrl: item.visualUrl, visualFormat: item.format || undefined }} />
         </article>)}
       </div>
       {cursor ? <Button type="button" variant="outline" disabled={loading} onClick={() => void load(cursor)}>Charger les publications suivantes</Button> : null}
@@ -152,6 +153,7 @@ export default function MarketingCampaignsView({
     audienceFilter: Record<string, unknown>,
     channels: MarketingChannelId[],
   ) => Promise<MarketingAudienceEstimate | undefined>;
+  onNavigate?: (view: MarketingView) => void;
 }) {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -356,6 +358,8 @@ export default function MarketingCampaignsView({
         <div className="grid gap-4 xl:grid-cols-2">
           {pageItems.map((campaign) => {
             const deliveryRate = campaign.sent ? campaign.delivered / campaign.sent : 0;
+            const campaignItems = snapshot.calendar.filter((item) => item.campaignId === campaign.id);
+            const visualItems = campaignItems.filter((item) => item.visualUrl);
             return (
               <Card key={campaign.id} className="min-w-0 overflow-hidden">
                 <CardHeader className="space-y-3">
@@ -366,6 +370,28 @@ export default function MarketingCampaignsView({
                   <div className="flex flex-wrap gap-2">{campaign.channels.map((channel) => <MarketingChannelBadge key={channel} channel={channel} />)}</div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="rounded-xl border bg-muted/20 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><ImageIcon className="h-4 w-4" />Aperçu du calendrier affiché</p>
+                      <span className="text-xs text-muted-foreground">{visualItems.length}</span>
+                    </div>
+                    {visualItems.length ? (
+                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {visualItems.slice(0, 6).map((item) => (
+                          <figure key={item.id} className="min-w-0 overflow-hidden rounded-lg border bg-background">
+                            <MarketingPostImage url={item.postPreview?.visualUrl || item.visualUrl} title={item.title} />
+                            <figcaption className="space-y-1 p-2">
+                              <p className="truncate text-[11px] font-semibold" title={item.title}>{item.title}</p>
+                              <div className="flex items-center justify-between gap-1"><span className="text-[10px] text-muted-foreground">{item.format || "1:1"}</span><MarketingStatusBadge status={item.approvalStatus} className="px-1.5 py-0 text-[9px]" /></div>
+                            </figcaption>
+                          </figure>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-xs text-muted-foreground">Ouvrez les visuels et publications pour consulter cette campagne sur toutes les dates.</p>
+                    )}
+                    {campaignItems.length ? <Button type="button" size="sm" variant="ghost" className="mt-2 w-full" onClick={() => { setApprovalReason(""); setApprovalCampaign(campaign); }}>Relire les publications et les visuels</Button> : null}
+                  </div>
                   <div className="rounded-xl border bg-muted/20 p-3">
                     <p className="text-xs text-muted-foreground">Audience</p>
                     <p className="mt-1 truncate text-sm font-semibold">{campaign.audienceName}</p>

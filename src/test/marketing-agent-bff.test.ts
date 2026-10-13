@@ -55,7 +55,32 @@ describe("marketing agent service boundary", () => {
     expect(fetchMock.mock.calls.every(([url]) => !String(url).includes("/functions/v1/"))).toBe(true);
   });
 
-  it("forwards validated templates and saves a draft with its visual content", async () => {
+  it.each([
+    { instagram: "4:3" },
+    { unknown: "1:1" },
+    "1:1",
+  ])("rejects an unsupported network format before image generation: %o", async (formats) => {
+    const fetchMock = upstream(); vi.stubGlobal("fetch", fetchMock);
+    const res = recorder();
+    await marketingAgentHandler(request({
+      action: "generate",
+      objective: "Promouvoir les offres anti-gaspi confirmées à Genève.",
+      audienceHint: "Clients à Genève",
+      channels: ["instagram"],
+      formats,
+      startsAt: "2026-10-14T07:00:00.000Z",
+      endsAt: "2026-10-20T16:00:00.000Z",
+      itemCount: 3,
+    }), res.response);
+    expect(res.response.statusCode).toBe(400);
+    expect(fetchMock.mock.calls.every(([url]) => !String(url).includes("/functions/v1/"))).toBe(true);
+  });
+
+  it.each([
+    { guided: true, formats: undefined },
+    { guided: false, formats: { instagram: "9:16" } },
+    { guided: true, formats: { instagram: "9:16" } },
+  ])("forwards validated templates and/or network formats and saves draft visuals: %o", async ({ guided, formats }) => {
     const base = upstream();
     const content = { body: "Bonjour", visual_url: "https://example.org/visual.png" };
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
@@ -65,12 +90,16 @@ describe("marketing agent service boundary", () => {
       return base(input);
     });
     vi.stubGlobal("fetch", fetchMock);
-    const res = recorder(); await marketingAgentHandler(request(guidedRequest()), res.response);
+    const res = recorder();
+    const { campaignOptions: guidedOptions, ...baseRequest } = guidedRequest();
+    await marketingAgentHandler(request({ ...baseRequest, ...(guided ? { campaignOptions: guidedOptions } : {}), ...(formats ? { formats } : {}) }), res.response);
     expect(res.response.statusCode).toBe(200);
     expect(res.value().items[0].content).toEqual(content);
     expect(res.value().warnings[0]).toMatch(/attendent encore leur visuel/);
     const call = fetchMock.mock.calls.find(([url]) => String(url).includes("/functions/v1/"));
-    expect(JSON.parse(String((call as unknown as [string, RequestInit])[1].body)).campaignOptions).toEqual(campaignOptions);
+    const forwarded = JSON.parse(String((call as unknown as [string, RequestInit])[1].body));
+    expect(forwarded.campaignOptions).toEqual(guided ? campaignOptions : undefined);
+    expect(forwarded.formats).toEqual(formats ?? {});
   });
 
   it.each([401, 403])("reports upstream %i as a service problem, not invalid input or expired browser session", async (agentStatus) => {

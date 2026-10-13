@@ -2,10 +2,12 @@ import { MarketingBrandReferences } from "@/components/marketing/MarketingBrandR
 import { MarketingCampaignBuilder, type CampaignGenerationRequest } from "@/components/marketing/MarketingCampaignBuilder";
 import { MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
 import { marketingPostPreview } from "@/marketing/postPreview";
+import { DEFAULT_MARKETING_FORMATS, MARKETING_POST_FORMATS, VISUAL_MARKETING_CHANNELS, type MarketingPostFormat } from "@/marketing/campaignTemplates";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 
 import {
+  MARKETING_CHANNEL_LABELS,
   MarketingEmptyState,
   formatMarketingDate,
 } from "@/components/marketing/MarketingShared";
@@ -94,6 +96,7 @@ export default function MarketingAgentView({
   const [startsAt, setStartsAt] = useState(isoDay(1));
   const [endsAt, setEndsAt] = useState(isoDay(15));
   const [itemCount, setItemCount] = useState(4);
+  const [formats, setFormats] = useState<Partial<Record<MarketingChannelId, MarketingPostFormat>>>(DEFAULT_MARKETING_FORMATS);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenerateResult | null>(null);
@@ -179,6 +182,7 @@ export default function MarketingAgentView({
     }
 
     await generate({ objective: objective.trim(), audienceHint: audienceHint.trim(), channels,
+      formats: Object.fromEntries(channels.filter((channel) => VISUAL_MARKETING_CHANNELS.includes(channel) && formats[channel]).map((channel) => [channel, formats[channel]])),
       startsAt: startIso, endsAt: endIso, itemCount });
   };
 
@@ -253,7 +257,7 @@ export default function MarketingAgentView({
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-400"
                     }`}
                   >
-                    {channel}
+                    {MARKETING_CHANNEL_LABELS[channel]}
                     {!connectedChannels.has(channel) ? " ·  non connecté" : ""}
                   </button>
                 );
@@ -273,6 +277,15 @@ export default function MarketingAgentView({
                 </button>
               </p>
             ) : null}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {channels.filter((channel) => VISUAL_MARKETING_CHANNELS.includes(channel)).map((channel) => <div key={channel} className="space-y-2">
+              <Label htmlFor={`agent-format-${channel}`}>Format {MARKETING_CHANNEL_LABELS[channel]}</Label>
+              <select id={`agent-format-${channel}`} disabled={pending} className="h-10 w-full rounded-md border px-3 text-sm" value={formats[channel] || "1:1"} onChange={(event) => setFormats((current) => ({ ...current, [channel]: event.target.value as MarketingPostFormat }))}>
+                {MARKETING_POST_FORMATS.map((format) => <option key={format} value={format}>{format}</option>)}
+              </select>
+            </div>)}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
@@ -368,6 +381,7 @@ export default function MarketingAgentView({
               <Button type="button" onClick={() => onNavigate("campaigns")}>
                 Ouvrir les campagnes pour approbation
               </Button>
+              <Button type="button" variant="outline" onClick={() => onNavigate("calendar")}>Relire et approuver les éléments</Button>
             </div>
             <p className="text-xs leading-relaxed text-slate-500">
               La génération ne donne aucune autorisation de diffusion. Chaque élément doit être

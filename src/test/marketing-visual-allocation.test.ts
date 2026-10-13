@@ -19,6 +19,15 @@ describe("visual generation allocation", () => {
     const result = await allocateMarketingVisuals([{ visual_prompt: null }, { visual_prompt: "  " }, { visual_prompt: "A" }], generate, 1);
     expect(generate).toHaveBeenCalledTimes(1); expect(result.has(2)).toBe(true);
   });
+  it("does not share one file between identical briefs requested in different formats", async () => {
+    const generate = vi.fn(async (_prompt: string, index: number) => `https://cdn.example.com/${index}.jpg`);
+    const result = await allocateMarketingVisuals([
+      { visual_prompt: "Chef TOK", visual_format: "1:1" },
+      { visual_prompt: "Chef TOK", visual_format: "9:16" },
+    ], generate, 2);
+    expect(generate).toHaveBeenCalledTimes(2);
+    expect(result.get(0)).not.toBe(result.get(1));
+  });
   it.each([-1, NaN, 1.5, 7])("rejects an invalid or over-quota generation budget %s without provider calls", async (budget) => {
     const generate = vi.fn();
     await expect(allocateMarketingVisuals([{ visual_prompt: "A" }], generate, budget)).rejects.toThrow();

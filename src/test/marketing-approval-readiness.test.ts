@@ -42,8 +42,8 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("approval checks the stored social image after authentication", () => {
-  it("allows campaign review but blocks automatic approval of a manual Story export", async () => {
-    const story = { ...ready, channel: "instagram", visual_format: "9:16" };
+  it.each(["visual_format", "format"])("allows campaign review but blocks automatic approval of a manual Story export (%s)", async (field) => {
+    const story = { ...ready, channel: "instagram", [field]: "9:16" };
     const fetchMock = upstream([[story], [story]]); vi.stubGlobal("fetch", fetchMock);
     const campaign = recorder(); await marketingRpcHandler(request("admin_approve_marketing_campaign"), campaign.response);
     expect(campaign.response.statusCode).toBe(200);

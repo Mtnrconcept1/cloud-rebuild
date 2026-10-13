@@ -6,7 +6,7 @@ const MAX_REFERENCE_BYTES = 2_000_000;
 const MAX_OUTPUT_BYTES = 8_000_000;
 let referenceCache: Promise<Blob[]> | undefined;
 
-async function readBounded(response: Response, maximum: number): Promise<ArrayBuffer> {
+async function readBounded(response: Response, maximum: number): Promise<Uint8Array<ArrayBuffer>> {
   if (!response.ok || !response.body || Number(response.headers.get("content-length")) > maximum) {
     await response.body?.cancel();
     throw new Error("marketing_image_response_invalid");
@@ -31,7 +31,7 @@ async function readBounded(response: Response, maximum: number): Promise<ArrayBu
   const bytes = new Uint8Array(size);
   let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-  return bytes.buffer;
+  return bytes;
 }
 
 async function loadReferences(): Promise<Blob[]> {

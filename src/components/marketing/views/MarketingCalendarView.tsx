@@ -270,7 +270,7 @@ export default function MarketingCalendarView({
             <div className="space-y-3">
               {agenda.map((item) => (
                 <button key={item.id} type="button" onClick={() => openItem(item)} className="flex w-full min-w-0 flex-col gap-3 rounded-2xl border p-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 sm:flex-row sm:items-center">
-                  <MarketingPostImage url={item.postPreview?.visualUrl} title={item.title} compact />
+                  <MarketingPostImage url={item.postPreview?.visualUrl || item.visualUrl} title={item.title} compact />
                   <div className="min-w-0 flex-1">
                     <p className="break-words font-semibold">{item.title}</p>
                     <p className="mt-1 truncate text-xs text-muted-foreground">{item.campaignName} · {formatMarketingDate(item.scheduledAt)}</p>
@@ -306,7 +306,7 @@ export default function MarketingCalendarView({
                 title={selectedItem.title}
                 channel={selectedItem.channel}
                 scheduledAt={selectedItem.scheduledAt}
-                preview={selectedItem.postPreview || { caption: selectedItem.content, visualUrl: null }}
+                preview={selectedItem.postPreview || { caption: selectedItem.content, visualUrl: selectedItem.visualUrl, visualFormat: selectedItem.format || undefined }}
               />
               {selectedItem.manualOutcome || selectedItem.manualNote ? (
                 <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">

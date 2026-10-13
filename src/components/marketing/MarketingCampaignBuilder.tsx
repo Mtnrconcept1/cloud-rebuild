@@ -12,7 +12,7 @@ import { CAMPAIGN_TEMPLATES } from "../../../supabase/functions/_shared/marketin
 const NETWORKS = [["instagram", "Instagram"], ["facebook", "Facebook"], ["linkedin", "LinkedIn"], ["tok_news", "Actualités TOK"]] as const;
 const FORMATS = [["1:1", "Carré"], ["4:5", "Portrait"], ["9:16", "Vertical"], ["16:9", "Paysage"]] as const;
 type Format = typeof FORMATS[number][0];
-type Cadence = "daily" | "every_other_day" | "weekly";
+type Cadence = "daily" | "every_other_day" | "twice_weekly" | "weekly" | "biweekly";
 export type CampaignGenerationRequest = {
   objective: string;
   audienceHint: string;
@@ -20,6 +20,7 @@ export type CampaignGenerationRequest = {
   startsAt: string;
   endsAt: string;
   itemCount: number;
+  formats?: Partial<Record<MarketingChannelId, Format>>;
   campaignOptions?: {
     templateIds: string[];
     postCount: number;
@@ -62,10 +63,12 @@ export function MarketingCampaignBuilder({ snapshot, pending, disabled, onGenera
     if (limitError) return setError(limitError);
     const startsAt = marketingZurichLocalDateTimeToIso(start);
     if (!startsAt || Date.parse(startsAt) <= Date.now()) return setError("Choisissez une date de début future valide (heure de Genève).");
-    const interval = cadence === "daily" ? 1 : cadence === "weekly" ? 7 : 2;
+    const lastIndex = postCount - 1;
+    const interval = cadence === "daily" ? 1 : cadence === "weekly" ? 7 : cadence === "biweekly" ? 14 : 2;
+    const lastOffset = cadence === "twice_weekly" ? Math.floor(lastIndex / 2) * 7 + (lastIndex % 2) * 3 : lastIndex * interval;
     const [date, time] = start.split("T");
     const lastDate = new Date(`${date}T12:00:00Z`);
-    lastDate.setUTCDate(lastDate.getUTCDate() + (postCount - 1) * interval);
+    lastDate.setUTCDate(lastDate.getUTCDate() + lastOffset);
     const lastIso = marketingZurichLocalDateTimeToIso(`${lastDate.toISOString().slice(0, 10)}T${time}`);
     if (!lastIso) return setError("Le calendrier contient une heure invalide. Choisissez un autre horaire.");
     await onGenerate({
@@ -91,7 +94,7 @@ export function MarketingCampaignBuilder({ snapshot, pending, disabled, onGenera
         <fieldset><legend className="mb-3 font-medium">2. Combien de posts et à quel rythme ?</legend>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2"><Label htmlFor="builder-count">Posts par réseau et format</Label><Input id="builder-count" type="number" min={1} max={6} step={1} value={count} onChange={(event) => setCount(event.target.value)} /></div>
-            <div className="space-y-2"><Label htmlFor="builder-cadence">Fréquence</Label><select id="builder-cadence" className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={cadence} onChange={(event) => setCadence(event.target.value as Cadence)}><option value="daily">Tous les jours</option><option value="every_other_day">Tous les 2 jours</option><option value="weekly">Toutes les semaines</option></select></div>
+            <div className="space-y-2"><Label htmlFor="builder-cadence">Fréquence</Label><select id="builder-cadence" className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={cadence} onChange={(event) => setCadence(event.target.value as Cadence)}><option value="daily">Tous les jours</option><option value="every_other_day">Tous les 2 jours</option><option value="twice_weekly">2 fois par semaine</option><option value="weekly">Toutes les semaines</option><option value="biweekly">Toutes les 2 semaines</option></select></div>
             <div className="min-w-0 space-y-2"><Label htmlFor="builder-start">Début · heure de Genève</Label><Input id="builder-start" className="min-w-0" type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} /></div>
           </div>
         </fieldset>

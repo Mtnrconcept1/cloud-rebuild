@@ -4,6 +4,7 @@ import { MarketingCampaignBuilder } from "@/components/marketing/MarketingCampai
 import MarketingAgentView from "@/components/marketing/views/MarketingAgentView";
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
 import { parseCampaignOptions } from "../../supabase/functions/_shared/marketing-campaign-options";
+import { campaignEndDate } from "@/marketing/campaignTemplates";
 
 const { bff } = vi.hoisted(() => ({ bff: vi.fn() }));
 vi.mock("@/marketing/marketingBffClient", () => ({
@@ -21,6 +22,32 @@ function setup(overrides = {}) {
 beforeEach(() => { bff.mockReset(); bff.mockResolvedValue({ runs: [] }); });
 
 describe("campagne guidée", () => {
+  it("conserve les calculs de période des campagnes existantes", () => {
+    expect(campaignEndDate("2026-10-14", 4, "daily")).toBe("2026-10-17");
+    expect(campaignEndDate("2026-10-14", 3, "weekly")).toBe("2026-10-28");
+  });
+  it("conserve les deux thèmes et les fréquences ajoutés sur main", async () => {
+    const generate = setup();
+    fireEvent.click(screen.getByRole("checkbox", { name: /Dernière minute/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /Découverte restaurant/ }));
+    fireEvent.change(screen.getByLabelText("Fréquence"), { target: { value: "twice_weekly" } });
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer et générer la campagne" }));
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(1));
+    const request = generate.mock.calls[0][0];
+    expect(request.campaignOptions.templateIds).toEqual(["zero_attente", "last_minute", "discovery"]);
+    expect(request.campaignOptions.cadence).toBe("twice_weekly");
+    expect(Date.parse(request.endsAt) - Date.parse(request.startsAt)).toBe(7 * 86400000 + 3600000);
+  });
+  it("conserve le choix de format dans le brief libre avancé", async () => {
+    bff.mockImplementation((_url, options) => Promise.resolve(options.body.action === "list_runs" ? { runs: [] } : { items: [], summary: "Prêt", assetCount: 0, estimatedCostChf: 0 }));
+    render(<MarketingAgentView snapshot={snapshot} canMutateBackend onNavigate={vi.fn()} />);
+    fireEvent.click(screen.getByText("Brief libre et autres canaux (avancé)"));
+    fireEvent.change(screen.getByLabelText("Objectif"), { target: { value: "Faire découvrir le restaurant" } });
+    fireEvent.click(screen.getByRole("button", { name: /Instagram/ }));
+    fireEvent.change(screen.getByLabelText("Format Instagram"), { target: { value: "16:9" } });
+    fireEvent.click(screen.getByRole("button", { name: "Générer la campagne" }));
+    await waitFor(() => expect(bff).toHaveBeenCalledWith("/api/marketing/agent", expect.objectContaining({ body: expect.objectContaining({ action: "generate", formats: { instagram: "16:9" } }) })));
+  });
   it("propose les outils restaurateur avec une précision explicite sur les 5 CHF", () => {
     setup();
     for (const label of [/Réservations à 5 CHF par table/, /Studio marketing IA/, /Photo Pro/, /Plan de salle automatisé/, /Menu digital/, /TOK One/]) {

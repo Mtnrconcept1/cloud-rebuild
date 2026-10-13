@@ -61,6 +61,16 @@ describe("TOK brand reference conditioning", () => {
     await generateCampaignVisual(client, options);
     expect(fetcher.mock.calls.filter(([url]) => url.startsWith("https://www.thetok.ch/"))).toHaveLength(4);
   });
+  it.each([
+    ["1:1", "1024x1024"],
+    ["9:16", "720x1280"],
+    ["16:9", "1280x720"],
+  ] as const)("maps the requested %s format to an exact supported image size", async (format, size) => {
+    setup();
+    const { buildTokMarketingImageForm } = await import("../../supabase/functions/_shared/marketing-visual");
+    const form = await buildTokMarketingImageForm(options.prompt, format);
+    expect(form.get("size")).toBe(size);
+  });
   it.each(["missing", "changed", "oversize"] as const)("fails closed when a reference is %s, and retries loading next time", async (mode) => {
     const { client, upload, fetcher } = setup(mode);
     const { generateCampaignVisual } = await import("../../supabase/functions/_shared/marketing-visual");

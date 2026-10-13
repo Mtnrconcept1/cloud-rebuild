@@ -30,6 +30,7 @@ export const MARKETING_CHANNELS = [
 ] as const;
 
 export type MarketingChannel = typeof MARKETING_CHANNELS[number];
+export type MarketingPostFormat = "1:1" | "9:16" | "16:9";
 
 /**
  * Audience selectors accepted by marketing_validate_audience_filter. The
@@ -292,6 +293,7 @@ export function slugifyCampaignName(name: string) {
 export function toBundlePayload(
   plan: MarketingPlan,
   visuals: Map<number, string>,
+  formats: Partial<Record<MarketingChannel, MarketingPostFormat>> = {},
 ): Record<string, unknown> {
   return {
     campaign: {
@@ -321,8 +323,10 @@ export function toBundlePayload(
         call_to_action: item.content.call_to_action,
         hashtags: item.content.hashtags.slice(0, 12),
         visual_url: visuals.get(index) || null,
+        format: item.visual_format || formats[item.channel] || null,
+        visual_format: item.visual_format || formats[item.channel] || null,
         visual_prompt: item.visual_prompt,
-        ...(item.visual_format ? { visual_format: item.visual_format, post_index: item.post_index, template_ids: item.template_ids } : {}),
+        ...(item.visual_format ? { post_index: item.post_index, template_ids: item.template_ids } : {}),
         visual_required: item.channel === "facebook" || item.channel === "instagram" || Boolean(item.visual_prompt),
         visual_status: visuals.get(index) ? "ready"
           : item.channel === "facebook" || item.channel === "instagram" || item.visual_prompt

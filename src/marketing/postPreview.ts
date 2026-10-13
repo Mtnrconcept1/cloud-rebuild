@@ -28,6 +28,6 @@ export function marketingPostPreview(content: unknown, channel: MarketingChannel
   return {
     caption: channel === "instagram" || channel === "facebook" ? structured || fallback : fallback || structured,
     visualUrl: marketingPreviewImageUrl(row.visual_url),
-    ...(text(row.visual_format) ? { visualFormat: text(row.visual_format) } : {}),
+    ...(text(row.visual_format) || text(row.format) ? { visualFormat: text(row.visual_format) || text(row.format) } : {}),
   };
 }

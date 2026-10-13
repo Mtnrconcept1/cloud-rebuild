@@ -1,7 +1,7 @@
 import { addDays, subDays } from "date-fns";
 
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
-import { marketingPostPreview } from "@/marketing/postPreview";
+import { marketingPostPreview, marketingPreviewImageUrl } from "@/marketing/postPreview";
 import {
   MARKETING_BFF_ENDPOINTS,
   marketingBffRequest,
@@ -38,6 +38,7 @@ import type {
   MarketingOutreachTargetDraft,
   MarketingOverview,
   MarketingProspect,
+  MarketingPostFormat,
   MarketingManualTarget,
   MarketingOffsetPage,
   MarketingRestaurantContactDraft,
@@ -93,6 +94,19 @@ function pick(record: UnknownRecord, ...keys: string[]) {
 function contentMessage(value: unknown) {
   if (typeof value === "string") return value;
   return asString(pick(asRecord(value), "message", "body", "text"));
+}
+
+function contentValue(value: unknown, key: string) {
+  return asString(asRecord(value)[key]);
+}
+
+function marketingVisualUrl(value: unknown) {
+  return marketingPreviewImageUrl(contentValue(value, "visual_url"));
+}
+
+function marketingPostFormat(value: unknown): MarketingPostFormat | null {
+  const format = contentValue(value, "visual_format") || contentValue(value, "format");
+  return ["1:1", "4:5", "9:16", "16:9"].includes(format) ? format as MarketingPostFormat : null;
 }
 
 function safeErrorMessage(error: unknown) {
@@ -152,6 +166,7 @@ function normalizeCampaign(value: unknown, fallback?: MarketingCampaign): Market
 
 export function normalizeCalendarItem(value: unknown, fallback?: MarketingCalendarItem): MarketingCalendarItem {
   const row = asRecord(value);
+  const content = pick(row, "content", "message");
   const manualOutcomeValue = asString(pick(row, "manual_outcome", "manualOutcome"));
   return {
     id: asString(pick(row, "id"), fallback?.id || crypto.randomUUID()),
@@ -169,6 +184,10 @@ export function normalizeCalendarItem(value: unknown, fallback?: MarketingCalend
     postPreview: row.content !== undefined || row.message !== undefined
       ? marketingPostPreview(pick(row, "content", "message"), asString(row.channel, fallback?.channel || "in_app") as MarketingChannelId)
       : fallback?.postPreview,
+    visualUrl: row.content !== undefined || row.message !== undefined
+      ? marketingVisualUrl(content) : fallback?.visualUrl || null,
+    format: row.content !== undefined || row.message !== undefined
+      ? marketingPostFormat(content) : fallback?.format || null,
     manualOutcome: ["published", "failed"].includes(manualOutcomeValue)
       ? manualOutcomeValue as MarketingCalendarItem["manualOutcome"]
       : fallback?.manualOutcome || null,

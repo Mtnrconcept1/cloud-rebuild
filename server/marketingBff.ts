@@ -1453,7 +1453,7 @@ async function checkMarketingApprovalMedia(config: BffConfig, operation: string,
   let after = "";
   for (let page = 0; page < 20; page += 1) {
     const query = new URLSearchParams({
-      select: "id,channel,visual_url:content->>visual_url,visual_required:content->visual_required,visual_prompt:content->>visual_prompt,visual_status:content->>visual_status,visual_format:content->>visual_format",
+      select: "id,channel,visual_url:content->>visual_url,visual_required:content->visual_required,visual_prompt:content->>visual_prompt,visual_status:content->>visual_status,visual_format:content->>visual_format,format:content->>format",
       [campaign ? "campaign_id" : "id"]: `eq.${id}`,
       channel: "in.(facebook,instagram)",
       status: "not.in.(published,sent,cancelled,completed)",
@@ -1472,7 +1472,7 @@ async function checkMarketingApprovalMedia(config: BffConfig, operation: string,
       try {
         // Campaign approval reviews its content; only item approval schedules
         // automatic delivery. Manual Story exports must not block sibling posts.
-        validateMetaMediaContent(campaign ? { ...row, visual_format: undefined } : row, row.channel as "facebook" | "instagram");
+        validateMetaMediaContent(campaign ? { ...row, visual_format: undefined, format: undefined } : row, row.channel as "facebook" | "instagram");
       } catch (error) {
         if (!(error instanceof MetaPublishError)) throw error;
         if (error.code === "instagram_story_manual_required") {
@@ -1676,6 +1676,24 @@ function agentChannels(body: JsonObject): string[] {
   return channels;
 }
 
+const MARKETING_POST_FORMAT_VALUES = new Set(["1:1", "9:16", "16:9"]);
+
+function agentFormats(body: JsonObject, channels: readonly string[]): JsonObject {
+  if (body.formats === undefined) return {};
+  if (!isPlainObject(body.formats)) {
+    throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+  const allowedChannels = new Set(channels);
+  const formats: JsonObject = {};
+  for (const [channel, format] of Object.entries(body.formats)) {
+    if (!allowedChannels.has(channel) || typeof format !== "string" || !MARKETING_POST_FORMAT_VALUES.has(format)) {
+      throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+    }
+    formats[channel] = format;
+  }
+  return formats;
+}
+
 function agentTimestamp(body: JsonObject, key: string): string {
   const value = body[key];
   const parsed = typeof value === "string" ? Date.parse(value) : Number.NaN;
@@ -1777,7 +1795,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     return;
   }
 
-  const allowedKeys = ["action", "objective", "audienceHint", "channels", "startsAt", "endsAt", "itemCount", "campaignOptions"];
+  const allowedKeys = ["action", "objective", "audienceHint", "channels", "formats", "startsAt", "endsAt", "itemCount", "campaignOptions"];
   if (Object.keys(body).some((key) => !allowedKeys.includes(key))) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
@@ -1785,6 +1803,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
   if (!objective) throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   const audienceHint = body.audienceHint === undefined ? "" : stringField(body, "audienceHint", 500);
   const channels = agentChannels(body);
+  const formats = agentFormats(body, channels);
   const startsAt = agentTimestamp(body, "startsAt");
   const endsAt = agentTimestamp(body, "endsAt");
   if (Date.parse(endsAt) <= Date.parse(startsAt)) {
@@ -1812,6 +1831,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     objective,
     audienceHint,
     channels,
+    formats,
     startsAt,
     endsAt,
     itemCount,

@@ -13,7 +13,7 @@ describe("guided campaign server contract", () => {
     expect(parseCampaignOptions(undefined, channels)).toBeUndefined();
     const parsed = parseCampaignOptions(options(), channels)!;
     expect(campaignOptionCounts(parsed)).toEqual({ itemCount: 12, visualCount: 6 });
-    expect(parseCampaignOptions({ ...options(), templateIds: CAMPAIGN_TEMPLATES.map((template) => template.id) }, channels)?.templateIds).toHaveLength(18);
+    expect(parseCampaignOptions({ ...options(), templateIds: CAMPAIGN_TEMPLATES.map((template) => template.id) }, channels)?.templateIds).toHaveLength(20);
   });
   it.each([
     null, { ...options(), unexpected: true }, { ...options(), templateIds: ["fake"] },
@@ -53,6 +53,14 @@ describe("guided campaign server contract", () => {
   it("rejects a cadence slot whose local hour does not exist during the spring clock change", () => {
     const parsed = parseCampaignOptions(options(), channels)!;
     expect(() => buildCampaignSlots(parsed, channels, "2027-03-27T01:30:00Z")).toThrow("campaign_local_time_unavailable");
+  });
+  it("preserves twice-weekly and fortnightly schedules from the earlier builder", () => {
+    const fortnightly = parseCampaignOptions({ ...options(), cadence: "biweekly" }, channels)!;
+    expect(buildCampaignSlots(fortnightly, channels, "2026-11-01T09:00:00Z")[4].scheduledAt).toBe("2026-11-15T09:00:00.000Z");
+    const twiceWeekly = parseCampaignOptions({ ...options(), postCount: 4, cadence: "twice_weekly", formatsByChannel: { instagram: ["1:1"] } }, ["instagram"])!;
+    expect(buildCampaignSlots(twiceWeekly, ["instagram"], "2026-11-01T09:00:00Z").map((slot) => slot.scheduledAt)).toEqual([
+      "2026-11-01T09:00:00.000Z", "2026-11-04T09:00:00.000Z", "2026-11-08T09:00:00.000Z", "2026-11-11T09:00:00.000Z",
+    ]);
   });
   it("refuses missing posts, missing image briefs and a window too short", () => {
     const parsed = parseCampaignOptions(options(), channels)!;
