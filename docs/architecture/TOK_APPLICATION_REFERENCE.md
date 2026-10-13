@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `135169d6248cdb49531bc63f18e83d230ade34b651d7118b693e02510e9a338d`
+- Empreinte SHA-256 des sources indexées : `fe6d89b1cefec888498dcd8753dadb61fab7366f45b0238773058fb54bf74281`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 202 |
 | edgeFunctions | 115 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3417 |
+| exportedSymbols | 3422 |
 | featureFlags | 99 |
 | frontendRoutes | 132 |
 | integrations | 11 |
 | marketingOperations | 36 |
 | migrations | 531 |
-| modules | 1513 |
+| modules | 1516 |
 | pages | 128 |
 | pathLiterals | 650 |
 | publicAssets | 462 |
 | publicEntries | 487 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 109 |
-| records | 16209 |
-| repositoryFiles | 2996 |
+| records | 16221 |
+| repositoryFiles | 2999 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -555,7 +555,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | stripe-worker | [supabase/functions/stripe-worker/index.ts:1](../../supabase/functions/stripe-worker/index.ts#L1) | oui ([supabase/config.toml:251](../../supabase/config.toml#L251)) | false | OPTIONS, POST | — | stripe, supabase |
 | submit-signup-application | [supabase/functions/submit-signup-application/index.ts:1](../../supabase/functions/submit-signup-application/index.ts#L1) | oui ([supabase/config.toml:269](../../supabase/config.toml#L269)) | false | ANY | — | — |
 | sync-apple-storekit | [supabase/functions/sync-apple-storekit/index.ts:1](../../supabase/functions/sync-apple-storekit/index.ts#L1) | oui ([supabase/config.toml:272](../../supabase/config.toml#L272)) | false | POST | — | — |
-| tok-connect-admin | [supabase/functions/tok-connect-admin/index.ts:1](../../supabase/functions/tok-connect-admin/index.ts#L1) | oui ([supabase/config.toml:332](../../supabase/config.toml#L332)) | false | POST | admin-overview, set-restaurant-mcp-access | supabase |
+| tok-connect-admin | [supabase/functions/tok-connect-admin/index.ts:1](../../supabase/functions/tok-connect-admin/index.ts#L1) | oui ([supabase/config.toml:332](../../supabase/config.toml#L332)) | false | POST | admin-overview, admin-restaurants, set-restaurant-mcp-access | supabase |
 | tok-connect-api | [supabase/functions/tok-connect-api/index.ts:1](../../supabase/functions/tok-connect-api/index.ts#L1) | oui ([supabase/config.toml:320](../../supabase/config.toml#L320)) | false | GET, POST | — | — |
 | tok-connect-app-bridge | [supabase/functions/tok-connect-app-bridge/index.ts:1](../../supabase/functions/tok-connect-app-bridge/index.ts#L1) | oui ([supabase/config.toml:338](../../supabase/config.toml#L338)) | false | GET, POST | insert, list, select, update | stripe, supabase |
 | tok-connect-chatgpt | [supabase/functions/tok-connect-chatgpt/index.ts:1](../../supabase/functions/tok-connect-chatgpt/index.ts#L1) | oui ([supabase/config.toml:341](../../supabase/config.toml#L341)) | false | GET, POST | — | openai, supabase |
@@ -5996,7 +5996,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 223 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 677 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 678 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 61 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6010,14 +6010,14 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 65 |
 | documentation | 6 |
 | edge-function-source | 189 |
-| frontend-component | 251 |
-| frontend-hook | 22 |
+| frontend-component | 252 |
+| frontend-hook | 23 |
 | frontend-page | 128 |
 | frontend-source | 23 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 597 |
+| test | 598 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -7502,7 +7502,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (255)</summary>
+<details><summary>frontend-component (256)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -7559,6 +7559,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/admin/AdminRealRestaurantAssignment.tsx`
 - `src/components/admin/AdminTheForkVisibilityControl.tsx`
 - `src/components/admin/AdminUrgentActions.tsx`
+- `src/components/admin/TokConnectCatalogControls.tsx`
 - `src/components/auth/AccountPasswordForm.tsx`
 - `src/components/auth/SignOutButton.tsx`
 - `src/components/campaigns/CampaignInternalTestSummary.tsx`
@@ -7762,7 +7763,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-hook (22)</summary>
+<details><summary>frontend-hook (23)</summary>
 
 - `src/hooks/use-estimated-progress.ts`
 - `src/hooks/use-mobile.tsx`
@@ -7784,6 +7785,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/hooks/useSignupApplication.ts`
 - `src/hooks/useSocialFeed.ts`
 - `src/hooks/useSponsoredImpressionOnView.ts`
+- `src/hooks/useTokConnectAdminCatalog.ts`
 - `src/hooks/useTokLogo.ts`
 - `src/hooks/useTokOne.ts`
 
@@ -8693,7 +8695,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (597)</summary>
+<details><summary>test (598)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9259,6 +9261,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-ai-platform-plan.test.ts`
 - `src/test/tok-ai-tools.test.ts`
 - `src/test/tok-connect-admin-humanized.test.ts`
+- `src/test/tok-connect-admin-pagination.test.ts`
 - `src/test/tok-connect-admin-schema-contract.test.ts`
 - `src/test/tok-connect-app-bridge.test.ts`
 - `src/test/tok-connect-chatgpt-finalization.test.ts`
