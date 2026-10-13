@@ -1968,6 +1968,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             legalAcceptance: {
               acceptedAt: submittedLegalAcceptance.acceptedAt,
               version: submittedLegalAcceptance.version,
+              commissionConsentAccepted: submittedLegalAcceptance.commissionConsentAccepted,
             },
             contractSignature:
               submittedRole === "restaurateur"
