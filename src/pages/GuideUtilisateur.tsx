@@ -4,10 +4,12 @@ import {
   BookOpen,
   Boxes,
   CheckCircle2,
+  ClipboardCheck,
   ChevronRight,
   Code2,
   Filter,
   Image as ImageIcon,
+  Info,
   LayoutDashboard,
   LockKeyhole,
   Map,
@@ -17,10 +19,16 @@ import {
   Store,
   X,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
 import {
@@ -36,6 +44,11 @@ import {
   isRestaurantGuideRoute,
   type GuideChapter,
 } from "@/data/userGuideContent";
+import {
+  getRouteGuideDetail,
+  getToolGuideDetail,
+  type GuideFeatureDetail,
+} from "@/data/userGuideFeatureDetails";
 
 type Audience = "restaurant" | "buyer";
 type InventoryKind = "routes" | "tools";
@@ -285,7 +298,102 @@ function ChapterCard({ chapter }: { chapter: GuideChapter }) {
   );
 }
 
-function RouteResult({ route }: { route: RouteEntry }) {
+function DetailList({
+  title,
+  items,
+  ordered = false,
+}: {
+  title: string;
+  items: readonly string[];
+  ordered?: boolean;
+}) {
+  const List = ordered ? "ol" : "ul";
+  return (
+    <section>
+      <h3 className="flex items-center gap-2 text-base font-black">
+        <ClipboardCheck className="h-4 w-4 text-[#ff6a1a]" /> {title}
+      </h3>
+      <List className={`mt-3 space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300 ${ordered ? "list-decimal pl-5" : "list-disc pl-5"}`}>
+        {items.map((item) => <li key={item}>{item}</li>)}
+      </List>
+    </section>
+  );
+}
+
+function FeatureDetailPanel({
+  detail,
+  onOpenChange,
+}: {
+  detail: GuideFeatureDetail | null;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Dialog open={Boolean(detail)} onOpenChange={onOpenChange}>
+      {detail ? (
+        <DialogContent className="max-h-[94dvh] max-w-6xl gap-0 overflow-hidden rounded-3xl border-0 p-0 shadow-2xl">
+          <div data-dialog-scroll-area className="min-h-0 overflow-y-auto overscroll-contain">
+            <div className="border-b bg-gradient-to-br from-orange-50 via-white to-violet-50 px-5 py-6 pr-14 sm:px-8 sm:py-8 dark:from-orange-500/10 dark:via-slate-950 dark:to-violet-500/10">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-[#ff6a1a] text-white hover:bg-[#ff6a1a]">
+                  {detail.kind === "route" ? "Fonction de l’application" : "Outil serveur"}
+                </Badge>
+                <Badge variant="outline">{detail.category}</Badge>
+              </div>
+              <DialogTitle className="mt-4 max-w-4xl font-display text-3xl font-black tracking-tight sm:text-4xl">
+                {detail.title}
+              </DialogTitle>
+              <code className="mt-3 block break-all text-xs font-bold text-[#d94d00] dark:text-orange-300">{detail.reference}</code>
+              <DialogDescription className="mt-4 max-w-4xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
+                {detail.purpose}
+              </DialogDescription>
+            </div>
+
+            <div className="grid gap-8 px-5 py-6 sm:px-8 sm:py-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,.8fr)]">
+              <div className="space-y-8">
+                <figure className="overflow-hidden rounded-2xl border bg-slate-100 shadow-sm dark:bg-slate-950">
+                  <img
+                    src={detail.screenshot.src}
+                    alt={detail.screenshot.alt}
+                    className="max-h-[38rem] w-full object-contain object-top"
+                  />
+                  <figcaption className="border-t bg-white p-4 text-sm leading-relaxed dark:bg-slate-900">
+                    <p className="font-bold">{detail.screenshot.caption}</p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{detail.screenshot.provenance}</p>
+                  </figcaption>
+                </figure>
+
+                <section className="rounded-2xl border bg-white p-5 dark:bg-slate-900">
+                  <h3 className="flex items-center gap-2 text-base font-black"><Info className="h-4 w-4 text-violet-600" /> Fonctionnement précis</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{detail.explanation}</p>
+                </section>
+
+                <DetailList title="Procédure étape par étape" items={detail.steps} ordered />
+                <DetailList title="Résultat attendu" items={detail.expectedResults} />
+              </div>
+
+              <aside className="space-y-6">
+                <section className="rounded-2xl border border-orange-200 bg-orange-50 p-5 dark:border-orange-500/30 dark:bg-orange-500/10">
+                  <h3 className="text-sm font-black uppercase tracking-[0.14em] text-orange-800 dark:text-orange-200">Accès requis</h3>
+                  <p className="mt-3 text-sm leading-relaxed">{detail.access}</p>
+                </section>
+                <DetailList title="Avant de commencer" items={detail.prerequisites} />
+                <DetailList title="Contrôles et précautions" items={detail.safeguards} />
+                <section className="rounded-2xl border bg-slate-50 p-5 dark:bg-slate-950">
+                  <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-500">Repères techniques</h3>
+                  <ul className="mt-3 space-y-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                    {detail.technicalNotes.map((note) => <li key={note}>{note}</li>)}
+                  </ul>
+                </section>
+              </aside>
+            </div>
+          </div>
+        </DialogContent>
+      ) : null}
+    </Dialog>
+  );
+}
+
+function RouteResult({ route, onSelect }: { route: RouteEntry; onSelect: () => void }) {
   return (
     <article className="rounded-2xl border bg-white p-5 shadow-sm dark:bg-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -303,11 +411,14 @@ function RouteResult({ route }: { route: RouteEntry }) {
         {route.featureGate ? <span className="rounded-full bg-amber-50 px-2.5 py-1 font-semibold text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">Activation progressive</span> : null}
         {route.redirectTo ? <span className="rounded-full bg-blue-50 px-2.5 py-1 font-semibold text-blue-800 dark:bg-blue-500/10 dark:text-blue-200">Redirection</span> : null}
       </div>
+      <Button type="button" variant="outline" className="mt-5 w-full justify-between" onClick={onSelect}>
+        Voir le mode d’emploi détaillé <ArrowRight className="h-4 w-4" />
+      </Button>
     </article>
   );
 }
 
-function ToolResult({ tool }: { tool: ToolEntry }) {
+function ToolResult({ tool, onSelect }: { tool: ToolEntry; onSelect: () => void }) {
   return (
     <article className="rounded-2xl border bg-white p-5 shadow-sm dark:bg-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -318,6 +429,9 @@ function ToolResult({ tool }: { tool: ToolEntry }) {
         <Badge variant="outline">{getToolCategory(tool)}</Badge>
       </div>
       <p className="mt-4 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{getToolSummary(tool)}</p>
+      <Button type="button" variant="outline" className="mt-5 w-full justify-between" onClick={onSelect}>
+        Comprendre cet outil <ArrowRight className="h-4 w-4" />
+      </Button>
     </article>
   );
 }
@@ -326,12 +440,37 @@ function SearchIndex({ audience }: { audience: Audience }) {
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<InventoryKind>("routes");
   const [category, setCategory] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
   const normalizedQuery = query.trim().toLocaleLowerCase("fr");
 
   const routes = useMemo(
     () => TOK_USER_GUIDE_ROUTES.filter((route) => audience === "buyer" || isRestaurantGuideRoute(route)),
     [audience],
   );
+
+  const selectedDetail = useMemo(() => {
+    const selectedId = searchParams.get("fonction");
+    if (!selectedId) return null;
+    const selectedRoute = routes.find((route) => getRouteGuideDetail(route).id === selectedId);
+    if (selectedRoute) return getRouteGuideDetail(selectedRoute);
+    if (audience === "buyer") {
+      const selectedTool = TOK_USER_GUIDE_TOOLS.find((tool) => getToolGuideDetail(tool).id === selectedId);
+      if (selectedTool) return getToolGuideDetail(selectedTool);
+    }
+    return null;
+  }, [audience, routes, searchParams]);
+
+  const selectDetail = (detail: GuideFeatureDetail) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("fonction", detail.id);
+    setSearchParams(next, { replace: false });
+  };
+
+  const closeDetail = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("fonction");
+    setSearchParams(next, { replace: true });
+  };
 
   const categories = useMemo(() => {
     if (kind === "routes") {
@@ -344,7 +483,8 @@ function SearchIndex({ audience }: { audience: Audience }) {
     () => routes.filter((route) => {
       if (category !== "all" && route.surface !== category) return false;
       if (!normalizedQuery) return true;
-      const haystack = [route.path, route.surface, ...route.components, ...route.requiredRoles, route.featureGate || "", route.redirectTo || ""].join(" ").toLocaleLowerCase("fr");
+      const detail = getRouteGuideDetail(route);
+      const haystack = [route.path, route.surface, ...route.components, ...route.requiredRoles, route.featureGate || "", route.redirectTo || "", detail.title, detail.purpose, detail.explanation, ...detail.steps].join(" ").toLocaleLowerCase("fr");
       return normalizedQuery.split(/\s+/).every((term) => haystack.includes(term));
     }),
     [category, normalizedQuery, routes],
@@ -354,7 +494,8 @@ function SearchIndex({ audience }: { audience: Audience }) {
     () => TOK_USER_GUIDE_TOOLS.filter((tool) => {
       if (category !== "all" && getToolCategory(tool) !== category) return false;
       if (!normalizedQuery) return true;
-      const haystack = [tool.name, tool.endpoint, ...tool.methods, ...tool.actions, ...tool.integrations, getToolCategory(tool)].join(" ").toLocaleLowerCase("fr");
+      const detail = getToolGuideDetail(tool);
+      const haystack = [tool.name, tool.endpoint, ...tool.methods, ...tool.actions, ...tool.integrations, getToolCategory(tool), detail.purpose, detail.explanation, ...detail.steps].join(" ").toLocaleLowerCase("fr");
       return normalizedQuery.split(/\s+/).every((term) => haystack.includes(term));
     }),
     [category, normalizedQuery],
@@ -367,11 +508,11 @@ function SearchIndex({ audience }: { audience: Audience }) {
     <section id="index" className="scroll-mt-28 space-y-6">
       <div>
         <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ff6a1a]">Index ultra simplifié</p>
-        <h2 className="mt-2 font-display text-3xl font-black">Rechercher une route ou un outil</h2>
+        <h2 className="mt-2 font-display text-3xl font-black">Sélectionner une fonctionnalité, une route ou un outil</h2>
         <p className="mt-2 text-slate-600 dark:text-slate-300">
           {audience === "restaurant"
-            ? "L’index est limité aux parcours du restaurateur et aux pages publiques qui lui sont utiles."
-            : "L’index complet couvre les routes frontend et les services serveur détectés dans le dépôt."}
+            ? "L’index est limité aux parcours du restaurateur et aux pages publiques qui lui sont utiles. Chaque résultat ouvre une procédure illustrée et détaillée."
+            : "L’index complet couvre les routes frontend et les services serveur détectés dans le dépôt. Chaque résultat ouvre sa fiche de référence illustrée."}
         </p>
       </div>
 
@@ -439,10 +580,24 @@ function SearchIndex({ audience }: { audience: Audience }) {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {kind === "routes"
-            ? filteredRoutes.map((route) => <RouteResult key={`${route.surface}-${route.path}`} route={route} />)
-            : filteredTools.map((tool) => <ToolResult key={tool.name} tool={tool} />)}
+            ? filteredRoutes.map((route) => (
+              <RouteResult
+                key={`${route.surface}-${route.path}`}
+                route={route}
+                onSelect={() => selectDetail(getRouteGuideDetail(route))}
+              />
+            ))
+            : filteredTools.map((tool) => (
+              <ToolResult
+                key={tool.name}
+                tool={tool}
+                onSelect={() => selectDetail(getToolGuideDetail(tool))}
+              />
+            ))}
         </div>
       )}
+
+      <FeatureDetailPanel detail={selectedDetail} onOpenChange={(open) => { if (!open) closeDetail(); }} />
     </section>
   );
 }

@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `d9f70d4dd6441c2ff432e4ac7ddfd1537524b89a7d46725b598beb2afbfd16f9`
+- Empreinte SHA-256 des sources indexées : `d21c26cd69847cdb12922994719bf9070f1757a60b5d23d110c8958161c054c0`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 202 |
 | edgeFunctions | 115 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3485 |
+| exportedSymbols | 3495 |
 | featureFlags | 99 |
 | frontendRoutes | 135 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 533 |
-| modules | 1532 |
+| modules | 1533 |
 | pages | 129 |
-| pathLiterals | 660 |
-| publicAssets | 469 |
-| publicEntries | 494 |
+| pathLiterals | 677 |
+| publicAssets | 486 |
+| publicEntries | 511 |
 | publicNavigableRoutes | 2 |
-| queryParameters | 107 |
-| records | 16353 |
-| repositoryFiles | 3026 |
+| queryParameters | 108 |
+| records | 16417 |
+| repositoryFiles | 3044 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 42 |
@@ -991,6 +991,23 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/user-guide/abonnement-mobile.png | media | [public/images/user-guide/abonnement-mobile.png](../../public/images/user-guide/abonnement-mobile.png) |
 | /images/user-guide/accueil-mobile.png | media | [public/images/user-guide/accueil-mobile.png](../../public/images/user-guide/accueil-mobile.png) |
 | /images/user-guide/dashboard-restaurateur.png | media | [public/images/user-guide/dashboard-restaurateur.png](../../public/images/user-guide/dashboard-restaurateur.png) |
+| /images/user-guide/features/admin-comptabilite.png | media | [public/images/user-guide/features/admin-comptabilite.png](../../public/images/user-guide/features/admin-comptabilite.png) |
+| /images/user-guide/features/admin-guardian.png | media | [public/images/user-guide/features/admin-guardian.png](../../public/images/user-guide/features/admin-guardian.png) |
+| /images/user-guide/features/admin-operations.png | media | [public/images/user-guide/features/admin-operations.png](../../public/images/user-guide/features/admin-operations.png) |
+| /images/user-guide/features/admin-overview.png | media | [public/images/user-guide/features/admin-overview.png](../../public/images/user-guide/features/admin-overview.png) |
+| /images/user-guide/features/admin-restaurants.png | media | [public/images/user-guide/features/admin-restaurants.png](../../public/images/user-guide/features/admin-restaurants.png) |
+| /images/user-guide/features/admin-utilisateurs.png | media | [public/images/user-guide/features/admin-utilisateurs.png](../../public/images/user-guide/features/admin-utilisateurs.png) |
+| /images/user-guide/features/authentification.png | media | [public/images/user-guide/features/authentification.png](../../public/images/user-guide/features/authentification.png) |
+| /images/user-guide/features/centre-aide.png | media | [public/images/user-guide/features/centre-aide.png](../../public/images/user-guide/features/centre-aide.png) |
+| /images/user-guide/features/commercial-prospection.png | media | [public/images/user-guide/features/commercial-prospection.png](../../public/images/user-guide/features/commercial-prospection.png) |
+| /images/user-guide/features/contact.png | media | [public/images/user-guide/features/contact.png](../../public/images/user-guide/features/contact.png) |
+| /images/user-guide/features/courier-dashboard.png | media | [public/images/user-guide/features/courier-dashboard.png](../../public/images/user-guide/features/courier-dashboard.png) |
+| /images/user-guide/features/marketing-login.png | media | [public/images/user-guide/features/marketing-login.png](../../public/images/user-guide/features/marketing-login.png) |
+| /images/user-guide/features/packs-restaurateur.png | media | [public/images/user-guide/features/packs-restaurateur.png](../../public/images/user-guide/features/packs-restaurateur.png) |
+| /images/user-guide/features/recherche-desktop.png | media | [public/images/user-guide/features/recherche-desktop.png](../../public/images/user-guide/features/recherche-desktop.png) |
+| /images/user-guide/features/restaurateurs-geneve.png | media | [public/images/user-guide/features/restaurateurs-geneve.png](../../public/images/user-guide/features/restaurateurs-geneve.png) |
+| /images/user-guide/features/tok-connect.png | media | [public/images/user-guide/features/tok-connect.png](../../public/images/user-guide/features/tok-connect.png) |
+| /images/user-guide/features/zero-attente.png | media | [public/images/user-guide/features/zero-attente.png](../../public/images/user-guide/features/zero-attente.png) |
 | /images/user-guide/recherche-mobile.png | media | [public/images/user-guide/recherche-mobile.png](../../public/images/user-guide/recherche-mobile.png) |
 | /images/user-guide/zero-attente-mobile.png | media | [public/images/user-guide/zero-attente-mobile.png](../../public/images/user-guide/zero-attente-mobile.png) |
 | /images/veggie burger.jpg | media | [public/images/veggie burger.jpg](../../public/images/veggie%20burger.jpg) |
@@ -1530,9 +1547,26 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/tok-connect/tok-connect-widget-details.svg | 1 | [src/pages/TokConnect.tsx:103](../../src/pages/TokConnect.tsx#L103) |
 | /images/tok-connect/tok-connect-widget-restaurants.svg | 1 | [src/pages/TokConnect.tsx:97](../../src/pages/TokConnect.tsx#L97) |
 | /images/tok-restaurant-placeholder.svg | 2 | [src/components/RestaurantCard.tsx:51](../../src/components/RestaurantCard.tsx#L51) |
-| /images/user-guide/abonnement-mobile.png | 1 | [src/data/userGuideContent.ts:224](../../src/data/userGuideContent.ts#L224) |
-| /images/user-guide/accueil-mobile.png | 1 | [src/data/userGuideContent.ts:203](../../src/data/userGuideContent.ts#L203) |
-| /images/user-guide/dashboard-restaurateur.png | 1 | [src/data/userGuideContent.ts:217](../../src/data/userGuideContent.ts#L217) |
+| /images/user-guide/abonnement-mobile.png | 2 | [src/data/userGuideContent.ts:224](../../src/data/userGuideContent.ts#L224) |
+| /images/user-guide/accueil-mobile.png | 2 | [src/data/userGuideContent.ts:203](../../src/data/userGuideContent.ts#L203) |
+| /images/user-guide/dashboard-restaurateur.png | 2 | [src/data/userGuideContent.ts:217](../../src/data/userGuideContent.ts#L217) |
+| /images/user-guide/features/admin-comptabilite.png | 1 | [src/data/userGuideFeatureDetails.ts:143](../../src/data/userGuideFeatureDetails.ts#L143) |
+| /images/user-guide/features/admin-guardian.png | 1 | [src/data/userGuideFeatureDetails.ts:137](../../src/data/userGuideFeatureDetails.ts#L137) |
+| /images/user-guide/features/admin-operations.png | 1 | [src/data/userGuideFeatureDetails.ts:131](../../src/data/userGuideFeatureDetails.ts#L131) |
+| /images/user-guide/features/admin-overview.png | 1 | [src/data/userGuideFeatureDetails.ts:113](../../src/data/userGuideFeatureDetails.ts#L113) |
+| /images/user-guide/features/admin-restaurants.png | 1 | [src/data/userGuideFeatureDetails.ts:119](../../src/data/userGuideFeatureDetails.ts#L119) |
+| /images/user-guide/features/admin-utilisateurs.png | 1 | [src/data/userGuideFeatureDetails.ts:125](../../src/data/userGuideFeatureDetails.ts#L125) |
+| /images/user-guide/features/authentification.png | 1 | [src/data/userGuideFeatureDetails.ts:65](../../src/data/userGuideFeatureDetails.ts#L65) |
+| /images/user-guide/features/centre-aide.png | 1 | [src/data/userGuideFeatureDetails.ts:71](../../src/data/userGuideFeatureDetails.ts#L71) |
+| /images/user-guide/features/commercial-prospection.png | 1 | [src/data/userGuideFeatureDetails.ts:149](../../src/data/userGuideFeatureDetails.ts#L149) |
+| /images/user-guide/features/contact.png | 1 | [src/data/userGuideFeatureDetails.ts:77](../../src/data/userGuideFeatureDetails.ts#L77) |
+| /images/user-guide/features/courier-dashboard.png | 1 | [src/data/userGuideFeatureDetails.ts:155](../../src/data/userGuideFeatureDetails.ts#L155) |
+| /images/user-guide/features/marketing-login.png | 1 | [src/data/userGuideFeatureDetails.ts:161](../../src/data/userGuideFeatureDetails.ts#L161) |
+| /images/user-guide/features/packs-restaurateur.png | 1 | [src/data/userGuideFeatureDetails.ts:83](../../src/data/userGuideFeatureDetails.ts#L83) |
+| /images/user-guide/features/recherche-desktop.png | 1 | [src/data/userGuideFeatureDetails.ts:53](../../src/data/userGuideFeatureDetails.ts#L53) |
+| /images/user-guide/features/restaurateurs-geneve.png | 1 | [src/data/userGuideFeatureDetails.ts:59](../../src/data/userGuideFeatureDetails.ts#L59) |
+| /images/user-guide/features/tok-connect.png | 1 | [src/data/userGuideFeatureDetails.ts:107](../../src/data/userGuideFeatureDetails.ts#L107) |
+| /images/user-guide/features/zero-attente.png | 1 | [src/data/userGuideFeatureDetails.ts:95](../../src/data/userGuideFeatureDetails.ts#L95) |
 | /images/user-guide/recherche-mobile.png | 1 | [src/data/userGuideContent.ts:210](../../src/data/userGuideContent.ts#L210) |
 | /images/user-guide/zero-attente-mobile.png | 1 | [src/data/userGuideContent.ts:231](../../src/data/userGuideContent.ts#L231) |
 | /index.html | 28 | [scripts/application-index-core.mjs:772](../../scripts/application-index-core.mjs#L772) |
@@ -1815,6 +1849,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | fields[appStoreVersions] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:162](../../scripts/app-store-connect-upload-screenshots.mjs#L162) |
 | filter[bundleId] | — | 2 | [scripts/app-store-connect-preflight.mjs:76](../../scripts/app-store-connect-preflight.mjs#L76) |
 | filter[platform] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:160](../../scripts/app-store-connect-upload-screenshots.mjs#L160) |
+| fonction | /guide, /guide/plateforme, /guide/restaurateur | 3 | [src/pages/GuideUtilisateur.tsx:452](../../src/pages/GuideUtilisateur.tsx#L452) |
 | format | — | 1 | [src/lib/optimizedImages.ts:41](../../src/lib/optimizedImages.ts#L41) |
 | from | — | 1 | [src/marketing/useMarketingUrlState.ts:91](../../src/marketing/useMarketingUrlState.ts#L91) |
 | geometry | — | 1 | [src/test/home-canton-hero.test.ts:55](../../src/test/home-canton-hero.test.ts#L55) |
@@ -6016,12 +6051,12 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | --- | --- | --- |
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
-| Google | 116 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Google | 117 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Openai | 116 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 225 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Stripe | 226 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 685 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
@@ -6039,7 +6074,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | frontend-component | 254 |
 | frontend-hook | 23 |
 | frontend-page | 129 |
-| frontend-source | 26 |
+| frontend-source | 27 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
@@ -7958,13 +7993,14 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (35)</summary>
+<details><summary>frontend-source (36)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
 - `src/data/genevaCommercialProspects.ts`
 - `src/data/theForkCommercialProspects.ts`
 - `src/data/userGuideContent.ts`
+- `src/data/userGuideFeatureDetails.ts`
 - `src/home-section-headers.css`
 - `src/index.css`
 - `src/integrations/supabase/authStorage.ts`
@@ -8048,7 +8084,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (494)</summary>
+<details><summary>public-asset (511)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8424,6 +8460,23 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/user-guide/abonnement-mobile.png`
 - `public/images/user-guide/accueil-mobile.png`
 - `public/images/user-guide/dashboard-restaurateur.png`
+- `public/images/user-guide/features/admin-comptabilite.png`
+- `public/images/user-guide/features/admin-guardian.png`
+- `public/images/user-guide/features/admin-operations.png`
+- `public/images/user-guide/features/admin-overview.png`
+- `public/images/user-guide/features/admin-restaurants.png`
+- `public/images/user-guide/features/admin-utilisateurs.png`
+- `public/images/user-guide/features/authentification.png`
+- `public/images/user-guide/features/centre-aide.png`
+- `public/images/user-guide/features/commercial-prospection.png`
+- `public/images/user-guide/features/contact.png`
+- `public/images/user-guide/features/courier-dashboard.png`
+- `public/images/user-guide/features/marketing-login.png`
+- `public/images/user-guide/features/packs-restaurateur.png`
+- `public/images/user-guide/features/recherche-desktop.png`
+- `public/images/user-guide/features/restaurateurs-geneve.png`
+- `public/images/user-guide/features/tok-connect.png`
+- `public/images/user-guide/features/zero-attente.png`
 - `public/images/user-guide/recherche-mobile.png`
 - `public/images/user-guide/zero-attente-mobile.png`
 - `public/images/veggie burger.jpg`

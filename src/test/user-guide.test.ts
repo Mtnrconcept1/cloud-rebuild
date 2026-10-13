@@ -13,6 +13,10 @@ import {
   RESTAURANT_GUIDE_CHAPTERS,
   isRestaurantGuideRoute,
 } from "@/data/userGuideContent";
+import {
+  getRouteGuideDetail,
+  getToolGuideDetail,
+} from "@/data/userGuideFeatureDetails";
 
 describe("guides d’utilisation TOK", () => {
   it("conserve un inventaire complet et cohérent pour le guide plateforme", () => {
@@ -43,5 +47,43 @@ describe("guides d’utilisation TOK", () => {
     for (const screenshot of GUIDE_SCREENSHOTS) {
       expect(existsSync(path.join(process.cwd(), "public", screenshot.src.replace(/^\//, "")))).toBe(true);
     }
+  });
+
+  it("fournit une fiche détaillée et une capture réelle pour chaque route", () => {
+    for (const route of TOK_USER_GUIDE_ROUTES) {
+      const detail = getRouteGuideDetail(route);
+      expect(detail.id).toContain("route:");
+      expect(detail.purpose.length).toBeGreaterThan(20);
+      expect(detail.explanation.length).toBeGreaterThan(40);
+      expect(detail.prerequisites.length).toBeGreaterThan(0);
+      expect(detail.steps.length).toBeGreaterThanOrEqual(3);
+      expect(detail.expectedResults.length).toBeGreaterThan(0);
+      expect(detail.safeguards.length).toBeGreaterThan(0);
+      expect(detail.screenshot.provenance.toLowerCase()).toContain("capture directe");
+      expect(existsSync(path.join(process.cwd(), "public", detail.screenshot.src.replace(/^\//, "")))).toBe(true);
+    }
+  });
+
+  it("documente chaque outil serveur sans lui inventer une interface autonome", () => {
+    for (const tool of TOK_USER_GUIDE_TOOLS) {
+      const detail = getToolGuideDetail(tool);
+      expect(detail.id).toBe(`tool:${tool.name}`);
+      expect(detail.explanation).toContain("n’est pas une page autonome");
+      expect(detail.steps.join(" ")).toContain(tool.endpoint);
+      expect(detail.technicalNotes.join(" ")).toContain("ne possède pas d’écran propre");
+      expect(existsSync(path.join(process.cwd(), "public", detail.screenshot.src.replace(/^\//, "")))).toBe(true);
+    }
+  });
+
+  it("ne laisse aucune information d’administration entrer dans les fiches restaurateur", () => {
+    const restaurantDetails = TOK_USER_GUIDE_ROUTES
+      .filter(isRestaurantGuideRoute)
+      .map(getRouteGuideDetail);
+    const serialized = JSON.stringify(restaurantDetails).toLocaleLowerCase("fr");
+
+    expect(serialized).not.toContain("route:admin");
+    expect(serialized).not.toContain("back-office");
+    expect(serialized).not.toContain("rôle administrateur");
+    expect(serialized).not.toContain("console d’administration");
   });
 });
