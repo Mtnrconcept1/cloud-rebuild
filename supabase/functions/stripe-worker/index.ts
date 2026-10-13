@@ -339,6 +339,50 @@ async function activateRestaurantSubscription(input: {
           `tok-restaurant-activation-subscription:${idempotencySuffix}:${paymentAttemptSuffix}`,
       },
     );
+
+    // Stripe may create a finalized first invoice but leave its PaymentIntent
+    // in requires_confirmation with no automatic collection attempt. The saved
+    // off-session card mandate is ready, so attempt this first invoice once.
+    // Do not retry invoices that Stripe has already attempted (SCA/declines).
+    if (subscription.status === "incomplete") {
+      const firstInvoiceId = getExpandableStripeId(subscription.latest_invoice);
+      if (!firstInvoiceId) {
+        throw new Error("activation_first_invoice_missing");
+      }
+      const firstInvoice = await runtime.stripe.invoices.retrieve(firstInvoiceId);
+      if (firstInvoice.status === "open" && firstInvoice.attempted === false) {
+        try {
+          const payment = await runtime.stripe.invoices.pay(
+            firstInvoiceId,
+            {
+              payment_method: job.stripe_payment_method_id,
+              off_session: true,
+            },
+            {
+              idempotencyKey:
+                `tok-restaurant-activation-initial-pay:${idempotencySuffix}:${paymentAttemptSuffix}`,
+            },
+          );
+          if (payment.status === "paid") {
+            subscription = await runtime.stripe.subscriptions.retrieve(
+              subscription.id,
+              { expand: ["latest_invoice"] },
+            );
+          }
+        } catch (error) {
+          // Card refusal / 3DS must not mark the subscription active. Keep the
+          // Stripe subscription and its unpaid invoice for the existing
+          // restaurant payment-recovery flow; do not recreate or double-charge.
+          if (!(error instanceof Stripe.errors.StripeCardError)) {
+            throw error;
+          }
+          subscription = await runtime.stripe.subscriptions.retrieve(
+            subscription.id,
+            { expand: ["latest_invoice"] },
+          );
+        }
+      }
+    }
   }
 
   if (!stripePriceId) {

@@ -267,6 +267,33 @@ describe("restaurant onboarding subscription payments", () => {
     expect(worker).toContain("fail_restaurant_subscription_activation_job");
   });
 
+  it("attempts exactly one initial off-session invoice collection when Stripe has not attempted payment", () => {
+    const worker = read("supabase/functions/stripe-worker/index.ts");
+
+    const subscriptionCreation = worker.indexOf(
+      "subscription = await runtime.stripe.subscriptions.create(",
+    );
+    const initialCharge = worker.indexOf(
+      "tok-restaurant-activation-initial-pay:",
+    );
+    const jobCompletion = worker.indexOf(
+      '"complete_restaurant_subscription_activation_job"',
+    );
+
+    expect(subscriptionCreation).toBeGreaterThan(-1);
+    expect(initialCharge).toBeGreaterThan(subscriptionCreation);
+    expect(jobCompletion).toBeGreaterThan(initialCharge);
+    expect(worker).toContain('subscription.status === "incomplete"');
+    expect(worker).toContain(
+      'firstInvoice.status === "open" && firstInvoice.attempted === false',
+    );
+    expect(worker).toContain("off_session: true");
+    expect(worker).toContain("Stripe.errors.StripeCardError");
+    expect(worker).toContain('if (payment.status === "paid")');
+    expect(worker).toContain("activation_first_invoice_missing");
+    expect(worker).toContain("idempotencyKey:");
+  });
+
   it("blocks admin approval until the reusable payment method is ready", () => {
     const approvalMigration = latestMigrationContaining(
       /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.signup_restaurateur_onboarding_payment_ready/i,
