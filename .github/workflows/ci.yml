@@ -90,6 +90,7 @@ jobs:
           git fetch --no-tags --depth=1 origin '+refs/heads/main:refs/remotes/origin/main'
           git show origin/main:.github/workflows/ci.yml > .github/workflows/ci.yml
           pnpm install --frozen-lockfile
+          git add public/images/emails/tok-reservation-hero.webp
           pnpm run docs:application-index
           pnpm run docs:application-index:check
           git add .github/workflows/ci.yml public/images/emails/tok-reservation-hero.webp docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
