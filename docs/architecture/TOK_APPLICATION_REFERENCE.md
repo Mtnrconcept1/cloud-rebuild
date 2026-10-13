@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f6a9c7686614fe08eaae586e766e60214d555123eef27daa3e0953c8acc0f2b8`
+- Empreinte SHA-256 des sources indexées : `6c1b05c2d3c1ba9422f5aef575153d9e10d7fc8bfc30826f22a63a6f0bd43f25`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1134,7 +1134,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /a-propos | 12 | [scripts/prerender-seo.mjs:1065](../../scripts/prerender-seo.mjs#L1065) |
 | /abonnement | 13 | [scripts/prerender-seo.mjs:1001](../../scripts/prerender-seo.mjs#L1001) |
 | /actions/runs/$FAILED_WORKFLOW_ID/jobs | 1 | [src/test/incident-automation-readiness.test.ts:547](../../src/test/incident-automation-readiness.test.ts#L547) |
-| /actualites | 30 | [scripts/harden-seo-crawl.mjs:380](../../scripts/harden-seo-crawl.mjs#L380) |
+| /actualites | 31 | [scripts/harden-seo-crawl.mjs:380](../../scripts/harden-seo-crawl.mjs#L380) |
 | /actualites/ | 2 | [scripts/prerender-seo.mjs:48](../../scripts/prerender-seo.mjs#L48) |
 | /actualites/:postId | 2 | [src/App.tsx:609](../../src/App.tsx#L609) |
 | /actualites/post-1 | 4 | [src/test/seo-crawl-hardening.test.ts:114](../../src/test/seo-crawl-hardening.test.ts#L114) |
@@ -1875,10 +1875,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 | Route ou famille | Type | Indexabilité | Source |
 | --- | --- | --- | --- |
 | /:param1 | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1233](../../scripts/prerender-seo.mjs#L1233) |
-| /actualites/:id | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1848](../../scripts/prerender-seo.mjs#L1848) |
+| /actualites/:id | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1860](../../scripts/prerender-seo.mjs#L1860) |
 | /restaurant/:id | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1293](../../scripts/prerender-seo.mjs#L1293) |
-| /restaurants/:citySlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1633](../../scripts/prerender-seo.mjs#L1633) |
-| /restaurants/:citySlug/:cuisineSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1621](../../scripts/prerender-seo.mjs#L1621) |
+| /restaurants/:citySlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1640](../../scripts/prerender-seo.mjs#L1640) |
+| /restaurants/:citySlug/:cuisineSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1628](../../scripts/prerender-seo.mjs#L1628) |
 | /restaurants/:citySlug/:districtSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:329](../../scripts/prerender-seo.mjs#L329) |
 | /restaurants/:citySlug/:slug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:313](../../scripts/prerender-seo.mjs#L313) |
 | /restaurants/:citySlug/r/:restaurantSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1290](../../scripts/prerender-seo.mjs#L1290) |
