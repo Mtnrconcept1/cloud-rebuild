@@ -111,7 +111,7 @@ describe("public legal and commercial surface", () => {
   it("keeps restaurant signup validation aligned with current legal versions", () => {
     const validation = source("supabase/functions/submit-signup-application/validation.ts");
     expect(validation).toContain(
-      'RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-08-v7"',
+      'RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-10-v8"',
     );
     expect(validation).toContain(
       `LEGAL_ACCEPTANCE_VERSION = "${LEGAL_ACCEPTANCE_VERSION}"`,
