@@ -1,5 +1,6 @@
 import { MetaPublishError, validateMetaMediaContent } from "../supabase/functions/_shared/meta-publishing.js";
-import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../supabase/functions/_shared/marketing-campaign-options.js";
+import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../supabase/functions/_shared/marketing-campaign-request.js";
+import { CAMPAIGN_TEMPLATE_LABELS } from "../supabase/functions/_shared/marketing-campaign-templates.js";
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 
 /**
@@ -1816,7 +1817,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
 
   let campaignOptions;
   try {
-    campaignOptions = parseCampaignOptions(body.campaignOptions, channels);
+    campaignOptions = parseCampaignOptions(body.campaignOptions, channels, Object.keys(CAMPAIGN_TEMPLATE_LABELS));
     if (campaignOptions && (itemCount !== campaignOptions.postCount || Date.parse(startsAt) <= Date.now()
       || buildCampaignSlots(campaignOptions, channels, startsAt).some((slot) => Date.parse(slot.scheduledAt) > Date.parse(endsAt)))) {
       throw new CampaignOptionsError("campaign_window_or_count_invalid");

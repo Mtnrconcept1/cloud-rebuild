@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { applyCampaignOptions, buildCampaignSlots, CAMPAIGN_TEMPLATES, CampaignOptionsError, campaignOptionCounts, parseCampaignOptions } from "../../supabase/functions/_shared/marketing-campaign-options";
 import { toBundlePayload, type MarketingPlan } from "../../supabase/functions/_shared/marketing-ai-plan";
 import { allocateMarketingVisuals } from "../../supabase/functions/_shared/marketing-visual-allocation";
+import { parseCampaignOptions as parseCampaignRequest } from "../../supabase/functions/_shared/marketing-campaign-request";
 const channels = ["instagram", "facebook"];
 const options = () => ({ templateIds: ["zero_attente", "anti_gaspi"], postCount: 3, cadence: "daily", formatsByChannel: { instagram: ["1:1", "9:16"], facebook: ["1:1", "9:16"] } });
 function plan(): MarketingPlan {
@@ -9,6 +10,12 @@ function plan(): MarketingPlan {
     items: Array.from({ length: 3 }, (_, index) => ({ title: `Publication ${index}`, channel: "instagram", scheduled_at: "2026-10-24T08:00:00Z", audience_name: "Clients", targeting: { audience_kind: "client" }, content: { subject: null, headline: "TOK", body: `Découverte ${index}`, call_to_action: "Découvrir", hashtags: [] }, visual_prompt: `Chef TOK ${index}` })) };
 }
 describe("guided campaign server contract", () => {
+  it("uses the caller-supplied template allowlist in the import-free request contract", () => {
+    const ids = CAMPAIGN_TEMPLATES.map((template) => template.id);
+    expect(parseCampaignRequest(options(), channels, ids)).toEqual(parseCampaignOptions(options(), channels));
+    expect(() => parseCampaignRequest(options(), channels, ["zero_attente"])).toThrow(CampaignOptionsError);
+    expect(() => parseCampaignRequest(options(), channels, [])).toThrow("campaign_templates_invalid");
+  });
   it("preserves existing requests and accepts only explicit, bounded guided settings", () => {
     expect(parseCampaignOptions(undefined, channels)).toBeUndefined();
     const parsed = parseCampaignOptions(options(), channels)!;
