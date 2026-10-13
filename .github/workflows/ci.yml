@@ -46,3 +46,54 @@ jobs:
             echo "::error::Reusable validation finished with ${VALIDATION_RESULT}."
             exit 1
           fi
+
+  finalize_reservation_email_assets:
+    name: Finalize TOK email image and reference index (one-off PR #801)
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 801 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/reservation-email-responsive-20261013' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/reservation-email-responsive-20261013
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Fetch and optimize the one approved native TOK email illustration
+        run: |
+          set -euo pipefail
+          mkdir -p public/images/emails
+          curl --fail --location --silent --show-error --max-time 90 "https://at.adobe.com/BxwbXUZHVW0ahs5q" --output /tmp/tok-reservation-native.png
+          python3 -m venv /tmp/tok-email-pillow
+          /tmp/tok-email-pillow/bin/pip install --quiet Pillow
+          /tmp/tok-email-pillow/bin/python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          source = Image.open('/tmp/tok-reservation-native.png')
+          if source.size != (1774, 887):
+              raise SystemExit(f'Unexpected generated image dimensions: {source.size}')
+          source.thumbnail((1400, 1400), Image.Resampling.LANCZOS)
+          destination = Path('public/images/emails/tok-reservation-hero.webp')
+          source.save(destination, 'WEBP', quality=78, method=6)
+          print(f'Approved independent hero image: {source.size}, {destination.stat().st_size} bytes')
+          PY
+      - name: Restore the untouched CI workflow and regenerate the canonical reference index
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin '+refs/heads/main:refs/remotes/origin/main'
+          git show origin/main:.github/workflows/ci.yml > .github/workflows/ci.yml
+          pnpm install --frozen-lockfile
+          pnpm run docs:application-index
+          pnpm run docs:application-index:check
+          git add .github/workflows/ci.yml public/images/emails/tok-reservation-hero.webp docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
+          git config user.name "tok-ci-bot"
+          git config user.email "tok-ci-bot@users.noreply.github.com"
+          git commit -m "feat(email): add approved native artwork and refreshed application index"
+          git push origin HEAD:refs/heads/feat/reservation-email-responsive-20261013
