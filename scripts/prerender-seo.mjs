@@ -1331,6 +1331,13 @@ const PUBLIC_FEATURE_BY_PATH = new Map([
 
 const DEFAULT_DISABLED_SEO_FEATURES = new Set(["tok-pulse"]);
 
+// RLS may deliberately refuse anonymous reads while TOK's launch gate is
+// closed. Such content must not enter pre-rendered pages or the sitemap.
+let actualitesClosedByLaunchGate = false;
+function isActualitesLaunchClosed(error) {
+  return error?.code === "PT403" && error?.message === "TOK_LAUNCH_CLOSED";
+}
+
 function handleDynamicSeoFailure(source, cause) {
   // Supabase/PostgREST often returns a plain object, not an Error instance.
   // Keep only bounded, diagnostic fields; never print the request or API key.
@@ -1799,6 +1806,11 @@ async function collectDynamicActualitesPages() {
         .order("id", { ascending: true })
         .range(offset, offset + batchSize - 1);
 
+      if (isActualitesLaunchClosed(error)) {
+        actualitesClosedByLaunchGate = true;
+        console.info("SEO actualités: accès public fermé par le lancement TOK ; aucune publication indexée.");
+        return [];
+      }
       if (error || !Array.isArray(batch)) return handleDynamicSeoFailure("actualités", error || "réponse non tabulaire");
       if (offset === 0 && Number.isFinite(count)) totalActualitesCount = Number(count);
       data.push(...batch);
@@ -1933,8 +1945,12 @@ async function collectSeoPages() {
       return !featureName || !disabledFeatures.has(featureName);
     },
   );
-  const enabledActualitesPages = disabledFeatures.has("actualites-sociales") ? [] : actualitesPages;
-  const pages = dedupePages([...publicPages, ...restaurantPages, ...enabledActualitesPages]);
+  const enabledActualitesPages = disabledFeatures.has("actualites-sociales") || actualitesClosedByLaunchGate
+    ? [] : actualitesPages;
+  const visiblePublicPages = actualitesClosedByLaunchGate
+    ? publicPages.filter((page) => page.path !== "/actualites")
+    : publicPages;
+  const pages = dedupePages([...visiblePublicPages, ...restaurantPages, ...enabledActualitesPages]);
   const minimumInventoryForLocalPage = (page) =>
     page.localPageType === "city" ? MIN_LOCAL_RESTAURANTS : MIN_SPECIALIZED_LOCAL_RESTAURANTS;
   // Une page cuisine/quartier/intention qui reprend (quasiment) tout l'inventaire de sa ville n'apporte
