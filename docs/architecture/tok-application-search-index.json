@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "043f38e9c912031b681fe02d7165f6228cff98859988741fda278f2021ec0867",
+ "sourceDigest": "ac75c92a036b1a29845aa928128babed16e191d5e750ea577889eedc4eed6b2d",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -20,13 +20,13 @@
   "migrations": 532,
   "modules": 1517,
   "pages": 128,
-  "pathLiterals": 650,
-  "publicAssets": 462,
-  "publicEntries": 487,
+  "pathLiterals": 651,
+  "publicAssets": 463,
+  "publicEntries": 488,
   "publicNavigableRoutes": 2,
   "queryParameters": 107,
-  "records": 16223,
-  "repositoryFiles": 3001,
+  "records": 16226,
+  "repositoryFiles": 3002,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -11416,6 +11416,11 @@
     "kind": "media"
    },
    {
+    "route": "/images/emails/tok-reservation-hero.webp",
+    "path": "public/images/emails/tok-reservation-hero.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/falafel wrap.jpeg",
     "path": "public/images/falafel wrap.jpeg",
     "kind": "media"
@@ -16940,8 +16945,16 @@
     "value": "/chef2.png",
     "sources": [
      {
+      "path": "src/test/transactional-email-templates.test.ts",
+      "line": 101
+     },
+     {
       "path": "supabase/functions/_shared/transactional-emails.ts",
       "line": 243
+     },
+     {
+      "path": "supabase/functions/_shared/transactional-emails.ts",
+      "line": 411
      }
     ]
    },
@@ -17052,6 +17065,10 @@
      {
       "path": "src/test/tok-logo-calendar.test.ts",
       "line": 30
+     },
+     {
+      "path": "supabase/functions/_shared/transactional-emails.ts",
+      "line": 415
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -21499,6 +21516,19 @@
     ]
    },
    {
+    "value": "/images/emails/tok-reservation-hero.webp",
+    "sources": [
+     {
+      "path": "src/test/transactional-email-templates.test.ts",
+      "line": 103
+     },
+     {
+      "path": "supabase/functions/_shared/transactional-emails.ts",
+      "line": 459
+     }
+    ]
+   },
+   {
     "value": "/images/fattouche.webp",
     "sources": [
      {
@@ -22312,6 +22342,14 @@
      {
       "path": "src/pages/VentesFlash.tsx",
       "line": 396
+     },
+     {
+      "path": "src/test/transactional-email-templates.test.ts",
+      "line": 106
+     },
+     {
+      "path": "supabase/functions/_shared/transactional-emails.ts",
+      "line": 413
      }
     ]
    },
@@ -22396,6 +22434,14 @@
      {
       "path": "src/pages/TokOne.tsx",
       "line": 59
+     },
+     {
+      "path": "src/test/transactional-email-templates.test.ts",
+      "line": 102
+     },
+     {
+      "path": "supabase/functions/_shared/transactional-emails.ts",
+      "line": 412
      }
     ]
    },
@@ -23084,12 +23130,20 @@
       "line": 25
      },
      {
+      "path": "src/test/transactional-email-templates.test.ts",
+      "line": 100
+     },
+     {
       "path": "supabase/functions/_shared/transactional-emails.ts",
       "line": 169
      },
      {
       "path": "supabase/functions/_shared/transactional-emails.ts",
       "line": 242
+     },
+     {
+      "path": "supabase/functions/_shared/transactional-emails.ts",
+      "line": 410
      }
     ]
    },
@@ -106523,7 +106577,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 96
+    "lineCount": 149
    },
    {
     "path": "src/test/ui-overlay-layering.test.ts",
@@ -109779,23 +109833,23 @@
      },
      {
       "name": "buildReservationConfirmationEmail",
-      "line": 406,
+      "line": 530,
       "kind": "function"
      },
      {
       "name": "queueOrderConfirmationEmails",
-      "line": 492,
+      "line": 616,
       "kind": "function"
      },
      {
       "name": "queueReservationConfirmationEmails",
-      "line": 605,
+      "line": 729,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 700
+    "lineCount": 824
    },
    {
     "path": "supabase/functions/_shared/user-storage-cleanup.ts",
@@ -114553,6 +114607,11 @@
    },
    {
     "path": "public/images/edamame.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/emails/tok-reservation-hero.webp",
     "category": "public-asset",
     "extension": ".webp"
    },
@@ -146328,14 +146387,14 @@
    "id": "code-module:dd826816118e",
    "type": "code-module",
    "title": "src/test/transactional-email-templates.test.ts",
-   "description": "Module de 96 lignes; exports: aucun export statique.",
+   "description": "Module de 149 lignes; exports: aucun export statique.",
    "path": "src/test/transactional-email-templates.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "088a75a88297"
+   "detailRef": "3e3c51708b9c"
   },
   {
    "id": "code-module:c22f9f4db588",
@@ -147817,7 +147876,7 @@
    "id": "code-module:e88b75db454f",
    "type": "code-module",
    "title": "supabase/functions/_shared/transactional-emails.ts",
-   "description": "Module de 700 lignes; exports: TransactionalEmailItem, TransactionalEmailContent, OrderConfirmationEmailInput, ReservationConfirmationEmailInput, buildOrderConfirmationEmail, buildReservationConfirmationEmail, queueOrderConfirmationEmails, queueReservationConfirmationEmails.",
+   "description": "Module de 824 lignes; exports: TransactionalEmailItem, TransactionalEmailContent, OrderConfirmationEmailInput, ReservationConfirmationEmailInput, buildOrderConfirmationEmail, buildReservationConfirmationEmail, queueOrderConfirmationEmails, queueReservationConfirmationEmails.",
    "path": "supabase/functions/_shared/transactional-emails.ts",
    "line": 1,
    "surface": null,
@@ -147831,7 +147890,7 @@
     "queueOrderConfirmationEmails",
     "queueReservationConfirmationEmails"
    ],
-   "detailRef": "24e7143e10d9"
+   "detailRef": "9be17c1cddd8"
   },
   {
    "id": "code-module:e9a7a7cd99bb",
@@ -258537,17 +258596,17 @@
    "detailRef": "cf6a6559588f"
   },
   {
-   "id": "exported-symbol:4f332e705233",
+   "id": "exported-symbol:503efa76e804",
    "type": "exported-symbol",
    "title": "buildReservationConfirmationEmail",
    "description": "Export function de supabase/functions/_shared/transactional-emails.ts.",
    "path": "supabase/functions/_shared/transactional-emails.ts",
-   "line": 406,
+   "line": 530,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "ff141fef7bf5"
+   "detailRef": "87519bf66c6c"
   },
   {
    "id": "exported-symbol:250bf62626fe",
@@ -277446,30 +277505,30 @@
    "detailRef": "3a0cd5a30277"
   },
   {
-   "id": "exported-symbol:24fbe530550d",
+   "id": "exported-symbol:7946bc6f3716",
    "type": "exported-symbol",
    "title": "queueOrderConfirmationEmails",
    "description": "Export function de supabase/functions/_shared/transactional-emails.ts.",
    "path": "supabase/functions/_shared/transactional-emails.ts",
-   "line": 492,
+   "line": 616,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "ab94634f9fab"
+   "detailRef": "781113aee2f2"
   },
   {
-   "id": "exported-symbol:6c3db7d72255",
+   "id": "exported-symbol:142b347c5602",
    "type": "exported-symbol",
    "title": "queueReservationConfirmationEmails",
    "description": "Export function de supabase/functions/_shared/transactional-emails.ts.",
    "path": "supabase/functions/_shared/transactional-emails.ts",
-   "line": 605,
+   "line": 729,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "023a3b894057"
+   "detailRef": "9fd7e7dfcfc5"
   },
   {
    "id": "exported-symbol:498f7f518ed7",
@@ -293198,6 +293257,20 @@
     "public-asset"
    ],
    "detailRef": "62426353d3d4"
+  },
+  {
+   "id": "file:6fd8febba80e",
+   "type": "file",
+   "title": "public/images/emails/tok-reservation-hero.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/emails/tok-reservation-hero.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "df45ecd998ba"
   },
   {
    "id": "file:edfc67774bd1",
@@ -343505,17 +343578,18 @@
    "detailRef": "af1d68a75327"
   },
   {
-   "id": "path-literal:2a61eff4e87a",
+   "id": "path-literal:f4c11581e565",
    "type": "path-literal",
    "title": "/chef2.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "supabase/functions/_shared/transactional-emails.ts",
-   "line": 243,
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/transactional-email-templates.test.ts",
+   "line": 101,
    "surface": null,
    "tags": [
+    "src/test/transactional-email-templates.test.ts",
     "supabase/functions/_shared/transactional-emails.ts"
    ],
-   "detailRef": "2b83abe3a7ea"
+   "detailRef": "350b11b30fa7"
   },
   {
    "id": "path-literal:a9fa64e1216b",
@@ -343562,7 +343636,7 @@
    "id": "path-literal:d7b2a9564c6c",
    "type": "path-literal",
    "title": "/chefs-table",
-   "description": "Chemin référencé dans 23 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 24 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 994,
    "surface": null,
@@ -343586,10 +343660,11 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/home-hero-search.test.tsx",
     "src/test/tok-logo-calendar.test.ts",
+    "supabase/functions/_shared/transactional-emails.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "32c972632279"
+   "detailRef": "de36a32447ee"
   },
   {
    "id": "path-literal:4fb16aa3df8b",
@@ -346408,6 +346483,20 @@
    "detailRef": "5dbbfec5c3e2"
   },
   {
+   "id": "path-literal:cd3e69953262",
+   "type": "path-literal",
+   "title": "/images/emails/tok-reservation-hero.webp",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/transactional-email-templates.test.ts",
+   "line": 103,
+   "surface": null,
+   "tags": [
+    "src/test/transactional-email-templates.test.ts",
+    "supabase/functions/_shared/transactional-emails.ts"
+   ],
+   "detailRef": "19feb16f845e"
+  },
+  {
    "id": "path-literal:d0b4ed15af29",
    "type": "path-literal",
    "title": "/images/fattouche.webp",
@@ -347225,7 +347314,7 @@
    "id": "path-literal:793692db78b7",
    "type": "path-literal",
    "title": "/images/mixed-grill-platter.jpeg",
-   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/AntiWasteCard.tsx",
    "line": 34,
    "surface": null,
@@ -347233,9 +347322,11 @@
     "src/components/AntiWasteCard.tsx",
     "src/lib/menu-item-images.ts",
     "src/pages/APropos.tsx",
-    "src/pages/VentesFlash.tsx"
+    "src/pages/VentesFlash.tsx",
+    "src/test/transactional-email-templates.test.ts",
+    "supabase/functions/_shared/transactional-emails.ts"
    ],
-   "detailRef": "fa91dbf4d065"
+   "detailRef": "44e16548f318"
   },
   {
    "id": "path-literal:c5afcbb0f618",
@@ -347284,7 +347375,7 @@
    "id": "path-literal:ff8a9bfaae78",
    "type": "path-literal",
    "title": "/images/octopus-fine-dining.jpeg",
-   "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/AntiWasteCard.tsx",
    "line": 36,
    "surface": null,
@@ -347292,9 +347383,11 @@
     "src/components/AntiWasteCard.tsx",
     "src/lib/menu-item-images.ts",
     "src/pages/ChefsTable.tsx",
-    "src/pages/TokOne.tsx"
+    "src/pages/TokOne.tsx",
+    "src/test/transactional-email-templates.test.ts",
+    "supabase/functions/_shared/transactional-emails.ts"
    ],
-   "detailRef": "21172a72031e"
+   "detailRef": "4cb18132ea90"
   },
   {
    "id": "path-literal:1761b539fab6",
@@ -347865,7 +347958,7 @@
    "id": "path-literal:3b37d4c23a33",
    "type": "path-literal",
    "title": "/logotok.png",
-   "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/tok-slot-machine/slot-machine.js",
    "line": 5,
    "surface": null,
@@ -347874,9 +347967,10 @@
     "src/components/AiCreationNotifications.tsx",
     "src/lib/tokLogo.ts",
     "src/test/tok-logo-calendar.test.ts",
+    "src/test/transactional-email-templates.test.ts",
     "supabase/functions/_shared/transactional-emails.ts"
    ],
-   "detailRef": "4d074d33327b"
+   "detailRef": "ffc13cb7e607"
   },
   {
    "id": "path-literal:02ba064c470e",
@@ -354035,6 +354129,20 @@
     "public"
    ],
    "detailRef": "53fdcdab4acd"
+  },
+  {
+   "id": "public-asset:3182c2a5b9fd",
+   "type": "public-asset",
+   "title": "/images/emails/tok-reservation-hero.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/emails/tok-reservation-hero.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "68e4e640b402"
   },
   {
    "id": "public-asset:de34c7569abd",

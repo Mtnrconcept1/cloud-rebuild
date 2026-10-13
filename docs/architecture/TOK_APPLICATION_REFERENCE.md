@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `043f38e9c912031b681fe02d7165f6228cff98859988741fda278f2021ec0867`
+- Empreinte SHA-256 des sources indexées : `ac75c92a036b1a29845aa928128babed16e191d5e750ea577889eedc4eed6b2d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,13 +40,13 @@
 | migrations | 532 |
 | modules | 1517 |
 | pages | 128 |
-| pathLiterals | 650 |
-| publicAssets | 462 |
-| publicEntries | 487 |
+| pathLiterals | 651 |
+| publicAssets | 463 |
+| publicEntries | 488 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 107 |
-| records | 16223 |
-| repositoryFiles | 3001 |
+| records | 16226 |
+| repositoryFiles | 3002 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -798,6 +798,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-tok-connect.webp | media | [public/images/dashboard-3d/restaurant-tok-connect.webp](../../public/images/dashboard-3d/restaurant-tok-connect.webp) |
 | /images/doner-kebab-plate.jpeg | media | [public/images/doner-kebab-plate.jpeg](../../public/images/doner-kebab-plate.jpeg) |
 | /images/edamame.webp | media | [public/images/edamame.webp](../../public/images/edamame.webp) |
+| /images/emails/tok-reservation-hero.webp | media | [public/images/emails/tok-reservation-hero.webp](../../public/images/emails/tok-reservation-hero.webp) |
 | /images/falafel wrap.jpeg | media | [public/images/falafel wrap.jpeg](../../public/images/falafel%20wrap.jpeg) |
 | /images/fattouche.webp | media | [public/images/fattouche.webp](../../public/images/fattouche.webp) |
 | /images/filets de perche.jpg | media | [public/images/filets de perche.jpg](../../public/images/filets%20de%20perche.jpg) |
@@ -1226,9 +1227,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /carte | 2 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
 | /cgu | 21 | [scripts/prerender-seo.mjs:1171](../../scripts/prerender-seo.mjs#L1171) |
 | /chef.png | 1 | [src/test/marketing-email-template.test.ts:25](../../src/test/marketing-email-template.test.ts#L25) |
-| /chef2.png | 1 | [supabase/functions/_shared/transactional-emails.ts:243](../../supabase/functions/_shared/transactional-emails.ts#L243) |
+| /chef2.png | 3 | [src/test/transactional-email-templates.test.ts:101](../../src/test/transactional-email-templates.test.ts#L101) |
 | /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:671](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L671) |
-| /chefs-table | 23 | [scripts/prerender-seo.mjs:994](../../scripts/prerender-seo.mjs#L994) |
+| /chefs-table | 24 | [scripts/prerender-seo.mjs:994](../../scripts/prerender-seo.mjs#L994) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:31](../../src/test/tok-logo-calendar.test.ts#L31) |
 | /coming-soon | 18 | [src/App.tsx:530](../../src/App.tsx#L530) |
@@ -1412,6 +1413,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-tok-connect.webp | 1 | [src/lib/dashboardIllustrations.ts:38](../../src/lib/dashboardIllustrations.ts#L38) |
 | /images/doner-kebab-plate.jpeg | 2 | [src/lib/menu-item-images.ts:48](../../src/lib/menu-item-images.ts#L48) |
 | /images/edamame.webp | 1 | [src/lib/menu-item-images.ts:49](../../src/lib/menu-item-images.ts#L49) |
+| /images/emails/tok-reservation-hero.webp | 2 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
 | /images/fattouche.webp | 5 | [src/lib/menu-item-images.ts:21](../../src/lib/menu-item-images.ts#L21) |
 | /images/fondue%20moiti%C3%A9%20moiti%C3%A9.jpg | 2 | [src/test/menu-item-images.test.ts:9](../../src/test/menu-item-images.test.ts#L9) |
 | /images/fondue-moitie-moitie.jpg | 5 | [src/lib/securityUrls.ts:26](../../src/lib/securityUrls.ts#L26) |
@@ -1472,11 +1474,11 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/miniatures/38_vegetarien.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:50](../../src/components/home/CuisineCategoryStrip.tsx#L50) |
 | /images/miniatures/39_vegan.webp | 1 | [src/components/home/CuisineCategoryStrip.tsx:51](../../src/components/home/CuisineCategoryStrip.tsx#L51) |
 | /images/mixed-grill-platter-fast.webp | 1 | [src/components/PromoCarousel.tsx:24](../../src/components/PromoCarousel.tsx#L24) |
-| /images/mixed-grill-platter.jpeg | 9 | [src/components/AntiWasteCard.tsx:34](../../src/components/AntiWasteCard.tsx#L34) |
+| /images/mixed-grill-platter.jpeg | 11 | [src/components/AntiWasteCard.tsx:34](../../src/components/AntiWasteCard.tsx#L34) |
 | /images/mochi-glaces.jpg | 7 | [src/lib/menu-item-images.ts:52](../../src/lib/menu-item-images.ts#L52) |
 | /images/moshi%20glac%C3%A9s.jpg | 1 | [src/test/security-url-helpers.test.ts:23](../../src/test/security-url-helpers.test.ts#L23) |
 | /images/octopus-fine-dining-fast.webp | 1 | [src/components/PromoCarousel.tsx:32](../../src/components/PromoCarousel.tsx#L32) |
-| /images/octopus-fine-dining.jpeg | 7 | [src/components/AntiWasteCard.tsx:36](../../src/components/AntiWasteCard.tsx#L36) |
+| /images/octopus-fine-dining.jpeg | 9 | [src/components/AntiWasteCard.tsx:36](../../src/components/AntiWasteCard.tsx#L36) |
 | /images/pannacotta.webp | 3 | [src/lib/menu-item-images.ts:20](../../src/lib/menu-item-images.ts#L20) |
 | /images/pasta-assortment.jpeg | 5 | [src/components/AntiWasteCard.tsx:38](../../src/components/AntiWasteCard.tsx#L38) |
 | /images/poke-bowls.jpeg | 8 | [src/components/AntiWasteCard.tsx:37](../../src/components/AntiWasteCard.tsx#L37) |
@@ -1518,7 +1520,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /inventory/partners/{partnerId}/merchants/{merchantId}/availability:replace | 1 | [supabase/functions/google-actions-center-sync/index.ts:52](../../supabase/functions/google-actions-center-sync/index.ts#L52) |
 | /launch | 1 | [src/components/launch/LaunchArtwork.tsx:51](../../src/components/launch/LaunchArtwork.tsx#L51) |
 | /logo3df.png | 1 | [src/test/marketing-email-template.test.ts:24](../../src/test/marketing-email-template.test.ts#L24) |
-| /logotok.png | 7 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
+| /logotok.png | 9 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
 | /logout?scope=local | 1 | [server/marketingBff.ts:737](../../server/marketingBff.ts#L737) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:30](../../src/hooks/useTokLogo.ts#L30) |
 | /marketing | 18 | [scripts/application-index-core.mjs:163](../../scripts/application-index-core.mjs#L163) |
@@ -8010,7 +8012,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (487)</summary>
+<details><summary>public-asset (488)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8197,6 +8199,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/dashboard-3d/restaurant-tok-connect.webp`
 - `public/images/doner-kebab-plate.jpeg`
 - `public/images/edamame.webp`
+- `public/images/emails/tok-reservation-hero.webp`
 - `public/images/falafel wrap.jpeg`
 - `public/images/fattouche.webp`
 - `public/images/filets de perche.jpg`
