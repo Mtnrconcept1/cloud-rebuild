@@ -134,6 +134,20 @@ BEGIN
      OR NOT public.restaurant_subscription_genuine_client(NEW.user_id,NEW.restaurant_id)
      OR COALESCE(NEW.status,'') NOT IN ('arrived','seated','completed')
   THEN RETURN NEW; END IF;
+  -- An old contract never authorizes variable off-session debits.
+  -- The feature flag is OFF by default; no new invoices until the rollout.
+  IF NOT COALESCE((
+    SELECT (config.metadata->>'reservation_commission_auto_debit_enabled')::boolean
+    FROM public.finance_runtime_config config WHERE config.config_key='default'
+  ),false) OR NOT EXISTS (
+    SELECT 1
+    FROM public.restaurant_ai_subscriptions subscription
+    JOIN public.signup_applications application
+      ON application.id=subscription.signup_application_id
+    WHERE subscription.restaurant_id=NEW.restaurant_id
+      AND application.metadata->>'commission_auto_debit_consent_version'='v1'
+      AND NULLIF(application.metadata->>'commission_auto_debit_consent_accepted_at','') IS NOT NULL
+  ) THEN RETURN NEW; END IF;
   SELECT fee.id INTO v_fee_id FROM public.reservation_flat_fee_charges fee
     WHERE fee.reservation_id=NEW.id AND fee.fee_cents=500;
   IF v_fee_id IS NULL THEN RETURN NEW; END IF;
@@ -353,3 +367,27 @@ GRANT EXECUTE ON FUNCTION public.reverse_restaurant_commission_payment(text,text
 -- Do not backfill old reservations or activate production collection in SQL.
 -- Finance operators enable the controlled rollout ONLY after Stripe test-mode
 -- scenarios, consent coverage, and legal review are accepted.
+
+CREATE OR REPLACE FUNCTION public.fail_restaurant_commission_collection(
+  p_collection_id uuid,p_error_code text,p_retryable boolean DEFAULT false
+) RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
+AS $fn$
+DECLARE v public.reservation_commission_collections%ROWTYPE; v_next text;
+BEGIN
+  SELECT * INTO v FROM public.reservation_commission_collections
+    WHERE id=p_collection_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'commission_collection_not_found'; END IF;
+  IF v.state IN ('paid','refunded','disputed','review_required') THEN RETURN v.state; END IF;
+  v_next:=CASE WHEN p_retryable AND v.attempt_count<3 THEN 'queued'
+    WHEN COALESCE(p_error_code,'') LIKE '%authentication%' THEN 'requires_action'
+    ELSE 'failed' END;
+  UPDATE public.reservation_commission_collections
+    SET state=v_next,last_error_code=left(COALESCE(p_error_code,'unknown'),100),
+      lease_expires_at=NULL,next_attempt_at=now()+interval '15 minutes',updated_at=now()
+    WHERE id=p_collection_id;
+  RETURN v_next;
+END $fn$;
+REVOKE ALL ON FUNCTION public.fail_restaurant_commission_collection(uuid,text,boolean)
+ FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.fail_restaurant_commission_collection(uuid,text,boolean)
+ TO service_role;
