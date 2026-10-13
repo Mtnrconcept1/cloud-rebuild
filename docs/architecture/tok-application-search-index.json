@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "65c5f51b66a471606bb76c77210d3da97a896cb9c1f5e483d181d4c42f2331d0",
+ "sourceDigest": "d9f70d4dd6441c2ff432e4ac7ddfd1537524b89a7d46725b598beb2afbfd16f9",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -105045,7 +105045,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 99
+    "lineCount": 142
    },
    {
     "path": "src/test/marketing-consent-dispatch.test.ts",
@@ -108534,7 +108534,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 343
+    "lineCount": 349
    },
    {
     "path": "supabase/functions/_shared/marketing-ai.ts",
@@ -144230,14 +144230,14 @@
    "id": "code-module:7f2904397fdc",
    "type": "code-module",
    "title": "src/test/marketing-campaign-options.test.ts",
-   "description": "Module de 99 lignes; exports: aucun export statique.",
+   "description": "Module de 142 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-campaign-options.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "d409dec295da"
+   "detailRef": "093561671c93"
   },
   {
    "id": "code-module:674ccefbc9c0",
@@ -148297,7 +148297,7 @@
    "id": "code-module:adb722f71bc6",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "description": "Module de 343 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MarketingPostFormat, MAX_PLAN_ITEMS, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload.",
+   "description": "Module de 349 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MarketingPostFormat, MAX_PLAN_ITEMS, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
    "line": 1,
    "surface": null,
@@ -148317,7 +148317,7 @@
     "toBundlePayload",
     "validatePlan"
    ],
-   "detailRef": "954a0dc035e8"
+   "detailRef": "ee57becace19"
   },
   {
    "id": "code-module:c71bdc6fa97b",
