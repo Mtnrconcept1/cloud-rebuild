@@ -46,10 +46,12 @@ describe("TOK homepage editorial headers", () => {
     const photo = header?.querySelector("img");
     expect(header).toHaveAttribute("data-theme", "sky");
     expect(header).toHaveAttribute("data-image-kind", "photo");
-    expect(photo).toHaveAttribute("src", "/images/section-headers/tok-editorial-geneva-full.jpg");
+    expect(photo).not.toHaveAttribute("src");
+    expect(photo).toHaveAttribute("data-deferred-src", "/images/section-headers/tok-editorial-geneva-full.jpg");
     expect(photo).toHaveAttribute("alt", "");
     expect(photo).toHaveAttribute("loading", "lazy");
     expect(photo?.parentElement).toHaveAttribute("aria-hidden", "true");
+    expect(photo?.parentElement).toHaveAttribute("data-image-ready", "false");
   });
 
   it("retains the culinary image and optional carousel actions", () => {
