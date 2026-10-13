@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "17ddb5cd8250585e5e216f019545e59e4d5d4a398e849518d0591b82b7e8b636",
+ "sourceDigest": "52a3e2a81b3f86c793dbd54d515a565b17d95e6f6a9726e77839950324857c10",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2751,
+  "databaseObjects": 2758,
   "documents": 203,
-  "edgeFunctions": 115,
+  "edgeFunctions": 116,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3508,
+  "exportedSymbols": 3522,
   "featureFlags": 99,
   "frontendRoutes": 135,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 533,
-  "modules": 1539,
+  "migrations": 534,
+  "modules": 1545,
   "pages": 129,
-  "pathLiterals": 694,
+  "pathLiterals": 700,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
-  "queryParameters": 108,
-  "records": 16504,
-  "repositoryFiles": 3070,
+  "queryParameters": 110,
+  "records": 16553,
+  "repositoryFiles": 3077,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 42,
@@ -4743,7 +4743,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 297,
+      "line": 298,
       "kind": "function"
      }
     ],
@@ -5095,7 +5095,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 48,
+      "line": 49,
       "kind": "function"
      }
     ],
@@ -8687,6 +8687,31 @@
      "TOK_GALLERY_IMAGE_BUCKET"
     ],
     "integrations": [],
+    "configured": true,
+    "sourcePresent": true
+   },
+   {
+    "name": "restaurant-meta-social",
+    "endpoint": "/functions/v1/restaurant-meta-social",
+    "path": "supabase/functions/restaurant-meta-social/index.ts",
+    "configPath": "supabase/config.toml",
+    "configLine": 357,
+    "verifyJwt": false,
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "actions": [
+     "accounts",
+     "disconnect",
+     "publish",
+     "select",
+     "start"
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
     "configured": true,
     "sourcePresent": true
    },
@@ -14168,6 +14193,10 @@
      {
       "path": "supabase/functions/restaurant-media-governance/index.ts",
       "line": 33
+     },
+     {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 24
      },
      {
       "path": "supabase/functions/send-push/index.ts",
@@ -20398,7 +20427,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 2131
+      "line": 2140
      },
      {
       "path": "src/test/tok-ai-tools.test.ts",
@@ -21078,6 +21107,15 @@
     ]
    },
    {
+    "value": "/dialog/oauth",
+    "sources": [
+     {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 25
+     }
+    ]
+   },
+   {
     "value": "/enrich-directory-cuisines",
     "sources": [
      {
@@ -21325,6 +21363,15 @@
     ]
    },
    {
+    "value": "/feed",
+    "sources": [
+     {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 259
+     }
+    ]
+   },
+   {
     "value": "/firebase-messaging-sw.js",
     "sources": [
      {
@@ -21533,6 +21580,15 @@
      {
       "path": "src/test/marketing-meta-bff.test.ts",
       "line": 6
+     }
+    ]
+   },
+   {
+    "value": "/functions/v1/restaurant-meta-social",
+    "sources": [
+     {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 26
      }
     ]
    },
@@ -24676,6 +24732,24 @@
     ]
    },
    {
+    "value": "/media",
+    "sources": [
+     {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 270
+     }
+    ]
+   },
+   {
+    "value": "/media_publish",
+    "sources": [
+     {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 282
+     }
+    ]
+   },
+   {
     "value": "/memoire-tok",
     "sources": [
      {
@@ -25586,6 +25660,15 @@
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 53
+     }
+    ]
+   },
+   {
+    "value": "/photos",
+    "sources": [
+     {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 259
      }
     ]
    },
@@ -29365,11 +29448,11 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 366
+      "line": 367
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 387
+      "line": 388
      }
     ],
     "routes": [
@@ -29386,11 +29469,11 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 371
+      "line": 372
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 390
+      "line": 391
      }
     ],
     "routes": [
@@ -29542,6 +29625,10 @@
    {
     "name": "code",
     "sources": [
+     {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 149
+     },
      {
       "path": "supabase/functions/tok-connect-oauth/index.ts",
       "line": 250
@@ -29769,6 +29856,16 @@
      "/auth/callback",
      "/auth/demo"
     ]
+   },
+   {
+    "name": "error",
+    "sources": [
+     {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 150
+     }
+    ],
+    "routes": []
    },
    {
     "name": "fields",
@@ -30146,6 +30243,16 @@
      {
       "path": "src/lib/push.ts",
       "line": 83
+     }
+    ],
+    "routes": []
+   },
+   {
+    "name": "meta",
+    "sources": [
+     {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 127
      }
     ],
     "routes": []
@@ -30692,7 +30799,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 389
+      "line": 390
      },
      {
       "path": "src/test/payment-attempt-state.test.ts",
@@ -30778,6 +30885,14 @@
     "name": "state",
     "sources": [
      {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 148
+     },
+     {
+      "path": "supabase/functions/restaurant-meta-social/index.ts",
+      "line": 358
+     },
+     {
       "path": "supabase/functions/tok-connect-oauth/index.ts",
       "line": 222
      },
@@ -30825,11 +30940,11 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 367
+      "line": 368
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 388
+      "line": 389
      },
      {
       "path": "src/pages/dashboard/DashboardHome.tsx",
@@ -31838,6 +31953,7 @@
      "src/lib/reservationMutations.ts",
      "src/lib/restaurantAdjustments.ts",
      "src/lib/restaurantMediaGovernance.ts",
+     "src/lib/restaurantMetaSocial.ts",
      "src/lib/searchRestaurantImages.ts",
      "src/lib/serviceSettings.ts",
      "src/lib/session.ts",
@@ -32197,6 +32313,7 @@
      "src/test/restaurant-image-truth-guards.test.ts",
      "src/test/restaurant-image-truth-pipeline.test.ts",
      "src/test/restaurant-media-governance.test.ts",
+     "src/test/restaurant-meta-social.test.ts",
      "src/test/restaurant-onboarding-payments.test.ts",
      "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
      "src/test/restaurant-promotions-governance.test.ts",
@@ -32299,6 +32416,7 @@
      "supabase/functions/_shared/print/pdf.ts",
      "supabase/functions/_shared/rate-limit.ts",
      "supabase/functions/_shared/restaurant-credits.ts",
+     "supabase/functions/_shared/restaurant-meta-helpers.ts",
      "supabase/functions/_shared/tok-connect-auth.ts",
      "supabase/functions/_shared/tok-connect-discovery-widget.ts",
      "supabase/functions/_shared/tok-connect-discovery.ts",
@@ -32334,6 +32452,7 @@
      "supabase/functions/process-reservation-cancellation-fees/index.ts",
      "supabase/functions/provision-commercial-demo-logins/index.ts",
      "supabase/functions/provision-commercial-demo-project-session/index.ts",
+     "supabase/functions/restaurant-meta-social/index.ts",
      "supabase/functions/scrape-restaurants/index.ts",
      "supabase/functions/send-email/index.ts",
      "supabase/functions/send-push/index.ts",
@@ -35662,6 +35781,12 @@
     "path": "supabase/migrations/20261013110000_marketing_campaign_items_preview.sql",
     "lineCount": 113,
     "objectCount": 1
+   },
+   {
+    "name": "20261014010000 Restaurant Meta Social Oauth",
+    "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+    "lineCount": 66,
+    "objectCount": 7
    }
   ],
   "databaseObjects": [
@@ -50365,6 +50490,46 @@
    },
    {
     "type": "index",
+    "name": "restaurant_meta_accounts_restaurant_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+      "line": 33
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "restaurant_meta_oauth_states_expiry_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "restaurant_meta_one_active_page_per_restaurant",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+      "line": 31
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "restaurant_meta_publications_history_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+      "line": 51
+     }
+    ]
+   },
+   {
+    "type": "index",
     "name": "restaurant_paid_module_events_restaurant_created_idx",
     "sources": [
      {
@@ -62598,6 +62763,36 @@
      {
       "path": "supabase/migrations/20260308175015_d089cd3a-79e4-45da-9a43-db36386961b3.sql",
       "line": 240
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "name": "public.restaurant_meta_accounts",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+      "line": 14
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "name": "public.restaurant_meta_oauth_states",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "name": "public.restaurant_meta_publications",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+      "line": 36
      }
     ]
    },
@@ -83785,7 +83980,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 201
+    "lineCount": 203
    },
    {
     "path": "server/marketingBff.ts",
@@ -85551,6 +85746,32 @@
     "lineCount": 975
    },
    {
+    "path": "src/components/dashboard/RestaurantMetaCampaignActions.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 9,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 71
+   },
+   {
+    "path": "src/components/dashboard/RestaurantMetaConnectionsCard.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 15,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 125
+   },
+   {
     "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
     "exports": [
      {
@@ -87264,7 +87485,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 272,
+      "line": 273,
       "kind": "function"
      }
     ],
@@ -87273,7 +87494,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 1592
+    "lineCount": 1636
    },
    {
     "path": "src/components/social/SocialMediaCarousel.tsx",
@@ -90339,42 +90560,42 @@
      },
      {
       "name": "humanizeIdentifier",
-      "line": 465,
+      "line": 466,
       "kind": "function"
      },
      {
       "name": "describeAuditFunction",
-      "line": 477,
+      "line": 478,
       "kind": "function"
      },
      {
       "name": "describeAuditAction",
-      "line": 484,
+      "line": 485,
       "kind": "function"
      },
      {
       "name": "describeAuditEntity",
-      "line": 492,
+      "line": 493,
       "kind": "function"
      },
      {
       "name": "describeAuditActor",
-      "line": 499,
+      "line": 500,
       "kind": "function"
      },
      {
       "name": "explainAuditError",
-      "line": 507,
+      "line": 508,
       "kind": "function"
      },
      {
       "name": "describeAuditLog",
-      "line": 628,
+      "line": 629,
       "kind": "function"
      },
      {
       "name": "summarizeAuditLog",
-      "line": 632,
+      "line": 633,
       "kind": "function"
      }
     ],
@@ -90383,7 +90604,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 634
+    "lineCount": 635
    },
    {
     "path": "src/lib/adminComptaActions.ts",
@@ -97872,6 +98093,51 @@
     "lineCount": 39
    },
    {
+    "path": "src/lib/restaurantMetaSocial.ts",
+    "exports": [
+     {
+      "name": "RestaurantMetaAccount",
+      "line": 3,
+      "kind": "typealias"
+     },
+     {
+      "name": "RestaurantMetaPublicationResult",
+      "line": 13,
+      "kind": "typealias"
+     },
+     {
+      "name": "listRestaurantMetaAccounts",
+      "line": 36,
+      "kind": "function"
+     },
+     {
+      "name": "startRestaurantMetaConnection",
+      "line": 41,
+      "kind": "function"
+     },
+     {
+      "name": "selectRestaurantMetaAccount",
+      "line": 49,
+      "kind": "function"
+     },
+     {
+      "name": "disconnectRestaurantMetaAccount",
+      "line": 53,
+      "kind": "function"
+     },
+     {
+      "name": "publishRestaurantMetaContent",
+      "line": 57,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 66
+   },
+   {
     "path": "src/lib/restaurantOnboardingLifecycle.ts",
     "exports": [
      {
@@ -102633,7 +102899,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 297,
+      "line": 298,
       "kind": "function"
      }
     ],
@@ -102642,7 +102908,7 @@
      "google",
      "supabase"
     ],
-    "lineCount": 2167
+    "lineCount": 2176
    },
    {
     "path": "src/pages/dashboard/DashboardCampaignStudio.tsx",
@@ -102929,7 +103195,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 48,
+      "line": 49,
       "kind": "function"
      }
     ],
@@ -102937,7 +103203,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 369
+    "lineCount": 372
    },
    {
     "path": "src/pages/dashboard/DashboardReservations.tsx",
@@ -104961,7 +105227,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 300
+    "lineCount": 302
    },
    {
     "path": "src/test/dialog-close-animation-guard.test.ts",
@@ -107258,6 +107524,15 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 70
+   },
+   {
+    "path": "src/test/restaurant-meta-social.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 62
    },
    {
     "path": "src/test/restaurant-onboarding-payments.test.ts",
@@ -111119,6 +111394,41 @@
     "lineCount": 90
    },
    {
+    "path": "supabase/functions/_shared/restaurant-meta-helpers.ts",
+    "exports": [
+     {
+      "name": "RestaurantMetaChannel",
+      "line": 1,
+      "kind": "typealias"
+     },
+     {
+      "name": "normalizeMetaChannels",
+      "line": 3,
+      "kind": "function"
+     },
+     {
+      "name": "buildRestaurantMetaCaption",
+      "line": 10,
+      "kind": "function"
+     },
+     {
+      "name": "normalizeRestaurantMetaImageUrl",
+      "line": 17,
+      "kind": "function"
+     },
+     {
+      "name": "isActiveRestaurantMetaCampaign",
+      "line": 31,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 34
+   },
+   {
     "path": "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "exports": [
      {
@@ -113079,6 +113389,15 @@
     ],
     "integrations": [],
     "lineCount": 361
+   },
+   {
+    "path": "supabase/functions/restaurant-meta-social/index.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 434
    },
    {
     "path": "supabase/functions/restaurant-order-status/index.ts",
@@ -119357,6 +119676,16 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/components/dashboard/RestaurantMetaCampaignActions.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/components/dashboard/RestaurantMetaConnectionsCard.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
@@ -121133,6 +121462,11 @@
    },
    {
     "path": "src/lib/restaurantMediaGovernance.ts",
+    "category": "application-library",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/lib/restaurantMetaSocial.ts",
     "category": "application-library",
     "extension": ".ts"
    },
@@ -124377,6 +124711,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/restaurant-meta-social.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/restaurant-onboarding-payments.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -125432,6 +125771,11 @@
     "extension": ".ts"
    },
    {
+    "path": "supabase/functions/_shared/restaurant-meta-helpers.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
     "path": "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "category": "edge-function-source",
     "extension": ".ts"
@@ -125943,6 +126287,11 @@
    },
    {
     "path": "supabase/functions/restaurant-media-governance/index.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/restaurant-meta-social/index.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -128767,6 +129116,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/actualites_billing_identity_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -130828,7 +131182,7 @@
    "id": "code-module:47a1b9903d01",
    "type": "code-module",
    "title": "scripts/write-supabase-secrets-env.mjs",
-   "description": "Module de 201 lignes; exports: aucun export statique.",
+   "description": "Module de 203 lignes; exports: aucun export statique.",
    "path": "scripts/write-supabase-secrets-env.mjs",
    "line": 1,
    "surface": null,
@@ -130844,7 +131198,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ab1ee3d16d75"
+   "detailRef": "5fdd7ec45c4e"
   },
   {
    "id": "code-module:e80a711be244",
@@ -132304,6 +132658,32 @@
    "detailRef": "070b1f52a412"
   },
   {
+   "id": "code-module:3b602b559083",
+   "type": "code-module",
+   "title": "src/components/dashboard/RestaurantMetaCampaignActions.tsx",
+   "description": "Module de 71 lignes; exports: default.",
+   "path": "src/components/dashboard/RestaurantMetaCampaignActions.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default"
+   ],
+   "detailRef": "4e4974758652"
+  },
+  {
+   "id": "code-module:bca429916d77",
+   "type": "code-module",
+   "title": "src/components/dashboard/RestaurantMetaConnectionsCard.tsx",
+   "description": "Module de 125 lignes; exports: default.",
+   "path": "src/components/dashboard/RestaurantMetaConnectionsCard.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default"
+   ],
+   "detailRef": "405c86f84e1e"
+  },
+  {
    "id": "code-module:53871c488863",
    "type": "code-module",
    "title": "src/components/dashboard/TokAiMarketingStudio.tsx",
@@ -133621,7 +134001,7 @@
    "id": "code-module:bad0dda91a79",
    "type": "code-module",
    "title": "src/components/social/SocialComposer.tsx",
-   "description": "Module de 1592 lignes; exports: default.",
+   "description": "Module de 1636 lignes; exports: default.",
    "path": "src/components/social/SocialComposer.tsx",
    "line": 1,
    "surface": null,
@@ -133630,7 +134010,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "c8ae5324dec2"
+   "detailRef": "22cfbc3756b9"
   },
   {
    "id": "code-module:bfdf77fda47a",
@@ -135249,7 +135629,7 @@
    "id": "code-module:49057d39b311",
    "type": "code-module",
    "title": "src/lib/admin/auditLogNarrative.ts",
-   "description": "Module de 634 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
+   "description": "Module de 635 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
    "path": "src/lib/admin/auditLogNarrative.ts",
    "line": 1,
    "surface": null,
@@ -135270,7 +135650,7 @@
     "stripe",
     "summarizeAuditLog"
    ],
-   "detailRef": "80560d668c23"
+   "detailRef": "a0bd7b89f563"
   },
   {
    "id": "code-module:011d1dc10823",
@@ -138518,6 +138898,26 @@
    "detailRef": "f926fe958be2"
   },
   {
+   "id": "code-module:5a10ef684131",
+   "type": "code-module",
+   "title": "src/lib/restaurantMetaSocial.ts",
+   "description": "Module de 66 lignes; exports: RestaurantMetaAccount, RestaurantMetaPublicationResult, listRestaurantMetaAccounts, startRestaurantMetaConnection, selectRestaurantMetaAccount, disconnectRestaurantMetaAccount, publishRestaurantMetaContent.",
+   "path": "src/lib/restaurantMetaSocial.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "RestaurantMetaAccount",
+    "RestaurantMetaPublicationResult",
+    "disconnectRestaurantMetaAccount",
+    "listRestaurantMetaAccounts",
+    "publishRestaurantMetaContent",
+    "selectRestaurantMetaAccount",
+    "startRestaurantMetaConnection",
+    "supabase"
+   ],
+   "detailRef": "63e779d76d59"
+  },
+  {
    "id": "code-module:9967ae601b46",
    "type": "code-module",
    "title": "src/lib/restaurantOnboardingLifecycle.ts",
@@ -141146,7 +141546,7 @@
    "id": "code-module:8e0c4b398c00",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardCampagnes.tsx",
-   "description": "Module de 2167 lignes; exports: default.",
+   "description": "Module de 2176 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardCampagnes.tsx",
    "line": 1,
    "surface": null,
@@ -141155,7 +141555,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "2742ab088f40"
+   "detailRef": "ff17e3b0846e"
   },
   {
    "id": "code-module:c7d615efc062",
@@ -141428,7 +141828,7 @@
    "id": "code-module:6cf770bb1a8c",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardReseauxSociaux.tsx",
-   "description": "Module de 369 lignes; exports: default.",
+   "description": "Module de 372 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardReseauxSociaux.tsx",
    "line": 1,
    "surface": null,
@@ -141436,7 +141836,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "4781d5004bf1"
+   "detailRef": "7ee4918eaed2"
   },
   {
    "id": "code-module:f39ec1769aae",
@@ -144068,7 +144468,7 @@
    "id": "code-module:4c072fc6cddf",
    "type": "code-module",
    "title": "src/test/deploy-production-secret-scope.test.ts",
-   "description": "Module de 300 lignes; exports: aucun export statique.",
+   "description": "Module de 302 lignes; exports: aucun export statique.",
    "path": "src/test/deploy-production-secret-scope.test.ts",
    "line": 1,
    "surface": null,
@@ -144080,7 +144480,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "307c84a987b6"
+   "detailRef": "51c3a7810952"
   },
   {
    "id": "code-module:0a24f0938a93",
@@ -147422,6 +147822,19 @@
    "detailRef": "4dec1c74ff0d"
   },
   {
+   "id": "code-module:cbe31c4ee7a7",
+   "type": "code-module",
+   "title": "src/test/restaurant-meta-social.test.ts",
+   "description": "Module de 62 lignes; exports: aucun export statique.",
+   "path": "src/test/restaurant-meta-social.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "04d613152e58"
+  },
+  {
    "id": "code-module:9ddedad5946b",
    "type": "code-module",
    "title": "src/test/restaurant-onboarding-payments.test.ts",
@@ -150405,6 +150818,24 @@
    "detailRef": "afca9586aee0"
   },
   {
+   "id": "code-module:df72b65403fb",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/restaurant-meta-helpers.ts",
+   "description": "Module de 34 lignes; exports: RestaurantMetaChannel, normalizeMetaChannels, buildRestaurantMetaCaption, normalizeRestaurantMetaImageUrl, isActiveRestaurantMetaCampaign.",
+   "path": "supabase/functions/_shared/restaurant-meta-helpers.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "RestaurantMetaChannel",
+    "buildRestaurantMetaCaption",
+    "isActiveRestaurantMetaCampaign",
+    "normalizeMetaChannels",
+    "normalizeRestaurantMetaImageUrl",
+    "supabase"
+   ],
+   "detailRef": "e319d5d77a13"
+  },
+  {
    "id": "code-module:5443f5a23829",
    "type": "code-module",
    "title": "supabase/functions/_shared/restaurant-subscription-billing.ts",
@@ -152002,6 +152433,19 @@
     "TOK_GALLERY_IMAGE_BUCKET"
    ],
    "detailRef": "3c8563a80bc4"
+  },
+  {
+   "id": "code-module:feb223294816",
+   "type": "code-module",
+   "title": "supabase/functions/restaurant-meta-social/index.ts",
+   "description": "Module de 434 lignes; exports: aucun export statique.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "7a1ced7f308b"
   },
   {
    "id": "code-module:4f5dbbeaa8a2",
@@ -186568,6 +187012,51 @@
    "detailRef": "8fb4b4d2b66d"
   },
   {
+   "id": "database-object:a83256fa5e1e",
+   "type": "database-object",
+   "title": "public.restaurant_meta_accounts",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "61af15526876"
+  },
+  {
+   "id": "database-object:02f243856663",
+   "type": "database-object",
+   "title": "public.restaurant_meta_oauth_states",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "a9f78724e54b"
+  },
+  {
+   "id": "database-object:0b355bf5dc36",
+   "type": "database-object",
+   "title": "public.restaurant_meta_publications",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "c5c6a63f2058"
+  },
+  {
    "id": "database-object:93b2c56ba864",
    "type": "database-object",
    "title": "public.restaurant_onboarding_state_events.restaurant_onboarding_state_events_owner_read",
@@ -193886,6 +194375,66 @@
     "supabase"
    ],
    "detailRef": "fd60345d85eb"
+  },
+  {
+   "id": "database-object:bd90fbbd0b7e",
+   "type": "database-object",
+   "title": "restaurant_meta_accounts_restaurant_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "78eb62a2f465"
+  },
+  {
+   "id": "database-object:74d40369f6f4",
+   "type": "database-object",
+   "title": "restaurant_meta_oauth_states_expiry_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "207623333343"
+  },
+  {
+   "id": "database-object:113b561e71b4",
+   "type": "database-object",
+   "title": "restaurant_meta_one_active_page_per_restaurant",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "0cdd0af7fd78"
+  },
+  {
+   "id": "database-object:63ee6fdb684f",
+   "type": "database-object",
+   "title": "restaurant_meta_publications_history_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "d9466a41d294"
   },
   {
    "id": "database-object:6a246b836271",
@@ -232833,6 +233382,20 @@
    "detailRef": "c57fb839f1f8"
   },
   {
+   "id": "edge-action:3f5868b27683",
+   "type": "edge-action",
+   "title": "accounts",
+   "description": "Action statiquement détectée dans la fonction Edge restaurant-meta-social.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/restaurant-meta-social",
+    "restaurant-meta-social"
+   ],
+   "detailRef": "ea2886a18ba7"
+  },
+  {
    "id": "edge-action:7a761aedb5fe",
    "type": "edge-action",
    "title": "add_ai_creation_to_gallery",
@@ -233237,6 +233800,20 @@
     "tok-connect-commercial-bridge"
    ],
    "detailRef": "4e2a28a435e7"
+  },
+  {
+   "id": "edge-action:d974f4176f7b",
+   "type": "edge-action",
+   "title": "disconnect",
+   "description": "Action statiquement détectée dans la fonction Edge restaurant-meta-social.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/restaurant-meta-social",
+    "restaurant-meta-social"
+   ],
+   "detailRef": "5c494fc5e2ab"
   },
   {
    "id": "edge-action:dc21976cf10a",
@@ -233841,6 +234418,20 @@
    "detailRef": "04b19197b6d9"
   },
   {
+   "id": "edge-action:fdc870bae7ff",
+   "type": "edge-action",
+   "title": "publish",
+   "description": "Action statiquement détectée dans la fonction Edge restaurant-meta-social.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/restaurant-meta-social",
+    "restaurant-meta-social"
+   ],
+   "detailRef": "39195fcf04a1"
+  },
+  {
    "id": "edge-action:10360bc92819",
    "type": "edge-action",
    "title": "quote",
@@ -234205,6 +234796,20 @@
    "detailRef": "eebed594041f"
   },
   {
+   "id": "edge-action:f469b1fb9421",
+   "type": "edge-action",
+   "title": "select",
+   "description": "Action statiquement détectée dans la fonction Edge restaurant-meta-social.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/restaurant-meta-social",
+    "restaurant-meta-social"
+   ],
+   "detailRef": "6a51838f8e35"
+  },
+  {
    "id": "edge-action:0ab088a309fa",
    "type": "edge-action",
    "title": "select",
@@ -234273,6 +234878,20 @@
     "print-admin"
    ],
    "detailRef": "7dbbf52d07c5"
+  },
+  {
+   "id": "edge-action:a3bdf17d628d",
+   "type": "edge-action",
+   "title": "start",
+   "description": "Action statiquement détectée dans la fonction Edge restaurant-meta-social.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/restaurant-meta-social",
+    "restaurant-meta-social"
+   ],
+   "detailRef": "616bcc27e12b"
   },
   {
    "id": "edge-action:408d8ab3e254",
@@ -235977,6 +236596,26 @@
     "string"
    ],
    "detailRef": "7aefa9b3709c"
+  },
+  {
+   "id": "edge-function:c9e7d316097a",
+   "type": "edge-function",
+   "title": "restaurant-meta-social",
+   "description": "Fonction Edge GET, POST; JWT config=false.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "GET",
+    "POST",
+    "accounts",
+    "disconnect",
+    "publish",
+    "select",
+    "start",
+    "supabase"
+   ],
+   "detailRef": "b2ab4629569e"
   },
   {
    "id": "edge-function:44ed8631d43d",
@@ -254853,6 +255492,48 @@
    "detailRef": "4cf1e8f20fa0"
   },
   {
+   "id": "exported-symbol:46e9b69511d0",
+   "type": "exported-symbol",
+   "title": "RestaurantMetaAccount",
+   "description": "Export typealias de src/lib/restaurantMetaSocial.ts.",
+   "path": "src/lib/restaurantMetaSocial.ts",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "04385eb7a851"
+  },
+  {
+   "id": "exported-symbol:1d1658470ae0",
+   "type": "exported-symbol",
+   "title": "RestaurantMetaChannel",
+   "description": "Export typealias de supabase/functions/_shared/restaurant-meta-helpers.ts.",
+   "path": "supabase/functions/_shared/restaurant-meta-helpers.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "b18dab595a24"
+  },
+  {
+   "id": "exported-symbol:52c021807075",
+   "type": "exported-symbol",
+   "title": "RestaurantMetaPublicationResult",
+   "description": "Export typealias de src/lib/restaurantMetaSocial.ts.",
+   "path": "src/lib/restaurantMetaSocial.ts",
+   "line": 13,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "59206cc77924"
+  },
+  {
    "id": "exported-symbol:85b37618608a",
    "type": "exported-symbol",
    "title": "RestaurantOnboardingAttemptView",
@@ -262400,6 +263081,20 @@
    "detailRef": "fad13d297e5c"
   },
   {
+   "id": "exported-symbol:1931282dab97",
+   "type": "exported-symbol",
+   "title": "buildRestaurantMetaCaption",
+   "description": "Export function de supabase/functions/_shared/restaurant-meta-helpers.ts.",
+   "path": "supabase/functions/_shared/restaurant-meta-helpers.ts",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "6aed4b7933e2"
+  },
+  {
    "id": "exported-symbol:a56c16b93684",
    "type": "exported-symbol",
    "title": "buildRestaurantPartnerContractHashPayload",
@@ -266590,6 +267285,32 @@
    "detailRef": "8abdbea440e2"
   },
   {
+   "id": "exported-symbol:5074b2037544",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/dashboard/RestaurantMetaCampaignActions.tsx.",
+   "path": "src/components/dashboard/RestaurantMetaCampaignActions.tsx",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "804e9b9a12ae"
+  },
+  {
+   "id": "exported-symbol:64f6d81f7dcf",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/dashboard/RestaurantMetaConnectionsCard.tsx.",
+   "path": "src/components/dashboard/RestaurantMetaConnectionsCard.tsx",
+   "line": 15,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "9203aa6bab7e"
+  },
+  {
    "id": "exported-symbol:ea5da96281a0",
    "type": "exported-symbol",
    "title": "default",
@@ -267490,19 +268211,19 @@
    "detailRef": "eeb2f870fc3e"
   },
   {
-   "id": "exported-symbol:20924f63cc9f",
+   "id": "exported-symbol:8fc015a26946",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/social/SocialComposer.tsx.",
    "path": "src/components/social/SocialComposer.tsx",
-   "line": 272,
+   "line": 273,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "c76b2203a30f"
+   "detailRef": "8de4474344c2"
   },
   {
    "id": "exported-symbol:10ac9e1d38ea",
@@ -268969,19 +269690,19 @@
    "detailRef": "b1f6adf025ae"
   },
   {
-   "id": "exported-symbol:7db3a7d4ac60",
+   "id": "exported-symbol:d4b003a5aeba",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardCampagnes.tsx.",
    "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-   "line": 297,
+   "line": 298,
    "surface": null,
    "tags": [
     "function",
     "google",
     "supabase"
    ],
-   "detailRef": "1cb3b85274e8"
+   "detailRef": "e28ea7d9d7f1"
   },
   {
    "id": "exported-symbol:3735a6d12152",
@@ -269238,18 +269959,18 @@
    "detailRef": "f309688206d3"
   },
   {
-   "id": "exported-symbol:85067d27f263",
+   "id": "exported-symbol:9a1b320d1cc7",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardReseauxSociaux.tsx.",
    "path": "src/pages/dashboard/DashboardReseauxSociaux.tsx",
-   "line": 48,
+   "line": 49,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "6d9ba569d315"
+   "detailRef": "ddd34d4a181f"
   },
   {
    "id": "exported-symbol:36a086f99226",
@@ -269495,79 +270216,79 @@
    "detailRef": "35cf2f09a4fb"
   },
   {
-   "id": "exported-symbol:46b7333dd8a6",
+   "id": "exported-symbol:4daf504b7ba1",
    "type": "exported-symbol",
    "title": "describeAuditAction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 484,
+   "line": 485,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b90b791bbf96"
+   "detailRef": "510398973d96"
   },
   {
-   "id": "exported-symbol:1acaec08b34c",
+   "id": "exported-symbol:f9ea46bb7ff0",
    "type": "exported-symbol",
    "title": "describeAuditActor",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 499,
+   "line": 500,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "65133d2ecc6c"
+   "detailRef": "5109f4f581ae"
   },
   {
-   "id": "exported-symbol:4881f83de976",
+   "id": "exported-symbol:dd26294f1247",
    "type": "exported-symbol",
    "title": "describeAuditEntity",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 492,
+   "line": 493,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "5958429935e9"
+   "detailRef": "f95415aa1aad"
   },
   {
-   "id": "exported-symbol:3815337bdd04",
+   "id": "exported-symbol:7007080de2b5",
    "type": "exported-symbol",
    "title": "describeAuditFunction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 477,
+   "line": 478,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "1cbf0a76d25f"
+   "detailRef": "04cb48327718"
   },
   {
-   "id": "exported-symbol:46caaafe2225",
+   "id": "exported-symbol:46b299d550e9",
    "type": "exported-symbol",
    "title": "describeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 628,
+   "line": 629,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b0766893ca10"
+   "detailRef": "aeeb9e430cd7"
   },
   {
    "id": "exported-symbol:10f1bf567ca4",
@@ -269707,6 +270428,20 @@
     "supabase"
    ],
    "detailRef": "8533147ad37f"
+  },
+  {
+   "id": "exported-symbol:03597e66e9b7",
+   "type": "exported-symbol",
+   "title": "disconnectRestaurantMetaAccount",
+   "description": "Export function de src/lib/restaurantMetaSocial.ts.",
+   "path": "src/lib/restaurantMetaSocial.ts",
+   "line": 53,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "4c1ca23e10a4"
   },
   {
    "id": "exported-symbol:a99d7e59cd2c",
@@ -270218,19 +270953,19 @@
    "detailRef": "8b413b2a22c5"
   },
   {
-   "id": "exported-symbol:d0803f3bff75",
+   "id": "exported-symbol:9f92ba8eb29f",
    "type": "exported-symbol",
    "title": "explainAuditError",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 507,
+   "line": 508,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b50a1667e564"
+   "detailRef": "235177c0bbb9"
   },
   {
    "id": "exported-symbol:94c395b452eb",
@@ -276670,19 +277405,19 @@
    "detailRef": "dc9f63bb72e6"
   },
   {
-   "id": "exported-symbol:3e5a7e4a9827",
+   "id": "exported-symbol:d855de964287",
    "type": "exported-symbol",
    "title": "humanizeIdentifier",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 465,
+   "line": 466,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "ee689cf56868"
+   "detailRef": "cd201f4dc125"
   },
   {
    "id": "exported-symbol:cd0c65e7c41c",
@@ -276950,6 +277685,20 @@
     "supabase"
    ],
    "detailRef": "fa7c40885631"
+  },
+  {
+   "id": "exported-symbol:6500a9055c4f",
+   "type": "exported-symbol",
+   "title": "isActiveRestaurantMetaCampaign",
+   "description": "Export function de supabase/functions/_shared/restaurant-meta-helpers.ts.",
+   "path": "supabase/functions/_shared/restaurant-meta-helpers.ts",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "9df6e4d987e0"
   },
   {
    "id": "exported-symbol:01caef9d1a0d",
@@ -279011,6 +279760,20 @@
    "detailRef": "4c4c72800f4d"
   },
   {
+   "id": "exported-symbol:1de2530c5654",
+   "type": "exported-symbol",
+   "title": "listRestaurantMetaAccounts",
+   "description": "Export function de src/lib/restaurantMetaSocial.ts.",
+   "path": "src/lib/restaurantMetaSocial.ts",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "a4bf5052d15b"
+  },
+  {
    "id": "exported-symbol:d0cfb34c7b1e",
    "type": "exported-symbol",
    "title": "listSupportResolutionWorkspace",
@@ -280379,6 +281142,20 @@
    "detailRef": "a4a99b9a192b"
   },
   {
+   "id": "exported-symbol:e62d7b39a130",
+   "type": "exported-symbol",
+   "title": "normalizeMetaChannels",
+   "description": "Export function de supabase/functions/_shared/restaurant-meta-helpers.ts.",
+   "path": "supabase/functions/_shared/restaurant-meta-helpers.ts",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "8d7f62758aa1"
+  },
+  {
    "id": "exported-symbol:548029d4a2b4",
    "type": "exported-symbol",
    "title": "normalizeMetaMediaUrl",
@@ -280569,6 +281346,20 @@
     "function"
    ],
    "detailRef": "bd63ede5d5c8"
+  },
+  {
+   "id": "exported-symbol:bf2a899eb9f3",
+   "type": "exported-symbol",
+   "title": "normalizeRestaurantMetaImageUrl",
+   "description": "Export function de supabase/functions/_shared/restaurant-meta-helpers.ts.",
+   "path": "supabase/functions/_shared/restaurant-meta-helpers.ts",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "c6a2eca2c097"
   },
   {
    "id": "exported-symbol:8765502102e5",
@@ -281538,6 +282329,20 @@
     "function"
    ],
    "detailRef": "81e0ffb0dbb5"
+  },
+  {
+   "id": "exported-symbol:ed1cb5967141",
+   "type": "exported-symbol",
+   "title": "publishRestaurantMetaContent",
+   "description": "Export function de src/lib/restaurantMetaSocial.ts.",
+   "path": "src/lib/restaurantMetaSocial.ts",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "87ece0322be1"
   },
   {
    "id": "exported-symbol:1bd62c3187a7",
@@ -283836,6 +284641,20 @@
    "detailRef": "10bc363427bd"
   },
   {
+   "id": "exported-symbol:c26d35dc1bf3",
+   "type": "exported-symbol",
+   "title": "selectRestaurantMetaAccount",
+   "description": "Export function de src/lib/restaurantMetaSocial.ts.",
+   "path": "src/lib/restaurantMetaSocial.ts",
+   "line": 49,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "b419c3e83e92"
+  },
+  {
    "id": "exported-symbol:24ffae161e42",
    "type": "exported-symbol",
    "title": "selectSponsoredCampaignPlacements",
@@ -284500,6 +285319,20 @@
    "detailRef": "27c39d7c2bc8"
   },
   {
+   "id": "exported-symbol:180f0aef7405",
+   "type": "exported-symbol",
+   "title": "startRestaurantMetaConnection",
+   "description": "Export function de src/lib/restaurantMetaSocial.ts.",
+   "path": "src/lib/restaurantMetaSocial.ts",
+   "line": 41,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "45e8b8f74539"
+  },
+  {
    "id": "exported-symbol:0505841a73fa",
    "type": "exported-symbol",
    "title": "startTokImageCreationJob",
@@ -284657,19 +285490,19 @@
    "detailRef": "596a9a69ebd0"
   },
   {
-   "id": "exported-symbol:396e55fc54b1",
+   "id": "exported-symbol:54e0678701fe",
    "type": "exported-symbol",
    "title": "summarizeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 632,
+   "line": 633,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "6f938fcbd0dd"
+   "detailRef": "a5e4fc639601"
   },
   {
    "id": "exported-symbol:25e70f45a5b2",
@@ -304863,6 +305696,34 @@
    "detailRef": "e0fed9e3b386"
   },
   {
+   "id": "file:ab27e9acc67c",
+   "type": "file",
+   "title": "src/components/dashboard/RestaurantMetaCampaignActions.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/dashboard/RestaurantMetaCampaignActions.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "58f10696c2a6"
+  },
+  {
+   "id": "file:04217acfc015",
+   "type": "file",
+   "title": "src/components/dashboard/RestaurantMetaConnectionsCard.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/dashboard/RestaurantMetaConnectionsCard.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "c6fd13b0f685"
+  },
+  {
    "id": "file:6ec193257ab8",
    "type": "file",
    "title": "src/components/dashboard/TokAiMarketingStudio.tsx",
@@ -309845,6 +310706,20 @@
     "application-library"
    ],
    "detailRef": "23b9b189d6ba"
+  },
+  {
+   "id": "file:07a72d3e1f61",
+   "type": "file",
+   "title": "src/lib/restaurantMetaSocial.ts",
+   "description": "Fichier du dépôt classé application-library.",
+   "path": "src/lib/restaurantMetaSocial.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "application-library"
+   ],
+   "detailRef": "7376a5873964"
   },
   {
    "id": "file:08a81bac0d5d",
@@ -318919,6 +319794,20 @@
    "detailRef": "933f933a8ed7"
   },
   {
+   "id": "file:fcab8b588c2e",
+   "type": "file",
+   "title": "src/test/restaurant-meta-social.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/restaurant-meta-social.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "c6ff589d29be"
+  },
+  {
    "id": "file:77118e079686",
    "type": "file",
    "title": "src/test/restaurant-onboarding-payments.test.ts",
@@ -321873,6 +322762,20 @@
    "detailRef": "0f4b45a916f1"
   },
   {
+   "id": "file:c42b493a4401",
+   "type": "file",
+   "title": "supabase/functions/_shared/restaurant-meta-helpers.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/restaurant-meta-helpers.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "ae2d6db1556d"
+  },
+  {
    "id": "file:df05ad7ef02d",
    "type": "file",
    "title": "supabase/functions/_shared/restaurant-subscription-billing.ts",
@@ -323313,6 +324216,20 @@
     "edge-function-source"
    ],
    "detailRef": "15eae2d36d9c"
+  },
+  {
+   "id": "file:c2698bde2bd7",
+   "type": "file",
+   "title": "supabase/functions/restaurant-meta-social/index.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "4a61cf50a793"
   },
   {
    "id": "file:0c256c47a8fc",
@@ -331211,6 +332128,20 @@
    "detailRef": "1ca1b5fde1d8"
   },
   {
+   "id": "file:24df16697a0e",
+   "type": "file",
+   "title": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "a5f56c2e8ae3"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -335131,7 +336062,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 687 module(s).",
+   "description": "Intégration externe détectée dans 691 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -335296,6 +336227,7 @@
     "src/lib/reservationMutations.ts",
     "src/lib/restaurantAdjustments.ts",
     "src/lib/restaurantMediaGovernance.ts",
+    "src/lib/restaurantMetaSocial.ts",
     "src/lib/searchRestaurantImages.ts",
     "src/lib/serviceSettings.ts",
     "src/lib/session.ts",
@@ -335655,6 +336587,7 @@
     "src/test/restaurant-image-truth-guards.test.ts",
     "src/test/restaurant-image-truth-pipeline.test.ts",
     "src/test/restaurant-media-governance.test.ts",
+    "src/test/restaurant-meta-social.test.ts",
     "src/test/restaurant-onboarding-payments.test.ts",
     "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
     "src/test/restaurant-promotions-governance.test.ts",
@@ -335758,6 +336691,7 @@
     "supabase/functions/_shared/print/pdf.ts",
     "supabase/functions/_shared/rate-limit.ts",
     "supabase/functions/_shared/restaurant-credits.ts",
+    "supabase/functions/_shared/restaurant-meta-helpers.ts",
     "supabase/functions/_shared/tok-connect-auth.ts",
     "supabase/functions/_shared/tok-connect-discovery-widget.ts",
     "supabase/functions/_shared/tok-connect-discovery.ts",
@@ -335793,6 +336727,7 @@
     "supabase/functions/process-reservation-cancellation-fees/index.ts",
     "supabase/functions/provision-commercial-demo-logins/index.ts",
     "supabase/functions/provision-commercial-demo-project-session/index.ts",
+    "supabase/functions/restaurant-meta-social/index.ts",
     "supabase/functions/scrape-restaurants/index.ts",
     "supabase/functions/send-email/index.ts",
     "supabase/functions/send-push/index.ts",
@@ -335825,7 +336760,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "1c0a6d871f3b"
+   "detailRef": "cbe987b2e975"
   },
   {
    "id": "integration:c20910a79a78",
@@ -343971,6 +344906,20 @@
    "detailRef": "79d8499d3352"
   },
   {
+   "id": "migration:3481f8f1bf2c",
+   "type": "migration",
+   "title": "20261014010000 Restaurant Meta Social Oauth",
+   "description": "Migration SQL de 66 lignes, 7 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014010000_restaurant_meta_social_oauth.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "c92b01502294"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -345814,7 +346763,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "3988c050abd8"
+   "detailRef": "2e62cde78d06"
   },
   {
    "id": "page:60af2af468ac",
@@ -346104,7 +347053,7 @@
     "/dashboard/reseaux-sociaux",
     "supabase"
    ],
-   "detailRef": "9164a5891ce0"
+   "detailRef": "c0ce2c06a4c6"
   },
   {
    "id": "page:1708057203e1",
@@ -346871,7 +347820,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 244 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 245 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -346987,6 +347936,7 @@
     "supabase/functions/google-actions-center/index.ts",
     "supabase/functions/ops-incident-control/index.ts",
     "supabase/functions/restaurant-media-governance/index.ts",
+    "supabase/functions/restaurant-meta-social/index.ts",
     "supabase/functions/send-push/index.ts",
     "supabase/functions/tok-connect-api/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -346996,7 +347946,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "5623f57f37b5"
+   "detailRef": "4d5f33bb3a57"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -350115,7 +351065,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "74a94d49402c"
+   "detailRef": "751e4e451136"
   },
   {
    "id": "path-literal:916ad1246b1e",
@@ -350600,6 +351550,19 @@
    "detailRef": "bf888cc9c616"
   },
   {
+   "id": "path-literal:6b76d565a8ba",
+   "type": "path-literal",
+   "title": "/dialog/oauth",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "supabase/functions/restaurant-meta-social/index.ts"
+   ],
+   "detailRef": "4609aff1a738"
+  },
+  {
    "id": "path-literal:2c32550db633",
    "type": "path-literal",
    "title": "/enrich-directory-cuisines-osm",
@@ -350761,6 +351724,19 @@
     "src/test/favicon-branding.test.ts"
    ],
    "detailRef": "dbdf5277ed2d"
+  },
+  {
+   "id": "path-literal:0ce8cc84c805",
+   "type": "path-literal",
+   "title": "/feed",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 259,
+   "surface": null,
+   "tags": [
+    "supabase/functions/restaurant-meta-social/index.ts"
+   ],
+   "detailRef": "574d57ba872f"
   },
   {
    "id": "path-literal:731bb457001c",
@@ -350935,6 +351911,19 @@
     "src/test/marketing-meta-bff.test.ts"
    ],
    "detailRef": "7a8dfeb3bae4"
+  },
+  {
+   "id": "path-literal:587ea31ee0b5",
+   "type": "path-literal",
+   "title": "/functions/v1/restaurant-meta-social",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 26,
+   "surface": null,
+   "tags": [
+    "supabase/functions/restaurant-meta-social/index.ts"
+   ],
+   "detailRef": "71c32abc5b1f"
   },
   {
    "id": "path-literal:86307d07f589",
@@ -354044,6 +355033,32 @@
    "detailRef": "783c54f9181a"
   },
   {
+   "id": "path-literal:1f4f644e2055",
+   "type": "path-literal",
+   "title": "/media",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 270,
+   "surface": null,
+   "tags": [
+    "supabase/functions/restaurant-meta-social/index.ts"
+   ],
+   "detailRef": "47dca576c125"
+  },
+  {
+   "id": "path-literal:9e094300c40d",
+   "type": "path-literal",
+   "title": "/media_publish",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 282,
+   "surface": null,
+   "tags": [
+    "supabase/functions/restaurant-meta-social/index.ts"
+   ],
+   "detailRef": "c877d390149c"
+  },
+  {
    "id": "path-literal:0e3f4e0fd929",
    "type": "path-literal",
    "title": "/memoire-tok",
@@ -354464,6 +355479,19 @@
     "src/test/route-wiring.test.ts"
    ],
    "detailRef": "bfc376b56733"
+  },
+  {
+   "id": "path-literal:7ecf1ff7d639",
+   "type": "path-literal",
+   "title": "/photos",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 259,
+   "surface": null,
+   "tags": [
+    "supabase/functions/restaurant-meta-social/index.ts"
+   ],
+   "detailRef": "3ce055a83059"
   },
   {
    "id": "path-literal:dcca78612246",
@@ -364704,7 +365732,7 @@
     "src/pages/dashboard/DashboardActualites.tsx",
     "src/pages/dashboard/DashboardCampagnes.tsx"
    ],
-   "detailRef": "bec1a15d867b"
+   "detailRef": "3d886d50672c"
   },
   {
    "id": "query-parameter:9f3f5f5bed43",
@@ -364718,7 +365746,7 @@
     "src/pages/dashboard/DashboardActualites.tsx",
     "src/pages/dashboard/DashboardCampagnes.tsx"
    ],
-   "detailRef": "6d08997ae1d8"
+   "detailRef": "43a25b718e92"
   },
   {
    "id": "query-parameter:982bbba6d045",
@@ -364841,17 +365869,18 @@
    "detailRef": "9aca35fe924e"
   },
   {
-   "id": "query-parameter:0318368caaa6",
+   "id": "query-parameter:fa74d683c7ec",
    "type": "query-parameter",
    "title": "code",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
-   "path": "supabase/functions/tok-connect-oauth/index.ts",
-   "line": 250,
+   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 149,
    "surface": null,
    "tags": [
+    "supabase/functions/restaurant-meta-social/index.ts",
     "supabase/functions/tok-connect-oauth/index.ts"
    ],
-   "detailRef": "337f3422ef70"
+   "detailRef": "1e8a34908322"
   },
   {
    "id": "query-parameter:c88f989a1f26",
@@ -365002,6 +366031,19 @@
     "src/pages/Auth.tsx"
    ],
    "detailRef": "a7da9c56ee7c"
+  },
+  {
+   "id": "query-parameter:0c6bfd23c488",
+   "type": "query-parameter",
+   "title": "error",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 150,
+   "surface": null,
+   "tags": [
+    "supabase/functions/restaurant-meta-social/index.ts"
+   ],
+   "detailRef": "05ebf75b80e1"
   },
   {
    "id": "query-parameter:4b8ca1ad9f1a",
@@ -365337,6 +366379,19 @@
     "src/lib/push.ts"
    ],
    "detailRef": "7142e86f0c82"
+  },
+  {
+   "id": "query-parameter:b966ce21e1d9",
+   "type": "query-parameter",
+   "title": "meta",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 127,
+   "surface": null,
+   "tags": [
+    "supabase/functions/restaurant-meta-social/index.ts"
+   ],
+   "detailRef": "f4ee6f804e9e"
   },
   {
    "id": "query-parameter:03ba481d9579",
@@ -365815,7 +366870,7 @@
     "src/test/payment-attempt-state.test.ts",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "48195b816109"
+   "detailRef": "4e0b38914819"
   },
   {
    "id": "query-parameter:32944e8d118e",
@@ -365883,17 +366938,18 @@
    "detailRef": "62a417d9045c"
   },
   {
-   "id": "query-parameter:3bfca3e02fd5",
+   "id": "query-parameter:d02d9610916f",
    "type": "query-parameter",
    "title": "state",
-   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
-   "path": "supabase/functions/tok-connect-oauth/index.ts",
-   "line": 222,
+   "description": "Paramètre d’URL détecté dans 4 emplacement(s).",
+   "path": "supabase/functions/restaurant-meta-social/index.ts",
+   "line": 148,
    "surface": null,
    "tags": [
+    "supabase/functions/restaurant-meta-social/index.ts",
     "supabase/functions/tok-connect-oauth/index.ts"
    ],
-   "detailRef": "146dc19e954a"
+   "detailRef": "ab20a123e0ae"
   },
   {
    "id": "query-parameter:380f8a84096d",
@@ -365915,7 +366971,7 @@
     "src/pages/dashboard/DashboardHome.tsx",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "eada54bdc7eb"
+   "detailRef": "b01f5af3d50e"
   },
   {
    "id": "query-parameter:04069271d1b6",

@@ -3,6 +3,7 @@ import { ExternalLink, Facebook, Globe, Instagram, Trash2 } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import RestaurantMetaConnectionsCard from "@/components/dashboard/RestaurantMetaConnectionsCard";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -200,22 +201,24 @@ export default function DashboardReseauxSociaux() {
       <div className="space-y-6">
         <DashboardPageHero
           badge="Présence digitale"
-          title="Reseaux sociaux"
-          description="Centralisez Instagram, Facebook, site web et TikTok pour maintenir une fiche restaurant coherente partout."
+          title="Réseaux sociaux"
+          description="Connectez vos pages professionnelles Facebook et Instagram pour publier depuis TOK, et gérez les liens publics de vos profils."
           icon={Globe}
           tone="sky"
           visualLabel="Social"
           illustration={DASHBOARD_ILLUSTRATIONS.restaurantSocial}
           stats={[
             { label: "Restaurants", value: items.length, icon: Globe },
-            { label: "Profils reliés", value: connectedProfiles, icon: Instagram },
+            { label: "Liens renseignés", value: connectedProfiles, icon: Instagram },
             { label: "Édition", value: form.restaurant_id ? "Active" : "À choisir", icon: Facebook },
           ]}
         />
 
+        <RestaurantMetaConnectionsCard restaurantId={form.restaurant_id || null} disabled={isCommercialDemo} />
+
         <Card>
           <CardHeader>
-            <CardTitle>Connecter vos comptes</CardTitle>
+            <CardTitle>Liens publics des profils (sans autorisation de publication)</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={save} className="space-y-4">
