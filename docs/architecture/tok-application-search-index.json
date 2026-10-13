@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "53717ab988649f377ee283ef6c1a564b0b03cd989a143e7cd8e5fa3e1656cab0",
+ "sourceDigest": "043f38e9c912031b681fe02d7165f6228cff98859988741fda278f2021ec0867",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 202,
   "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3417,
+  "exportedSymbols": 3422,
   "featureFlags": 99,
   "frontendRoutes": 132,
   "integrations": 11,
   "marketingOperations": 36,
   "migrations": 532,
-  "modules": 1514,
+  "modules": 1517,
   "pages": 128,
   "pathLiterals": 650,
   "publicAssets": 462,
   "publicEntries": 487,
   "publicNavigableRoutes": 2,
   "queryParameters": 107,
-  "records": 16211,
-  "repositoryFiles": 2998,
+  "records": 16223,
+  "repositoryFiles": 3001,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -4139,12 +4139,12 @@
     "exports": [
      {
       "name": "ADMIN_TOK_CONNECT_LOG_LIMIT",
-      "line": 24,
+      "line": 26,
       "kind": "variable"
      },
      {
       "name": "default",
-      "line": 138,
+      "line": 141,
       "kind": "function"
      }
     ],
@@ -8876,6 +8876,7 @@
     ],
     "actions": [
      "admin-overview",
+     "admin-restaurants",
      "set-restaurant-mcp-access"
     ],
     "environmentNames": [],
@@ -30816,6 +30817,7 @@
      "src/test/tok-ai-platform-plan.test.ts",
      "src/test/tok-ai-tools.test.ts",
      "src/test/tok-connect-admin-humanized.test.ts",
+     "src/test/tok-connect-admin-pagination.test.ts",
      "src/test/tok-connect-admin-schema-contract.test.ts",
      "src/test/tok-connect-app-bridge.test.ts",
      "src/test/tok-connect-chatgpt-finalization.test.ts",
@@ -83295,6 +83297,19 @@
     "lineCount": 477
    },
    {
+    "path": "src/components/admin/TokConnectCatalogControls.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 17,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 52
+   },
+   {
     "path": "src/components/auth/AccountPasswordForm.tsx",
     "exports": [
      {
@@ -88144,6 +88159,34 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 89
+   },
+   {
+    "path": "src/hooks/useTokConnectAdminCatalog.ts",
+    "exports": [
+     {
+      "name": "TokAdminRestaurant",
+      "line": 3,
+      "kind": "typealias"
+     },
+     {
+      "name": "CatalogCategory",
+      "line": 16,
+      "kind": "typealias"
+     },
+     {
+      "name": "CatalogAccess",
+      "line": 17,
+      "kind": "typealias"
+     },
+     {
+      "name": "useTokConnectAdminCatalog",
+      "line": 28,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 82
    },
    {
     "path": "src/hooks/useTokLogo.ts",
@@ -100309,12 +100352,12 @@
     "exports": [
      {
       "name": "ADMIN_TOK_CONNECT_LOG_LIMIT",
-      "line": 24,
+      "line": 26,
       "kind": "variable"
      },
      {
       "name": "default",
-      "line": 138,
+      "line": 141,
       "kind": "function"
      }
     ],
@@ -100322,7 +100365,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 413
+    "lineCount": 416
    },
    {
     "path": "src/pages/admin/AdminUtilisateurs.tsx",
@@ -106289,6 +106332,15 @@
     "lineCount": 79
    },
    {
+    "path": "src/test/tok-connect-admin-pagination.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 43
+   },
+   {
     "path": "src/test/tok-connect-admin-schema-contract.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -107190,7 +107242,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3196,
+      "line": 3214,
       "kind": "function"
      }
     ],
@@ -107202,7 +107254,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3201
+    "lineCount": 3219
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -111081,7 +111133,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 283
+    "lineCount": 359
    },
    {
     "path": "supabase/functions/tok-connect-api/index.ts",
@@ -116725,6 +116777,11 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/components/admin/TokConnectCatalogControls.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/components/auth/AccountPasswordForm.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
@@ -117836,6 +117893,11 @@
    },
    {
     "path": "src/hooks/useSponsoredImpressionOnView.ts",
+    "category": "frontend-hook",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/hooks/useTokConnectAdminCatalog.ts",
     "category": "frontend-hook",
     "extension": ".ts"
    },
@@ -122416,6 +122478,11 @@
    },
    {
     "path": "src/test/tok-connect-admin-humanized.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-admin-pagination.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -129117,6 +129184,19 @@
    "detailRef": "debbbc5334df"
   },
   {
+   "id": "code-module:0c5529e62dd1",
+   "type": "code-module",
+   "title": "src/components/admin/TokConnectCatalogControls.tsx",
+   "description": "Module de 52 lignes; exports: default.",
+   "path": "src/components/admin/TokConnectCatalogControls.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default"
+   ],
+   "detailRef": "baf7ec908203"
+  },
+  {
    "id": "code-module:51351c02ce3b",
    "type": "code-module",
    "title": "src/components/auth/AccountPasswordForm.tsx",
@@ -132394,6 +132474,22 @@
     "useSponsoredImpressionOnView"
    ],
    "detailRef": "4adc41a1343b"
+  },
+  {
+   "id": "code-module:e59a62afe80d",
+   "type": "code-module",
+   "title": "src/hooks/useTokConnectAdminCatalog.ts",
+   "description": "Module de 82 lignes; exports: TokAdminRestaurant, CatalogCategory, CatalogAccess, useTokConnectAdminCatalog.",
+   "path": "src/hooks/useTokConnectAdminCatalog.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "CatalogAccess",
+    "CatalogCategory",
+    "TokAdminRestaurant",
+    "useTokConnectAdminCatalog"
+   ],
+   "detailRef": "869c3054932a"
   },
   {
    "id": "code-module:85ab9a02d88a",
@@ -138163,7 +138259,7 @@
    "id": "code-module:3bf7067934a6",
    "type": "code-module",
    "title": "src/pages/admin/AdminTokConnect.tsx",
-   "description": "Module de 413 lignes; exports: ADMIN_TOK_CONNECT_LOG_LIMIT, default.",
+   "description": "Module de 416 lignes; exports: ADMIN_TOK_CONNECT_LOG_LIMIT, default.",
    "path": "src/pages/admin/AdminTokConnect.tsx",
    "line": 1,
    "surface": null,
@@ -138172,7 +138268,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "17987264f301"
+   "detailRef": "08e1e080f6e3"
   },
   {
    "id": "code-module:469ce60ccea0",
@@ -145964,6 +146060,19 @@
    "detailRef": "9a7590a9605e"
   },
   {
+   "id": "code-module:3d912d66f0b0",
+   "type": "code-module",
+   "title": "src/test/tok-connect-admin-pagination.test.ts",
+   "description": "Module de 43 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-admin-pagination.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "cae7e4f140d7"
+  },
+  {
    "id": "code-module:c306e2dd9053",
    "type": "code-module",
    "title": "src/test/tok-connect-admin-schema-contract.test.ts",
@@ -146580,7 +146689,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3201 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3219 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -146594,7 +146703,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "45b986c4fa24"
+   "detailRef": "bf576340ab75"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -149255,14 +149364,14 @@
    "id": "code-module:e4c50a0d224d",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-admin/index.ts",
-   "description": "Module de 283 lignes; exports: aucun export statique.",
+   "description": "Module de 359 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-admin/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "7e96426bfdb7"
+   "detailRef": "d1a7f62b90a8"
   },
   {
    "id": "code-module:7c250bdbaa9d",
@@ -229807,6 +229916,20 @@
    "detailRef": "2f3dcb5bba32"
   },
   {
+   "id": "edge-action:d54d985a9a14",
+   "type": "edge-action",
+   "title": "admin-restaurants",
+   "description": "Action statiquement détectée dans la fonction Edge tok-connect-admin.",
+   "path": "supabase/functions/tok-connect-admin/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/tok-connect-admin",
+    "tok-connect-admin"
+   ],
+   "detailRef": "5b29648a435c"
+  },
+  {
    "id": "edge-action:e90e70852be7",
    "type": "edge-action",
    "title": "admin_mappings",
@@ -233119,10 +233242,11 @@
    "tags": [
     "POST",
     "admin-overview",
+    "admin-restaurants",
     "set-restaurant-mcp-access",
     "supabase"
    ],
-   "detailRef": "23e9209e7bd5"
+   "detailRef": "2ce3eca7bdcc"
   },
   {
    "id": "edge-function:d39678843030",
@@ -236117,18 +236241,18 @@
    "detailRef": "936b52ede148"
   },
   {
-   "id": "exported-symbol:6975fdd23e8f",
+   "id": "exported-symbol:7ae8621bfc99",
    "type": "exported-symbol",
    "title": "ADMIN_TOK_CONNECT_LOG_LIMIT",
    "description": "Export variable de src/pages/admin/AdminTokConnect.tsx.",
    "path": "src/pages/admin/AdminTokConnect.tsx",
-   "line": 24,
+   "line": 26,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "ef665cb84e90"
+   "detailRef": "61f8fcd1f25a"
   },
   {
    "id": "exported-symbol:5cd4273fe721",
@@ -239128,6 +239252,32 @@
     "function"
    ],
    "detailRef": "c641decfb13c"
+  },
+  {
+   "id": "exported-symbol:e1dc8f12e1bb",
+   "type": "exported-symbol",
+   "title": "CatalogAccess",
+   "description": "Export typealias de src/hooks/useTokConnectAdminCatalog.ts.",
+   "path": "src/hooks/useTokConnectAdminCatalog.ts",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "2ebb663dd579"
+  },
+  {
+   "id": "exported-symbol:cc451754b1af",
+   "type": "exported-symbol",
+   "title": "CatalogCategory",
+   "description": "Export typealias de src/hooks/useTokConnectAdminCatalog.ts.",
+   "path": "src/hooks/useTokConnectAdminCatalog.ts",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "0f65c051e3d6"
   },
   {
    "id": "exported-symbol:4ff18e4bbaaa",
@@ -255188,6 +255338,19 @@
    "detailRef": "a15eda20885a"
   },
   {
+   "id": "exported-symbol:6ecff8b662ea",
+   "type": "exported-symbol",
+   "title": "TokAdminRestaurant",
+   "description": "Export typealias de src/hooks/useTokConnectAdminCatalog.ts.",
+   "path": "src/hooks/useTokConnectAdminCatalog.ts",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "dbcf1c39abcb"
+  },
+  {
    "id": "exported-symbol:87f201937d01",
    "type": "exported-symbol",
    "title": "TokAiMessage",
@@ -262009,6 +262172,19 @@
    "detailRef": "c31d75e6188a"
   },
   {
+   "id": "exported-symbol:282af76f3648",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/admin/TokConnectCatalogControls.tsx.",
+   "path": "src/components/admin/TokConnectCatalogControls.tsx",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "f6ad11948f69"
+  },
+  {
    "id": "exported-symbol:f6c3e385537b",
    "type": "exported-symbol",
    "title": "default",
@@ -264733,18 +264909,18 @@
    "detailRef": "eeb2f870fc3e"
   },
   {
-   "id": "exported-symbol:5003fe71b8c1",
+   "id": "exported-symbol:4bafcb6cc2d1",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/admin/AdminTokConnect.tsx.",
    "path": "src/pages/admin/AdminTokConnect.tsx",
-   "line": 138,
+   "line": 141,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "501c05f603c3"
+   "detailRef": "845e54510aab"
   },
   {
    "id": "exported-symbol:c8660832f0dc",
@@ -274988,12 +275164,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:2e7fa1934ff2",
+   "id": "exported-symbol:9d5e486ea779",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3196,
+   "line": 3214,
    "surface": null,
    "tags": [
     "firebase",
@@ -275003,7 +275179,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ec44ba1b5b6d"
+   "detailRef": "c62a25ac128f"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -282483,6 +282659,19 @@
     "supabase"
    ],
    "detailRef": "1a412ea41ded"
+  },
+  {
+   "id": "exported-symbol:67b1bc0d841b",
+   "type": "exported-symbol",
+   "title": "useTokConnectAdminCatalog",
+   "description": "Export function de src/hooks/useTokConnectAdminCatalog.ts.",
+   "path": "src/hooks/useTokConnectAdminCatalog.ts",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "93b39dea0752"
   },
   {
    "id": "exported-symbol:0eb5cdbcc623",
@@ -299227,6 +299416,20 @@
    "detailRef": "78119aa064a9"
   },
   {
+   "id": "file:0f1b4d12a4a2",
+   "type": "file",
+   "title": "src/components/admin/TokConnectCatalogControls.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/admin/TokConnectCatalogControls.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "8c5038ea745e"
+  },
+  {
    "id": "file:001e9b963fa1",
    "type": "file",
    "title": "src/components/auth/AccountPasswordForm.tsx",
@@ -302347,6 +302550,20 @@
     "frontend-hook"
    ],
    "detailRef": "2358bb6259c9"
+  },
+  {
+   "id": "file:44cd592fbcf0",
+   "type": "file",
+   "title": "src/hooks/useTokConnectAdminCatalog.ts",
+   "description": "Fichier du dépôt classé frontend-hook.",
+   "path": "src/hooks/useTokConnectAdminCatalog.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "frontend-hook"
+   ],
+   "detailRef": "90605565e8ff"
   },
   {
    "id": "file:8a95f36d6e23",
@@ -315171,6 +315388,20 @@
     "test"
    ],
    "detailRef": "3f66c39a4d2f"
+  },
+  {
+   "id": "file:6a09d3e271e1",
+   "type": "file",
+   "title": "src/test/tok-connect-admin-pagination.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-admin-pagination.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "1785cffd89b0"
   },
   {
    "id": "file:ddc1cd8dc206",
@@ -329698,7 +329929,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 679 module(s).",
+   "description": "Intégration externe détectée dans 680 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -330277,6 +330508,7 @@
     "src/test/tok-ai-platform-plan.test.ts",
     "src/test/tok-ai-tools.test.ts",
     "src/test/tok-connect-admin-humanized.test.ts",
+    "src/test/tok-connect-admin-pagination.test.ts",
     "src/test/tok-connect-admin-schema-contract.test.ts",
     "src/test/tok-connect-app-bridge.test.ts",
     "src/test/tok-connect-chatgpt-finalization.test.ts",
@@ -330384,7 +330616,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "565068021ed0"
+   "detailRef": "337ef34c845c"
   },
   {
    "id": "integration:c20910a79a78",
@@ -339894,7 +340126,7 @@
     "/admin/tok-connect",
     "supabase"
    ],
-   "detailRef": "f5d977b53b68"
+   "detailRef": "2025b5cb462a"
   },
   {
    "id": "page:23fdf92a043b",
