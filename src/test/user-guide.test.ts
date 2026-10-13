@@ -49,7 +49,9 @@ describe("guides d’utilisation TOK", () => {
     }
   });
 
-  it("fournit une fiche détaillée et une capture réelle pour chaque route", () => {
+  it("fournit une fiche détaillée et ne substitue jamais une capture générique à une route", () => {
+    let exactScreenshotCount = 0;
+
     for (const route of TOK_USER_GUIDE_ROUTES) {
       const detail = getRouteGuideDetail(route);
       expect(detail.id).toContain("route:");
@@ -59,9 +61,30 @@ describe("guides d’utilisation TOK", () => {
       expect(detail.steps.length).toBeGreaterThanOrEqual(3);
       expect(detail.expectedResults.length).toBeGreaterThan(0);
       expect(detail.safeguards.length).toBeGreaterThan(0);
-      expect(detail.screenshot.provenance.toLowerCase()).toContain("capture directe");
-      expect(existsSync(path.join(process.cwd(), "public", detail.screenshot.src.replace(/^\//, "")))).toBe(true);
+
+      if (detail.screenshot) {
+        exactScreenshotCount += 1;
+        expect(detail.screenshot.representation).toBe("exact-route");
+        expect(detail.screenshot.capturedRoute).toBe(route.path);
+        expect(detail.screenshot.provenance.toLowerCase()).toContain("capture directe");
+        expect(existsSync(path.join(process.cwd(), "public", detail.screenshot.src.replace(/^\//, "")))).toBe(true);
+      } else {
+        expect(detail.technicalNotes.join(" ")).toContain("aucun visuel générique de remplacement");
+      }
     }
+
+    expect(exactScreenshotCount).toBeGreaterThanOrEqual(30);
+
+    const cart = TOK_USER_GUIDE_ROUTES.find((route) => route.path === "/panier");
+    expect(cart).toBeDefined();
+    const cartDetail = getRouteGuideDetail(cart!);
+    expect(cartDetail.screenshot?.src).toBe("/images/user-guide/routes/panier.png");
+    expect(cartDetail.screenshot?.capturedRoute).toBe("/panier");
+    expect(cartDetail.screenshot?.src).not.toContain("accueil");
+
+    const menu = TOK_USER_GUIDE_ROUTES.find((route) => route.path === "/dashboard/menu");
+    expect(menu).toBeDefined();
+    expect(getRouteGuideDetail(menu!).screenshot).toBeNull();
   });
 
   it("documente chaque outil serveur sans lui inventer une interface autonome", () => {
@@ -70,8 +93,12 @@ describe("guides d’utilisation TOK", () => {
       expect(detail.id).toBe(`tool:${tool.name}`);
       expect(detail.explanation).toContain("n’est pas une page autonome");
       expect(detail.steps.join(" ")).toContain(tool.endpoint);
-      expect(detail.technicalNotes.join(" ")).toContain("ne possède pas d’écran propre");
-      expect(existsSync(path.join(process.cwd(), "public", detail.screenshot.src.replace(/^\//, "")))).toBe(true);
+      expect(detail.technicalNotes.join(" ")).toMatch(/n’est pas présentée comme l’écran de l’endpoint|ne possède pas d’écran autonome/);
+      if (detail.screenshot) {
+        expect(detail.screenshot.representation).toBe("related-surface");
+        expect(detail.screenshot.provenance).toContain("et non capture de l’endpoint lui-même");
+        expect(existsSync(path.join(process.cwd(), "public", detail.screenshot.src.replace(/^\//, "")))).toBe(true);
+      }
     }
   });
 
