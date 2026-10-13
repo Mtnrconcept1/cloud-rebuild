@@ -2785,7 +2785,17 @@ Deno.serve(async (req) => {
                 disputedCharge.currency !== "chf" || disputedCharge.amount !== 500) {
               throw new Error("RESERVATION_COMMISSION_DISPUTE_INTEGRITY_FAILED");
             }
-            if (event.type !== "charge.dispute.closed" || dispute.status !== "won") {
+            if (event.type === "charge.dispute.funds_reinstated") {
+              const { error: restoreError } = await supabaseAdmin.rpc(
+                "restore_restaurant_commission_dispute", {
+                  p_payment_intent_id: paymentIntentId,
+                  p_stripe_mode: "live",
+                },
+              );
+              if (restoreError) throw new Error(
+                "RESERVATION_COMMISSION_REINSTATEMENT_FAILED:" + restoreError.message
+              );
+            } else if (event.type !== "charge.dispute.closed" || dispute.status !== "won") {
               const { error: reversalError } = await supabaseAdmin.rpc(
                 "reverse_restaurant_commission_payment", {
                   p_payment_intent_id: paymentIntentId,
@@ -2797,8 +2807,8 @@ Deno.serve(async (req) => {
                 "RESERVATION_COMMISSION_DISPUTE_RECONCILE_FAILED:" + reversalError.message
               );
             }
-            // Won disputes are not silently recognized as new cash. Reconciliation
-            // must observe reinstated funds before clearing the adjustment.
+            // Won disputes are not silently recognized as new cash. Only
+            // the actual reinstatement event restores the accounting.
             break;
           }
         }
