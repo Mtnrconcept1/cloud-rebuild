@@ -1015,7 +1015,9 @@ export function resolveFlags(rows: FeatureFlagRow[]): FeatureFlag[] {
     return {
       ...definition,
       id: row?.id || definition.name,
-      label: row?.label || definition.label,
+      // The historic database label may still be "Chefs Table". The public
+      // Golden TOK brand name is canonical; preserve the server flag state.
+      label: definition.name === "chefs-table" ? definition.label : (row?.label || definition.label),
       description: row?.description || definition.description,
       isActive: explicitEnabled,
       explicitEnabled,
