@@ -79,7 +79,7 @@ const HOW_IT_WORKS = [
   {
     step: "1",
     title: "Découvrez",
-    desc: "Trouvez un restaurant, une offre Anti-gaspi, une vente flash, une Table du Chef ou un post Actualités près de vous.",
+    desc: "Trouvez un restaurant, une offre Anti-gaspi, une vente flash, une expérience La Tok d’Or ou un post Actualités près de vous.",
     icon: MapPin,
   },
   {
@@ -132,7 +132,7 @@ export default function APropos() {
             Côté client, l'objectif est clair : trouver rapidement une bonne adresse, réserver ou commander sans friction, profiter d'offres locales et construire une relation fidèle avec les restaurants que l'on aime.
           </p>
           <p className="text-foreground/80 leading-relaxed text-lg">
-            Côté restaurant, TOK centralise les opérations : menu, commandes, réservations, campagnes, posts, statistiques, support, factures et services premium comme La Table du Chef ou les tables VIP liées aux Miamz.
+            Côté restaurant, TOK centralise les opérations : menu, commandes, réservations, campagnes, posts, statistiques, support, factures et services premium comme La Tok d’Or ou les tables VIP liées aux Miamz.
           </p>
         </div>
         <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl">

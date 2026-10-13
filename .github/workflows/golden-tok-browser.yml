@@ -1,0 +1,112 @@
+name: Golden TOK responsive browser
+
+on:
+  pull_request:
+    paths:
+      - "src/components/FeatureWizard.tsx"
+      - "src/pages/ChefsTable.tsx"
+      - "src/styles/golden-tok-chefs-table-*.css"
+      - "src/main.tsx"
+      - "scripts/test-golden-tok-responsive.mjs"
+      - ".github/workflows/golden-tok-browser.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  index-sync:
+    name: Regenerate the application's canonical reference index
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'codex/golden-tok-rebased-20261013' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout dedicated PR branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Regenerate index
+        run: pnpm run docs:application-index
+      - name: Commit only generated index files back to PR branch
+        shell: bash
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          if git diff --cached --quiet; then
+            echo "Index already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(index): refresh TOK application reference for Golden TOK"
+          git push origin "HEAD:refs/heads/${PR_HEAD}"
+
+  browser:
+    name: Golden TOK browser (8 device widths)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+      VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build frontend
+        run: pnpm run build
+      - name: Start app for browser checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec vite preview --host 127.0.0.1 --port 4173 > /tmp/golden-tok-vite.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4173/chefs-table > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/golden-tok-vite.log
+          exit 1
+      - name: Run responsive browser and record screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v google-chrome >/dev/null 2>&1; then
+            export CHROME_BIN="$(command -v google-chrome)"
+          elif command -v chromium >/dev/null 2>&1; then
+            export CHROME_BIN="$(command -v chromium)"
+          fi
+          node scripts/test-golden-tok-responsive.mjs
+      - name: Save device screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-tok-responsive-screenshots
+          path: artifacts/golden-tok-responsive/
+          if-no-files-found: warn

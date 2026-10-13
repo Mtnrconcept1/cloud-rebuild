@@ -61,7 +61,7 @@ describe("TOK marketplace finance routing", () => {
 
   it("fails closed for multi-restaurant checkout and prevents it in the cart", () => {
     expect(checkout).toContain("Une session de paiement doit concerner un seul restaurant");
-    expect(checkout).toContain("Une session La Table du Chef doit concerner un seul restaurant");
+    expect(checkout).toContain("Une session La Tok d’Or doit concerner un seul restaurant");
     expect(cart).toContain("Un paiement par restaurant");
   });
 

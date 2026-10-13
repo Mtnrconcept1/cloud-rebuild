@@ -83,7 +83,7 @@ const NAV_SECTIONS: CustomerNavSection[] = [
       { to: "/anti-gaspi", label: "Anti-gaspi", shortLabel: "Anti-gaspi", icon: Heart, feature: "anti-gaspi" },
       { to: "/ventes-flash", label: "Ventes flash", shortLabel: "Flash", icon: Sparkles, feature: "ventes-flash" },
       { to: "/actualites", label: "Actualités", shortLabel: "Actualités", icon: Newspaper, feature: "actualites-sociales" },
-      { to: "/chefs-table", label: "Table du Chef", shortLabel: "Chef", icon: ChefHat, feature: "chefs-table" },
+      { to: "/chefs-table", label: "La Tok d’Or", shortLabel: "Chef", icon: ChefHat, feature: "chefs-table" },
     ],
   },
   {

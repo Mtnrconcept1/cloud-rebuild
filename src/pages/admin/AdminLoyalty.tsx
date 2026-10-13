@@ -562,7 +562,7 @@ export default function AdminLoyalty() {
                       </div>
                       <div className="grid gap-2 sm:grid-cols-2">
                         {[
-                          ["chefTablePriority", "La Table du Chef"],
+                          ["chefTablePriority", "La Tok d’Or"],
                           ["flashEarlyAccess", "Ventes flash en avance"],
                           ["prioritySupport", "Support prioritaire"],
                           ["surpriseOffers", "Offres surprises"],

@@ -992,7 +992,7 @@ const PUBLIC_SEO_PAGES = [
   },
   {
     path: "/chefs-table",
-    title: "La Table du Chef - offres exclusives restaurant | TOK",
+    title: "La Tok d’Or - offres exclusives restaurant | TOK",
     description:
       "Découvrez les plats off-menu, menus limités et expériences exclusives des restaurants partenaires TOK.",
     priority: "0.7",

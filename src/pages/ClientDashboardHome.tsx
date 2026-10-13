@@ -141,7 +141,7 @@ const QUICK_ACTIONS: QuickAction[] = [
     accent: "bg-pink-500/10 text-pink-600",
   },
   {
-    label: "Table du Chef",
+    label: "La Tok d’Or",
     description: "Expériences exclusives",
     to: "/chefs-table",
     icon: ChefHat,

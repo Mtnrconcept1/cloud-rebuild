@@ -66,7 +66,7 @@ export default function DropsManagement() {
       const { error } = await (supabase.rpc as any)("admin_save_chef_table_drop", {
         p_drop_id: editingId,
         p_payload: payload,
-        p_reason: editingId ? "Mise à jour drop La Table du Chef" : "Création drop La Table du Chef",
+        p_reason: editingId ? "Mise à jour drop La Tok d’Or" : "Création drop La Tok d’Or",
       });
       if (error) throw error;
     },
@@ -148,7 +148,7 @@ export default function DropsManagement() {
     <div className="container py-8 space-y-8">
       <DashboardPageHero
         badge="Experiences"
-        title="La Table du Chef"
+        title="La Tok d’Or"
         description="Créez, modifiez et désactivez les expériences exclusives proposées par vos chefs avec une vue claire des drops actifs."
         icon={UtensilsCrossed}
         tone="rose"
@@ -162,7 +162,7 @@ export default function DropsManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{editingId ? "Modifier l'expérience" : "Nouvelle expérience La Table du Chef"}</CardTitle>
+          <CardTitle>{editingId ? "Modifier l'expérience" : "Nouvelle expérience La Tok d’Or"}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
