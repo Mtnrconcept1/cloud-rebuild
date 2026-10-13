@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "9b464e503037cf9bcbfc9cd9fdf5c8388e020ffd6a149c3f79e1ef11f3f611d9",
+ "sourceDigest": "6ecea85d7236e05bb736d73afb26fc5bd23145de60516677027a0b4c4745fd70",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2751,
-  "documents": 202,
+  "documents": 203,
   "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3495,
+  "exportedSymbols": 3506,
   "featureFlags": 99,
   "frontendRoutes": 135,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 533,
-  "modules": 1533,
+  "modules": 1536,
   "pages": 129,
   "pathLiterals": 677,
   "publicAssets": 486,
   "publicEntries": 511,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16417,
-  "repositoryFiles": 3044,
+  "records": 16441,
+  "repositoryFiles": 3048,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 42,
@@ -27178,6 +27178,10 @@
       "line": 69
      },
      {
+      "path": "src/test/marketing-social-editorial.test.ts",
+      "line": 124
+     },
+     {
       "path": "src/test/route-serving-regression.test.ts",
       "line": 14
      },
@@ -30783,6 +30787,7 @@
      "supabase/functions/_shared/incident-intelligence.ts",
      "supabase/functions/_shared/marketing-ai-plan.ts",
      "supabase/functions/_shared/marketing-campaign-request.ts",
+     "supabase/functions/_shared/marketing-social-editorial.ts",
      "supabase/functions/_shared/tok-connect-discovery-widget.ts",
      "supabase/functions/_shared/tok-connect-discovery.ts",
      "supabase/functions/create-reservation/index.ts",
@@ -30859,6 +30864,7 @@
      "src/test/incident-intelligence-unification.test.ts",
      "src/test/incident-secret-sync-readiness.test.ts",
      "src/test/legal-miamz-readiness.test.ts",
+     "src/test/marketing-ai-editorial-provider.test.ts",
      "src/test/marketing-b2b-outreach.test.ts",
      "src/test/marketing-backlink-provider.test.ts",
      "src/test/marketing-brand-references.test.ts",
@@ -31628,6 +31634,7 @@
      "src/test/loyalty-status-dialog-layout.test.tsx",
      "src/test/marketing-agent-bff.test.ts",
      "src/test/marketing-ai-agent.test.ts",
+     "src/test/marketing-ai-editorial-provider.test.ts",
      "src/test/marketing-approval-readiness.test.ts",
      "src/test/marketing-autopilot-sql.test.ts",
      "src/test/marketing-b2b-outreach.test.ts",
@@ -31657,6 +31664,7 @@
      "src/test/marketing-rbarman-admin-access.test.ts",
      "src/test/marketing-runtime-hardening.test.ts",
      "src/test/marketing-service-auth.test.ts",
+     "src/test/marketing-social-editorial.test.ts",
      "src/test/marketing-sql-governance.test.ts",
      "src/test/marketing-subdomain-integration.test.ts",
      "src/test/marketing-visual-allocation.test.ts",
@@ -74281,6 +74289,37 @@
     ]
    },
    {
+    "path": "docs/marketing/SOCIAL_EDITORIAL_POLICY.md",
+    "title": "Légendes des campagnes TOK",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Légendes des campagnes TOK",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Objectif",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Réseaux, hashtags et mentions",
+      "line": 13
+     },
+     {
+      "level": 2,
+      "title": "Liens",
+      "line": 22
+     },
+     {
+      "level": 2,
+      "title": "Sources et maintenance",
+      "line": 41
+     }
+    ]
+   },
+   {
     "path": "docs/marketing/TOK_BRAND_REFERENCES.md",
     "title": "Références visuelles des campagnes TOK",
     "headings": [
@@ -105256,6 +105295,16 @@
     "lineCount": 342
    },
    {
+    "path": "src/test/marketing-ai-editorial-provider.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 79
+   },
+   {
     "path": "src/test/marketing-approval-readiness.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -105645,6 +105694,15 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 60
+   },
+   {
+    "path": "src/test/marketing-social-editorial.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 134
    },
    {
     "path": "src/test/marketing-source-discovery.test.tsx",
@@ -108835,32 +108893,42 @@
      },
      {
       "name": "MarketingPlan",
-      "line": 81,
+      "line": 84,
       "kind": "typealias"
      },
      {
       "name": "buildPlanSchema",
-      "line": 116,
+      "line": 119,
+      "kind": "function"
+     },
+     {
+      "name": "buildGuidedPlanSchema",
+      "line": 208,
+      "kind": "function"
+     },
+     {
+      "name": "validateGuidedPlan",
+      "line": 232,
       "kind": "function"
      },
      {
       "name": "stripEmptySelectors",
-      "line": 205,
+      "line": 263,
       "kind": "function"
      },
      {
       "name": "validatePlan",
-      "line": 228,
+      "line": 286,
       "kind": "function"
      },
      {
       "name": "slugifyCampaignName",
-      "line": 275,
+      "line": 333,
       "kind": "function"
      },
      {
       "name": "toBundlePayload",
-      "line": 293,
+      "line": 351,
       "kind": "function"
      }
     ],
@@ -108869,64 +108937,64 @@
      "google",
      "stripe"
     ],
-    "lineCount": 349
+    "lineCount": 408
    },
    {
     "path": "supabase/functions/_shared/marketing-ai.ts",
     "exports": [
      {
       "name": "MARKETING_CHANNELS",
-      "line": 19,
-      "kind": "re-export"
-     },
-     {
-      "name": "slugifyCampaignName",
-      "line": 20,
-      "kind": "re-export"
-     },
-     {
-      "name": "stripEmptySelectors",
-      "line": 21,
-      "kind": "re-export"
-     },
-     {
-      "name": "toBundlePayload",
       "line": 22,
       "kind": "re-export"
      },
      {
-      "name": "MarketingChannel",
+      "name": "slugifyCampaignName",
       "line": 23,
       "kind": "re-export"
      },
      {
-      "name": "MarketingPlan",
+      "name": "stripEmptySelectors",
       "line": 24,
       "kind": "re-export"
      },
      {
-      "name": "MarketingPlanItem",
+      "name": "toBundlePayload",
       "line": 25,
       "kind": "re-export"
      },
      {
-      "name": "MarketingPostFormat",
+      "name": "MarketingChannel",
       "line": 26,
       "kind": "re-export"
      },
      {
-      "name": "generateCampaignVisual",
+      "name": "MarketingPlan",
+      "line": 27,
+      "kind": "re-export"
+     },
+     {
+      "name": "MarketingPlanItem",
+      "line": 28,
+      "kind": "re-export"
+     },
+     {
+      "name": "MarketingPostFormat",
       "line": 29,
       "kind": "re-export"
      },
      {
+      "name": "generateCampaignVisual",
+      "line": 32,
+      "kind": "re-export"
+     },
+     {
       "name": "MarketingBriefContext",
-      "line": 31,
+      "line": 34,
       "kind": "typealias"
      },
      {
       "name": "generateMarketingPlan",
-      "line": 80,
+      "line": 84,
       "kind": "function"
      }
     ],
@@ -108935,7 +109003,7 @@
      "openai",
      "stripe"
     ],
-    "lineCount": 131
+    "lineCount": 140
    },
    {
     "path": "supabase/functions/_shared/marketing-backlink-discovery.ts",
@@ -109008,83 +109076,83 @@
     "exports": [
      {
       "name": "CAMPAIGN_TEMPLATES",
-      "line": 10,
+      "line": 11,
       "kind": "re-export"
      },
      {
       "name": "CAMPAIGN_TEMPLATE_LABELS",
-      "line": 10,
+      "line": 11,
       "kind": "re-export"
      },
      {
       "name": "CampaignTemplateId",
-      "line": 10,
+      "line": 11,
       "kind": "re-export"
      },
      {
       "name": "CAMPAIGN_FORMAT_SIZES",
-      "line": 12,
-      "kind": "re-export"
-     },
-     {
-      "name": "CAMPAIGN_CADENCE_DAYS",
       "line": 13,
       "kind": "re-export"
      },
      {
-      "name": "GUIDED_CAMPAIGN_CHANNELS",
+      "name": "CAMPAIGN_CADENCE_DAYS",
       "line": 14,
       "kind": "re-export"
      },
      {
-      "name": "MAX_CAMPAIGN_VARIANTS",
+      "name": "GUIDED_CAMPAIGN_CHANNELS",
       "line": 15,
       "kind": "re-export"
      },
      {
-      "name": "MAX_CAMPAIGN_VISUALS",
+      "name": "MAX_CAMPAIGN_VARIANTS",
       "line": 16,
       "kind": "re-export"
      },
      {
-      "name": "CampaignOptionsError",
+      "name": "MAX_CAMPAIGN_VISUALS",
       "line": 17,
       "kind": "re-export"
      },
      {
-      "name": "campaignOptionCounts",
+      "name": "CampaignOptionsError",
       "line": 18,
       "kind": "re-export"
      },
      {
-      "name": "buildCampaignSlots",
+      "name": "campaignOptionCounts",
       "line": 19,
       "kind": "re-export"
      },
      {
-      "name": "CampaignFormat",
+      "name": "buildCampaignSlots",
       "line": 20,
       "kind": "re-export"
      },
      {
-      "name": "CampaignOptions",
+      "name": "CampaignFormat",
       "line": 21,
       "kind": "re-export"
      },
      {
+      "name": "CampaignOptions",
+      "line": 22,
+      "kind": "re-export"
+     },
+     {
       "name": "parseCampaignOptions",
-      "line": 25,
+      "line": 26,
       "kind": "function"
      },
      {
       "name": "applyCampaignOptions",
-      "line": 30,
+      "line": 31,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 43
+    "lineCount": 66
    },
    {
     "path": "supabase/functions/_shared/marketing-campaign-request.ts",
@@ -109213,6 +109281,61 @@
      "supabase"
     ],
     "lineCount": 64
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+    "exports": [
+     {
+      "name": "SOCIAL_EDITORIAL_VERSION",
+      "line": 5,
+      "kind": "variable"
+     },
+     {
+      "name": "TOK_PUBLIC_HOME",
+      "line": 6,
+      "kind": "variable"
+     },
+     {
+      "name": "SOCIAL_EDITORIAL_CATALOG",
+      "line": 8,
+      "kind": "variable"
+     },
+     {
+      "name": "editorialHashtagPool",
+      "line": 31,
+      "kind": "function"
+     },
+     {
+      "name": "cleanGeneratedPublicText",
+      "line": 40,
+      "kind": "function"
+     },
+     {
+      "name": "normalizeEditorialHashtags",
+      "line": 57,
+      "kind": "function"
+     },
+     {
+      "name": "normalizeGeneratedEditorial",
+      "line": 76,
+      "kind": "function"
+     },
+     {
+      "name": "normalizeLegacySocialPlan",
+      "line": 95,
+      "kind": "function"
+     },
+     {
+      "name": "socialEditorialPrompt",
+      "line": 129,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "google"
+    ],
+    "lineCount": 144
    },
    {
     "path": "supabase/functions/_shared/marketing-unsubscribe-secrets.ts",
@@ -114461,6 +114584,11 @@
     "path": "docs/marketing-email-examples/03-rive-droite-soiree.txt",
     "category": "documentation",
     "extension": ".txt"
+   },
+   {
+    "path": "docs/marketing/SOCIAL_EDITORIAL_POLICY.md",
+    "category": "documentation",
+    "extension": ".md"
    },
    {
     "path": "docs/marketing/TOK_BRAND_REFERENCES.md",
@@ -122808,6 +122936,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/marketing-ai-editorial-provider.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/marketing-approval-readiness.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -123021,6 +123154,11 @@
     "path": "src/test/marketing-session-recovery.test.tsx",
     "category": "test",
     "extension": ".tsx"
+   },
+   {
+    "path": "src/test/marketing-social-editorial.test.ts",
+    "category": "test",
+    "extension": ".ts"
    },
    {
     "path": "src/test/marketing-source-discovery.test.tsx",
@@ -124509,6 +124647,11 @@
    },
    {
     "path": "supabase/functions/_shared/marketing-service-auth.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/marketing-social-editorial.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -144507,6 +144650,20 @@
    "detailRef": "f8943a4324a6"
   },
   {
+   "id": "code-module:ed63a6418ea0",
+   "type": "code-module",
+   "title": "src/test/marketing-ai-editorial-provider.test.ts",
+   "description": "Module de 79 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-ai-editorial-provider.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "e25567b556e8"
+  },
+  {
    "id": "code-module:976170c43393",
    "type": "code-module",
    "title": "src/test/marketing-approval-readiness.test.ts",
@@ -145064,6 +145221,19 @@
    "surface": null,
    "tags": [],
    "detailRef": "9219b1ebbcc5"
+  },
+  {
+   "id": "code-module:9ef61d768bcd",
+   "type": "code-module",
+   "title": "src/test/marketing-social-editorial.test.ts",
+   "description": "Module de 134 lignes; exports: aucun export statique.",
+   "path": "src/test/marketing-social-editorial.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "26c1d3fbeef4"
   },
   {
    "id": "code-module:5daf6990c8be",
@@ -148746,7 +148916,7 @@
    "id": "code-module:adb722f71bc6",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "description": "Module de 349 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MarketingPostFormat, MAX_PLAN_ITEMS, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload.",
+   "description": "Module de 408 lignes; exports: MARKETING_CHANNELS, MarketingChannel, MarketingPostFormat, MAX_PLAN_ITEMS, MarketingPlanError, MarketingPlanItem, MarketingPlan, buildPlanSchema, buildGuidedPlanSchema, validateGuidedPlan, stripEmptySelectors, validatePlan, slugifyCampaignName, toBundlePayload.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
    "line": 1,
    "surface": null,
@@ -148758,21 +148928,23 @@
     "MarketingPlanError",
     "MarketingPlanItem",
     "MarketingPostFormat",
+    "buildGuidedPlanSchema",
     "buildPlanSchema",
     "google",
     "slugifyCampaignName",
     "stripEmptySelectors",
     "stripe",
     "toBundlePayload",
+    "validateGuidedPlan",
     "validatePlan"
    ],
-   "detailRef": "ee57becace19"
+   "detailRef": "5b1769d4d7f9"
   },
   {
    "id": "code-module:c71bdc6fa97b",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-ai.ts",
-   "description": "Module de 131 lignes; exports: MARKETING_CHANNELS, slugifyCampaignName, stripEmptySelectors, toBundlePayload, MarketingChannel, MarketingPlan, MarketingPlanItem, MarketingPostFormat, generateCampaignVisual, MarketingBriefContext, generateMarketingPlan.",
+   "description": "Module de 140 lignes; exports: MARKETING_CHANNELS, slugifyCampaignName, stripEmptySelectors, toBundlePayload, MarketingChannel, MarketingPlan, MarketingPlanItem, MarketingPostFormat, generateCampaignVisual, MarketingBriefContext, generateMarketingPlan.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
    "line": 1,
    "surface": null,
@@ -148791,7 +148963,7 @@
     "stripe",
     "toBundlePayload"
    ],
-   "detailRef": "3b7202c90351"
+   "detailRef": "35d289b8a20b"
   },
   {
    "id": "code-module:8f9a90f373f3",
@@ -148842,7 +149014,7 @@
    "id": "code-module:533c93efa951",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "description": "Module de 43 lignes; exports: CAMPAIGN_TEMPLATES, CAMPAIGN_TEMPLATE_LABELS, CampaignTemplateId, CAMPAIGN_FORMAT_SIZES, CAMPAIGN_CADENCE_DAYS, GUIDED_CAMPAIGN_CHANNELS, MAX_CAMPAIGN_VARIANTS, MAX_CAMPAIGN_VISUALS, CampaignOptionsError, campaignOptionCounts, buildCampaignSlots, CampaignFormat, CampaignOptions, parseCampaignOptions, applyCampaignOptions.",
+   "description": "Module de 66 lignes; exports: CAMPAIGN_TEMPLATES, CAMPAIGN_TEMPLATE_LABELS, CampaignTemplateId, CAMPAIGN_FORMAT_SIZES, CAMPAIGN_CADENCE_DAYS, GUIDED_CAMPAIGN_CHANNELS, MAX_CAMPAIGN_VARIANTS, MAX_CAMPAIGN_VISUALS, CampaignOptionsError, campaignOptionCounts, buildCampaignSlots, CampaignFormat, CampaignOptions, parseCampaignOptions, applyCampaignOptions.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
    "line": 1,
    "surface": null,
@@ -148863,7 +149035,7 @@
     "campaignOptionCounts",
     "parseCampaignOptions"
    ],
-   "detailRef": "7287b843b1d5"
+   "detailRef": "3952af2d89ad"
   },
   {
    "id": "code-module:173769cfd3cd",
@@ -148933,6 +149105,28 @@
     "supabase"
    ],
    "detailRef": "12f3f167f750"
+  },
+  {
+   "id": "code-module:32a3bad56cc4",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "description": "Module de 144 lignes; exports: SOCIAL_EDITORIAL_VERSION, TOK_PUBLIC_HOME, SOCIAL_EDITORIAL_CATALOG, editorialHashtagPool, cleanGeneratedPublicText, normalizeEditorialHashtags, normalizeGeneratedEditorial, normalizeLegacySocialPlan, socialEditorialPrompt.",
+   "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "SOCIAL_EDITORIAL_CATALOG",
+    "SOCIAL_EDITORIAL_VERSION",
+    "TOK_PUBLIC_HOME",
+    "cleanGeneratedPublicText",
+    "editorialHashtagPool",
+    "google",
+    "normalizeEditorialHashtags",
+    "normalizeGeneratedEditorial",
+    "normalizeLegacySocialPlan",
+    "socialEditorialPrompt"
+   ],
+   "detailRef": "42f7c13973d2"
   },
   {
    "id": "code-module:8e5e7ac50125",
@@ -211186,6 +211380,20 @@
    "detailRef": "42ca8047352f"
   },
   {
+   "id": "document-section:4673c32f7c2b",
+   "type": "document-section",
+   "title": "Liens",
+   "description": "Section de Légendes des campagnes TOK.",
+   "path": "docs/marketing/SOCIAL_EDITORIAL_POLICY.md",
+   "line": 22,
+   "surface": null,
+   "tags": [
+    "Légendes des campagnes TOK",
+    "h2"
+   ],
+   "detailRef": "b5061602fa02"
+  },
+  {
    "id": "document-section:1129cbba8578",
    "type": "document-section",
    "title": "Lieu",
@@ -211450,6 +211658,20 @@
     "h2"
    ],
    "detailRef": "51673e72e9f4"
+  },
+  {
+   "id": "document-section:39c350deb74b",
+   "type": "document-section",
+   "title": "Légendes des campagnes TOK",
+   "description": "Section de Légendes des campagnes TOK.",
+   "path": "docs/marketing/SOCIAL_EDITORIAL_POLICY.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Légendes des campagnes TOK",
+    "h1"
+   ],
+   "detailRef": "4d3e927fae4a"
   },
   {
    "id": "document-section:f57004a8f7e5",
@@ -212892,6 +213114,20 @@
     "h2"
    ],
    "detailRef": "190c34f286f8"
+  },
+  {
+   "id": "document-section:800e1c312fb2",
+   "type": "document-section",
+   "title": "Objectif",
+   "description": "Section de Légendes des campagnes TOK.",
+   "path": "docs/marketing/SOCIAL_EDITORIAL_POLICY.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "Légendes des campagnes TOK",
+    "h2"
+   ],
+   "detailRef": "fb12f93d97d5"
   },
   {
    "id": "document-section:d838a1bf30c6",
@@ -219124,6 +219360,20 @@
    "detailRef": "3d9651f064f3"
   },
   {
+   "id": "document-section:4065e5441e8e",
+   "type": "document-section",
+   "title": "Réseaux, hashtags et mentions",
+   "description": "Section de Légendes des campagnes TOK.",
+   "path": "docs/marketing/SOCIAL_EDITORIAL_POLICY.md",
+   "line": 13,
+   "surface": null,
+   "tags": [
+    "Légendes des campagnes TOK",
+    "h2"
+   ],
+   "detailRef": "4cb71740a7bb"
+  },
+  {
    "id": "document-section:3763e3b0bb92",
    "type": "document-section",
    "title": "Réservations",
@@ -220312,6 +220562,20 @@
     "h2"
    ],
    "detailRef": "6a74e19a8e40"
+  },
+  {
+   "id": "document-section:5dc2f53d61b9",
+   "type": "document-section",
+   "title": "Sources et maintenance",
+   "description": "Section de Légendes des campagnes TOK.",
+   "path": "docs/marketing/SOCIAL_EDITORIAL_POLICY.md",
+   "line": 41,
+   "surface": null,
+   "tags": [
+    "Légendes des campagnes TOK",
+    "h2"
+   ],
+   "detailRef": "373cad3329dc"
   },
   {
    "id": "document-section:018612d2a68c",
@@ -229220,6 +229484,23 @@
     "Local Git Auto Sync"
    ],
    "detailRef": "e63a78b71252"
+  },
+  {
+   "id": "document:39c350deb74b",
+   "type": "document",
+   "title": "Légendes des campagnes TOK",
+   "description": "Document Markdown avec 5 section(s).",
+   "path": "docs/marketing/SOCIAL_EDITORIAL_POLICY.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Liens",
+    "Légendes des campagnes TOK",
+    "Objectif",
+    "Réseaux, hashtags et mentions",
+    "Sources et maintenance"
+   ],
+   "detailRef": "e0cafe3dbde2"
   },
   {
    "id": "document:37fcb86d1133",
@@ -239993,17 +240274,17 @@
    "detailRef": "0ad7aee21595"
   },
   {
-   "id": "exported-symbol:9d8f366b8604",
+   "id": "exported-symbol:fe279e6b50c5",
    "type": "exported-symbol",
    "title": "CAMPAIGN_CADENCE_DAYS",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 13,
+   "line": 14,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "7469a80499c5"
+   "detailRef": "6dfb5435c5c9"
   },
   {
    "id": "exported-symbol:c94c68d65e06",
@@ -240033,17 +240314,17 @@
    "detailRef": "4dea83b47254"
   },
   {
-   "id": "exported-symbol:d6918b7e9239",
+   "id": "exported-symbol:b51be83a65f5",
    "type": "exported-symbol",
    "title": "CAMPAIGN_FORMAT_SIZES",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 12,
+   "line": 13,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "3dbb7e335709"
+   "detailRef": "c7e78e965e0d"
   },
   {
    "id": "exported-symbol:cf7796b38483",
@@ -240128,17 +240409,17 @@
    "detailRef": "eb73086fa0c8"
   },
   {
-   "id": "exported-symbol:3990a724292a",
+   "id": "exported-symbol:b4177503290f",
    "type": "exported-symbol",
    "title": "CAMPAIGN_TEMPLATES",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 10,
+   "line": 11,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "3ba2e24febff"
+   "detailRef": "2e74cb1d7e1c"
   },
   {
    "id": "exported-symbol:7c7eb759ebeb",
@@ -240154,17 +240435,17 @@
    "detailRef": "6f96009d6f74"
   },
   {
-   "id": "exported-symbol:d09771695d37",
+   "id": "exported-symbol:4d4d90945c76",
    "type": "exported-symbol",
    "title": "CAMPAIGN_TEMPLATE_LABELS",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 10,
+   "line": 11,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "65abb0d59ba1"
+   "detailRef": "d6324ffe0daf"
   },
   {
    "id": "exported-symbol:c468dc4656c2",
@@ -240856,17 +241137,17 @@
    "detailRef": "67afc5090fe5"
   },
   {
-   "id": "exported-symbol:2fe539fdb449",
+   "id": "exported-symbol:a934bdf712a9",
    "type": "exported-symbol",
    "title": "CampaignFormat",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 20,
+   "line": 21,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "b3726862e261"
+   "detailRef": "1b8fd17752e9"
   },
   {
    "id": "exported-symbol:db8889b6b285",
@@ -240923,17 +241204,17 @@
    "detailRef": "362387b927c4"
   },
   {
-   "id": "exported-symbol:3535961dd368",
+   "id": "exported-symbol:a2f1407f7841",
    "type": "exported-symbol",
    "title": "CampaignOptions",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 21,
+   "line": 22,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "28b08dc8f19e"
+   "detailRef": "4b233eb3be79"
   },
   {
    "id": "exported-symbol:299d30faf35c",
@@ -240950,17 +241231,17 @@
    "detailRef": "4cc61c2b4fc1"
   },
   {
-   "id": "exported-symbol:49b22eb88c7f",
+   "id": "exported-symbol:1c433c9c196b",
    "type": "exported-symbol",
    "title": "CampaignOptionsError",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 17,
+   "line": 18,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "5bdc145f4b9f"
+   "detailRef": "bf7875527eec"
   },
   {
    "id": "exported-symbol:bb81ff54feb9",
@@ -241168,17 +241449,17 @@
    "detailRef": "2033771e4a0b"
   },
   {
-   "id": "exported-symbol:50d6812eae3f",
+   "id": "exported-symbol:f3db0f974189",
    "type": "exported-symbol",
    "title": "CampaignTemplateId",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 10,
+   "line": 11,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "87f23367a7c2"
+   "detailRef": "2a23d0660f77"
   },
   {
    "id": "exported-symbol:d28c29540aea",
@@ -246374,17 +246655,17 @@
    "detailRef": "2e3c2392af90"
   },
   {
-   "id": "exported-symbol:efe354fcb6b9",
+   "id": "exported-symbol:a3052ebda641",
    "type": "exported-symbol",
    "title": "GUIDED_CAMPAIGN_CHANNELS",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 14,
+   "line": 15,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "b7aaa3e13271"
+   "detailRef": "4e636c2f7b37"
   },
   {
    "id": "exported-symbol:0e326ed5ad24",
@@ -247856,19 +248137,19 @@
    "detailRef": "876ed4369fc3"
   },
   {
-   "id": "exported-symbol:d15c7bf1a655",
+   "id": "exported-symbol:0820dfe897dd",
    "type": "exported-symbol",
    "title": "MARKETING_CHANNELS",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 19,
+   "line": 22,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "cf7928050a45"
+   "detailRef": "34230d175e8a"
   },
   {
    "id": "exported-symbol:cbe070031e73",
@@ -248163,17 +248444,17 @@
    "detailRef": "63be2fe676cb"
   },
   {
-   "id": "exported-symbol:353a854fa04f",
+   "id": "exported-symbol:c161e43e3ede",
    "type": "exported-symbol",
    "title": "MAX_CAMPAIGN_VARIANTS",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 15,
+   "line": 16,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "be5a696783e8"
+   "detailRef": "dcc67274fa23"
   },
   {
    "id": "exported-symbol:e2c1c93e1f9a",
@@ -248190,17 +248471,17 @@
    "detailRef": "b059845480cd"
   },
   {
-   "id": "exported-symbol:6fb9f53e466c",
+   "id": "exported-symbol:7730306bbfee",
    "type": "exported-symbol",
    "title": "MAX_CAMPAIGN_VISUALS",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 16,
+   "line": 17,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "bda547232bd9"
+   "detailRef": "440849b8c238"
   },
   {
    "id": "exported-symbol:08434483367d",
@@ -249006,19 +249287,19 @@
    "detailRef": "0a6883c5c4e1"
   },
   {
-   "id": "exported-symbol:ec2aa91f92e6",
+   "id": "exported-symbol:a6a1545884f8",
    "type": "exported-symbol",
    "title": "MarketingBriefContext",
    "description": "Export typealias de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 31,
+   "line": 34,
    "surface": null,
    "tags": [
     "openai",
     "stripe",
     "typealias"
    ],
-   "detailRef": "04fdb6fda6f3"
+   "detailRef": "9c5719578adb"
   },
   {
    "id": "exported-symbol:fdeaaf66df64",
@@ -249148,19 +249429,19 @@
    "detailRef": "bc90d62718b3"
   },
   {
-   "id": "exported-symbol:1ed656283e4e",
+   "id": "exported-symbol:40c39f297783",
    "type": "exported-symbol",
    "title": "MarketingChannel",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 23,
+   "line": 26,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "23197946db1d"
+   "detailRef": "7cafed6512b1"
   },
   {
    "id": "exported-symbol:63729798ddad",
@@ -249691,34 +249972,34 @@
    "detailRef": "a131869525f1"
   },
   {
-   "id": "exported-symbol:53754de45528",
+   "id": "exported-symbol:77ab1f31041c",
    "type": "exported-symbol",
    "title": "MarketingPlan",
    "description": "Export typealias de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 81,
+   "line": 84,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "typealias"
    ],
-   "detailRef": "de3056c7f963"
+   "detailRef": "8a1dc81cd3b8"
   },
   {
-   "id": "exported-symbol:d706627572b2",
+   "id": "exported-symbol:2bd444db1dbc",
    "type": "exported-symbol",
    "title": "MarketingPlan",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 24,
+   "line": 27,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "b7b4d4a390b4"
+   "detailRef": "3dd5e89daa25"
   },
   {
    "id": "exported-symbol:65ba0bb31bc8",
@@ -249751,19 +250032,19 @@
    "detailRef": "af3d81cca06c"
   },
   {
-   "id": "exported-symbol:a2b7bf269b8a",
+   "id": "exported-symbol:0c226e385de7",
    "type": "exported-symbol",
    "title": "MarketingPlanItem",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 25,
+   "line": 28,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "0a55bc9c30f7"
+   "detailRef": "5ca6fd71f810"
   },
   {
    "id": "exported-symbol:8be608a2128b",
@@ -249809,19 +250090,19 @@
    "detailRef": "68d3a56609a8"
   },
   {
-   "id": "exported-symbol:a80cf7320ebb",
+   "id": "exported-symbol:7cf2dcb0af8a",
    "type": "exported-symbol",
    "title": "MarketingPostFormat",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 26,
+   "line": 29,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "f160b612815a"
+   "detailRef": "2d605a0578f6"
   },
   {
    "id": "exported-symbol:5eace8a3c30e",
@@ -254413,6 +254694,34 @@
    "detailRef": "eb172c8d5c08"
   },
   {
+   "id": "exported-symbol:2546e8b09bce",
+   "type": "exported-symbol",
+   "title": "SOCIAL_EDITORIAL_CATALOG",
+   "description": "Export variable de supabase/functions/_shared/marketing-social-editorial.ts.",
+   "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "google",
+    "variable"
+   ],
+   "detailRef": "3a12afca8e07"
+  },
+  {
+   "id": "exported-symbol:329d37ee7d15",
+   "type": "exported-symbol",
+   "title": "SOCIAL_EDITORIAL_VERSION",
+   "description": "Export variable de supabase/functions/_shared/marketing-social-editorial.ts.",
+   "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "google",
+    "variable"
+   ],
+   "detailRef": "d623701f91f2"
+  },
+  {
    "id": "exported-symbol:2bfad6baffe2",
    "type": "exported-symbol",
    "title": "SOCIAL_FEED_SCOPES",
@@ -257491,6 +257800,20 @@
    "detailRef": "92d2f36ff048"
   },
   {
+   "id": "exported-symbol:a925843c9bda",
+   "type": "exported-symbol",
+   "title": "TOK_PUBLIC_HOME",
+   "description": "Export variable de supabase/functions/_shared/marketing-social-editorial.ts.",
+   "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "google",
+    "variable"
+   ],
+   "detailRef": "fb4022c83cb2"
+  },
+  {
    "id": "exported-symbol:eb83eacaedd9",
    "type": "exported-symbol",
    "title": "TOK_SANDBOX_DISCOVERY_ROWS",
@@ -259422,17 +259745,17 @@
    "detailRef": "1f74f2523c3a"
   },
   {
-   "id": "exported-symbol:770941daa274",
+   "id": "exported-symbol:b55ee2a2e51b",
    "type": "exported-symbol",
    "title": "applyCampaignOptions",
    "description": "Export function de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 30,
+   "line": 31,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "d16f32aa3c42"
+   "detailRef": "a059e4452c99"
   },
   {
    "id": "exported-symbol:e045066752fb",
@@ -260333,17 +260656,17 @@
    "detailRef": "a53d43873845"
   },
   {
-   "id": "exported-symbol:0273a11a62ab",
+   "id": "exported-symbol:5e7afc7bdff0",
    "type": "exported-symbol",
    "title": "buildCampaignSlots",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 19,
+   "line": 20,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "b9ffbd4c5f3f"
+   "detailRef": "b4b12dd7911a"
   },
   {
    "id": "exported-symbol:0bfb0cc36ac2",
@@ -260942,6 +261265,21 @@
    "detailRef": "b62442f0dff0"
   },
   {
+   "id": "exported-symbol:d22ff500c0c0",
+   "type": "exported-symbol",
+   "title": "buildGuidedPlanSchema",
+   "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 208,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe"
+   ],
+   "detailRef": "76f1110d895a"
+  },
+  {
    "id": "exported-symbol:90386bec05db",
    "type": "exported-symbol",
    "title": "buildHomeRestaurantSections",
@@ -261235,19 +261573,19 @@
    "detailRef": "195e319b6035"
   },
   {
-   "id": "exported-symbol:94934a4a2543",
+   "id": "exported-symbol:17f73440e8e9",
    "type": "exported-symbol",
    "title": "buildPlanSchema",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 116,
+   "line": 119,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "ecdc5d1121d4"
+   "detailRef": "7fb8be50d1bb"
   },
   {
    "id": "exported-symbol:651ae00df605",
@@ -262211,17 +262549,17 @@
    "detailRef": "593348e03ff7"
   },
   {
-   "id": "exported-symbol:a5098b3c85da",
+   "id": "exported-symbol:2e55d518cd86",
    "type": "exported-symbol",
    "title": "campaignOptionCounts",
    "description": "Export re-export de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 18,
+   "line": 19,
    "surface": null,
    "tags": [
     "re-export"
    ],
-   "detailRef": "91ab4645ac6f"
+   "detailRef": "e931899eb2b2"
   },
   {
    "id": "exported-symbol:62c5a84c4f06",
@@ -262786,6 +263124,20 @@
     "function"
    ],
    "detailRef": "543858cedfef"
+  },
+  {
+   "id": "exported-symbol:01983402da2d",
+   "type": "exported-symbol",
+   "title": "cleanGeneratedPublicText",
+   "description": "Export function de supabase/functions/_shared/marketing-social-editorial.ts.",
+   "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "function",
+    "google"
+   ],
+   "detailRef": "528ba9c606cc"
   },
   {
    "id": "exported-symbol:ad0529153901",
@@ -268820,6 +269172,20 @@
    "detailRef": "faade75819c7"
   },
   {
+   "id": "exported-symbol:214e7770b8b7",
+   "type": "exported-symbol",
+   "title": "editorialHashtagPool",
+   "description": "Export function de supabase/functions/_shared/marketing-social-editorial.ts.",
+   "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "function",
+    "google"
+   ],
+   "detailRef": "a984347f2e68"
+  },
+  {
    "id": "exported-symbol:a2ff65f08584",
    "type": "exported-symbol",
    "title": "enablePush",
@@ -270384,19 +270750,19 @@
    "detailRef": "95a6c8c90699"
   },
   {
-   "id": "exported-symbol:15280cc35ce6",
+   "id": "exported-symbol:9c85414b8488",
    "type": "exported-symbol",
    "title": "generateCampaignVisual",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 29,
+   "line": 32,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "b7d736b08085"
+   "detailRef": "993275e67eb9"
   },
   {
    "id": "exported-symbol:06477e6a6e7a",
@@ -270484,19 +270850,19 @@
    "detailRef": "f5c63b8db0dd"
   },
   {
-   "id": "exported-symbol:0425a1c8a8fc",
+   "id": "exported-symbol:5cedbfbf7c3b",
    "type": "exported-symbol",
    "title": "generateMarketingPlan",
    "description": "Export function de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 80,
+   "line": 84,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "stripe"
    ],
-   "detailRef": "2505c89cfff2"
+   "detailRef": "bfe1ef1840a9"
   },
   {
    "id": "exported-symbol:5c4910fc0ae5",
@@ -279143,6 +279509,20 @@
    "detailRef": "99f00a913779"
   },
   {
+   "id": "exported-symbol:d49eae2a8259",
+   "type": "exported-symbol",
+   "title": "normalizeEditorialHashtags",
+   "description": "Export function de supabase/functions/_shared/marketing-social-editorial.ts.",
+   "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "function",
+    "google"
+   ],
+   "detailRef": "064b3c58a9f0"
+  },
+  {
    "id": "exported-symbol:a33893fb4dab",
    "type": "exported-symbol",
    "title": "normalizeExternalHttpsUrl",
@@ -279215,6 +279595,20 @@
    "detailRef": "d2beaee28ff6"
   },
   {
+   "id": "exported-symbol:1b952ac955d4",
+   "type": "exported-symbol",
+   "title": "normalizeGeneratedEditorial",
+   "description": "Export function de supabase/functions/_shared/marketing-social-editorial.ts.",
+   "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "line": 76,
+   "surface": null,
+   "tags": [
+    "function",
+    "google"
+   ],
+   "detailRef": "1d9605c87161"
+  },
+  {
    "id": "exported-symbol:f4d2b2b12d42",
    "type": "exported-symbol",
    "title": "normalizeGeneratedInvoiceCount",
@@ -279239,6 +279633,20 @@
     "function"
    ],
    "detailRef": "385086a2708d"
+  },
+  {
+   "id": "exported-symbol:ec4e4956c91f",
+   "type": "exported-symbol",
+   "title": "normalizeLegacySocialPlan",
+   "description": "Export function de supabase/functions/_shared/marketing-social-editorial.ts.",
+   "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "line": 95,
+   "surface": null,
+   "tags": [
+    "function",
+    "google"
+   ],
+   "detailRef": "d353cb389faa"
   },
   {
    "id": "exported-symbol:9f578a0bc39b",
@@ -279919,17 +280327,17 @@
    "detailRef": "4ec753e81153"
   },
   {
-   "id": "exported-symbol:0311561a4582",
+   "id": "exported-symbol:6ddffe8c4c02",
    "type": "exported-symbol",
    "title": "parseCampaignOptions",
    "description": "Export function de supabase/functions/_shared/marketing-campaign-options.ts.",
    "path": "supabase/functions/_shared/marketing-campaign-options.ts",
-   "line": 25,
+   "line": 26,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "dfb3511872fd"
+   "detailRef": "9a609d2ee2b2"
   },
   {
    "id": "exported-symbol:3ec37cf23869",
@@ -283277,34 +283685,34 @@
    "detailRef": "6a8c9c10b9f2"
   },
   {
-   "id": "exported-symbol:f8ba9ac525ef",
+   "id": "exported-symbol:0ca8f122c783",
    "type": "exported-symbol",
    "title": "slugifyCampaignName",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 275,
+   "line": 333,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "337616d11cdb"
+   "detailRef": "b6fa890d674b"
   },
   {
-   "id": "exported-symbol:e05e3d0ea719",
+   "id": "exported-symbol:618c6a7c7678",
    "type": "exported-symbol",
    "title": "slugifyCampaignName",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 20,
+   "line": 23,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "4d9346c7926a"
+   "detailRef": "3ae4f10a2dc7"
   },
   {
    "id": "exported-symbol:057efeee2f10",
@@ -283318,6 +283726,20 @@
     "function"
    ],
    "detailRef": "e0912b251d99"
+  },
+  {
+   "id": "exported-symbol:d850ba340287",
+   "type": "exported-symbol",
+   "title": "socialEditorialPrompt",
+   "description": "Export function de supabase/functions/_shared/marketing-social-editorial.ts.",
+   "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "line": 129,
+   "surface": null,
+   "tags": [
+    "function",
+    "google"
+   ],
+   "detailRef": "ab2fc58a6de9"
   },
   {
    "id": "exported-symbol:4ade6545880b",
@@ -283404,34 +283826,34 @@
    "detailRef": "e1a5ce22e576"
   },
   {
-   "id": "exported-symbol:90760f74473e",
+   "id": "exported-symbol:61fd6c78e6cb",
    "type": "exported-symbol",
    "title": "stripEmptySelectors",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 205,
+   "line": 263,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "7104087b575a"
+   "detailRef": "130f2296604a"
   },
   {
-   "id": "exported-symbol:17576ce39a27",
+   "id": "exported-symbol:a36f81337f6f",
    "type": "exported-symbol",
    "title": "stripEmptySelectors",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 21,
+   "line": 24,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "bfce149f1dc2"
+   "detailRef": "2358f524937f"
   },
   {
    "id": "exported-symbol:a5ab8f8cf745",
@@ -283736,34 +284158,34 @@
    "detailRef": "193ca02afa50"
   },
   {
-   "id": "exported-symbol:e7f2089859b5",
+   "id": "exported-symbol:789d99f237e8",
    "type": "exported-symbol",
    "title": "toBundlePayload",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 293,
+   "line": 351,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "c31a4ef097f6"
+   "detailRef": "e6005a124574"
   },
   {
-   "id": "exported-symbol:40e027802954",
+   "id": "exported-symbol:ad002ac9bf19",
    "type": "exported-symbol",
    "title": "toBundlePayload",
    "description": "Export re-export de supabase/functions/_shared/marketing-ai.ts.",
    "path": "supabase/functions/_shared/marketing-ai.ts",
-   "line": 22,
+   "line": 25,
    "surface": null,
    "tags": [
     "openai",
     "re-export",
     "stripe"
    ],
-   "detailRef": "3a3831f001a0"
+   "detailRef": "42d94661c13d"
   },
   {
    "id": "exported-symbol:9b03f630711d",
@@ -285892,6 +286314,21 @@
    "detailRef": "4e55f62593b2"
   },
   {
+   "id": "exported-symbol:e59bff94fea8",
+   "type": "exported-symbol",
+   "title": "validateGuidedPlan",
+   "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
+   "path": "supabase/functions/_shared/marketing-ai-plan.ts",
+   "line": 232,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe"
+   ],
+   "detailRef": "ad776a32bd3c"
+  },
+  {
    "id": "exported-symbol:7daf35eaa088",
    "type": "exported-symbol",
    "title": "validateMarketingRequestContext",
@@ -285947,19 +286384,19 @@
    "detailRef": "aac99c9319e2"
   },
   {
-   "id": "exported-symbol:d0f9a2317f50",
+   "id": "exported-symbol:921ae6f33487",
    "type": "exported-symbol",
    "title": "validatePlan",
    "description": "Export function de supabase/functions/_shared/marketing-ai-plan.ts.",
    "path": "supabase/functions/_shared/marketing-ai-plan.ts",
-   "line": 228,
+   "line": 286,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "4ec88855175c"
+   "detailRef": "6c5d1b5c6893"
   },
   {
    "id": "exported-symbol:c88ecd4fb1d2",
@@ -291764,6 +292201,20 @@
     "documentation"
    ],
    "detailRef": "e9304d33a641"
+  },
+  {
+   "id": "file:eee90a66e256",
+   "type": "file",
+   "title": "docs/marketing/SOCIAL_EDITORIAL_POLICY.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/marketing/SOCIAL_EDITORIAL_POLICY.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "445219faa638"
   },
   {
    "id": "file:03b520eebe14",
@@ -315132,6 +315583,20 @@
    "detailRef": "20aa6e5d8151"
   },
   {
+   "id": "file:41e7665c4108",
+   "type": "file",
+   "title": "src/test/marketing-ai-editorial-provider.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-ai-editorial-provider.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "4bc28d6c3434"
+  },
+  {
    "id": "file:0bc355a6f2fd",
    "type": "file",
    "title": "src/test/marketing-approval-readiness.test.ts",
@@ -315732,6 +316197,20 @@
     "test"
    ],
    "detailRef": "1e5cd7dd2f44"
+  },
+  {
+   "id": "file:b826c4bce5e7",
+   "type": "file",
+   "title": "src/test/marketing-social-editorial.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/marketing-social-editorial.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "921d74939b19"
   },
   {
    "id": "file:f15aea4c6e30",
@@ -319904,6 +320383,20 @@
     "edge-function-source"
    ],
    "detailRef": "3b4d14c8b6a4"
+  },
+  {
+   "id": "file:6ffbd346fdf2",
+   "type": "file",
+   "title": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/marketing-social-editorial.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "7666d96ceb30"
   },
   {
    "id": "file:31151f3582c7",
@@ -333043,7 +333536,7 @@
    "id": "integration:5c0229914ab6",
    "type": "integration",
    "title": "Google",
-   "description": "Intégration externe détectée dans 117 module(s).",
+   "description": "Intégration externe détectée dans 118 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -333151,6 +333644,7 @@
     "supabase/functions/_shared/incident-intelligence.ts",
     "supabase/functions/_shared/marketing-ai-plan.ts",
     "supabase/functions/_shared/marketing-campaign-request.ts",
+    "supabase/functions/_shared/marketing-social-editorial.ts",
     "supabase/functions/_shared/tok-connect-discovery-widget.ts",
     "supabase/functions/_shared/tok-connect-discovery.ts",
     "supabase/functions/create-reservation/index.ts",
@@ -333167,13 +333661,13 @@
     "supabase/functions/verify-directory-commercial-names/index.ts",
     "supabase/functions/verify-directory-image-truth/index.ts"
    ],
-   "detailRef": "6b9372957105"
+   "detailRef": "6136f4fdc0d6"
   },
   {
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 116 module(s).",
+   "description": "Intégration externe détectée dans 117 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -333235,6 +333729,7 @@
     "src/test/incident-intelligence-unification.test.ts",
     "src/test/incident-secret-sync-readiness.test.ts",
     "src/test/legal-miamz-readiness.test.ts",
+    "src/test/marketing-ai-editorial-provider.test.ts",
     "src/test/marketing-b2b-outreach.test.ts",
     "src/test/marketing-backlink-provider.test.ts",
     "src/test/marketing-brand-references.test.ts",
@@ -333296,7 +333791,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "316093f3cc45"
+   "detailRef": "7c7a33de7517"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -333624,7 +334119,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 685 module(s).",
+   "description": "Intégration externe détectée dans 687 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -334043,6 +334538,7 @@
     "src/test/loyalty-status-dialog-layout.test.tsx",
     "src/test/marketing-agent-bff.test.ts",
     "src/test/marketing-ai-agent.test.ts",
+    "src/test/marketing-ai-editorial-provider.test.ts",
     "src/test/marketing-approval-readiness.test.ts",
     "src/test/marketing-autopilot-sql.test.ts",
     "src/test/marketing-b2b-outreach.test.ts",
@@ -334072,6 +334568,7 @@
     "src/test/marketing-rbarman-admin-access.test.ts",
     "src/test/marketing-runtime-hardening.test.ts",
     "src/test/marketing-service-auth.test.ts",
+    "src/test/marketing-social-editorial.test.ts",
     "src/test/marketing-sql-governance.test.ts",
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/marketing-visual-allocation.test.ts",
@@ -334316,7 +334813,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "2e1ff4ce8466"
+   "detailRef": "1c0a6d871f3b"
   },
   {
    "id": "integration:c20910a79a78",
@@ -354315,7 +354812,7 @@
    "id": "path-literal:28ec8b0caf24",
    "type": "path-literal",
    "title": "/restaurateurs/alternative-commission-couvert",
-   "description": "Chemin référencé dans 17 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 675,
    "surface": null,
@@ -354330,11 +354827,12 @@
     "src/pages/RestaurateursGeneve.tsx",
     "src/pages/RestaurateursGoogleBusiness.tsx",
     "src/test/b2b-seo-cluster.test.ts",
+    "src/test/marketing-social-editorial.test.ts",
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "9c10caf31cde"
+   "detailRef": "575e9e1f88e9"
   },
   {
    "id": "path-literal:784b13bf4e15",
