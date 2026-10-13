@@ -14,15 +14,27 @@ export function launchRemaining(state: LaunchState | null, now: number) {
   return state?.endsAt == null ? 20 * 86400 : Math.max(0, Math.ceil((state.endsAt - now - state.serverOffset) / 1000));
 }
 const at = (path: string, prefix: string) => path === prefix || path.startsWith(`${prefix}/`);
-const publicExceptions = ['/auth', '/coming-soon', '/cgu', '/politique-confidentialite', '/cookies', '/conditions-restaurateurs'];
-/** Route access only. Database and Edge checks are the security boundary. */
-export function launchRouteAllowed(path: string, roles: UserRole[], resolved: boolean) {
-  if (publicExceptions.some(prefix => at(path, prefix))) return true;
-  if (!resolved) return false;
-  if (roles.includes('admin')) return true;
-  if (at(path, '/dashboard') && roles.includes('restaurateur')) return true;
-  if (at(path, '/courier') && roles.includes('courier')) return true;
-  if (at(path, '/commercial') && roles.includes('commercial')) return true;
-  if (path === '/espaces' && roles.some(role => role !== 'client')) return true;
-  return path === '/parametres/securite';
+type LaunchRouteActor = {
+  authenticated: boolean;
+  role: UserRole | null;
+  roles: UserRole[];
+  rolesResolved: boolean;
+};
+const launchLegalRoutes = ['/cgu', '/politique-confidentialite', '/cookies'];
+const launchAuthRoutes = ['/auth', '/coming-soon'];
+/** UI routing only: Supabase policies and Edge checks remain authoritative. */
+export function launchRouteAllowed(path: string, actor: LaunchRouteActor): boolean {
+  // Before signup, the visitor may freely discover the public application.
+  if (!actor.authenticated) return true;
+  if ([...launchLegalRoutes, ...launchAuthRoutes].some(prefix => at(path, prefix))) return true;
+  if (!actor.rolesResolved) return false;
+  // Separate staff workspaces and the role chooser remain accessible.
+  if (path === '/espaces' && actor.roles.some(role => role !== 'client')) return true;
+  if (at(path, '/admin') && actor.roles.includes('admin')) return true;
+  if (at(path, '/dashboard') && actor.roles.includes('restaurateur')) return true;
+  if (at(path, '/courier') && actor.roles.includes('courier')) return true;
+  if (at(path, '/commercial') && actor.roles.includes('commercial')) return true;
+  // Even a multi-role user choosing the customer surface sees the launch.
+  if (actor.role === 'client' || actor.roles.length === 0 || actor.roles.every(role => role === 'client')) return false;
+  return actor.roles.includes('admin');
 }
