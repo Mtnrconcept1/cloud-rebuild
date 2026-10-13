@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "d9f70d4dd6441c2ff432e4ac7ddfd1537524b89a7d46725b598beb2afbfd16f9",
+ "sourceDigest": "d21c26cd69847cdb12922994719bf9070f1757a60b5d23d110c8958161c054c0",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 202,
   "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3485,
+  "exportedSymbols": 3495,
   "featureFlags": 99,
   "frontendRoutes": 135,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 533,
-  "modules": 1532,
+  "modules": 1533,
   "pages": 129,
-  "pathLiterals": 660,
-  "publicAssets": 469,
-  "publicEntries": 494,
+  "pathLiterals": 677,
+  "publicAssets": 486,
+  "publicEntries": 511,
   "publicNavigableRoutes": 2,
-  "queryParameters": 107,
-  "records": 16353,
-  "repositoryFiles": 3026,
+  "queryParameters": 108,
+  "records": 16417,
+  "repositoryFiles": 3044,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 42,
@@ -3252,7 +3252,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 562,
+      "line": 717,
       "kind": "function"
      }
     ],
@@ -12463,6 +12463,91 @@
     "kind": "media"
    },
    {
+    "route": "/images/user-guide/features/admin-comptabilite.png",
+    "path": "public/images/user-guide/features/admin-comptabilite.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/admin-guardian.png",
+    "path": "public/images/user-guide/features/admin-guardian.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/admin-operations.png",
+    "path": "public/images/user-guide/features/admin-operations.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/admin-overview.png",
+    "path": "public/images/user-guide/features/admin-overview.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/admin-restaurants.png",
+    "path": "public/images/user-guide/features/admin-restaurants.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/admin-utilisateurs.png",
+    "path": "public/images/user-guide/features/admin-utilisateurs.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/authentification.png",
+    "path": "public/images/user-guide/features/authentification.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/centre-aide.png",
+    "path": "public/images/user-guide/features/centre-aide.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/commercial-prospection.png",
+    "path": "public/images/user-guide/features/commercial-prospection.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/contact.png",
+    "path": "public/images/user-guide/features/contact.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/courier-dashboard.png",
+    "path": "public/images/user-guide/features/courier-dashboard.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/marketing-login.png",
+    "path": "public/images/user-guide/features/marketing-login.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/packs-restaurateur.png",
+    "path": "public/images/user-guide/features/packs-restaurateur.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/recherche-desktop.png",
+    "path": "public/images/user-guide/features/recherche-desktop.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/restaurateurs-geneve.png",
+    "path": "public/images/user-guide/features/restaurateurs-geneve.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/tok-connect.png",
+    "path": "public/images/user-guide/features/tok-connect.png",
+    "kind": "media"
+   },
+   {
+    "route": "/images/user-guide/features/zero-attente.png",
+    "path": "public/images/user-guide/features/zero-attente.png",
+    "kind": "media"
+   },
+   {
     "route": "/images/user-guide/recherche-mobile.png",
     "path": "public/images/user-guide/recherche-mobile.png",
     "kind": "media"
@@ -13693,7 +13778,7 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 132
+      "line": 145
      },
      {
       "path": "src/pages/LocalRestaurants.tsx",
@@ -14940,11 +15025,11 @@
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 29
+      "line": 33
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 32
+      "line": 36
      },
      {
       "path": "src/test/vercel-rewrites.test.ts",
@@ -15530,7 +15615,7 @@
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 21
+      "line": 25
      }
     ]
    },
@@ -15996,11 +16081,11 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 136
+      "line": 149
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 552
+      "line": 707
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -19642,7 +19727,7 @@
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 22
+      "line": 26
      },
      {
       "path": "supabase/functions/_shared/order-checkout.ts",
@@ -20031,7 +20116,7 @@
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 28
+      "line": 32
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -21362,15 +21447,15 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 125
+      "line": 138
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 473
+      "line": 628
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 481
+      "line": 636
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -21395,15 +21480,15 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 173
+      "line": 186
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 454
+      "line": 609
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 565
+      "line": 720
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -21436,15 +21521,15 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 156
+      "line": 169
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 454
+      "line": 609
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 564
+      "line": 719
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -23500,6 +23585,10 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 224
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 89
      }
     ]
    },
@@ -23509,6 +23598,10 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 203
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 47
      }
     ]
    },
@@ -23518,6 +23611,163 @@
      {
       "path": "src/data/userGuideContent.ts",
       "line": 217
+     },
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 101
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/admin-comptabilite.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 143
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/admin-guardian.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 137
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/admin-operations.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 131
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/admin-overview.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 113
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/admin-restaurants.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 119
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/admin-utilisateurs.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 125
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/authentification.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 65
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/centre-aide.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 71
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/commercial-prospection.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 149
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/contact.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 77
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/courier-dashboard.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 155
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/marketing-login.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 161
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/packs-restaurateur.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 83
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/recherche-desktop.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 53
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/restaurateurs-geneve.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 59
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/tok-connect.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 107
+     }
+    ]
+   },
+   {
+    "value": "/images/user-guide/features/zero-attente.png",
+    "sources": [
+     {
+      "path": "src/data/userGuideFeatureDetails.ts",
+      "line": 95
      }
     ]
    },
@@ -29137,6 +29387,28 @@
     "routes": []
    },
    {
+    "name": "fonction",
+    "sources": [
+     {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 452
+     },
+     {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 465
+     },
+     {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 471
+     }
+    ],
+    "routes": [
+     "/guide",
+     "/guide/plateforme",
+     "/guide/restaurateur"
+    ]
+   },
+   {
     "name": "format",
     "sources": [
      {
@@ -30432,6 +30704,7 @@
      "src/components/marketing/MarketingShared.tsx",
      "src/components/marketing/views/MarketingFaqView.tsx",
      "src/data/userGuideContent.ts",
+     "src/data/userGuideFeatureDetails.ts",
      "src/hooks/useGoogleBusinessBooking.ts",
      "src/hooks/useSeoMeta.ts",
      "src/lib/admin/auditLogNarrative.ts",
@@ -30733,6 +31006,7 @@
      "src/components/commercial/CommercialMultiSpaceDemo.tsx",
      "src/components/dashboard/CommercialDemoScenario.tsx",
      "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
+     "src/data/userGuideFeatureDetails.ts",
      "src/hooks/useAdminLaunchPacks.ts",
      "src/hooks/useTokOne.ts",
      "src/integrations/supabase/types.ts",
@@ -88401,6 +88675,67 @@
     "lineCount": 268
    },
    {
+    "path": "src/data/userGuideFeatureDetails.ts",
+    "exports": [
+     {
+      "name": "GuideRouteEntry",
+      "line": 6,
+      "kind": "typealias"
+     },
+     {
+      "name": "GuideToolEntry",
+      "line": 7,
+      "kind": "typealias"
+     },
+     {
+      "name": "GuideFeatureScreenshot",
+      "line": 9,
+      "kind": "typealias"
+     },
+     {
+      "name": "GuideFeatureDetail",
+      "line": 16,
+      "kind": "typealias"
+     },
+     {
+      "name": "humanizeGuideLabel",
+      "line": 179,
+      "kind": "function"
+     },
+     {
+      "name": "getGuideRouteTitle",
+      "line": 192,
+      "kind": "function"
+     },
+     {
+      "name": "getGuideRouteAccess",
+      "line": 200,
+      "kind": "function"
+     },
+     {
+      "name": "getGuideToolCategory",
+      "line": 210,
+      "kind": "function"
+     },
+     {
+      "name": "getRouteGuideDetail",
+      "line": 406,
+      "kind": "function"
+     },
+     {
+      "name": "getToolGuideDetail",
+      "line": 441,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "google",
+     "stripe"
+    ],
+    "lineCount": 491
+   },
+   {
     "path": "src/hooks/use-estimated-progress.ts",
     "exports": [
      {
@@ -100482,7 +100817,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 562,
+      "line": 717,
       "kind": "function"
      }
     ],
@@ -100491,7 +100826,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 568
+    "lineCount": 723
    },
    {
     "path": "src/pages/Index.tsx",
@@ -107525,7 +107860,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 48
+    "lineCount": 90
    },
    {
     "path": "src/test/vercel-rewrites.test.ts",
@@ -116673,6 +117008,91 @@
     "extension": ".png"
    },
    {
+    "path": "public/images/user-guide/features/admin-comptabilite.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/admin-guardian.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/admin-operations.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/admin-overview.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/admin-restaurants.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/admin-utilisateurs.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/authentification.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/centre-aide.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/commercial-prospection.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/contact.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/courier-dashboard.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/marketing-login.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/packs-restaurateur.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/recherche-desktop.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/restaurateurs-geneve.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/tok-connect.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
+    "path": "public/images/user-guide/features/zero-attente.png",
+    "category": "public-asset",
+    "extension": ".png"
+   },
+   {
     "path": "public/images/user-guide/recherche-mobile.png",
     "category": "public-asset",
     "extension": ".png"
@@ -119014,6 +119434,11 @@
    },
    {
     "path": "src/data/userGuideContent.ts",
+    "category": "frontend-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/data/userGuideFeatureDetails.ts",
     "category": "frontend-source",
     "extension": ".ts"
    },
@@ -133491,6 +133916,30 @@
    "detailRef": "a925074183fe"
   },
   {
+   "id": "code-module:0f3e1684311e",
+   "type": "code-module",
+   "title": "src/data/userGuideFeatureDetails.ts",
+   "description": "Module de 491 lignes; exports: GuideRouteEntry, GuideToolEntry, GuideFeatureScreenshot, GuideFeatureDetail, humanizeGuideLabel, getGuideRouteTitle, getGuideRouteAccess, getGuideToolCategory, getRouteGuideDetail, getToolGuideDetail.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "GuideFeatureDetail",
+    "GuideFeatureScreenshot",
+    "GuideRouteEntry",
+    "GuideToolEntry",
+    "getGuideRouteAccess",
+    "getGuideRouteTitle",
+    "getGuideToolCategory",
+    "getRouteGuideDetail",
+    "getToolGuideDetail",
+    "google",
+    "humanizeGuideLabel",
+    "stripe"
+   ],
+   "detailRef": "96d64a8f0b75"
+  },
+  {
    "id": "code-module:1928271f37f2",
    "type": "code-module",
    "title": "src/hooks/use-estimated-progress.ts",
@@ -138904,7 +139353,7 @@
    "id": "code-module:c4d59f7cdd08",
    "type": "code-module",
    "title": "src/pages/GuideUtilisateur.tsx",
-   "description": "Module de 568 lignes; exports: default.",
+   "description": "Module de 723 lignes; exports: default.",
    "path": "src/pages/GuideUtilisateur.tsx",
    "line": 1,
    "surface": null,
@@ -138913,7 +139362,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "caf7496d41d1"
+   "detailRef": "803ad73303ee"
   },
   {
    "id": "code-module:8d761926e269",
@@ -147834,14 +148283,14 @@
    "id": "code-module:da69732beead",
    "type": "code-module",
    "title": "src/test/user-guide.test.ts",
-   "description": "Module de 48 lignes; exports: aucun export statique.",
+   "description": "Module de 90 lignes; exports: aucun export statique.",
    "path": "src/test/user-guide.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "stripe"
    ],
-   "detailRef": "e10dc4fce4ed"
+   "detailRef": "c1b83f767f3c"
   },
   {
    "id": "code-module:3581bc9ee271",
@@ -246130,6 +246579,51 @@
    "detailRef": "020a9bc43d26"
   },
   {
+   "id": "exported-symbol:1dd69860b87e",
+   "type": "exported-symbol",
+   "title": "GuideFeatureDetail",
+   "description": "Export typealias de src/data/userGuideFeatureDetails.ts.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "0a56887ec47b"
+  },
+  {
+   "id": "exported-symbol:4790f07cbd3d",
+   "type": "exported-symbol",
+   "title": "GuideFeatureScreenshot",
+   "description": "Export typealias de src/data/userGuideFeatureDetails.ts.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "2f87f5ae485c"
+  },
+  {
+   "id": "exported-symbol:2436aed77581",
+   "type": "exported-symbol",
+   "title": "GuideRouteEntry",
+   "description": "Export typealias de src/data/userGuideFeatureDetails.ts.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "f629a2a76da5"
+  },
+  {
    "id": "exported-symbol:26e519d0d423",
    "type": "exported-symbol",
    "title": "GuideScreenshot",
@@ -246142,6 +246636,21 @@
     "typealias"
    ],
    "detailRef": "2d73d8731905"
+  },
+  {
+   "id": "exported-symbol:f0be37288078",
+   "type": "exported-symbol",
+   "title": "GuideToolEntry",
+   "description": "Export typealias de src/data/userGuideFeatureDetails.ts.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 7,
+   "surface": null,
+   "tags": [
+    "google",
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "14f491f184da"
   },
   {
    "id": "exported-symbol:c2b57d7ce3d6",
@@ -266477,19 +266986,19 @@
    "detailRef": "5d76487d5d73"
   },
   {
-   "id": "exported-symbol:31748228a687",
+   "id": "exported-symbol:a78452a17592",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/GuideUtilisateur.tsx.",
    "path": "src/pages/GuideUtilisateur.tsx",
-   "line": 562,
+   "line": 717,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "1788844f04d2"
+   "detailRef": "92a225e242aa"
   },
   {
    "id": "exported-symbol:90d0b83c1d44",
@@ -271905,6 +272414,51 @@
    "detailRef": "003a7d00d1e9"
   },
   {
+   "id": "exported-symbol:ab3dd245e18f",
+   "type": "exported-symbol",
+   "title": "getGuideRouteAccess",
+   "description": "Export function de src/data/userGuideFeatureDetails.ts.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 200,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe"
+   ],
+   "detailRef": "013945aad6ac"
+  },
+  {
+   "id": "exported-symbol:825abf2949c3",
+   "type": "exported-symbol",
+   "title": "getGuideRouteTitle",
+   "description": "Export function de src/data/userGuideFeatureDetails.ts.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 192,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe"
+   ],
+   "detailRef": "78511ac0698c"
+  },
+  {
+   "id": "exported-symbol:005ad365585a",
+   "type": "exported-symbol",
+   "title": "getGuideToolCategory",
+   "description": "Export function de src/data/userGuideFeatureDetails.ts.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 210,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe"
+   ],
+   "detailRef": "0eef2ccdc6dc"
+  },
+  {
    "id": "exported-symbol:97b5b861f11f",
    "type": "exported-symbol",
    "title": "getInvoiceDetailSourcePresentation",
@@ -273707,6 +274261,21 @@
    "detailRef": "01388ec6fb68"
   },
   {
+   "id": "exported-symbol:2317911d37fa",
+   "type": "exported-symbol",
+   "title": "getRouteGuideDetail",
+   "description": "Export function de src/data/userGuideFeatureDetails.ts.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 406,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe"
+   ],
+   "detailRef": "20f1d2df1c16"
+  },
+  {
    "id": "exported-symbol:f39ff8b670d2",
    "type": "exported-symbol",
    "title": "getSafeTime",
@@ -274493,6 +275062,21 @@
    "detailRef": "916335be58de"
   },
   {
+   "id": "exported-symbol:d7860a14e126",
+   "type": "exported-symbol",
+   "title": "getToolGuideDetail",
+   "description": "Export function de src/data/userGuideFeatureDetails.ts.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 441,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe"
+   ],
+   "detailRef": "e721f5214e4d"
+  },
+  {
    "id": "exported-symbol:40a626b357ce",
    "type": "exported-symbol",
    "title": "getUniqueCustomerCount",
@@ -275012,6 +275596,21 @@
     "function"
    ],
    "detailRef": "a662cada9702"
+  },
+  {
+   "id": "exported-symbol:ba77e9ee3242",
+   "type": "exported-symbol",
+   "title": "humanizeGuideLabel",
+   "description": "Export function de src/data/userGuideFeatureDetails.ts.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 179,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe"
+   ],
+   "detailRef": "42faf914d5cc"
   },
   {
    "id": "exported-symbol:3e5a7e4a9827",
@@ -298293,6 +298892,244 @@
    "detailRef": "7e084342a04a"
   },
   {
+   "id": "file:0b9b03fdc39b",
+   "type": "file",
+   "title": "public/images/user-guide/features/admin-comptabilite.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/admin-comptabilite.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "f1789b1a1b9b"
+  },
+  {
+   "id": "file:47a3c80752cb",
+   "type": "file",
+   "title": "public/images/user-guide/features/admin-guardian.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/admin-guardian.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "481b1da313f0"
+  },
+  {
+   "id": "file:b3912c87d2e2",
+   "type": "file",
+   "title": "public/images/user-guide/features/admin-operations.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/admin-operations.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "3428ab050a70"
+  },
+  {
+   "id": "file:649cb26e1f12",
+   "type": "file",
+   "title": "public/images/user-guide/features/admin-overview.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/admin-overview.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "025f23c1467c"
+  },
+  {
+   "id": "file:0c83a2aeab0b",
+   "type": "file",
+   "title": "public/images/user-guide/features/admin-restaurants.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/admin-restaurants.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "94fcb5842a24"
+  },
+  {
+   "id": "file:d92bbc6c45b6",
+   "type": "file",
+   "title": "public/images/user-guide/features/admin-utilisateurs.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/admin-utilisateurs.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "f4d82e71739d"
+  },
+  {
+   "id": "file:5882d9886e74",
+   "type": "file",
+   "title": "public/images/user-guide/features/authentification.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/authentification.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "1b07fbd65d34"
+  },
+  {
+   "id": "file:0e483e9d8cc5",
+   "type": "file",
+   "title": "public/images/user-guide/features/centre-aide.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/centre-aide.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "7c8a52462794"
+  },
+  {
+   "id": "file:ca618a269ed3",
+   "type": "file",
+   "title": "public/images/user-guide/features/commercial-prospection.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/commercial-prospection.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "ca8440b122df"
+  },
+  {
+   "id": "file:b1395951283b",
+   "type": "file",
+   "title": "public/images/user-guide/features/contact.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/contact.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "2e6a40d1113c"
+  },
+  {
+   "id": "file:09ca1f5d0c8c",
+   "type": "file",
+   "title": "public/images/user-guide/features/courier-dashboard.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/courier-dashboard.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "138c80e4ec2b"
+  },
+  {
+   "id": "file:1e29c9055689",
+   "type": "file",
+   "title": "public/images/user-guide/features/marketing-login.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/marketing-login.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "73b1b0dae431"
+  },
+  {
+   "id": "file:194a64400a2d",
+   "type": "file",
+   "title": "public/images/user-guide/features/packs-restaurateur.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/packs-restaurateur.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "71c21f386a2e"
+  },
+  {
+   "id": "file:e1d01a843dd0",
+   "type": "file",
+   "title": "public/images/user-guide/features/recherche-desktop.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/recherche-desktop.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "80ffdeefc0bc"
+  },
+  {
+   "id": "file:4ab064a5db1c",
+   "type": "file",
+   "title": "public/images/user-guide/features/restaurateurs-geneve.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/restaurateurs-geneve.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "cb6bc04634ec"
+  },
+  {
+   "id": "file:2878a2151ce0",
+   "type": "file",
+   "title": "public/images/user-guide/features/tok-connect.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/tok-connect.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "0d14c6ad9920"
+  },
+  {
+   "id": "file:3c30cc7c3218",
+   "type": "file",
+   "title": "public/images/user-guide/features/zero-attente.png",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/user-guide/features/zero-attente.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".png",
+    "public-asset"
+   ],
+   "detailRef": "dd2321bdaae8"
+  },
+  {
    "id": "file:c3530a1cf12c",
    "type": "file",
    "title": "public/images/user-guide/recherche-mobile.png",
@@ -304857,6 +305694,20 @@
     "frontend-source"
    ],
    "detailRef": "b749f9859a2c"
+  },
+  {
+   "id": "file:9b1f34b76c22",
+   "type": "file",
+   "title": "src/data/userGuideFeatureDetails.ts",
+   "description": "Fichier du dépôt classé frontend-source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "frontend-source"
+   ],
+   "detailRef": "0a640f389faf"
   },
   {
    "id": "file:7da5c82d6d2e",
@@ -332192,7 +333043,7 @@
    "id": "integration:5c0229914ab6",
    "type": "integration",
    "title": "Google",
-   "description": "Intégration externe détectée dans 116 module(s).",
+   "description": "Intégration externe détectée dans 117 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -332221,6 +333072,7 @@
     "src/components/marketing/MarketingShared.tsx",
     "src/components/marketing/views/MarketingFaqView.tsx",
     "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useGoogleBusinessBooking.ts",
     "src/hooks/useSeoMeta.ts",
     "src/lib/admin/auditLogNarrative.ts",
@@ -332315,7 +333167,7 @@
     "supabase/functions/verify-directory-commercial-names/index.ts",
     "supabase/functions/verify-directory-image-truth/index.ts"
    ],
-   "detailRef": "b31fd844d97b"
+   "detailRef": "6b9372957105"
   },
   {
    "id": "integration:672e2c9b82f3",
@@ -332533,7 +333385,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 225 module(s).",
+   "description": "Intégration externe détectée dans 226 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -332561,6 +333413,7 @@
     "src/components/commercial/CommercialMultiSpaceDemo.tsx",
     "src/components/dashboard/CommercialDemoScenario.tsx",
     "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
+    "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useAdminLaunchPacks.ts",
     "src/hooks/useTokOne.ts",
     "src/integrations/supabase/types.ts",
@@ -332765,7 +333618,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "10c975937d9c"
+   "detailRef": "0aed10657bcb"
   },
   {
    "id": "integration:4226c0e68c60",
@@ -343903,7 +344756,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "0343497cd233"
+   "detailRef": "bc6c162d54e8"
   },
   {
    "id": "page:3182d74e0e4c",
@@ -344632,7 +345485,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "286d5a4f89d6"
+   "detailRef": "0f4f90ee0d30"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -345366,7 +346219,7 @@
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/user-guide.test.ts"
    ],
-   "detailRef": "eb8d220ccfa6"
+   "detailRef": "ebde85b889c4"
   },
   {
    "id": "path-literal:1881763b0e39",
@@ -345680,7 +346533,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "804d8932dc63"
+   "detailRef": "2245164739f9"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -345715,7 +346568,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "0bb37f961cc8"
+   "detailRef": "b1bbea46ccf0"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -347483,7 +348336,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "c1481ce14380"
+   "detailRef": "b6393e474031"
   },
   {
    "id": "path-literal:8eb4289e6510",
@@ -347703,7 +348556,7 @@
     "src/test/user-guide.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "0fe93e49b012"
+   "detailRef": "6802461642c0"
   },
   {
    "id": "path-literal:a625ca0f9d33",
@@ -348665,7 +349518,7 @@
     "src/pages/GuideUtilisateur.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "53a012b5bd3e"
+   "detailRef": "5ecff2344e3d"
   },
   {
    "id": "path-literal:b3fde50ddf48",
@@ -348684,7 +349537,7 @@
     "src/pages/GuideUtilisateur.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "6bdb021fb065"
+   "detailRef": "1a83978e1b92"
   },
   {
    "id": "path-literal:0951e3962fc3",
@@ -348704,7 +349557,7 @@
     "src/pages/GuideUtilisateur.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "0b514df57ebd"
+   "detailRef": "8b21653f144a"
   },
   {
    "id": "path-literal:ff548aad270f",
@@ -350839,40 +351692,264 @@
    "id": "path-literal:69430c8d3df6",
    "type": "path-literal",
    "title": "/images/user-guide/abonnement-mobile.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideContent.ts",
    "line": 224,
    "surface": null,
    "tags": [
-    "src/data/userGuideContent.ts"
+    "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "d55e02d06c34"
+   "detailRef": "1fb474e14f8a"
   },
   {
    "id": "path-literal:32985b87365c",
    "type": "path-literal",
    "title": "/images/user-guide/accueil-mobile.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideContent.ts",
    "line": 203,
    "surface": null,
    "tags": [
-    "src/data/userGuideContent.ts"
+    "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "4c3194b40f08"
+   "detailRef": "168bca69f12d"
   },
   {
    "id": "path-literal:51db61899643",
    "type": "path-literal",
    "title": "/images/user-guide/dashboard-restaurateur.png",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/data/userGuideContent.ts",
    "line": 217,
    "surface": null,
    "tags": [
-    "src/data/userGuideContent.ts"
+    "src/data/userGuideContent.ts",
+    "src/data/userGuideFeatureDetails.ts"
    ],
-   "detailRef": "cf393d13dc36"
+   "detailRef": "6a819fce3a9c"
+  },
+  {
+   "id": "path-literal:290a84960aa1",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/admin-comptabilite.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 143,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "efb50b6d928f"
+  },
+  {
+   "id": "path-literal:9b322e2abf09",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/admin-guardian.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 137,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "bc37c6feb9fe"
+  },
+  {
+   "id": "path-literal:1aec0e686b88",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/admin-operations.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 131,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "4c8d5e6b352b"
+  },
+  {
+   "id": "path-literal:31fcde2757e2",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/admin-overview.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 113,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "7444bc06262e"
+  },
+  {
+   "id": "path-literal:1c1c28698315",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/admin-restaurants.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 119,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "d08c051624ce"
+  },
+  {
+   "id": "path-literal:03f74a7ab0f2",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/admin-utilisateurs.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 125,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "9aed3936b6ee"
+  },
+  {
+   "id": "path-literal:b082a9c85e2f",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/authentification.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 65,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "1a33ede6e21c"
+  },
+  {
+   "id": "path-literal:e00b15274a4d",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/centre-aide.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 71,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "47db880787af"
+  },
+  {
+   "id": "path-literal:96d79c626de9",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/commercial-prospection.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 149,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "3b6b7a7b08a9"
+  },
+  {
+   "id": "path-literal:23334f56c692",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/contact.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 77,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "cc96fd7a1255"
+  },
+  {
+   "id": "path-literal:f7efe501f42f",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/courier-dashboard.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 155,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "12fb5e64355c"
+  },
+  {
+   "id": "path-literal:0425bc99016b",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/marketing-login.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 161,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "0f5cea4dc967"
+  },
+  {
+   "id": "path-literal:af806f3f9d6d",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/packs-restaurateur.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 83,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "25c7d0f7dfb0"
+  },
+  {
+   "id": "path-literal:44d5ab1e95b3",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/recherche-desktop.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 53,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "0c7a033bc499"
+  },
+  {
+   "id": "path-literal:2b2d5359c862",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/restaurateurs-geneve.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 59,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "679ab04eb7ec"
+  },
+  {
+   "id": "path-literal:6254e6f033be",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/tok-connect.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 107,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "0aa7d4524423"
+  },
+  {
+   "id": "path-literal:6b1384398be6",
+   "type": "path-literal",
+   "title": "/images/user-guide/features/zero-attente.png",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/data/userGuideFeatureDetails.ts",
+   "line": 95,
+   "surface": null,
+   "tags": [
+    "src/data/userGuideFeatureDetails.ts"
+   ],
+   "detailRef": "cbc2e18a6291"
   },
   {
    "id": "path-literal:b7a7e5720d08",
@@ -359774,6 +360851,244 @@
    "detailRef": "b79b9712e8a4"
   },
   {
+   "id": "public-asset:b4be0825e656",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/admin-comptabilite.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/admin-comptabilite.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "93452d110927"
+  },
+  {
+   "id": "public-asset:6e26e5c646ed",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/admin-guardian.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/admin-guardian.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "9261041c951b"
+  },
+  {
+   "id": "public-asset:ddbf5deef6d2",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/admin-operations.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/admin-operations.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "43cacb7cf78a"
+  },
+  {
+   "id": "public-asset:83aeac9f477c",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/admin-overview.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/admin-overview.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "7cb7b2959f3d"
+  },
+  {
+   "id": "public-asset:a9db0f4c9182",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/admin-restaurants.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/admin-restaurants.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "cf9fb8237be6"
+  },
+  {
+   "id": "public-asset:6d66ae56647e",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/admin-utilisateurs.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/admin-utilisateurs.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "60a4ff3f0c05"
+  },
+  {
+   "id": "public-asset:64bedaf322bb",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/authentification.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/authentification.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "fa967161db1c"
+  },
+  {
+   "id": "public-asset:3406ac873c16",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/centre-aide.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/centre-aide.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "49ffd9ad1a61"
+  },
+  {
+   "id": "public-asset:4c7679a27efe",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/commercial-prospection.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/commercial-prospection.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "cfc5bfd8086a"
+  },
+  {
+   "id": "public-asset:4279825826d5",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/contact.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/contact.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "bf874de12bd2"
+  },
+  {
+   "id": "public-asset:c006e0921b47",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/courier-dashboard.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/courier-dashboard.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "38657ed810a3"
+  },
+  {
+   "id": "public-asset:577725c04d7c",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/marketing-login.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/marketing-login.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "82ac4a2aa4a0"
+  },
+  {
+   "id": "public-asset:27526d8495ba",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/packs-restaurateur.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/packs-restaurateur.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "b500aea7fe55"
+  },
+  {
+   "id": "public-asset:72748c9bcb62",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/recherche-desktop.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/recherche-desktop.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "9dea1ec2c13d"
+  },
+  {
+   "id": "public-asset:d9d0e4ef24fa",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/restaurateurs-geneve.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/restaurateurs-geneve.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "5303a776bac9"
+  },
+  {
+   "id": "public-asset:6e8af550430f",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/tok-connect.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/tok-connect.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "16953d836bd7"
+  },
+  {
+   "id": "public-asset:d2c2ab07c465",
+   "type": "public-asset",
+   "title": "/images/user-guide/features/zero-attente.png",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/user-guide/features/zero-attente.png",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "c54b19adf561"
+  },
+  {
    "id": "public-asset:62140fd6b6b4",
    "type": "public-asset",
    "title": "/images/user-guide/recherche-mobile.png",
@@ -361782,6 +363097,19 @@
     "scripts/app-store-connect-upload-screenshots.mjs"
    ],
    "detailRef": "d5645c5b8401"
+  },
+  {
+   "id": "query-parameter:f8f607a0c2da",
+   "type": "query-parameter",
+   "title": "fonction",
+   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
+   "path": "src/pages/GuideUtilisateur.tsx",
+   "line": 452,
+   "surface": null,
+   "tags": [
+    "src/pages/GuideUtilisateur.tsx"
+   ],
+   "detailRef": "6fa9fbe8182b"
   },
   {
    "id": "query-parameter:364e188ebea8",
