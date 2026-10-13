@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 393 error codes mapped from supabase/functions/**.
+// 394 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -298,7 +298,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "autopilot_plan_fields_required": [
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 961
+      "line": 967
     }
   ],
   "availability_lookup_failed": [
@@ -322,7 +322,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "campaign_preview_fields_required": [
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 911
+      "line": 917
     }
   ],
   "campaign_required": [
@@ -812,7 +812,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "end_user_cancellation_confirmation_required": [
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 602
+      "line": 608
     }
   ],
   "end_user_confirmation_required": [
@@ -1010,7 +1010,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "google_actions_center_route_not_found": [
     {
       "file": "supabase/functions/google-actions-center/index.ts",
-      "line": 1016
+      "line": 1027
     }
   ],
   "google_booking_mapping_missing": [
@@ -1064,11 +1064,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "idempotency_key_in_progress": [
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 415
+      "line": 421
     },
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 619
+      "line": 625
     }
   ],
   "idempotency_key_required": [
@@ -1078,7 +1078,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 597
+      "line": 603
     }
   ],
   "idempotency_key_reused_with_different_arguments": [
@@ -1090,11 +1090,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "idempotency_key_reused_with_different_body": [
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 412
+      "line": 418
     },
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 616
+      "line": 622
     }
   ],
   "image_analysis_provider_not_configured": [
@@ -2306,7 +2306,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "reservation_invalid_state": [
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 691
+      "line": 697
     }
   ],
   "reservation_not_found": [
@@ -2320,15 +2320,15 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 569
+      "line": 575
     },
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 680
+      "line": 686
     },
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 726
+      "line": 732
     }
   ],
   "reservation_preview_fields_required": [
@@ -2557,6 +2557,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
       "line": 870
+    }
+  ],
+  "special_reservation_requires_dedicated_checkout": [
+    {
+      "file": "supabase/functions/tok-connect-api/index.ts",
+      "line": 395
     }
   ],
   "sponsored_touch_identity_conflict": [
@@ -2870,7 +2876,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_reservation_not_owned": [
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 686
+      "line": 692
     }
   ],
   "tok_connect_restaurant_access_required": [
@@ -2892,7 +2898,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_route_not_found": [
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
-      "line": 1073
+      "line": 1079
     }
   ],
   "tok_connect_rpc_not_allowlisted": [

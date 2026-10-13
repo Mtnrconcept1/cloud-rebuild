@@ -277,6 +277,18 @@ describe("production deployment secret scope", () => {
     expect(buildFrontend).toMatch(/needs:\n\s+- validation\n\s+- preflight/);
   });
 
+  it("does not strand validated Supabase payment fixes behind Vercel SEO errors", () => {
+    // Frontend publication still depends on its own build, but a failed
+    // dynamic SEO prerender must not prevent backend-only repairs.
+    expect(deploySupabase).toMatch(/needs:\n\s+- baseline\n\s+- validation\n\s+- preflight\n\s+if:/);
+    expect(deploySupabase).not.toContain("needs.build_frontend.result");
+    expect(deploySupabase).toContain("vars.PRODUCTION_DEPLOY_ENABLED == 'true'");
+    expect(deploySupabase).toContain("needs.validation.result == 'success'");
+    expect(deploySupabase).toContain("needs.preflight.result == 'success'");
+    expect(buildFrontend).toContain("  build_frontend:");
+    expect(workflow).toContain("  deploy_frontend:");
+  });
+
   it("always removes the explicit temporary secrets file without printing it", () => {
     expect(secretEnvironmentNames(cleanupSecrets)).toEqual([]);
     expect(cleanupSecrets).toContain("always()");

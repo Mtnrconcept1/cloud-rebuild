@@ -8,6 +8,7 @@ import {
   RESERVATION_FLAT_FEE_CHF,
 } from "@/lib/fairGrowth";
 import { isHelpCategoryVisible, isHelpQuestionVisible } from "@/lib/featureVisibility";
+import { LEGAL_ACCEPTANCE_VERSION } from "@/lib/legalDocuments";
 
 // These checks intentionally inspect source copy as well as runtime constants:
 // contractual/internal wording must not silently re-enter a public surface.
@@ -107,13 +108,13 @@ describe("public legal and commercial surface", () => {
     expect(tokOne).toContain("price_yearly: 89.9");
   });
 
-  it("keeps restaurant signup validation on the August legal versions", () => {
+  it("keeps restaurant signup validation aligned with current legal versions", () => {
     const validation = source("supabase/functions/submit-signup-application/validation.ts");
     expect(validation).toContain(
       'RESTAURANT_PARTNER_CONTRACT_VERSION = "TOK-CH-RP-2026-08-v7"',
     );
     expect(validation).toContain(
-      'LEGAL_ACCEPTANCE_VERSION = "cgu-2026-08-v5+privacy-2026-08-v5"',
+      `LEGAL_ACCEPTANCE_VERSION = "${LEGAL_ACCEPTANCE_VERSION}"`,
     );
     expect(validation).not.toContain("TOK-CH-RP-2026-07-v6");
     expect(validation).not.toContain("cgu-2026-07-v4+privacy-2026-07-v4");

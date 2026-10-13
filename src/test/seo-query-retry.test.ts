@@ -55,4 +55,14 @@ describe("SEO build PostgREST recovery", () => {
     expect(prerender).toContain("ACTUALITES_PRERENDER_BATCH_SIZE = 100");
     expect(prerender).toContain("if (STRICT_DYNAMIC_SEO) throw failure");
   });
+  it("preserves launch-closed protections on both restaurant and Actualités SEO surfaces", () => {
+    const prerender = read("scripts/prerender-seo.mjs");
+    expect(prerender).toContain('if (source === "restaurants" && isActualitesLaunchClosed(cause))');
+    expect(prerender).toContain("restaurantsClosedByLaunchGate = true");
+    expect(prerender).toContain("actualitesClosedByLaunchGate = true");
+    expect(prerender).toContain("if (isActualitesLaunchClosed(error))");
+    expect(prerender).toContain('!restaurantsClosedByLaunchGate || !page.path.startsWith("/restaurants")');
+    expect(prerender).toContain('!actualitesClosedByLaunchGate || page.path !== "/actualites"');
+  });
+
 });

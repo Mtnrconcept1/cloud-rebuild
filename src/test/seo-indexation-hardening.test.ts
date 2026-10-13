@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
+import { formatSeoReadError } from "../../scripts/seo-query-retry.mjs";
 
 function read(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
@@ -262,6 +263,17 @@ describe("SEO indexation and crawler hardening", () => {
       expect(redirect?.destination).toBe("/sitemap.xml");
       expect(redirect?.permanent).toBe(true);
     }
+  });
+
+  it("surfaces structured PostgREST errors without weakening strict SEO builds", () => {
+    const prerender = read("scripts/prerender-seo.mjs");
+    const error = formatSeoReadError({ code: "42501", message: "permission denied for relation" });
+    expect(error).toContain("code=42501");
+    expect(error).toContain("permission denied");
+    expect(error).not.toContain("[object Object]");
+    expect(prerender).toContain("const detail = formatSeoReadError(cause).slice(0, 240)");
+    expect(prerender).toContain("if (STRICT_DYNAMIC_SEO) throw failure");
+    expect(prerender).not.toContain("console.warn(JSON.stringify(cause))");
   });
 
   it("bounds the public Supabase catalog query before invoking its private implementation", () => {
