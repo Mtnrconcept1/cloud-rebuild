@@ -193,9 +193,6 @@ function isKnownPublicRoute(path: string) {
     "/restaurateurs/google-business",
     "/restaurateurs/alternative-commission-couvert",
     "/aide",
-    "/guide",
-    "/guide/restaurateur",
-    "/guide/plateforme",
   ].includes(path);
 }
 

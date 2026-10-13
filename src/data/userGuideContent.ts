@@ -259,7 +259,6 @@ export const RESTAURANT_PUBLIC_ROUTES = new Set([
   "/restaurateurs/alternative-commission-couvert",
   "/contact",
   "/aide",
-  "/guide/restaurateur",
 ]);
 
 export function isRestaurantGuideRoute(route: { surface: string; path: string }) {

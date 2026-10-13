@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import {
   ArrowRight,
   BookOpen,
-  Boxes,
   CameraOff,
   CheckCircle2,
   ClipboardCheck,
+  Download,
   ChevronRight,
   Code2,
   Filter,
@@ -18,7 +18,6 @@ import {
   Search,
   ServerCog,
   ShieldCheck,
-  Store,
   X,
 } from "lucide-react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
@@ -33,6 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
+import { buildGuidePdf, downloadGuidePdf } from "@/lib/guidePdf";
 import {
   TOK_USER_GUIDE_META,
   TOK_USER_GUIDE_ROUTES,
@@ -131,79 +131,6 @@ function getToolSummary(tool: ToolEntry) {
     ? ` Connexions : ${tool.integrations.map((name) => humanize(name)).join(", ")}.`
     : "";
   return `Service applicatif ${tool.methods.join(" / ") || "interne"}.${actions}${integrations}`;
-}
-
-function GuideChoice() {
-  useSeoMeta({
-    title: "Guides d’utilisation TOK",
-    description: "Choisissez le guide restaurateur ou la documentation complète de la plateforme TOK.",
-    path: "/guide",
-  });
-
-  return (
-    <div className="min-h-screen bg-[#f7f7f8] text-slate-950 dark:bg-slate-950 dark:text-slate-50">
-      <header className="border-b bg-white/95 dark:bg-slate-950/95">
-        <div className="container flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
-          <Link to="/" className="flex items-center gap-3 font-black tracking-tight">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ff6a1a] text-white">TOK</span>
-            Documentation
-          </Link>
-          <Link to="/aide" className="text-sm font-semibold text-slate-600 hover:text-[#ff6a1a] dark:text-slate-300">
-            Centre d’aide
-          </Link>
-        </div>
-      </header>
-
-      <main className="container max-w-6xl px-4 py-16 md:px-6 md:py-24">
-        <div className="mx-auto max-w-3xl text-center">
-          <Badge className="mb-5 rounded-full bg-orange-100 px-4 py-2 text-orange-800 hover:bg-orange-100">
-            Manuel de référence TOK
-          </Badge>
-          <h1 className="font-display text-4xl font-black tracking-tight md:text-6xl">Choisissez votre guide</h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-300">
-            Deux documentations distinctes, avec navigation hiérarchique, captures de l’application,
-            recherche instantanée et filtres par catégorie.
-          </p>
-        </div>
-
-        <section className="mt-12 grid gap-6 md:grid-cols-2" aria-label="Choix du guide">
-          <Link
-            to="/guide/restaurateur"
-            className="group rounded-3xl border border-orange-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:border-orange-400 hover:shadow-xl dark:border-orange-500/30 dark:bg-slate-900"
-          >
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
-              <Store className="h-7 w-7" />
-            </span>
-            <h2 className="mt-6 text-2xl font-black">Guide restaurateur</h2>
-            <p className="mt-3 leading-relaxed text-slate-600 dark:text-slate-300">
-              Un parcours concentré sur le restaurant : installation, carte, commandes, réservations,
-              campagnes, performances, factures et support. Aucun contenu d’administration de plateforme.
-            </p>
-            <span className="mt-6 inline-flex items-center gap-2 font-bold text-orange-700 dark:text-orange-300">
-              Ouvrir le guide <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-            </span>
-          </Link>
-
-          <Link
-            to="/guide/plateforme"
-            className="group rounded-3xl border border-violet-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:border-violet-400 hover:shadow-xl dark:border-violet-500/30 dark:bg-slate-900"
-          >
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
-              <Boxes className="h-7 w-7" />
-            </span>
-            <h2 className="mt-6 text-2xl font-black">Guide complet de la plateforme</h2>
-            <p className="mt-3 leading-relaxed text-slate-600 dark:text-slate-300">
-              Une vue de diligence pour un futur acquéreur : toutes les surfaces, toutes les routes,
-              l’administration, les outils serveur et les principales intégrations.
-            </p>
-            <span className="mt-6 inline-flex items-center gap-2 font-bold text-violet-700 dark:text-violet-300">
-              Explorer la plateforme <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-            </span>
-          </Link>
-        </section>
-      </main>
-    </div>
-  );
 }
 
 function GuideSidebar({ audience, chapters }: { audience: Audience; chapters: readonly GuideChapter[] }) {
@@ -650,14 +577,14 @@ function SearchIndex({ audience }: { audience: Audience }) {
 function GuidePage({ audience }: { audience: Audience }) {
   const isRestaurant = audience === "restaurant";
   const chapters = isRestaurant ? RESTAURANT_GUIDE_CHAPTERS : BUYER_GUIDE_CHAPTERS;
-  const title = isRestaurant ? "Guide restaurateur TOK" : "Guide complet de la plateforme TOK";
-  const path = isRestaurant ? "/guide/restaurateur" : "/guide/plateforme";
+  const title = isRestaurant ? "Guide restaurateur TOK" : "Guide administrateur TOK";
+  const path = isRestaurant ? "/dashboard/guide" : "/admin/guide";
 
   useSeoMeta({
     title,
     description: isRestaurant
       ? "Mode d’emploi TOK réservé aux restaurateurs : outils, captures, recherche et parcours opérationnels, sans contenu d’administration."
-      : "Référence complète TOK destinée à la diligence d’un futur acquéreur : surfaces, routes, administration, outils serveur et intégrations.",
+      : "Documentation interne de l’administration TOK : rôles, surfaces, fonctions, supervision, outils serveur et intégrations.",
     path,
   });
 
@@ -665,12 +592,66 @@ function GuidePage({ audience }: { audience: Audience }) {
     ? TOK_USER_GUIDE_ROUTES.filter(isRestaurantGuideRoute).length
     : TOK_USER_GUIDE_META.routeCount;
 
+  const exportPdf = () => {
+    const sections: { title: string; lines: string[] }[] = chapters.map((chapter) => ({
+      title: chapter.title,
+      lines: [
+        chapter.summary, "",
+        ...chapter.steps.map((step, index) => `${index + 1}. ${step}`),
+        "", `Parcours associes : ${chapter.routes.join(", ")}`,
+      ],
+    }));
+    const routes = TOK_USER_GUIDE_ROUTES.filter((route) => !isRestaurant || isRestaurantGuideRoute(route));
+    for (const surface of [...new Set(routes.map((route) => route.surface))]) {
+      const entries = routes.filter((route) => route.surface === surface);
+      sections.push({
+        title: `Index des pages - ${SURFACE_LABELS[surface] || surface}`,
+        lines: entries.flatMap((route) => {
+          const detail = getRouteGuideDetail(route);
+          return [
+            `${route.path} - ${getRouteTitle(route)} (${getRouteAccess(route)})`,
+            detail.purpose,
+            ...detail.steps.map((step, index) => `  ${index + 1}. ${step}`),
+            `Resultat attendu : ${detail.expectedResults.join("; ")}`,
+            "",
+          ];
+        }),
+      });
+    }
+    if (!isRestaurant) {
+      for (const category of [...new Set(TOK_USER_GUIDE_TOOLS.map(getToolCategory))]) {
+        const tools = TOK_USER_GUIDE_TOOLS.filter((tool) => getToolCategory(tool) === category);
+        sections.push({
+          title: `Outils serveur - ${category}`,
+          lines: tools.flatMap((tool) => {
+            const detail = getToolGuideDetail(tool);
+            return [
+              `${tool.name} - ${tool.endpoint}`,
+              detail.purpose,
+              ...detail.steps.map((step, index) => `  ${index + 1}. ${step}`),
+              `Vigilance : ${detail.safeguards.join("; ")}`,
+              "",
+            ];
+          }),
+        });
+      }
+    }
+    const bytes = buildGuidePdf({
+      title,
+      subtitle: isRestaurant
+        ? "Manuel opérationnel, accessible depuis le dashboard restaurateur."
+        : "Documentation interne, accessible depuis le dashboard administrateur.",
+      sections,
+    });
+    downloadGuidePdf(bytes, isRestaurant ? "TOK_Guide_Restaurateur.pdf" : "TOK_Guide_Administrateur.pdf");
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f7f8] text-slate-950 dark:bg-slate-950 dark:text-slate-50">
       <header className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur dark:bg-slate-950/95">
         <div className="container flex min-h-16 max-w-[92rem] items-center justify-between gap-4 px-4 py-3 md:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <Link to="/guide" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ff6a1a] text-sm font-black text-white">TOK</Link>
+            <Link to={isRestaurant ? "/dashboard" : "/admin"} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ff6a1a] text-sm font-black text-white">TOK</Link>
             <div className="min-w-0">
               <p className="truncate text-sm font-black">{title}</p>
               <p className="hidden text-xs text-slate-500 sm:block">Documentation de référence</p>
@@ -678,7 +659,10 @@ function GuidePage({ audience }: { audience: Audience }) {
           </div>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <Link to="/guide">Changer de guide</Link>
+              <Link to={isRestaurant ? "/dashboard" : "/admin"}>Revenir au dashboard</Link>
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={exportPdf}>
+              <Download className="mr-2 h-4 w-4" /> Télécharger le PDF
             </Button>
             <Button asChild size="sm" className="bg-[#ff6a1a] text-white hover:bg-[#e85a0a]">
               <a href="#index"><Search className="mr-2 h-4 w-4" /> Rechercher</a>
@@ -700,7 +684,7 @@ function GuidePage({ audience }: { audience: Audience }) {
               <p className="mt-5 max-w-3xl text-lg leading-relaxed text-slate-600 dark:text-slate-300">
                 {isRestaurant
                   ? "Le mode d’emploi opérationnel pour configurer votre établissement, gérer le service et développer votre activité, du menu à la facturation."
-                  : "La cartographie fonctionnelle de TOK pour comprendre chaque surface, chaque route et les outils serveur qui soutiennent l’application, y compris le back-office d’administration."}
+                  : "Manuel complet réservé aux administrateurs TOK : supervision, opérations, risques, surfaces applicatives et inventaire des outils serveur."}
               </p>
               <div className="mt-7 flex flex-wrap gap-3 text-sm font-bold">
                 <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm dark:bg-slate-950"><Map className="h-4 w-4 text-[#ff6a1a]" /> {routeCount} routes couvertes</span>
@@ -761,7 +745,7 @@ function GuidePage({ audience }: { audience: Audience }) {
 
 export default function GuideUtilisateur() {
   const { pathname } = useLocation();
-  if (pathname === "/guide/restaurateur") return <GuidePage audience="restaurant" />;
-  if (pathname === "/guide/plateforme") return <GuidePage audience="buyer" />;
-  return <GuideChoice />;
+  if (pathname === "/dashboard/guide") return <GuidePage audience="restaurant" />;
+  if (pathname === "/admin/guide") return <GuidePage audience="buyer" />;
+  return null;
 }
