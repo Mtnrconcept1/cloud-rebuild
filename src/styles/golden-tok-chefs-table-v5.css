@@ -576,3 +576,50 @@ html.dark body [data-golden-tok-chefs-table] .golden-tok-content article .text-m
     transition: none !important;
   }
 }
+
+
+/* Final specificity correction: older theme/hero layers have more specific
+   !important declarations. Ensure the approved cream-to-photo composition wins. */
+html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading,
+html.dark body [data-golden-tok-chefs-table] .golden-tok-heading {
+  background-image:
+    linear-gradient(90deg, #fffdf8 0%, rgba(255,253,248,.995) 27%,
+      rgba(255,253,248,.96) 39%, rgba(255,253,248,.68) 53%,
+      rgba(255,253,248,.12) 73%, rgba(255,253,248,0) 100%),
+    url('/Image%20Codex%203%20sept.%202026,%2011_06_16.png') !important;
+  background-position: center, 65% center !important;
+  background-size: cover, cover !important;
+}
+
+/* Previous V2 decoration covered all the text inside the compact benefit strip. */
+html body [data-golden-tok-chefs-table] .golden-tok-benefit::after {
+  display: none !important;
+  content: none !important;
+}
+html body [data-golden-tok-chefs-table] .golden-tok-stage::after {
+  display: none !important;
+  content: none !important;
+}
+
+@media (max-width: 820px) {
+  html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading,
+  html.dark body [data-golden-tok-chefs-table] .golden-tok-heading {
+    background-image:
+      linear-gradient(180deg, #fffdf8 0%, rgba(255,253,248,.995) 23%,
+        rgba(255,253,248,.94) 39%, rgba(255,253,248,.55) 56%,
+        rgba(255,253,248,.07) 73%, rgba(29,20,10,.15) 100%),
+      url('/Image%20Codex%203%20sept.%202026,%2011_06_16.png') !important;
+    background-position: center, 61% 56% !important;
+  }
+}
+@media (max-width: 600px) {
+  html:not(.dark) body [data-golden-tok-chefs-table] .golden-tok-heading,
+  html.dark body [data-golden-tok-chefs-table] .golden-tok-heading {
+    background-image:
+      linear-gradient(180deg, #fffdf8 0%, rgba(255,253,248,.995) 28%,
+        rgba(255,253,248,.97) 43%, rgba(255,253,248,.75) 56%,
+        rgba(255,253,248,.12) 72%, rgba(29,20,10,.15) 100%),
+      url('/Image%20Codex%203%20sept.%202026,%2011_06_16.png') !important;
+    background-position: center, 60% 60% !important;
+  }
+}

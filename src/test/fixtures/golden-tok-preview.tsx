@@ -38,7 +38,7 @@ createRoot(document.getElementById("root")!).render(
       <div className="space-y-8">
         <div id="la-tok-dor-offres" className="rounded-2xl border border-amber-200 bg-white p-5 text-stone-800">
           <p className="text-xs uppercase tracking-widest text-amber-700">GOLDEN TOK — COLLECTION LIMITÉE</p>
-          <h2 className="mt-2 font-serif text-2xl">Les créations disponibles</h2>
+          <h2 className="mt-2 font-serif text-2xl text-white">Les créations disponibles</h2>
           <p className="mt-2 text-sm">Consultez les expériences exclusives des restaurants partenaires.</p>
         </div>
       </div>

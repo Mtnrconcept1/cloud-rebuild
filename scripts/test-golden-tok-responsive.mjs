@@ -54,6 +54,9 @@ async function main() {
             horizontalOverflow: document.documentElement.scrollWidth - window.innerWidth,
             anchor: action?.getAttribute("href"),
             targetPresent: !!root?.querySelector("#la-tok-dor-offres"),
+            veilPresent: hero ? getComputedStyle(hero).backgroundImage.includes("linear-gradient") : false,
+            benefitsAreText: Array.from(root?.querySelectorAll(".golden-tok-benefit") || []).every((node) => getComputedStyle(node, "::after").display === "none"),
+            legacyTrustBarHidden: root ? getComputedStyle(root.querySelector(".golden-tok-stage"), "::after").display === "none" : false,
           };
         });
         const checks = {
@@ -68,6 +71,9 @@ async function main() {
           headingFits: (metrics.heading?.left || 0) >= 0 && (metrics.heading?.right || Infinity) <= viewport.width + 2,
           actionFits: (metrics.action?.left || 0) >= 0 && (metrics.action?.right || Infinity) <= viewport.width + 2,
           noBrowserError: errors.length === 0,
+          readablePhotoTransition: metrics.veilPresent,
+          unclutteredBenefitStrip: metrics.benefitsAreText,
+          noLegacyTrustBar: metrics.legacyTrustBarHidden,
         };
         await page.screenshot({ path: resolve(OUTPUT_DIR, viewport.name + ".png"), fullPage: true });
         console.log(JSON.stringify({ viewport: viewport.name, width: viewport.width, checks, metrics, errors }));
