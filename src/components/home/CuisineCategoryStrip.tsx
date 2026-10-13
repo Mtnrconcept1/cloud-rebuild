@@ -10,9 +10,10 @@ type CuisineCategory = {
   imageSrc: string;
 };
 
-// Visuels carrés avec intitulé intégré. Les autres catégories gardent leur ancien rendu.
+// Les miniatures 3D contiennent leur libellé : ne pas l’afficher une seconde fois en HTML.
 const CATEGORIES_3D = new Set([
-  "chinois", "creole", "suisse", "francais", "gastronomique", "grillades",
+  "africain", "americain", "bistro", "boulangerie", "brunch",
+  "burger", "cafe", "desserts", "italien", "chinois", "creole", "suisse", "francais", "gastronomique", "grillades",
   "halal", "healthy", "indien", "japonais", "kebab", "libanais",
   "marocain", "mediterraneen", "mexicain", "pakistanais", "pates",
   "patisserie", "petit-dejeuner", "pizza", "poke", "ramen",
@@ -69,7 +70,7 @@ function CuisinePhoto({ src, label, isActive, hasIntegratedLabel }: { src: strin
   return (
     <span
       className={[
-        "flex h-20 w-20 items-center justify-center rounded-[20px] border bg-background shadow-[0_6px_20px_rgba(15,23,42,0.06)] transition-[border-color,box-shadow] sm:h-24 sm:w-24 md:h-36 md:w-36 md:rounded-[26px]",
+        "flex h-28 w-28 items-center justify-center rounded-[20px] border bg-background shadow-[0_6px_20px_rgba(15,23,42,0.06)] transition-[border-color,box-shadow] sm:h-32 sm:w-32 md:h-36 md:w-36 md:rounded-[26px]",
         isActive ? "border-primary ring-2 ring-primary/20" : "border-border/80 group-hover:border-primary/60 group-hover:shadow-md",
       ].join(" ")}
     >
@@ -84,7 +85,7 @@ function CuisinePhoto({ src, label, isActive, hasIntegratedLabel }: { src: strin
           className="h-full w-full rounded-[19px] object-contain sm:rounded-[23px] md:rounded-[25px]"
         />
       ) : (
-        <span className="h-16 w-16 overflow-hidden rounded-full border border-border/50 sm:h-[72px] sm:w-[72px] md:h-24 md:w-24">
+        <span className="h-[88px] w-[88px] overflow-hidden rounded-full border border-border/50 sm:h-24 sm:w-24">
           <img src={src} alt={`Cuisine ${label}`} width={96} height={96} loading="lazy" decoding="async" className="h-full w-full object-cover" />
         </span>
       )}
@@ -110,7 +111,7 @@ export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }
   };
 
   return (
-    <section className={homeVariant ? "tok-home-cuisine-strip relative overflow-hidden py-6 md:py-8" : "relative overflow-hidden py-6 md:py-8"}>
+    <section className={homeVariant ? "tok-home-cuisine-strip relative overflow-hidden pb-0 pt-4 md:py-8" : "relative overflow-hidden py-6 md:py-8"}>
       <div className="container px-4">
         <SectionShowcaseHeader
           title={homeVariant ? "Explorez par cuisine" : "À chaque envie, sa cuisine"}
@@ -145,7 +146,7 @@ export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }
 
         <div
           ref={scrollRef}
-          className="flex snap-x snap-mandatory gap-2 overflow-x-auto px-1 pb-3 pt-4 md:gap-4"
+          className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 pt-3 md:gap-4 md:pb-3 md:pt-4"
         >
           {CUISINE_CATEGORIES.map((cat) => {
             const isActive = cat.slug === activeSlug;
@@ -155,7 +156,7 @@ export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }
                 key={cat.slug}
                 type="button"
                 onClick={() => handleClick(cat.slug)}
-                className="group flex min-h-11 w-[84px] shrink-0 snap-start flex-col items-center gap-2 rounded-xl px-0.5 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:w-28 md:w-40"
+                className="group flex min-h-11 w-[116px] shrink-0 snap-start flex-col items-center gap-1.5 rounded-xl px-0.5 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:w-[132px] md:w-40 md:gap-2 md:py-2"
                 aria-pressed={isActive}
                 aria-label={cat.label}
               >
@@ -163,7 +164,7 @@ export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }
                 {!CATEGORIES_3D.has(cat.slug) && (
                   <span
                     className={[
-                      "w-full break-words text-center text-[13px] font-bold leading-snug tracking-tight transition-colors sm:text-base md:text-lg md:leading-6",
+                      "w-full break-words text-center text-sm font-bold leading-snug tracking-tight transition-colors sm:text-base md:text-lg md:leading-6",
                       isActive ? "text-primary" : "text-foreground group-hover:text-primary",
                     ].join(" ")}
                   >
