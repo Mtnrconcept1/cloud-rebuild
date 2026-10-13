@@ -49,7 +49,7 @@ describe("daily dish, mobile cookies and legal consent hotfix", () => {
     expect(auth).toContain("legalAcceptanceDraft");
     expect(auth).toContain("checked={legalAcceptanceDraft}");
     expect(auth).toContain("setLegalAcceptanceDraft(checked === true)");
-    expect(auth).toContain("disabled={!legalAcceptanceDraft}");
+    expect(auth).toContain('disabled={!legalAcceptanceDraft || (roleMode === "restaurateur" && !commissionConsentDraft)}');
     expect(auth).toContain("Accepter et continuer");
     expect(auth).toContain("Refuser");
     expect(auth).toContain("setIsLogin(true)");
