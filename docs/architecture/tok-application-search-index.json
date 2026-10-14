@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "3affd5e1218aacb80fb757b019d081027b6aa547dd1cac01f9d9607aab832030",
+ "sourceDigest": "7016d8d08ed36ecdf39558cc0f5b9404b9880b9cc45b5bea46049fd4c797fae7",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -107553,7 +107553,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 106
+    "lineCount": 109
    },
    {
     "path": "src/test/restaurant-reservation-sidebar.test.ts",
@@ -147792,7 +147792,7 @@
    "id": "code-module:759e6d98d2f0",
    "type": "code-module",
    "title": "src/test/restaurant-reservation-commission-collection.test.ts",
-   "description": "Module de 106 lignes; exports: aucun export statique.",
+   "description": "Module de 109 lignes; exports: aucun export statique.",
    "path": "src/test/restaurant-reservation-commission-collection.test.ts",
    "line": 1,
    "surface": null,
@@ -147800,7 +147800,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "9b33ae4732d6"
+   "detailRef": "21fa2944044c"
   },
   {
    "id": "code-module:d8b8a4d58cea",
