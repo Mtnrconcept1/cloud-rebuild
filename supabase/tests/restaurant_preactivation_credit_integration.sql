@@ -19,8 +19,8 @@ DECLARE
   v_week timestamptz := date_trunc('week',now() AT TIME ZONE 'Europe/Zurich') AT TIME ZONE 'Europe/Zurich';
   v_last_week timestamptz := (date_trunc('week',now() AT TIME ZONE 'Europe/Zurich') - interval '1 week') AT TIME ZONE 'Europe/Zurich';
 BEGIN
-  IF has_function_privilege('anon', 'private_finance.get_restaurant_preactivation_credit_usage(uuid,timestamptz,boolean)', 'EXECUTE')
-    OR has_function_privilege('authenticated', 'private_finance.get_restaurant_preactivation_credit_usage(uuid,timestamptz,boolean)', 'EXECUTE')
+  IF has_function_privilege('anon', 'private_finance.get_restaurant_preactivation_credit_usage(uuid,timestamptz,boolean,timestamptz)', 'EXECUTE')
+    OR has_function_privilege('authenticated', 'private_finance.get_restaurant_preactivation_credit_usage(uuid,timestamptz,boolean,timestamptz)', 'EXECUTE')
   THEN
     RAISE EXCEPTION 'Private replay helper exposed to client roles';
   END IF;
@@ -110,9 +110,9 @@ BEGIN
   INSERT INTO public.restaurant_credit_purchases(restaurant_id,status,ai_tool_credits,paid_at)
     VALUES ('00000000-0000-4000-8000-000000000004','paid',40,now()-interval '3 hours');
   INSERT INTO public.ai_usage_logs(restaurant_id,status,metadata,created_at)
-    VALUES ('00000000-0000-4000-8000-000000000004','success','{"credit_units":5}',now()-interval '2 hours');
+    VALUES ('00000000-0000-4000-8000-000000000004','success','{"credit_units":20}',now()-interval '2 hours');
   v_usage := public.get_restaurant_credit_usage('00000000-0000-4000-8000-000000000004');
-  IF (v_usage->'credits'->0->>'balance')::numeric <> 50
+  IF (v_usage->'credits'->0->>'balance')::numeric <> 35
     OR (v_usage->'credits'->0->>'included_allowance')::numeric <> 15
   THEN RAISE EXCEPTION 'Inactive plan improperly credited: %',v_usage; END IF;
 
@@ -123,6 +123,7 @@ BEGIN
   v_usage := public.get_restaurant_credit_usage('00000000-0000-4000-8000-000000000004');
   IF (v_usage->'credits'->0->>'included_allowance')::numeric <> 100
     OR (v_usage->'credits'->0->>'topup_balance')::numeric <> 35
+    OR (v_usage->'credits'->0->>'balance')::numeric <> 135
   THEN RAISE EXCEPTION 'Active plan or paid topup missing at activation: %',v_usage; END IF;
 
   -- Restaurant 5: usage from the previous Swiss civil week does not consume
