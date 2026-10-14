@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "75031e855c856463ffc951a0858ce4a970a5704e481de4c68da884465db66e4d",
+ "sourceDigest": "4c11bc841c6e44c4acc93fb6a2cb8dcf805ba270cd249d2f9f83e4dbe120f78b",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -27140,7 +27140,7 @@
     "sources": [
      {
       "path": "src/test/responsive-seo-regressions.test.ts",
-      "line": 99
+      "line": 100
      },
      {
       "path": "src/test/restaurant-slug-seo.test.ts",
@@ -27199,7 +27199,7 @@
      },
      {
       "path": "src/test/responsive-seo-regressions.test.ts",
-      "line": 97
+      "line": 98
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -104381,7 +104381,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 91
+    "lineCount": 92
    },
    {
     "path": "src/test/admin-notifications-governance.test.ts",
@@ -107927,7 +107927,7 @@
      "google",
      "vercel"
     ],
-    "lineCount": 152
+    "lineCount": 153
    },
    {
     "path": "src/test/restaurant-billing-account.test.ts",
@@ -143193,12 +143193,12 @@
    "id": "code-module:5d511ff74a41",
    "type": "code-module",
    "title": "src/test/admin-mobile-responsiveness.test.ts",
-   "description": "Module de 91 lignes; exports: aucun export statique.",
+   "description": "Module de 92 lignes; exports: aucun export statique.",
    "path": "src/test/admin-mobile-responsiveness.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "a0d87f2ff8f3"
+   "detailRef": "fe4c32ca6185"
   },
   {
    "id": "code-module:f2941a8ba2f7",
@@ -148340,7 +148340,7 @@
    "id": "code-module:15d812a522e0",
    "type": "code-module",
    "title": "src/test/responsive-seo-regressions.test.ts",
-   "description": "Module de 152 lignes; exports: aucun export statique.",
+   "description": "Module de 153 lignes; exports: aucun export statique.",
    "path": "src/test/responsive-seo-regressions.test.ts",
    "line": 1,
    "surface": null,
@@ -148348,7 +148348,7 @@
     "google",
     "vercel"
    ],
-   "detailRef": "5f5e74fae199"
+   "detailRef": "4c00e3d73612"
   },
   {
    "id": "code-module:480077b40983",
@@ -358090,18 +358090,18 @@
    "detailRef": "b6e7e9a82104"
   },
   {
-   "id": "path-literal:cba937f18ddf",
+   "id": "path-literal:4eca360ff2e9",
    "type": "path-literal",
    "title": "/restaurants/${citySlug}/r/${restaurantSlug}",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/responsive-seo-regressions.test.ts",
-   "line": 99,
+   "line": 100,
    "surface": null,
    "tags": [
     "src/test/responsive-seo-regressions.test.ts",
     "src/test/restaurant-slug-seo.test.ts"
    ],
-   "detailRef": "04b22944a3e7"
+   "detailRef": "3ceba6e52dad"
   },
   {
    "id": "path-literal:4f8eff621f7b",
@@ -358132,7 +358132,7 @@
     "src/test/responsive-seo-regressions.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "7f84a2a42237"
+   "detailRef": "fb2550e89473"
   },
   {
    "id": "path-literal:16f287e72f14",
