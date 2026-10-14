@@ -1254,8 +1254,10 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
           restaurants ( name )
         `)
         .in("invoice_type", ["payable", "reservation_fees", "subscription"])
+        // Subscription invoices may span into the next month (Oct 14–Nov 13).
+        // Account for the invoice in its billing period's START month.
         .gte("period_start", monthBounds.monthStart)
-        .lte("period_end", monthBounds.monthEnd)
+        .lte("period_start", monthBounds.monthEnd)
         .order("created_at", { ascending: false });
 
       if (selectedRestaurant !== "all") {

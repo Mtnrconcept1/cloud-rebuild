@@ -41,7 +41,10 @@ function InvoiceListItem({
   onMarkPaid: (invoiceId: string) => Promise<void>;
   restaurantName: string | null;
 }) {
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(() =>
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("invoice") === invoice.id
+  );
   const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
   const reference = invoice.invoice_number || invoice.id.slice(0, 8);
 
