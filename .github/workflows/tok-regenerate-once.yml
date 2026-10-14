@@ -1,0 +1,36 @@
+name: TOK regenerate tracked indexes (one time)
+on:
+  push:
+    branches:
+      - feat/stripe-tok-reusable-price-catalog-20261014
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    if: github.ref_name == 'feat/stripe-tok-reusable-price-catalog-20261014'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Update generated files from their source
+        run: |
+          pnpm run docs:application-index
+          pnpm run generate:error-code-map
+      - name: Commit only generated files and remove this temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts supabase/functions/_shared/error-code-map.ts
+          git rm -f .github/workflows/tok-regenerate-once.yml
+          git diff --cached --check
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "TOK generated-files bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(ci): regenerate TOK application index and error-code map"
+          git push origin HEAD:feat/stripe-tok-reusable-price-catalog-20261014
