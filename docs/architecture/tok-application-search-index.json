@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "10ffcd4cf6c036c07afa86085f79081b0db4ada74b159e403fdce79b59b7ae2e",
+ "sourceDigest": "b4e83fe8d50544962712f3ecb1bc5599c477e4b30ff38ec1b559f267e67a383e",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -107637,7 +107637,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 43
+    "lineCount": 45
    },
    {
     "path": "src/test/restaurant-contracts-governance.test.ts",
@@ -113321,7 +113321,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 864
+    "lineCount": 870
    },
    {
     "path": "supabase/functions/manage-tok-one-subscription/index.ts",
@@ -147845,7 +147845,7 @@
    "id": "code-module:6285e5a35899",
    "type": "code-module",
    "title": "src/test/restaurant-commission-mandate-selfservice.test.ts",
-   "description": "Module de 43 lignes; exports: aucun export statique.",
+   "description": "Module de 45 lignes; exports: aucun export statique.",
    "path": "src/test/restaurant-commission-mandate-selfservice.test.ts",
    "line": 1,
    "surface": null,
@@ -147853,7 +147853,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "d4c3e513ccbe"
+   "detailRef": "52e14a113801"
   },
   {
    "id": "code-module:17923bbf7589",
@@ -152277,14 +152277,14 @@
    "id": "code-module:2983263ff828",
    "type": "code-module",
    "title": "supabase/functions/manage-restaurant-subscription/index.ts",
-   "description": "Module de 864 lignes; exports: aucun export statique.",
+   "description": "Module de 870 lignes; exports: aucun export statique.",
    "path": "supabase/functions/manage-restaurant-subscription/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "stripe"
    ],
-   "detailRef": "e07b145b8c6c"
+   "detailRef": "9f9f3a155bd2"
   },
   {
    "id": "code-module:50e16ba97083",
