@@ -21,7 +21,9 @@ function latestMigrationContaining(pattern: RegExp) {
 
 describe("Chef Table VIP access", () => {
   it("stores audited VIP access requirements on chef table drops", () => {
-    const sql = latestMigrationContaining(/required_miamz_points/i);
+    // The first migration establishes VIP columns and constraints; later migrations
+    // legitimately reference required_miamz_points without redefining them.
+    const sql = read("supabase/migrations/20260607054648_chef_table_vip_miamz_access.sql");
 
     expect(sql).toMatch(/ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+is_vip\s+boolean\s+NOT\s+NULL\s+DEFAULT\s+false/i);
     expect(sql).toMatch(/ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+required_miamz_points\s+integer\s+NOT\s+NULL\s+DEFAULT\s+0/i);
