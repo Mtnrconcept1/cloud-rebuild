@@ -117,13 +117,6 @@ export default defineConfig(({ mode }) => {
           __dirname,
           "./src/lib/ai/tokAiClientMarketingOutputShell.ts",
         ),
-        // App.tsx lazy-loads this relative specifier. The exact alias appends
-        // the print operations console while the shell imports AdminCompta
-        // relatively, keeping the accounting implementation unchanged.
-        "./pages/admin/AdminCompta": path.resolve(
-          __dirname,
-          "./src/pages/admin/AdminComptaPrintShell.tsx",
-        ),
         "@": path.resolve(__dirname, "./src"),
       },
     },

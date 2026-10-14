@@ -63,6 +63,7 @@ describe("AdminMobileNavigation", () => {
     expect(screen.getByRole("link", { name: "Vue d'ensemble" }).getAttribute("href")).toBe("/admin");
     expect(screen.getByRole("link", { name: "Commandes et reservations" }).getAttribute("href")).toBe("/admin/commandes-reservations");
     expect(screen.getByRole("link", { name: "Configuration plateforme" }).getAttribute("href")).toBe("/admin/platform");
+    expect(screen.getByRole("link", { name: "TOK Printer" }).getAttribute("href")).toBe("/admin/tok-printer");
   });
 
   it("hides admin tabs whose feature flag is disabled", () => {
@@ -79,5 +80,6 @@ describe("AdminMobileNavigation", () => {
     expect(screen.getByRole("link", { name: "Restaurants" })).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Notifications" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Configuration plateforme" })).toBeNull();
+    expect(screen.getByRole("link", { name: "TOK Printer" })).toBeTruthy();
   });
 });
