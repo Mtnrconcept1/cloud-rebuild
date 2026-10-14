@@ -65,6 +65,8 @@ export type PayableInvoiceRecipient = {
   addressLine2: string | null;
   country: string | null;
   vatNumber: string | null;
+  /** Swiss enterprise ID (UID / IDE); this does not itself establish VAT registration. */
+  enterpriseId?: string | null;
   email: string | null;
   phone: string | null;
 };
@@ -108,11 +110,14 @@ export type PayableInvoiceDocumentData = {
 // identity. Confirm the company's registered details if the merchant changes.
 // TOK remains the commercial brand printed alongside the legal entity.
 const TOK_SENDER: PayableInvoiceRecipient & { website: string } = {
-  name: "TOK — NEW DOG'S SERVICES Sàrl",
+  name: "NEW DOG'S SERVICES Sàrl",
   addressLine1: "Rue de Genève 6",
   addressLine2: "1225 Chêne-Bourg",
   country: "Suisse",
-  vatNumber: "CHE-109.513.890 TVA",
+  enterpriseId: "CHE-109.513.890",
+  // The RC extract documents the IDE, not VAT registration.
+  // Only add a tax number when confirmed in the Federal VAT register.
+  vatNumber: null,
   email: null,
   phone: null,
   website: "www.thetok.ch",
