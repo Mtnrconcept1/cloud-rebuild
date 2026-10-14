@@ -21,12 +21,16 @@ export default function WorkforceRequests({restaurantId}:{restaurantId:string}) 
   const {data:requests=[],isPending,isError}=useWorkforceRequests(restaurantId,true);
   const refresh=useWorkforceRefresh(restaurantId),{toast}=useToast();
   const [employeeId,setEmployeeId]=useState(""),[type,setType]=useState<"vacation"|"correction"|"schedule"|"other">("vacation"),[description,setDescription]=useState("");
+  const [leaveStart,setLeaveStart]=useState(""),[leaveEnd,setLeaveEnd]=useState(""),[leaveDays,setLeaveDays]=useState("1");
   const create=useMutation({
     mutationFn:async()=>{
       if(!employees.some(e=>e.id===employeeId))throw new Error("Choisissez un employé.");
       if(description.trim().length<1||description.length>2000)throw new Error("Description invalide.");
+      if(type==="vacation"&&(!leaveStart||!leaveEnd||leaveEnd<leaveStart||Number(leaveDays)<=0))throw new Error("Période de congé invalide.");
       const {error}=await workforceDb().from("tok_workforce_requests").insert({
         restaurant_id:restaurantId,employee_id:employeeId,request_type:type,description:description.trim(),status:"pending",
+        requested_start_date:type==="vacation"?leaveStart:null,requested_end_date:type==="vacation"?leaveEnd:null,
+        requested_days:type==="vacation"?Number(leaveDays):null,
       });if(error)throw error;
     },
     onSuccess:()=>{setDescription("");refresh();toast({title:"Demande enregistrée"});},
@@ -35,11 +39,8 @@ export default function WorkforceRequests({restaurantId}:{restaurantId:string}) 
   const review=useMutation({
     mutationFn:async({id,approve}:{id:string;approve:boolean})=>{
       if(!user?.id)throw new Error("Connexion requise.");
-      const {data,error}=await workforceDb().from("tok_workforce_requests")
-        .update({status:approve?"approved":"rejected",reviewed_by:user.id,reviewed_at:new Date().toISOString()})
-        .eq("restaurant_id",restaurantId).eq("id",id).eq("status","pending").select("id");
+      const {error}=await workforceDb().rpc("tok_workforce_review_request",{p_request_id:id,p_approve:approve});
       if(error)throw error;
-      if(!data?.length)throw new Error("Cette demande a déjà été traitée.");
     },
     onSuccess:()=>{refresh();toast({title:"Demande traitée"});},
     onError:(error:Error)=>toast({variant:"destructive",title:"Traitement impossible",description:error.message}),
@@ -62,6 +63,7 @@ export default function WorkforceRequests({restaurantId}:{restaurantId:string}) 
             </Badge>
           </div>
           <p className="my-3 whitespace-pre-wrap break-words text-sm">{request.description}</p>
+          {request.requested_start_date?<p className="text-xs text-muted-foreground">Du {request.requested_start_date} au {request.requested_end_date} · {request.requested_days} jour(s)</p>:null}
           {request.status==="pending"?<div className="flex flex-wrap gap-2">
             <Button size="sm" disabled={review.isPending} onClick={()=>review.mutate({id:request.id,approve:true})}><Check className="mr-1 h-4 w-4"/>Accepter</Button>
             <Button size="sm" variant="outline" disabled={review.isPending} onClick={()=>review.mutate({id:request.id,approve:false})}><X className="mr-1 h-4 w-4"/>Refuser</Button>
@@ -78,6 +80,11 @@ export default function WorkforceRequests({restaurantId}:{restaurantId:string}) 
         <div><Label htmlFor="wf-request-type">Motif</Label><select id="wf-request-type" className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={type} onChange={e=>setType(e.target.value as typeof type)}>
           {requestTypes.map(t=><option key={t.value} value={t.value}>{t.label}</option>)}
         </select></div>
+        {type==="vacation"?<div className="grid gap-3 sm:grid-cols-3">
+          <div><Label>Du</Label><input aria-label="Début du congé" className="w-full rounded-md border bg-background p-2 text-sm" type="date" required value={leaveStart} onChange={e=>setLeaveStart(e.target.value)}/></div>
+          <div><Label>Au</Label><input aria-label="Fin du congé" className="w-full rounded-md border bg-background p-2 text-sm" type="date" min={leaveStart} required value={leaveEnd} onChange={e=>setLeaveEnd(e.target.value)}/></div>
+          <div><Label>Jours</Label><input aria-label="Jours de congé" className="w-full rounded-md border bg-background p-2 text-sm" type="number" min="0.5" max="366" step="0.5" required value={leaveDays} onChange={e=>setLeaveDays(e.target.value)}/></div>
+        </div>:null}
         <div><Label htmlFor="wf-request-description">Description</Label><textarea id="wf-request-description" required maxLength={2000} value={description} onChange={e=>setDescription(e.target.value)} className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" /></div>
         <Button type="submit" disabled={create.isPending||employees.length===0} className="w-full">Enregistrer la demande</Button>
       </form></CardContent>

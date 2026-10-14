@@ -3,6 +3,7 @@ import {
   Bike,
   BriefcaseBusiness,
   ChevronRight,
+  Clock3,
   LayoutDashboard,
   Shield,
   Sparkles,
@@ -124,6 +125,16 @@ export default function WorkspaceChooser() {
         },
       };
     });
+
+  realCards.push({
+    key:"real:workforce",
+    label:"Mon équipe TOK",
+    description:"Badgeuse, planning, compteurs et demandes de personnel",
+    kind:"real",
+    icon:Clock3,
+    hostname:getTargetHostname("/equipe/mon-espace"),
+    onSelect:()=>openTarget("/equipe/mon-espace"),
+  });
 
   const demoCards: WorkspaceCard[] = canAccessDemo
     ? [

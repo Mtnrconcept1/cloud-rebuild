@@ -31,3 +31,34 @@ Portage natif des fonctions de gestion du personnel vers le dashboard restaurate
 5. Pour revenir en arrière, basculer \`enabled=false\` sur les établissements concernés : les données restent intactes. Une migration ultérieure serait nécessaire pour supprimer les tables si cela était voulu.
 
 Il reste à confirmer les procédures RH locales, la conservation des données et les garanties légales de la validation nominative avant un usage officiel pour la paie.
+
+
+## Extension badgeuse et espace collaborateur (octobre 2026)
+
+La source SwissTime contient les pages employé (Mon planning, Mes heures, Mes compteurs, Mes demandes), les échanges, les analyses et les PDF, **mais pas de badgeuse opérationnelle**. Celle-ci est donc construite comme fonctionnalité native TOK.
+
+- `/equipe/mon-espace` : connecté avec son compte TOK, un collaborateur trouve son invitation par e-mail vérifié, l'accepte volontairement et accède uniquement à ses données.
+- Badgeuse : arrivée, début et fin de pause, départ. Horodatage serveur immuable dans `tok_workforce_clock_events` et sessions `tok_workforce_clock_sessions`. Une seule session active par employé. Aucune écriture directe dans ces tables depuis le navigateur.
+- Conversion automatique en relevé d'heures uniquement si la durée est valide ; sessions longues ou impossibles à convertir à régulariser dans l'espace responsable.
+- Échanges de service : le collègue doit accepter avant validation transactionnelle par le responsable.
+- Côté restaurateur : présence en temps réel, pointages à contrôler, coûts prévisionnels basés sur un coût horaire facultatif, alertes de repos, planning réorganisable, rapport CSV et impression / PDF.
+- Les comptes collaborateurs n'acquièrent jamais le rôle `restaurateur` de TOK. Ils sont uniquement associés à un identifiant d'employé vérifié et contrôlés par RLS.
+- Les données RH de deux restaurants distincts ne sont jamais mélangées ; les fonctions `SECURITY DEFINER` vérifient explicitement le restaurant, la session authentifiée et l'employé.
+- Aucune commande ou facturation Stripe n'est touchée, aucun service IA tiers n'accède aux données RH.
+
+### Limites et validation
+
+La badgeuse exige un navigateur avec une connexion Internet pour enregistrer chaque action sur le serveur ; un clic hors ligne n'est pas un pointage validé. Les décalages d'horaires inhabituels, erreurs de saisie et changements d'heure sont à revoir par un responsable avant la paie. Les projections financières, nuits, dimanches et contrôles de temps de repos sont indicatifs. L'impression native permet d'enregistrer un PDF depuis le navigateur.
+
+Avant déploiement : appliquer la migration dans l'environnement de développement ou via le pipeline contrôlé, confirmer RLS/GRANT et tester deux restaurants et deux collaborateurs distincts. Puis lancer les tests ciblés, le typecheck, le lint et le build. Retour arrière : désactiver TOK Équipe par restaurant sans effacer les données.
+
+
+### Finalisation des parcours RH
+
+- Validation d'heures : capture d'une signature manuscrite sur ordinateur ou écran tactile, conservée avec l'identité de l'utilisateur authentifié et la date. Il s'agit d'une simple signature électronique, non d'une signature qualifiée.
+- Demandes de congé : l'employé indique la période et les jours décomptés ; l'accord du responsable crée atomiquement l'absence du salarié, visible dans le planning et les compteurs.
+- Planification et absences : des déclencheurs PostgreSQL interdisent de créer un service pendant une absence ou d'ajouter une absence couvrant un service non annulé. Il faut réorganiser le service avant d'enregistrer le congé.
+- Délégation : un collaborateur dont le rôle RH est « responsable » peut utiliser `/equipe/gestion` après association de son propre compte TOK, sans obtenir le rôle plateforme « restaurateur » ni les droits de modification des fiches, rémunérations et rôles du personnel. Les fonctions de validation sont limitées à l'établissement autorisé.
+- Tests : `.github/workflows/tok-workforce-postgres.yml` applique la migration initiale et son extension sur un PostgreSQL 17 temporaire, puis exerce la badgeuse, les politiques RLS entre deux établissements, les demandes de congés et les validations signées. Aucun accès ni modification à la production.
+- Les alertes LTr, statistiques et coûts sont indicatifs ; ne pas présenter ces indicateurs comme une paie ou une certification de conformité. Les fonctions IA tierces de SwissTime ne sont pas importées : un assistant compatible avec les quotas TOK demanderait une intégration serveur séparée.
+

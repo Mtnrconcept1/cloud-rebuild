@@ -70,6 +70,28 @@ export const TOK_USER_GUIDE_ROUTES = [
     "redirectTo": null
   },
   {
+    "path": "/equipe/mon-espace",
+    "surface": "public",
+    "components": [
+      "MyWorkforce",
+      "ProtectedRoute"
+    ],
+    "requiredRoles": [],
+    "featureGate": null,
+    "redirectTo": null
+  },
+  {
+    "path": "/equipe/gestion",
+    "surface": "public",
+    "components": [
+      "MyWorkforceManager",
+      "ProtectedRoute"
+    ],
+    "requiredRoles": [],
+    "featureGate": null,
+    "redirectTo": null
+  },
+  {
     "path": "/oauth/consent",
     "surface": "public",
     "components": [
