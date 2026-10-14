@@ -4,7 +4,7 @@ import { planningWarnings } from "@/lib/tokWorkforceWarnings";
 
 const employee:WorkforceEmployee={
   id:"e1",restaurant_id:"r1",first_name:"Alice",last_name:"Martin",email:null,user_id:null,
-  role:"employee",contracted_hours_per_week:20,vacation_days_per_year:20,is_active:true,
+  role:"employee",contracted_hours_per_week:20,vacation_days_per_year:20,hourly_cost_chf:0,is_active:true,
 };
 const shift=(date:string,start:string,end:string,breakMin:number):WorkforceShift=>({
   id:date+start,restaurant_id:"r1",employee_id:"e1",shift_date:date,

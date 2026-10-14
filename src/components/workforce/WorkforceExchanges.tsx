@@ -32,7 +32,7 @@ export default function WorkforceExchanges({restaurantId}:{restaurantId:string})
         target_employee_id:targetEmployee,target_shift_id:targetShift||null,status:"pending",
       });if(error)throw error;
     },
-    onSuccess:()=>{setRequesterShift("");setTargetShift("");refresh();toast({title:"Échange proposé",description:"Il attend la validation du responsable."});},
+    onSuccess:()=>{setRequesterShift("");setTargetShift("");refresh();toast({title:"Échange proposé",description:"Le collègue doit accepter avant la validation du responsable."});},
     onError:(error:Error)=>toast({variant:"destructive",title:"Proposition impossible",description:error.message}),
   });
   const review=useMutation({
@@ -63,7 +63,8 @@ export default function WorkforceExchanges({restaurantId}:{restaurantId:string})
           <p className="mt-2 text-xs text-muted-foreground">{displayShift(exchange.requester_shift_id)}</p>
           {exchange.target_shift_id?<p className="text-xs text-muted-foreground">Contre : {displayShift(exchange.target_shift_id)}</p>:<p className="text-xs text-muted-foreground">Reprise du service sans échange réciproque</p>}
           {exchange.status==="pending"?<div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" disabled={review.isPending} onClick={()=>review.mutate({id:exchange.id,approve:true})}><Check className="mr-1 h-4 w-4"/>Valider et déplacer</Button>
+            {!exchange.target_accepted_at?<p className="w-full text-xs text-muted-foreground">En attente de l’accord du collègue depuis son espace TOK.</p>:null}
+            <Button size="sm" disabled={review.isPending||!exchange.target_accepted_at} onClick={()=>review.mutate({id:exchange.id,approve:true})}><Check className="mr-1 h-4 w-4"/>Valider et déplacer</Button>
             <Button size="sm" variant="outline" disabled={review.isPending} onClick={()=>review.mutate({id:exchange.id,approve:false})}><X className="mr-1 h-4 w-4"/>Refuser</Button>
           </div>:null}
         </div>)}
