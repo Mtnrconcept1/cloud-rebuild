@@ -1,9 +1,9 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "611f96756d6175bb81836738cc869fcf805ad4739c3b9bc42efdf0f2a23c1b5c",
+  "sourceDigest": "e4ac56fbd8c713d9803de6b93ec5d8448337989bc30d25b09be2e5f117eaa4f4",
   "routeCount": 137,
-  "toolCount": 116
+  "toolCount": 115
 } as const;
 
 export const TOK_USER_GUIDE_ROUTES = [
@@ -2310,21 +2310,6 @@ export const TOK_USER_GUIDE_TOOLS = [
     "actions": [],
     "integrations": [
       "supabase"
-    ]
-  },
-  {
-    "name": "golden-tok-membership",
-    "endpoint": "/functions/v1/golden-tok-membership",
-    "methods": [
-      "POST"
-    ],
-    "actions": [
-      "cancel",
-      "resume",
-      "string"
-    ],
-    "integrations": [
-      "stripe"
     ]
   },
   {
