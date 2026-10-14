@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `d481d87f5bdb0f312b7520eaf88ce610add28ac966ef1a122549133b0d0a7ae2`
+- Empreinte SHA-256 des sources indexées : `f0200860934a97fa8ddc28ac8acc57ee2c62a978da1b3e920c04805309d058ca`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2793 |
+| databaseObjects | 2811 |
 | documents | 204 |
 | edgeFunctions | 116 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3523 |
+| exportedSymbols | 3525 |
 | featureFlags | 99 |
 | frontendRoutes | 138 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 541 |
-| modules | 1558 |
+| migrations | 542 |
+| modules | 1560 |
 | pages | 128 |
 | pathLiterals | 749 |
 | publicAssets | 564 |
 | publicEntries | 589 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16809 |
-| repositoryFiles | 3162 |
+| records | 16835 |
+| repositoryFiles | 3165 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1415,7 +1415,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/guide | 9 | [src/App.tsx:646](../../src/App.tsx#L646) |
 | /dashboard/menu | 17 | [src/App.tsx:616](../../src/App.tsx#L616) |
 | /dashboard/mon-compte-facturation | 16 | [src/App.tsx:628](../../src/App.tsx#L628) |
-| /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1237](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1237) |
+| /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1254](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1254) |
 | /dashboard/notifications | 14 | [src/App.tsx:613](../../src/App.tsx#L613) |
 | /dashboard/offres | 6 | [src/App.tsx:629](../../src/App.tsx#L629) |
 | /dashboard/pack | 2 | [src/test/feature-flags.test.ts:120](../../src/test/feature-flags.test.ts#L120) |
@@ -1976,7 +1976,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | campaign_checkout | /dashboard/actualites, /dashboard/campagnes | 4 | [src/pages/dashboard/DashboardActualites.tsx:285](../../src/pages/dashboard/DashboardActualites.tsx#L285) |
 | campaign_id | /dashboard/actualites, /dashboard/campagnes | 3 | [src/pages/dashboard/DashboardActualites.tsx:305](../../src/pages/dashboard/DashboardActualites.tsx#L305) |
 | channel | — | 1 | [src/marketing/useMarketingUrlState.ts:82](../../src/marketing/useMarketingUrlState.ts#L82) |
-| checkout_kind | /dashboard/mon-compte-facturation | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:868](../../src/pages/dashboard/DashboardAccountBilling.tsx#L868) |
+| checkout_kind | /dashboard/mon-compte-facturation | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:882](../../src/pages/dashboard/DashboardAccountBilling.tsx#L882) |
 | city | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 5 | [src/pages/Recherche.tsx:241](../../src/pages/Recherche.tsx#L241) |
 | claimAddress | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:83](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L83) |
 | claimCity | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:82](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L82) |
@@ -2372,7 +2372,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (765)</summary>
+<details><summary>function (774)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2380,6 +2380,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `private_campaign.record_actualites_internal_test_conversion` (1 définition(s))
 - `private_campaign.record_actualites_latest_click_conversion` (1 définition(s))
 - `private_campaign.record_actualites_touch_conversions` (1 définition(s))
+- `private_finance.admin_ai_gift_balance` (1 définition(s))
+- `private_finance.admin_restaurant_catalog_ready` (1 définition(s))
+- `private_finance.apply_admin_ai_gift_on_usage` (1 définition(s))
 - `private_finance.apply_flat_reservation_fee_on_arrival` (2 définition(s))
 - `private_finance.assert_dashboard_pack_runtime_enabled` (1 définition(s))
 - `private_finance.assert_webhook_lease` (1 définition(s))
@@ -2389,6 +2392,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `private_finance.ensure_deferred_restaurant_subscription` (2 définition(s))
 - `private_finance.flat_reservation_billing_active` (1 définition(s))
 - `private_finance.get_restaurant_preactivation_credit_usage` (2 définition(s))
+- `private_finance.guard_admin_ai_gift_campaign` (1 définition(s))
 - `private_finance.guard_completed_reservation_honor` (1 définition(s))
 - `private_finance.guard_fair_growth_module_feature_keys` (1 définition(s))
 - `private_finance.guard_internal_unlimited_ai_spend` (1 définition(s))
@@ -2481,6 +2485,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_get_tok_one_metrics` (1 définition(s))
 - `public.admin_get_user_admin_detail` (2 définition(s))
 - `public.admin_get_user_governance_alerts` (1 définition(s))
+- `public.admin_grant_restaurant_ai_credits` (1 définition(s))
 - `public.admin_link_real_user_restaurant` (1 définition(s))
 - `public.admin_list_google_booking_setups` (2 définition(s))
 - `public.admin_list_marketing_automations` (1 définition(s))
@@ -2493,6 +2498,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_list_marketing_outreach` (1 définition(s))
 - `public.admin_list_real_restaurant_owners` (1 définition(s))
 - `public.admin_list_real_restaurants_for_assignment` (1 définition(s))
+- `public.admin_list_restaurant_ai_gifts` (1 définition(s))
 - `public.admin_list_user_storage_objects_for_deletion` (1 définition(s))
 - `public.admin_list_users` (3 définition(s))
 - `public.admin_mark_restaurant_invoice_paid` (1 définition(s))
@@ -2508,6 +2514,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_reorder_catalog_collections` (1 définition(s))
 - `public.admin_reply_review` (3 définition(s))
 - `public.admin_reset_dashboard_logs` (3 définition(s))
+- `public.admin_restaurant_stats_fast` (1 définition(s))
+- `public.admin_restaurants_page_fast` (1 définition(s))
 - `public.admin_retry_marketing_delivery` (1 définition(s))
 - `public.admin_reveal_manual_delivery_target` (1 définition(s))
 - `public.admin_review_courier_profile` (1 définition(s))
@@ -2519,6 +2527,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_save_loyalty_tier` (1 définition(s))
 - `public.admin_save_notification_campaign` (1 définition(s))
 - `public.admin_save_subscription_plan` (2 définition(s))
+- `public.admin_search_restaurants_fast` (1 définition(s))
 - `public.admin_seed_default_flags` (1 définition(s))
 - `public.admin_send_test_notification_campaign` (1 définition(s))
 - `public.admin_set_accounting_month_lock` (1 définition(s))
@@ -2618,7 +2627,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.cancel_reservation_by_customer` (4 définition(s))
 - `public.cancel_reservation_by_restaurant` (3 définition(s))
 - `public.capture_signup_application_draft` (1 définition(s))
-- `public.check_restaurant_ai_quota` (5 définition(s))
+- `public.check_restaurant_ai_quota` (6 définition(s))
 - `public.claim_developer_statement_transfer` (1 définition(s))
 - `public.claim_due_marketing_items` (1 définition(s))
 - `public.claim_finance_outbox` (1 définition(s))
@@ -2783,7 +2792,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.get_restaurant_ai_usage` (2 définition(s))
 - `public.get_restaurant_campaign_activity` (2 définition(s))
 - `public.get_restaurant_comparison` (6 définition(s))
-- `public.get_restaurant_credit_usage` (7 définition(s))
+- `public.get_restaurant_credit_usage` (8 définition(s))
 - `public.get_restaurant_credit_usage_before_fair_growth` (1 définition(s))
 - `public.get_restaurant_image_truth_stats` (1 définition(s))
 - `public.get_restaurant_order_capacity_state` (2 définition(s))
@@ -3142,7 +3151,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (661)</summary>
+<details><summary>index (666)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3153,6 +3162,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `ad_campaign_event_transport_unique` (1 définition(s))
 - `ad_campaign_internal_test_events_campaign_time_idx` (1 définition(s))
 - `ad_campaign_internal_test_events_restaurant_time_idx` (1 définition(s))
+- `admin_ai_credit_grants_available_idx` (1 définition(s))
+- `admin_ai_credit_grants_history_idx` (1 définition(s))
+- `admin_ai_credit_spends_grant_idx` (1 définition(s))
 - `admin_loyalty_change_history_entity_created_idx` (1 définition(s))
 - `admin_marketplace_alert_events_alert_id_idx` (1 définition(s))
 - `admin_review_action_history_admin_created_idx` (2 définition(s))
@@ -3344,6 +3356,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `idx_loyalty_transactions_user_created_at` (1 définition(s))
 - `idx_marketing_budget_periods_period_month` (1 définition(s))
 - `idx_menu_categories_branch_id` (1 définition(s))
+- `idx_menu_items_restaurant_available` (1 définition(s))
 - `idx_messages_conversation` (2 définition(s))
 - `idx_net_http_response_id` (1 définition(s))
 - `idx_notifications_birthday_once_year` (1 définition(s))
@@ -3497,6 +3510,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `idx_restaurant_subscription_activation_claim` (1 définition(s))
 - `idx_restaurant_thefork_catalog_restaurant_id` (3 définition(s))
 - `idx_restaurants_active_created_at` (2 définition(s))
+- `idx_restaurants_admin_name_id` (1 définition(s))
 - `idx_restaurants_city_slug_unique` (1 définition(s))
 - `idx_restaurants_directory_source_reference` (1 définition(s))
 - `idx_restaurants_order_capacity_controls` (1 définition(s))
@@ -4576,11 +4590,13 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (353)</summary>
+<details><summary>table (355)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
 - `private.floor_plan_save_operations` (1 définition(s))
+- `private_finance.admin_ai_credit_grants` (1 définition(s))
+- `private_finance.admin_ai_credit_spends` (1 définition(s))
 - `private_finance.commercial_signup_referrals` (1 définition(s))
 - `private_finance.fair_growth_rollout_cutovers` (1 définition(s))
 - `private_finance.internal_unlimited_openai_grants` (1 définition(s))
@@ -4934,7 +4950,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (244)</summary>
+<details><summary>trigger (246)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -5176,6 +5192,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `validate_commercial_compensation_profile` (2 définition(s))
 - `validate_restaurant_subscription_pricing_insert` (1 définition(s))
 - `validate_signup_document_manifest` (2 définition(s))
+- `zz_admin_apply_ai_gift_credit` (1 définition(s))
+- `zz_admin_protect_gift_campaign` (1 définition(s))
 - `zz_fence_restaurant_payment_capture_delete` (1 définition(s))
 - `zz_fence_restaurant_payment_capture_update` (1 définition(s))
 - `zz_guard_completed_reservation_honor` (1 définition(s))
@@ -5193,7 +5211,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 <details><summary>view (4)</summary>
 
-- `private_finance.chargeable_ai_usage_logs` (1 définition(s))
+- `private_finance.chargeable_ai_usage_logs` (2 définition(s))
 - `public.admin_platform_finance_monthly_snapshot` (2 définition(s))
 - `public.marketing_event_facts` (1 définition(s))
 - `resets` (1 définition(s))
@@ -6033,6 +6051,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261014100000 Paid Tok Invoice Delivery | 163 | 3 | [supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql:1](../../supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql#L1) |
 | 20261014110000 Restaurant Preactivation Weekly Ai Credits | 629 | 4 | [supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql:1](../../supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql#L1) |
 | 20261014144637 Mtnr Internal Unlimited Openai | 955 | 11 | [supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql:1](../../supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql#L1) |
+| 20261014153000 Admin Ai Gifts Fast Restaurants | 636 | 21 | [supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql:1](../../supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6253,12 +6272,12 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 118 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 118 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 119 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 240 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 699 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 242 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 701 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6272,14 +6291,14 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 66 |
 | documentation | 6 |
 | edge-function-source | 196 |
-| frontend-component | 257 |
+| frontend-component | 258 |
 | frontend-hook | 23 |
 | frontend-page | 128 |
 | frontend-source | 28 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 620 |
+| test | 621 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6881,7 +6900,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (541)</summary>
+<details><summary>database-migration (542)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7424,6 +7443,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql`
 - `supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql`
 - `supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql`
+- `supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql`
 
 </details>
 
@@ -7790,7 +7810,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (261)</summary>
+<details><summary>frontend-component (262)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -7841,6 +7861,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/admin/AdminCommercialAccountsPanel.tsx`
 - `src/components/admin/AdminDemoEntitiesDialog.tsx`
 - `src/components/admin/AdminDestructiveActions.tsx`
+- `src/components/admin/AdminGiftAiCreditsDialog.tsx`
 - `src/components/admin/AdminLogResetButton.tsx`
 - `src/components/admin/AdminMobileNavigation.tsx`
 - `src/components/admin/AdminOperationDetailSheet.tsx`
@@ -9100,7 +9121,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (620)</summary>
+<details><summary>test (621)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9127,6 +9148,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/address-autocomplete-location-bias.test.tsx`
 - `src/test/admin-actualites-moderation.test.ts`
 - `src/test/admin-actualites-sponsored.test.ts`
+- `src/test/admin-ai-credits-fast-restaurants.test.ts`
 - `src/test/admin-audit-log-narrative.test.ts`
 - `src/test/admin-catalog-governance.test.ts`
 - `src/test/admin-commercial-accounts.test.ts`
