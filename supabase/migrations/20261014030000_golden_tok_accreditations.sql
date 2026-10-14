@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.golden_tok_accreditations (
   current_period_end timestamptz,
   cancel_at_period_end boolean NOT NULL DEFAULT false,
   checkout_lock_until timestamptz,
+  checkout_request_id uuid,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT golden_tok_application_note_length CHECK (char_length(application_note) BETWEEN 20 AND 2000)
