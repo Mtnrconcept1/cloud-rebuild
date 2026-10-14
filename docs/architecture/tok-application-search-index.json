@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "dfbaa35f78b989b92eed9523efb50cea3918a78df3e589446d75ad418d6c30c7",
+ "sourceDigest": "5bbcc874fba360e6e437f9e40499c677e16d9d28e72b9461ea7ae27f12fd51db",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -25,14 +25,14 @@
   "publicEntries": 589,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16968,
-  "repositoryFiles": 3183,
+  "records": 16966,
+  "repositoryFiles": 3182,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 29
+  "workflows": 28
  },
  "catalogs": {
   "frontendRoutes": [
@@ -14469,19 +14469,19 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 95
-     },
-     {
-      "path": "src/test/route-wiring.test.ts",
       "line": 97
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 110
+      "line": 99
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 143
+      "line": 112
+     },
+     {
+      "path": "src/test/route-wiring.test.ts",
+      "line": 145
      },
      {
       "path": "src/test/seo-crawl-hardening.test.ts",
@@ -15036,7 +15036,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 63
+      "line": 64
      },
      {
       "path": "supabase/functions/discover-thefork-official-sites/index.ts",
@@ -15581,7 +15581,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 77
+      "line": 78
      },
      {
       "path": "src/test/user-guide.test.ts",
@@ -16168,6 +16168,10 @@
      {
       "path": "src/pages/admin/AdminHome.tsx",
       "line": 83
+     },
+     {
+      "path": "src/test/route-wiring.test.ts",
+      "line": 81
      }
     ]
    },
@@ -16208,7 +16212,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 81
+      "line": 83
      },
      {
       "path": "src/test/tok-intelligence-suite.test.ts",
@@ -16241,7 +16245,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 78
+      "line": 79
      }
     ]
    },
@@ -16540,7 +16544,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 80
+      "line": 82
      },
      {
       "path": "src/test/tok-intelligence-suite.test.ts",
@@ -16618,7 +16622,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 79
+      "line": 80
      }
     ]
    },
@@ -16776,7 +16780,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 71
+      "line": 72
      }
     ]
    },
@@ -17920,7 +17924,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 60
+      "line": 61
      }
     ]
    },
@@ -18167,7 +18171,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 86
+      "line": 88
      }
     ]
    },
@@ -18783,7 +18787,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 82
+      "line": 84
      }
     ]
    },
@@ -19059,7 +19063,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 83
+      "line": 85
      }
     ]
    },
@@ -19229,7 +19233,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 65
+      "line": 66
      }
     ]
    },
@@ -19310,7 +19314,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 59
+      "line": 60
      },
      {
       "path": "supabase/functions/discover-thefork-official-sites/index.ts",
@@ -19395,7 +19399,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 61
+      "line": 62
      }
     ]
    },
@@ -19713,7 +19717,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 58
+      "line": 59
      }
     ]
    },
@@ -20421,7 +20425,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 57
+      "line": 58
      },
      {
       "path": "src/test/tok-intelligence-suite.test.ts",
@@ -20641,6 +20645,10 @@
      {
       "path": "src/components/DashboardLayout.tsx",
       "line": 355
+     },
+     {
+      "path": "src/test/route-wiring.test.ts",
+      "line": 57
      }
     ]
    },
@@ -21311,7 +21319,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 85
+      "line": 87
      }
     ]
    },
@@ -22344,7 +22352,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 72
+      "line": 73
      }
     ]
    },
@@ -22357,7 +22365,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 74
+      "line": 75
      }
     ]
    },
@@ -22374,7 +22382,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 73
+      "line": 74
      }
     ]
    },
@@ -25613,7 +25621,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 76
+      "line": 77
      }
     ]
    },
@@ -25707,7 +25715,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 75
+      "line": 76
      }
     ]
    },
@@ -25947,7 +25955,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 70
+      "line": 71
      },
      {
       "path": "src/test/seo-growth.test.ts",
@@ -26514,7 +26522,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 64
+      "line": 65
      }
     ]
    },
@@ -26867,7 +26875,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 62
+      "line": 63
      }
     ]
    },
@@ -28663,7 +28671,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 67
+      "line": 68
      }
     ]
    },
@@ -28740,7 +28748,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 69
+      "line": 70
      },
      {
       "path": "src/test/seo-growth.test.ts",
@@ -28841,7 +28849,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 66
+      "line": 67
      },
      {
       "path": "src/test/seo-growth.test.ts",
@@ -28926,7 +28934,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 68
+      "line": 69
      }
     ]
    },
@@ -72644,13 +72652,6 @@
     "jobs": [
      "sync"
     ]
-   },
-   {
-    "name": "Temporary TOK Workforce Index Generation",
-    "path": ".github/workflows/tok-workforce-index-sync.yml",
-    "jobs": [
-     "sync-index"
-    ]
    }
   ],
   "documents": [
@@ -110379,7 +110380,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 185
+    "lineCount": 187
    },
    {
     "path": "src/test/scale-readiness-guards.test.ts",
@@ -117281,11 +117282,6 @@
    },
    {
     "path": ".github/workflows/sync-incident-secrets.yml",
-    "category": "ci-workflow",
-    "extension": ".yml"
-   },
-   {
-    "path": ".github/workflows/tok-workforce-index-sync.yml",
     "category": "ci-workflow",
     "extension": ".yml"
    },
@@ -151688,14 +151684,14 @@
    "id": "code-module:c0bdde6aa1b0",
    "type": "code-module",
    "title": "src/test/route-wiring.test.ts",
-   "description": "Module de 185 lignes; exports: aucun export statique.",
+   "description": "Module de 187 lignes; exports: aucun export statique.",
    "path": "src/test/route-wiring.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "48e64ca00d70"
+   "detailRef": "45581f81a18c"
   },
   {
    "id": "code-module:79f716928cc6",
@@ -297373,20 +297369,6 @@
    "detailRef": "4641b28d0262"
   },
   {
-   "id": "file:3ddfe3c227fe",
-   "type": "file",
-   "title": ".github/workflows/tok-workforce-index-sync.yml",
-   "description": "Fichier du dépôt classé ci-workflow.",
-   "path": ".github/workflows/tok-workforce-index-sync.yml",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".yml",
-    "ci-workflow"
-   ],
-   "detailRef": "4c3056ef18eb"
-  },
-  {
    "id": "file:7f519ece547e",
    "type": "file",
    "title": ".gitignore",
@@ -355629,7 +355611,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "27031482f166"
+   "detailRef": "d77be619fa46"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -355869,7 +355851,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "6b1b7ce8b0f6"
+   "detailRef": "f690f5e10207"
   },
   {
    "id": "path-literal:b93cc2bbc5bc",
@@ -356367,16 +356349,17 @@
    "id": "path-literal:75e3e9186f19",
    "type": "path-literal",
    "title": "/admin/equipe",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 659,
    "surface": null,
    "tags": [
     "src/App.tsx",
     "src/components/admin/AdminMobileNavigation.tsx",
-    "src/pages/admin/AdminHome.tsx"
+    "src/pages/admin/AdminHome.tsx",
+    "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "d045113f6dc7"
+   "detailRef": "330bcc19b2d2"
   },
   {
    "id": "path-literal:939c86203578",
@@ -356398,7 +356381,7 @@
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/user-guide.test.ts"
    ],
-   "detailRef": "f76bbc283c71"
+   "detailRef": "d080db1a0082"
   },
   {
    "id": "path-literal:0b0219bc6bcb",
@@ -356414,7 +356397,7 @@
     "src/pages/admin/AdminHome.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "1ee3d15bfa72"
+   "detailRef": "76e1fe40fe1e"
   },
   {
    "id": "path-literal:6d486c3d5165",
@@ -356602,7 +356585,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/tok-intelligence-suite.test.ts"
    ],
-   "detailRef": "eaf5597e662e"
+   "detailRef": "3dd7c498daa6"
   },
   {
    "id": "path-literal:b747d8146f42",
@@ -356640,7 +356623,7 @@
     "src/test/admin-mobile-navigation.test.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "146e6ad166e2"
+   "detailRef": "f7d1858ed520"
   },
   {
    "id": "path-literal:3ab31e7ca567",
@@ -356749,7 +356732,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "a48ff0ad4d32"
+   "detailRef": "41378395582e"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -356785,7 +356768,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "c64402988709"
+   "detailRef": "55a4b299272b"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -357473,7 +357456,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "44676a5e80bd"
+   "detailRef": "1a79e5fcc5dc"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -357599,7 +357582,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "2468830e8946"
+   "detailRef": "65d5f7491a35"
   },
   {
    "id": "path-literal:e53adf57f6c1",
@@ -357840,7 +357823,7 @@
     "src/test/commercial-prospection.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "05c7d3fe9c32"
+   "detailRef": "6b6e7bfec359"
   },
   {
    "id": "path-literal:04407c59ee27",
@@ -358018,7 +358001,7 @@
     "src/test/notifications-sinistres-governance.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "926f48946543"
+   "detailRef": "2eada1dda4e2"
   },
   {
    "id": "path-literal:e74909072ee9",
@@ -358161,7 +358144,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "0c311fe7ca02"
+   "detailRef": "61565558b958"
   },
   {
    "id": "path-literal:2a26b0d45a67",
@@ -358190,7 +358173,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "92ccd6ed3afa"
+   "detailRef": "c3245c9b8df7"
   },
   {
    "id": "path-literal:5c1c55111e98",
@@ -358217,7 +358200,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "02e34174bb2c"
+   "detailRef": "9ce9a14dba61"
   },
   {
    "id": "path-literal:211de81378ad",
@@ -358308,7 +358291,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "ae421f2f45a6"
+   "detailRef": "bc710bfdbb7c"
   },
   {
    "id": "path-literal:c5c531c274be",
@@ -358534,7 +358517,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/tok-intelligence-suite.test.ts"
    ],
-   "detailRef": "b65ae5b46d89"
+   "detailRef": "fabc32b87db4"
   },
   {
    "id": "path-literal:e6b3f9f220d0",
@@ -358646,15 +358629,16 @@
    "id": "path-literal:f3ef4203aa1d",
    "type": "path-literal",
    "title": "/dashboard/equipe",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 645,
    "surface": null,
    "tags": [
     "src/App.tsx",
-    "src/components/DashboardLayout.tsx"
+    "src/components/DashboardLayout.tsx",
+    "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "5e95d2a05af0"
+   "detailRef": "14b2322e7187"
   },
   {
    "id": "path-literal:b15e95554b97",
@@ -358975,7 +358959,7 @@
     "src/App.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "83785cc832ee"
+   "detailRef": "3ba9f0712559"
   },
   {
    "id": "path-literal:77ffd71626d3",
@@ -359777,7 +359761,7 @@
     "src/App.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "0e7b6e208952"
+   "detailRef": "0ec6e83ba5b9"
   },
   {
    "id": "path-literal:3b18b81d81f5",
@@ -359792,7 +359776,7 @@
     "src/pages/Aide.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "dfa0515e4b5e"
+   "detailRef": "d836c50185e0"
   },
   {
    "id": "path-literal:19df4f56e32b",
@@ -359809,7 +359793,7 @@
     "src/pages/Aide.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "7f9efcbba4fc"
+   "detailRef": "1738c8998ed8"
   },
   {
    "id": "path-literal:2f977cc5c30a",
@@ -363257,7 +363241,7 @@
     "src/App.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "b54da3d2e8bf"
+   "detailRef": "ce11bc4066b1"
   },
   {
    "id": "path-literal:427bec9bcd07",
@@ -363357,7 +363341,7 @@
     "src/test/marketing-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "8ac62d85700a"
+   "detailRef": "449a3efc02e5"
   },
   {
    "id": "path-literal:782adb141974",
@@ -363508,7 +363492,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "28563136d6e3"
+   "detailRef": "ad8c825621f9"
   },
   {
    "id": "path-literal:0bc97f93cc32",
@@ -363792,7 +363776,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "2d06afbdcef0"
+   "detailRef": "77621e970adb"
   },
   {
    "id": "path-literal:f15ac1b71119",
@@ -363922,7 +363906,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "7def1b71c3a0"
+   "detailRef": "539d6e55a4e2"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -365463,7 +365447,7 @@
     "src/data/userGuideContent.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "b226d89a531a"
+   "detailRef": "318c1797bd5b"
   },
   {
    "id": "path-literal:28ec8b0caf24",
@@ -365490,7 +365474,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "e59814f28814"
+   "detailRef": "784970da9e57"
   },
   {
    "id": "path-literal:784b13bf4e15",
@@ -365520,7 +365504,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "29bfd4f72faf"
+   "detailRef": "673b96284611"
   },
   {
    "id": "path-literal:ddcd2bd824da",
@@ -365548,7 +365532,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "5054b0b2eee9"
+   "detailRef": "c15fbde3d4bf"
   },
   {
    "id": "path-literal:e0d8149df64e",
@@ -379180,19 +379164,6 @@
     "sync"
    ],
    "detailRef": "87bb2b75c4d4"
-  },
-  {
-   "id": "workflow:1a281e8fa456",
-   "type": "workflow",
-   "title": "Temporary TOK Workforce Index Generation",
-   "description": "Workflow GitHub Actions; jobs: sync-index.",
-   "path": ".github/workflows/tok-workforce-index-sync.yml",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "sync-index"
-   ],
-   "detailRef": "948675071260"
   },
   {
    "id": "workflow:449ccb0fe621",

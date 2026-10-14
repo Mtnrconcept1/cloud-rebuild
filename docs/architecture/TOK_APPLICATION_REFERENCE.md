@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `dfbaa35f78b989b92eed9523efb50cea3918a78df3e589446d75ad418d6c30c7`
+- Empreinte SHA-256 des sources indexées : `5bbcc874fba360e6e437f9e40499c677e16d9d28e72b9461ea7ae27f12fd51db`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,14 +45,14 @@
 | publicEntries | 589 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16968 |
-| repositoryFiles | 3183 |
+| records | 16966 |
+| repositoryFiles | 3182 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 29 |
+| workflows | 28 |
 
 ## État distant observé
 
@@ -1275,7 +1275,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/compta/sorties | 8 | [src/App.tsx:674](../../src/App.tsx#L674) |
 | /admin/crm | 4 | [src/App.tsx:668](../../src/App.tsx#L668) |
 | /admin/drops | 4 | [src/App.tsx:665](../../src/App.tsx#L665) |
-| /admin/equipe | 3 | [src/App.tsx:659](../../src/App.tsx#L659) |
+| /admin/equipe | 4 | [src/App.tsx:659](../../src/App.tsx#L659) |
 | /admin/guardian | 11 | [src/App.tsx:679](../../src/App.tsx#L679) |
 | /admin/guide | 5 | [src/App.tsx:681](../../src/App.tsx#L681) |
 | /admin/loyalty | 4 | [src/App.tsx:664](../../src/App.tsx#L664) |
@@ -1408,7 +1408,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/credits | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:215](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L215) |
 | /dashboard/crm | 6 | [src/App.tsx:641](../../src/App.tsx#L641) |
 | /dashboard/crm-clients | 2 | [supabase/functions/tok-connect-full-app-mcp/index.ts:221](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L221) |
-| /dashboard/equipe | 3 | [src/App.tsx:645](../../src/App.tsx#L645) |
+| /dashboard/equipe | 4 | [src/App.tsx:645](../../src/App.tsx#L645) |
 | /dashboard/facturation | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:223](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L223) |
 | /dashboard/factures | 18 | [src/App.tsx:625](../../src/App.tsx#L625) |
 | /dashboard/factures/ | 1 | [src/components/navigation/BackNavigationButton.tsx:19](../../src/components/navigation/BackNavigationButton.tsx#L19) |
@@ -6218,7 +6218,6 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Restaurant Image Truth Backfill | backfill | [.github/workflows/restaurant-image-truth-backfill.yml](../../.github/workflows/restaurant-image-truth-backfill.yml) |
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
-| Temporary TOK Workforce Index Generation | sync-index | [.github/workflows/tok-workforce-index-sync.yml](../../.github/workflows/tok-workforce-index-sync.yml) |
 
 ### Dépendances
 
@@ -6928,7 +6927,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (29)</summary>
+<details><summary>ci-workflow (28)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -6958,7 +6957,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/restaurant-image-truth-backfill.yml`
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
-- `.github/workflows/tok-workforce-index-sync.yml`
 
 </details>
 
