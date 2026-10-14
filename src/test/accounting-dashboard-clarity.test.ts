@@ -25,6 +25,10 @@ describe("accounting dashboard clarity and responsiveness", () => {
     expect(admin).toContain("Dépenses réelles et engagements");
     expect(admin).toContain("Commissions marketplace");
     expect(admin).toContain("Part développeur réservée");
+    expect(admin).toContain("Frais Stripe réels");
+    expect(admin).toContain("TVA collectée à reverser");
+    expect(adminShared).toContain('"financial_ledger"');
+    expect(adminShared).toContain('["stripe_processing_fee_expense", "tax_payable"]');
     expect(admin).toContain("Charges marketing enregistrées");
     expect(admin).toContain("Reste pilotable après politiques");
     expect(admin).toContain("- developerReservedShare");
