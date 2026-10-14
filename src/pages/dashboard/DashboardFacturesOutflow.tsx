@@ -86,7 +86,7 @@ function InvoiceListItem({
             >
               Voir la facture
             </Button>
-            {canMarkPaid && !isPaid ? (
+            {canMarkPaid && !isPaid && invoice.invoice_type !== "subscription" ? (
               <Button
                 type="button"
                 size="sm"

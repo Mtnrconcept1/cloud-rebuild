@@ -8,7 +8,7 @@ export type RestaurantInvoiceRowBase = Database["public"]["Tables"]["restaurant_
 export type RestaurantRowBase = Database["public"]["Tables"]["restaurants"]["Row"];
 export type RestaurantInvoiceSettingsRow = Database["public"]["Tables"]["restaurant_invoice_settings"]["Row"];
 
-export type PayableInvoiceType = "payable" | "reservation_fees";
+export type PayableInvoiceType = "payable" | "reservation_fees" | "subscription";
 export type PayableInvoiceStatus = "draft" | "issued" | "pending" | "overdue" | "paid";
 export type PayableInvoiceItemKind =
   | "order_commission"
@@ -65,6 +65,8 @@ export type PayableInvoiceRecipient = {
   addressLine2: string | null;
   country: string | null;
   vatNumber: string | null;
+  /** Swiss enterprise ID (UID / IDE); this does not itself establish VAT registration. */
+  enterpriseId?: string | null;
   email: string | null;
   phone: string | null;
 };
@@ -104,15 +106,21 @@ export type PayableInvoiceDocumentData = {
   footerMessage: string;
 };
 
+// The legal issuer must match the Stripe merchant of record, not a demo
+// identity. Confirm the company's registered details if the merchant changes.
+// TOK remains the commercial brand printed alongside the legal entity.
 const TOK_SENDER: PayableInvoiceRecipient & { website: string } = {
-  name: "Newdogs Sarl",
-  addressLine1: "Rue Moillebeau 59",
-  addressLine2: "1209 Genève",
+  name: "NEW DOG'S SERVICES Sàrl",
+  addressLine1: "Rue de Genève 6",
+  addressLine2: "1225 Chêne-Bourg",
   country: "Suisse",
-  vatNumber: "CHE-123.456.789",
-  email: "facturation@tok.app",
-  phone: "+41 22 123 45 67",
-  website: "www.tok.app",
+  enterpriseId: "CHE-109.513.890",
+  // VAT registration confirmed by the merchant; verify periodically with
+  // the Swiss UID register before issuing new invoices after legal changes.
+  vatNumber: "CHE-109.513.890 TVA",
+  email: null,
+  phone: null,
+  website: "www.thetok.ch",
 };
 
 const GROUP_META: Record<
@@ -198,7 +206,7 @@ export function toPayableAmount(value: number | string | null | undefined) {
 }
 
 export function isPayableInvoiceType(value: string | null | undefined): value is PayableInvoiceType {
-  return value === "payable" || value === "reservation_fees";
+  return value === "payable" || value === "reservation_fees" || value === "subscription";
 }
 
 export function formatPayableAmount(value: number | string | null | undefined, currency = "CHF") {

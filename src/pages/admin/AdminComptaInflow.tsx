@@ -128,7 +128,7 @@ function InvoiceListItem({
                 PDF
               </Button>
             ) : null}
-            {!isPaid ? (
+            {!isPaid && invoice.invoice_type !== "subscription" ? (
               <Button
                 type="button"
                 size="sm"
@@ -143,7 +143,7 @@ function InvoiceListItem({
                 {isPaying ? "Marquage..." : "Marquer payée"}
               </Button>
             ) : (
-              <span className="text-xs text-muted-foreground">Reglee</span>
+              <span className="text-xs text-muted-foreground">{isPaid ? "Réglée" : "Paiement synchronisé par Stripe"}</span>
             )}
           </div>
         </CardContent>

@@ -2,14 +2,14 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "c742b857dcf342ab3a43c906316538f05b3126c5d09e4980795a1c6fb2b423fd",
+ "sourceDigest": "9cf2f004f320b99b53fc2745f8ee408fe15a21c473add242eb803849a0200b62",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2781,
-  "documents": 203,
+  "documents": 204,
   "edgeFunctions": 116,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3520,
@@ -17,16 +17,16 @@
   "frontendRoutes": 137,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 537,
-  "modules": 1552,
+  "migrations": 538,
+  "modules": 1553,
   "pages": 129,
   "pathLiterals": 697,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16590,
-  "repositoryFiles": 3087,
+  "records": 16600,
+  "repositoryFiles": 3090,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -3957,6 +3957,7 @@
      }
     ],
     "integrations": [
+     "stripe",
      "supabase"
     ]
    },
@@ -31721,6 +31722,7 @@
      "src/lib/iosCommerceFetch.ts",
      "src/lib/launchPacks.ts",
      "src/lib/orderConfirmation.ts",
+     "src/lib/payableInvoice.ts",
      "src/lib/paymentMethods.ts",
      "src/lib/refundMutations.ts",
      "src/lib/reservationMutations.ts",
@@ -31750,6 +31752,7 @@
      "src/pages/ZeroAttente.tsx",
      "src/pages/admin/AdminAuditLogs.tsx",
      "src/pages/admin/AdminCompta.tsx",
+     "src/pages/admin/AdminComptaInflow.tsx",
      "src/pages/admin/AdminLaunchPacks.tsx",
      "src/pages/admin/AdminOrdersReservations.tsx",
      "src/pages/admin/AdminRestaurants.tsx",
@@ -31836,6 +31839,7 @@
      "src/test/stripe-security-hardening.test.ts",
      "src/test/super-admin-sensitive-rls.test.ts",
      "src/test/tok-ai-tools.test.ts",
+     "src/test/tok-canonical-subscription-invoice.test.ts",
      "src/test/tok-connect-app-bridge.test.ts",
      "src/test/tok-one-stripe-test-mode.test.ts",
      "src/test/tok-stripe-price-catalog.test.ts",
@@ -32507,6 +32511,7 @@
      "src/test/thefork-image-enrichment-completion.test.ts",
      "src/test/tok-ai-platform-plan.test.ts",
      "src/test/tok-ai-tools.test.ts",
+     "src/test/tok-canonical-subscription-invoice.test.ts",
      "src/test/tok-connect-admin-humanized.test.ts",
      "src/test/tok-connect-admin-pagination.test.ts",
      "src/test/tok-connect-admin-schema-contract.test.ts",
@@ -35935,6 +35940,12 @@
     "name": "20261014072000 Developer Subscription Gross Share Before Vat",
     "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
     "lineCount": 769,
+    "objectCount": 1
+   },
+   {
+    "name": "20261014093000 Show Stripe Subscription In Tok Invoice Document",
+    "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
+    "lineCount": 59,
     "objectCount": 1
    }
   ],
@@ -40610,6 +40621,10 @@
      {
       "path": "supabase/migrations/20260422193000_unified_payable_invoice.sql",
       "line": 104
+     },
+     {
+      "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
+      "line": 4
      }
     ]
    },
@@ -76310,6 +76325,32 @@
     ]
    },
    {
+    "path": "docs/runbooks/tok-developer-bank-payouts.md",
+    "title": "Versement développeur sans Stripe Connect : PostFinance",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Versement développeur sans Stripe Connect : PostFinance",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Processus recommandé",
+      "line": 8
+     },
+     {
+      "level": 2,
+      "title": "Factures canonique TOK",
+      "line": 38
+     },
+     {
+      "level": 2,
+      "title": "Émetteur légal TOK (registre du commerce de Genève)",
+      "line": 57
+     }
+    ]
+   },
+   {
     "path": "docs/security/SEO_BOT_PROTECTION_RUNBOOK.md",
     "title": "Protection SEO et anti-scraping de TOK",
     "headings": [
@@ -87214,7 +87255,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 523
+    "lineCount": 525
    },
    {
     "path": "src/components/launch/LaunchArtwork.tsx",
@@ -97267,80 +97308,81 @@
      },
      {
       "name": "PayableInvoiceGroupSummary",
-      "line": 72,
+      "line": 74,
       "kind": "typealias"
      },
      {
       "name": "PayableInvoiceDocumentData",
-      "line": 89,
+      "line": 91,
       "kind": "typealias"
      },
      {
       "name": "toPayableAmount",
-      "line": 195,
+      "line": 203,
       "kind": "function"
      },
      {
       "name": "isPayableInvoiceType",
-      "line": 200,
+      "line": 208,
       "kind": "function"
      },
      {
       "name": "formatPayableAmount",
-      "line": 204,
+      "line": 212,
       "kind": "function"
      },
      {
       "name": "formatPayableDate",
-      "line": 211,
+      "line": 219,
       "kind": "function"
      },
      {
       "name": "formatPayablePeriod",
-      "line": 218,
+      "line": 226,
       "kind": "function"
      },
      {
       "name": "getPayableInvoiceStatusLabel",
-      "line": 222,
+      "line": 230,
       "kind": "function"
      },
      {
       "name": "getPayableInvoiceStatusClass",
-      "line": 233,
+      "line": 241,
       "kind": "function"
      },
      {
       "name": "normalizePayableInvoiceItemKind",
-      "line": 251,
+      "line": 259,
       "kind": "function"
      },
      {
       "name": "getPayableInvoiceGroupMeta",
-      "line": 287,
+      "line": 295,
       "kind": "function"
      },
      {
       "name": "buildPayableInvoiceGroups",
-      "line": 322,
+      "line": 330,
       "kind": "function"
      },
      {
       "name": "buildPayableInvoiceRecipient",
-      "line": 387,
+      "line": 395,
       "kind": "function"
      },
      {
       "name": "buildPayableInvoiceDocumentData",
-      "line": 420,
+      "line": 428,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [
+     "stripe",
      "supabase"
     ],
-    "lineCount": 462
+    "lineCount": 470
    },
    {
     "path": "src/lib/paymentAttempt.ts",
@@ -102563,6 +102605,7 @@
     ],
     "environmentNames": [],
     "integrations": [
+     "stripe",
      "supabase"
     ],
     "lineCount": 579
@@ -108909,6 +108952,16 @@
      "supabase"
     ],
     "lineCount": 557
+   },
+   {
+    "path": "src/test/tok-canonical-subscription-invoice.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 99
    },
    {
     "path": "src/test/tok-connect-admin-humanized.test.ts",
@@ -115958,6 +116011,11 @@
    },
    {
     "path": "docs/runbooks/stripe-financial-ops.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/runbooks/tok-developer-bank-payouts.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -125737,6 +125795,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-canonical-subscription-invoice.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/tok-connect-admin-humanized.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -129623,6 +129686,11 @@
    },
    {
     "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -133944,14 +134012,14 @@
    "id": "code-module:c2a08a511ff3",
    "type": "code-module",
    "title": "src/components/invoices/TokPayableInvoiceDocument.tsx",
-   "description": "Module de 523 lignes; exports: TokPayableInvoiceDocument.",
+   "description": "Module de 525 lignes; exports: TokPayableInvoiceDocument.",
    "path": "src/components/invoices/TokPayableInvoiceDocument.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "TokPayableInvoiceDocument"
    ],
-   "detailRef": "faed5b5bd230"
+   "detailRef": "08607d0d60d5"
   },
   {
    "id": "code-module:e70e0a042205",
@@ -138843,7 +138911,7 @@
    "id": "code-module:c707a9ad0be1",
    "type": "code-module",
    "title": "src/lib/payableInvoice.ts",
-   "description": "Module de 462 lignes; exports: RestaurantInvoiceRowBase, RestaurantRowBase, RestaurantInvoiceSettingsRow, PayableInvoiceType, PayableInvoiceStatus, PayableInvoiceItemKind, PayableInvoiceRow, PayableInvoiceLine, PayableInvoiceRecipient, PayableInvoiceGroupSummary, PayableInvoiceDocumentData, toPayableAmount, isPayableInvoiceType, formatPayableAmount, formatPayableDate, formatPayablePeriod, getPayableInvoiceStatusLabel, getPayableInvoiceStatusClass, normalizePayableInvoiceItemKind, getPayableInvoiceGroupMeta, buildPayableInvoiceGroups, buildPayableInvoiceRecipient, buildPayableInvoiceDocumentData.",
+   "description": "Module de 470 lignes; exports: RestaurantInvoiceRowBase, RestaurantRowBase, RestaurantInvoiceSettingsRow, PayableInvoiceType, PayableInvoiceStatus, PayableInvoiceItemKind, PayableInvoiceRow, PayableInvoiceLine, PayableInvoiceRecipient, PayableInvoiceGroupSummary, PayableInvoiceDocumentData, toPayableAmount, isPayableInvoiceType, formatPayableAmount, formatPayableDate, formatPayablePeriod, getPayableInvoiceStatusLabel, getPayableInvoiceStatusClass, normalizePayableInvoiceItemKind, getPayableInvoiceGroupMeta, buildPayableInvoiceGroups, buildPayableInvoiceRecipient, buildPayableInvoiceDocumentData.",
    "path": "src/lib/payableInvoice.ts",
    "line": 1,
    "surface": null,
@@ -138870,10 +138938,11 @@
     "getPayableInvoiceStatusLabel",
     "isPayableInvoiceType",
     "normalizePayableInvoiceItemKind",
+    "stripe",
     "supabase",
     "toPayableAmount"
    ],
-   "detailRef": "a5e5bccecb54"
+   "detailRef": "5e872e4e7a5a"
   },
   {
    "id": "code-module:2d770d8e01cc",
@@ -141570,9 +141639,10 @@
    "surface": null,
    "tags": [
     "default",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "c47e0a694e6d"
+   "detailRef": "44ddc1a7afaf"
   },
   {
    "id": "code-module:66a4836cdc15",
@@ -149772,6 +149842,20 @@
     "supabase"
    ],
    "detailRef": "a5cfbb5001e3"
+  },
+  {
+   "id": "code-module:7484ad1ec1ed",
+   "type": "code-module",
+   "title": "src/test/tok-canonical-subscription-invoice.test.ts",
+   "description": "Module de 99 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-canonical-subscription-invoice.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "ec6bca1899d3"
   },
   {
    "id": "code-module:f6990f00d43c",
@@ -178436,19 +178520,19 @@
    "detailRef": "e416ab9f35e9"
   },
   {
-   "id": "database-object:ef48f3fff144",
+   "id": "database-object:17f5a4e7cb3e",
    "type": "database-object",
    "title": "public.get_payable_invoice_lines",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260422193000_unified_payable_invoice.sql",
-   "line": 104,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
+   "line": 4,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "cd562e9646db"
+   "detailRef": "b0687ebaa897"
   },
   {
    "id": "database-object:7f2d80620f3c",
@@ -210826,6 +210910,20 @@
    "detailRef": "6082925f9cec"
   },
   {
+   "id": "document-section:110bdca934a8",
+   "type": "document-section",
+   "title": "Factures canonique TOK",
+   "description": "Section de Versement développeur sans Stripe Connect : PostFinance.",
+   "path": "docs/runbooks/tok-developer-bank-payouts.md",
+   "line": 38,
+   "surface": null,
+   "tags": [
+    "Versement développeur sans Stripe Connect : PostFinance",
+    "h2"
+   ],
+   "detailRef": "f5aca480db8b"
+  },
+  {
    "id": "document-section:8335259f75aa",
    "type": "document-section",
    "title": "Factures compta - detail complet des lignes",
@@ -218622,6 +218720,20 @@
     "h2"
    ],
    "detailRef": "8d763653d3ef"
+  },
+  {
+   "id": "document-section:0c6823003a66",
+   "type": "document-section",
+   "title": "Processus recommandé",
+   "description": "Section de Versement développeur sans Stripe Connect : PostFinance.",
+   "path": "docs/runbooks/tok-developer-bank-payouts.md",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "Versement développeur sans Stripe Connect : PostFinance",
+    "h2"
+   ],
+   "detailRef": "03d6ee919866"
   },
   {
    "id": "document-section:3359fd2015a4",
@@ -228158,6 +228270,20 @@
    "detailRef": "c5785690b266"
   },
   {
+   "id": "document-section:39b95a290144",
+   "type": "document-section",
+   "title": "Versement développeur sans Stripe Connect : PostFinance",
+   "description": "Section de Versement développeur sans Stripe Connect : PostFinance.",
+   "path": "docs/runbooks/tok-developer-bank-payouts.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Versement développeur sans Stripe Connect : PostFinance",
+    "h1"
+   ],
+   "detailRef": "b6e25e0dc4d2"
+  },
+  {
    "id": "document-section:58f2d0b0a5f0",
    "type": "document-section",
    "title": "Voir et exporter",
@@ -229640,6 +229766,20 @@
     "h2"
    ],
    "detailRef": "7c701cf6707d"
+  },
+  {
+   "id": "document-section:2eb7a1299239",
+   "type": "document-section",
+   "title": "Émetteur légal TOK (registre du commerce de Genève)",
+   "description": "Section de Versement développeur sans Stripe Connect : PostFinance.",
+   "path": "docs/runbooks/tok-developer-bank-payouts.md",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "Versement développeur sans Stripe Connect : PostFinance",
+    "h2"
+   ],
+   "detailRef": "2cfecfea4cab"
   },
   {
    "id": "document-section:9fcd2ff83618",
@@ -234236,6 +234376,22 @@
     "Use tsvector for Full-Text Search"
    ],
    "detailRef": "acd21132aba6"
+  },
+  {
+   "id": "document:39b95a290144",
+   "type": "document",
+   "title": "Versement développeur sans Stripe Connect : PostFinance",
+   "description": "Document Markdown avec 4 section(s).",
+   "path": "docs/runbooks/tok-developer-bank-payouts.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Factures canonique TOK",
+    "Processus recommandé",
+    "Versement développeur sans Stripe Connect : PostFinance",
+    "Émetteur légal TOK (registre du commerce de Genève)"
+   ],
+   "detailRef": "79bf475b3ac0"
   },
   {
    "id": "document:40329c68a3f3",
@@ -254051,32 +254207,34 @@
    "detailRef": "6cd6208992f5"
   },
   {
-   "id": "exported-symbol:5af806ad9ce7",
+   "id": "exported-symbol:3d449e628de5",
    "type": "exported-symbol",
    "title": "PayableInvoiceDocumentData",
    "description": "Export typealias de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 89,
+   "line": 91,
    "surface": null,
    "tags": [
+    "stripe",
     "supabase",
     "typealias"
    ],
-   "detailRef": "420fd51978a4"
+   "detailRef": "8e192ff5d39d"
   },
   {
-   "id": "exported-symbol:1db77f27186c",
+   "id": "exported-symbol:da0a09aa2fb7",
    "type": "exported-symbol",
    "title": "PayableInvoiceGroupSummary",
    "description": "Export typealias de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 72,
+   "line": 74,
    "surface": null,
    "tags": [
+    "stripe",
     "supabase",
     "typealias"
    ],
-   "detailRef": "04a7f10d6fc4"
+   "detailRef": "7111518fdb5d"
   },
   {
    "id": "exported-symbol:4dadae8bc002",
@@ -254087,6 +254245,7 @@
    "line": 13,
    "surface": null,
    "tags": [
+    "stripe",
     "supabase",
     "typealias"
    ],
@@ -254101,6 +254260,7 @@
    "line": 44,
    "surface": null,
    "tags": [
+    "stripe",
     "supabase",
     "typealias"
    ],
@@ -254115,6 +254275,7 @@
    "line": 62,
    "surface": null,
    "tags": [
+    "stripe",
     "supabase",
     "typealias"
    ],
@@ -254129,6 +254290,7 @@
    "line": 23,
    "surface": null,
    "tags": [
+    "stripe",
     "supabase",
     "typealias"
    ],
@@ -254143,6 +254305,7 @@
    "line": 12,
    "surface": null,
    "tags": [
+    "stripe",
     "supabase",
     "typealias"
    ],
@@ -254157,6 +254320,7 @@
    "line": 11,
    "surface": null,
    "tags": [
+    "stripe",
     "supabase",
     "typealias"
    ],
@@ -256446,6 +256610,7 @@
    "line": 7,
    "surface": null,
    "tags": [
+    "stripe",
     "supabase",
     "typealias"
    ],
@@ -256460,6 +256625,7 @@
    "line": 9,
    "surface": null,
    "tags": [
+    "stripe",
     "supabase",
     "typealias"
    ],
@@ -256720,6 +256886,7 @@
    "line": 8,
    "surface": null,
    "tags": [
+    "stripe",
     "supabase",
     "typealias"
    ],
@@ -263840,46 +264007,49 @@
    "detailRef": "01a4297ef328"
   },
   {
-   "id": "exported-symbol:9442b31be154",
+   "id": "exported-symbol:3b1b50e3cc36",
    "type": "exported-symbol",
    "title": "buildPayableInvoiceDocumentData",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 420,
+   "line": 428,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "206d73071a9a"
+   "detailRef": "622432d4034c"
   },
   {
-   "id": "exported-symbol:d8a39580f6ae",
+   "id": "exported-symbol:0b1352dcb376",
    "type": "exported-symbol",
    "title": "buildPayableInvoiceGroups",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 322,
+   "line": 330,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "a61469e6da1e"
+   "detailRef": "4f5bb7b4f783"
   },
   {
-   "id": "exported-symbol:a61ce6be7d8a",
+   "id": "exported-symbol:a2a5e0b51b09",
    "type": "exported-symbol",
    "title": "buildPayableInvoiceRecipient",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 387,
+   "line": 395,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "56b4e4b3e591"
+   "detailRef": "68e8bdd66a46"
   },
   {
    "id": "exported-symbol:cbb3bbd83ea0",
@@ -270297,6 +270467,7 @@
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
    "detailRef": "a1063ef8e2fa"
@@ -272976,46 +273147,49 @@
    "detailRef": "0e7b4dfaf97a"
   },
   {
-   "id": "exported-symbol:cb8af029b420",
+   "id": "exported-symbol:60239f85decd",
    "type": "exported-symbol",
    "title": "formatPayableAmount",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 204,
+   "line": 212,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "b55961c7ab01"
+   "detailRef": "b3ef157fd547"
   },
   {
-   "id": "exported-symbol:da4f2a8d04fc",
+   "id": "exported-symbol:49d34ef3e56f",
    "type": "exported-symbol",
    "title": "formatPayableDate",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 211,
+   "line": 219,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "ebd2e7dc4164"
+   "detailRef": "aa74f14f2915"
   },
   {
-   "id": "exported-symbol:5a6ab5529655",
+   "id": "exported-symbol:9fcf04b6fb5d",
    "type": "exported-symbol",
    "title": "formatPayablePeriod",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 218,
+   "line": 226,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "2a2b5ba1a5ba"
+   "detailRef": "41ab6fef7590"
   },
   {
    "id": "exported-symbol:2040dd73b693",
@@ -276082,46 +276256,49 @@
    "detailRef": "96c7a620b800"
   },
   {
-   "id": "exported-symbol:07d6bc052655",
+   "id": "exported-symbol:2c606c1c1a21",
    "type": "exported-symbol",
    "title": "getPayableInvoiceGroupMeta",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 287,
+   "line": 295,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "d38784099a03"
+   "detailRef": "9e2bf1d77176"
   },
   {
-   "id": "exported-symbol:21b5f530563c",
+   "id": "exported-symbol:b593c74a244c",
    "type": "exported-symbol",
    "title": "getPayableInvoiceStatusClass",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 233,
+   "line": 241,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "2d2d0a9e6fbe"
+   "detailRef": "4c6abb479a96"
   },
   {
-   "id": "exported-symbol:c75f2a91fc5a",
+   "id": "exported-symbol:29f499c4e117",
    "type": "exported-symbol",
    "title": "getPayableInvoiceStatusLabel",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 222,
+   "line": 230,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "b0b2e493179e"
+   "detailRef": "df40ca074c84"
   },
   {
    "id": "exported-symbol:fc81b6b08d84",
@@ -279863,18 +280040,19 @@
    "detailRef": "81544de9053d"
   },
   {
-   "id": "exported-symbol:9d86ecb188c5",
+   "id": "exported-symbol:66067ae5ab20",
    "type": "exported-symbol",
    "title": "isPayableInvoiceType",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 200,
+   "line": 208,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "a4bb0593b678"
+   "detailRef": "b8ae3a0226be"
   },
   {
    "id": "exported-symbol:7ce5059b0835",
@@ -282228,18 +282406,19 @@
    "detailRef": "4cdf537e0707"
   },
   {
-   "id": "exported-symbol:8b5bdeadcc94",
+   "id": "exported-symbol:13b528224bcc",
    "type": "exported-symbol",
    "title": "normalizePayableInvoiceItemKind",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 251,
+   "line": 259,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "4e46384f9e32"
+   "detailRef": "b21fdf28057d"
   },
   {
    "id": "exported-symbol:6ac2783e845b",
@@ -286699,18 +286878,19 @@
    "detailRef": "fd15b4b331af"
   },
   {
-   "id": "exported-symbol:27ee5d3c6a46",
+   "id": "exported-symbol:4a51adfdf63f",
    "type": "exported-symbol",
    "title": "toPayableAmount",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 195,
+   "line": 203,
    "surface": null,
    "tags": [
     "function",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "ec7b72dbbcfb"
+   "detailRef": "8de6d3debaed"
   },
   {
    "id": "exported-symbol:ed0ecbdd94c1",
@@ -294965,6 +295145,20 @@
     "documentation"
    ],
    "detailRef": "44c9ff1ddb59"
+  },
+  {
+   "id": "file:2d6aec77624e",
+   "type": "file",
+   "title": "docs/runbooks/tok-developer-bank-payouts.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/runbooks/tok-developer-bank-payouts.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "e3eb9a77679a"
   },
   {
    "id": "file:75f415953a86",
@@ -322337,6 +322531,20 @@
    "detailRef": "5e2e3ae83b9d"
   },
   {
+   "id": "file:4b626a97b9ef",
+   "type": "file",
+   "title": "src/test/tok-canonical-subscription-invoice.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-canonical-subscription-invoice.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "0a7fce0dadb4"
+  },
+  {
    "id": "file:a0b4f5417628",
    "type": "file",
    "title": "src/test/tok-connect-admin-humanized.test.ts",
@@ -333229,6 +333437,20 @@
    "detailRef": "dad2d3c1c8b9"
   },
   {
+   "id": "file:780154932c00",
+   "type": "file",
+   "title": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "2ed4ca4c156f"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -336938,7 +337160,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 235 module(s).",
+   "description": "Intégration externe détectée dans 238 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -336984,6 +337206,7 @@
     "src/lib/iosCommerceFetch.ts",
     "src/lib/launchPacks.ts",
     "src/lib/orderConfirmation.ts",
+    "src/lib/payableInvoice.ts",
     "src/lib/paymentMethods.ts",
     "src/lib/refundMutations.ts",
     "src/lib/reservationMutations.ts",
@@ -337013,6 +337236,7 @@
     "src/pages/ZeroAttente.tsx",
     "src/pages/admin/AdminAuditLogs.tsx",
     "src/pages/admin/AdminCompta.tsx",
+    "src/pages/admin/AdminComptaInflow.tsx",
     "src/pages/admin/AdminLaunchPacks.tsx",
     "src/pages/admin/AdminOrdersReservations.tsx",
     "src/pages/admin/AdminRestaurants.tsx",
@@ -337099,6 +337323,7 @@
     "src/test/stripe-security-hardening.test.ts",
     "src/test/super-admin-sensitive-rls.test.ts",
     "src/test/tok-ai-tools.test.ts",
+    "src/test/tok-canonical-subscription-invoice.test.ts",
     "src/test/tok-connect-app-bridge.test.ts",
     "src/test/tok-one-stripe-test-mode.test.ts",
     "src/test/tok-stripe-price-catalog.test.ts",
@@ -337180,13 +337405,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "197a201c3142"
+   "detailRef": "8f145bc8a998"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 695 module(s).",
+   "description": "Intégration externe détectée dans 696 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -337778,6 +338003,7 @@
     "src/test/thefork-image-enrichment-completion.test.ts",
     "src/test/tok-ai-platform-plan.test.ts",
     "src/test/tok-ai-tools.test.ts",
+    "src/test/tok-canonical-subscription-invoice.test.ts",
     "src/test/tok-connect-admin-humanized.test.ts",
     "src/test/tok-connect-admin-pagination.test.ts",
     "src/test/tok-connect-admin-schema-contract.test.ts",
@@ -337888,7 +338114,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "16ca96c457a6"
+   "detailRef": "1fc883250adf"
   },
   {
    "id": "integration:c20910a79a78",
@@ -346090,6 +346316,20 @@
    "detailRef": "91b7e07366ee"
   },
   {
+   "id": "migration:1e5a6e063e3e",
+   "type": "migration",
+   "title": "20261014093000 Show Stripe Subscription In Tok Invoice Document",
+   "description": "Migration SQL de 59 lignes, 1 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "293cb956df78"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -347204,9 +347444,10 @@
    "surface": null,
    "tags": [
     "/admin/compta/entrees",
+    "stripe",
     "supabase"
    ],
-   "detailRef": "e501f13a8e61"
+   "detailRef": "75dedda4d950"
   },
   {
    "id": "page:7a6492278026",
