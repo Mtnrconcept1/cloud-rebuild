@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f2925bef97b6fde581fd3fa491f80bd2262fb670e993a506d049ed514afc0844`
+- Empreinte SHA-256 des sources indexées : `be884300b39c2a4c8a53da6d82dc5a83b7c968872ecd3c6d6d275b01d87e5832`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,7 +37,7 @@
 | frontendRoutes | 137 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 535 |
+| migrations | 536 |
 | modules | 1547 |
 | pages | 129 |
 | pathLiterals | 697 |
@@ -45,8 +45,8 @@
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16560 |
-| repositoryFiles | 3080 |
+| records | 16562 |
+| repositoryFiles | 3081 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2818,7 +2818,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.record_commercial_prospect_followup` (4 définition(s))
 - `public.record_daily_slot_spin` (3 définition(s))
 - `public.record_marketing_provider_event` (1 définition(s))
-- `public.record_marketplace_checkout_ledger` (4 définition(s))
+- `public.record_marketplace_checkout_ledger` (5 définition(s))
 - `public.record_marketplace_dispute_ledger` (1 définition(s))
 - `public.record_marketplace_refund_ledger` (2 définition(s))
 - `public.record_print_provider_event` (1 définition(s))
@@ -5893,6 +5893,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261013110000 Marketing Campaign Items Preview | 113 | 1 | [supabase/migrations/20261013110000_marketing_campaign_items_preview.sql:1](../../supabase/migrations/20261013110000_marketing_campaign_items_preview.sql#L1) |
 | 20261014002455 Restaurant Meta Social Oauth | 65 | 7 | [supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql:1](../../supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql#L1) |
 | 20261014010000 Recurring Restaurant Reservation Commissions | 549 | 16 | [supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql:1](../../supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql#L1) |
+| 20261014072000 Developer Subscription Gross Share Before Vat | 768 | 1 | [supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql:1](../../supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6739,7 +6740,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (535)</summary>
+<details><summary>database-migration (536)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7276,6 +7277,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261013110000_marketing_campaign_items_preview.sql`
 - `supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql`
 - `supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql`
+- `supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql`
 
 </details>
 
