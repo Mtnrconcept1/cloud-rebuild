@@ -40,8 +40,27 @@ type ClaimedDelivery = {
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")?.trim() || "";
-const EMAIL_FROM = Deno.env.get("EMAIL_FROM")?.trim() || "Tok <noreply@thetok.ch>";
+// Marketing must never silently fall back to transactional credentials or sender.
+const TRANSACTIONAL_RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")?.trim() || "";
+const TRANSACTIONAL_EMAIL_FROM = Deno.env.get("EMAIL_FROM")?.trim() || "Tok <noreply@thetok.ch>";
+const RESEND_API_KEY = Deno.env.get("MARKETING_RESEND_API_KEY")?.trim() || "";
+const EMAIL_FROM = Deno.env.get("MARKETING_EMAIL_FROM")?.trim() || "";
+function senderAddress(value: string): string {
+  return (value.match(/<([^<>]+)>/)?.[1] || value).trim().toLowerCase();
+}
+function marketingSenderIsIsolated(): boolean {
+  const address = senderAddress(EMAIL_FROM);
+  const transactionalAddress = senderAddress(TRANSACTIONAL_EMAIL_FROM);
+  const domain = address.split("@")[1] || "";
+  return Boolean(
+    RESEND_API_KEY &&
+    RESEND_API_KEY !== TRANSACTIONAL_RESEND_API_KEY &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address) &&
+    address !== transactionalAddress &&
+    domain !== "thetok.ch" &&
+    domain.endsWith(".thetok.ch")
+  );
+}
 const RESEND_TIMEOUT_MS = 20_000;
 const DELIVERY_LEASE_SECONDS = 180;
 const MAX_DELIVERIES_PER_RUN = 5;
@@ -180,14 +199,14 @@ async function processEmailDelivery(client: AdminClient, delivery: ClaimedDelive
     return { id: delivery.id, status: "blocked_configuration" };
   }
 
-  if (!RESEND_API_KEY) {
+  if (!marketingSenderIsIsolated()) {
     await invokeRpc(client, "complete_marketing_delivery", {
       p_delivery_id: delivery.id,
       p_lease_token: delivery.lease_token,
       p_status: "blocked_configuration",
       p_provider_message_id: null,
-      p_error_code: "resend_key_missing",
-      p_error: "RESEND_API_KEY is not configured",
+      p_error_code: "marketing_sender_not_isolated",
+      p_error: "Dedicated MARKETING_RESEND_API_KEY and MARKETING_EMAIL_FROM (verified marketing.thetok.ch subdomain) are required",
       p_metadata: { channel: "email" },
     });
     return { id: delivery.id, status: "blocked_configuration" };
