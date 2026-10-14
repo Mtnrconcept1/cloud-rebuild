@@ -424,6 +424,7 @@ export default function DashboardAdvisor() {
   const queryClient = useQueryClient();
   const [editMode, setEditMode] = useState(false);
   const [pendingEdit, setPendingEdit] = useState<RestaurantEditProposal | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<{ taskId: string; assetId: string; url: string } | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -446,7 +447,7 @@ export default function DashboardAdvisor() {
     ? { id: selectedId, name: restaurants.find((item) => item.id === selectedId)?.name || "Mon restaurant" }
     : null;
   const restaurantId = restaurant?.id;
-  useEffect(() => { setPendingEdit(null); }, [restaurantId]);
+  useEffect(() => { setPendingEdit(null); setPhotoPreview(null); }, [restaurantId]);
   // A visual stored while the tab was away is re-attached instead of being lost.
   useAiCreationRecovery(restaurantId);
   const advisorHistoryStorageScope = demoAiRuntime
@@ -685,6 +686,7 @@ export default function DashboardAdvisor() {
     const requestsEdit = /\b(modifi\w*|chang\w*|mets?\b|mettre\b|ajout\w*|corrig\w*|supprim\w*|remplac\w*|renomm\w*|g[ée]n[èe]r\w*|cr[ée]\w*|photograph\w*)/i.test(messageText);
     if (!isCommercialDemo && (editMode || requestsEdit)) {
       setPendingEdit(null);
+      setPhotoPreview(null);
       try {
         const proposal = await proposeRestaurantEdit({ restaurantId: restaurant.id, prompt: messageText });
         if (!mountedRef.current) return;
@@ -760,7 +762,7 @@ export default function DashboardAdvisor() {
     setActiveTool(proposal.target === "dish_photo" ? "Génération de la photo" : "Modification du restaurant");
     try {
       let assetId: string | undefined;
-      if (proposal.target === "dish_photo") {
+      if (proposal.target === "dish_photo" && (!photoPreview || photoPreview.taskId !== proposal.taskId)) {
         void requestAiCreationNotificationPermission();
         const { promise } = startTokImageCreationJob({
           restaurantId: restaurant.id,
@@ -780,11 +782,15 @@ export default function DashboardAdvisor() {
         if (!generated.assetId || !generated.gallery_image_url) {
           throw new Error("La photo n'a pas pu être enregistrée dans la galerie du restaurant.");
         }
-        assetId = generated.assetId;
+        setPhotoPreview({ taskId: proposal.taskId, assetId: generated.assetId, url: generated.gallery_image_url });
+        toast({ title: "Photo générée", description: "Vérifiez le visuel, puis confirmez son association au plat." });
+        return;
       }
+      if (proposal.target === "dish_photo") assetId = photoPreview?.assetId;
       await applyRestaurantEdit({ restaurantId: restaurant.id, taskId: proposal.taskId, assetId });
       if (!mountedRef.current) return;
       setPendingEdit(null);
+      setPhotoPreview(null);
       void queryClient.invalidateQueries();
       setMessages((current) => {
         const updated = [...current, {
@@ -1026,6 +1032,7 @@ export default function DashboardAdvisor() {
     setActiveTool(null);
     setActiveConversationId(null);
     setPendingEdit(null);
+    setPhotoPreview(null);
     setPreparationTool(null);
     setSelectedPhotoIds([]);
     setSelectedDishIds([]);
@@ -1039,6 +1046,7 @@ export default function DashboardAdvisor() {
     setActiveTool(null);
     setActiveConversationId(entry.backendConversationId || null);
     setPendingEdit(null);
+    setPhotoPreview(null);
     setPreparationTool(null);
     setSelectedPhotoIds([]);
     setSelectedDishIds([]);
@@ -1266,20 +1274,25 @@ export default function DashboardAdvisor() {
         </div>
 
         {pendingEdit && pendingEdit.restaurantId === restaurant.id && (
-          <Card className="mb-3 max-h-56 shrink-0 space-y-2 overflow-y-auto border-primary/50 bg-primary/5 p-3">
+          <Card className="mb-3 max-h-80 shrink-0 space-y-2 overflow-y-auto border-primary/50 bg-primary/5 p-3">
             <p className="text-sm font-semibold">Modification à confirmer — {pendingEdit.subject_name}</p>
             <p className="text-xs text-muted-foreground">{pendingEdit.summary}</p>
             <p className="text-xs"><strong>Champ :</strong> {pendingEdit.field}</p>
             <p className="text-xs break-words"><strong>Actuellement :</strong> {String(pendingEdit.previous_value ?? "Non renseigné")}</p>
             <p className="text-xs break-words"><strong>Proposé :</strong> {pendingEdit.target === "dish_photo" ? "Nouvelle photographie culinaire générée par IA" : pendingEdit.value}</p>
             {pendingEdit.target === "dish_photo" && (
-              <p className="text-xs text-muted-foreground">La génération d'image consommera des crédits IA. L'image sera associée au plat après sa création.</p>
+              <>
+                <p className="text-xs text-muted-foreground">La génération d'image consommera des crédits IA. Vous pourrez vérifier le résultat avant de l'associer au plat.</p>
+                {photoPreview?.taskId === pendingEdit.taskId && (
+                  <img src={photoPreview.url} alt={"Prévisualisation IA du plat " + pendingEdit.subject_name} className="max-h-44 w-auto rounded-lg object-contain" />
+                )}
+              </>
             )}
             <div className="flex flex-wrap gap-2">
               <Button type="button" size="sm" disabled={isLoading} onClick={() => void handleConfirmEdit()}>
-                {pendingEdit.target === "dish_photo" ? "Générer et associer la photo" : "Confirmer la modification"}
+                {pendingEdit.target === "dish_photo" ? (photoPreview?.taskId === pendingEdit.taskId ? "Associer cette photo au plat" : "Générer une photo") : "Confirmer la modification"}
               </Button>
-              <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => setPendingEdit(null)}>
+              <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => { setPendingEdit(null); setPhotoPreview(null); }}>
                 Annuler
               </Button>
             </div>
