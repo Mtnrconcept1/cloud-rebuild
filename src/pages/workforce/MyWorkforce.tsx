@@ -28,9 +28,9 @@ export default function MyWorkforce() {
    enabled:!!selected?.linked,
    queryFn:async()=>{
     const {data,error}=await workforceDb().from("tok_workforce_employees")
-      .select("id,restaurant_id,first_name,last_name,contracted_hours_per_week,vacation_days_per_year")
+      .select("id,restaurant_id,first_name,last_name,role,contracted_hours_per_week,vacation_days_per_year")
       .eq("id",selected!.employee_id).eq("restaurant_id",selected!.restaurant_id).single();
-    if(error)throw error;return data as Pick<WorkforceEmployee,"id"|"restaurant_id"|"first_name"|"last_name"|"contracted_hours_per_week"|"vacation_days_per_year">;
+    if(error)throw error;return data as Pick<WorkforceEmployee,"id"|"restaurant_id"|"first_name"|"last_name"|"role"|"contracted_hours_per_week"|"vacation_days_per_year">;
    },
  });
  const claim=useMutation({
@@ -60,6 +60,7 @@ export default function MyWorkforce() {
      <Button disabled={claim.isPending} onClick={()=>claim.mutate()}>Associer mon compte TOK</Button></CardContent></Card>:null}
    {selected.linked&&profile.isPending?<p className="text-muted-foreground">Chargement de votre profil…</p>:null}
    {profile.isError?<p role="alert" className="text-destructive">Impossible de charger votre profil employé.</p>:null}
+   {selected.linked&&profile.data?.role==="manager"?<Button asChild className="w-fit"><Link to="/equipe/gestion">Gérer mon équipe</Link></Button>:null}
    {selected.linked&&profile.data?<WorkforcePersonal key={selected.employee_id} restaurantId={selected.restaurant_id} employeeId={selected.employee_id}
      contractHours={Number(profile.data.contracted_hours_per_week)} vacationDays={Number(profile.data.vacation_days_per_year)}/>:null}
   </div>:null}
