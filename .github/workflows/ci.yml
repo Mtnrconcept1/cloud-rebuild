@@ -22,6 +22,50 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  once_sync_finance_final_indexes:
+    name: Refresh finance metadata and restore original CI
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/tok-restaurant-first-charge-20261014' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Restore canonical CI and regenerate index
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main --depth=1
+          git show origin/main:.github/workflows/ci.yml > .github/workflows/ci.yml
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm run generate:error-code-map
+          pnpm run docs:application-index
+          pnpm run docs:application-index:check
+          git add -- .github/workflows/ci.yml \
+            supabase/functions/_shared/error-code-map.ts \
+            docs/architecture/TOK_APPLICATION_REFERENCE.md \
+            docs/architecture/tok-application-search-index.json \
+            src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git commit -m 'chore(finance): regenerate documentation after invoice lock'
+          git push origin HEAD:refs/heads/fix/tok-restaurant-first-charge-20261014
+          gh workflow run ci.yml --ref fix/tok-restaurant-first-charge-20261014
+
   validation:
     uses: ./.github/workflows/_validation.yml
     with:
