@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const sql = readFileSync(
-  resolve(process.cwd(), "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql"),
+  resolve(process.cwd(), "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql"),
   "utf8",
 );
 
