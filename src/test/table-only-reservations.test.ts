@@ -6,6 +6,7 @@ const dialog = readFileSync(resolve(process.cwd(), "src/components/ReservationDi
 const server = readFileSync(resolve(process.cwd(), "supabase/functions/create-reservation/index.ts"), "utf8");
 const dashboard = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardReservations.tsx"), "utf8");
 
+// Temporary CI refresh marker; removed in the following commit.
 describe("table-only service reservations", () => {
   it("skips meal offers and preorders when drinks-only is configured", () => {
     expect(dialog).toMatch(/tableOnlyBooking\s*\?\s*\["datetime", "confirm"\]/);
