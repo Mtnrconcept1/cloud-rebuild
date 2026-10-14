@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b8c4eb060162a9a613ed59e34f395780b63f5602f81c88046ebb4158d3ea9241",
+ "sourceDigest": "112f65aa2d4bd24a79cb51f0cfb35174bb95ebf9856cd8ee107dd6ca40ce1a7f",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 204,
   "edgeFunctions": 116,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3519,
+  "exportedSymbols": 3523,
   "featureFlags": 99,
   "frontendRoutes": 138,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 540,
-  "modules": 1555,
+  "modules": 1557,
   "pages": 128,
-  "pathLiterals": 697,
-  "publicAssets": 511,
-  "publicEntries": 536,
+  "pathLiterals": 748,
+  "publicAssets": 573,
+  "publicEntries": 598,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16633,
-  "repositoryFiles": 3106,
+  "records": 16816,
+  "repositoryFiles": 3170,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -3329,7 +3329,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 210,
+      "line": 211,
       "kind": "function"
      }
     ],
@@ -11717,6 +11717,316 @@
     "kind": "media"
    },
    {
+    "route": "/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp",
+    "path": "public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop.webp",
+    "path": "public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp",
+    "path": "public/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp",
+    "path": "public/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp",
+    "path": "public/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp",
+    "path": "public/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp",
+    "path": "public/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp",
+    "path": "public/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp",
+    "path": "public/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp",
+    "path": "public/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp",
+    "path": "public/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp",
+    "path": "public/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp",
+    "path": "public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop.webp",
+    "path": "public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp",
+    "path": "public/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp",
+    "path": "public/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp",
+    "path": "public/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp",
+    "path": "public/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp",
+    "path": "public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop.webp",
+    "path": "public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp",
+    "path": "public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop.webp",
+    "path": "public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp",
+    "path": "public/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp",
+    "path": "public/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp",
+    "path": "public/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp",
+    "path": "public/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp",
+    "path": "public/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp",
+    "path": "public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop.webp",
+    "path": "public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp",
+    "path": "public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop.webp",
+    "path": "public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp",
+    "path": "public/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp",
+    "path": "public/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp",
+    "path": "public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop.webp",
+    "path": "public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp",
+    "path": "public/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp",
+    "path": "public/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp",
+    "path": "public/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp",
+    "path": "public/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp",
+    "path": "public/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp",
+    "path": "public/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp",
+    "path": "public/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp",
+    "path": "public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Singapour/singapour/tok-singapour-desktop.webp",
+    "path": "public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp",
+    "path": "public/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp",
+    "path": "public/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp",
+    "path": "public/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp",
+    "path": "public/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp",
+    "path": "public/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp",
+    "path": "public/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp",
+    "path": "public/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/France/paris/tok-paris-desktop.webp",
+    "path": "public/images/locations/Europe/France/paris/tok-paris-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp",
+    "path": "public/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/Italie/rome/tok-rome-desktop.webp",
+    "path": "public/images/locations/Europe/Italie/rome/tok-rome-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp",
+    "path": "public/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-desktop.webp",
+    "path": "public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp",
+    "path": "public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp",
+    "path": "public/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp",
+    "path": "public/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp",
+    "path": "public/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+    "path": "public/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp",
+    "path": "public/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/longeole.avif",
     "path": "public/images/longeole.avif",
     "kind": "media"
@@ -16840,7 +17150,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 104
+      "line": 114
      },
      {
       "path": "src/components/support/TokAiSupportChat.tsx",
@@ -17650,7 +17960,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 86
+      "line": 95
      },
      {
       "path": "src/data/userGuideFeatureDetails.ts",
@@ -17682,7 +17992,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 660
+      "line": 669
      },
      {
       "path": "src/pages/Panier.tsx",
@@ -17702,7 +18012,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 63
+      "line": 62
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -21369,15 +21679,7 @@
     "sources": [
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 43
-     },
-     {
-      "path": "src/test/home-hero-search.test.tsx",
       "line": 44
-     },
-     {
-      "path": "src/test/home-hero-search.test.tsx",
-      "line": 45
      }
     ]
    },
@@ -21386,7 +21688,7 @@
     "sources": [
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 51
+      "line": 50
      }
     ]
    },
@@ -21598,7 +21900,7 @@
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 39
+      "line": 33
      }
     ]
    },
@@ -21624,7 +21926,7 @@
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 38
+      "line": 32
      }
     ]
    },
@@ -22730,49 +23032,15 @@
     ]
    },
    {
-    "value": "/images/home/tok-geneve-desktop.webp",
-    "sources": [
-     {
-      "path": "src/components/home/HeroSection.tsx",
-      "line": 91
-     }
-    ]
-   },
-   {
-    "value": "/images/home/tok-geneve-mobile-fast.webp",
-    "sources": [
-     {
-      "path": "src/components/home/HeroSection.tsx",
-      "line": 92
-     },
-     {
-      "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 15
-     },
-     {
-      "path": "src/test/home-hero-search.test.tsx",
-      "line": 37
-     }
-    ]
-   },
-   {
     "value": "/images/home/tok-leman-signature-fast.webp",
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 93
-     },
-     {
-      "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 16
+      "line": 41
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
       "line": 38
-     },
-     {
-      "path": "src/test/home-hero-search.test.tsx",
-      "line": 54
      }
     ]
    },
@@ -22868,7 +23136,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 718
+      "line": 727
      },
      {
       "path": "src/pages/MatchGroupes.tsx",
@@ -22957,6 +23225,487 @@
      {
       "path": "src/lib/menu-item-images.ts",
       "line": 128
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 31
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 27
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 139
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 151
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 55
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 79
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 123
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 195
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 135
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 207
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 155
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 83
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 183
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 147
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 159
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 171
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 47
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 39
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 187
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 163
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 15
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 199
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 103
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 19
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 107
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 115
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 119
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 51
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 67
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 203
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 179
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 167
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 191
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 175
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 35
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 71
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 95
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 91
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 127
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 131
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 99
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 43
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Europe/France/paris/tok-paris-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 87
+     },
+     {
+      "path": "src/test/home-hero-search.test.tsx",
+      "line": 53
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 111
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Europe/Italie/rome/tok-rome-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 75
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 59
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 143
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "value": "/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp",
+    "sources": [
+     {
+      "path": "src/lib/homeWorldHero.ts",
+      "line": 63
      }
     ]
    },
@@ -23797,7 +24546,7 @@
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 84
+      "line": 78
      },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
@@ -23810,7 +24559,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 63
+      "line": 64
      }
     ]
    },
@@ -23819,7 +24568,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 61
+      "line": 62
      }
     ]
    },
@@ -23828,7 +24577,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 59
+      "line": 60
      }
     ]
    },
@@ -23837,7 +24586,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 62
+      "line": 63
      }
     ]
    },
@@ -23846,11 +24595,11 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 58
+      "line": 59
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 65
+      "line": 66
      },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
@@ -23867,7 +24616,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 60
+      "line": 61
      }
     ]
    },
@@ -23876,7 +24625,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 57
+      "line": 58
      }
     ]
    },
@@ -23885,7 +24634,7 @@
     "sources": [
      {
       "path": "src/pages/Index.tsx",
-      "line": 64
+      "line": 65
      }
     ]
    },
@@ -25808,7 +26557,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 613
+      "line": 622
      },
      {
       "path": "src/pages/MultiRestaurant.tsx",
@@ -26191,7 +26940,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 838
+      "line": 847
      }
     ]
    },
@@ -26217,7 +26966,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 627
+      "line": 636
      }
     ]
    },
@@ -26388,11 +27137,11 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 83
+      "line": 92
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 85
+      "line": 94
      },
      {
       "path": "src/components/home/RestaurantSection.tsx",
@@ -26548,11 +27297,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 77
+      "line": 76
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 84
+      "line": 83
      },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
@@ -27970,7 +28719,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 99
+      "line": 109
      },
      {
       "path": "src/data/userGuideContent.ts",
@@ -28010,7 +28759,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 70
+      "line": 69
      },
      {
       "path": "src/test/marketing-legacy-landing.test.ts",
@@ -29444,7 +30193,7 @@
      },
      {
       "path": "src/components/home/HeroSection.tsx",
-      "line": 84
+      "line": 93
      },
      {
       "path": "src/data/userGuideFeatureDetails.ts",
@@ -29484,7 +30233,7 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 62
+      "line": 61
      },
      {
       "path": "src/test/navbar-action-stability.test.ts",
@@ -29741,11 +30490,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 79
+      "line": 78
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 93
+      "line": 92
      },
      {
       "path": "supabase/functions/tok-connect-api/index.ts",
@@ -30796,11 +31545,11 @@
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 78
+      "line": 77
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
-      "line": 94
+      "line": 93
      }
     ],
     "routes": [
@@ -71029,10 +71778,10 @@
     ]
    },
    {
-    "name": "TOK Home WebP docs index (one shot)",
-    "path": ".github/workflows/tok-home-webp-index-once.yml",
+    "name": "TOK Home WebP branch reconciliation (one shot)",
+    "path": ".github/workflows/tok-home-webp-reconcile-once.yml",
     "jobs": [
-     "regenerate"
+     "reconcile"
     ]
    }
   ],
@@ -87187,13 +87936,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 20,
+      "line": 21,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 131
+    "lineCount": 141
    },
    {
     "path": "src/components/home/RestaurantSection.tsx",
@@ -96035,6 +96784,34 @@
     "lineCount": 407
    },
    {
+    "path": "src/lib/homeWorldHero.ts",
+    "exports": [
+     {
+      "name": "CITY_ART",
+      "line": 2,
+      "kind": "variable"
+     },
+     {
+      "name": "COUNTRY_CITY",
+      "line": 210,
+      "kind": "variable"
+     },
+     {
+      "name": "resolveWorldArt",
+      "line": 425,
+      "kind": "function"
+     },
+     {
+      "name": "reverseWorldCoordinates",
+      "line": 438,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 454
+   },
+   {
     "path": "src/lib/invoicePresentation.ts",
     "exports": [
      {
@@ -102218,7 +102995,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 210,
+      "line": 211,
       "kind": "function"
      }
     ],
@@ -102226,7 +103003,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 1003
+    "lineCount": 1012
    },
    {
     "path": "src/pages/LocalRestaurants.tsx",
@@ -106285,7 +107062,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 111
+    "lineCount": 105
    },
    {
     "path": "src/test/home-cuisine-accessibility.test.tsx",
@@ -106299,7 +107076,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 104
+    "lineCount": 103
    },
    {
     "path": "src/test/home-mobile-newsletter.test.tsx",
@@ -106330,6 +107107,13 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 78
+   },
+   {
+    "path": "src/test/home-world-hero.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 23
    },
    {
     "path": "src/test/homepage-photo-only-sections.test.ts",
@@ -109120,7 +109904,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 99
+    "lineCount": 103
    },
    {
     "path": "src/test/tok-connect-admin-humanized.test.ts",
@@ -115251,7 +116035,7 @@
     "extension": ".yml"
    },
    {
-    "path": ".github/workflows/tok-home-webp-index-once.yml",
+    "path": ".github/workflows/tok-home-webp-reconcile-once.yml",
     "category": "ci-workflow",
     "extension": ".yml"
    },
@@ -117849,6 +118633,316 @@
     "path": "public/images/lobster-roll-fries.jpeg",
     "category": "public-asset",
     "extension": ".jpeg"
+   },
+   {
+    "path": "public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/France/paris/tok-paris-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/Italie/rome/tok-rome-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp",
+    "category": "public-asset",
+    "extension": ".webp"
    },
    {
     "path": "public/images/longeole.avif",
@@ -121886,6 +122980,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/lib/homeWorldHero.ts",
+    "category": "application-library",
+    "extension": ".ts"
+   },
+   {
     "path": "src/lib/invoicePresentation.ts",
     "category": "application-library",
     "extension": ".ts"
@@ -124429,6 +125528,11 @@
     "path": "src/test/home-section-showcase-header.test.tsx",
     "category": "test",
     "extension": ".tsx"
+   },
+   {
+    "path": "src/test/home-world-hero.test.ts",
+    "category": "test",
+    "extension": ".ts"
    },
    {
     "path": "src/test/homepage-photo-only-sections.test.ts",
@@ -134099,14 +135203,14 @@
    "id": "code-module:7fa2d50f7049",
    "type": "code-module",
    "title": "src/components/home/HeroSection.tsx",
-   "description": "Module de 131 lignes; exports: default.",
+   "description": "Module de 141 lignes; exports: default.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "7f24d15babc3"
+   "detailRef": "82aba7fe02de"
   },
   {
    "id": "code-module:b6c6251f4f10",
@@ -138522,6 +139626,22 @@
    "detailRef": "67b7fd02a973"
   },
   {
+   "id": "code-module:f48e945c70f7",
+   "type": "code-module",
+   "title": "src/lib/homeWorldHero.ts",
+   "description": "Module de 454 lignes; exports: CITY_ART, COUNTRY_CITY, resolveWorldArt, reverseWorldCoordinates.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "CITY_ART",
+    "COUNTRY_CITY",
+    "resolveWorldArt",
+    "reverseWorldCoordinates"
+   ],
+   "detailRef": "954efd4ad059"
+  },
+  {
    "id": "code-module:5dee7da25fcb",
    "type": "code-module",
    "title": "src/lib/invoicePresentation.ts",
@@ -141374,7 +142494,7 @@
    "id": "code-module:8d761926e269",
    "type": "code-module",
    "title": "src/pages/Index.tsx",
-   "description": "Module de 1003 lignes; exports: default.",
+   "description": "Module de 1012 lignes; exports: default.",
    "path": "src/pages/Index.tsx",
    "line": 1,
    "surface": null,
@@ -141382,7 +142502,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "b1ffc34b462d"
+   "detailRef": "c1c21ff896c7"
   },
   {
    "id": "code-module:d39f2c12cbfd",
@@ -145990,14 +147110,14 @@
    "id": "code-module:e91250480351",
    "type": "code-module",
    "title": "src/test/home-core-web-vitals.test.ts",
-   "description": "Module de 111 lignes; exports: aucun export statique.",
+   "description": "Module de 105 lignes; exports: aucun export statique.",
    "path": "src/test/home-core-web-vitals.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "e37b284e6f2b"
+   "detailRef": "bca578583446"
   },
   {
    "id": "code-module:b8f0d2b164b6",
@@ -146014,12 +147134,12 @@
    "id": "code-module:a714f68588b7",
    "type": "code-module",
    "title": "src/test/home-hero-search.test.tsx",
-   "description": "Module de 104 lignes; exports: aucun export statique.",
+   "description": "Module de 103 lignes; exports: aucun export statique.",
    "path": "src/test/home-hero-search.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "45725c6d6f24"
+   "detailRef": "bbd3f831bdfe"
   },
   {
    "id": "code-module:d67b9bd34728",
@@ -146066,6 +147186,17 @@
    "surface": null,
    "tags": [],
    "detailRef": "926ea29a2f07"
+  },
+  {
+   "id": "code-module:c7ef475f3d1b",
+   "type": "code-module",
+   "title": "src/test/home-world-hero.test.ts",
+   "description": "Module de 23 lignes; exports: aucun export statique.",
+   "path": "src/test/home-world-hero.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "a469e5c268f5"
   },
   {
    "id": "code-module:006304b904f1",
@@ -150108,7 +151239,7 @@
    "id": "code-module:7484ad1ec1ed",
    "type": "code-module",
    "title": "src/test/tok-canonical-subscription-invoice.test.ts",
-   "description": "Module de 99 lignes; exports: aucun export statique.",
+   "description": "Module de 103 lignes; exports: aucun export statique.",
    "path": "src/test/tok-canonical-subscription-invoice.test.ts",
    "line": 1,
    "surface": null,
@@ -150116,7 +151247,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ec6bca1899d3"
+   "detailRef": "76183f55573e"
   },
   {
    "id": "code-module:f6990f00d43c",
@@ -243284,6 +244415,19 @@
    "detailRef": "dbddd30c57f1"
   },
   {
+   "id": "exported-symbol:81c16799feae",
+   "type": "exported-symbol",
+   "title": "CITY_ART",
+   "description": "Export variable de src/lib/homeWorldHero.ts.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "4ec8c6d238c1"
+  },
+  {
    "id": "exported-symbol:dd0a08f70d05",
    "type": "exported-symbol",
    "title": "COMMERCIAL_COMPENSATION_RULES",
@@ -243609,6 +244753,19 @@
     "variable"
    ],
    "detailRef": "1eee4dac74ee"
+  },
+  {
+   "id": "exported-symbol:1789dc3928b3",
+   "type": "exported-symbol",
+   "title": "COUNTRY_CITY",
+   "description": "Export variable de src/lib/homeWorldHero.ts.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 210,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "ceb7eadc4257"
   },
   {
    "id": "exported-symbol:73d219c5052e",
@@ -269231,17 +270388,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:5e0f36a7a5bf",
+   "id": "exported-symbol:1f7ff01a628e",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/HeroSection.tsx.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 20,
+   "line": 21,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "73328efdea37"
+   "detailRef": "e2e7edfedb04"
   },
   {
    "id": "exported-symbol:54d561e65de4",
@@ -270285,18 +271442,18 @@
    "detailRef": "686afb3d3344"
   },
   {
-   "id": "exported-symbol:da9ffdd9a188",
+   "id": "exported-symbol:41bece586bce",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/Index.tsx.",
    "path": "src/pages/Index.tsx",
-   "line": 210,
+   "line": 211,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "20cadb9ecbd6"
+   "detailRef": "0211a8987e04"
   },
   {
    "id": "exported-symbol:535ee8eebd83",
@@ -285236,6 +286393,19 @@
    "detailRef": "dce2186bb66a"
   },
   {
+   "id": "exported-symbol:87043024a296",
+   "type": "exported-symbol",
+   "title": "resolveWorldArt",
+   "description": "Export function de src/lib/homeWorldHero.ts.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 425,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "9e12468a0c7c"
+  },
+  {
    "id": "exported-symbol:bbebda78384e",
    "type": "exported-symbol",
    "title": "respondToDispatchAttempt",
@@ -285331,6 +286501,19 @@
     "function"
    ],
    "detailRef": "e6190b175e80"
+  },
+  {
+   "id": "exported-symbol:9b29ac98cc8f",
+   "type": "exported-symbol",
+   "title": "reverseWorldCoordinates",
+   "description": "Export function de src/lib/homeWorldHero.ts.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 438,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "6aaf6918c72e"
   },
   {
    "id": "exported-symbol:29dda7898d66",
@@ -292862,18 +294045,18 @@
    "detailRef": "4641b28d0262"
   },
   {
-   "id": "file:81cd63ccd31b",
+   "id": "file:7168e81c5f8d",
    "type": "file",
-   "title": ".github/workflows/tok-home-webp-index-once.yml",
+   "title": ".github/workflows/tok-home-webp-reconcile-once.yml",
    "description": "Fichier du dépôt classé ci-workflow.",
-   "path": ".github/workflows/tok-home-webp-index-once.yml",
+   "path": ".github/workflows/tok-home-webp-reconcile-once.yml",
    "line": null,
    "surface": null,
    "tags": [
     ".yml",
     "ci-workflow"
    ],
-   "detailRef": "1c1c5a66c913"
+   "detailRef": "1d7dfa313df1"
   },
   {
    "id": "file:7f519ece547e",
@@ -300140,6 +301323,874 @@
     "public-asset"
    ],
    "detailRef": "ab5017c09b4e"
+  },
+  {
+   "id": "file:63c78e43f462",
+   "type": "file",
+   "title": "public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "af08cdf79b78"
+  },
+  {
+   "id": "file:cd13fe30f90d",
+   "type": "file",
+   "title": "public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "8e72ff6be9b8"
+  },
+  {
+   "id": "file:b6f7f4f9f135",
+   "type": "file",
+   "title": "public/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "b97fdf06b74d"
+  },
+  {
+   "id": "file:9de6796339a0",
+   "type": "file",
+   "title": "public/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "8e024d857a65"
+  },
+  {
+   "id": "file:658dad3efb7d",
+   "type": "file",
+   "title": "public/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "68ccf4fbf481"
+  },
+  {
+   "id": "file:2754b9c80e53",
+   "type": "file",
+   "title": "public/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "579100c39fe1"
+  },
+  {
+   "id": "file:bffe0e348bcb",
+   "type": "file",
+   "title": "public/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "d127fd162aa8"
+  },
+  {
+   "id": "file:17e096ff597a",
+   "type": "file",
+   "title": "public/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "2a8394399b27"
+  },
+  {
+   "id": "file:eb828d73b6f2",
+   "type": "file",
+   "title": "public/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "b6d46d3d9126"
+  },
+  {
+   "id": "file:761f546567ec",
+   "type": "file",
+   "title": "public/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "238a34f5b8f5"
+  },
+  {
+   "id": "file:09a50d98e668",
+   "type": "file",
+   "title": "public/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "9a39d88d4a2d"
+  },
+  {
+   "id": "file:7bb8b16c5f57",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "85de05496c60"
+  },
+  {
+   "id": "file:6298e7c5a4c3",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "7ddbb6baba02"
+  },
+  {
+   "id": "file:9a3ae5876b09",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "2a56857a6b55"
+  },
+  {
+   "id": "file:94ea0ec72ee9",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "16de58c0683f"
+  },
+  {
+   "id": "file:447b7e73ef1f",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "cbf261ff7c19"
+  },
+  {
+   "id": "file:7628657738d3",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "02eede8d5838"
+  },
+  {
+   "id": "file:85c454bd41df",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "6a4c64a171c5"
+  },
+  {
+   "id": "file:ffbe3458272b",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "8d262f2f279d"
+  },
+  {
+   "id": "file:ad97c6490a10",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "f1da71eb6d94"
+  },
+  {
+   "id": "file:8bfde033ef53",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "8f0dae3230bb"
+  },
+  {
+   "id": "file:8b8b6509280b",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "71d47ca56532"
+  },
+  {
+   "id": "file:adf2d49400b2",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "5015371191f7"
+  },
+  {
+   "id": "file:7d8a8878dd46",
+   "type": "file",
+   "title": "public/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "8dd52efade3a"
+  },
+  {
+   "id": "file:d8fb47b0160c",
+   "type": "file",
+   "title": "public/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "0801dc43c6ca"
+  },
+  {
+   "id": "file:a96b2f858203",
+   "type": "file",
+   "title": "public/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "fd118b282018"
+  },
+  {
+   "id": "file:df967a11593b",
+   "type": "file",
+   "title": "public/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "aee740dc93b3"
+  },
+  {
+   "id": "file:f5ee1f3e1a61",
+   "type": "file",
+   "title": "public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "abcd2d66c445"
+  },
+  {
+   "id": "file:5b2bbfc7e9b3",
+   "type": "file",
+   "title": "public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "761f021d6193"
+  },
+  {
+   "id": "file:58c66f101a1c",
+   "type": "file",
+   "title": "public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "854f5bd4b1f8"
+  },
+  {
+   "id": "file:a29777c91518",
+   "type": "file",
+   "title": "public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "1472c4d2d279"
+  },
+  {
+   "id": "file:d1d3eaba446a",
+   "type": "file",
+   "title": "public/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "25730d53b2b4"
+  },
+  {
+   "id": "file:9d7b7412f660",
+   "type": "file",
+   "title": "public/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "44e45d8909d7"
+  },
+  {
+   "id": "file:e80d328a1a31",
+   "type": "file",
+   "title": "public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "e123bac735ac"
+  },
+  {
+   "id": "file:b91f1f3a8166",
+   "type": "file",
+   "title": "public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "1da5e4564777"
+  },
+  {
+   "id": "file:d66425c72c81",
+   "type": "file",
+   "title": "public/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "90d5859b302b"
+  },
+  {
+   "id": "file:1dd5ad495bfd",
+   "type": "file",
+   "title": "public/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "6170a5f32b77"
+  },
+  {
+   "id": "file:a9f9c5da7a8a",
+   "type": "file",
+   "title": "public/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "0f519da7cb6f"
+  },
+  {
+   "id": "file:676d4043f705",
+   "type": "file",
+   "title": "public/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "dcfdc2e8d10e"
+  },
+  {
+   "id": "file:afa3f10adc51",
+   "type": "file",
+   "title": "public/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "f8772f385926"
+  },
+  {
+   "id": "file:c75899393aee",
+   "type": "file",
+   "title": "public/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "85eb3252d672"
+  },
+  {
+   "id": "file:71250635efaa",
+   "type": "file",
+   "title": "public/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "b35942eba01c"
+  },
+  {
+   "id": "file:f376c50cb73a",
+   "type": "file",
+   "title": "public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "1e49e3271bc8"
+  },
+  {
+   "id": "file:62ca60675945",
+   "type": "file",
+   "title": "public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "88704633fb18"
+  },
+  {
+   "id": "file:3169977a38d3",
+   "type": "file",
+   "title": "public/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "ae0f42160888"
+  },
+  {
+   "id": "file:65417571b2bc",
+   "type": "file",
+   "title": "public/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "174a3ce26030"
+  },
+  {
+   "id": "file:d105e2d2bc85",
+   "type": "file",
+   "title": "public/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "f1d4db28be78"
+  },
+  {
+   "id": "file:cff0e7147642",
+   "type": "file",
+   "title": "public/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "f652ea3d38a9"
+  },
+  {
+   "id": "file:c4bdbb95a07d",
+   "type": "file",
+   "title": "public/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "9a80e5d0cca0"
+  },
+  {
+   "id": "file:23f862991de4",
+   "type": "file",
+   "title": "public/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "45be360ae76e"
+  },
+  {
+   "id": "file:7be554cd965a",
+   "type": "file",
+   "title": "public/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "b21a1dd7ad6f"
+  },
+  {
+   "id": "file:377bfc427ac1",
+   "type": "file",
+   "title": "public/images/locations/Europe/France/paris/tok-paris-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/France/paris/tok-paris-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "f702febb37bc"
+  },
+  {
+   "id": "file:4ba70f98ffd1",
+   "type": "file",
+   "title": "public/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "dd72f46bde3e"
+  },
+  {
+   "id": "file:922c8c856436",
+   "type": "file",
+   "title": "public/images/locations/Europe/Italie/rome/tok-rome-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/Italie/rome/tok-rome-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "4b4c223dd2fc"
+  },
+  {
+   "id": "file:8cb5a3eb26b6",
+   "type": "file",
+   "title": "public/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "f9f7683aaf9c"
+  },
+  {
+   "id": "file:93ede831a79c",
+   "type": "file",
+   "title": "public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "56f0cf49d477"
+  },
+  {
+   "id": "file:0c9adcd7bdf3",
+   "type": "file",
+   "title": "public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "578fc93ec86e"
+  },
+  {
+   "id": "file:888065efc150",
+   "type": "file",
+   "title": "public/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "9872c5253eb0"
+  },
+  {
+   "id": "file:0c83636665a5",
+   "type": "file",
+   "title": "public/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "0b5a7bd5d2c5"
+  },
+  {
+   "id": "file:aa11fe31cfe7",
+   "type": "file",
+   "title": "public/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "ac199b4bdf37"
+  },
+  {
+   "id": "file:66a23f617e71",
+   "type": "file",
+   "title": "public/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "8e014a92c869"
+  },
+  {
+   "id": "file:7dfda032a36e",
+   "type": "file",
+   "title": "public/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "9abc40aa0e41"
   },
   {
    "id": "file:3168d44c2361",
@@ -311440,6 +313491,20 @@
    "detailRef": "8b210c31e96f"
   },
   {
+   "id": "file:bf2524a4687c",
+   "type": "file",
+   "title": "src/lib/homeWorldHero.ts",
+   "description": "Fichier du dépôt classé application-library.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "application-library"
+   ],
+   "detailRef": "990737336a11"
+  },
+  {
    "id": "file:27633611f8d7",
    "type": "file",
    "title": "src/lib/invoicePresentation.ts",
@@ -318564,6 +320629,20 @@
     "test"
    ],
    "detailRef": "e8fae7f8a82a"
+  },
+  {
+   "id": "file:3a64add99c06",
+   "type": "file",
+   "title": "src/test/home-world-hero.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/home-world-hero.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "c05d475dccef"
   },
   {
    "id": "file:ebdb8f499cfe",
@@ -349217,7 +351296,7 @@
     "/",
     "supabase"
    ],
-   "detailRef": "60eb5239c13d"
+   "detailRef": "0c45cd986faa"
   },
   {
    "id": "page:3d4a292c788d",
@@ -351578,7 +353657,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "d52779eb927f"
+   "detailRef": "b69793f95a85"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -351866,7 +353945,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "c312dcc82f7f"
+   "detailRef": "087ee74b2bf9"
   },
   {
    "id": "path-literal:389b3e5ea214",
@@ -353577,30 +355656,30 @@
    "detailRef": "3825809d0730"
   },
   {
-   "id": "path-literal:f843691d54f0",
+   "id": "path-literal:e92db571bc30",
    "type": "path-literal",
    "title": "/desig%20app/tok-ch-ju.webp",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/home-hero-search.test.tsx",
-   "line": 43,
+   "line": 44,
    "surface": null,
    "tags": [
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "84aaaba7ad69"
+   "detailRef": "4c17b0cc7eaf"
   },
   {
-   "id": "path-literal:2396a4e40c12",
+   "id": "path-literal:21d5085bd612",
    "type": "path-literal",
    "title": "/desig%20app/tok-ch-vd.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/home-hero-search.test.tsx",
-   "line": 51,
+   "line": 50,
    "surface": null,
    "tags": [
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "bf888cc9c616"
+   "detailRef": "8f1360d2686a"
   },
   {
    "id": "path-literal:2c32550db633",
@@ -353723,7 +355802,7 @@
     "src/hooks/useTokLogo.ts",
     "src/test/home-core-web-vitals.test.ts"
    ],
-   "detailRef": "45ef91170025"
+   "detailRef": "53ef05b248fa"
   },
   {
    "id": "path-literal:b584574f88b2",
@@ -353750,7 +355829,7 @@
     "src/hooks/useTokLogo.ts",
     "src/test/home-core-web-vitals.test.ts"
    ],
-   "detailRef": "2498d47a83a1"
+   "detailRef": "504d43a3e215"
   },
   {
    "id": "path-literal:13b6127784de",
@@ -354903,47 +356982,18 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:693c415f6a85",
-   "type": "path-literal",
-   "title": "/images/home/tok-geneve-desktop.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/HeroSection.tsx",
-   "line": 91,
-   "surface": null,
-   "tags": [
-    "src/components/home/HeroSection.tsx"
-   ],
-   "detailRef": "540893d43c59"
-  },
-  {
-   "id": "path-literal:db022c8a4906",
-   "type": "path-literal",
-   "title": "/images/home/tok-geneve-mobile-fast.webp",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/HeroSection.tsx",
-   "line": 92,
-   "surface": null,
-   "tags": [
-    "src/components/home/HeroSection.tsx",
-    "src/test/home-core-web-vitals.test.ts",
-    "src/test/home-hero-search.test.tsx"
-   ],
-   "detailRef": "6437579a4472"
-  },
-  {
-   "id": "path-literal:f1f911a4ab9c",
+   "id": "path-literal:261a32667abf",
    "type": "path-literal",
    "title": "/images/home/tok-leman-signature-fast.webp",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
-   "line": 93,
+   "line": 41,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx",
-    "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "161c2ac20d99"
+   "detailRef": "7a0647b39cf6"
   },
   {
    "id": "path-literal:638981aff331",
@@ -355013,7 +357063,7 @@
     "src/pages/admin/AdminRestaurants.tsx",
     "src/test/optimized-images.test.ts"
    ],
-   "detailRef": "7bdd40894b2e"
+   "detailRef": "c8a6a9c920bc"
   },
   {
    "id": "path-literal:ecd720b69356",
@@ -355067,6 +357117,696 @@
     "src/lib/menu-item-images.ts"
    ],
    "detailRef": "572fc55cd5c1"
+  },
+  {
+   "id": "path-literal:c539754d5b6c",
+   "type": "path-literal",
+   "title": "/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "11ed1dc3939b"
+  },
+  {
+   "id": "path-literal:ae46ede68a89",
+   "type": "path-literal",
+   "title": "/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "effea308de9d"
+  },
+  {
+   "id": "path-literal:613b76d691da",
+   "type": "path-literal",
+   "title": "/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 139,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "eeb778bffdc3"
+  },
+  {
+   "id": "path-literal:0dd76a9f1b5c",
+   "type": "path-literal",
+   "title": "/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 151,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "e03ced9468cb"
+  },
+  {
+   "id": "path-literal:6b0f281bb522",
+   "type": "path-literal",
+   "title": "/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 55,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "ecd4bd5944d9"
+  },
+  {
+   "id": "path-literal:fb16363f86f6",
+   "type": "path-literal",
+   "title": "/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 79,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "6c64405d85eb"
+  },
+  {
+   "id": "path-literal:c2e73b73609a",
+   "type": "path-literal",
+   "title": "/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 123,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "5115dc4c88f7"
+  },
+  {
+   "id": "path-literal:0f952b7fc43d",
+   "type": "path-literal",
+   "title": "/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 195,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "c1f4ea87852b"
+  },
+  {
+   "id": "path-literal:e15833f0969d",
+   "type": "path-literal",
+   "title": "/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 135,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "761553509a57"
+  },
+  {
+   "id": "path-literal:a582d578c8ce",
+   "type": "path-literal",
+   "title": "/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 207,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "e416f20a9fdd"
+  },
+  {
+   "id": "path-literal:4ba832206647",
+   "type": "path-literal",
+   "title": "/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 155,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "5a160ba2bba2"
+  },
+  {
+   "id": "path-literal:03e429263758",
+   "type": "path-literal",
+   "title": "/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 83,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "314194172ed0"
+  },
+  {
+   "id": "path-literal:5f9c503616aa",
+   "type": "path-literal",
+   "title": "/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 183,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "057afdeb9cc8"
+  },
+  {
+   "id": "path-literal:47003f9b2c8e",
+   "type": "path-literal",
+   "title": "/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 147,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "e623a4158449"
+  },
+  {
+   "id": "path-literal:6ac7e2c111ae",
+   "type": "path-literal",
+   "title": "/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 159,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "23e0abf731fb"
+  },
+  {
+   "id": "path-literal:b515bd9100a2",
+   "type": "path-literal",
+   "title": "/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 171,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "4d6abbc624dd"
+  },
+  {
+   "id": "path-literal:21ba2fe4582f",
+   "type": "path-literal",
+   "title": "/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 47,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "b651d75bca62"
+  },
+  {
+   "id": "path-literal:4e4fd477830c",
+   "type": "path-literal",
+   "title": "/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "c4660b9ab1b9"
+  },
+  {
+   "id": "path-literal:7d71793c24fa",
+   "type": "path-literal",
+   "title": "/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 187,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "a252f5ade642"
+  },
+  {
+   "id": "path-literal:b42ba929cf6d",
+   "type": "path-literal",
+   "title": "/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 163,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "45854ade1452"
+  },
+  {
+   "id": "path-literal:cf443628a67c",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 15,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "6ec9b3734a7d"
+  },
+  {
+   "id": "path-literal:d5f349d38d45",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 199,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "16d48064d229"
+  },
+  {
+   "id": "path-literal:33aa08b3e7de",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 103,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "05103cbbbb5d"
+  },
+  {
+   "id": "path-literal:9fdc7dd2b1e0",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "55ac7aa7ae66"
+  },
+  {
+   "id": "path-literal:531b492a1767",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 107,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "12c53e54cd07"
+  },
+  {
+   "id": "path-literal:48e3bca00b18",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 115,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "398c38f2048c"
+  },
+  {
+   "id": "path-literal:d62b95ff3173",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 119,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "acc9642c3466"
+  },
+  {
+   "id": "path-literal:e7482bfda8dd",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "9857438ad3e5"
+  },
+  {
+   "id": "path-literal:d330743028c4",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 67,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "8f80f582c6e2"
+  },
+  {
+   "id": "path-literal:e87ea4668c30",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 203,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "898df1cc1044"
+  },
+  {
+   "id": "path-literal:c19f734889ff",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 179,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "8834d73a9198"
+  },
+  {
+   "id": "path-literal:2cec9d348d72",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 167,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "a2fb298ae09f"
+  },
+  {
+   "id": "path-literal:87924fd10ff7",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 191,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "2e30bb1c328d"
+  },
+  {
+   "id": "path-literal:bc5a0e348510",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 175,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "a5540b3d8168"
+  },
+  {
+   "id": "path-literal:f8299099940a",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "e1ba559b4ccb"
+  },
+  {
+   "id": "path-literal:109f3c972e88",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 71,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "e2b79008339e"
+  },
+  {
+   "id": "path-literal:accbe3cc48a5",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 95,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "adb93f6c1597"
+  },
+  {
+   "id": "path-literal:02e32bdfe7e1",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 91,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "4d5f2640de95"
+  },
+  {
+   "id": "path-literal:1b503010833b",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 127,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "60e08cf000e0"
+  },
+  {
+   "id": "path-literal:c44aa658a208",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 131,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "8b9a5510e597"
+  },
+  {
+   "id": "path-literal:2bce3e87db7a",
+   "type": "path-literal",
+   "title": "/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 99,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "6e20baf55b5a"
+  },
+  {
+   "id": "path-literal:c865d18a4586",
+   "type": "path-literal",
+   "title": "/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 43,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "30d43aa96ed7"
+  },
+  {
+   "id": "path-literal:b4d5c0293ec1",
+   "type": "path-literal",
+   "title": "/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "aaef221877f2"
+  },
+  {
+   "id": "path-literal:f2103301d352",
+   "type": "path-literal",
+   "title": "/images/locations/Europe/France/paris/tok-paris-desktop.webp",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 87,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts",
+    "src/test/home-hero-search.test.tsx"
+   ],
+   "detailRef": "8bf853bfc06c"
+  },
+  {
+   "id": "path-literal:309d522f7c4f",
+   "type": "path-literal",
+   "title": "/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 111,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "9aa2177cb747"
+  },
+  {
+   "id": "path-literal:63973f07f1c4",
+   "type": "path-literal",
+   "title": "/images/locations/Europe/Italie/rome/tok-rome-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 75,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "b4f230b967d8"
+  },
+  {
+   "id": "path-literal:893244d8da34",
+   "type": "path-literal",
+   "title": "/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 59,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "5c4c6ccc6f36"
+  },
+  {
+   "id": "path-literal:49dfd3244b68",
+   "type": "path-literal",
+   "title": "/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "d4b87abf06b7"
+  },
+  {
+   "id": "path-literal:92eb22b92a57",
+   "type": "path-literal",
+   "title": "/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "6fd4151996b5"
+  },
+  {
+   "id": "path-literal:60a819698025",
+   "type": "path-literal",
+   "title": "/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 143,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "147fe8733e47"
+  },
+  {
+   "id": "path-literal:8b4eddbdb584",
+   "type": "path-literal",
+   "title": "/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "e72982bf90ac"
+  },
+  {
+   "id": "path-literal:34e2c34dd31f",
+   "type": "path-literal",
+   "title": "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "44a2ac9c0ccf"
+  },
+  {
+   "id": "path-literal:bddde7e0353a",
+   "type": "path-literal",
+   "title": "/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/lib/homeWorldHero.ts",
+   "line": 63,
+   "surface": null,
+   "tags": [
+    "src/lib/homeWorldHero.ts"
+   ],
+   "detailRef": "1bff2fb42884"
   },
   {
    "id": "path-literal:35c8145450c7",
@@ -355948,104 +358688,12 @@
     "src/test/home-core-web-vitals.test.ts",
     "src/test/home-section-showcase-header.test.tsx"
    ],
-   "detailRef": "5d5a6587d2ac"
+   "detailRef": "780b8e19f40c"
   },
   {
-   "id": "path-literal:05dd090948d0",
+   "id": "path-literal:07ef9b84d850",
    "type": "path-literal",
    "title": "/images/section-headers/tok-editorial-delivery-full.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 63,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "be966a5965dd"
-  },
-  {
-   "id": "path-literal:57faf4b4e939",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-evening-full.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 61,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "fa59f8e5d75e"
-  },
-  {
-   "id": "path-literal:a8be3495e0cb",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-feast-full.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 59,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "6dda483099b7"
-  },
-  {
-   "id": "path-literal:2b09a49f0bd0",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-gastronomy-full.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 62,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "12574020f1ce"
-  },
-  {
-   "id": "path-literal:24cb997fe936",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-geneva-full.webp",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 58,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx",
-    "src/test/home-section-showcase-header.test.tsx"
-   ],
-   "detailRef": "b3e2c9176e6a"
-  },
-  {
-   "id": "path-literal:6e0d80e8d93e",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-reservation-full.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 60,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "6c088e11571e"
-  },
-  {
-   "id": "path-literal:bbed80e75dbe",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-rewards-full.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 57,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "54254df4f2c2"
-  },
-  {
-   "id": "path-literal:1c34cf0e7eef",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-trending-full.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 64,
@@ -356053,7 +358701,99 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "5c3daa70a1ca"
+   "detailRef": "2a3f98acb004"
+  },
+  {
+   "id": "path-literal:f4d6e7b15bf4",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-evening-full.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 62,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "80876f59ed1e"
+  },
+  {
+   "id": "path-literal:da74fefbacac",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-feast-full.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 60,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "bdb17437e0e3"
+  },
+  {
+   "id": "path-literal:fcac79d0cec1",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-gastronomy-full.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 63,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "64719d83eb35"
+  },
+  {
+   "id": "path-literal:0d1deb1b2ba2",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-geneva-full.webp",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 59,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx",
+    "src/test/home-section-showcase-header.test.tsx"
+   ],
+   "detailRef": "7ff8d35caf29"
+  },
+  {
+   "id": "path-literal:4d13d6c7b637",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-reservation-full.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 61,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "78a01dac3da0"
+  },
+  {
+   "id": "path-literal:5ae8d76421f4",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-rewards-full.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 58,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "43af5e507bd2"
+  },
+  {
+   "id": "path-literal:ee6fb8bfc0a1",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-trending-full.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 65,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "bf7666d0426a"
   },
   {
    "id": "path-literal:71dec4dbed86",
@@ -357440,7 +360180,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "f3ad228f1c66"
+   "detailRef": "00f96225ed38"
   },
   {
    "id": "path-literal:8e567113edb6",
@@ -357632,7 +360372,7 @@
     "src/pages/ClientDashboardHome.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "d1cee3d5d488"
+   "detailRef": "6e643584f8d0"
   },
   {
    "id": "path-literal:8a35ee0b46e4",
@@ -357660,7 +360400,7 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "144b7904e9b0"
+   "detailRef": "99e781a83a60"
   },
   {
    "id": "path-literal:1f7d4d48ee1e",
@@ -357801,7 +360541,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "c727dca0c0d4"
+   "detailRef": "b6fe3e1e0d87"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -359123,7 +361863,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "a7d1a0ca5123"
+   "detailRef": "200f2d0f8f4a"
   },
   {
    "id": "path-literal:ddcd2bd824da",
@@ -360324,7 +363064,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "7c58a085fbf8"
+   "detailRef": "1c54ed3ed99a"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -363417,6 +366157,874 @@
     "public"
    ],
    "detailRef": "84cca205da34"
+  },
+  {
+   "id": "public-asset:cf30f98f1a65",
+   "type": "public-asset",
+   "title": "/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "63e63390821a"
+  },
+  {
+   "id": "public-asset:92beb4c99e12",
+   "type": "public-asset",
+   "title": "/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "439dd1022606"
+  },
+  {
+   "id": "public-asset:dd015a5daeca",
+   "type": "public-asset",
+   "title": "/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "a958dee60267"
+  },
+  {
+   "id": "public-asset:530a8cafef58",
+   "type": "public-asset",
+   "title": "/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "55297c5197a1"
+  },
+  {
+   "id": "public-asset:612160a142e6",
+   "type": "public-asset",
+   "title": "/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "5e5624640f83"
+  },
+  {
+   "id": "public-asset:88d52046f931",
+   "type": "public-asset",
+   "title": "/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "792572292fdb"
+  },
+  {
+   "id": "public-asset:26db29892f85",
+   "type": "public-asset",
+   "title": "/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "f1ef262e9bf1"
+  },
+  {
+   "id": "public-asset:53b5c320bb84",
+   "type": "public-asset",
+   "title": "/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "9f56c191ff4d"
+  },
+  {
+   "id": "public-asset:a56ce71c1766",
+   "type": "public-asset",
+   "title": "/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "3c57a5787721"
+  },
+  {
+   "id": "public-asset:fe9bf7380686",
+   "type": "public-asset",
+   "title": "/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "681661de59a9"
+  },
+  {
+   "id": "public-asset:75333a5b7836",
+   "type": "public-asset",
+   "title": "/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "d78165cba924"
+  },
+  {
+   "id": "public-asset:e8eb2cec7978",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "23c21a5bafb4"
+  },
+  {
+   "id": "public-asset:cfbfd775d26b",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "c461d84b95e9"
+  },
+  {
+   "id": "public-asset:b77af0eb8db3",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "80f2741caf65"
+  },
+  {
+   "id": "public-asset:462cd66ee391",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "221886742c7e"
+  },
+  {
+   "id": "public-asset:2cf8d2282299",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "5432673875db"
+  },
+  {
+   "id": "public-asset:0a41dce27322",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "6e4bee429ce3"
+  },
+  {
+   "id": "public-asset:9c21ba912b49",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "031e3456cc15"
+  },
+  {
+   "id": "public-asset:d8aca24ad7ef",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "b690d221fc25"
+  },
+  {
+   "id": "public-asset:faa0934cfd24",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "bc66e3b530d8"
+  },
+  {
+   "id": "public-asset:099d887dbc5c",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "60abd29fe97f"
+  },
+  {
+   "id": "public-asset:75f61ff59414",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "e9724fd862fa"
+  },
+  {
+   "id": "public-asset:c870d8fb42f0",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "a101a06072d6"
+  },
+  {
+   "id": "public-asset:90a58d6507cf",
+   "type": "public-asset",
+   "title": "/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "4cdf61feb313"
+  },
+  {
+   "id": "public-asset:9491c3cd7e28",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "d0f43f8ab94a"
+  },
+  {
+   "id": "public-asset:95434d109dac",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "8ace75e08a22"
+  },
+  {
+   "id": "public-asset:ef70be59244e",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "b0a36ef48ef3"
+  },
+  {
+   "id": "public-asset:d9925f7625d6",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "694fbb9e87c9"
+  },
+  {
+   "id": "public-asset:5d542be15e5b",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "801488b681c9"
+  },
+  {
+   "id": "public-asset:40fa158d9e15",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "8e130b51b1f1"
+  },
+  {
+   "id": "public-asset:19414c73213c",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "1f7e7709bc7a"
+  },
+  {
+   "id": "public-asset:2fafc26c7b09",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "228eb0bf0c78"
+  },
+  {
+   "id": "public-asset:be51c84dc34f",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "4f28fd82ab78"
+  },
+  {
+   "id": "public-asset:d0944790d0bc",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "ed2d2d87b01c"
+  },
+  {
+   "id": "public-asset:e6b054d6cec2",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "01ecb6649a00"
+  },
+  {
+   "id": "public-asset:6ca3ff9da99e",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "efe0e282065f"
+  },
+  {
+   "id": "public-asset:d1f1468716f5",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "6346a7ce78cc"
+  },
+  {
+   "id": "public-asset:eaf59bb45da6",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "b8ee39b1329e"
+  },
+  {
+   "id": "public-asset:1749e16c46bc",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "84fbb5ba7c57"
+  },
+  {
+   "id": "public-asset:b1051d4a513b",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "9e197e637035"
+  },
+  {
+   "id": "public-asset:32e95d312e85",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "431512396437"
+  },
+  {
+   "id": "public-asset:75eb0c01767f",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "e51ea4738b44"
+  },
+  {
+   "id": "public-asset:d13748179bb3",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "4ffccdd1fcba"
+  },
+  {
+   "id": "public-asset:f56fd54bbf79",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Singapour/singapour/tok-singapour-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "d1d76aa5420d"
+  },
+  {
+   "id": "public-asset:5717228cca54",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "6f95e0fca9e4"
+  },
+  {
+   "id": "public-asset:a0a06e08ce49",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "4b44d474df94"
+  },
+  {
+   "id": "public-asset:ebe898279d7b",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "3babc3996828"
+  },
+  {
+   "id": "public-asset:11d2f496481c",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "99c9469e7534"
+  },
+  {
+   "id": "public-asset:01a9242d5a1c",
+   "type": "public-asset",
+   "title": "/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "9460f80e703a"
+  },
+  {
+   "id": "public-asset:d683965a2071",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "bb676c7c9484"
+  },
+  {
+   "id": "public-asset:4f44c2335d80",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "792eb5cc5280"
+  },
+  {
+   "id": "public-asset:602b7a6647de",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/France/paris/tok-paris-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/France/paris/tok-paris-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "b6435720e765"
+  },
+  {
+   "id": "public-asset:1ef920cb3a0b",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "47dd1382a588"
+  },
+  {
+   "id": "public-asset:97076543d758",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/Italie/rome/tok-rome-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/Italie/rome/tok-rome-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "40846a396eba"
+  },
+  {
+   "id": "public-asset:5b857e1fe99b",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "e1fec491912c"
+  },
+  {
+   "id": "public-asset:a6d6ecee5f6b",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "535e5c6bdf57"
+  },
+  {
+   "id": "public-asset:d06ba70649ad",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "03611014962a"
+  },
+  {
+   "id": "public-asset:02677cd6c17c",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "a3a03df77e88"
+  },
+  {
+   "id": "public-asset:dd0910a7f2d4",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "d50154eb5412"
+  },
+  {
+   "id": "public-asset:1c71d6408e9e",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "51b3b85ced71"
+  },
+  {
+   "id": "public-asset:2cc9cacc6cc4",
+   "type": "public-asset",
+   "title": "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "6ecc863e4722"
+  },
+  {
+   "id": "public-asset:c2536c51a123",
+   "type": "public-asset",
+   "title": "/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "0e007320dcd5"
   },
   {
    "id": "public-asset:82f1577b37b8",
@@ -367878,7 +371486,7 @@
     "src/test/home-hero-search.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "7105527b86ed"
+   "detailRef": "f6cbdc657dd4"
   },
   {
    "id": "query-parameter:97c42c624f4b",
@@ -368743,7 +372351,7 @@
     "src/pages/Recherche.tsx",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "b6e33090e840"
+   "detailRef": "fe510b8d4e8e"
   },
   {
    "id": "query-parameter:1969b37dad55",
@@ -372016,17 +375624,17 @@
    "detailRef": "f3aa19f43475"
   },
   {
-   "id": "workflow:912e86c7d16f",
+   "id": "workflow:d28e5cd14891",
    "type": "workflow",
-   "title": "TOK Home WebP docs index (one shot)",
-   "description": "Workflow GitHub Actions; jobs: regenerate.",
-   "path": ".github/workflows/tok-home-webp-index-once.yml",
+   "title": "TOK Home WebP branch reconciliation (one shot)",
+   "description": "Workflow GitHub Actions; jobs: reconcile.",
+   "path": ".github/workflows/tok-home-webp-reconcile-once.yml",
    "line": null,
    "surface": null,
    "tags": [
-    "regenerate"
+    "reconcile"
    ],
-   "detailRef": "e27a7eb894e3"
+   "detailRef": "b6b926164d4d"
   },
   {
    "id": "workflow:7ebe9004a21a",
