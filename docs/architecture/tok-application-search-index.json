@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "a6ae4eb45327494a828969422b608d3ef1af9184b8665f52222dcf8daf028d2f",
+ "sourceDigest": "f0200860934a97fa8ddc28ac8acc57ee2c62a978da1b3e920c04805309d058ca",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2785,
+  "databaseObjects": 2811,
   "documents": 204,
   "edgeFunctions": 116,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3523,
+  "exportedSymbols": 3525,
   "featureFlags": 99,
   "frontendRoutes": 138,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 540,
-  "modules": 1557,
+  "migrations": 542,
+  "modules": 1560,
   "pages": 128,
   "pathLiterals": 749,
   "publicAssets": 564,
   "publicEntries": 589,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16797,
-  "repositoryFiles": 3160,
+  "records": 16835,
+  "repositoryFiles": 3165,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -4203,7 +4203,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 893,
+      "line": 896,
       "kind": "function"
      }
     ],
@@ -4697,7 +4697,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 821,
+      "line": 842,
       "kind": "function"
      }
     ],
@@ -16350,7 +16350,7 @@
      },
      {
       "path": "src/pages/admin/AdminRestaurants.tsx",
-      "line": 1197
+      "line": 1204
      },
      {
       "path": "src/test/google-business-booking-phase1.test.ts",
@@ -19120,7 +19120,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 1377
+      "line": 1404
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -20916,7 +20916,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 1104
+      "line": 1131
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
@@ -20941,7 +20941,7 @@
     "sources": [
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 1227
+      "line": 1254
      }
     ]
    },
@@ -23119,7 +23119,7 @@
      },
      {
       "path": "src/pages/admin/AdminRestaurants.tsx",
-      "line": 1385
+      "line": 1403
      },
      {
       "path": "src/test/optimized-images.test.ts",
@@ -30430,7 +30430,7 @@
     "sources": [
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 861
+      "line": 882
      }
     ],
     "routes": [
@@ -31359,7 +31359,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 862
+      "line": 883
      },
      {
       "path": "src/pages/dashboard/DashboardHome.tsx",
@@ -31700,7 +31700,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 860
+      "line": 881
      },
      {
       "path": "src/pages/dashboard/DashboardActualites.tsx",
@@ -31829,7 +31829,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 859
+      "line": 880
      },
      {
       "path": "src/pages/dashboard/DashboardActualites.tsx",
@@ -32288,6 +32288,7 @@
      "scripts/write-supabase-secrets-env.mjs",
      "src/components/DashboardLayout.tsx",
      "src/components/SupportChat.tsx",
+     "src/components/admin/AdminGiftAiCreditsDialog.tsx",
      "src/components/commercial/CommercialDemoConsoleAi.tsx",
      "src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx",
      "src/components/commercial/CommercialMultiSpaceDemo.tsx",
@@ -32343,6 +32344,7 @@
      "src/test/marketing-backlink-provider.test.ts",
      "src/test/marketing-brand-references.test.ts",
      "src/test/marketing-openai-tool-choice.test.ts",
+     "src/test/mtnr-unlimited-openai.test.ts",
      "src/test/notifications-ai-admin-hardening.test.ts",
      "src/test/production-preflight-hardening.test.ts",
      "src/test/restaurant-billing-account.test.ts",
@@ -32481,6 +32483,7 @@
      "src/components/ProtectedRoute.tsx",
      "src/components/ReservationDialog.tsx",
      "src/components/RestaurantCancellationDialog.tsx",
+     "src/components/admin/AdminGiftAiCreditsDialog.tsx",
      "src/components/cart/PaymentMethodSelector.tsx",
      "src/components/commercial/CommercialDemoActorWorkspace.tsx",
      "src/components/commercial/CommercialMultiSpaceDemo.tsx",
@@ -32545,6 +32548,7 @@
      "src/pages/dashboard/DashboardReservations.tsx",
      "src/pages/dashboard/DashboardRestaurant.tsx",
      "src/test/accounting-ai-public-copy.test.ts",
+     "src/test/admin-ai-credits-fast-restaurants.test.ts",
      "src/test/admin-audit-log-narrative.test.ts",
      "src/test/admin-commercial-accounts.test.ts",
      "src/test/admin-compta-governance.test.ts",
@@ -32775,6 +32779,7 @@
      "src/components/admin/AdminCommercialAccountsPanel.tsx",
      "src/components/admin/AdminDemoEntitiesDialog.tsx",
      "src/components/admin/AdminDestructiveActions.tsx",
+     "src/components/admin/AdminGiftAiCreditsDialog.tsx",
      "src/components/admin/AdminLogResetButton.tsx",
      "src/components/admin/AdminMobileNavigation.tsx",
      "src/components/admin/AdminRealRestaurantAssignment.tsx",
@@ -32969,6 +32974,7 @@
      "src/test/actualites-personalized-feed-sql.test.ts",
      "src/test/actualites-sponsored-sql.test.ts",
      "src/test/admin-actualites-sponsored.test.ts",
+     "src/test/admin-ai-credits-fast-restaurants.test.ts",
      "src/test/admin-audit-log-narrative.test.ts",
      "src/test/admin-catalog-governance.test.ts",
      "src/test/admin-commercial-accounts.test.ts",
@@ -33167,6 +33173,7 @@
      "src/test/meal-subscription.test.ts",
      "src/test/miamz-business-logic-guards.test.ts",
      "src/test/monitoring-consent.test.ts",
+     "src/test/mtnr-unlimited-openai.test.ts",
      "src/test/native-oauth.test.ts",
      "src/test/newsletter-automation-sql.test.ts",
      "src/test/notification-campaign-idempotency.test.ts",
@@ -36745,6 +36752,18 @@
     "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
     "lineCount": 629,
     "objectCount": 4
+   },
+   {
+    "name": "20261014144637 Mtnr Internal Unlimited Openai",
+    "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+    "lineCount": 955,
+    "objectCount": 11
+   },
+   {
+    "name": "20261014153000 Admin Ai Gifts Fast Restaurants",
+    "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+    "lineCount": 636,
+    "objectCount": 21
    }
   ],
   "databaseObjects": [
@@ -36805,6 +36824,36 @@
      {
       "path": "supabase/migrations/20260729090000_campaign_tracking_and_reservation_fee_integrity.sql",
       "line": 1334
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private_finance.admin_ai_gift_balance",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 51
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private_finance.admin_restaurant_catalog_ready",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 107
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private_finance.apply_admin_ai_gift_on_usage",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 479
      }
     ]
    },
@@ -36907,6 +36956,20 @@
      {
       "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
       "line": 8
+     },
+     {
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+      "line": 88
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private_finance.guard_admin_ai_gift_campaign",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 585
      }
     ]
    },
@@ -36927,6 +36990,16 @@
      {
       "path": "supabase/migrations/20260729090000_campaign_tracking_and_reservation_fee_integrity.sql",
       "line": 2378
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private_finance.guard_internal_unlimited_ai_spend",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+      "line": 822
      }
     ]
    },
@@ -36967,6 +37040,16 @@
      {
       "path": "supabase/migrations/20260717220000_deferred_subscription_commission_lifecycle.sql",
       "line": 4262
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private_finance.has_internal_unlimited_openai_grant",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+      "line": 37
      }
     ]
    },
@@ -37924,6 +38007,16 @@
    },
    {
     "type": "function",
+    "name": "public.admin_grant_restaurant_ai_credits",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 234
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.admin_link_real_user_restaurant",
     "sources": [
      {
@@ -38047,6 +38140,16 @@
      {
       "path": "supabase/migrations/20260719150000_admin_real_restaurant_ownership.sql",
       "line": 58
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.admin_list_restaurant_ai_gifts",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 311
      }
     ]
    },
@@ -38238,6 +38341,26 @@
    },
    {
     "type": "function",
+    "name": "public.admin_restaurant_stats_fast",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 130
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.admin_restaurants_page_fast",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 157
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.admin_retry_marketing_delivery",
     "sources": [
      {
@@ -38383,6 +38506,16 @@
      {
       "path": "supabase/migrations/20260603172000_tok_one_currency_chf.sql",
       "line": 13
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.admin_search_restaurants_fast",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 66
      }
     ]
    },
@@ -39563,6 +39696,14 @@
      {
       "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
       "line": 399
+     },
+     {
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+      "line": 783
+     },
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 445
      }
     ]
    },
@@ -41665,6 +41806,24 @@
      {
       "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
       "line": 192
+     },
+     {
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+      "line": 722
+     },
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 372
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.get_restaurant_credit_usage_before_fair_growth",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+      "line": 265
      }
     ]
    },
@@ -46128,6 +46287,36 @@
    },
    {
     "type": "index",
+    "name": "admin_ai_credit_grants_available_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 25
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "admin_ai_credit_grants_history_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 28
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "admin_ai_credit_spends_grant_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 45
+     }
+    ]
+   },
+   {
+    "type": "index",
     "name": "admin_loyalty_change_history_entity_created_idx",
     "sources": [
      {
@@ -48162,6 +48351,16 @@
    },
    {
     "type": "index",
+    "name": "idx_menu_items_restaurant_available",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "type": "index",
     "name": "idx_messages_conversation",
     "sources": [
      {
@@ -49748,6 +49947,16 @@
    },
    {
     "type": "index",
+    "name": "idx_restaurants_admin_name_id",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "type": "index",
     "name": "idx_restaurants_city_slug_unique",
     "sources": [
      {
@@ -50343,6 +50552,16 @@
      {
       "path": "supabase/migrations/20260706192000_image_metadata_ai.sql",
       "line": 118
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "internal_unlimited_openai_grants_restaurant_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+      "line": 14
      }
     ]
    },
@@ -61254,6 +61473,26 @@
    },
    {
     "type": "table",
+    "name": "private_finance.admin_ai_credit_grants",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "name": "private_finance.admin_ai_credit_spends",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 36
+     }
+    ]
+   },
+   {
+    "type": "table",
     "name": "private_finance.commercial_signup_referrals",
     "sources": [
      {
@@ -61269,6 +61508,16 @@
      {
       "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
       "line": 3481
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "name": "private_finance.internal_unlimited_openai_grants",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+      "line": 5
      }
     ]
    },
@@ -65350,6 +65599,26 @@
    },
    {
     "type": "trigger",
+    "name": "guard_internal_unlimited_ai_usage",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+      "line": 944
+     }
+    ]
+   },
+   {
+    "type": "trigger",
+    "name": "guard_internal_unlimited_campaign_spend",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+      "line": 949
+     }
+    ]
+   },
+   {
+    "type": "trigger",
     "name": "guard_locked_order_status",
     "sources": [
      {
@@ -67596,6 +67865,26 @@
    },
    {
     "type": "trigger",
+    "name": "zz_admin_apply_ai_gift_credit",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 577
+     }
+    ]
+   },
+   {
+    "type": "trigger",
+    "name": "zz_admin_protect_gift_campaign",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 630
+     }
+    ]
+   },
+   {
+    "type": "trigger",
     "name": "zz_fence_restaurant_payment_capture_delete",
     "sources": [
      {
@@ -67661,6 +67950,20 @@
      {
       "path": "supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql",
       "line": 4
+     }
+    ]
+   },
+   {
+    "type": "view",
+    "name": "private_finance.chargeable_ai_usage_logs",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+      "line": 67
+     },
+     {
+      "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+      "line": 341
      }
     ]
    },
@@ -86206,6 +86509,23 @@
     "lineCount": 252
    },
    {
+    "path": "src/components/admin/AdminGiftAiCreditsDialog.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 51,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 274
+   },
+   {
     "path": "src/components/admin/AdminLogResetButton.tsx",
     "exports": [
      {
@@ -86311,8 +86631,13 @@
     "path": "src/components/admin/RestaurantSearchSelect.tsx",
     "exports": [
      {
+      "name": "RestaurantOption",
+      "line": 12,
+      "kind": "typealias"
+     },
+     {
       "name": "default",
-      "line": 18,
+      "line": 27,
       "kind": "function"
      }
     ],
@@ -86320,7 +86645,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 152
+    "lineCount": 195
    },
    {
     "path": "src/components/admin/TokConnectCatalogControls.tsx",
@@ -103673,7 +103998,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 893,
+      "line": 896,
       "kind": "function"
      }
     ],
@@ -103684,7 +104009,7 @@
      "supabase",
      "twint"
     ],
-    "lineCount": 1566
+    "lineCount": 1618
    },
    {
     "path": "src/pages/admin/AdminSinistres.tsx",
@@ -104134,7 +104459,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 821,
+      "line": 842,
       "kind": "function"
      }
     ],
@@ -104144,7 +104469,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1745
+    "lineCount": 1780
    },
    {
     "path": "src/pages/dashboard/DashboardActualites.tsx",
@@ -104985,6 +105310,16 @@
      "supabase"
     ],
     "lineCount": 47
+   },
+   {
+    "path": "src/test/admin-ai-credits-fast-restaurants.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 109
    },
    {
     "path": "src/test/admin-audit-log-narrative.test.ts",
@@ -106899,7 +107234,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 93
+    "lineCount": 95
    },
    {
     "path": "src/test/golden-tok-shell-logo.test.ts",
@@ -108001,6 +108336,16 @@
      "sentry"
     ],
     "lineCount": 52
+   },
+   {
+    "path": "src/test/mtnr-unlimited-openai.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 74
    },
    {
     "path": "src/test/native-oauth.test.ts",
@@ -121139,6 +121484,11 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/components/admin/AdminGiftAiCreditsDialog.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/components/admin/AdminLogResetButton.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
@@ -124234,6 +124584,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/admin-ai-credits-fast-restaurants.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/admin-audit-log-narrative.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -125960,6 +126315,11 @@
    },
    {
     "path": "src/test/monitoring.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/mtnr-unlimited-openai.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -130934,6 +131294,16 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/actualites_billing_identity_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -133770,6 +134140,22 @@
    "detailRef": "ff2630387a37"
   },
   {
+   "id": "code-module:94678b0f260d",
+   "type": "code-module",
+   "title": "src/components/admin/AdminGiftAiCreditsDialog.tsx",
+   "description": "Module de 274 lignes; exports: default.",
+   "path": "src/components/admin/AdminGiftAiCreditsDialog.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default",
+    "openai",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "33391c99d23e"
+  },
+  {
    "id": "code-module:dc75a7c3ef4b",
    "type": "code-module",
    "title": "src/components/admin/AdminLogResetButton.tsx",
@@ -133870,15 +134256,16 @@
    "id": "code-module:f86897d507d9",
    "type": "code-module",
    "title": "src/components/admin/RestaurantSearchSelect.tsx",
-   "description": "Module de 152 lignes; exports: default.",
+   "description": "Module de 195 lignes; exports: RestaurantOption, default.",
    "path": "src/components/admin/RestaurantSearchSelect.tsx",
    "line": 1,
    "surface": null,
    "tags": [
+    "RestaurantOption",
     "default",
     "supabase"
    ],
-   "detailRef": "0216bc19c682"
+   "detailRef": "ce9021fd9073"
   },
   {
    "id": "code-module:0c5529e62dd1",
@@ -143082,7 +143469,7 @@
    "id": "code-module:6c54b87227a7",
    "type": "code-module",
    "title": "src/pages/admin/AdminRestaurants.tsx",
-   "description": "Module de 1566 lignes; exports: default.",
+   "description": "Module de 1618 lignes; exports: default.",
    "path": "src/pages/admin/AdminRestaurants.tsx",
    "line": 1,
    "surface": null,
@@ -143093,7 +143480,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "39902e05a8cf"
+   "detailRef": "688ffb01a44c"
   },
   {
    "id": "code-module:4d33ad0c9e7f",
@@ -143318,7 +143705,7 @@
    "id": "code-module:901ab16c9418",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "description": "Module de 1745 lignes; exports: default.",
+   "description": "Module de 1780 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
    "line": 1,
    "surface": null,
@@ -143328,7 +143715,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ddb0e48f3961"
+   "detailRef": "4914e7817cc9"
   },
   {
    "id": "code-module:3ae72c21b09c",
@@ -144065,6 +144452,20 @@
     "supabase"
    ],
    "detailRef": "9d770594358c"
+  },
+  {
+   "id": "code-module:24e04531aca3",
+   "type": "code-module",
+   "title": "src/test/admin-ai-credits-fast-restaurants.test.ts",
+   "description": "Module de 109 lignes; exports: aucun export statique.",
+   "path": "src/test/admin-ai-credits-fast-restaurants.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "57fdadc6b86f"
   },
   {
    "id": "code-module:260562765e8c",
@@ -146843,7 +147244,7 @@
    "id": "code-module:a8512244ead0",
    "type": "code-module",
    "title": "src/test/golden-tok-accreditation.test.ts",
-   "description": "Module de 93 lignes; exports: aucun export statique.",
+   "description": "Module de 95 lignes; exports: aucun export statique.",
    "path": "src/test/golden-tok-accreditation.test.ts",
    "line": 1,
    "surface": null,
@@ -146852,7 +147253,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "49429d4ca36b"
+   "detailRef": "bba580b9cb6f"
   },
   {
    "id": "code-module:af90a689e08c",
@@ -148451,6 +148852,20 @@
     "sentry"
    ],
    "detailRef": "742cb8d8bf5c"
+  },
+  {
+   "id": "code-module:dac1e1e10519",
+   "type": "code-module",
+   "title": "src/test/mtnr-unlimited-openai.test.ts",
+   "description": "Module de 74 lignes; exports: aucun export statique.",
+   "path": "src/test/mtnr-unlimited-openai.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "d8473b06680a"
   },
   {
    "id": "code-module:2c5271ec6753",
@@ -159212,6 +159627,51 @@
    "detailRef": "eceda72945ed"
   },
   {
+   "id": "database-object:51b2e19b4b09",
+   "type": "database-object",
+   "title": "admin_ai_credit_grants_available_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "34742a987891"
+  },
+  {
+   "id": "database-object:500a32619836",
+   "type": "database-object",
+   "title": "admin_ai_credit_grants_history_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "189ce6ef5f0e"
+  },
+  {
+   "id": "database-object:edc1317ba2d7",
+   "type": "database-object",
+   "title": "admin_ai_credit_spends_grant_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 45,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "3fdd8c7113c3"
+  },
+  {
    "id": "database-object:907d366d0b8e",
    "type": "database-object",
    "title": "admin_loyalty_change_history_entity_created_idx",
@@ -161372,6 +161832,36 @@
    "detailRef": "220d463ed84c"
   },
   {
+   "id": "database-object:11bb8b5a25ae",
+   "type": "database-object",
+   "title": "guard_internal_unlimited_ai_usage",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+   "line": 944,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "c60a0f4f81c6"
+  },
+  {
+   "id": "database-object:fefab586fb98",
+   "type": "database-object",
+   "title": "guard_internal_unlimited_campaign_spend",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+   "line": 949,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "74c3e69fb023"
+  },
+  {
    "id": "database-object:537022d20fc5",
    "type": "database-object",
    "title": "guard_locked_order_status",
@@ -163155,6 +163645,21 @@
     "supabase"
    ],
    "detailRef": "c8863f7aa37b"
+  },
+  {
+   "id": "database-object:13e610b96b29",
+   "type": "database-object",
+   "title": "idx_menu_items_restaurant_available",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "5c12f1aaf987"
   },
   {
    "id": "database-object:9e3f97125172",
@@ -165452,6 +165957,21 @@
    "detailRef": "5956dd48c8a6"
   },
   {
+   "id": "database-object:acf2b7b85c76",
+   "type": "database-object",
+   "title": "idx_restaurants_admin_name_id",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "c82019e6f282"
+  },
+  {
    "id": "database-object:522222249420",
    "type": "database-object",
    "title": "idx_restaurants_city_slug_unique",
@@ -166320,6 +166840,21 @@
     "supabase"
    ],
    "detailRef": "f86030426e95"
+  },
+  {
+   "id": "database-object:f66bd4b44b9c",
+   "type": "database-object",
+   "title": "internal_unlimited_openai_grants_restaurant_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "08e316ae3160"
   },
   {
    "id": "database-object:2d2a63a0c251",
@@ -168752,6 +169287,81 @@
    "detailRef": "381f3194995b"
   },
   {
+   "id": "database-object:08d63151b710",
+   "type": "database-object",
+   "title": "private_finance.admin_ai_credit_grants",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 13,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "867ea7e5a84d"
+  },
+  {
+   "id": "database-object:09748443c2f3",
+   "type": "database-object",
+   "title": "private_finance.admin_ai_credit_spends",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "de7ebc402210"
+  },
+  {
+   "id": "database-object:44807c411e73",
+   "type": "database-object",
+   "title": "private_finance.admin_ai_gift_balance",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "63454c9c2632"
+  },
+  {
+   "id": "database-object:c5eb31265ad6",
+   "type": "database-object",
+   "title": "private_finance.admin_restaurant_catalog_ready",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 107,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "f27e091c2a7d"
+  },
+  {
+   "id": "database-object:9bc659b3e86b",
+   "type": "database-object",
+   "title": "private_finance.apply_admin_ai_gift_on_usage",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 479,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "40dd7eb2802d"
+  },
+  {
    "id": "database-object:561db601d799",
    "type": "database-object",
    "title": "private_finance.apply_flat_reservation_fee_on_arrival",
@@ -168795,6 +169405,21 @@
     "supabase"
    ],
    "detailRef": "52311691af2d"
+  },
+  {
+   "id": "database-object:77651654f13b",
+   "type": "database-object",
+   "title": "private_finance.chargeable_ai_usage_logs",
+   "description": "Objet PostgreSQL de type view; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 341,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "view"
+   ],
+   "detailRef": "bfe24998336f"
   },
   {
    "id": "database-object:4ca099f1ee6f",
@@ -168902,19 +169527,34 @@
    "detailRef": "57d4808f84de"
   },
   {
-   "id": "database-object:2a75e55939f6",
+   "id": "database-object:734e8d07ec7e",
    "type": "database-object",
    "title": "private_finance.get_restaurant_preactivation_credit_usage",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": 8,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+   "line": 88,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "12e64df15c2b"
+   "detailRef": "543cce985212"
+  },
+  {
+   "id": "database-object:884f33638a50",
+   "type": "database-object",
+   "title": "private_finance.guard_admin_ai_gift_campaign",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 585,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "74b5e291ab26"
   },
   {
    "id": "database-object:6f20f2fb2e4d",
@@ -168945,6 +169585,21 @@
     "supabase"
    ],
    "detailRef": "f9404044e0ab"
+  },
+  {
+   "id": "database-object:6203db025f78",
+   "type": "database-object",
+   "title": "private_finance.guard_internal_unlimited_ai_spend",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+   "line": 822,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "aefab0ac9f9f"
   },
   {
    "id": "database-object:97ff7f3a5d14",
@@ -169005,6 +169660,36 @@
     "supabase"
    ],
    "detailRef": "81d77d6759f7"
+  },
+  {
+   "id": "database-object:dadb1a70e84d",
+   "type": "database-object",
+   "title": "private_finance.has_internal_unlimited_openai_grant",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+   "line": 37,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "80d7ef708fc8"
+  },
+  {
+   "id": "database-object:bedd82bd98aa",
+   "type": "database-object",
+   "title": "private_finance.internal_unlimited_openai_grants",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "fa5f4fa8ea53"
   },
   {
    "id": "database-object:d026f9533f7f",
@@ -170882,6 +171567,21 @@
    "detailRef": "fa6de78acb40"
   },
   {
+   "id": "database-object:7da57c4637bc",
+   "type": "database-object",
+   "title": "public.admin_grant_restaurant_ai_credits",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 234,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "e98fa61fe57a"
+  },
+  {
    "id": "database-object:5c2b644931bb",
    "type": "database-object",
    "title": "public.admin_link_real_user_restaurant",
@@ -171060,6 +171760,21 @@
     "supabase"
    ],
    "detailRef": "a48638d314d2"
+  },
+  {
+   "id": "database-object:39a403c585e0",
+   "type": "database-object",
+   "title": "public.admin_list_restaurant_ai_gifts",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 311,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "57660575f9cc"
   },
   {
    "id": "database-object:4b172dbf7d13",
@@ -171467,6 +172182,36 @@
    "detailRef": "b03f542937d8"
   },
   {
+   "id": "database-object:1db6bb96a54f",
+   "type": "database-object",
+   "title": "public.admin_restaurant_stats_fast",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 130,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "665a4d20ae2f"
+  },
+  {
+   "id": "database-object:0d8a7ccc7581",
+   "type": "database-object",
+   "title": "public.admin_restaurants_page_fast",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 157,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "7384cdd4ed4e"
+  },
+  {
    "id": "database-object:2e73b6fe59f1",
    "type": "database-object",
    "title": "public.admin_retry_marketing_delivery",
@@ -171675,6 +172420,21 @@
     "supabase"
    ],
    "detailRef": "62086b9b1729"
+  },
+  {
+   "id": "database-object:38625994aa66",
+   "type": "database-object",
+   "title": "public.admin_search_restaurants_fast",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 66,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "18ae47614538"
   },
   {
    "id": "database-object:41ca429962d6",
@@ -174287,19 +175047,19 @@
    "detailRef": "fa258f29c4fb"
   },
   {
-   "id": "database-object:363dec5ae5e6",
+   "id": "database-object:eec1d6a4c762",
    "type": "database-object",
    "title": "public.check_restaurant_ai_quota",
-   "description": "Objet PostgreSQL de type function; 4 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": 399,
+   "description": "Objet PostgreSQL de type function; 6 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 445,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "9fd1a926b7e7"
+   "detailRef": "d1be02b1f581"
   },
   {
    "id": "database-object:7bf3d736dacb",
@@ -180077,19 +180837,34 @@
    "detailRef": "418b26ecdd5b"
   },
   {
-   "id": "database-object:bb2322c75e21",
+   "id": "database-object:81ea116aad88",
    "type": "database-object",
    "title": "public.get_restaurant_credit_usage",
-   "description": "Objet PostgreSQL de type function; 6 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": 192,
+   "description": "Objet PostgreSQL de type function; 8 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 372,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "d0b619b7f56b"
+   "detailRef": "4a434f2d06a1"
+  },
+  {
+   "id": "database-object:a513b759233d",
+   "type": "database-object",
+   "title": "public.get_restaurant_credit_usage_before_fair_growth",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+   "line": 265,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "194d595ac71b"
   },
   {
    "id": "database-object:4de18fc7496a",
@@ -200730,6 +201505,36 @@
     "trigger"
    ],
    "detailRef": "fce10dd204e9"
+  },
+  {
+   "id": "database-object:48bebf9c0706",
+   "type": "database-object",
+   "title": "zz_admin_apply_ai_gift_credit",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 577,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "66b6e78bd924"
+  },
+  {
+   "id": "database-object:6fb44b063ab1",
+   "type": "database-object",
+   "title": "zz_admin_protect_gift_campaign",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 630,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "988ade09dd89"
   },
   {
    "id": "database-object:f1093131e69c",
@@ -258131,6 +258936,20 @@
    "detailRef": "417fe66c208f"
   },
   {
+   "id": "exported-symbol:f7198d749d5b",
+   "type": "exported-symbol",
+   "title": "RestaurantOption",
+   "description": "Export typealias de src/components/admin/RestaurantSearchSelect.tsx.",
+   "path": "src/components/admin/RestaurantSearchSelect.tsx",
+   "line": 12,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "761c142a990b"
+  },
+  {
    "id": "exported-symbol:2f7f1350fa5b",
    "type": "exported-symbol",
    "title": "RestaurantOrderRow",
@@ -269208,6 +270027,22 @@
    "detailRef": "9a3e670aec9b"
   },
   {
+   "id": "exported-symbol:ba6795a7f6c6",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/admin/AdminGiftAiCreditsDialog.tsx.",
+   "path": "src/components/admin/AdminGiftAiCreditsDialog.tsx",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "function",
+    "openai",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "0c43fcad1e3c"
+  },
+  {
    "id": "exported-symbol:5538e85233eb",
    "type": "exported-symbol",
    "title": "default",
@@ -269305,18 +270140,18 @@
    "detailRef": "f6ad11948f69"
   },
   {
-   "id": "exported-symbol:acbe79ec3eac",
+   "id": "exported-symbol:303b815b6f82",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/admin/RestaurantSearchSelect.tsx.",
    "path": "src/components/admin/RestaurantSearchSelect.tsx",
-   "line": 18,
+   "line": 27,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "64c0644642e8"
+   "detailRef": "8f286ff17dd0"
   },
   {
    "id": "exported-symbol:282af76f3648",
@@ -272030,12 +272865,12 @@
    "detailRef": "38aa46840c39"
   },
   {
-   "id": "exported-symbol:e197f3b3255f",
+   "id": "exported-symbol:1c32819ccb21",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/admin/AdminRestaurants.tsx.",
    "path": "src/pages/admin/AdminRestaurants.tsx",
-   "line": 893,
+   "line": 896,
    "surface": null,
    "tags": [
     "function",
@@ -272044,7 +272879,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "1749b0300275"
+   "detailRef": "7d9e77bf5140"
   },
   {
    "id": "exported-symbol:c7d4c2cad29c",
@@ -272182,12 +273017,12 @@
    "detailRef": "6551cd0fb605"
   },
   {
-   "id": "exported-symbol:63b10e1752e6",
+   "id": "exported-symbol:12eee60c113d",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardAccountBilling.tsx.",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "line": 821,
+   "line": 842,
    "surface": null,
    "tags": [
     "function",
@@ -272195,7 +273030,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "626bf87bce68"
+   "detailRef": "35eafd2d30b9"
   },
   {
    "id": "exported-symbol:30c691b18521",
@@ -308378,6 +309213,20 @@
    "detailRef": "9ad4b506e73b"
   },
   {
+   "id": "file:74210bb08bf7",
+   "type": "file",
+   "title": "src/components/admin/AdminGiftAiCreditsDialog.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/admin/AdminGiftAiCreditsDialog.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "6ce7c02098e4"
+  },
+  {
    "id": "file:35435b7e0b2b",
    "type": "file",
    "title": "src/components/admin/AdminLogResetButton.tsx",
@@ -317044,6 +317893,20 @@
    "detailRef": "49a932439861"
   },
   {
+   "id": "file:54b273c87861",
+   "type": "file",
+   "title": "src/test/admin-ai-credits-fast-restaurants.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/admin-ai-credits-fast-restaurants.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "d7554095e164"
+  },
+  {
    "id": "file:8549c82483e6",
    "type": "file",
    "title": "src/test/admin-audit-log-narrative.test.ts",
@@ -321886,6 +322749,20 @@
     "test"
    ],
    "detailRef": "2341cee5b311"
+  },
+  {
+   "id": "file:500d6c225c43",
+   "type": "file",
+   "title": "src/test/mtnr-unlimited-openai.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/mtnr-unlimited-openai.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "edd1723a7b58"
   },
   {
    "id": "file:d643c975fc1a",
@@ -335804,6 +336681,34 @@
    "detailRef": "ddc3ba97ec3c"
   },
   {
+   "id": "file:ad15f53503a5",
+   "type": "file",
+   "title": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "2fb4f3be3d52"
+  },
+  {
+   "id": "file:bc4968ba2132",
+   "type": "file",
+   "title": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "863ac34868a3"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -339342,7 +340247,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 117 module(s).",
+   "description": "Intégration externe détectée dans 119 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -339354,6 +340259,7 @@
     "scripts/write-supabase-secrets-env.mjs",
     "src/components/DashboardLayout.tsx",
     "src/components/SupportChat.tsx",
+    "src/components/admin/AdminGiftAiCreditsDialog.tsx",
     "src/components/commercial/CommercialDemoConsoleAi.tsx",
     "src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx",
     "src/components/commercial/CommercialMultiSpaceDemo.tsx",
@@ -339409,6 +340315,7 @@
     "src/test/marketing-backlink-provider.test.ts",
     "src/test/marketing-brand-references.test.ts",
     "src/test/marketing-openai-tool-choice.test.ts",
+    "src/test/mtnr-unlimited-openai.test.ts",
     "src/test/notifications-ai-admin-hardening.test.ts",
     "src/test/production-preflight-hardening.test.ts",
     "src/test/restaurant-billing-account.test.ts",
@@ -339466,7 +340373,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "7c7a33de7517"
+   "detailRef": "44dd08fc974e"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -339555,7 +340462,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 240 module(s).",
+   "description": "Intégration externe détectée dans 242 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -339578,6 +340485,7 @@
     "src/components/ProtectedRoute.tsx",
     "src/components/ReservationDialog.tsx",
     "src/components/RestaurantCancellationDialog.tsx",
+    "src/components/admin/AdminGiftAiCreditsDialog.tsx",
     "src/components/cart/PaymentMethodSelector.tsx",
     "src/components/commercial/CommercialDemoActorWorkspace.tsx",
     "src/components/commercial/CommercialMultiSpaceDemo.tsx",
@@ -339642,6 +340550,7 @@
     "src/pages/dashboard/DashboardReservations.tsx",
     "src/pages/dashboard/DashboardRestaurant.tsx",
     "src/test/accounting-ai-public-copy.test.ts",
+    "src/test/admin-ai-credits-fast-restaurants.test.ts",
     "src/test/admin-audit-log-narrative.test.ts",
     "src/test/admin-commercial-accounts.test.ts",
     "src/test/admin-compta-governance.test.ts",
@@ -339802,13 +340711,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "37f564a62c5b"
+   "detailRef": "5b02d1a447ef"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 698 module(s).",
+   "description": "Intégration externe détectée dans 701 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -339880,6 +340789,7 @@
     "src/components/admin/AdminCommercialAccountsPanel.tsx",
     "src/components/admin/AdminDemoEntitiesDialog.tsx",
     "src/components/admin/AdminDestructiveActions.tsx",
+    "src/components/admin/AdminGiftAiCreditsDialog.tsx",
     "src/components/admin/AdminLogResetButton.tsx",
     "src/components/admin/AdminMobileNavigation.tsx",
     "src/components/admin/AdminRealRestaurantAssignment.tsx",
@@ -340074,6 +340984,7 @@
     "src/test/actualites-personalized-feed-sql.test.ts",
     "src/test/actualites-sponsored-sql.test.ts",
     "src/test/admin-actualites-sponsored.test.ts",
+    "src/test/admin-ai-credits-fast-restaurants.test.ts",
     "src/test/admin-audit-log-narrative.test.ts",
     "src/test/admin-catalog-governance.test.ts",
     "src/test/admin-commercial-accounts.test.ts",
@@ -340272,6 +341183,7 @@
     "src/test/meal-subscription.test.ts",
     "src/test/miamz-business-logic-guards.test.ts",
     "src/test/monitoring-consent.test.ts",
+    "src/test/mtnr-unlimited-openai.test.ts",
     "src/test/native-oauth.test.ts",
     "src/test/newsletter-automation-sql.test.ts",
     "src/test/notification-campaign-idempotency.test.ts",
@@ -340513,7 +341425,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "39173b1705b7"
+   "detailRef": "ecb89e3f623c"
   },
   {
    "id": "integration:c20910a79a78",
@@ -348757,6 +349669,34 @@
    "detailRef": "2e6cb4e3b0f9"
   },
   {
+   "id": "migration:34325abe5b48",
+   "type": "migration",
+   "title": "20261014144637 Mtnr Internal Unlimited Openai",
+   "description": "Migration SQL de 955 lignes, 11 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "8241a9642406"
+  },
+  {
+   "id": "migration:c475cc3155cd",
+   "type": "migration",
+   "title": "20261014153000 Admin Ai Gifts Fast Restaurants",
+   "description": "Migration SQL de 636 lignes, 21 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "8b97e6352cdc"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -350101,7 +351041,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "955b26e078fa"
+   "detailRef": "ad1698fa246d"
   },
   {
    "id": "page:538a21a7d46c",
@@ -350522,7 +351462,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "05dff8a814cc"
+   "detailRef": "114959930282"
   },
   {
    "id": "page:f9e72df067f6",
@@ -352631,7 +353571,7 @@
     "src/pages/admin/AdminRestaurants.tsx",
     "src/test/google-business-booking-phase1.test.ts"
    ],
-   "detailRef": "bd6e1c0f680e"
+   "detailRef": "bd6014777079"
   },
   {
    "id": "path-literal:d9c771a45231",
@@ -354289,7 +355229,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "561080da7aad"
+   "detailRef": "4ba13511503a"
   },
   {
    "id": "path-literal:2a26b0d45a67",
@@ -354955,20 +355895,20 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "6091fca61bc6"
+   "detailRef": "2567762d9484"
   },
   {
-   "id": "path-literal:990788316f2a",
+   "id": "path-literal:8e90d21ef2e8",
    "type": "path-literal",
    "title": "/dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "line": 1227,
+   "line": 1254,
    "surface": null,
    "tags": [
     "src/pages/dashboard/DashboardAccountBilling.tsx"
    ],
-   "detailRef": "6fdff4268ea1"
+   "detailRef": "a77f928d22c9"
   },
   {
    "id": "path-literal:a6d2a8117227",
@@ -356822,7 +357762,7 @@
     "src/pages/admin/AdminRestaurants.tsx",
     "src/test/optimized-images.test.ts"
    ],
-   "detailRef": "8e84bbcc396e"
+   "detailRef": "11b943c59265"
   },
   {
    "id": "path-literal:ecd720b69356",
@@ -371105,17 +372045,17 @@
    "detailRef": "2b1b34170947"
   },
   {
-   "id": "query-parameter:d737cb495dbc",
+   "id": "query-parameter:28587153a139",
    "type": "query-parameter",
    "title": "checkout_kind",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "line": 861,
+   "line": 882,
    "surface": null,
    "tags": [
     "src/pages/dashboard/DashboardAccountBilling.tsx"
    ],
-   "detailRef": "c53129fae193"
+   "detailRef": "f0e27d0c62d4"
   },
   {
    "id": "query-parameter:3411db1bc171",
@@ -371876,7 +372816,7 @@
     "src/test/payment-attempt-state.test.ts",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "1f3b62b7f063"
+   "detailRef": "cc843dbbc28a"
   },
   {
    "id": "query-parameter:f937ef4a066c",
@@ -372186,7 +373126,7 @@
     "src/test/payment-attempt-state.test.ts",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "1e3c5e13828f"
+   "detailRef": "cb8bac0a02b5"
   },
   {
    "id": "query-parameter:32944e8d118e",
@@ -372286,7 +373226,7 @@
     "src/pages/dashboard/DashboardHome.tsx",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "7c55759b4667"
+   "detailRef": "706076d05ba6"
   },
   {
    "id": "query-parameter:04069271d1b6",
