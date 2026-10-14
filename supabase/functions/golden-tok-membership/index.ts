@@ -126,18 +126,14 @@ Deno.serve(async (req) => {
       throw new HttpError(503, "Le tarif Stripe doit correspondre à 99 CHF par mois pour La Tok d’Or");
     }
 
-    // A TTC price alone does not mean Stripe will calculate VAT. We require
-    // an active Swiss Stripe Tax registration before any paid checkout, and
-    // let Stripe calculate applicable rates by the restaurant's address.
-    const taxRegistrations = await stripe.tax.registrations.list({
-      status: "active",
-      limit: 100,
-    });
-    if (!taxRegistrations.data.some((registration) =>
+    // Apply VAT only when TOK has an active Swiss Stripe Tax registration.
+    // Stripe keeps the final amount at CHF 99 because the price is tax-inclusive.
+    const registrations = await stripe.tax.registrations.list({ status: "active", limit: 100 });
+    const swissVatRegistered = registrations.data.some((registration) =>
       registration.country === "CH" && registration.status === "active"
-    )) {
-      throw new HttpError(503,
-        "Facturation La Tok d’Or suspendue : immatriculation TVA suisse à configurer dans Stripe Tax");
+    );
+    if (registrations.has_more && !swissVatRegistered) {
+      throw new HttpError(503, "Vérification du statut fiscal incomplète");
     }
 
     if (membership.stripe_checkout_session_id) {
@@ -169,7 +165,7 @@ Deno.serve(async (req) => {
     try {
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
-        automatic_tax: { enabled: true },
+        automatic_tax: { enabled: swissVatRegistered },
         client_reference_id: restaurantId,
         line_items: [{ price: price.id, quantity: 1 }],
         ...(membership.stripe_customer_id ? { customer: membership.stripe_customer_id } : {}),
