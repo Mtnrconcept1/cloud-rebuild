@@ -9,9 +9,11 @@ describe("La Tok d’Or — restaurant picker and media", () => {
     const picker = source("src/components/admin/RestaurantSearchSelect.tsx");
     const management = source("src/pages/admin/DropsManagement.tsx");
     expect(picker).toContain("useInfiniteQuery");
-    expect(picker).toContain('.ilike("name"');
-    expect(picker).toContain(".range(");
-    expect(picker).toContain("Afficher davantage");
+    expect(picker).toContain("admin_search_restaurants_fast");
+    expect(picker).toContain("p_offset: pageParam * PAGE_SIZE");
+    expect(picker).toContain("p_limit: PAGE_SIZE + 1");
+    expect(picker).toContain("Plus de résultats");
+    expect(picker).not.toContain('count: "exact"');
     expect(management).toContain("<RestaurantSearchSelect");
     expect(management).not.toContain(".limit(200)");
   });
