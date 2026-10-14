@@ -1,0 +1,47 @@
+name: TOK one-time AI branch validation
+on:
+  push:
+    branches:
+      - feat/tok-central-openai-cost-controls-20261014
+    paths:
+      - .github/workflows/tok-one-time-ai-validation.yml
+permissions:
+  contents: write
+jobs:
+  validate:
+    if: github.ref == 'refs/heads/feat/tok-central-openai-cost-controls-20261014'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/tok-central-openai-cost-controls-20261014
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Restore final branch tree for validations
+        run: git rm -- .github/workflows/tok-one-time-ai-validation.yml
+      - name: Verify generated application index
+        run: pnpm docs:application-index:check
+      - name: ESLint
+        run: pnpm lint
+      - name: TypeScript check
+        run: pnpm typecheck
+      - name: Full Vitest suite
+        run: pnpm test
+      - name: Vite build
+        run: pnpm build
+      - name: Remove one-time validation helper from branch
+        run: |
+          set -euo pipefail
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(ci): remove completed temporary TOK validation helper"
+          git push origin HEAD:refs/heads/feat/tok-central-openai-cost-controls-20261014
