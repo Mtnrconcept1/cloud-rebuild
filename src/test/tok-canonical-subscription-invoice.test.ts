@@ -83,6 +83,10 @@ describe("TOK unified subscription invoice document", () => {
     expect(result.sender.vatNumber).toBe("CHE-109.513.890 TVA");
     const pdf = read("src/components/invoices/TokPayableInvoiceDocument.tsx");
     expect(pdf).toContain("N° TVA : {data.sender.vatNumber}");
+    expect(pdf).toContain("lg:grid-cols-[240px_minmax(0,1fr)_280px]");
+    expect(pdf).toContain("block w-full min-w-0 max-w-full whitespace-normal [overflow-wrap:anywhere]");
+    expect(pdf).toContain("min-w-0 max-w-full whitespace-normal break-words font-semibold leading-snug text-slate-950");
+    expect(pdf).toContain("shrink-0 whitespace-nowrap");
     expect(pdf).not.toContain("<p>TVA {data.sender.vatNumber}</p>");
     expect(invoiceModel).not.toContain("CHE-123.456.789");
     expect(invoiceModel).not.toContain("facturation@tok.app");
