@@ -138,6 +138,7 @@ const DashboardPhotos = lazy(() => import("./pages/dashboard/DashboardPhotos"));
 const DashboardNotifications = lazy(() => import("./pages/dashboard/DashboardNotifications"));
 const DashboardSupport = lazy(() => import("./pages/dashboard/DashboardSupport"));
 const DashboardService = lazy(() => import("./pages/dashboard/DashboardService"));
+const DashboardWorkforce = lazy(() => import("./pages/dashboard/DashboardWorkforce"));
 const DashboardPlanSalle = lazy(() => import("./pages/dashboard/DashboardPlanSalle"));
 const DashboardAdvisor = lazy(() => import("./pages/dashboard/DashboardAdvisor"));
 const DashboardTokConnect = lazy(() => import("./pages/dashboard/DashboardTokConnect"));
@@ -150,6 +151,7 @@ const CourierProfile = lazy(() => import("./pages/courier/CourierProfile"));
 
 const AdminHome = lazy(() => import("./pages/admin/AdminHome"));
 const AdminRestaurants = lazy(() => import("./pages/admin/AdminRestaurants"));
+const AdminWorkforce = lazy(() => import("./pages/admin/AdminWorkforce"));
 const AdminGoogleBusiness = lazy(() => import("./pages/admin/AdminGoogleBusiness"));
 const AdminUtilisateurs = lazy(() => import("./pages/admin/AdminUtilisateurs"));
 const AdminAvis = lazy(() => import("./pages/admin/AdminAvis"));
@@ -640,6 +642,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/dashboard/notifications" element={<DashboardRoute><DashboardNotifications /></DashboardRoute>} />
           <Route path="/dashboard/support" element={<DashboardRoute><FeatureSwitch enabled={dashboardSupportEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="support"><DashboardSupport /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/service" element={<DashboardRoute><FeatureSwitch enabled={dashboardServiceEnabled} fallback="/dashboard"><DashboardService /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/equipe" element={<DashboardRoute><DashboardWorkforce /></DashboardRoute>} />
           <Route path="/dashboard/plan-salle" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalle /></FeatureSwitch></DashboardRoute>} />
           {/* Plan de salle 2 retire: l'URL reste vivante pour les favoris et renvoie au plan de salle. */}
           <Route path="/dashboard/plan-salle-v2" element={<Navigate to="/dashboard/plan-salle" replace />} />
@@ -653,6 +656,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/admin" element={<AdminDashboardRoute />} />
           <Route path="/admin/platform" element={<AdminProtectedRoute><FeatureSwitch enabled={adminPlatformConfigEnabled} fallback="/admin"><AdminPlatformConfig /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/restaurants" element={<AdminProtectedRoute><FeatureSwitch enabled={adminRestaurantsEnabled} fallback="/admin"><AdminRestaurants /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/equipe" element={<AdminProtectedRoute><AdminWorkforce /></AdminProtectedRoute>} />
           <Route path="/admin/restaurants/google-business" element={<AdminProtectedRoute><FeatureSwitch enabled={adminRestaurantsEnabled} fallback="/admin"><AdminGoogleBusiness /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/utilisateurs" element={<AdminProtectedRoute><FeatureSwitch enabled={adminUtilisateursEnabled} fallback="/admin"><AdminUtilisateurs /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/avis" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAvisEnabled} fallback="/admin"><AdminAvis /></FeatureSwitch></AdminProtectedRoute>} />

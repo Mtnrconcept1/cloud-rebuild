@@ -33,6 +33,7 @@ import {
   Users,
   Package,
   Plug,
+  Clock3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -57,6 +58,7 @@ import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+import { useWorkforceSettings } from "@/hooks/useTokWorkforce";
 
 type NavItem = {
   to: string;
@@ -123,6 +125,7 @@ const NAV_SECTIONS: NavSection[] = [
       { to: "/dashboard/formules", label: "Formules", icon: Percent, feature: "dashboard-formules" },
       { to: "/dashboard/service", label: "Pilotage de service", icon: SlidersHorizontal, feature: "dashboard-service" },
       { to: "/dashboard/plan-salle", label: "Plan de salle", icon: Map, feature: "dashboard-plan-salle" },
+      { to: "/dashboard/equipe", label: "TOK Équipe", icon: Clock3 },
     ],
   },
   {
@@ -306,6 +309,7 @@ export default function DashboardLayout({
   const queryClient = useQueryClient();
   const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, onboardingConfigurationUnlocked, isDemoMode } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
+  const workforceSettings = useWorkforceSettings(isDemoMode ? null : selectedId);
   const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
   const { role } = useAuth();
   const activeFeatures = useMemo(
@@ -348,10 +352,11 @@ export default function DashboardLayout({
       ...section,
       items: section.items.filter((item) => {
         if (commercialDemoFrame && commercialDemoFrame.surface !== "restaurant") return false;
+        if (item.to === "/dashboard/equipe" && workforceSettings.data?.enabled !== true) return false;
         return !item.feature || activeFeatures.has(item.feature);
       }),
     })).filter((section) => section.items.length > 0);
-  }, [activeFeatures, commercialDemoFrame]);
+  }, [activeFeatures, commercialDemoFrame, workforceSettings.data?.enabled]);
 
   const activeNavItem = useMemo(
     () =>
