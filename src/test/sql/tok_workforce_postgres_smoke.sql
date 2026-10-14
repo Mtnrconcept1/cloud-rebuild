@@ -36,6 +36,7 @@ INSERT INTO public.tok_workforce_employees(restaurant_id,id,first_name,last_name
  ('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','Alice','One','one@example.test',NULL),
  ('10000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000002','Bob','Two','two@example.test','00000000-0000-4000-8000-000000000002'),
  ('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000003','Owner','One','owner@example.test','00000000-0000-4000-8000-000000000003');
+UPDATE public.tok_workforce_employees SET role='manager' WHERE id='20000000-0000-4000-8000-000000000003';
 
 SET ROLE authenticated;
 SET "test.is_admin"='no';
@@ -90,12 +91,20 @@ INSERT INTO public.tok_workforce_requests(
  VALUES ('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001',
  'vacation','Test leave request','pending','2026-11-02','2026-11-04',3);
 
-SET "test.owner"='10000000-0000-4000-8000-000000000001';
+SET "test.owner"='';
 SET "request.jwt.claim.sub"='00000000-0000-4000-8000-000000000003';
 DO $$
-DECLARE v_id uuid; v_hours_id uuid;
+DECLARE v_id uuid; v_hours_id uuid; v_changed integer;
 BEGIN
  SELECT id INTO v_id FROM public.tok_workforce_requests WHERE description='Test leave request';
+ IF NOT public.tok_workforce_can_schedule('10000000-0000-4000-8000-000000000001') THEN
+  RAISE EXCEPTION 'Verified manager cannot supervise team'; END IF;
+ IF public.tok_workforce_can_manage('10000000-0000-4000-8000-000000000001') THEN
+  RAISE EXCEPTION 'Manager was escalated to owner'; END IF;
+ UPDATE public.tok_workforce_employees SET role='manager'
+  WHERE id='20000000-0000-4000-8000-000000000001';
+ GET DIAGNOSTICS v_changed=ROW_COUNT;
+ IF v_changed<>0 THEN RAISE EXCEPTION 'Supervisor could elevate staff roles'; END IF;
  PERFORM public.tok_workforce_review_request(v_id,true);
  IF (SELECT count(*) FROM public.tok_workforce_absences WHERE employee_id='20000000-0000-4000-8000-000000000001')<>1
   THEN RAISE EXCEPTION 'Leave approval did not create an absence'; END IF;
