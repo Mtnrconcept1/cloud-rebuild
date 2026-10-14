@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "1e4bd1676c3efa14fb1075708c059d2c160ad2982bbe4192c43897d2117d39cb",
+ "sourceDigest": "56a7fda80dc551793a03ff30c7544759dbae8405fa31019753f4853d0773e92c",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -35994,7 +35994,7 @@
    {
     "name": "20261014110000 Restaurant Preactivation Weekly Ai Credits",
     "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-    "lineCount": 539,
+    "lineCount": 564,
     "objectCount": 4
    }
   ],
@@ -346630,7 +346630,7 @@
    "id": "migration:362103c0b8c6",
    "type": "migration",
    "title": "20261014110000 Restaurant Preactivation Weekly Ai Credits",
-   "description": "Migration SQL de 539 lignes, 4 objets CREATE détectés.",
+   "description": "Migration SQL de 564 lignes, 4 objets CREATE détectés.",
    "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
    "line": 1,
    "surface": null,
@@ -346638,7 +346638,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "9f62a694553b"
+   "detailRef": "7313bec54504"
   },
   {
    "id": "package-script:5bd6dc98483a",

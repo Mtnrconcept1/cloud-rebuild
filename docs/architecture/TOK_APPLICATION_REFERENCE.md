@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `1e4bd1676c3efa14fb1075708c059d2c160ad2982bbe4192c43897d2117d39cb`
+- Empreinte SHA-256 des sources indexées : `56a7fda80dc551793a03ff30c7544759dbae8405fa31019753f4853d0773e92c`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -5910,7 +5910,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261014072000 Developer Subscription Gross Share Before Vat | 769 | 1 | [supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql:1](../../supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql#L1) |
 | 20261014093000 Show Stripe Subscription In Tok Invoice Document | 59 | 1 | [supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql:1](../../supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql#L1) |
 | 20261014100000 Paid Tok Invoice Delivery | 163 | 3 | [supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql:1](../../supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql#L1) |
-| 20261014110000 Restaurant Preactivation Weekly Ai Credits | 539 | 4 | [supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql:1](../../supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql#L1) |
+| 20261014110000 Restaurant Preactivation Weekly Ai Credits | 564 | 4 | [supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql:1](../../supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
