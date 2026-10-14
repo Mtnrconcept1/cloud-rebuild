@@ -1602,7 +1602,7 @@ export default function DashboardFormules() {
           ]}
         />
 
-        {effectiveRestaurantId && (
+        {import.meta.env.VITE_GOLDEN_TOK_ENABLED === "true" && effectiveRestaurantId && (
           <GoldenTokPanel restaurantId={effectiveRestaurantId} isCommercialDemo={Boolean(demoSessionId)} />
         )}
 
