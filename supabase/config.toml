@@ -212,6 +212,9 @@ verify_jwt = false
 [functions.manage-restaurant-subscription]
 verify_jwt = false
 
+[functions.golden-tok-membership]
+verify_jwt = false
+
 [functions.menu-image-import]
 verify_jwt = false
 
