@@ -1,8 +1,8 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "9cf2f004f320b99b53fc2745f8ee408fe15a21c473add242eb803849a0200b62",
-  "routeCount": 137,
+  "sourceDigest": "d9c7f6a1143baaa559b2a5e47c11dbc2dd763ab999f782017b90068e64e9c2ba",
+  "routeCount": 138,
   "toolCount": 116
 } as const;
 
@@ -1298,6 +1298,17 @@ export const TOK_USER_GUIDE_ROUTES = [
     ],
     "requiredRoles": [],
     "featureGate": "adminComptaEnabled",
+    "redirectTo": null
+  },
+  {
+    "path": "/admin/tok-printer",
+    "surface": "admin",
+    "components": [
+      "AdminPrintOrders",
+      "AdminProtectedRoute"
+    ],
+    "requiredRoles": [],
+    "featureGate": null,
     "redirectTo": null
   },
   {
