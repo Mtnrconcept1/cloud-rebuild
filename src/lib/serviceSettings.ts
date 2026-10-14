@@ -22,6 +22,7 @@ export type ServiceSettings = {
   min_party_size: number;
   max_party_size: number;
   online_booking_enabled: boolean;
+  table_only_booking: boolean;
   online_ordering_enabled: boolean;
   restaurant_confirmation_required: boolean;
   service_closed: boolean;
@@ -55,6 +56,7 @@ export const DEFAULT_SERVICE_SETTINGS: ServiceSettingsMap = {
     min_party_size: 1,
     max_party_size: 8,
     online_booking_enabled: true,
+    table_only_booking: false,
     online_ordering_enabled: true,
     restaurant_confirmation_required: true,
     service_closed: false,
@@ -78,6 +80,7 @@ export const DEFAULT_SERVICE_SETTINGS: ServiceSettingsMap = {
     min_party_size: 1,
     max_party_size: 10,
     online_booking_enabled: true,
+    table_only_booking: false,
     online_ordering_enabled: true,
     restaurant_confirmation_required: true,
     service_closed: false,
@@ -163,6 +166,7 @@ const parseServiceSettings = (value: unknown, fallback: ServiceSettings): Servic
     min_party_size: toPositiveInt(source.min_party_size, fallback.min_party_size),
     max_party_size: toPositiveInt(source.max_party_size, fallback.max_party_size),
     online_booking_enabled: onlineBookingEnabled,
+    table_only_booking: source.table_only_booking === true,
     online_ordering_enabled:
       typeof source.online_ordering_enabled === "boolean"
         ? source.online_ordering_enabled

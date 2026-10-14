@@ -307,6 +307,34 @@ export default function DashboardService() {
                 </CardHeader>
 
                 <CardContent className="space-y-4">
+                  <label className="flex min-h-16 items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold">Réservation de table sans restauration</span>
+                      <span className="block text-xs text-muted-foreground">Réserver pour boire un verre, sans menu ni précommande.</span>
+                    </span>
+                    <Switch
+                      checked={settings.table_only_booking}
+                      aria-label={"Réservation sans restauration — " + getServicePeriodLabel(period.key)}
+                      onCheckedChange={(checked) => setServiceSettings((current) => ({
+                        ...current,
+                        [period.key]: {
+                          ...current[period.key],
+                          table_only_booking: checked,
+                          ...(checked ? {
+                            online_booking_enabled: true,
+                            service_closed: false,
+                            online_ordering_enabled: false,
+                            orders_closed: true,
+                          } : {}),
+                        },
+                      }))}
+                    />
+                  </label>
+                  {settings.table_only_booking ? (
+                    <p className="text-xs text-muted-foreground">
+                      Réservations ouvertes sans restauration ; commandes suspendues sur ce service uniquement.
+                    </p>
+                  ) : null}
                   <div className="grid gap-3 min-[420px]:grid-cols-2">
                     <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl border px-3 py-2 text-sm">
                       <span>Réservations en ligne</span>
@@ -399,6 +427,7 @@ export default function DashboardService() {
                         <span>Commandes en ligne</span>
                         <Switch
                           checked={settings.online_ordering_enabled && !settings.orders_closed}
+                          disabled={settings.table_only_booking}
                           onCheckedChange={(checked) => {
                             updateServiceField(period.key, "online_ordering_enabled", checked);
                             if (checked) updateServiceField(period.key, "orders_closed", false);
@@ -409,6 +438,7 @@ export default function DashboardService() {
                         <span>Suspendre les commandes</span>
                         <Switch
                           checked={settings.orders_closed}
+                          disabled={settings.table_only_booking}
                           onCheckedChange={(checked) => {
                             updateServiceField(period.key, "orders_closed", checked);
                             if (checked) updateServiceField(period.key, "online_ordering_enabled", false);

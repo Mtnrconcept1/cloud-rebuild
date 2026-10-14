@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `74bf57cd1fc46e49ddc67dd81eb7ab18420865e769da3cc593bc86b178aad1ca`
+- Empreinte SHA-256 des sources indexées : `0f0e1b00a8b30721a5ae89a260887c83ab7987bc1fdca14bd4f8d6fb7baa802c`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 542 |
-| modules | 1560 |
+| modules | 1561 |
 | pages | 128 |
 | pathLiterals | 747 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16867 |
-| repositoryFiles | 3182 |
+| records | 16869 |
+| repositoryFiles | 3183 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2088,8 +2088,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | token | — | 1 | [supabase/functions/marketing-unsubscribe/index.ts:66](../../supabase/functions/marketing-unsubscribe/index.ts#L66) |
 | tolerance | — | 1 | [src/test/home-canton-hero.test.ts:57](../../src/test/home-canton-hero.test.ts#L57) |
 | type | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:286](../../src/pages/Auth.tsx#L286) |
-| utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:653](../../src/components/ReservationDialog.tsx#L653) |
-| utm_source | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:649](../../src/components/ReservationDialog.tsx#L649) |
+| utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:664](../../src/components/ReservationDialog.tsx#L664) |
+| utm_source | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:660](../../src/components/ReservationDialog.tsx#L660) |
 | view | /admin/commandes-reservations | 2 | [src/marketing/useMarketingUrlState.ts:84](../../src/marketing/useMarketingUrlState.ts#L84) |
 | width | — | 1 | [src/lib/optimizedImages.ts:37](../../src/lib/optimizedImages.ts#L37) |
 
@@ -6292,7 +6292,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 242 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 701 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 702 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6313,7 +6313,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 621 |
+| test | 622 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -9153,7 +9153,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (621)</summary>
+<details><summary>test (622)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9733,6 +9733,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/support-chat-history.test.ts`
 - `src/test/support-notification-governance.test.ts`
 - `src/test/table-context-drawer.test.tsx`
+- `src/test/table-only-reservations.test.ts`
 - `src/test/thefork-directory-completion.test.ts`
 - `src/test/thefork-image-enrichment-completion.test.ts`
 - `src/test/tok-ai-platform-plan.test.ts`

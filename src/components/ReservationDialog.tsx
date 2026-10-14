@@ -135,7 +135,6 @@ export default function ReservationDialog({
     : globalActiveFeatures;
   const zeroWaitEnabled = activeFeatures.has("zero-attente");
   const guaranteeEnabled = activeFeatures.has("reservation-card-guarantee");
-  const steps: Step[] = zeroWaitEnabled ? ["datetime", "mode", "promo", "confirm"] : ["datetime", "promo", "confirm"];
 
   const [step, setStep] = useState<Step>("datetime");
   const [confirmedReservation, setConfirmedReservation] = useState<any>(null);
@@ -430,6 +429,17 @@ export default function ReservationDialog({
   const availableSlots = slotGroups.flatMap((group) => group.slots).filter((slot) => slot.available);
   const selectedSlot = slotGroups.flatMap((group) => group.slots).find((slot) => slot.time === time) || null;
   const selectedServiceSettings = restaurantSettings?.[detectServiceFromTime(time)];
+  const tableOnlyBooking = selectedServiceSettings?.table_only_booking === true;
+  const steps: Step[] = tableOnlyBooking
+    ? ["datetime", "confirm"]
+    : zeroWaitEnabled ? ["datetime", "mode", "promo", "confirm"] : ["datetime", "promo", "confirm"];
+
+  useEffect(() => {
+    if (!tableOnlyBooking) return;
+    setSelectedPromo(null);
+    setReservationMode("classique");
+    if (step === "mode" || step === "promo") setStep("confirm");
+  }, [step, tableOnlyBooking]);
   const partySizeMin = selectedServiceSettings?.min_party_size || 1;
   const partySizeMax = selectedServiceSettings?.max_party_size || 20;
 
@@ -450,12 +460,12 @@ export default function ReservationDialog({
   }, [promos, selectedPromo]);
 
   useEffect(() => {
-    if (!progressiveOfferId || selectedPromo || promoChoiceTouched) return;
+    if (tableOnlyBooking || !progressiveOfferId || selectedPromo || promoChoiceTouched) return;
     const progressivePromo = promos.find((promo) => promo.kind === "progressive" && promo.progressiveOfferId === progressiveOfferId);
     if (progressivePromo) {
       setSelectedPromo(progressivePromo);
     }
-  }, [progressiveOfferId, promoChoiceTouched, promos, selectedPromo]);
+  }, [progressiveOfferId, promoChoiceTouched, promos, selectedPromo, tableOnlyBooking]);
 
   const handleSubmit = async () => {
     if (!user || !date) return;
@@ -557,8 +567,8 @@ export default function ReservationDialog({
 
     setLoading(true);
 
-    const hasProgressiveOffer = selectedPromo?.kind === "progressive" && !!selectedPromo.progressiveOfferId;
-    const hasFormula = selectedPromo?.kind === "formula";
+    const hasProgressiveOffer = !tableOnlyBooking && selectedPromo?.kind === "progressive" && !!selectedPromo.progressiveOfferId;
+    const hasFormula = !tableOnlyBooking && selectedPromo?.kind === "formula";
     const reservationFeature = hasProgressiveOffer ? "promo-progressive" : hasFormula ? "promo-formule" : "classique";
     const reservationMetadata = {
       feature: reservationFeature,
@@ -572,13 +582,14 @@ export default function ReservationDialog({
       progressive_offer_discount_percent: hasProgressiveOffer ? selectedPromo?.discountPercent ?? null : null,
       progressive_offer_discount_status: hasProgressiveOffer ? "pending" : null,
       service: servicePeriod,
+      reservation_purpose: tableOnlyBooking ? "drinks" : "dining",
       restaurant_confirmation_required: serviceSettings.restaurant_confirmation_required,
       confirmation_deadline_minutes: serviceSettings.confirmation_deadline_minutes,
       deposit_amount_chf: serviceSettings.deposit_amount_chf,
       donate_earned_xp: donatePoints,
     };
 
-    const offerPrefix = selectedPromo
+    const offerPrefix = tableOnlyBooking ? "[Boissons uniquement] " : selectedPromo
       ? hasProgressiveOffer
         ? `[OFFRE PROGRESSIVE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
         : `[FORMULE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
@@ -818,6 +829,7 @@ export default function ReservationDialog({
                         <div key={group.service} className="space-y-2">
                           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                             {group.label}
+                            {restaurantSettings?.[group.service]?.table_only_booking ? " · Boissons uniquement (sans restauration)" : ""}
                           </p>
                           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                             {group.slots.map(renderSlotButton)}
@@ -843,7 +855,7 @@ export default function ReservationDialog({
                 </div>
 
                 <Button
-                  onClick={() => setStep(zeroWaitEnabled ? "mode" : "promo")}
+                  onClick={() => setStep(tableOnlyBooking ? "confirm" : zeroWaitEnabled ? "mode" : "promo")}
                   disabled={!date || !selectedSlot?.available}
                   className="w-full gap-2"
                 >
@@ -984,6 +996,11 @@ export default function ReservationDialog({
 
             {step === "confirm" && (
               <>
+                {tableOnlyBooking ? (
+                  <div role="status" className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm">
+                    <strong>Table sans restauration.</strong> Réservez pour boire un verre : aucun repas, menu ou précommande n'est proposé.
+                  </div>
+                ) : null}
                 <div className="space-y-2 rounded-xl bg-secondary/50 p-4 text-sm">
                   <div className="flex min-w-0 justify-between gap-3 max-[380px]:flex-col max-[380px]:gap-1"><span className="shrink-0 text-muted-foreground">Restaurant</span><span className="min-w-0 break-words text-right font-medium max-[380px]:text-left">{restaurantName}</span></div>
                   <div className="flex min-w-0 justify-between gap-3 max-[380px]:flex-col max-[380px]:gap-1"><span className="shrink-0 text-muted-foreground">Date</span><span className="min-w-0 break-words text-right font-medium max-[380px]:text-left">{date ? format(date, "EEEE d MMMM yyyy", { locale: fr }) : ""}</span></div>
@@ -1002,7 +1019,7 @@ export default function ReservationDialog({
                       className="h-9 w-24 text-right"
                     />
                   </div>
-                  {selectedPromo && (
+                  {!tableOnlyBooking && selectedPromo && (
                     <div className="flex min-w-0 justify-between gap-3 border-t pt-2 max-[380px]:flex-col max-[380px]:gap-1">
                       <span className="shrink-0 text-muted-foreground">{selectedPromo.kind === "progressive" ? "Offre progressive" : "Formule"}</span>
                       <span className="min-w-0 break-words text-right font-semibold text-miamz-green max-[380px]:text-left">{selectedPromo.label} {selectedPromo.discountLabel}</span>
@@ -1068,7 +1085,7 @@ export default function ReservationDialog({
                 <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Notes..." rows={2} />
 
                 <div className="flex gap-3">
-                  <Button variant="outline" onClick={() => setStep("promo")}>
+                  <Button variant="outline" onClick={() => setStep(tableOnlyBooking ? "datetime" : "promo")}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <Button

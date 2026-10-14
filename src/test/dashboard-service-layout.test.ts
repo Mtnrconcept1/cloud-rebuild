@@ -57,6 +57,11 @@ describe("restaurant service dashboard layout", () => {
     }
   });
 
+  it("keeps the table-only booking choice alongside daily service switches", () => {
+    expect(dailyControls).toContain("settings.table_only_booking");
+    expect(dailyControls).toContain("Réservation de table sans restauration");
+  });
+
   it("uses the compact illustrated hero and a non-sticky save action", () => {
     expect(hero).toContain("compact");
     expect(hero).toContain("illustration={DASHBOARD_ILLUSTRATIONS.restaurantService}");
