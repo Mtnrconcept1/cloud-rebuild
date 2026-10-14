@@ -130,10 +130,11 @@ Deno.serve(async (req) => {
     }
 
     const now = new Date();
+    const requestId = crypto.randomUUID();
     const lockUntil = new Date(now.getTime() + 90_000).toISOString();
     // Atomic compare-and-set: concurrent tabs cannot open two Stripe subscriptions.
     const { data: lease, error: leaseError } = await admin.from("golden_tok_accreditations")
-      .update({ checkout_lock_until: lockUntil })
+      .update({ checkout_lock_until: lockUntil, checkout_request_id: requestId })
       .eq("restaurant_id", restaurantId)
       .eq("status", "approved")
       .is("stripe_subscription_id", null)
@@ -159,19 +160,24 @@ Deno.serve(async (req) => {
           stripe_mode: "live",
         },
         subscription_data: { metadata: { checkout_kind: CHECKOUT_KIND, restaurant_id: restaurantId } },
-      }, { idempotencyKey: `golden-tok:${restaurantId}:${Math.floor(now.getTime() / 900000)}` });
+      }, { idempotencyKey: `golden-tok:${restaurantId}:${requestId}` });
 
       if (!session.url) throw new Error("URL de paiement Stripe indisponible");
-      const { error: saveError } = await admin.from("golden_tok_accreditations")
+      const { data: saved, error: saveError } = await admin.from("golden_tok_accreditations")
         .update({
           stripe_checkout_session_id: session.id,
           checkout_lock_until: null,
           updated_at: new Date().toISOString(),
         })
-        .eq("restaurant_id", restaurantId).eq("checkout_lock_until", lockUntil);
-      if (saveError) {
+        .eq("restaurant_id", restaurantId)
+        .eq("checkout_request_id", requestId)
+        .eq("checkout_lock_until", lockUntil)
+        .is("stripe_subscription_id", null)
+        .select("restaurant_id")
+        .maybeSingle();
+      if (saveError || !saved) {
         await stripe.checkout.sessions.expire(session.id).catch(() => undefined);
-        throw new HttpError(500, saveError.message);
+        throw new HttpError(409, "Session de paiement non enregistrée, réessayez dans quelques instants");
       }
       await writeAuditLog({
         adminClient: admin, actor, request: req, functionName: FUNCTION_NAME,
@@ -181,8 +187,9 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: true, url: session.url }, 200, corsHeaders);
     } finally {
       await admin.from("golden_tok_accreditations")
-        .update({ checkout_lock_until: null })
-        .eq("restaurant_id", restaurantId).eq("checkout_lock_until", lockUntil);
+        .update({ checkout_lock_until: null, checkout_request_id: null })
+        .eq("restaurant_id", restaurantId)
+        .eq("checkout_request_id", requestId);
     }
   } catch (error) {
     log.error("golden_tok_membership_error", { action, message: error instanceof Error ? error.message : "unknown" });
