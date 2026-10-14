@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "47ab0ca01f713874144bc5a572cb3f04e8e128fe1051d4bfce6f263970237910",
+ "sourceDigest": "d481d87f5bdb0f312b7520eaf88ce610add28ac966ef1a122549133b0d0a7ae2",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -36749,8 +36749,8 @@
     "objectCount": 4
    },
    {
-    "name": "20261014140000 Mtnr Internal Unlimited Openai",
-    "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+    "name": "20261014144637 Mtnr Internal Unlimited Openai",
+    "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
     "lineCount": 955,
     "objectCount": 11
    }
@@ -36917,7 +36917,7 @@
       "line": 8
      },
      {
-      "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
       "line": 88
      }
     ]
@@ -36947,7 +36947,7 @@
     "name": "private_finance.guard_internal_unlimited_ai_spend",
     "sources": [
      {
-      "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
       "line": 822
      }
     ]
@@ -36997,7 +36997,7 @@
     "name": "private_finance.has_internal_unlimited_openai_grant",
     "sources": [
      {
-      "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
       "line": 37
      }
     ]
@@ -39597,7 +39597,7 @@
       "line": 399
      },
      {
-      "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
       "line": 783
      }
     ]
@@ -41703,7 +41703,7 @@
       "line": 192
      },
      {
-      "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
       "line": 722
      }
     ]
@@ -41713,7 +41713,7 @@
     "name": "public.get_restaurant_credit_usage_before_fair_growth",
     "sources": [
      {
-      "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
       "line": 265
      }
     ]
@@ -50401,7 +50401,7 @@
     "name": "internal_unlimited_openai_grants_restaurant_idx",
     "sources": [
      {
-      "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
       "line": 14
      }
     ]
@@ -61337,7 +61337,7 @@
     "name": "private_finance.internal_unlimited_openai_grants",
     "sources": [
      {
-      "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
       "line": 5
      }
     ]
@@ -65423,7 +65423,7 @@
     "name": "guard_internal_unlimited_ai_usage",
     "sources": [
      {
-      "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
       "line": 944
      }
     ]
@@ -65433,7 +65433,7 @@
     "name": "guard_internal_unlimited_campaign_spend",
     "sources": [
      {
-      "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
       "line": 949
      }
     ]
@@ -67759,7 +67759,7 @@
     "name": "private_finance.chargeable_ai_usage_logs",
     "sources": [
      {
-      "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+      "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
       "line": 67
      }
     ]
@@ -131049,7 +131049,7 @@
     "extension": ".sql"
    },
    {
-    "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+    "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -161506,11 +161506,11 @@
    "detailRef": "220d463ed84c"
   },
   {
-   "id": "database-object:7cf36a5915ea",
+   "id": "database-object:11bb8b5a25ae",
    "type": "database-object",
    "title": "guard_internal_unlimited_ai_usage",
    "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 944,
    "surface": null,
    "tags": [
@@ -161518,14 +161518,14 @@
     "supabase",
     "trigger"
    ],
-   "detailRef": "750b24338272"
+   "detailRef": "c60a0f4f81c6"
   },
   {
-   "id": "database-object:8aca7249273b",
+   "id": "database-object:fefab586fb98",
    "type": "database-object",
    "title": "guard_internal_unlimited_campaign_spend",
    "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 949,
    "surface": null,
    "tags": [
@@ -161533,7 +161533,7 @@
     "supabase",
     "trigger"
    ],
-   "detailRef": "6eed093410c7"
+   "detailRef": "74c3e69fb023"
   },
   {
    "id": "database-object:537022d20fc5",
@@ -166486,11 +166486,11 @@
    "detailRef": "f86030426e95"
   },
   {
-   "id": "database-object:708379beb919",
+   "id": "database-object:f66bd4b44b9c",
    "type": "database-object",
    "title": "internal_unlimited_openai_grants_restaurant_idx",
    "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 14,
    "surface": null,
    "tags": [
@@ -166498,7 +166498,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "6f1eab1a3383"
+   "detailRef": "08e316ae3160"
   },
   {
    "id": "database-object:2d2a63a0c251",
@@ -168976,11 +168976,11 @@
    "detailRef": "52311691af2d"
   },
   {
-   "id": "database-object:c157036646d5",
+   "id": "database-object:3b8de57b74de",
    "type": "database-object",
    "title": "private_finance.chargeable_ai_usage_logs",
    "description": "Objet PostgreSQL de type view; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 67,
    "surface": null,
    "tags": [
@@ -168988,7 +168988,7 @@
     "supabase",
     "view"
    ],
-   "detailRef": "e6fe44d546d0"
+   "detailRef": "c5cce00dd65a"
   },
   {
    "id": "database-object:4ca099f1ee6f",
@@ -169096,11 +169096,11 @@
    "detailRef": "57d4808f84de"
   },
   {
-   "id": "database-object:fccd9eaab0d1",
+   "id": "database-object:734e8d07ec7e",
    "type": "database-object",
    "title": "private_finance.get_restaurant_preactivation_credit_usage",
    "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 88,
    "surface": null,
    "tags": [
@@ -169108,7 +169108,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "7c898b070f19"
+   "detailRef": "543cce985212"
   },
   {
    "id": "database-object:6f20f2fb2e4d",
@@ -169141,11 +169141,11 @@
    "detailRef": "f9404044e0ab"
   },
   {
-   "id": "database-object:c1d4d0c7b985",
+   "id": "database-object:6203db025f78",
    "type": "database-object",
    "title": "private_finance.guard_internal_unlimited_ai_spend",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 822,
    "surface": null,
    "tags": [
@@ -169153,7 +169153,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "19686cc1dbed"
+   "detailRef": "aefab0ac9f9f"
   },
   {
    "id": "database-object:97ff7f3a5d14",
@@ -169216,11 +169216,11 @@
    "detailRef": "81d77d6759f7"
   },
   {
-   "id": "database-object:aa787d458ba7",
+   "id": "database-object:dadb1a70e84d",
    "type": "database-object",
    "title": "private_finance.has_internal_unlimited_openai_grant",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 37,
    "surface": null,
    "tags": [
@@ -169228,14 +169228,14 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "1b9d5db81f70"
+   "detailRef": "80d7ef708fc8"
   },
   {
-   "id": "database-object:6f4a7889ab53",
+   "id": "database-object:bedd82bd98aa",
    "type": "database-object",
    "title": "private_finance.internal_unlimited_openai_grants",
    "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 5,
    "surface": null,
    "tags": [
@@ -169243,7 +169243,7 @@
     "supabase",
     "table"
    ],
-   "detailRef": "7f4fd1897427"
+   "detailRef": "fa5f4fa8ea53"
   },
   {
    "id": "database-object:d026f9533f7f",
@@ -174526,11 +174526,11 @@
    "detailRef": "fa258f29c4fb"
   },
   {
-   "id": "database-object:1c292b40d02e",
+   "id": "database-object:fe62f95b101c",
    "type": "database-object",
    "title": "public.check_restaurant_ai_quota",
    "description": "Objet PostgreSQL de type function; 5 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 783,
    "surface": null,
    "tags": [
@@ -174538,7 +174538,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "16d674b6b6a7"
+   "detailRef": "a6733edd8c40"
   },
   {
    "id": "database-object:7bf3d736dacb",
@@ -180316,11 +180316,11 @@
    "detailRef": "418b26ecdd5b"
   },
   {
-   "id": "database-object:95e6584be819",
+   "id": "database-object:8465bf8edbe5",
    "type": "database-object",
    "title": "public.get_restaurant_credit_usage",
    "description": "Objet PostgreSQL de type function; 7 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 722,
    "surface": null,
    "tags": [
@@ -180328,14 +180328,14 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "d2fd6e2842b9"
+   "detailRef": "1f571fa03931"
   },
   {
-   "id": "database-object:f6e9119c77d3",
+   "id": "database-object:a513b759233d",
    "type": "database-object",
    "title": "public.get_restaurant_credit_usage_before_fair_growth",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 265,
    "surface": null,
    "tags": [
@@ -180343,7 +180343,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "3137c0b3e0b3"
+   "detailRef": "194d595ac71b"
   },
   {
    "id": "database-object:4de18fc7496a",
@@ -336072,18 +336072,18 @@
    "detailRef": "ddc3ba97ec3c"
   },
   {
-   "id": "file:9c7dd3761cf5",
+   "id": "file:ad15f53503a5",
    "type": "file",
-   "title": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "title": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "description": "Fichier du dépôt classé database-migration.",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": null,
    "surface": null,
    "tags": [
     ".sql",
     "database-migration"
    ],
-   "detailRef": "74f8094c1586"
+   "detailRef": "2fb4f3be3d52"
   },
   {
    "id": "file:e79b29a1c0b4",
@@ -349041,18 +349041,18 @@
    "detailRef": "2e6cb4e3b0f9"
   },
   {
-   "id": "migration:debac5ce9bd3",
+   "id": "migration:34325abe5b48",
    "type": "migration",
-   "title": "20261014140000 Mtnr Internal Unlimited Openai",
+   "title": "20261014144637 Mtnr Internal Unlimited Openai",
    "description": "Migration SQL de 955 lignes, 11 objets CREATE détectés.",
-   "path": "supabase/migrations/20261014140000_mtnr_internal_unlimited_openai.sql",
+   "path": "supabase/migrations/20261014144637_mtnr_internal_unlimited_openai.sql",
    "line": 1,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase"
    ],
-   "detailRef": "c162b4cf4977"
+   "detailRef": "8241a9642406"
   },
   {
    "id": "package-script:5bd6dc98483a",
