@@ -26,12 +26,14 @@ jobs:
           cache: pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
+      - name: Regenerate error-code map
+        run: pnpm run generate:error-code-map
       - name: Generate index
         run: pnpm run docs:application-index
       - name: Commit generated files only
         run: |
           set -euo pipefail
-          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git add -- supabase/functions/_shared/error-code-map.ts docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
           if git diff --cached --quiet; then
             echo "Index already up to date"
             exit 0
