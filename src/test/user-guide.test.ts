@@ -11,6 +11,7 @@ import {
   BUYER_GUIDE_CHAPTERS,
   GUIDE_SCREENSHOTS,
   RESTAURANT_GUIDE_CHAPTERS,
+  RESTAURANT_GUIDE_ROUTE_LABELS,
   isRestaurantGuideRoute,
 } from "@/data/userGuideContent";
 import { canAccessRestaurantDashboardRoute } from "@/pages/dashboard/useDashboardRestaurant";
@@ -20,6 +21,42 @@ import {
 } from "@/data/userGuideFeatureDetails";
 
 describe("guides d’utilisation TOK", () => {
+  it("affiche les intitulés exacts du menu restaurateur avec une capture par rubrique", () => {
+    const source = readFileSync(path.join(process.cwd(), "src/components/DashboardLayout.tsx"), "utf8");
+    const names = RESTAURANT_GUIDE_CHAPTERS.map((chapter) => chapter.title);
+    expect(names).toEqual([
+      "Reussite et performances",
+      "Marketing",
+      "Paiements",
+      "Mon offre",
+      "Page du restaurant",
+      "Support",
+    ]);
+    for (const chapter of RESTAURANT_GUIDE_CHAPTERS) {
+      expect(source).toContain(`title: "${chapter.title}"`);
+      expect(chapter.screenshots?.length).toBeGreaterThan(0);
+      for (const shot of chapter.screenshots || []) {
+        expect(shot.alt.length).toBeGreaterThan(10);
+        expect(shot.caption.length).toBeGreaterThan(25);
+        expect(shot.src).toMatch(/^\/images\/user-guide\//);
+        expect(existsSync(path.join(process.cwd(), "public", shot.src.slice(1)))).toBe(true);
+        expect(shot.src).not.toMatch(/admin-/);
+      }
+      for (const route of chapter.routes) {
+        const label = RESTAURANT_GUIDE_ROUTE_LABELS[route];
+        expect(label).toBeTruthy();
+        expect(source).toContain(`to: "${route}", label: "${label}"`);
+        expect(label).not.toMatch(/^\//);
+      }
+    }
+  });
+  it("ne montre aucun catalogue technique ou chemin brut au restaurateur", () => {
+    const guide = readFileSync(path.join(process.cwd(), "src/pages/GuideUtilisateur.tsx"), "utf8");
+    expect(guide).toContain("isRestaurant ? <RestaurantGuideIndex");
+    expect(guide).toContain('if (!isRestaurant) for (const surface');
+    expect(guide).toContain("RESTAURANT_GUIDE_ROUTE_LABELS[route]");
+    expect(guide).toContain("loadGuidePdfImage(image.src, image.caption)");
+  });
   it("reserve les deux guides aux routes de dashboard protègees", () => {
     const app = readFileSync(path.join(process.cwd(), "src/App.tsx"), "utf8");
     const prerender = readFileSync(path.join(process.cwd(), "scripts/prerender-seo.mjs"), "utf8");
@@ -54,7 +91,7 @@ describe("guides d’utilisation TOK", () => {
   });
 
   it("référence des chapitres et captures disponibles pour les deux audiences", () => {
-    expect(RESTAURANT_GUIDE_CHAPTERS.length).toBeGreaterThanOrEqual(7);
+    expect(RESTAURANT_GUIDE_CHAPTERS.length).toBe(6);
     expect(BUYER_GUIDE_CHAPTERS.length).toBeGreaterThanOrEqual(7);
     expect(GUIDE_SCREENSHOTS.filter((item) => item.audiences.includes("restaurant")).length).toBeGreaterThanOrEqual(2);
     expect(GUIDE_SCREENSHOTS.filter((item) => item.audiences.includes("buyer")).length).toBeGreaterThanOrEqual(4);

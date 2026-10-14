@@ -1,7 +1,12 @@
 /** PDF A4 natif des guides TOK, avec signets et sommaire cliquable. */
-export type GuidePdfSection = { title: string; lines: readonly string[] };
+export type GuidePdfImage = { data: Uint8Array; width: number; height: number; caption: string };
+export type GuidePdfSection = { title: string; lines: readonly string[]; images?: readonly GuidePdfImage[] };
 export type GuidePdfInput = { title: string; subtitle: string; sections: readonly GuidePdfSection[] };
-type Page = { content: string[]; links: { section: number; y: number }[] };
+type Page = {
+  content: string[];
+  links: { section: number; y: number }[];
+  images: { resource: string; data: Uint8Array; width: number; height: number }[];
+};
 const W = 595, H = 842, LEFT = 48;
 const cp1252: Record<string, number> = {
   "€":128,"‚":130,"ƒ":131,"„":132,"…":133,"†":134,"‡":135,"ˆ":136,"‰":137,
@@ -36,11 +41,11 @@ function wrap(value: string, size: number): string[] {
   return rows;
 }
 export function buildGuidePdf(input: GuidePdfInput): Uint8Array {
-  const pages: Page[] = [{content:[],links:[]}, {content:[],links:[]}];
+  const pages: Page[] = [{content:[],links:[],images:[]}, {content:[],links:[],images:[]}];
   const destinations: number[] = [];
   let current = 1, y = H - 80;
   const newPage = () => {
-    pages.push({content:[],links:[]});
+    pages.push({content:[],links:[],images:[]});
     current = pages.length - 1;
     y = H - 84;
   };
@@ -67,6 +72,19 @@ export function buildGuidePdf(input: GuidePdfInput): Uint8Array {
     destinations[index] = current;
     paragraph(`${String(index + 1).padStart(2, "0")} - ${section.title}`, 17, true, 18);
     section.lines.forEach(line => paragraph(line));
+    for (const image of section.images || []) {
+      if (image.width <= 0 || image.height <= 0 || image.data.length < 4) continue;
+      const scale = Math.min((W - 2 * LEFT) / image.width, 238 / image.height);
+      const width = Math.round(image.width * scale);
+      const height = Math.round(image.height * scale);
+      if (y - height < 78) newPage();
+      const x = Math.round((W - width) / 2);
+      const resource = `Im${pages[current].images.length}`;
+      pages[current].images.push({ resource, data: image.data, width: image.width, height: image.height });
+      pages[current].content.push(`q ${width} 0 0 ${height} ${x} ${Math.round(y - height)} cm /${resource} Do Q\n`);
+      y -= height + 12;
+      paragraph(image.caption, 9, false, 14);
+    }
   });
   const toc = pages[1];
   toc.content.push(text("Sommaire cliquable", LEFT, 765, 22, true));
@@ -88,6 +106,7 @@ export function buildGuidePdf(input: GuidePdfInput): Uint8Array {
   const catalog = id(), rootPages = id(), outlineRoot = id(), normalFont = id(), boldFont = id();
   const pageIds = pages.map(() => id()), streamIds = pages.map(() => id());
   const links = pages.map(page => page.links.map(() => id()));
+  const imageIds = pages.map(page => page.images.map(() => id()));
   const bookmarks = input.sections.map(() => id());
   set(normalFont, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
   set(boldFont, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
@@ -99,7 +118,16 @@ export function buildGuidePdf(input: GuidePdfInput): Uint8Array {
   pages.forEach((page, i) => {
     const content = encode(page.content.join(""));
     set(streamIds[i], `<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
-    set(pageIds[i], `<< /Type /Page /Parent ${rootPages} 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 ${normalFont} 0 R /F2 ${boldFont} 0 R >> >> /Contents ${streamIds[i]} 0 R /Annots [${links[i].map(n => n + " 0 R").join(" ")}] >>`);
+    const resources = page.images.map((image, j) => `/${image.resource} ${imageIds[i][j]} 0 R`).join(" ");
+    set(pageIds[i], `<< /Type /Page /Parent ${rootPages} 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 ${normalFont} 0 R /F2 ${boldFont} 0 R >> /XObject << ${resources} >> >> /Contents ${streamIds[i]} 0 R /Annots [${links[i].map(n => n + " 0 R").join(" ")}] >>`);
+    page.images.forEach((image, j) => {
+      let binary = "";
+      const chunkSize = 8192;
+      for (let k = 0; k < image.data.length; k += chunkSize) {
+        binary += String.fromCharCode(...image.data.subarray(k, k + chunkSize));
+      }
+      set(imageIds[i][j], `<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${binary.length} >>\nstream\n${binary}\nendstream`);
+    });
     page.links.forEach((link, j) => {
       set(links[i][j], `<< /Type /Annot /Subtype /Link /Rect [${LEFT} ${link.y-4} ${W-LEFT} ${link.y+14}] /Border [0 0 0] /Dest [${pageIds[destinations[link.section]]} 0 R /Fit] >>`);
     });
