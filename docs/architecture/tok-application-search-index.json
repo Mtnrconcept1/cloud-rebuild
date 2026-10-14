@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "5ffc4b91f85d6dd7e8192c9b9d5e12277aff56e7908d284c4721898e477981fb",
+ "sourceDigest": "5d641541e14d76e41d1dbe3e12a5ecddfe2eed84be4ed46eb80b8ccd57e264e1",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -25,14 +25,14 @@
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16543,
-  "repositoryFiles": 3077,
+  "records": 16541,
+  "repositoryFiles": 3076,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 29
+  "workflows": 28
  },
  "catalogs": {
   "frontendRoutes": [
@@ -70659,13 +70659,6 @@
     "jobs": [
      "sync"
     ]
-   },
-   {
-    "name": "TOK regenerate tracked indexes (one time)",
-    "path": ".github/workflows/tok-regenerate-once.yml",
-    "jobs": [
-     "regenerate"
-    ]
    }
   ],
   "documents": [
@@ -114714,11 +114707,6 @@
    },
    {
     "path": ".github/workflows/sync-incident-secrets.yml",
-    "category": "ci-workflow",
-    "extension": ".yml"
-   },
-   {
-    "path": ".github/workflows/tok-regenerate-once.yml",
     "category": "ci-workflow",
     "extension": ".yml"
    },
@@ -291483,20 +291471,6 @@
    "detailRef": "4641b28d0262"
   },
   {
-   "id": "file:21370f7badf8",
-   "type": "file",
-   "title": ".github/workflows/tok-regenerate-once.yml",
-   "description": "Fichier du dépôt classé ci-workflow.",
-   "path": ".github/workflows/tok-regenerate-once.yml",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".yml",
-    "ci-workflow"
-   ],
-   "detailRef": "9e46821917aa"
-  },
-  {
    "id": "file:7f519ece547e",
    "type": "file",
    "title": ".gitignore",
@@ -370014,19 +369988,6 @@
     "sync"
    ],
    "detailRef": "87bb2b75c4d4"
-  },
-  {
-   "id": "workflow:0d89f4c799ba",
-   "type": "workflow",
-   "title": "TOK regenerate tracked indexes (one time)",
-   "description": "Workflow GitHub Actions; jobs: regenerate.",
-   "path": ".github/workflows/tok-regenerate-once.yml",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "regenerate"
-   ],
-   "detailRef": "527e4391dbfa"
   },
   {
    "id": "workflow:449ccb0fe621",
