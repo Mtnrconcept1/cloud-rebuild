@@ -19,6 +19,7 @@ import {
   buildTokRevenueSummary,
   calculateTokCommission,
   getPaidDirectTokInvoiceIds,
+  summarizeStripeFinanceLedger,
   sumDirectTokPurchaseRevenue,
 } from "@/lib/comptaFlow";
 import {
@@ -1292,6 +1293,35 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
 
   // A subscription may be paid months after its item was first reserved.
   // Query by the paid invoice IDs, not by each line item's occurred_at.
+  const stripeFinanceLedgerQuery = useQuery({
+    queryKey: ["admin-compta-stripe-finance-ledger-v1", selectedRestaurant, selectedMonth],
+    queryFn: async () => fetchPagedRows<{
+      account_code: string;
+      direction: "debit" | "credit";
+      amount_cents: number;
+    }>(() => {
+      let query = supabase
+        .from("financial_ledger")
+        .select("account_code, direction, amount_cents")
+        .in("account_code", ["stripe_processing_fee_expense", "tax_payable"])
+        .eq("currency", "CHF")
+        .eq("livemode", true)
+        .gte("effective_at", `${monthBounds.monthStart}T00:00:00.000Z`)
+        .lte("effective_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+        .order("entry_id", { ascending: true });
+
+      if (selectedRestaurant !== "all") {
+        query = query.eq("restaurant_id", selectedRestaurant);
+      }
+
+      return query;
+    }),
+  });
+  const stripeFinance = useMemo(
+    () => summarizeStripeFinanceLedger(stripeFinanceLedgerQuery.data || []),
+    [stripeFinanceLedgerQuery.data],
+  );
+
   const paidDirectTokInvoicesQuery = useQuery({
     queryKey: ["admin-compta-paid-direct-tok-invoices-v1", selectedRestaurant, selectedMonth],
     queryFn: async () => fetchPagedRows<Pick<AdminInvoiceRow, "id" | "invoice_type" | "status">>(() => {
@@ -1641,6 +1671,8 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     tokOneSubscriptionAmount: tokOneRevenue.amount,
     tokOneSubscriptionCount: tokOneRevenue.count,
     directTokPurchaseRevenueAmount,
+    stripeProcessingFeesAmount: stripeFinance.processingFees,
+    taxPayableAmount: stripeFinance.vatPayable,
     totalRevenue: totalRevenueSummary.totalRevenue,
     developerReservedShare: totalRevenueSummary.developerReservedShare,
     refundsIssuedTotal,
@@ -1666,6 +1698,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || payoutInvoicesQuery.isLoading
       || payableInvoicesQuery.isLoading
       || payableLineItemsQuery.isLoading
+      || stripeFinanceLedgerQuery.isLoading
       || paidDirectTokInvoicesQuery.isLoading
       || paidDirectTokLineItemsQuery.isLoading
       || refundedOrdersQuery.isLoading
@@ -1683,6 +1716,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || payoutInvoicesQuery.error
       || payableInvoicesQuery.error
       || payableLineItemsQuery.error
+      || stripeFinanceLedgerQuery.error
       || paidDirectTokInvoicesQuery.error
       || paidDirectTokLineItemsQuery.error
       || refundedOrdersQuery.error
