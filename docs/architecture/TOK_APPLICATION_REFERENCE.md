@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a8c61a7a723d3e9ecfadeb65edd0c831845a82187e1caa9e3a6487a1e2196621`
+- Empreinte SHA-256 des sources indexées : `a6ae4eb45327494a828969422b608d3ef1af9184b8665f52222dcf8daf028d2f`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -41,12 +41,12 @@
 | modules | 1557 |
 | pages | 128 |
 | pathLiterals | 749 |
-| publicAssets | 590 |
-| publicEntries | 615 |
+| publicAssets | 564 |
+| publicEntries | 589 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16849 |
-| repositoryFiles | 3186 |
+| records | 16797 |
+| repositoryFiles | 3160 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -895,32 +895,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp | media | [public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp](../../public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp) |
 | /images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp | media | [public/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp](../../public/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp) |
 | /images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp | media | [public/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp](../../public/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-ag-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-ag-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-ag-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-ai-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-ai-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-ai-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-ar-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-ar-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-ar-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-be-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-be-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-be-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-bl-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-bl-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-bl-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-bs-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-bs-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-bs-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-fr-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-fr-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-fr-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-ge-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-ge-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-ge-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-gl-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-gl-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-gl-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-gr-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-gr-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-gr-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-ju-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-ju-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-ju-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-lu-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-lu-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-lu-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-ne-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-ne-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-ne-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-nw-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-nw-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-nw-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-ow-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-ow-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-ow-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-sg-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-sg-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-sg-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-sh-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-sh-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-sh-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-so-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-so-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-so-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-sz-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-sz-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-sz-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-tg-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-tg-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-tg-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-ti-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-ti-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-ti-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-ur-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-ur-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-ur-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-vd-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-vd-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-vd-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-vs-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-vs-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-vs-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-zg-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-zg-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-zg-desktop.webp) |
-| /images/locations/Europe/Suisse/Cantons/tok-ch-zh-desktop.webp | media | [public/images/locations/Europe/Suisse/Cantons/tok-ch-zh-desktop.webp](../../public/images/locations/Europe/Suisse/Cantons/tok-ch-zh-desktop.webp) |
 | /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | media | [public/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp](../../public/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp) |
 | /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | media | [public/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp](../../public/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp) |
 | /images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp | media | [public/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp](../../public/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp) |
@@ -8326,7 +8300,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (615)</summary>
+<details><summary>public-asset (589)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8602,32 +8576,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp`
 - `public/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp`
 - `public/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-ag-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-ai-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-ar-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-be-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-bl-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-bs-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-fr-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-ge-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-gl-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-gr-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-ju-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-lu-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-ne-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-nw-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-ow-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-sg-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-sh-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-so-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-sz-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-tg-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-ti-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-ur-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-vd-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-vs-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-zg-desktop.webp`
-- `public/images/locations/Europe/Suisse/Cantons/tok-ch-zh-desktop.webp`
 - `public/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp`
 - `public/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp`
 - `public/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp`

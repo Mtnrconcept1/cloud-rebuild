@@ -175,7 +175,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
               "grid min-w-0 gap-5",
               isPrintMode
                 ? "grid-cols-[170px_minmax(0,1fr)_220px] items-start gap-6"
-                : "sm:gap-8 lg:grid-cols-[280px_minmax(0,1fr)_300px] lg:items-start",
+                : "sm:gap-8 lg:grid-cols-[240px_minmax(0,1fr)_280px] lg:items-start",
             )}
           >
             <div className={cn("flex justify-center", isPrintMode ? "justify-start" : "lg:justify-start")}>
@@ -205,7 +205,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                 </h1>
                 <div
                   className={cn(
-                    "inline-flex max-w-full break-words rounded-full border border-[#ff9d67] font-semibold text-[#ff5b14]",
+                    "block w-full min-w-0 max-w-full whitespace-normal [overflow-wrap:anywhere] rounded-[28px] border border-[#ff9d67] font-semibold leading-snug text-[#ff5b14]",
                     isPrintMode ? "px-5 py-2.5 text-lg" : "px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-xl",
                   )}
                 >
@@ -255,7 +255,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                 Expediteur
               </p>
               <div className={cn("mt-3 space-y-2 break-words text-base", isPrintMode ? "mt-4 text-lg" : "sm:mt-4 sm:text-lg")}>
-                <p className={cn("font-semibold text-slate-950", isPrintMode ? "text-2xl" : "text-xl sm:text-3xl")}>
+                <p className={cn("min-w-0 max-w-full whitespace-normal break-words font-semibold leading-snug text-slate-950", isPrintMode ? "text-xl" : "text-xl sm:text-2xl lg:text-[26px]")}>
                   {data.sender.name}
                 </p>
                 {data.sender.addressLine1 ? <p>{data.sender.addressLine1}</p> : null}
@@ -287,7 +287,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                 Destinataire
               </p>
               <div className={cn("mt-3 space-y-2 break-words text-base", isPrintMode ? "mt-4 text-lg" : "sm:mt-4 sm:text-lg")}>
-                <p className={cn("font-semibold text-slate-950", isPrintMode ? "text-2xl" : "text-xl sm:text-3xl")}>
+                <p className={cn("min-w-0 max-w-full whitespace-normal break-words font-semibold leading-snug text-slate-950", isPrintMode ? "text-xl" : "text-xl sm:text-2xl lg:text-[26px]")}>
                   {data.recipient.name}
                 </p>
                 {data.recipient.addressLine1 ? <p>{data.recipient.addressLine1}</p> : null}
