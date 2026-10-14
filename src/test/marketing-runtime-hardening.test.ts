@@ -101,3 +101,34 @@ describe("marketing delivery lease budget", () => {
     expect(orchestrator).not.toContain("Math.min(500, limit * 20)");
   });
 });
+
+
+describe("marketing outbound email sender isolation", () => {
+  const writer = readFileSync(secretWriterPath, "utf8");
+
+  it("requires dedicated marketing sender and API key, with no transactional fallback", () => {
+    expect(orchestrator).toContain('Deno.env.get("MARKETING_RESEND_API_KEY")');
+    expect(orchestrator).toContain('Deno.env.get("MARKETING_EMAIL_FROM")');
+    expect(orchestrator).toContain('RESEND_API_KEY !== TRANSACTIONAL_RESEND_API_KEY');
+    expect(orchestrator).toContain('address !== transactionalAddress');
+    expect(orchestrator).toContain('domain.endsWith(".thetok.ch")');
+    expect(orchestrator).toContain('domain !== "thetok.ch"');
+    expect(orchestrator).toContain('if (!marketingSenderIsIsolated())');
+    expect(orchestrator).toContain('p_error_code: "marketing_sender_not_isolated"');
+  });
+
+  it("blocks an unconfigured sender before preparing or calling Resend", () => {
+    const body = orchestrator.slice(orchestrator.indexOf("async function processEmailDelivery"));
+    expect(body.indexOf("if (!marketingSenderIsIsolated())"))
+      .toBeLessThan(body.indexOf('"service_prepare_marketing_email_delivery"'));
+    expect(body.indexOf("if (!marketingSenderIsIsolated())"))
+      .toBeLessThan(body.indexOf("sendViaResend(prepared, delivery.id, signingSecret)"));
+  });
+
+  it("provisions dedicated marketing variables separately from transactional ones", () => {
+    expect(writer).toContain('"MARKETING_RESEND_API_KEY"');
+    expect(writer).toContain('"MARKETING_EMAIL_FROM"');
+    expect(writer).toContain('"RESEND_API_KEY"');
+    expect(writer).toContain('"EMAIL_FROM"');
+  });
+});
