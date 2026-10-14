@@ -70,6 +70,37 @@ export type RestaurantAgentRequest = {
   context?: JsonRecord;
 };
 
+export type RestaurantEditProposal = {
+  restaurantId: string;
+  taskId: string;
+  status: "draft";
+  title: string;
+  summary: string;
+  target: "restaurant" | "menu_item" | "ai_profile" | "restaurant_settings" | "dish_photo";
+  record_id: string;
+  field: string;
+  value: string;
+  previous_value: unknown;
+  subject_name: string;
+};
+
+export function proposeRestaurantEdit(request: { restaurantId: string; prompt: string }) {
+  return invokeTokAiFunction<RestaurantEditProposal>("ai-restaurant-editor", {
+    ...request, mode: "plan",
+  });
+}
+
+export function applyRestaurantEdit(request: {
+  restaurantId: string;
+  taskId: string;
+  assetId?: string;
+}) {
+  return invokeTokAiFunction<{ status: "applied"; taskId: string; target: string; field: string }>(
+    "ai-restaurant-editor",
+    { ...request, mode: request.assetId ? "apply_photo" : "apply" },
+  );
+}
+
 export type RestaurantAdvisorStreamRequest = {
   restaurantId: string;
   messages: TokAiMessage[];
