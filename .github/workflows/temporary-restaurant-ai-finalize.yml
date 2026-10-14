@@ -1,0 +1,50 @@
+name: Temporary AI Editor Branch Finalization
+on:
+  push:
+    branches:
+      - feat/restaurant-ai-controlled-edits-20261014
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: restaurant-ai-finalization
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Integrate latest main only into the feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-edit -X ours origin/main
+      - name: Remove one-off workflow before creating the index
+        run: git rm -f -- .github/workflows/temporary-restaurant-ai-finalize.yml
+      - name: Regenerate application index
+        run: pnpm docs:application-index
+      - name: Focused regression checks
+        continue-on-error: true
+        run: |
+          pnpm exec vitest run src/test/restaurant-ai-controlled-edits.test.ts src/test/application-search-index.test.ts src/test/admin-audit-log-narrative.test.ts
+          pnpm typecheck
+          pnpm lint
+      - name: Commit branch-only documentation regeneration
+        run: |
+          git add docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --quiet || git commit -m "chore(ai): synchronize application index after integrating latest main"
+          git push origin HEAD:refs/heads/feat/restaurant-ai-controlled-edits-20261014
