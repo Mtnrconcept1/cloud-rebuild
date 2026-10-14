@@ -163,7 +163,7 @@ export default function DropsManagement() {
         ]}
       />
 
-      <GoldenTokReviewPanel />
+      {import.meta.env.VITE_GOLDEN_TOK_ENABLED === "true" && <GoldenTokReviewPanel />}
 
       <Card>
         <CardHeader>
