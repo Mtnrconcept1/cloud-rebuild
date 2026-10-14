@@ -34,15 +34,16 @@ export default function MyWorkforceManager() {
    if(error)throw error;return data as SupervisorProfile;}});
  const settings=useWorkforceSettings(restaurantId);
  const allowed=supervisor.data?.role==="manager"&&supervisor.data.is_active&&supervisor.data.user_id===user?.id&&settings.data?.enabled===true;
+ const waiting=memberships.isPending||(!!restaurantId&&(supervisor.isPending||settings.isPending));
  return <main className="container mx-auto min-h-screen space-y-5 px-3 py-6 sm:px-6">
   <DashboardPageHero compact badge="Responsable d'équipe · TOK" icon={ShieldCheck} tone="orange"
     title="Gestion de mon équipe" description="Planning, badgeages, relevés, congés et validation des demandes pour votre établissement."
     actions={<Button variant="outline" asChild><Link to="/equipe/mon-espace">Mon espace salarié</Link></Button>}/>
-  {memberships.isPending||supervisor.isPending&&!!restaurantId||settings.isPending&&!!restaurantId?
+  {waiting?
    <Card><CardContent className="py-8 text-muted-foreground">Vérification des autorisations de l'équipe…</CardContent></Card>:null}
   {memberships.isError||supervisor.isError||settings.isError?
    <Card><CardContent className="py-8 text-destructive" role="alert">Impossible de vérifier vos permissions de responsable.</CardContent></Card>:null}
-  {!memberships.isPending&&!supervisor.isPending&&!settings.isPending&&!allowed?
+  {!waiting&&!allowed?
    <Card><CardHeader><CardTitle>Accès responsable non autorisé</CardTitle></CardHeader>
     <CardContent className="text-sm text-muted-foreground">Votre compte doit être associé à un collaborateur actif désigné responsable par le restaurant. Le module RH doit être activé par un administrateur TOK.</CardContent></Card>:null}
   {allowed&&restaurantId?<div className="space-y-4">
