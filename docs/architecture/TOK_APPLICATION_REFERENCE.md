@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `5d641541e14d76e41d1dbe3e12a5ecddfe2eed84be4ed46eb80b8ccd57e264e1`
+- Empreinte SHA-256 des sources indexées : `6adbee15a839556913230a2e581ebe80228f7d7b1576654d094f572df1ee0b18`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,7 +28,7 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2767 |
+| databaseObjects | 2774 |
 | documents | 203 |
 | edgeFunctions | 115 |
 | edgeHttpRoutes | 20 |
@@ -37,7 +37,7 @@
 | frontendRoutes | 137 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 534 |
+| migrations | 535 |
 | modules | 1544 |
 | pages | 129 |
 | pathLiterals | 697 |
@@ -45,8 +45,8 @@
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16541 |
-| repositoryFiles | 3076 |
+| records | 16550 |
+| repositoryFiles | 3077 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -3017,7 +3017,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (654)</summary>
+<details><summary>index (658)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3560,6 +3560,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `restaurant_images_source_idx` (1 définition(s))
 - `restaurant_media_one_cover_per_restaurant_idx` (1 définition(s))
 - `restaurant_media_storage_object_unique_idx` (1 définition(s))
+- `restaurant_meta_accounts_restaurant_idx` (1 définition(s))
+- `restaurant_meta_oauth_states_expiry_idx` (1 définition(s))
+- `restaurant_meta_one_active_page_per_restaurant` (1 définition(s))
+- `restaurant_meta_publications_history_idx` (1 définition(s))
 - `restaurant_paid_module_events_restaurant_created_idx` (1 définition(s))
 - `restaurant_paid_modules_cancelled_at_idx` (1 définition(s))
 - `restaurant_paid_modules_module_idx` (1 définition(s))
@@ -4443,7 +4447,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (348)</summary>
+<details><summary>table (351)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -4710,6 +4714,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restaurant_launch_packs` (1 définition(s))
 - `public.restaurant_leads` (1 définition(s))
 - `public.restaurant_media` (1 définition(s))
+- `public.restaurant_meta_accounts` (1 définition(s))
+- `public.restaurant_meta_oauth_states` (1 définition(s))
+- `public.restaurant_meta_publications` (1 définition(s))
 - `public.restaurant_onboarding_state_events` (1 définition(s))
 - `public.restaurant_paid_module_events` (1 définition(s))
 - `public.restaurant_paid_modules` (1 définition(s))
@@ -5884,6 +5891,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261012203000 Schedule Reservation Cancellation Fee Collection | 42 | 0 | [supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql:1](../../supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql#L1) |
 | 20261013014557 Launch Guest Discovery Authenticated Clients Only | 85 | 4 | [supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql:1](../../supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql#L1) |
 | 20261013110000 Marketing Campaign Items Preview | 113 | 1 | [supabase/migrations/20261013110000_marketing_campaign_items_preview.sql:1](../../supabase/migrations/20261013110000_marketing_campaign_items_preview.sql#L1) |
+| 20261014002455 Restaurant Meta Social Oauth | 65 | 7 | [supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql:1](../../supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql#L1) |
 | 20261014010000 Recurring Restaurant Reservation Commissions | 549 | 16 | [supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql:1](../../supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql#L1) |
 
 ## Automatisation, dépendances et CI
@@ -6731,7 +6739,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (534)</summary>
+<details><summary>database-migration (535)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7266,6 +7274,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql`
 - `supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql`
 - `supabase/migrations/20261013110000_marketing_campaign_items_preview.sql`
+- `supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql`
 - `supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql`
 
 </details>
