@@ -1292,13 +1292,32 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
 
   // A subscription may be paid months after its item was first reserved.
   // Query by the paid invoice IDs, not by each line item's occurred_at.
+  const paidDirectTokInvoicesQuery = useQuery({
+    queryKey: ["admin-compta-paid-direct-tok-invoices-v1", selectedRestaurant, selectedMonth],
+    queryFn: async () => fetchPagedRows<Pick<AdminInvoiceRow, "id" | "invoice_type" | "status">>(() => {
+      let query = supabase
+        .from("restaurant_invoices")
+        .select("id, invoice_type, status")
+        .in("invoice_type", ["payable", "subscription"])
+        .eq("status", "paid")
+        .gte("paid_at", `${monthBounds.monthStart}T00:00:00.000Z`)
+        .lte("paid_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+        .order("id", { ascending: true });
+
+      if (selectedRestaurant !== "all") {
+        query = query.eq("restaurant_id", selectedRestaurant);
+      }
+
+      return query;
+    }),
+  });
   const paidDirectTokInvoiceIds = useMemo(
-    () => getPaidDirectTokInvoiceIds(payableInvoicesQuery.data || []),
-    [payableInvoicesQuery.data],
+    () => getPaidDirectTokInvoiceIds(paidDirectTokInvoicesQuery.data || []),
+    [paidDirectTokInvoicesQuery.data],
   );
   const paidDirectTokLineItemsQuery = useQuery({
     queryKey: ["admin-compta-paid-direct-tok-line-items-v1", selectedRestaurant, selectedMonth, paidDirectTokInvoiceIds],
-    enabled: payableInvoicesQuery.isSuccess,
+    enabled: paidDirectTokInvoicesQuery.isSuccess,
     queryFn: async () => {
       if (paidDirectTokInvoiceIds.length === 0) return [] as AdminPayableLineItemRow[];
 
@@ -1647,6 +1666,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || payoutInvoicesQuery.isLoading
       || payableInvoicesQuery.isLoading
       || payableLineItemsQuery.isLoading
+      || paidDirectTokInvoicesQuery.isLoading
       || paidDirectTokLineItemsQuery.isLoading
       || refundedOrdersQuery.isLoading
       || refundedReservationsQuery.isLoading,
@@ -1663,6 +1683,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || payoutInvoicesQuery.error
       || payableInvoicesQuery.error
       || payableLineItemsQuery.error
+      || paidDirectTokInvoicesQuery.error
       || paidDirectTokLineItemsQuery.error
       || refundedOrdersQuery.error
       || refundedReservationsQuery.error,
