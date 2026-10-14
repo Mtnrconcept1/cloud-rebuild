@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "aa6f1d1c05f1fc678dbab12d4aff4af2af0bc98a2b2f30d5ab46898143c13bef",
+ "sourceDigest": "c742b857dcf342ab3a43c906316538f05b3126c5d09e4980795a1c6fb2b423fd",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -25,7 +25,7 @@
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16589,
+  "records": 16590,
   "repositoryFiles": 3087,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -102850,7 +102850,9 @@
       "kind": "function"
      }
     ],
-    "environmentNames": [],
+    "environmentNames": [
+     "VITE_GOLDEN_TOK_ENABLED"
+    ],
     "integrations": [
      "supabase"
     ],
@@ -103446,7 +103448,9 @@
       "kind": "function"
      }
     ],
-    "environmentNames": [],
+    "environmentNames": [
+     "VITE_GOLDEN_TOK_ENABLED"
+    ],
     "integrations": [
      "supabase"
     ],
@@ -105980,12 +105984,14 @@
    {
     "path": "src/test/golden-tok-accreditation.test.ts",
     "exports": [],
-    "environmentNames": [],
+    "environmentNames": [
+     "VITE_GOLDEN_TOK_ENABLED"
+    ],
     "integrations": [
      "stripe",
      "supabase"
     ],
-    "lineCount": 91
+    "lineCount": 93
    },
    {
     "path": "src/test/golden-tok-shell-logo.test.ts",
@@ -141832,10 +141838,11 @@
    "line": 1,
    "surface": null,
    "tags": [
+    "VITE_GOLDEN_TOK_ENABLED",
     "default",
     "supabase"
    ],
-   "detailRef": "ea1af8607218"
+   "detailRef": "96bcf3089691"
   },
   {
    "id": "code-module:c3bf08e13b06",
@@ -142204,10 +142211,11 @@
    "line": 1,
    "surface": null,
    "tags": [
+    "VITE_GOLDEN_TOK_ENABLED",
     "default",
     "supabase"
    ],
-   "detailRef": "912ada77485e"
+   "detailRef": "0b0c30e59a46"
   },
   {
    "id": "code-module:54b4a16faa4d",
@@ -145513,15 +145521,16 @@
    "id": "code-module:a8512244ead0",
    "type": "code-module",
    "title": "src/test/golden-tok-accreditation.test.ts",
-   "description": "Module de 91 lignes; exports: aucun export statique.",
+   "description": "Module de 93 lignes; exports: aucun export statique.",
    "path": "src/test/golden-tok-accreditation.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
+    "VITE_GOLDEN_TOK_ENABLED",
     "stripe",
     "supabase"
    ],
-   "detailRef": "bff74ef4599b"
+   "detailRef": "49429d4ca36b"
   },
   {
    "id": "code-module:af90a689e08c",
@@ -240591,6 +240600,21 @@
     "src/lib/env.ts"
    ],
    "detailRef": "0e7ac71c8d5b"
+  },
+  {
+   "id": "environment-variable:6a970b97c27f",
+   "type": "environment-variable",
+   "title": "VITE_GOLDEN_TOK_ENABLED",
+   "description": "Nom de variable d’environnement référencé dans 3 module(s); aucune valeur n’est indexée.",
+   "path": "src/pages/admin/DropsManagement.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "src/pages/admin/DropsManagement.tsx",
+    "src/pages/dashboard/DashboardFormules.tsx",
+    "src/test/golden-tok-accreditation.test.ts"
+   ],
+   "detailRef": "2105ac221006"
   },
   {
    "id": "environment-variable:02598843aa08",
