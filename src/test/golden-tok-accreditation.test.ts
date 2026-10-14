@@ -46,6 +46,9 @@ describe("La Tok d’Or — paid accreditation access rules", () => {
 
   it("grants owner-side publishing only after live Stripe payment and blocks edits to sold offers", () => {
     expect(migration).toContain("restaurant_save_golden_tok_drop");
+    expect(migration).toContain("SET search_path = public, pg_temp AS $");
+    expect(migration).not.toMatch(/AS \\\$\\n/);
+    expect(migration).toContain("checkout_request_id uuid");
     expect(migration).toContain("a.subscription_status = 'active'");
     expect(migration).toContain("a.stripe_mode = 'live'");
     expect(migration).toContain("a.current_period_end > now()");
