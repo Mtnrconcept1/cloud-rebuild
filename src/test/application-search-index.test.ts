@@ -182,7 +182,8 @@ describe("application search index", () => {
   });
 
   it("keeps generated artifacts reviewable and file classifications accurate", () => {
-    expect(Buffer.byteLength(serializeIndex(index), "utf8")).toBeLessThan(10_000_000);
+    // New TOK Équipe pages add searchable routes, database objects and docs. Keep a tight 5% headroom.
+    expect(Buffer.byteLength(serializeIndex(index), "utf8")).toBeLessThan(10_500_000);
     expect(renderApplicationReference(index)).not.toMatch(/\n\n$/);
     expect(
       index.catalogs.files.find((item: { path: string }) => item.path === "src/test/application-search-index.test.ts")
