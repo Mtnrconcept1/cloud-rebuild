@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "6ac49fb4fe8e472ca7fdb604c74ef788dfd32ab867ba8815c120c060f3cf63f6",
+ "sourceDigest": "cff7e8a211a88d7806be54cb889f46d0aad518eede7124c65c7bc8ccc7957458",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -107553,7 +107553,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 109
+    "lineCount": 122
    },
    {
     "path": "src/test/restaurant-reservation-sidebar.test.ts",
@@ -113441,7 +113441,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 732
+    "lineCount": 752
    },
    {
     "path": "supabase/functions/submit-signup-application/index.ts",
@@ -147792,7 +147792,7 @@
    "id": "code-module:759e6d98d2f0",
    "type": "code-module",
    "title": "src/test/restaurant-reservation-commission-collection.test.ts",
-   "description": "Module de 109 lignes; exports: aucun export statique.",
+   "description": "Module de 122 lignes; exports: aucun export statique.",
    "path": "src/test/restaurant-reservation-commission-collection.test.ts",
    "line": 1,
    "surface": null,
@@ -147800,7 +147800,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "21fa2944044c"
+   "detailRef": "3f74d9a11076"
   },
   {
    "id": "code-module:d8b8a4d58cea",
@@ -152456,7 +152456,7 @@
    "id": "code-module:f3fa7c18e7bc",
    "type": "code-module",
    "title": "supabase/functions/stripe-worker/index.ts",
-   "description": "Module de 732 lignes; exports: aucun export statique.",
+   "description": "Module de 752 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-worker/index.ts",
    "line": 1,
    "surface": null,
@@ -152465,7 +152465,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "16b7d832353b"
+   "detailRef": "fc85eee6b40b"
   },
   {
    "id": "code-module:869f513f0867",
