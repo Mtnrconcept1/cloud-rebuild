@@ -57,6 +57,7 @@ import {
   writeCommercialDemoToolState,
 } from "@/lib/commercialDemoRestaurantTools";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import GoldenTokPanel from "@/components/dashboard/GoldenTokPanel";
 
 const supabase = getSupabase();
 
@@ -1600,6 +1601,10 @@ export default function DashboardFormules() {
             { label: "Restaurant", value: effectiveRestaurantId ? "Selectionne" : "Aucun", icon: Salad },
           ]}
         />
+
+        {effectiveRestaurantId && (
+          <GoldenTokPanel restaurantId={effectiveRestaurantId} isCommercialDemo={Boolean(demoSessionId)} />
+        )}
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
