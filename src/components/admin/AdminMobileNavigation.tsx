@@ -21,6 +21,7 @@ import {
   Shield,
   ShieldAlert,
   Store,
+  Clock3,
   Users,
   UtensilsCrossed,
 } from "lucide-react";
@@ -61,6 +62,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
       { to: "/admin/sinistres", label: "Sinistres et chat", icon: ShieldAlert, feature: "admin-operations-center", supportIncidentBadge: true },
       { to: "/admin/support-resolution", label: "Résolution IA", icon: Brain, feature: "admin-support-resolution" },
       { to: "/admin/restaurants", label: "Restaurants", icon: Store, feature: "admin-restaurants" },
+      { to: "/admin/equipe", label: "TOK Équipe", icon: Clock3 },
       { to: "/admin/restaurants/google-business", label: "Boutons Google", icon: MapPin, feature: "admin-restaurants" },
       { to: "/admin/utilisateurs", label: "Utilisateurs", icon: Users, feature: "admin-utilisateurs" },
       { to: "/admin/utilisateurs?tab=commercials", label: "Comptes commerciaux", icon: BriefcaseBusiness, feature: "admin-utilisateurs" },
