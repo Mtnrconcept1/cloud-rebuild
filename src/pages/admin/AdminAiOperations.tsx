@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Activity, AlertTriangle, Brain, CheckCircle2, Clock, FileDown, ShieldAlert, Ticket, Zap } from "lucide-react";
 
+import AdminAiRestaurantCosts from "@/components/admin/AdminAiRestaurantCosts";
 import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
@@ -158,6 +159,8 @@ export default function AdminAiOperations() {
           </div>
         </CardContent>
       </Card>
+
+      <AdminAiRestaurantCosts />
 
       {monitorMutation.error ? <p className="text-sm text-destructive">{monitorMutation.error.message}</p> : null}
 
