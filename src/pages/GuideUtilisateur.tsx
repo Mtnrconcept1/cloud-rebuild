@@ -176,7 +176,11 @@ function GuideSidebar({ audience, chapters }: { audience: Audience; chapters: re
 }
 
 function ScreenshotGallery({ audience }: { audience: Audience }) {
-  const screenshots = GUIDE_SCREENSHOTS.filter((item) => item.audiences.includes(audience));
+  const screenshots = Array.from(new Map(
+    [...GUIDE_SCREENSHOTS, ...BUYER_GUIDE_CHAPTERS.flatMap((chapter) => chapter.screenshots || [])]
+      .filter((item) => item.audiences.includes(audience))
+      .map((item) => [item.src, item] as const),
+  ).values());
   return (
     <section id="captures" className="scroll-mt-28 space-y-5">
       <div>
@@ -697,7 +701,6 @@ function GuidePage({ audience }: { audience: Audience }) {
         "", isRestaurant
           ? `Dans le menu TOK : ${chapter.routes.map((route) => RESTAURANT_GUIDE_ROUTE_LABELS[route]).join(", ")}`
           : `Parcours associés : ${chapter.routes.join(", ")}`,
-        ...(isRestaurant ? chapter.screenshots?.map((shot) => `Illustration : ${shot.caption}`) || [] : []),
       ],
     }));
     const routes = TOK_USER_GUIDE_ROUTES.filter((route) => !isRestaurant || isRestaurantGuideRoute(route));
@@ -737,9 +740,11 @@ function GuidePage({ audience }: { audience: Audience }) {
     }
     try {
       for (const [index, chapter] of chapters.entries()) {
-        sections[index].images = await Promise.all(
-          (chapter.screenshots || []).map((image) => loadGuidePdfImage(image.src, image.caption)),
-        );
+        const images: GuidePdfImage[] = [];
+        for (const image of chapter.screenshots || []) {
+          images.push(await loadGuidePdfImage(image.src, image.caption));
+        }
+        sections[index].images = images;
       }
       const bytes = buildGuidePdf({
         title,
@@ -749,8 +754,9 @@ function GuidePage({ audience }: { audience: Audience }) {
         sections,
       });
       downloadGuidePdf(bytes, isRestaurant ? "TOK_Guide_Restaurateur.pdf" : "TOK_Guide_Administrateur.pdf");
-    } catch {
-      toast.error("Le PDF n’a pas été créé : une capture est momentanément indisponible. Réessayez.");
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "une capture ou la génération est indisponible";
+      toast.error(`Le PDF n’a pas été créé : ${detail}`);
     }
   };
 
