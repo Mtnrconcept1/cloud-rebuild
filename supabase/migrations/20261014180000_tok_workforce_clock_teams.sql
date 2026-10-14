@@ -406,3 +406,33 @@ CREATE POLICY tok_workforce_exchanges_manager_insert
  ON public.tok_workforce_exchanges FOR INSERT TO authenticated
  WITH CHECK(public.tok_workforce_can_schedule(restaurant_id)
    AND status='pending' AND reviewed_by IS NULL AND reviewed_at IS NULL);
+
+
+-- Prevent scheduling staff during registered absences, including leave approved
+-- through the transactional request workflow. Both directions are enforced.
+CREATE FUNCTION public.tok_workforce_prevent_shift_absence_conflict()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+BEGIN
+ IF TG_TABLE_NAME='tok_workforce_shifts' THEN
+  IF NEW.status<>'cancelled' AND EXISTS (
+   SELECT 1 FROM public.tok_workforce_absences a
+   WHERE a.restaurant_id=NEW.restaurant_id AND a.employee_id=NEW.employee_id
+     AND NEW.shift_date BETWEEN a.start_date AND a.end_date
+  ) THEN RAISE EXCEPTION 'Collaborateur absent à cette date : modifiez le planning'; END IF;
+ ELSE
+  IF EXISTS (
+   SELECT 1 FROM public.tok_workforce_shifts s
+   WHERE s.restaurant_id=NEW.restaurant_id AND s.employee_id=NEW.employee_id
+     AND s.status<>'cancelled' AND s.shift_date BETWEEN NEW.start_date AND NEW.end_date
+  ) THEN RAISE EXCEPTION 'Service planifié pendant cette absence : ajustez le planning'; END IF;
+ END IF;
+ RETURN NEW;
+END $$;
+CREATE TRIGGER tok_workforce_shift_absence_guard BEFORE INSERT OR UPDATE OF employee_id,shift_date,status
+ ON public.tok_workforce_shifts FOR EACH ROW
+ EXECUTE FUNCTION public.tok_workforce_prevent_shift_absence_conflict();
+CREATE TRIGGER tok_workforce_absence_shift_guard BEFORE INSERT OR UPDATE OF employee_id,start_date,end_date
+ ON public.tok_workforce_absences FOR EACH ROW
+ EXECUTE FUNCTION public.tok_workforce_prevent_shift_absence_conflict();
+REVOKE ALL ON FUNCTION public.tok_workforce_prevent_shift_absence_conflict() FROM PUBLIC,anon,authenticated;
