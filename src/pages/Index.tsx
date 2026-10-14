@@ -21,6 +21,7 @@ import { useCart } from "@/lib/cart-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { getCurrentPosition } from "@/lib/geolocation-native";
 import { cantonAtCoordinates } from "@/lib/homeCantonHero";
+import { resolveGPSHero } from "@/lib/worldHeroImages";
 import {
   isRestaurantWithinRadius,
   type Coordinates,
@@ -363,16 +364,7 @@ export default function Index() {
     });
   }, [progressiveOffers, todayServiceDate, userCoordinates]);
 
-  // Reuse the position already requested for nearby restaurants: no second GPS permission.
-  const { data: locationCanton = null } = useQuery({
-    queryKey: ["home-hero-canton", geolocationQueryKey],
-    queryFn: () => cantonAtCoordinates(userCoordinates!),
-    enabled: Boolean(userCoordinates) && !isCommercialDemoClient,
-    staleTime: 30 * 60_000,
-    retry: false,
-  });
-
-  const { data: userContext } = useQuery({
+  const { data: userContext, isPending: profileCityPending } = useQuery({
     queryKey: ["home-user-context", user?.id, demoSessionKey],
     enabled: Boolean(isCommercialDemoClient || user?.id),
     queryFn: async () => {
@@ -457,6 +449,23 @@ export default function Index() {
     },
   });
 
+  // Reuse the position already requested for nearby restaurants: no second GPS permission.
+  const { data: locationCanton = null } = useQuery({
+    queryKey: ["home-hero-canton", geolocationQueryKey],
+    queryFn: () => cantonAtCoordinates(userCoordinates!),
+    enabled: Boolean(userCoordinates) && !isCommercialDemoClient && (!user || !profileCityPending) && !userContext?.city?.trim(),
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+
+  const { data: gpsHero = null } = useQuery({
+    queryKey: ["home-world-hero", geolocationQueryKey],
+    queryFn: () => resolveGPSHero(userCoordinates!.latitude, userCoordinates!.longitude),
+    enabled: Boolean(userCoordinates) && !isCommercialDemoClient &&
+      (!user || !profileCityPending) && !userContext?.city?.trim(),
+    staleTime: 60 * 60_000,
+    retry: false,
+  });
   const candidateCity = userCoordinates ? null : userContext?.city || null;
   const { data: homeCandidates = [], isLoading: homeCandidatesLoading } = useQuery({
     queryKey: ["home-candidate-pool", candidateCity || "", demoSessionKey],
@@ -653,7 +662,7 @@ export default function Index() {
 
   return (
     <main className="min-h-screen pb-20">
-      <HeroSection contentVisible={isVisible} activeFeatures={activeFeatures} locationCanton={locationCanton} profileCity={userContext?.city} />
+      <HeroSection contentVisible={isVisible} activeFeatures={activeFeatures} locationCanton={locationCanton} profileCity={userContext?.city} profileCityPending={Boolean(user && profileCityPending)} gpsHero={gpsHero} />
       {activeFeatures.has("chefs-table") ? (
         <section className="tok-or-banner-shell" aria-label="La TOK d’Or">
           <Link to="/chefs-table" className="tok-or-banner">

@@ -5,6 +5,7 @@ import { ArrowRight, ChevronRight, Heart, Mail, MapPin, Navigation, Percent, Sea
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
 import { cantonFromPlaceName, cantonHeroSrc, type SwissCantonCode } from "@/lib/homeCantonHero";
+import { resolveWorldHero, type WorldHeroVariant } from "@/lib/worldHeroImages";
 import "./HeroSection.css";
 
 const EMPTY_FEATURES: ReadonlySet<string> = new Set();
@@ -17,11 +18,13 @@ const newsletterConditions = [
   "TOK peut modifier, suspendre ou arrêter l'offre si nécessaire, notamment en cas d'usage abusif, de comptes multiples ou de tentative de contournement.",
 ];
 
-export default function HeroSection({ contentVisible = true, activeFeatures = EMPTY_FEATURES, locationCanton = null, profileCity = null }: {
+export default function HeroSection({ contentVisible = true, activeFeatures = EMPTY_FEATURES, locationCanton = null, profileCity = null, gpsHero = null, profileCityPending = false }: {
   contentVisible?: boolean;
   activeFeatures?: ReadonlySet<string>;
   locationCanton?: SwissCantonCode | null;
   profileCity?: string | null;
+  gpsHero?: WorldHeroVariant | null;
+  profileCityPending?: boolean;
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -29,8 +32,14 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
   const [city, setCity] = useState("");
   const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
   // A typed destination takes precedence over the device position and the profile city.
-  const canton = city.trim() ? cantonFromPlaceName(city) : locationCanton ?? cantonFromPlaceName(profileCity);
+  const selectedCity = city.trim() || profileCity?.trim() || "";
+  const waiting = profileCityPending && !city.trim();
+  const canton = selectedCity ? cantonFromPlaceName(selectedCity) : locationCanton;
+  const world = selectedCity ? resolveWorldHero({city:selectedCity}) : gpsHero;
   const cantonImage = canton ? cantonHeroSrc(canton) : null;
+  const desktopImage = cantonImage || world?.desktop || "/images/home/tok-leman-signature-fast.webp";
+  const mobileImage = world?.mobile || desktopImage;
+  const isLocalized = Boolean(cantonImage || world);
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -86,12 +95,13 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
             {activeFeatures.has("chefs-table") ? <Link to="/chefs-table"><Users aria-hidden="true" /> Grandes tables</Link> : null}
           </nav>
         </div>
-        <div className="tok-home-hero__art" aria-hidden="true" data-canton-image={Boolean(cantonImage)}>
-          <picture className="tok-home-hero__background">
-            <source media="(min-width: 1024px)" type="image/webp" srcSet={cantonImage ?? "/images/home/tok-geneve-desktop.webp"} width={cantonImage ? 1440 : 1672} height={cantonImage ? 810 : 941} />
-            <source media="(max-width: 767px)" type="image/webp" srcSet={cantonImage ?? "/images/home/tok-geneve-mobile-fast.webp"} width={cantonImage ? 1440 : 900} height={cantonImage ? 810 : 1599} />
-            <img src={cantonImage ?? "/images/home/tok-leman-signature-fast.webp"} alt="" width={cantonImage ? 1440 : 1200} height={cantonImage ? 810 : 675} {...({ fetchpriority: "high" } as const)} loading="eager" decoding="async" />
-          </picture>
+        <div className="tok-home-hero__art" aria-hidden="true" data-canton-image={isLocalized}>
+          {!waiting && (
+            <picture key={desktopImage + mobileImage} className="tok-home-hero__background">
+              {mobileImage !== desktopImage && <source media="(max-width: 767px)" type="image/webp" srcSet={mobileImage} />}
+              <img src={desktopImage} alt="" width={1440} height={810} {...({ fetchpriority: "high" } as const)} loading="eager" decoding="async" />
+            </picture>
+          )}
         </div>
       </section>
       <aside className="tok-home-hero__secondary" aria-label="Rejoindre TOK">
