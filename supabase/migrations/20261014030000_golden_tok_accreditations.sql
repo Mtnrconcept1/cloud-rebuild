@@ -146,7 +146,7 @@ SET search_path = public, pg_temp AS $
   );
 $;
 REVOKE ALL ON FUNCTION public.golden_tok_restaurant_is_paid(uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.golden_tok_restaurant_is_paid(uuid) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.golden_tok_restaurant_is_paid(uuid) TO anon, authenticated, service_role;
 
 -- Admin-created offers keep their existing behavior; self-published offers
 -- must cease to be publicly bookable when the paid entitlement expires.
