@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `e25e5ca9fd0dd08d1cea9a046937408ee4012ae672dea71b0e08f9eb61ed6c91`
+- Empreinte SHA-256 des sources indexées : `bca12d0e6058be534b11f67274441ea66a43504059aabb1f2b383023d441dd9c`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 204 |
 | edgeFunctions | 116 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3525 |
+| exportedSymbols | 3526 |
 | featureFlags | 99 |
 | frontendRoutes | 138 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 543 |
-| modules | 1560 |
+| modules | 1561 |
 | pages | 128 |
 | pathLiterals | 749 |
 | publicAssets | 564 |
 | publicEntries | 589 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16851 |
-| repositoryFiles | 3166 |
+| records | 16854 |
+| repositoryFiles | 3167 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6291,8 +6291,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 242 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 701 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 243 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 702 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6306,7 +6306,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 66 |
 | documentation | 6 |
 | edge-function-source | 196 |
-| frontend-component | 258 |
+| frontend-component | 259 |
 | frontend-hook | 23 |
 | frontend-page | 128 |
 | frontend-source | 28 |
@@ -7826,7 +7826,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (262)</summary>
+<details><summary>frontend-component (263)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -7873,6 +7873,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/SponsoredRestaurantCard.tsx`
 - `src/components/StarRating.tsx`
 - `src/components/SupportChat.tsx`
+- `src/components/admin/AdminAiCreditGiftCard.tsx`
 - `src/components/admin/AdminCommercialAccountDetail.tsx`
 - `src/components/admin/AdminCommercialAccountsPanel.tsx`
 - `src/components/admin/AdminDemoEntitiesDialog.tsx`

@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "e25e5ca9fd0dd08d1cea9a046937408ee4012ae672dea71b0e08f9eb61ed6c91",
+ "sourceDigest": "bca12d0e6058be534b11f67274441ea66a43504059aabb1f2b383023d441dd9c",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 204,
   "edgeFunctions": 116,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3525,
+  "exportedSymbols": 3526,
   "featureFlags": 99,
   "frontendRoutes": 138,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 543,
-  "modules": 1560,
+  "modules": 1561,
   "pages": 128,
   "pathLiterals": 749,
   "publicAssets": 564,
   "publicEntries": 589,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16851,
-  "repositoryFiles": 3166,
+  "records": 16854,
+  "repositoryFiles": 3167,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -32483,6 +32483,7 @@
      "src/components/ProtectedRoute.tsx",
      "src/components/ReservationDialog.tsx",
      "src/components/RestaurantCancellationDialog.tsx",
+     "src/components/admin/AdminAiCreditGiftCard.tsx",
      "src/components/admin/AdminGiftAiCreditsDialog.tsx",
      "src/components/cart/PaymentMethodSelector.tsx",
      "src/components/commercial/CommercialDemoActorWorkspace.tsx",
@@ -32775,6 +32776,7 @@
      "src/components/RestaurantCard.tsx",
      "src/components/ReviewForm.tsx",
      "src/components/SupportChat.tsx",
+     "src/components/admin/AdminAiCreditGiftCard.tsx",
      "src/components/admin/AdminCommercialAccountDetail.tsx",
      "src/components/admin/AdminCommercialAccountsPanel.tsx",
      "src/components/admin/AdminDemoEntitiesDialog.tsx",
@@ -86610,6 +86612,22 @@
     "lineCount": 1070
    },
    {
+    "path": "src/components/admin/AdminAiCreditGiftCard.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 25,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 176
+   },
+   {
     "path": "src/components/admin/AdminCommercialAccountDetail.tsx",
     "exports": [
      {
@@ -121630,6 +121648,11 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/components/admin/AdminAiCreditGiftCard.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/components/admin/AdminCommercialAccountDetail.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
@@ -134252,6 +134275,21 @@
     "supabase"
    ],
    "detailRef": "7e8bffd3dd17"
+  },
+  {
+   "id": "code-module:2007a981ec5b",
+   "type": "code-module",
+   "title": "src/components/admin/AdminAiCreditGiftCard.tsx",
+   "description": "Module de 176 lignes; exports: default.",
+   "path": "src/components/admin/AdminAiCreditGiftCard.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "f3921fc93a89"
   },
   {
    "id": "code-module:61a968c96e39",
@@ -270352,6 +270390,21 @@
    "detailRef": "41f52af408a1"
   },
   {
+   "id": "exported-symbol:44455076cf58",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/admin/AdminAiCreditGiftCard.tsx.",
+   "path": "src/components/admin/AdminAiCreditGiftCard.tsx",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "6da5c9801321"
+  },
+  {
    "id": "exported-symbol:abf7fe289fd1",
    "type": "exported-symbol",
    "title": "default",
@@ -309538,6 +309591,20 @@
    "detailRef": "c7094f26d09d"
   },
   {
+   "id": "file:34c64db37005",
+   "type": "file",
+   "title": "src/components/admin/AdminAiCreditGiftCard.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/admin/AdminAiCreditGiftCard.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "6b8f5724058d"
+  },
+  {
    "id": "file:88a9e79eca34",
    "type": "file",
    "title": "src/components/admin/AdminCommercialAccountDetail.tsx",
@@ -340857,7 +340924,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 242 module(s).",
+   "description": "Intégration externe détectée dans 243 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -340880,6 +340947,7 @@
     "src/components/ProtectedRoute.tsx",
     "src/components/ReservationDialog.tsx",
     "src/components/RestaurantCancellationDialog.tsx",
+    "src/components/admin/AdminAiCreditGiftCard.tsx",
     "src/components/admin/AdminGiftAiCreditsDialog.tsx",
     "src/components/cart/PaymentMethodSelector.tsx",
     "src/components/commercial/CommercialDemoActorWorkspace.tsx",
@@ -341106,13 +341174,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "5b02d1a447ef"
+   "detailRef": "88eb728f9bb1"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 701 module(s).",
+   "description": "Intégration externe détectée dans 702 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -341180,6 +341248,7 @@
     "src/components/RestaurantCard.tsx",
     "src/components/ReviewForm.tsx",
     "src/components/SupportChat.tsx",
+    "src/components/admin/AdminAiCreditGiftCard.tsx",
     "src/components/admin/AdminCommercialAccountDetail.tsx",
     "src/components/admin/AdminCommercialAccountsPanel.tsx",
     "src/components/admin/AdminDemoEntitiesDialog.tsx",
@@ -341820,7 +341889,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "ecb89e3f623c"
+   "detailRef": "cb8ea87dbbf8"
   },
   {
    "id": "integration:c20910a79a78",
