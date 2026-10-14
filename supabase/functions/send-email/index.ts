@@ -170,6 +170,18 @@ Deno.serve(async (req) => {
 
     for (const email of emails) {
       try {
+        // Concurrent scheduled workers must atomically claim a queued mail
+        // before sending; otherwise they can send duplicate paid invoices.
+        const { data: claimed, error: claimError } = await supabaseAdmin
+          .from("email_queue")
+          .update({ status: "processing" })
+          .eq("id", email.id)
+          .eq("status", "queued")
+          .select("id")
+          .maybeSingle();
+        if (claimError) throw claimError;
+        if (!claimed) continue;
+
         await sendEmailMessage(resendApiKey, {
           to: email.to_email,
           subject: email.subject,
