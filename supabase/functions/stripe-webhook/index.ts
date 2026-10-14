@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "npm:stripe@18.5.0";
+import Stripe from "npm:stripe@22.3.2";
 import { getEnv, writeAuditLog } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { finalizeChefsTableCheckout } from "../_shared/chefs-table.ts";
@@ -2599,15 +2599,15 @@ Deno.serve(async (req) => {
             throw new Error("RESERVATION_COMMISSION_REFUND_INTEGRITY_FAILED");
           }
           if ((charge.amount_refunded || 0) >= 500) {
-            const { error: reversalError } = await supabaseAdmin.rpc(
+            const { data: reversalApplied, error: reversalError } = await supabaseAdmin.rpc(
               "reverse_restaurant_commission_payment", {
                 p_payment_intent_id: pi,
                 p_reason: "refund",
                 p_stripe_mode: "live",
               },
             );
-            if (reversalError) throw new Error(
-              "RESERVATION_COMMISSION_REFUND_RECONCILE_FAILED:" + reversalError.message
+            if (reversalError || reversalApplied !== true) throw new Error(
+              "RESERVATION_COMMISSION_REFUND_RECONCILE_FAILED:" + (reversalError?.message || "payment_intent_not_yet_linked")
             );
           } else {
             // Partial refunds need allocation across revenue/VAT/developer
@@ -2786,25 +2786,25 @@ Deno.serve(async (req) => {
               throw new Error("RESERVATION_COMMISSION_DISPUTE_INTEGRITY_FAILED");
             }
             if (event.type === "charge.dispute.funds_reinstated") {
-              const { error: restoreError } = await supabaseAdmin.rpc(
+              const { data: restoreApplied, error: restoreError } = await supabaseAdmin.rpc(
                 "restore_restaurant_commission_dispute", {
                   p_payment_intent_id: paymentIntentId,
                   p_stripe_mode: "live",
                 },
               );
-              if (restoreError) throw new Error(
-                "RESERVATION_COMMISSION_REINSTATEMENT_FAILED:" + restoreError.message
+              if (restoreError || restoreApplied !== true) throw new Error(
+                "RESERVATION_COMMISSION_REINSTATEMENT_FAILED:" + (restoreError?.message || "payment_intent_not_yet_linked")
               );
             } else if (event.type !== "charge.dispute.closed" || dispute.status !== "won") {
-              const { error: reversalError } = await supabaseAdmin.rpc(
+              const { data: reversalApplied, error: reversalError } = await supabaseAdmin.rpc(
                 "reverse_restaurant_commission_payment", {
                   p_payment_intent_id: paymentIntentId,
                   p_reason: "dispute",
                   p_stripe_mode: "live",
                 },
               );
-              if (reversalError) throw new Error(
-                "RESERVATION_COMMISSION_DISPUTE_RECONCILE_FAILED:" + reversalError.message
+              if (reversalError || reversalApplied !== true) throw new Error(
+                "RESERVATION_COMMISSION_DISPUTE_RECONCILE_FAILED:" + (reversalError?.message || "payment_intent_not_yet_linked")
               );
             }
             // Won disputes are not silently recognized as new cash. Only

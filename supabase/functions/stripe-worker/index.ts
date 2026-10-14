@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import Stripe from "npm:stripe@18.5.0";
+import Stripe from "npm:stripe@22.3.2";
 
 import {
   HttpError,
@@ -213,7 +213,7 @@ async function activateRestaurantSubscription(input: {
     .replace(/[^a-zA-Z0-9_-]/g, "")
     .slice(0, 80);
 
-  let subscription = await findExistingActivationSubscription({
+  let subscription: Stripe.Subscription | null = await findExistingActivationSubscription({
     stripe: runtime.stripe,
     job,
   });

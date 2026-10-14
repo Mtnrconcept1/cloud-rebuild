@@ -91,6 +91,9 @@ describe("restaurant commission consent, collection and accounting", () => {
     expect(webhook).toContain("RESERVATION_COMMISSION_REFUND_RECONCILE_FAILED");
     expect(webhook).toContain("RESERVATION_COMMISSION_DISPUTE_RECONCILE_FAILED");
     expect(webhook).toContain("RESERVATION_COMMISSION_REINSTATEMENT_FAILED");
+    expect(webhook).toContain("reversalApplied !== true");
+    expect(webhook).toContain("restoreApplied !== true");
+    expect(webhook).toContain("payment_intent_not_yet_linked");
     expect(schema).toContain("restore_restaurant_commission_dispute");
   });
 
