@@ -1,0 +1,46 @@
+name: Golden TOK one-shot canonical reference refresh
+on:
+  push:
+    branches:
+      - feat/golden-tok-accreditation-search-upload-20261014
+    paths:
+      - .github/workflows/golden-tok-index-refresh-temp.yml
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    if: github.ref == 'refs/heads/feat/golden-tok-accreditation-search-upload-20261014'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout dedicated feature branch
+        uses: actions/checkout@v6
+        with:
+          ref: feat/golden-tok-accreditation-search-upload-20261014
+          persist-credentials: true
+      - name: Prepare pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Remove temporary generator BEFORE deriving indexes
+        run: rm .github/workflows/golden-tok-index-refresh-temp.yml
+      - name: Regenerate error code map and canonical reference from final tree
+        run: |
+          pnpm run generate:error-code-map
+          pnpm run docs:application-index
+          pnpm run docs:application-index:check
+      - name: Commit generated files and workflow removal together
+        run: |
+          set -euo pipefail
+          git add -- .github/workflows/golden-tok-index-refresh-temp.yml supabase/functions/_shared/error-code-map.ts docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          if git diff --cached --quiet; then
+            echo "Canonical files already up-to-date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(index): regenerate canonical references for final Golden TOK tree"
+          git push origin HEAD:refs/heads/feat/golden-tok-accreditation-search-upload-20261014
