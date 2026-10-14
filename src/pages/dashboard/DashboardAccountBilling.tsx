@@ -476,7 +476,7 @@ function CreditSummaryCard({ credit }: { credit: BillingCreditSummary }) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-sm font-semibold">{credit.label}</p>
-            <p className="text-xs text-muted-foreground">Solde universel</p>
+            <p className="text-xs text-muted-foreground">{credit.metadata?.preactivation === true ? "Essai IA hebdomadaire et recharges" : "Solde universel"}</p>
           </div>
           <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl border", meta.tone)}>
             <Icon className="h-5 w-5" />
@@ -904,6 +904,9 @@ function LiveDashboardAccountBilling() {
   const credits = usage?.credits ?? EMPTY_CREDITS;
   const entries = usage?.entries ?? EMPTY_ENTRIES;
   const tokCreditSummary = useMemo(() => buildUnifiedTokCreditSummary(credits), [credits]);
+  const hasPreactivationCredits = tokCreditSummary?.metadata?.preactivation === true;
+  const weeklyTrialBalance = toNumber(tokCreditSummary?.metadata?.trial_weekly_remaining);
+  const purchasedCreditBalance = toNumber(tokCreditSummary?.metadata?.campaign_spendable_balance);
   const currentPlan = usage?.subscription?.plan_record ?? null;
   const currentPosition = toNumber(currentPlan?.position);
   const subscriptionStatus = String(usage?.subscription?.status || "").toLowerCase();
@@ -1302,6 +1305,20 @@ function LiveDashboardAccountBilling() {
           </Alert>
         ) : null}
 
+        {hasPreactivationCredits && !isUsageUnavailable ? (
+          <Alert className="border-sky-200 bg-sky-50/70 dark:border-sky-400/25 dark:bg-sky-500/10">
+            <Sparkles className="h-4 w-4" />
+            <AlertTitle>15 crédits IA gratuits chaque semaine avant activation</AlertTitle>
+            <AlertDescription>
+              Il vous reste {weeklyTrialBalance.toLocaleString("fr-CH")} crédit(s) IA gratuits cette semaine.
+              Le quota est renouvelé chaque lundi à 00 h (heure suisse), sans report.
+              Les crédits prévus dans votre abonnement seront disponibles uniquement après son activation.
+              Vous pouvez acheter des crédits TOK supplémentaires dès maintenant : ils sont utilisables immédiatement après confirmation du paiement.
+              {purchasedCreditBalance > 0 ? ` Solde acheté disponible : ${purchasedCreditBalance.toLocaleString("fr-CH")} crédits.` : ""}
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         {selectedId ? (
           <Card>
             <CardHeader>
@@ -1518,7 +1535,7 @@ function LiveDashboardAccountBilling() {
                           </div>
                         ) : (
                           <div className="grid gap-1 text-xs text-muted-foreground">
-                            <span>{getCampaignEquivalentChf(tokCreditSummary.balance).toLocaleString("fr-CH")} CHF de campagnes TOK</span>
+                            <span>{getCampaignEquivalentChf(hasPreactivationCredits ? purchasedCreditBalance : tokCreditSummary.balance).toLocaleString("fr-CH")} CHF de campagnes TOK</span>
                             <span>ou {getAiSimpleRequestEquivalent(tokCreditSummary.balance).toLocaleString("fr-CH")} requêtes assistant IA</span>
                             <span>ou {getPhotoSimpleEquivalent(tokCreditSummary.balance).toLocaleString("fr-CH")} retouches photo simples</span>
                           </div>
@@ -1556,7 +1573,7 @@ function LiveDashboardAccountBilling() {
               <div>
                 <h2 className="text-xl font-bold">Recharger des crédits TOK</h2>
                 <p className="text-sm text-muted-foreground">
-                  Ajoutez des crédits universels lorsque le solde inclus dans l'abonnement est insuffisant.
+                  Achetez des crédits supplémentaires à tout moment, même avant l'activation de votre abonnement. Les crédits achetés restent indépendants de votre quota IA gratuit hebdomadaire.
                 </p>
               </div>
               {creditPacksQuery.isLoading ? (

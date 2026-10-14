@@ -22,13 +22,15 @@
   box-shadow: 0 9px 29px rgba(77, 37, 20, .06);
 }
 
-/* The photograph occupies the WHOLE card, not a second row or a right cell.
- * Cover preserves proportions while filling every edge of the compact card. */
+/* The original editorial photographs are 4:1 panoramas. Display them in
+ * a right-hand viewport close to that ratio instead of using `cover` on
+ * the much wider banner (which zoomed the photograph behind the copy). */
 [data-section-showcase-header] .tok-section-header__visual {
   position: absolute;
   z-index: 0;
-  inset: 0;
-  width: 100%;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: 60%;
   height: 100%;
   pointer-events: none;
   overflow: hidden;
@@ -40,7 +42,12 @@
   height: 100%;
   max-width: none;
   object-fit: cover;
-  object-position: 70% center;
+  object-position: right center;
+}
+
+/* Keep the former full-width treatment for non-photographic illustrations. */
+[data-section-showcase-header][data-image-kind="illustration"] .tok-section-header__visual {
+  width: 100%;
 }
 
 [data-section-showcase-header][data-image-kind="illustration"] .tok-section-header__image {

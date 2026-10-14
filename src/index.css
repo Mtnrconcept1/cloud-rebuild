@@ -177,6 +177,8 @@
     overflow-wrap: break-word;
     text-wrap: balance;
   }
+  /* Keep ordinary labels, words and amounts intact across dashboard layouts.
+     Explicit break-all utilities remain available for technical identifiers/URLs. */
   p,
   li,
   dd,
@@ -186,7 +188,8 @@
   label,
   td,
   th {
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
+    word-break: normal;
   }
   p,
   li {
