@@ -54,14 +54,15 @@ const HOME_NEARBY_RADIUS_KM = 5;
 const PROGRESSIVE_OFFERS_TABLE = "reservation_progressive_offers";
 
 const SECTION_HEADER_IMAGES = {
-  personal: "/images/section-headers/tok-editorial-rewards-full.jpg",
-  local: "/images/section-headers/tok-editorial-geneva.jpg",
-  lunch: "/images/section-headers/tok-editorial-feast-full.jpg",
-  reservation: "/images/section-headers/tok-editorial-reservation-full.jpg",
-  promo: "/images/section-headers/tok-editorial-gastronomy-full.jpg",
-  offers: "/images/section-headers/tok-editorial-delivery-full.jpg",
-  trending: "/images/section-headers/tok-editorial-evening-full.jpg",
-  nearby: "/images/section-headers/tok-editorial-geneva.jpg",
+  personal: "/images/section-headers/tok-editorial-rewards-full.webp",
+  local: "/images/section-headers/tok-editorial-geneva-full.webp",
+  lunch: "/images/section-headers/tok-editorial-feast-full.webp",
+  reservation: "/images/section-headers/tok-editorial-reservation-full.webp",
+  evening: "/images/section-headers/tok-editorial-evening-full.webp",
+  promo: "/images/section-headers/tok-editorial-gastronomy-full.webp",
+  offers: "/images/section-headers/tok-editorial-delivery-full.webp",
+  trending: "/images/section-headers/tok-editorial-trending-full.webp",
+  nearby: "/images/section-headers/tok-editorial-geneva-full.webp",
 } as const;
 
 type SearchSort =
@@ -867,7 +868,7 @@ export default function Index() {
             bgClass={lunchFocus ? "bg-amber-50/70 dark:bg-amber-950/10" : "bg-indigo-50/70 dark:bg-indigo-950/10"}
             accentClassName={lunchFocus ? "bg-amber-500/80" : "bg-indigo-500/80"}
             headerTheme={lunchFocus ? "amber" : "indigo"}
-            headerImageSrc={lunchFocus ? SECTION_HEADER_IMAGES.lunch : SECTION_HEADER_IMAGES.reservation}
+            headerImageSrc={lunchFocus ? SECTION_HEADER_IMAGES.lunch : SECTION_HEADER_IMAGES.evening}
             linkText={primaryRail.linkText}
             linkTo={primaryRail.linkTo}
           />
