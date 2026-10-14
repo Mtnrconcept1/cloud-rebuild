@@ -80,8 +80,10 @@ describe("TOK unified subscription invoice document", () => {
     expect(result.sender.name).toBe("NEW DOG'S SERVICES Sàrl");
     expect(result.sender.addressLine1).toBe("Rue de Genève 6");
     expect(result.sender.enterpriseId).toBe("CHE-109.513.890");
-    // RC certificate provides the IDE only; separate VAT registration is not proven.
-    expect(result.sender.vatNumber).toBeNull();
+    expect(result.sender.vatNumber).toBe("CHE-109.513.890 TVA");
+    const pdf = read("src/components/invoices/TokPayableInvoiceDocument.tsx");
+    expect(pdf).toContain("N° TVA : {data.sender.vatNumber}");
+    expect(pdf).not.toContain("<p>TVA {data.sender.vatNumber}</p>");
     expect(invoiceModel).not.toContain("CHE-123.456.789");
     expect(invoiceModel).not.toContain("facturation@tok.app");
   });
