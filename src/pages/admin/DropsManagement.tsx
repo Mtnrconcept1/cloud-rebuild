@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ImageUpload from "@/components/ImageUpload";
 import RestaurantSearchSelect from "@/components/admin/RestaurantSearchSelect";
+import GoldenTokReviewPanel from "@/components/admin/GoldenTokReviewPanel";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD } from "@/lib/loyaltyBenefits";
@@ -161,6 +162,8 @@ export default function DropsManagement() {
           { label: "Restaurants", value: restaurantsCount, icon: UtensilsCrossed },
         ]}
       />
+
+      <GoldenTokReviewPanel />
 
       <Card>
         <CardHeader>
