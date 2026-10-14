@@ -7,24 +7,18 @@ const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 const assetSize = (path: string) => statSync(resolve(root, "public", path)).size;
 
 describe("TOK homepage Core Web Vitals safeguards", () => {
-  it("discovers the matching responsive hero photo directly in the initial HTML", () => {
-    const html = read("index.html");
-    const hero = read("src/components/home/HeroSection.tsx");
-
-    for (const [path, media] of [
-      ["/images/home/tok-geneve-mobile-fast.webp", "(max-width: 767px)"],
-      ["/images/home/tok-leman-signature-fast.webp", "(min-width: 768px)"],
-    ]) {
-      expect(html).toContain(`href="${path}"`);
-      expect(html).toContain(`media="${media}" fetchpriority="high"`);
-      expect(hero).toContain(path);
-    }
-
-    expect(hero).toContain('loading="eager"');
-    expect(hero).toContain('fetchpriority: "high"');
-    expect(assetSize("images/home/tok-leman-signature-fast.webp")).toBeLessThan(160_000);
-    expect(assetSize("images/home/tok-geneve-mobile-fast.webp")).toBeLessThan(165_000);
-  });
+  it("loads only the matching responsive hero rather than eagerly preloading a fixed city", () => {
+  const html = read("index.html");
+  const hero = read("src/components/home/HeroSection.tsx");
+  expect(html).not.toContain('href="/images/home/tok-geneve-mobile-fast.webp"');
+  expect(html).not.toContain('href="/images/home/tok-leman-signature-fast.webp"');
+  expect(hero).toContain("desktopImage");
+  expect(hero).toContain("mobileImage");
+  expect(hero).toContain('loading="eager"');
+  expect(hero).toContain('fetchpriority: "high"');
+  expect(assetSize("images/home/tok-leman-signature-fast.webp")).toBeLessThan(160_000);
+  expect(assetSize("images/home/tok-geneve-mobile-fast.webp")).toBeLessThan(165_000);
+});
 
   it("uses a lightweight visible logo without changing the canonical app icon", () => {
     const brand = read("src/lib/tokLogo.ts");

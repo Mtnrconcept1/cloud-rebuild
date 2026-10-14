@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "9e75d5c81e716b92de55d0cb0fcc94cb5995e6c884950d62e1e556b217271c92",
+ "sourceDigest": "a8c61a7a723d3e9ecfadeb65edd0c831845a82187e1caa9e3a6487a1e2196621",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -20,12 +20,12 @@
   "migrations": 540,
   "modules": 1557,
   "pages": 128,
-  "pathLiterals": 750,
+  "pathLiterals": 749,
   "publicAssets": 590,
   "publicEntries": 615,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16850,
+  "records": 16849,
   "repositoryFiles": 3186,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -21985,7 +21985,7 @@
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 39
+      "line": 33
      }
     ]
    },
@@ -22011,7 +22011,7 @@
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 38
+      "line": 32
      }
     ]
    },
@@ -23117,24 +23117,11 @@
     ]
    },
    {
-    "value": "/images/home/tok-geneve-mobile-fast.webp",
-    "sources": [
-     {
-      "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 15
-     }
-    ]
-   },
-   {
     "value": "/images/home/tok-leman-signature-fast.webp",
     "sources": [
      {
       "path": "src/components/home/HeroSection.tsx",
       "line": 41
-     },
-     {
-      "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 16
      },
      {
       "path": "src/test/home-hero-search.test.tsx",
@@ -24653,7 +24640,7 @@
      },
      {
       "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 84
+      "line": 78
      }
     ]
    },
@@ -107154,7 +107141,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 111
+    "lineCount": 105
    },
    {
     "path": "src/test/home-cuisine-accessibility.test.tsx",
@@ -147282,14 +147269,14 @@
    "id": "code-module:e91250480351",
    "type": "code-module",
    "title": "src/test/home-core-web-vitals.test.ts",
-   "description": "Module de 111 lignes; exports: aucun export statique.",
+   "description": "Module de 105 lignes; exports: aucun export statique.",
    "path": "src/test/home-core-web-vitals.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "e37b284e6f2b"
+   "detailRef": "bca578583446"
   },
   {
    "id": "code-module:b8f0d2b164b6",
@@ -356198,7 +356185,7 @@
     "src/hooks/useTokLogo.ts",
     "src/test/home-core-web-vitals.test.ts"
    ],
-   "detailRef": "45ef91170025"
+   "detailRef": "53ef05b248fa"
   },
   {
    "id": "path-literal:b584574f88b2",
@@ -356225,7 +356212,7 @@
     "src/hooks/useTokLogo.ts",
     "src/test/home-core-web-vitals.test.ts"
    ],
-   "detailRef": "2498d47a83a1"
+   "detailRef": "504d43a3e215"
   },
   {
    "id": "path-literal:13b6127784de",
@@ -357378,32 +357365,18 @@
    "detailRef": "e77678a36f7c"
   },
   {
-   "id": "path-literal:becd2877e517",
-   "type": "path-literal",
-   "title": "/images/home/tok-geneve-mobile-fast.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/home-core-web-vitals.test.ts",
-   "line": 15,
-   "surface": null,
-   "tags": [
-    "src/test/home-core-web-vitals.test.ts"
-   ],
-   "detailRef": "df97ef3c8def"
-  },
-  {
    "id": "path-literal:261a32667abf",
    "type": "path-literal",
    "title": "/images/home/tok-leman-signature-fast.webp",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/HeroSection.tsx",
    "line": 41,
    "surface": null,
    "tags": [
     "src/components/home/HeroSection.tsx",
-    "src/test/home-core-web-vitals.test.ts",
     "src/test/home-hero-search.test.tsx"
    ],
-   "detailRef": "6e9ca9a7b00c"
+   "detailRef": "7a0647b39cf6"
   },
   {
    "id": "path-literal:638981aff331",
@@ -359110,7 +359083,7 @@
     "src/components/home/CuisineCategoryStrip.tsx",
     "src/test/home-core-web-vitals.test.ts"
    ],
-   "detailRef": "cbbd4d0479fb"
+   "detailRef": "07941b6542d3"
   },
   {
    "id": "path-literal:a02571499e6c",

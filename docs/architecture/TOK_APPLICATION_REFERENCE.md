@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `9e75d5c81e716b92de55d0cb0fcc94cb5995e6c884950d62e1e556b217271c92`
+- Empreinte SHA-256 des sources indexées : `a8c61a7a723d3e9ecfadeb65edd0c831845a82187e1caa9e3a6487a1e2196621`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 540 |
 | modules | 1557 |
 | pages | 128 |
-| pathLiterals | 750 |
+| pathLiterals | 749 |
 | publicAssets | 590 |
 | publicEntries | 615 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16850 |
+| records | 16849 |
 | repositoryFiles | 3186 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1563,8 +1563,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-geneve-mobile-fast.webp | 1 | [src/test/home-core-web-vitals.test.ts:15](../../src/test/home-core-web-vitals.test.ts#L15) |
-| /images/home/tok-leman-signature-fast.webp | 3 | [src/components/home/HeroSection.tsx:41](../../src/components/home/HeroSection.tsx#L41) |
+| /images/home/tok-leman-signature-fast.webp | 2 | [src/components/home/HeroSection.tsx:41](../../src/components/home/HeroSection.tsx#L41) |
 | /images/home/tok-logo-ui.webp | 1 | [src/lib/tokLogo.ts:2](../../src/lib/tokLogo.ts#L2) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
