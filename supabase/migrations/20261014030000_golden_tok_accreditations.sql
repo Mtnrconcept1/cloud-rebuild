@@ -136,7 +136,7 @@ GRANT EXECUTE ON FUNCTION public.admin_review_golden_tok_accreditation(uuid,bool
 -- applicant and billing identifiers in the accreditation table.
 CREATE OR REPLACE FUNCTION public.golden_tok_restaurant_is_paid(p_restaurant_id uuid)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path = public, pg_temp AS $
+SET search_path = public, pg_temp AS $golden$
   SELECT EXISTS (
     SELECT 1 FROM public.golden_tok_accreditations a
     WHERE a.restaurant_id = p_restaurant_id
@@ -145,7 +145,7 @@ SET search_path = public, pg_temp AS $
       AND a.stripe_mode = 'live'
       AND a.current_period_end > now()
   );
-$;
+$golden$;
 REVOKE ALL ON FUNCTION public.golden_tok_restaurant_is_paid(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.golden_tok_restaurant_is_paid(uuid) TO anon, authenticated, service_role;
 
