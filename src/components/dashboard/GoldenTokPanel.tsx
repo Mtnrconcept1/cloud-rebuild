@@ -158,7 +158,7 @@ export default function GoldenTokPanel({ restaurantId, isCommercialDemo }: {
     <Card className="border-amber-200">
       <CardHeader>
         <CardTitle>La Tok d’Or — gastronomie</CardTitle>
-        <p className="text-sm text-muted-foreground">Réservé aux restaurants gastronomiques agréés par TOK. Abonnement spécial à 99 CHF par mois, TVA comprise, après validation de votre candidature.</p>
+        <p className="text-sm text-muted-foreground">Réservé aux restaurants gastronomiques agréés par TOK. Abonnement spécial à 99 CHF par mois, prix final. TVA non facturée tant que TOK n’y est pas assujettie. Après validation de votre candidature.</p>
       </CardHeader>
       <CardContent className="space-y-5">
         {isCommercialDemo ? <p>La candidature et le paiement ne sont pas disponibles en démonstration.</p>
@@ -180,7 +180,7 @@ export default function GoldenTokPanel({ restaurantId, isCommercialDemo }: {
                   <p>Abonnement spécial : {accreditation.subscription_status}</p>
                   {accreditation.current_period_end && <p className="text-xs">Échéance : {new Date(accreditation.current_period_end).toLocaleDateString("fr-CH")}</p>}
                   {accreditation.subscription_status === "not_subscribed" && (
-                    <Button type="button" disabled={billing.isPending} onClick={() => billing.mutate("checkout")}>Souscrire — 99 CHF/mois TTC via Stripe</Button>
+                    <Button type="button" disabled={billing.isPending} onClick={() => billing.mutate("checkout")}>Souscrire — 99 CHF/mois via Stripe</Button>
                   )}
                   {accreditation.subscription_status === "active" && (
                     <Button type="button" variant="outline" disabled={billing.isPending}
