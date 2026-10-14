@@ -142,7 +142,7 @@ CREATE INDEX tok_workforce_audit_recent_idx ON public.tok_workforce_access_audit
 
 CREATE FUNCTION public.tok_workforce_enabled(p_restaurant_id uuid) RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=''
-AS $ SELECT (SELECT auth.uid()) IS NOT NULL AND COALESCE((SELECT s.enabled FROM public.tok_workforce_settings s WHERE s.restaurant_id=p_restaurant_id),false) $;
+AS $$ SELECT (SELECT auth.uid()) IS NOT NULL AND COALESCE((SELECT s.enabled FROM public.tok_workforce_settings s WHERE s.restaurant_id=p_restaurant_id),false) $$;
 CREATE FUNCTION public.tok_workforce_can_manage(p_restaurant_id uuid) RETURNS boolean
 LANGUAGE sql STABLE SECURITY INVOKER SET search_path=''
 AS $$
@@ -261,7 +261,7 @@ REVOKE UPDATE, DELETE ON public.tok_workforce_exchanges FROM authenticated;
 
 CREATE FUNCTION public.tok_workforce_review_exchange(p_exchange_id uuid,p_approve boolean)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
-AS $
+AS $$
 DECLARE
   request_row public.tok_workforce_exchanges%ROWTYPE;
   requester_employee uuid;
