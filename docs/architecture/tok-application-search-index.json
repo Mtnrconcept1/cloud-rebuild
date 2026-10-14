@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b64288c6665d3d9b32d78fdef90e7deddbd25a9cf89d8ecb458acb7a00823085",
+ "sourceDigest": "c742b857dcf342ab3a43c906316538f05b3126c5d09e4980795a1c6fb2b423fd",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2774,
-  "documents": 204,
-  "edgeFunctions": 115,
+  "databaseObjects": 2781,
+  "documents": 203,
+  "edgeFunctions": 116,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3517,
+  "exportedSymbols": 3520,
   "featureFlags": 99,
   "frontendRoutes": 137,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 537,
-  "modules": 1548,
+  "modules": 1552,
   "pages": 129,
   "pathLiterals": 697,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16572,
-  "repositoryFiles": 3084,
+  "records": 16590,
+  "repositoryFiles": 3087,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -3957,7 +3957,6 @@
      }
     ],
     "integrations": [
-     "stripe",
      "supabase"
     ]
    },
@@ -4291,7 +4290,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 32,
+      "line": 35,
       "kind": "function"
      }
     ],
@@ -4946,7 +4945,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 1513,
+      "line": 1514,
       "kind": "function"
      }
     ],
@@ -7356,7 +7355,7 @@
     "endpoint": "/functions/v1/apple-storekit-webhook",
     "path": "supabase/functions/apple-storekit-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 275,
+    "configLine": 278,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -7484,7 +7483,7 @@
     "endpoint": "/functions/v1/cloudprinter-webhook",
     "path": "supabase/functions/cloudprinter-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 287,
+    "configLine": 290,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8110,6 +8109,30 @@
     "sourcePresent": true
    },
    {
+    "name": "golden-tok-membership",
+    "endpoint": "/functions/v1/golden-tok-membership",
+    "path": "supabase/functions/golden-tok-membership/index.ts",
+    "configPath": "supabase/config.toml",
+    "configLine": 215,
+    "verifyJwt": false,
+    "methods": [
+     "POST"
+    ],
+    "actions": [
+     "cancel",
+     "resume",
+     "string"
+    ],
+    "environmentNames": [
+     "GOLDEN_TOK_STRIPE_PRICE_ID"
+    ],
+    "integrations": [
+     "stripe"
+    ],
+    "configured": true,
+    "sourcePresent": true
+   },
+   {
     "name": "google-actions-center",
     "endpoint": "/functions/v1/google-actions-center",
     "path": "supabase/functions/google-actions-center/index.ts",
@@ -8206,7 +8229,7 @@
     "endpoint": "/functions/v1/marketing-orchestrator",
     "path": "supabase/functions/marketing-orchestrator/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 278,
+    "configLine": 281,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8233,7 +8256,7 @@
     "endpoint": "/functions/v1/marketing-provider-webhook",
     "path": "supabase/functions/marketing-provider-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 281,
+    "configLine": 284,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8249,7 +8272,7 @@
     "endpoint": "/functions/v1/marketing-unsubscribe",
     "path": "supabase/functions/marketing-unsubscribe/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 284,
+    "configLine": 287,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -8266,7 +8289,7 @@
     "endpoint": "/functions/v1/menu-image-import",
     "path": "supabase/functions/menu-image-import/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 215,
+    "configLine": 218,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8363,7 +8386,7 @@
     "endpoint": "/functions/v1/print-admin",
     "path": "supabase/functions/print-admin/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 290,
+    "configLine": 293,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8389,7 +8412,7 @@
     "endpoint": "/functions/v1/print-catalog",
     "path": "supabase/functions/print-catalog/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 293,
+    "configLine": 296,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8413,7 +8436,7 @@
     "endpoint": "/functions/v1/print-checkout",
     "path": "supabase/functions/print-checkout/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 296,
+    "configLine": 299,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8436,7 +8459,7 @@
     "endpoint": "/functions/v1/print-export",
     "path": "supabase/functions/print-export/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 302,
+    "configLine": 305,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8454,7 +8477,7 @@
     "endpoint": "/functions/v1/print-orchestrator",
     "path": "supabase/functions/print-orchestrator/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 305,
+    "configLine": 308,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8477,7 +8500,7 @@
     "endpoint": "/functions/v1/print-order-action",
     "path": "supabase/functions/print-order-action/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 308,
+    "configLine": 311,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8500,7 +8523,7 @@
     "endpoint": "/functions/v1/print-quote",
     "path": "supabase/functions/print-quote/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 311,
+    "configLine": 314,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8516,7 +8539,7 @@
     "endpoint": "/functions/v1/print-reconcile",
     "path": "supabase/functions/print-reconcile/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 314,
+    "configLine": 317,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8532,7 +8555,7 @@
     "endpoint": "/functions/v1/print-sandbox-complete",
     "path": "supabase/functions/print-sandbox-complete/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 299,
+    "configLine": 302,
     "verifyJwt": false,
     "methods": [
      "GET"
@@ -8613,7 +8636,7 @@
     "endpoint": "/functions/v1/provision-commercial-demo-logins",
     "path": "supabase/functions/provision-commercial-demo-logins/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 354,
+    "configLine": 357,
     "verifyJwt": true,
     "methods": [
      "OPTIONS"
@@ -8655,7 +8678,7 @@
     "endpoint": "/functions/v1/reconcile-match-group-authorizations",
     "path": "supabase/functions/reconcile-match-group-authorizations/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 218,
+    "configLine": 221,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8673,7 +8696,7 @@
     "endpoint": "/functions/v1/reconcile-paid-order-checkouts",
     "path": "supabase/functions/reconcile-paid-order-checkouts/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 221,
+    "configLine": 224,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8691,7 +8714,7 @@
     "endpoint": "/functions/v1/restaurant-advisor",
     "path": "supabase/functions/restaurant-advisor/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 224,
+    "configLine": 227,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8710,7 +8733,7 @@
     "endpoint": "/functions/v1/restaurant-media-governance",
     "path": "supabase/functions/restaurant-media-governance/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 230,
+    "configLine": 233,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8731,7 +8754,7 @@
     "endpoint": "/functions/v1/restaurant-order-status",
     "path": "supabase/functions/restaurant-order-status/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 227,
+    "configLine": 230,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8747,7 +8770,7 @@
     "endpoint": "/functions/v1/scrape-restaurants",
     "path": "supabase/functions/scrape-restaurants/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 233,
+    "configLine": 236,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8767,7 +8790,7 @@
     "endpoint": "/functions/v1/send-email",
     "path": "supabase/functions/send-email/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 236,
+    "configLine": 239,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8794,7 +8817,7 @@
     "endpoint": "/functions/v1/send-push",
     "path": "supabase/functions/send-push/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 239,
+    "configLine": 242,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8817,7 +8840,7 @@
     "endpoint": "/functions/v1/settle-developer-statement",
     "path": "supabase/functions/settle-developer-statement/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 257,
+    "configLine": 260,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8835,7 +8858,7 @@
     "endpoint": "/functions/v1/stripe-connect-onboard",
     "path": "supabase/functions/stripe-connect-onboard/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 242,
+    "configLine": 245,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8853,7 +8876,7 @@
     "endpoint": "/functions/v1/stripe-connect-status",
     "path": "supabase/functions/stripe-connect-status/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 245,
+    "configLine": 248,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8890,7 +8913,7 @@
     "endpoint": "/functions/v1/stripe-subscription-reconcile",
     "path": "supabase/functions/stripe-subscription-reconcile/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 254,
+    "configLine": 257,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8909,7 +8932,7 @@
     "endpoint": "/functions/v1/stripe-webhook",
     "path": "supabase/functions/stripe-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 248,
+    "configLine": 251,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8928,7 +8951,7 @@
     "endpoint": "/functions/v1/stripe-worker",
     "path": "supabase/functions/stripe-worker/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 251,
+    "configLine": 254,
     "verifyJwt": false,
     "methods": [
      "OPTIONS",
@@ -8950,7 +8973,7 @@
     "endpoint": "/functions/v1/submit-signup-application",
     "path": "supabase/functions/submit-signup-application/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 269,
+    "configLine": 272,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8966,7 +8989,7 @@
     "endpoint": "/functions/v1/sync-apple-storekit",
     "path": "supabase/functions/sync-apple-storekit/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 272,
+    "configLine": 275,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8982,7 +9005,7 @@
     "endpoint": "/functions/v1/tok-connect-admin",
     "path": "supabase/functions/tok-connect-admin/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 332,
+    "configLine": 335,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9004,7 +9027,7 @@
     "endpoint": "/functions/v1/tok-connect-api",
     "path": "supabase/functions/tok-connect-api/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 320,
+    "configLine": 323,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9021,7 +9044,7 @@
     "endpoint": "/functions/v1/tok-connect-app-bridge",
     "path": "supabase/functions/tok-connect-app-bridge/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 338,
+    "configLine": 341,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9050,7 +9073,7 @@
     "endpoint": "/functions/v1/tok-connect-chatgpt",
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 341,
+    "configLine": 344,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9075,7 +9098,7 @@
     "endpoint": "/functions/v1/tok-connect-commercial-bridge",
     "path": "supabase/functions/tok-connect-commercial-bridge/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 344,
+    "configLine": 347,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9102,7 +9125,7 @@
     "endpoint": "/functions/v1/tok-connect-full-app-mcp",
     "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 326,
+    "configLine": 329,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9127,7 +9150,7 @@
     "endpoint": "/functions/v1/tok-connect-mcp",
     "path": "supabase/functions/tok-connect-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 323,
+    "configLine": 326,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9152,7 +9175,7 @@
     "endpoint": "/functions/v1/tok-connect-oauth",
     "path": "supabase/functions/tok-connect-oauth/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 317,
+    "configLine": 320,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9173,7 +9196,7 @@
     "endpoint": "/functions/v1/tok-connect-portal",
     "path": "supabase/functions/tok-connect-portal/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 329,
+    "configLine": 332,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9209,7 +9232,7 @@
     "endpoint": "/functions/v1/tok-connect-remote-mcp",
     "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 347,
+    "configLine": 350,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9233,7 +9256,7 @@
     "endpoint": "/functions/v1/tok-connect-webhook-dispatch",
     "path": "supabase/functions/tok-connect-webhook-dispatch/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 335,
+    "configLine": 338,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9251,7 +9274,7 @@
     "endpoint": "/functions/v1/tok-pulse-widget",
     "path": "supabase/functions/tok-pulse-widget/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 350,
+    "configLine": 353,
     "verifyJwt": false,
     "methods": [
      "GET"
@@ -9272,7 +9295,7 @@
     "endpoint": "/functions/v1/track-analytics",
     "path": "supabase/functions/track-analytics/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 260,
+    "configLine": 263,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9294,7 +9317,7 @@
     "endpoint": "/functions/v1/track-sponsored-event",
     "path": "supabase/functions/track-sponsored-event/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 263,
+    "configLine": 266,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9316,7 +9339,7 @@
     "endpoint": "/functions/v1/validate-order",
     "path": "supabase/functions/validate-order/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 266,
+    "configLine": 269,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -14282,7 +14305,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 73
+      "line": 74
      },
      {
       "path": "src/test/mobile-association-hosting.test.ts",
@@ -15773,7 +15796,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 161
+      "line": 162
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -16518,7 +16541,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 69
+      "line": 70
      }
     ]
    },
@@ -16641,7 +16664,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 135
+      "line": 136
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
@@ -18492,7 +18515,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 95
+      "line": 96
      }
     ]
    },
@@ -19680,7 +19703,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2028
+      "line": 2118
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -19928,7 +19951,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1670
+      "line": 1760
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -20561,11 +20584,11 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1794
+      "line": 1884
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2167
+      "line": 2257
      }
     ]
    },
@@ -20677,7 +20700,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2308
+      "line": 2398
      }
     ]
    },
@@ -21914,7 +21937,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 76
+      "line": 77
      },
      {
       "path": "workers/image-ai-worker/index.js",
@@ -24621,7 +24644,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 68
+      "line": 69
      },
      {
       "path": "src/test/feature-flags.test.ts",
@@ -25173,7 +25196,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 100
+      "line": 101
      }
     ]
    },
@@ -25425,7 +25448,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2778
+      "line": 2868
      }
     ]
    },
@@ -26190,7 +26213,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 76
+      "line": 77
      },
      {
       "path": "src/test/image-metadata-ai.test.ts",
@@ -28996,7 +29019,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 79
+      "line": 80
      },
      {
       "path": "src/test/tok-connect-edge-functions.test.ts",
@@ -29117,7 +29140,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 84
+      "line": 85
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -29147,11 +29170,11 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 171
+      "line": 172
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 176
+      "line": 177
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -31679,6 +31702,7 @@
      "src/components/commercial/CommercialDemoActorWorkspace.tsx",
      "src/components/commercial/CommercialMultiSpaceDemo.tsx",
      "src/components/dashboard/CommercialDemoScenario.tsx",
+     "src/components/dashboard/GoldenTokPanel.tsx",
      "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
      "src/data/userGuideFeatureDetails.ts",
      "src/hooks/useAdminLaunchPacks.ts",
@@ -31697,7 +31721,6 @@
      "src/lib/iosCommerceFetch.ts",
      "src/lib/launchPacks.ts",
      "src/lib/orderConfirmation.ts",
-     "src/lib/payableInvoice.ts",
      "src/lib/paymentMethods.ts",
      "src/lib/refundMutations.ts",
      "src/lib/reservationMutations.ts",
@@ -31727,7 +31750,6 @@
      "src/pages/ZeroAttente.tsx",
      "src/pages/admin/AdminAuditLogs.tsx",
      "src/pages/admin/AdminCompta.tsx",
-     "src/pages/admin/AdminComptaInflow.tsx",
      "src/pages/admin/AdminLaunchPacks.tsx",
      "src/pages/admin/AdminOrdersReservations.tsx",
      "src/pages/admin/AdminRestaurants.tsx",
@@ -31774,6 +31796,7 @@
      "src/test/feature-flags.test.ts",
      "src/test/financial-health.test.ts",
      "src/test/git-auto-sync-scripts.test.ts",
+     "src/test/golden-tok-accreditation.test.ts",
      "src/test/incident-intelligence-routing.test.ts",
      "src/test/ios-commerce-policy.test.ts",
      "src/test/ios-storekit-subscription-management.test.ts",
@@ -31813,7 +31836,6 @@
      "src/test/stripe-security-hardening.test.ts",
      "src/test/super-admin-sensitive-rls.test.ts",
      "src/test/tok-ai-tools.test.ts",
-     "src/test/tok-canonical-subscription-invoice.test.ts",
      "src/test/tok-connect-app-bridge.test.ts",
      "src/test/tok-one-stripe-test-mode.test.ts",
      "src/test/tok-stripe-price-catalog.test.ts",
@@ -31864,6 +31886,7 @@
      "supabase/functions/create-chefs-table-reservation/index.ts",
      "supabase/functions/create-reservation/index.ts",
      "supabase/functions/create-zero-attente-reservation/index.ts",
+     "supabase/functions/golden-tok-membership/index.ts",
      "supabase/functions/google-actions-center/index.ts",
      "supabase/functions/manage-restaurant-subscription/index.ts",
      "supabase/functions/manage-tok-one-subscription/index.ts",
@@ -31968,6 +31991,8 @@
      "src/components/admin/AdminMobileNavigation.tsx",
      "src/components/admin/AdminRealRestaurantAssignment.tsx",
      "src/components/admin/AdminUrgentActions.tsx",
+     "src/components/admin/GoldenTokReviewPanel.tsx",
+     "src/components/admin/RestaurantSearchSelect.tsx",
      "src/components/auth/AccountPasswordForm.tsx",
      "src/components/campaigns/CampaignInternalTestSummary.tsx",
      "src/components/cart/CartSuggestionsStep.tsx",
@@ -31980,6 +32005,7 @@
      "src/components/dashboard/AiStyleReferencePicker.tsx",
      "src/components/dashboard/DailyDishAiPanel.tsx",
      "src/components/dashboard/DirectReservationChannelsCard.tsx",
+     "src/components/dashboard/GoldenTokPanel.tsx",
      "src/components/dashboard/TokAiMarketingStudio.tsx",
      "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
      "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
@@ -32287,6 +32313,7 @@
      "src/test/generate-campaign-ai-optimization.test.ts",
      "src/test/generate-campaign-copy.test.ts",
      "src/test/git-auto-sync-scripts.test.ts",
+     "src/test/golden-tok-accreditation.test.ts",
      "src/test/google-actions-center-outbox.test.ts",
      "src/test/google-actions-center-readiness.test.ts",
      "src/test/google-business-booking-phase1.test.ts",
@@ -32480,7 +32507,6 @@
      "src/test/thefork-image-enrichment-completion.test.ts",
      "src/test/tok-ai-platform-plan.test.ts",
      "src/test/tok-ai-tools.test.ts",
-     "src/test/tok-canonical-subscription-invoice.test.ts",
      "src/test/tok-connect-admin-humanized.test.ts",
      "src/test/tok-connect-admin-pagination.test.ts",
      "src/test/tok-connect-admin-schema-contract.test.ts",
@@ -35900,15 +35926,15 @@
     "objectCount": 16
    },
    {
+    "name": "20261014030000 Golden Tok Accreditations",
+    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+    "lineCount": 286,
+    "objectCount": 8
+   },
+   {
     "name": "20261014072000 Developer Subscription Gross Share Before Vat",
     "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
     "lineCount": 769,
-    "objectCount": 1
-   },
-   {
-    "name": "20261014093000 Show Stripe Subscription In Tok Invoice Document",
-    "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
-    "lineCount": 59,
     "objectCount": 1
    }
   ],
@@ -37413,6 +37439,16 @@
    },
    {
     "type": "function",
+    "name": "public.admin_review_golden_tok_accreditation",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+      "line": 90
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.admin_review_signup_application",
     "sources": [
      {
@@ -37950,6 +37986,16 @@
      {
       "path": "supabase/migrations/20260423232011_fix_apply_checkout_benefits_redeem_conflict.sql",
       "line": 1
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.apply_golden_tok_accreditation",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+      "line": 41
      }
     ]
    },
@@ -40564,10 +40610,6 @@
      {
       "path": "supabase/migrations/20260422193000_unified_payable_invoice.sql",
       "line": 104
-     },
-     {
-      "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
-      "line": 4
      }
     ]
    },
@@ -41036,6 +41078,16 @@
      {
       "path": "supabase/migrations/20260605180050_wire_miamz_business_logic.sql",
       "line": 288
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.golden_tok_restaurant_is_paid",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+      "line": 137
      }
     ]
    },
@@ -43537,6 +43589,16 @@
    },
    {
     "type": "function",
+    "name": "public.restaurant_save_golden_tok_drop",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+      "line": 172
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.restaurant_set_cover_media",
     "sources": [
      {
@@ -46022,6 +46084,16 @@
      {
       "path": "supabase/migrations/20260712061702_harden_client_dashboard_boundaries.sql",
       "line": 197
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "golden_tok_accreditations_review_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+      "line": 28
      }
     ]
    },
@@ -53464,6 +53536,10 @@
      {
       "path": "supabase/migrations/20260604023000_admin_chef_table_drop_governance.sql",
       "line": 15
+     },
+     {
+      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+      "line": 158
      }
     ]
    },
@@ -55084,6 +55160,16 @@
      {
       "path": "supabase/migrations/20260308175103_dfc099a3-6826-4a75-a155-f32e3c7036e1.sql",
       "line": 124
+     }
+    ]
+   },
+   {
+    "type": "policy",
+    "name": "public.golden_tok_accreditations.golden_tok_accreditations_owner_or_admin_read",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+      "line": 37
      }
     ]
    },
@@ -61492,6 +61578,16 @@
      {
       "path": "supabase/migrations/20260308175015_d089cd3a-79e4-45da-9a43-db36386961b3.sql",
       "line": 22
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "name": "public.golden_tok_accreditations",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+      "line": 3
      }
     ]
    },
@@ -76214,32 +76310,6 @@
     ]
    },
    {
-    "path": "docs/runbooks/tok-developer-bank-payouts.md",
-    "title": "Versement développeur sans Stripe Connect : PostFinance",
-    "headings": [
-     {
-      "level": 1,
-      "title": "Versement développeur sans Stripe Connect : PostFinance",
-      "line": 1
-     },
-     {
-      "level": 2,
-      "title": "Processus recommandé",
-      "line": 8
-     },
-     {
-      "level": 2,
-      "title": "Factures canonique TOK",
-      "line": 38
-     },
-     {
-      "level": 2,
-      "title": "Émetteur légal TOK (registre du commerce de Genève)",
-      "line": 57
-     }
-    ]
-   },
-   {
     "path": "docs/security/SEO_BOT_PROTECTION_RUNBOOK.md",
     "title": "Protection SEO et anti-scraping de TOK",
     "headings": [
@@ -85332,6 +85402,36 @@
     "lineCount": 477
    },
    {
+    "path": "src/components/admin/GoldenTokReviewPanel.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 17,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 86
+   },
+   {
+    "path": "src/components/admin/RestaurantSearchSelect.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 18,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 152
+   },
+   {
     "path": "src/components/admin/TokConnectCatalogControls.tsx",
     "exports": [
      {
@@ -86000,6 +86100,22 @@
      "supabase"
     ],
     "lineCount": 104
+   },
+   {
+    "path": "src/components/dashboard/GoldenTokPanel.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 36,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 242
    },
    {
     "path": "src/components/dashboard/GoogleBusinessBookingCard.tsx",
@@ -87098,7 +87214,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 525
+    "lineCount": 523
    },
    {
     "path": "src/components/launch/LaunchArtwork.tsx",
@@ -90856,42 +90972,42 @@
      },
      {
       "name": "humanizeIdentifier",
-      "line": 465,
+      "line": 466,
       "kind": "function"
      },
      {
       "name": "describeAuditFunction",
-      "line": 477,
+      "line": 478,
       "kind": "function"
      },
      {
       "name": "describeAuditAction",
-      "line": 484,
+      "line": 485,
       "kind": "function"
      },
      {
       "name": "describeAuditEntity",
-      "line": 492,
+      "line": 493,
       "kind": "function"
      },
      {
       "name": "describeAuditActor",
-      "line": 499,
+      "line": 500,
       "kind": "function"
      },
      {
       "name": "explainAuditError",
-      "line": 507,
+      "line": 508,
       "kind": "function"
      },
      {
       "name": "describeAuditLog",
-      "line": 628,
+      "line": 629,
       "kind": "function"
      },
      {
       "name": "summarizeAuditLog",
-      "line": 632,
+      "line": 633,
       "kind": "function"
      }
     ],
@@ -90900,7 +91016,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 634
+    "lineCount": 635
    },
    {
     "path": "src/lib/adminComptaActions.ts",
@@ -97151,81 +97267,80 @@
      },
      {
       "name": "PayableInvoiceGroupSummary",
-      "line": 74,
+      "line": 72,
       "kind": "typealias"
      },
      {
       "name": "PayableInvoiceDocumentData",
-      "line": 91,
+      "line": 89,
       "kind": "typealias"
      },
      {
       "name": "toPayableAmount",
-      "line": 203,
+      "line": 195,
       "kind": "function"
      },
      {
       "name": "isPayableInvoiceType",
-      "line": 208,
+      "line": 200,
       "kind": "function"
      },
      {
       "name": "formatPayableAmount",
-      "line": 212,
+      "line": 204,
       "kind": "function"
      },
      {
       "name": "formatPayableDate",
-      "line": 219,
+      "line": 211,
       "kind": "function"
      },
      {
       "name": "formatPayablePeriod",
-      "line": 226,
+      "line": 218,
       "kind": "function"
      },
      {
       "name": "getPayableInvoiceStatusLabel",
-      "line": 230,
+      "line": 222,
       "kind": "function"
      },
      {
       "name": "getPayableInvoiceStatusClass",
-      "line": 241,
+      "line": 233,
       "kind": "function"
      },
      {
       "name": "normalizePayableInvoiceItemKind",
-      "line": 259,
+      "line": 251,
       "kind": "function"
      },
      {
       "name": "getPayableInvoiceGroupMeta",
-      "line": 295,
+      "line": 287,
       "kind": "function"
      },
      {
       "name": "buildPayableInvoiceGroups",
-      "line": 330,
+      "line": 322,
       "kind": "function"
      },
      {
       "name": "buildPayableInvoiceRecipient",
-      "line": 395,
+      "line": 387,
       "kind": "function"
      },
      {
       "name": "buildPayableInvoiceDocumentData",
-      "line": 428,
+      "line": 420,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [
-     "stripe",
      "supabase"
     ],
-    "lineCount": 470
+    "lineCount": 462
    },
    {
     "path": "src/lib/paymentAttempt.ts",
@@ -102448,7 +102563,6 @@
     ],
     "environmentNames": [],
     "integrations": [
-     "stripe",
      "supabase"
     ],
     "lineCount": 579
@@ -102732,15 +102846,17 @@
     "exports": [
      {
       "name": "default",
-      "line": 32,
+      "line": 35,
       "kind": "function"
      }
     ],
-    "environmentNames": [],
+    "environmentNames": [
+     "VITE_GOLDEN_TOK_ENABLED"
+    ],
     "integrations": [
      "supabase"
     ],
-    "lineCount": 394
+    "lineCount": 397
    },
    {
     "path": "src/pages/admin/adminComptaShared.ts",
@@ -103328,15 +103444,17 @@
     "exports": [
      {
       "name": "default",
-      "line": 1513,
+      "line": 1514,
       "kind": "function"
      }
     ],
-    "environmentNames": [],
+    "environmentNames": [
+     "VITE_GOLDEN_TOK_ENABLED"
+    ],
     "integrations": [
      "supabase"
     ],
-    "lineCount": 2032
+    "lineCount": 2037
    },
    {
     "path": "src/pages/dashboard/DashboardHome.tsx",
@@ -104320,7 +104438,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 189
+    "lineCount": 190
    },
    {
     "path": "src/test/audit-hardening-20260711.test.ts",
@@ -104607,7 +104725,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 77
+    "lineCount": 79
    },
    {
     "path": "src/test/client-checkout-session-guards.test.ts",
@@ -105862,6 +105980,18 @@
      "supabase"
     ],
     "lineCount": 49
+   },
+   {
+    "path": "src/test/golden-tok-accreditation.test.ts",
+    "exports": [],
+    "environmentNames": [
+     "VITE_GOLDEN_TOK_ENABLED"
+    ],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 93
    },
    {
     "path": "src/test/golden-tok-shell-logo.test.ts",
@@ -108779,16 +108909,6 @@
      "supabase"
     ],
     "lineCount": 557
-   },
-   {
-    "path": "src/test/tok-canonical-subscription-invoice.test.ts",
-    "exports": [],
-    "environmentNames": [],
-    "integrations": [
-     "stripe",
-     "supabase"
-    ],
-    "lineCount": 97
    },
    {
     "path": "src/test/tok-connect-admin-humanized.test.ts",
@@ -113080,7 +113200,7 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 2763
+    "lineCount": 2774
    },
    {
     "path": "supabase/functions/create-chefs-table-reservation/index.ts",
@@ -113381,6 +113501,17 @@
      "supabase"
     ],
     "lineCount": 114
+   },
+   {
+    "path": "supabase/functions/golden-tok-membership/index.ts",
+    "exports": [],
+    "environmentNames": [
+     "GOLDEN_TOK_STRIPE_PRICE_ID"
+    ],
+    "integrations": [
+     "stripe"
+    ],
+    "lineCount": 222
    },
    {
     "path": "supabase/functions/google-actions-center-sync/index.ts",
@@ -113829,7 +113960,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3400
+    "lineCount": 3490
    },
    {
     "path": "supabase/functions/stripe-worker/index.ts",
@@ -115827,11 +115958,6 @@
    },
    {
     "path": "docs/runbooks/stripe-financial-ops.md",
-    "category": "documentation",
-    "extension": ".md"
-   },
-   {
-    "path": "docs/runbooks/tok-developer-bank-payouts.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -119776,6 +119902,16 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/components/admin/GoldenTokReviewPanel.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/components/admin/RestaurantSearchSelect.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/components/admin/TokConnectCatalogControls.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
@@ -119982,6 +120118,11 @@
    },
    {
     "path": "src/components/dashboard/DirectReservationChannelsCard.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/components/dashboard/GoldenTokPanel.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
    },
@@ -123921,6 +124062,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/golden-tok-accreditation.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/golden-tok-shell-logo.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -125591,11 +125737,6 @@
     "extension": ".ts"
    },
    {
-    "path": "src/test/tok-canonical-subscription-invoice.test.ts",
-    "category": "test",
-    "extension": ".ts"
-   },
-   {
     "path": "src/test/tok-connect-admin-humanized.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -126477,6 +126618,11 @@
    },
    {
     "path": "supabase/functions/generate-invoices/index.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/golden-tok-membership/index.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -129471,12 +129617,12 @@
     "extension": ".sql"
    },
    {
-    "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
    {
-    "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
+    "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -132390,6 +132536,34 @@
    "detailRef": "debbbc5334df"
   },
   {
+   "id": "code-module:5310d052381e",
+   "type": "code-module",
+   "title": "src/components/admin/GoldenTokReviewPanel.tsx",
+   "description": "Module de 86 lignes; exports: default.",
+   "path": "src/components/admin/GoldenTokReviewPanel.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default",
+    "supabase"
+   ],
+   "detailRef": "9aa40c4f5c19"
+  },
+  {
+   "id": "code-module:f86897d507d9",
+   "type": "code-module",
+   "title": "src/components/admin/RestaurantSearchSelect.tsx",
+   "description": "Module de 152 lignes; exports: default.",
+   "path": "src/components/admin/RestaurantSearchSelect.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default",
+    "supabase"
+   ],
+   "detailRef": "0216bc19c682"
+  },
+  {
    "id": "code-module:0c5529e62dd1",
    "type": "code-module",
    "title": "src/components/admin/TokConnectCatalogControls.tsx",
@@ -132972,6 +133146,21 @@
     "supabase"
    ],
    "detailRef": "158d16ae35f6"
+  },
+  {
+   "id": "code-module:d64510a012d9",
+   "type": "code-module",
+   "title": "src/components/dashboard/GoldenTokPanel.tsx",
+   "description": "Module de 242 lignes; exports: default.",
+   "path": "src/components/dashboard/GoldenTokPanel.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "910c47511686"
   },
   {
    "id": "code-module:4421e58603e6",
@@ -133755,14 +133944,14 @@
    "id": "code-module:c2a08a511ff3",
    "type": "code-module",
    "title": "src/components/invoices/TokPayableInvoiceDocument.tsx",
-   "description": "Module de 525 lignes; exports: TokPayableInvoiceDocument.",
+   "description": "Module de 523 lignes; exports: TokPayableInvoiceDocument.",
    "path": "src/components/invoices/TokPayableInvoiceDocument.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "TokPayableInvoiceDocument"
    ],
-   "detailRef": "08607d0d60d5"
+   "detailRef": "faed5b5bd230"
   },
   {
    "id": "code-module:e70e0a042205",
@@ -135964,7 +136153,7 @@
    "id": "code-module:49057d39b311",
    "type": "code-module",
    "title": "src/lib/admin/auditLogNarrative.ts",
-   "description": "Module de 634 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
+   "description": "Module de 635 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
    "path": "src/lib/admin/auditLogNarrative.ts",
    "line": 1,
    "surface": null,
@@ -135985,7 +136174,7 @@
     "stripe",
     "summarizeAuditLog"
    ],
-   "detailRef": "80560d668c23"
+   "detailRef": "a0bd7b89f563"
   },
   {
    "id": "code-module:011d1dc10823",
@@ -138654,7 +138843,7 @@
    "id": "code-module:c707a9ad0be1",
    "type": "code-module",
    "title": "src/lib/payableInvoice.ts",
-   "description": "Module de 470 lignes; exports: RestaurantInvoiceRowBase, RestaurantRowBase, RestaurantInvoiceSettingsRow, PayableInvoiceType, PayableInvoiceStatus, PayableInvoiceItemKind, PayableInvoiceRow, PayableInvoiceLine, PayableInvoiceRecipient, PayableInvoiceGroupSummary, PayableInvoiceDocumentData, toPayableAmount, isPayableInvoiceType, formatPayableAmount, formatPayableDate, formatPayablePeriod, getPayableInvoiceStatusLabel, getPayableInvoiceStatusClass, normalizePayableInvoiceItemKind, getPayableInvoiceGroupMeta, buildPayableInvoiceGroups, buildPayableInvoiceRecipient, buildPayableInvoiceDocumentData.",
+   "description": "Module de 462 lignes; exports: RestaurantInvoiceRowBase, RestaurantRowBase, RestaurantInvoiceSettingsRow, PayableInvoiceType, PayableInvoiceStatus, PayableInvoiceItemKind, PayableInvoiceRow, PayableInvoiceLine, PayableInvoiceRecipient, PayableInvoiceGroupSummary, PayableInvoiceDocumentData, toPayableAmount, isPayableInvoiceType, formatPayableAmount, formatPayableDate, formatPayablePeriod, getPayableInvoiceStatusLabel, getPayableInvoiceStatusClass, normalizePayableInvoiceItemKind, getPayableInvoiceGroupMeta, buildPayableInvoiceGroups, buildPayableInvoiceRecipient, buildPayableInvoiceDocumentData.",
    "path": "src/lib/payableInvoice.ts",
    "line": 1,
    "surface": null,
@@ -138681,11 +138870,10 @@
     "getPayableInvoiceStatusLabel",
     "isPayableInvoiceType",
     "normalizePayableInvoiceItemKind",
-    "stripe",
     "supabase",
     "toPayableAmount"
    ],
-   "detailRef": "5e872e4e7a5a"
+   "detailRef": "a5e5bccecb54"
   },
   {
    "id": "code-module:2d770d8e01cc",
@@ -141382,10 +141570,9 @@
    "surface": null,
    "tags": [
     "default",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "44ddc1a7afaf"
+   "detailRef": "c47e0a694e6d"
   },
   {
    "id": "code-module:66a4836cdc15",
@@ -141646,15 +141833,16 @@
    "id": "code-module:075e623eff2f",
    "type": "code-module",
    "title": "src/pages/admin/DropsManagement.tsx",
-   "description": "Module de 394 lignes; exports: default.",
+   "description": "Module de 397 lignes; exports: default.",
    "path": "src/pages/admin/DropsManagement.tsx",
    "line": 1,
    "surface": null,
    "tags": [
+    "VITE_GOLDEN_TOK_ENABLED",
     "default",
     "supabase"
    ],
-   "detailRef": "899b22665fff"
+   "detailRef": "96bcf3089691"
   },
   {
    "id": "code-module:c3bf08e13b06",
@@ -142018,15 +142206,16 @@
    "id": "code-module:b7e50e95ad4a",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardFormules.tsx",
-   "description": "Module de 2032 lignes; exports: default.",
+   "description": "Module de 2037 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardFormules.tsx",
    "line": 1,
    "surface": null,
    "tags": [
+    "VITE_GOLDEN_TOK_ENABLED",
     "default",
     "supabase"
    ],
-   "detailRef": "9153a1c92996"
+   "detailRef": "0b0c30e59a46"
   },
   {
    "id": "code-module:54b4a16faa4d",
@@ -143073,7 +143262,7 @@
    "id": "code-module:99cbe1539462",
    "type": "code-module",
    "title": "src/test/application-search-index.test.ts",
-   "description": "Module de 189 lignes; exports: aucun export statique.",
+   "description": "Module de 190 lignes; exports: aucun export statique.",
    "path": "src/test/application-search-index.test.ts",
    "line": 1,
    "surface": null,
@@ -143083,7 +143272,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "a3a624f05073"
+   "detailRef": "2c442da7cc3f"
   },
   {
    "id": "code-module:f6d47cf3df51",
@@ -143494,14 +143683,14 @@
    "id": "code-module:9d85656bda0b",
    "type": "code-module",
    "title": "src/test/chef-table-vip-miamz-access.test.ts",
-   "description": "Module de 77 lignes; exports: aucun export statique.",
+   "description": "Module de 79 lignes; exports: aucun export statique.",
    "path": "src/test/chef-table-vip-miamz-access.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "55232de689b2"
+   "detailRef": "ee02bf43f885"
   },
   {
    "id": "code-module:a1207c4a8469",
@@ -145327,6 +145516,21 @@
     "supabase"
    ],
    "detailRef": "09a378bbe7b5"
+  },
+  {
+   "id": "code-module:a8512244ead0",
+   "type": "code-module",
+   "title": "src/test/golden-tok-accreditation.test.ts",
+   "description": "Module de 93 lignes; exports: aucun export statique.",
+   "path": "src/test/golden-tok-accreditation.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "VITE_GOLDEN_TOK_ENABLED",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "49429d4ca36b"
   },
   {
    "id": "code-module:af90a689e08c",
@@ -149570,20 +149774,6 @@
    "detailRef": "a5cfbb5001e3"
   },
   {
-   "id": "code-module:7484ad1ec1ed",
-   "type": "code-module",
-   "title": "src/test/tok-canonical-subscription-invoice.test.ts",
-   "description": "Module de 97 lignes; exports: aucun export statique.",
-   "path": "src/test/tok-canonical-subscription-invoice.test.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "stripe",
-    "supabase"
-   ],
-   "detailRef": "836375ddf3da"
-  },
-  {
    "id": "code-module:f6990f00d43c",
    "type": "code-module",
    "title": "src/test/tok-connect-admin-humanized.test.ts",
@@ -152078,7 +152268,7 @@
    "id": "code-module:ee34f3a570c0",
    "type": "code-module",
    "title": "supabase/functions/create-checkout/index.ts",
-   "description": "Module de 2763 lignes; exports: aucun export statique.",
+   "description": "Module de 2774 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-checkout/index.ts",
    "line": 1,
    "surface": null,
@@ -152086,7 +152276,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "5b485ee86df3"
+   "detailRef": "2488affeec24"
   },
   {
    "id": "code-module:4160ab4db106",
@@ -152408,6 +152598,20 @@
     "supabase"
    ],
    "detailRef": "0ad291ee9dc5"
+  },
+  {
+   "id": "code-module:26fbb02a49f5",
+   "type": "code-module",
+   "title": "supabase/functions/golden-tok-membership/index.ts",
+   "description": "Module de 222 lignes; exports: aucun export statique.",
+   "path": "supabase/functions/golden-tok-membership/index.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "GOLDEN_TOK_STRIPE_PRICE_ID",
+    "stripe"
+   ],
+   "detailRef": "c7c5efdb895c"
   },
   {
    "id": "code-module:8fab026bf061",
@@ -152981,7 +153185,7 @@
    "id": "code-module:9ac355dfd729",
    "type": "code-module",
    "title": "supabase/functions/stripe-webhook/index.ts",
-   "description": "Module de 3400 lignes; exports: aucun export statique.",
+   "description": "Module de 3490 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-webhook/index.ts",
    "line": 1,
    "surface": null,
@@ -152989,7 +153193,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "e19d1be2197f"
+   "detailRef": "21071f104367"
   },
   {
    "id": "code-module:f3fa7c18e7bc",
@@ -159540,6 +159744,21 @@
     "supabase"
    ],
    "detailRef": "c4b8a58e3be2"
+  },
+  {
+   "id": "database-object:e7fc2c8f7a33",
+   "type": "database-object",
+   "title": "golden_tok_accreditations_review_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "108fef3b3578"
   },
   {
    "id": "database-object:4b229ea8da74",
@@ -169922,6 +170141,21 @@
    "detailRef": "f063775a61f4"
   },
   {
+   "id": "database-object:adecdf40ae7b",
+   "type": "database-object",
+   "title": "public.admin_review_golden_tok_accreditation",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "line": 90,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "d190daa49271"
+  },
+  {
    "id": "database-object:c55b17e9ddc2",
    "type": "database-object",
    "title": "public.admin_review_signup_application",
@@ -171255,6 +171489,21 @@
     "supabase"
    ],
    "detailRef": "c41ee496941e"
+  },
+  {
+   "id": "database-object:e353c65c4465",
+   "type": "database-object",
+   "title": "public.apply_golden_tok_accreditation",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "line": 41,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "52dffa76f2b6"
   },
   {
    "id": "database-object:a4b2e9751ccf",
@@ -172697,19 +172946,19 @@
    "detailRef": "2a962f96dec8"
   },
   {
-   "id": "database-object:29f23374b60f",
+   "id": "database-object:d1efee135c12",
    "type": "database-object",
    "title": "public.chef_table_drops.chef_table_drops_public_select",
-   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260604023000_admin_chef_table_drop_governance.sql",
-   "line": 15,
+   "description": "Objet PostgreSQL de type policy; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "line": 158,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "384a8a6d8797"
+   "detailRef": "4328b7c670f8"
   },
   {
    "id": "database-object:665714e4a707",
@@ -178187,19 +178436,19 @@
    "detailRef": "e416ab9f35e9"
   },
   {
-   "id": "database-object:17f5a4e7cb3e",
+   "id": "database-object:ef48f3fff144",
    "type": "database-object",
    "title": "public.get_payable_invoice_lines",
-   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
-   "line": 4,
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20260422193000_unified_payable_invoice.sql",
+   "line": 104,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "b0687ebaa897"
+   "detailRef": "cd562e9646db"
   },
   {
    "id": "database-object:7f2d80620f3c",
@@ -178785,6 +179034,51 @@
     "table"
    ],
    "detailRef": "7102e6ecd2c1"
+  },
+  {
+   "id": "database-object:db08b7fff9c2",
+   "type": "database-object",
+   "title": "public.golden_tok_accreditations.golden_tok_accreditations_owner_or_admin_read",
+   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "line": 37,
+   "surface": null,
+   "tags": [
+    "policy",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "3de508393715"
+  },
+  {
+   "id": "database-object:765dd627774a",
+   "type": "database-object",
+   "title": "public.golden_tok_accreditations",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "38fed4650257"
+  },
+  {
+   "id": "database-object:35acdaefce0c",
+   "type": "database-object",
+   "title": "public.golden_tok_restaurant_is_paid",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "line": 137,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "9e1a02641c89"
   },
   {
    "id": "database-object:e6526496acf5",
@@ -188040,6 +188334,21 @@
     "supabase"
    ],
    "detailRef": "49089b338b83"
+  },
+  {
+   "id": "database-object:021db6b7e4f6",
+   "type": "database-object",
+   "title": "public.restaurant_save_golden_tok_drop",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "line": 172,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "fc713a698fca"
   },
   {
    "id": "database-object:34fad0876655",
@@ -210517,20 +210826,6 @@
    "detailRef": "6082925f9cec"
   },
   {
-   "id": "document-section:110bdca934a8",
-   "type": "document-section",
-   "title": "Factures canonique TOK",
-   "description": "Section de Versement développeur sans Stripe Connect : PostFinance.",
-   "path": "docs/runbooks/tok-developer-bank-payouts.md",
-   "line": 38,
-   "surface": null,
-   "tags": [
-    "Versement développeur sans Stripe Connect : PostFinance",
-    "h2"
-   ],
-   "detailRef": "f5aca480db8b"
-  },
-  {
    "id": "document-section:8335259f75aa",
    "type": "document-section",
    "title": "Factures compta - detail complet des lignes",
@@ -218327,20 +218622,6 @@
     "h2"
    ],
    "detailRef": "8d763653d3ef"
-  },
-  {
-   "id": "document-section:0c6823003a66",
-   "type": "document-section",
-   "title": "Processus recommandé",
-   "description": "Section de Versement développeur sans Stripe Connect : PostFinance.",
-   "path": "docs/runbooks/tok-developer-bank-payouts.md",
-   "line": 8,
-   "surface": null,
-   "tags": [
-    "Versement développeur sans Stripe Connect : PostFinance",
-    "h2"
-   ],
-   "detailRef": "03d6ee919866"
   },
   {
    "id": "document-section:3359fd2015a4",
@@ -227877,20 +228158,6 @@
    "detailRef": "c5785690b266"
   },
   {
-   "id": "document-section:39b95a290144",
-   "type": "document-section",
-   "title": "Versement développeur sans Stripe Connect : PostFinance",
-   "description": "Section de Versement développeur sans Stripe Connect : PostFinance.",
-   "path": "docs/runbooks/tok-developer-bank-payouts.md",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "Versement développeur sans Stripe Connect : PostFinance",
-    "h1"
-   ],
-   "detailRef": "b6e25e0dc4d2"
-  },
-  {
    "id": "document-section:58f2d0b0a5f0",
    "type": "document-section",
    "title": "Voir et exporter",
@@ -229373,20 +229640,6 @@
     "h2"
    ],
    "detailRef": "7c701cf6707d"
-  },
-  {
-   "id": "document-section:2eb7a1299239",
-   "type": "document-section",
-   "title": "Émetteur légal TOK (registre du commerce de Genève)",
-   "description": "Section de Versement développeur sans Stripe Connect : PostFinance.",
-   "path": "docs/runbooks/tok-developer-bank-payouts.md",
-   "line": 57,
-   "surface": null,
-   "tags": [
-    "Versement développeur sans Stripe Connect : PostFinance",
-    "h2"
-   ],
-   "detailRef": "2cfecfea4cab"
   },
   {
    "id": "document-section:9fcd2ff83618",
@@ -233985,22 +234238,6 @@
    "detailRef": "acd21132aba6"
   },
   {
-   "id": "document:39b95a290144",
-   "type": "document",
-   "title": "Versement développeur sans Stripe Connect : PostFinance",
-   "description": "Document Markdown avec 4 section(s).",
-   "path": "docs/runbooks/tok-developer-bank-payouts.md",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "Factures canonique TOK",
-    "Processus recommandé",
-    "Versement développeur sans Stripe Connect : PostFinance",
-    "Émetteur légal TOK (registre du commerce de Genève)"
-   ],
-   "detailRef": "79bf475b3ac0"
-  },
-  {
    "id": "document:40329c68a3f3",
    "type": "document",
    "title": "What happened",
@@ -234246,6 +234483,20 @@
     "print-export"
    ],
    "detailRef": "88310ef4328f"
+  },
+  {
+   "id": "edge-action:b273f0b7774d",
+   "type": "edge-action",
+   "title": "cancel",
+   "description": "Action statiquement détectée dans la fonction Edge golden-tok-membership.",
+   "path": "supabase/functions/golden-tok-membership/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/golden-tok-membership",
+    "golden-tok-membership"
+   ],
+   "detailRef": "897dad724075"
   },
   {
    "id": "edge-action:21259ee89a93",
@@ -235340,6 +235591,20 @@
    "detailRef": "9d2367a4e3a2"
   },
   {
+   "id": "edge-action:5c0782c32017",
+   "type": "edge-action",
+   "title": "resume",
+   "description": "Action statiquement détectée dans la fonction Edge golden-tok-membership.",
+   "path": "supabase/functions/golden-tok-membership/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/golden-tok-membership",
+    "golden-tok-membership"
+   ],
+   "detailRef": "b3b28706625e"
+  },
+  {
    "id": "edge-action:bcb4bcbc3d68",
    "type": "edge-action",
    "title": "resume",
@@ -235604,6 +235869,20 @@
     "crm-mfa-recovery"
    ],
    "detailRef": "3a2cf531e8d8"
+  },
+  {
+   "id": "edge-action:f082bd475d6b",
+   "type": "edge-action",
+   "title": "string",
+   "description": "Action statiquement détectée dans la fonction Edge golden-tok-membership.",
+   "path": "supabase/functions/golden-tok-membership/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/golden-tok-membership",
+    "golden-tok-membership"
+   ],
+   "detailRef": "c3dd85e63839"
   },
   {
    "id": "edge-action:4cf72f9b4dd7",
@@ -236198,7 +236477,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "fbc8015d5a82"
+   "detailRef": "9a6e9c51eb28"
   },
   {
    "id": "edge-function:8e9e04a29952",
@@ -236299,7 +236578,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "9cb597bf16e6"
+   "detailRef": "a1470e8c5dd4"
   },
   {
    "id": "edge-function:7a772e15f6d3",
@@ -236783,6 +237062,24 @@
    "detailRef": "110f38bc6316"
   },
   {
+   "id": "edge-function:a4c0d8e6ce0d",
+   "type": "edge-function",
+   "title": "golden-tok-membership",
+   "description": "Fonction Edge POST; JWT config=false.",
+   "path": "supabase/functions/golden-tok-membership/index.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "GOLDEN_TOK_STRIPE_PRICE_ID",
+    "POST",
+    "cancel",
+    "resume",
+    "string",
+    "stripe"
+   ],
+   "detailRef": "b56323547684"
+  },
+  {
    "id": "edge-function:05af66aa208e",
    "type": "edge-function",
    "title": "google-actions-center-sync",
@@ -236874,7 +237171,7 @@
     "run_item",
     "supabase"
    ],
-   "detailRef": "74f0a2a1d70f"
+   "detailRef": "2b2188ba85f6"
   },
   {
    "id": "edge-function:ea04d0a7dc94",
@@ -236887,7 +237184,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "1c86c2b87d44"
+   "detailRef": "95a3076e3c43"
   },
   {
    "id": "edge-function:766b313fa071",
@@ -236901,7 +237198,7 @@
     "GET",
     "POST"
    ],
-   "detailRef": "2d1373480796"
+   "detailRef": "0774e1af4aea"
   },
   {
    "id": "edge-function:b0143386fc19",
@@ -236915,7 +237212,7 @@
     "POST",
     "openai"
    ],
-   "detailRef": "22cc1be6c7c4"
+   "detailRef": "7532cd3c057a"
   },
   {
    "id": "edge-function:636bb88e8d73",
@@ -236999,7 +237296,7 @@
     "settings",
     "update_settings"
    ],
-   "detailRef": "50e1a39ef740"
+   "detailRef": "64f5bbd10a92"
   },
   {
    "id": "edge-function:6744b1da8833",
@@ -237019,7 +237316,7 @@
     "map",
     "sync"
    ],
-   "detailRef": "4a15a5633716"
+   "detailRef": "34ed6cfc6df3"
   },
   {
    "id": "edge-function:4202905f7b82",
@@ -237037,7 +237334,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ebc34f883194"
+   "detailRef": "322e63f67e26"
   },
   {
    "id": "edge-function:895f528e4b5c",
@@ -237051,7 +237348,7 @@
     "POST",
     "approve"
    ],
-   "detailRef": "16e8dbaadcac"
+   "detailRef": "931b0f243738"
   },
   {
    "id": "edge-function:2d7ec7a7fbe0",
@@ -237068,7 +237365,7 @@
     "stop",
     "stripe"
    ],
-   "detailRef": "e459e7d65818"
+   "detailRef": "5efae4bd3678"
   },
   {
    "id": "edge-function:00482f3f0a8a",
@@ -237086,7 +237383,7 @@
     "reorder",
     "stripe"
    ],
-   "detailRef": "5ac9fe4de6ed"
+   "detailRef": "2d445bc0ceb3"
   },
   {
    "id": "edge-function:d4675b82f334",
@@ -237099,7 +237396,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "6504c23f6a98"
+   "detailRef": "d9b9179af16d"
   },
   {
    "id": "edge-function:93cadf906a52",
@@ -237112,7 +237409,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "06bd5d4a7653"
+   "detailRef": "df4b6cce4844"
   },
   {
    "id": "edge-function:12f5ed65e97d",
@@ -237128,7 +237425,7 @@
     "SITE_URL",
     "stripe"
    ],
-   "detailRef": "8263c27251e9"
+   "detailRef": "84160259f933"
   },
   {
    "id": "edge-function:c64ea182a555",
@@ -237189,7 +237486,7 @@
     "OPTIONS",
     "supabase"
    ],
-   "detailRef": "ab1f62d20122"
+   "detailRef": "acb9a778c274"
   },
   {
    "id": "edge-function:ee5743deb4a2",
@@ -237222,7 +237519,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "52937e1b58c1"
+   "detailRef": "5afeb8bb05e8"
   },
   {
    "id": "edge-function:c069d76c1b37",
@@ -237236,7 +237533,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "e3cc7dd2d2df"
+   "detailRef": "0fe164066b6d"
   },
   {
    "id": "edge-function:8f850940a2c6",
@@ -237251,7 +237548,7 @@
     "openai",
     "stripe"
    ],
-   "detailRef": "9933cf6d0bdb"
+   "detailRef": "19795cf5855c"
   },
   {
    "id": "edge-function:d9d1b11c432b",
@@ -237267,7 +237564,7 @@
     "add_ai_creation_to_gallery",
     "string"
    ],
-   "detailRef": "7aefa9b3709c"
+   "detailRef": "420a3e03b960"
   },
   {
    "id": "edge-function:44ed8631d43d",
@@ -237280,7 +237577,7 @@
    "tags": [
     "ANY"
    ],
-   "detailRef": "68cce03ae8b0"
+   "detailRef": "6b8f29de7c32"
   },
   {
    "id": "edge-function:4a0e241783e5",
@@ -237295,7 +237592,7 @@
     "POST",
     "supabase"
    ],
-   "detailRef": "642eb2130847"
+   "detailRef": "9f6e26c2e977"
   },
   {
    "id": "edge-function:482e409f0108",
@@ -237317,7 +237614,7 @@
     "resend",
     "supabase"
    ],
-   "detailRef": "fd2e786aba82"
+   "detailRef": "e9c9276d8ce0"
   },
   {
    "id": "edge-function:63a0488de187",
@@ -237335,7 +237632,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "7f03f0febd53"
+   "detailRef": "eb47c9fea318"
   },
   {
    "id": "edge-function:4b955302ab67",
@@ -237349,7 +237646,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "c0fef5b8153c"
+   "detailRef": "65308dd667c6"
   },
   {
    "id": "edge-function:96edd241b1ec",
@@ -237363,7 +237660,7 @@
     "POST",
     "stripe"
    ],
-   "detailRef": "b8802a844c0a"
+   "detailRef": "c84039a66512"
   },
   {
    "id": "edge-function:8e0ac9e090fa",
@@ -237377,7 +237674,7 @@
     "POST",
     "stripe"
    ],
-   "detailRef": "6e1386a9f1db"
+   "detailRef": "c01f3259c54f"
   },
   {
    "id": "edge-function:72765419a956",
@@ -237407,7 +237704,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "8470e509b365"
+   "detailRef": "f65476abeba3"
   },
   {
    "id": "edge-function:f46a6de88d5a",
@@ -237422,7 +237719,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "a8ca6f66eccc"
+   "detailRef": "8734b26e099b"
   },
   {
    "id": "edge-function:955e7c78a21a",
@@ -237439,7 +237736,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "14074843fc63"
+   "detailRef": "24709be978ce"
   },
   {
    "id": "edge-function:6955272728a1",
@@ -237452,7 +237749,7 @@
    "tags": [
     "ANY"
    ],
-   "detailRef": "b864b8027297"
+   "detailRef": "11c4324f636b"
   },
   {
    "id": "edge-function:debd98d4a448",
@@ -237465,7 +237762,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "99988f262bca"
+   "detailRef": "8e21957d2cde"
   },
   {
    "id": "edge-function:8e71119bbca0",
@@ -237482,7 +237779,7 @@
     "set-restaurant-mcp-access",
     "supabase"
    ],
-   "detailRef": "2ce3eca7bdcc"
+   "detailRef": "e88e4a1b3f8e"
   },
   {
    "id": "edge-function:d39678843030",
@@ -237496,7 +237793,7 @@
     "GET",
     "POST"
    ],
-   "detailRef": "46389a08e99d"
+   "detailRef": "a9b74bfcaa37"
   },
   {
    "id": "edge-function:06314d9483f8",
@@ -237519,7 +237816,7 @@
     "supabase",
     "update"
    ],
-   "detailRef": "240721ae9494"
+   "detailRef": "28b00a138d8f"
   },
   {
    "id": "edge-function:4ae45b142614",
@@ -237539,7 +237836,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "e008e028b2d3"
+   "detailRef": "00ba46f4f201"
   },
   {
    "id": "edge-function:c9c1a5f4268f",
@@ -237560,7 +237857,7 @@
     "rpc",
     "supabase"
    ],
-   "detailRef": "b88005664649"
+   "detailRef": "797f525a217b"
   },
   {
    "id": "edge-function:f38098ad6d58",
@@ -237580,7 +237877,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "375f4ea46d3d"
+   "detailRef": "1480378ad7a6"
   },
   {
    "id": "edge-function:c07dbf75dc6d",
@@ -237600,7 +237897,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "83237706adc8"
+   "detailRef": "f486d47a9d7c"
   },
   {
    "id": "edge-function:4576e3c0c057",
@@ -237616,7 +237913,7 @@
     "SUPABASE_SERVICE_ROLE_KEY",
     "supabase"
    ],
-   "detailRef": "6fe2e3d8f234"
+   "detailRef": "868c97b84951"
   },
   {
    "id": "edge-function:19db644bfd2f",
@@ -237646,7 +237943,7 @@
     "update-grant-status",
     "upsert-restaurant-grant"
    ],
-   "detailRef": "bed7fd805d6e"
+   "detailRef": "d28d68941b3f"
   },
   {
    "id": "edge-function:2b5564847db9",
@@ -237665,7 +237962,7 @@
     "TOK_CONNECT_PUBLIC_ORIGIN",
     "supabase"
    ],
-   "detailRef": "0207fed13b34"
+   "detailRef": "012f12c653be"
   },
   {
    "id": "edge-function:18e2720fac44",
@@ -237679,7 +237976,7 @@
     "POST",
     "supabase"
    ],
-   "detailRef": "d75cf04208fa"
+   "detailRef": "243f687bc39f"
   },
   {
    "id": "edge-function:c49d4f8a4fa9",
@@ -237695,7 +237992,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "042006f82b3e"
+   "detailRef": "409232f8e4a9"
   },
   {
    "id": "edge-function:c25351474d05",
@@ -237712,7 +238009,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "96382bea3e3a"
+   "detailRef": "8165dab00a8f"
   },
   {
    "id": "edge-function:4dcfc3d7fc50",
@@ -237729,7 +238026,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "568d201b3f0a"
+   "detailRef": "d64c75826e6d"
   },
   {
    "id": "edge-function:dd31c294fa37",
@@ -237746,7 +238043,7 @@
     "SITE_URL",
     "stripe"
    ],
-   "detailRef": "fb9994f80379"
+   "detailRef": "0f85f138ace0"
   },
   {
    "id": "edge-function:4bdac8cea73e",
@@ -238556,6 +238853,19 @@
     "scripts/ci-change-plan.mjs"
    ],
    "detailRef": "c79f937126a4"
+  },
+  {
+   "id": "environment-variable:3666f2d4e955",
+   "type": "environment-variable",
+   "title": "GOLDEN_TOK_STRIPE_PRICE_ID",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "supabase/functions/golden-tok-membership/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "supabase/functions/golden-tok-membership/index.ts"
+   ],
+   "detailRef": "9f281f980561"
   },
   {
    "id": "environment-variable:3ce4aba8f4bf",
@@ -240290,6 +240600,21 @@
     "src/lib/env.ts"
    ],
    "detailRef": "0e7ac71c8d5b"
+  },
+  {
+   "id": "environment-variable:6a970b97c27f",
+   "type": "environment-variable",
+   "title": "VITE_GOLDEN_TOK_ENABLED",
+   "description": "Nom de variable d’environnement référencé dans 3 module(s); aucune valeur n’est indexée.",
+   "path": "src/pages/admin/DropsManagement.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "src/pages/admin/DropsManagement.tsx",
+    "src/pages/dashboard/DashboardFormules.tsx",
+    "src/test/golden-tok-accreditation.test.ts"
+   ],
+   "detailRef": "2105ac221006"
   },
   {
    "id": "environment-variable:02598843aa08",
@@ -253726,34 +254051,32 @@
    "detailRef": "6cd6208992f5"
   },
   {
-   "id": "exported-symbol:3d449e628de5",
+   "id": "exported-symbol:5af806ad9ce7",
    "type": "exported-symbol",
    "title": "PayableInvoiceDocumentData",
    "description": "Export typealias de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 91,
+   "line": 89,
    "surface": null,
    "tags": [
-    "stripe",
     "supabase",
     "typealias"
    ],
-   "detailRef": "8e192ff5d39d"
+   "detailRef": "420fd51978a4"
   },
   {
-   "id": "exported-symbol:da0a09aa2fb7",
+   "id": "exported-symbol:1db77f27186c",
    "type": "exported-symbol",
    "title": "PayableInvoiceGroupSummary",
    "description": "Export typealias de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 74,
+   "line": 72,
    "surface": null,
    "tags": [
-    "stripe",
     "supabase",
     "typealias"
    ],
-   "detailRef": "7111518fdb5d"
+   "detailRef": "04a7f10d6fc4"
   },
   {
    "id": "exported-symbol:4dadae8bc002",
@@ -253764,7 +254087,6 @@
    "line": 13,
    "surface": null,
    "tags": [
-    "stripe",
     "supabase",
     "typealias"
    ],
@@ -253779,7 +254101,6 @@
    "line": 44,
    "surface": null,
    "tags": [
-    "stripe",
     "supabase",
     "typealias"
    ],
@@ -253794,7 +254115,6 @@
    "line": 62,
    "surface": null,
    "tags": [
-    "stripe",
     "supabase",
     "typealias"
    ],
@@ -253809,7 +254129,6 @@
    "line": 23,
    "surface": null,
    "tags": [
-    "stripe",
     "supabase",
     "typealias"
    ],
@@ -253824,7 +254143,6 @@
    "line": 12,
    "surface": null,
    "tags": [
-    "stripe",
     "supabase",
     "typealias"
    ],
@@ -253839,7 +254157,6 @@
    "line": 11,
    "surface": null,
    "tags": [
-    "stripe",
     "supabase",
     "typealias"
    ],
@@ -256129,7 +256446,6 @@
    "line": 7,
    "surface": null,
    "tags": [
-    "stripe",
     "supabase",
     "typealias"
    ],
@@ -256144,7 +256460,6 @@
    "line": 9,
    "surface": null,
    "tags": [
-    "stripe",
     "supabase",
     "typealias"
    ],
@@ -256405,7 +256720,6 @@
    "line": 8,
    "surface": null,
    "tags": [
-    "stripe",
     "supabase",
     "typealias"
    ],
@@ -263526,49 +263840,46 @@
    "detailRef": "01a4297ef328"
   },
   {
-   "id": "exported-symbol:3b1b50e3cc36",
+   "id": "exported-symbol:9442b31be154",
    "type": "exported-symbol",
    "title": "buildPayableInvoiceDocumentData",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 428,
+   "line": 420,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "622432d4034c"
+   "detailRef": "206d73071a9a"
   },
   {
-   "id": "exported-symbol:0b1352dcb376",
+   "id": "exported-symbol:d8a39580f6ae",
    "type": "exported-symbol",
    "title": "buildPayableInvoiceGroups",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 330,
+   "line": 322,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "4f5bb7b4f783"
+   "detailRef": "a61469e6da1e"
   },
   {
-   "id": "exported-symbol:a2a5e0b51b09",
+   "id": "exported-symbol:a61ce6be7d8a",
    "type": "exported-symbol",
    "title": "buildPayableInvoiceRecipient",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 395,
+   "line": 387,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "68e8bdd66a46"
+   "detailRef": "56b4e4b3e591"
   },
   {
    "id": "exported-symbol:cbb3bbd83ea0",
@@ -267422,6 +267733,34 @@
    "detailRef": "c31d75e6188a"
   },
   {
+   "id": "exported-symbol:dc5e38b714c7",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/admin/GoldenTokReviewPanel.tsx.",
+   "path": "src/components/admin/GoldenTokReviewPanel.tsx",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "f6ad11948f69"
+  },
+  {
+   "id": "exported-symbol:acbe79ec3eac",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/admin/RestaurantSearchSelect.tsx.",
+   "path": "src/components/admin/RestaurantSearchSelect.tsx",
+   "line": 18,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "64c0644642e8"
+  },
+  {
    "id": "exported-symbol:282af76f3648",
    "type": "exported-symbol",
    "title": "default",
@@ -267933,6 +268272,21 @@
     "supabase"
    ],
    "detailRef": "700e13046dca"
+  },
+  {
+   "id": "exported-symbol:3b6fb60e1aee",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/dashboard/GoldenTokPanel.tsx.",
+   "path": "src/components/dashboard/GoldenTokPanel.tsx",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "447b1b1db7fc"
   },
   {
    "id": "exported-symbol:efe615403574",
@@ -269943,7 +270297,6 @@
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
    "detailRef": "a1063ef8e2fa"
@@ -270203,18 +270556,18 @@
    "detailRef": "fefbe03afd0e"
   },
   {
-   "id": "exported-symbol:6312156dc196",
+   "id": "exported-symbol:391539f72471",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/admin/DropsManagement.tsx.",
    "path": "src/pages/admin/DropsManagement.tsx",
-   "line": 32,
+   "line": 35,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "57689e50b20d"
+   "detailRef": "700e13046dca"
   },
   {
    "id": "exported-symbol:7893b673717e",
@@ -270480,18 +270833,18 @@
    "detailRef": "6ea47572b244"
   },
   {
-   "id": "exported-symbol:1f5e9ad68f1f",
+   "id": "exported-symbol:09689b44b699",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardFormules.tsx.",
    "path": "src/pages/dashboard/DashboardFormules.tsx",
-   "line": 1513,
+   "line": 1514,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "a6a5b02a4a5d"
+   "detailRef": "2d0b0bbbb7d5"
   },
   {
    "id": "exported-symbol:f84397792633",
@@ -270881,79 +271234,79 @@
    "detailRef": "35cf2f09a4fb"
   },
   {
-   "id": "exported-symbol:46b7333dd8a6",
+   "id": "exported-symbol:4daf504b7ba1",
    "type": "exported-symbol",
    "title": "describeAuditAction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 484,
+   "line": 485,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b90b791bbf96"
+   "detailRef": "510398973d96"
   },
   {
-   "id": "exported-symbol:1acaec08b34c",
+   "id": "exported-symbol:f9ea46bb7ff0",
    "type": "exported-symbol",
    "title": "describeAuditActor",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 499,
+   "line": 500,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "65133d2ecc6c"
+   "detailRef": "5109f4f581ae"
   },
   {
-   "id": "exported-symbol:4881f83de976",
+   "id": "exported-symbol:dd26294f1247",
    "type": "exported-symbol",
    "title": "describeAuditEntity",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 492,
+   "line": 493,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "5958429935e9"
+   "detailRef": "f95415aa1aad"
   },
   {
-   "id": "exported-symbol:3815337bdd04",
+   "id": "exported-symbol:7007080de2b5",
    "type": "exported-symbol",
    "title": "describeAuditFunction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 477,
+   "line": 478,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "1cbf0a76d25f"
+   "detailRef": "04cb48327718"
   },
   {
-   "id": "exported-symbol:46caaafe2225",
+   "id": "exported-symbol:46b299d550e9",
    "type": "exported-symbol",
    "title": "describeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 628,
+   "line": 629,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b0766893ca10"
+   "detailRef": "aeeb9e430cd7"
   },
   {
    "id": "exported-symbol:10f1bf567ca4",
@@ -271617,19 +271970,19 @@
    "detailRef": "8b413b2a22c5"
   },
   {
-   "id": "exported-symbol:d0803f3bff75",
+   "id": "exported-symbol:9f92ba8eb29f",
    "type": "exported-symbol",
    "title": "explainAuditError",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 507,
+   "line": 508,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b50a1667e564"
+   "detailRef": "235177c0bbb9"
   },
   {
    "id": "exported-symbol:94c395b452eb",
@@ -272623,49 +272976,46 @@
    "detailRef": "0e7b4dfaf97a"
   },
   {
-   "id": "exported-symbol:60239f85decd",
+   "id": "exported-symbol:cb8af029b420",
    "type": "exported-symbol",
    "title": "formatPayableAmount",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 212,
+   "line": 204,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "b3ef157fd547"
+   "detailRef": "b55961c7ab01"
   },
   {
-   "id": "exported-symbol:49d34ef3e56f",
+   "id": "exported-symbol:da4f2a8d04fc",
    "type": "exported-symbol",
    "title": "formatPayableDate",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 219,
+   "line": 211,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "aa74f14f2915"
+   "detailRef": "ebd2e7dc4164"
   },
   {
-   "id": "exported-symbol:9fcf04b6fb5d",
+   "id": "exported-symbol:5a6ab5529655",
    "type": "exported-symbol",
    "title": "formatPayablePeriod",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 226,
+   "line": 218,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "41ab6fef7590"
+   "detailRef": "2a2b5ba1a5ba"
   },
   {
    "id": "exported-symbol:2040dd73b693",
@@ -275732,49 +276082,46 @@
    "detailRef": "96c7a620b800"
   },
   {
-   "id": "exported-symbol:2c606c1c1a21",
+   "id": "exported-symbol:07d6bc052655",
    "type": "exported-symbol",
    "title": "getPayableInvoiceGroupMeta",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 295,
+   "line": 287,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "9e2bf1d77176"
+   "detailRef": "d38784099a03"
   },
   {
-   "id": "exported-symbol:b593c74a244c",
+   "id": "exported-symbol:21b5f530563c",
    "type": "exported-symbol",
    "title": "getPayableInvoiceStatusClass",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 241,
+   "line": 233,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "4c6abb479a96"
+   "detailRef": "2d2d0a9e6fbe"
   },
   {
-   "id": "exported-symbol:29f499c4e117",
+   "id": "exported-symbol:c75f2a91fc5a",
    "type": "exported-symbol",
    "title": "getPayableInvoiceStatusLabel",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 230,
+   "line": 222,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "df40ca074c84"
+   "detailRef": "b0b2e493179e"
   },
   {
    "id": "exported-symbol:fc81b6b08d84",
@@ -278089,19 +278436,19 @@
    "detailRef": "dc9f63bb72e6"
   },
   {
-   "id": "exported-symbol:3e5a7e4a9827",
+   "id": "exported-symbol:d855de964287",
    "type": "exported-symbol",
    "title": "humanizeIdentifier",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 465,
+   "line": 466,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "ee689cf56868"
+   "detailRef": "cd201f4dc125"
   },
   {
    "id": "exported-symbol:cd0c65e7c41c",
@@ -279516,19 +279863,18 @@
    "detailRef": "81544de9053d"
   },
   {
-   "id": "exported-symbol:66067ae5ab20",
+   "id": "exported-symbol:9d86ecb188c5",
    "type": "exported-symbol",
    "title": "isPayableInvoiceType",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 208,
+   "line": 200,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "b8ae3a0226be"
+   "detailRef": "a4bb0593b678"
   },
   {
    "id": "exported-symbol:7ce5059b0835",
@@ -281882,19 +282228,18 @@
    "detailRef": "4cdf537e0707"
   },
   {
-   "id": "exported-symbol:13b528224bcc",
+   "id": "exported-symbol:8b5bdeadcc94",
    "type": "exported-symbol",
    "title": "normalizePayableInvoiceItemKind",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 259,
+   "line": 251,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "b21fdf28057d"
+   "detailRef": "4e46384f9e32"
   },
   {
    "id": "exported-symbol:6ac2783e845b",
@@ -286092,19 +286437,19 @@
    "detailRef": "596a9a69ebd0"
   },
   {
-   "id": "exported-symbol:396e55fc54b1",
+   "id": "exported-symbol:54e0678701fe",
    "type": "exported-symbol",
    "title": "summarizeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 632,
+   "line": 633,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "6f938fcbd0dd"
+   "detailRef": "a5e4fc639601"
   },
   {
    "id": "exported-symbol:25e70f45a5b2",
@@ -286354,19 +286699,18 @@
    "detailRef": "fd15b4b331af"
   },
   {
-   "id": "exported-symbol:4a51adfdf63f",
+   "id": "exported-symbol:27ee5d3c6a46",
    "type": "exported-symbol",
    "title": "toPayableAmount",
    "description": "Export function de src/lib/payableInvoice.ts.",
    "path": "src/lib/payableInvoice.ts",
-   "line": 203,
+   "line": 195,
    "surface": null,
    "tags": [
     "function",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "8de6d3debaed"
+   "detailRef": "ec7b72dbbcfb"
   },
   {
    "id": "exported-symbol:ed0ecbdd94c1",
@@ -294621,20 +294965,6 @@
     "documentation"
    ],
    "detailRef": "44c9ff1ddb59"
-  },
-  {
-   "id": "file:2d6aec77624e",
-   "type": "file",
-   "title": "docs/runbooks/tok-developer-bank-payouts.md",
-   "description": "Fichier du dépôt classé documentation.",
-   "path": "docs/runbooks/tok-developer-bank-payouts.md",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".md",
-    "documentation"
-   ],
-   "detailRef": "e3eb9a77679a"
   },
   {
    "id": "file:75f415953a86",
@@ -305669,6 +305999,34 @@
    "detailRef": "78119aa064a9"
   },
   {
+   "id": "file:c8b48f003e0e",
+   "type": "file",
+   "title": "src/components/admin/GoldenTokReviewPanel.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/admin/GoldenTokReviewPanel.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "3f4268b2e911"
+  },
+  {
+   "id": "file:86b6dfbe5b48",
+   "type": "file",
+   "title": "src/components/admin/RestaurantSearchSelect.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/admin/RestaurantSearchSelect.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "4aa3920952fb"
+  },
+  {
    "id": "file:0f1b4d12a4a2",
    "type": "file",
    "title": "src/components/admin/TokConnectCatalogControls.tsx",
@@ -306255,6 +306613,20 @@
     "frontend-component"
    ],
    "detailRef": "204338c8f085"
+  },
+  {
+   "id": "file:222d6c08a651",
+   "type": "file",
+   "title": "src/components/dashboard/GoldenTokPanel.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/dashboard/GoldenTokPanel.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "cbe67b71c6a5"
   },
   {
    "id": "file:db6a227c5e3c",
@@ -317275,6 +317647,20 @@
    "detailRef": "f2b7ecd4677e"
   },
   {
+   "id": "file:d4bc542424fb",
+   "type": "file",
+   "title": "src/test/golden-tok-accreditation.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/golden-tok-accreditation.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "f0a9bea36287"
+  },
+  {
    "id": "file:13a495a5209c",
    "type": "file",
    "title": "src/test/golden-tok-shell-logo.test.ts",
@@ -321951,20 +322337,6 @@
    "detailRef": "5e2e3ae83b9d"
   },
   {
-   "id": "file:4b626a97b9ef",
-   "type": "file",
-   "title": "src/test/tok-canonical-subscription-invoice.test.ts",
-   "description": "Fichier du dépôt classé test.",
-   "path": "src/test/tok-canonical-subscription-invoice.test.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "test"
-   ],
-   "detailRef": "0a7fce0dadb4"
-  },
-  {
    "id": "file:a0b4f5417628",
    "type": "file",
    "title": "src/test/tok-connect-admin-humanized.test.ts",
@@ -324441,6 +324813,20 @@
     "edge-function-source"
    ],
    "detailRef": "44c44b512b03"
+  },
+  {
+   "id": "file:533c68322d81",
+   "type": "file",
+   "title": "supabase/functions/golden-tok-membership/index.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/golden-tok-membership/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "4449bed831bc"
   },
   {
    "id": "file:4cebd107709c",
@@ -332815,6 +333201,20 @@
    "detailRef": "50ae2d603b54"
   },
   {
+   "id": "file:721d7897f967",
+   "type": "file",
+   "title": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "88e6fa2f809a"
+  },
+  {
    "id": "file:af64a52edbd6",
    "type": "file",
    "title": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
@@ -332827,20 +333227,6 @@
     "database-migration"
    ],
    "detailRef": "dad2d3c1c8b9"
-  },
-  {
-   "id": "file:780154932c00",
-   "type": "file",
-   "title": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
-   "description": "Fichier du dépôt classé database-migration.",
-   "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".sql",
-    "database-migration"
-   ],
-   "detailRef": "2ed4ca4c156f"
   },
   {
    "id": "file:e79b29a1c0b4",
@@ -336579,6 +336965,7 @@
     "src/components/commercial/CommercialDemoActorWorkspace.tsx",
     "src/components/commercial/CommercialMultiSpaceDemo.tsx",
     "src/components/dashboard/CommercialDemoScenario.tsx",
+    "src/components/dashboard/GoldenTokPanel.tsx",
     "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
     "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useAdminLaunchPacks.ts",
@@ -336597,7 +336984,6 @@
     "src/lib/iosCommerceFetch.ts",
     "src/lib/launchPacks.ts",
     "src/lib/orderConfirmation.ts",
-    "src/lib/payableInvoice.ts",
     "src/lib/paymentMethods.ts",
     "src/lib/refundMutations.ts",
     "src/lib/reservationMutations.ts",
@@ -336627,7 +337013,6 @@
     "src/pages/ZeroAttente.tsx",
     "src/pages/admin/AdminAuditLogs.tsx",
     "src/pages/admin/AdminCompta.tsx",
-    "src/pages/admin/AdminComptaInflow.tsx",
     "src/pages/admin/AdminLaunchPacks.tsx",
     "src/pages/admin/AdminOrdersReservations.tsx",
     "src/pages/admin/AdminRestaurants.tsx",
@@ -336674,6 +337059,7 @@
     "src/test/feature-flags.test.ts",
     "src/test/financial-health.test.ts",
     "src/test/git-auto-sync-scripts.test.ts",
+    "src/test/golden-tok-accreditation.test.ts",
     "src/test/incident-intelligence-routing.test.ts",
     "src/test/ios-commerce-policy.test.ts",
     "src/test/ios-storekit-subscription-management.test.ts",
@@ -336713,7 +337099,6 @@
     "src/test/stripe-security-hardening.test.ts",
     "src/test/super-admin-sensitive-rls.test.ts",
     "src/test/tok-ai-tools.test.ts",
-    "src/test/tok-canonical-subscription-invoice.test.ts",
     "src/test/tok-connect-app-bridge.test.ts",
     "src/test/tok-one-stripe-test-mode.test.ts",
     "src/test/tok-stripe-price-catalog.test.ts",
@@ -336765,6 +337150,7 @@
     "supabase/functions/create-chefs-table-reservation/index.ts",
     "supabase/functions/create-reservation/index.ts",
     "supabase/functions/create-zero-attente-reservation/index.ts",
+    "supabase/functions/golden-tok-membership/index.ts",
     "supabase/functions/google-actions-center/index.ts",
     "supabase/functions/manage-restaurant-subscription/index.ts",
     "supabase/functions/manage-tok-one-subscription/index.ts",
@@ -336794,13 +337180,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "d5848a34a36c"
+   "detailRef": "197a201c3142"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 692 module(s).",
+   "description": "Intégration externe détectée dans 695 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -336876,6 +337262,8 @@
     "src/components/admin/AdminMobileNavigation.tsx",
     "src/components/admin/AdminRealRestaurantAssignment.tsx",
     "src/components/admin/AdminUrgentActions.tsx",
+    "src/components/admin/GoldenTokReviewPanel.tsx",
+    "src/components/admin/RestaurantSearchSelect.tsx",
     "src/components/auth/AccountPasswordForm.tsx",
     "src/components/campaigns/CampaignInternalTestSummary.tsx",
     "src/components/cart/CartSuggestionsStep.tsx",
@@ -336888,6 +337276,7 @@
     "src/components/dashboard/AiStyleReferencePicker.tsx",
     "src/components/dashboard/DailyDishAiPanel.tsx",
     "src/components/dashboard/DirectReservationChannelsCard.tsx",
+    "src/components/dashboard/GoldenTokPanel.tsx",
     "src/components/dashboard/TokAiMarketingStudio.tsx",
     "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
     "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
@@ -337195,6 +337584,7 @@
     "src/test/generate-campaign-ai-optimization.test.ts",
     "src/test/generate-campaign-copy.test.ts",
     "src/test/git-auto-sync-scripts.test.ts",
+    "src/test/golden-tok-accreditation.test.ts",
     "src/test/google-actions-center-outbox.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "src/test/google-business-booking-phase1.test.ts",
@@ -337388,7 +337778,6 @@
     "src/test/thefork-image-enrichment-completion.test.ts",
     "src/test/tok-ai-platform-plan.test.ts",
     "src/test/tok-ai-tools.test.ts",
-    "src/test/tok-canonical-subscription-invoice.test.ts",
     "src/test/tok-connect-admin-humanized.test.ts",
     "src/test/tok-connect-admin-pagination.test.ts",
     "src/test/tok-connect-admin-schema-contract.test.ts",
@@ -337499,7 +337888,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "3ddab2d078b5"
+   "detailRef": "16ca96c457a6"
   },
   {
    "id": "integration:c20910a79a78",
@@ -345673,6 +346062,20 @@
    "detailRef": "b98150b2ca16"
   },
   {
+   "id": "migration:c2be902a5892",
+   "type": "migration",
+   "title": "20261014030000 Golden Tok Accreditations",
+   "description": "Migration SQL de 286 lignes, 8 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "dfcb2acecca7"
+  },
+  {
    "id": "migration:cd56f65c544a",
    "type": "migration",
    "title": "20261014072000 Developer Subscription Gross Share Before Vat",
@@ -345685,20 +346088,6 @@
     "supabase"
    ],
    "detailRef": "91b7e07366ee"
-  },
-  {
-   "id": "migration:1e5a6e063e3e",
-   "type": "migration",
-   "title": "20261014093000 Show Stripe Subscription In Tok Invoice Document",
-   "description": "Migration SQL de 59 lignes, 1 objets CREATE détectés.",
-   "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "293cb956df78"
   },
   {
    "id": "package-script:5bd6dc98483a",
@@ -346815,10 +347204,9 @@
    "surface": null,
    "tags": [
     "/admin/compta/entrees",
-    "stripe",
     "supabase"
    ],
-   "detailRef": "75dedda4d950"
+   "detailRef": "e501f13a8e61"
   },
   {
    "id": "page:7a6492278026",
@@ -347691,7 +348079,7 @@
     "/dashboard/formules",
     "supabase"
    ],
-   "detailRef": "e6bbfba54462"
+   "detailRef": "05dadbfa3c04"
   },
   {
    "id": "page:122f9911f8cc",
@@ -347937,7 +348325,7 @@
     "/admin/drops",
     "supabase"
    ],
-   "detailRef": "c41eb3a4ad55"
+   "detailRef": "70e0d9f99c5a"
   },
   {
    "id": "page:bcdecca0a509",
@@ -348516,19 +348904,19 @@
    "detailRef": "85882b5af230"
   },
   {
-   "id": "path-literal:512c511186d2",
+   "id": "path-literal:ef59400657fa",
    "type": "path-literal",
    "title": "/.well-known/apple-app-site-association",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 73,
+   "line": 74,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/mobile-association-hosting.test.ts",
     "src/test/production-preflight-hardening.test.ts"
    ],
-   "detailRef": "6b1dc23f63b0"
+   "detailRef": "3192cde26595"
   },
   {
    "id": "path-literal:552e0fdf1ace",
@@ -349480,7 +349868,7 @@
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/user-guide.test.ts"
    ],
-   "detailRef": "4f4cca32d12c"
+   "detailRef": "3449f5b365ca"
   },
   {
    "id": "path-literal:1a801a80038d",
@@ -349989,7 +350377,7 @@
     "src/marketing/marketingBffClient.ts",
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "5f297430c224"
+   "detailRef": "a97cf0891427"
   },
   {
    "id": "path-literal:57e613573c20",
@@ -350089,7 +350477,7 @@
     "src/test/marketing-bff-client.test.ts",
     "src/test/marketing-session-recovery.test.tsx"
    ],
-   "detailRef": "313745030b3e"
+   "detailRef": "b33c59c00111"
   },
   {
    "id": "path-literal:4457ca298944",
@@ -350958,7 +351346,7 @@
     "scripts/application-index-core.mjs",
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "65967804c006"
+   "detailRef": "54fe1d0d8a77"
   },
   {
    "id": "path-literal:cf29ad085917",
@@ -351581,7 +351969,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "863826c8941b"
+   "detailRef": "87381ea8b604"
   },
   {
    "id": "path-literal:b6abce7fd060",
@@ -351892,7 +352280,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "21c3a686b96b"
+   "detailRef": "d1ad240f074c"
   },
   {
    "id": "path-literal:066026c7496d",
@@ -351959,7 +352347,7 @@
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "6df08939173d"
+   "detailRef": "567fbed2ee0a"
   },
   {
    "id": "path-literal:d7fb77c2dbf9",
@@ -352282,7 +352670,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "3d336b432c9b"
+   "detailRef": "370e5a036757"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -352862,18 +353250,18 @@
    "detailRef": "cd6d18e3f93b"
   },
   {
-   "id": "path-literal:ff548aad270f",
+   "id": "path-literal:2f977cc5c30a",
    "type": "path-literal",
    "title": "/healthz",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 76,
+   "line": 77,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "774e78071383"
+   "detailRef": "0e1f26cd9b85"
   },
   {
    "id": "path-literal:fded681262f2",
@@ -355770,7 +356158,7 @@
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "41e54e3f6889"
+   "detailRef": "ce5583f4137b"
   },
   {
    "id": "path-literal:c76dba69accc",
@@ -355942,17 +356330,17 @@
    "detailRef": "6ae6de30c4df"
   },
   {
-   "id": "path-literal:2613fe6a401b",
+   "id": "path-literal:24b54c24c4f2",
    "type": "path-literal",
    "title": "/mon-espace?source=pwa-shortcut",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 100,
+   "line": 101,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "43c79a4d729f"
+   "detailRef": "029f2098d2d5"
   },
   {
    "id": "path-literal:6c3ccf718b08",
@@ -356046,7 +356434,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "6c8e9794accf"
+   "detailRef": "aa31cc502044"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -356519,19 +356907,19 @@
    "detailRef": "529ec0f93e0b"
   },
   {
-   "id": "path-literal:c9ee52bce6c8",
+   "id": "path-literal:9d174e444127",
    "type": "path-literal",
    "title": "/readyz",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 76,
+   "line": 77,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/image-metadata-ai.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "a2d7105448d0"
+   "detailRef": "a979bbb17705"
   },
   {
    "id": "path-literal:f7a8242103a1",
@@ -358816,7 +359204,7 @@
     "src/test/tok-connect.test.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "44310d51c4c7"
+   "detailRef": "6010a03f587f"
   },
   {
    "id": "path-literal:9615b9840a62",
@@ -358888,19 +359276,19 @@
    "detailRef": "2e706e56bb24"
   },
   {
-   "id": "path-literal:6a0ee6646c90",
+   "id": "path-literal:7b276683080d",
    "type": "path-literal",
    "title": "/v3/CreateBooking/",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 84,
+   "line": 85,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "0fc237576bf3"
+   "detailRef": "f508a5800f73"
   },
   {
    "id": "path-literal:3f16cef6b097",
@@ -358917,19 +359305,19 @@
    "detailRef": "ef8d28954ebc"
   },
   {
-   "id": "path-literal:8720637825ab",
+   "id": "path-literal:49788dc0dfa3",
    "type": "path-literal",
    "title": "/v3/HealthCheck/",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 171,
+   "line": 172,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "1e84c6187e73"
+   "detailRef": "238e3eecfcf2"
   },
   {
    "id": "path-literal:66439908047a",

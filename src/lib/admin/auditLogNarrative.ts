@@ -143,6 +143,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "scrape-restaurants": "la collecte de fiches restaurant",
   "google-actions-center": "la synchronisation avec Google Actions Center",
   "manage-restaurant-subscription": "la gestion de l’abonnement d’un restaurant",
+  "golden-tok-membership": "la gestion de l’agrément et de l’abonnement gastronomique La Tok d’Or",
   "manage-tok-one-subscription": "la gestion d’un abonnement TOK One",
   "sync-apple-storekit": "la validation et la synchronisation d’un abonnement Tok One acheté via Apple",
   "apple-storekit-webhook": "la réception des renouvellements, résiliations et remboursements Tok One envoyés par Apple",
