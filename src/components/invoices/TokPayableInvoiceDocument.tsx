@@ -263,8 +263,8 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                 {data.sender.country ? <p>{data.sender.country}</p> : null}
               </div>
               <div className={cn("mt-4 space-y-2 break-words text-sm text-slate-700", isPrintMode ? "mt-5 text-sm" : "sm:mt-6 sm:text-base")}>
-                {data.sender.enterpriseId ? <p>IDE {data.sender.enterpriseId}</p> : null}
-                {data.sender.vatNumber ? <p>TVA {data.sender.vatNumber}</p> : null}
+                {!data.sender.vatNumber && data.sender.enterpriseId ? <p>IDE {data.sender.enterpriseId}</p> : null}
+                {data.sender.vatNumber ? <p>N° TVA : {data.sender.vatNumber}</p> : null}
                 {data.sender.email ? <p>Email : {data.sender.email}</p> : null}
                 {data.sender.phone ? <p>Tel. : {data.sender.phone}</p> : null}
               </div>
@@ -507,8 +507,8 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
           >
             <div className="space-y-1 break-words">
               <p>{[data.sender.name, data.sender.addressLine1, data.sender.addressLine2, data.sender.country].filter(Boolean).join(" - ")}</p>
-              {data.sender.enterpriseId ? <p>IDE {data.sender.enterpriseId}</p> : null}
-                {data.sender.vatNumber ? <p>TVA {data.sender.vatNumber}</p> : null}
+              {!data.sender.vatNumber && data.sender.enterpriseId ? <p>IDE {data.sender.enterpriseId}</p> : null}
+                {data.sender.vatNumber ? <p>N° TVA : {data.sender.vatNumber}</p> : null}
             </div>
             <div className={cn("break-words text-left", isPrintMode ? "text-right" : "sm:text-right")}>
               <p className="font-semibold text-slate-950">{data.footerMessage}</p>
