@@ -67,6 +67,25 @@ export function sumDirectTokPurchaseRevenue(
   }, 0));
 }
 
+type DirectTokInvoiceLike = {
+  id: string;
+  invoice_type?: string | null;
+  status?: string | null;
+};
+
+/**
+ * Paid direct-purchase invoices can use either the legacy payable type or
+ * the dedicated subscription type. Reserved/failed invoices are not revenue.
+ */
+export function getPaidDirectTokInvoiceIds(invoices: readonly DirectTokInvoiceLike[]): string[] {
+  return invoices
+    .filter((invoice) => (
+      (invoice.invoice_type === "payable" || invoice.invoice_type === "subscription")
+      && String(invoice.status || "").trim().toLowerCase() === "paid"
+    ))
+    .map((invoice) => invoice.id);
+}
+
 function sumInvoices(invoices: readonly MoneyLike[]) {
   return invoices.reduce((sum, invoice) => sum + toAmount(invoice.amount_ttc), 0);
 }
