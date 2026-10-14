@@ -130,6 +130,24 @@ REVOKE ALL ON FUNCTION public.admin_review_golden_tok_accreditation(uuid,boolean
 GRANT EXECUTE ON FUNCTION public.apply_golden_tok_accreditation(uuid,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_review_golden_tok_accreditation(uuid,boolean,text) TO authenticated;
 
+-- A narrow SECURITY DEFINER boolean helper is necessary because unauthenticated
+-- customers must be able to see entitled offers without SELECT access to
+-- applicant and billing identifiers in the accreditation table.
+CREATE OR REPLACE FUNCTION public.golden_tok_restaurant_is_paid(p_restaurant_id uuid)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public, pg_temp AS $
+  SELECT EXISTS (
+    SELECT 1 FROM public.golden_tok_accreditations a
+    WHERE a.restaurant_id = p_restaurant_id
+      AND a.status = 'approved'
+      AND a.subscription_status = 'active'
+      AND a.stripe_mode = 'live'
+      AND a.current_period_end > now()
+  );
+$;
+REVOKE ALL ON FUNCTION public.golden_tok_restaurant_is_paid(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.golden_tok_restaurant_is_paid(uuid) TO anon, authenticated;
+
 -- Admin-created offers keep their existing behavior; self-published offers
 -- must cease to be publicly bookable when the paid entitlement expires.
 ALTER TABLE public.chef_table_drops
@@ -143,14 +161,7 @@ FOR SELECT USING (
   OR (
     is_active = true AND archived_at IS NULL AND (
       golden_tok_self_published = false
-      OR EXISTS (
-        SELECT 1 FROM public.golden_tok_accreditations a
-        WHERE a.restaurant_id = chef_table_drops.restaurant_id
-          AND a.status = 'approved'
-          AND a.subscription_status = 'active'
-          AND a.stripe_mode = 'live'
-          AND a.current_period_end > now()
-      )
+      OR public.golden_tok_restaurant_is_paid(restaurant_id)
     )
   )
 );
