@@ -50,7 +50,7 @@ REVOKE ALL ON private_finance.admin_ai_credit_spends
 
 CREATE OR REPLACE FUNCTION private_finance.admin_ai_gift_balance(p_restaurant_id uuid)
 RETURNS integer
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
+LANGUAGE sql VOLATILE SECURITY DEFINER SET search_path = ''
 AS $$
   SELECT COALESCE(sum(g.remaining), 0)::integer
   FROM private_finance.admin_ai_credit_grants g
@@ -375,7 +375,7 @@ CREATE OR REPLACE FUNCTION public.get_restaurant_credit_usage(
   p_until timestamptz DEFAULT NULL
 )
 RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = ''
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = ''
 AS $$
 DECLARE
   v_usage jsonb;
@@ -448,7 +448,7 @@ CREATE OR REPLACE FUNCTION public.check_restaurant_ai_quota(
   p_units integer DEFAULT 1
 )
 RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = ''
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = ''
 AS $$
 DECLARE
   v_original jsonb;
@@ -528,7 +528,12 @@ BEGIN
   ))::integer,1);
 
   PERFORM pg_advisory_xact_lock(hashtext('tok_credit_spend:' || v_restaurant::text)::bigint);
-  v_available := private_finance.admin_ai_gift_balance(v_restaurant);
+  SELECT coalesce(sum(g.remaining),0)::integer INTO v_available
+  FROM private_finance.admin_ai_credit_grants g
+  WHERE g.restaurant_id = v_restaurant
+    AND g.remaining > 0
+    AND g.granted_at <= NEW.created_at
+    AND g.expires_at > clock_timestamp();
   IF v_available >= v_required THEN
     v_remaining := v_required;
     FOR v_gift IN
