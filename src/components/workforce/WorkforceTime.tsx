@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { dateIsValid,employeeName,minutesFromTime,workedHours } from "@/lib/tokWorkforce";
 import { useWorkforceEntries,useWorkforceEmployees,useWorkforceRefresh,useWorkforceValidations,workforceDb } from "@/hooks/useTokWorkforce";
 import { useAuth } from "@/lib/auth-context";
+import WorkforceSignaturePad from "./WorkforceSignaturePad";
 
 export default function WorkforceTime({restaurantId}:{restaurantId:string}) {
   const {data:employees=[]}=useWorkforceEmployees(restaurantId,true);
@@ -20,6 +21,7 @@ export default function WorkforceTime({restaurantId}:{restaurantId:string}) {
   const [date,setDate]=useState(()=>{ const today=new Date();return [today.getFullYear(),String(today.getMonth()+1).padStart(2,"0"),String(today.getDate()).padStart(2,"0")].join("-"); });
   const [start,setStart]=useState("09:00"),[end,setEnd]=useState("17:00"),[breakMin,setBreakMin]=useState("30");
   const [name,setName]=useState("");
+  const [signature,setSignature]=useState<string|null>(null);
   const [selected,setSelected]=useState("");
   const save=useMutation({
     mutationFn:async()=>{
@@ -41,11 +43,12 @@ export default function WorkforceTime({restaurantId}:{restaurantId:string}) {
       if(!user?.id)throw new Error("Connexion requise.");
       if(name.trim().length<2||name.trim().length>120)throw new Error("Indiquez le nom du signataire.");
       if(!entries.some(e=>e.id===selected))throw new Error("Sélectionnez un relevé.");
+      if(!signature||signature.length>120000)throw new Error("Veuillez signer le relevé avant validation.");
       const {error}=await workforceDb().from("tok_workforce_validations").insert({
-        restaurant_id:restaurantId,time_entry_id:selected,signed_by:user.id,signed_name:name.trim(),
+        restaurant_id:restaurantId,time_entry_id:selected,signed_by:user.id,signed_name:name.trim(),signature_data:signature,
       });if(error)throw error;
     },
-    onSuccess:()=>{setSelected("");setName("");refresh();toast({title:"Relevé validé",description:"L'identité et la date de validation sont enregistrées."});},
+    onSuccess:()=>{setSelected("");setName("");setSignature(null);refresh();toast({title:"Relevé signé et validé",description:"Identité, date et signature manuscrite enregistrées."});},
     onError:(error:Error)=>toast({variant:"destructive",title:"Validation impossible",description:error.message}),
   });
   const validatedIds=new Set(validations.map(v=>v.time_entry_id));
@@ -79,15 +82,16 @@ export default function WorkforceTime({restaurantId}:{restaurantId:string}) {
               {validation?<p className="text-xs text-muted-foreground">Validé par {validation.signed_name} le {new Date(validation.signed_at).toLocaleDateString("fr-CH")}</p>:null}
             </div>
             {validatedIds.has(entry.id)?<Badge variant="secondary"><CheckCircle2 className="mr-1 h-3.5 w-3.5"/>Validé</Badge>:
-              <Button size="sm" variant={selected===entry.id?"default":"outline"} onClick={()=>setSelected(entry.id)}>Valider</Button>}
+              <Button size="sm" variant={selected===entry.id?"default":"outline"} onClick={()=>{setSelected(entry.id);setSignature(null);}}>Valider</Button>}
           </div>;
         })}
         {selected && !validatedIds.has(selected)?<form className="rounded-xl border border-primary/30 bg-primary/5 p-4" onSubmit={(event:FormEvent)=>{event.preventDefault();approve.mutate();}}>
           <p className="mb-2 text-sm font-semibold">Attestation de validation du relevé</p>
           <p className="mb-3 text-xs text-muted-foreground">Cette validation conserve l'auteur et la date. Elle ne remplace pas une signature électronique qualifiée.</p>
+          <div className="mb-3"><WorkforceSignaturePad key={selected} onChange={setSignature}/></div>
           <div className="flex flex-wrap gap-2"><Input className="min-w-48 flex-1" required maxLength={120} value={name} onChange={e=>setName(e.target.value)} placeholder="Nom complet du responsable" aria-label="Nom complet du responsable"/>
-            <Button type="submit" disabled={approve.isPending}><ClipboardCheck className="mr-1 h-4 w-4"/>Confirmer la validation</Button>
-            <Button type="button" variant="outline" onClick={()=>setSelected("")}>Annuler</Button>
+            <Button type="submit" disabled={approve.isPending||!signature}><ClipboardCheck className="mr-1 h-4 w-4"/>Confirmer la validation</Button>
+            <Button type="button" variant="outline" onClick={()=>{setSelected("");setSignature(null);}}>Annuler</Button>
           </div>
         </form>:null}
       </CardContent>
