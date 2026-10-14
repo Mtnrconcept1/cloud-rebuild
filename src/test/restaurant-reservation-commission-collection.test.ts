@@ -65,6 +65,10 @@ describe("restaurant commission consent, collection and accounting", () => {
     expect(worker).toContain("confirm: true");
     expect(worker).toContain("subscription.status !== \"active\"");
     expect(worker).not.toContain("stripe.transfers.create");
+    expect(schema).toContain("reservation.status IN ('arrived','seated','completed')");
+    expect(schema).toContain("reservation.cancelled_by IS NULL");
+    expect(worker).toContain("commission_reservation_no_longer_honored");
+    expect(worker).toContain('.select("id, restaurant_id, status, cancelled_by")');
   });
 
   it("requires human presence confirmation for presumed arrivals before charging", () => {
