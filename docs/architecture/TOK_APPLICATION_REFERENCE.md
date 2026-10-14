@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `302f8df8070783454349fe3cef4752cfe083a8a33a82ccb972698ad1a798c62f`
+- Empreinte SHA-256 des sources indexées : `6480fc887b163beb1c4d7b951907f6d6d74bf480dac670daa19974b1f147c71d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.

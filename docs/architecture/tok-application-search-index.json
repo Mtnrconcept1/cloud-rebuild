@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "302f8df8070783454349fe3cef4752cfe083a8a33a82ccb972698ad1a798c62f",
+ "sourceDigest": "6480fc887b163beb1c4d7b951907f6d6d74bf480dac670daa19974b1f147c71d",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -113340,7 +113340,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 211
+    "lineCount": 210
    },
    {
     "path": "supabase/functions/google-actions-center-sync/index.ts",
@@ -152323,7 +152323,7 @@
    "id": "code-module:26fbb02a49f5",
    "type": "code-module",
    "title": "supabase/functions/golden-tok-membership/index.ts",
-   "description": "Module de 211 lignes; exports: aucun export statique.",
+   "description": "Module de 210 lignes; exports: aucun export statique.",
    "path": "supabase/functions/golden-tok-membership/index.ts",
    "line": 1,
    "surface": null,
@@ -152331,7 +152331,7 @@
     "GOLDEN_TOK_STRIPE_PRICE_ID",
     "stripe"
    ],
-   "detailRef": "e9d23fb4116b"
+   "detailRef": "437da6b19679"
   },
   {
    "id": "code-module:8fab026bf061",
