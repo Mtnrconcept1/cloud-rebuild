@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `cff7e8a211a88d7806be54cb889f46d0aad518eede7124c65c7bc8ccc7957458`
+- Empreinte SHA-256 des sources indexées : `66f4f75ce49f4eeaad4b58d4cab2f55d29fae29bcb79c0bf8017ddb0ae56d409`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -5884,7 +5884,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261012203000 Schedule Reservation Cancellation Fee Collection | 42 | 0 | [supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql:1](../../supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql#L1) |
 | 20261013014557 Launch Guest Discovery Authenticated Clients Only | 85 | 4 | [supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql:1](../../supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql#L1) |
 | 20261013110000 Marketing Campaign Items Preview | 113 | 1 | [supabase/migrations/20261013110000_marketing_campaign_items_preview.sql:1](../../supabase/migrations/20261013110000_marketing_campaign_items_preview.sql#L1) |
-| 20261014010000 Recurring Restaurant Reservation Commissions | 547 | 16 | [supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql:1](../../supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql#L1) |
+| 20261014010000 Recurring Restaurant Reservation Commissions | 549 | 16 | [supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql:1](../../supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
