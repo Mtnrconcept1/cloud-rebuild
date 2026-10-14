@@ -1,0 +1,52 @@
+name: Temporary TOK world merge reconciliation
+on:
+  push:
+    branches: [codex/tok-world-geo-hero-20261014]
+    paths: [.github/workflows/_tok-world-main-merge.yml]
+permissions:
+  contents: write
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: codex/tok-world-geo-hero-20261014
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Resolve generated-index conflicts with main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "TOK CI Assistant"
+          git config user.email "tok-ci-assistant@users.noreply.github.com"
+          git fetch origin main
+          if git merge --no-commit --no-ff origin/main; then
+            echo "Merge clean"
+          else
+            python3 - <<'PY'
+          import subprocess
+          names=subprocess.check_output(["git","diff","--name-only","--diff-filter=U"],text=True).splitlines()
+          expected={"docs/architecture/TOK_APPLICATION_REFERENCE.md","docs/architecture/tok-application-search-index.json","src/data/tok-user-guide-catalog.generated.ts"}
+          if set(names)!=expected: raise SystemExit("Unexpected conflicts: "+str(names))
+          subprocess.check_call(["git","checkout","--ours","--",*names])
+          subprocess.check_call(["git","add","--",*names])
+          PY
+          fi
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+          pnpm install --frozen-lockfile
+          rm .github/workflows/_tok-world-main-merge.yml
+          git add -u .github/workflows/_tok-world-main-merge.yml
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+          pnpm exec vitest run src/test/home-world-hero.test.ts src/test/home-hero-search.test.tsx src/test/home-canton-hero.test.ts --mode production
+          pnpm typecheck
+          git add -A docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git commit -m "merge: reconcile main and localized TOK artwork, refresh indexes"
+          git push origin HEAD:refs/heads/codex/tok-world-geo-hero-20261014
