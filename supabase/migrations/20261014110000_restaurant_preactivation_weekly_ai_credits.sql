@@ -463,25 +463,375 @@ DECLARE
   v_old_required_credits numeric(14, 2) := 0;
   v_available_credits numeric(14, 2) := 0;
   v_usage jsonb := '{}'::jsonb;
-  v_credit_text text;
 BEGIN
   IF TG_TABLE_NAME = 'ai_usage_logs' THEN
     v_restaurant_id := NEW.restaurant_id;
     IF v_restaurant_id IS NULL OR lower(COALESCE(NEW.status, '')) <> 'success' THEN
       RETURN NEW;
     END IF;
-    v_credit_text := COALESCE(NEW.metadata->>'credit_units', '');
-    IF v_credit_text ~ '^[0-9]+(\.[0-9]+)?$' THEN
-      v_required_credits := GREATEST(v_credit_text::numeric, 0);
+    -- The wallet counts missing, zero and malformed units as billable usage.
+    -- Apply precisely the same conservative fallback in the BEFORE trigger;
+    -- otherwise a caller could record unlimited successful zero-unit AI logs.
+    v_required_credits := GREATEST(
+      COALESCE(
+        CASE WHEN NEW.metadata->>'credit_units' ~ '^[0-9]+(\.[0-9]+)?
+  ELSIF TG_TABLE_NAME = 'ad_campaigns' THEN
+    v_restaurant_id := NEW.restaurant_id;
+    IF v_restaurant_id IS NULL
+      OR lower(COALESCE(NEW.payment_method, '')) <> 'credits'
+      OR lower(COALESCE(NEW.payment_status, '')) <> 'paid'
+    THEN
+      RETURN NEW;
     END IF;
+    v_required_credits := GREATEST(
+      COALESCE(NEW.total_budget, 0), COALESCE(NEW.spent, 0),
+      COALESCE(NEW.paid_amount, 0), 0
+    ) * 15;
+    IF TG_OP = 'UPDATE'
+      AND OLD.restaurant_id = NEW.restaurant_id
+      AND lower(COALESCE(OLD.payment_method, '')) = 'credits'
+      AND lower(COALESCE(OLD.payment_status, '')) = 'paid'
+    THEN
+      v_old_required_credits := GREATEST(
+        COALESCE(OLD.total_budget, 0), COALESCE(OLD.spent, 0),
+        COALESCE(OLD.paid_amount, 0), 0
+      ) * 15;
+    END IF;
+  ELSE
+    RETURN NEW;
+  END IF;
+
+  IF v_required_credits <= 0 THEN RETURN NEW; END IF;
+  PERFORM pg_advisory_xact_lock(hashtext('tok_credit_spend:' || v_restaurant_id::text)::bigint);
+  v_usage := public.get_restaurant_credit_usage(v_restaurant_id);
+  v_available_credits := public.tok_credit_balance_from_usage(v_usage) + v_old_required_credits;
+
+  IF TG_TABLE_NAME = 'ad_campaigns'
+    AND COALESCE((v_usage->'credits'->0->'metadata'->>'preactivation')::boolean, false)
+  THEN
+    v_available_credits := GREATEST(COALESCE(
+      (v_usage->'credits'->0->'metadata'->>'campaign_spendable_balance')::numeric, 0
+    ), 0) + v_old_required_credits;
+  END IF;
+
+  IF v_required_credits > v_available_credits THEN
+    RAISE EXCEPTION 'TOK credits exhausted for restaurant %: required %, available %',
+      v_restaurant_id, v_required_credits, v_available_credits
+      USING ERRCODE = 'P0001';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.guard_restaurant_tok_credit_spend()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.guard_restaurant_tok_credit_spend() TO service_role;
+
+NOTIFY pgrst, 'reload schema';
+
+          THEN (NEW.metadata->>'credit_units')::numeric END,
+        CASE WHEN NEW.function_name IN (
+          'ai-restaurant-agent', 'ai-restaurant-tools', 'restaurant-advisor',
+          'generate-campaign', 'floorplan-ai', 'ai-accounting-agent'
+        ) THEN 5 END,
+        CASE WHEN NEW.metadata->>'image_count' ~ '^[0-9]+
+  ELSIF TG_TABLE_NAME = 'ad_campaigns' THEN
+    v_restaurant_id := NEW.restaurant_id;
+    IF v_restaurant_id IS NULL
+      OR lower(COALESCE(NEW.payment_method, '')) <> 'credits'
+      OR lower(COALESCE(NEW.payment_status, '')) <> 'paid'
+    THEN
+      RETURN NEW;
+    END IF;
+    v_required_credits := GREATEST(
+      COALESCE(NEW.total_budget, 0), COALESCE(NEW.spent, 0),
+      COALESCE(NEW.paid_amount, 0), 0
+    ) * 15;
+    IF TG_OP = 'UPDATE'
+      AND OLD.restaurant_id = NEW.restaurant_id
+      AND lower(COALESCE(OLD.payment_method, '')) = 'credits'
+      AND lower(COALESCE(OLD.payment_status, '')) = 'paid'
+    THEN
+      v_old_required_credits := GREATEST(
+        COALESCE(OLD.total_budget, 0), COALESCE(OLD.spent, 0),
+        COALESCE(OLD.paid_amount, 0), 0
+      ) * 15;
+    END IF;
+  ELSE
+    RETURN NEW;
+  END IF;
+
+  IF v_required_credits <= 0 THEN RETURN NEW; END IF;
+  PERFORM pg_advisory_xact_lock(hashtext('tok_credit_spend:' || v_restaurant_id::text)::bigint);
+  v_usage := public.get_restaurant_credit_usage(v_restaurant_id);
+  v_available_credits := public.tok_credit_balance_from_usage(v_usage) + v_old_required_credits;
+
+  IF TG_TABLE_NAME = 'ad_campaigns'
+    AND COALESCE((v_usage->'credits'->0->'metadata'->>'preactivation')::boolean, false)
+  THEN
+    v_available_credits := GREATEST(COALESCE(
+      (v_usage->'credits'->0->'metadata'->>'campaign_spendable_balance')::numeric, 0
+    ), 0) + v_old_required_credits;
+  END IF;
+
+  IF v_required_credits > v_available_credits THEN
+    RAISE EXCEPTION 'TOK credits exhausted for restaurant %: required %, available %',
+      v_restaurant_id, v_required_credits, v_available_credits
+      USING ERRCODE = 'P0001';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.guard_restaurant_tok_credit_spend()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.guard_restaurant_tok_credit_spend() TO service_role;
+
+NOTIFY pgrst, 'reload schema';
+
+          THEN (NEW.metadata->>'image_count')::numeric END,
+        CASE WHEN NEW.metadata->>'variant_count' ~ '^[0-9]+
+  ELSIF TG_TABLE_NAME = 'ad_campaigns' THEN
+    v_restaurant_id := NEW.restaurant_id;
+    IF v_restaurant_id IS NULL
+      OR lower(COALESCE(NEW.payment_method, '')) <> 'credits'
+      OR lower(COALESCE(NEW.payment_status, '')) <> 'paid'
+    THEN
+      RETURN NEW;
+    END IF;
+    v_required_credits := GREATEST(
+      COALESCE(NEW.total_budget, 0), COALESCE(NEW.spent, 0),
+      COALESCE(NEW.paid_amount, 0), 0
+    ) * 15;
+    IF TG_OP = 'UPDATE'
+      AND OLD.restaurant_id = NEW.restaurant_id
+      AND lower(COALESCE(OLD.payment_method, '')) = 'credits'
+      AND lower(COALESCE(OLD.payment_status, '')) = 'paid'
+    THEN
+      v_old_required_credits := GREATEST(
+        COALESCE(OLD.total_budget, 0), COALESCE(OLD.spent, 0),
+        COALESCE(OLD.paid_amount, 0), 0
+      ) * 15;
+    END IF;
+  ELSE
+    RETURN NEW;
+  END IF;
+
+  IF v_required_credits <= 0 THEN RETURN NEW; END IF;
+  PERFORM pg_advisory_xact_lock(hashtext('tok_credit_spend:' || v_restaurant_id::text)::bigint);
+  v_usage := public.get_restaurant_credit_usage(v_restaurant_id);
+  v_available_credits := public.tok_credit_balance_from_usage(v_usage) + v_old_required_credits;
+
+  IF TG_TABLE_NAME = 'ad_campaigns'
+    AND COALESCE((v_usage->'credits'->0->'metadata'->>'preactivation')::boolean, false)
+  THEN
+    v_available_credits := GREATEST(COALESCE(
+      (v_usage->'credits'->0->'metadata'->>'campaign_spendable_balance')::numeric, 0
+    ), 0) + v_old_required_credits;
+  END IF;
+
+  IF v_required_credits > v_available_credits THEN
+    RAISE EXCEPTION 'TOK credits exhausted for restaurant %: required %, available %',
+      v_restaurant_id, v_required_credits, v_available_credits
+      USING ERRCODE = 'P0001';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.guard_restaurant_tok_credit_spend()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.guard_restaurant_tok_credit_spend() TO service_role;
+
+NOTIFY pgrst, 'reload schema';
+
+          THEN (NEW.metadata->>'variant_count')::numeric END,
+        1
+      ),
+      1
+    );
     IF TG_OP = 'UPDATE'
       AND OLD.restaurant_id = NEW.restaurant_id
       AND lower(COALESCE(OLD.status, '')) = 'success'
     THEN
-      v_credit_text := COALESCE(OLD.metadata->>'credit_units', '');
-      IF v_credit_text ~ '^[0-9]+(\.[0-9]+)?$' THEN
-        v_old_required_credits := GREATEST(v_credit_text::numeric, 0);
-      END IF;
+      v_old_required_credits := GREATEST(
+        COALESCE(
+          CASE WHEN OLD.metadata->>'credit_units' ~ '^[0-9]+(\.[0-9]+)?
+  ELSIF TG_TABLE_NAME = 'ad_campaigns' THEN
+    v_restaurant_id := NEW.restaurant_id;
+    IF v_restaurant_id IS NULL
+      OR lower(COALESCE(NEW.payment_method, '')) <> 'credits'
+      OR lower(COALESCE(NEW.payment_status, '')) <> 'paid'
+    THEN
+      RETURN NEW;
+    END IF;
+    v_required_credits := GREATEST(
+      COALESCE(NEW.total_budget, 0), COALESCE(NEW.spent, 0),
+      COALESCE(NEW.paid_amount, 0), 0
+    ) * 15;
+    IF TG_OP = 'UPDATE'
+      AND OLD.restaurant_id = NEW.restaurant_id
+      AND lower(COALESCE(OLD.payment_method, '')) = 'credits'
+      AND lower(COALESCE(OLD.payment_status, '')) = 'paid'
+    THEN
+      v_old_required_credits := GREATEST(
+        COALESCE(OLD.total_budget, 0), COALESCE(OLD.spent, 0),
+        COALESCE(OLD.paid_amount, 0), 0
+      ) * 15;
+    END IF;
+  ELSE
+    RETURN NEW;
+  END IF;
+
+  IF v_required_credits <= 0 THEN RETURN NEW; END IF;
+  PERFORM pg_advisory_xact_lock(hashtext('tok_credit_spend:' || v_restaurant_id::text)::bigint);
+  v_usage := public.get_restaurant_credit_usage(v_restaurant_id);
+  v_available_credits := public.tok_credit_balance_from_usage(v_usage) + v_old_required_credits;
+
+  IF TG_TABLE_NAME = 'ad_campaigns'
+    AND COALESCE((v_usage->'credits'->0->'metadata'->>'preactivation')::boolean, false)
+  THEN
+    v_available_credits := GREATEST(COALESCE(
+      (v_usage->'credits'->0->'metadata'->>'campaign_spendable_balance')::numeric, 0
+    ), 0) + v_old_required_credits;
+  END IF;
+
+  IF v_required_credits > v_available_credits THEN
+    RAISE EXCEPTION 'TOK credits exhausted for restaurant %: required %, available %',
+      v_restaurant_id, v_required_credits, v_available_credits
+      USING ERRCODE = 'P0001';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.guard_restaurant_tok_credit_spend()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.guard_restaurant_tok_credit_spend() TO service_role;
+
+NOTIFY pgrst, 'reload schema';
+
+            THEN (OLD.metadata->>'credit_units')::numeric END,
+          CASE WHEN OLD.function_name IN (
+            'ai-restaurant-agent', 'ai-restaurant-tools', 'restaurant-advisor',
+            'generate-campaign', 'floorplan-ai', 'ai-accounting-agent'
+          ) THEN 5 END,
+          CASE WHEN OLD.metadata->>'image_count' ~ '^[0-9]+
+  ELSIF TG_TABLE_NAME = 'ad_campaigns' THEN
+    v_restaurant_id := NEW.restaurant_id;
+    IF v_restaurant_id IS NULL
+      OR lower(COALESCE(NEW.payment_method, '')) <> 'credits'
+      OR lower(COALESCE(NEW.payment_status, '')) <> 'paid'
+    THEN
+      RETURN NEW;
+    END IF;
+    v_required_credits := GREATEST(
+      COALESCE(NEW.total_budget, 0), COALESCE(NEW.spent, 0),
+      COALESCE(NEW.paid_amount, 0), 0
+    ) * 15;
+    IF TG_OP = 'UPDATE'
+      AND OLD.restaurant_id = NEW.restaurant_id
+      AND lower(COALESCE(OLD.payment_method, '')) = 'credits'
+      AND lower(COALESCE(OLD.payment_status, '')) = 'paid'
+    THEN
+      v_old_required_credits := GREATEST(
+        COALESCE(OLD.total_budget, 0), COALESCE(OLD.spent, 0),
+        COALESCE(OLD.paid_amount, 0), 0
+      ) * 15;
+    END IF;
+  ELSE
+    RETURN NEW;
+  END IF;
+
+  IF v_required_credits <= 0 THEN RETURN NEW; END IF;
+  PERFORM pg_advisory_xact_lock(hashtext('tok_credit_spend:' || v_restaurant_id::text)::bigint);
+  v_usage := public.get_restaurant_credit_usage(v_restaurant_id);
+  v_available_credits := public.tok_credit_balance_from_usage(v_usage) + v_old_required_credits;
+
+  IF TG_TABLE_NAME = 'ad_campaigns'
+    AND COALESCE((v_usage->'credits'->0->'metadata'->>'preactivation')::boolean, false)
+  THEN
+    v_available_credits := GREATEST(COALESCE(
+      (v_usage->'credits'->0->'metadata'->>'campaign_spendable_balance')::numeric, 0
+    ), 0) + v_old_required_credits;
+  END IF;
+
+  IF v_required_credits > v_available_credits THEN
+    RAISE EXCEPTION 'TOK credits exhausted for restaurant %: required %, available %',
+      v_restaurant_id, v_required_credits, v_available_credits
+      USING ERRCODE = 'P0001';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.guard_restaurant_tok_credit_spend()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.guard_restaurant_tok_credit_spend() TO service_role;
+
+NOTIFY pgrst, 'reload schema';
+
+            THEN (OLD.metadata->>'image_count')::numeric END,
+          CASE WHEN OLD.metadata->>'variant_count' ~ '^[0-9]+
+  ELSIF TG_TABLE_NAME = 'ad_campaigns' THEN
+    v_restaurant_id := NEW.restaurant_id;
+    IF v_restaurant_id IS NULL
+      OR lower(COALESCE(NEW.payment_method, '')) <> 'credits'
+      OR lower(COALESCE(NEW.payment_status, '')) <> 'paid'
+    THEN
+      RETURN NEW;
+    END IF;
+    v_required_credits := GREATEST(
+      COALESCE(NEW.total_budget, 0), COALESCE(NEW.spent, 0),
+      COALESCE(NEW.paid_amount, 0), 0
+    ) * 15;
+    IF TG_OP = 'UPDATE'
+      AND OLD.restaurant_id = NEW.restaurant_id
+      AND lower(COALESCE(OLD.payment_method, '')) = 'credits'
+      AND lower(COALESCE(OLD.payment_status, '')) = 'paid'
+    THEN
+      v_old_required_credits := GREATEST(
+        COALESCE(OLD.total_budget, 0), COALESCE(OLD.spent, 0),
+        COALESCE(OLD.paid_amount, 0), 0
+      ) * 15;
+    END IF;
+  ELSE
+    RETURN NEW;
+  END IF;
+
+  IF v_required_credits <= 0 THEN RETURN NEW; END IF;
+  PERFORM pg_advisory_xact_lock(hashtext('tok_credit_spend:' || v_restaurant_id::text)::bigint);
+  v_usage := public.get_restaurant_credit_usage(v_restaurant_id);
+  v_available_credits := public.tok_credit_balance_from_usage(v_usage) + v_old_required_credits;
+
+  IF TG_TABLE_NAME = 'ad_campaigns'
+    AND COALESCE((v_usage->'credits'->0->'metadata'->>'preactivation')::boolean, false)
+  THEN
+    v_available_credits := GREATEST(COALESCE(
+      (v_usage->'credits'->0->'metadata'->>'campaign_spendable_balance')::numeric, 0
+    ), 0) + v_old_required_credits;
+  END IF;
+
+  IF v_required_credits > v_available_credits THEN
+    RAISE EXCEPTION 'TOK credits exhausted for restaurant %: required %, available %',
+      v_restaurant_id, v_required_credits, v_available_credits
+      USING ERRCODE = 'P0001';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.guard_restaurant_tok_credit_spend()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.guard_restaurant_tok_credit_spend() TO service_role;
+
+NOTIFY pgrst, 'reload schema';
+
+            THEN (OLD.metadata->>'variant_count')::numeric END,
+          1
+        ),
+        1
+      );
     END IF;
   ELSIF TG_TABLE_NAME = 'ad_campaigns' THEN
     v_restaurant_id := NEW.restaurant_id;
