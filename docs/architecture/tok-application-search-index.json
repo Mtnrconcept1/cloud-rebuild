@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "55e3e089aa76a64eab8cc105aa47970460b3a33b8b92b3516d2d6448e3900705",
+ "sourceDigest": "9cf2f004f320b99b53fc2745f8ee408fe15a21c473add242eb803849a0200b62",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -108961,7 +108961,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 97
+    "lineCount": 99
    },
    {
     "path": "src/test/tok-connect-admin-humanized.test.ts",
@@ -149847,7 +149847,7 @@
    "id": "code-module:7484ad1ec1ed",
    "type": "code-module",
    "title": "src/test/tok-canonical-subscription-invoice.test.ts",
-   "description": "Module de 97 lignes; exports: aucun export statique.",
+   "description": "Module de 99 lignes; exports: aucun export statique.",
    "path": "src/test/tok-canonical-subscription-invoice.test.ts",
    "line": 1,
    "surface": null,
@@ -149855,7 +149855,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "836375ddf3da"
+   "detailRef": "ec6bca1899d3"
   },
   {
    "id": "code-module:f6990f00d43c",
