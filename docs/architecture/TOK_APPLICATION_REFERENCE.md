@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b4e83fe8d50544962712f3ecb1bc5599c477e4b30ff38ec1b559f267e67a383e`
+- Empreinte SHA-256 des sources indexées : `f2925bef97b6fde581fd3fa491f80bd2262fb670e993a506d049ed514afc0844`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 203 |
 | edgeFunctions | 115 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3515 |
+| exportedSymbols | 3517 |
 | featureFlags | 99 |
 | frontendRoutes | 137 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 535 |
-| modules | 1545 |
+| modules | 1547 |
 | pages | 129 |
 | pathLiterals | 697 |
 | publicAssets | 502 |
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16554 |
-| repositoryFiles | 3078 |
+| records | 16560 |
+| repositoryFiles | 3080 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6117,8 +6117,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 230 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 690 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 232 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 691 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6131,7 +6131,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 206 |
 | automation-script | 66 |
 | documentation | 6 |
-| edge-function-source | 194 |
+| edge-function-source | 195 |
 | frontend-component | 254 |
 | frontend-hook | 23 |
 | frontend-page | 129 |
@@ -6139,7 +6139,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 612 |
+| test | 613 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -7440,7 +7440,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (194)</summary>
+<details><summary>edge-function-source (195)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7507,6 +7507,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/return-url.ts`
 - `supabase/functions/_shared/safe-public-fetch.ts`
 - `supabase/functions/_shared/stripe-client.ts`
+- `supabase/functions/_shared/stripe-paid-invoice-payment.ts`
 - `supabase/functions/_shared/tok-connect-auth.ts`
 - `supabase/functions/_shared/tok-connect-discovery-widget.ts`
 - `supabase/functions/_shared/tok-connect-discovery.ts`
@@ -8883,7 +8884,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (612)</summary>
+<details><summary>test (613)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9434,6 +9435,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/stoppin-thetok-routes.test.ts`
 - `src/test/stoppin-venue-dedupe.test.ts`
 - `src/test/stripe-developer-share-routing.test.ts`
+- `src/test/stripe-paid-invoice-payment.test.ts`
 - `src/test/stripe-return.test.ts`
 - `src/test/stripe-security-hardening.test.ts`
 - `src/test/studio-canvas.test.tsx`

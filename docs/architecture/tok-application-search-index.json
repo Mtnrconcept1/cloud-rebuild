@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b4e83fe8d50544962712f3ecb1bc5599c477e4b30ff38ec1b559f267e67a383e",
+ "sourceDigest": "f2925bef97b6fde581fd3fa491f80bd2262fb670e993a506d049ed514afc0844",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 203,
   "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3515,
+  "exportedSymbols": 3517,
   "featureFlags": 99,
   "frontendRoutes": 137,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 535,
-  "modules": 1545,
+  "modules": 1547,
   "pages": 129,
   "pathLiterals": 697,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16554,
-  "repositoryFiles": 3078,
+  "records": 16560,
+  "repositoryFiles": 3080,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -19679,7 +19679,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1993
+      "line": 2028
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -19927,7 +19927,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1635
+      "line": 1670
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -20560,11 +20560,11 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1759
+      "line": 1794
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2132
+      "line": 2167
      }
     ]
    },
@@ -20676,7 +20676,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2273
+      "line": 2308
      }
     ]
    },
@@ -25424,7 +25424,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2743
+      "line": 2778
      }
     ]
    },
@@ -31805,6 +31805,7 @@
      "src/test/security-edge-functions.test.ts",
      "src/test/security-url-helpers.test.ts",
      "src/test/stripe-developer-share-routing.test.ts",
+     "src/test/stripe-paid-invoice-payment.test.ts",
      "src/test/stripe-return.test.ts",
      "src/test/stripe-security-hardening.test.ts",
      "src/test/super-admin-sensitive-rls.test.ts",
@@ -31837,6 +31838,7 @@
      "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
      "supabase/functions/_shared/restaurant-subscription-billing.ts",
      "supabase/functions/_shared/stripe-client.ts",
+     "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
      "supabase/functions/_shared/tok-one.ts",
      "supabase/functions/_shared/zero-attente.ts",
      "supabase/functions/_shared/zero-cost-checkout.ts",
@@ -32453,6 +32455,7 @@
      "src/test/space-help-chat.test.ts",
      "src/test/sponsored-event-signing.test.ts",
      "src/test/stripe-developer-share-routing.test.ts",
+     "src/test/stripe-paid-invoice-payment.test.ts",
      "src/test/stripe-security-hardening.test.ts",
      "src/test/submitSignupValidation.test.ts",
      "src/test/subscription-dispatch.test.ts",
@@ -108476,6 +108479,16 @@
     "lineCount": 214
    },
    {
+    "path": "src/test/stripe-paid-invoice-payment.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 47
+   },
+   {
     "path": "src/test/stripe-return.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -111860,6 +111873,26 @@
     "lineCount": 308
    },
    {
+    "path": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+    "exports": [
+     {
+      "name": "PaidInvoicePayment",
+      "line": 6,
+      "kind": "typealias"
+     },
+     {
+      "name": "findSinglePaidInvoicePaymentIntent",
+      "line": 12,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe"
+    ],
+    "lineCount": 40
+   },
+   {
     "path": "supabase/functions/_shared/tok-connect-auth.ts",
     "exports": [
      {
@@ -113733,7 +113766,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3365
+    "lineCount": 3400
    },
    {
     "path": "supabase/functions/stripe-worker/index.ts",
@@ -125355,6 +125388,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/stripe-paid-invoice-payment.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/stripe-return.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -126026,6 +126064,11 @@
    },
    {
     "path": "supabase/functions/_shared/stripe-client.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -149087,6 +149130,20 @@
    "detailRef": "c751951f619c"
   },
   {
+   "id": "code-module:0dc2b193d130",
+   "type": "code-module",
+   "title": "src/test/stripe-paid-invoice-payment.test.ts",
+   "description": "Module de 47 lignes; exports: aucun export statique.",
+   "path": "src/test/stripe-paid-invoice-payment.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "53a13ff90fc9"
+  },
+  {
    "id": "code-module:cfe1245370df",
    "type": "code-module",
    "title": "src/test/stripe-return.test.ts",
@@ -151160,6 +151217,21 @@
    "detailRef": "d6d0c2d69d0b"
   },
   {
+   "id": "code-module:259a3faa5408",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+   "description": "Module de 40 lignes; exports: PaidInvoicePayment, findSinglePaidInvoicePaymentIntent.",
+   "path": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "PaidInvoicePayment",
+    "findSinglePaidInvoicePaymentIntent",
+    "stripe"
+   ],
+   "detailRef": "887406e703a1"
+  },
+  {
    "id": "code-module:b79df7c0068c",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-auth.ts",
@@ -152810,7 +152882,7 @@
    "id": "code-module:9ac355dfd729",
    "type": "code-module",
    "title": "supabase/functions/stripe-webhook/index.ts",
-   "description": "Module de 3365 lignes; exports: aucun export statique.",
+   "description": "Module de 3400 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-webhook/index.ts",
    "line": 1,
    "surface": null,
@@ -152818,7 +152890,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "04cb53c41982"
+   "detailRef": "e19d1be2197f"
   },
   {
    "id": "code-module:f3fa7c18e7bc",
@@ -253469,6 +253541,20 @@
    "detailRef": "5b05b6a63c95"
   },
   {
+   "id": "exported-symbol:7532f7b583dd",
+   "type": "exported-symbol",
+   "title": "PaidInvoicePayment",
+   "description": "Export typealias de supabase/functions/_shared/stripe-paid-invoice-payment.ts.",
+   "path": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "6cd6208992f5"
+  },
+  {
    "id": "exported-symbol:5af806ad9ce7",
    "type": "exported-symbol",
    "title": "PayableInvoiceDocumentData",
@@ -271945,6 +272031,20 @@
     "function"
    ],
    "detailRef": "e176d08805d0"
+  },
+  {
+   "id": "exported-symbol:ef7cb7a0efdf",
+   "type": "exported-symbol",
+   "title": "findSinglePaidInvoicePaymentIntent",
+   "description": "Export function de supabase/functions/_shared/stripe-paid-invoice-payment.ts.",
+   "path": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+   "line": 12,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe"
+   ],
+   "detailRef": "4f05d5e619f5"
   },
   {
    "id": "exported-symbol:b11503f88960",
@@ -321264,6 +321364,20 @@
    "detailRef": "ae42228ad6c9"
   },
   {
+   "id": "file:bdbe06f07ea7",
+   "type": "file",
+   "title": "src/test/stripe-paid-invoice-payment.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/stripe-paid-invoice-payment.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "b827cca0bca6"
+  },
+  {
    "id": "file:87c4568c876c",
    "type": "file",
    "title": "src/test/stripe-return.test.ts",
@@ -323152,6 +323266,20 @@
     "edge-function-source"
    ],
    "detailRef": "fce7fb81f49a"
+  },
+  {
+   "id": "file:2273edb465b5",
+   "type": "file",
+   "title": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "360b4a69e24a"
   },
   {
    "id": "file:1d8640341532",
@@ -336173,7 +336301,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 230 module(s).",
+   "description": "Intégration externe détectée dans 232 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -336327,6 +336455,7 @@
     "src/test/security-edge-functions.test.ts",
     "src/test/security-url-helpers.test.ts",
     "src/test/stripe-developer-share-routing.test.ts",
+    "src/test/stripe-paid-invoice-payment.test.ts",
     "src/test/stripe-return.test.ts",
     "src/test/stripe-security-hardening.test.ts",
     "src/test/super-admin-sensitive-rls.test.ts",
@@ -336360,6 +336489,7 @@
     "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
     "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "supabase/functions/_shared/stripe-client.ts",
+    "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
     "supabase/functions/_shared/tok-one.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/_shared/zero-cost-checkout.ts",
@@ -336410,13 +336540,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "827dc1075dfd"
+   "detailRef": "f453de85bcfa"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 690 module(s).",
+   "description": "Intégration externe détectée dans 691 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -336983,6 +337113,7 @@
     "src/test/space-help-chat.test.ts",
     "src/test/sponsored-event-signing.test.ts",
     "src/test/stripe-developer-share-routing.test.ts",
+    "src/test/stripe-paid-invoice-payment.test.ts",
     "src/test/stripe-security-hardening.test.ts",
     "src/test/submitSignupValidation.test.ts",
     "src/test/subscription-dispatch.test.ts",
@@ -337113,7 +337244,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "72d549bafeb6"
+   "detailRef": "14ebcccb4ae4"
   },
   {
    "id": "integration:c20910a79a78",
@@ -351166,7 +351297,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "a168b49e0622"
+   "detailRef": "863826c8941b"
   },
   {
    "id": "path-literal:b6abce7fd060",
@@ -351477,7 +351608,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "7e62e1cf1cd0"
+   "detailRef": "21c3a686b96b"
   },
   {
    "id": "path-literal:066026c7496d",
@@ -351544,7 +351675,7 @@
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "9327966f38f4"
+   "detailRef": "6df08939173d"
   },
   {
    "id": "path-literal:d7fb77c2dbf9",
@@ -351867,7 +351998,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "c978fd0de90e"
+   "detailRef": "3d336b432c9b"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -355631,7 +355762,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "ee790b9ab04d"
+   "detailRef": "6c8e9794accf"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
