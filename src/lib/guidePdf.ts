@@ -13,11 +13,21 @@ const cp1252: Record<string, number> = {
   "Š":138,"‹":139,"Œ":140,"Ž":142,"‘":145,"’":146,"“":147,"”":148,
   "•":149,"–":150,"—":151,"˜":152,"™":153,"š":154,"›":155,"œ":156,"ž":158,"Ÿ":159,
 };
+const replacements: Record<string, string> = {
+  "\u202f": " ", "\u200b": "", "\u200c": "", "\u200d": "", "\u2060": "",
+  "\u2010": "-", "\u2011": "-", "\u2012": "-", "\u2212": "-",
+  "\u2192": " -> ", "\u2190": " <- ", "\u2194": " <-> ", "\u21d2": " => ",
+  "\u2713": "OK", "\u2714": "OK", "\u2717": "non", "\u2718": "non",
+  "\ufffd": "",
+};
 function encode(input: string): string {
-  return Array.from(input).map(ch => {
-    const n = ch.codePointAt(0) ?? 63;
+  return Array.from(input.normalize("NFC")).map(ch => {
+    if (replacements[ch] !== undefined) return replacements[ch];
+    const n = ch.codePointAt(0) ?? 0;
     if (n === 9 || n === 10 || n === 13 || (n >= 32 && n <= 126) || (n >= 160 && n <= 255)) return ch;
-    return cp1252[ch] === undefined ? "?" : String.fromCharCode(cp1252[ch]);
+    if (cp1252[ch] !== undefined) return String.fromCharCode(cp1252[ch]);
+    const ascii = ch.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+    return /^[\x20-\x7e]+$/.test(ascii) ? ascii : "";
   }).join("");
 }
 const literal = (value: string) =>
@@ -41,9 +51,11 @@ function wrap(value: string, size: number): string[] {
   return rows;
 }
 export function buildGuidePdf(input: GuidePdfInput): Uint8Array {
-  const pages: Page[] = [{content:[],links:[],images:[]}, {content:[],links:[],images:[]}];
+  const tocRowsPerPage = 27;
+  const tocPageCount = Math.max(1, Math.ceil(input.sections.length / tocRowsPerPage));
+  const pages: Page[] = Array.from({ length: 1 + tocPageCount }, () => ({content:[],links:[],images:[]}));
   const destinations: number[] = [];
-  let current = 1, y = H - 80;
+  let current = pages.length - 1, y = H - 80;
   const newPage = () => {
     pages.push({content:[],links:[],images:[]});
     current = pages.length - 1;
@@ -86,16 +98,19 @@ export function buildGuidePdf(input: GuidePdfInput): Uint8Array {
       paragraph(image.caption, 9, false, 14);
     }
   });
-  const toc = pages[1];
-  toc.content.push(text("Sommaire cliquable", LEFT, 765, 22, true));
-  toc.content.push(text("Cliquez sur un titre pour ouvrir directement son chapitre.", LEFT, 735, 10));
-  input.sections.forEach((section, index) => {
-    const ypos = 706 - index * 24;
-    if (ypos < 78) return;
-    toc.content.push(text(`${String(index + 1).padStart(2, "0")}  ${wrap(section.title, 10)[0] ?? section.title}`, LEFT, ypos, 10, true));
-    toc.content.push(text(String(destinations[index] + 1), W - 68, ypos, 10));
-    toc.links.push({section:index,y:ypos});
-  });
+  for (let tocPageIndex = 0; tocPageIndex < tocPageCount; tocPageIndex += 1) {
+    const toc = pages[1 + tocPageIndex];
+    toc.content.push(text(tocPageIndex === 0 ? "Sommaire cliquable" : "Sommaire cliquable (suite)", LEFT, 765, 22, true));
+    toc.content.push(text("Cliquez sur un titre pour ouvrir directement son chapitre.", LEFT, 735, 10));
+    const firstSection = tocPageIndex * tocRowsPerPage;
+    input.sections.slice(firstSection, firstSection + tocRowsPerPage).forEach((section, row) => {
+      const index = firstSection + row;
+      const ypos = 706 - row * 24;
+      toc.content.push(text(String(index + 1).padStart(2, "0") + "  " + (wrap(section.title, 10)[0] ?? section.title), LEFT, ypos, 10, true));
+      toc.content.push(text(String(destinations[index] + 1), W - 68, ypos, 10));
+      toc.links.push({section:index,y:ypos});
+    });
+  }
   pages.forEach((page, index) => {
     if (index > 0) page.content.push(text(input.title, LEFT, H - 39, 9, true));
     page.content.push(text(`TOK - ${index + 1} / ${pages.length}`, W - 128, 34, 9));
@@ -116,7 +131,8 @@ export function buildGuidePdf(input: GuidePdfInput): Uint8Array {
     ? `<< /Type /Outlines /First ${bookmarks[0]} 0 R /Last ${bookmarks[bookmarks.length-1]} 0 R /Count ${bookmarks.length} >>`
     : "<< /Type /Outlines /Count 0 >>");
   pages.forEach((page, i) => {
-    const content = encode(page.content.join(""));
+    // Le texte est deja encode par literal(); ne pas degrader les octets WinAnsi une seconde fois.
+    const content = page.content.join("");
     set(streamIds[i], `<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
     const resources = page.images.map((image, j) => `/${image.resource} ${imageIds[i][j]} 0 R`).join(" ");
     set(pageIds[i], `<< /Type /Page /Parent ${rootPages} 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 ${normalFont} 0 R /F2 ${boldFont} 0 R >> /XObject << ${resources} >> >> /Contents ${streamIds[i]} 0 R /Annots [${links[i].map(n => n + " 0 R").join(" ")}] >>`);
