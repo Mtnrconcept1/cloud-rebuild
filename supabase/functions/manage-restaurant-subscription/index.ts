@@ -16,7 +16,8 @@ import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 import { FAIR_GROWTH_ANNUAL_MONTHS_CHARGED } from "../_shared/restaurant-subscription-billing.ts";
 
 type JsonRecord = Record<string, unknown>;
-type SubscriptionAction = "cancel" | "resume" | "change_plan";
+type SubscriptionAction = "cancel" | "resume" | "change_plan" | "commission_mandate_status" | "accept_commission_mandate";
+const COMMISSION_MANDATE_CONTRACT_VERSION = "TOK-CH-RP-2026-10-v8";
 
 const SUBSCRIPTION_CANCELLATION_NOTICE_DAYS = 3;
 const SUBSCRIPTION_CANCELLATION_NOTICE_MS = SUBSCRIPTION_CANCELLATION_NOTICE_DAYS * 24 * 60 * 60 * 1000;
@@ -31,6 +32,7 @@ type RestaurantSubscriptionRow = {
   stripe_subscription_id: string | null;
   stripe_checkout_session_id: string | null;
   stripe_mode: string | null;
+  signup_application_id: string | null;
   stripe_subscription_schedule_id?: string | null;
   cancel_at_period_end?: boolean | null;
   scheduled_plan_change?: JsonRecord | null;
@@ -50,7 +52,7 @@ type RestaurantSubscriptionPlanRow = {
 };
 
 function normalizeAction(value: unknown): SubscriptionAction {
-  if (value === "cancel" || value === "resume") return value;
+  if (value === "cancel" || value === "resume" || value === "commission_mandate_status" || value === "accept_commission_mandate") return value;
   // Keep the old client value as a safe compatibility alias during rollout.
   if (value === "change_plan" || value === "downgrade") return "change_plan";
   throw new HttpError(400, "Action d'abonnement invalide");
@@ -202,6 +204,8 @@ function getCurrentPlanLookup(subscription: RestaurantSubscriptionRow) {
 function getAuditAction(action: SubscriptionAction) {
   if (action === "resume") return "resume_restaurant_subscription";
   if (action === "change_plan") return "schedule_restaurant_subscription_plan_change";
+  if (action === "accept_commission_mandate") return "accept_restaurant_commission_auto_debit_mandate";
+  if (action === "commission_mandate_status") return "get_restaurant_commission_mandate_status";
   return "cancel_restaurant_subscription_at_period_end";
 }
 
@@ -257,7 +261,7 @@ function stripeMetadataDeletes() {
 async function getLatestRestaurantSubscription(adminClient: ReturnType<typeof createAdminClient>, restaurantId: string) {
   const { data, error } = await adminClient
     .from("restaurant_ai_subscriptions")
-    .select("id, restaurant_id, restaurant_subscription_plan_id, plan, status, billing_period, stripe_subscription_id, stripe_checkout_session_id, stripe_mode, stripe_subscription_schedule_id, cancel_at_period_end, scheduled_plan_change, current_period_start, current_period_end, metadata")
+    .select("id, restaurant_id, restaurant_subscription_plan_id, plan, status, billing_period, stripe_subscription_id, stripe_checkout_session_id, stripe_mode, signup_application_id, stripe_subscription_schedule_id, cancel_at_period_end, scheduled_plan_change, current_period_start, current_period_end, metadata")
     .eq("restaurant_id", restaurantId)
     .order("current_period_end", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
@@ -346,6 +350,131 @@ Deno.serve(async (req) => {
     const subscription = await getLatestRestaurantSubscription(actor.adminClient, restaurantId);
     if (!subscription) {
       throw new HttpError(404, "Aucun abonnement restaurateur introuvable");
+    }
+
+    // Historical partners must opt in themselves. An admin or staff member may
+    // manage the restaurant, but must never sign a card debit mandate for its owner.
+    if (action === "commission_mandate_status" || action === "accept_commission_mandate") {
+      const { data: restaurant, error: restaurantError } = await actor.adminClient
+        .from("restaurants")
+        .select("owner_id")
+        .eq("id", restaurantId)
+        .maybeSingle();
+      if (restaurantError) throw new HttpError(503, "Propriétaire indisponible");
+      if (!restaurant || restaurant.owner_id !== actor.userId) {
+        throw new HttpError(403, "Seul le propriétaire peut autoriser un prélèvement");
+      }
+
+      const { data: finance, error: financeError } = await actor.adminClient
+        .from("finance_runtime_config")
+        .select("metadata")
+        .eq("config_key", "default")
+        .maybeSingle();
+      if (financeError) throw new HttpError(503, "Configuration de facturation indisponible");
+      const financeMetadata = isJsonRecord(finance?.metadata) ? finance.metadata : {};
+      const autoDebitEnabled = financeMetadata.reservation_commission_auto_debit_enabled === true;
+
+      const eligible = Boolean(
+        subscription.signup_application_id &&
+        !["cancelled", "canceled"].includes(String(subscription.status || "").toLowerCase())
+      );
+
+      if (!subscription.signup_application_id) {
+        if (action === "accept_commission_mandate") {
+          throw new HttpError(409, "Dossier d'inscription introuvable : contactez le support TOK");
+        }
+        return jsonResponse({
+          ok: true, eligible: false, accepted: false, payment_method_ready: false,
+          subscription_status: subscription.status, auto_debit_enabled: autoDebitEnabled,
+        }, 200, corsHeaders);
+      }
+
+      const { data: signup, error: signupError } = await actor.adminClient
+        .from("signup_applications")
+        .select("id, metadata, updated_at")
+        .eq("id", subscription.signup_application_id)
+        .maybeSingle();
+      if (signupError) throw new HttpError(503, "Dossier de signature indisponible");
+      if (!signup) throw new HttpError(409, "Dossier de signature introuvable");
+
+      const consentMetadata = isJsonRecord(signup.metadata) ? signup.metadata : {};
+      const acceptedAt = typeof consentMetadata.commission_auto_debit_consent_accepted_at === "string"
+        ? consentMetadata.commission_auto_debit_consent_accepted_at : null;
+      const accepted = consentMetadata.commission_auto_debit_consent_version === "v1"
+        && consentMetadata.commission_auto_debit_consent_accepted === true
+        && Boolean(acceptedAt && Number.isFinite(Date.parse(acceptedAt)));
+
+      const { data: paymentMethod, error: paymentError } = await actor.adminClient
+        .from("restaurant_subscription_payment_methods")
+        .select("ready_at")
+        .eq("subscription_id", subscription.id)
+        .maybeSingle();
+      if (paymentError) throw new HttpError(503, "État du moyen de paiement indisponible");
+
+      if (action === "commission_mandate_status") {
+        return jsonResponse({
+          ok: true, eligible, accepted, accepted_at: accepted ? acceptedAt : null,
+          contract_version: COMMISSION_MANDATE_CONTRACT_VERSION,
+          subscription_status: subscription.status, payment_method_ready: Boolean(paymentMethod?.ready_at),
+          auto_debit_enabled: autoDebitEnabled,
+        }, 200, corsHeaders);
+      }
+      if (!eligible) throw new HttpError(409, "Réactivez d'abord votre abonnement TOK");
+      if (
+        body?.confirmation !== true ||
+        body?.acknowledged_fee_cents !== 500 ||
+        body?.contract_version !== COMMISSION_MANDATE_CONTRACT_VERSION
+      ) {
+        throw new HttpError(422, "Consentement séparé aux prélèvements non confirmé");
+      }
+      if (accepted) {
+        return jsonResponse({ ok: true, accepted: true, already_accepted: true }, 200, corsHeaders);
+      }
+
+      // Keep the original signup timestamp intact and label this as a later
+      // signed authorization. No subscription, invoice or PaymentIntent is made here.
+      const now = new Date().toISOString();
+      const { data: saved, error: saveError } = await actor.adminClient
+        .from("signup_applications")
+        .update({
+          metadata: {
+            ...consentMetadata,
+            commission_auto_debit_consent_version: "v1",
+            commission_auto_debit_consent_accepted: true,
+            commission_auto_debit_consent_accepted_at: now,
+            commission_auto_debit_consent_source: "restaurant_billing_dashboard",
+            commission_auto_debit_consent_actor_user_id: actor.userId,
+            commission_auto_debit_consent_contract_version: COMMISSION_MANDATE_CONTRACT_VERSION,
+            commission_auto_debit_consent_subscription_id: subscription.id,
+          },
+          updated_at: now,
+        })
+        .eq("id", signup.id)
+        .eq("updated_at", signup.updated_at)
+        .select("id")
+        .maybeSingle();
+      if (saveError) throw new HttpError(503, "Impossible d'enregistrer le consentement");
+      if (!saved) throw new HttpError(409, "Le dossier a changé. Actualisez avant de confirmer.");
+
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: "manage-restaurant-subscription",
+        action: "accept_restaurant_commission_auto_debit_mandate",
+        status: "success",
+        targetEntityType: "signup_applications",
+        targetEntityId: signup.id,
+        metadata: {
+          restaurant_id: restaurantId, subscription_id: subscription.id,
+          consent_version: "v1", contract_version: COMMISSION_MANDATE_CONTRACT_VERSION,
+          accepted_at: now, source: "restaurant_billing_dashboard", no_payment_created: true,
+        },
+      });
+      return jsonResponse({
+        ok: true, accepted: true, accepted_at: now,
+        auto_debit_enabled: autoDebitEnabled, subscription_status: subscription.status,
+      }, 200, corsHeaders);
     }
 
     const period = resolveStripeSubscriptionPeriod(null, subscription);
