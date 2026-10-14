@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "05b0c78830f099087e4579def36c483cdd06c8d17e22cc11c5c1874eaa588320",
+ "sourceDigest": "f304efa74fbb1b2da6695f209200ea956939da3bf1c7b6dfc0bd6e13df7a227a",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -111459,7 +111459,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 37
+    "lineCount": 44
    },
    {
     "path": "src/test/transactional-email-templates.test.ts",
@@ -153315,14 +153315,14 @@
    "id": "code-module:01e7364e076f",
    "type": "code-module",
    "title": "src/test/tokWorkforceMigration.test.ts",
-   "description": "Module de 37 lignes; exports: aucun export statique.",
+   "description": "Module de 44 lignes; exports: aucun export statique.",
    "path": "src/test/tokWorkforceMigration.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "e982cd69937e"
+   "detailRef": "9b5dc17a5d09"
   },
   {
    "id": "code-module:dd826816118e",
