@@ -108,6 +108,22 @@ BEGIN
  PERFORM public.tok_workforce_review_request(v_id,true);
  IF (SELECT count(*) FROM public.tok_workforce_absences WHERE employee_id='20000000-0000-4000-8000-000000000001')<>1
   THEN RAISE EXCEPTION 'Leave approval did not create an absence'; END IF;
+ BEGIN
+  INSERT INTO public.tok_workforce_shifts(restaurant_id,employee_id,shift_date,start_time,end_time)
+  VALUES('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','2026-11-03','09:00','17:00');
+  RAISE EXCEPTION 'Absent staff scheduled during approved holiday';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM='Absent staff scheduled during approved holiday' THEN RAISE; END IF;
+ END;
+ INSERT INTO public.tok_workforce_shifts(restaurant_id,employee_id,shift_date,start_time,end_time)
+ VALUES('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','2026-11-05','09:00','17:00');
+ BEGIN
+  INSERT INTO public.tok_workforce_absences(restaurant_id,employee_id,absence_type,start_date,end_date,days_count)
+  VALUES('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','sick','2026-11-05','2026-11-05',1);
+  RAISE EXCEPTION 'Conflicting absence accepted over a scheduled shift';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM='Conflicting absence accepted over a scheduled shift' THEN RAISE; END IF;
+ END;
  SELECT id INTO v_hours_id FROM public.tok_workforce_time_entries LIMIT 1;
  INSERT INTO public.tok_workforce_validations(restaurant_id,time_entry_id,signed_by,signed_name,signature_data)
  VALUES ('10000000-0000-4000-8000-000000000001',v_hours_id,auth.uid(),'Owner One',
