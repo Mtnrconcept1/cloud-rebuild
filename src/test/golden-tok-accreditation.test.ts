@@ -66,10 +66,12 @@ describe("La Tok d’Or — paid accreditation access rules", () => {
     expect(checkout).toContain("GOLDEN_TOK_MONTHLY_CENTS = 9_900");
     expect(checkout).toContain("price.unit_amount !== GOLDEN_TOK_MONTHLY_CENTS");
     expect(checkout).toContain('price.tax_behavior !== "inclusive"');
-    expect(checkout).toContain("automatic_tax: { enabled: true }");
+    expect(checkout).toContain("automatic_tax: { enabled: swissVatRegistered }");
     expect(checkout).toContain('stripe.tax.registrations.list');
     expect(checkout).toContain('registration.country === "CH"');
-    expect(source("src/components/dashboard/GoldenTokPanel.tsx")).toContain("TVA comprise");
+    expect(checkout).toContain("registrations.has_more && !swissVatRegistered");
+    expect(checkout).not.toContain("immatriculation TVA suisse à configurer dans Stripe Tax");
+    expect(source("src/components/dashboard/GoldenTokPanel.tsx")).toContain("TVA non facturée");
     expect(checkout).toContain("price.product !== GOLDEN_TOK_PRODUCT_ID");
     expect(source("src/components/dashboard/GoldenTokPanel.tsx")).toContain("99 CHF/mois");
     expect(checkout).toContain('price.recurring?.interval !== "month"');
