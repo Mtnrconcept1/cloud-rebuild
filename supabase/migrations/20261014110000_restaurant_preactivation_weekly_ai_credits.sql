@@ -196,7 +196,9 @@ SET search_path = ''
 AS $$
 DECLARE
   v_subscription record;
-  v_anchor timestamptz := COALESCE(p_since, p_until - interval '1 microsecond', now());
+  -- A transaction can insert multiple usage rows: now() is transaction-fixed
+  -- and would exclude those rows from the subsequent spend check.
+  v_anchor timestamptz := COALESCE(p_since, p_until - interval '1 microsecond', clock_timestamp());
   v_civil_start timestamptz;
   v_civil_end timestamptz;
   v_period_start timestamptz;
