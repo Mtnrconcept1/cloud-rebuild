@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "7016d8d08ed36ecdf39558cc0f5b9404b9880b9cc45b5bea46049fd4c797fae7",
+ "sourceDigest": "6ac49fb4fe8e472ca7fdb604c74ef788dfd32ab867ba8815c120c060f3cf63f6",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -107501,7 +107501,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 371
+    "lineCount": 374
    },
    {
     "path": "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
@@ -147716,7 +147716,7 @@
    "id": "code-module:9ddedad5946b",
    "type": "code-module",
    "title": "src/test/restaurant-onboarding-payments.test.ts",
-   "description": "Module de 371 lignes; exports: aucun export statique.",
+   "description": "Module de 374 lignes; exports: aucun export statique.",
    "path": "src/test/restaurant-onboarding-payments.test.ts",
    "line": 1,
    "surface": null,
@@ -147724,7 +147724,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "f32da457bc42"
+   "detailRef": "0ca2453a075e"
   },
   {
    "id": "code-module:67fd19374082",
