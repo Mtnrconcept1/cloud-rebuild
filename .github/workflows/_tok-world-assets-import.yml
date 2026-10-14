@@ -1,0 +1,60 @@
+name: Temporary TOK World Art Publisher
+on:
+  push:
+    branches: [codex/tok-world-geo-hero-20261014]
+    paths:
+      - .github/workflows/_tok-world-assets-import.yml
+permissions:
+  contents: write
+  actions: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: codex/tok-world-geo-hero-20261014
+          fetch-depth: 5
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Apply tested source patch and fetch verified Release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'TOK CI Assistant'
+          git config user.email 'tok-ci-assistant@users.noreply.github.com'
+          base64 -d .tok-world-artwork.patch.gz.b64 | gzip -d > /tmp/tok-world.patch
+          echo 'e26f985573a5175a4649f091b3d216f3a736b514e05eac46efdcb17859a60c74  /tmp/tok-world.patch' | sha256sum -c
+          git apply --check /tmp/tok-world.patch
+          git apply /tmp/tok-world.patch
+          curl -fL --retry 3 --retry-delay 2 -o /tmp/tok-world.zip 'https://github.com/Mtnrconcept1/cloud-rebuild/releases/download/tok-world-visuals-v/TOK_Collection_Monde_Tous_Pays_WEBP.zip'
+          test "$(stat -c%s /tmp/tok-world.zip)" -eq 29300727
+          unzip -t /tmp/tok-world.zip | tail -2
+          mkdir -p public/images/locations
+          unzip -q /tmp/tok-world.zip '*.webp' -d public/images/locations
+          test "$(find public/images/locations -type f -name '*.webp' | wc -l)" -eq 88
+      - name: Validate and commit final assets without temporary machinery
+        shell: bash
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+          VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+          pnpm install --frozen-lockfile
+          git rm -f .tok-world-artwork.patch.gz.b64 .github/workflows/_tok-world-assets-import.yml
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+          pnpm exec vitest run src/test/home-world-hero.test.ts src/test/home-hero-search.test.tsx src/test/home-canton-hero.test.ts --mode production
+          pnpm lint
+          pnpm typecheck
+          pnpm build
+          git add -A src/lib/homeWorldHero.ts src/components/home/HeroSection.tsx src/components/home/HeroSection.css src/pages/Index.tsx src/test/home-world-hero.test.ts src/test/home-hero-search.test.tsx public/images/locations docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts index.html vercel.json
+          git diff --cached --check
+          git commit -m 'feat(home): activate geolocated worldwide TOK WebP artwork'
+          git push origin HEAD:refs/heads/codex/tok-world-geo-hero-20261014
