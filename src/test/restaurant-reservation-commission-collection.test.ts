@@ -53,6 +53,19 @@ describe("restaurant commission consent, collection and accounting", () => {
     expect(schema).toContain("ON CONFLICT (reservation_id) DO NOTHING");
   });
 
+  it("keeps subscription activation available before the commission SQL migration", () => {
+    const configRead = worker.indexOf('.from("finance_runtime_config")');
+    const featureGuard = worker.indexOf(
+      "financeMetadata.reservation_commission_auto_debit_enabled !== true",
+    );
+    const claim = worker.indexOf('"claim_restaurant_commission_collections"');
+    expect(configRead).toBeGreaterThan(-1);
+    expect(featureGuard).toBeGreaterThan(configRead);
+    expect(claim).toBeGreaterThan(featureGuard);
+    expect(worker).toContain("return { claimed: 0, succeeded: 0, failed: 0 }");
+    expect(worker).toContain("commission_config_read_failed");
+  });
+
   it("uses a bounded leased service-only worker and Stripe's idempotency key", () => {
     expect(schema).toContain("FOR UPDATE OF collection SKIP LOCKED");
     expect(schema).toContain("attempt_count<3");

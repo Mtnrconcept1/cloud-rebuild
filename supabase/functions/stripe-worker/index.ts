@@ -458,6 +458,26 @@ async function collectReservationCommissions(input: {
   limit: number;
 }) {
   const { adminClient, limit } = input;
+  // The Edge Function can deploy before its database migration. Skip the new
+  // commission RPC while the financial feature flag is disabled so that
+  // existing subscription activations remain available during rollout.
+  const { data: financeConfig, error: financeConfigError } = await adminClient
+    .from("finance_runtime_config")
+    .select("metadata")
+    .eq("config_key", "default")
+    .maybeSingle();
+  if (financeConfigError) {
+    throw new Error("commission_config_read_failed:" + financeConfigError.message);
+  }
+  const financeMetadata = financeConfig?.metadata;
+  if (
+    !financeMetadata ||
+    typeof financeMetadata !== "object" ||
+    Array.isArray(financeMetadata) ||
+    financeMetadata.reservation_commission_auto_debit_enabled !== true
+  ) {
+    return { claimed: 0, succeeded: 0, failed: 0 };
+  }
   const { data, error } = await adminClient.rpc(
     "claim_restaurant_commission_collections",
     { p_limit: limit },
