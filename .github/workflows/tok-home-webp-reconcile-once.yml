@@ -40,7 +40,7 @@ jobs:
           while IFS= read -r path; do
             [[ -z "$path" ]] && continue
             case " $allowed " in
-              *" $path "*) git checkout --ours -- "$path" ;;
+              *" $path "*) git checkout --ours -- "$path"; git add -- "$path" ;;
               *) echo "::error::Unexpected merge conflict: $path"; exit 1 ;;
             esac
           done < <(git diff --name-only --diff-filter=U)
