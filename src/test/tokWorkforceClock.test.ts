@@ -31,6 +31,8 @@ describe("TOK Équipe — badgeuse et droits employés",()=>{
   expect(sql).toContain("tok_workforce_can_manage(restaurant_id)");
   expect(sql).toContain("tok_workforce_can_schedule");
   expect(sql).toContain("signature_data");
+  expect(sql).toContain("tok_workforce_shift_absence_guard");
+  expect(sql).toContain("tok_workforce_absence_shift_guard");
   expect(sql).toContain("tok_workforce_review_request");
   expect(sql).toContain("target_accepted_at IS NULL THEN RAISE EXCEPTION");
  });
@@ -42,7 +44,7 @@ describe("TOK Équipe — badgeuse et droits employés",()=>{
  it("équilibre les blocs de fonctions PostgreSQL",()=>{
   const starts=(sql.match(/AS \$\$/g)||[]).length;
   const ends=(sql.match(/\$\$;/g)||[]).length;
-  expect(starts).toBe(8);
+  expect(starts).toBe(9);
   expect(ends).toBe(starts);
   expect(sql).not.toMatch(/\bAS \$(?!\$)/);
  });
