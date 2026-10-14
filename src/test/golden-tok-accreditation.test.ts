@@ -84,6 +84,8 @@ describe("La Tok d’Or — paid accreditation access rules", () => {
 
   it("keeps the application feature within the existing restaurant dashboard route", () => {
     expect(source("src/pages/dashboard/DashboardFormules.tsx")).toContain("<GoldenTokPanel");
+    expect(source("src/pages/dashboard/DashboardFormules.tsx")).toContain('import.meta.env.VITE_GOLDEN_TOK_ENABLED === "true"');
+    expect(source("src/pages/admin/DropsManagement.tsx")).toContain('import.meta.env.VITE_GOLDEN_TOK_ENABLED === "true"');
     expect(source("src/components/dashboard/GoldenTokPanel.tsx")).toContain("apply_golden_tok_accreditation");
     expect(source("src/components/dashboard/GoldenTokPanel.tsx")).toContain("restaurant_save_golden_tok_drop");
   });
