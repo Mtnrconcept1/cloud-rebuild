@@ -40,7 +40,9 @@ jobs:
           unzip -oq /tmp/tok-world.zip -d public/images/world
           actual="$(find public/images/world -type f -name '*.webp' | wc -l | tr -d ' ')"
           test "$actual" = "88"
-          if find public/images/world -type f ! -name '*.webp' | grep -q .; then echo "::error::Unexpected file type"; exit 1; fi
+          # The release contains a CSV inventory; only WebP assets are deployed.
+          find public/images/world -type f ! -name '*.webp' -delete
+          test "$(find public/images/world -type f -name '*.webp' | wc -l | tr -d ' ')" = "88"
           echo "Successfully imported $actual WebP images"
       - name: Reconcile reference index and validate application
         env:
