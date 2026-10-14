@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `c742b857dcf342ab3a43c906316538f05b3126c5d09e4980795a1c6fb2b423fd`
+- Empreinte SHA-256 des sources indexées : `55e3e089aa76a64eab8cc105aa47970460b3a33b8b92b3516d2d6448e3900705`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,7 +29,7 @@
 | cronJobs | 34 |
 | databaseContract | 228 |
 | databaseObjects | 2781 |
-| documents | 203 |
+| documents | 204 |
 | edgeFunctions | 116 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 3520 |
@@ -37,16 +37,16 @@
 | frontendRoutes | 137 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 537 |
-| modules | 1552 |
+| migrations | 538 |
+| modules | 1553 |
 | pages | 129 |
 | pathLiterals | 697 |
 | publicAssets | 502 |
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16590 |
-| repositoryFiles | 3087 |
+| records | 16600 |
+| repositoryFiles | 3090 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2650,7 +2650,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.get_meal_formula_service_key` (1 définition(s))
 - `public.get_my_restaurant_ai_subscriptions` (1 définition(s))
 - `public.get_order_customers` (1 définition(s))
-- `public.get_payable_invoice_lines` (1 définition(s))
+- `public.get_payable_invoice_lines` (2 définition(s))
 - `public.get_payment_integrity_anomalies` (2 définition(s))
 - `public.get_payout_invoice_lines` (2 définition(s))
 - `public.get_profile_order_window` (1 définition(s))
@@ -5903,6 +5903,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261014010000 Recurring Restaurant Reservation Commissions | 549 | 16 | [supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql:1](../../supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql#L1) |
 | 20261014030000 Golden Tok Accreditations | 286 | 8 | [supabase/migrations/20261014030000_golden_tok_accreditations.sql:1](../../supabase/migrations/20261014030000_golden_tok_accreditations.sql#L1) |
 | 20261014072000 Developer Subscription Gross Share Before Vat | 769 | 1 | [supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql:1](../../supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql#L1) |
+| 20261014093000 Show Stripe Subscription In Tok Invoice Document | 59 | 1 | [supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql:1](../../supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6127,8 +6128,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 235 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 695 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 238 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 696 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6149,7 +6150,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 614 |
+| test | 615 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6283,6 +6284,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Hébergement des associations mobiles | 3 | [docs/runbooks/mobile-association-hosting.md:1](../../docs/runbooks/mobile-association-hosting.md#L1) |
 | Runbook release production securisee | 8 | [docs/runbooks/production-release-readiness.md:1](../../docs/runbooks/production-release-readiness.md#L1) |
 | Runbook Stripe et reconciliation financiere | 8 | [docs/runbooks/stripe-financial-ops.md:1](../../docs/runbooks/stripe-financial-ops.md#L1) |
+| Versement développeur sans Stripe Connect : PostFinance | 4 | [docs/runbooks/tok-developer-bank-payouts.md:1](../../docs/runbooks/tok-developer-bank-payouts.md#L1) |
 | Protection SEO et anti-scraping de TOK | 10 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
 | Tok audit readiness — plan 10/10 | 5 | [docs/security/audit-readiness-10-10.md:1](../../docs/security/audit-readiness-10-10.md#L1) |
 | Audit d’intégrité des paiements — 15 juillet 2026 | 15 | [docs/security/payment-integrity-audit-2026-07-15.md:1](../../docs/security/payment-integrity-audit-2026-07-15.md#L1) |
@@ -6749,7 +6751,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (537)</summary>
+<details><summary>database-migration (538)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7288,10 +7290,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql`
 - `supabase/migrations/20261014030000_golden_tok_accreditations.sql`
 - `supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql`
+- `supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql`
 
 </details>
 
-<details><summary>documentation (156)</summary>
+<details><summary>documentation (157)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7379,6 +7382,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/runbooks/mobile-association-hosting.md`
 - `docs/runbooks/production-release-readiness.md`
 - `docs/runbooks/stripe-financial-ops.md`
+- `docs/runbooks/tok-developer-bank-payouts.md`
 - `docs/security/SEO_BOT_PROTECTION_RUNBOOK.md`
 - `docs/security/audit-readiness-10-10.md`
 - `docs/security/payment-integrity-audit-2026-07-15.md`
@@ -8900,7 +8904,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (614)</summary>
+<details><summary>test (615)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9479,6 +9483,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/thefork-image-enrichment-completion.test.ts`
 - `src/test/tok-ai-platform-plan.test.ts`
 - `src/test/tok-ai-tools.test.ts`
+- `src/test/tok-canonical-subscription-invoice.test.ts`
 - `src/test/tok-connect-admin-humanized.test.ts`
 - `src/test/tok-connect-admin-pagination.test.ts`
 - `src/test/tok-connect-admin-schema-contract.test.ts`
