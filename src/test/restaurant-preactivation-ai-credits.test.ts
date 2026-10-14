@@ -77,6 +77,22 @@ describe("restaurant AI credits before subscription activation", () => {
     expect(migration).toContain("REVOKE ALL ON FUNCTION private_finance.get_restaurant_preactivation_credit_usage");
   });
 
+  it("carries purchased credits already spent before subscription activation", () => {
+    expect(migration).toContain("p_spend_before timestamptz DEFAULT NULL");
+    expect(migration).toContain("v_first_activation");
+    expect(migration).toContain("v_preactivation_paid_spent");
+    expect(migration).toContain("v_paid_deduction");
+    expect(migration).toContain("'preactivation_paid_spent'");
+    expect(migration).toContain("p_anchor - interval '24 months'");
+  });
+
+  it("cannot omit or zero out billable AI credit units", () => {
+    expect(migration).toContain("NEW.metadata->>'credit_units'");
+    expect(migration).toContain("NEW.metadata->>'image_count'");
+    expect(migration).toContain("NEW.metadata->>'variant_count'");
+    expect(migration).toContain("GREATEST(\n      COALESCE(");
+  });
+
   it("shows weekly free and bought balances without removing Stripe pack checkout", () => {
     expect(billingPage).toContain("15 crédits IA gratuits chaque semaine avant activation");
     expect(billingPage).toContain("weeklyTrialBalance");
