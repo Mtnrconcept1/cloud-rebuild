@@ -2,13 +2,13 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "9cf2f004f320b99b53fc2745f8ee408fe15a21c473add242eb803849a0200b62",
+ "sourceDigest": "64a99e4b74bdb45f57c06739585f84104548b010ff0107db60f07cc76b7c5a7a",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2781,
+  "databaseObjects": 2784,
   "documents": 204,
   "edgeFunctions": 116,
   "edgeHttpRoutes": 20,
@@ -17,16 +17,16 @@
   "frontendRoutes": 137,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 538,
-  "modules": 1553,
+  "migrations": 539,
+  "modules": 1554,
   "pages": 129,
   "pathLiterals": 697,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16600,
-  "repositoryFiles": 3090,
+  "records": 16607,
+  "repositoryFiles": 3092,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -4928,7 +4928,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 144,
+      "line": 147,
       "kind": "function"
      }
     ],
@@ -19704,7 +19704,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2118
+      "line": 2130
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -19952,7 +19952,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1760
+      "line": 1772
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -20273,7 +20273,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardFacturesOutflow.tsx",
-      "line": 205
+      "line": 208
      },
      {
       "path": "src/test/restaurant-onboarding-payments.test.ts",
@@ -20315,7 +20315,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardFacturesOutflow.tsx",
-      "line": 208
+      "line": 211
      },
      {
       "path": "src/test/feature-flags.test.ts",
@@ -20344,7 +20344,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardFacturesOutflow.tsx",
-      "line": 214
+      "line": 217
      }
     ]
    },
@@ -20373,7 +20373,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardFacturesOutflow.tsx",
-      "line": 211
+      "line": 214
      },
      {
       "path": "src/test/feature-flags.test.ts",
@@ -20585,11 +20585,11 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1884
+      "line": 1896
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2257
+      "line": 2269
      }
     ]
    },
@@ -20701,7 +20701,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2398
+      "line": 2410
      }
     ]
    },
@@ -25449,7 +25449,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2868
+      "line": 2880
      }
     ]
    },
@@ -31810,6 +31810,7 @@
      "src/test/match-group-restaurant-payment-guards.test.ts",
      "src/test/miamz-business-logic-guards.test.ts",
      "src/test/order-confirmation.test.ts",
+     "src/test/paid-tok-invoice-delivery.test.ts",
      "src/test/payment-attempt-backend-contract.test.ts",
      "src/test/payment-attempt-state.test.ts",
      "src/test/plan-phase1-readiness.test.ts",
@@ -32395,6 +32396,7 @@
      "src/test/order-capacity-acceptance-10k.test.ts",
      "src/test/order-pricing-special-offers.test.ts",
      "src/test/package-scripts-readiness.test.ts",
+     "src/test/paid-tok-invoice-delivery.test.ts",
      "src/test/password-policy.test.ts",
      "src/test/password-recovery-routing.test.ts",
      "src/test/payment-attempt-backend-contract.test.ts",
@@ -35947,6 +35949,12 @@
     "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
     "lineCount": 59,
     "objectCount": 1
+   },
+   {
+    "name": "20261014100000 Paid Tok Invoice Delivery",
+    "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
+    "lineCount": 163,
+    "objectCount": 3
    }
   ],
   "databaseObjects": [
@@ -36431,6 +36439,16 @@
      {
       "path": "supabase/migrations/20260717220000_deferred_subscription_commission_lifecycle.sql",
       "line": 526
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private_finance.tok_invoice_html_escape",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
+      "line": 10
      }
     ]
    },
@@ -42621,6 +42639,16 @@
      {
       "path": "supabase/migrations/20260904173300_restaurant_image_discovery_reactivation.sql",
       "line": 4
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.queue_tok_paid_invoice_email",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
+      "line": 19
      }
     ]
    },
@@ -51717,6 +51745,16 @@
      {
       "path": "supabase/migrations/20260717023000_stripe_developer_share_transfers.sql",
       "line": 88
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "ux_email_queue_tok_paid_invoice",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
+      "line": 6
      }
     ]
    },
@@ -103095,7 +103133,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1634
+    "lineCount": 1635
    },
    {
     "path": "src/pages/admin/adminOrdersReservationsShared.ts",
@@ -103472,7 +103510,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 144,
+      "line": 147,
       "kind": "function"
      }
     ],
@@ -103480,7 +103518,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 394
+    "lineCount": 397
    },
    {
     "path": "src/pages/dashboard/DashboardFormules.tsx",
@@ -107318,6 +107356,16 @@
      "supabase"
     ],
     "lineCount": 36
+   },
+   {
+    "path": "src/test/paid-tok-invoice-delivery.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 47
    },
    {
     "path": "src/test/password-policy.test.ts",
@@ -113942,7 +113990,7 @@
      "resend",
      "supabase"
     ],
-    "lineCount": 308
+    "lineCount": 320
    },
    {
     "path": "supabase/functions/send-push/index.ts",
@@ -114013,7 +114061,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3490
+    "lineCount": 3510
    },
    {
     "path": "supabase/functions/stripe-worker/index.ts",
@@ -124865,6 +124913,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/paid-tok-invoice-delivery.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/password-policy.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -129691,6 +129744,11 @@
    },
    {
     "path": "supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -141918,7 +141976,7 @@
    "id": "code-module:c3bf08e13b06",
    "type": "code-module",
    "title": "src/pages/admin/adminComptaShared.ts",
-   "description": "Module de 1634 lignes; exports: RestaurantFilterRow, AdminOrderRow, AdminReservationPaymentRow, AdminInvoiceRow, AdminCampaignRow, AccountingStripeReconciliationRow, AccountingMonthLockRow, AccountingPeriodControl, PlatformFinanceMonthlySnapshot, AdminReservationFeeAccrualRow, AdminPayableLineItemRow, AdminPayableAccrualSummary, InvoiceDetailLineType, InvoiceDetailSource, InvoiceDetailSourcePresentation, PayoutInvoiceDetailLine, ReservationFeeInvoiceDetailLine, INVOICE_DETAIL_SOURCE_PRESENTATION, toAmount, formatAmount, formatDate, formatPeriod, downloadAccountingCsv, isAccountingPeriodClosed, getInvoiceStatusClass, getInvoiceDetailSourcePresentation, getPayoutInvoiceOrderSubtotal, getPayoutInvoiceReservationSubtotal, getPayoutInvoiceLinesTotal, getPayoutInvoiceRoundingDelta, getReservationFeeInvoiceLinesTotal, buildMonthOptions, isCreditFundedCampaign, fetchAdminAccountingExportEntries, useAdminPayoutInvoiceDetailLines, useAdminReservationFeeInvoiceDetailLines, useAdminComptaData.",
+   "description": "Module de 1635 lignes; exports: RestaurantFilterRow, AdminOrderRow, AdminReservationPaymentRow, AdminInvoiceRow, AdminCampaignRow, AccountingStripeReconciliationRow, AccountingMonthLockRow, AccountingPeriodControl, PlatformFinanceMonthlySnapshot, AdminReservationFeeAccrualRow, AdminPayableLineItemRow, AdminPayableAccrualSummary, InvoiceDetailLineType, InvoiceDetailSource, InvoiceDetailSourcePresentation, PayoutInvoiceDetailLine, ReservationFeeInvoiceDetailLine, INVOICE_DETAIL_SOURCE_PRESENTATION, toAmount, formatAmount, formatDate, formatPeriod, downloadAccountingCsv, isAccountingPeriodClosed, getInvoiceStatusClass, getInvoiceDetailSourcePresentation, getPayoutInvoiceOrderSubtotal, getPayoutInvoiceReservationSubtotal, getPayoutInvoiceLinesTotal, getPayoutInvoiceRoundingDelta, getReservationFeeInvoiceLinesTotal, buildMonthOptions, isCreditFundedCampaign, fetchAdminAccountingExportEntries, useAdminPayoutInvoiceDetailLines, useAdminReservationFeeInvoiceDetailLines, useAdminComptaData.",
    "path": "src/pages/admin/adminComptaShared.ts",
    "line": 1,
    "surface": null,
@@ -141963,7 +142021,7 @@
     "useAdminPayoutInvoiceDetailLines",
     "useAdminReservationFeeInvoiceDetailLines"
    ],
-   "detailRef": "5aae86ceb993"
+   "detailRef": "61d27ecc7851"
   },
   {
    "id": "code-module:b48d0ecb3f44",
@@ -142262,7 +142320,7 @@
    "id": "code-module:568ae001b75e",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardFacturesOutflow.tsx",
-   "description": "Module de 394 lignes; exports: default.",
+   "description": "Module de 397 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardFacturesOutflow.tsx",
    "line": 1,
    "surface": null,
@@ -142270,7 +142328,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "3cb9bb5a7569"
+   "detailRef": "48f7fdff29cb"
   },
   {
    "id": "code-module:b7e50e95ad4a",
@@ -147469,6 +147527,20 @@
     "supabase"
    ],
    "detailRef": "14b9941f5eec"
+  },
+  {
+   "id": "code-module:34dc800079d6",
+   "type": "code-module",
+   "title": "src/test/paid-tok-invoice-delivery.test.ts",
+   "description": "Module de 47 lignes; exports: aucun export statique.",
+   "path": "src/test/paid-tok-invoice-delivery.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "51aadd1791a0"
   },
   {
    "id": "code-module:c6df375a3710",
@@ -153164,7 +153236,7 @@
    "id": "code-module:7abc38eba430",
    "type": "code-module",
    "title": "supabase/functions/send-email/index.ts",
-   "description": "Module de 308 lignes; exports: aucun export statique.",
+   "description": "Module de 320 lignes; exports: aucun export statique.",
    "path": "supabase/functions/send-email/index.ts",
    "line": 1,
    "surface": null,
@@ -153179,7 +153251,7 @@
     "resend",
     "supabase"
    ],
-   "detailRef": "0c078363e2f0"
+   "detailRef": "6f598bdf2a52"
   },
   {
    "id": "code-module:3fb6b7bf56e1",
@@ -153269,7 +153341,7 @@
    "id": "code-module:9ac355dfd729",
    "type": "code-module",
    "title": "supabase/functions/stripe-webhook/index.ts",
-   "description": "Module de 3490 lignes; exports: aucun export statique.",
+   "description": "Module de 3510 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-webhook/index.ts",
    "line": 1,
    "surface": null,
@@ -153277,7 +153349,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "21071f104367"
+   "detailRef": "e90925d5f20d"
   },
   {
    "id": "code-module:f3fa7c18e7bc",
@@ -168078,6 +168150,21 @@
     "supabase"
    ],
    "detailRef": "1977c9651480"
+  },
+  {
+   "id": "database-object:1d9d81eea53b",
+   "type": "database-object",
+   "title": "private_finance.tok_invoice_html_escape",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "534cea9643f4"
   },
   {
    "id": "database-object:cad2b0893278",
@@ -184550,6 +184637,21 @@
    "detailRef": "8e8f7cb24a9f"
   },
   {
+   "id": "database-object:397d6090cd7d",
+   "type": "database-object",
+   "title": "public.queue_tok_paid_invoice_email",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "f52400c08f09"
+  },
+  {
    "id": "database-object:c7d2505f1afe",
    "type": "database-object",
    "title": "public.rate_limit_buckets.deny all rate_limit_buckets",
@@ -198918,6 +199020,21 @@
     "supabase"
    ],
    "detailRef": "1acce1018106"
+  },
+  {
+   "id": "database-object:51a675723f20",
+   "type": "database-object",
+   "title": "ux_email_queue_tok_paid_invoice",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "8c8261ca993d"
   },
   {
    "id": "database-object:855f7952b905",
@@ -270990,18 +271107,18 @@
    "detailRef": "eb9583a1b16f"
   },
   {
-   "id": "exported-symbol:0ba6ab96586a",
+   "id": "exported-symbol:82a1daad505d",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardFacturesOutflow.tsx.",
    "path": "src/pages/dashboard/DashboardFacturesOutflow.tsx",
-   "line": 144,
+   "line": 147,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "6ea47572b244"
+   "detailRef": "9127deea88e9"
   },
   {
    "id": "exported-symbol:09689b44b699",
@@ -319927,6 +320044,20 @@
    "detailRef": "15331247fd43"
   },
   {
+   "id": "file:9d58fd1fabbf",
+   "type": "file",
+   "title": "src/test/paid-tok-invoice-delivery.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/paid-tok-invoice-delivery.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "b52abe24ff9f"
+  },
+  {
    "id": "file:999f6230b96a",
    "type": "file",
    "title": "src/test/password-policy.test.ts",
@@ -333451,6 +333582,20 @@
    "detailRef": "2ed4ca4c156f"
   },
   {
+   "id": "file:c8e7580522bb",
+   "type": "file",
+   "title": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "23024e25c3c9"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -337160,7 +337305,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 238 module(s).",
+   "description": "Intégration externe détectée dans 239 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -337294,6 +337439,7 @@
     "src/test/match-group-restaurant-payment-guards.test.ts",
     "src/test/miamz-business-logic-guards.test.ts",
     "src/test/order-confirmation.test.ts",
+    "src/test/paid-tok-invoice-delivery.test.ts",
     "src/test/payment-attempt-backend-contract.test.ts",
     "src/test/payment-attempt-state.test.ts",
     "src/test/plan-phase1-readiness.test.ts",
@@ -337405,13 +337551,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "8f145bc8a998"
+   "detailRef": "466578cc5c25"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 696 module(s).",
+   "description": "Intégration externe détectée dans 697 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -337887,6 +338033,7 @@
     "src/test/order-capacity-acceptance-10k.test.ts",
     "src/test/order-pricing-special-offers.test.ts",
     "src/test/package-scripts-readiness.test.ts",
+    "src/test/paid-tok-invoice-delivery.test.ts",
     "src/test/password-policy.test.ts",
     "src/test/password-recovery-routing.test.ts",
     "src/test/payment-attempt-backend-contract.test.ts",
@@ -338114,7 +338261,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "1fc883250adf"
+   "detailRef": "6f1779104aee"
   },
   {
    "id": "integration:c20910a79a78",
@@ -346330,6 +346477,20 @@
    "detailRef": "293cb956df78"
   },
   {
+   "id": "migration:5ca69a37dcc2",
+   "type": "migration",
+   "title": "20261014100000 Paid Tok Invoice Delivery",
+   "description": "Migration SQL de 163 lignes, 3 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "218cd69320b2"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -348280,7 +348441,7 @@
     "/dashboard/factures/sorties",
     "supabase"
    ],
-   "detailRef": "7c75ee94a2af"
+   "detailRef": "41383ee255db"
   },
   {
    "id": "page:1920f81c0d65",
@@ -352210,7 +352371,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "87381ea8b604"
+   "detailRef": "3a675d1be75b"
   },
   {
    "id": "path-literal:b6abce7fd060",
@@ -352378,7 +352539,7 @@
     "src/pages/dashboard/DashboardFacturesOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "38030f8010d1"
+   "detailRef": "c9b4ef6ec81e"
   },
   {
    "id": "path-literal:d1c5b97db6ca",
@@ -352395,7 +352556,7 @@
     "src/pages/dashboard/DashboardFacturesInflow.tsx",
     "src/pages/dashboard/DashboardFacturesOutflow.tsx"
    ],
-   "detailRef": "2adafb2341c2"
+   "detailRef": "199ba7a4e1a8"
   },
   {
    "id": "path-literal:91512f8b9fb9",
@@ -352413,7 +352574,7 @@
     "src/pages/dashboard/DashboardFacturesOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "eda6f2299a92"
+   "detailRef": "5cf2e35f5aee"
   },
   {
    "id": "path-literal:d19cb7be0676",
@@ -352437,7 +352598,7 @@
     "src/pages/dashboard/DashboardFacturesOutflow.tsx",
     "src/test/restaurant-onboarding-payments.test.ts"
    ],
-   "detailRef": "fd0b40daefee"
+   "detailRef": "01f2c0ecb660"
   },
   {
    "id": "path-literal:10b7a865dccd",
@@ -352521,7 +352682,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "d1ad240f074c"
+   "detailRef": "1b88762efd16"
   },
   {
    "id": "path-literal:066026c7496d",
@@ -352588,7 +352749,7 @@
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "567fbed2ee0a"
+   "detailRef": "ce071b06c285"
   },
   {
    "id": "path-literal:d7fb77c2dbf9",
@@ -352911,7 +353072,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "370e5a036757"
+   "detailRef": "8f10d0f7b7da"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -356675,7 +356836,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "aa31cc502044"
+   "detailRef": "21db7f06e927"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",

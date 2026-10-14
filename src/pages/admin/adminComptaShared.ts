@@ -808,10 +808,10 @@ async function fetchAdminExportInvoices(selectedRestaurant: string, period: Acco
 
     return applyAccountingPeriodRange(
       applyAdminRestaurantFilter(query, selectedRestaurant),
-      "period_end",
+      "period_start",
       period,
       "date",
-    ).order("period_end", { ascending: true });
+    ).order("period_start", { ascending: true });
   };
 
   return fetchPagedRows<AdminInvoiceRow>(buildQuery);
@@ -995,13 +995,12 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
   const restaurantsQuery = useQuery({
     queryKey: ["admin-restaurants-list"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("restaurants")
-        .select("id, name")
-        .order("name");
-
-      if (error) throw error;
-      return (data || []) as RestaurantFilterRow[];
+      // Supabase returns at most 1,000 rows per request. Fetch every
+      // restaurant, otherwise businesses such as La Gazelle d’Or may be
+      // missing from the admin accounting filter.
+      return fetchPagedRows<RestaurantFilterRow>(
+        () => supabase.from("restaurants").select("id, name").order("name").order("id"),
+      );
     },
   });
 
@@ -1254,8 +1253,10 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
           restaurants ( name )
         `)
         .in("invoice_type", ["payable", "reservation_fees", "subscription"])
+        // Subscription invoices may span into the next month (Oct 14–Nov 13).
+        // Account for the invoice in its billing period's START month.
         .gte("period_start", monthBounds.monthStart)
-        .lte("period_end", monthBounds.monthEnd)
+        .lte("period_start", monthBounds.monthEnd)
         .order("created_at", { ascending: false });
 
       if (selectedRestaurant !== "all") {
