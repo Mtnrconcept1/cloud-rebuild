@@ -13,6 +13,13 @@ describe("TOK Équipe — invariants de migration",()=>{
       expect(migration).toContain("ALTER TABLE public."+full+" ENABLE ROW LEVEL SECURITY");
     });
   }
+  it("utilise des blocs SQL dollar-quotés complets",()=>{
+    expect(migration).not.toMatch(/\bAS \$(?!\$)/);
+    const opens=(migration.match(/\bAS \$\$/g)||[]).length;
+    const closes=(migration.match(/\$\$;/g)||[]).length;
+    expect(opens).toBe(5);
+    expect(closes).toBe(opens);
+  });
   it("désactive le module par défaut et limite l'activation aux admins",()=>{
     expect(migration).toContain("enabled boolean NOT NULL DEFAULT false");
     expect(migration).toContain("tok_workforce_settings_admin_insert");
