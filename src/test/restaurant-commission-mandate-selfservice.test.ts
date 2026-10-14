@@ -17,6 +17,8 @@ describe("legacy restaurant commission consent remediation", () => {
     expect(backend).toContain('commission_auto_debit_consent_source: "restaurant_billing_dashboard"');
     expect(backend).toContain("commission_auto_debit_consent_actor_user_id: actor.userId");
     expect(backend).toContain(".eq(\"updated_at\", signup.updated_at)");
+    expect(backend).toContain('if (action === "commission_mandate_status") {');
+    expect(backend).toContain("subscription_status: null, auto_debit_enabled: false");
   });
 
   it("does not create payments or activate commission automation on acceptance", () => {
