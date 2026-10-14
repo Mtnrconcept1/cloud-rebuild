@@ -31,7 +31,7 @@ export default function DashboardWorkforce() {
           {label:"Heures/semaine",value:String(settings.data?.max_weekly_hours||50),icon:Clock3},
         ]}
       />
-      {loading||settings.isPending && !!selectedId && !isDemoMode?
+      {(loading || (settings.isPending && !!selectedId && !isDemoMode))?
         <Card className="rounded-2xl"><CardContent className="py-10 text-center text-muted-foreground">Vérification de vos droits d'accès…</CardContent></Card>:
         settings.isError?
           <Card className="rounded-2xl border-destructive/30"><CardContent className="py-8 text-destructive" role="alert">Impossible de vérifier l'autorisation de ce restaurant. Réessayez ultérieurement.</CardContent></Card>:
