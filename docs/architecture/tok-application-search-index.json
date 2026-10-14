@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "4c11bc841c6e44c4acc93fb6a2cb8dcf805ba270cd249d2f9f83e4dbe120f78b",
+ "sourceDigest": "b8c4eb060162a9a613ed59e34f395780b63f5602f81c88046ebb4158d3ea9241",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -20,19 +20,19 @@
   "migrations": 540,
   "modules": 1555,
   "pages": 128,
-  "pathLiterals": 698,
-  "publicAssets": 502,
-  "publicEntries": 527,
+  "pathLiterals": 697,
+  "publicAssets": 511,
+  "publicEntries": 536,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16614,
-  "repositoryFiles": 3096,
+  "records": 16633,
+  "repositoryFiles": 3106,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 28
+  "workflows": 29
  },
  "catalogs": {
   "frontendRoutes": [
@@ -3329,7 +3329,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 209,
+      "line": 210,
       "kind": "function"
      }
     ],
@@ -12342,6 +12342,11 @@
     "kind": "media"
    },
    {
+    "route": "/images/section-headers/tok-editorial-cuisine-full.webp",
+    "path": "public/images/section-headers/tok-editorial-cuisine-full.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/section-headers/tok-editorial-cuisine.jpg",
     "path": "public/images/section-headers/tok-editorial-cuisine.jpg",
     "kind": "media"
@@ -12352,8 +12357,18 @@
     "kind": "media"
    },
    {
+    "route": "/images/section-headers/tok-editorial-delivery-full.webp",
+    "path": "public/images/section-headers/tok-editorial-delivery-full.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/section-headers/tok-editorial-evening-full.jpg",
     "path": "public/images/section-headers/tok-editorial-evening-full.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/images/section-headers/tok-editorial-evening-full.webp",
+    "path": "public/images/section-headers/tok-editorial-evening-full.webp",
     "kind": "media"
    },
    {
@@ -12362,13 +12377,28 @@
     "kind": "media"
    },
    {
+    "route": "/images/section-headers/tok-editorial-feast-full.webp",
+    "path": "public/images/section-headers/tok-editorial-feast-full.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
     "path": "public/images/section-headers/tok-editorial-gastronomy-full.jpg",
     "kind": "media"
    },
    {
+    "route": "/images/section-headers/tok-editorial-gastronomy-full.webp",
+    "path": "public/images/section-headers/tok-editorial-gastronomy-full.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/section-headers/tok-editorial-geneva-full.jpg",
     "path": "public/images/section-headers/tok-editorial-geneva-full.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/images/section-headers/tok-editorial-geneva-full.webp",
+    "path": "public/images/section-headers/tok-editorial-geneva-full.webp",
     "kind": "media"
    },
    {
@@ -12382,8 +12412,23 @@
     "kind": "media"
    },
    {
+    "route": "/images/section-headers/tok-editorial-reservation-full.webp",
+    "path": "public/images/section-headers/tok-editorial-reservation-full.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/section-headers/tok-editorial-rewards-full.jpg",
     "path": "public/images/section-headers/tok-editorial-rewards-full.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/images/section-headers/tok-editorial-rewards-full.webp",
+    "path": "public/images/section-headers/tok-editorial-rewards-full.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/images/section-headers/tok-editorial-trending-full.webp",
+    "path": "public/images/section-headers/tok-editorial-trending-full.webp",
     "kind": "media"
    },
    {
@@ -17637,7 +17682,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 659
+      "line": 660
      },
      {
       "path": "src/pages/Panier.tsx",
@@ -22823,7 +22868,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 717
+      "line": 718
      },
      {
       "path": "src/pages/MatchGroupes.tsx",
@@ -23744,16 +23789,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-cuisine-full.jpg",
-    "sources": [
-     {
-      "path": "src/test/home-section-showcase-header.test.tsx",
-      "line": 64
-     }
-    ]
-   },
-   {
-    "value": "/images/section-headers/tok-editorial-cuisine.jpg",
+    "value": "/images/section-headers/tok-editorial-cuisine-full.webp",
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
@@ -23762,20 +23798,15 @@
      {
       "path": "src/test/home-core-web-vitals.test.ts",
       "line": 84
-     }
-    ]
-   },
-   {
-    "value": "/images/section-headers/tok-editorial-delivery-full.jpg",
-    "sources": [
+     },
      {
-      "path": "src/pages/Index.tsx",
-      "line": 62
+      "path": "src/test/home-section-showcase-header.test.tsx",
+      "line": 66
      }
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-evening-full.jpg",
+    "value": "/images/section-headers/tok-editorial-delivery-full.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -23784,16 +23815,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-feast-full.jpg",
-    "sources": [
-     {
-      "path": "src/pages/Index.tsx",
-      "line": 59
-     }
-    ]
-   },
-   {
-    "value": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
+    "value": "/images/section-headers/tok-editorial-evening-full.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -23802,20 +23824,25 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-geneva-full.jpg",
+    "value": "/images/section-headers/tok-editorial-feast-full.webp",
     "sources": [
      {
-      "path": "src/test/home-section-showcase-header.test.tsx",
-      "line": 33
-     },
-     {
-      "path": "src/test/home-section-showcase-header.test.tsx",
-      "line": 50
+      "path": "src/pages/Index.tsx",
+      "line": 59
      }
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-geneva.jpg",
+    "value": "/images/section-headers/tok-editorial-gastronomy-full.webp",
+    "sources": [
+     {
+      "path": "src/pages/Index.tsx",
+      "line": 62
+     }
+    ]
+   },
+   {
+    "value": "/images/section-headers/tok-editorial-geneva-full.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -23823,12 +23850,20 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 64
+      "line": 65
+     },
+     {
+      "path": "src/test/home-section-showcase-header.test.tsx",
+      "line": 35
+     },
+     {
+      "path": "src/test/home-section-showcase-header.test.tsx",
+      "line": 52
      }
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-reservation-full.jpg",
+    "value": "/images/section-headers/tok-editorial-reservation-full.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -23837,11 +23872,20 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-rewards-full.jpg",
+    "value": "/images/section-headers/tok-editorial-rewards-full.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
       "line": 57
+     }
+    ]
+   },
+   {
+    "value": "/images/section-headers/tok-editorial-trending-full.webp",
+    "sources": [
+     {
+      "path": "src/pages/Index.tsx",
+      "line": 64
      }
     ]
    },
@@ -25764,7 +25808,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 612
+      "line": 613
      },
      {
       "path": "src/pages/MultiRestaurant.tsx",
@@ -26147,7 +26191,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 837
+      "line": 838
      }
     ]
    },
@@ -26173,7 +26217,7 @@
      },
      {
       "path": "src/pages/Index.tsx",
-      "line": 626
+      "line": 627
      }
     ]
    },
@@ -26512,11 +26556,11 @@
      },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
-      "line": 36
+      "line": 38
      },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
-      "line": 43
+      "line": 45
      },
      {
       "path": "src/test/mobile-logo-intro.test.tsx",
@@ -70983,6 +71027,13 @@
     "jobs": [
      "sync"
     ]
+   },
+   {
+    "name": "TOK Home WebP docs index (one shot)",
+    "path": ".github/workflows/tok-home-webp-index-once.yml",
+    "jobs": [
+     "regenerate"
+    ]
    }
   ],
   "documents": [
@@ -102167,7 +102218,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 209,
+      "line": 210,
       "kind": "function"
      }
     ],
@@ -102175,7 +102226,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 1002
+    "lineCount": 1003
    },
    {
     "path": "src/pages/LocalRestaurants.tsx",
@@ -106278,7 +106329,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 76
+    "lineCount": 78
    },
    {
     "path": "src/test/homepage-photo-only-sections.test.ts",
@@ -115200,6 +115251,11 @@
     "extension": ".yml"
    },
    {
+    "path": ".github/workflows/tok-home-webp-index-once.yml",
+    "category": "ci-workflow",
+    "extension": ".yml"
+   },
+   {
     "path": ".gitignore",
     "category": "repository-file",
     "extension": "(none)"
@@ -118420,6 +118476,11 @@
     "extension": ".jpg"
    },
    {
+    "path": "public/images/section-headers/tok-editorial-cuisine-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/section-headers/tok-editorial-cuisine.jpg",
     "category": "public-asset",
     "extension": ".jpg"
@@ -118430,9 +118491,19 @@
     "extension": ".jpg"
    },
    {
+    "path": "public/images/section-headers/tok-editorial-delivery-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/section-headers/tok-editorial-evening-full.jpg",
     "category": "public-asset",
     "extension": ".jpg"
+   },
+   {
+    "path": "public/images/section-headers/tok-editorial-evening-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
    },
    {
     "path": "public/images/section-headers/tok-editorial-feast-full.jpg",
@@ -118440,14 +118511,29 @@
     "extension": ".jpg"
    },
    {
+    "path": "public/images/section-headers/tok-editorial-feast-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/section-headers/tok-editorial-gastronomy-full.jpg",
     "category": "public-asset",
     "extension": ".jpg"
    },
    {
+    "path": "public/images/section-headers/tok-editorial-gastronomy-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/section-headers/tok-editorial-geneva-full.jpg",
     "category": "public-asset",
     "extension": ".jpg"
+   },
+   {
+    "path": "public/images/section-headers/tok-editorial-geneva-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
    },
    {
     "path": "public/images/section-headers/tok-editorial-geneva.jpg",
@@ -118460,9 +118546,24 @@
     "extension": ".jpg"
    },
    {
+    "path": "public/images/section-headers/tok-editorial-reservation-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/section-headers/tok-editorial-rewards-full.jpg",
     "category": "public-asset",
     "extension": ".jpg"
+   },
+   {
+    "path": "public/images/section-headers/tok-editorial-rewards-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/images/section-headers/tok-editorial-trending-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
    },
    {
     "path": "public/images/shawarma poulet.jpeg",
@@ -141273,7 +141374,7 @@
    "id": "code-module:8d761926e269",
    "type": "code-module",
    "title": "src/pages/Index.tsx",
-   "description": "Module de 1002 lignes; exports: default.",
+   "description": "Module de 1003 lignes; exports: default.",
    "path": "src/pages/Index.tsx",
    "line": 1,
    "surface": null,
@@ -141281,7 +141382,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "d132cb50e199"
+   "detailRef": "b1ffc34b462d"
   },
   {
    "id": "code-module:d39f2c12cbfd",
@@ -145959,12 +146060,12 @@
    "id": "code-module:8594760c6824",
    "type": "code-module",
    "title": "src/test/home-section-showcase-header.test.tsx",
-   "description": "Module de 76 lignes; exports: aucun export statique.",
+   "description": "Module de 78 lignes; exports: aucun export statique.",
    "path": "src/test/home-section-showcase-header.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "34f5cf7efa8e"
+   "detailRef": "926ea29a2f07"
   },
   {
    "id": "code-module:006304b904f1",
@@ -270184,18 +270285,18 @@
    "detailRef": "686afb3d3344"
   },
   {
-   "id": "exported-symbol:90d0b83c1d44",
+   "id": "exported-symbol:da9ffdd9a188",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/Index.tsx.",
    "path": "src/pages/Index.tsx",
-   "line": 209,
+   "line": 210,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "eb298203d01a"
+   "detailRef": "20cadb9ecbd6"
   },
   {
    "id": "exported-symbol:535ee8eebd83",
@@ -292761,6 +292862,20 @@
    "detailRef": "4641b28d0262"
   },
   {
+   "id": "file:81cd63ccd31b",
+   "type": "file",
+   "title": ".github/workflows/tok-home-webp-index-once.yml",
+   "description": "Fichier du dépôt classé ci-workflow.",
+   "path": ".github/workflows/tok-home-webp-index-once.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".yml",
+    "ci-workflow"
+   ],
+   "detailRef": "1c1c5a66c913"
+  },
+  {
    "id": "file:7f519ece547e",
    "type": "file",
    "title": ".gitignore",
@@ -301777,6 +301892,20 @@
    "detailRef": "bed9648dfb43"
   },
   {
+   "id": "file:9b5aff1148bf",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-cuisine-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-cuisine-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "1f364dfc8f75"
+  },
+  {
    "id": "file:2f88c795fde4",
    "type": "file",
    "title": "public/images/section-headers/tok-editorial-cuisine.jpg",
@@ -301805,6 +301934,20 @@
    "detailRef": "ec0338293026"
   },
   {
+   "id": "file:e55b8ca783fe",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-delivery-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-delivery-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "6d6fd84567a6"
+  },
+  {
    "id": "file:e5a8edf5f5f0",
    "type": "file",
    "title": "public/images/section-headers/tok-editorial-evening-full.jpg",
@@ -301817,6 +301960,20 @@
     "public-asset"
    ],
    "detailRef": "a551f3c7a562"
+  },
+  {
+   "id": "file:50da41d543ee",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-evening-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-evening-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "16d1bfdfadcd"
   },
   {
    "id": "file:f485be9b528c",
@@ -301833,6 +301990,20 @@
    "detailRef": "059b5f1afa08"
   },
   {
+   "id": "file:711ff510eed1",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-feast-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-feast-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "9a54715da290"
+  },
+  {
    "id": "file:2961ff4606b2",
    "type": "file",
    "title": "public/images/section-headers/tok-editorial-gastronomy-full.jpg",
@@ -301847,6 +302018,20 @@
    "detailRef": "8662134ba8a6"
   },
   {
+   "id": "file:66502372fb83",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-gastronomy-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-gastronomy-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "9a4b7d9deb29"
+  },
+  {
    "id": "file:abd90af207a9",
    "type": "file",
    "title": "public/images/section-headers/tok-editorial-geneva-full.jpg",
@@ -301859,6 +302044,20 @@
     "public-asset"
    ],
    "detailRef": "7de6eafec45f"
+  },
+  {
+   "id": "file:1887dc325364",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-geneva-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-geneva-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "dc9d02c3b15b"
   },
   {
    "id": "file:800bfe90df7a",
@@ -301889,6 +302088,20 @@
    "detailRef": "159bc462fe1c"
   },
   {
+   "id": "file:e70973e84e0d",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-reservation-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-reservation-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "713d60230eeb"
+  },
+  {
    "id": "file:8fb4b561d0d2",
    "type": "file",
    "title": "public/images/section-headers/tok-editorial-rewards-full.jpg",
@@ -301901,6 +302114,34 @@
     "public-asset"
    ],
    "detailRef": "42576abeb3cd"
+  },
+  {
+   "id": "file:604fe23bc435",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-rewards-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-rewards-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "c1ff29a00612"
+  },
+  {
+   "id": "file:a6c23a920445",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-trending-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-trending-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "2b33a1036563"
   },
   {
    "id": "file:f6b06bd50f25",
@@ -348976,7 +349217,7 @@
     "/",
     "supabase"
    ],
-   "detailRef": "d3941a6bb29f"
+   "detailRef": "60eb5239c13d"
   },
   {
    "id": "page:3d4a292c788d",
@@ -351625,7 +351866,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "61c1c85693e1"
+   "detailRef": "c312dcc82f7f"
   },
   {
    "id": "path-literal:389b3e5ea214",
@@ -354772,7 +355013,7 @@
     "src/pages/admin/AdminRestaurants.tsx",
     "src/test/optimized-images.test.ts"
    ],
-   "detailRef": "acbfab2b6ce7"
+   "detailRef": "7bdd40894b2e"
   },
   {
    "id": "path-literal:ecd720b69356",
@@ -355695,49 +355936,24 @@
    "detailRef": "7ef2b2d0761c"
   },
   {
-   "id": "path-literal:ffe762185dc2",
+   "id": "path-literal:6f91547d4b93",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-cuisine-full.jpg",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/home-section-showcase-header.test.tsx",
-   "line": 64,
-   "surface": null,
-   "tags": [
-    "src/test/home-section-showcase-header.test.tsx"
-   ],
-   "detailRef": "525f61796d27"
-  },
-  {
-   "id": "path-literal:da043ac98552",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-cuisine.jpg",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "title": "/images/section-headers/tok-editorial-cuisine-full.webp",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 120,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx",
-    "src/test/home-core-web-vitals.test.ts"
+    "src/test/home-core-web-vitals.test.ts",
+    "src/test/home-section-showcase-header.test.tsx"
    ],
-   "detailRef": "cbbd4d0479fb"
+   "detailRef": "5d5a6587d2ac"
   },
   {
-   "id": "path-literal:c192985cf97d",
+   "id": "path-literal:05dd090948d0",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-delivery-full.jpg",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 62,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "69ef75c95cef"
-  },
-  {
-   "id": "path-literal:63ac9565fe78",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-evening-full.jpg",
+   "title": "/images/section-headers/tok-editorial-delivery-full.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 63,
@@ -355745,25 +355961,12 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "63d468d6bb88"
+   "detailRef": "be966a5965dd"
   },
   {
-   "id": "path-literal:ee94ef7aee08",
+   "id": "path-literal:57faf4b4e939",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-feast-full.jpg",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/pages/Index.tsx",
-   "line": 59,
-   "surface": null,
-   "tags": [
-    "src/pages/Index.tsx"
-   ],
-   "detailRef": "e9f1f0ba1eb6"
-  },
-  {
-   "id": "path-literal:c086202c19e1",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
+   "title": "/images/section-headers/tok-editorial-evening-full.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 61,
@@ -355771,38 +355974,52 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "7ec1fdb55f8b"
+   "detailRef": "fa59f8e5d75e"
   },
   {
-   "id": "path-literal:e17d513c27f1",
+   "id": "path-literal:a8be3495e0cb",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-geneva-full.jpg",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/home-section-showcase-header.test.tsx",
-   "line": 33,
-   "surface": null,
-   "tags": [
-    "src/test/home-section-showcase-header.test.tsx"
-   ],
-   "detailRef": "22f659b42c38"
-  },
-  {
-   "id": "path-literal:257b1fc56d7d",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-geneva.jpg",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "title": "/images/section-headers/tok-editorial-feast-full.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
-   "line": 58,
+   "line": 59,
    "surface": null,
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "1c7781e36a27"
+   "detailRef": "6dda483099b7"
   },
   {
-   "id": "path-literal:4c2a34a00c35",
+   "id": "path-literal:2b09a49f0bd0",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-reservation-full.jpg",
+   "title": "/images/section-headers/tok-editorial-gastronomy-full.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 62,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "12574020f1ce"
+  },
+  {
+   "id": "path-literal:24cb997fe936",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-geneva-full.webp",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 58,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx",
+    "src/test/home-section-showcase-header.test.tsx"
+   ],
+   "detailRef": "b3e2c9176e6a"
+  },
+  {
+   "id": "path-literal:6e0d80e8d93e",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-reservation-full.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 60,
@@ -355810,12 +356027,12 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "858e436c66be"
+   "detailRef": "6c088e11571e"
   },
   {
-   "id": "path-literal:24fe35163e62",
+   "id": "path-literal:bbed80e75dbe",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-rewards-full.jpg",
+   "title": "/images/section-headers/tok-editorial-rewards-full.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 57,
@@ -355823,7 +356040,20 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "c648999d87ec"
+   "detailRef": "54254df4f2c2"
+  },
+  {
+   "id": "path-literal:1c34cf0e7eef",
+   "type": "path-literal",
+   "title": "/images/section-headers/tok-editorial-trending-full.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Index.tsx",
+   "line": 64,
+   "surface": null,
+   "tags": [
+    "src/pages/Index.tsx"
+   ],
+   "detailRef": "5c3daa70a1ca"
   },
   {
    "id": "path-literal:71dec4dbed86",
@@ -357210,7 +357440,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "734c9e79ca40"
+   "detailRef": "f3ad228f1c66"
   },
   {
    "id": "path-literal:8e567113edb6",
@@ -357402,7 +357632,7 @@
     "src/pages/ClientDashboardHome.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "379869bc74ab"
+   "detailRef": "d1cee3d5d488"
   },
   {
    "id": "path-literal:8a35ee0b46e4",
@@ -357430,7 +357660,7 @@
     "src/components/CustomerDashboardLayout.tsx",
     "src/pages/Index.tsx"
    ],
-   "detailRef": "d290c3f75ce7"
+   "detailRef": "144b7904e9b0"
   },
   {
    "id": "path-literal:1f7d4d48ee1e",
@@ -357571,7 +357801,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "187497fbe0a9"
+   "detailRef": "c727dca0c0d4"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -364925,6 +365155,20 @@
    "detailRef": "75f8819703b2"
   },
   {
+   "id": "public-asset:1344327b69cf",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-cuisine-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-cuisine-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "aba8b71ac6f1"
+  },
+  {
    "id": "public-asset:b7e68337a3e6",
    "type": "public-asset",
    "title": "/images/section-headers/tok-editorial-cuisine.jpg",
@@ -364953,6 +365197,20 @@
    "detailRef": "e459de3d8a04"
   },
   {
+   "id": "public-asset:5df2e294c813",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-delivery-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-delivery-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "1e3e1d97eac5"
+  },
+  {
    "id": "public-asset:dd0737cb9302",
    "type": "public-asset",
    "title": "/images/section-headers/tok-editorial-evening-full.jpg",
@@ -364965,6 +365223,20 @@
     "public"
    ],
    "detailRef": "41eec968140d"
+  },
+  {
+   "id": "public-asset:7f2fbcc9cdf3",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-evening-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-evening-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "a2827e3bbc7a"
   },
   {
    "id": "public-asset:554b4b15aeb3",
@@ -364981,6 +365253,20 @@
    "detailRef": "98f1e74b3467"
   },
   {
+   "id": "public-asset:92dc42a89341",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-feast-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-feast-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "8f35689eb216"
+  },
+  {
    "id": "public-asset:8bc063e48cdb",
    "type": "public-asset",
    "title": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
@@ -364995,6 +365281,20 @@
    "detailRef": "9c13f52f9325"
   },
   {
+   "id": "public-asset:b9a37e625819",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-gastronomy-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-gastronomy-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "78d37454d5a9"
+  },
+  {
    "id": "public-asset:59910f1cf7dc",
    "type": "public-asset",
    "title": "/images/section-headers/tok-editorial-geneva-full.jpg",
@@ -365007,6 +365307,20 @@
     "public"
    ],
    "detailRef": "e9b43e1d2c88"
+  },
+  {
+   "id": "public-asset:7b2a38d1d75e",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-geneva-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-geneva-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "77551c3704ef"
   },
   {
    "id": "public-asset:f2ab9d03ff4d",
@@ -365037,6 +365351,20 @@
    "detailRef": "0f621e866916"
   },
   {
+   "id": "public-asset:b887dfdbec09",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-reservation-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-reservation-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "fccaec7b480d"
+  },
+  {
    "id": "public-asset:126dfb144577",
    "type": "public-asset",
    "title": "/images/section-headers/tok-editorial-rewards-full.jpg",
@@ -365049,6 +365377,34 @@
     "public"
    ],
    "detailRef": "c292ee6b5e90"
+  },
+  {
+   "id": "public-asset:7079b830a4a4",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-rewards-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-rewards-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "43ad339f704f"
+  },
+  {
+   "id": "public-asset:3030da5257df",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-trending-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-trending-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "9933c731f16e"
   },
   {
    "id": "public-asset:8dbabf10713c",
@@ -371658,6 +372014,19 @@
     "validate"
    ],
    "detailRef": "f3aa19f43475"
+  },
+  {
+   "id": "workflow:912e86c7d16f",
+   "type": "workflow",
+   "title": "TOK Home WebP docs index (one shot)",
+   "description": "Workflow GitHub Actions; jobs: regenerate.",
+   "path": ".github/workflows/tok-home-webp-index-once.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "regenerate"
+   ],
+   "detailRef": "e27a7eb894e3"
   },
   {
    "id": "workflow:7ebe9004a21a",

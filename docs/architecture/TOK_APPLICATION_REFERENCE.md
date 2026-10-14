@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `4c11bc841c6e44c4acc93fb6a2cb8dcf805ba270cd249d2f9f83e4dbe120f78b`
+- Empreinte SHA-256 des sources indexées : `b8c4eb060162a9a613ed59e34f395780b63f5602f81c88046ebb4158d3ea9241`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,19 +40,19 @@
 | migrations | 540 |
 | modules | 1555 |
 | pages | 128 |
-| pathLiterals | 698 |
-| publicAssets | 502 |
-| publicEntries | 527 |
+| pathLiterals | 697 |
+| publicAssets | 511 |
+| publicEntries | 536 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16614 |
-| repositoryFiles | 3096 |
+| records | 16633 |
+| repositoryFiles | 3106 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 28 |
+| workflows | 29 |
 
 ## État distant observé
 
@@ -961,15 +961,24 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/section-headers/scooter-3d.png | media | [public/images/section-headers/scooter-3d.png](../../public/images/section-headers/scooter-3d.png) |
 | /images/section-headers/shopping-bags-3d.png | media | [public/images/section-headers/shopping-bags-3d.png](../../public/images/section-headers/shopping-bags-3d.png) |
 | /images/section-headers/tok-editorial-cuisine-full.jpg | media | [public/images/section-headers/tok-editorial-cuisine-full.jpg](../../public/images/section-headers/tok-editorial-cuisine-full.jpg) |
+| /images/section-headers/tok-editorial-cuisine-full.webp | media | [public/images/section-headers/tok-editorial-cuisine-full.webp](../../public/images/section-headers/tok-editorial-cuisine-full.webp) |
 | /images/section-headers/tok-editorial-cuisine.jpg | media | [public/images/section-headers/tok-editorial-cuisine.jpg](../../public/images/section-headers/tok-editorial-cuisine.jpg) |
 | /images/section-headers/tok-editorial-delivery-full.jpg | media | [public/images/section-headers/tok-editorial-delivery-full.jpg](../../public/images/section-headers/tok-editorial-delivery-full.jpg) |
+| /images/section-headers/tok-editorial-delivery-full.webp | media | [public/images/section-headers/tok-editorial-delivery-full.webp](../../public/images/section-headers/tok-editorial-delivery-full.webp) |
 | /images/section-headers/tok-editorial-evening-full.jpg | media | [public/images/section-headers/tok-editorial-evening-full.jpg](../../public/images/section-headers/tok-editorial-evening-full.jpg) |
+| /images/section-headers/tok-editorial-evening-full.webp | media | [public/images/section-headers/tok-editorial-evening-full.webp](../../public/images/section-headers/tok-editorial-evening-full.webp) |
 | /images/section-headers/tok-editorial-feast-full.jpg | media | [public/images/section-headers/tok-editorial-feast-full.jpg](../../public/images/section-headers/tok-editorial-feast-full.jpg) |
+| /images/section-headers/tok-editorial-feast-full.webp | media | [public/images/section-headers/tok-editorial-feast-full.webp](../../public/images/section-headers/tok-editorial-feast-full.webp) |
 | /images/section-headers/tok-editorial-gastronomy-full.jpg | media | [public/images/section-headers/tok-editorial-gastronomy-full.jpg](../../public/images/section-headers/tok-editorial-gastronomy-full.jpg) |
+| /images/section-headers/tok-editorial-gastronomy-full.webp | media | [public/images/section-headers/tok-editorial-gastronomy-full.webp](../../public/images/section-headers/tok-editorial-gastronomy-full.webp) |
 | /images/section-headers/tok-editorial-geneva-full.jpg | media | [public/images/section-headers/tok-editorial-geneva-full.jpg](../../public/images/section-headers/tok-editorial-geneva-full.jpg) |
+| /images/section-headers/tok-editorial-geneva-full.webp | media | [public/images/section-headers/tok-editorial-geneva-full.webp](../../public/images/section-headers/tok-editorial-geneva-full.webp) |
 | /images/section-headers/tok-editorial-geneva.jpg | media | [public/images/section-headers/tok-editorial-geneva.jpg](../../public/images/section-headers/tok-editorial-geneva.jpg) |
 | /images/section-headers/tok-editorial-reservation-full.jpg | media | [public/images/section-headers/tok-editorial-reservation-full.jpg](../../public/images/section-headers/tok-editorial-reservation-full.jpg) |
+| /images/section-headers/tok-editorial-reservation-full.webp | media | [public/images/section-headers/tok-editorial-reservation-full.webp](../../public/images/section-headers/tok-editorial-reservation-full.webp) |
 | /images/section-headers/tok-editorial-rewards-full.jpg | media | [public/images/section-headers/tok-editorial-rewards-full.jpg](../../public/images/section-headers/tok-editorial-rewards-full.jpg) |
+| /images/section-headers/tok-editorial-rewards-full.webp | media | [public/images/section-headers/tok-editorial-rewards-full.webp](../../public/images/section-headers/tok-editorial-rewards-full.webp) |
+| /images/section-headers/tok-editorial-trending-full.webp | media | [public/images/section-headers/tok-editorial-trending-full.webp](../../public/images/section-headers/tok-editorial-trending-full.webp) |
 | /images/shawarma poulet.jpeg | media | [public/images/shawarma poulet.jpeg](../../public/images/shawarma%20poulet.jpeg) |
 | /images/smash-burger-single.jpeg | media | [public/images/smash-burger-single.jpeg](../../public/images/smash-burger-single.jpeg) |
 | /images/smash-burgers.jpeg | media | [public/images/smash-burgers.jpeg](../../public/images/smash-burgers.jpeg) |
@@ -1550,16 +1559,15 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/section-headers/plate-3d.png | 2 | [src/lib/dashboardIllustrations.ts:56](../../src/lib/dashboardIllustrations.ts#L56) |
 | /images/section-headers/shopping-bags-3d.png | 1 | [src/lib/dashboardIllustrations.ts:60](../../src/lib/dashboardIllustrations.ts#L60) |
 | /images/section-headers/tok-editorial- | 1 | [src/components/home/SectionShowcaseHeader.tsx:51](../../src/components/home/SectionShowcaseHeader.tsx#L51) |
-| /images/section-headers/tok-editorial-cuisine-full.jpg | 1 | [src/test/home-section-showcase-header.test.tsx:64](../../src/test/home-section-showcase-header.test.tsx#L64) |
-| /images/section-headers/tok-editorial-cuisine.jpg | 2 | [src/components/home/CuisineCategoryStrip.tsx:120](../../src/components/home/CuisineCategoryStrip.tsx#L120) |
-| /images/section-headers/tok-editorial-delivery-full.jpg | 1 | [src/pages/Index.tsx:62](../../src/pages/Index.tsx#L62) |
-| /images/section-headers/tok-editorial-evening-full.jpg | 1 | [src/pages/Index.tsx:63](../../src/pages/Index.tsx#L63) |
-| /images/section-headers/tok-editorial-feast-full.jpg | 1 | [src/pages/Index.tsx:59](../../src/pages/Index.tsx#L59) |
-| /images/section-headers/tok-editorial-gastronomy-full.jpg | 1 | [src/pages/Index.tsx:61](../../src/pages/Index.tsx#L61) |
-| /images/section-headers/tok-editorial-geneva-full.jpg | 2 | [src/test/home-section-showcase-header.test.tsx:33](../../src/test/home-section-showcase-header.test.tsx#L33) |
-| /images/section-headers/tok-editorial-geneva.jpg | 2 | [src/pages/Index.tsx:58](../../src/pages/Index.tsx#L58) |
-| /images/section-headers/tok-editorial-reservation-full.jpg | 1 | [src/pages/Index.tsx:60](../../src/pages/Index.tsx#L60) |
-| /images/section-headers/tok-editorial-rewards-full.jpg | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
+| /images/section-headers/tok-editorial-cuisine-full.webp | 3 | [src/components/home/CuisineCategoryStrip.tsx:120](../../src/components/home/CuisineCategoryStrip.tsx#L120) |
+| /images/section-headers/tok-editorial-delivery-full.webp | 1 | [src/pages/Index.tsx:63](../../src/pages/Index.tsx#L63) |
+| /images/section-headers/tok-editorial-evening-full.webp | 1 | [src/pages/Index.tsx:61](../../src/pages/Index.tsx#L61) |
+| /images/section-headers/tok-editorial-feast-full.webp | 1 | [src/pages/Index.tsx:59](../../src/pages/Index.tsx#L59) |
+| /images/section-headers/tok-editorial-gastronomy-full.webp | 1 | [src/pages/Index.tsx:62](../../src/pages/Index.tsx#L62) |
+| /images/section-headers/tok-editorial-geneva-full.webp | 4 | [src/pages/Index.tsx:58](../../src/pages/Index.tsx#L58) |
+| /images/section-headers/tok-editorial-reservation-full.webp | 1 | [src/pages/Index.tsx:60](../../src/pages/Index.tsx#L60) |
+| /images/section-headers/tok-editorial-rewards-full.webp | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
+| /images/section-headers/tok-editorial-trending-full.webp | 1 | [src/pages/Index.tsx:64](../../src/pages/Index.tsx#L64) |
 | /images/smash-burger-single.jpeg | 3 | [src/lib/menu-item-images.ts:23](../../src/lib/menu-item-images.ts#L23) |
 | /images/smash-burgers.jpeg | 3 | [src/components/AntiWasteCard.tsx:39](../../src/components/AntiWasteCard.tsx#L39) |
 | /images/stack-shake-spread.jpeg | 1 | [src/components/AntiWasteCard.tsx:35](../../src/components/AntiWasteCard.tsx#L35) |
@@ -6021,6 +6029,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Restaurant Image Truth Backfill | backfill | [.github/workflows/restaurant-image-truth-backfill.yml](../../.github/workflows/restaurant-image-truth-backfill.yml) |
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
+| TOK Home WebP docs index (one shot) | regenerate | [.github/workflows/tok-home-webp-index-once.yml](../../.github/workflows/tok-home-webp-index-once.yml) |
 
 ### Dépendances
 
@@ -6725,7 +6734,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (28)</summary>
+<details><summary>ci-workflow (29)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -6755,6 +6764,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/restaurant-image-truth-backfill.yml`
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
+- `.github/workflows/tok-home-webp-index-once.yml`
 
 </details>
 
@@ -8186,7 +8196,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (527)</summary>
+<details><summary>public-asset (536)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8528,15 +8538,24 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/section-headers/scooter-3d.png`
 - `public/images/section-headers/shopping-bags-3d.png`
 - `public/images/section-headers/tok-editorial-cuisine-full.jpg`
+- `public/images/section-headers/tok-editorial-cuisine-full.webp`
 - `public/images/section-headers/tok-editorial-cuisine.jpg`
 - `public/images/section-headers/tok-editorial-delivery-full.jpg`
+- `public/images/section-headers/tok-editorial-delivery-full.webp`
 - `public/images/section-headers/tok-editorial-evening-full.jpg`
+- `public/images/section-headers/tok-editorial-evening-full.webp`
 - `public/images/section-headers/tok-editorial-feast-full.jpg`
+- `public/images/section-headers/tok-editorial-feast-full.webp`
 - `public/images/section-headers/tok-editorial-gastronomy-full.jpg`
+- `public/images/section-headers/tok-editorial-gastronomy-full.webp`
 - `public/images/section-headers/tok-editorial-geneva-full.jpg`
+- `public/images/section-headers/tok-editorial-geneva-full.webp`
 - `public/images/section-headers/tok-editorial-geneva.jpg`
 - `public/images/section-headers/tok-editorial-reservation-full.jpg`
+- `public/images/section-headers/tok-editorial-reservation-full.webp`
 - `public/images/section-headers/tok-editorial-rewards-full.jpg`
+- `public/images/section-headers/tok-editorial-rewards-full.webp`
+- `public/images/section-headers/tok-editorial-trending-full.webp`
 - `public/images/shawarma poulet.jpeg`
 - `public/images/smash-burger-single.jpeg`
 - `public/images/smash-burgers.jpeg`
