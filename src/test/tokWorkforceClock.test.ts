@@ -29,6 +29,9 @@ describe("TOK Équipe — badgeuse et droits employés",()=>{
   expect(sql).toContain("e.restaurant_id=p_restaurant_id AND e.user_id=v_actor AND e.is_active");
   expect(sql).toContain("u.email_confirmed_at IS NOT NULL");
   expect(sql).toContain("tok_workforce_can_manage(restaurant_id)");
+  expect(sql).toContain("tok_workforce_can_schedule");
+  expect(sql).toContain("signature_data");
+  expect(sql).toContain("tok_workforce_review_request");
   expect(sql).toContain("target_accepted_at IS NULL THEN RAISE EXCEPTION");
  });
  it("autorise le portail uniquement aux comptes connectés",()=>{
@@ -39,7 +42,7 @@ describe("TOK Équipe — badgeuse et droits employés",()=>{
  it("équilibre les blocs de fonctions PostgreSQL",()=>{
   const starts=(sql.match(/AS \$\$/g)||[]).length;
   const ends=(sql.match(/\$\$;/g)||[]).length;
-  expect(starts).toBe(6);
+  expect(starts).toBe(8);
   expect(ends).toBe(starts);
   expect(sql).not.toMatch(/\bAS \$(?!\$)/);
  });
