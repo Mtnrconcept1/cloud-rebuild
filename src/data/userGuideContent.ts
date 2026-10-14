@@ -203,6 +203,13 @@ export const BUYER_GUIDE_CHAPTERS: readonly GuideChapter[] = [
       "Consultez ensuite les outils serveur et intégrations pour relier interface et capacités opérationnelles.",
     ],
     routes: ["/", "/espaces", "/a-propos"],
+    screenshots: [{
+      src: "/images/user-guide/accueil-mobile.png",
+      alt: "Accueil public de TOK sur mobile",
+      title: "Accueil public",
+      caption: "Capture réelle de l’accueil client TOK, point de départ des parcours publics.",
+      audiences: ["buyer"],
+    }],
   },
   {
     id: "client",
@@ -215,6 +222,13 @@ export const BUYER_GUIDE_CHAPTERS: readonly GuideChapter[] = [
       "Parcourez les fonctions de fidélité, abonnements, mémoire et notifications.",
     ],
     routes: ["/recherche", "/restaurant/:id", "/panier", "/commandes", "/reservations", "/mon-espace"],
+    screenshots: [{
+      src: "/images/user-guide/recherche-mobile.png",
+      alt: "Recherche de restaurants dans TOK sur mobile",
+      title: "Recherche de restaurants",
+      caption: "Capture réelle des filtres et des résultats du parcours client TOK.",
+      audiences: ["buyer"],
+    }],
   },
   {
     id: "restaurant",
@@ -227,6 +241,13 @@ export const BUYER_GUIDE_CHAPTERS: readonly GuideChapter[] = [
       "Contrôlez enfin facturation, support, paramètres et connexions partenaires.",
     ],
     routes: ["/dashboard", "/dashboard/menu", "/dashboard/commandes", "/dashboard/campagnes", "/dashboard/factures"],
+    screenshots: [{
+      src: "/images/user-guide/dashboard-restaurateur.png",
+      alt: "Tableau de bord restaurateur TOK",
+      title: "Espace restaurateur",
+      caption: "Vue réelle de l’espace restaurateur avec un établissement de démonstration.",
+      audiences: ["buyer"],
+    }],
   },
   {
     id: "livraison-commercial",
@@ -239,6 +260,22 @@ export const BUYER_GUIDE_CHAPTERS: readonly GuideChapter[] = [
       "Les rôles restent séparés et les routes protégées selon le contexte actif.",
     ],
     routes: ["/courier", "/courier/jobs", "/courier/earnings", "/commercial", "/commercial/demo-live"],
+    screenshots: [
+      {
+        src: "/images/user-guide/features/courier-dashboard.png",
+        alt: "Espace livreur TOK",
+        title: "Espace livreur",
+        caption: "Capture réelle du tableau de bord coursier avec un état de démonstration.",
+        audiences: ["buyer"],
+      },
+      {
+        src: "/images/user-guide/features/commercial-prospection.png",
+        alt: "Espace de prospection commerciale TOK",
+        title: "Espace commercial",
+        caption: "Capture réelle de la prospection commerciale TOK avec des données de démonstration.",
+        audiences: ["buyer"],
+      },
+    ],
   },
   {
     id: "admin",
@@ -251,6 +288,22 @@ export const BUYER_GUIDE_CHAPTERS: readonly GuideChapter[] = [
       "Réservez les changements de plateforme, finance et automatisation aux rôles autorisés.",
     ],
     routes: ["/admin", "/admin/platform", "/admin/commandes-reservations", "/admin/audit", "/admin/guardian"],
+    screenshots: [
+      {
+        src: "/images/user-guide/features/admin-overview.png",
+        alt: "Vue d’ensemble du back-office TOK",
+        title: "Administration",
+        caption: "Capture de la console administrateur avec un état vide contrôlé.",
+        audiences: ["buyer"],
+      },
+      {
+        src: "/images/user-guide/features/admin-operations.png",
+        alt: "Suivi des opérations TOK dans l’administration",
+        title: "Operations Center",
+        caption: "Capture des outils de supervision des commandes et réservations sans donnée personnelle.",
+        audiences: ["buyer"],
+      },
+    ],
   },
   {
     id: "marketing",
@@ -263,6 +316,13 @@ export const BUYER_GUIDE_CHAPTERS: readonly GuideChapter[] = [
       "Distinguez toujours une prévisualisation, une publication demandée et une publication réellement confirmée.",
     ],
     routes: ["/marketing/login", "/marketing"],
+    screenshots: [{
+      src: "/images/user-guide/features/marketing-login.png",
+      alt: "Connexion à l’espace marketing TOK",
+      title: "Espace marketing",
+      caption: "Capture du point d’accès à l’espace marketing isolé de TOK.",
+      audiences: ["buyer"],
+    }],
   },
   {
     id: "architecture",
@@ -275,6 +335,13 @@ export const BUYER_GUIDE_CHAPTERS: readonly GuideChapter[] = [
       "Considérez cet inventaire comme une preuve statique du code, distincte de l’état réellement déployé.",
     ],
     routes: ["/tok-connect", "/tok-connect/developer"],
+    screenshots: [{
+      src: "/images/user-guide/features/tok-connect.png",
+      alt: "Page d’information TOK Connect",
+      title: "TOK Connect",
+      caption: "Capture réelle de la présentation de TOK Connect, reliée aux outils partenaires.",
+      audiences: ["buyer"],
+    }],
   },
 ] as const;
 

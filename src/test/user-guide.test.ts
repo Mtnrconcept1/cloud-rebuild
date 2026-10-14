@@ -50,6 +50,17 @@ describe("guides d’utilisation TOK", () => {
       }
     }
   });
+  it("illustre également tous les chapitres du guide administrateur", () => {
+    for (const chapter of BUYER_GUIDE_CHAPTERS) {
+      expect(chapter.screenshots?.length).toBeGreaterThan(0);
+      for (const screenshot of chapter.screenshots || []) {
+        expect(screenshot.caption.length).toBeGreaterThan(20);
+        expect(screenshot.audiences).toContain("buyer");
+        expect(existsSync(path.join(process.cwd(), "public", screenshot.src.slice(1)))).toBe(true);
+      }
+    }
+  });
+
   it("ne montre aucun catalogue technique ou chemin brut au restaurateur", () => {
     const guide = readFileSync(path.join(process.cwd(), "src/pages/GuideUtilisateur.tsx"), "utf8");
     expect(guide).toContain("isRestaurant ? <RestaurantGuideIndex");

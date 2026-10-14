@@ -236,17 +236,6 @@ function ChapterCard({ chapter, audience }: { chapter: GuideChapter; audience: A
               ))}
             </div>
           </div>
-          <div className="mt-7 grid gap-4 md:grid-cols-2" aria-label={`Captures d’écran : ${chapter.title}`}>
-            {chapter.screenshots?.map((screenshot) => (
-              <figure key={screenshot.src} className="overflow-hidden rounded-2xl border bg-slate-50 dark:bg-slate-950">
-                <img src={screenshot.src} alt={screenshot.alt} className="h-auto max-h-96 w-full object-contain" loading="lazy" />
-                <figcaption className="space-y-1 p-4">
-                  <p className="text-sm font-bold">{screenshot.title}</p>
-                  <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">{screenshot.caption}</p>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
         </>
       ) : (
         <div className="mt-6 flex flex-wrap gap-2" aria-label="Routes associées">
@@ -255,6 +244,17 @@ function ChapterCard({ chapter, audience }: { chapter: GuideChapter; audience: A
           ))}
         </div>
       )}
+      <div className="mt-7 grid gap-4 md:grid-cols-2" aria-label={`Captures d’écran : ${chapter.title}`}>
+        {chapter.screenshots?.map((screenshot) => (
+          <figure key={screenshot.src} className="overflow-hidden rounded-2xl border bg-slate-50 dark:bg-slate-950">
+            <img src={screenshot.src} alt={screenshot.alt} className="h-auto max-h-96 w-full object-contain" loading="lazy" />
+            <figcaption className="space-y-1 p-4">
+              <p className="text-sm font-bold">{screenshot.title}</p>
+              <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">{screenshot.caption}</p>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
     </section>
   );
 }
@@ -736,12 +736,10 @@ function GuidePage({ audience }: { audience: Audience }) {
       }
     }
     try {
-      if (isRestaurant) {
-        for (const [index, chapter] of chapters.entries()) {
-          sections[index].images = await Promise.all(
-            (chapter.screenshots || []).map((image) => loadGuidePdfImage(image.src, image.caption)),
-          );
-        }
+      for (const [index, chapter] of chapters.entries()) {
+        sections[index].images = await Promise.all(
+          (chapter.screenshots || []).map((image) => loadGuidePdfImage(image.src, image.caption)),
+        );
       }
       const bytes = buildGuidePdf({
         title,
