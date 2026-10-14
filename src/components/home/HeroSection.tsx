@@ -5,6 +5,7 @@ import { ArrowRight, ChevronRight, Heart, Mail, MapPin, Navigation, Percent, Sea
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
 import { cantonFromPlaceName, cantonHeroSrc, type SwissCantonCode } from "@/lib/homeCantonHero";
+import { resolveWorldArt } from "@/lib/homeWorldHero";
 import "./HeroSection.css";
 
 const EMPTY_FEATURES: ReadonlySet<string> = new Set();
@@ -17,20 +18,28 @@ const newsletterConditions = [
   "TOK peut modifier, suspendre ou arrêter l'offre si nécessaire, notamment en cas d'usage abusif, de comptes multiples ou de tentative de contournement.",
 ];
 
-export default function HeroSection({ contentVisible = true, activeFeatures = EMPTY_FEATURES, locationCanton = null, profileCity = null }: {
+export default function HeroSection({ contentVisible = true, activeFeatures = EMPTY_FEATURES, locationCanton = null, profileCity = null, profileCityPending = false, gpsCity = null, gpsCountry = null }: {
   contentVisible?: boolean;
   activeFeatures?: ReadonlySet<string>;
   locationCanton?: SwissCantonCode | null;
   profileCity?: string | null;
+  profileCityPending?: boolean;
+  gpsCity?: string | null;
+  gpsCountry?: string | null;
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [city, setCity] = useState("");
   const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
-  // A typed destination takes precedence over the device position and the profile city.
-  const canton = city.trim() ? cantonFromPlaceName(city) : locationCanton ?? cantonFromPlaceName(profileCity);
-  const cantonImage = canton ? cantonHeroSrc(canton) : null;
+  // The user's explicit choice outranks saved city; GPS is only a fallback.
+  const selectedCity = city.trim() || profileCity?.trim() || null;
+  const pending = !city.trim() && profileCityPending;
+  const canton = selectedCity ? cantonFromPlaceName(selectedCity) : locationCanton;
+  const worldArt = !pending ? resolveWorldArt(selectedCity || gpsCity, selectedCity ? null : gpsCountry) : null;
+  const cantonImage = !pending && canton ? cantonHeroSrc(canton) : null;
+  const desktopImage = cantonImage || worldArt?.desktop || (pending ? null : "/images/home/tok-leman-signature-fast.webp");
+  const mobileImage = worldArt?.mobile || desktopImage;
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -48,7 +57,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         aria-labelledby="home-hero-title"
         data-content-visible={contentVisible}
         data-authenticated={Boolean(user)}
-        data-home-canton={canton ?? "default"}
+        data-home-canton={pending ? "pending" : canton ?? "default"}
       >
         <div className="tok-home-hero__content">
           <div className="tok-home-hero__brand">
@@ -87,11 +96,12 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
           </nav>
         </div>
         <div className="tok-home-hero__art" aria-hidden="true" data-canton-image={Boolean(cantonImage)}>
-          <picture className="tok-home-hero__background">
-            <source media="(min-width: 1024px)" type="image/webp" srcSet={cantonImage ?? "/images/home/tok-geneve-desktop.webp"} width={cantonImage ? 1440 : 1672} height={cantonImage ? 810 : 941} />
-            <source media="(max-width: 767px)" type="image/webp" srcSet={cantonImage ?? "/images/home/tok-geneve-mobile-fast.webp"} width={cantonImage ? 1440 : 900} height={cantonImage ? 810 : 1599} />
-            <img src={cantonImage ?? "/images/home/tok-leman-signature-fast.webp"} alt="" width={cantonImage ? 1440 : 1200} height={cantonImage ? 810 : 675} {...({ fetchpriority: "high" } as const)} loading="eager" decoding="async" />
-          </picture>
+          {desktopImage ? (
+            <picture key={desktopImage} className="tok-home-hero__background">
+              {mobileImage !== desktopImage ? <source media="(max-width: 767px)" type="image/webp" srcSet={mobileImage} /> : null}
+              <img src={desktopImage} alt="" width={1440} height={810} {...({ fetchpriority: "high" } as const)} loading="eager" decoding="async" />
+            </picture>
+          ) : null}
         </div>
       </section>
       <aside className="tok-home-hero__secondary" aria-label="Rejoindre TOK">

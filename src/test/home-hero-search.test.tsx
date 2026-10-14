@@ -34,14 +34,13 @@ describe("homepage semantic search", () => {
 
   it("uses a portrait hero asset on mobile and the supplied Léman illustration on desktop", () => {
     setup();
-    expect(document.querySelector('.tok-home-hero__background source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/images/home/tok-geneve-mobile-fast.webp");
+    expect(document.querySelectorAll(".tok-home-hero__background img")).toHaveLength(1);
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/home/tok-leman-signature-fast.webp");
   });
   it("renders the correct canton art for device localization on desktop and mobile", () => {
-    render(<MemoryRouter><HeroSection locationCanton="JU" profileCity="Genève" /></MemoryRouter>);
+    render(<MemoryRouter><HeroSection locationCanton="JU" /></MemoryRouter>);
     expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "JU");
-    expect(document.querySelector('.tok-home-hero__background source[media="(min-width: 1024px)"]')).toHaveAttribute("srcset", "/desig%20app/tok-ch-ju.webp");
-    expect(document.querySelector('.tok-home-hero__background source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/desig%20app/tok-ch-ju.webp");
+    expect(document.querySelectorAll(".tok-home-hero__background img")).toHaveLength(1);
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/desig%20app/tok-ch-ju.webp");
   });
   it("lets the entered city override automatic device localization", () => {
@@ -51,7 +50,7 @@ describe("homepage semantic search", () => {
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/desig%20app/tok-ch-vd.webp");
     fireEvent.change(screen.getByRole("textbox", { name: /Où/ }), { target: { value: "Paris" } });
     expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "default");
-    expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/home/tok-leman-signature-fast.webp");
+    expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/locations/Europe/France/paris/tok-paris-desktop.webp");
   });
   it("uses the known profile city without requesting geolocation", () => {
     render(<MemoryRouter><HeroSection profileCity="Lugano" /></MemoryRouter>);
