@@ -216,6 +216,11 @@ BEGIN
       pm.stripe_payment_method_id AS payment_method,
       sub.stripe_subscription_id AS subscription_id,pm.stripe_mode AS mode
     FROM public.reservation_commission_collections collection
+    JOIN public.reservations reservation
+      ON reservation.id=collection.reservation_id
+      AND reservation.restaurant_id=collection.restaurant_id
+      AND reservation.status IN ('arrived','seated','completed')
+      AND reservation.cancelled_by IS NULL
     JOIN public.restaurant_ai_subscriptions sub
       ON sub.restaurant_id=collection.restaurant_id AND sub.status='active'
       AND sub.stripe_subscription_id IS NOT NULL
