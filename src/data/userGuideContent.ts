@@ -412,6 +412,13 @@ export const BUYER_GUIDE_CHAPTERS: readonly GuideChapter[] = [
         caption: "Écran public de paramétrage d'un budget client.",
         audiences: ["buyer"],
       },
+      {
+        src: "/images/user-guide/zero-attente-mobile.png",
+        alt: "Parcours mobile Zéro attente TOK",
+        title: "Zéro attente sur mobile",
+        caption: "Vue mobile réelle du parcours Zéro attente, en complément de la présentation sur ordinateur.",
+        audiences: ["buyer"],
+      },
     ],
   },
   {

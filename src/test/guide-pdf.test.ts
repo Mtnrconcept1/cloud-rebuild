@@ -75,7 +75,7 @@ describe("export des guides PDF TOK", () => {
     const content = new TextDecoder("windows-1252").decode(bytes);
     expect(content.split("/Subtype /Link").length - 1).toBe(60);
     expect(content.split("/Type /Page /Parent").length - 1).toBe(64);
-    expect(content).toContain("Sommaire cliquable (suite)");
+    expect(content).toContain("Sommaire cliquable \\(suite\\)");
   });
 
 });
