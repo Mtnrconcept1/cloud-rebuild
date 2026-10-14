@@ -53,3 +53,24 @@ de facturation Stripe et vérifier les numéros/mentions légales.
 **Contrôle juridique** : l'émetteur juridique sur la facture TOK doit
 correspondre au titulaire du compte marchand Stripe et à l'entité
 effectivement contractante ; revalider ces données si la société change.
+
+## Émetteur légal TOK (registre du commerce de Genève)
+
+Document fourni le 14 octobre 2026 : extrait internet RC, entreprise
+**NEW DOG'S SERVICES Sàrl**, IDE **CHE-109.513.890**,
+rue de Genève 6, Chêne-Bourg (code postal 1225 vérifié dans Stripe).
+Cette même société apparaît comme entreprise du compte marchand Stripe
+TOK `acct_1SHGJ2GTQigE34su`.
+
+Le logo/marque commerciale TOK peut figurer sur le document, mais la
+raison sociale légale de l'émetteur doit rester exacte. L'IDE ne prouve
+pas à lui seul l'assujettissement à la TVA : vérifier le registre TVA
+officiel avant d'ajouter le suffixe « TVA » à la facture. La répartition
+HT/TVA/TTC de l'opération doit rester conservée comme comptabilisée.
+
+**Vérification juridique encore nécessaire :** cet extrait indique
+« toilettage pour chiens » pour le but social et un gérant à signature
+individuelle. Faire confirmer par la gérance habilitée la relation entre
+TOK et la société et, avec le conseil juridique/registre, l'adéquation
+du but statutaire à la prestation de services numériques. Un extrait
+internet non certifié n'est pas un acte de signature ni une autorisation.
