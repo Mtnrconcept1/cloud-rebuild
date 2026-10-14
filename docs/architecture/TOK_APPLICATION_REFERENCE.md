@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `9511d36a47a64042c62d2f79fe8aa91522efd0693482dbfff0c74ca81805c012`
+- Empreinte SHA-256 des sources indexées : `b9c00b315cffe8995ccc59d8806ba365b73c83107c62f158a67f1604c7a96775`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,14 +45,14 @@
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16543 |
-| repositoryFiles | 3079 |
+| records | 16541 |
+| repositoryFiles | 3078 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 29 |
+| workflows | 28 |
 
 ## État distant observé
 
@@ -5979,7 +5979,6 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Deploy Production | attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation | [.github/workflows/deploy-production.yml](../../.github/workflows/deploy-production.yml) |
 | Ensure Supabase Auth SMTP | configure | [.github/workflows/ensure-supabase-auth-smtp.yml](../../.github/workflows/ensure-supabase-auth-smtp.yml) |
 | Golden TOK responsive browser | browser, index-sync | [.github/workflows/golden-tok-browser.yml](../../.github/workflows/golden-tok-browser.yml) |
-| Golden Tok Index Refresh Temp | — | [.github/workflows/golden-tok-index-refresh-temp.yml](../../.github/workflows/golden-tok-index-refresh-temp.yml) |
 | TOK Codex Incident Repair | prepare, publish, report, validate | [.github/workflows/incident-codex-repair.yml](../../.github/workflows/incident-codex-repair.yml) |
 | TOK Incident Monitor | report-workflow-failure, scan-runtime | [.github/workflows/incident-monitor.yml](../../.github/workflows/incident-monitor.yml) |
 | iOS Native Validation | native-build | [.github/workflows/ios-native-validation.yml](../../.github/workflows/ios-native-validation.yml) |
@@ -6691,7 +6690,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (29)</summary>
+<details><summary>ci-workflow (28)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -6713,7 +6712,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/deploy-production.yml`
 - `.github/workflows/ensure-supabase-auth-smtp.yml`
 - `.github/workflows/golden-tok-browser.yml`
-- `.github/workflows/golden-tok-index-refresh-temp.yml`
 - `.github/workflows/incident-codex-repair.yml`
 - `.github/workflows/incident-monitor.yml`
 - `.github/workflows/ios-native-validation.yml`
