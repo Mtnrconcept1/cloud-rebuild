@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import ImageUpload from "@/components/ImageUpload";
+import RestaurantSearchSelect from "@/components/admin/RestaurantSearchSelect";
+import GoldenTokReviewPanel from "@/components/admin/GoldenTokReviewPanel";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD } from "@/lib/loyaltyBenefits";
@@ -52,12 +55,12 @@ export default function DropsManagement() {
   const drops = dropsPage?.rows || [];
   const dropsCount = dropsPage?.count || 0;
 
-  const { data: restaurants = [] } = useQuery({
-    queryKey: ["admin-restaurants-list"],
+  const { data: restaurantsCount = 0 } = useQuery({
+    queryKey: ["admin-restaurants-count"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("restaurants").select("id, name").eq("is_active", true).order("name").limit(200);
+      const { count, error } = await supabase.from("restaurants").select("id", { count: "exact", head: true });
       if (error) throw error;
-      return data || [];
+      return count || 0;
     },
   });
 
@@ -156,9 +159,11 @@ export default function DropsManagement() {
         stats={[
           { label: "Experiences", value: drops.length, icon: UtensilsCrossed },
           { label: "Actives", value: drops.filter((drop: any) => drop.is_active).length, icon: Plus },
-          { label: "Restaurants", value: restaurants.length, icon: UtensilsCrossed },
+          { label: "Restaurants", value: restaurantsCount, icon: UtensilsCrossed },
         ]}
       />
+
+      {import.meta.env.VITE_GOLDEN_TOK_ENABLED === "true" && <GoldenTokReviewPanel />}
 
       <Card>
         <CardHeader>
@@ -168,18 +173,10 @@ export default function DropsManagement() {
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Restaurant</Label>
-              <select
-                className="w-full rounded-md border p-2 text-sm"
+              <RestaurantSearchSelect
                 value={form.restaurant_id}
-                onChange={(event) => setForm({ ...form, restaurant_id: event.target.value })}
-              >
-                <option value="">Sélectionner...</option>
-                {restaurants.map((restaurant: any) => (
-                  <option key={restaurant.id} value={restaurant.id}>
-                    {restaurant.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(restaurantId) => setForm((current) => ({ ...current, restaurant_id: restaurantId, image_url: current.restaurant_id === restaurantId ? current.image_url : "" }))}
+              />
             </div>
             <div className="space-y-2">
               <Label>Chef</Label>
@@ -243,11 +240,17 @@ export default function DropsManagement() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label>Image URL</Label>
-              <Input
-                value={form.image_url}
-                onChange={(event) => setForm({ ...form, image_url: event.target.value })}
-              />
+              {form.restaurant_id ? (
+                <ImageUpload
+                  label="Image de l'expérience"
+                  bucket="restaurant-images"
+                  pathPrefix={form.restaurant_id}
+                  value={form.image_url}
+                  onChange={(url) => setForm((current) => ({ ...current, image_url: url }))}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">Sélectionnez d'abord le restaurant pour ajouter une image.</p>
+              )}
             </div>
             <label className="flex items-start gap-3 rounded-lg border px-3 py-3 text-sm">
               <input

@@ -1167,7 +1167,7 @@ Deno.serve(async (req) => {
       const { data: dropRows, error: dropsError } = await actor.adminClient
         .from("chef_table_drops")
         .select(
-          "id, restaurant_id, chef_name, dish_name, price, original_price, drop_time, remaining_portions, is_active, is_vip, required_miamz_points, restaurants(name)",
+          "id, restaurant_id, chef_name, dish_name, price, original_price, drop_time, remaining_portions, is_active, is_vip, required_miamz_points, golden_tok_self_published, restaurants(name)",
         )
         .in("id", dropIds);
 
@@ -1203,6 +1203,17 @@ Deno.serve(async (req) => {
         );
       }
       marketplaceRestaurantId = dropRestaurantIds[0];
+      if ((dropRows || []).some((row: any) => row.golden_tok_self_published === true)) {
+        // Service-role price lookup bypasses RLS: check the paid accreditation
+        // explicitly before allowing a Stripe payment or holding portions.
+        const { data: isAccreditedAndPaid, error: entitlementError } =
+          await actor.adminClient.rpc("golden_tok_restaurant_is_paid", {
+            p_restaurant_id: marketplaceRestaurantId,
+          });
+        if (entitlementError || isAccreditedAndPaid !== true) {
+          throw new HttpError(409, "Cette expérience La Tok d’Or est actuellement indisponible.");
+        }
+      }
       const requestedRestaurantId = String(order_metadata?.restaurant_id || "");
       if (
         requestedRestaurantId &&
