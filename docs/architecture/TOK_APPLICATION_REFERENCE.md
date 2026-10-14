@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `d465ac295455c3149bb5ed2a9e7b24b1556094ae3227555ff5af95ec19c0d567`
+- Empreinte SHA-256 des sources indexées : `a6ae4eb45327494a828969422b608d3ef1af9184b8665f52222dcf8daf028d2f`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 204 |
 | edgeFunctions | 116 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3519 |
+| exportedSymbols | 3523 |
 | featureFlags | 99 |
 | frontendRoutes | 138 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 540 |
-| modules | 1555 |
+| modules | 1557 |
 | pages | 128 |
-| pathLiterals | 698 |
-| publicAssets | 502 |
-| publicEntries | 527 |
+| pathLiterals | 749 |
+| publicAssets | 564 |
+| publicEntries | 589 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16614 |
-| repositoryFiles | 3096 |
+| records | 16797 |
+| repositoryFiles | 3160 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -836,6 +836,68 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/lebanese-mezze.jpeg | media | [public/images/lebanese-mezze.jpeg](../../public/images/lebanese-mezze.jpeg) |
 | /images/limonade menthe.jpeg | media | [public/images/limonade menthe.jpeg](../../public/images/limonade%20menthe.jpeg) |
 | /images/lobster-roll-fries.jpeg | media | [public/images/lobster-roll-fries.jpeg](../../public/images/lobster-roll-fries.jpeg) |
+| /images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp | media | [public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp](../../public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp) |
+| /images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop.webp | media | [public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop.webp](../../public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop.webp) |
+| /images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp | media | [public/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp](../../public/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp) |
+| /images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp | media | [public/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp](../../public/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp) |
+| /images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp | media | [public/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp](../../public/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp) |
+| /images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp | media | [public/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp](../../public/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp) |
+| /images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp | media | [public/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp](../../public/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp) |
+| /images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp | media | [public/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp](../../public/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp) |
+| /images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp | media | [public/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp](../../public/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp) |
+| /images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp | media | [public/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp](../../public/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp) |
+| /images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp | media | [public/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp](../../public/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp) |
+| /images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp | media | [public/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp](../../public/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp) |
+| /images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp | media | [public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp](../../public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp) |
+| /images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop.webp | media | [public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop.webp](../../public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop.webp) |
+| /images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp | media | [public/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp](../../public/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp) |
+| /images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp | media | [public/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp](../../public/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp) |
+| /images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp | media | [public/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp](../../public/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp) |
+| /images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp | media | [public/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp](../../public/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp) |
+| /images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp | media | [public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp](../../public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp) |
+| /images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop.webp | media | [public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop.webp](../../public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop.webp) |
+| /images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp | media | [public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp](../../public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp) |
+| /images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop.webp | media | [public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop.webp](../../public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop.webp) |
+| /images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp | media | [public/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp](../../public/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp) |
+| /images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp | media | [public/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp](../../public/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp) |
+| /images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp | media | [public/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp](../../public/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp) |
+| /images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp | media | [public/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp](../../public/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp) |
+| /images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp | media | [public/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp](../../public/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp) |
+| /images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp | media | [public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp](../../public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp) |
+| /images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop.webp | media | [public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop.webp](../../public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop.webp) |
+| /images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp | media | [public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp](../../public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp) |
+| /images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop.webp | media | [public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop.webp](../../public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop.webp) |
+| /images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp | media | [public/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp](../../public/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp) |
+| /images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp | media | [public/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp](../../public/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp) |
+| /images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp | media | [public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp](../../public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp) |
+| /images/locations/Asie/Japon/tokyo/tok-tokyo-desktop.webp | media | [public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop.webp](../../public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop.webp) |
+| /images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp | media | [public/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp](../../public/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp) |
+| /images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp | media | [public/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp](../../public/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp) |
+| /images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp | media | [public/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp](../../public/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp) |
+| /images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp | media | [public/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp](../../public/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp) |
+| /images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp | media | [public/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp](../../public/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp) |
+| /images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp | media | [public/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp](../../public/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp) |
+| /images/locations/Asie/Philippines/manille/tok-manille-desktop.webp | media | [public/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp](../../public/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp) |
+| /images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp | media | [public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp](../../public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp) |
+| /images/locations/Asie/Singapour/singapour/tok-singapour-desktop.webp | media | [public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop.webp](../../public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop.webp) |
+| /images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp | media | [public/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp](../../public/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp) |
+| /images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp | media | [public/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp](../../public/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp) |
+| /images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp | media | [public/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp](../../public/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp) |
+| /images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp | media | [public/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp](../../public/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp) |
+| /images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp | media | [public/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp](../../public/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp) |
+| /images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp | media | [public/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp](../../public/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp) |
+| /images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp | media | [public/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp](../../public/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp) |
+| /images/locations/Europe/France/paris/tok-paris-desktop.webp | media | [public/images/locations/Europe/France/paris/tok-paris-desktop.webp](../../public/images/locations/Europe/France/paris/tok-paris-desktop.webp) |
+| /images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp | media | [public/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp](../../public/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp) |
+| /images/locations/Europe/Italie/rome/tok-rome-desktop.webp | media | [public/images/locations/Europe/Italie/rome/tok-rome-desktop.webp](../../public/images/locations/Europe/Italie/rome/tok-rome-desktop.webp) |
+| /images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp | media | [public/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp](../../public/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp) |
+| /images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-desktop.webp | media | [public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-desktop.webp](../../public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-desktop.webp) |
+| /images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp | media | [public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp](../../public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp) |
+| /images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp | media | [public/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp](../../public/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp) |
+| /images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp | media | [public/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp](../../public/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | media | [public/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp](../../public/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | media | [public/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp](../../public/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp) |
+| /images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp | media | [public/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp](../../public/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp) |
 | /images/longeole.avif | media | [public/images/longeole.avif](../../public/images/longeole.avif) |
 | /images/mango lassi.jpeg | media | [public/images/mango lassi.jpeg](../../public/images/mango%20lassi.jpeg) |
 | /images/meringue-double.webp | media | [public/images/meringue-double.webp](../../public/images/meringue-double.webp) |
@@ -1378,8 +1440,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /database/query | 1 | [src/test/production-preflight-hardening.test.ts:204](../../src/test/production-preflight-hardening.test.ts#L204) |
 | /demo-restaurant.jpg | 1 | [src/test/commercial-demo-client-data-isolation.test.ts:19](../../src/test/commercial-demo-client-data-isolation.test.ts#L19) |
 | /desig%20app/tok-ch- | 2 | [src/lib/homeCantonHero.ts:72](../../src/lib/homeCantonHero.ts#L72) |
-| /desig%20app/tok-ch-ju.webp | 3 | [src/test/home-hero-search.test.tsx:43](../../src/test/home-hero-search.test.tsx#L43) |
-| /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:51](../../src/test/home-hero-search.test.tsx#L51) |
+| /desig%20app/tok-ch-ju.webp | 1 | [src/test/home-hero-search.test.tsx:44](../../src/test/home-hero-search.test.tsx#L44) |
+| /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:50](../../src/test/home-hero-search.test.tsx#L50) |
 | /enrich-directory-cuisines | 1 | [src/test/directory-cuisine-enrichment.test.ts:40](../../src/test/directory-cuisine-enrichment.test.ts#L40) |
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
 | /enrich-directory-images | 2 | [src/test/directory-image-discovery-worker.test.ts:44](../../src/test/directory-image-discovery-worker.test.ts#L44) |
@@ -1475,9 +1537,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-geneve-desktop.webp | 1 | [src/components/home/HeroSection.tsx:91](../../src/components/home/HeroSection.tsx#L91) |
-| /images/home/tok-geneve-mobile-fast.webp | 3 | [src/components/home/HeroSection.tsx:92](../../src/components/home/HeroSection.tsx#L92) |
-| /images/home/tok-leman-signature-fast.webp | 4 | [src/components/home/HeroSection.tsx:93](../../src/components/home/HeroSection.tsx#L93) |
+| /images/home/tok-leman-signature-fast.webp | 2 | [src/components/home/HeroSection.tsx:41](../../src/components/home/HeroSection.tsx#L41) |
 | /images/home/tok-logo-ui.webp | 1 | [src/lib/tokLogo.ts:2](../../src/lib/tokLogo.ts#L2) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
@@ -1486,6 +1546,59 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/lebanese-mezze-fast.webp | 1 | [src/components/PromoCarousel.tsx:15](../../src/components/PromoCarousel.tsx#L15) |
 | /images/lebanese-mezze.jpeg | 4 | [src/components/AntiWasteCard.tsx:33](../../src/components/AntiWasteCard.tsx#L33) |
 | /images/lobster-roll-fries.jpeg | 1 | [src/lib/menu-item-images.ts:128](../../src/lib/menu-item-images.ts#L128) |
+| /images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:31](../../src/lib/homeWorldHero.ts#L31) |
+| /images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp | 1 | [src/lib/homeWorldHero.ts:27](../../src/lib/homeWorldHero.ts#L27) |
+| /images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp | 1 | [src/lib/homeWorldHero.ts:139](../../src/lib/homeWorldHero.ts#L139) |
+| /images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp | 1 | [src/lib/homeWorldHero.ts:151](../../src/lib/homeWorldHero.ts#L151) |
+| /images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp | 1 | [src/lib/homeWorldHero.ts:55](../../src/lib/homeWorldHero.ts#L55) |
+| /images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp | 1 | [src/lib/homeWorldHero.ts:79](../../src/lib/homeWorldHero.ts#L79) |
+| /images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp | 1 | [src/lib/homeWorldHero.ts:123](../../src/lib/homeWorldHero.ts#L123) |
+| /images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp | 1 | [src/lib/homeWorldHero.ts:195](../../src/lib/homeWorldHero.ts#L195) |
+| /images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp | 1 | [src/lib/homeWorldHero.ts:135](../../src/lib/homeWorldHero.ts#L135) |
+| /images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp | 1 | [src/lib/homeWorldHero.ts:207](../../src/lib/homeWorldHero.ts#L207) |
+| /images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp | 1 | [src/lib/homeWorldHero.ts:155](../../src/lib/homeWorldHero.ts#L155) |
+| /images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:83](../../src/lib/homeWorldHero.ts#L83) |
+| /images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp | 1 | [src/lib/homeWorldHero.ts:183](../../src/lib/homeWorldHero.ts#L183) |
+| /images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp | 1 | [src/lib/homeWorldHero.ts:147](../../src/lib/homeWorldHero.ts#L147) |
+| /images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp | 1 | [src/lib/homeWorldHero.ts:159](../../src/lib/homeWorldHero.ts#L159) |
+| /images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp | 1 | [src/lib/homeWorldHero.ts:171](../../src/lib/homeWorldHero.ts#L171) |
+| /images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:47](../../src/lib/homeWorldHero.ts#L47) |
+| /images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:39](../../src/lib/homeWorldHero.ts#L39) |
+| /images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp | 1 | [src/lib/homeWorldHero.ts:187](../../src/lib/homeWorldHero.ts#L187) |
+| /images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp | 1 | [src/lib/homeWorldHero.ts:163](../../src/lib/homeWorldHero.ts#L163) |
+| /images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp | 1 | [src/lib/homeWorldHero.ts:15](../../src/lib/homeWorldHero.ts#L15) |
+| /images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp | 1 | [src/lib/homeWorldHero.ts:199](../../src/lib/homeWorldHero.ts#L199) |
+| /images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp | 1 | [src/lib/homeWorldHero.ts:103](../../src/lib/homeWorldHero.ts#L103) |
+| /images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:19](../../src/lib/homeWorldHero.ts#L19) |
+| /images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:107](../../src/lib/homeWorldHero.ts#L107) |
+| /images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp | 1 | [src/lib/homeWorldHero.ts:115](../../src/lib/homeWorldHero.ts#L115) |
+| /images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp | 1 | [src/lib/homeWorldHero.ts:119](../../src/lib/homeWorldHero.ts#L119) |
+| /images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:51](../../src/lib/homeWorldHero.ts#L51) |
+| /images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp | 1 | [src/lib/homeWorldHero.ts:67](../../src/lib/homeWorldHero.ts#L67) |
+| /images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp | 1 | [src/lib/homeWorldHero.ts:203](../../src/lib/homeWorldHero.ts#L203) |
+| /images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp | 1 | [src/lib/homeWorldHero.ts:179](../../src/lib/homeWorldHero.ts#L179) |
+| /images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp | 1 | [src/lib/homeWorldHero.ts:167](../../src/lib/homeWorldHero.ts#L167) |
+| /images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp | 1 | [src/lib/homeWorldHero.ts:191](../../src/lib/homeWorldHero.ts#L191) |
+| /images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp | 1 | [src/lib/homeWorldHero.ts:175](../../src/lib/homeWorldHero.ts#L175) |
+| /images/locations/Asie/Philippines/manille/tok-manille-desktop.webp | 1 | [src/lib/homeWorldHero.ts:35](../../src/lib/homeWorldHero.ts#L35) |
+| /images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:71](../../src/lib/homeWorldHero.ts#L71) |
+| /images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp | 1 | [src/lib/homeWorldHero.ts:95](../../src/lib/homeWorldHero.ts#L95) |
+| /images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp | 1 | [src/lib/homeWorldHero.ts:91](../../src/lib/homeWorldHero.ts#L91) |
+| /images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp | 1 | [src/lib/homeWorldHero.ts:127](../../src/lib/homeWorldHero.ts#L127) |
+| /images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp | 1 | [src/lib/homeWorldHero.ts:131](../../src/lib/homeWorldHero.ts#L131) |
+| /images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp | 1 | [src/lib/homeWorldHero.ts:99](../../src/lib/homeWorldHero.ts#L99) |
+| /images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp | 1 | [src/lib/homeWorldHero.ts:43](../../src/lib/homeWorldHero.ts#L43) |
+| /images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp | 1 | [src/lib/homeWorldHero.ts:23](../../src/lib/homeWorldHero.ts#L23) |
+| /images/locations/Europe/France/paris/tok-paris-desktop.webp | 2 | [src/lib/homeWorldHero.ts:87](../../src/lib/homeWorldHero.ts#L87) |
+| /images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp | 1 | [src/lib/homeWorldHero.ts:111](../../src/lib/homeWorldHero.ts#L111) |
+| /images/locations/Europe/Italie/rome/tok-rome-desktop.webp | 1 | [src/lib/homeWorldHero.ts:75](../../src/lib/homeWorldHero.ts#L75) |
+| /images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp | 1 | [src/lib/homeWorldHero.ts:59](../../src/lib/homeWorldHero.ts#L59) |
+| /images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp | 1 | [src/lib/homeWorldHero.ts:6](../../src/lib/homeWorldHero.ts#L6) |
+| /images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:5](../../src/lib/homeWorldHero.ts#L5) |
+| /images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp | 1 | [src/lib/homeWorldHero.ts:143](../../src/lib/homeWorldHero.ts#L143) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | 1 | [src/lib/homeWorldHero.ts:10](../../src/lib/homeWorldHero.ts#L10) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | 1 | [src/lib/homeWorldHero.ts:11](../../src/lib/homeWorldHero.ts#L11) |
+| /images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp | 1 | [src/lib/homeWorldHero.ts:63](../../src/lib/homeWorldHero.ts#L63) |
 | /images/meringue-double.webp | 3 | [src/lib/securityUrls.ts:27](../../src/lib/securityUrls.ts#L27) |
 | /images/milkshake-oreo.jpg | 3 | [src/lib/securityUrls.ts:28](../../src/lib/securityUrls.ts#L28) |
 | /images/milkshake-vanille.jpeg | 9 | [src/lib/menu-item-images.ts:30](../../src/lib/menu-item-images.ts#L30) |
@@ -1552,14 +1665,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/section-headers/tok-editorial- | 1 | [src/components/home/SectionShowcaseHeader.tsx:51](../../src/components/home/SectionShowcaseHeader.tsx#L51) |
 | /images/section-headers/tok-editorial-cuisine-full.jpg | 1 | [src/test/home-section-showcase-header.test.tsx:64](../../src/test/home-section-showcase-header.test.tsx#L64) |
 | /images/section-headers/tok-editorial-cuisine.jpg | 2 | [src/components/home/CuisineCategoryStrip.tsx:120](../../src/components/home/CuisineCategoryStrip.tsx#L120) |
-| /images/section-headers/tok-editorial-delivery-full.jpg | 1 | [src/pages/Index.tsx:62](../../src/pages/Index.tsx#L62) |
-| /images/section-headers/tok-editorial-evening-full.jpg | 1 | [src/pages/Index.tsx:63](../../src/pages/Index.tsx#L63) |
-| /images/section-headers/tok-editorial-feast-full.jpg | 1 | [src/pages/Index.tsx:59](../../src/pages/Index.tsx#L59) |
-| /images/section-headers/tok-editorial-gastronomy-full.jpg | 1 | [src/pages/Index.tsx:61](../../src/pages/Index.tsx#L61) |
+| /images/section-headers/tok-editorial-delivery-full.jpg | 1 | [src/pages/Index.tsx:63](../../src/pages/Index.tsx#L63) |
+| /images/section-headers/tok-editorial-evening-full.jpg | 1 | [src/pages/Index.tsx:64](../../src/pages/Index.tsx#L64) |
+| /images/section-headers/tok-editorial-feast-full.jpg | 1 | [src/pages/Index.tsx:60](../../src/pages/Index.tsx#L60) |
+| /images/section-headers/tok-editorial-gastronomy-full.jpg | 1 | [src/pages/Index.tsx:62](../../src/pages/Index.tsx#L62) |
 | /images/section-headers/tok-editorial-geneva-full.jpg | 2 | [src/test/home-section-showcase-header.test.tsx:33](../../src/test/home-section-showcase-header.test.tsx#L33) |
-| /images/section-headers/tok-editorial-geneva.jpg | 2 | [src/pages/Index.tsx:58](../../src/pages/Index.tsx#L58) |
-| /images/section-headers/tok-editorial-reservation-full.jpg | 1 | [src/pages/Index.tsx:60](../../src/pages/Index.tsx#L60) |
-| /images/section-headers/tok-editorial-rewards-full.jpg | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
+| /images/section-headers/tok-editorial-geneva.jpg | 2 | [src/pages/Index.tsx:59](../../src/pages/Index.tsx#L59) |
+| /images/section-headers/tok-editorial-reservation-full.jpg | 1 | [src/pages/Index.tsx:61](../../src/pages/Index.tsx#L61) |
+| /images/section-headers/tok-editorial-rewards-full.jpg | 1 | [src/pages/Index.tsx:58](../../src/pages/Index.tsx#L58) |
 | /images/smash-burger-single.jpeg | 3 | [src/lib/menu-item-images.ts:23](../../src/lib/menu-item-images.ts#L23) |
 | /images/smash-burgers.jpeg | 3 | [src/components/AntiWasteCard.tsx:39](../../src/components/AntiWasteCard.tsx#L39) |
 | /images/stack-shake-spread.jpeg | 1 | [src/components/AntiWasteCard.tsx:35](../../src/components/AntiWasteCard.tsx#L35) |
@@ -6146,7 +6259,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 206 |
+| application-library | 207 |
 | automation-script | 66 |
 | documentation | 6 |
 | edge-function-source | 196 |
@@ -6157,7 +6270,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 618 |
+| test | 619 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6435,7 +6548,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (206)</summary>
+<details><summary>application-library (207)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/actualitesFeedOrdering.ts`
@@ -6539,6 +6652,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/helpChat.ts`
 - `src/lib/homeCantonHero.ts`
 - `src/lib/homeRestaurantDiscovery.ts`
+- `src/lib/homeWorldHero.ts`
 - `src/lib/invoicePresentation.ts`
 - `src/lib/iosCommerceFetch.ts`
 - `src/lib/launchGate.ts`
@@ -8186,7 +8300,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (527)</summary>
+<details><summary>public-asset (589)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8403,6 +8517,68 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/lebanese-mezze.jpeg`
 - `public/images/limonade menthe.jpeg`
 - `public/images/lobster-roll-fries.jpeg`
+- `public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop-v2.webp`
+- `public/images/locations/Afrique/Afrique-du-Sud/le-cap/tok-le-cap-desktop.webp`
+- `public/images/locations/Afrique/Cap-Vert/cap-vert/tok-cap-vert-desktop.webp`
+- `public/images/locations/Afrique/Egypte/le-caire/tok-le-caire-desktop.webp`
+- `public/images/locations/Afrique/Ghana/accra/tok-accra-desktop.webp`
+- `public/images/locations/Afrique/Kenya/nairobi/tok-nairobi-desktop.webp`
+- `public/images/locations/Afrique/Maroc/marrakech/tok-marrakech-desktop.webp`
+- `public/images/locations/Afrique/Nigeria/nigeria/tok-nigeria-desktop.webp`
+- `public/images/locations/Afrique/Senegal/dakar/tok-dakar-desktop.webp`
+- `public/images/locations/Afrique/Tanzanie/zanzibar/tok-zanzibar-desktop.webp`
+- `public/images/locations/Afrique/Tunisie/tunisie/tok-tunisie-desktop.webp`
+- `public/images/locations/Ameriques/Argentine/buenos-aires/tok-buenos-aires-desktop.webp`
+- `public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop-v2.webp`
+- `public/images/locations/Ameriques/Bresil/rio-de-janeiro/tok-rio-de-janeiro-desktop.webp`
+- `public/images/locations/Ameriques/Canada/montreal/tok-montreal-desktop.webp`
+- `public/images/locations/Ameriques/Chili/valparaiso/tok-valparaiso-desktop.webp`
+- `public/images/locations/Ameriques/Colombie/carthagene/tok-carthagene-desktop.webp`
+- `public/images/locations/Ameriques/Cuba/la-havane/tok-la-havane-desktop.webp`
+- `public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop-v2.webp`
+- `public/images/locations/Ameriques/Etats-Unis/new-york/tok-new-york-desktop.webp`
+- `public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop-v2.webp`
+- `public/images/locations/Ameriques/Mexique/mexico/tok-mexico-desktop.webp`
+- `public/images/locations/Ameriques/Panama/panama/tok-panama-desktop.webp`
+- `public/images/locations/Ameriques/Perou/cusco/tok-cusco-desktop.webp`
+- `public/images/locations/Asie/Bangladesh/dhaka/tok-dhaka-desktop.webp`
+- `public/images/locations/Asie/Cambodge/siem-reap/tok-siem-reap-desktop.webp`
+- `public/images/locations/Asie/Chine/shanghai/tok-shanghai-desktop.webp`
+- `public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop-v2.webp`
+- `public/images/locations/Asie/Coree-du-Sud/seoul/tok-seoul-desktop.webp`
+- `public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop-v2.webp`
+- `public/images/locations/Asie/Emirats-arabes-unis/dubai/tok-dubai-desktop.webp`
+- `public/images/locations/Asie/Inde/mumbai/tok-mumbai-desktop.webp`
+- `public/images/locations/Asie/Indonesie/bali/tok-bali-desktop.webp`
+- `public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop-v2.webp`
+- `public/images/locations/Asie/Japon/tokyo/tok-tokyo-desktop.webp`
+- `public/images/locations/Asie/Laos/luang-prabang/tok-luang-prabang-desktop.webp`
+- `public/images/locations/Asie/Malaisie/kuala-lumpur/tok-kuala-lumpur-desktop.webp`
+- `public/images/locations/Asie/Mongolie/oulan-bator/tok-oulan-bator-desktop.webp`
+- `public/images/locations/Asie/Nepal/katmandou/tok-katmandou-desktop.webp`
+- `public/images/locations/Asie/Ouzbekistan/samarcande/tok-samarcande-desktop.webp`
+- `public/images/locations/Asie/Pakistan/lahore/tok-lahore-desktop.webp`
+- `public/images/locations/Asie/Philippines/manille/tok-manille-desktop.webp`
+- `public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop-v2.webp`
+- `public/images/locations/Asie/Singapour/singapour/tok-singapour-desktop.webp`
+- `public/images/locations/Asie/Sri-Lanka/galle/tok-galle-desktop.webp`
+- `public/images/locations/Asie/Taiwan/taipei/tok-taipei-desktop.webp`
+- `public/images/locations/Asie/Thailande/bangkok/tok-bangkok-desktop.webp`
+- `public/images/locations/Asie/Turquie/istanbul/tok-istanbul-desktop.webp`
+- `public/images/locations/Asie/Vietnam/baie-d-ha-long/tok-baie-d-ha-long-desktop.webp`
+- `public/images/locations/Europe/Allemagne/berlin/tok-berlin-desktop.webp`
+- `public/images/locations/Europe/Espagne/barcelone/tok-barcelone-desktop.webp`
+- `public/images/locations/Europe/France/paris/tok-paris-desktop.webp`
+- `public/images/locations/Europe/Grece/athenes/tok-athenes-desktop.webp`
+- `public/images/locations/Europe/Italie/rome/tok-rome-desktop.webp`
+- `public/images/locations/Europe/Pays-Bas/amsterdam/tok-amsterdam-desktop.webp`
+- `public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-desktop.webp`
+- `public/images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp`
+- `public/images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp`
+- `public/images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp`
+- `public/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp`
+- `public/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp`
+- `public/images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp`
 - `public/images/longeole.avif`
 - `public/images/mango lassi.jpeg`
 - `public/images/meringue-double.webp`
@@ -8914,7 +9090,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (618)</summary>
+<details><summary>test (619)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9179,6 +9355,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/home-nearby-catalog-contract.test.ts`
 - `src/test/home-restaurant-carousel.test.tsx`
 - `src/test/home-section-showcase-header.test.tsx`
+- `src/test/home-world-hero.test.ts`
 - `src/test/homepage-photo-only-sections.test.ts`
 - `src/test/homepage-positioning-guards.test.ts`
 - `src/test/image-metadata-ai.test.ts`
