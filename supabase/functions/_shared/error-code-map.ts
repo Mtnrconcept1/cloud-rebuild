@@ -598,25 +598,25 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "commission_invalid_server_snapshot": [
     {
       "file": "supabase/functions/stripe-worker/index.ts",
-      "line": 494
+      "line": 480
     }
   ],
   "commission_reservation_no_longer_honored": [
     {
       "file": "supabase/functions/stripe-worker/index.ts",
-      "line": 507
+      "line": 493
     }
   ],
   "commission_reservation_verification_failed": [
     {
       "file": "supabase/functions/stripe-worker/index.ts",
-      "line": 503
+      "line": 489
     }
   ],
   "commission_subscription_not_active": [
     {
       "file": "supabase/functions/stripe-worker/index.ts",
-      "line": 516
+      "line": 502
     }
   ],
   "consent_check_unavailable": [
@@ -1948,13 +1948,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "payment_attempt_order_expired_recreate": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2072
+      "line": 2061
     }
   ],
   "payment_attempt_reacquire_failed": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2080
+      "line": 2069
     }
   ],
   "payment_attempt_request_mismatch": [
@@ -1966,7 +1966,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "payment_attempt_session_expired_retry": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2442
+      "line": 2431
     }
   ],
   "personalization_consent_required": [

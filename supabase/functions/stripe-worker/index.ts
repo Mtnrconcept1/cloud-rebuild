@@ -8,6 +8,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { resolveRestaurantSubscriptionCatalogPrice } from "../_shared/restaurant-stripe-price-catalog.ts";
 import { getStripeRuntimeForCheckoutKind, getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
 import { getEffectiveFeatureFlagSet } from "../_shared/feature-flags.ts";
 import {
@@ -297,33 +298,18 @@ async function activateRestaurantSubscription(input: {
       );
     }
   } else {
-    const price = await runtime.stripe.prices.create(
-      {
-        currency,
-        unit_amount: amountCents,
-        recurring: { interval: getRestaurantSubscriptionStripeInterval(billingPeriod) },
-        product_data: {
-          name: `Abonnement restaurateur TOK - ${job.plan_name || job.plan_slug}`,
-          metadata: {
-            restaurant_subscription_plan_id: job.plan_id,
-            restaurant_subscription_plan_slug: job.plan_slug,
-            billing_period: billingPeriod,
-          },
-        },
-        metadata: {
-          activation_job_id: job.job_id,
-          restaurant_subscription_plan_id: job.plan_id,
-          billing_period: billingPeriod,
-        },
-      },
-      { idempotencyKey: `tok-restaurant-activation-price:${idempotencySuffix}` },
-    );
-    stripePriceId = price.id;
+    stripePriceId = await resolveRestaurantSubscriptionCatalogPrice(runtime.stripe, {
+      planId: job.plan_id,
+      slug: job.plan_slug,
+      mode: runtime.mode,
+      interval: getRestaurantSubscriptionStripeInterval(billingPeriod),
+      amountCents,
+    });
 
     subscription = await runtime.stripe.subscriptions.create(
       {
         customer: job.stripe_customer_id,
-        items: [{ price: price.id }],
+        items: [{ price: stripePriceId }],
         default_payment_method: job.stripe_payment_method_id,
         collection_method: "charge_automatically",
         // Try the first invoice automatically with the pre-authorized card.\n        // Failed or 3DS-required payments remain incomplete until resolved.\n        payment_behavior: "allow_incomplete",
