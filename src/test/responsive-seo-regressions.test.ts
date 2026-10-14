@@ -15,7 +15,8 @@ describe("responsive and SEO regression guards", () => {
 
     expect(css).toContain("text-size-adjust: 100%");
     expect(css).toContain("min-inline-size: 0");
-    expect(css).toContain("overflow-wrap: anywhere");
+    expect(css).toContain("overflow-wrap: normal;");
+    expect(css).toContain("word-break: normal;");
     expect(css).toContain("min-height: 100dvh");
     expect(bodyRule).not.toContain("safe-area-inset");
     expect(tailwind).toContain('DEFAULT: "max(1rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))"');
