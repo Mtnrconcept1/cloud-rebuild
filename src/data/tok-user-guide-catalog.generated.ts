@@ -1,8 +1,8 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "e5da23aee0dfbb0598aadc37b07794ab2f16c06b915533fe8d078591d42b1ee4",
-  "routeCount": 141,
+  "sourceDigest": "edbd6586f27cba278edfc369eb18ef91004a2610cb4c542778d18996903ae791",
+  "routeCount": 142,
   "toolCount": 116
 } as const;
 
@@ -74,6 +74,17 @@ export const TOK_USER_GUIDE_ROUTES = [
     "surface": "public",
     "components": [
       "MyWorkforce",
+      "ProtectedRoute"
+    ],
+    "requiredRoles": [],
+    "featureGate": null,
+    "redirectTo": null
+  },
+  {
+    "path": "/equipe/gestion",
+    "surface": "public",
+    "components": [
+      "MyWorkforceManager",
       "ProtectedRoute"
     ],
     "requiredRoles": [],
