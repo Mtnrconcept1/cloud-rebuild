@@ -76,6 +76,7 @@ const CORE_ROUTES = new Set([
   "/marketing/*",
   "/admin",
   "/admin/guide",
+  "/admin/tok-printer",
   "/admin/support-resolution",
   "/admin/guardian",
   "/commercial/comptabilite",
