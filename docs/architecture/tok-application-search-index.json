@@ -2,13 +2,13 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "5d641541e14d76e41d1dbe3e12a5ecddfe2eed84be4ed46eb80b8ccd57e264e1",
+ "sourceDigest": "6adbee15a839556913230a2e581ebe80228f7d7b1576654d094f572df1ee0b18",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2767,
+  "databaseObjects": 2774,
   "documents": 203,
   "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
@@ -17,7 +17,7 @@
   "frontendRoutes": 137,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 534,
+  "migrations": 535,
   "modules": 1544,
   "pages": 129,
   "pathLiterals": 697,
@@ -25,8 +25,8 @@
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16541,
-  "repositoryFiles": 3076,
+  "records": 16550,
+  "repositoryFiles": 3077,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -35872,6 +35872,12 @@
     "objectCount": 1
    },
    {
+    "name": "20261014002455 Restaurant Meta Social Oauth",
+    "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+    "lineCount": 65,
+    "objectCount": 7
+   },
+   {
     "name": "20261014010000 Recurring Restaurant Reservation Commissions",
     "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
     "lineCount": 549,
@@ -50689,6 +50695,46 @@
    },
    {
     "type": "index",
+    "name": "restaurant_meta_accounts_restaurant_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+      "line": 33
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "restaurant_meta_oauth_states_expiry_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "restaurant_meta_one_active_page_per_restaurant",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+      "line": 31
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "restaurant_meta_publications_history_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+      "line": 51
+     }
+    ]
+   },
+   {
+    "type": "index",
     "name": "restaurant_paid_module_events_restaurant_created_idx",
     "sources": [
      {
@@ -62952,6 +62998,36 @@
      {
       "path": "supabase/migrations/20260308175015_d089cd3a-79e4-45da-9a43-db36386961b3.sql",
       "line": 240
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "name": "public.restaurant_meta_accounts",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+      "line": 14
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "name": "public.restaurant_meta_oauth_states",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "name": "public.restaurant_meta_publications",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+      "line": 36
      }
     ]
    },
@@ -129246,6 +129322,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
     "category": "database-migration",
     "extension": ".sql"
@@ -187288,6 +187369,51 @@
    "detailRef": "8fb4b4d2b66d"
   },
   {
+   "id": "database-object:c2aba5f95d49",
+   "type": "database-object",
+   "title": "public.restaurant_meta_accounts",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "615065396549"
+  },
+  {
+   "id": "database-object:1a32c8691d7d",
+   "type": "database-object",
+   "title": "public.restaurant_meta_oauth_states",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "cae34e9562de"
+  },
+  {
+   "id": "database-object:35d59ac8edb6",
+   "type": "database-object",
+   "title": "public.restaurant_meta_publications",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "d6083e80f09e"
+  },
+  {
    "id": "database-object:93b2c56ba864",
    "type": "database-object",
    "title": "public.restaurant_onboarding_state_events.restaurant_onboarding_state_events_owner_read",
@@ -194666,6 +194792,66 @@
     "supabase"
    ],
    "detailRef": "fd60345d85eb"
+  },
+  {
+   "id": "database-object:7464d61a4c16",
+   "type": "database-object",
+   "title": "restaurant_meta_accounts_restaurant_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "4cfb44f657cd"
+  },
+  {
+   "id": "database-object:3e7d08bc9a97",
+   "type": "database-object",
+   "title": "restaurant_meta_oauth_states_expiry_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "aab4958e1c13"
+  },
+  {
+   "id": "database-object:acf1619f3e6e",
+   "type": "database-object",
+   "title": "restaurant_meta_one_active_page_per_restaurant",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "27a8ddda4e37"
+  },
+  {
+   "id": "database-object:832034a2413e",
+   "type": "database-object",
+   "title": "restaurant_meta_publications_history_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "e5f22b1d2e4c"
   },
   {
    "id": "database-object:6a246b836271",
@@ -332169,6 +332355,20 @@
    "detailRef": "1ca1b5fde1d8"
   },
   {
+   "id": "file:2196898854c9",
+   "type": "file",
+   "title": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "c6b5cd949578"
+  },
+  {
    "id": "file:941f5383cb9e",
    "type": "file",
    "title": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
@@ -344974,6 +345174,20 @@
     "supabase"
    ],
    "detailRef": "79d8499d3352"
+  },
+  {
+   "id": "migration:8de29ed2a4f2",
+   "type": "migration",
+   "title": "20261014002455 Restaurant Meta Social Oauth",
+   "description": "Migration SQL de 65 lignes, 7 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014002455_restaurant_meta_social_oauth.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "0698c94d6fdb"
   },
   {
    "id": "migration:9e4fd59ea4e9",
