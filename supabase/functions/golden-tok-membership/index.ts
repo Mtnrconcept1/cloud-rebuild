@@ -14,6 +14,10 @@ import { makeLogger } from "../_shared/logging.ts";
 const FUNCTION_NAME = "golden-tok-membership";
 const CHECKOUT_KIND = "golden-tok-accreditation";
 const CHECKOUT_RETURN_URL = "https://www.thetok.ch/dashboard/formules";
+// Public Stripe IDs (not secrets): verified against the TOK live Stripe account.
+const GOLDEN_TOK_PRODUCT_ID = "prod_VRAz7tfJkO2vAu";
+const GOLDEN_TOK_PRICE_ID = "price_1UQIdzGTQigE34suvtFQxQa5";
+const GOLDEN_TOK_MONTHLY_CENTS = 9_900;
 
 type Accreditation = {
   restaurant_id: string;
@@ -105,16 +109,21 @@ Deno.serve(async (req) => {
       throw new HttpError(409, "Un abonnement existe déjà. Consultez son état ou contactez TOK.");
     }
 
-    // No amount is hard-coded: TOK must explicitly configure a recurring CHF monthly Stripe Price.
-    const priceId = (Deno.env.get("GOLDEN_TOK_STRIPE_PRICE_ID") || "").trim();
-    if (!/^price_[a-zA-Z0-9]+$/.test(priceId)) {
-      throw new HttpError(503, "Tarif La Tok d’Or non encore configuré");
+    // An optional environment override may only match the verified TOK live price.
+    // Fail closed if deployment configuration points to a different product/amount.
+    const configuredPriceId = (Deno.env.get("GOLDEN_TOK_STRIPE_PRICE_ID") || "").trim();
+    if (configuredPriceId && configuredPriceId !== GOLDEN_TOK_PRICE_ID) {
+      throw new HttpError(503, "Le tarif La Tok d’Or configuré ne correspond pas au tarif approuvé");
     }
-    const price = await stripe.prices.retrieve(priceId);
-    if (!price.active || price.currency !== "chf" || price.type !== "recurring" ||
-      price.recurring?.interval !== "month" || price.recurring?.interval_count !== 1 ||
-      !price.unit_amount || price.unit_amount <= 0) {
-      throw new HttpError(503, "Le tarif Stripe doit être un abonnement mensuel CHF actif");
+    const price = await stripe.prices.retrieve(GOLDEN_TOK_PRICE_ID);
+    if (!price.active || !price.livemode || price.currency !== "chf" ||
+      price.product !== GOLDEN_TOK_PRODUCT_ID ||
+      price.type !== "recurring" ||
+      price.recurring?.interval !== "month" ||
+      price.recurring?.interval_count !== 1 ||
+      price.recurring?.usage_type !== "licensed" ||
+      price.unit_amount !== GOLDEN_TOK_MONTHLY_CENTS) {
+      throw new HttpError(503, "Le tarif Stripe doit correspondre à 99 CHF par mois pour La Tok d’Or");
     }
 
     if (membership.stripe_checkout_session_id) {
