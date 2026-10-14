@@ -73,7 +73,7 @@ DECLARE
   v_topups numeric := 0;
   v_spent numeric := 0;
 BEGIN
-  SELECT status, billing_period INTO v_subscription
+  SELECT status, billing_period, current_period_start INTO v_subscription
   FROM public.restaurant_ai_subscriptions
   WHERE restaurant_id=p_restaurant_id
   ORDER BY created_at DESC LIMIT 1;
