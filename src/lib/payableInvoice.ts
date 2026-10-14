@@ -115,9 +115,9 @@ const TOK_SENDER: PayableInvoiceRecipient & { website: string } = {
   addressLine2: "1225 Chêne-Bourg",
   country: "Suisse",
   enterpriseId: "CHE-109.513.890",
-  // The RC extract documents the IDE, not VAT registration.
-  // Only add a tax number when confirmed in the Federal VAT register.
-  vatNumber: null,
+  // VAT registration confirmed by the merchant; verify periodically with
+  // the Swiss UID register before issuing new invoices after legal changes.
+  vatNumber: "CHE-109.513.890 TVA",
   email: null,
   phone: null,
   website: "www.thetok.ch",
