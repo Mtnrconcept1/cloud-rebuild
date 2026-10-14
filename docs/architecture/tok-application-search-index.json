@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "7269cf5e35a5a53600948a49ce16b982e35770931dbfa5ccd9069de0afff0325",
+ "sourceDigest": "c04046108ef7f26f2c4cdc66530ce9a7919fba999f9f023dbe0d89e487972e62",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -91748,13 +91748,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 19,
+      "line": 18,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 88
+    "lineCount": 87
    },
    {
     "path": "src/components/workforce/WorkforceTime.tsx",
@@ -138521,14 +138521,14 @@
    "id": "code-module:e1100737a67d",
    "type": "code-module",
    "title": "src/components/workforce/WorkforceRequests.tsx",
-   "description": "Module de 88 lignes; exports: default.",
+   "description": "Module de 87 lignes; exports: default.",
    "path": "src/components/workforce/WorkforceRequests.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "4f62e5c960f3"
+   "detailRef": "958eff475f22"
   },
   {
    "id": "code-module:d456b0cd3884",
@@ -274212,17 +274212,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:32829984c1fb",
+   "id": "exported-symbol:28ce8f2da6c7",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/workforce/WorkforceRequests.tsx.",
    "path": "src/components/workforce/WorkforceRequests.tsx",
-   "line": 19,
+   "line": 18,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "f6bed50c25fe"
+   "detailRef": "64c0644642e8"
   },
   {
    "id": "exported-symbol:1cefae31937b",
