@@ -35,6 +35,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RESTAURANT_PARTNER_CONTRACT_VERSION } from "@/lib/restaurantPartnerContract";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -203,6 +205,17 @@ type RestaurantSubscriptionSelfServiceState = {
   stripe_subscription_schedule_id: string | null;
   current_period_start: string | null;
   current_period_end: string | null;
+};
+
+type RestaurantCommissionMandateStatus = {
+  ok: boolean;
+  eligible: boolean;
+  accepted: boolean;
+  accepted_at?: string | null;
+  contract_version?: string;
+  subscription_status: string | null;
+  payment_method_ready: boolean;
+  auto_debit_enabled: boolean;
 };
 
 type PendingSubscriptionAction =
@@ -822,6 +835,8 @@ function LiveDashboardAccountBilling() {
   const [selfServicePlanId, setSelfServicePlanId] = useState<string | null>(null);
   const [selfServiceAction, setSelfServiceAction] = useState<SubscriptionActionState | null>(null);
   const [pendingSubscriptionAction, setPendingSubscriptionAction] = useState<PendingSubscriptionAction | null>(null);
+  const [commissionConsentChecked, setCommissionConsentChecked] = useState(false);
+  const [commissionConsentSubmitting, setCommissionConsentSubmitting] = useState(false);
   const [completedCreditPackSessionId, setCompletedCreditPackSessionId] = useState<string | null>(null);
   const [reconciledPendingCreditPackRestaurantId, setReconciledPendingCreditPackRestaurantId] = useState<string | null>(null);
   const checkoutLockRef = useRef(false);
@@ -858,6 +873,21 @@ function LiveDashboardAccountBilling() {
     enabled: !!selectedId,
     retry: false,
     queryFn: () => fetchRestaurantSubscriptionSelfServiceState(selectedId as string),
+  });
+
+  const commissionMandateQuery = useQuery({
+    queryKey: ["restaurant-commission-mandate", selectedId],
+    enabled: Boolean(selectedId) && !isCommercialDemo,
+    retry: false,
+    queryFn: async (): Promise<RestaurantCommissionMandateStatus> => {
+      const { data, error } = await invokeSupabaseFunction<RestaurantCommissionMandateStatus>(
+        "manage-restaurant-subscription", {
+          body: { action: "commission_mandate_status", restaurant_id: selectedId },
+        },
+      );
+      if (error || !data?.ok) throw error || new Error("Autorisation bancaire indisponible");
+      return data;
+    },
   });
 
   const plansQuery = useQuery({
@@ -1013,6 +1043,34 @@ function LiveDashboardAccountBilling() {
     : pendingSubscriptionAction?.type === "resume"
       ? "La résiliation ou le changement de formule programmé sera annulé. L'abonnement continuera normalement au prochain renouvellement."
       : `Votre abonnement restera actif jusqu'au ${formatDateTime(usage?.subscription?.current_period_end)}. Les avantages déjà payés restent disponibles jusqu'à cette date. La résiliation doit être demandée au plus tard 3 jours avant le ${billingCycleCopy.renewalLabel}.`;
+
+  async function handleCommissionMandateConsent() {
+    if (!selectedId || !commissionConsentChecked || commissionConsentSubmitting) return;
+    setCommissionConsentSubmitting(true);
+    try {
+      const { data, error } = await invokeSupabaseFunction<{ ok?: boolean; accepted?: boolean }>(
+        "manage-restaurant-subscription", {
+          body: {
+            action: "accept_commission_mandate",
+            restaurant_id: selectedId,
+            confirmation: true,
+            acknowledged_fee_cents: 500,
+            contract_version: RESTAURANT_PARTNER_CONTRACT_VERSION,
+          },
+        },
+      );
+      if (error || !data?.ok || !data.accepted) {
+        throw error || new Error("La signature du mandat n'a pas pu être enregistrée");
+      }
+      setCommissionConsentChecked(false);
+      await commissionMandateQuery.refetch();
+      toast.success("Autorisation enregistrée. Aucun prélèvement immédiat.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Autorisation bancaire impossible");
+    } finally {
+      setCommissionConsentSubmitting(false);
+    }
+  }
 
   async function handleInitialSubscriptionCheckout(plan: RestaurantSubscriptionPlan) {
     if (!selectedId) return;
@@ -1242,6 +1300,87 @@ function LiveDashboardAccountBilling() {
             <AlertTitle>Paiement annulé</AlertTitle>
             <AlertDescription>Votre abonnement actuel reste inchangé.</AlertDescription>
           </Alert>
+        ) : null}
+
+        {selectedId ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Autorisation des prélèvements TOK</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Les frais de 5 CHF sont dus par table réellement honorée, jamais par couvert.
+                Aucun prélèvement rétroactif n'est effectué pour les réservations antérieures à votre accord.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {commissionMandateQuery.isLoading ? (
+                <p className="text-sm text-muted-foreground">Vérification de votre autorisation bancaire...</p>
+              ) : commissionMandateQuery.isError ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>État du mandat indisponible</AlertTitle>
+                  <AlertDescription>Réessayez après actualisation. Aucun prélèvement n'est déclenché ici.</AlertDescription>
+                </Alert>
+              ) : commissionMandateQuery.data?.accepted ? (
+                <Alert>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <AlertTitle>Autorisation enregistrée</AlertTitle>
+                  <AlertDescription>
+                    Accord du {formatDateTime(commissionMandateQuery.data.accepted_at)}.
+                    {!commissionMandateQuery.data.auto_debit_enabled
+                      ? " Les prélèvements automatiques des commissions ne sont pas encore activés par TOK."
+                      : !currentSubscriptionIsActive || !commissionMandateQuery.data.payment_method_ready
+                        ? " La facturation automatique reste suspendue tant que l'abonnement et le moyen de paiement ne sont pas actifs."
+                        : " Les commissions des futures tables réellement honorées pourront être prélevées automatiquement."}
+                  </AlertDescription>
+                </Alert>
+              ) : !commissionMandateQuery.data?.eligible ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Abonnement à régulariser</AlertTitle>
+                  <AlertDescription>
+                    Choisissez une formule ci-dessous ou complétez votre inscription depuis le tableau de bord
+                    avant de signer l'autorisation. Aucune carte n'est débitée depuis ce bloc.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <>
+                  <div className="flex items-start gap-3 rounded-lg border p-3">
+                    <Checkbox
+                      id="restaurant-commission-debit-mandate"
+                      checked={commissionConsentChecked}
+                      onCheckedChange={(checked) => setCommissionConsentChecked(checked === true)}
+                      className="mt-0.5"
+                    />
+                    <label htmlFor="restaurant-commission-debit-mandate" className="text-sm leading-relaxed">
+                      Je suis le propriétaire de cet établissement et j'autorise TOK à prélever
+                      par carte enregistrée auprès de Stripe mes échéances d'abonnement convenues
+                      ainsi que 5 CHF pour chaque table réellement honorée après mon accord.
+                      Aucun prélèvement n'a lieu pour une annulation, un no-show ou une simple inscription.
+                      Je reconnais les{" "}
+                      <a href="/conditions-restaurateurs" target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+                        conditions restaurateurs
+                      </a>{" "}
+                      et le mandat de paiement {RESTAURANT_PARTNER_CONTRACT_VERSION}.
+                    </label>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={() => void handleCommissionMandateConsent()}
+                    disabled={!commissionConsentChecked || commissionConsentSubmitting}
+                  >
+                    {commissionConsentSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
+                    Confirmer mon autorisation
+                  </Button>
+                  {!commissionMandateQuery.data?.payment_method_ready ? (
+                    <p className="text-sm text-muted-foreground">
+                      Votre carte doit également être enregistrée auprès de Stripe depuis le parcours d'abonnement
+                      pour que les prélèvements deviennent possibles.
+                    </p>
+                  ) : null}
+                </>
+              )}
+            </CardContent>
+          </Card>
         ) : null}
 
         {isUsageUnavailable ? (

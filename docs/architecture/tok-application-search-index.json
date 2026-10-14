@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "6adbee15a839556913230a2e581ebe80228f7d7b1576654d094f572df1ee0b18",
+ "sourceDigest": "b4e83fe8d50544962712f3ecb1bc5599c477e4b30ff38ec1b559f267e67a383e",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 535,
-  "modules": 1544,
+  "modules": 1545,
   "pages": 129,
   "pathLiterals": 697,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16550,
-  "repositoryFiles": 3077,
+  "records": 16554,
+  "repositoryFiles": 3078,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -4688,7 +4688,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 808,
+      "line": 821,
       "kind": "function"
      }
     ],
@@ -8166,8 +8166,10 @@
      "ANY"
     ],
     "actions": [
+     "accept_commission_mandate",
      "cancel",
      "change_plan",
+     "commission_mandate_status",
      "resume"
     ],
     "environmentNames": [],
@@ -18749,6 +18751,10 @@
       "line": 284
      },
      {
+      "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
+      "line": 1360
+     },
+     {
       "path": "src/test/coming-soon-gate.test.tsx",
       "line": 42
      },
@@ -20542,7 +20548,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 1043
+      "line": 1101
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
@@ -20567,7 +20573,7 @@
     "sources": [
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 1166
+      "line": 1224
      }
     ]
    },
@@ -29617,7 +29623,7 @@
     "sources": [
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 846
+      "line": 861
      }
     ],
     "routes": [
@@ -30546,7 +30552,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 847
+      "line": 862
      },
      {
       "path": "src/pages/dashboard/DashboardHome.tsx",
@@ -30887,7 +30893,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 845
+      "line": 860
      },
      {
       "path": "src/pages/dashboard/DashboardActualites.tsx",
@@ -31016,7 +31022,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 844
+      "line": 859
      },
      {
       "path": "src/pages/dashboard/DashboardActualites.tsx",
@@ -31787,6 +31793,7 @@
      "src/test/release-readiness.test.ts",
      "src/test/reservation-card-guarantee.test.ts",
      "src/test/restaurant-billing-account.test.ts",
+     "src/test/restaurant-commission-mandate-selfservice.test.ts",
      "src/test/restaurant-onboarding-payments.test.ts",
      "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
      "src/test/restaurant-reservation-commission-collection.test.ts",
@@ -32393,6 +32400,7 @@
      "src/test/reservation-service-capacity.test.ts",
      "src/test/restaurant-billing-account.test.ts",
      "src/test/restaurant-card-preview.test.tsx",
+     "src/test/restaurant-commission-mandate-selfservice.test.ts",
      "src/test/restaurant-contracts-governance.test.ts",
      "src/test/restaurant-detail-availability-preview.test.tsx",
      "src/test/restaurant-detail-preview.test.tsx",
@@ -103046,7 +103054,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 808,
+      "line": 821,
       "kind": "function"
      }
     ],
@@ -103056,7 +103064,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1589
+    "lineCount": 1728
    },
    {
     "path": "src/pages/dashboard/DashboardActualites.tsx",
@@ -107619,6 +107627,16 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
+    "lineCount": 45
+   },
+   {
+    "path": "src/test/restaurant-commission-mandate-selfservice.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
     "lineCount": 45
    },
    {
@@ -113303,7 +113321,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 735
+    "lineCount": 870
    },
    {
     "path": "supabase/functions/manage-tok-one-subscription/index.ts",
@@ -124833,6 +124851,11 @@
    },
    {
     "path": "src/test/restaurant-categories.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/restaurant-commission-mandate-selfservice.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -141657,7 +141680,7 @@
    "id": "code-module:901ab16c9418",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "description": "Module de 1589 lignes; exports: default.",
+   "description": "Module de 1728 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
    "line": 1,
    "surface": null,
@@ -141667,7 +141690,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "566f7161b5f2"
+   "detailRef": "86acf6c7595d"
   },
   {
    "id": "code-module:3ae72c21b09c",
@@ -147819,6 +147842,20 @@
    "detailRef": "d74ae882f16e"
   },
   {
+   "id": "code-module:6285e5a35899",
+   "type": "code-module",
+   "title": "src/test/restaurant-commission-mandate-selfservice.test.ts",
+   "description": "Module de 45 lignes; exports: aucun export statique.",
+   "path": "src/test/restaurant-commission-mandate-selfservice.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "52e14a113801"
+  },
+  {
    "id": "code-module:17923bbf7589",
    "type": "code-module",
    "title": "src/test/restaurant-contracts-governance.test.ts",
@@ -152240,14 +152277,14 @@
    "id": "code-module:2983263ff828",
    "type": "code-module",
    "title": "supabase/functions/manage-restaurant-subscription/index.ts",
-   "description": "Module de 735 lignes; exports: aucun export statique.",
+   "description": "Module de 870 lignes; exports: aucun export statique.",
    "path": "supabase/functions/manage-restaurant-subscription/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "stripe"
    ],
-   "detailRef": "f55e4e490cd7"
+   "detailRef": "9f9f3a155bd2"
   },
   {
    "id": "code-module:50e16ba97083",
@@ -233814,6 +233851,20 @@
    "detailRef": "c57fb839f1f8"
   },
   {
+   "id": "edge-action:ff7f6bd744ea",
+   "type": "edge-action",
+   "title": "accept_commission_mandate",
+   "description": "Action statiquement détectée dans la fonction Edge manage-restaurant-subscription.",
+   "path": "supabase/functions/manage-restaurant-subscription/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/manage-restaurant-subscription",
+    "manage-restaurant-subscription"
+   ],
+   "detailRef": "8d7074ac73f3"
+  },
+  {
    "id": "edge-action:7a761aedb5fe",
    "type": "edge-action",
    "title": "add_ai_creation_to_gallery",
@@ -234064,6 +234115,20 @@
     "customer-memory"
    ],
    "detailRef": "68bc7d6cd91a"
+  },
+  {
+   "id": "edge-action:33c448d3ed16",
+   "type": "edge-action",
+   "title": "commission_mandate_status",
+   "description": "Action statiquement détectée dans la fonction Edge manage-restaurant-subscription.",
+   "path": "supabase/functions/manage-restaurant-subscription/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/manage-restaurant-subscription",
+    "manage-restaurant-subscription"
+   ],
+   "detailRef": "7b152bb11577"
   },
   {
    "id": "edge-action:e8d2a14298a0",
@@ -236522,12 +236587,14 @@
    "surface": null,
    "tags": [
     "ANY",
+    "accept_commission_mandate",
     "cancel",
     "change_plan",
+    "commission_mandate_status",
     "resume",
     "stripe"
    ],
-   "detailRef": "30fe9eea5eb5"
+   "detailRef": "a9363037dee4"
   },
   {
    "id": "edge-function:e8af611cc121",
@@ -269944,12 +270011,12 @@
    "detailRef": "6551cd0fb605"
   },
   {
-   "id": "exported-symbol:d73714d1f6cf",
+   "id": "exported-symbol:63b10e1752e6",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardAccountBilling.tsx.",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "line": 808,
+   "line": 821,
    "surface": null,
    "tags": [
     "function",
@@ -269957,7 +270024,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "8b3dbe343583"
+   "detailRef": "626bf87bce68"
   },
   {
    "id": "exported-symbol:30c691b18521",
@@ -319797,6 +319864,20 @@
    "detailRef": "126e7c3788c0"
   },
   {
+   "id": "file:2e8db4626984",
+   "type": "file",
+   "title": "src/test/restaurant-commission-mandate-selfservice.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/restaurant-commission-mandate-selfservice.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "45c55f29b9c7"
+  },
+  {
    "id": "file:d3a904701f60",
    "type": "file",
    "title": "src/test/restaurant-contracts-governance.test.ts",
@@ -336092,7 +336173,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 229 module(s).",
+   "description": "Intégration externe détectée dans 230 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -336234,6 +336315,7 @@
     "src/test/release-readiness.test.ts",
     "src/test/reservation-card-guarantee.test.ts",
     "src/test/restaurant-billing-account.test.ts",
+    "src/test/restaurant-commission-mandate-selfservice.test.ts",
     "src/test/restaurant-onboarding-payments.test.ts",
     "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
     "src/test/restaurant-reservation-commission-collection.test.ts",
@@ -336328,13 +336410,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "05115d5cad03"
+   "detailRef": "827dc1075dfd"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 689 module(s).",
+   "description": "Intégration externe détectée dans 690 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -336848,6 +336930,7 @@
     "src/test/reservation-service-capacity.test.ts",
     "src/test/restaurant-billing-account.test.ts",
     "src/test/restaurant-card-preview.test.tsx",
+    "src/test/restaurant-commission-mandate-selfservice.test.ts",
     "src/test/restaurant-contracts-governance.test.ts",
     "src/test/restaurant-detail-availability-preview.test.tsx",
     "src/test/restaurant-detail-preview.test.tsx",
@@ -337030,7 +337113,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "88f5d715baf3"
+   "detailRef": "72d549bafeb6"
   },
   {
    "id": "integration:c20910a79a78",
@@ -346978,7 +347061,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "65200776f211"
+   "detailRef": "05dff8a814cc"
   },
   {
    "id": "page:f9e72df067f6",
@@ -350707,7 +350790,7 @@
    "id": "path-literal:ee9c34d7d537",
    "type": "path-literal",
    "title": "/conditions-restaurateurs",
-   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1185,
    "surface": null,
@@ -350723,11 +350806,12 @@
     "src/pages/ConditionsRestaurateurs.tsx",
     "src/pages/Cookies.tsx",
     "src/pages/RestaurateursGoogleBusiness.tsx",
+    "src/pages/dashboard/DashboardAccountBilling.tsx",
     "src/test/coming-soon-gate.test.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "eb88c4f07936"
+   "detailRef": "1a42eac7cbb6"
   },
   {
    "id": "path-literal:2a26b0d45a67",
@@ -351393,20 +351477,20 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "b57bbdccee36"
+   "detailRef": "7e62e1cf1cd0"
   },
   {
-   "id": "path-literal:916ad1246b1e",
+   "id": "path-literal:066026c7496d",
    "type": "path-literal",
    "title": "/dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "line": 1166,
+   "line": 1224,
    "surface": null,
    "tags": [
     "src/pages/dashboard/DashboardAccountBilling.tsx"
    ],
-   "detailRef": "7d8d5e0d7baa"
+   "detailRef": "bdec970c3b0b"
   },
   {
    "id": "path-literal:44d566681935",
@@ -366014,17 +366098,17 @@
    "detailRef": "2b1b34170947"
   },
   {
-   "id": "query-parameter:0aa94f141fd7",
+   "id": "query-parameter:d737cb495dbc",
    "type": "query-parameter",
    "title": "checkout_kind",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "line": 846,
+   "line": 861,
    "surface": null,
    "tags": [
     "src/pages/dashboard/DashboardAccountBilling.tsx"
    ],
-   "detailRef": "de2eb367d470"
+   "detailRef": "c53129fae193"
   },
   {
    "id": "query-parameter:3411db1bc171",
@@ -366785,7 +366869,7 @@
     "src/test/payment-attempt-state.test.ts",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "f1894809102e"
+   "detailRef": "1f3b62b7f063"
   },
   {
    "id": "query-parameter:f937ef4a066c",
@@ -367095,7 +367179,7 @@
     "src/test/payment-attempt-state.test.ts",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "48195b816109"
+   "detailRef": "7e36cc404156"
   },
   {
    "id": "query-parameter:32944e8d118e",
@@ -367195,7 +367279,7 @@
     "src/pages/dashboard/DashboardHome.tsx",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "eada54bdc7eb"
+   "detailRef": "176997d3a3a1"
   },
   {
    "id": "query-parameter:04069271d1b6",

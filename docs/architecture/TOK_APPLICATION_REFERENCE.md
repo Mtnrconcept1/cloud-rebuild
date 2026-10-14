@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `6adbee15a839556913230a2e581ebe80228f7d7b1576654d094f572df1ee0b18`
+- Empreinte SHA-256 des sources indexées : `b4e83fe8d50544962712f3ecb1bc5599c477e4b30ff38ec1b559f267e67a383e`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 535 |
-| modules | 1544 |
+| modules | 1545 |
 | pages | 129 |
 | pathLiterals | 697 |
 | publicAssets | 502 |
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16550 |
-| repositoryFiles | 3077 |
+| records | 16554 |
+| repositoryFiles | 3078 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -520,7 +520,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | generate-invoices | [supabase/functions/generate-invoices/index.ts:1](../../supabase/functions/generate-invoices/index.ts#L1) | oui ([supabase/config.toml:206](../../supabase/config.toml#L206)) | false | ANY | — | supabase |
 | google-actions-center | [supabase/functions/google-actions-center/index.ts:1](../../supabase/functions/google-actions-center/index.ts#L1) | oui ([supabase/config.toml:170](../../supabase/config.toml#L170)) | false | GET, POST | — | google, stripe |
 | google-actions-center-sync | [supabase/functions/google-actions-center-sync/index.ts:1](../../supabase/functions/google-actions-center-sync/index.ts#L1) | oui ([supabase/config.toml:173](../../supabase/config.toml#L173)) | false | POST | — | google, supabase |
-| manage-restaurant-subscription | [supabase/functions/manage-restaurant-subscription/index.ts:1](../../supabase/functions/manage-restaurant-subscription/index.ts#L1) | oui ([supabase/config.toml:212](../../supabase/config.toml#L212)) | false | ANY | cancel, change_plan, resume | stripe |
+| manage-restaurant-subscription | [supabase/functions/manage-restaurant-subscription/index.ts:1](../../supabase/functions/manage-restaurant-subscription/index.ts#L1) | oui ([supabase/config.toml:212](../../supabase/config.toml#L212)) | false | ANY | accept_commission_mandate, cancel, change_plan, commission_mandate_status, resume | stripe |
 | manage-tok-one-subscription | [supabase/functions/manage-tok-one-subscription/index.ts:1](../../supabase/functions/manage-tok-one-subscription/index.ts#L1) | oui ([supabase/config.toml:209](../../supabase/config.toml#L209)) | false | ANY | cancel, sync_checkout_session | stripe |
 | marketing-orchestrator | [supabase/functions/marketing-orchestrator/index.ts:1](../../supabase/functions/marketing-orchestrator/index.ts#L1) | oui ([supabase/config.toml:278](../../supabase/config.toml#L278)) | false | POST | check_meta, run_item | google, resend, supabase |
 | marketing-provider-webhook | [supabase/functions/marketing-provider-webhook/index.ts:1](../../supabase/functions/marketing-provider-webhook/index.ts#L1) | oui ([supabase/config.toml:281](../../supabase/config.toml#L281)) | false | POST | — | — |
@@ -1313,7 +1313,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commercial?tab=followups | 2 | [src/test/notifications-sinistres-governance.test.ts:39](../../src/test/notifications-sinistres-governance.test.ts#L39) |
 | /commercially | 1 | [src/test/commercial-domain-isolation.test.ts:178](../../src/test/commercial-domain-isolation.test.ts#L178) |
 | /compte | 5 | [scripts/prerender-seo.mjs:1220](../../scripts/prerender-seo.mjs#L1220) |
-| /conditions-restaurateurs | 18 | [scripts/prerender-seo.mjs:1185](../../scripts/prerender-seo.mjs#L1185) |
+| /conditions-restaurateurs | 19 | [scripts/prerender-seo.mjs:1185](../../scripts/prerender-seo.mjs#L1185) |
 | /contact | 21 | [scripts/prerender-seo.mjs:798](../../scripts/prerender-seo.mjs#L798) |
 | /cookies | 18 | [scripts/prerender-seo.mjs:1178](../../scripts/prerender-seo.mjs#L1178) |
 | /courier | 32 | [scripts/application-index-core.mjs:170](../../scripts/application-index-core.mjs#L170) |
@@ -1350,7 +1350,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/guide | 9 | [src/App.tsx:645](../../src/App.tsx#L645) |
 | /dashboard/menu | 17 | [src/App.tsx:615](../../src/App.tsx#L615) |
 | /dashboard/mon-compte-facturation | 16 | [src/App.tsx:627](../../src/App.tsx#L627) |
-| /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1166](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1166) |
+| /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1224](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1224) |
 | /dashboard/notifications | 14 | [src/App.tsx:612](../../src/App.tsx#L612) |
 | /dashboard/offres | 6 | [src/App.tsx:628](../../src/App.tsx#L628) |
 | /dashboard/pack | 2 | [src/test/feature-flags.test.ts:120](../../src/test/feature-flags.test.ts#L120) |
@@ -1860,7 +1860,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | campaign_checkout | /dashboard/actualites, /dashboard/campagnes | 4 | [src/pages/dashboard/DashboardActualites.tsx:285](../../src/pages/dashboard/DashboardActualites.tsx#L285) |
 | campaign_id | /dashboard/actualites, /dashboard/campagnes | 3 | [src/pages/dashboard/DashboardActualites.tsx:305](../../src/pages/dashboard/DashboardActualites.tsx#L305) |
 | channel | — | 1 | [src/marketing/useMarketingUrlState.ts:82](../../src/marketing/useMarketingUrlState.ts#L82) |
-| checkout_kind | /dashboard/mon-compte-facturation | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:846](../../src/pages/dashboard/DashboardAccountBilling.tsx#L846) |
+| checkout_kind | /dashboard/mon-compte-facturation | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:861](../../src/pages/dashboard/DashboardAccountBilling.tsx#L861) |
 | city | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 5 | [src/pages/Recherche.tsx:241](../../src/pages/Recherche.tsx#L241) |
 | claimAddress | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:83](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L83) |
 | claimCity | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:82](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L82) |
@@ -6117,8 +6117,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 229 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 689 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 230 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 690 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6139,7 +6139,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 611 |
+| test | 612 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -8883,7 +8883,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (611)</summary>
+<details><summary>test (612)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9335,6 +9335,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-billing-account.test.ts`
 - `src/test/restaurant-card-preview.test.tsx`
 - `src/test/restaurant-categories.test.ts`
+- `src/test/restaurant-commission-mandate-selfservice.test.ts`
 - `src/test/restaurant-contracts-governance.test.ts`
 - `src/test/restaurant-dashboard-mobile-overview.test.ts`
 - `src/test/restaurant-dashboard-overview-navigation.test.ts`
