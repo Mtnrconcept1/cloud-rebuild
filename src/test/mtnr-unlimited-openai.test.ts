@@ -48,8 +48,9 @@ describe("MTNR internal unlimited OpenAI entitlement", () => {
     expect(sql).toContain("logged.created_at >= grant_row.granted_at");
     expect(sql).toContain("get_restaurant_credit_usage_before_fair_growth");
     expect(sql).toContain("get_restaurant_preactivation_credit_usage");
-    expect(sql).toContain("'FROM public.ai_usage_logs'");
-    expect(sql).toContain("v_actual_count <> v_expected_count");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION private_finance.get_restaurant_preactivation_credit_usage");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.get_restaurant_credit_usage_before_fair_growth");
+    expect(sql.split("FROM private_finance.chargeable_ai_usage_logs").length - 1).toBe(3);
   });
 
   it("preserves paid OpenAI API logs while guarding other restaurant actors", () => {
