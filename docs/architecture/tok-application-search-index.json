@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "24fe23aaf202dc10fe9b7d47d0c7c7445a8961799ad004303b9fa22ae0b67a5d",
+ "sourceDigest": "a71e5a4ad39fc50abeea071cb5dd54fd5562cc125e781945acde2737c6aa1d70",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -35994,7 +35994,7 @@
    {
     "name": "20261014110000 Restaurant Preactivation Weekly Ai Credits",
     "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-    "lineCount": 564,
+    "lineCount": 629,
     "objectCount": 4
    }
   ],
@@ -38813,7 +38813,7 @@
      },
      {
       "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-      "line": 334
+      "line": 399
      }
     ]
    },
@@ -40915,7 +40915,7 @@
      },
      {
       "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-      "line": 187
+      "line": 192
      }
     ]
    },
@@ -41297,7 +41297,7 @@
      },
      {
       "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-      "line": 454
+      "line": 519
      }
     ]
    },
@@ -108141,7 +108141,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 90
+    "lineCount": 106
    },
    {
     "path": "src/test/restaurant-promotions-governance.test.ts",
@@ -148642,7 +148642,7 @@
    "id": "code-module:c422e7b23f2f",
    "type": "code-module",
    "title": "src/test/restaurant-preactivation-ai-credits.test.ts",
-   "description": "Module de 90 lignes; exports: aucun export statique.",
+   "description": "Module de 106 lignes; exports: aucun export statique.",
    "path": "src/test/restaurant-preactivation-ai-credits.test.ts",
    "line": 1,
    "surface": null,
@@ -148650,7 +148650,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "a3e9ab30e07e"
+   "detailRef": "ce834c8fc16a"
   },
   {
    "id": "code-module:e5df09373fec",
@@ -173133,19 +173133,19 @@
    "detailRef": "fa258f29c4fb"
   },
   {
-   "id": "database-object:8aea9577973d",
+   "id": "database-object:363dec5ae5e6",
    "type": "database-object",
    "title": "public.check_restaurant_ai_quota",
    "description": "Objet PostgreSQL de type function; 4 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": 334,
+   "line": 399,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "a314e5b1f48d"
+   "detailRef": "9fd1a926b7e7"
   },
   {
    "id": "database-object:7bf3d736dacb",
@@ -178923,19 +178923,19 @@
    "detailRef": "418b26ecdd5b"
   },
   {
-   "id": "database-object:19ca130a6c18",
+   "id": "database-object:bb2322c75e21",
    "type": "database-object",
    "title": "public.get_restaurant_credit_usage",
    "description": "Objet PostgreSQL de type function; 6 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": 187,
+   "line": 192,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "e8ee74b7d830"
+   "detailRef": "d0b619b7f56b"
   },
   {
    "id": "database-object:4de18fc7496a",
@@ -179673,19 +179673,19 @@
    "detailRef": "da6cd51e3011"
   },
   {
-   "id": "database-object:7606e8838467",
+   "id": "database-object:2cebf233e638",
    "type": "database-object",
    "title": "public.guard_restaurant_tok_credit_spend",
    "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": 454,
+   "line": 519,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "7ae758e5f413"
+   "detailRef": "4e090e482c27"
   },
   {
    "id": "database-object:214beb06dd25",
@@ -346630,7 +346630,7 @@
    "id": "migration:362103c0b8c6",
    "type": "migration",
    "title": "20261014110000 Restaurant Preactivation Weekly Ai Credits",
-   "description": "Migration SQL de 564 lignes, 4 objets CREATE détectés.",
+   "description": "Migration SQL de 629 lignes, 4 objets CREATE détectés.",
    "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
    "line": 1,
    "surface": null,
@@ -346638,7 +346638,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "7313bec54504"
+   "detailRef": "2e6cb4e3b0f9"
   },
   {
    "id": "package-script:5bd6dc98483a",
