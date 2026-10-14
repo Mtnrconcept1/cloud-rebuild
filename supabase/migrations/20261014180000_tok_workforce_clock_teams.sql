@@ -256,7 +256,7 @@ DECLARE
  target_employee uuid;
 BEGIN
  SELECT * INTO request_row FROM public.tok_workforce_exchanges WHERE id=p_exchange_id FOR UPDATE;
- IF NOT FOUND OR NOT public.tok_workforce_can_manage(request_row.restaurant_id) THEN
+ IF NOT FOUND OR NOT public.tok_workforce_can_schedule(request_row.restaurant_id) THEN
    RAISE EXCEPTION 'Exchange not found or unauthorized';
  END IF;
  IF request_row.status <> 'pending' THEN RAISE EXCEPTION 'Exchange already reviewed'; END IF;
@@ -302,7 +302,7 @@ AS $$
 DECLARE v_request public.tok_workforce_requests%ROWTYPE;
 BEGIN
  SELECT * INTO v_request FROM public.tok_workforce_requests WHERE id=p_request_id FOR UPDATE;
- IF v_request.id IS NULL OR NOT public.tok_workforce_can_manage(v_request.restaurant_id)
+ IF v_request.id IS NULL OR NOT public.tok_workforce_can_schedule(v_request.restaurant_id)
    THEN RAISE EXCEPTION 'Request unavailable or unauthorized'; END IF;
  IF v_request.status <> 'pending' THEN RAISE EXCEPTION 'Request already reviewed'; END IF;
  IF p_approve AND v_request.request_type='vacation' THEN
@@ -328,3 +328,70 @@ END $$;
 REVOKE UPDATE, DELETE ON public.tok_workforce_requests FROM authenticated;
 REVOKE ALL ON FUNCTION public.tok_workforce_review_request(uuid,boolean) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.tok_workforce_review_request(uuid,boolean) TO authenticated;
+
+
+-- Delegated floor managers: management capabilities only within an enabled
+-- restaurant and only while linked to an active employee record by TOK Auth.
+-- Never grant manager write access to employee roles, identities or settings.
+CREATE FUNCTION public.tok_workforce_can_schedule(p_restaurant_id uuid)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+ SELECT (SELECT auth.uid()) IS NOT NULL
+ AND (public.tok_workforce_can_manage(p_restaurant_id)
+  OR EXISTS(
+    SELECT 1 FROM public.tok_workforce_employees e
+    JOIN public.tok_workforce_settings s ON s.restaurant_id=e.restaurant_id
+    WHERE e.restaurant_id=p_restaurant_id AND e.user_id=(SELECT auth.uid())
+     AND e.is_active AND e.role='manager' AND s.enabled
+  ));
+$$;
+
+CREATE POLICY tok_workforce_settings_manager_read
+ ON public.tok_workforce_settings FOR SELECT TO authenticated
+ USING(public.tok_workforce_can_schedule(restaurant_id));
+
+CREATE POLICY tok_workforce_employees_manager_read
+ ON public.tok_workforce_employees FOR SELECT TO authenticated
+ USING(public.tok_workforce_can_schedule(restaurant_id));
+
+CREATE POLICY tok_workforce_shifts_manager
+ ON public.tok_workforce_shifts FOR ALL TO authenticated
+ USING(public.tok_workforce_can_schedule(restaurant_id))
+ WITH CHECK(public.tok_workforce_can_schedule(restaurant_id));
+
+CREATE POLICY tok_workforce_entries_manager
+ ON public.tok_workforce_time_entries FOR ALL TO authenticated
+ USING(public.tok_workforce_can_schedule(restaurant_id))
+ WITH CHECK(public.tok_workforce_can_schedule(restaurant_id));
+
+CREATE POLICY tok_workforce_validations_manager_read
+ ON public.tok_workforce_validations FOR SELECT TO authenticated
+ USING(public.tok_workforce_can_schedule(restaurant_id));
+
+CREATE POLICY tok_workforce_validations_manager_sign
+ ON public.tok_workforce_validations FOR INSERT TO authenticated
+ WITH CHECK(public.tok_workforce_can_schedule(restaurant_id) AND signed_by=(SELECT auth.uid()));
+
+CREATE POLICY tok_workforce_absences_manager
+ ON public.tok_workforce_absences FOR ALL TO authenticated
+ USING(public.tok_workforce_can_schedule(restaurant_id))
+ WITH CHECK(public.tok_workforce_can_schedule(restaurant_id));
+
+CREATE POLICY tok_workforce_requests_manager
+ ON public.tok_workforce_requests FOR SELECT TO authenticated
+ USING(public.tok_workforce_can_schedule(restaurant_id));
+
+CREATE POLICY tok_workforce_exchanges_manager
+ ON public.tok_workforce_exchanges FOR SELECT TO authenticated
+ USING(public.tok_workforce_can_schedule(restaurant_id));
+
+CREATE POLICY tok_workforce_clock_sessions_manager
+ ON public.tok_workforce_clock_sessions FOR SELECT TO authenticated
+ USING(public.tok_workforce_can_schedule(restaurant_id));
+
+CREATE POLICY tok_workforce_clock_events_manager
+ ON public.tok_workforce_clock_events FOR SELECT TO authenticated
+ USING(public.tok_workforce_can_schedule(restaurant_id));
+
+REVOKE ALL ON FUNCTION public.tok_workforce_can_schedule(uuid) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.tok_workforce_can_schedule(uuid) TO authenticated;
