@@ -8,7 +8,8 @@
 CREATE OR REPLACE FUNCTION private_finance.get_restaurant_preactivation_credit_usage(
   p_restaurant_id uuid,
   p_anchor timestamptz,
-  p_trial_eligible boolean
+  p_trial_eligible boolean,
+  p_spend_before timestamptz DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -36,7 +37,10 @@ BEGIN
     RAISE EXCEPTION 'restaurant_id_and_anchor_required' USING ERRCODE = '22023';
   END IF;
 
-  -- Replay the last twelve months in chronological order: weekly trial credits
+  -- Replay up to 24 months of purchases and usage so an old, now-expired
+  -- lot can still cover a historical charge before a newer lot was bought.
+  -- Only lots currently unexpired count toward the returned paid balance.
+  -- Replay in chronological order: weekly trial credits
   -- are consumed first for AI calls only, then the oldest unexpired paid pack.
   -- A campaign can consume purchased credits but never the free AI allowance.
   FOR v_event IN
@@ -55,7 +59,7 @@ BEGIN
       FROM public.restaurant_credit_purchases
       WHERE restaurant_id = p_restaurant_id
         AND status = 'paid'
-        AND COALESCE(paid_at, updated_at, created_at) >= p_anchor - interval '12 months'
+        AND COALESCE(paid_at, updated_at, created_at) >= p_anchor - interval '24 months'
         AND COALESCE(paid_at, updated_at, created_at) < p_anchor
 
       UNION ALL
@@ -83,8 +87,8 @@ BEGIN
       FROM public.ai_usage_logs
       WHERE restaurant_id = p_restaurant_id
         AND status = 'success'
-        AND created_at >= p_anchor - interval '12 months'
-        AND created_at < p_anchor
+        AND created_at >= p_anchor - interval '24 months'
+        AND created_at < LEAST(p_anchor, COALESCE(p_spend_before, p_anchor))
 
       UNION ALL
 
@@ -103,8 +107,9 @@ BEGIN
         AND lower(COALESCE(payment_method, '')) = 'credits'
         AND lower(COALESCE(payment_status, '')) = 'paid'
         AND COALESCE(activated_at, scheduled_at, starts_at, created_at, updated_at)
-          >= p_anchor - interval '12 months'
-        AND COALESCE(activated_at, scheduled_at, starts_at, created_at, updated_at) < p_anchor
+          >= p_anchor - interval '24 months'
+        AND COALESCE(activated_at, scheduled_at, starts_at, created_at, updated_at)
+          < LEAST(p_anchor, COALESCE(p_spend_before, p_anchor))
     ) events
     ORDER BY occurred_at, CASE WHEN event_type = 'purchase' THEN 0 ELSE 1 END, event_id
   LOOP
@@ -181,7 +186,7 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION private_finance.get_restaurant_preactivation_credit_usage(uuid, timestamptz, boolean)
+REVOKE ALL ON FUNCTION private_finance.get_restaurant_preactivation_credit_usage(uuid, timestamptz, boolean, timestamptz)
   FROM PUBLIC, anon, authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.get_restaurant_credit_usage(
@@ -210,6 +215,11 @@ DECLARE
   v_credit jsonb;
   v_active boolean;
   v_trial_eligible boolean;
+  v_first_activation timestamptz;
+  v_preactivation_paid_spent numeric := 0;
+  v_paid_deduction numeric := 0;
+  v_active_plan_balance numeric := 0;
+  v_topup_balance numeric := 0;
 BEGIN
   IF p_restaurant_id IS NULL THEN
     RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'restaurant_id_required';
@@ -296,30 +306,85 @@ BEGIN
   END IF;
 
   IF COALESCE(v_subscription.billing_period, 'monthly') <> 'yearly' THEN
-    RETURN public.get_restaurant_credit_usage_before_fair_growth(
+    v_result := public.get_restaurant_credit_usage_before_fair_growth(
       p_restaurant_id, p_since, p_until
     );
+  ELSE
+    IF v_subscription.current_period_start IS NULL OR v_subscription.current_period_end IS NULL
+      OR v_subscription.current_period_end <= v_subscription.current_period_start
+    THEN
+      RAISE EXCEPTION USING ERRCODE = '23514', MESSAGE = 'annual_subscription_service_period_required';
+    END IF;
+
+    v_civil_start := date_trunc('month', v_anchor AT TIME ZONE 'Europe/Zurich')
+      AT TIME ZONE 'Europe/Zurich';
+    v_civil_end := (date_trunc('month', v_anchor AT TIME ZONE 'Europe/Zurich') + interval '1 month')
+      AT TIME ZONE 'Europe/Zurich';
+    v_period_start := greatest(v_civil_start, v_subscription.current_period_start);
+    v_period_end := least(v_civil_end, v_subscription.current_period_end);
+    IF v_period_end <= v_period_start THEN
+      RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'annual_entitlement_window_outside_service_period';
+    END IF;
+    v_result := public.get_restaurant_credit_usage_before_fair_growth(
+      p_restaurant_id, v_period_start, v_period_end
+    );
+    v_result := jsonb_set(v_result, '{period,entitlement_reset}', to_jsonb('civil_month'::text), true);
   END IF;
-  IF v_subscription.current_period_start IS NULL OR v_subscription.current_period_end IS NULL
-    OR v_subscription.current_period_end <= v_subscription.current_period_start
+
+  -- The legacy monthly helper only counts usage from the paid service period.
+  -- Deduct top-ups spent BEFORE the first activation, otherwise Stripe
+  -- activation or later renewals would make purchased credits reappear.
+  SELECT min(subscription.activated_at)
+  INTO v_first_activation
+  FROM public.restaurant_ai_subscriptions subscription
+  WHERE subscription.restaurant_id = p_restaurant_id
+    AND subscription.activated_at IS NOT NULL
+    AND subscription.activated_at <= clock_timestamp();
+
+  IF v_first_activation IS NOT NULL
+    AND EXISTS (
+      SELECT 1 FROM public.restaurant_credit_purchases p
+      WHERE p.restaurant_id = p_restaurant_id
+        AND p.status = 'paid'
+        AND COALESCE(p.paid_at, p.updated_at, p.created_at) < v_first_activation
+    )
   THEN
-    RAISE EXCEPTION USING ERRCODE = '23514', MESSAGE = 'annual_subscription_service_period_required';
-  END IF;
+    -- Match the existing function's service-period expiry boundary for paid
+    -- packs but replay only pre-activation spending, including older lots.
+    v_wallet := private_finance.get_restaurant_preactivation_credit_usage(
+      p_restaurant_id,
+      (v_result->'period'->>'end')::timestamptz - interval '1 microsecond',
+      true,
+      v_first_activation
+    );
+    v_preactivation_paid_spent := GREATEST(
+      COALESCE((v_wallet->>'topup_spent')::numeric, 0), 0
+    );
 
-  v_civil_start := date_trunc('month', v_anchor AT TIME ZONE 'Europe/Zurich')
-    AT TIME ZONE 'Europe/Zurich';
-  v_civil_end := (date_trunc('month', v_anchor AT TIME ZONE 'Europe/Zurich') + interval '1 month')
-    AT TIME ZONE 'Europe/Zurich';
-  v_period_start := greatest(v_civil_start, v_subscription.current_period_start);
-  v_period_end := least(v_civil_end, v_subscription.current_period_end);
-  IF v_period_end <= v_period_start THEN
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'annual_entitlement_window_outside_service_period';
-  END IF;
+    v_credit := COALESCE(v_result->'credits'->0, '{}'::jsonb);
+    v_active_plan_balance := GREATEST(
+      COALESCE((v_credit->>'subscription_balance')::numeric, 0), 0
+    );
+    v_topup_balance := GREATEST(
+      COALESCE((v_credit->>'topup_balance')::numeric, 0), 0
+    );
+    v_paid_deduction := LEAST(v_topup_balance, v_preactivation_paid_spent);
+    v_topup_balance := v_topup_balance - v_paid_deduction;
 
-  v_result := public.get_restaurant_credit_usage_before_fair_growth(
-    p_restaurant_id, v_period_start, v_period_end
-  );
-  RETURN jsonb_set(v_result, '{period,entitlement_reset}', to_jsonb('civil_month'::text), true);
+    v_credit := v_credit || jsonb_build_object(
+      'balance', v_active_plan_balance + v_topup_balance,
+      'topup_balance', v_topup_balance,
+      'topup_spent', GREATEST(COALESCE((v_credit->>'topup_spent')::numeric, 0), 0) + v_paid_deduction,
+      'metadata', COALESCE(v_credit->'metadata', '{}'::jsonb)
+        || jsonb_build_object(
+          'topup_balance', v_topup_balance,
+          'topup_spent', GREATEST(COALESCE((v_credit->>'topup_spent')::numeric, 0), 0) + v_paid_deduction,
+          'preactivation_paid_spent', v_paid_deduction
+        )
+    );
+    v_result := jsonb_set(v_result, '{credits}', jsonb_build_array(v_credit), true);
+  END IF;
+  RETURN v_result;
 END;
 $$;
 
