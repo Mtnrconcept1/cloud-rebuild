@@ -67,6 +67,16 @@ describe("restaurant commission consent, collection and accounting", () => {
     expect(worker).not.toContain("stripe.transfers.create");
   });
 
+  it("requires human presence confirmation for presumed arrivals before charging", () => {
+    const dashboard = read("src/pages/dashboard/DashboardReservations.tsx");
+    expect(dashboard).toContain('eq("state", "review_required")');
+    expect(dashboard).toContain("autoArrivalReviewIds.has(reservation.id)");
+    expect(dashboard).toContain("confirm_auto_arrived_reservation_commission");
+    expect(dashboard).toContain("Confirmer la présence réelle — frais TOK 5 CHF");
+    expect(dashboard).toContain('if (isCommercialDemoRestaurant) throw new Error');
+    expect(schema).toContain("auth.uid() IS DISTINCT FROM v_owner");
+  });
+
   it("only marks an invoice settled on a verified successful Stripe charge", () => {
     expect(schema).toContain("p_stripe_status='succeeded'");
     expect(schema).toContain("SET status='paid',paid_at=COALESCE(paid_at,now())");
