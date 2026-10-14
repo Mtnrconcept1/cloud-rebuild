@@ -45,6 +45,24 @@ BEGIN
   EXCEPTION WHEN SQLSTATE 'P0001' THEN v_blocked := true;
   END;
   IF NOT v_blocked THEN RAISE EXCEPTION '16th free AI credit was accepted'; END IF;
+
+  -- A missing or zero credit_units field must never bypass the transaction
+  -- trigger (the actual ledger counts such logs as at least one credit).
+  v_blocked := false;
+  BEGIN
+    INSERT INTO public.ai_usage_logs(restaurant_id,status,metadata)
+      VALUES ('00000000-0000-4000-8000-000000000001','success','{}');
+  EXCEPTION WHEN SQLSTATE 'P0001' THEN v_blocked := true;
+  END;
+  IF NOT v_blocked THEN RAISE EXCEPTION 'Missing credit units bypassed guard'; END IF;
+  v_blocked := false;
+  BEGIN
+    INSERT INTO public.ai_usage_logs(restaurant_id,status,metadata)
+      VALUES ('00000000-0000-4000-8000-000000000001','success','{"credit_units":0}');
+  EXCEPTION WHEN SQLSTATE 'P0001' THEN v_blocked := true;
+  END;
+  IF NOT v_blocked THEN RAISE EXCEPTION 'Zero credit units bypassed guard'; END IF;
+
   v_allowed := public.check_restaurant_ai_quota(
     '00000000-0000-4000-8000-000000000001','ai_sales_insights',1);
   IF (v_allowed->>'allowed')::boolean THEN
