@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `047aa4dd74d2c0d2f3b27ca23a75edef3c151d783c2011f7469e8559ae890056`
+- Empreinte SHA-256 des sources indexées : `f1c4c4933e2bd38506712502193577b9cdedebc095bcc95cca719548c7d45268`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 205 |
 | edgeFunctions | 117 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3566 |
+| exportedSymbols | 3574 |
 | featureFlags | 99 |
 | frontendRoutes | 142 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 543 |
-| modules | 1578 |
-| pages | 130 |
-| pathLiterals | 749 |
+| migrations | 544 |
+| modules | 1587 |
+| pages | 132 |
+| pathLiterals | 751 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 17008 |
-| repositoryFiles | 3202 |
+| records | 17082 |
+| repositoryFiles | 3215 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1240,7 +1240,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | / | 243 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
-| /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:77](../../src/test/application-search-index.test.ts#L77) |
+| /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:78](../../src/test/application-search-index.test.ts#L78) |
 | /.well-known/apple-app-site-association-extra | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
 | /.well-known/assetlinks.json | 3 | [scripts/mobile-verify.mjs:262](../../scripts/mobile-verify.mjs#L262) |
 | /.well-known/oauth-protected-resource | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
@@ -1498,10 +1498,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /garantie-qualite | 11 | [scripts/prerender-seo.mjs:1018](../../scripts/prerender-seo.mjs#L1018) |
 | /generations | 1 | [src/test/marketing-brand-references.test.ts:88](../../src/test/marketing-brand-references.test.ts#L88) |
 | /google-actions-center-sync | 1 | [src/test/google-actions-center-outbox.test.ts:147](../../src/test/google-actions-center-outbox.test.ts#L147) |
-| /guide | 5 | [src/App.tsx:695](../../src/App.tsx#L695) |
-| /guide/plateforme | 2 | [src/App.tsx:697](../../src/App.tsx#L697) |
-| /guide/restaurateur | 3 | [src/App.tsx:696](../../src/App.tsx#L696) |
-| /healthz | 2 | [src/test/application-search-index.test.ts:80](../../src/test/application-search-index.test.ts#L80) |
+| /guide | 5 | [src/App.tsx:699](../../src/App.tsx#L699) |
+| /guide/plateforme | 2 | [src/App.tsx:701](../../src/App.tsx#L701) |
+| /guide/restaurateur | 3 | [src/App.tsx:700](../../src/App.tsx#L700) |
+| /healthz | 2 | [src/test/application-search-index.test.ts:81](../../src/test/application-search-index.test.ts#L81) |
 | /help.png | 1 | [src/components/help/ChefHelpButton.tsx:36](../../src/components/help/ChefHelpButton.tsx#L36) |
 | /higgsfield/tok-intro-desktop.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:55](../../src/test/mobile-logo-intro.test.tsx#L55) |
 | /higgsfield/tok-intro-mobile.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:24](../../src/test/mobile-logo-intro.test.tsx#L24) |
@@ -1773,7 +1773,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /miamz | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:206](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L206) |
 | /miamz-solidaires | 13 | [scripts/prerender-seo.mjs:564](../../scripts/prerender-seo.mjs#L564) |
 | /mon-espace | 31 | [scripts/prerender-seo.mjs:1219](../../scripts/prerender-seo.mjs#L1219) |
-| /mon-espace?source=pwa-shortcut | 1 | [src/test/application-search-index.test.ts:104](../../src/test/application-search-index.test.ts#L104) |
+| /mon-espace?source=pwa-shortcut | 1 | [src/test/application-search-index.test.ts:105](../../src/test/application-search-index.test.ts#L105) |
 | /multi-restaurant | 15 | [scripts/prerender-seo.mjs:1034](../../scripts/prerender-seo.mjs#L1034) |
 | /multi-stop | 12 | [scripts/prerender-seo.mjs:1042](../../scripts/prerender-seo.mjs#L1042) |
 | /notification/partners/{partnerId}/bookings:notify | 1 | [supabase/functions/google-actions-center-sync/index.ts:60](../../supabase/functions/google-actions-center-sync/index.ts#L60) |
@@ -1804,9 +1804,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /pub.jpg | 1 | [src/lib/campaignCreative.ts:171](../../src/lib/campaignCreative.ts#L171) |
 | /r | 2 | [scripts/prerender-seo.mjs:1228](../../scripts/prerender-seo.mjs#L1228) |
 | /r/ | 2 | [scripts/harden-seo-crawl.mjs:118](../../scripts/harden-seo-crawl.mjs#L118) |
-| /r/:slug | 3 | [src/App.tsx:574](../../src/App.tsx#L574) |
-| /r/:slug/reserver | 2 | [src/App.tsx:573](../../src/App.tsx#L573) |
-| /readyz | 3 | [src/test/application-search-index.test.ts:80](../../src/test/application-search-index.test.ts#L80) |
+| /r/:slug | 3 | [src/App.tsx:578](../../src/App.tsx#L578) |
+| /r/:slug/reserver | 2 | [src/App.tsx:577](../../src/App.tsx#L577) |
+| /readyz | 3 | [src/test/application-search-index.test.ts:81](../../src/test/application-search-index.test.ts#L81) |
 | /recherche | 71 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
 | /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:23](../../src/test/restaurant-search-preview.test.tsx#L23) |
 | /recherche?mode=reservation | 2 | [src/pages/TokPulse.tsx:30](../../src/pages/TokPulse.tsx#L30) |
@@ -1969,9 +1969,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /v1/territories?limit=200 | 1 | [scripts/app-store-availability-submit-v5.mjs:91](../../scripts/app-store-availability-submit-v5.mjs#L91) |
 | /v2/appAvailabilities | 2 | [scripts/app-store-availability-submit-v5.mjs:120](../../scripts/app-store-availability-submit-v5.mjs#L120) |
 | /v3/BatchAvailabilityLookup/ | 2 | [src/test/google-actions-center-readiness.test.ts:47](../../src/test/google-actions-center-readiness.test.ts#L47) |
-| /v3/CreateBooking/ | 3 | [src/test/application-search-index.test.ts:88](../../src/test/application-search-index.test.ts#L88) |
+| /v3/CreateBooking/ | 3 | [src/test/application-search-index.test.ts:89](../../src/test/application-search-index.test.ts#L89) |
 | /v3/GetBookingStatus/ | 2 | [src/test/google-actions-center-readiness.test.ts:50](../../src/test/google-actions-center-readiness.test.ts#L50) |
-| /v3/HealthCheck/ | 4 | [src/test/application-search-index.test.ts:175](../../src/test/application-search-index.test.ts#L175) |
+| /v3/HealthCheck/ | 4 | [src/test/application-search-index.test.ts:176](../../src/test/application-search-index.test.ts#L176) |
 | /v3/ListBookings/ | 2 | [src/test/google-actions-center-readiness.test.ts:51](../../src/test/google-actions-center-readiness.test.ts#L51) |
 | /v3/UpdateBooking/ | 2 | [src/test/google-actions-center-readiness.test.ts:49](../../src/test/google-actions-center-readiness.test.ts#L49) |
 | /v3/feeds/availability | 2 | [src/test/google-actions-center-readiness.test.ts:99](../../src/test/google-actions-center-readiness.test.ts#L99) |
@@ -6390,7 +6390,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 243 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 706 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 707 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6404,14 +6404,14 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 66 |
 | documentation | 6 |
 | edge-function-source | 197 |
-| frontend-component | 265 |
+| frontend-component | 271 |
 | frontend-hook | 24 |
 | frontend-page | 132 |
 | frontend-source | 28 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 625 |
+| test | 626 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -9280,7 +9280,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (625)</summary>
+<details><summary>test (626)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`

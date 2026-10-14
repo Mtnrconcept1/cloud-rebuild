@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "047aa4dd74d2c0d2f3b27ca23a75edef3c151d783c2011f7469e8559ae890056",
+ "sourceDigest": "f1c4c4933e2bd38506712502193577b9cdedebc095bcc95cca719548c7d45268",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 205,
   "edgeFunctions": 117,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3566,
+  "exportedSymbols": 3574,
   "featureFlags": 99,
   "frontendRoutes": 142,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 543,
-  "modules": 1578,
-  "pages": 130,
-  "pathLiterals": 749,
+  "migrations": 544,
+  "modules": 1587,
+  "pages": 132,
+  "pathLiterals": 751,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 17008,
-  "repositoryFiles": 3202,
+  "records": 17082,
+  "repositoryFiles": 3215,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -14871,7 +14871,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 77
+      "line": 78
      },
      {
       "path": "src/test/mobile-association-hosting.test.ts",
@@ -16387,7 +16387,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 165
+      "line": 166
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -17157,7 +17157,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 73
+      "line": 74
      }
     ]
    },
@@ -17280,7 +17280,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 139
+      "line": 140
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
@@ -19131,7 +19131,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 99
+      "line": 100
      }
     ]
    },
@@ -22628,7 +22628,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 80
+      "line": 81
      },
      {
       "path": "workers/image-ai-worker/index.js",
@@ -25772,7 +25772,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 72
+      "line": 73
      },
      {
       "path": "src/test/feature-flags.test.ts",
@@ -26324,7 +26324,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 104
+      "line": 105
      }
     ]
    },
@@ -27341,7 +27341,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 80
+      "line": 81
      },
      {
       "path": "src/test/image-metadata-ai.test.ts",
@@ -30147,7 +30147,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 83
+      "line": 84
      },
      {
       "path": "src/test/tok-connect-edge-functions.test.ts",
@@ -30268,7 +30268,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 88
+      "line": 89
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -30298,11 +30298,11 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 175
+      "line": 176
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 180
+      "line": 181
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -107335,7 +107335,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 193
+    "lineCount": 195
    },
    {
     "path": "src/test/audit-hardening-20260711.test.ts",
@@ -147245,7 +147245,7 @@
    "id": "code-module:99cbe1539462",
    "type": "code-module",
    "title": "src/test/application-search-index.test.ts",
-   "description": "Module de 193 lignes; exports: aucun export statique.",
+   "description": "Module de 195 lignes; exports: aucun export statique.",
    "path": "src/test/application-search-index.test.ts",
    "line": 1,
    "surface": null,
@@ -147255,7 +147255,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "61210c27c95c"
+   "detailRef": "5fa158fff527"
   },
   {
    "id": "code-module:f6d47cf3df51",
@@ -345843,7 +345843,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 706 module(s).",
+   "description": "Intégration externe détectée dans 707 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -346557,7 +346557,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "66d26c2a8492"
+   "detailRef": "26d8b15062f4"
   },
   {
    "id": "integration:c20910a79a78",
@@ -357714,19 +357714,19 @@
    "detailRef": "85882b5af230"
   },
   {
-   "id": "path-literal:1bf87fcf793d",
+   "id": "path-literal:2edb6ad247f3",
    "type": "path-literal",
    "title": "/.well-known/apple-app-site-association",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 77,
+   "line": 78,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/mobile-association-hosting.test.ts",
     "src/test/production-preflight-hardening.test.ts"
    ],
-   "detailRef": "ae0377e38cc9"
+   "detailRef": "61d07f6635a1"
   },
   {
    "id": "path-literal:552e0fdf1ace",
@@ -358695,7 +358695,7 @@
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/user-guide.test.ts"
    ],
-   "detailRef": "0907220f1a43"
+   "detailRef": "b444c5a7c09a"
   },
   {
    "id": "path-literal:d61e3a8aceeb",
@@ -359221,7 +359221,7 @@
     "src/marketing/marketingBffClient.ts",
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "01df1d56344a"
+   "detailRef": "1bb8afda326c"
   },
   {
    "id": "path-literal:57e613573c20",
@@ -359321,7 +359321,7 @@
     "src/test/marketing-bff-client.test.ts",
     "src/test/marketing-session-recovery.test.tsx"
    ],
-   "detailRef": "3572d25cad98"
+   "detailRef": "056fdc658260"
   },
   {
    "id": "path-literal:4457ca298944",
@@ -360190,7 +360190,7 @@
     "scripts/application-index-core.mjs",
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "a720c55c4373"
+   "detailRef": "dd2a110c5d93"
   },
   {
    "id": "path-literal:cf29ad085917",
@@ -362145,18 +362145,18 @@
    "detailRef": "8561c03d2d23"
   },
   {
-   "id": "path-literal:558586bfb7f5",
+   "id": "path-literal:fde18ce09f2d",
    "type": "path-literal",
    "title": "/healthz",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 80,
+   "line": 81,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "1b9056f72452"
+   "detailRef": "64d8dd888d0f"
   },
   {
    "id": "path-literal:fded681262f2",
@@ -365690,7 +365690,7 @@
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "73c64fc0aba9"
+   "detailRef": "f37b9836c626"
   },
   {
    "id": "path-literal:c76dba69accc",
@@ -365862,17 +365862,17 @@
    "detailRef": "f58c08d876ab"
   },
   {
-   "id": "path-literal:069bb71d5cca",
+   "id": "path-literal:aaae200aaaba",
    "type": "path-literal",
    "title": "/mon-espace?source=pwa-shortcut",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 104,
+   "line": 105,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "f205a6c9137c"
+   "detailRef": "fc5737ec39a1"
   },
   {
    "id": "path-literal:6c3ccf718b08",
@@ -366439,19 +366439,19 @@
    "detailRef": "529ec0f93e0b"
   },
   {
-   "id": "path-literal:472573f65d19",
+   "id": "path-literal:dfd1540aade9",
    "type": "path-literal",
    "title": "/readyz",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 80,
+   "line": 81,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/image-metadata-ai.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "e40468b9f8bc"
+   "detailRef": "244f06d889f2"
   },
   {
    "id": "path-literal:f7a8242103a1",
@@ -368736,7 +368736,7 @@
     "src/test/tok-connect.test.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "c06391b5ec4f"
+   "detailRef": "f007acd98101"
   },
   {
    "id": "path-literal:9615b9840a62",
@@ -368808,19 +368808,19 @@
    "detailRef": "2e706e56bb24"
   },
   {
-   "id": "path-literal:b48430f6a3bd",
+   "id": "path-literal:05d331b5a1fa",
    "type": "path-literal",
    "title": "/v3/CreateBooking/",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 88,
+   "line": 89,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "fc0b311def8f"
+   "detailRef": "a4852f7ff983"
   },
   {
    "id": "path-literal:3f16cef6b097",
@@ -368837,19 +368837,19 @@
    "detailRef": "ef8d28954ebc"
   },
   {
-   "id": "path-literal:5a311bba1312",
+   "id": "path-literal:4873f3159950",
    "type": "path-literal",
    "title": "/v3/HealthCheck/",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 175,
+   "line": 176,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "18022bd0f885"
+   "detailRef": "87430a9e93f4"
   },
   {
    "id": "path-literal:66439908047a",
