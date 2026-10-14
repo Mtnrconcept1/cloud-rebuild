@@ -4,6 +4,7 @@ import {
   DEVELOPER_RESERVED_SHARE_RATE,
   calculateDeveloperReservedShare,
   getPaidDirectTokInvoiceIds,
+  summarizeStripeFinanceLedger,
   sumDirectTokPurchaseRevenue,
   buildTokRevenueSummary,
   buildRestaurantAccountingSummary,
@@ -94,6 +95,25 @@ describe("getPaidDirectTokInvoiceIds", () => {
       { invoice_id: "reserved-starter", item_kind: "restaurant_subscription", amount_ttc: 69 },
       { invoice_id: "paid-reservation-fee", item_kind: "reservation_fee", amount_ttc: 5 },
     ], new Set(ids))).toBe(268);
+  });
+});
+
+describe("summarizeStripeFinanceLedger", () => {
+  it("exposes processing costs but keeps VAT separate from the expense category", () => {
+    expect(summarizeStripeFinanceLedger([
+      { account_code: "stripe_processing_fee_expense", direction: "debit", amount_cents: 230 },
+      { account_code: "tax_payable", direction: "credit", amount_cents: 517 },
+      { account_code: "developer_payable", direction: "credit", amount_cents: 690 },
+    ])).toEqual({ processingFees: 2.3, vatPayable: 5.17 });
+  });
+
+  it("nets fee reversals and VAT reductions without treating them as new receipts", () => {
+    expect(summarizeStripeFinanceLedger([
+      { account_code: "stripe_processing_fee_expense", direction: "debit", amount_cents: 230 },
+      { account_code: "stripe_processing_fee_expense", direction: "credit", amount_cents: 30 },
+      { account_code: "tax_payable", direction: "credit", amount_cents: 517 },
+      { account_code: "tax_payable", direction: "debit", amount_cents: 100 },
+    ])).toEqual({ processingFees: 2, vatPayable: 4.17 });
   });
 });
 
