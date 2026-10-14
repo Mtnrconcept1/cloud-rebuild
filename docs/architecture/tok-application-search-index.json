@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "e4ac56fbd8c713d9803de6b93ec5d8448337989bc30d25b09be2e5f117eaa4f4",
+ "sourceDigest": "5d641541e14d76e41d1dbe3e12a5ecddfe2eed84be4ed46eb80b8ccd57e264e1",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 203,
   "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3514,
+  "exportedSymbols": 3515,
   "featureFlags": 99,
   "frontendRoutes": 137,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 534,
-  "modules": 1542,
+  "modules": 1544,
   "pages": 129,
   "pathLiterals": 697,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16536,
-  "repositoryFiles": 3074,
+  "records": 16541,
+  "repositoryFiles": 3076,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -31804,6 +31804,7 @@
      "src/test/tok-ai-tools.test.ts",
      "src/test/tok-connect-app-bridge.test.ts",
      "src/test/tok-one-stripe-test-mode.test.ts",
+     "src/test/tok-stripe-price-catalog.test.ts",
      "src/test/user-facing-errors.test.ts",
      "src/test/user-guide.test.ts",
      "src/test/vercel-rewrites.test.ts",
@@ -31826,6 +31827,7 @@
      "supabase/functions/_shared/payment-transactions.ts",
      "supabase/functions/_shared/refund-allocations.ts",
      "supabase/functions/_shared/reservation-card-guarantee.ts",
+     "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
      "supabase/functions/_shared/restaurant-subscription-billing.ts",
      "supabase/functions/_shared/stripe-client.ts",
      "supabase/functions/_shared/tok-one.ts",
@@ -32481,6 +32483,7 @@
      "src/test/tok-intelligence-suite.test.ts",
      "src/test/tok-one-stripe-test-mode.test.ts",
      "src/test/tok-pulse-native-widget.test.ts",
+     "src/test/tok-stripe-price-catalog.test.ts",
      "src/test/transactional-email-templates.test.ts",
      "src/test/user-facing-errors.test.ts",
      "src/test/vercel-rewrites.test.ts",
@@ -108812,6 +108815,16 @@
     "lineCount": 47
    },
    {
+    "path": "src/test/tok-stripe-price-catalog.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 93
+   },
+   {
     "path": "src/test/transactional-email-templates.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -111545,6 +111558,21 @@
     "lineCount": 90
    },
    {
+    "path": "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
+    "exports": [
+     {
+      "name": "resolveRestaurantSubscriptionCatalogPrice",
+      "line": 119,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe"
+    ],
+    "lineCount": 145
+   },
+   {
     "path": "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "exports": [
      {
@@ -113199,7 +113227,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 753
+    "lineCount": 735
    },
    {
     "path": "supabase/functions/manage-tok-one-subscription/index.ts",
@@ -113623,7 +113651,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 752
+    "lineCount": 738
    },
    {
     "path": "supabase/functions/submit-signup-application/index.ts",
@@ -125463,6 +125491,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-stripe-price-catalog.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/transactional-email-templates.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -125869,6 +125902,11 @@
    },
    {
     "path": "supabase/functions/_shared/restaurant-credits.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -149550,6 +149588,20 @@
    "detailRef": "4bddeb5fb0da"
   },
   {
+   "id": "code-module:bd533cd6ef73",
+   "type": "code-module",
+   "title": "src/test/tok-stripe-price-catalog.test.ts",
+   "description": "Module de 93 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-stripe-price-catalog.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "2e3024065935"
+  },
+  {
    "id": "code-module:dd826816118e",
    "type": "code-module",
    "title": "src/test/transactional-email-templates.test.ts",
@@ -150894,6 +150946,20 @@
    "detailRef": "afca9586aee0"
   },
   {
+   "id": "code-module:2171d4a13294",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
+   "description": "Module de 145 lignes; exports: resolveRestaurantSubscriptionCatalogPrice.",
+   "path": "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "resolveRestaurantSubscriptionCatalogPrice",
+    "stripe"
+   ],
+   "detailRef": "c24d2374cb71"
+  },
+  {
    "id": "code-module:5443f5a23829",
    "type": "code-module",
    "title": "supabase/functions/_shared/restaurant-subscription-billing.ts",
@@ -152093,14 +152159,14 @@
    "id": "code-module:2983263ff828",
    "type": "code-module",
    "title": "supabase/functions/manage-restaurant-subscription/index.ts",
-   "description": "Module de 753 lignes; exports: aucun export statique.",
+   "description": "Module de 735 lignes; exports: aucun export statique.",
    "path": "supabase/functions/manage-restaurant-subscription/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "stripe"
    ],
-   "detailRef": "f273691ea69d"
+   "detailRef": "f55e4e490cd7"
   },
   {
    "id": "code-module:50e16ba97083",
@@ -152640,7 +152706,7 @@
    "id": "code-module:f3fa7c18e7bc",
    "type": "code-module",
    "title": "supabase/functions/stripe-worker/index.ts",
-   "description": "Module de 752 lignes; exports: aucun export statique.",
+   "description": "Module de 738 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-worker/index.ts",
    "line": 1,
    "surface": null,
@@ -152649,7 +152715,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "fc85eee6b40b"
+   "detailRef": "dbccf0da206a"
   },
   {
    "id": "code-module:869f513f0867",
@@ -283692,6 +283758,20 @@
    "detailRef": "ac70e301740a"
   },
   {
+   "id": "exported-symbol:bc64e4d2bf9b",
+   "type": "exported-symbol",
+   "title": "resolveRestaurantSubscriptionCatalogPrice",
+   "description": "Export function de supabase/functions/_shared/restaurant-stripe-price-catalog.ts.",
+   "path": "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
+   "line": 119,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe"
+   ],
+   "detailRef": "1761f119ce4b"
+  },
+  {
    "id": "exported-symbol:0cb8b6faf5b0",
    "type": "exported-symbol",
    "title": "resolveScheduledDelivery",
@@ -321575,6 +321655,20 @@
    "detailRef": "1738944d0ba0"
   },
   {
+   "id": "file:04e9fcd255ad",
+   "type": "file",
+   "title": "src/test/tok-stripe-price-catalog.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-stripe-price-catalog.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "fdc1e0773a17"
+  },
+  {
    "id": "file:3f0d709be6a5",
    "type": "file",
    "title": "src/test/transactional-email-templates.test.ts",
@@ -322721,6 +322815,20 @@
     "edge-function-source"
    ],
    "detailRef": "0f4b45a916f1"
+  },
+  {
+   "id": "file:eecf0e26d6b0",
+   "type": "file",
+   "title": "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "cedba08ea241"
   },
   {
    "id": "file:df05ad7ef02d",
@@ -335784,7 +335892,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 227 module(s).",
+   "description": "Intégration externe détectée dans 229 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -335943,6 +336051,7 @@
     "src/test/tok-ai-tools.test.ts",
     "src/test/tok-connect-app-bridge.test.ts",
     "src/test/tok-one-stripe-test-mode.test.ts",
+    "src/test/tok-stripe-price-catalog.test.ts",
     "src/test/user-facing-errors.test.ts",
     "src/test/user-guide.test.ts",
     "src/test/vercel-rewrites.test.ts",
@@ -335966,6 +336075,7 @@
     "supabase/functions/_shared/payment-transactions.ts",
     "supabase/functions/_shared/refund-allocations.ts",
     "supabase/functions/_shared/reservation-card-guarantee.ts",
+    "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
     "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "supabase/functions/_shared/stripe-client.ts",
     "supabase/functions/_shared/tok-one.ts",
@@ -336018,13 +336128,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "228efe3044d2"
+   "detailRef": "05115d5cad03"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 688 module(s).",
+   "description": "Intégration externe détectée dans 689 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -336628,6 +336738,7 @@
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/tok-one-stripe-test-mode.test.ts",
     "src/test/tok-pulse-native-widget.test.ts",
+    "src/test/tok-stripe-price-catalog.test.ts",
     "src/test/transactional-email-templates.test.ts",
     "src/test/user-facing-errors.test.ts",
     "src/test/vercel-rewrites.test.ts",
@@ -336719,7 +336830,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "e25dbda26e93"
+   "detailRef": "88f5d715baf3"
   },
   {
    "id": "integration:c20910a79a78",

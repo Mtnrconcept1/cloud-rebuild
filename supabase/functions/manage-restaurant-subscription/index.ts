@@ -11,6 +11,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { resolveRestaurantSubscriptionCatalogPrice } from "../_shared/restaurant-stripe-price-catalog.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 import { FAIR_GROWTH_ANNUAL_MONTHS_CHARGED } from "../_shared/restaurant-subscription-billing.ts";
 
@@ -568,32 +569,13 @@ Deno.serve(async (req) => {
       };
 
       if (!targetStripePriceId) {
-        const targetPrice = await stripeRuntime.stripe.prices.create({
-          currency: "chf",
-          recurring: { interval },
-          unit_amount: targetAmountCents,
-          product_data: {
-            name: `Abonnement restaurateur TOK - ${targetPlan.name}`,
-            description: String(targetPlan.description || ""),
-            metadata: {
-              restaurant_subscription_plan_id: targetPlan.id,
-              restaurant_subscription_plan_slug: targetPlan.slug,
-            },
-          },
-          metadata: {
-            checkout_kind: "restaurant-subscription-plan-change",
-            restaurant_id: restaurantId,
-            restaurant_subscription_plan_id: targetPlan.id,
-            restaurant_subscription_plan_slug: targetPlan.slug,
-            billing_period: subscription.billing_period === "yearly" ? "yearly" : "monthly",
-            annual_months_charged: subscription.billing_period === "yearly"
-              ? String(FAIR_GROWTH_ANNUAL_MONTHS_CHARGED)
-              : "1",
-            service_months: subscription.billing_period === "yearly" ? "12" : "1",
-            entitlement_reset_period: "monthly",
-          },
+        targetStripePriceId = await resolveRestaurantSubscriptionCatalogPrice(stripeRuntime.stripe, {
+          planId: targetPlan.id,
+          slug: targetPlan.slug,
+          mode: stripeRuntime.mode,
+          interval,
+          amountCents: targetAmountCents,
         });
-        targetStripePriceId = targetPrice.id;
       }
 
       if (!stripeScheduleId) {
