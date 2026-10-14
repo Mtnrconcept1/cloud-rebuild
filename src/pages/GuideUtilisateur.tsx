@@ -32,7 +32,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
-import { buildGuidePdf, downloadGuidePdf } from "@/lib/guidePdf";
+import { buildGuidePdf, downloadGuidePdf, type GuidePdfImage } from "@/lib/guidePdf";
+import { toast } from "sonner";
 import {
   TOK_USER_GUIDE_META,
   TOK_USER_GUIDE_ROUTES,
@@ -42,6 +43,7 @@ import {
   BUYER_GUIDE_CHAPTERS,
   GUIDE_SCREENSHOTS,
   RESTAURANT_GUIDE_CHAPTERS,
+  RESTAURANT_GUIDE_ROUTE_LABELS,
   SURFACE_LABELS,
   isRestaurantGuideRoute,
   type GuideChapter,
@@ -148,11 +150,11 @@ function GuideSidebar({ audience, chapters }: { audience: Audience; chapters: re
                 {chapter.title}
               </a>
             ))}
-            <a href="#captures" className="flex items-center gap-2 rounded-lg px-3 py-2 font-semibold hover:bg-slate-100 dark:hover:bg-slate-900">
+            {audience === "buyer" ? <a href="#captures" className="flex items-center gap-2 rounded-lg px-3 py-2 font-semibold hover:bg-slate-100 dark:hover:bg-slate-900">
               <ImageIcon className="h-4 w-4" /> Captures
-            </a>
+            </a> : null}
             <a href="#index" className="flex items-center gap-2 rounded-lg px-3 py-2 font-semibold hover:bg-slate-100 dark:hover:bg-slate-900">
-              <Search className="h-4 w-4" /> Index complet
+              <Search className="h-4 w-4" /> {audience === "restaurant" ? "Trouver une rubrique" : "Index complet"}
             </a>
           </nav>
         </div>
@@ -204,7 +206,7 @@ function ScreenshotGallery({ audience }: { audience: Audience }) {
   );
 }
 
-function ChapterCard({ chapter }: { chapter: GuideChapter }) {
+function ChapterCard({ chapter, audience }: { chapter: GuideChapter; audience: Audience }) {
   return (
     <section id={chapter.id} className="scroll-mt-28 rounded-3xl border bg-white p-6 shadow-sm md:p-8 dark:bg-slate-900">
       <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ff6a1a]">{chapter.eyebrow}</p>
@@ -218,9 +220,39 @@ function ChapterCard({ chapter }: { chapter: GuideChapter }) {
           </li>
         ))}
       </ol>
-      <div className="mt-6 flex flex-wrap gap-2" aria-label="Routes associées">
-        {chapter.routes.map((route) => (
-          <code key={route} className="rounded-lg border bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-600 dark:bg-slate-950 dark:text-slate-300">{route}</code>
+      {audience === "restaurant" ? (
+        <>
+          <div className="mt-6">
+            <h3 className="mb-3 text-sm font-bold text-slate-800 dark:text-slate-100">Où trouver ces outils dans TOK ?</h3>
+            <div className="flex flex-wrap gap-2">
+              {chapter.routes.map((route) => (
+                <Link
+                  key={route}
+                  to={route}
+                  className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm font-semibold text-orange-800 transition hover:border-orange-400 hover:bg-orange-100 dark:border-orange-500/40 dark:bg-orange-500/10 dark:text-orange-200"
+                >
+                  {RESTAURANT_GUIDE_ROUTE_LABELS[route]}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="mt-6 flex flex-wrap gap-2" aria-label="Routes associées">
+          {chapter.routes.map((route) => (
+            <code key={route} className="rounded-lg border bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-600 dark:bg-slate-950 dark:text-slate-300">{route}</code>
+          ))}
+        </div>
+      )}
+      <div className="mt-7 grid gap-4 md:grid-cols-2" aria-label={`Captures d’écran : ${chapter.title}`}>
+        {chapter.screenshots?.map((screenshot) => (
+          <figure key={screenshot.src} className="overflow-hidden rounded-2xl border bg-slate-50 dark:bg-slate-950">
+            <img src={screenshot.src} alt={screenshot.alt} className="h-auto max-h-96 w-full object-contain" loading="lazy" />
+            <figcaption className="space-y-1 p-4">
+              <p className="text-sm font-bold">{screenshot.title}</p>
+              <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">{screenshot.caption}</p>
+            </figcaption>
+          </figure>
         ))}
       </div>
     </section>
@@ -408,6 +440,48 @@ function ToolResult({ tool, onSelect }: { tool: ToolEntry; onSelect: () => void 
   );
 }
 
+
+function RestaurantGuideIndex({ chapters }: { chapters: readonly GuideChapter[] }) {
+  const [query, setQuery] = useState("");
+  const term = query.trim().toLocaleLowerCase("fr");
+  const results = chapters.filter((chapter) => {
+    const words = [
+      chapter.title,
+      chapter.summary,
+      ...chapter.steps,
+      ...chapter.routes.map((route) => RESTAURANT_GUIDE_ROUTE_LABELS[route] || ""),
+    ].join(" ").toLocaleLowerCase("fr");
+    return !term || term.split(/\s+/).every((word) => words.includes(word));
+  });
+
+  return (
+    <section id="index" className="scroll-mt-28 space-y-5">
+      <div>
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ff6a1a]">Retrouver une explication</p>
+        <h2 className="mt-2 font-display text-3xl font-black">Quel outil souhaitez-vous utiliser ?</h2>
+        <p className="mt-2 text-slate-600 dark:text-slate-300">Recherchez un nom du menu, par exemple « Reservations », « Menu » ou « Facturation ».</p>
+      </div>
+      <label htmlFor="restaurant-guide-search" className="sr-only">Rechercher une rubrique</label>
+      <Input
+        id="restaurant-guide-search"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="Ex. commandes, offres, factures…"
+        className="h-12 rounded-2xl"
+      />
+      <div className="grid gap-3 sm:grid-cols-2">
+        {results.map((chapter) => (
+          <a key={chapter.id} href={`#${chapter.id}`} className="rounded-2xl border bg-white p-5 hover:border-orange-300 dark:bg-slate-900">
+            <h3 className="font-bold">{chapter.title}</h3>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{chapter.summary}</p>
+          </a>
+        ))}
+        {results.length === 0 ? <p className="text-sm text-slate-500">Aucune rubrique trouvée. Essayez un autre mot.</p> : null}
+      </div>
+    </section>
+  );
+}
+
 function SearchIndex({ audience }: { audience: Audience }) {
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<InventoryKind>("routes");
@@ -574,6 +648,28 @@ function SearchIndex({ audience }: { audience: Audience }) {
   );
 }
 
+async function loadGuidePdfImage(src: string, caption: string): Promise<GuidePdfImage> {
+  const response = await fetch(src, { credentials: "same-origin" });
+  if (!response.ok) throw new Error(`Capture indisponible : ${src}`);
+  const image = await createImageBitmap(await response.blob());
+  try {
+    const ratio = Math.min(1, 1100 / image.width);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(image.width * ratio);
+    canvas.height = Math.round(image.height * ratio);
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Impossible de préparer la capture PDF.");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const encoded = canvas.toDataURL("image/jpeg", 0.82).split(",")[1];
+    if (!encoded) throw new Error("Impossible de convertir la capture PDF.");
+    const binary = atob(encoded);
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    return { data: bytes, width: canvas.width, height: canvas.height, caption };
+  } finally {
+    image.close();
+  }
+}
+
 function GuidePage({ audience }: { audience: Audience }) {
   const isRestaurant = audience === "restaurant";
   const chapters = isRestaurant ? RESTAURANT_GUIDE_CHAPTERS : BUYER_GUIDE_CHAPTERS;
@@ -592,17 +688,20 @@ function GuidePage({ audience }: { audience: Audience }) {
     ? TOK_USER_GUIDE_ROUTES.filter(isRestaurantGuideRoute).length
     : TOK_USER_GUIDE_META.routeCount;
 
-  const exportPdf = () => {
-    const sections: { title: string; lines: string[] }[] = chapters.map((chapter) => ({
+  const exportPdf = async () => {
+    const sections: { title: string; lines: string[]; images?: GuidePdfImage[] }[] = chapters.map((chapter) => ({
       title: chapter.title,
       lines: [
         chapter.summary, "",
         ...chapter.steps.map((step, index) => `${index + 1}. ${step}`),
-        "", `Parcours associes : ${chapter.routes.join(", ")}`,
+        "", isRestaurant
+          ? `Dans le menu TOK : ${chapter.routes.map((route) => RESTAURANT_GUIDE_ROUTE_LABELS[route]).join(", ")}`
+          : `Parcours associés : ${chapter.routes.join(", ")}`,
+        ...(isRestaurant ? chapter.screenshots?.map((shot) => `Illustration : ${shot.caption}`) || [] : []),
       ],
     }));
     const routes = TOK_USER_GUIDE_ROUTES.filter((route) => !isRestaurant || isRestaurantGuideRoute(route));
-    for (const surface of [...new Set(routes.map((route) => route.surface))]) {
+    if (!isRestaurant) for (const surface of [...new Set(routes.map((route) => route.surface))]) {
       const entries = routes.filter((route) => route.surface === surface);
       sections.push({
         title: `Index des pages - ${SURFACE_LABELS[surface] || surface}`,
@@ -636,14 +735,23 @@ function GuidePage({ audience }: { audience: Audience }) {
         });
       }
     }
-    const bytes = buildGuidePdf({
-      title,
-      subtitle: isRestaurant
-        ? "Manuel opérationnel, accessible depuis le dashboard restaurateur."
-        : "Documentation interne, accessible depuis le dashboard administrateur.",
-      sections,
-    });
-    downloadGuidePdf(bytes, isRestaurant ? "TOK_Guide_Restaurateur.pdf" : "TOK_Guide_Administrateur.pdf");
+    try {
+      for (const [index, chapter] of chapters.entries()) {
+        sections[index].images = await Promise.all(
+          (chapter.screenshots || []).map((image) => loadGuidePdfImage(image.src, image.caption)),
+        );
+      }
+      const bytes = buildGuidePdf({
+        title,
+        subtitle: isRestaurant
+          ? "Mode d’emploi du restaurateur, avec des captures TOK et des explications pratiques."
+          : "Documentation interne, accessible depuis le dashboard administrateur.",
+        sections,
+      });
+      downloadGuidePdf(bytes, isRestaurant ? "TOK_Guide_Restaurateur.pdf" : "TOK_Guide_Administrateur.pdf");
+    } catch {
+      toast.error("Le PDF n’a pas été créé : une capture est momentanément indisponible. Réessayez.");
+    }
   };
 
   return (
@@ -687,7 +795,7 @@ function GuidePage({ audience }: { audience: Audience }) {
                   : "Manuel complet réservé aux administrateurs TOK : supervision, opérations, risques, surfaces applicatives et inventaire des outils serveur."}
               </p>
               <div className="mt-7 flex flex-wrap gap-3 text-sm font-bold">
-                <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm dark:bg-slate-950"><Map className="h-4 w-4 text-[#ff6a1a]" /> {routeCount} routes couvertes</span>
+                {isRestaurant ? <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm dark:bg-slate-950"><BookOpen className="h-4 w-4 text-[#ff6a1a]" /> {chapters.length} rubriques expliquées</span> : <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm dark:bg-slate-950"><Map className="h-4 w-4 text-[#ff6a1a]" /> {routeCount} routes couvertes</span>}
                 <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm dark:bg-slate-950"><Search className="h-4 w-4 text-[#ff6a1a]" /> Recherche instantanée</span>
                 <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm dark:bg-slate-950"><ImageIcon className="h-4 w-4 text-[#ff6a1a]" /> Captures réelles</span>
                 {!isRestaurant ? <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm dark:bg-slate-950"><ServerCog className="h-4 w-4 text-violet-600" /> {TOK_USER_GUIDE_META.toolCount} outils serveur</span> : null}
@@ -699,7 +807,9 @@ function GuidePage({ audience }: { audience: Audience }) {
             {[
               { icon: LayoutDashboard, title: "Hiérarchie claire", text: "Navigation par chapitres, comme un manuel de référence." },
               { icon: Search, title: "Index direct", text: "Un mot suffit pour retrouver une route ou un outil." },
-              { icon: CheckCircle2, title: "Source vérifiable", text: "L’inventaire est régénéré depuis le code de l’application." },
+              isRestaurant
+                ? { icon: CheckCircle2, title: "Des étapes concrètes", text: "Suivez les actions à effectuer dans votre espace TOK." }
+                : { icon: CheckCircle2, title: "Source vérifiable", text: "L’inventaire est régénéré depuis le code de l’application." },
             ].map(({ icon: Icon, title: cardTitle, text }) => (
               <div key={cardTitle} className="rounded-2xl border bg-white p-5 dark:bg-slate-900">
                 <Icon className="h-5 w-5 text-[#ff6a1a]" />
@@ -710,11 +820,15 @@ function GuidePage({ audience }: { audience: Audience }) {
           </section>
 
           <div className="space-y-6">
-            {chapters.map((chapter) => <ChapterCard key={chapter.id} chapter={chapter} />)}
+            {chapters.map((chapter) => <ChapterCard key={chapter.id} chapter={chapter} audience={audience} />)}
           </div>
 
-          <ScreenshotGallery audience={audience} />
-          <SearchIndex audience={audience} />
+          {isRestaurant ? <RestaurantGuideIndex chapters={chapters} /> : (
+            <>
+              <ScreenshotGallery audience={audience} />
+              <SearchIndex audience={audience} />
+            </>
+          )}
         </main>
 
         <aside className="hidden xl:block">
@@ -723,16 +837,16 @@ function GuidePage({ audience }: { audience: Audience }) {
               <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Repères</p>
               <dl className="mt-4 space-y-3">
                 <div className="flex items-center justify-between gap-2"><dt>Chapitres</dt><dd className="font-black">{chapters.length}</dd></div>
-                <div className="flex items-center justify-between gap-2"><dt>Routes</dt><dd className="font-black">{routeCount}</dd></div>
+                {!isRestaurant ? <div className="flex items-center justify-between gap-2"><dt>Routes</dt><dd className="font-black">{routeCount}</dd></div> : null}
                 {!isRestaurant ? <div className="flex items-center justify-between gap-2"><dt>Outils serveur</dt><dd className="font-black">{TOK_USER_GUIDE_META.toolCount}</dd></div> : null}
               </dl>
             </div>
-            <div className="rounded-2xl border bg-white p-4 dark:bg-slate-900">
+            {!isRestaurant ? <div className="rounded-2xl border bg-white p-4 dark:bg-slate-900">
               <p className="flex items-center gap-2 font-bold"><Code2 className="h-4 w-4 text-slate-400" /> Fraîcheur</p>
               <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
                 Inventaire statique généré depuis la branche livrée. Les fonctions activées peuvent dépendre du rôle et de la configuration de l’environnement.
               </p>
-            </div>
+            </div> : null}
             <Link to="/aide" className="flex items-center justify-between rounded-2xl border bg-white p-4 font-bold hover:border-[#ff6a1a] dark:bg-slate-900">
               Centre d’aide <ChevronRight className="h-4 w-4" />
             </Link>
