@@ -63,10 +63,14 @@ Cette même société apparaît comme entreprise du compte marchand Stripe
 TOK `acct_1SHGJ2GTQigE34su`.
 
 Le logo/marque commerciale TOK peut figurer sur le document, mais la
-raison sociale légale de l'émetteur doit rester exacte. L'IDE ne prouve
-pas à lui seul l'assujettissement à la TVA : vérifier le registre TVA
-officiel avant d'ajouter le suffixe « TVA » à la facture. La répartition
-HT/TVA/TTC de l'opération doit rester conservée comme comptabilisée.
+raison sociale légale de l'émetteur doit rester exacte. Le marchand a
+confirmé le 14 octobre 2026 être assujetti à la TVA. Le numéro affiché
+sur la facture est donc **CHE-109.513.890 TVA**. Le format est conforme
+à la convention de l'AFC ; l'affiliation en cours doit être vérifiée dans
+le registre fédéral IDE/TVA avant des changements de régime fiscal.
+Sources : https://www.estv.admin.ch/fr/numero-identification-des-entreprises-ide ;
+https://www.uid.admin.ch/Search.aspx?lang=fr .
+La répartition HT/TVA/TTC de l'opération reste comptabilisée telle quelle.
 
 **Vérification juridique encore nécessaire :** cet extrait indique
 « toilettage pour chiens » pour le but social et un gérant à signature
