@@ -17,7 +17,7 @@ permissions:
 jobs:
   index-sync:
     name: Regenerate the application's canonical reference index
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'codex/fix-golden-tok-mobile-offers-20261013' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && (github.event.pull_request.head.ref == 'codex/fix-golden-tok-mobile-offers-20261013' || github.event.pull_request.head.ref == 'feat/mtnr-unlimited-openai-credits-20261014') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -58,6 +58,7 @@ jobs:
 
   browser:
     name: Golden TOK browser (8 device widths)
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'codex/fix-golden-tok-mobile-offers-20261013' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
