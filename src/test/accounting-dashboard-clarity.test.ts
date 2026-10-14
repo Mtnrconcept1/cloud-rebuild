@@ -37,6 +37,17 @@ describe("accounting dashboard clarity and responsiveness", () => {
     expect(restaurant).toContain("Frais fixes de réservation");
   });
 
+  it("reconciles paid subscriptions by collection date, not original invoice item date", () => {
+    const adminShared = readProjectFile("src/pages/admin/adminComptaShared.ts");
+
+    expect(adminShared).toContain('queryKey: ["admin-compta-paid-direct-tok-invoices-v1"');
+    expect(adminShared).toContain('.gte("paid_at"');
+    expect(adminShared).toContain('.in("invoice_id", batch)');
+    expect(adminShared).toContain("getPaidDirectTokInvoiceIds");
+    expect(adminShared).toContain("paidDirectTokLineItemsQuery.data || []");
+    expect(adminShared).toContain("paidDirectTokInvoicesQuery.error");
+  });
+
   it("renders every invoice history as one responsive card list without horizontal scrolling", () => {
     const paths = [
       "src/pages/admin/AdminComptaInflow.tsx",
