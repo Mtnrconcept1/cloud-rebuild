@@ -53,7 +53,9 @@ describe("application search index", () => {
   });
 
   it("covers all primary application registries", () => {
-    expect(index.catalogs.frontendRoutes).toHaveLength(138);
+    expect(index.catalogs.frontendRoutes).toHaveLength(140);
+    expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/dashboard/equipe")).toBe(true);
+    expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/admin/equipe")).toBe(true);
     expect(index.catalogs.featureFlags).toHaveLength(99);
     expect(index.catalogs.apiRoutes).toHaveLength(9);
     expect(index.catalogs.edgeFunctions).toHaveLength(116);

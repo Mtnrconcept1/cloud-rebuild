@@ -26,6 +26,7 @@ import {
   UtensilsCrossed,
   Calculator,
   Printer,
+  Clock3,
   CalendarDays,
   CheckCircle2,
   CircleAlert,
@@ -74,6 +75,13 @@ const ADMIN_TOOLS = [
     href: "/admin/restaurants",
     feature: "admin-restaurants",
     color: "text-primary",
+  },
+  {
+    title: "TOK Équipe",
+    description: "Activer les plannings et le suivi du personnel par restaurant.",
+    icon: Clock3,
+    href: "/admin/equipe",
+    color: "text-orange-500",
   },
   {
     title: "Boutons Google Business",
