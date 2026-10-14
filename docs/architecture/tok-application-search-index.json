@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "fa58f69f3acfbae759ce6b2e9d35aa1678798427969184022f6c428e4b2d187d",
+ "sourceDigest": "74bf57cd1fc46e49ddc67dd81eb7ab18420865e769da3cc593bc86b178aad1ca",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 542,
-  "modules": 1561,
+  "modules": 1560,
   "pages": 128,
-  "pathLiterals": 749,
-  "publicAssets": 564,
-  "publicEntries": 589,
+  "pathLiterals": 747,
+  "publicAssets": 581,
+  "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16837,
-  "repositoryFiles": 3166,
+  "records": 16867,
+  "repositoryFiles": 3182,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -5155,7 +5155,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 241,
+      "line": 239,
       "kind": "function"
      }
     ],
@@ -12652,6 +12652,11 @@
     "kind": "media"
    },
    {
+    "route": "/images/section-headers/tok-editorial-cuisine-full.webp",
+    "path": "public/images/section-headers/tok-editorial-cuisine-full.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/section-headers/tok-editorial-cuisine.jpg",
     "path": "public/images/section-headers/tok-editorial-cuisine.jpg",
     "kind": "media"
@@ -12662,8 +12667,18 @@
     "kind": "media"
    },
    {
+    "route": "/images/section-headers/tok-editorial-delivery-full.webp",
+    "path": "public/images/section-headers/tok-editorial-delivery-full.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/section-headers/tok-editorial-evening-full.jpg",
     "path": "public/images/section-headers/tok-editorial-evening-full.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/images/section-headers/tok-editorial-evening-full.webp",
+    "path": "public/images/section-headers/tok-editorial-evening-full.webp",
     "kind": "media"
    },
    {
@@ -12672,13 +12687,28 @@
     "kind": "media"
    },
    {
+    "route": "/images/section-headers/tok-editorial-feast-full.webp",
+    "path": "public/images/section-headers/tok-editorial-feast-full.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
     "path": "public/images/section-headers/tok-editorial-gastronomy-full.jpg",
     "kind": "media"
    },
    {
+    "route": "/images/section-headers/tok-editorial-gastronomy-full.webp",
+    "path": "public/images/section-headers/tok-editorial-gastronomy-full.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/section-headers/tok-editorial-geneva-full.jpg",
     "path": "public/images/section-headers/tok-editorial-geneva-full.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/images/section-headers/tok-editorial-geneva-full.webp",
+    "path": "public/images/section-headers/tok-editorial-geneva-full.webp",
     "kind": "media"
    },
    {
@@ -12692,8 +12722,18 @@
     "kind": "media"
    },
    {
+    "route": "/images/section-headers/tok-editorial-reservation-full.webp",
+    "path": "public/images/section-headers/tok-editorial-reservation-full.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/section-headers/tok-editorial-rewards-full.jpg",
     "path": "public/images/section-headers/tok-editorial-rewards-full.jpg",
+    "kind": "media"
+   },
+   {
+    "route": "/images/section-headers/tok-editorial-rewards-full.webp",
+    "path": "public/images/section-headers/tok-editorial-rewards-full.webp",
     "kind": "media"
    },
    {
@@ -13182,6 +13222,41 @@
     "kind": "media"
    },
    {
+    "route": "/miniatures-3d/africain.webp",
+    "path": "public/miniatures-3d/africain.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/americain.webp",
+    "path": "public/miniatures-3d/americain.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/bistro.webp",
+    "path": "public/miniatures-3d/bistro.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/boulangerie.webp",
+    "path": "public/miniatures-3d/boulangerie.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/brunch.webp",
+    "path": "public/miniatures-3d/brunch.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/burger.webp",
+    "path": "public/miniatures-3d/burger.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/cafe.webp",
+    "path": "public/miniatures-3d/cafe.webp",
+    "kind": "media"
+   },
+   {
     "route": "/miniatures-3d/chinois.webp",
     "path": "public/miniatures-3d/chinois.webp",
     "kind": "media"
@@ -13189,6 +13264,11 @@
    {
     "route": "/miniatures-3d/creole.webp",
     "path": "public/miniatures-3d/creole.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/desserts.webp",
+    "path": "public/miniatures-3d/desserts.webp",
     "kind": "media"
    },
    {
@@ -13224,6 +13304,11 @@
    {
     "route": "/miniatures-3d/indien.webp",
     "path": "public/miniatures-3d/indien.webp",
+    "kind": "media"
+   },
+   {
+    "route": "/miniatures-3d/italien.webp",
+    "path": "public/miniatures-3d/italien.webp",
     "kind": "media"
    },
    {
@@ -23744,7 +23829,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 42
+      "line": 43
      }
     ]
    },
@@ -23753,7 +23838,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 44
+      "line": 45
      }
     ]
    },
@@ -23762,7 +23847,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 28
+      "line": 29
      }
     ]
    },
@@ -23771,7 +23856,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 57
+      "line": 58
      }
     ]
    },
@@ -23780,7 +23865,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 55
+      "line": 56
      }
     ]
    },
@@ -23789,7 +23874,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 29
+      "line": 30
      }
     ]
    },
@@ -23798,7 +23883,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 60
+      "line": 61
      }
     ]
    },
@@ -23807,7 +23892,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 33
+      "line": 34
      }
     ]
    },
@@ -23816,7 +23901,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 43
+      "line": 44
      }
     ]
    },
@@ -23825,7 +23910,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 59
+      "line": 60
      }
     ]
    },
@@ -23834,7 +23919,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 31
+      "line": 32
      }
     ]
    },
@@ -23843,7 +23928,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 24
+      "line": 25
      }
     ]
    },
@@ -23852,7 +23937,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 47
+      "line": 48
      }
     ]
    },
@@ -23861,7 +23946,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 49
+      "line": 50
      }
     ]
    },
@@ -23870,7 +23955,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 52
+      "line": 53
      }
     ]
    },
@@ -23879,7 +23964,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 35
+      "line": 36
      }
     ]
    },
@@ -23888,7 +23973,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 25
+      "line": 26
      }
     ]
    },
@@ -23897,7 +23982,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 30
+      "line": 31
      }
     ]
    },
@@ -23906,7 +23991,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 38
+      "line": 39
      }
     ]
    },
@@ -23915,7 +24000,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 36
+      "line": 37
      }
     ]
    },
@@ -23924,7 +24009,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 40
+      "line": 41
      }
     ]
    },
@@ -23933,7 +24018,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 41
+      "line": 42
      }
     ]
    },
@@ -23942,7 +24027,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 39
+      "line": 40
      }
     ]
    },
@@ -23951,7 +24036,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 48
+      "line": 49
      }
     ]
    },
@@ -23960,7 +24045,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 26
+      "line": 27
      }
     ]
    },
@@ -23969,7 +24054,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 27
+      "line": 28
      }
     ]
    },
@@ -23978,7 +24063,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 32
+      "line": 33
      }
     ]
    },
@@ -23987,7 +24072,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 34
+      "line": 35
      }
     ]
    },
@@ -23996,7 +24081,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 37
+      "line": 38
      }
     ]
    },
@@ -24005,7 +24090,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 53
+      "line": 54
      }
     ]
    },
@@ -24014,7 +24099,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 54
+      "line": 55
      }
     ]
    },
@@ -24023,7 +24108,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 56
+      "line": 57
      }
     ]
    },
@@ -24032,7 +24117,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 46
+      "line": 47
      }
     ]
    },
@@ -24041,7 +24126,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 45
+      "line": 46
      }
     ]
    },
@@ -24050,7 +24135,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 58
+      "line": 59
      }
     ]
    },
@@ -24059,7 +24144,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 61
+      "line": 62
      }
     ]
    },
@@ -24068,7 +24153,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 62
+      "line": 63
      }
     ]
    },
@@ -24077,7 +24162,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 50
+      "line": 51
      }
     ]
    },
@@ -24086,7 +24171,7 @@
     "sources": [
      {
       "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 51
+      "line": 52
      }
     ]
    },
@@ -24493,8 +24578,16 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-cuisine-full.jpg",
+    "value": "/images/section-headers/tok-editorial-cuisine-full.webp",
     "sources": [
+     {
+      "path": "src/components/home/CuisineCategoryStrip.tsx",
+      "line": 121
+     },
+     {
+      "path": "src/test/home-core-web-vitals.test.ts",
+      "line": 78
+     },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
       "line": 64
@@ -24502,20 +24595,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-cuisine.jpg",
-    "sources": [
-     {
-      "path": "src/components/home/CuisineCategoryStrip.tsx",
-      "line": 120
-     },
-     {
-      "path": "src/test/home-core-web-vitals.test.ts",
-      "line": 78
-     }
-    ]
-   },
-   {
-    "value": "/images/section-headers/tok-editorial-delivery-full.jpg",
+    "value": "/images/section-headers/tok-editorial-delivery-full.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -24524,7 +24604,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-evening-full.jpg",
+    "value": "/images/section-headers/tok-editorial-evening-full.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -24533,7 +24613,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-feast-full.jpg",
+    "value": "/images/section-headers/tok-editorial-feast-full.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -24542,7 +24622,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
+    "value": "/images/section-headers/tok-editorial-gastronomy-full.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -24551,8 +24631,16 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-geneva-full.jpg",
+    "value": "/images/section-headers/tok-editorial-geneva-full.webp",
     "sources": [
+     {
+      "path": "src/pages/Index.tsx",
+      "line": 59
+     },
+     {
+      "path": "src/pages/Index.tsx",
+      "line": 65
+     },
      {
       "path": "src/test/home-section-showcase-header.test.tsx",
       "line": 33
@@ -24564,20 +24652,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-geneva.jpg",
-    "sources": [
-     {
-      "path": "src/pages/Index.tsx",
-      "line": 59
-     },
-     {
-      "path": "src/pages/Index.tsx",
-      "line": 65
-     }
-    ]
-   },
-   {
-    "value": "/images/section-headers/tok-editorial-reservation-full.jpg",
+    "value": "/images/section-headers/tok-editorial-reservation-full.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -24586,7 +24661,7 @@
     ]
    },
    {
-    "value": "/images/section-headers/tok-editorial-rewards-full.jpg",
+    "value": "/images/section-headers/tok-editorial-rewards-full.webp",
     "sources": [
      {
       "path": "src/pages/Index.tsx",
@@ -27324,7 +27399,7 @@
     "sources": [
      {
       "path": "src/test/home-cuisine-accessibility.test.tsx",
-      "line": 41
+      "line": 53
      }
     ]
    },
@@ -27401,7 +27476,7 @@
      },
      {
       "path": "src/components/ReservationDialog.tsx",
-      "line": 504
+      "line": 494
      },
      {
       "path": "src/data/userGuideContent.ts",
@@ -31577,7 +31652,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardReservations.tsx",
-      "line": 256
+      "line": 254
      }
     ],
     "routes": [
@@ -32061,7 +32136,7 @@
     "sources": [
      {
       "path": "src/components/ReservationDialog.tsx",
-      "line": 664
+      "line": 653
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
@@ -32077,7 +32152,7 @@
     "sources": [
      {
       "path": "src/components/ReservationDialog.tsx",
-      "line": 660
+      "line": 649
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
@@ -33300,7 +33375,6 @@
      "src/test/supplier-catalog-sync.test.ts",
      "src/test/support-chat-history.test.ts",
      "src/test/support-notification-governance.test.ts",
-     "src/test/table-only-reservations.test.ts",
      "src/test/thefork-directory-completion.test.ts",
      "src/test/thefork-image-enrichment-completion.test.ts",
      "src/test/tok-ai-platform-plan.test.ts",
@@ -86327,7 +86401,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1130
+    "lineCount": 1113
    },
    {
     "path": "src/components/ReservationWidget.tsx",
@@ -88170,13 +88244,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 95,
+      "line": 96,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 181
+    "lineCount": 182
    },
    {
     "path": "src/components/home/FeaturesSection.tsx",
@@ -100297,77 +100371,77 @@
      },
      {
       "name": "ServiceSlotCapacityWindow",
-      "line": 33,
+      "line": 32,
       "kind": "typealias"
      },
      {
       "name": "ServiceSettingsMap",
-      "line": 39,
+      "line": 38,
       "kind": "typealias"
      },
      {
       "name": "DEFAULT_SERVICE_SETTINGS",
-      "line": 41,
+      "line": 40,
       "kind": "variable"
      },
      {
       "name": "parseServiceTime",
-      "line": 92,
+      "line": 89,
       "kind": "variable"
      },
      {
       "name": "getServiceSettings",
-      "line": 228,
+      "line": 224,
       "kind": "variable"
      },
      {
       "name": "getConfiguredServiceSettings",
-      "line": 248,
+      "line": 244,
       "kind": "variable"
      },
      {
       "name": "hasConfiguredServiceSettings",
-      "line": 264,
+      "line": 260,
       "kind": "variable"
      },
      {
       "name": "mergeOpeningHoursWithServiceSettings",
-      "line": 267,
+      "line": 263,
       "kind": "variable"
      },
      {
       "name": "detectServiceFromTime",
-      "line": 281,
+      "line": 277,
       "kind": "variable"
      },
      {
       "name": "getServicePeriodFromMetadata",
-      "line": 287,
+      "line": 283,
       "kind": "variable"
      },
      {
       "name": "getServicePeriodLabel",
-      "line": 301,
+      "line": 297,
       "kind": "variable"
      },
      {
       "name": "validateServiceSettings",
-      "line": 303,
+      "line": 299,
       "kind": "variable"
      },
      {
       "name": "generateTimeSlotsForService",
-      "line": 367,
+      "line": 363,
       "kind": "variable"
      },
      {
       "name": "generateDailyTimeSlots",
-      "line": 386,
+      "line": 382,
       "kind": "variable"
      },
      {
       "name": "isTimeWithinService",
-      "line": 395,
+      "line": 391,
       "kind": "variable"
      }
     ],
@@ -100375,7 +100449,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 405
+    "lineCount": 401
    },
    {
     "path": "src/lib/session.ts",
@@ -104848,7 +104922,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 241,
+      "line": 239,
       "kind": "function"
      }
     ],
@@ -104857,7 +104931,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1326
+    "lineCount": 1323
    },
    {
     "path": "src/pages/dashboard/DashboardRestaurant.tsx",
@@ -104890,7 +104964,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 701
+    "lineCount": 671
    },
    {
     "path": "src/pages/dashboard/DashboardSupport.tsx",
@@ -106755,7 +106829,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 87
+    "lineCount": 82
    },
    {
     "path": "src/test/dashboard-shell-navigation.test.ts",
@@ -107354,7 +107428,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 44
+    "lineCount": 56
    },
    {
     "path": "src/test/home-hero-search.test.tsx",
@@ -109674,7 +109748,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 129
+    "lineCount": 100
    },
    {
     "path": "src/test/service-shared.test.ts",
@@ -110146,15 +110220,6 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 94
-   },
-   {
-    "path": "src/test/table-only-reservations.test.ts",
-    "exports": [],
-    "environmentNames": [],
-    "integrations": [
-     "supabase"
-    ],
-    "lineCount": 28
    },
    {
     "path": "src/test/thefork-directory-completion.test.ts",
@@ -114530,7 +114595,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 569
+    "lineCount": 542
    },
    {
     "path": "supabase/functions/create-social-post-boost/index.ts",
@@ -119869,6 +119934,11 @@
     "extension": ".jpg"
    },
    {
+    "path": "public/images/section-headers/tok-editorial-cuisine-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/section-headers/tok-editorial-cuisine.jpg",
     "category": "public-asset",
     "extension": ".jpg"
@@ -119879,9 +119949,19 @@
     "extension": ".jpg"
    },
    {
+    "path": "public/images/section-headers/tok-editorial-delivery-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/section-headers/tok-editorial-evening-full.jpg",
     "category": "public-asset",
     "extension": ".jpg"
+   },
+   {
+    "path": "public/images/section-headers/tok-editorial-evening-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
    },
    {
     "path": "public/images/section-headers/tok-editorial-feast-full.jpg",
@@ -119889,14 +119969,29 @@
     "extension": ".jpg"
    },
    {
+    "path": "public/images/section-headers/tok-editorial-feast-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/section-headers/tok-editorial-gastronomy-full.jpg",
     "category": "public-asset",
     "extension": ".jpg"
    },
    {
+    "path": "public/images/section-headers/tok-editorial-gastronomy-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/section-headers/tok-editorial-geneva-full.jpg",
     "category": "public-asset",
     "extension": ".jpg"
+   },
+   {
+    "path": "public/images/section-headers/tok-editorial-geneva-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
    },
    {
     "path": "public/images/section-headers/tok-editorial-geneva.jpg",
@@ -119909,9 +120004,19 @@
     "extension": ".jpg"
    },
    {
+    "path": "public/images/section-headers/tok-editorial-reservation-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/section-headers/tok-editorial-rewards-full.jpg",
     "category": "public-asset",
     "extension": ".jpg"
+   },
+   {
+    "path": "public/images/section-headers/tok-editorial-rewards-full.webp",
+    "category": "public-asset",
+    "extension": ".webp"
    },
    {
     "path": "public/images/shawarma poulet.jpeg",
@@ -120399,12 +120504,52 @@
     "extension": ".png"
    },
    {
+    "path": "public/miniatures-3d/africain.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/americain.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/bistro.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/boulangerie.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/brunch.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/burger.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/cafe.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/miniatures-3d/chinois.webp",
     "category": "public-asset",
     "extension": ".webp"
    },
    {
     "path": "public/miniatures-3d/creole.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/desserts.webp",
     "category": "public-asset",
     "extension": ".webp"
    },
@@ -120440,6 +120585,11 @@
    },
    {
     "path": "public/miniatures-3d/indien.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
+    "path": "public/miniatures-3d/italien.webp",
     "category": "public-asset",
     "extension": ".webp"
    },
@@ -127369,11 +127519,6 @@
     "extension": ".tsx"
    },
    {
-    "path": "src/test/table-only-reservations.test.ts",
-    "category": "test",
-    "extension": ".ts"
-   },
-   {
     "path": "src/test/thefork-directory-completion.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -133975,7 +134120,7 @@
    "id": "code-module:2a61e80b3f5c",
    "type": "code-module",
    "title": "src/components/ReservationDialog.tsx",
-   "description": "Module de 1130 lignes; exports: default.",
+   "description": "Module de 1113 lignes; exports: default.",
    "path": "src/components/ReservationDialog.tsx",
    "line": 1,
    "surface": null,
@@ -133985,7 +134130,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "c562d0f4dd2d"
+   "detailRef": "33d225fce7cb"
   },
   {
    "id": "code-module:9a8f6d6b902a",
@@ -135464,14 +135609,14 @@
    "id": "code-module:a586b6706f43",
    "type": "code-module",
    "title": "src/components/home/CuisineCategoryStrip.tsx",
-   "description": "Module de 181 lignes; exports: default.",
+   "description": "Module de 182 lignes; exports: default.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "6f67ce55fd83"
+   "detailRef": "d5b478015b89"
   },
   {
    "id": "code-module:1ce158045d40",
@@ -141416,7 +141561,7 @@
    "id": "code-module:f3a81f123625",
    "type": "code-module",
    "title": "src/lib/serviceSettings.ts",
-   "description": "Module de 405 lignes; exports: ServicePeriod, SERVICE_PERIOD_LABELS, ServiceSettings, ServiceSlotCapacityWindow, ServiceSettingsMap, DEFAULT_SERVICE_SETTINGS, parseServiceTime, getServiceSettings, getConfiguredServiceSettings, hasConfiguredServiceSettings, mergeOpeningHoursWithServiceSettings, detectServiceFromTime, getServicePeriodFromMetadata, getServicePeriodLabel, validateServiceSettings, generateTimeSlotsForService, generateDailyTimeSlots, isTimeWithinService.",
+   "description": "Module de 401 lignes; exports: ServicePeriod, SERVICE_PERIOD_LABELS, ServiceSettings, ServiceSlotCapacityWindow, ServiceSettingsMap, DEFAULT_SERVICE_SETTINGS, parseServiceTime, getServiceSettings, getConfiguredServiceSettings, hasConfiguredServiceSettings, mergeOpeningHoursWithServiceSettings, detectServiceFromTime, getServicePeriodFromMetadata, getServicePeriodLabel, validateServiceSettings, generateTimeSlotsForService, generateDailyTimeSlots, isTimeWithinService.",
    "path": "src/lib/serviceSettings.ts",
    "line": 1,
    "surface": null,
@@ -141441,7 +141586,7 @@
     "supabase",
     "validateServiceSettings"
    ],
-   "detailRef": "17afb13fd1a3"
+   "detailRef": "0230d03001bf"
   },
   {
    "id": "code-module:877462eb20a0",
@@ -144089,7 +144234,7 @@
    "id": "code-module:f39ec1769aae",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardReservations.tsx",
-   "description": "Module de 1326 lignes; exports: default.",
+   "description": "Module de 1323 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardReservations.tsx",
    "line": 1,
    "surface": null,
@@ -144098,7 +144243,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "7488bb1e9dd7"
+   "detailRef": "8b75e6b0edd0"
   },
   {
    "id": "code-module:6261c9a72668",
@@ -144121,7 +144266,7 @@
    "id": "code-module:a943d339b690",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardService.tsx",
-   "description": "Module de 701 lignes; exports: default.",
+   "description": "Module de 671 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardService.tsx",
    "line": 1,
    "surface": null,
@@ -144129,7 +144274,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "48d7154f578e"
+   "detailRef": "1c6679d89378"
   },
   {
    "id": "code-module:2bbc53474dd0",
@@ -146560,12 +146705,12 @@
    "id": "code-module:723c3f236275",
    "type": "code-module",
    "title": "src/test/dashboard-service-layout.test.ts",
-   "description": "Module de 87 lignes; exports: aucun export statique.",
+   "description": "Module de 82 lignes; exports: aucun export statique.",
    "path": "src/test/dashboard-service-layout.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "b52e7dc4ff95"
+   "detailRef": "88b4e6cc164a"
   },
   {
    "id": "code-module:0b658fc15c1c",
@@ -147438,12 +147583,12 @@
    "id": "code-module:b8f0d2b164b6",
    "type": "code-module",
    "title": "src/test/home-cuisine-accessibility.test.tsx",
-   "description": "Module de 44 lignes; exports: aucun export statique.",
+   "description": "Module de 56 lignes; exports: aucun export statique.",
    "path": "src/test/home-cuisine-accessibility.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "f38a795c3d93"
+   "detailRef": "a29d879ae04d"
   },
   {
    "id": "code-module:a714f68588b7",
@@ -150804,12 +150949,12 @@
    "id": "code-module:9e5bcf177adb",
    "type": "code-module",
    "title": "src/test/service-settings.test.ts",
-   "description": "Module de 129 lignes; exports: aucun export statique.",
+   "description": "Module de 100 lignes; exports: aucun export statique.",
    "path": "src/test/service-settings.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "a92f54016b2f"
+   "detailRef": "58465c8a19e5"
   },
   {
    "id": "code-module:3af4b8381650",
@@ -151504,19 +151649,6 @@
    "surface": null,
    "tags": [],
    "detailRef": "836681e01aeb"
-  },
-  {
-   "id": "code-module:0dcdbdde31f1",
-   "type": "code-module",
-   "title": "src/test/table-only-reservations.test.ts",
-   "description": "Module de 28 lignes; exports: aucun export statique.",
-   "path": "src/test/table-only-reservations.test.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "supabase"
-   ],
-   "detailRef": "5ac58bd6028f"
   },
   {
    "id": "code-module:c061c3759366",
@@ -154124,7 +154256,7 @@
    "id": "code-module:2de82e4df11d",
    "type": "code-module",
    "title": "supabase/functions/create-reservation/index.ts",
-   "description": "Module de 569 lignes; exports: aucun export statique.",
+   "description": "Module de 542 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-reservation/index.ts",
    "line": 1,
    "surface": null,
@@ -154135,7 +154267,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "8fbb43337814"
+   "detailRef": "5fc8e3cf75b8"
   },
   {
    "id": "code-module:9d76768ca095",
@@ -248476,18 +248608,18 @@
    "detailRef": "23a1f7ae8a60"
   },
   {
-   "id": "exported-symbol:873e481d2aea",
+   "id": "exported-symbol:38f843e96880",
    "type": "exported-symbol",
    "title": "DEFAULT_SERVICE_SETTINGS",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 41,
+   "line": 40,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "4a821f90d879"
+   "detailRef": "12faa051fac0"
   },
   {
    "id": "exported-symbol:97a93c4bb5fc",
@@ -260227,32 +260359,32 @@
    "detailRef": "9fff3b14fb9c"
   },
   {
-   "id": "exported-symbol:b04c446c0531",
+   "id": "exported-symbol:c1fd7acff80f",
    "type": "exported-symbol",
    "title": "ServiceSettingsMap",
    "description": "Export typealias de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 39,
+   "line": 38,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "e79831a9ecef"
+   "detailRef": "af90648f3ded"
   },
   {
-   "id": "exported-symbol:b07f16537d78",
+   "id": "exported-symbol:23a57a53aa1d",
    "type": "exported-symbol",
    "title": "ServiceSlotCapacityWindow",
    "description": "Export typealias de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 33,
+   "line": 32,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "05d604a5ed7b"
+   "detailRef": "ff4791756a2b"
   },
   {
    "id": "exported-symbol:34c7a5dde17e",
@@ -271110,17 +271242,17 @@
    "detailRef": "64d9770934a7"
   },
   {
-   "id": "exported-symbol:34b83656c47a",
+   "id": "exported-symbol:6bea51449639",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/home/CuisineCategoryStrip.tsx.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 95,
+   "line": 96,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "67b9c2f5a8dd"
+   "detailRef": "a24d25e3daca"
   },
   {
    "id": "exported-symbol:2c6d5de51291",
@@ -273400,19 +273532,19 @@
    "detailRef": "6d9ba569d315"
   },
   {
-   "id": "exported-symbol:fbf86b06a9d9",
+   "id": "exported-symbol:36a086f99226",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardReservations.tsx.",
    "path": "src/pages/dashboard/DashboardReservations.tsx",
-   "line": 241,
+   "line": 239,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "6fb7c184e5aa"
+   "detailRef": "140c3ecfe744"
   },
   {
    "id": "exported-symbol:a73fa4c7ec10",
@@ -273773,18 +273905,18 @@
    "detailRef": "c3617cd85889"
   },
   {
-   "id": "exported-symbol:85be0a96845f",
+   "id": "exported-symbol:ffadec83275e",
    "type": "exported-symbol",
    "title": "detectServiceFromTime",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 281,
+   "line": 277,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "85fba90d8d72"
+   "detailRef": "c0efe882cdb0"
   },
   {
    "id": "exported-symbol:20eb7b5af4d1",
@@ -275678,18 +275810,18 @@
    "detailRef": "4d3c23ce385c"
   },
   {
-   "id": "exported-symbol:2ac9e1f2abf0",
+   "id": "exported-symbol:ce7ed52dc4dd",
    "type": "exported-symbol",
    "title": "generateDailyTimeSlots",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 386,
+   "line": 382,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "8b5aa6b44a7e"
+   "detailRef": "816a89d189fb"
   },
   {
    "id": "exported-symbol:84fa5757b361",
@@ -275790,18 +275922,18 @@
    "detailRef": "4b7c0ee3733b"
   },
   {
-   "id": "exported-symbol:4bb10b92756d",
+   "id": "exported-symbol:58644218e440",
    "type": "exported-symbol",
    "title": "generateTimeSlotsForService",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 367,
+   "line": 363,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "f1d4dfa1d2e4"
+   "detailRef": "700c0610c993"
   },
   {
    "id": "exported-symbol:71d868fabe0a",
@@ -276846,18 +276978,18 @@
    "detailRef": "1b8aa77638c4"
   },
   {
-   "id": "exported-symbol:6d79a33eac71",
+   "id": "exported-symbol:7523b324fe9c",
    "type": "exported-symbol",
    "title": "getConfiguredServiceSettings",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 248,
+   "line": 244,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "14a07fb71cee"
+   "detailRef": "93e32a5f6241"
   },
   {
    "id": "exported-symbol:7b66c525efda",
@@ -279583,46 +279715,46 @@
    "detailRef": "234dad8d5c90"
   },
   {
-   "id": "exported-symbol:9c704b941d54",
+   "id": "exported-symbol:bdff23084a24",
    "type": "exported-symbol",
    "title": "getServicePeriodFromMetadata",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 287,
+   "line": 283,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "049dfe3336f8"
+   "detailRef": "9302313e9823"
   },
   {
-   "id": "exported-symbol:9258c666098a",
+   "id": "exported-symbol:c2f46f3b9333",
    "type": "exported-symbol",
    "title": "getServicePeriodLabel",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 301,
+   "line": 297,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "b965fc1abe87"
+   "detailRef": "ccd51394b12a"
   },
   {
-   "id": "exported-symbol:be14f5fad727",
+   "id": "exported-symbol:e904f20d3e60",
    "type": "exported-symbol",
    "title": "getServiceSettings",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 228,
+   "line": 224,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "78eb3633d140"
+   "detailRef": "fb754b43923f"
   },
   {
    "id": "exported-symbol:6677f5cc675b",
@@ -280649,18 +280781,18 @@
    "detailRef": "ec7c22296a17"
   },
   {
-   "id": "exported-symbol:dc2a038fd52f",
+   "id": "exported-symbol:405097db45e4",
    "type": "exported-symbol",
    "title": "hasConfiguredServiceSettings",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 264,
+   "line": 260,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "174b2aaecfd3"
+   "detailRef": "2c3ee531bbe5"
   },
   {
    "id": "exported-symbol:d29419d6c4e5",
@@ -282764,18 +282896,18 @@
    "detailRef": "ce8af39db78d"
   },
   {
-   "id": "exported-symbol:67c5409a1b2e",
+   "id": "exported-symbol:126ac68d62aa",
    "type": "exported-symbol",
    "title": "isTimeWithinService",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 395,
+   "line": 391,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "ca2db85c838f"
+   "detailRef": "b1fdd0efb4f6"
   },
   {
    "id": "exported-symbol:70c136e109cf",
@@ -284075,18 +284207,18 @@
    "detailRef": "fda4f83bf1f6"
   },
   {
-   "id": "exported-symbol:edd9f4ac59d3",
+   "id": "exported-symbol:17500c3bea47",
    "type": "exported-symbol",
    "title": "mergeOpeningHoursWithServiceSettings",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 267,
+   "line": 263,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "792ad31f6bf8"
+   "detailRef": "7c247e990a55"
   },
   {
    "id": "exported-symbol:ebc79e1fcdb6",
@@ -285380,18 +285512,18 @@
    "detailRef": "3e3ff58e6db7"
   },
   {
-   "id": "exported-symbol:8bf89d4e8e9b",
+   "id": "exported-symbol:c58414654af9",
    "type": "exported-symbol",
    "title": "parseServiceTime",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 92,
+   "line": 89,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "d4e0269ae24e"
+   "detailRef": "a26176da25c2"
   },
   {
    "id": "exported-symbol:3f2be0ea2187",
@@ -291353,18 +291485,18 @@
    "detailRef": "64df81d1a202"
   },
   {
-   "id": "exported-symbol:80e3b71b7337",
+   "id": "exported-symbol:7a43b8770f60",
    "type": "exported-symbol",
    "title": "validateServiceSettings",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 303,
+   "line": 299,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "7454d5510bd1"
+   "detailRef": "53b70b776f21"
   },
   {
    "id": "exported-symbol:86f60b3f90c0",
@@ -304691,6 +304823,20 @@
    "detailRef": "bed9648dfb43"
   },
   {
+   "id": "file:9b5aff1148bf",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-cuisine-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-cuisine-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "1f364dfc8f75"
+  },
+  {
    "id": "file:2f88c795fde4",
    "type": "file",
    "title": "public/images/section-headers/tok-editorial-cuisine.jpg",
@@ -304719,6 +304865,20 @@
    "detailRef": "ec0338293026"
   },
   {
+   "id": "file:e55b8ca783fe",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-delivery-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-delivery-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "6d6fd84567a6"
+  },
+  {
    "id": "file:e5a8edf5f5f0",
    "type": "file",
    "title": "public/images/section-headers/tok-editorial-evening-full.jpg",
@@ -304731,6 +304891,20 @@
     "public-asset"
    ],
    "detailRef": "a551f3c7a562"
+  },
+  {
+   "id": "file:50da41d543ee",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-evening-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-evening-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "16d1bfdfadcd"
   },
   {
    "id": "file:f485be9b528c",
@@ -304747,6 +304921,20 @@
    "detailRef": "059b5f1afa08"
   },
   {
+   "id": "file:711ff510eed1",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-feast-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-feast-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "9a54715da290"
+  },
+  {
    "id": "file:2961ff4606b2",
    "type": "file",
    "title": "public/images/section-headers/tok-editorial-gastronomy-full.jpg",
@@ -304761,6 +304949,20 @@
    "detailRef": "8662134ba8a6"
   },
   {
+   "id": "file:66502372fb83",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-gastronomy-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-gastronomy-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "9a4b7d9deb29"
+  },
+  {
    "id": "file:abd90af207a9",
    "type": "file",
    "title": "public/images/section-headers/tok-editorial-geneva-full.jpg",
@@ -304773,6 +304975,20 @@
     "public-asset"
    ],
    "detailRef": "7de6eafec45f"
+  },
+  {
+   "id": "file:1887dc325364",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-geneva-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-geneva-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "dc9d02c3b15b"
   },
   {
    "id": "file:800bfe90df7a",
@@ -304803,6 +305019,20 @@
    "detailRef": "159bc462fe1c"
   },
   {
+   "id": "file:e70973e84e0d",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-reservation-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-reservation-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "713d60230eeb"
+  },
+  {
    "id": "file:8fb4b561d0d2",
    "type": "file",
    "title": "public/images/section-headers/tok-editorial-rewards-full.jpg",
@@ -304815,6 +305045,20 @@
     "public-asset"
    ],
    "detailRef": "42576abeb3cd"
+  },
+  {
+   "id": "file:604fe23bc435",
+   "type": "file",
+   "title": "public/images/section-headers/tok-editorial-rewards-full.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/section-headers/tok-editorial-rewards-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "c1ff29a00612"
   },
   {
    "id": "file:f6b06bd50f25",
@@ -306175,6 +306419,104 @@
    "detailRef": "387043e32323"
   },
   {
+   "id": "file:36a45b4c0681",
+   "type": "file",
+   "title": "public/miniatures-3d/africain.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/africain.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "159ce6704766"
+  },
+  {
+   "id": "file:97a5381f6aa0",
+   "type": "file",
+   "title": "public/miniatures-3d/americain.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/americain.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "2be6caab9a2f"
+  },
+  {
+   "id": "file:0ff482960008",
+   "type": "file",
+   "title": "public/miniatures-3d/bistro.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/bistro.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "d52cd2abd5ab"
+  },
+  {
+   "id": "file:215715ac126b",
+   "type": "file",
+   "title": "public/miniatures-3d/boulangerie.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/boulangerie.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "0a78436cdc43"
+  },
+  {
+   "id": "file:a234fa9b9f3f",
+   "type": "file",
+   "title": "public/miniatures-3d/brunch.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/brunch.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "2cd4af93d635"
+  },
+  {
+   "id": "file:30c0361ec6c4",
+   "type": "file",
+   "title": "public/miniatures-3d/burger.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/burger.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "b46915eeb2d7"
+  },
+  {
+   "id": "file:e0e1ba871672",
+   "type": "file",
+   "title": "public/miniatures-3d/cafe.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/cafe.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "362a2bf44fbc"
+  },
+  {
    "id": "file:0b7dd2775ebb",
    "type": "file",
    "title": "public/miniatures-3d/chinois.webp",
@@ -306201,6 +306543,20 @@
     "public-asset"
    ],
    "detailRef": "d806c6026c2c"
+  },
+  {
+   "id": "file:700b43e1153c",
+   "type": "file",
+   "title": "public/miniatures-3d/desserts.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/desserts.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "0d9bdbb65e11"
   },
   {
    "id": "file:dff16c7a6250",
@@ -306299,6 +306655,20 @@
     "public-asset"
    ],
    "detailRef": "e692ec826686"
+  },
+  {
+   "id": "file:0fdae45a3101",
+   "type": "file",
+   "title": "public/miniatures-3d/italien.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/miniatures-3d/italien.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "222143f62004"
   },
   {
    "id": "file:fcfa0627eefc",
@@ -325691,20 +326061,6 @@
    "detailRef": "1e775ab8f4a0"
   },
   {
-   "id": "file:45daabc590ee",
-   "type": "file",
-   "title": "src/test/table-only-reservations.test.ts",
-   "description": "Fichier du dépôt classé test.",
-   "path": "src/test/table-only-reservations.test.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "test"
-   ],
-   "detailRef": "55ccf69901d5"
-  },
-  {
    "id": "file:1cb8b932d270",
    "type": "file",
    "title": "src/test/thefork-directory-completion.test.ts",
@@ -340759,7 +341115,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 702 module(s).",
+   "description": "Intégration externe détectée dans 701 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -341352,7 +341708,6 @@
     "src/test/supplier-catalog-sync.test.ts",
     "src/test/support-chat-history.test.ts",
     "src/test/support-notification-governance.test.ts",
-    "src/test/table-only-reservations.test.ts",
     "src/test/thefork-directory-completion.test.ts",
     "src/test/thefork-image-enrichment-completion.test.ts",
     "src/test/tok-ai-platform-plan.test.ts",
@@ -341468,7 +341823,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "09b9a57d1bdd"
+   "detailRef": "ecb89e3f623c"
   },
   {
    "id": "integration:c20910a79a78",
@@ -351879,7 +352234,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "8967b43ddc03"
+   "detailRef": "aae1ad4d8d5c"
   },
   {
    "id": "page:1d140945a02d",
@@ -358598,113 +358953,9 @@
    "detailRef": "57572b86cde9"
   },
   {
-   "id": "path-literal:5967e7a11843",
+   "id": "path-literal:8d81fa900f08",
    "type": "path-literal",
    "title": "/images/miniatures/01_africain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 42,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "84229ae9417e"
-  },
-  {
-   "id": "path-literal:49b8556e08f1",
-   "type": "path-literal",
-   "title": "/images/miniatures/02_americain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 44,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "019f132a684a"
-  },
-  {
-   "id": "path-literal:10e511c2a87e",
-   "type": "path-literal",
-   "title": "/images/miniatures/03_bistro.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 28,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "53b2a61cd67c"
-  },
-  {
-   "id": "path-literal:1f04d32ecd32",
-   "type": "path-literal",
-   "title": "/images/miniatures/04_boulangerie.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 57,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "2189ebf2692a"
-  },
-  {
-   "id": "path-literal:8eac1c1bcb91",
-   "type": "path-literal",
-   "title": "/images/miniatures/05_brunch.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 55,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "f50f0dff169d"
-  },
-  {
-   "id": "path-literal:204e718a470e",
-   "type": "path-literal",
-   "title": "/images/miniatures/06_burger.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 29,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "837b5b7e5639"
-  },
-  {
-   "id": "path-literal:195e8436260c",
-   "type": "path-literal",
-   "title": "/images/miniatures/07_cafe.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 60,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "c5218787ac76"
-  },
-  {
-   "id": "path-literal:ec0e62e6667c",
-   "type": "path-literal",
-   "title": "/images/miniatures/08_chinois.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 33,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "5014e350e49a"
-  },
-  {
-   "id": "path-literal:5ec814d7d2f8",
-   "type": "path-literal",
-   "title": "/images/miniatures/09_creole.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 43,
@@ -358712,324 +358963,12 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "42fe4fec326c"
+   "detailRef": "ae73908f554a"
   },
   {
-   "id": "path-literal:8aae1c834d17",
+   "id": "path-literal:b0c5a4c8b4da",
    "type": "path-literal",
-   "title": "/images/miniatures/10_desserts.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 59,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "66d690930da8"
-  },
-  {
-   "id": "path-literal:69de9751c9fe",
-   "type": "path-literal",
-   "title": "/images/miniatures/11_francais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 31,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "efa40499a7de"
-  },
-  {
-   "id": "path-literal:6ad53149335e",
-   "type": "path-literal",
-   "title": "/images/miniatures/12_gastronomique.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 24,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "b58dd2835480"
-  },
-  {
-   "id": "path-literal:e5e0ab4becaf",
-   "type": "path-literal",
-   "title": "/images/miniatures/13_grillades.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 47,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "f9cc2ec279cb"
-  },
-  {
-   "id": "path-literal:aaaa02255bac",
-   "type": "path-literal",
-   "title": "/images/miniatures/14_halal.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 49,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "118092f84d08"
-  },
-  {
-   "id": "path-literal:7e3108932051",
-   "type": "path-literal",
-   "title": "/images/miniatures/15_healthy.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 52,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "4d445fcf1acf"
-  },
-  {
-   "id": "path-literal:3c950d3f34dd",
-   "type": "path-literal",
-   "title": "/images/miniatures/16_indien.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 35,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "2ac0feede013"
-  },
-  {
-   "id": "path-literal:f48b905d7d98",
-   "type": "path-literal",
-   "title": "/images/miniatures/17_italien.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 25,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "5d0fe06cb5ad"
-  },
-  {
-   "id": "path-literal:ffc5da7a158d",
-   "type": "path-literal",
-   "title": "/images/miniatures/18_japonais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 30,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "f95f0e6def69"
-  },
-  {
-   "id": "path-literal:596c9de35373",
-   "type": "path-literal",
-   "title": "/images/miniatures/19_kebab.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 38,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "a6f4ade434d8"
-  },
-  {
-   "id": "path-literal:423a4a8d205e",
-   "type": "path-literal",
-   "title": "/images/miniatures/20_libanais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 36,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "46a7969221eb"
-  },
-  {
-   "id": "path-literal:6f7d75f474c4",
-   "type": "path-literal",
-   "title": "/images/miniatures/21_marocain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 40,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "afe1818c62e8"
-  },
-  {
-   "id": "path-literal:4be1a9edaa3d",
-   "type": "path-literal",
-   "title": "/images/miniatures/22_mediterranee.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 41,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "192fdf3e7634"
-  },
-  {
-   "id": "path-literal:e08c5058df0c",
-   "type": "path-literal",
-   "title": "/images/miniatures/23_mexicain.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 39,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "7ff0e5150a90"
-  },
-  {
-   "id": "path-literal:02cff0c6fe10",
-   "type": "path-literal",
-   "title": "/images/miniatures/24_pakistanais.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 48,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "d3359a13d584"
-  },
-  {
-   "id": "path-literal:163919a499a2",
-   "type": "path-literal",
-   "title": "/images/miniatures/25_pizza.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 26,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "7098c22ef803"
-  },
-  {
-   "id": "path-literal:44c46cd3ccb1",
-   "type": "path-literal",
-   "title": "/images/miniatures/26_sushi.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 27,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "dd4845c55b93"
-  },
-  {
-   "id": "path-literal:ca49da4a5163",
-   "type": "path-literal",
-   "title": "/images/miniatures/27_ramen.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 32,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "83a66b768737"
-  },
-  {
-   "id": "path-literal:324c6671937b",
-   "type": "path-literal",
-   "title": "/images/miniatures/28_thai.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 34,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "77bbac90d5e4"
-  },
-  {
-   "id": "path-literal:fa7bda03452f",
-   "type": "path-literal",
-   "title": "/images/miniatures/29_turc.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 37,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "e25cb1025e62"
-  },
-  {
-   "id": "path-literal:f588683b0f24",
-   "type": "path-literal",
-   "title": "/images/miniatures/30_salades.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 53,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "9c4193dfcdd6"
-  },
-  {
-   "id": "path-literal:0f4b70c43418",
-   "type": "path-literal",
-   "title": "/images/miniatures/31_poke.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 54,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "64ba32d8d446"
-  },
-  {
-   "id": "path-literal:41c0e826e03f",
-   "type": "path-literal",
-   "title": "/images/miniatures/32_petit-dejeuner.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 56,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "37d60b5b591f"
-  },
-  {
-   "id": "path-literal:81c4602985f2",
-   "type": "path-literal",
-   "title": "/images/miniatures/33_pates.webp",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 46,
-   "surface": null,
-   "tags": [
-    "src/components/home/CuisineCategoryStrip.tsx"
-   ],
-   "detailRef": "fe6938b0ef40"
-  },
-  {
-   "id": "path-literal:0f0c65417f30",
-   "type": "path-literal",
-   "title": "/images/miniatures/34_fondue-suisse.webp",
+   "title": "/images/miniatures/02_americain.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 45,
@@ -359037,12 +358976,25 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "3a4aa270223d"
+   "detailRef": "efe3aefcc238"
   },
   {
-   "id": "path-literal:f761213c4186",
+   "id": "path-literal:88789a8dbe71",
    "type": "path-literal",
-   "title": "/images/miniatures/35_patisserie.webp",
+   "title": "/images/miniatures/03_bistro.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 29,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "1f8d94c99940"
+  },
+  {
+   "id": "path-literal:8baa666b323b",
+   "type": "path-literal",
+   "title": "/images/miniatures/04_boulangerie.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 58,
@@ -359050,12 +359002,38 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "f516fc78cbc2"
+   "detailRef": "4c1ce5c4b4a5"
   },
   {
-   "id": "path-literal:8d48fa11df94",
+   "id": "path-literal:805b893fccac",
    "type": "path-literal",
-   "title": "/images/miniatures/36_sandwich.webp",
+   "title": "/images/miniatures/05_brunch.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 56,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "1a1b7ac676cc"
+  },
+  {
+   "id": "path-literal:8aee78724172",
+   "type": "path-literal",
+   "title": "/images/miniatures/06_burger.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "46c62136c30d"
+  },
+  {
+   "id": "path-literal:3616109e9936",
+   "type": "path-literal",
+   "title": "/images/miniatures/07_cafe.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 61,
@@ -359063,25 +359041,90 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "306c66e0a24e"
+   "detailRef": "7287609eb2bc"
   },
   {
-   "id": "path-literal:2a712941525f",
+   "id": "path-literal:78d8bf3f667f",
    "type": "path-literal",
-   "title": "/images/miniatures/37_street-food.webp",
+   "title": "/images/miniatures/08_chinois.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 62,
+   "line": 34,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "26e76442f1cb"
+   "detailRef": "e0f4ca6f4377"
   },
   {
-   "id": "path-literal:2b13621fc800",
+   "id": "path-literal:3b30c175b419",
    "type": "path-literal",
-   "title": "/images/miniatures/38_vegetarien.webp",
+   "title": "/images/miniatures/09_creole.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 44,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "db3a1bb2a385"
+  },
+  {
+   "id": "path-literal:d05470644fcb",
+   "type": "path-literal",
+   "title": "/images/miniatures/10_desserts.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 60,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "68b7d365864c"
+  },
+  {
+   "id": "path-literal:e82e34f86c57",
+   "type": "path-literal",
+   "title": "/images/miniatures/11_francais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 32,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "b806528643c7"
+  },
+  {
+   "id": "path-literal:b54a4d64a099",
+   "type": "path-literal",
+   "title": "/images/miniatures/12_gastronomique.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "e1b2841d292a"
+  },
+  {
+   "id": "path-literal:0a5b39c79845",
+   "type": "path-literal",
+   "title": "/images/miniatures/13_grillades.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 48,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "e89486f59379"
+  },
+  {
+   "id": "path-literal:4b509777a057",
+   "type": "path-literal",
+   "title": "/images/miniatures/14_halal.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 50,
@@ -359089,12 +359132,311 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "13b37953fb11"
+   "detailRef": "922d35844b74"
   },
   {
-   "id": "path-literal:2886fc87582e",
+   "id": "path-literal:a73b2b549c96",
    "type": "path-literal",
-   "title": "/images/miniatures/39_vegan.webp",
+   "title": "/images/miniatures/15_healthy.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 53,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "5af408e6803d"
+  },
+  {
+   "id": "path-literal:8729c11d688e",
+   "type": "path-literal",
+   "title": "/images/miniatures/16_indien.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "8af6ca39fa10"
+  },
+  {
+   "id": "path-literal:13eac3b1786a",
+   "type": "path-literal",
+   "title": "/images/miniatures/17_italien.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 26,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "4ab0312119f2"
+  },
+  {
+   "id": "path-literal:c172bf70021e",
+   "type": "path-literal",
+   "title": "/images/miniatures/18_japonais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "83a4f359bbce"
+  },
+  {
+   "id": "path-literal:b19926a110e8",
+   "type": "path-literal",
+   "title": "/images/miniatures/19_kebab.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "086657d4949e"
+  },
+  {
+   "id": "path-literal:c0390312a2b2",
+   "type": "path-literal",
+   "title": "/images/miniatures/20_libanais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 37,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "c43178ba6640"
+  },
+  {
+   "id": "path-literal:5aee8aee39fb",
+   "type": "path-literal",
+   "title": "/images/miniatures/21_marocain.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 41,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "d4726df8665b"
+  },
+  {
+   "id": "path-literal:b1b42311b666",
+   "type": "path-literal",
+   "title": "/images/miniatures/22_mediterranee.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 42,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "207b9bf18d16"
+  },
+  {
+   "id": "path-literal:d628734f4ebb",
+   "type": "path-literal",
+   "title": "/images/miniatures/23_mexicain.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "fec76c02e948"
+  },
+  {
+   "id": "path-literal:0a281a9d1a3d",
+   "type": "path-literal",
+   "title": "/images/miniatures/24_pakistanais.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 49,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "9ca963179ce0"
+  },
+  {
+   "id": "path-literal:7743734ac7b9",
+   "type": "path-literal",
+   "title": "/images/miniatures/25_pizza.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "4c697fa57c01"
+  },
+  {
+   "id": "path-literal:4a68202aabc2",
+   "type": "path-literal",
+   "title": "/images/miniatures/26_sushi.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "e83a7aec7009"
+  },
+  {
+   "id": "path-literal:4cb27798428f",
+   "type": "path-literal",
+   "title": "/images/miniatures/27_ramen.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "578e92889bf6"
+  },
+  {
+   "id": "path-literal:52ca72f5feea",
+   "type": "path-literal",
+   "title": "/images/miniatures/28_thai.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 35,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "d27065eeb3ab"
+  },
+  {
+   "id": "path-literal:a7e580535d90",
+   "type": "path-literal",
+   "title": "/images/miniatures/29_turc.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 38,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "f1aea41fedcd"
+  },
+  {
+   "id": "path-literal:8d1289141e53",
+   "type": "path-literal",
+   "title": "/images/miniatures/30_salades.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 54,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "c7e0d3904d27"
+  },
+  {
+   "id": "path-literal:3465ced1a4d0",
+   "type": "path-literal",
+   "title": "/images/miniatures/31_poke.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 55,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "60b2e122a00b"
+  },
+  {
+   "id": "path-literal:b941d1b95e39",
+   "type": "path-literal",
+   "title": "/images/miniatures/32_petit-dejeuner.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "54efd0266d43"
+  },
+  {
+   "id": "path-literal:fb1579074bd2",
+   "type": "path-literal",
+   "title": "/images/miniatures/33_pates.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 47,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "0e0cc6ed6d52"
+  },
+  {
+   "id": "path-literal:8ca1ddf6fcec",
+   "type": "path-literal",
+   "title": "/images/miniatures/34_fondue-suisse.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 46,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "bdd91d52474d"
+  },
+  {
+   "id": "path-literal:3c4434b34d0c",
+   "type": "path-literal",
+   "title": "/images/miniatures/35_patisserie.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 59,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "592b7ae8ad83"
+  },
+  {
+   "id": "path-literal:46b0f81b9820",
+   "type": "path-literal",
+   "title": "/images/miniatures/36_sandwich.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 62,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "a230221073bd"
+  },
+  {
+   "id": "path-literal:5dbd659e6daa",
+   "type": "path-literal",
+   "title": "/images/miniatures/37_street-food.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 63,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "330073410e59"
+  },
+  {
+   "id": "path-literal:a0aeaedb7a17",
+   "type": "path-literal",
+   "title": "/images/miniatures/38_vegetarien.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
    "line": 51,
@@ -359102,7 +359444,20 @@
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx"
    ],
-   "detailRef": "f18dd34f6681"
+   "detailRef": "90cf0bd5ed15"
+  },
+  {
+   "id": "path-literal:997438b8b1dd",
+   "type": "path-literal",
+   "title": "/images/miniatures/39_vegan.webp",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/components/home/CuisineCategoryStrip.tsx",
+   "line": 52,
+   "surface": null,
+   "tags": [
+    "src/components/home/CuisineCategoryStrip.tsx"
+   ],
+   "detailRef": "991446517d74"
   },
   {
    "id": "path-literal:7005454c2cb8",
@@ -359418,36 +359773,24 @@
    "detailRef": "7ef2b2d0761c"
   },
   {
-   "id": "path-literal:ffe762185dc2",
+   "id": "path-literal:c82e6738366d",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-cuisine-full.jpg",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/home-section-showcase-header.test.tsx",
-   "line": 64,
-   "surface": null,
-   "tags": [
-    "src/test/home-section-showcase-header.test.tsx"
-   ],
-   "detailRef": "525f61796d27"
-  },
-  {
-   "id": "path-literal:da043ac98552",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-cuisine.jpg",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "title": "/images/section-headers/tok-editorial-cuisine-full.webp",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/home/CuisineCategoryStrip.tsx",
-   "line": 120,
+   "line": 121,
    "surface": null,
    "tags": [
     "src/components/home/CuisineCategoryStrip.tsx",
-    "src/test/home-core-web-vitals.test.ts"
+    "src/test/home-core-web-vitals.test.ts",
+    "src/test/home-section-showcase-header.test.tsx"
    ],
-   "detailRef": "07941b6542d3"
+   "detailRef": "947411338df3"
   },
   {
-   "id": "path-literal:a02571499e6c",
+   "id": "path-literal:05dd090948d0",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-delivery-full.jpg",
+   "title": "/images/section-headers/tok-editorial-delivery-full.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 63,
@@ -359455,12 +359798,12 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "36262e636723"
+   "detailRef": "be966a5965dd"
   },
   {
-   "id": "path-literal:93a4663a2263",
+   "id": "path-literal:8aabf301741b",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-evening-full.jpg",
+   "title": "/images/section-headers/tok-editorial-evening-full.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 64,
@@ -359468,12 +359811,12 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "25e596b56d36"
+   "detailRef": "e89034144f0f"
   },
   {
-   "id": "path-literal:a96088d8cd54",
+   "id": "path-literal:da74fefbacac",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-feast-full.jpg",
+   "title": "/images/section-headers/tok-editorial-feast-full.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 60,
@@ -359481,12 +359824,12 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "efa0e0ad14db"
+   "detailRef": "bdb17437e0e3"
   },
   {
-   "id": "path-literal:b835668cf73f",
+   "id": "path-literal:2b09a49f0bd0",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
+   "title": "/images/section-headers/tok-editorial-gastronomy-full.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 62,
@@ -359494,38 +359837,26 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "b4d2e3f78dbb"
+   "detailRef": "12574020f1ce"
   },
   {
-   "id": "path-literal:e17d513c27f1",
+   "id": "path-literal:0d1deb1b2ba2",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-geneva-full.jpg",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/home-section-showcase-header.test.tsx",
-   "line": 33,
-   "surface": null,
-   "tags": [
-    "src/test/home-section-showcase-header.test.tsx"
-   ],
-   "detailRef": "22f659b42c38"
-  },
-  {
-   "id": "path-literal:637e9f5adfca",
-   "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-geneva.jpg",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "title": "/images/section-headers/tok-editorial-geneva-full.webp",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 59,
    "surface": null,
    "tags": [
-    "src/pages/Index.tsx"
+    "src/pages/Index.tsx",
+    "src/test/home-section-showcase-header.test.tsx"
    ],
-   "detailRef": "db31f3ad4037"
+   "detailRef": "dd2aa4358c5c"
   },
   {
-   "id": "path-literal:ca0c1bfd1024",
+   "id": "path-literal:4d13d6c7b637",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-reservation-full.jpg",
+   "title": "/images/section-headers/tok-editorial-reservation-full.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 61,
@@ -359533,12 +359864,12 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "6a0b87b931ee"
+   "detailRef": "78a01dac3da0"
   },
   {
-   "id": "path-literal:c9e3567bc1dd",
+   "id": "path-literal:5ae8d76421f4",
    "type": "path-literal",
-   "title": "/images/section-headers/tok-editorial-rewards-full.jpg",
+   "title": "/images/section-headers/tok-editorial-rewards-full.webp",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/Index.tsx",
    "line": 58,
@@ -359546,7 +359877,7 @@
    "tags": [
     "src/pages/Index.tsx"
    ],
-   "detailRef": "d38e71967b1c"
+   "detailRef": "43af5e507bd2"
   },
   {
    "id": "path-literal:71dec4dbed86",
@@ -361323,17 +361654,17 @@
    "detailRef": "cb0c29ac2ec8"
   },
   {
-   "id": "path-literal:d7c280b702d4",
+   "id": "path-literal:3cdb1be7f302",
    "type": "path-literal",
    "title": "/recherche?q=francais",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/home-cuisine-accessibility.test.tsx",
-   "line": 41,
+   "line": 53,
    "surface": null,
    "tags": [
     "src/test/home-cuisine-accessibility.test.tsx"
    ],
-   "detailRef": "44e8d3c4c35f"
+   "detailRef": "61bcb814e689"
   },
   {
    "id": "path-literal:aa078f0211e2",
@@ -361417,7 +361748,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "c7e8c04e7af9"
+   "detailRef": "3b84139476d7"
   },
   {
    "id": "path-literal:0af02260597a",
@@ -369516,6 +369847,20 @@
    "detailRef": "75f8819703b2"
   },
   {
+   "id": "public-asset:1344327b69cf",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-cuisine-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-cuisine-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "aba8b71ac6f1"
+  },
+  {
    "id": "public-asset:b7e68337a3e6",
    "type": "public-asset",
    "title": "/images/section-headers/tok-editorial-cuisine.jpg",
@@ -369544,6 +369889,20 @@
    "detailRef": "e459de3d8a04"
   },
   {
+   "id": "public-asset:5df2e294c813",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-delivery-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-delivery-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "1e3e1d97eac5"
+  },
+  {
    "id": "public-asset:dd0737cb9302",
    "type": "public-asset",
    "title": "/images/section-headers/tok-editorial-evening-full.jpg",
@@ -369556,6 +369915,20 @@
     "public"
    ],
    "detailRef": "41eec968140d"
+  },
+  {
+   "id": "public-asset:7f2fbcc9cdf3",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-evening-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-evening-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "a2827e3bbc7a"
   },
   {
    "id": "public-asset:554b4b15aeb3",
@@ -369572,6 +369945,20 @@
    "detailRef": "98f1e74b3467"
   },
   {
+   "id": "public-asset:92dc42a89341",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-feast-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-feast-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "8f35689eb216"
+  },
+  {
    "id": "public-asset:8bc063e48cdb",
    "type": "public-asset",
    "title": "/images/section-headers/tok-editorial-gastronomy-full.jpg",
@@ -369586,6 +369973,20 @@
    "detailRef": "9c13f52f9325"
   },
   {
+   "id": "public-asset:b9a37e625819",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-gastronomy-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-gastronomy-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "78d37454d5a9"
+  },
+  {
    "id": "public-asset:59910f1cf7dc",
    "type": "public-asset",
    "title": "/images/section-headers/tok-editorial-geneva-full.jpg",
@@ -369598,6 +369999,20 @@
     "public"
    ],
    "detailRef": "e9b43e1d2c88"
+  },
+  {
+   "id": "public-asset:7b2a38d1d75e",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-geneva-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-geneva-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "77551c3704ef"
   },
   {
    "id": "public-asset:f2ab9d03ff4d",
@@ -369628,6 +370043,20 @@
    "detailRef": "0f621e866916"
   },
   {
+   "id": "public-asset:b887dfdbec09",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-reservation-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-reservation-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "fccaec7b480d"
+  },
+  {
    "id": "public-asset:126dfb144577",
    "type": "public-asset",
    "title": "/images/section-headers/tok-editorial-rewards-full.jpg",
@@ -369640,6 +370069,20 @@
     "public"
    ],
    "detailRef": "c292ee6b5e90"
+  },
+  {
+   "id": "public-asset:7079b830a4a4",
+   "type": "public-asset",
+   "title": "/images/section-headers/tok-editorial-rewards-full.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/section-headers/tok-editorial-rewards-full.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "43ad339f704f"
   },
   {
    "id": "public-asset:8dbabf10713c",
@@ -370944,6 +371387,104 @@
    "detailRef": "b6e88c398ded"
   },
   {
+   "id": "public-asset:b942137d1080",
+   "type": "public-asset",
+   "title": "/miniatures-3d/africain.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/africain.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "8d980e4dc6b9"
+  },
+  {
+   "id": "public-asset:35ed5efcac86",
+   "type": "public-asset",
+   "title": "/miniatures-3d/americain.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/americain.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "170b1a66c1ea"
+  },
+  {
+   "id": "public-asset:b8de00c4fb00",
+   "type": "public-asset",
+   "title": "/miniatures-3d/bistro.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/bistro.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "6a7b60acf8b5"
+  },
+  {
+   "id": "public-asset:1a8ecb80067b",
+   "type": "public-asset",
+   "title": "/miniatures-3d/boulangerie.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/boulangerie.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "60fa5109979c"
+  },
+  {
+   "id": "public-asset:bc43773cba23",
+   "type": "public-asset",
+   "title": "/miniatures-3d/brunch.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/brunch.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "2e45446ad9b5"
+  },
+  {
+   "id": "public-asset:9fa7ea0e253a",
+   "type": "public-asset",
+   "title": "/miniatures-3d/burger.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/burger.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "c2cc3bd052b3"
+  },
+  {
+   "id": "public-asset:463541b3c436",
+   "type": "public-asset",
+   "title": "/miniatures-3d/cafe.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/cafe.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "6a9bee666874"
+  },
+  {
    "id": "public-asset:7f96bc8b7e3e",
    "type": "public-asset",
    "title": "/miniatures-3d/chinois.webp",
@@ -370970,6 +371511,20 @@
     "public"
    ],
    "detailRef": "30dda03473c7"
+  },
+  {
+   "id": "public-asset:6c24d7c8a8be",
+   "type": "public-asset",
+   "title": "/miniatures-3d/desserts.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/desserts.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "09b8a9a83350"
   },
   {
    "id": "public-asset:96fa98a5812b",
@@ -371068,6 +371623,20 @@
     "public"
    ],
    "detailRef": "a21c2d749391"
+  },
+  {
+   "id": "public-asset:e7b6bd895454",
+   "type": "public-asset",
+   "title": "/miniatures-3d/italien.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/miniatures-3d/italien.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "c1d3e990564a"
   },
   {
    "id": "public-asset:6961f6a82a21",
@@ -373057,7 +373626,7 @@
     "src/pages/Reservations.tsx",
     "src/pages/dashboard/DashboardReservations.tsx"
    ],
-   "detailRef": "145eb51a37ea"
+   "detailRef": "803d76dcf3c1"
   },
   {
    "id": "query-parameter:16eb7241db4b",
@@ -373412,32 +373981,32 @@
    "detailRef": "674f3f6850d6"
   },
   {
-   "id": "query-parameter:8324a1db3934",
+   "id": "query-parameter:e08518f4679d",
    "type": "query-parameter",
    "title": "utm_medium",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/components/ReservationDialog.tsx",
-   "line": 664,
+   "line": 653,
    "surface": null,
    "tags": [
     "src/components/ReservationDialog.tsx",
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "bf39b1039cbd"
+   "detailRef": "bb28e986a7c8"
   },
   {
-   "id": "query-parameter:a26f1be3683d",
+   "id": "query-parameter:2f51e8400107",
    "type": "query-parameter",
    "title": "utm_source",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/components/ReservationDialog.tsx",
-   "line": 660,
+   "line": 649,
    "surface": null,
    "tags": [
     "src/components/ReservationDialog.tsx",
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "3b84da303304"
+   "detailRef": "3f70880c100c"
   },
   {
    "id": "query-parameter:e98354609202",

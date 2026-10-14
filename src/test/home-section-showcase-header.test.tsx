@@ -14,12 +14,12 @@ describe("TOK homepage editorial headers", () => {
     expect(css).not.toContain("backdrop-filter");
     expect(css).not.toContain("grid-template-rows: auto auto");
     expect(css).toContain("position: absolute;");
-    expect(css).toContain("object-fit: cover");
+    expect(css).toContain("object-fit: contain");
     expect(css).toContain("min-height: 0;");
     expect(css).not.toMatch(/min-height:\s*clamp\(/);
-    expect(css).not.toContain("aspect-ratio: 4 / 1");
+    expect(css).toContain("aspect-ratio: 4 / 1");
     expect(css).toContain("z-index: 1;");
-    expect(css).toContain("flex-basis: 65%");
+    expect(css).toContain("flex-basis: 60%");
   });
 
   it("keeps the photograph decorative and the location heading accessible", () => {
@@ -30,7 +30,7 @@ describe("TOK homepage editorial headers", () => {
           subtitle="Votre position actuelle"
           description="Découvrez les meilleures tables autour de vous."
           icon={MapPinned}
-          imageSrc="/images/section-headers/tok-editorial-geneva-full.jpg"
+          imageSrc="/images/section-headers/tok-editorial-geneva-full.webp"
           theme="sky"
           linkText="Explorer autour de vous"
           linkTo="/recherche"
@@ -47,7 +47,7 @@ describe("TOK homepage editorial headers", () => {
     expect(header).toHaveAttribute("data-theme", "sky");
     expect(header).toHaveAttribute("data-image-kind", "photo");
     expect(photo).not.toHaveAttribute("src");
-    expect(photo).toHaveAttribute("data-deferred-src", "/images/section-headers/tok-editorial-geneva-full.jpg");
+    expect(photo).toHaveAttribute("data-deferred-src", "/images/section-headers/tok-editorial-geneva-full.webp");
     expect(photo).toHaveAttribute("alt", "");
     expect(photo).toHaveAttribute("loading", "lazy");
     expect(photo?.parentElement).toHaveAttribute("aria-hidden", "true");
@@ -61,7 +61,7 @@ describe("TOK homepage editorial headers", () => {
           title="Explorez par cuisine"
           subtitle="À votre goût"
           icon={Utensils}
-          imageSrc="/images/section-headers/tok-editorial-cuisine-full.jpg"
+          imageSrc="/images/section-headers/tok-editorial-cuisine-full.webp"
           actions={<button type="button">Cuisine suivante</button>}
         />
       </MemoryRouter>,
