@@ -29,6 +29,7 @@ describe("restaurant AI credits before subscription activation", () => {
     expect(migration).toContain("date_trunc('week', p_anchor AT TIME ZONE 'Europe/Zurich')");
     expect(migration).toContain("date_trunc('week', v_event.occurred_at AT TIME ZONE 'Europe/Zurich')");
     expect(migration).toContain("v_free_remaining := v_free_limit;");
+    expect(migration).toContain("clock_timestamp()");
     expect(migration).toContain("'trial_reset_timezone', 'Europe/Zurich'");
     expect(migration).toContain("'trial_reset_at', v_week_end");
     expect(migration).toContain("'trial_weekly_remaining'");
