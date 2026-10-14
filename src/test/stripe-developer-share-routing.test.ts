@@ -106,7 +106,7 @@ describe("Stripe developer revenue-share routing", () => {
   ])(
     "attribue la bonne part au developpeur pour %s",
     (source, grossCents, expectedTokCents, expectedDeveloperCents, expectedVatCents) => {
-      expect(splitTaxInclusiveTokRevenue(grossCents, 1000, 810, source.startsWith("abonnement"))).toEqual({
+      expect(splitTaxInclusiveTokRevenue(grossCents, 1000, 810, String(source).startsWith("abonnement"))).toEqual({
         tokCents: expectedTokCents,
         developerCents: expectedDeveloperCents,
         vatCents: expectedVatCents,
