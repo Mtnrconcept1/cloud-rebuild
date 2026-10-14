@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "f2925bef97b6fde581fd3fa491f80bd2262fb670e993a506d049ed514afc0844",
+ "sourceDigest": "06929d766f1de468c9782463d0d04cb321d29162f8598e4dade91cc88bab7506",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -17,7 +17,7 @@
   "frontendRoutes": 137,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 535,
+  "migrations": 536,
   "modules": 1547,
   "pages": 129,
   "pathLiterals": 697,
@@ -25,8 +25,8 @@
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16560,
-  "repositoryFiles": 3080,
+  "records": 16562,
+  "repositoryFiles": 3081,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -35893,6 +35893,12 @@
     "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
     "lineCount": 549,
     "objectCount": 16
+   },
+   {
+    "name": "20261014072000 Developer Subscription Gross Share Before Vat",
+    "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+    "lineCount": 769,
+    "objectCount": 1
    }
   ],
   "databaseObjects": [
@@ -42733,6 +42739,10 @@
      {
       "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
       "line": 3500
+     },
+     {
+      "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+      "line": 7
      }
     ]
    },
@@ -108476,7 +108486,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 214
+    "lineCount": 231
    },
    {
     "path": "src/test/stripe-paid-invoice-payment.test.ts",
@@ -129398,6 +129408,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/actualites_billing_identity_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -149119,7 +149134,7 @@
    "id": "code-module:55fb3709c695",
    "type": "code-module",
    "title": "src/test/stripe-developer-share-routing.test.ts",
-   "description": "Module de 214 lignes; exports: aucun export statique.",
+   "description": "Module de 231 lignes; exports: aucun export statique.",
    "path": "src/test/stripe-developer-share-routing.test.ts",
    "line": 1,
    "surface": null,
@@ -149127,7 +149142,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "c751951f619c"
+   "detailRef": "067ad459e477"
   },
   {
    "id": "code-module:0dc2b193d130",
@@ -184298,19 +184313,19 @@
    "detailRef": "78e39e6a8964"
   },
   {
-   "id": "database-object:f842d51ff0a3",
+   "id": "database-object:61a3e78a1030",
    "type": "database-object",
    "title": "public.record_marketplace_checkout_ledger",
-   "description": "Objet PostgreSQL de type function; 4 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
-   "line": 3500,
+   "description": "Objet PostgreSQL de type function; 5 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+   "line": 7,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "0278c791d160"
+   "detailRef": "41c4dfe0e861"
   },
   {
    "id": "database-object:3fb7cb3fa48e",
@@ -332592,6 +332607,20 @@
    "detailRef": "50ae2d603b54"
   },
   {
+   "id": "file:af64a52edbd6",
+   "type": "file",
+   "title": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "dad2d3c1c8b9"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -345416,6 +345445,20 @@
     "supabase"
    ],
    "detailRef": "b98150b2ca16"
+  },
+  {
+   "id": "migration:cd56f65c544a",
+   "type": "migration",
+   "title": "20261014072000 Developer Subscription Gross Share Before Vat",
+   "description": "Migration SQL de 769 lignes, 1 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "91b7e07366ee"
   },
   {
    "id": "package-script:5bd6dc98483a",
