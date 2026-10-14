@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "80e3ee38f30ec134e028dea9ffe0c7d74f8b649ddf8e38136966458adda72bf3",
+ "sourceDigest": "06929d766f1de468c9782463d0d04cb321d29162f8598e4dade91cc88bab7506",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2781,
+  "databaseObjects": 2774,
   "documents": 203,
-  "edgeFunctions": 116,
+  "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3520,
+  "exportedSymbols": 3517,
   "featureFlags": 99,
   "frontendRoutes": 137,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 536,
-  "modules": 1552,
+  "modules": 1547,
   "pages": 129,
   "pathLiterals": 697,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16587,
-  "repositoryFiles": 3086,
+  "records": 16562,
+  "repositoryFiles": 3081,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -4290,7 +4290,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 35,
+      "line": 32,
       "kind": "function"
      }
     ],
@@ -4945,7 +4945,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 1514,
+      "line": 1513,
       "kind": "function"
      }
     ],
@@ -7355,7 +7355,7 @@
     "endpoint": "/functions/v1/apple-storekit-webhook",
     "path": "supabase/functions/apple-storekit-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 278,
+    "configLine": 275,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -7483,7 +7483,7 @@
     "endpoint": "/functions/v1/cloudprinter-webhook",
     "path": "supabase/functions/cloudprinter-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 290,
+    "configLine": 287,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8109,30 +8109,6 @@
     "sourcePresent": true
    },
    {
-    "name": "golden-tok-membership",
-    "endpoint": "/functions/v1/golden-tok-membership",
-    "path": "supabase/functions/golden-tok-membership/index.ts",
-    "configPath": "supabase/config.toml",
-    "configLine": 215,
-    "verifyJwt": false,
-    "methods": [
-     "POST"
-    ],
-    "actions": [
-     "cancel",
-     "resume",
-     "string"
-    ],
-    "environmentNames": [
-     "GOLDEN_TOK_STRIPE_PRICE_ID"
-    ],
-    "integrations": [
-     "stripe"
-    ],
-    "configured": true,
-    "sourcePresent": true
-   },
-   {
     "name": "google-actions-center",
     "endpoint": "/functions/v1/google-actions-center",
     "path": "supabase/functions/google-actions-center/index.ts",
@@ -8229,7 +8205,7 @@
     "endpoint": "/functions/v1/marketing-orchestrator",
     "path": "supabase/functions/marketing-orchestrator/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 281,
+    "configLine": 278,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8256,7 +8232,7 @@
     "endpoint": "/functions/v1/marketing-provider-webhook",
     "path": "supabase/functions/marketing-provider-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 284,
+    "configLine": 281,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8272,7 +8248,7 @@
     "endpoint": "/functions/v1/marketing-unsubscribe",
     "path": "supabase/functions/marketing-unsubscribe/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 287,
+    "configLine": 284,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -8289,7 +8265,7 @@
     "endpoint": "/functions/v1/menu-image-import",
     "path": "supabase/functions/menu-image-import/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 218,
+    "configLine": 215,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8386,7 +8362,7 @@
     "endpoint": "/functions/v1/print-admin",
     "path": "supabase/functions/print-admin/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 293,
+    "configLine": 290,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8412,7 +8388,7 @@
     "endpoint": "/functions/v1/print-catalog",
     "path": "supabase/functions/print-catalog/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 296,
+    "configLine": 293,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8436,7 +8412,7 @@
     "endpoint": "/functions/v1/print-checkout",
     "path": "supabase/functions/print-checkout/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 299,
+    "configLine": 296,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8459,7 +8435,7 @@
     "endpoint": "/functions/v1/print-export",
     "path": "supabase/functions/print-export/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 305,
+    "configLine": 302,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8477,7 +8453,7 @@
     "endpoint": "/functions/v1/print-orchestrator",
     "path": "supabase/functions/print-orchestrator/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 308,
+    "configLine": 305,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8500,7 +8476,7 @@
     "endpoint": "/functions/v1/print-order-action",
     "path": "supabase/functions/print-order-action/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 311,
+    "configLine": 308,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8523,7 +8499,7 @@
     "endpoint": "/functions/v1/print-quote",
     "path": "supabase/functions/print-quote/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 314,
+    "configLine": 311,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8539,7 +8515,7 @@
     "endpoint": "/functions/v1/print-reconcile",
     "path": "supabase/functions/print-reconcile/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 317,
+    "configLine": 314,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8555,7 +8531,7 @@
     "endpoint": "/functions/v1/print-sandbox-complete",
     "path": "supabase/functions/print-sandbox-complete/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 302,
+    "configLine": 299,
     "verifyJwt": false,
     "methods": [
      "GET"
@@ -8636,7 +8612,7 @@
     "endpoint": "/functions/v1/provision-commercial-demo-logins",
     "path": "supabase/functions/provision-commercial-demo-logins/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 357,
+    "configLine": 354,
     "verifyJwt": true,
     "methods": [
      "OPTIONS"
@@ -8678,7 +8654,7 @@
     "endpoint": "/functions/v1/reconcile-match-group-authorizations",
     "path": "supabase/functions/reconcile-match-group-authorizations/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 221,
+    "configLine": 218,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8696,7 +8672,7 @@
     "endpoint": "/functions/v1/reconcile-paid-order-checkouts",
     "path": "supabase/functions/reconcile-paid-order-checkouts/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 224,
+    "configLine": 221,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8714,7 +8690,7 @@
     "endpoint": "/functions/v1/restaurant-advisor",
     "path": "supabase/functions/restaurant-advisor/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 227,
+    "configLine": 224,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8733,7 +8709,7 @@
     "endpoint": "/functions/v1/restaurant-media-governance",
     "path": "supabase/functions/restaurant-media-governance/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 233,
+    "configLine": 230,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8754,7 +8730,7 @@
     "endpoint": "/functions/v1/restaurant-order-status",
     "path": "supabase/functions/restaurant-order-status/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 230,
+    "configLine": 227,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8770,7 +8746,7 @@
     "endpoint": "/functions/v1/scrape-restaurants",
     "path": "supabase/functions/scrape-restaurants/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 236,
+    "configLine": 233,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8790,7 +8766,7 @@
     "endpoint": "/functions/v1/send-email",
     "path": "supabase/functions/send-email/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 239,
+    "configLine": 236,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8817,7 +8793,7 @@
     "endpoint": "/functions/v1/send-push",
     "path": "supabase/functions/send-push/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 242,
+    "configLine": 239,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8840,7 +8816,7 @@
     "endpoint": "/functions/v1/settle-developer-statement",
     "path": "supabase/functions/settle-developer-statement/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 260,
+    "configLine": 257,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8858,7 +8834,7 @@
     "endpoint": "/functions/v1/stripe-connect-onboard",
     "path": "supabase/functions/stripe-connect-onboard/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 245,
+    "configLine": 242,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8876,7 +8852,7 @@
     "endpoint": "/functions/v1/stripe-connect-status",
     "path": "supabase/functions/stripe-connect-status/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 248,
+    "configLine": 245,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8913,7 +8889,7 @@
     "endpoint": "/functions/v1/stripe-subscription-reconcile",
     "path": "supabase/functions/stripe-subscription-reconcile/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 257,
+    "configLine": 254,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8932,7 +8908,7 @@
     "endpoint": "/functions/v1/stripe-webhook",
     "path": "supabase/functions/stripe-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 251,
+    "configLine": 248,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8951,7 +8927,7 @@
     "endpoint": "/functions/v1/stripe-worker",
     "path": "supabase/functions/stripe-worker/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 254,
+    "configLine": 251,
     "verifyJwt": false,
     "methods": [
      "OPTIONS",
@@ -8973,7 +8949,7 @@
     "endpoint": "/functions/v1/submit-signup-application",
     "path": "supabase/functions/submit-signup-application/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 272,
+    "configLine": 269,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8989,7 +8965,7 @@
     "endpoint": "/functions/v1/sync-apple-storekit",
     "path": "supabase/functions/sync-apple-storekit/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 275,
+    "configLine": 272,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9005,7 +8981,7 @@
     "endpoint": "/functions/v1/tok-connect-admin",
     "path": "supabase/functions/tok-connect-admin/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 335,
+    "configLine": 332,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9027,7 +9003,7 @@
     "endpoint": "/functions/v1/tok-connect-api",
     "path": "supabase/functions/tok-connect-api/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 323,
+    "configLine": 320,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9044,7 +9020,7 @@
     "endpoint": "/functions/v1/tok-connect-app-bridge",
     "path": "supabase/functions/tok-connect-app-bridge/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 341,
+    "configLine": 338,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9073,7 +9049,7 @@
     "endpoint": "/functions/v1/tok-connect-chatgpt",
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 344,
+    "configLine": 341,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9098,7 +9074,7 @@
     "endpoint": "/functions/v1/tok-connect-commercial-bridge",
     "path": "supabase/functions/tok-connect-commercial-bridge/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 347,
+    "configLine": 344,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9125,7 +9101,7 @@
     "endpoint": "/functions/v1/tok-connect-full-app-mcp",
     "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 329,
+    "configLine": 326,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9150,7 +9126,7 @@
     "endpoint": "/functions/v1/tok-connect-mcp",
     "path": "supabase/functions/tok-connect-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 326,
+    "configLine": 323,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9175,7 +9151,7 @@
     "endpoint": "/functions/v1/tok-connect-oauth",
     "path": "supabase/functions/tok-connect-oauth/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 320,
+    "configLine": 317,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9196,7 +9172,7 @@
     "endpoint": "/functions/v1/tok-connect-portal",
     "path": "supabase/functions/tok-connect-portal/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 332,
+    "configLine": 329,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9232,7 +9208,7 @@
     "endpoint": "/functions/v1/tok-connect-remote-mcp",
     "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 350,
+    "configLine": 347,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9256,7 +9232,7 @@
     "endpoint": "/functions/v1/tok-connect-webhook-dispatch",
     "path": "supabase/functions/tok-connect-webhook-dispatch/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 338,
+    "configLine": 335,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9274,7 +9250,7 @@
     "endpoint": "/functions/v1/tok-pulse-widget",
     "path": "supabase/functions/tok-pulse-widget/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 353,
+    "configLine": 350,
     "verifyJwt": false,
     "methods": [
      "GET"
@@ -9295,7 +9271,7 @@
     "endpoint": "/functions/v1/track-analytics",
     "path": "supabase/functions/track-analytics/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 263,
+    "configLine": 260,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9317,7 +9293,7 @@
     "endpoint": "/functions/v1/track-sponsored-event",
     "path": "supabase/functions/track-sponsored-event/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 266,
+    "configLine": 263,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9339,7 +9315,7 @@
     "endpoint": "/functions/v1/validate-order",
     "path": "supabase/functions/validate-order/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 269,
+    "configLine": 266,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -14305,7 +14281,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 74
+      "line": 73
      },
      {
       "path": "src/test/mobile-association-hosting.test.ts",
@@ -15796,7 +15772,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 162
+      "line": 161
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -16541,7 +16517,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 70
+      "line": 69
      }
     ]
    },
@@ -16664,7 +16640,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 136
+      "line": 135
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
@@ -18515,7 +18491,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 96
+      "line": 95
      }
     ]
    },
@@ -19703,7 +19679,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2118
+      "line": 2028
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -19951,7 +19927,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1760
+      "line": 1670
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -20584,11 +20560,11 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1884
+      "line": 1794
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2257
+      "line": 2167
      }
     ]
    },
@@ -20700,7 +20676,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2398
+      "line": 2308
      }
     ]
    },
@@ -21937,7 +21913,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 77
+      "line": 76
      },
      {
       "path": "workers/image-ai-worker/index.js",
@@ -24644,7 +24620,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 69
+      "line": 68
      },
      {
       "path": "src/test/feature-flags.test.ts",
@@ -25196,7 +25172,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 101
+      "line": 100
      }
     ]
    },
@@ -25448,7 +25424,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2868
+      "line": 2778
      }
     ]
    },
@@ -26213,7 +26189,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 77
+      "line": 76
      },
      {
       "path": "src/test/image-metadata-ai.test.ts",
@@ -29019,7 +28995,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 80
+      "line": 79
      },
      {
       "path": "src/test/tok-connect-edge-functions.test.ts",
@@ -29140,7 +29116,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 85
+      "line": 84
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -29170,11 +29146,11 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 172
+      "line": 171
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 177
+      "line": 176
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -31702,7 +31678,6 @@
      "src/components/commercial/CommercialDemoActorWorkspace.tsx",
      "src/components/commercial/CommercialMultiSpaceDemo.tsx",
      "src/components/dashboard/CommercialDemoScenario.tsx",
-     "src/components/dashboard/GoldenTokPanel.tsx",
      "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
      "src/data/userGuideFeatureDetails.ts",
      "src/hooks/useAdminLaunchPacks.ts",
@@ -31796,7 +31771,6 @@
      "src/test/feature-flags.test.ts",
      "src/test/financial-health.test.ts",
      "src/test/git-auto-sync-scripts.test.ts",
-     "src/test/golden-tok-accreditation.test.ts",
      "src/test/incident-intelligence-routing.test.ts",
      "src/test/ios-commerce-policy.test.ts",
      "src/test/ios-storekit-subscription-management.test.ts",
@@ -31886,7 +31860,6 @@
      "supabase/functions/create-chefs-table-reservation/index.ts",
      "supabase/functions/create-reservation/index.ts",
      "supabase/functions/create-zero-attente-reservation/index.ts",
-     "supabase/functions/golden-tok-membership/index.ts",
      "supabase/functions/google-actions-center/index.ts",
      "supabase/functions/manage-restaurant-subscription/index.ts",
      "supabase/functions/manage-tok-one-subscription/index.ts",
@@ -31991,8 +31964,6 @@
      "src/components/admin/AdminMobileNavigation.tsx",
      "src/components/admin/AdminRealRestaurantAssignment.tsx",
      "src/components/admin/AdminUrgentActions.tsx",
-     "src/components/admin/GoldenTokReviewPanel.tsx",
-     "src/components/admin/RestaurantSearchSelect.tsx",
      "src/components/auth/AccountPasswordForm.tsx",
      "src/components/campaigns/CampaignInternalTestSummary.tsx",
      "src/components/cart/CartSuggestionsStep.tsx",
@@ -32005,7 +31976,6 @@
      "src/components/dashboard/AiStyleReferencePicker.tsx",
      "src/components/dashboard/DailyDishAiPanel.tsx",
      "src/components/dashboard/DirectReservationChannelsCard.tsx",
-     "src/components/dashboard/GoldenTokPanel.tsx",
      "src/components/dashboard/TokAiMarketingStudio.tsx",
      "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
      "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
@@ -32313,7 +32283,6 @@
      "src/test/generate-campaign-ai-optimization.test.ts",
      "src/test/generate-campaign-copy.test.ts",
      "src/test/git-auto-sync-scripts.test.ts",
-     "src/test/golden-tok-accreditation.test.ts",
      "src/test/google-actions-center-outbox.test.ts",
      "src/test/google-actions-center-readiness.test.ts",
      "src/test/google-business-booking-phase1.test.ts",
@@ -35926,10 +35895,10 @@
     "objectCount": 16
    },
    {
-    "name": "20261014030000 Golden Tok Accreditations",
-    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-    "lineCount": 286,
-    "objectCount": 8
+    "name": "20261014072000 Developer Subscription Gross Share Before Vat",
+    "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+    "lineCount": 769,
+    "objectCount": 1
    }
   ],
   "databaseObjects": [
@@ -37433,16 +37402,6 @@
    },
    {
     "type": "function",
-    "name": "public.admin_review_golden_tok_accreditation",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 90
-     }
-    ]
-   },
-   {
-    "type": "function",
     "name": "public.admin_review_signup_application",
     "sources": [
      {
@@ -37980,16 +37939,6 @@
      {
       "path": "supabase/migrations/20260423232011_fix_apply_checkout_benefits_redeem_conflict.sql",
       "line": 1
-     }
-    ]
-   },
-   {
-    "type": "function",
-    "name": "public.apply_golden_tok_accreditation",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 41
      }
     ]
    },
@@ -41077,16 +41026,6 @@
    },
    {
     "type": "function",
-    "name": "public.golden_tok_restaurant_is_paid",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 137
-     }
-    ]
-   },
-   {
-    "type": "function",
     "name": "public.guard_ad_campaign_client_write",
     "sources": [
      {
@@ -42800,6 +42739,10 @@
      {
       "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
       "line": 3500
+     },
+     {
+      "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+      "line": 7
      }
     ]
    },
@@ -43574,16 +43517,6 @@
      {
       "path": "supabase/migrations/20260715031622_floor_plan_v2_reliability.sql",
       "line": 33
-     }
-    ]
-   },
-   {
-    "type": "function",
-    "name": "public.restaurant_save_golden_tok_drop",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 172
      }
     ]
    },
@@ -46074,16 +46007,6 @@
      {
       "path": "supabase/migrations/20260712061702_harden_client_dashboard_boundaries.sql",
       "line": 197
-     }
-    ]
-   },
-   {
-    "type": "index",
-    "name": "golden_tok_accreditations_review_idx",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 28
      }
     ]
    },
@@ -53526,10 +53449,6 @@
      {
       "path": "supabase/migrations/20260604023000_admin_chef_table_drop_governance.sql",
       "line": 15
-     },
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 158
      }
     ]
    },
@@ -55150,16 +55069,6 @@
      {
       "path": "supabase/migrations/20260308175103_dfc099a3-6826-4a75-a155-f32e3c7036e1.sql",
       "line": 124
-     }
-    ]
-   },
-   {
-    "type": "policy",
-    "name": "public.golden_tok_accreditations.golden_tok_accreditations_owner_or_admin_read",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 37
      }
     ]
    },
@@ -61568,16 +61477,6 @@
      {
       "path": "supabase/migrations/20260308175015_d089cd3a-79e4-45da-9a43-db36386961b3.sql",
       "line": 22
-     }
-    ]
-   },
-   {
-    "type": "table",
-    "name": "public.golden_tok_accreditations",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 3
      }
     ]
    },
@@ -85392,36 +85291,6 @@
     "lineCount": 477
    },
    {
-    "path": "src/components/admin/GoldenTokReviewPanel.tsx",
-    "exports": [
-     {
-      "name": "default",
-      "line": 17,
-      "kind": "function"
-     }
-    ],
-    "environmentNames": [],
-    "integrations": [
-     "supabase"
-    ],
-    "lineCount": 86
-   },
-   {
-    "path": "src/components/admin/RestaurantSearchSelect.tsx",
-    "exports": [
-     {
-      "name": "default",
-      "line": 18,
-      "kind": "function"
-     }
-    ],
-    "environmentNames": [],
-    "integrations": [
-     "supabase"
-    ],
-    "lineCount": 152
-   },
-   {
     "path": "src/components/admin/TokConnectCatalogControls.tsx",
     "exports": [
      {
@@ -86090,22 +85959,6 @@
      "supabase"
     ],
     "lineCount": 104
-   },
-   {
-    "path": "src/components/dashboard/GoldenTokPanel.tsx",
-    "exports": [
-     {
-      "name": "default",
-      "line": 36,
-      "kind": "function"
-     }
-    ],
-    "environmentNames": [],
-    "integrations": [
-     "stripe",
-     "supabase"
-    ],
-    "lineCount": 242
    },
    {
     "path": "src/components/dashboard/GoogleBusinessBookingCard.tsx",
@@ -90962,42 +90815,42 @@
      },
      {
       "name": "humanizeIdentifier",
-      "line": 466,
+      "line": 465,
       "kind": "function"
      },
      {
       "name": "describeAuditFunction",
-      "line": 478,
+      "line": 477,
       "kind": "function"
      },
      {
       "name": "describeAuditAction",
-      "line": 485,
+      "line": 484,
       "kind": "function"
      },
      {
       "name": "describeAuditEntity",
-      "line": 493,
+      "line": 492,
       "kind": "function"
      },
      {
       "name": "describeAuditActor",
-      "line": 500,
+      "line": 499,
       "kind": "function"
      },
      {
       "name": "explainAuditError",
-      "line": 508,
+      "line": 507,
       "kind": "function"
      },
      {
       "name": "describeAuditLog",
-      "line": 629,
+      "line": 628,
       "kind": "function"
      },
      {
       "name": "summarizeAuditLog",
-      "line": 633,
+      "line": 632,
       "kind": "function"
      }
     ],
@@ -91006,7 +90859,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 635
+    "lineCount": 634
    },
    {
     "path": "src/lib/adminComptaActions.ts",
@@ -102836,7 +102689,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 35,
+      "line": 32,
       "kind": "function"
      }
     ],
@@ -102844,7 +102697,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 397
+    "lineCount": 394
    },
    {
     "path": "src/pages/admin/adminComptaShared.ts",
@@ -103432,7 +103285,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 1514,
+      "line": 1513,
       "kind": "function"
      }
     ],
@@ -103440,7 +103293,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 2037
+    "lineCount": 2032
    },
    {
     "path": "src/pages/dashboard/DashboardHome.tsx",
@@ -104424,7 +104277,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 190
+    "lineCount": 189
    },
    {
     "path": "src/test/audit-hardening-20260711.test.ts",
@@ -104711,7 +104564,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 79
+    "lineCount": 77
    },
    {
     "path": "src/test/client-checkout-session-guards.test.ts",
@@ -105966,16 +105819,6 @@
      "supabase"
     ],
     "lineCount": 49
-   },
-   {
-    "path": "src/test/golden-tok-accreditation.test.ts",
-    "exports": [],
-    "environmentNames": [],
-    "integrations": [
-     "stripe",
-     "supabase"
-    ],
-    "lineCount": 89
    },
    {
     "path": "src/test/golden-tok-shell-logo.test.ts",
@@ -108643,7 +108486,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 214
+    "lineCount": 231
    },
    {
     "path": "src/test/stripe-paid-invoice-payment.test.ts",
@@ -113184,7 +113027,7 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 2774
+    "lineCount": 2763
    },
    {
     "path": "supabase/functions/create-chefs-table-reservation/index.ts",
@@ -113485,17 +113328,6 @@
      "supabase"
     ],
     "lineCount": 114
-   },
-   {
-    "path": "supabase/functions/golden-tok-membership/index.ts",
-    "exports": [],
-    "environmentNames": [
-     "GOLDEN_TOK_STRIPE_PRICE_ID"
-    ],
-    "integrations": [
-     "stripe"
-    ],
-    "lineCount": 226
    },
    {
     "path": "supabase/functions/google-actions-center-sync/index.ts",
@@ -113944,7 +113776,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3490
+    "lineCount": 3400
    },
    {
     "path": "supabase/functions/stripe-worker/index.ts",
@@ -119886,16 +119718,6 @@
     "extension": ".tsx"
    },
    {
-    "path": "src/components/admin/GoldenTokReviewPanel.tsx",
-    "category": "frontend-component",
-    "extension": ".tsx"
-   },
-   {
-    "path": "src/components/admin/RestaurantSearchSelect.tsx",
-    "category": "frontend-component",
-    "extension": ".tsx"
-   },
-   {
     "path": "src/components/admin/TokConnectCatalogControls.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
@@ -120102,11 +119924,6 @@
    },
    {
     "path": "src/components/dashboard/DirectReservationChannelsCard.tsx",
-    "category": "frontend-component",
-    "extension": ".tsx"
-   },
-   {
-    "path": "src/components/dashboard/GoldenTokPanel.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
    },
@@ -124046,11 +123863,6 @@
     "extension": ".ts"
    },
    {
-    "path": "src/test/golden-tok-accreditation.test.ts",
-    "category": "test",
-    "extension": ".ts"
-   },
-   {
     "path": "src/test/golden-tok-shell-logo.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -126602,11 +126414,6 @@
    },
    {
     "path": "supabase/functions/generate-invoices/index.ts",
-    "category": "edge-function-source",
-    "extension": ".ts"
-   },
-   {
-    "path": "supabase/functions/golden-tok-membership/index.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -129601,7 +129408,7 @@
     "extension": ".sql"
    },
    {
-    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+    "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -132515,34 +132322,6 @@
    "detailRef": "debbbc5334df"
   },
   {
-   "id": "code-module:5310d052381e",
-   "type": "code-module",
-   "title": "src/components/admin/GoldenTokReviewPanel.tsx",
-   "description": "Module de 86 lignes; exports: default.",
-   "path": "src/components/admin/GoldenTokReviewPanel.tsx",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "default",
-    "supabase"
-   ],
-   "detailRef": "9aa40c4f5c19"
-  },
-  {
-   "id": "code-module:f86897d507d9",
-   "type": "code-module",
-   "title": "src/components/admin/RestaurantSearchSelect.tsx",
-   "description": "Module de 152 lignes; exports: default.",
-   "path": "src/components/admin/RestaurantSearchSelect.tsx",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "default",
-    "supabase"
-   ],
-   "detailRef": "0216bc19c682"
-  },
-  {
    "id": "code-module:0c5529e62dd1",
    "type": "code-module",
    "title": "src/components/admin/TokConnectCatalogControls.tsx",
@@ -133125,21 +132904,6 @@
     "supabase"
    ],
    "detailRef": "158d16ae35f6"
-  },
-  {
-   "id": "code-module:d64510a012d9",
-   "type": "code-module",
-   "title": "src/components/dashboard/GoldenTokPanel.tsx",
-   "description": "Module de 242 lignes; exports: default.",
-   "path": "src/components/dashboard/GoldenTokPanel.tsx",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "default",
-    "stripe",
-    "supabase"
-   ],
-   "detailRef": "910c47511686"
   },
   {
    "id": "code-module:4421e58603e6",
@@ -136132,7 +135896,7 @@
    "id": "code-module:49057d39b311",
    "type": "code-module",
    "title": "src/lib/admin/auditLogNarrative.ts",
-   "description": "Module de 635 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
+   "description": "Module de 634 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
    "path": "src/lib/admin/auditLogNarrative.ts",
    "line": 1,
    "surface": null,
@@ -136153,7 +135917,7 @@
     "stripe",
     "summarizeAuditLog"
    ],
-   "detailRef": "a0bd7b89f563"
+   "detailRef": "80560d668c23"
   },
   {
    "id": "code-module:011d1dc10823",
@@ -141812,7 +141576,7 @@
    "id": "code-module:075e623eff2f",
    "type": "code-module",
    "title": "src/pages/admin/DropsManagement.tsx",
-   "description": "Module de 397 lignes; exports: default.",
+   "description": "Module de 394 lignes; exports: default.",
    "path": "src/pages/admin/DropsManagement.tsx",
    "line": 1,
    "surface": null,
@@ -141820,7 +141584,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "ea1af8607218"
+   "detailRef": "899b22665fff"
   },
   {
    "id": "code-module:c3bf08e13b06",
@@ -142184,7 +141948,7 @@
    "id": "code-module:b7e50e95ad4a",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardFormules.tsx",
-   "description": "Module de 2037 lignes; exports: default.",
+   "description": "Module de 2032 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardFormules.tsx",
    "line": 1,
    "surface": null,
@@ -142192,7 +141956,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "912ada77485e"
+   "detailRef": "9153a1c92996"
   },
   {
    "id": "code-module:54b4a16faa4d",
@@ -143239,7 +143003,7 @@
    "id": "code-module:99cbe1539462",
    "type": "code-module",
    "title": "src/test/application-search-index.test.ts",
-   "description": "Module de 190 lignes; exports: aucun export statique.",
+   "description": "Module de 189 lignes; exports: aucun export statique.",
    "path": "src/test/application-search-index.test.ts",
    "line": 1,
    "surface": null,
@@ -143249,7 +143013,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "2c442da7cc3f"
+   "detailRef": "a3a624f05073"
   },
   {
    "id": "code-module:f6d47cf3df51",
@@ -143660,14 +143424,14 @@
    "id": "code-module:9d85656bda0b",
    "type": "code-module",
    "title": "src/test/chef-table-vip-miamz-access.test.ts",
-   "description": "Module de 79 lignes; exports: aucun export statique.",
+   "description": "Module de 77 lignes; exports: aucun export statique.",
    "path": "src/test/chef-table-vip-miamz-access.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "ee02bf43f885"
+   "detailRef": "55232de689b2"
   },
   {
    "id": "code-module:a1207c4a8469",
@@ -145493,20 +145257,6 @@
     "supabase"
    ],
    "detailRef": "09a378bbe7b5"
-  },
-  {
-   "id": "code-module:a8512244ead0",
-   "type": "code-module",
-   "title": "src/test/golden-tok-accreditation.test.ts",
-   "description": "Module de 89 lignes; exports: aucun export statique.",
-   "path": "src/test/golden-tok-accreditation.test.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "stripe",
-    "supabase"
-   ],
-   "detailRef": "6a0272d81fcd"
   },
   {
    "id": "code-module:af90a689e08c",
@@ -149384,7 +149134,7 @@
    "id": "code-module:55fb3709c695",
    "type": "code-module",
    "title": "src/test/stripe-developer-share-routing.test.ts",
-   "description": "Module de 214 lignes; exports: aucun export statique.",
+   "description": "Module de 231 lignes; exports: aucun export statique.",
    "path": "src/test/stripe-developer-share-routing.test.ts",
    "line": 1,
    "surface": null,
@@ -149392,7 +149142,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "c751951f619c"
+   "detailRef": "067ad459e477"
   },
   {
    "id": "code-module:0dc2b193d130",
@@ -152244,7 +151994,7 @@
    "id": "code-module:ee34f3a570c0",
    "type": "code-module",
    "title": "supabase/functions/create-checkout/index.ts",
-   "description": "Module de 2774 lignes; exports: aucun export statique.",
+   "description": "Module de 2763 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-checkout/index.ts",
    "line": 1,
    "surface": null,
@@ -152252,7 +152002,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "2488affeec24"
+   "detailRef": "5b485ee86df3"
   },
   {
    "id": "code-module:4160ab4db106",
@@ -152574,20 +152324,6 @@
     "supabase"
    ],
    "detailRef": "0ad291ee9dc5"
-  },
-  {
-   "id": "code-module:26fbb02a49f5",
-   "type": "code-module",
-   "title": "supabase/functions/golden-tok-membership/index.ts",
-   "description": "Module de 226 lignes; exports: aucun export statique.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "GOLDEN_TOK_STRIPE_PRICE_ID",
-    "stripe"
-   ],
-   "detailRef": "d8295587ccb6"
   },
   {
    "id": "code-module:8fab026bf061",
@@ -153161,7 +152897,7 @@
    "id": "code-module:9ac355dfd729",
    "type": "code-module",
    "title": "supabase/functions/stripe-webhook/index.ts",
-   "description": "Module de 3490 lignes; exports: aucun export statique.",
+   "description": "Module de 3400 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-webhook/index.ts",
    "line": 1,
    "surface": null,
@@ -153169,7 +152905,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "21071f104367"
+   "detailRef": "e19d1be2197f"
   },
   {
    "id": "code-module:f3fa7c18e7bc",
@@ -159720,21 +159456,6 @@
     "supabase"
    ],
    "detailRef": "c4b8a58e3be2"
-  },
-  {
-   "id": "database-object:e7fc2c8f7a33",
-   "type": "database-object",
-   "title": "golden_tok_accreditations_review_idx",
-   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 28,
-   "surface": null,
-   "tags": [
-    "index",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "108fef3b3578"
   },
   {
    "id": "database-object:4b229ea8da74",
@@ -170117,21 +169838,6 @@
    "detailRef": "f063775a61f4"
   },
   {
-   "id": "database-object:adecdf40ae7b",
-   "type": "database-object",
-   "title": "public.admin_review_golden_tok_accreditation",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 90,
-   "surface": null,
-   "tags": [
-    "function",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "d190daa49271"
-  },
-  {
    "id": "database-object:c55b17e9ddc2",
    "type": "database-object",
    "title": "public.admin_review_signup_application",
@@ -171465,21 +171171,6 @@
     "supabase"
    ],
    "detailRef": "c41ee496941e"
-  },
-  {
-   "id": "database-object:e353c65c4465",
-   "type": "database-object",
-   "title": "public.apply_golden_tok_accreditation",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 41,
-   "surface": null,
-   "tags": [
-    "function",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "52dffa76f2b6"
   },
   {
    "id": "database-object:a4b2e9751ccf",
@@ -172922,19 +172613,19 @@
    "detailRef": "2a962f96dec8"
   },
   {
-   "id": "database-object:d1efee135c12",
+   "id": "database-object:29f23374b60f",
    "type": "database-object",
    "title": "public.chef_table_drops.chef_table_drops_public_select",
-   "description": "Objet PostgreSQL de type policy; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 158,
+   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20260604023000_admin_chef_table_drop_governance.sql",
+   "line": 15,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "4328b7c670f8"
+   "detailRef": "384a8a6d8797"
   },
   {
    "id": "database-object:665714e4a707",
@@ -179012,51 +178703,6 @@
    "detailRef": "7102e6ecd2c1"
   },
   {
-   "id": "database-object:db08b7fff9c2",
-   "type": "database-object",
-   "title": "public.golden_tok_accreditations.golden_tok_accreditations_owner_or_admin_read",
-   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 37,
-   "surface": null,
-   "tags": [
-    "policy",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "3de508393715"
-  },
-  {
-   "id": "database-object:765dd627774a",
-   "type": "database-object",
-   "title": "public.golden_tok_accreditations",
-   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 3,
-   "surface": null,
-   "tags": [
-    "postgresql",
-    "supabase",
-    "table"
-   ],
-   "detailRef": "38fed4650257"
-  },
-  {
-   "id": "database-object:35acdaefce0c",
-   "type": "database-object",
-   "title": "public.golden_tok_restaurant_is_paid",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 137,
-   "surface": null,
-   "tags": [
-    "function",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "9e1a02641c89"
-  },
-  {
    "id": "database-object:e6526496acf5",
    "type": "database-object",
    "title": "public.google_actions_center_bookings.google_actions_center_bookings_service_role_all",
@@ -184667,19 +184313,19 @@
    "detailRef": "78e39e6a8964"
   },
   {
-   "id": "database-object:f842d51ff0a3",
+   "id": "database-object:61a3e78a1030",
    "type": "database-object",
    "title": "public.record_marketplace_checkout_ledger",
-   "description": "Objet PostgreSQL de type function; 4 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
-   "line": 3500,
+   "description": "Objet PostgreSQL de type function; 5 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
+   "line": 7,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "0278c791d160"
+   "detailRef": "41c4dfe0e861"
   },
   {
    "id": "database-object:3fb7cb3fa48e",
@@ -188310,21 +187956,6 @@
     "supabase"
    ],
    "detailRef": "49089b338b83"
-  },
-  {
-   "id": "database-object:021db6b7e4f6",
-   "type": "database-object",
-   "title": "public.restaurant_save_golden_tok_drop",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 172,
-   "surface": null,
-   "tags": [
-    "function",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "fc713a698fca"
   },
   {
    "id": "database-object:34fad0876655",
@@ -234461,20 +234092,6 @@
    "detailRef": "88310ef4328f"
   },
   {
-   "id": "edge-action:b273f0b7774d",
-   "type": "edge-action",
-   "title": "cancel",
-   "description": "Action statiquement détectée dans la fonction Edge golden-tok-membership.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "/functions/v1/golden-tok-membership",
-    "golden-tok-membership"
-   ],
-   "detailRef": "897dad724075"
-  },
-  {
    "id": "edge-action:21259ee89a93",
    "type": "edge-action",
    "title": "cancel",
@@ -235567,20 +235184,6 @@
    "detailRef": "9d2367a4e3a2"
   },
   {
-   "id": "edge-action:5c0782c32017",
-   "type": "edge-action",
-   "title": "resume",
-   "description": "Action statiquement détectée dans la fonction Edge golden-tok-membership.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "/functions/v1/golden-tok-membership",
-    "golden-tok-membership"
-   ],
-   "detailRef": "b3b28706625e"
-  },
-  {
    "id": "edge-action:bcb4bcbc3d68",
    "type": "edge-action",
    "title": "resume",
@@ -235845,20 +235448,6 @@
     "crm-mfa-recovery"
    ],
    "detailRef": "3a2cf531e8d8"
-  },
-  {
-   "id": "edge-action:f082bd475d6b",
-   "type": "edge-action",
-   "title": "string",
-   "description": "Action statiquement détectée dans la fonction Edge golden-tok-membership.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "/functions/v1/golden-tok-membership",
-    "golden-tok-membership"
-   ],
-   "detailRef": "c3dd85e63839"
   },
   {
    "id": "edge-action:4cf72f9b4dd7",
@@ -236453,7 +236042,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "9a6e9c51eb28"
+   "detailRef": "fbc8015d5a82"
   },
   {
    "id": "edge-function:8e9e04a29952",
@@ -236554,7 +236143,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "a1470e8c5dd4"
+   "detailRef": "9cb597bf16e6"
   },
   {
    "id": "edge-function:7a772e15f6d3",
@@ -237038,24 +236627,6 @@
    "detailRef": "110f38bc6316"
   },
   {
-   "id": "edge-function:a4c0d8e6ce0d",
-   "type": "edge-function",
-   "title": "golden-tok-membership",
-   "description": "Fonction Edge POST; JWT config=false.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "GOLDEN_TOK_STRIPE_PRICE_ID",
-    "POST",
-    "cancel",
-    "resume",
-    "string",
-    "stripe"
-   ],
-   "detailRef": "b56323547684"
-  },
-  {
    "id": "edge-function:05af66aa208e",
    "type": "edge-function",
    "title": "google-actions-center-sync",
@@ -237147,7 +236718,7 @@
     "run_item",
     "supabase"
    ],
-   "detailRef": "2b2188ba85f6"
+   "detailRef": "74f0a2a1d70f"
   },
   {
    "id": "edge-function:ea04d0a7dc94",
@@ -237160,7 +236731,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "95a3076e3c43"
+   "detailRef": "1c86c2b87d44"
   },
   {
    "id": "edge-function:766b313fa071",
@@ -237174,7 +236745,7 @@
     "GET",
     "POST"
    ],
-   "detailRef": "0774e1af4aea"
+   "detailRef": "2d1373480796"
   },
   {
    "id": "edge-function:b0143386fc19",
@@ -237188,7 +236759,7 @@
     "POST",
     "openai"
    ],
-   "detailRef": "7532cd3c057a"
+   "detailRef": "22cc1be6c7c4"
   },
   {
    "id": "edge-function:636bb88e8d73",
@@ -237272,7 +236843,7 @@
     "settings",
     "update_settings"
    ],
-   "detailRef": "64f5bbd10a92"
+   "detailRef": "50e1a39ef740"
   },
   {
    "id": "edge-function:6744b1da8833",
@@ -237292,7 +236863,7 @@
     "map",
     "sync"
    ],
-   "detailRef": "34ed6cfc6df3"
+   "detailRef": "4a15a5633716"
   },
   {
    "id": "edge-function:4202905f7b82",
@@ -237310,7 +236881,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "322e63f67e26"
+   "detailRef": "ebc34f883194"
   },
   {
    "id": "edge-function:895f528e4b5c",
@@ -237324,7 +236895,7 @@
     "POST",
     "approve"
    ],
-   "detailRef": "931b0f243738"
+   "detailRef": "16e8dbaadcac"
   },
   {
    "id": "edge-function:2d7ec7a7fbe0",
@@ -237341,7 +236912,7 @@
     "stop",
     "stripe"
    ],
-   "detailRef": "5efae4bd3678"
+   "detailRef": "e459e7d65818"
   },
   {
    "id": "edge-function:00482f3f0a8a",
@@ -237359,7 +236930,7 @@
     "reorder",
     "stripe"
    ],
-   "detailRef": "2d445bc0ceb3"
+   "detailRef": "5ac9fe4de6ed"
   },
   {
    "id": "edge-function:d4675b82f334",
@@ -237372,7 +236943,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "d9b9179af16d"
+   "detailRef": "6504c23f6a98"
   },
   {
    "id": "edge-function:93cadf906a52",
@@ -237385,7 +236956,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "df4b6cce4844"
+   "detailRef": "06bd5d4a7653"
   },
   {
    "id": "edge-function:12f5ed65e97d",
@@ -237401,7 +236972,7 @@
     "SITE_URL",
     "stripe"
    ],
-   "detailRef": "84160259f933"
+   "detailRef": "8263c27251e9"
   },
   {
    "id": "edge-function:c64ea182a555",
@@ -237462,7 +237033,7 @@
     "OPTIONS",
     "supabase"
    ],
-   "detailRef": "acb9a778c274"
+   "detailRef": "ab1f62d20122"
   },
   {
    "id": "edge-function:ee5743deb4a2",
@@ -237495,7 +237066,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "5afeb8bb05e8"
+   "detailRef": "52937e1b58c1"
   },
   {
    "id": "edge-function:c069d76c1b37",
@@ -237509,7 +237080,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "0fe164066b6d"
+   "detailRef": "e3cc7dd2d2df"
   },
   {
    "id": "edge-function:8f850940a2c6",
@@ -237524,7 +237095,7 @@
     "openai",
     "stripe"
    ],
-   "detailRef": "19795cf5855c"
+   "detailRef": "9933cf6d0bdb"
   },
   {
    "id": "edge-function:d9d1b11c432b",
@@ -237540,7 +237111,7 @@
     "add_ai_creation_to_gallery",
     "string"
    ],
-   "detailRef": "420a3e03b960"
+   "detailRef": "7aefa9b3709c"
   },
   {
    "id": "edge-function:44ed8631d43d",
@@ -237553,7 +237124,7 @@
    "tags": [
     "ANY"
    ],
-   "detailRef": "6b8f29de7c32"
+   "detailRef": "68cce03ae8b0"
   },
   {
    "id": "edge-function:4a0e241783e5",
@@ -237568,7 +237139,7 @@
     "POST",
     "supabase"
    ],
-   "detailRef": "9f6e26c2e977"
+   "detailRef": "642eb2130847"
   },
   {
    "id": "edge-function:482e409f0108",
@@ -237590,7 +237161,7 @@
     "resend",
     "supabase"
    ],
-   "detailRef": "e9c9276d8ce0"
+   "detailRef": "fd2e786aba82"
   },
   {
    "id": "edge-function:63a0488de187",
@@ -237608,7 +237179,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "eb47c9fea318"
+   "detailRef": "7f03f0febd53"
   },
   {
    "id": "edge-function:4b955302ab67",
@@ -237622,7 +237193,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "65308dd667c6"
+   "detailRef": "c0fef5b8153c"
   },
   {
    "id": "edge-function:96edd241b1ec",
@@ -237636,7 +237207,7 @@
     "POST",
     "stripe"
    ],
-   "detailRef": "c84039a66512"
+   "detailRef": "b8802a844c0a"
   },
   {
    "id": "edge-function:8e0ac9e090fa",
@@ -237650,7 +237221,7 @@
     "POST",
     "stripe"
    ],
-   "detailRef": "c01f3259c54f"
+   "detailRef": "6e1386a9f1db"
   },
   {
    "id": "edge-function:72765419a956",
@@ -237680,7 +237251,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "f65476abeba3"
+   "detailRef": "8470e509b365"
   },
   {
    "id": "edge-function:f46a6de88d5a",
@@ -237695,7 +237266,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "8734b26e099b"
+   "detailRef": "a8ca6f66eccc"
   },
   {
    "id": "edge-function:955e7c78a21a",
@@ -237712,7 +237283,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "24709be978ce"
+   "detailRef": "14074843fc63"
   },
   {
    "id": "edge-function:6955272728a1",
@@ -237725,7 +237296,7 @@
    "tags": [
     "ANY"
    ],
-   "detailRef": "11c4324f636b"
+   "detailRef": "b864b8027297"
   },
   {
    "id": "edge-function:debd98d4a448",
@@ -237738,7 +237309,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "8e21957d2cde"
+   "detailRef": "99988f262bca"
   },
   {
    "id": "edge-function:8e71119bbca0",
@@ -237755,7 +237326,7 @@
     "set-restaurant-mcp-access",
     "supabase"
    ],
-   "detailRef": "e88e4a1b3f8e"
+   "detailRef": "2ce3eca7bdcc"
   },
   {
    "id": "edge-function:d39678843030",
@@ -237769,7 +237340,7 @@
     "GET",
     "POST"
    ],
-   "detailRef": "a9b74bfcaa37"
+   "detailRef": "46389a08e99d"
   },
   {
    "id": "edge-function:06314d9483f8",
@@ -237792,7 +237363,7 @@
     "supabase",
     "update"
    ],
-   "detailRef": "28b00a138d8f"
+   "detailRef": "240721ae9494"
   },
   {
    "id": "edge-function:4ae45b142614",
@@ -237812,7 +237383,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "00ba46f4f201"
+   "detailRef": "e008e028b2d3"
   },
   {
    "id": "edge-function:c9c1a5f4268f",
@@ -237833,7 +237404,7 @@
     "rpc",
     "supabase"
    ],
-   "detailRef": "797f525a217b"
+   "detailRef": "b88005664649"
   },
   {
    "id": "edge-function:f38098ad6d58",
@@ -237853,7 +237424,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "1480378ad7a6"
+   "detailRef": "375f4ea46d3d"
   },
   {
    "id": "edge-function:c07dbf75dc6d",
@@ -237873,7 +237444,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "f486d47a9d7c"
+   "detailRef": "83237706adc8"
   },
   {
    "id": "edge-function:4576e3c0c057",
@@ -237889,7 +237460,7 @@
     "SUPABASE_SERVICE_ROLE_KEY",
     "supabase"
    ],
-   "detailRef": "868c97b84951"
+   "detailRef": "6fe2e3d8f234"
   },
   {
    "id": "edge-function:19db644bfd2f",
@@ -237919,7 +237490,7 @@
     "update-grant-status",
     "upsert-restaurant-grant"
    ],
-   "detailRef": "d28d68941b3f"
+   "detailRef": "bed7fd805d6e"
   },
   {
    "id": "edge-function:2b5564847db9",
@@ -237938,7 +237509,7 @@
     "TOK_CONNECT_PUBLIC_ORIGIN",
     "supabase"
    ],
-   "detailRef": "012f12c653be"
+   "detailRef": "0207fed13b34"
   },
   {
    "id": "edge-function:18e2720fac44",
@@ -237952,7 +237523,7 @@
     "POST",
     "supabase"
    ],
-   "detailRef": "243f687bc39f"
+   "detailRef": "d75cf04208fa"
   },
   {
    "id": "edge-function:c49d4f8a4fa9",
@@ -237968,7 +237539,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "409232f8e4a9"
+   "detailRef": "042006f82b3e"
   },
   {
    "id": "edge-function:c25351474d05",
@@ -237985,7 +237556,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "8165dab00a8f"
+   "detailRef": "96382bea3e3a"
   },
   {
    "id": "edge-function:4dcfc3d7fc50",
@@ -238002,7 +237573,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "d64c75826e6d"
+   "detailRef": "568d201b3f0a"
   },
   {
    "id": "edge-function:dd31c294fa37",
@@ -238019,7 +237590,7 @@
     "SITE_URL",
     "stripe"
    ],
-   "detailRef": "0f85f138ace0"
+   "detailRef": "fb9994f80379"
   },
   {
    "id": "edge-function:4bdac8cea73e",
@@ -238829,19 +238400,6 @@
     "scripts/ci-change-plan.mjs"
    ],
    "detailRef": "c79f937126a4"
-  },
-  {
-   "id": "environment-variable:3666f2d4e955",
-   "type": "environment-variable",
-   "title": "GOLDEN_TOK_STRIPE_PRICE_ID",
-   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "supabase/functions/golden-tok-membership/index.ts"
-   ],
-   "detailRef": "9f281f980561"
   },
   {
    "id": "environment-variable:3ce4aba8f4bf",
@@ -267694,34 +267252,6 @@
    "detailRef": "c31d75e6188a"
   },
   {
-   "id": "exported-symbol:dc5e38b714c7",
-   "type": "exported-symbol",
-   "title": "default",
-   "description": "Export function de src/components/admin/GoldenTokReviewPanel.tsx.",
-   "path": "src/components/admin/GoldenTokReviewPanel.tsx",
-   "line": 17,
-   "surface": null,
-   "tags": [
-    "function",
-    "supabase"
-   ],
-   "detailRef": "f6ad11948f69"
-  },
-  {
-   "id": "exported-symbol:acbe79ec3eac",
-   "type": "exported-symbol",
-   "title": "default",
-   "description": "Export function de src/components/admin/RestaurantSearchSelect.tsx.",
-   "path": "src/components/admin/RestaurantSearchSelect.tsx",
-   "line": 18,
-   "surface": null,
-   "tags": [
-    "function",
-    "supabase"
-   ],
-   "detailRef": "64c0644642e8"
-  },
-  {
    "id": "exported-symbol:282af76f3648",
    "type": "exported-symbol",
    "title": "default",
@@ -268233,21 +267763,6 @@
     "supabase"
    ],
    "detailRef": "700e13046dca"
-  },
-  {
-   "id": "exported-symbol:3b6fb60e1aee",
-   "type": "exported-symbol",
-   "title": "default",
-   "description": "Export function de src/components/dashboard/GoldenTokPanel.tsx.",
-   "path": "src/components/dashboard/GoldenTokPanel.tsx",
-   "line": 36,
-   "surface": null,
-   "tags": [
-    "function",
-    "stripe",
-    "supabase"
-   ],
-   "detailRef": "447b1b1db7fc"
   },
   {
    "id": "exported-symbol:efe615403574",
@@ -270517,18 +270032,18 @@
    "detailRef": "fefbe03afd0e"
   },
   {
-   "id": "exported-symbol:391539f72471",
+   "id": "exported-symbol:6312156dc196",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/admin/DropsManagement.tsx.",
    "path": "src/pages/admin/DropsManagement.tsx",
-   "line": 35,
+   "line": 32,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "700e13046dca"
+   "detailRef": "57689e50b20d"
   },
   {
    "id": "exported-symbol:7893b673717e",
@@ -270794,18 +270309,18 @@
    "detailRef": "6ea47572b244"
   },
   {
-   "id": "exported-symbol:09689b44b699",
+   "id": "exported-symbol:1f5e9ad68f1f",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardFormules.tsx.",
    "path": "src/pages/dashboard/DashboardFormules.tsx",
-   "line": 1514,
+   "line": 1513,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "2d0b0bbbb7d5"
+   "detailRef": "a6a5b02a4a5d"
   },
   {
    "id": "exported-symbol:f84397792633",
@@ -271195,79 +270710,79 @@
    "detailRef": "35cf2f09a4fb"
   },
   {
-   "id": "exported-symbol:4daf504b7ba1",
+   "id": "exported-symbol:46b7333dd8a6",
    "type": "exported-symbol",
    "title": "describeAuditAction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 485,
+   "line": 484,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "510398973d96"
+   "detailRef": "b90b791bbf96"
   },
   {
-   "id": "exported-symbol:f9ea46bb7ff0",
+   "id": "exported-symbol:1acaec08b34c",
    "type": "exported-symbol",
    "title": "describeAuditActor",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 500,
+   "line": 499,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "5109f4f581ae"
+   "detailRef": "65133d2ecc6c"
   },
   {
-   "id": "exported-symbol:dd26294f1247",
+   "id": "exported-symbol:4881f83de976",
    "type": "exported-symbol",
    "title": "describeAuditEntity",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 493,
+   "line": 492,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "f95415aa1aad"
+   "detailRef": "5958429935e9"
   },
   {
-   "id": "exported-symbol:7007080de2b5",
+   "id": "exported-symbol:3815337bdd04",
    "type": "exported-symbol",
    "title": "describeAuditFunction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 478,
+   "line": 477,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "04cb48327718"
+   "detailRef": "1cbf0a76d25f"
   },
   {
-   "id": "exported-symbol:46b299d550e9",
+   "id": "exported-symbol:46caaafe2225",
    "type": "exported-symbol",
    "title": "describeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 629,
+   "line": 628,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "aeeb9e430cd7"
+   "detailRef": "b0766893ca10"
   },
   {
    "id": "exported-symbol:10f1bf567ca4",
@@ -271931,19 +271446,19 @@
    "detailRef": "8b413b2a22c5"
   },
   {
-   "id": "exported-symbol:9f92ba8eb29f",
+   "id": "exported-symbol:d0803f3bff75",
    "type": "exported-symbol",
    "title": "explainAuditError",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 508,
+   "line": 507,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "235177c0bbb9"
+   "detailRef": "b50a1667e564"
   },
   {
    "id": "exported-symbol:94c395b452eb",
@@ -278397,19 +277912,19 @@
    "detailRef": "dc9f63bb72e6"
   },
   {
-   "id": "exported-symbol:d855de964287",
+   "id": "exported-symbol:3e5a7e4a9827",
    "type": "exported-symbol",
    "title": "humanizeIdentifier",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 466,
+   "line": 465,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "cd201f4dc125"
+   "detailRef": "ee689cf56868"
   },
   {
    "id": "exported-symbol:cd0c65e7c41c",
@@ -286398,19 +285913,19 @@
    "detailRef": "596a9a69ebd0"
   },
   {
-   "id": "exported-symbol:54e0678701fe",
+   "id": "exported-symbol:396e55fc54b1",
    "type": "exported-symbol",
    "title": "summarizeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 633,
+   "line": 632,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "a5e4fc639601"
+   "detailRef": "6f938fcbd0dd"
   },
   {
    "id": "exported-symbol:25e70f45a5b2",
@@ -305960,34 +305475,6 @@
    "detailRef": "78119aa064a9"
   },
   {
-   "id": "file:c8b48f003e0e",
-   "type": "file",
-   "title": "src/components/admin/GoldenTokReviewPanel.tsx",
-   "description": "Fichier du dépôt classé frontend-component.",
-   "path": "src/components/admin/GoldenTokReviewPanel.tsx",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".tsx",
-    "frontend-component"
-   ],
-   "detailRef": "3f4268b2e911"
-  },
-  {
-   "id": "file:86b6dfbe5b48",
-   "type": "file",
-   "title": "src/components/admin/RestaurantSearchSelect.tsx",
-   "description": "Fichier du dépôt classé frontend-component.",
-   "path": "src/components/admin/RestaurantSearchSelect.tsx",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".tsx",
-    "frontend-component"
-   ],
-   "detailRef": "4aa3920952fb"
-  },
-  {
    "id": "file:0f1b4d12a4a2",
    "type": "file",
    "title": "src/components/admin/TokConnectCatalogControls.tsx",
@@ -306574,20 +306061,6 @@
     "frontend-component"
    ],
    "detailRef": "204338c8f085"
-  },
-  {
-   "id": "file:222d6c08a651",
-   "type": "file",
-   "title": "src/components/dashboard/GoldenTokPanel.tsx",
-   "description": "Fichier du dépôt classé frontend-component.",
-   "path": "src/components/dashboard/GoldenTokPanel.tsx",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".tsx",
-    "frontend-component"
-   ],
-   "detailRef": "cbe67b71c6a5"
   },
   {
    "id": "file:db6a227c5e3c",
@@ -317608,20 +317081,6 @@
    "detailRef": "f2b7ecd4677e"
   },
   {
-   "id": "file:d4bc542424fb",
-   "type": "file",
-   "title": "src/test/golden-tok-accreditation.test.ts",
-   "description": "Fichier du dépôt classé test.",
-   "path": "src/test/golden-tok-accreditation.test.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "test"
-   ],
-   "detailRef": "f0a9bea36287"
-  },
-  {
    "id": "file:13a495a5209c",
    "type": "file",
    "title": "src/test/golden-tok-shell-logo.test.ts",
@@ -324774,20 +324233,6 @@
     "edge-function-source"
    ],
    "detailRef": "44c44b512b03"
-  },
-  {
-   "id": "file:533c68322d81",
-   "type": "file",
-   "title": "supabase/functions/golden-tok-membership/index.ts",
-   "description": "Fichier du dépôt classé edge-function-source.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "edge-function-source"
-   ],
-   "detailRef": "4449bed831bc"
   },
   {
    "id": "file:4cebd107709c",
@@ -333162,18 +332607,18 @@
    "detailRef": "50ae2d603b54"
   },
   {
-   "id": "file:721d7897f967",
+   "id": "file:af64a52edbd6",
    "type": "file",
-   "title": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "title": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
    "description": "Fichier du dépôt classé database-migration.",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
    "line": null,
    "surface": null,
    "tags": [
     ".sql",
     "database-migration"
    ],
-   "detailRef": "88e6fa2f809a"
+   "detailRef": "dad2d3c1c8b9"
   },
   {
    "id": "file:e79b29a1c0b4",
@@ -336885,7 +336330,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 235 module(s).",
+   "description": "Intégration externe détectée dans 232 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -336912,7 +336357,6 @@
     "src/components/commercial/CommercialDemoActorWorkspace.tsx",
     "src/components/commercial/CommercialMultiSpaceDemo.tsx",
     "src/components/dashboard/CommercialDemoScenario.tsx",
-    "src/components/dashboard/GoldenTokPanel.tsx",
     "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
     "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useAdminLaunchPacks.ts",
@@ -337006,7 +336450,6 @@
     "src/test/feature-flags.test.ts",
     "src/test/financial-health.test.ts",
     "src/test/git-auto-sync-scripts.test.ts",
-    "src/test/golden-tok-accreditation.test.ts",
     "src/test/incident-intelligence-routing.test.ts",
     "src/test/ios-commerce-policy.test.ts",
     "src/test/ios-storekit-subscription-management.test.ts",
@@ -337097,7 +336540,6 @@
     "supabase/functions/create-chefs-table-reservation/index.ts",
     "supabase/functions/create-reservation/index.ts",
     "supabase/functions/create-zero-attente-reservation/index.ts",
-    "supabase/functions/golden-tok-membership/index.ts",
     "supabase/functions/google-actions-center/index.ts",
     "supabase/functions/manage-restaurant-subscription/index.ts",
     "supabase/functions/manage-tok-one-subscription/index.ts",
@@ -337127,13 +336569,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "197a201c3142"
+   "detailRef": "f453de85bcfa"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 695 module(s).",
+   "description": "Intégration externe détectée dans 691 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -337209,8 +336651,6 @@
     "src/components/admin/AdminMobileNavigation.tsx",
     "src/components/admin/AdminRealRestaurantAssignment.tsx",
     "src/components/admin/AdminUrgentActions.tsx",
-    "src/components/admin/GoldenTokReviewPanel.tsx",
-    "src/components/admin/RestaurantSearchSelect.tsx",
     "src/components/auth/AccountPasswordForm.tsx",
     "src/components/campaigns/CampaignInternalTestSummary.tsx",
     "src/components/cart/CartSuggestionsStep.tsx",
@@ -337223,7 +336663,6 @@
     "src/components/dashboard/AiStyleReferencePicker.tsx",
     "src/components/dashboard/DailyDishAiPanel.tsx",
     "src/components/dashboard/DirectReservationChannelsCard.tsx",
-    "src/components/dashboard/GoldenTokPanel.tsx",
     "src/components/dashboard/TokAiMarketingStudio.tsx",
     "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
     "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
@@ -337531,7 +336970,6 @@
     "src/test/generate-campaign-ai-optimization.test.ts",
     "src/test/generate-campaign-copy.test.ts",
     "src/test/git-auto-sync-scripts.test.ts",
-    "src/test/golden-tok-accreditation.test.ts",
     "src/test/google-actions-center-outbox.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "src/test/google-business-booking-phase1.test.ts",
@@ -337835,7 +337273,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "16ca96c457a6"
+   "detailRef": "14ebcccb4ae4"
   },
   {
    "id": "integration:c20910a79a78",
@@ -346009,18 +345447,18 @@
    "detailRef": "b98150b2ca16"
   },
   {
-   "id": "migration:c2be902a5892",
+   "id": "migration:cd56f65c544a",
    "type": "migration",
-   "title": "20261014030000 Golden Tok Accreditations",
-   "description": "Migration SQL de 286 lignes, 8 objets CREATE détectés.",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "title": "20261014072000 Developer Subscription Gross Share Before Vat",
+   "description": "Migration SQL de 769 lignes, 1 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql",
    "line": 1,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase"
    ],
-   "detailRef": "dfcb2acecca7"
+   "detailRef": "91b7e07366ee"
   },
   {
    "id": "package-script:5bd6dc98483a",
@@ -348012,7 +347450,7 @@
     "/dashboard/formules",
     "supabase"
    ],
-   "detailRef": "05dadbfa3c04"
+   "detailRef": "e6bbfba54462"
   },
   {
    "id": "page:122f9911f8cc",
@@ -348258,7 +347696,7 @@
     "/admin/drops",
     "supabase"
    ],
-   "detailRef": "70e0d9f99c5a"
+   "detailRef": "c41eb3a4ad55"
   },
   {
    "id": "page:bcdecca0a509",
@@ -348837,19 +348275,19 @@
    "detailRef": "85882b5af230"
   },
   {
-   "id": "path-literal:ef59400657fa",
+   "id": "path-literal:512c511186d2",
    "type": "path-literal",
    "title": "/.well-known/apple-app-site-association",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 74,
+   "line": 73,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/mobile-association-hosting.test.ts",
     "src/test/production-preflight-hardening.test.ts"
    ],
-   "detailRef": "3192cde26595"
+   "detailRef": "6b1dc23f63b0"
   },
   {
    "id": "path-literal:552e0fdf1ace",
@@ -349801,7 +349239,7 @@
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/user-guide.test.ts"
    ],
-   "detailRef": "3449f5b365ca"
+   "detailRef": "4f4cca32d12c"
   },
   {
    "id": "path-literal:1a801a80038d",
@@ -350310,7 +349748,7 @@
     "src/marketing/marketingBffClient.ts",
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "a97cf0891427"
+   "detailRef": "5f297430c224"
   },
   {
    "id": "path-literal:57e613573c20",
@@ -350410,7 +349848,7 @@
     "src/test/marketing-bff-client.test.ts",
     "src/test/marketing-session-recovery.test.tsx"
    ],
-   "detailRef": "b33c59c00111"
+   "detailRef": "313745030b3e"
   },
   {
    "id": "path-literal:4457ca298944",
@@ -351279,7 +350717,7 @@
     "scripts/application-index-core.mjs",
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "54fe1d0d8a77"
+   "detailRef": "65967804c006"
   },
   {
    "id": "path-literal:cf29ad085917",
@@ -351902,7 +351340,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "87381ea8b604"
+   "detailRef": "863826c8941b"
   },
   {
    "id": "path-literal:b6abce7fd060",
@@ -352213,7 +351651,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "d1ad240f074c"
+   "detailRef": "21c3a686b96b"
   },
   {
    "id": "path-literal:066026c7496d",
@@ -352280,7 +351718,7 @@
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "567fbed2ee0a"
+   "detailRef": "6df08939173d"
   },
   {
    "id": "path-literal:d7fb77c2dbf9",
@@ -352603,7 +352041,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "370e5a036757"
+   "detailRef": "3d336b432c9b"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -353183,18 +352621,18 @@
    "detailRef": "cd6d18e3f93b"
   },
   {
-   "id": "path-literal:2f977cc5c30a",
+   "id": "path-literal:ff548aad270f",
    "type": "path-literal",
    "title": "/healthz",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 77,
+   "line": 76,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "0e1f26cd9b85"
+   "detailRef": "774e78071383"
   },
   {
    "id": "path-literal:fded681262f2",
@@ -356091,7 +355529,7 @@
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "ce5583f4137b"
+   "detailRef": "41e54e3f6889"
   },
   {
    "id": "path-literal:c76dba69accc",
@@ -356263,17 +355701,17 @@
    "detailRef": "6ae6de30c4df"
   },
   {
-   "id": "path-literal:24b54c24c4f2",
+   "id": "path-literal:2613fe6a401b",
    "type": "path-literal",
    "title": "/mon-espace?source=pwa-shortcut",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 101,
+   "line": 100,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "029f2098d2d5"
+   "detailRef": "43c79a4d729f"
   },
   {
    "id": "path-literal:6c3ccf718b08",
@@ -356367,7 +355805,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "aa31cc502044"
+   "detailRef": "6c8e9794accf"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -356840,19 +356278,19 @@
    "detailRef": "529ec0f93e0b"
   },
   {
-   "id": "path-literal:9d174e444127",
+   "id": "path-literal:c9ee52bce6c8",
    "type": "path-literal",
    "title": "/readyz",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 77,
+   "line": 76,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/image-metadata-ai.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "a979bbb17705"
+   "detailRef": "a2d7105448d0"
   },
   {
    "id": "path-literal:f7a8242103a1",
@@ -359137,7 +358575,7 @@
     "src/test/tok-connect.test.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "6010a03f587f"
+   "detailRef": "44310d51c4c7"
   },
   {
    "id": "path-literal:9615b9840a62",
@@ -359209,19 +358647,19 @@
    "detailRef": "2e706e56bb24"
   },
   {
-   "id": "path-literal:7b276683080d",
+   "id": "path-literal:6a0ee6646c90",
    "type": "path-literal",
    "title": "/v3/CreateBooking/",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 85,
+   "line": 84,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "f508a5800f73"
+   "detailRef": "0fc237576bf3"
   },
   {
    "id": "path-literal:3f16cef6b097",
@@ -359238,19 +358676,19 @@
    "detailRef": "ef8d28954ebc"
   },
   {
-   "id": "path-literal:49788dc0dfa3",
+   "id": "path-literal:8720637825ab",
    "type": "path-literal",
    "title": "/v3/HealthCheck/",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 172,
+   "line": 171,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "238e3eecfcf2"
+   "detailRef": "1e84c6187e73"
   },
   {
    "id": "path-literal:66439908047a",

@@ -15,7 +15,7 @@ Garantir que chaque commande, reservation et remboursement a un etat financier c
 - Le flux Stripe d'une commande utilise une destination charge: 90% restaurant et 10% application fee plateforme. Le ledger isole ensuite 1% du brut dans `developer_payable`, laissant 9% a TOK.
 - Abonnements restaurateur, Tok One, campagnes publicitaires, packs de credits et toute autre fonction payante TOK: 10% reviennent au developpeur et 90% restent a TOK.
 - Toute future categorie comptable `tok_*_revenue` est automatiquement incluse dans le releve developpeur; le taux contractuel est verrouille a 1000 points de base (10%) en base.
-- Developpeur: 10% du revenu appartenant a TOK uniquement. Les 90% restaurant, la TVA, les remboursements et les chargebacks sont exclus de la base.
+- Developpeur sur les **abonnements TOK restaurateur et TOK One**: 10% du prix TTC encaissé, AVANT deduction de TVA et frais Stripe; les 90% restants sont la part brute attribuee a TOK, qui prend en charge la TVA et les frais Stripe. Hors abonnements, chaque categorie conserve sa regle de partage specifique et les remboursements/chargebacks diminuent les parts dues.
 - Les frais de traitement Stripe sont comptabilises separement et ne changent jamais les pourcentages contractuels. Ils restent a la charge de la plateforme tant que le contrat ne dit pas autrement.
 - Tous les montants du ledger sont en centimes entiers. Les lignes historiques sont inversees, jamais modifiees.
 
@@ -42,7 +42,7 @@ La part developpeur est versee depuis un releve mensuel valide, et non depuis un
 Exemples de controle:
 - 1 reservation facturee 5.00 CHF: `developer_payable = 50` centimes et TOK net = 450 centimes.
 - 1 commande de 100.00 CHF: restaurateur = 9'000 centimes, developpeur = 100 centimes et TOK net = 900 centimes.
-- 1 abonnement de 69.00 CHF: developpeur = 690 centimes et TOK net = 6'210 centimes.
+- 1 abonnement de 69.00 CHF TTC: developpeur = 690 centimes (6.90 CHF), TOK part brute = 6'210 centimes; sur cette part TOK, comptabiliser TVA 517 centimes puis frais Stripe de la plateforme. La part du developpeur n'est pas diminuee.
 - 1 campagne publicitaire de 100.00 CHF: developpeur = 1'000 centimes et TOK net = 9'000 centimes.
 - 1 fonction payante de 19.90 CHF: developpeur = 199 centimes et TOK net = 1'791 centimes.
 
