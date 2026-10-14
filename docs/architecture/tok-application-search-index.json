@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "48481c5c86f20c6d3ea9714e5af3beaad2d6c597456a7611e685354859c38293",
+ "sourceDigest": "611f96756d6175bb81836738cc869fcf805ad4739c3b9bc42efdf0f2a23c1b5c",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -105703,7 +105703,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 78
+    "lineCount": 84
    },
    {
     "path": "src/test/golden-tok-shell-logo.test.ts",
@@ -113158,7 +113158,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 202
+    "lineCount": 211
    },
    {
     "path": "supabase/functions/google-actions-center-sync/index.ts",
@@ -145129,7 +145129,7 @@
    "id": "code-module:a8512244ead0",
    "type": "code-module",
    "title": "src/test/golden-tok-accreditation.test.ts",
-   "description": "Module de 78 lignes; exports: aucun export statique.",
+   "description": "Module de 84 lignes; exports: aucun export statique.",
    "path": "src/test/golden-tok-accreditation.test.ts",
    "line": 1,
    "surface": null,
@@ -145137,7 +145137,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "7f4a1279ac67"
+   "detailRef": "80b4ac8343b1"
   },
   {
    "id": "code-module:af90a689e08c",
@@ -152139,7 +152139,7 @@
    "id": "code-module:26fbb02a49f5",
    "type": "code-module",
    "title": "supabase/functions/golden-tok-membership/index.ts",
-   "description": "Module de 202 lignes; exports: aucun export statique.",
+   "description": "Module de 211 lignes; exports: aucun export statique.",
    "path": "supabase/functions/golden-tok-membership/index.ts",
    "line": 1,
    "surface": null,
@@ -152147,7 +152147,7 @@
     "GOLDEN_TOK_STRIPE_PRICE_ID",
     "stripe"
    ],
-   "detailRef": "1f1a37eeafea"
+   "detailRef": "e9d23fb4116b"
   },
   {
    "id": "code-module:8fab026bf061",
