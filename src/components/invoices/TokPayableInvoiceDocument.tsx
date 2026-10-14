@@ -108,7 +108,7 @@ function GroupCard({
           </p>
           <p className={cn("text-slate-700", isPrintMode ? "text-sm leading-5" : "text-sm")}>{group.commissionLabel}</p>
         </div>
-        <p className={cn("shrink-0 font-semibold text-[#ff5b14]", isPrintMode ? "text-2xl" : "text-xl sm:text-3xl")}>
+        <p className={cn("shrink-0 whitespace-nowrap font-semibold text-[#ff5b14]", isPrintMode ? "text-2xl" : "text-xl sm:text-3xl")}>
           {formatPayableAmount(group.amountTtc)}
         </p>
       </div>
@@ -148,7 +148,7 @@ function InvoiceDetailCard({ group }: { group: PayableInvoiceGroupSummary }) {
 
       <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-[#fff3ea] px-4 py-3">
         <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Montant</span>
-        <span className="text-lg font-bold text-[#ff5b14]">{formatPayableAmount(group.amountTtc)}</span>
+        <span className="shrink-0 whitespace-nowrap text-lg font-bold text-[#ff5b14]">{formatPayableAmount(group.amountTtc)}</span>
       </div>
     </div>
   );
@@ -205,7 +205,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                 </h1>
                 <div
                   className={cn(
-                    "inline-flex max-w-full break-all rounded-full border border-[#ff9d67] font-semibold text-[#ff5b14]",
+                    "inline-flex max-w-full break-words rounded-full border border-[#ff9d67] font-semibold text-[#ff5b14]",
                     isPrintMode ? "px-5 py-2.5 text-lg" : "px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-xl",
                   )}
                 >
@@ -375,7 +375,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                 ))}
                 <div className="flex items-center justify-between gap-3 rounded-[20px] border border-[#f6b790] bg-[#fff3ea] px-4 py-4">
                   <span className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-700">Total TTC</span>
-                  <span className="text-xl font-bold text-[#ff5b14]">{formatPayableAmount(data.totalTtc)}</span>
+                  <span className="shrink-0 whitespace-nowrap text-xl font-bold text-[#ff5b14]">{formatPayableAmount(data.totalTtc)}</span>
                 </div>
               </div>
             ) : null}
@@ -386,7 +386,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
               )}
             >
               <div className="overflow-hidden">
-                <table className="min-w-full border-collapse text-left">
+                <table className="w-full border-collapse text-left [overflow-wrap:normal] [word-break:normal]">
                   <thead
                     className={cn(
                       "bg-[#fff8f3] uppercase text-slate-500",
@@ -394,7 +394,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                     )}
                   >
                     <tr>
-                      <th className={cn("border-b border-[#f6b790]", isPrintMode ? "px-4 py-3" : "px-5 py-4")}>Type</th>
+                      <th className={cn("border-b border-[#f6b790]", isPrintMode ? "px-2 py-3" : "px-5 py-4")}>Type</th>
                       <th className={cn("border-b border-[#f6b790]", isPrintMode ? "px-4 py-3" : "px-5 py-4")}>Détail</th>
                       <th className={cn("border-b border-[#f6b790]", isPrintMode ? "px-4 py-3" : "px-5 py-4")}>Quantite</th>
                       <th className={cn("border-b border-[#f6b790]", isPrintMode ? "px-4 py-3" : "px-5 py-4")}>Base de calcul</th>
@@ -408,13 +408,13 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
 
                       return (
                         <tr key={group.kind} className="align-top">
-                          <td className={cn("border-b border-[#f6b790]", isPrintMode ? "px-4 py-4" : "px-5 py-5")}>
+                          <td className={cn("border-b border-[#f6b790]", isPrintMode ? "px-2 py-4" : "px-5 py-5")}>
                             <div className={cn("flex items-center font-semibold text-slate-950", isPrintMode ? "gap-2" : "gap-3")}>
                               <Icon className={cn("text-[#ff5b14]", isPrintMode ? "h-4 w-4" : "h-5 w-5")} />
                               <span>{group.title}</span>
                             </div>
                           </td>
-                          <td className={cn("border-b border-[#f6b790] text-slate-600", isPrintMode ? "px-4 py-4 leading-5" : "px-5 py-5")}>
+                          <td className={cn("border-b border-[#f6b790] text-slate-600", isPrintMode ? "px-2 py-4 leading-5" : "px-5 py-5")}>
                             {group.detailLabel}
                           </td>
                           <td className={cn("border-b border-[#f6b790] text-slate-600", isPrintMode ? "px-4 py-4" : "px-5 py-5")}>
@@ -429,7 +429,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                           <td
                             className={cn(
                               "border-b border-[#f6b790] text-right font-semibold text-slate-950",
-                              isPrintMode ? "px-4 py-4 text-xl" : "px-5 py-5 text-2xl",
+                              isPrintMode ? "whitespace-nowrap px-2 py-4 text-base" : "whitespace-nowrap px-5 py-5 text-2xl",
                             )}
                           >
                             {formatPayableAmount(group.amountTtc)}
@@ -442,12 +442,12 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                         colSpan={5}
                         className={cn(
                           "text-right font-semibold uppercase tracking-[0.08em] text-slate-700",
-                          isPrintMode ? "px-4 py-4 text-lg" : "px-5 py-5 text-xl",
+                          isPrintMode ? "px-2 py-4 text-lg" : "px-5 py-5 text-xl",
                         )}
                       >
                         Total TTC
                       </td>
-                      <td className={cn("text-right font-bold text-[#ff5b14]", isPrintMode ? "px-4 py-4 text-2xl" : "px-5 py-5 text-3xl")}>
+                      <td className={cn("text-right font-bold text-[#ff5b14]", isPrintMode ? "whitespace-nowrap px-2 py-4 text-xl" : "whitespace-nowrap px-5 py-5 text-3xl")}>
                         {formatPayableAmount(data.totalTtc)}
                       </td>
                     </tr>

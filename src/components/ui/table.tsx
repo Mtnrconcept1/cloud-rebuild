@@ -65,7 +65,7 @@ const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<
     <td
       ref={ref}
       className={cn(
-        "p-4 align-middle [&:has([role=checkbox])]:pr-0 max-md:grid max-md:grid-cols-[minmax(6.75rem,38%)_minmax(0,1fr)] max-md:items-start max-md:gap-3 max-md:border-0 max-md:px-0 max-md:py-2 max-md:text-left max-md:whitespace-normal max-md:[overflow-wrap:anywhere] max-md:[&_*]:min-w-0 max-md:[&_*]:max-w-full max-md:before:content-[attr(data-label)] max-md:before:text-left max-md:before:text-xs max-md:before:font-medium max-md:before:text-muted-foreground max-md:[&:not([data-label])]:block max-md:[&:not([data-label])]:py-3 max-md:[&:not([data-label])]:text-center max-md:[&:not([data-label])]:before:hidden",
+        "p-4 align-middle [&:has([role=checkbox])]:pr-0 max-md:grid max-md:grid-cols-[minmax(6.75rem,38%)_minmax(0,1fr)] max-md:items-start max-md:gap-3 max-md:border-0 max-md:px-0 max-md:py-2 max-md:text-left max-md:whitespace-normal max-md:[overflow-wrap:normal] max-md:[word-break:normal] max-md:[&_*]:min-w-0 max-md:[&_*]:max-w-full max-md:before:content-[attr(data-label)] max-md:before:text-left max-md:before:text-xs max-md:before:font-medium max-md:before:text-muted-foreground max-md:[&:not([data-label])]:block max-md:[&:not([data-label])]:py-3 max-md:[&:not([data-label])]:text-center max-md:[&:not([data-label])]:before:hidden",
         className,
       )}
       {...props}

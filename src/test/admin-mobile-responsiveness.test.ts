@@ -16,7 +16,8 @@ describe("admin mobile responsiveness guards", () => {
     expect(table).toContain("max-md:block");
     expect(table).toContain("max-md:sr-only");
     expect(table).toContain("max-md:before:content-[attr(data-label)]");
-    expect(table).toContain("max-md:[overflow-wrap:anywhere]");
+    expect(table).toContain("max-md:[overflow-wrap:normal]");
+    expect(table).toContain("max-md:[word-break:normal]");
   });
 
   it("labels dense admin order, reservation and refund table cells", () => {
