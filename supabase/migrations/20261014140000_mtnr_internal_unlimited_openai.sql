@@ -844,7 +844,17 @@ BEGIN
 
   IF TG_TABLE_NAME = 'ai_usage_logs' THEN
     IF lower(COALESCE(NEW.status, '')) <> 'success' THEN RETURN NEW; END IF;
-    IF private_finance.has_internal_unlimited_openai_grant(v_restaurant_id, NEW.user_id) THEN
+    IF NEW.user_id IS NOT NULL
+      AND private_finance.has_internal_unlimited_openai_grant(v_restaurant_id, NEW.user_id)
+      AND EXISTS (
+        SELECT 1
+        FROM private_finance.internal_unlimited_openai_grants grant_row
+        WHERE grant_row.restaurant_id = v_restaurant_id
+          AND grant_row.user_id = NEW.user_id
+          AND grant_row.enabled
+          AND NEW.created_at >= grant_row.granted_at
+      )
+    THEN
       RETURN NEW;
     END IF;
 

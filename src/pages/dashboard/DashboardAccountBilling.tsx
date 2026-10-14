@@ -468,6 +468,7 @@ function CreditSummaryCard({ credit }: { credit: BillingCreditSummary }) {
   const topupBalance = toNumber(credit.topup_balance ?? credit.metadata?.topup_balance ?? 0);
   const spent = toNumber(credit.spent);
   const isDemoUnlimited = isDemoUnlimitedTokCreditBalance(credit.balance);
+  const isInternalUnlimitedOpenAi = credit.metadata?.internal_unlimited_openai === true;
   const progress = allowance > 0 ? Math.min(100, Math.round((spent / allowance) * 100)) : 0;
 
   return (
@@ -483,8 +484,14 @@ function CreditSummaryCard({ credit }: { credit: BillingCreditSummary }) {
           </span>
         </div>
         <div className="space-y-2">
-          <p className="text-2xl font-bold">{formatTokCredits(credit.balance)}</p>
-          {isDemoUnlimited ? (
+          <p className="text-2xl font-bold">
+              {isInternalUnlimitedOpenAi ? "OpenAI illimité" : formatTokCredits(credit.balance)}
+            </p>
+          {isInternalUnlimitedOpenAi ? (
+            <p className="text-xs text-muted-foreground">
+              Accès IA interne illimité. Les campagnes restent limitées au solde TOK réellement disponible.
+            </p>
+          ) : isDemoUnlimited ? (
             <p className="text-xs text-muted-foreground">
               Compte démo : les outils IA restent disponibles pour les présentations commerciales.
             </p>
@@ -905,6 +912,7 @@ function LiveDashboardAccountBilling() {
   const entries = usage?.entries ?? EMPTY_ENTRIES;
   const tokCreditSummary = useMemo(() => buildUnifiedTokCreditSummary(credits), [credits]);
   const hasPreactivationCredits = tokCreditSummary?.metadata?.preactivation === true;
+  const isInternalUnlimitedOpenAi = tokCreditSummary?.metadata?.internal_unlimited_openai === true;
   const weeklyTrialBalance = toNumber(tokCreditSummary?.metadata?.trial_weekly_remaining);
   const purchasedCreditBalance = toNumber(tokCreditSummary?.metadata?.campaign_spendable_balance);
   const currentPlan = usage?.subscription?.plan_record ?? null;
@@ -1033,7 +1041,9 @@ function LiveDashboardAccountBilling() {
 
   const totalBalanceLabel = useMemo(() => {
     if (!tokCreditSummary) return "0 crédit TOK";
-    return formatTokCredits(tokCreditSummary.balance);
+    return tokCreditSummary.metadata?.internal_unlimited_openai === true
+      ? "OpenAI illimité"
+      : formatTokCredits(tokCreditSummary.balance);
   }, [tokCreditSummary]);
   const isDemoUnlimitedBalance = isDemoUnlimitedTokCreditBalance(tokCreditSummary?.balance);
   const pendingActionTitle = pendingSubscriptionAction?.type === "change_plan"
@@ -1305,7 +1315,7 @@ function LiveDashboardAccountBilling() {
           </Alert>
         ) : null}
 
-        {hasPreactivationCredits && !isUsageUnavailable ? (
+        {hasPreactivationCredits && !isInternalUnlimitedOpenAi && !isUsageUnavailable ? (
           <Alert className="border-sky-200 bg-sky-50/70 dark:border-sky-400/25 dark:bg-sky-500/10">
             <Sparkles className="h-4 w-4" />
             <AlertTitle>15 crédits IA gratuits chaque semaine avant activation</AlertTitle>
@@ -1526,11 +1536,18 @@ function LiveDashboardAccountBilling() {
                             <p className="text-sm font-medium">Crédits TOK</p>
                             <p className="text-xs text-muted-foreground">Solde disponible</p>
                           </div>
-                          <p className="text-right text-sm font-bold">{formatTokCredits(tokCreditSummary.balance)}</p>
+                          <p className="text-right text-sm font-bold">
+                              {isInternalUnlimitedOpenAi ? "OpenAI illimité" : formatTokCredits(tokCreditSummary.balance)}
+                            </p>
                         </div>
                         {isDemoUnlimitedBalance ? (
                           <div className="grid gap-1 text-xs text-muted-foreground">
-                            <span>Présentation illimitée de PhotoPro, Studio Marketing et Assistant IA.</span>
+                            <span>{isInternalUnlimitedOpenAi
+                                ? "Retouches photo, Studio Marketing et Assistant IA sans plafond TOK."
+                                : "Présentation illimitée de PhotoPro, Studio Marketing et Assistant IA."}</span>
+                            {isInternalUnlimitedOpenAi ? (
+                              <span>Campagnes sponsorisées : {purchasedCreditBalance.toLocaleString("fr-CH")} crédits TOK réellement disponibles.</span>
+                            ) : null}
                             <span>Les coûts restent tracés dans les journaux IA.</span>
                           </div>
                         ) : (

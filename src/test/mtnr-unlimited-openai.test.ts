@@ -56,8 +56,18 @@ describe("MTNR internal unlimited OpenAI entitlement", () => {
   it("preserves paid OpenAI API logs while guarding other restaurant actors", () => {
     expect(sql).toContain("guard_internal_unlimited_ai_usage");
     expect(sql).toContain("private_finance.has_internal_unlimited_openai_grant(v_restaurant_id, NEW.user_id)");
+    expect(sql).toContain("IF NEW.user_id IS NOT NULL");
+    expect(sql).toContain("NEW.created_at >= grant_row.granted_at");
     expect(sql).toContain("NEW.metadata->>'credit_units'");
     expect(sql).toContain("lower(COALESCE(NEW.status, '')) <> 'success'");
     expect(sql).not.toMatch(/DELETE\s+FROM\s+public\.ai_usage_logs/i);
+  });
+
+  it("labels the internal unlimited AI grant separately from paid campaign credits", () => {
+    const page = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardAccountBilling.tsx"), "utf8");
+    expect(page).toContain("isInternalUnlimitedOpenAi");
+    expect(page).toContain("OpenAI illimité");
+    expect(page).toContain("Les campagnes restent limitées au solde TOK réellement disponible");
+    expect(page).toContain("!isInternalUnlimitedOpenAi && !isUsageUnavailable");
   });
 });
