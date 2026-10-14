@@ -91,16 +91,18 @@ Consultez `.env.example` pour le modele local sans valeurs reelles.
 
 ## Deploiement
 
-La production combine les contrôles et déploiements backend de GitHub Actions avec le déploiement frontend Git natif de Vercel :
+La production est publiée par le workflow GitHub Actions `.github/workflows/deploy-production.yml` lors d'un push validé sur `main` :
 
-1. installe avec pnpm,
-2. valide lint/tests/build selon le workflow,
-3. cible Supabase production,
-4. pousse les migrations via les scripts du depot,
-5. synchronise les secrets Edge Functions autorises,
-6. deploie les fonctions Supabase.
+1. installe les dépendances avec pnpm,
+2. vérifie les tests, le lint, le typage et les contrôles de déploiement,
+3. prépare et applique les changements Supabase nécessaires,
+4. compile le frontend avec `vercel build --prod` sur le runner GitHub,
+5. déploie l'artefact Vercel précompilé avec `vercel deploy --prebuilt --prod`,
+6. vérifie la publication avant de considérer la livraison terminée.
 
-Vercel construit et déploie le frontend depuis Git avec `deploymentEnabled: true` dans `vercel.json`. Les validations GitHub et le déploiement frontend restent deux preuves distinctes.
+`vercel.json` contient `git.deploymentEnabled: false` : les push et PR ne déclenchent plus de déploiement Git automatique chez Vercel. Les previews automatiques sont également désactivées dans les projets Vercel rattachés à TOK. Les publications manuelles/CI conservent leurs autorisations et leurs contrôles ; la limite quotidienne de déploiements imposée par Vercel reste applicable.
+
+**Retour arrière :** remettre `git.deploymentEnabled: true` dans une PR, puis réactiver les previews dans les paramètres des projets Vercel si nécessaire.
 
 ## Regles de contribution
 

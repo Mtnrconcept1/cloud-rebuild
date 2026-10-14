@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "0839ac9d0e9fb4f040c2e6e73eca227fe8111288fea69acfa6f01544129feb15",
+ "sourceDigest": "9b580eac4cd9c0395021b62646a5584e5980fb697cf573ac5c8e58a813b9d957",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 539,
-  "modules": 1554,
+  "modules": 1553,
   "pages": 128,
   "pathLiterals": 698,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16607,
-  "repositoryFiles": 3092,
+  "records": 16605,
+  "repositoryFiles": 3091,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -72830,12 +72830,12 @@
      {
       "level": 2,
       "title": "Regles de contribution",
-      "line": 105
+      "line": 107
      },
      {
       "level": 2,
       "title": "Documentation projet",
-      "line": 115
+      "line": 117
      }
     ]
    },
@@ -87305,7 +87305,7 @@
     "exports": [
      {
       "name": "TokPayableInvoiceDialog",
-      "line": 220,
+      "line": 196,
       "kind": "function"
      }
     ],
@@ -87313,7 +87313,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 291
+    "lineCount": 260
    },
    {
     "path": "src/components/invoices/TokPayableInvoiceDocument.tsx",
@@ -109200,13 +109200,6 @@
     "lineCount": 176
    },
    {
-    "path": "src/test/tok-invoice-print-visibility.test.ts",
-    "exports": [],
-    "environmentNames": [],
-    "integrations": [],
-    "lineCount": 36
-   },
-   {
     "path": "src/test/tok-logo-calendar.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -125965,11 +125958,6 @@
     "extension": ".ts"
    },
    {
-    "path": "src/test/tok-invoice-print-visibility.test.ts",
-    "category": "test",
-    "extension": ".ts"
-   },
-   {
     "path": "src/test/tok-logo-calendar.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -134083,7 +134071,7 @@
    "id": "code-module:31bcd5e17e07",
    "type": "code-module",
    "title": "src/components/invoices/TokPayableInvoiceDialog.tsx",
-   "description": "Module de 291 lignes; exports: TokPayableInvoiceDialog.",
+   "description": "Module de 260 lignes; exports: TokPayableInvoiceDialog.",
    "path": "src/components/invoices/TokPayableInvoiceDialog.tsx",
    "line": 1,
    "surface": null,
@@ -134091,7 +134079,7 @@
     "TokPayableInvoiceDialog",
     "supabase"
    ],
-   "detailRef": "77a3971f1df8"
+   "detailRef": "d99dfdda2383"
   },
   {
    "id": "code-module:c2a08a511ff3",
@@ -150182,17 +150170,6 @@
     "supabase"
    ],
    "detailRef": "e08d180041a1"
-  },
-  {
-   "id": "code-module:f241b98cb876",
-   "type": "code-module",
-   "title": "src/test/tok-invoice-print-visibility.test.ts",
-   "description": "Module de 36 lignes; exports: aucun export statique.",
-   "path": "src/test/tok-invoice-print-visibility.test.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [],
-   "detailRef": "335b516f4bdc"
   },
   {
    "id": "code-module:90f3ca6d8c18",
@@ -209680,18 +209657,18 @@
    "detailRef": "297146f64ca7"
   },
   {
-   "id": "document-section:1cdd04824036",
+   "id": "document-section:429610b30e4b",
    "type": "document-section",
    "title": "Documentation projet",
    "description": "Section de TOK / TheTok.",
    "path": "README.md",
-   "line": 115,
+   "line": 117,
    "surface": null,
    "tags": [
     "TOK / TheTok",
     "h2"
    ],
-   "detailRef": "54acd4573bdf"
+   "detailRef": "f5bfa17c50dc"
   },
   {
    "id": "document-section:fdbc59832e3d",
@@ -219970,18 +219947,18 @@
    "detailRef": "c2bdc2591a08"
   },
   {
-   "id": "document-section:512fe3eaa7f3",
+   "id": "document-section:8570e1dbbf67",
    "type": "document-section",
    "title": "Regles de contribution",
    "description": "Section de TOK / TheTok.",
    "path": "README.md",
-   "line": 105,
+   "line": 107,
    "surface": null,
    "tags": [
     "TOK / TheTok",
     "h2"
    ],
-   "detailRef": "7eb5a003934f"
+   "detailRef": "93e3bacc0924"
   },
   {
    "id": "document-section:ea40ffda4100",
@@ -233480,7 +233457,7 @@
     "URLs de reference",
     "Variables d'environnement"
    ],
-   "detailRef": "8271f12b15ba"
+   "detailRef": "22ad8b172942"
   },
   {
    "id": "document:b135db14d266",
@@ -261763,18 +261740,18 @@
    "detailRef": "2215d5a83170"
   },
   {
-   "id": "exported-symbol:a7fd91863d14",
+   "id": "exported-symbol:5c679c1defcc",
    "type": "exported-symbol",
    "title": "TokPayableInvoiceDialog",
    "description": "Export function de src/components/invoices/TokPayableInvoiceDialog.tsx.",
    "path": "src/components/invoices/TokPayableInvoiceDialog.tsx",
-   "line": 220,
+   "line": 196,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "001917436dc7"
+   "detailRef": "ef7d408a74cd"
   },
   {
    "id": "exported-symbol:e0eb156f4d2d",
@@ -322924,20 +322901,6 @@
     "test"
    ],
    "detailRef": "fc6cb59b36b5"
-  },
-  {
-   "id": "file:83ffbcefed60",
-   "type": "file",
-   "title": "src/test/tok-invoice-print-visibility.test.ts",
-   "description": "Fichier du dépôt classé test.",
-   "path": "src/test/tok-invoice-print-visibility.test.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "test"
-   ],
-   "detailRef": "bf661bf3cd83"
   },
   {
    "id": "file:2ac3cb82c346",

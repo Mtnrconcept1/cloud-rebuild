@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `0839ac9d0e9fb4f040c2e6e73eca227fe8111288fea69acfa6f01544129feb15`
+- Empreinte SHA-256 des sources indexées : `9b580eac4cd9c0395021b62646a5584e5980fb697cf573ac5c8e58a813b9d957`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 539 |
-| modules | 1554 |
+| modules | 1553 |
 | pages | 128 |
 | pathLiterals | 698 |
 | publicAssets | 502 |
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16607 |
-| repositoryFiles | 3092 |
+| records | 16605 |
+| repositoryFiles | 3091 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6155,7 +6155,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 617 |
+| test | 616 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -8909,7 +8909,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (617)</summary>
+<details><summary>test (616)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9508,7 +9508,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-universal-mcp.test.ts`
 - `src/test/tok-connect.test.ts`
 - `src/test/tok-intelligence-suite.test.ts`
-- `src/test/tok-invoice-print-visibility.test.ts`
 - `src/test/tok-logo-calendar.test.ts`
 - `src/test/tok-one-stripe-test-mode.test.ts`
 - `src/test/tok-pulse-native-widget.test.ts`
