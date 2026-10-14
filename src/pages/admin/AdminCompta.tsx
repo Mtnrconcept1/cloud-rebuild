@@ -97,6 +97,8 @@ export default function AdminCompta() {
     tokOneSubscriptionAmount,
     tokOneSubscriptionCount,
     directTokPurchaseRevenueAmount,
+    stripeProcessingFeesAmount,
+    taxPayableAmount,
     tokCoveredMiamzAmount,
     tokCoveredMiamzCount,
     totalRevenue,
@@ -197,6 +199,12 @@ export default function AdminCompta() {
       amount: toAmount(platformFinanceSnapshot?.other_cost_chf),
       helper: "Hébergement, outils, support, juridique et autres fournisseurs saisis.",
       tone: "rose",
+    },
+    {
+      label: "Frais Stripe réels",
+      amount: stripeProcessingFeesAmount,
+      helper: "Frais de traitement comptabilisés sur les paiements en production, déduction faite des extournes.",
+      tone: "sky",
     },
     {
       label: "Part développeur réservée",
@@ -578,6 +586,11 @@ export default function AdminCompta() {
               formatValue={formatAmount}
             />
           </div>
+          <p className="text-sm text-muted-foreground">
+            TVA collectée à reverser, distincte des charges et des revenus hors taxes :
+            {" "}<span className="font-semibold text-foreground">{formatAmount(taxPayableAmount)}</span>.
+            Les montants proviennent des écritures Stripe enregistrées pour ce mois.
+          </p>
 
           <AccountingPanel
             tone="violet"
