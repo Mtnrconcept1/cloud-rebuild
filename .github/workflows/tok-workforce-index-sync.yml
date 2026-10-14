@@ -26,8 +26,12 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Regenerate application index
-        run: pnpm docs:application-index
+      - name: Regenerate application index without temporary workflow
+        run: |
+          set -euo pipefail
+          git rm --cached -- .github/workflows/tok-workforce-index-sync.yml
+          pnpm docs:application-index
+          git restore --staged -- .github/workflows/tok-workforce-index-sync.yml
       - name: Commit generated index to feature branch only
         run: |
           set -euo pipefail
