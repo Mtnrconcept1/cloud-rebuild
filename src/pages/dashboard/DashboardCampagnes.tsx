@@ -170,6 +170,10 @@ type CampaignRecord = Record<string, any>;
 type RestaurantCreditSummary = {
   kind?: string | null;
   balance?: number | string | null;
+  metadata?: {
+    preactivation?: boolean;
+    campaign_spendable_balance?: number | string | null;
+  } | null;
 };
 type RestaurantCreditUsage = {
   credits?: RestaurantCreditSummary[] | null;
@@ -188,7 +192,11 @@ function getCampaignCreditBalanceFromUsage(usage: RestaurantCreditUsage | null |
   const credits = Array.isArray(usage?.credits) ? usage.credits : [];
   const tokCredit = credits.find((credit) => credit.kind === "tok_credits");
   if (tokCredit) {
-    return Math.max(0, toFiniteNumber(tokCredit.balance) / TOK_CREDITS_PER_CAMPAIGN_CHF);
+    // The 15 free pre-activation credits can only fund AI, never campaigns.
+    const spendable = tokCredit.metadata?.preactivation
+      ? tokCredit.metadata.campaign_spendable_balance
+      : tokCredit.balance;
+    return Math.max(0, toFiniteNumber(spendable) / TOK_CREDITS_PER_CAMPAIGN_CHF);
   }
 
   const campaignCredit = credits.find((credit) => credit.kind === "campaign");
