@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b9c00b315cffe8995ccc59d8806ba365b73c83107c62f158a67f1604c7a96775",
+ "sourceDigest": "298dcb92a3a717ca98d3e2c0a47d7b1024fdbac8d56333f8af6d6e4e0921080d",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -35728,7 +35728,7 @@
    {
     "name": "20261014030000 Golden Tok Accreditations",
     "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-    "lineCount": 285,
+    "lineCount": 286,
     "objectCount": 8
    }
   ],
@@ -37217,7 +37217,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 89
+      "line": 90
      }
     ]
    },
@@ -37769,7 +37769,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 40
+      "line": 41
      }
     ]
    },
@@ -40831,7 +40831,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 136
+      "line": 137
      }
     ]
    },
@@ -43313,7 +43313,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 171
+      "line": 172
      }
     ]
    },
@@ -45793,7 +45793,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 27
+      "line": 28
      }
     ]
    },
@@ -53179,7 +53179,7 @@
      },
      {
       "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 157
+      "line": 158
      }
     ]
    },
@@ -54809,7 +54809,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 36
+      "line": 37
      }
     ]
    },
@@ -90527,42 +90527,42 @@
      },
      {
       "name": "humanizeIdentifier",
-      "line": 465,
+      "line": 466,
       "kind": "function"
      },
      {
       "name": "describeAuditFunction",
-      "line": 477,
+      "line": 478,
       "kind": "function"
      },
      {
       "name": "describeAuditAction",
-      "line": 484,
+      "line": 485,
       "kind": "function"
      },
      {
       "name": "describeAuditEntity",
-      "line": 492,
+      "line": 493,
       "kind": "function"
      },
      {
       "name": "describeAuditActor",
-      "line": 499,
+      "line": 500,
       "kind": "function"
      },
      {
       "name": "explainAuditError",
-      "line": 507,
+      "line": 508,
       "kind": "function"
      },
      {
       "name": "describeAuditLog",
-      "line": 628,
+      "line": 629,
       "kind": "function"
      },
      {
       "name": "summarizeAuditLog",
-      "line": 632,
+      "line": 633,
       "kind": "function"
      }
     ],
@@ -90571,7 +90571,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 634
+    "lineCount": 635
    },
    {
     "path": "src/lib/adminComptaActions.ts",
@@ -104271,7 +104271,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 77
+    "lineCount": 79
    },
    {
     "path": "src/test/client-checkout-session-guards.test.ts",
@@ -105535,7 +105535,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 75
+    "lineCount": 78
    },
    {
     "path": "src/test/golden-tok-shell-logo.test.ts",
@@ -112980,7 +112980,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 195
+    "lineCount": 202
    },
    {
     "path": "supabase/functions/google-actions-center-sync/index.ts",
@@ -135576,7 +135576,7 @@
    "id": "code-module:49057d39b311",
    "type": "code-module",
    "title": "src/lib/admin/auditLogNarrative.ts",
-   "description": "Module de 634 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
+   "description": "Module de 635 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
    "path": "src/lib/admin/auditLogNarrative.ts",
    "line": 1,
    "surface": null,
@@ -135597,7 +135597,7 @@
     "stripe",
     "summarizeAuditLog"
    ],
-   "detailRef": "80560d668c23"
+   "detailRef": "a0bd7b89f563"
   },
   {
    "id": "code-module:011d1dc10823",
@@ -143103,14 +143103,14 @@
    "id": "code-module:9d85656bda0b",
    "type": "code-module",
    "title": "src/test/chef-table-vip-miamz-access.test.ts",
-   "description": "Module de 77 lignes; exports: aucun export statique.",
+   "description": "Module de 79 lignes; exports: aucun export statique.",
    "path": "src/test/chef-table-vip-miamz-access.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "55232de689b2"
+   "detailRef": "ee02bf43f885"
   },
   {
    "id": "code-module:a1207c4a8469",
@@ -144941,7 +144941,7 @@
    "id": "code-module:a8512244ead0",
    "type": "code-module",
    "title": "src/test/golden-tok-accreditation.test.ts",
-   "description": "Module de 75 lignes; exports: aucun export statique.",
+   "description": "Module de 78 lignes; exports: aucun export statique.",
    "path": "src/test/golden-tok-accreditation.test.ts",
    "line": 1,
    "surface": null,
@@ -144949,7 +144949,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "19bbb859ca2c"
+   "detailRef": "7f4a1279ac67"
   },
   {
    "id": "code-module:af90a689e08c",
@@ -151937,7 +151937,7 @@
    "id": "code-module:26fbb02a49f5",
    "type": "code-module",
    "title": "supabase/functions/golden-tok-membership/index.ts",
-   "description": "Module de 195 lignes; exports: aucun export statique.",
+   "description": "Module de 202 lignes; exports: aucun export statique.",
    "path": "supabase/functions/golden-tok-membership/index.ts",
    "line": 1,
    "surface": null,
@@ -151945,7 +151945,7 @@
     "GOLDEN_TOK_STRIPE_PRICE_ID",
     "stripe"
    ],
-   "detailRef": "b3c3e9f7f9f9"
+   "detailRef": "1f1a37eeafea"
   },
   {
    "id": "code-module:8fab026bf061",
@@ -159080,19 +159080,19 @@
    "detailRef": "c4b8a58e3be2"
   },
   {
-   "id": "database-object:815843f0dc79",
+   "id": "database-object:e7fc2c8f7a33",
    "type": "database-object",
    "title": "golden_tok_accreditations_review_idx",
    "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 27,
+   "line": 28,
    "surface": null,
    "tags": [
     "index",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "d1a308d66e5f"
+   "detailRef": "108fef3b3578"
   },
   {
    "id": "database-object:4b229ea8da74",
@@ -169415,19 +169415,19 @@
    "detailRef": "f063775a61f4"
   },
   {
-   "id": "database-object:924b84a3532e",
+   "id": "database-object:adecdf40ae7b",
    "type": "database-object",
    "title": "public.admin_review_golden_tok_accreditation",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 89,
+   "line": 90,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "a427b7d5537b"
+   "detailRef": "d190daa49271"
   },
   {
    "id": "database-object:c55b17e9ddc2",
@@ -170765,19 +170765,19 @@
    "detailRef": "c41ee496941e"
   },
   {
-   "id": "database-object:82c609394f2c",
+   "id": "database-object:e353c65c4465",
    "type": "database-object",
    "title": "public.apply_golden_tok_accreditation",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 40,
+   "line": 41,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "1197a421766e"
+   "detailRef": "52dffa76f2b6"
   },
   {
    "id": "database-object:a4b2e9751ccf",
@@ -172220,19 +172220,19 @@
    "detailRef": "2a962f96dec8"
   },
   {
-   "id": "database-object:70028fed4ca0",
+   "id": "database-object:d1efee135c12",
    "type": "database-object",
    "title": "public.chef_table_drops.chef_table_drops_public_select",
    "description": "Objet PostgreSQL de type policy; 2 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 157,
+   "line": 158,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "fbca6dce4392"
+   "detailRef": "4328b7c670f8"
   },
   {
    "id": "database-object:665714e4a707",
@@ -178265,19 +178265,19 @@
    "detailRef": "7102e6ecd2c1"
   },
   {
-   "id": "database-object:d4b0ee3fe168",
+   "id": "database-object:db08b7fff9c2",
    "type": "database-object",
    "title": "public.golden_tok_accreditations.golden_tok_accreditations_owner_or_admin_read",
    "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 36,
+   "line": 37,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "3bb13defd7ef"
+   "detailRef": "3de508393715"
   },
   {
    "id": "database-object:765dd627774a",
@@ -178295,19 +178295,19 @@
    "detailRef": "38fed4650257"
   },
   {
-   "id": "database-object:6b3bba985029",
+   "id": "database-object:35acdaefce0c",
    "type": "database-object",
    "title": "public.golden_tok_restaurant_is_paid",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 136,
+   "line": 137,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "b645fd3d54b9"
+   "detailRef": "9e1a02641c89"
   },
   {
    "id": "database-object:e6526496acf5",
@@ -187460,19 +187460,19 @@
    "detailRef": "49089b338b83"
   },
   {
-   "id": "database-object:8ecb06e9ff69",
+   "id": "database-object:021db6b7e4f6",
    "type": "database-object",
    "title": "public.restaurant_save_golden_tok_drop",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 171,
+   "line": 172,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "6bd2d3f2926a"
+   "detailRef": "fc713a698fca"
   },
   {
    "id": "database-object:34fad0876655",
@@ -270137,79 +270137,79 @@
    "detailRef": "35cf2f09a4fb"
   },
   {
-   "id": "exported-symbol:46b7333dd8a6",
+   "id": "exported-symbol:4daf504b7ba1",
    "type": "exported-symbol",
    "title": "describeAuditAction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 484,
+   "line": 485,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b90b791bbf96"
+   "detailRef": "510398973d96"
   },
   {
-   "id": "exported-symbol:1acaec08b34c",
+   "id": "exported-symbol:f9ea46bb7ff0",
    "type": "exported-symbol",
    "title": "describeAuditActor",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 499,
+   "line": 500,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "65133d2ecc6c"
+   "detailRef": "5109f4f581ae"
   },
   {
-   "id": "exported-symbol:4881f83de976",
+   "id": "exported-symbol:dd26294f1247",
    "type": "exported-symbol",
    "title": "describeAuditEntity",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 492,
+   "line": 493,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "5958429935e9"
+   "detailRef": "f95415aa1aad"
   },
   {
-   "id": "exported-symbol:3815337bdd04",
+   "id": "exported-symbol:7007080de2b5",
    "type": "exported-symbol",
    "title": "describeAuditFunction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 477,
+   "line": 478,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "1cbf0a76d25f"
+   "detailRef": "04cb48327718"
   },
   {
-   "id": "exported-symbol:46caaafe2225",
+   "id": "exported-symbol:46b299d550e9",
    "type": "exported-symbol",
    "title": "describeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 628,
+   "line": 629,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b0766893ca10"
+   "detailRef": "aeeb9e430cd7"
   },
   {
    "id": "exported-symbol:10f1bf567ca4",
@@ -270873,19 +270873,19 @@
    "detailRef": "8b413b2a22c5"
   },
   {
-   "id": "exported-symbol:d0803f3bff75",
+   "id": "exported-symbol:9f92ba8eb29f",
    "type": "exported-symbol",
    "title": "explainAuditError",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 507,
+   "line": 508,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b50a1667e564"
+   "detailRef": "235177c0bbb9"
   },
   {
    "id": "exported-symbol:94c395b452eb",
@@ -277325,19 +277325,19 @@
    "detailRef": "dc9f63bb72e6"
   },
   {
-   "id": "exported-symbol:3e5a7e4a9827",
+   "id": "exported-symbol:d855de964287",
    "type": "exported-symbol",
    "title": "humanizeIdentifier",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 465,
+   "line": 466,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "ee689cf56868"
+   "detailRef": "cd201f4dc125"
   },
   {
    "id": "exported-symbol:cd0c65e7c41c",
@@ -285312,19 +285312,19 @@
    "detailRef": "596a9a69ebd0"
   },
   {
-   "id": "exported-symbol:396e55fc54b1",
+   "id": "exported-symbol:54e0678701fe",
    "type": "exported-symbol",
    "title": "summarizeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 632,
+   "line": 633,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "6f938fcbd0dd"
+   "detailRef": "a5e4fc639601"
   },
   {
    "id": "exported-symbol:25e70f45a5b2",
@@ -344776,7 +344776,7 @@
    "id": "migration:c2be902a5892",
    "type": "migration",
    "title": "20261014030000 Golden Tok Accreditations",
-   "description": "Migration SQL de 285 lignes, 8 objets CREATE détectés.",
+   "description": "Migration SQL de 286 lignes, 8 objets CREATE détectés.",
    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
    "line": 1,
    "surface": null,
@@ -344784,7 +344784,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "5472836e532e"
+   "detailRef": "dfcb2acecca7"
   },
   {
    "id": "package-script:5bd6dc98483a",
