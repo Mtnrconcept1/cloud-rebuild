@@ -2,7 +2,6 @@ import {
   HttpError,
   authenticateRequest,
   assertProductionFlowAllowed,
-  createAdminClient,
   jsonResponse,
   requireRestaurantAccess,
   writeAuditLog,
