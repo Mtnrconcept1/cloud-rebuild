@@ -647,7 +647,7 @@ async function fetchDashboardExportInvoices(restaurantId: string, period: Accoun
       `)
       .eq("restaurant_id", restaurantId);
 
-    return applyAccountingPeriodRange(query, "period_end", period, "date").order("period_end", { ascending: true });
+    return applyAccountingPeriodRange(query, "period_start", period, "date").order("period_start", { ascending: true });
   };
 
   return fetchPagedRows<RestaurantInvoiceRow & { restaurants?: { name: string | null } | null }>(buildQuery);

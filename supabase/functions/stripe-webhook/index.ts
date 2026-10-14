@@ -499,7 +499,14 @@ async function recordRestaurantTokPurchaseInvoiceIfMissing(input: {
       log?.error?.("paid_tok_purchase_invoice_lookup_failed", { message: existingLineError.message });
       throw existingLineError;
     }
-    if (existingLine?.invoice_id) return existingLine.invoice_id;
+    if (existingLine?.invoice_id) {
+    // Safe on Stripe webhook retries, protected by the invoice email unique key.
+    const { error: emailError } = await adminClient.rpc("queue_tok_paid_invoice_email", {
+      p_payment_reference: session.id, p_source_kind: "checkout_session",
+    });
+    if (emailError) throw new Error("TOK_PAID_INVOICE_EMAIL_QUEUE_FAILED:" + emailError.message);
+    return existingLine.invoice_id;
+  }
   }
 
   const invoiceNumber = buildPaidTokInvoiceNumber(itemKind, session.id);
@@ -579,6 +586,11 @@ async function recordRestaurantTokPurchaseInvoiceIfMissing(input: {
     log?.error?.("paid_tok_purchase_invoice_line_insert_failed", { message: lineError.message });
     throw lineError;
   }
+
+  const { error: emailError } = await adminClient.rpc("queue_tok_paid_invoice_email", {
+    p_payment_reference: session.id, p_source_kind: "checkout_session",
+  });
+  if (emailError) throw new Error("TOK_PAID_INVOICE_EMAIL_QUEUE_FAILED:" + emailError.message);
 
   return invoiceId;
 }
@@ -3198,6 +3210,14 @@ Deno.serve(async (req) => {
           },
           log,
         });
+        // Only queue invoices already recorded and paid by the canonical TOK
+        // subscription ledger. This runs AFTER successful Stripe finance.
+        if (restaurantId && context.isRestaurantSubscription) {
+          const { error: emailError } = await supabaseAdmin.rpc("queue_tok_paid_invoice_email", {
+            p_payment_reference: invoice.id, p_source_kind: "stripe_invoice",
+          });
+          if (emailError) throw new Error("TOK_PAID_INVOICE_EMAIL_QUEUE_FAILED:" + emailError.message);
+        }
       }
     }
 
