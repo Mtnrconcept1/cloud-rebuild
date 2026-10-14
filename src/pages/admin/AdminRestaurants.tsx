@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ClipboardCheck,
   History,
+  Gift,
   RefreshCw,
   Search,
   Send,
@@ -20,6 +21,7 @@ import {
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import AdminDemoEntitiesDialog from "@/components/admin/AdminDemoEntitiesDialog";
+import AdminGiftAiCreditsDialog from "@/components/admin/AdminGiftAiCreditsDialog";
 import AdminRealRestaurantAssignment from "@/components/admin/AdminRealRestaurantAssignment";
 import RestaurantPartnerContractCard from "@/components/contracts/RestaurantPartnerContractCard";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +54,7 @@ import {
 } from "@/lib/restaurantAdminState";
 
 const supabase = getSupabase();
+const RESTAURANT_PAGE_SIZE = 24;
 
 type AdminRestaurant = {
   id: string;
@@ -901,46 +904,69 @@ export default function AdminRestaurants() {
   const [overrideReason, setOverrideReason] = useState("");
   const [actionReason, setActionReason] = useState("");
 
+  const [page, setPage] = useState(0);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [giftOpen, setGiftOpen] = useState(false);
+  const [giftRestaurantId, setGiftRestaurantId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search.trim().slice(0, 80));
+    }, 180);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch, visibilityFilter]);
+
   const {
-    data: restaurants = [],
+    data: listing,
     isLoading,
+    isFetching,
     error,
-  } = useQuery({
-    queryKey: ["admin-restaurants"],
+  } = useQuery<{ rows: AdminRestaurant[]; total: number }>({
+    queryKey: ["admin-restaurants", debouncedSearch, visibilityFilter, page],
+    staleTime: 15_000,
+    placeholderData: (previous) => previous,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("restaurants")
-        .select(
-          "id, name, city, cuisine_type, image_url, is_active, is_featured, status, supports_pickup, supports_dinein, supports_reservation, avg_rating, rating_count, min_order_amount, base_delivery_fee, address, latitude, longitude, opening_hours, disabled_payment_methods",
-        )
-        .order("name");
-
+      const { data, error } = await (supabase.rpc as any)(
+        "admin_restaurants_page_fast",
+        {
+          p_query: debouncedSearch,
+          p_visibility: visibilityFilter,
+          p_limit: RESTAURANT_PAGE_SIZE,
+          p_offset: page * RESTAURANT_PAGE_SIZE,
+        },
+      );
       if (error) throw error;
-      const restaurantRows = (data || []) as AdminRestaurant[];
-      const restaurantIds = restaurantRows.map((restaurant) => restaurant.id);
-      const menuCountByRestaurant = new Map<string, number>();
+      return {
+        rows: (data?.rows || []) as AdminRestaurant[],
+        total: Number(data?.total || 0),
+      };
+    },
+  });
+  const restaurants = listing?.rows || [];
+  const totalFiltered = listing?.total || 0;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / RESTAURANT_PAGE_SIZE));
 
-      if (restaurantIds.length > 0) {
-        const { data: menuItems, error: menuError } = await supabase
-          .from("menu_items")
-          .select("restaurant_id")
-          .eq("is_available", true)
-          .in("restaurant_id", restaurantIds);
-
-        if (menuError) throw menuError;
-
-        for (const item of menuItems || []) {
-          menuCountByRestaurant.set(
-            item.restaurant_id,
-            (menuCountByRestaurant.get(item.restaurant_id) || 0) + 1,
-          );
-        }
-      }
-
-      return restaurantRows.map((restaurant) => ({
-        ...restaurant,
-        menu_items_count: menuCountByRestaurant.get(restaurant.id) || 0,
-      }));
+  const { data: globalStats } = useQuery<{
+    total: number;
+    active: number;
+    featured: number;
+    reservationReady: number;
+    catalogReady: number;
+  }>({
+    queryKey: ["admin-restaurants-stats"],
+    staleTime: 120_000,
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)(
+        "admin_restaurant_stats_fast",
+      );
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -977,50 +1003,20 @@ export default function AdminRestaurants() {
     },
   });
 
-  const filteredRestaurants = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return restaurants.filter((restaurant) => {
-      const matchesSearch =
-        !term ||
-        restaurant.name.toLowerCase().includes(term) ||
-        (restaurant.city || "").toLowerCase().includes(term) ||
-        (restaurant.cuisine_type || "").toLowerCase().includes(term) ||
-        restaurant.id.toLowerCase().includes(term);
+  // Server-side filtering and pagination replace full-catalog downloads.
+  const filteredRestaurants = restaurants;
+  const stats = globalStats || {
+    total: 0,
+    active: 0,
+    featured: 0,
+    reservationReady: 0,
+    catalogReady: 0,
+  };
 
-      const isActive = isRestaurantOperationallyActive(restaurant);
-      const quality = getCatalogQuality(restaurant);
-      const matchesVisibility =
-        visibilityFilter === "all" ||
-        (visibilityFilter === "active" && isActive) ||
-        (visibilityFilter === "inactive" && !isActive) ||
-        (visibilityFilter === "featured" &&
-          (restaurant.is_featured ?? false)) ||
-        (visibilityFilter === "incomplete" && !quality.publishable);
-
-      return matchesSearch && matchesVisibility;
-    });
-  }, [restaurants, search, visibilityFilter]);
-
-  const stats = useMemo(() => {
-    return {
-      total: restaurants.length,
-      active: restaurants.filter((restaurant) =>
-        isRestaurantOperationallyActive(restaurant),
-      ).length,
-      featured: restaurants.filter(
-        (restaurant) => restaurant.is_featured ?? false,
-      ).length,
-      reservationReady: restaurants.filter(
-        (restaurant) => restaurant.supports_reservation ?? false,
-      ).length,
-      catalogReady: restaurants.filter(
-        (restaurant) => getCatalogQuality(restaurant).publishable,
-      ).length,
-    };
-  }, [restaurants]);
 
   const invalidateRestaurantQueries = (restaurantId: string) => {
     queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-restaurants-stats"] });
     queryClient.invalidateQueries({
       queryKey: ["admin-restaurant-detail", restaurantId],
     });
@@ -1192,6 +1188,17 @@ export default function AdminRestaurants() {
       />
 
       <div className="flex flex-wrap justify-end gap-2">
+        <Button
+          type="button"
+          className="gap-2"
+          onClick={() => {
+            setGiftRestaurantId(null);
+            setGiftOpen(true);
+          }}
+        >
+          <Gift className="h-4 w-4" />
+          Offrir des crédits IA
+        </Button>
         <AdminDemoEntitiesDialog mode="restaurants" />
         <Button asChild variant="outline" className="gap-2">
           <Link to="/admin/restaurants/google-business">
@@ -1289,6 +1296,11 @@ export default function AdminRestaurants() {
         </CardContent>
       </Card>
 
+      <AdminGiftAiCreditsDialog
+        open={giftOpen}
+        onOpenChange={setGiftOpen}
+        initialRestaurantId={giftRestaurantId}
+      />
       <Dialog
         open={Boolean(selectedRestaurantId)}
         onOpenChange={(open) => {
@@ -1350,6 +1362,12 @@ export default function AdminRestaurants() {
           />
         </DialogContent>
       </Dialog>
+
+      {isFetching && !isLoading ? (
+        <p role="status" className="text-xs text-muted-foreground">
+          Actualisation des résultats…
+        </p>
+      ) : null}
 
       {isLoading ? (
         <div className="space-y-3">
@@ -1507,6 +1525,17 @@ export default function AdminRestaurants() {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => {
+                      setGiftRestaurantId(restaurant.id);
+                      setGiftOpen(true);
+                    }}
+                  >
+                    <Gift className="mr-2 h-4 w-4" />
+                    Crédits IA
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => openRestaurantDetail(restaurant.id)}
                   >
                     <ClipboardCheck className="mr-2 h-4 w-4" />
@@ -1560,6 +1589,29 @@ export default function AdminRestaurants() {
           ))}
         </div>
       )}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm">
+        <p className="text-muted-foreground">
+          {totalFiltered.toLocaleString("fr-CH")} restaurant(s) trouvés · page {page + 1} sur {totalPages}
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={page === 0 || isFetching}
+            onClick={() => setPage((current) => Math.max(0, current - 1))}
+          >
+            Précédent
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={page + 1 >= totalPages || isFetching}
+            onClick={() => setPage((current) => Math.min(totalPages - 1, current + 1))}
+          >
+            Suivant
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
