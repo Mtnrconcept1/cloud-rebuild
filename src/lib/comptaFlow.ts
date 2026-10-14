@@ -86,6 +86,32 @@ export function getPaidDirectTokInvoiceIds(invoices: readonly DirectTokInvoiceLi
     .map((invoice) => invoice.id);
 }
 
+export type StripeFinanceLedgerEntry = {
+  account_code: string;
+  direction: "debit" | "credit";
+  amount_cents: number | string;
+};
+
+/** Ledger-based costs and tax liabilities; do not mistake VAT for an expense. */
+export function summarizeStripeFinanceLedger(entries: readonly StripeFinanceLedgerEntry[]) {
+  let processingFeeCents = 0;
+  let vatPayableCents = 0;
+
+  for (const entry of entries) {
+    const cents = toAmount(entry.amount_cents);
+    if (entry.account_code === "stripe_processing_fee_expense") {
+      processingFeeCents += entry.direction === "debit" ? cents : -cents;
+    } else if (entry.account_code === "tax_payable") {
+      vatPayableCents += entry.direction === "credit" ? cents : -cents;
+    }
+  }
+
+  return {
+    processingFees: roundCurrency(processingFeeCents / 100),
+    vatPayable: roundCurrency(vatPayableCents / 100),
+  };
+}
+
 function sumInvoices(invoices: readonly MoneyLike[]) {
   return invoices.reduce((sum, invoice) => sum + toAmount(invoice.amount_ttc), 0);
 }
