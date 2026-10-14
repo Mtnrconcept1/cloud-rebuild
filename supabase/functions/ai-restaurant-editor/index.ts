@@ -324,9 +324,13 @@ Deno.serve(async (req) => {
     const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof HttpError ? error.message : "Erreur interne";
     if (claimed && actor && taskId && restaurantId && actor.userId) {
-      await actor.adminClient.from("ai_restaurant_tasks").update({ status: "failed" })
-        .eq("id", taskId).eq("restaurant_id", restaurantId).eq("user_id", actor.userId)
-        .eq("status", "generated").catch(() => {});
+      try {
+        await actor.adminClient.from("ai_restaurant_tasks").update({ status: "failed" })
+          .eq("id", taskId).eq("restaurant_id", restaurantId).eq("user_id", actor.userId)
+          .eq("status", "generated");
+      } catch {
+        // A failed cleanup must not replace the original request error.
+      }
     }
     if (actor) await writeAuditLog({
       adminClient: actor.adminClient, functionName: FUNCTION_NAME, action: "error", status: "failure",
