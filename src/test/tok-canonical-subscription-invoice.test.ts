@@ -77,6 +77,11 @@ describe("TOK unified subscription invoice document", () => {
     expect(result.groups[0]?.amountTtc).toBe(69);
     expect(result.logoUrl).toBeTruthy();
     expect(result.sender.website).toBe("www.thetok.ch");
+    expect(result.sender.name).toBe("NEW DOG'S SERVICES Sàrl");
+    expect(result.sender.addressLine1).toBe("Rue de Genève 6");
+    expect(result.sender.enterpriseId).toBe("CHE-109.513.890");
+    // RC certificate provides the IDE only; separate VAT registration is not proven.
+    expect(result.sender.vatNumber).toBeNull();
     expect(invoiceModel).not.toContain("CHE-123.456.789");
     expect(invoiceModel).not.toContain("facturation@tok.app");
   });
