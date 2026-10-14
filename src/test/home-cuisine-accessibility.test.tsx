@@ -29,9 +29,18 @@ describe("CuisineCategoryStrip accessibility", () => {
     render(<MemoryRouter><CuisineCategoryStrip /></MemoryRouter>);
 
     const african = screen.getByRole("button", { name: "Africain" });
+    const pizza = screen.getByRole("button", { name: "Pizza" });
+
     expect(african.firstElementChild).toHaveClass("rounded-[20px]", "bg-background");
     expect(african.querySelector("img")).toHaveAttribute("loading", "lazy");
-    expect(african.lastElementChild).toHaveClass("font-bold", "text-foreground");
+
+    for (const [button, label] of [[african, "Africain"], [pizza, "Pizza"]] as const) {
+      const textLabel = button.lastElementChild;
+      expect(textLabel?.tagName).toBe("SPAN");
+      expect(textLabel).toHaveClass("font-bold", "text-foreground");
+      expect(textLabel).toHaveTextContent(label);
+      expect(button.querySelector("img")).toHaveAttribute("loading", "lazy");
+    }
   });
 
   it("opens the selected cuisine with a safely encoded query and no imposed city", () => {
