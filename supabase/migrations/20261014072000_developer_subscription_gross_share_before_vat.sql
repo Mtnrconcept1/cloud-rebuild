@@ -627,6 +627,7 @@ BEGIN
 END;
 $function$
 
+;
 -- One-time, append-only and idempotent reconciliation for the already settled
 -- TOK Starter invoice: CHF 69 TTC -> CHF 6.90 (690 cents), previously 638.
 -- No new charge, payment, payout, or reversal of the historical journal.
