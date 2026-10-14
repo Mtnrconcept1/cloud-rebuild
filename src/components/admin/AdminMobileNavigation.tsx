@@ -16,6 +16,7 @@ import {
   MessageSquareText,
   Network,
   Newspaper,
+  Printer,
   Settings2,
   Shield,
   ShieldAlert,
@@ -74,6 +75,12 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
       { to: "/admin/compta/entrees", label: "Entrees", icon: Calculator, feature: "admin-compta" },
       { to: "/admin/compta/sorties", label: "Sorties", icon: Calculator, feature: "admin-compta" },
       { to: "/admin/compta/ia", label: "IA comptable", icon: Brain, feature: "ai_accounting_insights" },
+    ],
+  },
+  {
+    title: "Impression",
+    items: [
+      { to: "/admin/tok-printer", label: "TOK Printer", icon: Printer },
     ],
   },
   {

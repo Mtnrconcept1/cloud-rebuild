@@ -167,7 +167,7 @@ export default function AdminPrintOrders() {
       <Card className="rounded-3xl border-orange-500/20">
         <CardHeader className="flex-row items-start justify-between gap-4">
           <div>
-            <CardTitle className="flex items-center gap-2"><Printer className="h-5 w-5" /> TheTok Print — opérations</CardTitle>
+            <CardTitle className="flex items-center gap-2"><Printer className="h-5 w-5" /> TOK Printer — opérations</CardTitle>
             <CardDescription>Cloudprinter, marges, commandes, incidents, réconciliation et SAV.</CardDescription>
           </div>
           <Button variant="outline" disabled={loading || working !== null} onClick={() => void load()}>{loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}Actualiser</Button>

@@ -236,7 +236,9 @@ describe("TheTok Print foundation contracts", () => {
     const orders = readRequired("src/components/dashboard/marketing-print/PrintOrdersPanel.tsx");
     const details = readRequired("src/components/dashboard/marketing-print/PrintOrderDetails.tsx");
     const admin = readRequired("src/pages/admin/AdminPrintOrders.tsx");
-    const adminShell = readRequired("src/pages/admin/AdminComptaPrintShell.tsx");
+    const app = readRequired("src/App.tsx");
+    const home = readRequired("src/pages/admin/AdminHome.tsx");
+    const navigation = readRequired("src/components/admin/AdminMobileNavigation.tsx");
     const adminFn = readRequired("supabase/functions/print-admin/index.ts");
     const vite = readExisting("vite.config.ts");
 
@@ -247,9 +249,14 @@ describe("TheTok Print foundation contracts", () => {
     expect(adminFn).toContain("requireRole");
     expect(adminFn).toContain('["admin"]');
     expect(adminFn).toContain("writeAuditLog");
-    expect(admin).toContain("TheTok Print");
-    expect(adminShell).toContain("AdminPrintOrders");
-    expect(vite).toContain("AdminComptaPrintShell.tsx");
+    expect(admin).toContain("TOK Printer");
+    expect(app).toContain('const AdminPrintOrders = lazy(() => import("./pages/admin/AdminPrintOrders"));');
+    expect(app).toContain('<Route path="/admin/tok-printer" element={<AdminProtectedRoute><AdminPrintOrders /></AdminProtectedRoute>} />');
+    expect(app).toContain('<Route path="/admin/compta" element={<AdminProtectedRoute><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin"><AdminCompta /></FeatureSwitch></AdminProtectedRoute>} />');
+    expect(home).toContain('href: "/admin/tok-printer"');
+    expect(navigation).toContain('to: "/admin/tok-printer"');
+    expect(vite).not.toContain("AdminComptaPrintShell.tsx");
+    expect(existsSync(projectPath("src/pages/admin/AdminComptaPrintShell.tsx"))).toBe(false);
   });
 
   it("registers every print Edge Function with handler-owned authentication", () => {
