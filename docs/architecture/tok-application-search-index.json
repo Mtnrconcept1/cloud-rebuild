@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "74bf57cd1fc46e49ddc67dd81eb7ab18420865e769da3cc593bc86b178aad1ca",
+ "sourceDigest": "0f0e1b00a8b30721a5ae89a260887c83ab7987bc1fdca14bd4f8d6fb7baa802c",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 542,
-  "modules": 1560,
+  "modules": 1561,
   "pages": 128,
   "pathLiterals": 747,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16867,
-  "repositoryFiles": 3182,
+  "records": 16869,
+  "repositoryFiles": 3183,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -5155,7 +5155,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 239,
+      "line": 241,
       "kind": "function"
      }
     ],
@@ -27476,7 +27476,7 @@
      },
      {
       "path": "src/components/ReservationDialog.tsx",
-      "line": 494
+      "line": 504
      },
      {
       "path": "src/data/userGuideContent.ts",
@@ -31652,7 +31652,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardReservations.tsx",
-      "line": 254
+      "line": 256
      }
     ],
     "routes": [
@@ -32136,7 +32136,7 @@
     "sources": [
      {
       "path": "src/components/ReservationDialog.tsx",
-      "line": 653
+      "line": 664
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
@@ -32152,7 +32152,7 @@
     "sources": [
      {
       "path": "src/components/ReservationDialog.tsx",
-      "line": 649
+      "line": 660
      },
      {
       "path": "src/pages/RestaurantDetail.tsx",
@@ -33375,6 +33375,7 @@
      "src/test/supplier-catalog-sync.test.ts",
      "src/test/support-chat-history.test.ts",
      "src/test/support-notification-governance.test.ts",
+     "src/test/table-only-reservations.test.ts",
      "src/test/thefork-directory-completion.test.ts",
      "src/test/thefork-image-enrichment-completion.test.ts",
      "src/test/tok-ai-platform-plan.test.ts",
@@ -86401,7 +86402,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1113
+    "lineCount": 1130
    },
    {
     "path": "src/components/ReservationWidget.tsx",
@@ -100371,77 +100372,77 @@
      },
      {
       "name": "ServiceSlotCapacityWindow",
-      "line": 32,
+      "line": 33,
       "kind": "typealias"
      },
      {
       "name": "ServiceSettingsMap",
-      "line": 38,
+      "line": 39,
       "kind": "typealias"
      },
      {
       "name": "DEFAULT_SERVICE_SETTINGS",
-      "line": 40,
+      "line": 41,
       "kind": "variable"
      },
      {
       "name": "parseServiceTime",
-      "line": 89,
+      "line": 92,
       "kind": "variable"
      },
      {
       "name": "getServiceSettings",
-      "line": 224,
+      "line": 228,
       "kind": "variable"
      },
      {
       "name": "getConfiguredServiceSettings",
-      "line": 244,
+      "line": 248,
       "kind": "variable"
      },
      {
       "name": "hasConfiguredServiceSettings",
-      "line": 260,
+      "line": 264,
       "kind": "variable"
      },
      {
       "name": "mergeOpeningHoursWithServiceSettings",
-      "line": 263,
+      "line": 267,
       "kind": "variable"
      },
      {
       "name": "detectServiceFromTime",
-      "line": 277,
+      "line": 281,
       "kind": "variable"
      },
      {
       "name": "getServicePeriodFromMetadata",
-      "line": 283,
+      "line": 287,
       "kind": "variable"
      },
      {
       "name": "getServicePeriodLabel",
-      "line": 297,
+      "line": 301,
       "kind": "variable"
      },
      {
       "name": "validateServiceSettings",
-      "line": 299,
+      "line": 303,
       "kind": "variable"
      },
      {
       "name": "generateTimeSlotsForService",
-      "line": 363,
+      "line": 367,
       "kind": "variable"
      },
      {
       "name": "generateDailyTimeSlots",
-      "line": 382,
+      "line": 386,
       "kind": "variable"
      },
      {
       "name": "isTimeWithinService",
-      "line": 391,
+      "line": 395,
       "kind": "variable"
      }
     ],
@@ -100449,7 +100450,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 401
+    "lineCount": 405
    },
    {
     "path": "src/lib/session.ts",
@@ -104922,7 +104923,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 239,
+      "line": 241,
       "kind": "function"
      }
     ],
@@ -104931,7 +104932,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1323
+    "lineCount": 1326
    },
    {
     "path": "src/pages/dashboard/DashboardRestaurant.tsx",
@@ -104964,7 +104965,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 671
+    "lineCount": 701
    },
    {
     "path": "src/pages/dashboard/DashboardSupport.tsx",
@@ -106829,7 +106830,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 82
+    "lineCount": 87
    },
    {
     "path": "src/test/dashboard-shell-navigation.test.ts",
@@ -109748,7 +109749,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 100
+    "lineCount": 129
    },
    {
     "path": "src/test/service-shared.test.ts",
@@ -110220,6 +110221,15 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 94
+   },
+   {
+    "path": "src/test/table-only-reservations.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 28
    },
    {
     "path": "src/test/thefork-directory-completion.test.ts",
@@ -114595,7 +114605,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 542
+    "lineCount": 569
    },
    {
     "path": "supabase/functions/create-social-post-boost/index.ts",
@@ -127519,6 +127529,11 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/test/table-only-reservations.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/thefork-directory-completion.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -134120,7 +134135,7 @@
    "id": "code-module:2a61e80b3f5c",
    "type": "code-module",
    "title": "src/components/ReservationDialog.tsx",
-   "description": "Module de 1113 lignes; exports: default.",
+   "description": "Module de 1130 lignes; exports: default.",
    "path": "src/components/ReservationDialog.tsx",
    "line": 1,
    "surface": null,
@@ -134130,7 +134145,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "33d225fce7cb"
+   "detailRef": "c562d0f4dd2d"
   },
   {
    "id": "code-module:9a8f6d6b902a",
@@ -141561,7 +141576,7 @@
    "id": "code-module:f3a81f123625",
    "type": "code-module",
    "title": "src/lib/serviceSettings.ts",
-   "description": "Module de 401 lignes; exports: ServicePeriod, SERVICE_PERIOD_LABELS, ServiceSettings, ServiceSlotCapacityWindow, ServiceSettingsMap, DEFAULT_SERVICE_SETTINGS, parseServiceTime, getServiceSettings, getConfiguredServiceSettings, hasConfiguredServiceSettings, mergeOpeningHoursWithServiceSettings, detectServiceFromTime, getServicePeriodFromMetadata, getServicePeriodLabel, validateServiceSettings, generateTimeSlotsForService, generateDailyTimeSlots, isTimeWithinService.",
+   "description": "Module de 405 lignes; exports: ServicePeriod, SERVICE_PERIOD_LABELS, ServiceSettings, ServiceSlotCapacityWindow, ServiceSettingsMap, DEFAULT_SERVICE_SETTINGS, parseServiceTime, getServiceSettings, getConfiguredServiceSettings, hasConfiguredServiceSettings, mergeOpeningHoursWithServiceSettings, detectServiceFromTime, getServicePeriodFromMetadata, getServicePeriodLabel, validateServiceSettings, generateTimeSlotsForService, generateDailyTimeSlots, isTimeWithinService.",
    "path": "src/lib/serviceSettings.ts",
    "line": 1,
    "surface": null,
@@ -141586,7 +141601,7 @@
     "supabase",
     "validateServiceSettings"
    ],
-   "detailRef": "0230d03001bf"
+   "detailRef": "17afb13fd1a3"
   },
   {
    "id": "code-module:877462eb20a0",
@@ -144234,7 +144249,7 @@
    "id": "code-module:f39ec1769aae",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardReservations.tsx",
-   "description": "Module de 1323 lignes; exports: default.",
+   "description": "Module de 1326 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardReservations.tsx",
    "line": 1,
    "surface": null,
@@ -144243,7 +144258,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "8b75e6b0edd0"
+   "detailRef": "7488bb1e9dd7"
   },
   {
    "id": "code-module:6261c9a72668",
@@ -144266,7 +144281,7 @@
    "id": "code-module:a943d339b690",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardService.tsx",
-   "description": "Module de 671 lignes; exports: default.",
+   "description": "Module de 701 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardService.tsx",
    "line": 1,
    "surface": null,
@@ -144274,7 +144289,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "1c6679d89378"
+   "detailRef": "48d7154f578e"
   },
   {
    "id": "code-module:2bbc53474dd0",
@@ -146705,12 +146720,12 @@
    "id": "code-module:723c3f236275",
    "type": "code-module",
    "title": "src/test/dashboard-service-layout.test.ts",
-   "description": "Module de 82 lignes; exports: aucun export statique.",
+   "description": "Module de 87 lignes; exports: aucun export statique.",
    "path": "src/test/dashboard-service-layout.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "88b4e6cc164a"
+   "detailRef": "b52e7dc4ff95"
   },
   {
    "id": "code-module:0b658fc15c1c",
@@ -150949,12 +150964,12 @@
    "id": "code-module:9e5bcf177adb",
    "type": "code-module",
    "title": "src/test/service-settings.test.ts",
-   "description": "Module de 100 lignes; exports: aucun export statique.",
+   "description": "Module de 129 lignes; exports: aucun export statique.",
    "path": "src/test/service-settings.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "58465c8a19e5"
+   "detailRef": "a92f54016b2f"
   },
   {
    "id": "code-module:3af4b8381650",
@@ -151649,6 +151664,19 @@
    "surface": null,
    "tags": [],
    "detailRef": "836681e01aeb"
+  },
+  {
+   "id": "code-module:0dcdbdde31f1",
+   "type": "code-module",
+   "title": "src/test/table-only-reservations.test.ts",
+   "description": "Module de 28 lignes; exports: aucun export statique.",
+   "path": "src/test/table-only-reservations.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "5ac58bd6028f"
   },
   {
    "id": "code-module:c061c3759366",
@@ -154256,7 +154284,7 @@
    "id": "code-module:2de82e4df11d",
    "type": "code-module",
    "title": "supabase/functions/create-reservation/index.ts",
-   "description": "Module de 542 lignes; exports: aucun export statique.",
+   "description": "Module de 569 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-reservation/index.ts",
    "line": 1,
    "surface": null,
@@ -154267,7 +154295,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "5fc8e3cf75b8"
+   "detailRef": "8fbb43337814"
   },
   {
    "id": "code-module:9d76768ca095",
@@ -248608,18 +248636,18 @@
    "detailRef": "23a1f7ae8a60"
   },
   {
-   "id": "exported-symbol:38f843e96880",
+   "id": "exported-symbol:873e481d2aea",
    "type": "exported-symbol",
    "title": "DEFAULT_SERVICE_SETTINGS",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 40,
+   "line": 41,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "12faa051fac0"
+   "detailRef": "4a821f90d879"
   },
   {
    "id": "exported-symbol:97a93c4bb5fc",
@@ -260359,32 +260387,32 @@
    "detailRef": "9fff3b14fb9c"
   },
   {
-   "id": "exported-symbol:c1fd7acff80f",
+   "id": "exported-symbol:b04c446c0531",
    "type": "exported-symbol",
    "title": "ServiceSettingsMap",
    "description": "Export typealias de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 38,
+   "line": 39,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "af90648f3ded"
+   "detailRef": "e79831a9ecef"
   },
   {
-   "id": "exported-symbol:23a57a53aa1d",
+   "id": "exported-symbol:b07f16537d78",
    "type": "exported-symbol",
    "title": "ServiceSlotCapacityWindow",
    "description": "Export typealias de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 32,
+   "line": 33,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "ff4791756a2b"
+   "detailRef": "05d604a5ed7b"
   },
   {
    "id": "exported-symbol:34c7a5dde17e",
@@ -273532,19 +273560,19 @@
    "detailRef": "6d9ba569d315"
   },
   {
-   "id": "exported-symbol:36a086f99226",
+   "id": "exported-symbol:fbf86b06a9d9",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardReservations.tsx.",
    "path": "src/pages/dashboard/DashboardReservations.tsx",
-   "line": 239,
+   "line": 241,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "140c3ecfe744"
+   "detailRef": "6fb7c184e5aa"
   },
   {
    "id": "exported-symbol:a73fa4c7ec10",
@@ -273905,18 +273933,18 @@
    "detailRef": "c3617cd85889"
   },
   {
-   "id": "exported-symbol:ffadec83275e",
+   "id": "exported-symbol:85be0a96845f",
    "type": "exported-symbol",
    "title": "detectServiceFromTime",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 277,
+   "line": 281,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "c0efe882cdb0"
+   "detailRef": "85fba90d8d72"
   },
   {
    "id": "exported-symbol:20eb7b5af4d1",
@@ -275810,18 +275838,18 @@
    "detailRef": "4d3c23ce385c"
   },
   {
-   "id": "exported-symbol:ce7ed52dc4dd",
+   "id": "exported-symbol:2ac9e1f2abf0",
    "type": "exported-symbol",
    "title": "generateDailyTimeSlots",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 382,
+   "line": 386,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "816a89d189fb"
+   "detailRef": "8b5aa6b44a7e"
   },
   {
    "id": "exported-symbol:84fa5757b361",
@@ -275922,18 +275950,18 @@
    "detailRef": "4b7c0ee3733b"
   },
   {
-   "id": "exported-symbol:58644218e440",
+   "id": "exported-symbol:4bb10b92756d",
    "type": "exported-symbol",
    "title": "generateTimeSlotsForService",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 363,
+   "line": 367,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "700c0610c993"
+   "detailRef": "f1d4dfa1d2e4"
   },
   {
    "id": "exported-symbol:71d868fabe0a",
@@ -276978,18 +277006,18 @@
    "detailRef": "1b8aa77638c4"
   },
   {
-   "id": "exported-symbol:7523b324fe9c",
+   "id": "exported-symbol:6d79a33eac71",
    "type": "exported-symbol",
    "title": "getConfiguredServiceSettings",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 244,
+   "line": 248,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "93e32a5f6241"
+   "detailRef": "14a07fb71cee"
   },
   {
    "id": "exported-symbol:7b66c525efda",
@@ -279715,46 +279743,46 @@
    "detailRef": "234dad8d5c90"
   },
   {
-   "id": "exported-symbol:bdff23084a24",
+   "id": "exported-symbol:9c704b941d54",
    "type": "exported-symbol",
    "title": "getServicePeriodFromMetadata",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 283,
+   "line": 287,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "9302313e9823"
+   "detailRef": "049dfe3336f8"
   },
   {
-   "id": "exported-symbol:c2f46f3b9333",
+   "id": "exported-symbol:9258c666098a",
    "type": "exported-symbol",
    "title": "getServicePeriodLabel",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 297,
+   "line": 301,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "ccd51394b12a"
+   "detailRef": "b965fc1abe87"
   },
   {
-   "id": "exported-symbol:e904f20d3e60",
+   "id": "exported-symbol:be14f5fad727",
    "type": "exported-symbol",
    "title": "getServiceSettings",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 224,
+   "line": 228,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "fb754b43923f"
+   "detailRef": "78eb3633d140"
   },
   {
    "id": "exported-symbol:6677f5cc675b",
@@ -280781,18 +280809,18 @@
    "detailRef": "ec7c22296a17"
   },
   {
-   "id": "exported-symbol:405097db45e4",
+   "id": "exported-symbol:dc2a038fd52f",
    "type": "exported-symbol",
    "title": "hasConfiguredServiceSettings",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 260,
+   "line": 264,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "2c3ee531bbe5"
+   "detailRef": "174b2aaecfd3"
   },
   {
    "id": "exported-symbol:d29419d6c4e5",
@@ -282896,18 +282924,18 @@
    "detailRef": "ce8af39db78d"
   },
   {
-   "id": "exported-symbol:126ac68d62aa",
+   "id": "exported-symbol:67c5409a1b2e",
    "type": "exported-symbol",
    "title": "isTimeWithinService",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 391,
+   "line": 395,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "b1fdd0efb4f6"
+   "detailRef": "ca2db85c838f"
   },
   {
    "id": "exported-symbol:70c136e109cf",
@@ -284207,18 +284235,18 @@
    "detailRef": "fda4f83bf1f6"
   },
   {
-   "id": "exported-symbol:17500c3bea47",
+   "id": "exported-symbol:edd9f4ac59d3",
    "type": "exported-symbol",
    "title": "mergeOpeningHoursWithServiceSettings",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 263,
+   "line": 267,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "7c247e990a55"
+   "detailRef": "792ad31f6bf8"
   },
   {
    "id": "exported-symbol:ebc79e1fcdb6",
@@ -285512,18 +285540,18 @@
    "detailRef": "3e3ff58e6db7"
   },
   {
-   "id": "exported-symbol:c58414654af9",
+   "id": "exported-symbol:8bf89d4e8e9b",
    "type": "exported-symbol",
    "title": "parseServiceTime",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 89,
+   "line": 92,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "a26176da25c2"
+   "detailRef": "d4e0269ae24e"
   },
   {
    "id": "exported-symbol:3f2be0ea2187",
@@ -291485,18 +291513,18 @@
    "detailRef": "64df81d1a202"
   },
   {
-   "id": "exported-symbol:7a43b8770f60",
+   "id": "exported-symbol:80e3b71b7337",
    "type": "exported-symbol",
    "title": "validateServiceSettings",
    "description": "Export variable de src/lib/serviceSettings.ts.",
    "path": "src/lib/serviceSettings.ts",
-   "line": 299,
+   "line": 303,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "53b70b776f21"
+   "detailRef": "7454d5510bd1"
   },
   {
    "id": "exported-symbol:86f60b3f90c0",
@@ -326061,6 +326089,20 @@
    "detailRef": "1e775ab8f4a0"
   },
   {
+   "id": "file:45daabc590ee",
+   "type": "file",
+   "title": "src/test/table-only-reservations.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/table-only-reservations.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "55ccf69901d5"
+  },
+  {
    "id": "file:1cb8b932d270",
    "type": "file",
    "title": "src/test/thefork-directory-completion.test.ts",
@@ -341115,7 +341157,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 701 module(s).",
+   "description": "Intégration externe détectée dans 702 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -341708,6 +341750,7 @@
     "src/test/supplier-catalog-sync.test.ts",
     "src/test/support-chat-history.test.ts",
     "src/test/support-notification-governance.test.ts",
+    "src/test/table-only-reservations.test.ts",
     "src/test/thefork-directory-completion.test.ts",
     "src/test/thefork-image-enrichment-completion.test.ts",
     "src/test/tok-ai-platform-plan.test.ts",
@@ -341823,7 +341866,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "ecb89e3f623c"
+   "detailRef": "09b9a57d1bdd"
   },
   {
    "id": "integration:c20910a79a78",
@@ -352234,7 +352277,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "aae1ad4d8d5c"
+   "detailRef": "8967b43ddc03"
   },
   {
    "id": "page:1d140945a02d",
@@ -361748,7 +361791,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "3b84139476d7"
+   "detailRef": "c7e8c04e7af9"
   },
   {
    "id": "path-literal:0af02260597a",
@@ -373626,7 +373669,7 @@
     "src/pages/Reservations.tsx",
     "src/pages/dashboard/DashboardReservations.tsx"
    ],
-   "detailRef": "803d76dcf3c1"
+   "detailRef": "145eb51a37ea"
   },
   {
    "id": "query-parameter:16eb7241db4b",
@@ -373981,32 +374024,32 @@
    "detailRef": "674f3f6850d6"
   },
   {
-   "id": "query-parameter:e08518f4679d",
+   "id": "query-parameter:8324a1db3934",
    "type": "query-parameter",
    "title": "utm_medium",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/components/ReservationDialog.tsx",
-   "line": 653,
+   "line": 664,
    "surface": null,
    "tags": [
     "src/components/ReservationDialog.tsx",
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "bb28e986a7c8"
+   "detailRef": "bf39b1039cbd"
   },
   {
-   "id": "query-parameter:2f51e8400107",
+   "id": "query-parameter:a26f1be3683d",
    "type": "query-parameter",
    "title": "utm_source",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/components/ReservationDialog.tsx",
-   "line": 649,
+   "line": 660,
    "surface": null,
    "tags": [
     "src/components/ReservationDialog.tsx",
     "src/pages/RestaurantDetail.tsx"
    ],
-   "detailRef": "3f70880c100c"
+   "detailRef": "3b84da303304"
   },
   {
    "id": "query-parameter:e98354609202",
