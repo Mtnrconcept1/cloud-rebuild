@@ -1924,13 +1924,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "payment_attempt_order_expired_recreate": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2061
+      "line": 2072
     }
   ],
   "payment_attempt_reacquire_failed": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2069
+      "line": 2080
     }
   ],
   "payment_attempt_request_mismatch": [
@@ -1942,7 +1942,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "payment_attempt_session_expired_retry": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2431
+      "line": 2442
     }
   ],
   "personalization_consent_required": [
