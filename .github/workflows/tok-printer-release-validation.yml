@@ -1,0 +1,83 @@
+name: TOK Printer full release validation (temporary)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/tok-printer-release-validation.yml"
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+
+jobs:
+  quality:
+    if: ${{ github.event.pull_request.number == 835 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/admin-tok-printer-page-20261014' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Remove temporary workflow from validation tree
+        run: git rm -- .github/workflows/tok-printer-release-validation.yml
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run docs:application-index:check
+      - run: pnpm run lint
+      - run: pnpm run typecheck
+      - run: pnpm run build:prod
+
+  tests:
+    if: ${{ github.event.pull_request.number == 835 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/admin-tok-printer-page-20261014' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Remove temporary workflow from validation tree
+        run: git rm -- .github/workflows/tok-printer-release-validation.yml
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run --mode production --shard=${{ matrix.shard }}/4
+
+  cleanup:
+    needs: [quality, tests]
+    if: ${{ always() && github.event.pull_request.number == 835 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/admin-tok-printer-page-20261014' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Remove temporary validation workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -- .github/workflows/tok-printer-release-validation.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "chore(ci): remove temporary TOK Printer release validation"
+          git push origin HEAD:refs/heads/feat/admin-tok-printer-page-20261014
