@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `9cf2f004f320b99b53fc2745f8ee408fe15a21c473add242eb803849a0200b62`
+- Empreinte SHA-256 des sources indexées : `64a99e4b74bdb45f57c06739585f84104548b010ff0107db60f07cc76b7c5a7a`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,7 +28,7 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2781 |
+| databaseObjects | 2784 |
 | documents | 204 |
 | edgeFunctions | 116 |
 | edgeHttpRoutes | 20 |
@@ -37,16 +37,16 @@
 | frontendRoutes | 137 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 538 |
-| modules | 1553 |
+| migrations | 539 |
+| modules | 1554 |
 | pages | 129 |
 | pathLiterals | 697 |
 | publicAssets | 502 |
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16600 |
-| repositoryFiles | 3090 |
+| records | 16607 |
+| repositoryFiles | 3092 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2258,7 +2258,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (759)</summary>
+<details><summary>function (761)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2306,6 +2306,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `private_finance.signup_deferred_subscription_trigger` (1 définition(s))
 - `private_finance.stage_reservation_commission` (1 définition(s))
 - `private_finance.sync_commercial_subscription_commission` (1 définition(s))
+- `private_finance.tok_invoice_html_escape` (1 définition(s))
 - `private_finance.transition_fair_growth_module` (1 définition(s))
 - `private_finance.validate_restaurant_subscription_pricing_insert` (1 définition(s))
 - `public._commercial_demo_ai_session_lifecycle_cleanup` (1 définition(s))
@@ -2811,6 +2812,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.queue_notification_deliveries` (3 définition(s))
 - `public.queue_reservation_card_cancellation_fee` (1 définition(s))
 - `public.queue_restaurant_image_discovery_after_name_verification` (2 définition(s))
+- `public.queue_tok_paid_invoice_email` (1 définition(s))
 - `public.rate_limit_consume` (1 définition(s))
 - `public.read_meal_formula_max_tables_per_service` (1 définition(s))
 - `public.recompute_restaurant_review_stats` (1 définition(s))
@@ -3022,7 +3024,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (659)</summary>
+<details><summary>index (660)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3656,6 +3658,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `ux_developer_stripe_transfers_idempotency` (1 définition(s))
 - `ux_developer_stripe_transfers_statement_mode` (1 définition(s))
 - `ux_developer_stripe_transfers_stripe_id` (1 définition(s))
+- `ux_email_queue_tok_paid_invoice` (1 définition(s))
 - `ux_financial_ledger_mode_payment_intent_asset` (1 définition(s))
 - `ux_financial_ledger_source_account_direction` (2 définition(s))
 - `ux_payment_attempts_active_restaurant_subscription` (1 définition(s))
@@ -5904,6 +5907,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261014030000 Golden Tok Accreditations | 286 | 8 | [supabase/migrations/20261014030000_golden_tok_accreditations.sql:1](../../supabase/migrations/20261014030000_golden_tok_accreditations.sql#L1) |
 | 20261014072000 Developer Subscription Gross Share Before Vat | 769 | 1 | [supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql:1](../../supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql#L1) |
 | 20261014093000 Show Stripe Subscription In Tok Invoice Document | 59 | 1 | [supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql:1](../../supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql#L1) |
+| 20261014100000 Paid Tok Invoice Delivery | 163 | 3 | [supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql:1](../../supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6128,8 +6132,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 238 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 696 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 239 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 697 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6150,7 +6154,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 615 |
+| test | 616 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6751,7 +6755,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (538)</summary>
+<details><summary>database-migration (539)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7291,6 +7295,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261014030000_golden_tok_accreditations.sql`
 - `supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql`
 - `supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql`
+- `supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql`
 
 </details>
 
@@ -8904,7 +8909,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (615)</summary>
+<details><summary>test (616)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9298,6 +9303,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/order-status.test.ts`
 - `src/test/pack-feature-gating.test.ts`
 - `src/test/package-scripts-readiness.test.ts`
+- `src/test/paid-tok-invoice-delivery.test.ts`
 - `src/test/password-policy.test.ts`
 - `src/test/password-recovery-routing.test.ts`
 - `src/test/payment-attempt-backend-contract.test.ts`
