@@ -1,0 +1,41 @@
+name: Temporary TOK application index regeneration
+on:
+  push:
+    branches:
+      - fix/home-native-panorama-and-3d-cuisine-20261014
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - name: Verify working branch and remove temporary workflow
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "fix/home-native-panorama-and-3d-cuisine-20261014"
+          git status --short
+          git rm .github/workflows/tok-temp-generate-index.yml
+      - name: Regenerate canonical application index
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+      - name: Commit generated files and remove temporary workflow
+        run: |
+          set -euo pipefail
+          git config user.name "TOK CI Assistant"
+          git config user.email "tok-ci-assistant@users.noreply.github.com"
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          git commit -m "docs(home): regenerate canonical application index after new assets"
+          git push origin HEAD:refs/heads/fix/home-native-panorama-and-3d-cuisine-20261014
