@@ -70,8 +70,10 @@ BEGIN
   IF v_item.state NOT IN ('queued','review_required') THEN
     RAISE EXCEPTION 'reservation_commission_invoice_invalid_state';
   END IF;
+  -- Serialize against the legacy invoice generator so the same table
+  -- cannot receive two invoices when both billing paths race.
   SELECT * INTO v_fee FROM public.reservation_flat_fee_charges
-    WHERE id=v_item.flat_fee_charge_id;
+    WHERE id=v_item.flat_fee_charge_id FOR UPDATE;
   IF v_fee.id IS NULL OR v_fee.reservation_id<>v_item.reservation_id
     OR v_fee.restaurant_id<>v_item.restaurant_id OR v_fee.fee_cents<>500 THEN
     RAISE EXCEPTION 'reservation_commission_fee_integrity_failed';

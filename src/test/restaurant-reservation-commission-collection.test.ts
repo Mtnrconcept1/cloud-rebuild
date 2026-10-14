@@ -48,6 +48,7 @@ describe("restaurant commission consent, collection and accounting", () => {
     expect(schema).toContain("reservation_id uuid NOT NULL UNIQUE");
     expect(schema).toContain("CHECK (amount_cents = 500)");
     expect(schema).toContain("v_vat_cents := round(500::numeric * v_vat_bps/(10000+v_vat_bps))");
+    expect(schema).toContain("WHERE id=v_item.flat_fee_charge_id FOR UPDATE");
     expect(schema).toContain("'reservation_fee','reservation_flat_fee_charges'");
     expect(schema).toContain("UPDATE public.reservation_flat_fee_charges SET invoice_id=");
     expect(schema).toContain("ON CONFLICT (reservation_id) DO NOTHING");
