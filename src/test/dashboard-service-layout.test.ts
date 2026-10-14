@@ -35,6 +35,7 @@ describe("restaurant service dashboard layout", () => {
       "order_start_time",
       "order_end_time",
       "online_booking_enabled",
+      "table_only_booking",
       "online_ordering_enabled",
       "orders_closed",
       "service_closed",

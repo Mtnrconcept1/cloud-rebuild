@@ -74,6 +74,7 @@ type ReservationOperationalFields = {
 type ReservationWithProfile = ReservationRow & ReservationOperationalFields & { customer: Pick<ProfileRow, "full_name" | "phone"> | null };
 type ReservationMetadata = {
   service?: string;
+  reservation_purpose?: "drinks" | "dining";
   promo?: string;
   discount?: number;
   formula_applied?: string;
@@ -172,6 +173,7 @@ const extractMetadata = (reservation: ReservationRow): ReservationMetadata => {
 
   return {
     service: typeof metadata.service === "string" ? metadata.service.toLowerCase() : undefined,
+    reservation_purpose: metadata.reservation_purpose === "drinks" ? "drinks" : metadata.reservation_purpose === "dining" ? "dining" : undefined,
     promo: typeof metadata.promo === "string" ? metadata.promo : undefined,
     discount: toNumber(metadata.discount) ?? toNumber(metadata.promo_discount_percent),
     formula_applied: typeof metadata.formula_applied === "string" ? metadata.formula_applied : undefined,
@@ -871,7 +873,7 @@ function LiveDashboardReservations() {
                   const isZeroAttente = reservation.feature === "zero-attente";
                   const isChefTable = reservation.feature === "chefs_table";
                   const hasFormula = Boolean(metadata.formula_applied || metadata.promo || progressiveDiscountPercent);
-                  const typeLabel = isZeroAttente
+                  const typeLabel = metadata.reservation_purpose === "drinks" ? "Table sans restauration" : isZeroAttente
                     ? "Zéro Attente"
                     : isChefTable
                       ? "La Tok d’Or"
@@ -880,7 +882,7 @@ function LiveDashboardReservations() {
                         : hasFormula
                           ? "Formule promo"
                           : "À la carte";
-                  const typeClass = isZeroAttente
+                  const typeClass = metadata.reservation_purpose === "drinks" ? "border-sky-300 bg-sky-50/70" : isZeroAttente
                     ? "border-indigo-300 bg-indigo-50/70"
                     : isChefTable
                       ? "border-amber-300 bg-amber-50/70"
@@ -1085,6 +1087,7 @@ function LiveDashboardReservations() {
                                           <OrderStatusBadge status={reservation.status} />
                                           <Badge variant="secondary">{reservation.party_size} pers.</Badge>
                                           <Badge variant="outline">{getServicePeriodLabel(servicePeriod)}</Badge>
+                                           {metadata.reservation_purpose === "drinks" ? <Badge variant="outline">Sans restauration</Badge> : null}
                                           {isZeroAttente && (
                                             <Badge className="border-indigo-300 bg-indigo-500 text-[10px] uppercase tracking-widest text-white">Zéro Attente</Badge>
                                           )}

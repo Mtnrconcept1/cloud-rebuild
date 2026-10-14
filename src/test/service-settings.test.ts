@@ -48,6 +48,35 @@ describe("service settings helpers", () => {
     expect(settings.lunch.deposit_amount_chf).toBe(0);
   });
 
+  it("keeps dining as the default for legacy service settings", () => {
+    expect(DEFAULT_SERVICE_SETTINGS.lunch.table_only_booking).toBe(false);
+    expect(DEFAULT_SERVICE_SETTINGS.dinner.table_only_booking).toBe(false);
+    expect(getServiceSettings({ service_settings: { dinner: { online_booking_enabled: true } } }).dinner.table_only_booking).toBe(false);
+  });
+
+  it("keeps lunch dining independent from evening drinks-only reservations", () => {
+    const settings = getServiceSettings({
+      service_settings: {
+        lunch: { online_booking_enabled: true, online_ordering_enabled: true },
+        dinner: {
+          start_time: "18:00",
+          end_time: "23:00",
+          last_reservation_time: "22:30",
+          online_booking_enabled: true,
+          online_ordering_enabled: false,
+          orders_closed: true,
+          table_only_booking: true,
+        },
+      },
+    });
+    expect(settings.lunch.table_only_booking).toBe(false);
+    expect(settings.lunch.online_ordering_enabled).toBe(true);
+    expect(settings.dinner.table_only_booking).toBe(true);
+    expect(settings.dinner.online_booking_enabled).toBe(true);
+    expect(settings.dinner.online_ordering_enabled).toBe(false);
+    expect(getConfiguredServiceSettings({ service_settings: settings })?.dinner.table_only_booking).toBe(true);
+  });
+
   it("parses order service controls without losing reservation settings", () => {
     const settings = getServiceSettings({
       service_settings: {
