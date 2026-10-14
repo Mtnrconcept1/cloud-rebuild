@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `bdf974380969534eb37c38ab6f2bcf972e205dc51b67cd50fca2563677a1472a`
+- Empreinte SHA-256 des sources indexées : `75031e855c856463ffc951a0858ce4a970a5704e481de4c68da884465db66e4d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,7 +28,7 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2784 |
+| databaseObjects | 2785 |
 | documents | 204 |
 | edgeFunctions | 116 |
 | edgeHttpRoutes | 20 |
@@ -37,16 +37,16 @@
 | frontendRoutes | 138 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 539 |
-| modules | 1554 |
+| migrations | 540 |
+| modules | 1555 |
 | pages | 128 |
 | pathLiterals | 698 |
 | publicAssets | 502 |
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16607 |
-| repositoryFiles | 3092 |
+| records | 16614 |
+| repositoryFiles | 3096 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1353,7 +1353,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/guide | 9 | [src/App.tsx:646](../../src/App.tsx#L646) |
 | /dashboard/menu | 17 | [src/App.tsx:616](../../src/App.tsx#L616) |
 | /dashboard/mon-compte-facturation | 16 | [src/App.tsx:628](../../src/App.tsx#L628) |
-| /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1224](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1224) |
+| /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1227](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1227) |
 | /dashboard/notifications | 14 | [src/App.tsx:613](../../src/App.tsx#L613) |
 | /dashboard/offres | 6 | [src/App.tsx:629](../../src/App.tsx#L629) |
 | /dashboard/pack | 2 | [src/test/feature-flags.test.ts:120](../../src/test/feature-flags.test.ts#L120) |
@@ -2259,7 +2259,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (761)</summary>
+<details><summary>function (762)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2275,6 +2275,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `private_finance.enqueue_restaurant_subscription_activation` (1 définition(s))
 - `private_finance.ensure_deferred_restaurant_subscription` (2 définition(s))
 - `private_finance.flat_reservation_billing_active` (1 définition(s))
+- `private_finance.get_restaurant_preactivation_credit_usage` (1 définition(s))
 - `private_finance.guard_completed_reservation_honor` (1 définition(s))
 - `private_finance.guard_fair_growth_module_feature_keys` (1 définition(s))
 - `private_finance.guard_recognized_restaurant_invoice_header` (1 définition(s))
@@ -2502,7 +2503,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.cancel_reservation_by_customer` (4 définition(s))
 - `public.cancel_reservation_by_restaurant` (3 définition(s))
 - `public.capture_signup_application_draft` (1 définition(s))
-- `public.check_restaurant_ai_quota` (3 définition(s))
+- `public.check_restaurant_ai_quota` (4 définition(s))
 - `public.claim_developer_statement_transfer` (1 définition(s))
 - `public.claim_due_marketing_items` (1 définition(s))
 - `public.claim_finance_outbox` (1 définition(s))
@@ -2667,7 +2668,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.get_restaurant_ai_usage` (2 définition(s))
 - `public.get_restaurant_campaign_activity` (2 définition(s))
 - `public.get_restaurant_comparison` (6 définition(s))
-- `public.get_restaurant_credit_usage` (5 définition(s))
+- `public.get_restaurant_credit_usage` (6 définition(s))
 - `public.get_restaurant_image_truth_stats` (1 définition(s))
 - `public.get_restaurant_order_capacity_state` (2 définition(s))
 - `public.get_restaurant_orders_dashboard` (4 définition(s))
@@ -2694,7 +2695,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.guard_reservation_card_guarantee` (1 définition(s))
 - `public.guard_reservation_table_slot` (1 définition(s))
 - `public.guard_restaurant_image_client_writes` (1 définition(s))
-- `public.guard_restaurant_tok_credit_spend` (1 définition(s))
+- `public.guard_restaurant_tok_credit_spend` (2 définition(s))
 - `public.handle_email_confirmation` (2 définition(s))
 - `public.handle_new_user` (8 définition(s))
 - `public.has_role` (1 définition(s))
@@ -5909,6 +5910,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261014072000 Developer Subscription Gross Share Before Vat | 769 | 1 | [supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql:1](../../supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql#L1) |
 | 20261014093000 Show Stripe Subscription In Tok Invoice Document | 59 | 1 | [supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql:1](../../supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql#L1) |
 | 20261014100000 Paid Tok Invoice Delivery | 163 | 3 | [supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql:1](../../supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql#L1) |
+| 20261014110000 Restaurant Preactivation Weekly Ai Credits | 629 | 4 | [supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql:1](../../supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6133,8 +6135,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 239 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 697 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 240 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 698 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6155,7 +6157,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 617 |
+| test | 618 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6756,7 +6758,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (539)</summary>
+<details><summary>database-migration (540)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7297,6 +7299,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261014072000_developer_subscription_gross_share_before_vat.sql`
 - `supabase/migrations/20261014093000_show_stripe_subscription_in_tok_invoice_document.sql`
 - `supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql`
+- `supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql`
 
 </details>
 
@@ -8878,7 +8881,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (26)</summary>
+<details><summary>supabase-configuration (28)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -8906,10 +8909,12 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/tests/print_fulfillment_protocol_assertions.sql`
 - `supabase/tests/print_fulfillment_protocol_baseline_prerequisites.sql`
 - `supabase/tests/print_fulfillment_protocol_fixture.sql`
+- `supabase/tests/restaurant_preactivation_credit_fixture.sql`
+- `supabase/tests/restaurant_preactivation_credit_integration.sql`
 
 </details>
 
-<details><summary>test (617)</summary>
+<details><summary>test (618)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9384,6 +9389,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-paid-tok-purchases-invoices.test.ts`
 - `src/test/restaurant-partner-contract-export.test.ts`
 - `src/test/restaurant-partner-contract-preview.test.tsx`
+- `src/test/restaurant-preactivation-ai-credits.test.ts`
 - `src/test/restaurant-promotions-governance.test.ts`
 - `src/test/restaurant-public-data-consistency.test.ts`
 - `src/test/restaurant-reservation-commission-collection.test.ts`
