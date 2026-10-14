@@ -140,6 +140,7 @@ const DashboardSupport = lazy(() => import("./pages/dashboard/DashboardSupport")
 const DashboardService = lazy(() => import("./pages/dashboard/DashboardService"));
 const DashboardWorkforce = lazy(() => import("./pages/dashboard/DashboardWorkforce"));
 const MyWorkforce = lazy(() => import("./pages/workforce/MyWorkforce"));
+const MyWorkforceManager = lazy(() => import("./pages/workforce/MyWorkforceManager"));
 const DashboardPlanSalle = lazy(() => import("./pages/dashboard/DashboardPlanSalle"));
 const DashboardAdvisor = lazy(() => import("./pages/dashboard/DashboardAdvisor"));
 const DashboardTokConnect = lazy(() => import("./pages/dashboard/DashboardTokConnect"));
@@ -566,6 +567,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/auth/callback" element={<Auth />} />
           <Route path="/espaces" element={<ProtectedRoute><WorkspaceChooser /></ProtectedRoute>} />
           <Route path="/equipe/mon-espace" element={<ProtectedRoute><MyWorkforce /></ProtectedRoute>} />
+          <Route path="/equipe/gestion" element={<ProtectedRoute><MyWorkforceManager /></ProtectedRoute>} />
           <Route path="/oauth/consent" element={<OAuthConsent />} />
           <Route path="/recherche" element={<ClientSurfaceRoute><Recherche /></ClientSurfaceRoute>} />
           <Route path="/restaurants/:city" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
