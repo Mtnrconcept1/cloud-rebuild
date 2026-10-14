@@ -21,7 +21,7 @@ Portage natif des fonctions de gestion du personnel vers le dashboard restaurate
 - Absences et demandes : saisie, suivi, acceptation/refus.
 - Échanges : propositions avec ou sans permutation réciproque, validation transactionnelle.
 - Rapports : récapitulatif hebdomadaire, export CSV protégé contre les formules, contrôles horaires.
-- Assistant IA : la fonction SwissTime originale dépend d'une clé et d'un service Lovable, et récupère des données via une clé privilégiée. Elle **n'est pas réutilisée** dans cette première intégration. Les contrôles déterministes évitent d'exposer des données RH privées au fournisseur IA. Toute future IA devra passer par la facturation IA et les autorisations propres à TOK.
+- Assistant IA : la fonction SwissTime originale dépend d'une clé et d'un service du prestataire externe historique, et récupère des données via une clé privilégiée. Elle **n'est pas réutilisée** dans cette première intégration. Les contrôles déterministes évitent d'exposer des données RH privées au fournisseur IA. Toute future IA devra passer par la facturation IA et les autorisations propres à TOK.
 
 ## Déploiement et retour arrière
 1. Vérifier la migration dans un environnement Supabase de développement, l'accès admin, les employés liés/non liés, les accès croisés entre deux restaurants et les permissions anonymes.
