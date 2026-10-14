@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "npm:stripe@22.3.2";
 import { getEnv, writeAuditLog } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { findSinglePaidInvoicePaymentIntent } from "../_shared/stripe-paid-invoice-payment.ts";
 import { finalizeChefsTableCheckout } from "../_shared/chefs-table.ts";
 import { finalizeZeroAttenteCheckout } from "../_shared/zero-attente.ts";
 import { finalizeReservationCardGuarantee } from "../_shared/reservation-card-guarantee.ts";
@@ -268,6 +269,40 @@ async function recordDisputeLedger(input: {
     },
   });
   if (error) throw new Error(`DISPUTE_LEDGER_RECORD_FAILED:${error.message}`);
+}
+
+async function resolvePaidInvoicePaymentIntentId(
+  stripe: Stripe,
+  invoice: Stripe.Invoice,
+  invoiceRecord: Record<string, unknown>,
+  amountPaidCents: number,
+): Promise<string> {
+  const oldField = getExpandableStripeId(invoiceRecord.payment_intent);
+  // The direct field is present on older invoice API versions only.
+  // New invoices must be matched against their authoritative invoice_payments records.
+  const page = await stripe.invoicePayments.list({
+    invoice: invoice.id,
+    status: "paid",
+    limit: 100,
+  });
+  const canonical = findSinglePaidInvoicePaymentIntent({
+    invoiceId: invoice.id,
+    amountPaidCents,
+    payments: page.data,
+    hasMore: page.has_more,
+  });
+  if (oldField && oldField !== canonical) {
+    throw new Error("TOK_INVOICE_LEGACY_INTENT_MISMATCH");
+  }
+  const intent = await stripe.paymentIntents.retrieve(canonical);
+  if (intent.status !== "succeeded"
+    || intent.currency !== String(invoice.currency || "").toLowerCase()
+    || intent.livemode !== invoice.livemode
+    || intent.amount_received !== amountPaidCents
+    || (typeof intent.customer === "string" ? intent.customer : intent.customer?.id)
+      !== (typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id)
+  ) throw new Error("TOK_INVOICE_PAYMENT_INTENT_VERIFICATION_FAILED");
+  return canonical;
 }
 
 async function resolveStripeFeeCents(stripe: Stripe, paymentIntentId: string | null) {
@@ -3122,8 +3157,8 @@ Deno.serve(async (req) => {
       // authoritative TOK/developer split, including the fixed 10% developer
       // payable, and is idempotent for duplicate Stripe invoice events.
       if (event.livemode && amountPaid > 0) {
-        const invoicePaymentIntentId = getExpandableStripeId(
-          context.invoiceRecord.payment_intent,
+        const invoicePaymentIntentId = await resolvePaidInvoicePaymentIntentId(
+          stripe, invoice, context.invoiceRecord, amountPaid,
         );
         const fee = await resolveStripeFeeCents(stripe, invoicePaymentIntentId);
         const taxCents = Number.isFinite(Number(context.invoiceRecord.total_tax_amounts?.reduce(
