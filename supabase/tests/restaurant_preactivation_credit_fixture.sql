@@ -89,7 +89,8 @@ BEGIN
       THEN (metadata->>'credit_units')::numeric ELSE 1 END
   ),0) INTO v_spent
   FROM public.ai_usage_logs
-  WHERE restaurant_id=p_restaurant_id AND status='success';
+  WHERE restaurant_id=p_restaurant_id AND status='success'
+    AND created_at >= COALESCE(v_subscription.current_period_start, date_trunc('month',now()));
 
   RETURN jsonb_build_object(
     'subscription', CASE WHEN v_subscription.status IS NULL THEN NULL
