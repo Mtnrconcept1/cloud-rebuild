@@ -96,7 +96,7 @@ function convertValue(target: string, field: string, value: unknown) {
   }
   const max = target === "dish_photo" ? 1200 : field === "description" ? 2000 : 250;
   const clean = value.trim();
-  if (!clean || clean.length > max || /[\u0000-\u001f]/.test(clean)) throw new HttpError(422, "Texte invalide");
+  if (!clean || clean.length > max || Array.from(clean).some((character) => character.charCodeAt(0) < 32)) throw new HttpError(422, "Texte invalide");
   if (field === "name" && clean.length < 2) throw new HttpError(422, "Nom trop court");
   return clean;
 }
