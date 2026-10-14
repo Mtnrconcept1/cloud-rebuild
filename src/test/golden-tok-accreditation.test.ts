@@ -61,6 +61,12 @@ describe("La Tok d’Or — paid accreditation access rules", () => {
     const checkout = source("supabase/functions/golden-tok-membership/index.ts");
     const webhook = source("supabase/functions/stripe-webhook/index.ts");
     expect(checkout).toContain("GOLDEN_TOK_STRIPE_PRICE_ID");
+    expect(checkout).toContain('GOLDEN_TOK_PRODUCT_ID = "prod_VRAz7tfJkO2vAu"');
+    expect(checkout).toContain('GOLDEN_TOK_PRICE_ID = "price_1UQIdzGTQigE34suvtFQxQa5"');
+    expect(checkout).toContain("GOLDEN_TOK_MONTHLY_CENTS = 9_900");
+    expect(checkout).toContain("price.unit_amount !== GOLDEN_TOK_MONTHLY_CENTS");
+    expect(checkout).toContain("price.product !== GOLDEN_TOK_PRODUCT_ID");
+    expect(source("src/components/dashboard/GoldenTokPanel.tsx")).toContain("99 CHF/mois");
     expect(checkout).toContain('price.recurring?.interval !== "month"');
     expect(checkout).toContain('mode: "subscription"');
     expect(checkout).toContain('requireRestaurantAccess(actor, restaurantId)');
