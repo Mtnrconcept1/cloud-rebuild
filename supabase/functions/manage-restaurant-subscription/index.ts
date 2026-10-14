@@ -349,6 +349,12 @@ Deno.serve(async (req) => {
 
     const subscription = await getLatestRestaurantSubscription(actor.adminClient, restaurantId);
     if (!subscription) {
+      if (action === "commission_mandate_status") {
+        return jsonResponse({
+          ok: true, eligible: false, accepted: false, payment_method_ready: false,
+          subscription_status: null, auto_debit_enabled: false,
+        }, 200, corsHeaders);
+      }
       throw new HttpError(404, "Aucun abonnement restaurateur introuvable");
     }
 
