@@ -55,14 +55,14 @@ const HOME_NEARBY_RADIUS_KM = 5;
 const PROGRESSIVE_OFFERS_TABLE = "reservation_progressive_offers";
 
 const SECTION_HEADER_IMAGES = {
-  personal: "/images/section-headers/tok-editorial-rewards-full.jpg",
-  local: "/images/section-headers/tok-editorial-geneva.jpg",
-  lunch: "/images/section-headers/tok-editorial-feast-full.jpg",
-  reservation: "/images/section-headers/tok-editorial-reservation-full.jpg",
-  promo: "/images/section-headers/tok-editorial-gastronomy-full.jpg",
-  offers: "/images/section-headers/tok-editorial-delivery-full.jpg",
-  trending: "/images/section-headers/tok-editorial-evening-full.jpg",
-  nearby: "/images/section-headers/tok-editorial-geneva.jpg",
+  personal: "/images/section-headers/tok-editorial-rewards-full.webp",
+  local: "/images/section-headers/tok-editorial-geneva-full.webp",
+  lunch: "/images/section-headers/tok-editorial-feast-full.webp",
+  reservation: "/images/section-headers/tok-editorial-reservation-full.webp",
+  promo: "/images/section-headers/tok-editorial-gastronomy-full.webp",
+  offers: "/images/section-headers/tok-editorial-delivery-full.webp",
+  trending: "/images/section-headers/tok-editorial-evening-full.webp",
+  nearby: "/images/section-headers/tok-editorial-geneva-full.webp",
 } as const;
 
 type SearchSort =
@@ -676,7 +676,7 @@ export default function Index() {
       ) : null}
       <CuisineCategoryStrip homeVariant />
       {!isCommercialDemoClient ? (
-        <section className="container py-4">
+        <section className="container py-1 empty:hidden md:py-4">
           <CampaignBanner page="home" maxBanners={1} />
         </section>
       ) : null}
