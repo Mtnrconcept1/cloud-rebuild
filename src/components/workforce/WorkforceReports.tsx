@@ -1,3 +1,4 @@
+import "@/styles/workforce-report-print.css";
 import { useMemo,useState } from "react";
 import { addWeeks,subWeeks,format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -34,7 +35,7 @@ export default function WorkforceReports({restaurantId,settings}:{restaurantId:s
     const url=URL.createObjectURL(blob);const a=document.createElement("a");
     a.href=url;a.download="tok-equipe-"+start+"-"+end+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
   };
-  return <div className="space-y-5">
+  return <div id="tok-workforce-print" className="space-y-5">
     <Card className="rounded-2xl">
       <CardHeader><div className="flex flex-wrap items-center justify-between gap-3">
         <CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary"/>Rapport hebdomadaire</CardTitle>
@@ -43,6 +44,7 @@ export default function WorkforceReports({restaurantId,settings}:{restaurantId:s
           <span className="text-sm font-semibold">{format(new Date(start+"T12:00:00"),"d MMM",{locale:fr})} – {format(new Date(end+"T12:00:00"),"d MMM yyyy",{locale:fr})}</span>
           <Button size="icon" variant="outline" aria-label="Semaine suivante" onClick={()=>setCursor(d=>addWeeks(d,1))}><ChevronRight className="h-4 w-4"/></Button>
           <Button size="sm" variant="outline" onClick={download}><Download className="mr-1 h-4 w-4"/>Exporter CSV</Button>
+          <Button className="workforce-no-print" size="sm" variant="outline" onClick={()=>window.print()}>Imprimer / PDF</Button>
         </div>
       </div></CardHeader>
       <CardContent>

@@ -72,10 +72,10 @@ export default function WorkforcePlanning({restaurantId}:{restaurantId:string}) 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-7">
           {days.map(day=>{
             const dayId=format(day,"yyyy-MM-dd");
-            return <div key={dayId} className="min-h-36 min-w-0 rounded-xl border border-border/60 bg-muted/20 p-2">
+            return <div key={dayId} className="min-h-36 min-w-0 rounded-xl border border-border/60 bg-muted/20 p-2" onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const shiftId=event.dataTransfer.getData("text/tok-workforce-shift");if(shifts.some(item=>item.id===shiftId&&!item.status.includes("cancelled")))change.mutate({id:shiftId,patch:{shift_date:dayId}});}}>
               <p className="mb-3 rounded-lg bg-primary/10 px-2 py-1.5 text-center text-xs font-bold uppercase text-primary">{format(day,"EEE d",{locale:fr})}</p>
               <div className="space-y-2">{shifts.filter(s=>s.shift_date===dayId).map(shift=>
-                <div key={shift.id} className="rounded-xl border border-primary/20 bg-card p-2 shadow-sm">
+                <div key={shift.id} draggable title="Glisser sur un autre jour" onDragStart={event=>event.dataTransfer.setData("text/tok-workforce-shift",shift.id)} className="cursor-grab rounded-xl border border-primary/20 bg-card p-2 shadow-sm">
                   <p className="text-xs font-semibold break-words">{employeeName(employees.find(e=>e.id===shift.employee_id))}</p>
                   <p className="text-xs text-muted-foreground">{shift.start_time.slice(0,5)}–{shift.end_time.slice(0,5)} · {shift.break_minutes} min pause</p>
                   <div className="mt-2 flex flex-wrap items-center gap-1">

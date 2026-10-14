@@ -53,7 +53,8 @@ describe("application search index", () => {
   });
 
   it("covers all primary application registries", () => {
-    expect(index.catalogs.frontendRoutes).toHaveLength(140);
+    expect(index.catalogs.frontendRoutes).toHaveLength(142);
+    expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/equipe/mon-espace")).toBe(true);
     expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/dashboard/equipe")).toBe(true);
     expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/admin/equipe")).toBe(true);
     expect(index.catalogs.featureFlags).toHaveLength(99);
@@ -181,7 +182,8 @@ describe("application search index", () => {
   });
 
   it("keeps generated artifacts reviewable and file classifications accurate", () => {
-    expect(Buffer.byteLength(serializeIndex(index), "utf8")).toBeLessThan(10_000_000);
+    // New TOK Équipe pages add searchable routes, database objects and docs. Keep a tight 5% headroom.
+    expect(Buffer.byteLength(serializeIndex(index), "utf8")).toBeLessThan(10_500_000);
     expect(renderApplicationReference(index)).not.toMatch(/\n\n$/);
     expect(
       index.catalogs.files.find((item: { path: string }) => item.path === "src/test/application-search-index.test.ts")
