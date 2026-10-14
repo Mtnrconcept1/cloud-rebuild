@@ -185,6 +185,107 @@ GRANT EXECUTE ON FUNCTION public.tok_workforce_my_restaurants(),
   public.tok_workforce_claim_employee(uuid),public.tok_workforce_punch(uuid,text) TO authenticated;
 
 -- Source SwissTime features: team listing and two-step shift exchanges.
+-- Preserve the visible handwritten mark next to the authenticated signer and timestamp.
+-- This is an ordinary electronic signature, never a Swiss qualified signature.
+ALTER TABLE public.tok_workforce_validations
+ ADD COLUMN signature_data text CHECK (
+   signature_data IS NULL OR (
+     char_length(signature_data) BETWEEN 100 AND 120000
+     AND signature_data ~ '^data:image/png;base64,[A-Za-z0-9+/=]+ numeric(9,2) NOT NULL DEFAULT 0
+ CHECK (hourly_cost_chf BETWEEN 0 AND 10000);
+
+CREATE FUNCTION public.tok_workforce_team_directory(p_restaurant_id uuid)
+RETURNS TABLE(employee_id uuid,display_name text)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=''
+AS $$
+ SELECT e.id, e.first_name || ' ' || e.last_name
+ FROM public.tok_workforce_employees e
+ WHERE e.restaurant_id=p_restaurant_id AND e.is_active
+ AND EXISTS (
+   SELECT 1 FROM public.tok_workforce_employees myself
+   JOIN public.tok_workforce_settings s ON s.restaurant_id=myself.restaurant_id
+   WHERE myself.restaurant_id=p_restaurant_id AND myself.user_id=(SELECT auth.uid())
+   AND myself.is_active AND s.enabled
+ )
+ ORDER BY e.last_name,e.first_name
+ LIMIT 200;
+$$;
+
+ALTER TABLE public.tok_workforce_exchanges
+ ADD COLUMN target_accepted_at timestamptz,
+ ADD COLUMN target_response text CHECK (target_response IS NULL OR char_length(target_response)<=1000),
+ ADD COLUMN requester_message text CHECK (requester_message IS NULL OR char_length(requester_message)<=1000),
+ ADD COLUMN manager_notes text CHECK (manager_notes IS NULL OR char_length(manager_notes)<=1000);
+
+CREATE FUNCTION public.tok_workforce_respond_exchange(p_exchange_id uuid,p_accept boolean,p_response text DEFAULT NULL)
+RETURNS void LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_exchange public.tok_workforce_exchanges%ROWTYPE;
+BEGIN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Authentication required'; END IF;
+ SELECT * INTO v_exchange FROM public.tok_workforce_exchanges WHERE id=p_exchange_id FOR UPDATE;
+ IF v_exchange.id IS NULL OR v_exchange.status<>'pending' OR v_exchange.target_accepted_at IS NOT NULL THEN
+   RAISE EXCEPTION 'Exchange unavailable'; END IF;
+ IF NOT public.tok_workforce_enabled(v_exchange.restaurant_id)
+  OR NOT EXISTS(SELECT 1 FROM public.tok_workforce_employees e
+    WHERE e.id=v_exchange.target_employee_id AND e.restaurant_id=v_exchange.restaurant_id
+    AND e.user_id=auth.uid() AND e.is_active)
+ THEN RAISE EXCEPTION 'Unauthorized recipient'; END IF;
+ IF p_response IS NOT NULL AND char_length(p_response)>1000 THEN RAISE EXCEPTION 'Message too long'; END IF;
+ UPDATE public.tok_workforce_exchanges SET
+   target_accepted_at=CASE WHEN p_accept THEN now() ELSE NULL END,
+   status=CASE WHEN p_accept THEN 'pending' ELSE 'rejected' END,
+   target_response=p_response,updated_at=now()
+ WHERE id=p_exchange_id;
+END $$;
+
+-- Keep the original transactional swap, but require explicit colleague consent.
+CREATE OR REPLACE FUNCTION public.tok_workforce_review_exchange(p_exchange_id uuid,p_approve boolean)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE
+ request_row public.tok_workforce_exchanges%ROWTYPE;
+ requester_employee uuid;
+ target_employee uuid;
+BEGIN
+ SELECT * INTO request_row FROM public.tok_workforce_exchanges WHERE id=p_exchange_id FOR UPDATE;
+ IF NOT FOUND OR NOT public.tok_workforce_can_manage(request_row.restaurant_id) THEN
+   RAISE EXCEPTION 'Exchange not found or unauthorized';
+ END IF;
+ IF request_row.status <> 'pending' THEN RAISE EXCEPTION 'Exchange already reviewed'; END IF;
+ IF p_approve THEN
+   IF request_row.target_accepted_at IS NULL THEN RAISE EXCEPTION 'Colleague consent required'; END IF;
+   SELECT employee_id INTO requester_employee FROM public.tok_workforce_shifts
+     WHERE id=request_row.requester_shift_id AND restaurant_id=request_row.restaurant_id FOR UPDATE;
+   IF requester_employee IS DISTINCT FROM request_row.requester_id THEN RAISE EXCEPTION 'Requester shift changed'; END IF;
+   IF request_row.target_shift_id IS NOT NULL THEN
+     SELECT employee_id INTO target_employee FROM public.tok_workforce_shifts
+       WHERE id=request_row.target_shift_id AND restaurant_id=request_row.restaurant_id FOR UPDATE;
+     IF target_employee IS DISTINCT FROM request_row.target_employee_id THEN RAISE EXCEPTION 'Target shift changed'; END IF;
+     UPDATE public.tok_workforce_shifts SET employee_id=request_row.requester_id,updated_at=now()
+       WHERE id=request_row.target_shift_id AND restaurant_id=request_row.restaurant_id;
+   END IF;
+   UPDATE public.tok_workforce_shifts SET employee_id=request_row.target_employee_id,updated_at=now()
+     WHERE id=request_row.requester_shift_id AND restaurant_id=request_row.restaurant_id;
+ END IF;
+ UPDATE public.tok_workforce_exchanges
+ SET status=CASE WHEN p_approve THEN 'approved' ELSE 'rejected' END,
+ reviewed_at=now(),reviewed_by=auth.uid(),updated_at=now()
+ WHERE id=p_exchange_id AND restaurant_id=request_row.restaurant_id;
+END $$;
+REVOKE ALL ON FUNCTION public.tok_workforce_team_directory(uuid),
+ public.tok_workforce_respond_exchange(uuid,boolean,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.tok_workforce_team_directory(uuid),
+ public.tok_workforce_respond_exchange(uuid,boolean,text) TO authenticated;
+
+   )
+ );
+
+-- Avoid ambiguous account claims when addresses differ only in whitespace/case.
+CREATE UNIQUE INDEX tok_workforce_employees_verified_email
+ ON public.tok_workforce_employees (restaurant_id, lower(btrim(email)))
+ WHERE email IS NOT NULL AND btrim(email)<>'';
+
 ALTER TABLE public.tok_workforce_employees ADD COLUMN hourly_cost_chf numeric(9,2) NOT NULL DEFAULT 0
  CHECK (hourly_cost_chf BETWEEN 0 AND 10000);
 
