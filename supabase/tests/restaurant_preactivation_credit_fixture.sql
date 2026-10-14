@@ -100,6 +100,7 @@ BEGIN
     'credits', jsonb_build_array(jsonb_build_object(
       'kind','tok_credits','label','Credits TOK','unit','credit',
       'included_allowance', 100,
+      'subscription_balance', 100,
       'topup_allowance',v_topups,
       'balance',GREATEST(100+v_topups-v_spent,0),
       'topup_balance',GREATEST(v_topups-v_spent,0),
