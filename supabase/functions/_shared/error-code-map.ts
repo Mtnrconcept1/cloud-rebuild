@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 401 error codes mapped from supabase/functions/**.
+// 405 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -593,6 +593,30 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/_shared/commercial-demo-ai.ts",
       "line": 114
+    }
+  ],
+  "commission_invalid_server_snapshot": [
+    {
+      "file": "supabase/functions/stripe-worker/index.ts",
+      "line": 494
+    }
+  ],
+  "commission_reservation_no_longer_honored": [
+    {
+      "file": "supabase/functions/stripe-worker/index.ts",
+      "line": 507
+    }
+  ],
+  "commission_reservation_verification_failed": [
+    {
+      "file": "supabase/functions/stripe-worker/index.ts",
+      "line": 503
+    }
+  ],
+  "commission_subscription_not_active": [
+    {
+      "file": "supabase/functions/stripe-worker/index.ts",
+      "line": 516
     }
   ],
   "consent_check_unavailable": [

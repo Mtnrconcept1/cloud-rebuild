@@ -42,6 +42,7 @@ export type PrivilegedSignupRecoveryDraft = {
   legalAcceptance: {
     acceptedAt: string;
     version: string;
+    commissionConsentAccepted?: boolean;
   };
   contractSignature?: {
     signerName: string;

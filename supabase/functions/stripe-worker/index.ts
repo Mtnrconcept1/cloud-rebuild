@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import Stripe from "npm:stripe@18.5.0";
+import Stripe from "npm:stripe@22.3.2";
 
 import {
   HttpError,
@@ -8,7 +8,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
-import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import { getStripeRuntimeForCheckoutKind, getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
 import { getEffectiveFeatureFlagSet } from "../_shared/feature-flags.ts";
 import {
   FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
@@ -213,7 +213,7 @@ async function activateRestaurantSubscription(input: {
     .replace(/[^a-zA-Z0-9_-]/g, "")
     .slice(0, 80);
 
-  let subscription = await findExistingActivationSubscription({
+  let subscription: Stripe.Subscription | null = await findExistingActivationSubscription({
     stripe: runtime.stripe,
     job,
   });
@@ -326,7 +326,7 @@ async function activateRestaurantSubscription(input: {
         items: [{ price: price.id }],
         default_payment_method: job.stripe_payment_method_id,
         collection_method: "charge_automatically",
-        payment_behavior: "default_incomplete",
+        // Try the first invoice automatically with the pre-authorized card.\n        // Failed or 3DS-required payments remain incomplete until resolved.\n        payment_behavior: "allow_incomplete",
         payment_settings: {
           save_default_payment_method: "on_subscription",
         },
@@ -339,6 +339,50 @@ async function activateRestaurantSubscription(input: {
           `tok-restaurant-activation-subscription:${idempotencySuffix}:${paymentAttemptSuffix}`,
       },
     );
+
+    // Stripe may create a finalized first invoice but leave its PaymentIntent
+    // in requires_confirmation with no automatic collection attempt. The saved
+    // off-session card mandate is ready, so attempt this first invoice once.
+    // Do not retry invoices that Stripe has already attempted (SCA/declines).
+    if (subscription.status === "incomplete") {
+      const firstInvoiceId = getExpandableStripeId(subscription.latest_invoice);
+      if (!firstInvoiceId) {
+        throw new Error("activation_first_invoice_missing");
+      }
+      const firstInvoice = await runtime.stripe.invoices.retrieve(firstInvoiceId);
+      if (firstInvoice.status === "open" && firstInvoice.attempted === false) {
+        try {
+          const payment = await runtime.stripe.invoices.pay(
+            firstInvoiceId,
+            {
+              payment_method: job.stripe_payment_method_id,
+              off_session: true,
+            },
+            {
+              idempotencyKey:
+                `tok-restaurant-activation-initial-pay:${idempotencySuffix}:${paymentAttemptSuffix}`,
+            },
+          );
+          if (payment.status === "paid") {
+            subscription = await runtime.stripe.subscriptions.retrieve(
+              subscription.id,
+              { expand: ["latest_invoice"] },
+            );
+          }
+        } catch (error) {
+          // Card refusal / 3DS must not mark the subscription active. Keep the
+          // Stripe subscription and its unpaid invoice for the existing
+          // restaurant payment-recovery flow; do not recreate or double-charge.
+          if (!(error instanceof Stripe.errors.StripeCardError)) {
+            throw error;
+          }
+          subscription = await runtime.stripe.subscriptions.retrieve(
+            subscription.id,
+            { expand: ["latest_invoice"] },
+          );
+        }
+      }
+    }
   }
 
   if (!stripePriceId) {
@@ -376,6 +420,181 @@ async function activateRestaurantSubscription(input: {
     subscriptionStatus: subscription.status,
     billingPeriod,
   };
+}
+
+
+type ReservationCommissionJob = {
+  job_id: string;
+  restaurant_id: string;
+  reservation_id: string;
+  invoice_id: string;
+  amount_cents: number;
+  stripe_customer_id: string;
+  stripe_payment_method_id: string;
+  stripe_subscription_id: string;
+  stripe_mode: "live" | "test";
+  attempt_count: number;
+};
+
+async function recordCommissionIntent(
+  adminClient: Awaited<ReturnType<typeof authenticateRequest>>["adminClient"],
+  job: ReservationCommissionJob,
+  paymentIntentId: string,
+  status: string,
+  errorCode: string | null = null,
+) {
+  const { error } = await adminClient.rpc("record_restaurant_commission_payment", {
+    p_collection_id: job.job_id,
+    p_payment_intent_id: paymentIntentId,
+    p_stripe_status: status,
+    p_stripe_mode: job.stripe_mode,
+    p_error_code: errorCode,
+  });
+  if (error) throw new Error("commission_record_payment_failed:" + error.message);
+}
+
+async function collectReservationCommissions(input: {
+  adminClient: Awaited<ReturnType<typeof authenticateRequest>>["adminClient"];
+  limit: number;
+}) {
+  const { adminClient, limit } = input;
+  // The Edge Function can deploy before its database migration. Skip the new
+  // commission RPC while the financial feature flag is disabled so that
+  // existing subscription activations remain available during rollout.
+  const { data: financeConfig, error: financeConfigError } = await adminClient
+    .from("finance_runtime_config")
+    .select("metadata")
+    .eq("config_key", "default")
+    .maybeSingle();
+  if (financeConfigError) {
+    throw new Error("commission_config_read_failed:" + financeConfigError.message);
+  }
+  const financeMetadata = financeConfig?.metadata;
+  if (
+    !financeMetadata ||
+    typeof financeMetadata !== "object" ||
+    Array.isArray(financeMetadata) ||
+    financeMetadata.reservation_commission_auto_debit_enabled !== true
+  ) {
+    return { claimed: 0, succeeded: 0, failed: 0 };
+  }
+  const { data, error } = await adminClient.rpc(
+    "claim_restaurant_commission_collections",
+    { p_limit: limit },
+  );
+  if (error) throw new Error("commission_claim_failed:" + error.message);
+  const jobs = (Array.isArray(data) ? data : []) as ReservationCommissionJob[];
+  let succeeded = 0;
+  let failed = 0;
+  const log = makeLogger("stripe-reservation-commissions");
+
+  for (const job of jobs) {
+    try {
+      if (job.amount_cents !== 500 || !job.invoice_id || !job.stripe_subscription_id) {
+        throw new HttpError(422, "commission_invalid_server_snapshot");
+      }
+      // A table may have been cancelled or marked no-show after its
+      // collection job was queued. Check again before calling Stripe.
+      const { data: currentReservation, error: reservationError } = await adminClient
+        .from("reservations")
+        .select("id, restaurant_id, status, cancelled_by")
+        .eq("id", job.reservation_id)
+        .maybeSingle();
+      if (reservationError) throw new HttpError(503, "commission_reservation_verification_failed");
+      if (!currentReservation || currentReservation.restaurant_id !== job.restaurant_id
+        || !["arrived", "seated", "completed"].includes(String(currentReservation.status))
+        || currentReservation.cancelled_by !== null) {
+        throw new HttpError(409, "commission_reservation_no_longer_honored");
+      }
+      const runtime = getStripeRuntimeForCheckoutKindAndMode(
+        "restaurant-subscription", job.stripe_mode,
+      );
+      const subscription = await runtime.stripe.subscriptions.retrieve(job.stripe_subscription_id);
+      if (subscription.status !== "active" ||
+          subscription.customer !== job.stripe_customer_id ||
+          subscription.metadata.restaurant_id !== job.restaurant_id) {
+        throw new HttpError(409, "commission_subscription_not_active");
+      }
+
+      // At most one PaymentIntent per table. Stripe's idempotency key is
+      // deterministic and the database stops retries once its TTL is unsafe.
+      // The intent is charged to the TOK platform directly; a Stripe Connect
+      // Transfer is neither necessary nor allowed for these platform fees.
+      const intent = await runtime.stripe.paymentIntents.create({
+        amount: job.amount_cents,
+        currency: "chf",
+        customer: job.stripe_customer_id,
+        payment_method: job.stripe_payment_method_id,
+        confirm: true,
+        off_session: true,
+        description: "TOK - commission réservation honorée",
+        metadata: {
+          tok_purpose: "reservation_commission",
+          commission_id: job.job_id,
+          restaurant_id: job.restaurant_id,
+          reservation_id: job.reservation_id,
+          local_invoice_id: job.invoice_id,
+          amount_cents: String(job.amount_cents),
+        },
+      }, {
+        idempotencyKey: "tok-reservation-commission:" + job.job_id,
+      });
+      await recordCommissionIntent(adminClient, job, intent.id, intent.status);
+      if (intent.status === "succeeded") succeeded++;
+      else {
+        failed++;
+        log.warn("commission_pending_customer_action", {
+          commissionId: job.job_id, status: intent.status,
+        });
+      }
+    } catch (error) {
+      failed++;
+      const rawIntent = (error as {
+        payment_intent?: string | { id?: string; status?: string };
+        raw?: { payment_intent?: string | { id?: string; status?: string } };
+      })?.payment_intent || (error as {
+        raw?: { payment_intent?: string | { id?: string; status?: string } };
+      })?.raw?.payment_intent;
+      const knownIntentId = getExpandableStripeId(rawIntent);
+      if (knownIntentId) {
+        try {
+          const runtime = getStripeRuntimeForCheckoutKindAndMode(
+            "restaurant-subscription", job.stripe_mode,
+          );
+          const intent = await runtime.stripe.paymentIntents.retrieve(knownIntentId);
+          await recordCommissionIntent(
+            adminClient, job, intent.id, intent.status,
+            stripeErrorCode(error),
+          );
+          continue;
+        } catch (recordingError) {
+          log.error("commission_intent_reconciliation_failed", {
+            commissionId: job.job_id,
+            reason: recordingError instanceof Error ? recordingError.message : "unknown",
+          });
+        }
+      }
+      const retryable = isRetryableActivationError(error)
+        && !(error instanceof HttpError);
+      const { error: failError } = await adminClient.rpc(
+        "fail_restaurant_commission_collection",
+        {
+          p_collection_id: job.job_id,
+          p_error_code: stripeErrorCode(error),
+          p_retryable: retryable,
+        },
+      );
+      if (failError) {
+        log.error("commission_failure_persistence_failed", {
+          commissionId: job.job_id, reason: failError.message,
+        });
+      }
+      log.warn("commission_collection_failed", {
+        commissionId: job.job_id, retryable, code: stripeErrorCode(error),
+      });
+    }
+  }
+  return { claimed: jobs.length, succeeded, failed };
 }
 
 Deno.serve(async (req) => {
@@ -478,26 +697,33 @@ Deno.serve(async (req) => {
       }
     }
 
+    const commissionResults = await collectReservationCommissions({
+      adminClient: actor.adminClient,
+      limit,
+    });
+
     await writeAuditLog({
       adminClient: actor.adminClient,
       actor,
       request: req,
       functionName: "stripe-worker",
       action: "process_restaurant_subscription_activations",
-      status: "success",
+      status: commissionResults.failed > 0 ? "failure" : "success",
       targetEntityType: "restaurant_subscription_activation_jobs",
       metadata: {
         source: String(payload.source || "scheduler"),
         claimed: jobs.length,
         succeeded: results.filter((result) => result.ok === true).length,
         failed: results.filter((result) => result.ok === false).length,
+        reservation_commissions: commissionResults,
       },
     });
 
     return jsonResponse({
-      ok: true,
+      ok: commissionResults.failed === 0,
       claimed: jobs.length,
       results,
+      reservation_commissions: commissionResults,
     }, 200, CORS_HEADERS);
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
