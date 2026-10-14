@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "3e48f25f4123011045cdcc49639a76f124913fa6114a3e5b62802e3c93cec288",
+ "sourceDigest": "3affd5e1218aacb80fb757b019d081027b6aa547dd1cac01f9d9607aab832030",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -35699,7 +35699,7 @@
    {
     "name": "20261014010000 Recurring Restaurant Reservation Commissions",
     "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-    "lineCount": 542,
+    "lineCount": 547,
     "objectCount": 16
    }
   ],
@@ -39776,7 +39776,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-      "line": 433
+      "line": 438
      }
     ]
    },
@@ -42604,7 +42604,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-      "line": 262
+      "line": 267
      }
     ]
    },
@@ -42734,7 +42734,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-      "line": 481
+      "line": 486
      }
     ]
    },
@@ -43460,7 +43460,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-      "line": 379
+      "line": 384
      }
     ]
    },
@@ -43490,7 +43490,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-      "line": 322
+      "line": 327
      }
     ]
    },
@@ -58842,7 +58842,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-      "line": 477
+      "line": 482
      }
     ]
    },
@@ -63362,7 +63362,7 @@
     "sources": [
      {
       "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-      "line": 460
+      "line": 465
      }
     ]
    },
@@ -107553,7 +107553,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 102
+    "lineCount": 106
    },
    {
     "path": "src/test/restaurant-reservation-sidebar.test.ts",
@@ -109364,7 +109364,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3254,
+      "line": 3266,
       "kind": "function"
      }
     ],
@@ -109376,7 +109376,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3259
+    "lineCount": 3271
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -113441,7 +113441,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 719
+    "lineCount": 732
    },
    {
     "path": "supabase/functions/submit-signup-application/index.ts",
@@ -147792,7 +147792,7 @@
    "id": "code-module:759e6d98d2f0",
    "type": "code-module",
    "title": "src/test/restaurant-reservation-commission-collection.test.ts",
-   "description": "Module de 102 lignes; exports: aucun export statique.",
+   "description": "Module de 106 lignes; exports: aucun export statique.",
    "path": "src/test/restaurant-reservation-commission-collection.test.ts",
    "line": 1,
    "surface": null,
@@ -147800,7 +147800,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "567cad673188"
+   "detailRef": "9b33ae4732d6"
   },
   {
    "id": "code-module:d8b8a4d58cea",
@@ -149743,7 +149743,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3259 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3271 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -149757,7 +149757,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "526880ed4dc3"
+   "detailRef": "70f6b665f6a6"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -152456,7 +152456,7 @@
    "id": "code-module:f3fa7c18e7bc",
    "type": "code-module",
    "title": "supabase/functions/stripe-worker/index.ts",
-   "description": "Module de 719 lignes; exports: aucun export statique.",
+   "description": "Module de 732 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-worker/index.ts",
    "line": 1,
    "surface": null,
@@ -152465,7 +152465,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "31a86a67a9c1"
+   "detailRef": "16b7d832353b"
   },
   {
    "id": "code-module:869f513f0867",
@@ -176553,19 +176553,19 @@
    "detailRef": "ec1098b966a7"
   },
   {
-   "id": "database-object:0156fba2b63e",
+   "id": "database-object:7eb26aaaeb66",
    "type": "database-object",
    "title": "public.fail_restaurant_commission_collection",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-   "line": 433,
+   "line": 438,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "f1f4e95c3527"
+   "detailRef": "04bbd92c0430"
   },
   {
    "id": "database-object:1431efcb6dc9",
@@ -183948,19 +183948,19 @@
    "detailRef": "1fd387af00ea"
   },
   {
-   "id": "database-object:26e76ff8a72e",
+   "id": "database-object:a311090c3d0f",
    "type": "database-object",
    "title": "public.record_restaurant_commission_payment",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-   "line": 262,
+   "line": 267,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "5df4120b6dc5"
+   "detailRef": "d20af28ebffb"
   },
   {
    "id": "database-object:cb4f75cc6ab2",
@@ -184113,19 +184113,19 @@
    "detailRef": "bf38cb5f40a0"
   },
   {
-   "id": "database-object:5ccbadaae590",
+   "id": "database-object:5b6d8dc23932",
    "type": "database-object",
    "title": "public.record_tok_bank_payout",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-   "line": 481,
+   "line": 486,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "b95c693668e4"
+   "detailRef": "2e721c44eff8"
   },
   {
    "id": "database-object:1f5556012743",
@@ -188118,19 +188118,19 @@
    "detailRef": "78c5e2c95b75"
   },
   {
-   "id": "database-object:ece4e18b9b6b",
+   "id": "database-object:881266eb01bd",
    "type": "database-object",
    "title": "public.restore_restaurant_commission_dispute",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-   "line": 379,
+   "line": 384,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "a3704112be3b"
+   "detailRef": "3ee039dee693"
   },
   {
    "id": "database-object:12460cdb5a82",
@@ -188163,19 +188163,19 @@
    "detailRef": "44ce09fa13c8"
   },
   {
-   "id": "database-object:932d29f37c11",
+   "id": "database-object:30ced95326c4",
    "type": "database-object",
    "title": "public.reverse_restaurant_commission_payment",
    "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-   "line": 322,
+   "line": 327,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "33b39bf0e75f"
+   "detailRef": "0f4f3f2ba5eb"
   },
   {
    "id": "database-object:09e56bddaae9",
@@ -191283,34 +191283,34 @@
    "detailRef": "edb45826c211"
   },
   {
-   "id": "database-object:4bc9f5dc73b2",
+   "id": "database-object:46e448a60eb4",
    "type": "database-object",
    "title": "public.tok_bank_payout_reconciliations.tok_bank_payouts_admin_only",
    "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-   "line": 477,
+   "line": 482,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "80aef38cc6bd"
+   "detailRef": "71c8504cfb5d"
   },
   {
-   "id": "database-object:ee5a3ee29c2d",
+   "id": "database-object:8e5ea9a4a222",
    "type": "database-object",
    "title": "public.tok_bank_payout_reconciliations",
    "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
    "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
-   "line": 460,
+   "line": 465,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase",
     "table"
    ],
-   "detailRef": "191ec254885b"
+   "detailRef": "7d16e258e518"
   },
   {
    "id": "database-object:dec39df17eac",
@@ -279772,12 +279772,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:27e5c0b566c0",
+   "id": "exported-symbol:12f0ca04df38",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3254,
+   "line": 3266,
    "surface": null,
    "tags": [
     "firebase",
@@ -279787,7 +279787,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ae09c7584dda"
+   "detailRef": "aaeff010da28"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -344657,7 +344657,7 @@
    "id": "migration:9e4fd59ea4e9",
    "type": "migration",
    "title": "20261014010000 Recurring Restaurant Reservation Commissions",
-   "description": "Migration SQL de 542 lignes, 16 objets CREATE détectés.",
+   "description": "Migration SQL de 547 lignes, 16 objets CREATE détectés.",
    "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
    "line": 1,
    "surface": null,
@@ -344665,7 +344665,7 @@
     "postgresql",
     "supabase"
    ],
-   "detailRef": "16c5023b84d5"
+   "detailRef": "3adfa18d618f"
   },
   {
    "id": "package-script:5bd6dc98483a",
