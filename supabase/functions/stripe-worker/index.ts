@@ -326,7 +326,7 @@ async function activateRestaurantSubscription(input: {
         items: [{ price: price.id }],
         default_payment_method: job.stripe_payment_method_id,
         collection_method: "charge_automatically",
-        payment_behavior: "default_incomplete",
+        // Try the first invoice automatically with the pre-authorized card.\n        // Failed or 3DS-required payments remain incomplete until resolved.\n        payment_behavior: "allow_incomplete",
         payment_settings: {
           save_default_payment_method: "on_subscription",
         },

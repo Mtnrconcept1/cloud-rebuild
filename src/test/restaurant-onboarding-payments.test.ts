@@ -287,6 +287,9 @@ describe("restaurant onboarding subscription payments", () => {
     expect(worker).toContain(
       'firstInvoice.status === "open" && firstInvoice.attempted === false',
     );
+    expect(worker).toContain('payment_behavior: "allow_incomplete"');
+    expect(worker).not.toContain('payment_behavior: "default_incomplete"');
+    expect(worker).toContain('firstInvoice.status === "open" && firstInvoice.attempted === false');
     expect(worker).toContain("off_session: true");
     expect(worker).toContain("Stripe.errors.StripeCardError");
     expect(worker).toContain('if (payment.status === "paid")');
