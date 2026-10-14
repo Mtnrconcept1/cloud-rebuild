@@ -202,6 +202,18 @@
     border-radius: 23px;
   }
 
+  /* A 4:1 mobile card is too short for the eyebrow, wrapped title and CTA.
+   * Let photo banners grow with their copy while keeping the entire image
+   * uncropped and a 16px safety inset around interactive content. */
+  [data-section-showcase-header][data-image-kind="photo"] {
+    aspect-ratio: auto;
+    min-height: 180px;
+  }
+
+  [data-section-showcase-header][data-image-kind="photo"] .tok-section-header__content {
+    padding: 1rem .75rem 1rem 1rem;
+  }
+
   [data-section-showcase-header] .tok-section-header__content {
     flex-basis: 60%;
     width: 60%;
