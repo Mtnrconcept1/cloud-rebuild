@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "64a99e4b74bdb45f57c06739585f84104548b010ff0107db60f07cc76b7c5a7a",
+ "sourceDigest": "3ff07e4ff81531f5fa3a104329422741da17348daec978917bc189975945e17f",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2784,
+  "databaseObjects": 2787,
   "documents": 204,
   "edgeFunctions": 116,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3520,
+  "exportedSymbols": 3521,
   "featureFlags": 99,
   "frontendRoutes": 137,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 539,
-  "modules": 1554,
+  "migrations": 541,
+  "modules": 1556,
   "pages": 129,
   "pathLiterals": 697,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16607,
-  "repositoryFiles": 3092,
+  "records": 16619,
+  "repositoryFiles": 3096,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -3841,7 +3841,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 70,
+      "line": 71,
       "kind": "function"
      }
     ],
@@ -4777,7 +4777,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 297,
+      "line": 305,
       "kind": "function"
      }
     ],
@@ -18777,7 +18777,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 1360
+      "line": 1377
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -20573,11 +20573,11 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 1101
+      "line": 1104
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 2131
+      "line": 2139
      },
      {
       "path": "src/test/tok-ai-tools.test.ts",
@@ -20598,7 +20598,7 @@
     "sources": [
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 1224
+      "line": 1227
      }
     ]
    },
@@ -29600,11 +29600,11 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 366
+      "line": 374
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 387
+      "line": 395
      }
     ],
     "routes": [
@@ -29621,11 +29621,11 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 371
+      "line": 379
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 390
+      "line": 398
      }
     ],
     "routes": [
@@ -30926,7 +30926,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 389
+      "line": 397
      },
      {
       "path": "src/test/payment-attempt-state.test.ts",
@@ -31059,11 +31059,11 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 367
+      "line": 375
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 388
+      "line": 396
      },
      {
       "path": "src/pages/dashboard/DashboardHome.tsx",
@@ -31506,6 +31506,7 @@
      "scripts/write-supabase-secrets-env.mjs",
      "src/components/DashboardLayout.tsx",
      "src/components/SupportChat.tsx",
+     "src/components/admin/AdminAiRestaurantCosts.tsx",
      "src/components/commercial/CommercialDemoConsoleAi.tsx",
      "src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx",
      "src/components/commercial/CommercialMultiSpaceDemo.tsx",
@@ -31534,6 +31535,7 @@
      "src/pages/dashboard/DashboardPlanSalle.tsx",
      "src/pages/tok-connect/TokConnectMcpWidget.tsx",
      "src/test/admin-privileged-ai-chat.test.ts",
+     "src/test/ai-centralized-cost-controls.test.ts",
      "src/test/commercial-demo-ai-creation-scope.test.ts",
      "src/test/commercial-demo-ai-policy.test.ts",
      "src/test/commercial-demo-ai-ui-copy-contract.test.ts",
@@ -31988,6 +31990,7 @@
      "src/components/RestaurantCard.tsx",
      "src/components/ReviewForm.tsx",
      "src/components/SupportChat.tsx",
+     "src/components/admin/AdminAiRestaurantCosts.tsx",
      "src/components/admin/AdminCommercialAccountDetail.tsx",
      "src/components/admin/AdminCommercialAccountsPanel.tsx",
      "src/components/admin/AdminDemoEntitiesDialog.tsx",
@@ -32209,6 +32212,7 @@
      "src/test/admin-thefork-only-filter.test.ts",
      "src/test/admin-user-roles.test.ts",
      "src/test/admin-users-governance.test.ts",
+     "src/test/ai-centralized-cost-controls.test.ts",
      "src/test/ai-creations-server-history.test.ts",
      "src/test/ai-gallery-print-media-contract.test.ts",
      "src/test/ai-image-reference-security.test.ts",
@@ -35955,6 +35959,18 @@
     "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
     "lineCount": 163,
     "objectCount": 3
+   },
+   {
+    "name": "20261014110000 Restaurant Preactivation Weekly Ai Credits",
+    "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+    "lineCount": 537,
+    "objectCount": 4
+   },
+   {
+    "name": "20261014113000 Admin Ai Restaurant Cost Report",
+    "path": "supabase/migrations/20261014113000_admin_ai_restaurant_cost_report.sql",
+    "lineCount": 140,
+    "objectCount": 2
    }
   ],
   "databaseObjects": [
@@ -36107,6 +36123,16 @@
      {
       "path": "supabase/migrations/20260729110000_flat_reservation_billing_when_modules_disabled.sql",
       "line": 19
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private_finance.get_restaurant_preactivation_credit_usage",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+      "line": 8
      }
     ]
    },
@@ -36623,6 +36649,16 @@
      {
       "path": "supabase/migrations/20260717220000_deferred_subscription_commission_lifecycle.sql",
       "line": 3810
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.admin_ai_restaurant_cost_report",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014113000_admin_ai_restaurant_cost_report.sql",
+      "line": 9
      }
     ]
    },
@@ -38759,6 +38795,10 @@
      {
       "path": "supabase/migrations/20260907011700_ai_feature_flag_enforcement.sql",
       "line": 4
+     },
+     {
+      "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+      "line": 332
      }
     ]
    },
@@ -40857,6 +40897,10 @@
      {
       "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
       "line": 5994
+     },
+     {
+      "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+      "line": 187
      }
     ]
    },
@@ -41235,6 +41279,10 @@
      {
       "path": "supabase/migrations/20260707173000_guard_tok_credit_spend.sql",
       "line": 21
+     },
+     {
+      "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+      "line": 452
      }
     ]
    },
@@ -45597,6 +45645,16 @@
      {
       "path": "supabase/migrations/20260602070000_restore_tok_ai_schema.sql",
       "line": 266
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "ai_usage_logs_restaurant_success_created_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014113000_admin_ai_restaurant_cost_report.sql",
+      "line": 5
      }
     ]
    },
@@ -85329,6 +85387,22 @@
     "lineCount": 1070
    },
    {
+    "path": "src/components/admin/AdminAiRestaurantCosts.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 46,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 162
+   },
+   {
     "path": "src/components/admin/AdminCommercialAccountDetail.tsx",
     "exports": [
      {
@@ -102544,7 +102618,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 70,
+      "line": 71,
       "kind": "function"
      }
     ],
@@ -102553,7 +102627,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 239
+    "lineCount": 242
    },
    {
     "path": "src/pages/admin/AdminAuditLogs.tsx",
@@ -103317,7 +103391,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1728
+    "lineCount": 1745
    },
    {
     "path": "src/pages/dashboard/DashboardActualites.tsx",
@@ -103382,7 +103456,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 297,
+      "line": 305,
       "kind": "function"
      }
     ],
@@ -103391,7 +103465,7 @@
      "google",
      "supabase"
     ],
-    "lineCount": 2167
+    "lineCount": 2175
    },
    {
     "path": "src/pages/dashboard/DashboardCampaignStudio.tsx",
@@ -104435,6 +104509,16 @@
      "supabase"
     ],
     "lineCount": 124
+   },
+   {
+    "path": "src/test/ai-centralized-cost-controls.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 63
    },
    {
     "path": "src/test/ai-creations-server-history.test.ts",
@@ -119958,6 +120042,11 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/components/admin/AdminAiRestaurantCosts.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/components/admin/AdminCommercialAccountDetail.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
@@ -123229,6 +123318,11 @@
    },
    {
     "path": "src/test/admin-users-governance.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/ai-centralized-cost-controls.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -129753,6 +129847,16 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261014113000_admin_ai_restaurant_cost_report.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/actualites_billing_identity_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -132520,6 +132624,21 @@
     "supabase"
    ],
    "detailRef": "7e8bffd3dd17"
+  },
+  {
+   "id": "code-module:d5be26c8f44e",
+   "type": "code-module",
+   "title": "src/components/admin/AdminAiRestaurantCosts.tsx",
+   "description": "Module de 162 lignes; exports: default.",
+   "path": "src/components/admin/AdminAiRestaurantCosts.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default",
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "cff47090f888"
   },
   {
    "id": "code-module:61a968c96e39",
@@ -141603,7 +141722,7 @@
    "id": "code-module:e573183e1797",
    "type": "code-module",
    "title": "src/pages/admin/AdminAiOperations.tsx",
-   "description": "Module de 239 lignes; exports: default.",
+   "description": "Module de 242 lignes; exports: default.",
    "path": "src/pages/admin/AdminAiOperations.tsx",
    "line": 1,
    "surface": null,
@@ -141612,7 +141731,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "e489ae2aead4"
+   "detailRef": "f03617ac397e"
   },
   {
    "id": "code-module:744d511aa261",
@@ -142124,7 +142243,7 @@
    "id": "code-module:901ab16c9418",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "description": "Module de 1728 lignes; exports: default.",
+   "description": "Module de 1745 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
    "line": 1,
    "surface": null,
@@ -142134,7 +142253,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "86acf6c7595d"
+   "detailRef": "ddb0e48f3961"
   },
   {
    "id": "code-module:3ae72c21b09c",
@@ -142196,7 +142315,7 @@
    "id": "code-module:8e0c4b398c00",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardCampagnes.tsx",
-   "description": "Module de 2167 lignes; exports: default.",
+   "description": "Module de 2175 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardCampagnes.tsx",
    "line": 1,
    "surface": null,
@@ -142205,7 +142324,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "2742ab088f40"
+   "detailRef": "f44439041623"
   },
   {
    "id": "code-module:c7d615efc062",
@@ -143276,6 +143395,20 @@
     "supabase"
    ],
    "detailRef": "074df40da02b"
+  },
+  {
+   "id": "code-module:f1ae59ee3433",
+   "type": "code-module",
+   "title": "src/test/ai-centralized-cost-controls.test.ts",
+   "description": "Module de 63 lignes; exports: aucun export statique.",
+   "path": "src/test/ai-centralized-cost-controls.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "c09e9845ada4"
   },
   {
    "id": "code-module:7c4c0855d66c",
@@ -158447,6 +158580,21 @@
    "detailRef": "818b570ff056"
   },
   {
+   "id": "database-object:deedcd5dac75",
+   "type": "database-object",
+   "title": "ai_usage_logs_restaurant_success_created_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014113000_admin_ai_restaurant_cost_report.sql",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "30dd62feb59b"
+  },
+  {
    "id": "database-object:900eef1d483d",
    "type": "database-object",
    "title": "anti_waste_offers.Anyone can view active offers",
@@ -167672,6 +167820,21 @@
    "detailRef": "57d4808f84de"
   },
   {
+   "id": "database-object:2a75e55939f6",
+   "type": "database-object",
+   "title": "private_finance.get_restaurant_preactivation_credit_usage",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "12e64df15c2b"
+  },
+  {
    "id": "database-object:6f20f2fb2e4d",
    "type": "database-object",
    "title": "private_finance.guard_completed_reservation_honor",
@@ -168930,6 +169093,21 @@
     "supabase"
    ],
    "detailRef": "28402061223b"
+  },
+  {
+   "id": "database-object:6b0cdd6e649a",
+   "type": "database-object",
+   "title": "public.admin_ai_restaurant_cost_report",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014113000_admin_ai_restaurant_cost_report.sql",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "339182fa540f"
   },
   {
    "id": "database-object:4711426aa683",
@@ -173042,19 +173220,19 @@
    "detailRef": "fa258f29c4fb"
   },
   {
-   "id": "database-object:efa4eff2f8a0",
+   "id": "database-object:d4bfbb7dcd6c",
    "type": "database-object",
    "title": "public.check_restaurant_ai_quota",
-   "description": "Objet PostgreSQL de type function; 3 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260907011700_ai_feature_flag_enforcement.sql",
-   "line": 4,
+   "description": "Objet PostgreSQL de type function; 4 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+   "line": 332,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "268c57ffc176"
+   "detailRef": "3880f6ba56fe"
   },
   {
    "id": "database-object:7bf3d736dacb",
@@ -178832,19 +179010,19 @@
    "detailRef": "418b26ecdd5b"
   },
   {
-   "id": "database-object:60f5ce80dab4",
+   "id": "database-object:19ca130a6c18",
    "type": "database-object",
    "title": "public.get_restaurant_credit_usage",
-   "description": "Objet PostgreSQL de type function; 5 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
-   "line": 5994,
+   "description": "Objet PostgreSQL de type function; 6 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+   "line": 187,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "2217ad97eeda"
+   "detailRef": "e8ee74b7d830"
   },
   {
    "id": "database-object:4de18fc7496a",
@@ -179582,19 +179760,19 @@
    "detailRef": "da6cd51e3011"
   },
   {
-   "id": "database-object:b5ad54c87156",
+   "id": "database-object:e3720fdba05f",
    "type": "database-object",
    "title": "public.guard_restaurant_tok_credit_spend",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260707173000_guard_tok_credit_spend.sql",
-   "line": 21,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+   "line": 452,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "4b6ce10e60e5"
+   "detailRef": "b53d80c37fdd"
   },
   {
    "id": "database-object:214beb06dd25",
@@ -267881,6 +268059,21 @@
    "detailRef": "41f52af408a1"
   },
   {
+   "id": "exported-symbol:14e86bce338f",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/admin/AdminAiRestaurantCosts.tsx.",
+   "path": "src/components/admin/AdminAiRestaurantCosts.tsx",
+   "line": 46,
+   "surface": null,
+   "tags": [
+    "function",
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "37aa8a93e648"
+  },
+  {
    "id": "exported-symbol:abf7fe289fd1",
    "type": "exported-symbol",
    "title": "default",
@@ -270487,19 +270680,19 @@
    "detailRef": "127a5d39f56e"
   },
   {
-   "id": "exported-symbol:b0d92a1cf319",
+   "id": "exported-symbol:eb219d7b345e",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/admin/AdminAiOperations.tsx.",
    "path": "src/pages/admin/AdminAiOperations.tsx",
-   "line": 70,
+   "line": 71,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "9e21199ba19e"
+   "detailRef": "64f4f6f0b361"
   },
   {
    "id": "exported-symbol:4c3ea136244a",
@@ -270996,19 +271189,19 @@
    "detailRef": "b1f6adf025ae"
   },
   {
-   "id": "exported-symbol:7db3a7d4ac60",
+   "id": "exported-symbol:2ee79e2706fa",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardCampagnes.tsx.",
    "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-   "line": 297,
+   "line": 305,
    "surface": null,
    "tags": [
     "function",
     "google",
     "supabase"
    ],
-   "detailRef": "1cb3b85274e8"
+   "detailRef": "8438d726fea1"
   },
   {
    "id": "exported-symbol:3735a6d12152",
@@ -306170,6 +306363,20 @@
    "detailRef": "c7094f26d09d"
   },
   {
+   "id": "file:91ea83bebc6d",
+   "type": "file",
+   "title": "src/components/admin/AdminAiRestaurantCosts.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/admin/AdminAiRestaurantCosts.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "db9ffc44e3f4"
+  },
+  {
    "id": "file:88a9e79eca34",
    "type": "file",
    "title": "src/components/admin/AdminCommercialAccountDetail.tsx",
@@ -315338,6 +315545,20 @@
     "test"
    ],
    "detailRef": "ba10fe96e227"
+  },
+  {
+   "id": "file:b921484dc19b",
+   "type": "file",
+   "title": "src/test/ai-centralized-cost-controls.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/ai-centralized-cost-controls.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "ebaa8bfa0375"
   },
   {
    "id": "file:a664a302636f",
@@ -333596,6 +333817,34 @@
    "detailRef": "23024e25c3c9"
   },
   {
+   "id": "file:d50fc7e8570c",
+   "type": "file",
+   "title": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "ddc3ba97ec3c"
+  },
+  {
+   "id": "file:f0485257ed32",
+   "type": "file",
+   "title": "supabase/migrations/20261014113000_admin_ai_restaurant_cost_report.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261014113000_admin_ai_restaurant_cost_report.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "201361aefae5"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -337092,7 +337341,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 117 module(s).",
+   "description": "Intégration externe détectée dans 119 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -337104,6 +337353,7 @@
     "scripts/write-supabase-secrets-env.mjs",
     "src/components/DashboardLayout.tsx",
     "src/components/SupportChat.tsx",
+    "src/components/admin/AdminAiRestaurantCosts.tsx",
     "src/components/commercial/CommercialDemoConsoleAi.tsx",
     "src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx",
     "src/components/commercial/CommercialMultiSpaceDemo.tsx",
@@ -337132,6 +337382,7 @@
     "src/pages/dashboard/DashboardPlanSalle.tsx",
     "src/pages/tok-connect/TokConnectMcpWidget.tsx",
     "src/test/admin-privileged-ai-chat.test.ts",
+    "src/test/ai-centralized-cost-controls.test.ts",
     "src/test/commercial-demo-ai-creation-scope.test.ts",
     "src/test/commercial-demo-ai-policy.test.ts",
     "src/test/commercial-demo-ai-ui-copy-contract.test.ts",
@@ -337216,7 +337467,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "7c7a33de7517"
+   "detailRef": "677e1efda55b"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -337557,7 +337808,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 697 module(s).",
+   "description": "Intégration externe détectée dans 699 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -337625,6 +337876,7 @@
     "src/components/RestaurantCard.tsx",
     "src/components/ReviewForm.tsx",
     "src/components/SupportChat.tsx",
+    "src/components/admin/AdminAiRestaurantCosts.tsx",
     "src/components/admin/AdminCommercialAccountDetail.tsx",
     "src/components/admin/AdminCommercialAccountsPanel.tsx",
     "src/components/admin/AdminDemoEntitiesDialog.tsx",
@@ -337846,6 +338098,7 @@
     "src/test/admin-thefork-only-filter.test.ts",
     "src/test/admin-user-roles.test.ts",
     "src/test/admin-users-governance.test.ts",
+    "src/test/ai-centralized-cost-controls.test.ts",
     "src/test/ai-creations-server-history.test.ts",
     "src/test/ai-gallery-print-media-contract.test.ts",
     "src/test/ai-image-reference-security.test.ts",
@@ -338261,7 +338514,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "6f1779104aee"
+   "detailRef": "f14ae601c1c0"
   },
   {
    "id": "integration:c20910a79a78",
@@ -346491,6 +346744,34 @@
    "detailRef": "218cd69320b2"
   },
   {
+   "id": "migration:362103c0b8c6",
+   "type": "migration",
+   "title": "20261014110000 Restaurant Preactivation Weekly Ai Credits",
+   "description": "Migration SQL de 537 lignes, 4 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "6f256253eb3b"
+  },
+  {
+   "id": "migration:9d3a0f1e8f49",
+   "type": "migration",
+   "title": "20261014113000 Admin Ai Restaurant Cost Report",
+   "description": "Migration SQL de 140 lignes, 2 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014113000_admin_ai_restaurant_cost_report.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "ed4bc78ee1e3"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -347536,7 +347817,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "1f72adc61833"
+   "detailRef": "0c6c18fc8a5d"
   },
   {
    "id": "page:f5686e49c2cc",
@@ -348335,7 +348616,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "3988c050abd8"
+   "detailRef": "9886218a7dba"
   },
   {
    "id": "page:60af2af468ac",
@@ -352016,7 +352297,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "1a42eac7cbb6"
+   "detailRef": "a14c884e9268"
   },
   {
    "id": "path-literal:2a26b0d45a67",
@@ -352682,20 +352963,20 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "1b88762efd16"
+   "detailRef": "8f6961e90dbe"
   },
   {
-   "id": "path-literal:066026c7496d",
+   "id": "path-literal:990788316f2a",
    "type": "path-literal",
    "title": "/dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "line": 1224,
+   "line": 1227,
    "surface": null,
    "tags": [
     "src/pages/dashboard/DashboardAccountBilling.tsx"
    ],
-   "detailRef": "bdec970c3b0b"
+   "detailRef": "6fdff4268ea1"
   },
   {
    "id": "path-literal:44d566681935",
@@ -367273,7 +367554,7 @@
     "src/pages/dashboard/DashboardActualites.tsx",
     "src/pages/dashboard/DashboardCampagnes.tsx"
    ],
-   "detailRef": "bec1a15d867b"
+   "detailRef": "1d8f0ec60344"
   },
   {
    "id": "query-parameter:9f3f5f5bed43",
@@ -367287,7 +367568,7 @@
     "src/pages/dashboard/DashboardActualites.tsx",
     "src/pages/dashboard/DashboardCampagnes.tsx"
    ],
-   "detailRef": "6d08997ae1d8"
+   "detailRef": "71aeb896f596"
   },
   {
    "id": "query-parameter:982bbba6d045",
@@ -368384,7 +368665,7 @@
     "src/test/payment-attempt-state.test.ts",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "7e36cc404156"
+   "detailRef": "1e3c5e13828f"
   },
   {
    "id": "query-parameter:32944e8d118e",
@@ -368484,7 +368765,7 @@
     "src/pages/dashboard/DashboardHome.tsx",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "176997d3a3a1"
+   "detailRef": "7c55759b4667"
   },
   {
    "id": "query-parameter:04069271d1b6",
