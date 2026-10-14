@@ -245,7 +245,7 @@ describe("vercel config", () => {
     expect(mapSource).toContain("animate: false");
   });
 
-  it("enables Vercel Git deployments while retaining the CLI fallback workflow", () => {
+  it("disables Vercel Git auto-deployments while retaining the validated production CLI pipeline", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
     const workflowPath = path.resolve(process.cwd(), ".github/workflows/deploy-production.yml");
     const config = JSON.parse(readFileSync(configPath, "utf8")) as {
@@ -253,7 +253,7 @@ describe("vercel config", () => {
     };
     const workflow = readFileSync(workflowPath, "utf8");
 
-    expect(config.git?.deploymentEnabled).toBe(true);
+    expect(config.git?.deploymentEnabled).toBe(false);
     expect(workflow).not.toContain("VERCEL_DEPLOY_HOOK_URL");
     expect(workflow).not.toContain("Trigger Vercel production deploy hook");
     expect(workflow).toContain("VERCEL_CLI_VERSION: 55.0.0");
