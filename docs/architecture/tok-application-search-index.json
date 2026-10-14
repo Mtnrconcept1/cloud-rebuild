@@ -2,13 +2,13 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "a71e5a4ad39fc50abeea071cb5dd54fd5562cc125e781945acde2737c6aa1d70",
+ "sourceDigest": "bdf974380969534eb37c38ab6f2bcf972e205dc51b67cd50fca2563677a1472a",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2785,
+  "databaseObjects": 2784,
   "documents": 204,
   "edgeFunctions": 116,
   "edgeHttpRoutes": 20,
@@ -17,7 +17,7 @@
   "frontendRoutes": 138,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 540,
+  "migrations": 539,
   "modules": 1554,
   "pages": 128,
   "pathLiterals": 698,
@@ -25,8 +25,8 @@
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16612,
-  "repositoryFiles": 3095,
+  "records": 16607,
+  "repositoryFiles": 3092,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -4785,7 +4785,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 305,
+      "line": 297,
       "kind": "function"
      }
     ],
@@ -18810,7 +18810,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 1377
+      "line": 1360
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -20606,11 +20606,11 @@
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 1104
+      "line": 1101
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 2139
+      "line": 2131
      },
      {
       "path": "src/test/tok-ai-tools.test.ts",
@@ -20631,7 +20631,7 @@
     "sources": [
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-      "line": 1227
+      "line": 1224
      }
     ]
    },
@@ -29633,11 +29633,11 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 374
+      "line": 366
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 395
+      "line": 387
      }
     ],
     "routes": [
@@ -29654,11 +29654,11 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 379
+      "line": 371
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 398
+      "line": 390
      }
     ],
     "routes": [
@@ -30959,7 +30959,7 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 397
+      "line": 389
      },
      {
       "path": "src/test/payment-attempt-state.test.ts",
@@ -31092,11 +31092,11 @@
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 375
+      "line": 367
      },
      {
       "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-      "line": 396
+      "line": 388
      },
      {
       "path": "src/pages/dashboard/DashboardHome.tsx",
@@ -31859,7 +31859,6 @@
      "src/test/restaurant-commission-mandate-selfservice.test.ts",
      "src/test/restaurant-onboarding-payments.test.ts",
      "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
-     "src/test/restaurant-preactivation-ai-credits.test.ts",
      "src/test/restaurant-reservation-commission-collection.test.ts",
      "src/test/restaurant-stripe-adjustments.test.ts",
      "src/test/restaurateur-onboarding-reliability.test.ts",
@@ -32486,7 +32485,6 @@
      "src/test/restaurant-media-governance.test.ts",
      "src/test/restaurant-onboarding-payments.test.ts",
      "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
-     "src/test/restaurant-preactivation-ai-credits.test.ts",
      "src/test/restaurant-promotions-governance.test.ts",
      "src/test/restaurant-public-data-consistency.test.ts",
      "src/test/restaurant-reservation-commission-collection.test.ts",
@@ -35990,12 +35988,6 @@
     "path": "supabase/migrations/20261014100000_paid_tok_invoice_delivery.sql",
     "lineCount": 163,
     "objectCount": 3
-   },
-   {
-    "name": "20261014110000 Restaurant Preactivation Weekly Ai Credits",
-    "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-    "lineCount": 629,
-    "objectCount": 4
    }
   ],
   "databaseObjects": [
@@ -36148,16 +36140,6 @@
      {
       "path": "supabase/migrations/20260729110000_flat_reservation_billing_when_modules_disabled.sql",
       "line": 19
-     }
-    ]
-   },
-   {
-    "type": "function",
-    "name": "private_finance.get_restaurant_preactivation_credit_usage",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-      "line": 8
      }
     ]
    },
@@ -38810,10 +38792,6 @@
      {
       "path": "supabase/migrations/20260907011700_ai_feature_flag_enforcement.sql",
       "line": 4
-     },
-     {
-      "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-      "line": 399
      }
     ]
    },
@@ -40912,10 +40890,6 @@
      {
       "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
       "line": 5994
-     },
-     {
-      "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-      "line": 192
      }
     ]
    },
@@ -41294,10 +41268,6 @@
      {
       "path": "supabase/migrations/20260707173000_guard_tok_credit_spend.sql",
       "line": 21
-     },
-     {
-      "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-      "line": 519
      }
     ]
    },
@@ -87335,7 +87305,7 @@
     "exports": [
      {
       "name": "TokPayableInvoiceDialog",
-      "line": 196,
+      "line": 220,
       "kind": "function"
      }
     ],
@@ -87343,7 +87313,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 260
+    "lineCount": 291
    },
    {
     "path": "src/components/invoices/TokPayableInvoiceDocument.tsx",
@@ -103367,7 +103337,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1745
+    "lineCount": 1728
    },
    {
     "path": "src/pages/dashboard/DashboardActualites.tsx",
@@ -103432,7 +103402,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 305,
+      "line": 297,
       "kind": "function"
      }
     ],
@@ -103441,7 +103411,7 @@
      "google",
      "supabase"
     ],
-    "lineCount": 2175
+    "lineCount": 2167
    },
    {
     "path": "src/pages/dashboard/DashboardCampaignStudio.tsx",
@@ -108134,16 +108104,6 @@
     "lineCount": 30
    },
    {
-    "path": "src/test/restaurant-preactivation-ai-credits.test.ts",
-    "exports": [],
-    "environmentNames": [],
-    "integrations": [
-     "stripe",
-     "supabase"
-    ],
-    "lineCount": 106
-   },
-   {
     "path": "src/test/restaurant-promotions-governance.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -109238,6 +109198,13 @@
      "supabase"
     ],
     "lineCount": 176
+   },
+   {
+    "path": "src/test/tok-invoice-print-visibility.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 36
    },
    {
     "path": "src/test/tok-logo-calendar.test.ts",
@@ -125373,11 +125340,6 @@
     "extension": ".tsx"
    },
    {
-    "path": "src/test/restaurant-preactivation-ai-credits.test.ts",
-    "category": "test",
-    "extension": ".ts"
-   },
-   {
     "path": "src/test/restaurant-promotions-governance.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -125999,6 +125961,11 @@
    },
    {
     "path": "src/test/tok-intelligence-suite.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-invoice-print-visibility.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -129813,11 +129780,6 @@
     "extension": ".sql"
    },
    {
-    "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-    "category": "database-migration",
-    "extension": ".sql"
-   },
-   {
     "path": "supabase/tests/actualites_billing_identity_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -129879,16 +129841,6 @@
    },
    {
     "path": "supabase/tests/print_fulfillment_protocol_fixture.sql",
-    "category": "supabase-configuration",
-    "extension": ".sql"
-   },
-   {
-    "path": "supabase/tests/restaurant_preactivation_credit_fixture.sql",
-    "category": "supabase-configuration",
-    "extension": ".sql"
-   },
-   {
-    "path": "supabase/tests/restaurant_preactivation_credit_integration.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
    },
@@ -134131,7 +134083,7 @@
    "id": "code-module:31bcd5e17e07",
    "type": "code-module",
    "title": "src/components/invoices/TokPayableInvoiceDialog.tsx",
-   "description": "Module de 260 lignes; exports: TokPayableInvoiceDialog.",
+   "description": "Module de 291 lignes; exports: TokPayableInvoiceDialog.",
    "path": "src/components/invoices/TokPayableInvoiceDialog.tsx",
    "line": 1,
    "surface": null,
@@ -134139,7 +134091,7 @@
     "TokPayableInvoiceDialog",
     "supabase"
    ],
-   "detailRef": "d99dfdda2383"
+   "detailRef": "77a3971f1df8"
   },
   {
    "id": "code-module:c2a08a511ff3",
@@ -142186,7 +142138,7 @@
    "id": "code-module:901ab16c9418",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "description": "Module de 1745 lignes; exports: default.",
+   "description": "Module de 1728 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
    "line": 1,
    "surface": null,
@@ -142196,7 +142148,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ddb0e48f3961"
+   "detailRef": "86acf6c7595d"
   },
   {
    "id": "code-module:3ae72c21b09c",
@@ -142258,7 +142210,7 @@
    "id": "code-module:8e0c4b398c00",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardCampagnes.tsx",
-   "description": "Module de 2175 lignes; exports: default.",
+   "description": "Module de 2167 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardCampagnes.tsx",
    "line": 1,
    "surface": null,
@@ -142267,7 +142219,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "f44439041623"
+   "detailRef": "2742ab088f40"
   },
   {
    "id": "code-module:c7d615efc062",
@@ -148639,20 +148591,6 @@
    "detailRef": "56d9e00b5ec2"
   },
   {
-   "id": "code-module:c422e7b23f2f",
-   "type": "code-module",
-   "title": "src/test/restaurant-preactivation-ai-credits.test.ts",
-   "description": "Module de 106 lignes; exports: aucun export statique.",
-   "path": "src/test/restaurant-preactivation-ai-credits.test.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "stripe",
-    "supabase"
-   ],
-   "detailRef": "ce834c8fc16a"
-  },
-  {
    "id": "code-module:e5df09373fec",
    "type": "code-module",
    "title": "src/test/restaurant-promotions-governance.test.ts",
@@ -150244,6 +150182,17 @@
     "supabase"
    ],
    "detailRef": "e08d180041a1"
+  },
+  {
+   "id": "code-module:f241b98cb876",
+   "type": "code-module",
+   "title": "src/test/tok-invoice-print-visibility.test.ts",
+   "description": "Module de 36 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-invoice-print-visibility.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "335b516f4bdc"
   },
   {
    "id": "code-module:90f3ca6d8c18",
@@ -167748,21 +167697,6 @@
    "detailRef": "57d4808f84de"
   },
   {
-   "id": "database-object:2a75e55939f6",
-   "type": "database-object",
-   "title": "private_finance.get_restaurant_preactivation_credit_usage",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": 8,
-   "surface": null,
-   "tags": [
-    "function",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "12e64df15c2b"
-  },
-  {
    "id": "database-object:6f20f2fb2e4d",
    "type": "database-object",
    "title": "private_finance.guard_completed_reservation_honor",
@@ -173133,19 +173067,19 @@
    "detailRef": "fa258f29c4fb"
   },
   {
-   "id": "database-object:363dec5ae5e6",
+   "id": "database-object:efa4eff2f8a0",
    "type": "database-object",
    "title": "public.check_restaurant_ai_quota",
-   "description": "Objet PostgreSQL de type function; 4 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": 399,
+   "description": "Objet PostgreSQL de type function; 3 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20260907011700_ai_feature_flag_enforcement.sql",
+   "line": 4,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "9fd1a926b7e7"
+   "detailRef": "268c57ffc176"
   },
   {
    "id": "database-object:7bf3d736dacb",
@@ -178923,19 +178857,19 @@
    "detailRef": "418b26ecdd5b"
   },
   {
-   "id": "database-object:bb2322c75e21",
+   "id": "database-object:60f5ce80dab4",
    "type": "database-object",
    "title": "public.get_restaurant_credit_usage",
-   "description": "Objet PostgreSQL de type function; 6 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": 192,
+   "description": "Objet PostgreSQL de type function; 5 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
+   "line": 5994,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "d0b619b7f56b"
+   "detailRef": "2217ad97eeda"
   },
   {
    "id": "database-object:4de18fc7496a",
@@ -179673,19 +179607,19 @@
    "detailRef": "da6cd51e3011"
   },
   {
-   "id": "database-object:2cebf233e638",
+   "id": "database-object:b5ad54c87156",
    "type": "database-object",
    "title": "public.guard_restaurant_tok_credit_spend",
-   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": 519,
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20260707173000_guard_tok_credit_spend.sql",
+   "line": 21,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "4e090e482c27"
+   "detailRef": "4b6ce10e60e5"
   },
   {
    "id": "database-object:214beb06dd25",
@@ -261829,18 +261763,18 @@
    "detailRef": "2215d5a83170"
   },
   {
-   "id": "exported-symbol:5c679c1defcc",
+   "id": "exported-symbol:a7fd91863d14",
    "type": "exported-symbol",
    "title": "TokPayableInvoiceDialog",
    "description": "Export function de src/components/invoices/TokPayableInvoiceDialog.tsx.",
    "path": "src/components/invoices/TokPayableInvoiceDialog.tsx",
-   "line": 196,
+   "line": 220,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "ef7d408a74cd"
+   "detailRef": "001917436dc7"
   },
   {
    "id": "exported-symbol:e0eb156f4d2d",
@@ -271074,19 +271008,19 @@
    "detailRef": "b1f6adf025ae"
   },
   {
-   "id": "exported-symbol:2ee79e2706fa",
+   "id": "exported-symbol:7db3a7d4ac60",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardCampagnes.tsx.",
    "path": "src/pages/dashboard/DashboardCampagnes.tsx",
-   "line": 305,
+   "line": 297,
    "surface": null,
    "tags": [
     "function",
     "google",
     "supabase"
    ],
-   "detailRef": "8438d726fea1"
+   "detailRef": "1cb3b85274e8"
   },
   {
    "id": "exported-symbol:3735a6d12152",
@@ -321242,20 +321176,6 @@
    "detailRef": "557717a2d65a"
   },
   {
-   "id": "file:6ec854cc53d8",
-   "type": "file",
-   "title": "src/test/restaurant-preactivation-ai-credits.test.ts",
-   "description": "Fichier du dépôt classé test.",
-   "path": "src/test/restaurant-preactivation-ai-credits.test.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "test"
-   ],
-   "detailRef": "c19bda7477e7"
-  },
-  {
    "id": "file:ef19c329a365",
    "type": "file",
    "title": "src/test/restaurant-promotions-governance.test.ts",
@@ -323004,6 +322924,20 @@
     "test"
    ],
    "detailRef": "fc6cb59b36b5"
+  },
+  {
+   "id": "file:83ffbcefed60",
+   "type": "file",
+   "title": "src/test/tok-invoice-print-visibility.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-invoice-print-visibility.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "bf661bf3cd83"
   },
   {
    "id": "file:2ac3cb82c346",
@@ -333674,20 +333608,6 @@
    "detailRef": "23024e25c3c9"
   },
   {
-   "id": "file:d50fc7e8570c",
-   "type": "file",
-   "title": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "description": "Fichier du dépôt classé database-migration.",
-   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".sql",
-    "database-migration"
-   ],
-   "detailRef": "ddc3ba97ec3c"
-  },
-  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -333868,34 +333788,6 @@
     "supabase-configuration"
    ],
    "detailRef": "e055110d3ad0"
-  },
-  {
-   "id": "file:3d593cfd95ad",
-   "type": "file",
-   "title": "supabase/tests/restaurant_preactivation_credit_fixture.sql",
-   "description": "Fichier du dépôt classé supabase-configuration.",
-   "path": "supabase/tests/restaurant_preactivation_credit_fixture.sql",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".sql",
-    "supabase-configuration"
-   ],
-   "detailRef": "196a8c59ce95"
-  },
-  {
-   "id": "file:ea2cd260d06c",
-   "type": "file",
-   "title": "supabase/tests/restaurant_preactivation_credit_integration.sql",
-   "description": "Fichier du dépôt classé supabase-configuration.",
-   "path": "supabase/tests/restaurant_preactivation_credit_integration.sql",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".sql",
-    "supabase-configuration"
-   ],
-   "detailRef": "886b280ca719"
   },
   {
    "id": "file:fab86edd42d7",
@@ -337439,7 +337331,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 240 module(s).",
+   "description": "Intégration externe détectée dans 239 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -337589,7 +337481,6 @@
     "src/test/restaurant-commission-mandate-selfservice.test.ts",
     "src/test/restaurant-onboarding-payments.test.ts",
     "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
-    "src/test/restaurant-preactivation-ai-credits.test.ts",
     "src/test/restaurant-reservation-commission-collection.test.ts",
     "src/test/restaurant-stripe-adjustments.test.ts",
     "src/test/restaurateur-onboarding-reliability.test.ts",
@@ -337686,13 +337577,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "37f564a62c5b"
+   "detailRef": "466578cc5c25"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 698 module(s).",
+   "description": "Intégration externe détectée dans 697 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -338224,7 +338115,6 @@
     "src/test/restaurant-media-governance.test.ts",
     "src/test/restaurant-onboarding-payments.test.ts",
     "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
-    "src/test/restaurant-preactivation-ai-credits.test.ts",
     "src/test/restaurant-promotions-governance.test.ts",
     "src/test/restaurant-public-data-consistency.test.ts",
     "src/test/restaurant-reservation-commission-collection.test.ts",
@@ -338397,7 +338287,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "39173b1705b7"
+   "detailRef": "6f1779104aee"
   },
   {
    "id": "integration:c20910a79a78",
@@ -346627,20 +346517,6 @@
    "detailRef": "218cd69320b2"
   },
   {
-   "id": "migration:362103c0b8c6",
-   "type": "migration",
-   "title": "20261014110000 Restaurant Preactivation Weekly Ai Credits",
-   "description": "Migration SQL de 629 lignes, 4 objets CREATE détectés.",
-   "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "2e6cb4e3b0f9"
-  },
-  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -348475,7 +348351,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "9886218a7dba"
+   "detailRef": "3988c050abd8"
   },
   {
    "id": "page:60af2af468ac",
@@ -352173,7 +352049,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "561080da7aad"
+   "detailRef": "8667631179d5"
   },
   {
    "id": "path-literal:2a26b0d45a67",
@@ -352839,20 +352715,20 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "6091fca61bc6"
+   "detailRef": "b126165c5d8d"
   },
   {
-   "id": "path-literal:990788316f2a",
+   "id": "path-literal:066026c7496d",
    "type": "path-literal",
    "title": "/dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
-   "line": 1227,
+   "line": 1224,
    "surface": null,
    "tags": [
     "src/pages/dashboard/DashboardAccountBilling.tsx"
    ],
-   "detailRef": "6fdff4268ea1"
+   "detailRef": "bdec970c3b0b"
   },
   {
    "id": "path-literal:a6d2a8117227",
@@ -367430,7 +367306,7 @@
     "src/pages/dashboard/DashboardActualites.tsx",
     "src/pages/dashboard/DashboardCampagnes.tsx"
    ],
-   "detailRef": "1d8f0ec60344"
+   "detailRef": "bec1a15d867b"
   },
   {
    "id": "query-parameter:9f3f5f5bed43",
@@ -367444,7 +367320,7 @@
     "src/pages/dashboard/DashboardActualites.tsx",
     "src/pages/dashboard/DashboardCampagnes.tsx"
    ],
-   "detailRef": "71aeb896f596"
+   "detailRef": "6d08997ae1d8"
   },
   {
    "id": "query-parameter:982bbba6d045",
@@ -368541,7 +368417,7 @@
     "src/test/payment-attempt-state.test.ts",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "1e3c5e13828f"
+   "detailRef": "7e36cc404156"
   },
   {
    "id": "query-parameter:32944e8d118e",
@@ -368641,7 +368517,7 @@
     "src/pages/dashboard/DashboardHome.tsx",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "7c55759b4667"
+   "detailRef": "176997d3a3a1"
   },
   {
    "id": "query-parameter:04069271d1b6",

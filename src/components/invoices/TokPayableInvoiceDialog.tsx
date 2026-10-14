@@ -123,16 +123,37 @@ function openPrintWindow(title: string, content: string) {
       body {
         margin: 0;
         background: white;
-        display: flex;
-        justify-content: center;
+        display: block;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
       .tok-print-shell {
-        width: fit-content;
-        max-width: 190mm;
+        width: 190mm;
+        max-width: 100%;
         margin: 0 auto;
         background: white;
+      }
+      @media print {
+        /* src/index.css globally hides body * for commercial contract printing.
+           The invoice uses an isolated print window, so explicitly restore
+           visibility for the canonical invoice and every descendant. */
+        html, body { min-height: 0 !important; height: auto !important; overflow: visible !important; }
+        .tok-print-shell, .tok-print-shell * {
+          visibility: visible !important;
+        }
+        .tok-print-shell {
+          display: block !important;
+          position: static !important;
+          opacity: 1 !important;
+          transform: none !important;
+          break-before: avoid;
+          page-break-before: avoid;
+        }
+        .tok-print-shell img {
+          visibility: visible !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
       }
       @page {
         size: A4;
@@ -143,6 +164,9 @@ function openPrintWindow(title: string, content: string) {
     bodyHtml: `
     <div class="tok-print-shell">${content}</div>
     `,
+    // Give stylesheets, fonts and the TOK logo enough time to load before
+    // the browser's Save as PDF snapshot is taken.
+    printDelayMs: 900,
   });
 }
 
@@ -207,7 +231,14 @@ export function TokPayableInvoiceDialog({
 
   const handlePrint = () => {
     if (!printDocumentRef.current || !query.data) return;
-    openPrintWindow(dialogTitle, printDocumentRef.current.outerHTML);
+    // The print window has a fresh URL context. Absolute image sources
+    // ensure that the official TOK logo is not dropped from the PDF.
+    const printable = printDocumentRef.current.cloneNode(true) as HTMLDivElement;
+    printable.querySelectorAll("img").forEach((image) => {
+      const src = image.getAttribute("src");
+      if (src) image.src = new URL(src, document.baseURI).href;
+    });
+    openPrintWindow(dialogTitle, printable.outerHTML);
   };
 
   return (
