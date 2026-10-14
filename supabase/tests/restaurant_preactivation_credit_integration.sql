@@ -108,16 +108,16 @@ BEGIN
   INSERT INTO public.restaurant_ai_subscriptions(restaurant_id,status)
     VALUES ('00000000-0000-4000-8000-000000000004','awaiting_payment_method');
   INSERT INTO public.restaurant_credit_purchases(restaurant_id,status,ai_tool_credits,paid_at)
-    VALUES ('00000000-0000-4000-8000-000000000004','paid',40,now()-interval '15 minutes');
-  INSERT INTO public.ai_usage_logs(restaurant_id,status,metadata)
-    VALUES ('00000000-0000-4000-8000-000000000004','success','{"credit_units":5}');
+    VALUES ('00000000-0000-4000-8000-000000000004','paid',40,now()-interval '3 hours');
+  INSERT INTO public.ai_usage_logs(restaurant_id,status,metadata,created_at)
+    VALUES ('00000000-0000-4000-8000-000000000004','success','{"credit_units":5}',now()-interval '2 hours');
   v_usage := public.get_restaurant_credit_usage('00000000-0000-4000-8000-000000000004');
   IF (v_usage->'credits'->0->>'balance')::numeric <> 50
     OR (v_usage->'credits'->0->>'included_allowance')::numeric <> 15
   THEN RAISE EXCEPTION 'Inactive plan improperly credited: %',v_usage; END IF;
 
   UPDATE public.restaurant_ai_subscriptions
-  SET status='active',activated_at=now(),current_period_start=now()-interval '1 hour',
+  SET status='active',activated_at=now()-interval '1 hour',current_period_start=now()-interval '1 hour',
     current_period_end=now()+interval '1 month'
   WHERE restaurant_id='00000000-0000-4000-8000-000000000004';
   v_usage := public.get_restaurant_credit_usage('00000000-0000-4000-8000-000000000004');
