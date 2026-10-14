@@ -17,7 +17,7 @@ permissions:
 jobs:
   index-sync:
     name: Regenerate the application's canonical reference index
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'codex/fix-golden-tok-mobile-offers-20261013' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && (github.event.pull_request.head.ref == 'codex/fix-golden-tok-mobile-offers-20261013' || github.event.pull_request.head.ref == 'docs/restaurant-guide-real-screenshots-20261014') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -38,6 +38,11 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Restore canonical workflow prior to generating the documentation
+        shell: bash
+        run: |
+          git fetch --no-tags --depth=1 origin main
+          git show FETCH_HEAD:.github/workflows/golden-tok-browser.yml > .github/workflows/golden-tok-browser.yml
       - name: Regenerate index
         run: pnpm run docs:application-index
       - name: Commit only generated index files back to PR branch
@@ -46,7 +51,7 @@ jobs:
           PR_HEAD: ${{ github.event.pull_request.head.ref }}
         run: |
           set -euo pipefail
-          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts .github/workflows/golden-tok-browser.yml
           if git diff --cached --quiet; then
             echo "Index already up to date."
             exit 0
