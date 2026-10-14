@@ -473,6 +473,19 @@ async function collectReservationCommissions(input: {
       if (job.amount_cents !== 500 || !job.invoice_id || !job.stripe_subscription_id) {
         throw new HttpError(422, "commission_invalid_server_snapshot");
       }
+      // A table may have been cancelled or marked no-show after its
+      // collection job was queued. Check again before calling Stripe.
+      const { data: currentReservation, error: reservationError } = await adminClient
+        .from("reservations")
+        .select("id, restaurant_id, status, cancelled_by")
+        .eq("id", job.reservation_id)
+        .maybeSingle();
+      if (reservationError) throw new HttpError(503, "commission_reservation_verification_failed");
+      if (!currentReservation || currentReservation.restaurant_id !== job.restaurant_id
+        || !["arrived", "seated", "completed"].includes(String(currentReservation.status))
+        || currentReservation.cancelled_by !== null) {
+        throw new HttpError(409, "commission_reservation_no_longer_honored");
+      }
       const runtime = getStripeRuntimeForCheckoutKindAndMode(
         "restaurant-subscription", job.stripe_mode,
       );
