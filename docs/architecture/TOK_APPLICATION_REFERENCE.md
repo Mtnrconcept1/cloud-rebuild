@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `e4ac56fbd8c713d9803de6b93ec5d8448337989bc30d25b09be2e5f117eaa4f4`
+- Empreinte SHA-256 des sources indexées : `a999545f0145f382d61fe4f85d6d14dd49f86e7ff3139af16148d7cf6985d816`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,27 +32,27 @@
 | documents | 203 |
 | edgeFunctions | 115 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3514 |
+| exportedSymbols | 3515 |
 | featureFlags | 99 |
 | frontendRoutes | 137 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 534 |
-| modules | 1542 |
+| modules | 1544 |
 | pages | 129 |
 | pathLiterals | 697 |
 | publicAssets | 502 |
 | publicEntries | 527 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 16536 |
-| repositoryFiles | 3074 |
+| records | 16543 |
+| repositoryFiles | 3077 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 28 |
+| workflows | 29 |
 
 ## État distant observé
 
@@ -5995,6 +5995,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Restaurant Image Truth Backfill | backfill | [.github/workflows/restaurant-image-truth-backfill.yml](../../.github/workflows/restaurant-image-truth-backfill.yml) |
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
+| TOK regenerate tracked indexes (one time) | regenerate | [.github/workflows/tok-regenerate-once.yml](../../.github/workflows/tok-regenerate-once.yml) |
 
 ### Dépendances
 
@@ -6109,8 +6110,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 227 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 688 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 229 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 689 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6123,7 +6124,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 206 |
 | automation-script | 66 |
 | documentation | 6 |
-| edge-function-source | 193 |
+| edge-function-source | 194 |
 | frontend-component | 254 |
 | frontend-hook | 23 |
 | frontend-page | 129 |
@@ -6131,7 +6132,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 610 |
+| test | 611 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6698,7 +6699,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (28)</summary>
+<details><summary>ci-workflow (29)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -6728,6 +6729,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/restaurant-image-truth-backfill.yml`
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
+- `.github/workflows/tok-regenerate-once.yml`
 
 </details>
 
@@ -7431,7 +7433,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (193)</summary>
+<details><summary>edge-function-source (194)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7493,6 +7495,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/refund-allocations.ts`
 - `supabase/functions/_shared/reservation-card-guarantee.ts`
 - `supabase/functions/_shared/restaurant-credits.ts`
+- `supabase/functions/_shared/restaurant-stripe-price-catalog.ts`
 - `supabase/functions/_shared/restaurant-subscription-billing.ts`
 - `supabase/functions/_shared/return-url.ts`
 - `supabase/functions/_shared/safe-public-fetch.ts`
@@ -8873,7 +8876,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (610)</summary>
+<details><summary>test (611)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9470,6 +9473,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-logo-calendar.test.ts`
 - `src/test/tok-one-stripe-test-mode.test.ts`
 - `src/test/tok-pulse-native-widget.test.ts`
+- `src/test/tok-stripe-price-catalog.test.ts`
 - `src/test/transactional-email-templates.test.ts`
 - `src/test/ui-overlay-layering.test.ts`
 - `src/test/user-facing-errors.test.ts`
