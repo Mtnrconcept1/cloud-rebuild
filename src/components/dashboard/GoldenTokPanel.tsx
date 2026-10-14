@@ -21,6 +21,9 @@ type Accreditation = {
 };
 type Drop = {
   id: string; chef_name: string; dish_name: string; price: number;
+  description: string | null; image_url: string | null;
+  original_price: number | null; drop_time: string; is_active: boolean;
+  is_vip: boolean; required_miamz_points: number;
   remaining_portions: number; total_portions: number;
 };
 const emptyForm = () => ({
@@ -63,7 +66,7 @@ export default function GoldenTokPanel({ restaurantId, isCommercialDemo }: {
     enabled: !isCommercialDemo,
     queryFn: async () => {
       const { data, error, count } = await (supabase.from("chef_table_drops" as any) as any)
-        .select("id, chef_name, dish_name, price, remaining_portions, total_portions", { count: "exact" })
+        .select("id, chef_name, dish_name, description, image_url, price, original_price, total_portions, remaining_portions, drop_time, is_active, is_vip, required_miamz_points", { count: "exact" })
         .eq("restaurant_id", restaurantId)
         .eq("golden_tok_self_published", true)
         .is("archived_at", null)
@@ -128,6 +131,23 @@ export default function GoldenTokPanel({ restaurantId, isCommercialDemo }: {
     },
     onError: (e: Error) => toast({ title: "Erreur de formule", description: e.message, variant: "destructive" }),
   });
+
+  const startEdit = (drop: Drop) => {
+    setEditingId(drop.id);
+    setForm({
+      chef_name: drop.chef_name,
+      dish_name: drop.dish_name,
+      description: drop.description || "",
+      image_url: drop.image_url || "",
+      price: String(drop.price),
+      original_price: drop.original_price == null ? "" : String(drop.original_price),
+      total_portions: String(drop.total_portions),
+      drop_time: new Date(drop.drop_time).toISOString().slice(0, 16),
+      is_active: drop.is_active,
+      is_vip: drop.is_vip,
+      required_miamz_points: String(drop.required_miamz_points || 5000),
+    });
+  };
 
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -200,6 +220,13 @@ export default function GoldenTokPanel({ restaurantId, isCommercialDemo }: {
             {listQuery.data.rows.map((drop) => (
               <div key={drop.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
                 <span className="text-sm">{drop.dish_name} · {drop.chef_name} · {drop.price} CHF · {drop.remaining_portions}/{drop.total_portions} portions</span>
+                {isEntitled && (
+                  <Button type="button" variant="outline" size="sm"
+                    disabled={drop.remaining_portions !== drop.total_portions}
+                    onClick={() => startEdit(drop)}
+                    title={drop.remaining_portions !== drop.total_portions ? "Offre déjà réservée : modification bloquée" : undefined}
+                  >Modifier</Button>
+                )}
               </div>
             ))}
             {listQuery.data.count > 25 && <div className="flex gap-2">
