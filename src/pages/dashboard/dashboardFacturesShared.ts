@@ -40,7 +40,7 @@ export type RestaurantInvoiceRow = {
   pdf_url: string | null;
   created_at: string;
   restaurant_id: string;
-  invoice_type: "payout" | "reservation_fees" | "payable" | null;
+  invoice_type: "payout" | "reservation_fees" | "payable" | "subscription" | null;
 };
 
 export type RestaurantOrderRow = {
@@ -940,7 +940,7 @@ export function useDashboardFacturesData() {
     [invoicesQuery.data],
   );
   const payableInvoices = useMemo(
-    () => (invoicesQuery.data || []).filter((invoice) => invoice.invoice_type === "payable" || invoice.invoice_type === "reservation_fees"),
+    () => (invoicesQuery.data || []).filter((invoice) => invoice.invoice_type === "payable" || invoice.invoice_type === "reservation_fees" || invoice.invoice_type === "subscription"),
     [invoicesQuery.data],
   );
 

@@ -92,7 +92,7 @@ export type AdminInvoiceRow = {
   paid_at: string | null;
   pdf_url: string | null;
   created_at: string;
-  invoice_type: "payout" | "reservation_fees" | "payable" | null;
+  invoice_type: "payout" | "reservation_fees" | "payable" | "subscription" | null;
   restaurants?: { name: string | null } | null;
 };
 
@@ -1253,7 +1253,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
           invoice_type,
           restaurants ( name )
         `)
-        .in("invoice_type", ["payable", "reservation_fees"])
+        .in("invoice_type", ["payable", "reservation_fees", "subscription"])
         .gte("period_start", monthBounds.monthStart)
         .lte("period_end", monthBounds.monthEnd)
         .order("created_at", { ascending: false });

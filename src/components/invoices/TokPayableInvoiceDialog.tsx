@@ -156,7 +156,7 @@ function useTokPayableInvoiceDocumentData(invoice: PayableInvoiceRow | null, ena
         throw new Error(`Type de facture non pris en charge: ${String(invoice.invoice_type)}`);
       }
 
-      const linesPromise = invoice.invoice_type === "payable"
+      const linesPromise = invoice.invoice_type === "payable" || invoice.invoice_type === "subscription"
         ? supabase.rpc("get_payable_invoice_lines", { p_invoice_id: invoice.id })
         : supabase.rpc("get_reservation_fee_invoice_lines", { p_invoice_id: invoice.id });
 
@@ -217,7 +217,7 @@ export function TokPayableInvoiceDialog({
           <DialogHeader className="border-b border-slate-200/80 px-4 py-4 text-left sm:px-8 sm:py-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-1 sm:pr-8">
-                <DialogTitle className="font-display text-xl sm:text-2xl">Facture reçue de TOK</DialogTitle>
+                <DialogTitle className="font-display text-xl sm:text-2xl">Facture TOK{invoice?.invoice_type === "subscription" ? " — abonnement" : ""}</DialogTitle>
                 <DialogDescription className="text-sm">
                   Aperçu admin/dashboard restaurateur de la facture payable canonique.
                 </DialogDescription>
