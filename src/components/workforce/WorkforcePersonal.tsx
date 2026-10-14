@@ -14,6 +14,7 @@ import WorkforcePersonalExchanges from "@/components/workforce/WorkforcePersonal
 export default function WorkforcePersonal({restaurantId,employeeId,contractHours,vacationDays}:{restaurantId:string;employeeId:string;contractHours:number;vacationDays:number}) {
  const {toast}=useToast();
  const [weekOffset,setWeekOffset]=useState(0),[description,setDescription]=useState(""),[requestType,setRequestType]=useState("vacation");
+ const [leaveStart,setLeaveStart]=useState(""),[leaveEnd,setLeaveEnd]=useState(""),[leaveDays,setLeaveDays]=useState("1");
  const cursor=useMemo(()=>{const d=new Date();d.setDate(d.getDate()+weekOffset*7);return d},[weekOffset]);
  const range=weekRange(cursor),year=new Date().getFullYear();
  const shifts=useWorkforceShifts(restaurantId,true,range.start,range.end);
@@ -29,7 +30,10 @@ export default function WorkforcePersonal({restaurantId,employeeId,contractHours
  const sunday=myEntries.filter(e=>e.is_sunday_work).reduce((sum,e)=>{try{return sum+workedHours(e.start_time,e.end_time,e.break_minutes)}catch{return sum}},0);
  const leave=myAbsences.filter(a=>a.absence_type==="vacation"&&a.start_date.startsWith(String(year))).reduce((sum,a)=>sum+Number(a.days_count),0);
  const req=useMutation({mutationFn:async()=>{if(!description.trim()||description.length>2000)throw new Error("Description invalide");
-  const {error}=await workforceDb().from("tok_workforce_requests").insert({restaurant_id:restaurantId,employee_id:employeeId,request_type:requestType,description:description.trim(),status:"pending"});
+  if(requestType==="vacation"&&(!leaveStart||!leaveEnd||leaveEnd<leaveStart||!Number.isFinite(Number(leaveDays))||Number(leaveDays)<=0))throw new Error("Indiquez une période et le nombre de jours de congé.");
+  const {error}=await workforceDb().from("tok_workforce_requests").insert({restaurant_id:restaurantId,employee_id:employeeId,request_type:requestType,description:description.trim(),status:"pending",
+    requested_start_date:requestType==="vacation"?leaveStart:null,requested_end_date:requestType==="vacation"?leaveEnd:null,
+    requested_days:requestType==="vacation"?Number(leaveDays):null});
   if(error)throw error;},onSuccess:()=>{setDescription("");requests.refetch();toast({title:"Demande envoyée"});},
   onError:(error:Error)=>toast({title:"Demande refusée",description:error.message,variant:"destructive"})});
  return <Tabs defaultValue="clock" className="space-y-5">
@@ -76,11 +80,16 @@ export default function WorkforcePersonal({restaurantId,employeeId,contractHours
     <label className="text-sm">Motif <select className="ml-2 rounded-md border bg-background px-2 py-2" value={requestType} onChange={e=>setRequestType(e.target.value)}>
      <option value="vacation">Congés</option><option value="correction">Correction des heures</option><option value="schedule">Planning</option><option value="other">Autre</option>
     </select></label>
+    {requestType==="vacation"?<div className="grid gap-2 sm:grid-cols-3">
+      <label className="text-sm">Du <Input type="date" required value={leaveStart} onChange={e=>setLeaveStart(e.target.value)}/></label>
+      <label className="text-sm">Au <Input type="date" min={leaveStart} required value={leaveEnd} onChange={e=>setLeaveEnd(e.target.value)}/></label>
+      <label className="text-sm">Jours ouvrés <Input type="number" min="0.5" step="0.5" max={366} required value={leaveDays} onChange={e=>setLeaveDays(e.target.value)}/></label>
+    </div>:null}
     <Input required value={description} onChange={e=>setDescription(e.target.value)} maxLength={2000} placeholder="Décrivez votre demande"/>
     <Button disabled={req.isPending||!description.trim()} type="submit">Envoyer au responsable</Button>
    </form>
    {requests.isError?<p className="text-destructive">Demandes indisponibles.</p>:null}
-   {myRequests.map(r=><p key={r.id} className="rounded-xl border p-3 text-sm">{r.description} · {r.status==="pending"?"En attente":r.status==="approved"?"Acceptée":"Refusée"}</p>)}
+   {myRequests.map(r=><p key={r.id} className="rounded-xl border p-3 text-sm">{r.description} {r.requested_start_date?"· "+r.requested_start_date+" au "+r.requested_end_date:""} · {r.status==="pending"?"En attente":r.status==="approved"?"Acceptée":"Refusée"}</p>)}
   </CardContent></Card></TabsContent>
   <TabsContent value="exchanges"><WorkforcePersonalExchanges restaurantId={restaurantId} employeeId={employeeId}/></TabsContent>
  </Tabs>;
