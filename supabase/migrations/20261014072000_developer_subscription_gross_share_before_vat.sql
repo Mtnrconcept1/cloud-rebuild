@@ -744,18 +744,18 @@ BEGIN
 
   INSERT INTO public.financial_ledger (
     source_type, source_id, restaurant_id, account_code, direction,
-    amount_cents, currency, livemode, stripe_mode, effective_at, metadata
+    amount_cents, currency, livemode, effective_at, metadata
   ) VALUES
     ('tok_subscription_gross_share_adjustment',
      'in_1UQDzJGTQigE34sur1rEYCWx',
      v_original.restaurant_id,
      'developer_revenue_share_expense', 'debit', 52, 'CHF', true,
-     'live', v_original.effective_at, v_metadata),
+     v_original.effective_at, v_metadata),
     ('tok_subscription_gross_share_adjustment',
      'in_1UQDzJGTQigE34sur1rEYCWx',
      v_original.restaurant_id,
      'developer_payable', 'credit', 52, 'CHF', true,
-     'live', v_original.effective_at, v_metadata);
+     v_original.effective_at, v_metadata);
 
   GET DIAGNOSTICS v_recorded_count = ROW_COUNT;
   IF v_recorded_count <> 2 THEN
